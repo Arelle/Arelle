@@ -37,6 +37,8 @@ An xBRL-JSON template file is provided for each tagged PDF/A with inline XBRL.
    instead pdfIdRefs which is a list of space-separated IDs of structural node IDs and form field IDs
    which are space-contenated to form the value for the output xBRL-JSON file.  (Suggested
    enhancement for numeric facts includes adding transform, scale and sign.)
+   
+   Attributes pdfFormat, pdfScale and pdfSign correspond to like-named ix:nonFraction features.
 
    The output file is named with .pdf replaced by .json.
 
@@ -76,6 +78,8 @@ from collections import defaultdict
 from decimal import Decimal
 import sys, os, json
 
+DEFAULT_MISSING_ID_PREFIX="pdf_"  # None to block
+
 try:
     from arelle.Version import authorLabel, copyrightLabel
     from arelle import CntlrWinMain
@@ -84,7 +88,7 @@ except ImportError:
     module_path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
     sys.path.insert(0,module_path)
     from arelle import CntlrWinMain
-    from arelle import FunctionIxt
+    from arelle.FunctionIxt import tr5Functions
     authorLabel = 'Workiva, Inc.'
     copyrightLabel = '(c) Copyright 2011-present Workiva, Inc., All rights reserved.'
 
@@ -124,7 +128,7 @@ def fontChar(font, c):
                 return numToBytes(bytesToNum(op) + diff).decode("UTF-16BE")
                     
 
-def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=False, addMissingIDs=True, saveJson=False):
+def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=False, missingIDprefix=DEFAULT_MISSING_ID_PREFIX, saveJson=False):
 
     if showInfo:
         print(f"loadFromPDF file: {os.path.basename(filepath)}")
@@ -232,8 +236,8 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=
         elif isinstance(obj, (Stream, Dictionary, dict)):
             if "/ID" in obj:
                 pdfId = str(obj["/ID"])
-            elif addMissingIDs:
-                pdfId = f"_#{len(textBlocks)}"
+            elif missingIDprefix:
+                pdfId = f"{missingIDprefix}{len(textBlocks)}"
             if "/Pg" in obj:
                 page = None
                 c = obj["/Pg"]["/Contents"]
@@ -292,15 +296,37 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=
         oimObject = json.load(oimFile)
         # replace fact pdfIdRefs with strings
         for oimFactId, fact in oimObject.get("facts", {}).items():
-            if "pdfIdRefs" in fact:
+            idRefs = fact.pop("pdfIdRefs", None)
+            format = fact.pop("pdfFormat", None)
+            scale = fact.pop("pdfScale", None)
+            sign = fact.pop("pdfSign", None)
+            if idRefs:
                 continTexts = []
-                for pdfId in fact["pdfIdRefs"].split():
+                for pdfId in idRefs.split():
                     if pdfId in textBlocks:
                         continTexts.append(textBlocks[pdfId])
                     if pdfId in formFields:
                         continTexts.append(formFields[pdfId])
-                fact["value"] = " ".join(continTexts)
-                fact.pop("pdfIdRefs")
+                value = " ".join(continTexts)
+                if format:
+                    tr5fn = format.rpartition(":")[2]
+                    if tr5fn in tr5Functions:
+                        value = tr5Functions[tr5fn](value)
+                    else:
+                        print(f"fact {oimFactId} format {format} invalid")
+                if scale or sign:
+                    try:
+                        negate = -1 if sign else 1
+                        num = Decimal(value)
+                        if scale is not None:
+                            num *= 10 ** Decimal(scale)
+                        num *= negate
+                        if num == num.to_integral() and (".0" not in v):
+                            num = num.quantize(Decimal(1)) # drop any .0
+                        value = "{:f}".format(num)
+                    except:
+                        print(f"fact {oimFactId} value to be scaled is not decimal {valid}")
+                fact["value"] = value
         if saveJson:
             json.dump(oimObject, open(filepath.replace(".pdf", ".json"),"w"), indent=2)
 
@@ -378,7 +404,7 @@ if __name__ == "__main__":
         print("[{}] {}".format(code, message % kwargs))
 
     showInfo = False
-    addMissingIDs = False
+    missingIDprefix = None
     pdfFile = None
 
     for arg in sys.argv[1:]:
@@ -398,12 +424,14 @@ if __name__ == "__main__":
         elif arg in ("-h", "-?", "--help"):
             print("command line arguments: \n"
                   "  --showInfo: show structural model and form fields available for mapping \n"
-                  "  --addMissingIDs: add id to structural elements with text and no ID"
+                  "  --missingIDprefix pdf_: add id to structural elements with text and no ID"
                   "  {file}: .pdf file to process and save as inline XBRL named {file}.xhtml")
         elif arg == "--showInfo":
             showInfo = True # shows StructTree
-        elif arg == "--addMissingIDs":
-            addMissingIDs = True
+        elif arg == "--missingIDprefix":
+            missingIDprefix = -1
+        elif missingIDprefix == -1:
+            missingIDprefix = arg
         else:
             if not arg.endswith(".pdf"):
                 print("file {} must be a .pdf file".format(arg))
@@ -414,4 +442,4 @@ if __name__ == "__main__":
 
     if pdfFile:
         # load pdf and save json with values from pdf
-        loadFromPDF(_cntlr, _logMessage, _logMessage, None, pdfFile, None, showInfo, addMissingIDs, True)
+        loadFromPDF(_cntlr, _logMessage, _logMessage, None, pdfFile, None, showInfo, missingIDprefix, True)
