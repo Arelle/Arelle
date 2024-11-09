@@ -16,7 +16,11 @@ The Load From PDF plugin is designed for PDF/A reports with structural tagged PD
 An unstructured PDF file can be converted to a PDF/A structurally tagged file (with accessiblity
 tags that allow giving an ID to each structural item).
 
-At this time, if a structurally tagged element with text does not have an ID
+At this time, if a structurally tagged element with text does not have an ID, if missingIDprefix
+is specified, an id is generated (but not stored) for use in mapping.
+
+Option showInfo will provide the pdf metadata and all tagged element values, including those
+assigned an ID by feature missingIDprefix.
 
    by tools such as Acrobat using accessibility preparation
       Acrobat-DC seems to loose viewing glyphs on tables when autotagging
@@ -35,8 +39,7 @@ An xBRL-JSON template file is provided for each tagged PDF/A with inline XBRL.
 
    The template file facts which are to receive contents from the pdf have @value missing and
    instead pdfIdRefs which is a list of space-separated IDs of structural node IDs and form field IDs
-   which are space-contenated to form the value for the output xBRL-JSON file.  (Suggested
-   enhancement for numeric facts includes adding transform, scale and sign.)
+   which are space-contenated to form the value for the output xBRL-JSON file.
    
    Attributes pdfFormat, pdfScale and pdfSign correspond to like-named ix:nonFraction features.
 
@@ -50,6 +53,7 @@ An xBRL-JSON template file is provided for each tagged PDF/A with inline XBRL.
   python loadFromPDF.py {pdfFilePath}
   argument --showInfo will list out, by pdf ID, all the structural nodes available for pdfIdRef'ing
                       and all the form fields by their field ID for pdfIdRef'ing
+  argument --missingIDprefix provides a prefix to prepend to generated IDs for elements without ID
 
 
 
@@ -83,8 +87,10 @@ DEFAULT_MISSING_ID_PREFIX="pdf_"  # None to block
 try:
     from arelle.Version import authorLabel, copyrightLabel
     from arelle import CntlrWinMain
-    from arelle import FunctionIxt
+    from arelle.FunctionIxt import tr5Functions
 except ImportError:
+    # when run stand-alone as a main program this module expects to be in arelle's plugin directory
+    # and sets module path as below to locate transformations module in arelle directory
     module_path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
     sys.path.insert(0,module_path)
     from arelle import CntlrWinMain
@@ -310,10 +316,10 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=
                 value = " ".join(continTexts)
                 if format:
                     tr5fn = format.rpartition(":")[2]
-                    if tr5fn in tr5Functions:
+                    try:
                         value = tr5Functions[tr5fn](value)
-                    else:
-                        print(f"fact {oimFactId} format {format} invalid")
+                    except Exception as ex:
+                        print(f"fact {oimFactId} format {format} invalid exception {ex}")
                 if scale or sign:
                     try:
                         negate = -1 if sign else 1
@@ -325,7 +331,7 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=
                             num = num.quantize(Decimal(1)) # drop any .0
                         value = "{:f}".format(num)
                     except:
-                        print(f"fact {oimFactId} value to be scaled is not decimal {valid}")
+                        print(f"fact {oimFactId} value to be scaled is not decimal {value}")
                 fact["value"] = value
         if saveJson:
             json.dump(oimObject, open(filepath.replace(".pdf", ".json"),"w"), indent=2)
