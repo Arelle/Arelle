@@ -598,6 +598,19 @@ def csvPeriod(cellValue, startOrEnd=None):
             return isoDuration
     return None
 
+def increaseMaxFieldSize():
+    # https://stackoverflow.com/a/15063941
+    maxInt = sys.maxsize
+
+    while True:
+        # decrease the maxInt value by factor 10
+        # as long as the OverflowError occurs.
+        try:
+            csv.field_size_limit(maxInt)
+            break
+        except OverflowError:
+            maxInt = int(maxInt/10)
+
 def idDeduped(modelXbrl, id):
     for i in range(99999):
         if i == 0:
@@ -719,6 +732,10 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         _dialect = "excel-tab"
                         break
                 _file.seek(0)
+
+            # Must increase the max supported CSV field size before opening the CSV reader.
+            # Otherwise large HTML values will trigger csv.ERROR: field larger than field limit.
+            increaseMaxFieldSize()
             return csv.reader(_file, _dialect, doublequote=True)
 
         def ldError(msgCode, msgText, **kwargs):
