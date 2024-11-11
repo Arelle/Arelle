@@ -202,7 +202,7 @@ decimalsSuffixPattern = re.compile(r".*[0-9.][\r\n\t ]*d[\r\n\t ]*(0|-?[1-9][0-9
 
 htmlBodyTemplate = "<body xmlns='http://www.w3.org/1999/xhtml'>\n{0}\n</body>\n"
 xhtmlTagPrefix = "{http://www.w3.org/1999/xhtml}"
-DimensionsKeyPattern = re.compile(r"^(concept|entity|period|unit|language|(\w+:\w+))$")
+builtInDimensionKeys = frozenset({"concept", "entity", "period", "unit", "language"})
 
 UNSUPPORTED_DATA_TYPES = XbrlConst.dtrPrefixedContentItemTypes + (
     qname(XbrlConst.xbrli,"fractionItemType"), )
@@ -1927,7 +1927,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                     error("oime:unsupportedDimensionDataType",
                                           _("Taxonomy-defined typed dimension value is complex: %(memberQName)s at %(path)s"),
                                           modelObject=modelXbrl, memberQName=dimValue, path="/".join(pathSegs+(dimName,)))
-                if pathSegs[-1] in ("/dimensions", "dimensions") and not DimensionsKeyPattern.match(dimName):
+                if pathSegs[-1] in ("/dimensions", "dimensions") and dimName not in builtInDimensionKeys and not SQNamePattern.match(dimName):
                     error("oimce:invalidSQName",
                           _("Invalid SQName: %(sqname)s"),
                           sourceFileLine=oimFile, sqname=dimName, path="/".join(pathSegs))
