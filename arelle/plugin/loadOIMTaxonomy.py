@@ -461,13 +461,14 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
         lbElts = []
         xlinkLabelFormat = "{{}}{{:0{}}}".format(int(log10(len(taxonomyObj.get("labels", [])) or 1)))
         locXlinkLabels = {}
-        hrefsInvalid = set()
         hrefsNsWithoutPrefix = set()
-        def locXlinkLabel(elrElt, conceptRef):
+        def locXlinkLabel(elrElt, conceptRef, path):
             if conceptRef not in locXlinkLabels:
                 qn = qname(conceptRef)
                 if qn is None:
-                    hrefsInvalid.add(conceptRef or "(none)")
+                    error("oimte:invalidConceptRef",
+                          "%(path)s concept reference %(conceptRef)s is not valid",
+                          modelObject=modelXbrl, path=path, conceptRef=conceptRef)
                 elif qn.namespaceURI not in namespacePrefixes:
                     hrefsNsWithoutPrefix.add(qn.namespaceURI or "(none)")
                 concept = modelXbrl.qnameConcepts.get(qn)
@@ -479,7 +480,9 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                          "{http://www.w3.org/1999/xlink}href": f"{concept.modelDocument.uri}#{concept.id}",
                                          "{http://www.w3.org/1999/xlink}type": "locator"})
                 else:
-                    hrefsInvalid.add(conceptRef or "(none)")
+                    error("oimte:invalidConceptQName",
+                          "%(path)s concept reference %(conceptRef)s, qname %(qname)s, is not valid",
+                          modelObject=modelXbrl, path=path, qname=qn, conceptRef=conceptRef)
             return locXlinkLabels[conceptRef]
         lbElt = addChild(appinfoElt, XbrlConst.qnLinkLinkbase,
                          attributes={"id":"_labels_"})
@@ -487,21 +490,21 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
         elrElt = addChild(lbElt, XbrlConst.qnLinkLabelLink,
                          attributes={"{http://www.w3.org/1999/xlink}role": XbrlConst.defaultLinkRole,
                                      "{http://www.w3.org/1999/xlink}type": "extended"})
-        for objNdx, labelObj in enumerate(taxonomyObj.get("labels", [])):
+        for labelI, labelObj in enumerate(taxonomyObj.get("labels", [])):
             labelType = labelObj.get("labelType", "")
             value = labelObj.get("value", "")
             language = labelObj.get("language", "")
             relatedID = labelObj.get("relatedID", [])
-            xlinkLbl = xlinkLabelFormat.format("label", objNdx+1)
+            xlinkLbl = xlinkLabelFormat.format("label", labelI+1)
             addChild(elrElt, XbrlConst.qnLinkLabel, text=value,
                      attributes={# "id": xlinkLbl,
                                  "{http://www.w3.org/1999/xlink}label": xlinkLbl,
                                  "{http://www.w3.org/1999/xlink}role": labelType,
                                  "{http://www.w3.org/1999/xlink}lang": language,
                                  "{http://www.w3.org/1999/xlink}type": "resource"})
-            for ref in relatedID:
+            for refI, ref in enumerate(relatedID):
                 addChild(elrElt, XbrlConst.qnLinkLabelArc,
-                         attributes={"{http://www.w3.org/1999/xlink}from": locXlinkLabel(elrElt, ref),
+                         attributes={"{http://www.w3.org/1999/xlink}from": locXlinkLabel(elrElt, ref, f"label[{labelI}]/relatedID[{refI}]"),
                                      "{http://www.w3.org/1999/xlink}to": xlinkLbl,
                                      "{http://www.w3.org/1999/xlink}arcrole": XbrlConst.conceptLabel,
                                      "{http://www.w3.org/1999/xlink}type": "arc"})
@@ -509,7 +512,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
         domainIDHypercubeQNames = {}
         lbElt = addChild(appinfoElt, XbrlConst.qnLinkLinkbase)
         lbElts.append(lbElt)
-        for cubeObj in taxonomyObj.get("cubes", []):
+        for cubeI, cubeObj in enumerate(taxonomyObj.get("cubes", [])):
             locXlinkLabels.clear() # separate locs per elr
             networkURI = cubeObj.get("networkURI", "") # ELR
             hypercubeConcept = cubeObj.get("name", "") # hypercube concept clark name
@@ -517,19 +520,19 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             elrElt = addChild(lbElt, XbrlConst.qnLinkDefinitionLink,
                              attributes={"{http://www.w3.org/1999/xlink}role": networkURI,
                                          "{http://www.w3.org/1999/xlink}type": "extended"})
-            for dimObj in cubeObj.get("dimensions", []):
+            for dimI, dimObj in enumerate(cubeObj.get("dimensions", [])):
                 dimensionType = dimObj.get("dimensionType", "")
                 domainID = dimObj.get("domainID", "")
                 dimensionType = dimObj.get("dimensionType", "")
                 dimensionConcept = dimObj.get("dimensionConcept", "")
                 domainIDHypercubeQNames[domainID] = hypercubeConcept
                 addChild(elrElt, XbrlConst.qnLinkDefinitionArc,
-                         attributes={"{http://www.w3.org/1999/xlink}from": locXlinkLabel(elrElt, hypercubeConcept),
-                                     "{http://www.w3.org/1999/xlink}to": locXlinkLabel(elrElt, dimensionConcept),
+                         attributes={"{http://www.w3.org/1999/xlink}from": locXlinkLabel(elrElt, hypercubeConcept, f"cube[{cubeI}]/cube.name"),
+                                     "{http://www.w3.org/1999/xlink}to": locXlinkLabel(elrElt, dimensionConcept, f"cube[{cubeI}]/dimension[{dimI}/dimensionConcept"),
                                      "{http://www.w3.org/1999/xlink}arcrole": XbrlConst.hypercubeDimension,
                                      "{http://www.w3.org/1999/xlink}type": "arc"})
 
-        for domObj in taxonomyObj.get("domains", []):
+        for domI, domObj in enumerate(taxonomyObj.get("domains", [])):
             locXlinkLabels.clear() # separate locs per elr
             networkURI = domObj.get("networkURI", "")
             domainID = domObj.get("domainID", "")
@@ -539,39 +542,39 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                              attributes={"{http://www.w3.org/1999/xlink}role": networkURI,
                                          "{http://www.w3.org/1999/xlink}type": "extended"})
             addChild(elrElt, XbrlConst.qnLinkDefinitionArc,
-                     attributes={"{http://www.w3.org/1999/xlink}from": locXlinkLabel(elrElt, domainIDHypercubeQNames.get(domainID)),
-                                 "{http://www.w3.org/1999/xlink}to": locXlinkLabel(elrElt, domainConcept),
+                     attributes={"{http://www.w3.org/1999/xlink}from": locXlinkLabel(elrElt, domainIDHypercubeQNames.get(domainID), f"domain[{domI}]/domainID"),
+                                 "{http://www.w3.org/1999/xlink}to": locXlinkLabel(elrElt, domainConcept, f"domain[{domI}]/domainConcept"),
                                  "{http://www.w3.org/1999/xlink}arcrole": XbrlConst.dimensionDomain,
                                  "{http://www.w3.org/1999/xlink}type": "arc"})
-            for relObj in relationships:
+            for relI, relObj in enumerate(relationships):
                 source = relObj.get("source", "")
                 target = relObj.get("target", "")
                 order = relObj.get("order", "1")
                 addChild(elrElt, XbrlConst.qnLinkDefinitionArc,
-                         attributes={"{http://www.w3.org/1999/xlink}from": locXlinkLabel(elrElt, source),
-                                     "{http://www.w3.org/1999/xlink}to": locXlinkLabel(elrElt, target),
+                         attributes={"{http://www.w3.org/1999/xlink}from": locXlinkLabel(elrElt, source, f"domain[{domI}]/relationship[{relI}/source"),
+                                     "{http://www.w3.org/1999/xlink}to": locXlinkLabel(elrElt, target, f"domain[{domI}]/relationship[{relI}/target"),
                                      "{http://www.w3.org/1999/xlink}arcrole": XbrlConst.domainMember,
                                      "{http://www.w3.org/1999/xlink}type": "arc",
                                      "order": order})
 
         lbElt = addChild(appinfoElt, XbrlConst.qnLinkLinkbase)
         lbElts.append(lbElt)
-        for networkObj in taxonomyObj.get("networks", []):
+        for networkI, networkObj in enumerate(taxonomyObj.get("networks", [])):
             locXlinkLabels.clear() # separate locs per elr
             networkURI = networkObj.get("networkURI", "")
             elrElt = addChild(lbElt, XbrlConst.qnLinkDefinitionLink,
                              attributes={"{http://www.w3.org/1999/xlink}role": networkURI,
                                          "{http://www.w3.org/1999/xlink}type": "extended"})
             relationships = networkObj.get("relationships", [])
-            for relObj in relationships:
+            for relI, relObj in enumerate(relationships):
                 source = relObj.get("source", "")
                 target = relObj.get("target", "")
                 order = relObj.get("order", None)
                 relationshipType = relObj.get("relationshipType", "")
                 preferredLabel = relObj.get("preferredLabel", None)
                 weight = relObj.get("weight", None)
-                attributes = {"{http://www.w3.org/1999/xlink}from": locXlinkLabel(elrElt, source),
-                              "{http://www.w3.org/1999/xlink}to": locXlinkLabel(elrElt, target),
+                attributes = {"{http://www.w3.org/1999/xlink}from": locXlinkLabel(elrElt, source, f"network[{networkI}]/relationship[{relI}/source"),
+                              "{http://www.w3.org/1999/xlink}to": locXlinkLabel(elrElt, target, f"network[{networkI}]/relationship[{relI}/target"),
                               "{http://www.w3.org/1999/xlink}arcrole": relationshipType,
                               "{http://www.w3.org/1999/xlink}type": "arc"}
                 if weight is not None:
@@ -584,10 +587,10 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
         elrElt = addChild(lbElt, XbrlConst.qnLinkReferenceLink,
                          attributes={"{http://www.w3.org/1999/xlink}role": XbrlConst.defaultLinkRole,
                                      "{http://www.w3.org/1999/xlink}type": "extended"})
-        for objNdx, refObj in enumerate(taxonomyObj.get("references", [])):
+        for refI, refObj in enumerate(taxonomyObj.get("references", [])):
             referenceType = refObj.get("referenceType", "")
             relatedID = refObj.get("relatedID", "")
-            xlinkLbl = xlinkLabelFormat.format("reference", objNdx+1)
+            xlinkLbl = xlinkLabelFormat.format("reference", refI+1)
             refElt = addChild(elrElt, XbrlConst.qnLinkReference,
                               attributes={"{http://www.w3.org/1999/xlink}label": xlinkLbl,
                                           "{http://www.w3.org/1999/xlink}role": referenceType,
@@ -595,25 +598,23 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             for partObj in sorted(refObj.get("parts", []), key=lambda o:refObj.get("order", 0)):
                 name = partObj.get("name", "")
                 value = partObj.get("value", "")
+                partI = partObj.get("order", "")
                 addChild(refElt, qname(name, namespacePrefixes), text=value)
             addChild(elrElt, XbrlConst.qnLinkLabelArc,
-                     attributes={"{http://www.w3.org/1999/xlink}from": locXlinkLabel(elrElt, relatedID),
+                     attributes={"{http://www.w3.org/1999/xlink}from": locXlinkLabel(elrElt, relatedID, "reference[{refI}]/relatedID"),
                                  "{http://www.w3.org/1999/xlink}to": xlinkLbl,
                                  "{http://www.w3.org/1999/xlink}arcrole": XbrlConst.conceptReference,
                                  "{http://www.w3.org/1999/xlink}type": "arc"})
 
-        # href issues
-        for href in sorted(hrefsInvalid):
-            error("oimte:invalidConceptRef",
-                  "Concept reference %(conceptRef)s is not valid",
-                  modelObject=modelXbrl, conceptRef=href)
+        # discover linkbases
+        for lbElt in lbElts:
+            schemaDoc.linkbaseDiscover(lbElt)
+
+        # errors
         for hrefNs in sorted(hrefsNsWithoutPrefix):
             error("oimte:missingConceptRefPrefx",
                   "Namespace has no prefix %(namespace)s",
                   modelObject=modelXbrl, namespace=hrefNs)
-        # discover linkbases
-        for lbElt in lbElts:
-            schemaDoc.linkbaseDiscover(lbElt)
 
         # save schema files if specified
         if saveOIMTaxonomySchemaFiles:
