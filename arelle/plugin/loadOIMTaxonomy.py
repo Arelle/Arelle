@@ -131,6 +131,42 @@ JsonMemberTypes = {
     "/taxonomy/*/references/*/parts/*/order": (int,float),
     "/taxonomy/*/references/*/parts/*/value": (int,float,str,type(None)),
 
+    "/taxonomy/*/cubes": list,
+    "/taxonomy/*/cubes/*": dict,
+    "/taxonomy/*/cubes/*/networkURI": URIType,
+    "/taxonomy/*/cubes/*/name": QNameType,
+    "/taxonomy/*/cubes/*/cubeType": str,
+    "/taxonomy/*/cubes/*/dimensions": list,
+    "/taxonomy/*/cubes/*/dimensions/*": dict,
+    "/taxonomy/*/cubes/*/dimensions/*/dimensionType": str,
+    "/taxonomy/*/cubes/*/dimensions/*/dimensionConcept": QNameType,
+    "/taxonomy/*/cubes/*/dimensions/*/domainID": str,
+
+    "/taxonomy/*/domains": list,
+    "/taxonomy/*/domains/*": dict,
+    "/taxonomy/*/domains/*/networkURI": URIType,
+    "/taxonomy/*/domains/*/domainConcept": QNameType,
+    "/taxonomy/*/domains/*/domainID": str,
+    "/taxonomy/*/domains/*/relationships": list,
+    "/taxonomy/*/domains/*/relationships/*": dict,
+    "/taxonomy/*/domains/*/relationships/*/source": QNameType,
+    "/taxonomy/*/domains/*/relationships/*/target": QNameType,
+    "/taxonomy/*/domains/*/relationships/*/order": (int,float),
+
+    "/taxonomy/*/networks": list,
+    "/taxonomy/*/networks/*": dict,
+    "/taxonomy/*/networks/*/networkURI": URIType,
+    "/taxonomy/*/networks/*/name": str,
+    "/taxonomy/*/networks/*/description": str,
+    "/taxonomy/*/networks/*/order": (int,float),
+    "/taxonomy/*/networks/*/relationships": list,
+    "/taxonomy/*/networks/*/relationships/*": dict,
+    "/taxonomy/*/networks/*/relationships/*/source": QNameType,
+    "/taxonomy/*/networks/*/relationships/*/target": QNameType,
+    "/taxonomy/*/networks/*/relationships/*/relationshipType": URIType,
+    "/taxonomy/*/networks/*/relationships/*/order": (int,float),
+    "/taxonomy/*/networks/*/relationships/*/weight": (int,float,type(None)),
+
     # custom properties on taxonomy are unchecked
     "/taxonomy/*/*:*": (int,float,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
     }
@@ -614,7 +650,7 @@ def isOimTaxonomyLoadable(modelXbrl, mappedUri, normalizedUri, filepath, **kwarg
     if _ext == ".json":
         with io.open(filepath, 'rt', encoding='utf-8') as f:
             _fileStart = f.read(4096)
-        if _fileStart and re.match(r"\s*\{[^}]*\"documentType\":\s*\"https://xbrl.org/PWD/[0-9]{4}-[0-9]{2}-[0-9]{2}/cti\"", _fileStart):
+        if _fileStart and re.match(r"\s*\{.*\"documentType\"\s*:\s*\"https://xbrl.org/PWD/[0-9]{4}-[0-9]{2}-[0-9]{2}/cti\"", _fileStart, flags=re.DOTALL):
             lastFilePathIsOIM = True
             lastFilePath = filepath
     return lastFilePathIsOIM
