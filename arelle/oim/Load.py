@@ -719,7 +719,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         _dialect = "excel-tab"
                         break
                 _file.seek(0)
-            return csv.reader(_file, _dialect)
+            return csv.reader(_file, _dialect, doublequote=True)
 
         def ldError(msgCode, msgText, **kwargs):
             loadDictErrors.append((msgCode, msgText, kwargs))
