@@ -183,9 +183,11 @@ def saveLoadableOIM(
                     return "-INF" if obj < 0 else "INF"
                 elif isnan(obj):
                     return "NaN"
+                elif isinstance(obj, Decimal):
+                    # XML canonical representation of decimal requires a decimal point.
+                    # https://www.w3.org/TR/xmlschema-2/#decimal-canonical-representation
+                    return f"{obj:.1f}" if obj % 1 == 0 else f"{obj}"
                 else:
-                    if isinstance(obj, Decimal) and obj == obj.to_integral():
-                        obj = obj.quantize(ONE)  # drop any .0
                     return f"{obj}"
             except Exception:
                 return str(obj)
