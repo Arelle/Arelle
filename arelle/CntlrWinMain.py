@@ -907,9 +907,12 @@ class CntlrWinMain (Cntlr.Cntlr):
             for modelXbrl in loadedModels:
                 self.uiThreadQueue.put((self.showLoadedXbrl, [modelXbrl, importToDTS, selectTopView]))
         else:
-            self.addToLog(format_string(self.modelManager.locale,
-                                        _("not successfully %s in %.2f secs"),
-                                        (action, time.time() - startedAt)))
+            self.addToLog(
+                format_string(self.modelManager.locale, _("No XBRL entry points could be %s from provided file in %.2f seconds"),
+                (action, time.time() - startedAt)),
+                messageCode="error",
+                level=logging.ERROR,
+            )
             self.showStatus(_("Loading terminated"), 15000)
 
     def showLoadedXbrl(self, modelXbrl, attach, selectTopView=False, isSupplementalModelXbrl=False):
