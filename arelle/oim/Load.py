@@ -202,7 +202,7 @@ decimalsSuffixPattern = re.compile(r".*[0-9.][\r\n\t ]*d[\r\n\t ]*(0|-?[1-9][0-9
 
 htmlBodyTemplate = "<body xmlns='http://www.w3.org/1999/xhtml'>\n{0}\n</body>\n"
 xhtmlTagPrefix = "{http://www.w3.org/1999/xhtml}"
-DimensionsKeyPattern = re.compile(r"^(concept|entity|period|unit|language|(\w+:\w+))$")
+builtInDimensionKeys = frozenset({"concept", "entity", "period", "unit", "language"})
 
 UNSUPPORTED_DATA_TYPES = XbrlConst.dtrPrefixedContentItemTypes + (
     qname(XbrlConst.xbrli,"fractionItemType"), )
@@ -598,6 +598,19 @@ def csvPeriod(cellValue, startOrEnd=None):
             return isoDuration
     return None
 
+def increaseMaxFieldSize():
+    # https://stackoverflow.com/a/15063941
+    maxInt = sys.maxsize
+
+    while True:
+        # decrease the maxInt value by factor 10
+        # as long as the OverflowError occurs.
+        try:
+            csv.field_size_limit(maxInt)
+            break
+        except OverflowError:
+            maxInt = int(maxInt/10)
+
 def idDeduped(modelXbrl, id):
     for i in range(99999):
         if i == 0:
@@ -719,7 +732,11 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         _dialect = "excel-tab"
                         break
                 _file.seek(0)
-            return csv.reader(_file, _dialect)
+
+            # Must increase the max supported CSV field size before opening the CSV reader.
+            # Otherwise large HTML values will trigger csv.ERROR: field larger than field limit.
+            increaseMaxFieldSize()
+            return csv.reader(_file, _dialect, doublequote=True)
 
         def ldError(msgCode, msgText, **kwargs):
             loadDictErrors.append((msgCode, msgText, kwargs))
@@ -1927,7 +1944,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                     error("oime:unsupportedDimensionDataType",
                                           _("Taxonomy-defined typed dimension value is complex: %(memberQName)s at %(path)s"),
                                           modelObject=modelXbrl, memberQName=dimValue, path="/".join(pathSegs+(dimName,)))
-                if pathSegs[-1] in ("/dimensions", "dimensions") and not DimensionsKeyPattern.match(dimName):
+                if pathSegs[-1] in ("/dimensions", "dimensions") and dimName not in builtInDimensionKeys and not SQNamePattern.match(dimName):
                     error("oimce:invalidSQName",
                           _("Invalid SQName: %(sqname)s"),
                           sourceFileLine=oimFile, sqname=dimName, path="/".join(pathSegs))
