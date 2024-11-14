@@ -528,7 +528,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 domainIDHypercubeQNames[domainID] = hypercubeConcept
                 addChild(elrElt, XbrlConst.qnLinkDefinitionArc,
                          attributes={"{http://www.w3.org/1999/xlink}from": locXlinkLabel(elrElt, hypercubeConcept, f"cube[{cubeI}]/cube.name"),
-                                     "{http://www.w3.org/1999/xlink}to": locXlinkLabel(elrElt, dimensionConcept, f"cube[{cubeI}]/dimension[{dimI}/dimensionConcept"),
+                                     "{http://www.w3.org/1999/xlink}to": locXlinkLabel(elrElt, dimensionConcept, f"cube[{cubeI}]/dimension[{dimI}]/dimensionConcept"),
                                      "{http://www.w3.org/1999/xlink}arcrole": XbrlConst.hypercubeDimension,
                                      "{http://www.w3.org/1999/xlink}type": "arc"})
 
