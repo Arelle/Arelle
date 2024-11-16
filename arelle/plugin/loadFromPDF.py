@@ -188,18 +188,27 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=
 
         ##or name, font in fonts.items():
         #    print(f"font {name} bytes {font}")
-        mcid = None
+        mcid = None 
         txt = []
         fontName = fontSize = None
         font = None
-        instructions = parse_content_stream(page, "BDC Tf Tj TJ EMC ")
+        bbox = []
+        instructions = parse_content_stream(page, "BDC Tf Tj TJ EMC Layout ")
         for i in instructions:
-            if i.operator == Operator("BDC") and i.operands[0] == "/P" and "/MCID" in i.operands[1]:
-                mcid = i.operands[1]["/MCID"] # start of marked content
+            if i.operator == Operator("BDC"):
+                #if i.operands[0] == "/P" and "/MCID" in i.operands[1]:
+                if "/MCID" in i.operands[1]:
+                    mcid = i.operands[1]["/MCID"] # start of marked content
+                elif i.operands[0] == "/Artifact" and "/BBox" in i.operands[1]:
+                    rect = tuple(n for n in i.operands[1]["/BBox"])
+                    bbox.append(rect)
+            elif i.operator == Operator("Layout"):
+                pass
             elif i.operator == Operator("EMC") and mcid is not None:
                 #print(f"pg {p} mcid {mcid} font {fontName} tj {''.join(txt)}")
-                markedContents[p,mcid] = ''.join(txt)
+                markedContents[p,mcid] = ''.join(txt) # [''.join(txt), bbox]
                 mcid = None # end of this marked content
+                bbox = []
                 txt = []
             elif i.operator == Operator("Tf"):
                 fontName = str(i.operands[0])
@@ -257,6 +266,7 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=
         elif key == "/K":
             if pdfId:
                 if (page, obj) in markedContents:
+                    # markedContent, bbox = markedContents[page,obj]
                     markedContent = markedContents[page,obj]
                     if pdfId in textBlocks:
                         textBlocks[pdfId] += "\n" + markedContent
