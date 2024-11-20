@@ -121,6 +121,7 @@ exclude = '''(?x)(
     | ^arelle/plugin/Xince.py
     | ^arelle/plugin/xodel
     | ^arelle/plugin/xule
+    | ^arelle/resources
 )'''
 
 # --- ignore modules ---

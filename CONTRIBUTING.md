@@ -73,7 +73,7 @@ Here's how to set up your environment:
   3. Create a virtual env using the Python version you just installed.
     For example, 
 
-    PYENV_VERSION=3.12.5 pyenv exec python -m venv venv
+    PYENV_VERSION=3.12.7 pyenv exec python -m venv venv
   4. Activate your environment: 
     
     source venv/bin/activate
