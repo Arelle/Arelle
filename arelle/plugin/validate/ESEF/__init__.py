@@ -312,9 +312,6 @@ class ESEFPlugin(PluginHooks):
                             _("RTS on ESEF requires valid XBRL instances, %(numXbrlErrors)s errors were reported."),
                             modelObject=modelXbrl, numXbrlErrors=numXbrlErrors)
 
-        # force reporting of unsatisfied assertions for which there are no messages
-        traceUnmessagedUnsatisfiedAssertions = True
-
     @staticmethod
     def validateFormulaCompiled(
         modelXbrl: ModelXbrl,
