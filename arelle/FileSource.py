@@ -167,10 +167,11 @@ class FileSource:
         self.url = str(url)  # allow either string or FileNamedStringIO
         self.baseIsHttp = isHttpUrl(self.url)
         self.cntlr = cntlr
-        self.type = self.url.lower()[-7:]
-        self.isTarGz = self.type == ".tar.gz"
-        if not self.isTarGz:
-            self.type = self.type[3:]
+        self.isTarGz = self.url.lower().endswith(".tar.gz")
+        if self.isTarGz:
+            self.type = ".tar.gz"
+        else:
+            self.type = os.path.splitext(self.url.lower())[1]
         self.isZip = self.type == ".zip" or isReportPackageExtension(self.url)
         self.isZipBackslashed = False # windows style backslashed paths
         self.isEis = self.type == ".eis"
