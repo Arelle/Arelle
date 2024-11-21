@@ -834,8 +834,20 @@ class SaveLoadableOIMPlugin(PluginHooks):
                 )
                 return
             assert modelXbrl.modelDocument is not None
-            basefile = Path(modelXbrl.modelDocument.basename)
-            oimFiles = [str(oimDir.joinpath(basefile.with_suffix(ext))) for ext in (".csv", ".json")]
+            basefileStem = None
+            if hasattr(modelXbrl, "ixdsTarget"):
+                ixdsTarget = modelXbrl.ixdsTarget
+                for doc in modelXbrl.modelDocument.referencesDocument:
+                    if doc.type in {ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INSTANCE}:
+                        instanceFilename = Path(doc.uri)
+                        if ixdsTarget is not None:
+                            basefileStem = f"{instanceFilename.stem}.{ixdsTarget}"
+                        else:
+                            basefileStem = instanceFilename.stem
+                        break
+            if basefileStem is None:
+                basefileStem = Path(modelXbrl.modelDocument.basename).stem
+            oimFiles = [str(oimDir.joinpath(basefileStem + ext)) for ext in (".csv", ".json")]
             saveOimFiles(cntlr, modelXbrl, oimFiles, responseZipStream)
 
     @staticmethod
