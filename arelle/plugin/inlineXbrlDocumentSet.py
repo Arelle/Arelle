@@ -687,10 +687,29 @@ def commandLineOptionExtender(parser, *args, **kwargs):
                       choices=[a.value for a in ValidateDuplicateFacts.DeduplicationType],
                       dest="deduplicateIxbrlFacts",
                       help=SUPPRESS_HELP)
+    parser.add_option("--inlineTarget",
+                      action="store",
+                      dest="inlineTarget",
+                      help=_("Specify an inline target to load. By default, all targets are loaded. Use '{}' to select the default target.").format(DEFAULT_TARGET),
+                      type="string")
 
 def commandLineFilingStart(cntlr, options, filesource, entrypointFiles, *args, **kwargs):
     global skipExpectedInstanceComparison
     skipExpectedInstanceComparison = getattr(options, "skipExpectedInstanceComparison", False)
+    inlineTarget = getattr(options, "inlineTarget", None)
+    if inlineTarget:
+        if isinstance(entrypointFiles, dict):
+            entrypointFiles = [entrypointFiles]
+        if isinstance(entrypointFiles, list):
+            for i, entry in enumerate(entrypointFiles):
+                entryTarget = entry.get("ixdsTarget")
+                if entryTarget and entryTarget != inlineTarget:
+                    raise RuntimeError(_("Conflicting ixds targets specified: inlineTarget '{}', ixdsTarget '{}'").format(inlineTarget, entryTarget))
+                ixds = entry.get("ixds")
+                if ixds is None:
+                    entry = {"ixds": [entry]}
+                    entrypointFiles[i] = entry
+                entry["ixdsTarget"] = inlineTarget
     if isinstance(entrypointFiles, list):
         # check for any inlineDocumentSet in list
         for entrypointFile in entrypointFiles:
