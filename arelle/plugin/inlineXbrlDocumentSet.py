@@ -78,32 +78,39 @@ manifest file (such as JP FSA) that identifies inline XBRL documents.
 """
 from __future__ import annotations
 
+import os
+import zipfile
+from collections import defaultdict
+from optparse import SUPPRESS_HELP
 from typing import BinaryIO
 
-from arelle import FileSource, ModelXbrl, ValidateXbrlDimensions, XbrlConst, ValidateDuplicateFacts
-from arelle.RuntimeOptions import RuntimeOptions
-from arelle.ValidateDuplicateFacts import DeduplicationType
+import regex as re
+from lxml.etree import XML, XMLSyntaxError
 
-DialogURL = None # dynamically imported when first used
+from arelle import FileSource, ModelXbrl, ValidateDuplicateFacts, ValidateXbrlDimensions, XbrlConst
 from arelle.CntlrCmdLine import filesourceEntrypointFiles
-from arelle.PrototypeDtsObject import LocPrototype, ArcPrototype
 from arelle.FileSource import archiveFilenameParts, archiveFilenameSuffixes
+from arelle.ModelDocument import ModelDocument, ModelDocumentReference, Type, create, inlineIxdsDiscover, load
 from arelle.ModelInstanceObject import ModelInlineFootnote
 from arelle.ModelObject import ModelObject
-from arelle.ModelDocument import ModelDocument, ModelDocumentReference, Type, load, create, inlineIxdsDiscover
 from arelle.ModelValue import INVALIDixVALUE, qname
 from arelle.PluginManager import pluginClassMethods
+from arelle.PrototypeDtsObject import ArcPrototype, LocPrototype
 from arelle.PythonUtil import attrdict
+from arelle.RuntimeOptions import RuntimeOptions
 from arelle.UrlUtil import isHttpUrl
+from arelle.ValidateDuplicateFacts import DeduplicationType
 from arelle.ValidateFilingText import CDATApattern
 from arelle.Version import authorLabel, copyrightLabel
-from arelle.XmlUtil import addChild, copyIxFootnoteHtml, elementFragmentIdentifier, elementChildSequence, xmlnsprefix, setXmlns
-from arelle.XmlValidate import validate as xmlValidate, VALID, NONE
-import os, zipfile
-import regex as re
-from optparse import SUPPRESS_HELP
-from lxml.etree import XML, XMLSyntaxError
-from collections import defaultdict
+from arelle.XmlUtil import (
+    addChild,
+    copyIxFootnoteHtml,
+    elementFragmentIdentifier,
+    setXmlns,
+    xmlnsprefix,
+)
+from arelle.XmlValidate import NONE, VALID
+from arelle.XmlValidate import validate as xmlValidate
 
 DEFAULT_TARGET = "(default)"
 IXDS_SURROGATE = "_IXDS#?#" # surrogate (fake) file name for inline XBRL doc set (IXDS)
@@ -469,9 +476,6 @@ def discoverInlineXbrlDocumentSet(modelDocument, *args, **kwargs):
     return False  # not discoverable by this plug-in
 
 def fileOpenMenuEntender(cntlr, menu, *args, **kwargs):
-    # install DialogURL for GUI menu operation of runOpenWebInlineDocumentSetMenuCommand
-    global DialogURL
-    from arelle import DialogURL
     # Extend menu with an item for the savedts plugin
     menu.insert_command(2, label="Open Web Inline Doc Set",
                         underline=0,
@@ -496,6 +500,7 @@ def runOpenFileInlineDocumentSetMenuCommand(cntlr, runInBackground=False, saveTa
     runOpenInlineDocumentSetMenuCommand(cntlr, filenames, runInBackground, saveTargetFiling)
 
 def runOpenWebInlineDocumentSetMenuCommand(cntlr, runInBackground=False, saveTargetFiling=False):
+    from arelle import DialogURL
     url = DialogURL.askURL(cntlr.parent, buttonSEC=True, buttonRSS=True)
     if url:
         runOpenInlineDocumentSetMenuCommand(cntlr, re.split(r",\s*|\s+", url), runInBackground, saveTargetFiling)
@@ -845,7 +850,7 @@ def discoverIxdsDts(modelXbrl):
 
 class TargetChoiceDialog:
     def __init__(self,parent, choices):
-        from tkinter import Toplevel, Label, Listbox, StringVar
+        from tkinter import Listbox, StringVar, Toplevel
         parentGeometry = re.match(r"(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
         dialogX = int(parentGeometry.group(3))
         dialogY = int(parentGeometry.group(4))
