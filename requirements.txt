@@ -18,7 +18,7 @@ NumPy==2.1.3 ; python_version > "3.9"
 Matplotlib==3.9.2
 holidays==0.61
 pytz==2024.2
-Tornado==6.4.1
+Tornado==6.4.2
 # security plugin
 PyCryptodome==3.21.0
 # xbrlDB plugin
