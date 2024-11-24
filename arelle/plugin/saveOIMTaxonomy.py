@@ -59,13 +59,11 @@ def saveOIMTaxonomy(dts, jsonFile):
     txmy["references"] = references = []
 
     # taxonomy object
-    x x x x get extension secondary references including linkbases and schemas
+    extensionLinkbaseDocs = {doc
+                             for doc, docReference in extensionSchemaDoc.referencesDocument.items()
+                             if "href" in docReference.referenceTypes and docReference.referringModelObject.elementQname == XbrlConst.qnLinkLinkbaseRef}
+    extensionLinkbaseDocs.add(extensionSchemaDoc)
 
-    for doc, docReference in extensionSchemaDoc.referencesDocument.items():
-        if "import" in docReference.referenceTypes and doc.targetNamespace not in excludeImportNamespaces:
-            imports.append(OrderedDict((("namespace", doc.targetNamespace),
-                                        ("version", jsonTxmyVersion),
-                                        ("entry-point", doc.uri))))
     labelsRelationshipSet = dts.relationshipSet(XbrlConst.conceptLabel)
     for concept in sorted(set(dts.qnameConcepts.values()), key=lambda c:c.name): # may be twice if unqualified, with and without namespace
         if concept.modelDocument == extensionSchemaDoc:
@@ -138,6 +136,8 @@ def saveOIMTaxonomy(dts, jsonFile):
     for arcrole, linkrole, arcQN, linkQN in dts.baseSets.keys():
         if arcrole == XbrlConst.all and linkrole is not None and arcQN is None and linkQN is None:
             for rel in dts.relationshipSet(XbrlConst.all, linkrole).modelRelationships:
+                if rel.modelDocument not in extensionLinkbaseDocs:
+                    continue
                 hc = rel.toModelObject
                 priItem = rel.fromModelObject
                 if hc is not None and priItem is not None:
@@ -199,14 +199,15 @@ def saveOIMTaxonomy(dts, jsonFile):
                     if toConcept is not None:
                         namespacesInUse.add(concept.qname.namespaceURI)
                         namespacesInUse.add(toConcept.qname.namespaceURI)
-                        relationships.append( OrderedDict((
-                            ("source", str(concept.qname)),
-                            ("target", str(toConcept.qname)),
-                            ("order", rel.order),
-                            ("networkURI", rel.linkrole),
-                            ("relationshipType", os.path.basename(rel.arcrole))) +
-                            ((("weight", rel.weight),) if rel.weight is not None else ())
-                            ) )
+                        if rel.modelDocument in extensionLinkbaseDocs:
+                            relationships.append( OrderedDict((
+                                ("source", str(concept.qname)),
+                                ("target", str(toConcept.qname)),
+                                ("order", rel.order),
+                                ("networkURI", rel.linkrole),
+                                ("relationshipType", os.path.basename(rel.arcrole))) +
+                                ((("weight", rel.weight),) if rel.weight is not None else ())
+                                ) )
                         row = treeWalk(depth + 1, toConcept, arcrole, relSet, visited)
                 visited.remove(concept)
 

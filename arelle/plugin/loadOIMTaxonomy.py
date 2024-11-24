@@ -10,6 +10,10 @@ Model (OIM) Taxonomy Specification.
 
 Any import or direct opening of a JSON-specified taxonomy behaves the same as if loading from an xsd taxonomy or xml linkbases
 
+For debugging, saves the xsd objects loaded from the OIM taxonomy if
+  command line: specify --saveOIMschemafile
+  GUIL provide a formula parameter named saveOIMschemafile (value not null or false)x
+
 """
 import os, sys, io, time, traceback, json, logging, zipfile, datetime, isodate
 import regex as re
@@ -43,6 +47,8 @@ from arelle.XmlValidate import integerPattern, languagePattern, NCNamePattern, Q
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
 
 saveOIMTaxonomySchemaFiles = False
+SAVE_OIM_SCHEMA_CMDLINE_PARAMETER = "--saveOIMschemafile"
+SAVE_OIM_SCHEMA_FORULA_PARAMETER = qname("saveOIMschemafile", noPrefixIsNoNamespace=True)
 
 ClarkQNamePattern = re.compile(
     r"\{[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
@@ -414,21 +420,28 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
 
         for conceptI, conceptObj in enumerate(conceptObjs):
             nillable = conceptObj.get("nillable", True)
-            dataType = conceptObj.get("dataType", True)
             periodType = conceptObj.get("periodType", True)
             balance = conceptObj.get("balance", None)
-            abstract = conceptObj.get("abstract", False)
+            abstract = conceptObj.get("abstract", None)
+            nillable = conceptObj.get("abstract", None)
             name = qname(conceptObj.get("name", ""), prefixNamespaces)
             if name:
+                dataType = qname(conceptObj.get("dataType", ""), prefixNamespaces)
                 substitutionGroup = qname(conceptObj.get("substitutionGroup", ""), prefixNamespaces)
                 attributes = {"id": f"{name.prefix}_{name.localName}",
                               "name": name.localName}
+                if dataType:
+                    attributes["type"] = str(dataType)
                 if periodType:
                     attributes[QN_PERIOD_TYPE.clarkNotation] = periodType
                 if balance:
                     attributes[QN_BALANCE.clarkNotation] = balance
+                if abstract is not None:
+                    attributes["abstract"] = str(abstract).lower()
+                if nillable is not None:
+                    attributes["nillable"] = str(nillable).lower()
                 attributes["substitutionGroup"] = str(substitutionGroup)
-    
+
                 conceptElt = addChild(schemaElt,
                                       QN_ELEMENT,
                                       attributes=attributes)
@@ -454,20 +467,38 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         usedOn[networkURI].add("link:calculationLink")
                     elif relType in (XbrlConst.requiresElement, XbrlConst.generalSpecial):
                         usedOn[networkURI].add("link:definitionLink")
+        for networkObj in taxonomyObj.get("cubes", []):
+            networkURI = networkObj.get("networkURI", "")
+            if networkURI and networkObj.get("dimensions", []):
+                usedOn[networkURI].add("link:definitionLink")
 
         # define role types
+        locallyDefinedRoles = OrderedDict() # URI: {name, description, usedOns}
+        # networkURI can appear multiple times in different places, infer a single role definition from all
         for objI, networkObj in enumerate(taxonomyObj.get("networks", []) + taxonomyObj.get("domains", [])):
-            name = networkObj.get("name", "")
-            description = networkObj.get("description", "")
             networkURI = networkObj.get("networkURI", "")
+            if networkURI in locallyDefinedRoles:
+                roleDef = locallyDefinedRoles[networkURI]
+            else:
+                locallyDefinedRoles[networkURI] = roleDef = {}
+            if "name" in networkObj:
+                roleDef["name"] = networkObj["name"]
+            if "description" in networkObj:
+                roleDev["description"] = networkObj["description"]
+        locallyDefinedRoleHrefs = {}
+        for objI, (networkURI, networkObj) in enumerate(locallyDefinedRoles.items()):
+            name = networkObj.get("name", f"_roleType_{objI+1}")
+            description = networkObj.get("description", "")
+            locallyDefinedRoleHrefs[networkURI] = f"#{name}"
 
             roleTypeElt = addChild(appinfoElt, QN_ROLE_TYPE,
-                                   attributes={"id": name or f"_roleType_{objI+1}",
+                                   attributes={"id": name,
                                                "roleURI": networkURI})
             if description:
                 addChild(roleTypeElt, QN_DEFINITION, text=description)
             for u in usedOn[networkURI]:
                 addChild(roleTypeElt, QN_USED_ON, text=u)
+            modelXbrl.roleTypes[networkURI].append(roleTypeElt)
 
         # create ELRs
         lbElts = []
@@ -521,11 +552,36 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                      "{http://www.w3.org/1999/xlink}arcrole": XbrlConst.conceptLabel,
                                      "{http://www.w3.org/1999/xlink}type": "arc"})
 
+        def addRoleRefs(lbElt, roles, arcroles):
+            firstElr = lbElt[0]
+            for role in sorted(roles):
+                if role in locallyDefinedRoleHrefs:
+                    href = locallyDefinedRoleHrefs[role]
+                    addChild(lbElt, XbrlConst.qnLinkRoleRef,
+                             beforeSibling=firstElr,
+                             attributes={
+                                 "{http://www.w3.org/1999/xlink}roleURI": role,
+                                 "{http://www.w3.org/1999/xlink}type": "simple",
+                                 "{http://www.w3.org/1999/xlink}href": href})
+            for arcrole in sorted(arcroles):
+                if arcrole.startswith("http://xbrl.org/int/dim/arcrole"):
+                    href = f"http://www.xbrl.org/2005/xbrldt-2005.xsd#{os.path.basename(arcrole)}"
+                    addChild(lbElt, XbrlConst.qnLinkArcroleRef,
+                             beforeSibling=firstElr,
+                                 attributes={
+                                     "{http://www.w3.org/1999/xlink}arcroleURI": arcrole,
+                                     "{http://www.w3.org/1999/xlink}type": "simple",
+                                     "{http://www.w3.org/1999/xlink}href": href})
+            roles.clear()
+            arcroles.clear()
+
         domainIDHypercubeQNames = {}
         domainIDPrimaryDimensions = {}
         domainIDPeriodDimensions = {}
         lbElt = addChild(appinfoElt, XbrlConst.qnLinkLinkbase)
         lbElts.append(lbElt)
+        lbEltRoleRefs = set()
+        lbEltArcroleRefs = set()
         for cubeI, cubeObj in enumerate(taxonomyObj.get("cubes", [])):
             locXlinkLabels.clear() # separate locs per elr
             networkURI = cubeObj.get("networkURI", "") # ELR
@@ -534,6 +590,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             elrElt = addChild(lbElt, XbrlConst.qnLinkDefinitionLink,
                              attributes={"{http://www.w3.org/1999/xlink}role": networkURI,
                                          "{http://www.w3.org/1999/xlink}type": "extended"})
+            lbEltRoleRefs.add(networkURI)
             for dimI, dimObj in enumerate(cubeObj.get("dimensions", [])):
                 dimensionType = dimObj.get("dimensionType", "")
                 domainID = dimObj.get("domainID", "")
@@ -550,6 +607,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                          "{http://www.w3.org/1999/xlink}to": locXlinkLabel(elrElt, dimensionConcept, f"cube[{cubeI}]/dimension[{dimI}]/dimensionConcept"),
                                          "{http://www.w3.org/1999/xlink}arcrole": XbrlConst.hypercubeDimension,
                                          "{http://www.w3.org/1999/xlink}type": "arc"})
+                    lbEltArcroleRefs.add(XbrlConst.hypercubeDimension)
 
         for domI, domObj in enumerate(taxonomyObj.get("domains", [])):
             locXlinkLabels.clear() # separate locs per elr
@@ -560,12 +618,14 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             elrElt = addChild(lbElt, XbrlConst.qnLinkDefinitionLink,
                              attributes={"{http://www.w3.org/1999/xlink}role": networkURI,
                                          "{http://www.w3.org/1999/xlink}type": "extended"})
+            lbEltRoleRefs.add(networkURI)
             if domainID not in domainIDPrimaryDimensions and domainID not in domainIDPeriodDimensions:
                 addChild(elrElt, XbrlConst.qnLinkDefinitionArc,
                          attributes={"{http://www.w3.org/1999/xlink}from": locXlinkLabel(elrElt, domainIDHypercubeQNames.get(domainID), f"domain[{domI}]/domainID"),
                                      "{http://www.w3.org/1999/xlink}to": locXlinkLabel(elrElt, domainConcept, f"domain[{domI}]/domainConcept"),
                                      "{http://www.w3.org/1999/xlink}arcrole": XbrlConst.dimensionDomain,
                                      "{http://www.w3.org/1999/xlink}type": "arc"})
+                lbEltArcroleRefs.add(XbrlConst.dimensionDomain)
             for relI, relObj in enumerate(relationships):
                 source = relObj.get("source", "")
                 target = relObj.get("target", "")
@@ -575,7 +635,11 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                              attributes={"{http://www.w3.org/1999/xlink}from": locXlinkLabel(elrElt, target, f"domain[{domI}]/relationship[{relI}/target"),
                                          "{http://www.w3.org/1999/xlink}to": locXlinkLabel(elrElt, domainIDPrimaryDimensions.get(domainID), f"domain[{domI}]/domainID"),
                                          "{http://www.w3.org/1999/xlink}arcrole": XbrlConst.all,
-                                         "{http://www.w3.org/1999/xlink}type": "arc"})
+                                         "{http://www.w3.org/1999/xlink}type": "arc",
+                                         # TBD - determine values dynamically from taxonomy and authority
+                                         "{http://xbrl.org/2005/xbrldt}closed": "true",
+                                         "{http://xbrl.org/2005/xbrldt}contextElement": "segment"})
+                    lbEltArcroleRefs.add(XbrlConst.all)
                 else:
                     addChild(elrElt, XbrlConst.qnLinkDefinitionArc,
                              attributes={"{http://www.w3.org/1999/xlink}from": locXlinkLabel(elrElt, source, f"domain[{domI}]/relationship[{relI}/source"),
@@ -583,6 +647,8 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                          "{http://www.w3.org/1999/xlink}arcrole": XbrlConst.domainMember,
                                          "{http://www.w3.org/1999/xlink}type": "arc",
                                          "order": order})
+                    lbEltArcroleRefs.add(XbrlConst.domainMember)
+        addRoleRefs(lbElt, lbEltRoleRefs, lbEltArcroleRefs)
 
         lbElt = addChild(appinfoElt, XbrlConst.qnLinkLinkbase)
         lbElts.append(lbElt)
@@ -592,6 +658,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             elrElt = addChild(lbElt, XbrlConst.qnLinkDefinitionLink,
                              attributes={"{http://www.w3.org/1999/xlink}role": networkURI,
                                          "{http://www.w3.org/1999/xlink}type": "extended"})
+            lbEltRoleRefs.add(networkURI)
             relationships = networkObj.get("relationships", [])
             for relI, relObj in enumerate(relationships):
                 source = relObj.get("source", "")
@@ -604,11 +671,13 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                               "{http://www.w3.org/1999/xlink}to": locXlinkLabel(elrElt, target, f"network[{networkI}]/relationship[{relI}/target"),
                               "{http://www.w3.org/1999/xlink}arcrole": relationshipType,
                               "{http://www.w3.org/1999/xlink}type": "arc"}
+                lbEltArcroleRefs.add(relationshipType)
                 if weight is not None:
                     attributes["weight"] = weight
                 if preferredLabel is not None:
                     attributes["preferredLabel"] = preferredLabel
                 addChild(elrElt, XbrlConst.qnLinkDefinitionArc, attributes)
+        addRoleRefs(lbElt, lbEltRoleRefs, lbEltArcroleRefs)
 
         locXlinkLabels.clear() # separate locs per elr
         elrElt = addChild(lbElt, XbrlConst.qnLinkReferenceLink,
@@ -633,6 +702,8 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                      "{http://www.w3.org/1999/xlink}to": xlinkLbl,
                                      "{http://www.w3.org/1999/xlink}arcrole": XbrlConst.conceptReference,
                                      "{http://www.w3.org/1999/xlink}type": "arc"})
+                lbEltArcroleRefs.add(XbrlConst.conceptReference)
+        addRoleRefs(lbElt, lbEltRoleRefs, lbEltArcroleRefs)
 
         # discover linkbases
         for lbElt in lbElts:
@@ -645,7 +716,9 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                   modelObject=modelXbrl, namespace=hrefNs, paths=", ".join(paths))
 
         # save schema files if specified
-        if saveOIMTaxonomySchemaFiles:
+        if (saveOIMTaxonomySchemaFiles or
+            modelXbrl.modelManager.formulaOptions.typedParameters(modelXbrl.prefixedNamespaces)
+            .get(SAVE_OIM_SCHEMA_FORULA_PARAMETER, ("",None))[1] not in (None, "", "false")):
             schemaDoc.save(schemaDoc.filepath.replace(".json", "-json.xsd"))
 
         return schemaDoc
@@ -696,7 +769,7 @@ def oimTaxonomyLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
     return doc
 
 def optionsExtender(parser, *args, **kwargs):
-    parser.add_option("--saveOIMschemafile",
+    parser.add_option(SAVE_OIM_SCHEMA_CMDLINE_PARAMETER,
                       action="store_true",
                       dest="saveOIMTaxonomySchemaFiles",
                       help=_("Save each OIM taxonomy file an xsd named -json.xsd."))
