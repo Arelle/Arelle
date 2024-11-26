@@ -1,5 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <testcases name="DBA">
+    <testcase uri='fr/fr1-testcase.xml' />
     <testcase uri='fr/fr7-testcase.xml' />
     <testcase uri='fr/fr41-testcase.xml' />
     <testcase uri='fr/fr48-testcase.xml' />
