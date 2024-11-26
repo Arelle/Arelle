@@ -512,7 +512,7 @@ class ModelFact(ModelObject):
             # parent test can only be done if in same instauce
             if self.modelXbrl == other.modelXbrl and self.parentElement != other.parentElement:
                 return False
-            if not (self.context.isEqualTo(other.context,dimensionalAspectModel=False) and
+            if not (self.context is not None and self.context.isEqualTo(other.context,dimensionalAspectModel=False) and
                     (not self.isNumeric or (self.unit is not None and self.unit.isEqualTo(other.unit)))):
                 return False
         elif self.isTuple:
