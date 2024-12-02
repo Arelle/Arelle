@@ -22,6 +22,32 @@ _: TypeGetText
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
+def rule_fr1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR1: First and last name of the conductor for the general meeting or person who takes the conductor's place is missing
+    Companies that hold a general meeting and therefore provide a general meeting date
+    (gsd:DateOfGeneralMeeting) must also provide the name of the director
+    (gsd:NameAndSurnameOfChairmanOfGeneralMeeting).
+    """
+    meetingFacts = val.modelXbrl.factsByQname.get(pluginData.dateOfGeneralMeetingQn)
+    if meetingFacts:
+        chairmanFacts = val.modelXbrl.factsByQname.get(pluginData.nameAndSurnameOfChairmanOfGeneralMeetingQn)
+        if not chairmanFacts:
+            yield Validation.error(
+                codes="DBA.FR1",
+                msg=_("First and last name of the conductor for the general meeting or person who takes the conductor's place is missing"),
+                modelObject=[val.modelXbrl.modelDocument]
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
 def rule_fr7(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
