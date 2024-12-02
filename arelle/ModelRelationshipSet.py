@@ -222,7 +222,7 @@ class ModelRelationshipSet:
     def linkRoleUris(self):
         # order by document appearance of linkrole, required for Table Linkbase testcase 3220 v03
         if self.modellinkRoleUris is None:
-            linkroleObjSeqs = set((modelRel.linkrole, modelRel.arcElement.getparent().objectIndex) for modelRel in self.modelRelationships)
+            linkroleObjSeqs = set((modelRel.linkrole, getattr(modelRel.arcElement.getparent(), "objectIndex", sys.maxsize)) for modelRel in self.modelRelationships)
             self.modellinkRoleUris = OrderedSet([lr[0] for lr in sorted(linkroleObjSeqs, key=lambda l: l[1])])
         return self.modellinkRoleUris
 
