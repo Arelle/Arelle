@@ -16,7 +16,7 @@ pycountry==24.6.1
 NumPy==2.0.2 ; python_version <= "3.9"
 NumPy==2.1.3 ; python_version > "3.9"
 Matplotlib==3.9.3
-holidays==0.61
+holidays==0.62
 pytz==2024.2
 Tornado==6.4.2
 # security plugin
