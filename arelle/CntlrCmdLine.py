@@ -1031,6 +1031,14 @@ class CntlrCmdLine(Cntlr.Cntlr):
 
         for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Filing.Start"):
             pluginXbrlMethod(self, options, filesource, _entrypointFiles, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
+        if len(_entrypointFiles) == 0:
+            if options.entrypointFile:
+                msg = _("No XBRL entry points could be loaded from provided file: {}").format(options.entrypointFile)
+            else:
+                # web server post request does not have a file name.
+                msg = _("No XBRL entry points could be loaded from provided input")
+            self.addToLog(msg, messageCode="error", level=logging.ERROR)
+            success = False
         for _entrypoint in _entrypointFiles:
             _entrypointFile = _entrypoint.get("file", None) if isinstance(_entrypoint,dict) else _entrypoint
             if filesource and filesource.isArchive:
