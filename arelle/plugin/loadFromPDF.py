@@ -68,6 +68,10 @@ An xBRL-JSON template file is provided for each tagged PDF/A with inline XBRL.
   ```bash
   python arelleCmdLine.py --plugins loadFromPDF --file filing-document.json
   ```
+  
+### Local Viewer Operation
+
+Use arelle/examples/viewer/inlinePdfViewer.html with ?doc= name of output json from this plugin
 
 ### GUI Usage
 
@@ -78,7 +82,7 @@ An xBRL-JSON template file is provided for each tagged PDF/A with inline XBRL.
 
 """
 from pikepdf import Pdf, Dictionary, Array, Stream, Operator, parse_content_stream, unparse_content_stream, _core
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from decimal import Decimal
 import sys, os, json
 
@@ -160,9 +164,12 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=
             print(f"  {k}: {v}")
     
     markedContents = {}
+    ixTextFields = defaultdict(list)
+    ixFormFields = []
 
     # load marked content (structured paragraph and section strings
-    for p, page in enumerate(pdf.pages):
+    for pIndex, page in enumerate(pdf.pages):
+        p = page.objgen[0] # for matching to pdf.js page number
         fonts = {}
         fontRanges = {} # [start, end, toStart or [to values list]
         for name, font in page.get("/Resources",{}).get("/Font", {}).items():
@@ -294,12 +301,7 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=
             elif missingIDprefix:
                 pdfId = f"{missingIDprefix}{len(textBlocks)}"
             if "/Pg" in obj:
-                page = None
-                c = obj["/Pg"]["/Contents"]
-                for p, _page in enumerate(pdf.pages):
-                    if c == _page["/Contents"]:
-                        page = p
-                        break
+                page = obj["/Pg"].objgen[0]
             for k, v in obj.items():
                 if k not in ("/IDTree", "/P", "/Parent", "/Pg", "/Ff", "/Mk", "/Q", "/Rect", "/Font", "/Type", "/ColorSpace", "/MediaBox", "/Resources", "/Matrix", "/BBox", "/Border", "/DA", "/Length"):
                     loadTextBlocks(v, pdfId, k, indent + "  ", page, depth+1, trail+[k])
@@ -310,10 +312,10 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=
                     markedContent = markedContents[page,obj]
                     if pdfId in textBlocks:
                         textBlocks[pdfId] += "\n" + markedContent["txt"]
-                        structMcid[pdfId].append(f"p{page}_mc{obj}")
+                        structMcid[pdfId].append(f"p{page}R_mc{obj}")
                     else:
                         textBlocks[pdfId] = markedContent["txt"]
-                        structMcid[pdfId].append(f"p{page}_mc{obj}")
+                        structMcid[pdfId].append(f"p{page}R_mc{obj}")
 
     if "/StructTreeRoot" in pdf.Root:
         loadTextBlocks(pdf.Root["/StructTreeRoot"])
@@ -325,7 +327,7 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=
         if isinstance(obj, (Array, list, tuple)):
             if key == "/Rect":
                 if pdfId or Tu:
-                    formFields[str(altId) or str(pdfId)]["Rect"] = list(obj)
+                    formFields[str(altId) or str(pdfId)]["Rect"] = [float(x) if isinstance(x, Decimal) else x for x in obj]
             else:
                 for v in obj:
                     loadFormFields(v, pdfId, altId, key, indent + "  ")
@@ -337,6 +339,8 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=
             for k, v in obj.items():
                 if k not in ("/IDTree", "/P", "/Parent", "/Pg", "/Ff", "/Mk", "/Q", "/Font", "/Type", "/ColorSpace", "/MediaBox", "/Resources", "/Matrix", "/BBox", "/Border", "/DA", "/Length"):
                     loadFormFields(v, pdfId, altId, k, indent + "  ")
+            if "/P" in obj and str(obj["/P"].Type) == "/Page":
+                formFields[str(altId) or str(pdfId)]["Page"] = obj["/P"].objgen[0]
         elif key == "/V":
             if pdfId:
                 formFields[str(altId) or str(pdfId)]["V"] = str(obj)
@@ -347,7 +351,7 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=
     if showInfo:
         print(f"marked contents:")
         for k,v in markedContents.items():
-            print(f"p{k[0]}_mc{k[1]}: {v}")
+            print(f"p{k[0]}R_mc{k[1]}: {v}")
         print(f"str mcid:")
         for k,v in structMcid.items():
             print(f"{k}: {', '.join(v)}")
@@ -364,6 +368,8 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=
             oimFile = open(jsonTemplateFile, mode="r")
     if oimFile:
         oimObject = json.load(oimFile)
+        ixTextFields = defaultdict(list)
+        ixFormFields = []
         # replace fact pdfIdRefs with strings
         for oimFactId, fact in oimObject.get("facts", {}).items():
             idRefs = fact.pop("pdfIdRefs", None)
@@ -375,8 +381,12 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=
                 for pdfId in idRefs.split():
                     if pdfId in textBlocks:
                         continTexts.append(textBlocks[pdfId])
+                        ixTextFields[oimFactId].extend(structMcid[pdfId])
                     if pdfId in formFields:
                         continTexts.append(formFields[pdfId]["V"])
+                        ixFormFields.append([oimFactId, 
+                                             f"p{formFields[pdfId]['Page']}R",
+                                             *formFields[pdfId]["Rect"]])
                 value = " ".join(continTexts)
                 if format:
                     tr5fn = format.rpartition(":")[2]
@@ -397,6 +407,12 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=
                     except:
                         print(f"fact {oimFactId} value to be scaled is not decimal {value}")
                 fact["value"] = value
+            oimObject["pdfMapping"] = OrderedDict((
+                ("file", os.path.basename(filepath)),
+                ("target", None),
+                ("ixTextFields", ixTextFields),
+                ("ixFormFields", ixFormFields)
+                ))
         if saveJson:
             json.dump(oimObject, open(filepath.replace(".pdf", ".json"),"w"), indent=2)
 
