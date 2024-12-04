@@ -84,9 +84,9 @@ class ViewFacts(ViewFile.View):
                                  modelXbrl=self.modelXbrl, col1=col0)
         self.isCol0Label = col0 in ("Concept", "Label")
         relationshipSet = self.modelXbrl.relationshipSet(self.arcrole, self.linkrole, self.linkqname, self.arcqname)
+        linkroleUris = []
         if relationshipSet:
             # sort URIs by definition
-            linkroleUris = []
             for linkroleUri in relationshipSet.linkRoleUris:
                 modelRoleTypes = self.modelXbrl.roleTypes.get(linkroleUri)
                 if modelRoleTypes:
