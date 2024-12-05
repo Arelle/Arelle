@@ -55,7 +55,7 @@ jobs:
   build-macos:
     environment: release
     # Intel runner produces universal binary
-    runs-on: macos-14-large
+    runs-on: macos-13
     outputs:
       artifact_versioned_name: ${{ steps.define-artifact-names.outputs.artifact_versioned_name }}
       uploaded_artifact_name: ${{ steps.define-artifact-names.outputs.uploaded_artifact_name }}
