@@ -65,6 +65,10 @@ class ValidationPluginExtension(ValidationPlugin):
             fr37RestrictedText='has not given rise to reservations',
             informationOnTypeOfSubmittedReportQn=qname(f'{{{NAMESPACE_GSD}}}InformationOnTypeOfSubmittedReport'),
             liabilitiesQn=qname(f'{{{NAMESPACE_FSA}}}LiabilitiesAndEquity'),
+            liabilitiesAndEquityQn=qname(f'{{{NAMESPACE_FSA}}}LiabilitiesAndEquity'),
+            liabilitiesOtherThanProvisionsQn=qname(f'{{{NAMESPACE_FSA}}}LiabilitiesOtherThanProvisions'),
+            longtermLiabilitiesOtherThanProvisionsQn=qname(f'{{{NAMESPACE_FSA}}}LongtermLiabilitiesOtherThanProvisions'),
+            noncurrentAssetsQn=qname(f'{{{NAMESPACE_FSA}}}NoncurrentAssets'),
             nameAndSurnameOfChairmanOfGeneralMeetingQn=qname(f'{{{NAMESPACE_GSD}}}NameAndSurnameOfChairmanOfGeneralMeeting'),
             positiveProfitThreshold=1000,
             precedingReportingPeriodEndDateQn=qname(f'{{{NAMESPACE_GSD}}}PredingReportingPeriodEndDate'),  # Typo in taxonomy
@@ -73,6 +77,7 @@ class ValidationPluginExtension(ValidationPlugin):
             proposedDividendRecognisedInEquityQn=qname(f'{{{NAMESPACE_FSA}}}ProposedDividendRecognisedInEquity'),
             reportingPeriodEndDateQn=qname(f'{{{NAMESPACE_GSD}}}ReportingPeriodEndDate'),
             reportingPeriodStartDateQn=qname(f'{{{NAMESPACE_GSD}}}ReportingPeriodStartDate'),
+            shorttermLiabilitiesOtherThanProvisionsQn=qname(f'{{{NAMESPACE_FSA}}}ShorttermLiabilitiesOtherThanProvisions'),
             taxExpenseOnOrdinaryActivitiesQn=qname(f'{{{NAMESPACE_FSA}}}TaxExpenseOnOrdinaryActivities'),
             taxExpenseQn=qname(f'{{{NAMESPACE_FSA}}}TaxExpense'),
             typeOfReportingPeriodDimensionQn=qname(f'{{{NAMESPACE_GSD}}}TypeOfReportingPeriodDimension'),
