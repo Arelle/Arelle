@@ -32,6 +32,10 @@ class PluginValidationDataExtension(PluginData):
     fr37RestrictedText: str
     informationOnTypeOfSubmittedReportQn: QName
     liabilitiesQn: QName
+    liabilitiesAndEquityQn: QName
+    liabilitiesOtherThanProvisionsQn: QName
+    longtermLiabilitiesOtherThanProvisionsQn: QName
+    noncurrentAssetsQn: QName
     nameAndSurnameOfChairmanOfGeneralMeetingQn: QName
     positiveProfitThreshold: float
     precedingReportingPeriodEndDateQn: QName
@@ -40,6 +44,7 @@ class PluginValidationDataExtension(PluginData):
     proposedDividendRecognisedInEquityQn: QName
     reportingPeriodEndDateQn: QName
     reportingPeriodStartDateQn: QName
+    shorttermLiabilitiesOtherThanProvisionsQn: QName
     taxExpenseOnOrdinaryActivitiesQn: QName
     taxExpenseQn: QName
     typeOfReportingPeriodDimensionQn: QName

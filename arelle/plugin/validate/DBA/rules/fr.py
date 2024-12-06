@@ -13,6 +13,7 @@ from arelle.ValidateXbrl import ValidateXbrl
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
+from arelle.XmlValidateConst import VALID
 from . import errorOnDateFactComparison, errorOnRequiredFact, getFactsWithDimension, getFactsGroupedByContextId, errorOnRequiredPositiveFact
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
@@ -69,6 +70,42 @@ def rule_fr7(
                   "must be after the end date of the accounting period='%(fact1)s'"),
         assertion=lambda endDate, approvalDate: endDate < approvalDate,
     )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr34(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR34: If Equity does not equal 0 more fields are required.  At least one field must be filled in on the balance sheet in addition to equity:
+    Assets, NoncurrentAssets, CurrentAssets, LongtermLiabilitiesOtherThanProvisions, ShorttermLiabilitiesOtherThanProvisions, LiabilitiesOtherThanProvisions, LiabilitiesAndEquity
+    """
+    equityFacts = val.modelXbrl.factsByQname.get(pluginData.equityQn)
+    nonZeroEquityFacts = []
+    if equityFacts:
+        for fact in equityFacts:
+            if fact.xValid >= VALID:
+                if fact.xValue != 0:
+                    nonZeroEquityFacts.append(fact)
+    if nonZeroEquityFacts:
+        otherRequiredFactsQnames = [
+            pluginData.assetsQn, pluginData.noncurrentAssetsQn, pluginData.longtermLiabilitiesOtherThanProvisionsQn,
+            pluginData.shorttermLiabilitiesOtherThanProvisionsQn, pluginData.liabilitiesOtherThanProvisionsQn, pluginData.liabilitiesAndEquityQn
+        ]
+        hasEquityRequiredFacts = any(val.modelXbrl.factsByQname.get(factQname) for factQname in otherRequiredFactsQnames)
+        if not hasEquityRequiredFacts:
+            yield Validation.error(
+                codes="DBA.FR34",
+                msg=_("If Equity is filled in and is not zero, at least one other field must also be filled in: "
+                        "Assets, NoncurrentAssets, CurrentAssets, LongtermLiabilitiesOtherThanProvisions, ShorttermLiabilitiesOtherThanProvisions, "
+                        "LiabilitiesOtherThanProvisions, LiabilitiesAndEquity."),
+                modelObject=nonZeroEquityFacts
+            )
 
 
 @validation(

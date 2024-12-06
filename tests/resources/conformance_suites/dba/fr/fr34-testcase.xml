@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="Valid"
+        description="A valid instance that triggers no DBA validation errors."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid" name="Invalid">
+        <description>
+            Equity is tagged but none of the other elements are tagged.
+        </description>
+        <data>
+            <instance readMeFirst="true">fr34-invalid.xbrl</instance>
+        </data>
+        <result>
+            <error>DBA.FR34</error>
+        </result>
+    </variation>
+</testcase>
