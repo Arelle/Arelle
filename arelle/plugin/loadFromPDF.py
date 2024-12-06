@@ -310,12 +310,14 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=
                 if (page, obj) in markedContents:
                     # markedContent, bbox = markedContents[page,obj]
                     markedContent = markedContents[page,obj]
+                    mcid = f"p{page}R_mc{obj}"
                     if pdfId in textBlocks:
-                        textBlocks[pdfId] += "\n" + markedContent["txt"]
-                        structMcid[pdfId].append(f"p{page}R_mc{obj}")
+                        if mcid not in structMcid[pdfId]:
+                            textBlocks[pdfId] += "\n" + markedContent["txt"]
+                            structMcid[pdfId].append(mcid)
                     else:
                         textBlocks[pdfId] = markedContent["txt"]
-                        structMcid[pdfId].append(f"p{page}R_mc{obj}")
+                        structMcid[pdfId].append(mcid)
 
     if "/StructTreeRoot" in pdf.Root:
         loadTextBlocks(pdf.Root["/StructTreeRoot"])
@@ -480,7 +482,8 @@ __pluginInfo__ = {
 if __name__ == "__main__":
     global _
     import gettext
-    _ = gettext.gettext
+    import builtins
+    builtins.__dict__['_'] = gettext.gettext
 
     class _cntlr:
         def showStatus(self, msg, clearAfter=0):
