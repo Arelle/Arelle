@@ -192,9 +192,10 @@
               					  [ ixFormField[0] ] ] );
             }
           }
-			  ixvContext.strokeStyle = "blue";
+	      ixvContext.strokeStyle = "red";
           for (const r of rectFactIds) { // x, y, w, h, [factIDs]
-			ixvContext.strokeRect((r[0]) * vScale, (vTop - r[1]) * vScale	, (r[2]) * vScale, (-r[3]) * vScale);  
+            // pad by 1 on all sides
+			ixvContext.strokeRect((r[0]-2) * vScale, (vTop - r[1]+2) * vScale	, (r[2]+3) * vScale, (-r[3]-2) * vScale);  
           }
        } else {
           console.log("textContent but no ix text or form mapping available");
@@ -285,8 +286,10 @@
            }
        }
        console.log("  facts: " + factIds);
-       alert(facts);
        document.getElementById('facts').textContent = facts;
+       if (facts) {
+         alert(facts);
+       }
     }
 
   }, false);
