@@ -162,6 +162,10 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=
         print("Metadata:")
         for k, v in metadata.items():
             print(f"  {k}: {v}")
+        if pdf.attachments:
+            print("Attachments:")
+            for k, v in pdf.attachments.items():
+                print(f"  {k} Description: {v.description}, Filename: {v.filename},  Size: {v.obj.EF.F.Params.Size}")
     
     markedContents = {}
     ixTextFields = defaultdict(list)

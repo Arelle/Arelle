@@ -1,14 +1,18 @@
 <!DOCTYPE html>
-<!-- 
+<!--
   Companion viewer for Arelle plugin loadFromPDF.
   (c) Copyright 2011-present Workiva, Inc.
   Licensed under the Apache License, Version 2.0
-  
+
   Use: run under a local viewer with a json instance provided by loadFromPDF like this:
-    URL: http://localhost:52785/1/inlinePdfViewer.html?doc=myFile.json (from loadFromPDF)
+    If loading from an inline pdf Json report produced by loadFromPDF:
+       URL: http://localhost:52785/1/inlinePdfViewer.html?doc=myFile.json (from loadFromPDF)
+    Else if loading from a pdf with attachement embedded file:
+       URL: http://localhost:52785/1/inlinePdfViewer.html?doc=myFile.pdf
+
     (one may use an Arelle LocalViewer as with EDGAR local operation.)
     (requires these Mozilla files: pdf.mjs, pdf.mjs.map, pdf.worker.mjs, pdf.worker.mjs.map)
- 
+
  Careat: This is a proof-of-concept viewer, not a production product.
  -->
 <html>
@@ -43,7 +47,7 @@
   var entryUrl, pdfUrl = null;
   var ixTarget = null, ixFacts = null, ixTextFields = null, ixFormFields = null;
   var ixMcidFacts = null, ixFormFields = null, rectFactIds = null;
-  
+
   // pdf vars
   var pdf = null;
   const scale = 1.85;
@@ -57,13 +61,14 @@
   // pdf viewing canvas
   const pdfCanvas = document.getElementById("pdf-canvas");
   const pdfContext = pdfCanvas.getContext("2d");
-  
+
   var ixvLeft = 0, ixvTop = 0, vTop = 0, fTop = 0,
       pageRendering = false, pageNumPending = null, pageNum = 1	;
-   
+
   if (urlPattern.test(location.href)) {
      entryUrl = location.href.match(urlPattern)[1];
   } else {
+     // this is for testing, provide link to a test pdf or json document
 	 entryUrl = './apple-10-Q4-2024-As-Filed-2pgAcrobat-Tagged.pdf';
   }
   if (entryUrl.endsWith(".json")) {
@@ -72,23 +77,7 @@
     xhr.onreadystatechange = function() {
         if (this.readyState == 4) {
             if (this.status == 200) {
-                const oimInst = JSON.parse(this.responseText);
-                if (!(typeof oimInst === 'object' && "documentInfo" in oimInst)) {
-                   loadingErr = "Json loaded is not an OIM instance objects";
-                } else if (oimInst.documentInfo.documentType != "https://xbrl.org/2021/xbrl-json") {
-                   loadingErr = "Json loaded does not have OIM json instance documentType";
-                } else if (!("pdfMapping" in oimInst && "file" in oimInst["pdfMapping"])) {
-                   loadingErr = "Json loaded does not have pdfMapping object";
-                } else {
-                   const pdfMapping = oimInst.pdfMapping;
-                   pdfUrl = pdfMapping.file;
-                   ixTarget = pdfMapping.target;
-                   ixFacts = oimInst.facts;
-                   ixTextFields = pdfMapping.ixTextFields;
-                   ixFormFields = pdfMapping.ixFormFields;
-                   console.log("oim json instance loaded successfully");
-                   startupPdf();
-                }
+                startupPdf(this.responseText);
             } else {
                 loadingErr = "Unable to read OIM json instance";
             }
@@ -106,7 +95,7 @@
     xhr.send();
   } else {
     pdfUrl = entryUrl;
-    startupPdf();
+    startupPdf(null);
   }
 
   /**
@@ -129,10 +118,10 @@
       ixvCanvas.style.height = pdfCanvas.style.height;
  	  ixvLeft = ixvCanvas.offsetLeft + ixvCanvas.clientLeft;
   	  ixvTop = ixvCanvas.offsetTop + ixvCanvas.clientTop;
-  
+
       vTop = viewport.viewBox[3]; // y height unscaled
       fTop = vTop + 0;
-      
+
       var transform = outputScale !== 1
           ? [outputScale, 0, 0, outputScale, 0, 0]
           : null;
@@ -159,7 +148,7 @@
        if (ixTextFields && ixFormFields) {
           console.log("textContent with ix text and form mapping");
           let currentPagePrefix = "p" + page._pageInfo.ref.num + "R";
-          rectFactIds = []; // [  [x,y,w,h, [factIds]], ... ] 
+          rectFactIds = []; // [  [x,y,w,h, [factIds]], ... ]
           let mcidFactIds = {};
 		  Object.entries(ixTextFields).forEach(([factId, mcids]) => {
               for (const mcid of mcids) {
@@ -185,30 +174,30 @@
           }
           for (const ixFormField of ixFormFields) { // factID, page, x, y, w, h
             if (ixFormField[1] == currentPagePrefix) {
-              rectFactIds.push( [ ixFormField[2], 
-              					  ixFormField[3], 
-              					  ixFormField[4] - ixFormField[2], 
-              					  ixFormField[5] - ixFormField[3], 
+              rectFactIds.push( [ ixFormField[2],
+              					  ixFormField[3],
+              					  ixFormField[4] - ixFormField[2],
+              					  ixFormField[5] - ixFormField[3],
               					  [ ixFormField[0] ] ] );
             }
           }
 	      ixvContext.strokeStyle = "red";
           for (const r of rectFactIds) { // x, y, w, h, [factIDs]
             // pad by 1 on all sides
-			ixvContext.strokeRect((r[0]-2) * vScale, (vTop - r[1]+2) * vScale	, (r[2]+3) * vScale, (-r[3]-2) * vScale);  
+			ixvContext.strokeRect((r[0]-2) * vScale, (vTop - r[1]+2) * vScale	, (r[2]+3) * vScale, (-r[3]-2) * vScale);
           }
        } else {
           console.log("textContent but no ix text or form mapping available");
        }
       });
-       
+
       });
    })
     // Update page counters
     document.getElementById('page_num').textContent = num;
   };
 
-  function startupPdf() {
+  function startupPdf( jsonReportText ) {
     //
     // The workerSrc property shall be specified.
     //
@@ -217,18 +206,62 @@
     pdfjsLib.GlobalWorkerOptions.workerSrc =
       './pdf.worker.mjs';
     //
+    // Load report now if provided as input (not embedded as PDF attachment)
+    // (this may discover pdfUrl if it wasn't provided as a parameter)
+    //
+    if (jsonReportText) {
+      loadJsonReport( jsonReportText );
+    }
+    //
     // Asynchronous download PDF
     //
     pdfjsLib.getDocument(pdfUrl).promise.then(function(_pdf) {
       pdf = _pdf;
       document.getElementById('page_count').textContent = pdf.numPages;
 
+      pdf.getAttachments().then(function(attachments) {
+         if (!jsonReportText) {
+            // find file "ixReport.json"
+            const rpt = 'ix-report.json';
+            if (rpt in attachments) {
+                loadJsonReport(new TextDecoder().decode(attachments[rpt].content));
+            }
+         }
+         /* uncomment to process each attachment file
+		 Object.entries(attachments).forEach(([fileId, attachment]) => {
+		    const content = new TextDecoder().decode(attachment.content);
+		 });
+		 */
+      });
+
       // Initial/first page rendering
       renderPage(1);
     });
   } // end startupPDF
 
-   
+  /**
+   * process json report containing PDF metadata from loadFromPdf
+  **/
+  function loadJsonReport(reportText) {
+    const oimInst = JSON.parse(reportText);
+    if (!(typeof oimInst === 'object' && "documentInfo" in oimInst)) {
+       loadingErr = "Json loaded is not an OIM instance objects";
+    } else if (oimInst.documentInfo.documentType != "https://xbrl.org/2021/xbrl-json") {
+       loadingErr = "Json loaded does not have OIM json instance documentType";
+    } else if (!("pdfMapping" in oimInst && "file" in oimInst["pdfMapping"])) {
+       loadingErr = "Json loaded does not have pdfMapping object";
+    } else {
+       const pdfMapping = oimInst.pdfMapping;
+       pdfUrl = pdfMapping.file;
+       ixTarget = pdfMapping.target;
+       ixFacts = oimInst.facts;
+       ixTextFields = pdfMapping.ixTextFields;
+       ixFormFields = pdfMapping.ixFormFields;
+       console.log("oim json instance loaded successfully");
+    }
+  }
+
+
   /**
    * If another page rendering in progress, waits until the rendering is
    * finised. Otherwise, executes rendering immediately.
@@ -272,7 +305,7 @@
 
     let vX = x / scale;
     let vY = vTop - y / scale;
-    console.log("click at x=" + x + " y=" + y + " vx=" + 
+    console.log("click at x=" + x + " y=" + y + " vx=" +
                 vX + " vy=" + vY);
     if (rectFactIds) {
        var facts = "", factIds = "";
