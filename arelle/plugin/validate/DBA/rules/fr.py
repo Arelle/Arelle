@@ -197,6 +197,50 @@ def rule_fr48(
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
+def rule_fr53(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR53: Information is missing on the audit company's CVR no. and the audit firm's name.
+
+    The audit firm's CVR number and ame of audit firm must be provided when (fsa:TypeOfAuditorAssistance) is
+    tagged with one of the following values:
+    - (Revisionspåtegning)  / (Auditor's report on audited financial statements)
+    - (Erklæring om udvidet gennemgang) / (Auditor's report on extended review)
+    - (Den uafhængige revisors erklæringer (review)) / (The independent auditor's reports (Review))
+    - (Andre erklæringer med sikkerhed) / (The independent auditor's reports (Other assurance Reports))
+    """
+    modelXbrl = val.modelXbrl
+    facts = modelXbrl.factsByQname.get(pluginData.typeOfAuditorAssistanceQn)
+    if facts is not None:
+        for fact in facts:
+            if fact.xValid >= VALID:
+                if fact.xValue in [
+                    pluginData.auditedFinancialStatementsDanish,
+                    pluginData.auditedFinancialStatementsEnglish,
+                    pluginData.auditedExtendedReviewDanish,
+                    pluginData.auditedExtendedReviewEnglish,
+                    pluginData.independentAuditorsReportDanish,
+                    pluginData.independentAuditorsReportEnglish,
+                    pluginData.auditedAssuranceReportsDanish,
+                    pluginData.auditedAssuranceReportsEnglish
+                ]:
+                    cvr_facts = modelXbrl.factsByQname.get(pluginData.identificationNumberCvrOfAuditFirmQn)
+                    auditor_name_facts = modelXbrl.factsByQname.get(pluginData.nameOfAuditFirmQn)
+                    if cvr_facts is None or auditor_name_facts is None:
+                        yield Validation.warning(
+                            codes='DBA.FR53',
+                            msg=_("ADVICE FR53: Information is missing on the audit company's CVR no. and the audit firm's name."),
+                            modelObject=fact
+                        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
 def rule_fr56(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
