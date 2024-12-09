@@ -51,9 +51,16 @@ An xBRL-JSON template file is provided for each tagged PDF/A with inline XBRL.
 
 - **Stand alone convert pdf/a + template json into xBRL-JSON*:
   python loadFromPDF.py {pdfFilePath}
-  argument --showInfo will list out, by pdf ID, all the structural nodes available for pdfIdRef'ing
-                      and all the form fields by their field ID for pdfIdRef'ing
-  argument --missingIDprefix provides a prefix to prepend to generated IDs for elements without ID
+  arguments to stand alone operation (e.g. not under arelle as a plugin)
+     --showInfo will list out, by pdf ID, all the structural nodes available for pdfIdRef'ing
+                and all the form fields by their field ID for pdfIdRef'ing
+     --missingIDprefix provides a prefix to prepend to generated IDs for elements without ID
+     --templateFileName name: use name instead of {DEFAULT_TEMPLATE_FILE_NAME}
+     --reportFileName name: use name instead of {DEFAULT_REPORT_FILE_NAME}
+     --loadTemplateFromPdf: look for template file name in pdf attachments before file system
+     --loadTemplateFromFile: look for template only in file system
+     --saveReportInPdf: save template in pdf attachments
+     --saveReportInFile: save template as file
 
 
 
@@ -71,22 +78,27 @@ An xBRL-JSON template file is provided for each tagged PDF/A with inline XBRL.
   
 ### Local Viewer Operation
 
-Use arelle/examples/viewer/inlinePdfViewer.html with ?doc= name of output json from this plugin
+Use arelle/examples/viewer/inlinePdfViewer.html with 
+       ?doc= name as follows:
+            pdf file if loading a pdf embedding a ix-report.json output json from this plugin
+            json file if loading a json output from this plugin which embeds the pdfMapping: filename to load in turn
 
 ### GUI Usage
 
-* **Load PDF Report**: <<FEATURE NOT READY>>
+***Load PDF Report**: <<FEATURE NOT READY>>
   1. Using the normal `File` menu `Open File...` dialog, select the PDF/A file, or
   2. Using this module as a main program, save the value-enhanced inline source.
   
 
 """
-from pikepdf import Pdf, Dictionary, Array, Stream, Operator, parse_content_stream, unparse_content_stream, _core
+from pikepdf import Pdf, Dictionary, Array, Stream, Operator, parse_content_stream, unparse_content_stream, _core, AttachedFileSpec
 from collections import defaultdict, OrderedDict
 from decimal import Decimal
 import sys, os, json
 
-DEFAULT_MISSING_ID_PREFIX="pdf_"  # None to block
+DEFAULT_TEMPLATE_FILE_NAME = "ix-template.json"
+DEFAULT_REPORT_FILE_NAME =  "ix-report.json"
+DEFAULT_MISSING_ID_PREFIX = "pdf_"  # None to block
 
 # from https://github.com/maxwell-bland/pdf-latin-text-encodings
 mac_encoding = {65: 'A', 174: 'Æ', 231: 'Á', 229: 'Â', 128: 'Ä', 203: 'À', 129: 'Å', 204: 'Ã', 66: 'B', 67: 'C', 130: 'Ç', 68: 'D', 69: 'E', 131: 'É', 230: 'j', 232: 'Ë', 233: 'È', 70: 'F', 71: 'G', 72: 'H', 73: 'I', 234: 'Í', 235: 'Î', 236: 'Ï', 237: 'Ì', 74: 'J', 75: 'K', 76: 'L', 77: 'M', 78: 'N', 132: 'Ñ', 79: 'O', 206: 'Œ', 238: 'Ó', 239: 'Ô', 133: 'Ö', 241: 'Ò', 175: 'Ø', 205: 'Õ', 80: 'P', 81: 'Q', 82: 'R', 83: 'S', 84: 'T', 85: 'U', 242: 'Ú', 243: 'Û', 134: 'Ü', 244: 'Ù', 86: 'V', 87: 'W', 88: 'X', 89: 'Y', 217: 'Ÿ', 90: 'Z', 97: 'a', 135: 'á', 137: 'â', 171: 'a', 138: 'ä', 190: 'æ', 136: 'à', 38: '&', 140: 'å', 94: '^', 126: '~', 42: '*', 64: '@', 139: 'ã', 98: 'b', 92: '\\', 124: '|', 123: '{', 125: '}', 91: '[', 93: ']', 249: '̆', 165: '•', 99: 'c', 255: 'ˇ', 141: 'ç', 252: '̧', 162: '¢', 246: 'ˆ', 58: ':', 44: ',', 169: '©', 219: '¤', 100: 'd', 160: '†', 224: '‡', 161: '°', 172: '̈', 214: '÷', 36: '$', 250: '̇', 245: 'ı', 101: 'e', 142: 'é', 144: 'ê', 145: 'ë', 143: 'è', 56: '8', 201: '.', 209: '-', 208: '–', 61: '=', 33: '!', 193: '¡', 102: 'f', 222: 'f', 53: '5', 223: 'f', 196: 'ƒ', 52: '4', 218: '⁄', 103: 'g', 167: 'ß', 96: '`', 62: '>', 199: '«', 200: '»', 220: '‹', 221: '›', 104: 'h', 253: '̋', 45: '-', 105: 'i', 146: 'í', 148: 'î', 149: 'ï', 147: 'ì', 106: 'j', 107: 'k', 108: 'l', 60: '<', 194: '¬', 109: 'm', 248: '̄', 181: 'μ', 110: 'n', 57: '9', 150: 'ñ', 35: '#', 111: 'o', 151: 'ó', 153: 'ô', 154: 'ö', 207: 'œ', 254: '̨', 152: 'ò', 49: '1', 187: 'ª', 188: 'º', 191: 'ø', 155: 'õ', 112: 'p', 166: '¶', 40: '(', 41: ')', 37: '%', 46: '.', 225: '·', 228: '‰', 43: '+', 177: '±', 113: 'q', 63: '?', 192: '¿', 34: '"', 227: '„', 210: '“', 211: '”', 212: '‘', 213: '’', 226: '‚', 39: "'", 114: 'r', 168: '®', 251: '̊', 115: 's', 164: '§', 59: ';', 55: '7', 54: '6', 47: '/', 32: ' ', 163: '£', 116: 't', 51: '3', 247: '̃', 170: '™', 50: '2', 117: 'u', 156: 'ú', 158: 'û', 159: 'ü', 157: 'ù', 95: '_', 118: 'v', 119: 'w', 120: 'x', 121: 'y', 216: 'ÿ', 180: '¥', 122: 'z', 48: '0'}
@@ -150,7 +162,8 @@ def fontChar(font, c):
                 return numToBytes(bytesToNum(op) + diff).decode("UTF-16BE")
                     
 
-def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=False, missingIDprefix=DEFAULT_MISSING_ID_PREFIX, saveJson=False):
+def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=False, missingIDprefix=DEFAULT_MISSING_ID_PREFIX, saveReport=False,
+                templateFileName=DEFAULT_TEMPLATE_FILE_NAME, reportFileName=DEFAULT_REPORT_FILE_NAME, loadTemplateFromPdf=True, saveReportInPdf=True):
 
     if showInfo:
         print(f"loadFromPDF file: {os.path.basename(filepath)}")
@@ -355,7 +368,7 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=
 
     # at this point we have textBlocks and formFields by id
     if showInfo:
-        print(f"marked contents:")
+        print(f"Marked contents:")
         for k,v in markedContents.items():
             print(f"p{k[0]}R_mc{k[1]}: {v}")
         print(f"str mcid:")
@@ -365,15 +378,15 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=
         print(f"form fields:\n{os.linesep.join(k + ': ' + str(v) for k,v in formFields.items())}")
 
     # read attached ix.jsonl for inline specifications
-    oimFile = None
-    if "ix.json" in pdf.attachments:
-        oimFile = pdf.attachments['ix.json'].get_file()
+    oimObject = None
+    if loadTemplateFromPdf and templateFileName in pdf.attachments:
+        oimObject = json.loads(pdf.attachments[templateFileName].get_file().read_bytes())
     else:
-        jsonTemplateFile = os.path.join(os.path.dirname(filepath), "ix-template.json")
+        jsonTemplateFile = os.path.join(os.path.dirname(filepath), templateFileName)
         if os.path.exists(jsonTemplateFile):
-            oimFile = open(jsonTemplateFile, mode="r")
-    if oimFile:
-        oimObject = json.load(oimFile)
+            with open(jsonTemplateFile, mode="r") as fh:
+                oimObject = json.load(fh)
+    if oimObject:
         ixTextFields = defaultdict(list)
         ixFormFields = []
         # replace fact pdfIdRefs with strings
@@ -419,8 +432,15 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=
                 ("ixTextFields", ixTextFields),
                 ("ixFormFields", ixFormFields)
                 ))
-        if saveJson:
-            json.dump(oimObject, open(filepath.replace(".pdf", ".json"),"w"), indent=2)
+        if saveReport and reportFileName:
+            if saveReportInPdf:
+                pdf.attachments[reportFileName] = AttachedFileSpec(
+                    pdf,
+                    json.dumps(oimObject, indent=2).encode('utf-8'),
+                    mime_type='application/json')
+                print("done")
+            else:
+                json.dump(oimObject, open(reportFileName,"w"), indent=2)
 
 
 # arelle integration methods TBD
@@ -499,6 +519,10 @@ if __name__ == "__main__":
     showInfo = False
     missingIDprefix = None
     pdfFile = None
+    templateFileName = DEFAULT_TEMPLATE_FILE_NAME
+    reportFileName = DEFAULT_REPORT_FILE_NAME
+    loadTemplateFromPdf = True
+    saveReportInPdf = True
 
     for arg in sys.argv[1:]:
         if arg in ("-a", "--about"):
@@ -518,6 +542,12 @@ if __name__ == "__main__":
             print("command line arguments: \n"
                   "  --showInfo: show structural model and form fields available for mapping \n"
                   "  --missingIDprefix pdf_: add id to structural elements with text and no ID"
+                  f"  --templateFileName name: use name instead of {DEFAULT_TEMPLATE_FILE_NAME}"
+                  f"  --reportFileName name: use name instead of {DEFAULT_REPORT_FILE_NAME}"
+                  "  --loadTemplateFromPdf: look for template file name in pdf attachments before file system"
+                  "  --loadTemplateFromFile: look for template only in file system"
+                  "  --saveReportInPdf: save template in pdf attachments"
+                  "  --saveReportInFile: save template as file"
                   "  {file}: .pdf file to process and save as inline XBRL named {file}.xhtml")
         elif arg == "--showInfo":
             showInfo = True # shows StructTree
@@ -525,6 +555,22 @@ if __name__ == "__main__":
             missingIDprefix = -1
         elif missingIDprefix == -1:
             missingIDprefix = arg
+        elif arg == "--templateFileName":
+            templateFileName = -1
+        elif templateFileName == -1:
+            missitemplateFileNamengIDprefix = arg
+        elif arg == "--reportFileName":
+            reportFileName = -1
+        elif reportFileName == -1:
+            reportFileName = arg
+        elif arg == "--loadTemplateFromPdf":
+            loadTemplateFromPdf = True
+        elif arg == "--loadTemplateFromFile":
+            loadTemplateFromPdf = False
+        elif arg == "--saveReportInPdf":
+            saveReportInPdf = True
+        elif arg == "--saveReportInFile":
+            saveReportInFile = False
         else:
             if not arg.endswith(".pdf"):
                 print("file {} must be a .pdf file".format(arg))
@@ -535,4 +581,5 @@ if __name__ == "__main__":
 
     if pdfFile:
         # load pdf and save json with values from pdf
-        loadFromPDF(_cntlr, _logMessage, _logMessage, None, pdfFile, None, showInfo, missingIDprefix, True)
+        loadFromPDF(_cntlr, _logMessage, _logMessage, None, pdfFile, None, showInfo, missingIDprefix, 
+                    True, templateFileName, reportFileName, loadTemplateFromPdf, saveReportInPdf)
