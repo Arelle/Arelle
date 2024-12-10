@@ -188,7 +188,6 @@ module = [
     'arelle.ValidateUtr',
     'arelle.ValidateVersReport',
     'arelle.ValidateXbrlCalcs',
-    'arelle.ValidateXbrlCalcs',
     'arelle.ValidateXbrlDTS',
     'arelle.ValidateXbrlDimensions',
     'arelle.Version',

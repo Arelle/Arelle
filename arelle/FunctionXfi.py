@@ -1171,7 +1171,7 @@ def concept_relationships_step(xc, inst, relationshipSet, rels, axis, generation
                         # search all incoming relationships for those with right consecutiveLinkrole
                         stepRels = [rel
                                     for rel in stepRelationshipSet.toModelObject(concept)
-                                    if rel.consectuiveLinkrole == modelRel.linkrole]
+                                    if rel.consecutiveLinkrole == modelRel.linkrole]
                     else:
                         stepRelationshipSet = relationshipSet
                         stepRels = stepRelationshipSet.toModelObject(concept)

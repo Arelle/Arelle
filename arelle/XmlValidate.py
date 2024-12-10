@@ -2,11 +2,12 @@
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
+from dataclasses import dataclass
 import logging, os
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, cast
 from lxml import etree
-from regex import Match, compile as re_compile
+from regex import Match, Pattern, compile as re_compile
 from decimal import Decimal, InvalidOperation
 from fractions import Fraction
 from arelle import UrlUtil, XbrlConst, XmlUtil, XmlValidateConst
@@ -28,6 +29,36 @@ if TYPE_CHECKING:
     from arelle.ModelValue import QName
 
 _: TypeGetText
+
+# patterns to replace \c and \i in names
+iNameChar = "[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
+cNameChar = r"[_\-\.:"   "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]"
+cMinusCNameChar = r"[_\-\."   "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]"
+
+@dataclass(frozen=True)
+class XsdPattern:
+    xsdPattern: str
+    pyPattern: Pattern[str]
+
+    # shim class for python wrapper of xsd pattern
+    @classmethod
+    def compile(cls, p: str) -> XsdPattern:
+        if r"\i" in p or r"\c" in p:
+            p = p.replace(r"[\i-[:]]", iNameChar).replace(r"\i", iNameChar) \
+                 .replace(r"[\c-[:]]", cMinusCNameChar).replace(r"\c", cNameChar)
+        pyPattern = re_compile(p + "$") # must match whole string
+        return cls(p, pyPattern)
+
+    def match(self, string: str) -> Match[str] | None:
+        return self.pyPattern.match(string)
+
+    @property
+    def pattern(self) -> str:
+        return self.xsdPattern
+
+    def __repr__(self) -> str:
+        return self.xsdPattern
+
 
 # support legacy direct imports from this module
 UNVALIDATED      = XmlValidateConst.UNVALIDATED
@@ -84,15 +115,13 @@ lexicalPatterns = {
 
 # patterns difficult to compile into python
 xmlSchemaPatterns = {
-    r"\c+": NMTOKENPattern,
-    r"\i\c*": namePattern,
-    r"[\i-[:]][\c-[:]]*": NCNamePattern,
-    }
-
-# patterns to replace \c and \i in names
-iNameChar = "[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
-cNameChar = r"[_\-\.:"   "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]"
-cMinusCNameChar = r"[_\-\."   "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]"
+    pattern: XsdPattern(xsdPattern=pattern, pyPattern=pyPattern)
+    for pattern, pyPattern in (
+        (r"\c+", NMTOKENPattern),
+        (r"\i\c*", namePattern),
+        (r"[\i-[:]][\c-[:]]*", NCNamePattern),
+    )
+}
 
 baseXsdTypePatterns = {
                 "Name": namePattern,
@@ -527,7 +556,7 @@ def validateValue(
                         if value in xmlSchemaPatterns:
                             xValue = xmlSchemaPatterns[value]
                         else:
-                            xValue = XsdPattern().compile(value)
+                            xValue = XsdPattern.compile(value)
                     except Exception as err:
                         raise ValueError(err)
                 elif baseXsdType == "fraction":
@@ -758,23 +787,3 @@ def lxmlSchemaValidate(modelDocument: ModelDocument, extraSchema : str | None = 
                            file=modelDocument.basename,
                            level=logging.ERROR)
             modelDocument.modelXbrl.errors.append(msgCode)
-
-class XsdPattern():
-    # shim class for python wrapper of xsd pattern
-    def compile(self, p: str) -> XsdPattern:
-        self.xsdPattern = p
-        if r"\i" in p or r"\c" in p:
-            p = p.replace(r"[\i-[:]]", iNameChar).replace(r"\i", iNameChar) \
-                 .replace(r"[\c-[:]]", cMinusCNameChar).replace(r"\c", cNameChar)
-        self.pyPattern = re_compile(p + "$") # must match whole string
-        return self
-
-    def match(self, string: str) -> Match[str] | None:
-        return self.pyPattern.match(string)
-
-    @property
-    def pattern(self) -> str:
-        return self.xsdPattern
-
-    def __repr__(self) -> str:
-        return self.xsdPattern
