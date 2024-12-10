@@ -29,6 +29,32 @@ if TYPE_CHECKING:
 
 _: TypeGetText
 
+# patterns to replace \c and \i in names
+iNameChar = "[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
+cNameChar = r"[_\-\.:"   "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]"
+cMinusCNameChar = r"[_\-\."   "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]"
+
+class XsdPattern():
+    # shim class for python wrapper of xsd pattern
+    def compile(self, p: str) -> XsdPattern:
+        self.xsdPattern = p
+        if r"\i" in p or r"\c" in p:
+            p = p.replace(r"[\i-[:]]", iNameChar).replace(r"\i", iNameChar) \
+                 .replace(r"[\c-[:]]", cMinusCNameChar).replace(r"\c", cNameChar)
+        self.pyPattern = re_compile(p + "$") # must match whole string
+        return self
+
+    def match(self, string: str) -> Match[str] | None:
+        return self.pyPattern.match(string)
+
+    @property
+    def pattern(self) -> str:
+        return self.xsdPattern
+
+    def __repr__(self) -> str:
+        return self.xsdPattern
+
+
 # support legacy direct imports from this module
 UNVALIDATED      = XmlValidateConst.UNVALIDATED
 UNKNOWN          = XmlValidateConst.UNKNOWN
@@ -88,11 +114,6 @@ xmlSchemaPatterns = {
     r"\i\c*": namePattern,
     r"[\i-[:]][\c-[:]]*": NCNamePattern,
     }
-
-# patterns to replace \c and \i in names
-iNameChar = "[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
-cNameChar = r"[_\-\.:"   "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]"
-cMinusCNameChar = r"[_\-\."   "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]"
 
 baseXsdTypePatterns = {
                 "Name": namePattern,
@@ -758,23 +779,3 @@ def lxmlSchemaValidate(modelDocument: ModelDocument, extraSchema : str | None = 
                            file=modelDocument.basename,
                            level=logging.ERROR)
             modelDocument.modelXbrl.errors.append(msgCode)
-
-class XsdPattern():
-    # shim class for python wrapper of xsd pattern
-    def compile(self, p: str) -> XsdPattern:
-        self.xsdPattern = p
-        if r"\i" in p or r"\c" in p:
-            p = p.replace(r"[\i-[:]]", iNameChar).replace(r"\i", iNameChar) \
-                 .replace(r"[\c-[:]]", cMinusCNameChar).replace(r"\c", cNameChar)
-        self.pyPattern = re_compile(p + "$") # must match whole string
-        return self
-
-    def match(self, string: str) -> Match[str] | None:
-        return self.pyPattern.match(string)
-
-    @property
-    def pattern(self) -> str:
-        return self.xsdPattern
-
-    def __repr__(self) -> str:
-        return self.xsdPattern
