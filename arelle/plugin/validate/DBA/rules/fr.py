@@ -66,7 +66,7 @@ def rule_fr7(
         fact2Qn=pluginData.dateOfApprovalOfAnnualReportQn,
         dimensionQn=pluginData.typeOfReportingPeriodDimensionQn,
         code='DBA.FR7',
-        message=_("Error code FR7: Date of approval of the annual report='%(fact2)s' "
+        message=_("Date of approval of the annual report='%(fact2)s' "
                   "must be after the end date of the accounting period='%(fact1)s'"),
         assertion=lambda endDate, approvalDate: endDate < approvalDate,
     )
@@ -155,7 +155,7 @@ def rule_fr41(
             continue
         yield Validation.warning(
             codes='DBA.FR41',
-            msg=_("ADVICE FR41: The annual report does not contain information on tax "
+            msg=_("The annual report does not contain information on tax "
                   "on the year's profit. If the profit for the year in the income "
                   "statement is positive, either 'Tax on profit for the year' or "
                   "'Tax on ordinary profit' must be filled in."),
@@ -188,7 +188,7 @@ def rule_fr48(
     if len(foundFacts) > 0:
         yield Validation.warning(
             codes="DBA.FR48",
-            msg=_("ADVICE FR48: Annual reports with a start date of 1/1 2016 or later must not use the fields:"
+            msg=_("Annual reports with a start date of 1/1 2016 or later must not use the fields:"
                   "'Extraordinary profit before tax', 'Extraordinary income', 'Extraordinary costs'."),
             modelObject=foundFacts
     )
@@ -206,7 +206,7 @@ def rule_fr53(
     """
     DBA.FR53: Information is missing on the audit company's CVR no. and the audit firm's name.
 
-    The audit firm's CVR number and ame of audit firm must be provided when (fsa:TypeOfAuditorAssistance) is
+    The audit firm's CVR number and name of audit firm must be provided when (fsa:TypeOfAuditorAssistance) is
     tagged with one of the following values:
     - (Revisionspåtegning)  / (Auditor's report on audited financial statements)
     - (Erklæring om udvidet gennemgang) / (Auditor's report on extended review)
@@ -228,12 +228,21 @@ def rule_fr53(
                     pluginData.auditedAssuranceReportsDanish,
                     pluginData.auditedAssuranceReportsEnglish
                 ]:
+                    missing_concepts = []
                     cvr_facts = modelXbrl.factsByQname.get(pluginData.identificationNumberCvrOfAuditFirmQn)
                     auditor_name_facts = modelXbrl.factsByQname.get(pluginData.nameOfAuditFirmQn)
-                    if cvr_facts is None or auditor_name_facts is None:
+                    if cvr_facts is None:
+                        missing_concepts.append(pluginData.identificationNumberCvrOfAuditFirmQn.localName)
+                    if auditor_name_facts is None:
+                        missing_concepts.append(pluginData.identificationNumberCvrOfAuditFirmQn.localName)
+                    if len(missing_concepts) > 0:
                         yield Validation.warning(
                             codes='DBA.FR53',
-                            msg=_("ADVICE FR53: Information is missing on the audit company's CVR no. and the audit firm's name."),
+                            msg = _("The following concepts must be tagged: {} when {} is tagged with the value of {}").format(
+                                ",".join(missing_concepts),
+                                pluginData.typeOfAuditorAssistanceQn.localName,
+                                fact.xValue
+                            ),
                             modelObject=fact
                         )
 
@@ -282,7 +291,7 @@ def rule_fr56(
         if not valid:
             yield Validation.warning(
                 codes='DBA.FR56',
-                msg=_("ADVICE FR56: The annual report does not contain a profit distribution. "
+                msg=_("The annual report does not contain a profit distribution. "
                       "The annual report must contain a profit and loss statement with a "
                       "distribution of profits."),
                 modelObject=profitLossFact
