@@ -417,7 +417,7 @@ BASE_XSD_TYPES = {
         {"value": r"\c+", "expected": ("=", XsdPattern(xsdPattern=r"\c+", pyPattern=NMTOKENPattern), VALID)},
         {"value": r"\i\c*", "expected": ("=", XsdPattern(xsdPattern=r"\i\c*", pyPattern=namePattern), VALID)},
         {"value": r"[\i-[:]][\c-[:]]*", "expected": ("=", XsdPattern(xsdPattern=r"[\i-[:]][\c-[:]]*", pyPattern=NCNamePattern), VALID)},
-        # {"value": "test", "expected": ("=", XsdPattern().compile("test"), VALID)},  # TODO: XsdPattern equality not working
+        {"value": "test", "expected": ("=", XsdPattern.compile("test"), VALID)},
         {"value": r"invalid(", "expected": ("=", None, INVALID)},
     ],
 }
