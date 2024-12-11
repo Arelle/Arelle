@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="NL.FR-NL-3.01"
+        description="Date elements in an 'xbrli:period' element MUST be included without time."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid-period-date-with-time" name="Date elements in an 'xbrli:period' element not included time">
+        <description>
+            Date elements in an 'xbrli:period' element MUST be included without time.
+        </description>
+        <data>
+            <instance readMeFirst="true">3-01-invalid-period-date-with-time.xbrl</instance>
+        </data>
+        <result>
+            <error>NL.FR-NL-3.01</error>
+        </result>
+    </variation>
+</testcase>
