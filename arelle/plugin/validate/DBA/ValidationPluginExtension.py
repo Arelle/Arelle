@@ -27,13 +27,19 @@ class ValidationPluginExtension(ValidationPlugin):
                 'årsrapport',
                 'Annual report'
             ]),
+
             assetsQn=qname(f'{{{NAMESPACE_FSA}}}Assets'),
+            auditedAssuranceReportsDanish='Andre erklæringer med sikkerhed',
+            auditedAssuranceReportsEnglish='The independent auditor\'s reports (Other assurance Reports)',
+            auditedExtendedReviewDanish='Erklæring om udvidet gennemgang',
+            auditedExtendedReviewEnglish='Auditor\'s report on extended review',
+            auditedFinancialStatementsDanish='Revisionspåtegning',
+            auditedFinancialStatementsEnglish='Auditor\'s report on audited financial statements',
             classOfReportingEntityQn=qname(f'{{{NAMESPACE_FSA}}}ClassOfReportingEntity'),
             consolidatedMemberQn=qname(f'{{{NAMESPACE_CMN}}}ConsolidatedMember'),
             consolidatedSoloDimensionQn=qname(f'{{{NAMESPACE_CMN}}}ConsolidatedSoloDimension'),
             dateOfApprovalOfAnnualReportQn=qname(f'{{{NAMESPACE_SOB}}}DateOfApprovalOfAnnualReport'),
-            dateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod=
-            qname(f'{{{NAMESPACE_FSA}}}DateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod'),
+            dateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod=qname(f'{{{NAMESPACE_FSA}}}DateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod'),
             dateOfGeneralMeetingQn=qname(f'{{{NAMESPACE_GSD}}}DateOfGeneralMeeting'),
             descriptionOfQualificationsOfAssuranceEngagementPerformedQn=qname(f'{{{NAMESPACE_ARR}}}DescriptionOfQualificationsOfAssuranceEngagementPerformed'),
             distributionOfResultsQns=frozenset([
@@ -63,6 +69,9 @@ class ValidationPluginExtension(ValidationPlugin):
             extraordinaryIncomeQn=qname(f'{{{NAMESPACE_FSA}}}ExtraordinaryIncome'),
             extraordinaryResultBeforeTaxQn=qname(f'{{{NAMESPACE_FSA}}}ExtraordinaryResultBeforeTax'),
             fr37RestrictedText='has not given rise to reservations',
+            identificationNumberCvrOfAuditFirmQn=qname(f'{{{NAMESPACE_CMN}}}IdentificationNumberCvrOfAuditFirm'),
+            independentAuditorsReportDanish='Den uafhængige revisors erklæringer (review)',
+            independentAuditorsReportEnglish='The independent auditor\'s reports (Review)',
             informationOnTypeOfSubmittedReportQn=qname(f'{{{NAMESPACE_GSD}}}InformationOnTypeOfSubmittedReport'),
             liabilitiesQn=qname(f'{{{NAMESPACE_FSA}}}LiabilitiesAndEquity'),
             liabilitiesAndEquityQn=qname(f'{{{NAMESPACE_FSA}}}LiabilitiesAndEquity'),
@@ -70,6 +79,7 @@ class ValidationPluginExtension(ValidationPlugin):
             longtermLiabilitiesOtherThanProvisionsQn=qname(f'{{{NAMESPACE_FSA}}}LongtermLiabilitiesOtherThanProvisions'),
             noncurrentAssetsQn=qname(f'{{{NAMESPACE_FSA}}}NoncurrentAssets'),
             nameAndSurnameOfChairmanOfGeneralMeetingQn=qname(f'{{{NAMESPACE_GSD}}}NameAndSurnameOfChairmanOfGeneralMeeting'),
+            nameOfAuditFirmQn=qname(f'{{{NAMESPACE_CMN}}}NameOfAuditFirm'),
             positiveProfitThreshold=1000,
             precedingReportingPeriodEndDateQn=qname(f'{{{NAMESPACE_GSD}}}PredingReportingPeriodEndDate'),  # Typo in taxonomy
             precedingReportingPeriodStartDateQn=qname(f'{{{NAMESPACE_GSD}}}PrecedingReportingPeriodStartDate'),
@@ -80,5 +90,6 @@ class ValidationPluginExtension(ValidationPlugin):
             shorttermLiabilitiesOtherThanProvisionsQn=qname(f'{{{NAMESPACE_FSA}}}ShorttermLiabilitiesOtherThanProvisions'),
             taxExpenseOnOrdinaryActivitiesQn=qname(f'{{{NAMESPACE_FSA}}}TaxExpenseOnOrdinaryActivities'),
             taxExpenseQn=qname(f'{{{NAMESPACE_FSA}}}TaxExpense'),
+            typeOfAuditorAssistanceQn=qname(f'{{{NAMESPACE_CMN}}}TypeOfAuditorAssistance'),
             typeOfReportingPeriodDimensionQn=qname(f'{{{NAMESPACE_GSD}}}TypeOfReportingPeriodDimension'),
         )
