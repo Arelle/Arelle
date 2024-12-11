@@ -10,7 +10,7 @@ from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.validate.ValidationPlugin import ValidationPlugin
-from .DisclosureSystems import DISCLOSURE_SYSTEM_NT16, DISCLOSURE_SYSTEM_NT17, DISCLOSURE_SYSTEM_NT18
+from .DisclosureSystems import DISCLOSURE_SYSTEM_NT16, DISCLOSURE_SYSTEM_NT17, DISCLOSURE_SYSTEM_NT18, DISCLOSURE_SYSTEM_NT19
 from .PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
@@ -129,6 +129,43 @@ class ValidationPluginExtension(ValidationPlugin):
                 'kvk-rpt-jaarverantwoording-2023-nlgaap-verzekeringsmaatschappijen.xsd',
                 'kvk-rpt-jaarverantwoording-2023-nlgaap-zorginstellingen.xsd',
             ]}
+        elif disclosureSystem == DISCLOSURE_SYSTEM_NT19:
+            jenvNamespace = 'http://www.nltaxonomie.nl/nt19/jenv/20241211/dictionary/jenv-bw2-data'
+            kvkINamespace = 'http://www.nltaxonomie.nl/nt19/kvk/20241211/dictionary/kvk-data'
+            nlTypesNamespace = 'http://www.nltaxonomie.nl/nt19/sbr/20240301/dictionary/nl-types'
+            entrypointRoot = 'http://www.nltaxonomie.nl/nt19/kvk/20241211/entrypoints/'
+            entrypoints = {entrypointRoot + e for e in [
+                'kvk-rpt-jaarverantwoording-2024-ifrs-full.xsd',
+                'kvk-rpt-jaarverantwoording-2024-ifrs-geconsolideerd-nlgaap-enkelvoudig.xsd',
+                'kvk-rpt-jaarverantwoording-2024-ifrs-smes.xsd',
+                'kvk-rpt-jaarverantwoording-2024-nlgaap-banken.xsd',
+                'kvk-rpt-jaarverantwoording-2024-nlgaap-beleggingsentiteiten.xsd',
+                'kvk-rpt-jaarverantwoording-2024-nlgaap-cooperaties.xsd',
+                'kvk-rpt-jaarverantwoording-2024-nlgaap-cv-vof.xsd',
+                'kvk-rpt-jaarverantwoording-2024-nlgaap-fondsenwervende-organisaties-klein.xsd',
+                'kvk-rpt-jaarverantwoording-2024-nlgaap-fondsenwervende-organisaties.xsd',
+                'kvk-rpt-jaarverantwoording-2024-nlgaap-groot-verticaal.xsd',
+                'kvk-rpt-jaarverantwoording-2024-nlgaap-groot.xsd',
+                'kvk-rpt-jaarverantwoording-2024-nlgaap-klein-publicatiestukken.xsd',
+                'kvk-rpt-jaarverantwoording-2024-nlgaap-klein-verticaal-publicatiestukken.xsd',
+                'kvk-rpt-jaarverantwoording-2024-nlgaap-klein-verticaal.xsd',
+                'kvk-rpt-jaarverantwoording-2024-nlgaap-klein.xsd',
+                'kvk-rpt-jaarverantwoording-2024-nlgaap-micro-publicatiestukken.xsd',
+                'kvk-rpt-jaarverantwoording-2024-nlgaap-micro.xsd',
+                'kvk-rpt-jaarverantwoording-2024-nlgaap-middelgroot-plus.xsd',
+                'kvk-rpt-jaarverantwoording-2024-nlgaap-middelgroot-publicatiestukken.xsd',
+                'kvk-rpt-jaarverantwoording-2024-nlgaap-middelgroot-verticaal-publicatiestukken.xsd',
+                'kvk-rpt-jaarverantwoording-2024-nlgaap-middelgroot-verticaal.xsd',
+                'kvk-rpt-jaarverantwoording-2024-nlgaap-middelgroot.xsd',
+                'kvk-rpt-jaarverantwoording-2024-nlgaap-organisaties-zonder-winststreven-klein.xsd',
+                'kvk-rpt-jaarverantwoording-2024-nlgaap-organisaties-zonder-winststreven.xsd',
+                'kvk-rpt-jaarverantwoording-2024-nlgaap-pensioenfondsen.xsd',
+                'kvk-rpt-jaarverantwoording-2024-nlgaap-premiepensioeninstellingen.xsd',
+                'kvk-rpt-jaarverantwoording-2024-nlgaap-stichtingen.xsd',
+                'kvk-rpt-jaarverantwoording-2024-nlgaap-toegelaten-instellingen-volkshuisvesting.xsd',
+                'kvk-rpt-jaarverantwoording-2024-nlgaap-verzekeringsmaatschappijen.xsd',
+                'kvk-rpt-jaarverantwoording-2024-nlgaap-zorginstellingen.xsd',
+            ]}
         else:
             raise ValueError(f'Invalid NL disclosure system: {disclosureSystem}')
         return PluginValidationDataExtension(
@@ -150,7 +187,7 @@ class ValidationPluginExtension(ValidationPlugin):
     def modelXbrlLoadComplete(self, modelXbrl: ModelXbrl, *args: Any, **kwargs: Any) -> ModelDocument | LoadingException | None:
         if self.disclosureSystemFromPluginSelected(modelXbrl):
             disclosureSystem = modelXbrl.modelManager.disclosureSystem.name
-            if disclosureSystem in (DISCLOSURE_SYSTEM_NT16, DISCLOSURE_SYSTEM_NT17, DISCLOSURE_SYSTEM_NT18):
+            if disclosureSystem in (DISCLOSURE_SYSTEM_NT16, DISCLOSURE_SYSTEM_NT17, DISCLOSURE_SYSTEM_NT18, DISCLOSURE_SYSTEM_NT19):
                 # Dutch taxonomies prior to 2025 incorrectly used hypercube linkrole for roots instead of dimension linkrole.
                 paramQName = qname('tlbDimRelsUseHcRoleForDomainRoots', noPrefixIsNoNamespace=True)
                 modelXbrl.modelManager.formulaOptions.parameterValues[paramQName] = (None, "true")

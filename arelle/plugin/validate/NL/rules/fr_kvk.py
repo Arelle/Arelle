@@ -19,7 +19,8 @@ from lxml.etree import _Element
 from ..DisclosureSystems import (
     DISCLOSURE_SYSTEM_NT16,
     DISCLOSURE_SYSTEM_NT17,
-    DISCLOSURE_SYSTEM_NT18
+    DISCLOSURE_SYSTEM_NT18,
+    DISCLOSURE_SYSTEM_NT19,
 )
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
@@ -35,7 +36,8 @@ ACCEPTED_DECIMAL_VALUES = ('INF', '-9', '-6', '-3', '0', '2')
     disclosureSystems=[
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
-        DISCLOSURE_SYSTEM_NT18
+        DISCLOSURE_SYSTEM_NT18,
+        DISCLOSURE_SYSTEM_NT19,
     ],
 )
 def rule_fr_kvk_1_01(
@@ -64,7 +66,8 @@ def rule_fr_kvk_1_01(
     disclosureSystems=[
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
-        DISCLOSURE_SYSTEM_NT18
+        DISCLOSURE_SYSTEM_NT18,
+        DISCLOSURE_SYSTEM_NT19,
     ],
 )
 def rule_fr_kvk_2_01(
@@ -95,7 +98,8 @@ def rule_fr_kvk_2_01(
     disclosureSystems=[
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
-        DISCLOSURE_SYSTEM_NT18
+        DISCLOSURE_SYSTEM_NT18,
+        DISCLOSURE_SYSTEM_NT19,
     ],
 )
 def rule_fr_kvk_2_02(
@@ -130,7 +134,8 @@ def rule_fr_kvk_2_02(
     disclosureSystems=[
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
-        DISCLOSURE_SYSTEM_NT18
+        DISCLOSURE_SYSTEM_NT18,
+        DISCLOSURE_SYSTEM_NT19,
     ],
 )
 def rule_fr_kvk_2_03(
@@ -169,7 +174,8 @@ def rule_fr_kvk_2_03(
     disclosureSystems=[
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
-        DISCLOSURE_SYSTEM_NT18
+        DISCLOSURE_SYSTEM_NT18,
+        DISCLOSURE_SYSTEM_NT19,
     ],
 )
 def rule_fr_kvk_5_01(
@@ -201,7 +207,8 @@ def rule_fr_kvk_5_01(
     disclosureSystems=[
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
-        DISCLOSURE_SYSTEM_NT18
+        DISCLOSURE_SYSTEM_NT18,
+        DISCLOSURE_SYSTEM_NT19,
     ],
 )
 def rule_fr_kvk_5_02(

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="NL.FR-NL-5.11"
+        description="Formatting using a limited set of 'escaped XHTML' elements MAY ONLY be included in fact values of facts tagged with concepts of type 'formattedExplanationItemType'."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid-content" name="XHTML with Invalid Content">
+        <description>
+            Instance document contains fact with escaped XHTML with invalid style/tag content.
+        </description>
+        <data>
+            <instance readMeFirst="true">5-11-invalid-content.xbrl</instance>
+        </data>
+        <result>
+            <error>NL.FR-NL-5.11</error>
+        </result>
+    </variation>
+    <variation id="invalid-type" name="XHTML in Invalid Type">
+        <description>
+            Instance document contains fact with escaped XHTML that is not 'formattedExplanationItemType'.
+        </description>
+        <data>
+            <instance readMeFirst="true">5-11-invalid-type.xbrl</instance>
+        </data>
+        <result>
+            <error>NL.FR-NL-5.11</error>
+        </result>
+    </variation>
+</testcase>

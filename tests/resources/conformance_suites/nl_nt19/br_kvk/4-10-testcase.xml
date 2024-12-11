@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://xbrl.org/2005/conformance"
+  name="NL.BR-KVK-4.10"
+  description="The jenv-bw2-i:DocumentAdoptionDate MUST NOT be after the date of filing."
+  outpath=''
+  owner="support@arelle.org"
+  xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+  <variation id="invalid" name="Invalid Adoption Date">
+    <description>
+        The instance has a 'jenv-bw2-i:DocumentAdoptionDate' value earlier than the filing date.
+    </description>
+    <data>
+        <instance readMeFirst="true">4-10-invalid.xbrl</instance>
+    </data>
+    <result>
+      <error>NL.BR-KVK-4.10</error>
+    </result>
+  </variation>
+</testcase>

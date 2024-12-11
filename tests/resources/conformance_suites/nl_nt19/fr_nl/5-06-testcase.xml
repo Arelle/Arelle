@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="NL.FR-NL-5.06"
+        description="The 'precision' attribute MUST NOT be used."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid-precision" name="precision attribute must not be used">
+        <description>
+            The 'precision' attribute MUST NOT be used.
+        </description>
+        <data>
+            <instance readMeFirst="true">5-06-invalid-precision.xbrl</instance>
+        </data>
+        <result>
+            <error>NL.FR-NL-5.06</error>
+        </result>
+    </variation>
+</testcase>
