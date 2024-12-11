@@ -40,7 +40,7 @@ An xBRL-JSON template file is provided for each tagged PDF/A with inline XBRL.
    The template file facts which are to receive contents from the pdf have @value missing and
    instead pdfIdRefs which is a list of space-separated IDs of structural node IDs and form field IDs
    which are space-contenated to form the value for the output xBRL-JSON file.
-   
+
    Attributes pdfFormat, pdfScale and pdfSign correspond to like-named ix:nonFraction features.
 
    The output file is named with .pdf replaced by .json.
@@ -75,10 +75,10 @@ An xBRL-JSON template file is provided for each tagged PDF/A with inline XBRL.
   ```bash
   python arelleCmdLine.py --plugins loadFromPDF --file filing-document.json
   ```
-  
+
 ### Local Viewer Operation
 
-Use arelle/examples/viewer/inlinePdfViewer.html with 
+Use arelle/examples/viewer/inlinePdfViewer.html with
        ?doc= name as follows:
             pdf file if loading a pdf embedding a ix-report.json output json from this plugin
             json file if loading a json output from this plugin which embeds the pdfMapping: filename to load in turn
@@ -88,7 +88,7 @@ Use arelle/examples/viewer/inlinePdfViewer.html with
 ***Load PDF Report**: <<FEATURE NOT READY>>
   1. Using the normal `File` menu `Open File...` dialog, select the PDF/A file, or
   2. Using this module as a main program, save the value-enhanced inline source.
-  
+
 
 """
 from pikepdf import Pdf, Dictionary, Array, Stream, Operator, parse_content_stream, unparse_content_stream, _core, AttachedFileSpec
@@ -114,6 +114,8 @@ try:
     from arelle.Version import authorLabel, copyrightLabel
     from arelle import CntlrWinMain
     from arelle.FunctionIxt import tr5Functions
+    from arelle.FileSource import FileNamedStringIO, FileNamedBytesIO
+    from arelle.UrlUtil import isHttpUrl
 except ImportError:
     # when run stand-alone as a main program this module expects to be in arelle's plugin directory
     # and sets module path as below to locate transformations module in arelle directory
@@ -123,6 +125,9 @@ except ImportError:
     from arelle.FunctionIxt import tr5Functions
     authorLabel = 'Workiva, Inc.'
     copyrightLabel = '(c) Copyright 2011-present Workiva, Inc., All rights reserved.'
+    FileNamedStringIO = FileNamedBytesIO = None
+
+loadFromPdfFileSources = {}
 
 def decodePdfchar(s):
     if len(s) == 2:
@@ -145,7 +150,7 @@ def numToBytes(n):
     while len(b) % 2: # must be even number of bytes for UTF-16
         b.append(0)
     return bytes(bytearray(b[::-1]))
-        
+
 def fontChar(font, c):
     if "encoding" in font:
         return encoding[font["encoding"]][c] # c is a byte, not char
@@ -160,16 +165,16 @@ def fontChar(font, c):
                 return "?"
             else:
                 return numToBytes(bytesToNum(op) + diff).decode("UTF-16BE")
-                    
+
 
 def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=False, missingIDprefix=DEFAULT_MISSING_ID_PREFIX, saveReport=False,
-                templateFileName=DEFAULT_TEMPLATE_FILE_NAME, reportFileName=DEFAULT_REPORT_FILE_NAME, loadTemplateFromPdf=True, saveReportInPdf=True):
+                templateFileName=DEFAULT_TEMPLATE_FILE_NAME, reportFileName=DEFAULT_REPORT_FILE_NAME, loadTemplateFromPdf=True, saveReportInPdf=False):
 
     if showInfo:
         print(f"loadFromPDF file: {os.path.basename(filepath)}")
 
     pdf = Pdf.open(filepath)
-    
+
     if showInfo:
         metadata = pdf.open_metadata()
         print("Metadata:")
@@ -179,7 +184,9 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=
             print("Attachments:")
             for k, v in pdf.attachments.items():
                 print(f"  {k} Description: {v.description}, Filename: {v.filename},  Size: {v.obj.EF.F.Params.Size}")
-    
+        else:
+            print("No attachments")
+
     markedContents = {}
     ixTextFields = defaultdict(list)
     ixFormFields = []
@@ -208,7 +215,7 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=
                             startChar = i.operands[l].__bytes__()
                             endChar = i.operands[l+1].__bytes__()
                             if isinstance(i.operands[l+2], _core._ObjectList):
-                                fr.append( [startChar, endChar, 
+                                fr.append( [startChar, endChar,
                                             [l.__bytes__() for l in i.operands[l+2]]] )
                             else:
                                 fr.append( [startChar, endChar, i.operands[l+2].__bytes__()] )
@@ -387,6 +394,12 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=
             with open(jsonTemplateFile, mode="r") as fh:
                 oimObject = json.load(fh)
     if oimObject:
+        for file in oimObject.get("documentInfo",{}).get("taxonomy",()):
+            if file == os.path.basename(file) and file in pdf.attachments and FileNamedBytesIO is not None:
+                # no extension on file name
+                loadFromPdfFileSources[file] = (FileNamedBytesIO(fileName=file,
+                    initial_bytes=pdf.attachments[file].get_file().read_bytes()), "utf-8")
+                # no extension
         ixTextFields = defaultdict(list)
         ixFormFields = []
         # replace fact pdfIdRefs with strings
@@ -403,7 +416,7 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=
                         ixTextFields[oimFactId].extend(structMcid[pdfId])
                     if pdfId in formFields:
                         continTexts.append(formFields[pdfId]["V"])
-                        ixFormFields.append([oimFactId, 
+                        ixFormFields.append([oimFactId,
                                              f"p{formFields[pdfId]['Page']}R",
                                              *formFields[pdfId]["Rect"]])
                 value = " ".join(continTexts)
@@ -426,7 +439,8 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=
                     except:
                         print(f"fact {oimFactId} value to be scaled is not decimal {value}")
                 fact["value"] = value
-            oimObject["pdfMapping"] = OrderedDict((
+            oimObject["documentInfo"]["namespaces"]["ixbrl-pdf"] = "https://xbrl.org/2024/pdf"
+            oimObject["ixbrl-pdf:mapping"] = OrderedDict((
                 ("file", os.path.basename(filepath)),
                 ("target", None),
                 ("ixTextFields", ixTextFields),
@@ -441,7 +455,8 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=
                 print("done")
             else:
                 json.dump(oimObject, open(reportFileName,"w"), indent=2)
-
+        return oimObject
+    return None
 
 # arelle integration methods TBD
 
@@ -454,7 +469,7 @@ def isPdfLoadable(modelXbrl, mappedUri, normalizedUri, filepath, **kwargs):
     lastFilePathIsPDF = False
     _ext = os.path.splitext(filepath)[1]
     if _ext in (".pdf",):
-        lastFilePathIsOIM = True
+        lastFilePathIsPDF = True
     elif isHttpUrl(normalizedUri) and '?' in _ext: # query parameters and not .pdf, may be PDF anyway
         with io.open(filepath, 'rt', encoding='utf-8') as f:
             _fileStart = f.read(256)
@@ -463,27 +478,37 @@ def isPdfLoadable(modelXbrl, mappedUri, normalizedUri, filepath, **kwargs):
     return lastFilePathIsPDF
 
 def pdfLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
-    if filepath != lastFilePath or not lastFilePathIsOIM:
+    if filepath != lastFilePath or not lastFilePathIsPDF:
         return None # not an OIM file
 
     cntlr = modelXbrl.modelManager.cntlr
     cntlr.showStatus(_("Loading OIM file: {0}").format(os.path.basename(filepath)))
-    doc = loadFromOIM(cntlr, modelXbrl.error, modelXbrl.warning, modelXbrl, filepath, mappedUri)
-    if doc is None:
+    oimObject = loadFromPDF(cntlr, modelXbrl.error, modelXbrl.warning, modelXbrl, filepath, mappedUri)
+    if oimObject is None:
         return None # not a PDF file
     modelXbrl.loadedFromPDF = True
     modelXbrl.loadedFromPDfErrorCount = len(modelXbrl.errors)
-    return doc
+    oimObjectFilename = os.path.basename(filepath) + ".json"
+    if FileNamedStringIO is not None:
+        from arelle.oim.Load import oimLoader
+        loadFromPdfFileSources[oimObjectFilename] = (FileNamedStringIO(
+            fileName=oimObjectFilename, initial_value=json.dumps(oimObject, indent=2)), )
+        doc = oimLoader(modelXbrl, oimObjectFilename, oimObjectFilename)
+        del loadFromPdfFileSources[oimObjectFilename]
+        return doc
+    return None
 
 def fileSourceFile(cntlr, filepath, binary, stripDeclaration):
     modelManager = cntlr.modelManager
-    if filepath == 'ix.json':
-        return # open handle to file
+    filename = os.path.basename(filepath)
+    if filename in loadFromPdfFileSources:
+        return loadFromPdfFileSources[filename] # open handle to file
     return None
 
 def fileSourceExists(cntlr, filepath):
     modelManager = cntlr.modelManager
-    if filepath == 'ix.json':
+    filename = os.path.basename(filepath)
+    if filename in loadFromPdfFileSources:
         return True
     return None
 
@@ -581,5 +606,5 @@ if __name__ == "__main__":
 
     if pdfFile:
         # load pdf and save json with values from pdf
-        loadFromPDF(_cntlr, _logMessage, _logMessage, None, pdfFile, None, showInfo, missingIDprefix, 
+        loadFromPDF(_cntlr, _logMessage, _logMessage, None, pdfFile, None, showInfo, missingIDprefix,
                     True, templateFileName, reportFileName, loadTemplateFromPdf, saveReportInPdf)
