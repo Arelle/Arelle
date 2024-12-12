@@ -456,7 +456,7 @@
     <fsa:PropertyPlantAndEquipmentInProgressAndPrepaymentsForPropertyPlantAndEquipment contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">0000</fsa:PropertyPlantAndEquipmentInProgressAndPrepaymentsForPropertyPlantAndEquipment>
     <fsa:ProposedDividendRecognisedInEquity contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">180000000</fsa:ProposedDividendRecognisedInEquity>
     <fsa:ProposedDividendRecognisedInEquity contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">0000</fsa:ProposedDividendRecognisedInEquity>
-    <fsa:Provisions contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">1013196000</fsa:Provisions>
+    <fsa:Provisions contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">101319600000000000</fsa:Provisions>
     <fsa:Provisions contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">872674000</fsa:Provisions>
     <fsa:ProvisionsForDeferredTax contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">1013196000</fsa:ProvisionsForDeferredTax>
     <fsa:ProvisionsForDeferredTax contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">872674000</fsa:ProvisionsForDeferredTax>

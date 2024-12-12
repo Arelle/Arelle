@@ -407,7 +407,7 @@
     <fsa:LeaseholdImprovements contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">26141000</fsa:LeaseholdImprovements>
     <fsa:LiabilitiesAndEquity contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">8858363000</fsa:LiabilitiesAndEquity>
     <fsa:LiabilitiesAndEquity contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">8160805000</fsa:LiabilitiesAndEquity>
-    <fsa:LiabilitiesOtherThanProvisions contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">4299840000</fsa:LiabilitiesOtherThanProvisions>
+    <fsa:LiabilitiesOtherThanProvisions contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">429984000000</fsa:LiabilitiesOtherThanProvisions>
     <fsa:LiabilitiesOtherThanProvisions contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">4272778000</fsa:LiabilitiesOtherThanProvisions>
     <fsa:LongtermDebtToBanks contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">0000</fsa:LongtermDebtToBanks>
     <fsa:LongtermDebtToBanks contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">269269000</fsa:LongtermDebtToBanks>

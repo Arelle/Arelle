@@ -4,6 +4,7 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 import datetime
+import decimal
 import itertools
 from collections.abc import Iterable
 from typing import Any, cast
@@ -16,7 +17,7 @@ from arelle.utils.validate.Validation import Validation
 from arelle.XmlValidateConst import VALID
 from . import errorOnDateFactComparison, errorOnRequiredFact, getFactsWithDimension, getFactsGroupedByContextId, errorOnRequiredPositiveFact
 from ..PluginValidationDataExtension import PluginValidationDataExtension
-
+from ..ValidationPluginExtension import DANISH_CURRENCY_ID, ROUNDING_MARGIN
 
 _: TypeGetText
 
@@ -145,7 +146,8 @@ def rule_fr41(
         profitLossFact = factMap.get(pluginData.profitLossQn)
         if profitLossFact is None:
             continue
-        if cast(float, profitLossFact.xValue) <= pluginData.positiveProfitThreshold:
+
+        if profitLossFact.xValid >= VALID and cast(decimal.Decimal, profitLossFact.xValue) <= pluginData.positiveProfitThreshold:
             continue
         taxExpenseFact = factMap.get(pluginData.taxExpenseQn)
         if taxExpenseFact is not None and not taxExpenseFact.isNil:
@@ -223,10 +225,11 @@ def rule_fr56(
             continue
         profitLossFact = None
         for fact in profitLossFacts:
-            profitLossValue = cast(float, fact.xValue)
-            if not (-pluginData.positiveProfitThreshold <= profitLossValue <= pluginData.positiveProfitThreshold):
-                profitLossFact = fact
-                break
+            if fact.xValid >= VALID:
+                profitLossValue = cast(decimal.Decimal, fact.xValue)
+                if not (-pluginData.positiveProfitThreshold <= profitLossValue <= pluginData.positiveProfitThreshold):
+                    profitLossFact = fact
+                    break
         if profitLossFact is None:
             continue
         distributionFacts = distributionFactsMap.get(contextId, [])
@@ -243,6 +246,59 @@ def rule_fr56(
                       "distribution of profits."),
                 modelObject=profitLossFact
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr74(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR74a:Provisions [hierarchy:fsa:Provisions] and underlying fields must each be less than or equal to the balance sheet total (fsa:LiabilitiesAndEquity) minus equity (fsa:Equity).
+
+    DBA.FR74b: Liabilities (fsa:LiabilitiesOtherThanProvisions) must be less than or equal to total assets (fsa:LiabilitiesAndEquity) minus equity (fsa:Equity).
+    """
+    groupedFacts = getFactsGroupedByContextId(val.modelXbrl, pluginData.equityQn, pluginData.liabilitiesAndEquityQn, pluginData.provisionsQn, pluginData.liabilitiesOtherThanProvisionsQn)
+    for contextID, facts in groupedFacts.items():
+        equityFact = None
+        liabilityFact = None
+        liabilityOtherFact = None
+        provisionFact = None
+        for fact in facts:
+            if fact.qname == pluginData.equityQn and fact.unit.id == DANISH_CURRENCY_ID:
+                equityFact = fact
+            elif fact.qname == pluginData.liabilitiesQn and fact.unit.id == DANISH_CURRENCY_ID:
+                liabilityFact = fact
+            elif fact.qname == pluginData.provisionsQn and fact.unit.id == DANISH_CURRENCY_ID:
+                provisionFact = fact
+            elif fact.qname == pluginData.liabilitiesOtherThanProvisionsQn and fact.unit.id == DANISH_CURRENCY_ID:
+                liabilityOtherFact = fact
+        if equityFact is not None and liabilityFact is not None and provisionFact is not None and equityFact.xValid >= VALID and liabilityFact.xValid >= VALID and provisionFact.xValid >= VALID:
+            if not cast(decimal.Decimal, liabilityFact.xValue) - cast(decimal.Decimal, equityFact.xValue) >= cast(decimal.Decimal, provisionFact.xValue) - ROUNDING_MARGIN:
+                yield Validation.error(
+                    codes="DBA.FR74a",
+                    msg=_("DBA.FR74a: Provisions (fsa:Provisions) must be less than or equal to the balance sheet total (fsa:LiabilitiesAndEquity) minus equity (fsa:Equity)."
+                          "LiabilitiesAndEquity: %(liabilities)s, Equity: %(equity)s, Provisions: %(provisions)s"),
+                    equity=equityFact.effectiveValue,
+                    liabilities=liabilityFact.effectiveValue,
+                    provisions=provisionFact.effectiveValue,
+                    modelObject=[equityFact, liabilityFact, provisionFact]
+                )
+        if equityFact is not None and liabilityOtherFact is not None and liabilityFact is not None and equityFact.xValid >= VALID and liabilityFact.xValid >= VALID and liabilityOtherFact.xValid >= VALID:
+            if not cast(decimal.Decimal, liabilityFact.xValue) - cast(decimal.Decimal, equityFact.xValue) >= cast(decimal.Decimal, liabilityOtherFact.xValue) - ROUNDING_MARGIN:
+                yield Validation.error(
+                    codes="DBA.FR74b",
+                    msg=_("Liabilities (fsa:LiabilitiesOtherThanProvisions) must be less than or equal to total assets (fsa:LiabilitiesAndEquity) minus equity (fsa:Equity)."
+                          "LiabilitiesAndEquity: %(liabilities)s, Equity: %(equity)s, LiabilitiesOtherThanProvisions: %(liabilityOther)s"),
+                    equity=equityFact.effectiveValue,
+                    liabilityOther=liabilityOtherFact.effectiveValue,
+                    liabilities=liabilityFact.effectiveValue,
+                    modelObject=[equityFact, liabilityFact, liabilityOtherFact]
+                )
 
 
 @validation(

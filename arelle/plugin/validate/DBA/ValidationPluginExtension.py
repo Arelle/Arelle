@@ -11,11 +11,13 @@ from .PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
 
+DANISH_CURRENCY_ID = 'DKK'
 NAMESPACE_ARR = 'http://xbrl.dcca.dk/arr'
 NAMESPACE_CMN = 'http://xbrl.dcca.dk/cmn'
 NAMESPACE_FSA = 'http://xbrl.dcca.dk/fsa'
 NAMESPACE_GSD = 'http://xbrl.dcca.dk/gsd'
 NAMESPACE_SOB = 'http://xbrl.dcca.dk/sob'
+ROUNDING_MARGIN = 1000
 
 
 class ValidationPluginExtension(ValidationPlugin):
@@ -75,6 +77,7 @@ class ValidationPluginExtension(ValidationPlugin):
             precedingReportingPeriodStartDateQn=qname(f'{{{NAMESPACE_GSD}}}PrecedingReportingPeriodStartDate'),
             profitLossQn=qname(f'{{{NAMESPACE_FSA}}}ProfitLoss'),
             proposedDividendRecognisedInEquityQn=qname(f'{{{NAMESPACE_FSA}}}ProposedDividendRecognisedInEquity'),
+            provisionsQn=qname(f'{{{NAMESPACE_FSA}}}Provisions'),
             reportingPeriodEndDateQn=qname(f'{{{NAMESPACE_GSD}}}ReportingPeriodEndDate'),
             reportingPeriodStartDateQn=qname(f'{{{NAMESPACE_GSD}}}ReportingPeriodStartDate'),
             shorttermLiabilitiesOtherThanProvisionsQn=qname(f'{{{NAMESPACE_FSA}}}ShorttermLiabilitiesOtherThanProvisions'),
