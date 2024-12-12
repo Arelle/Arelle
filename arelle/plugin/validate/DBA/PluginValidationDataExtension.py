@@ -17,6 +17,12 @@ from arelle.utils.PluginData import PluginData
 class PluginValidationDataExtension(PluginData):
     annualReportTypes: frozenset[str]
     assetsQn: QName
+    auditedAssuranceReportsDanish: str
+    auditedAssuranceReportsEnglish: str
+    auditedExtendedReviewDanish: str
+    auditedExtendedReviewEnglish: str
+    auditedFinancialStatementsDanish: str
+    auditedFinancialStatementsEnglish: str
     classOfReportingEntityQn: QName
     consolidatedMemberQn: QName
     consolidatedSoloDimensionQn: QName
@@ -30,6 +36,9 @@ class PluginValidationDataExtension(PluginData):
     extraordinaryIncomeQn: QName
     extraordinaryResultBeforeTaxQn: QName
     fr37RestrictedText: str
+    identificationNumberCvrOfAuditFirmQn: QName
+    independentAuditorsReportDanish: str
+    independentAuditorsReportEnglish: str
     informationOnTypeOfSubmittedReportQn: QName
     liabilitiesQn: QName
     liabilitiesAndEquityQn: QName
@@ -37,6 +46,7 @@ class PluginValidationDataExtension(PluginData):
     longtermLiabilitiesOtherThanProvisionsQn: QName
     noncurrentAssetsQn: QName
     nameAndSurnameOfChairmanOfGeneralMeetingQn: QName
+    nameOfAuditFirmQn: QName
     positiveProfitThreshold: float
     precedingReportingPeriodEndDateQn: QName
     precedingReportingPeriodStartDateQn: QName
@@ -48,6 +58,7 @@ class PluginValidationDataExtension(PluginData):
     shorttermLiabilitiesOtherThanProvisionsQn: QName
     taxExpenseOnOrdinaryActivitiesQn: QName
     taxExpenseQn: QName
+    typeOfAuditorAssistanceQn: QName
     typeOfReportingPeriodDimensionQn: QName
 
     _contextFactMap: dict[str, dict[QName, ModelFact]] | None = None
