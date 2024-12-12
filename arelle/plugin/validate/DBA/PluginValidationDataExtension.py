@@ -42,6 +42,7 @@ class PluginValidationDataExtension(PluginData):
     precedingReportingPeriodStartDateQn: QName
     profitLossQn: QName
     proposedDividendRecognisedInEquityQn: QName
+    provisionsQn: QName
     reportingPeriodEndDateQn: QName
     reportingPeriodStartDateQn: QName
     shorttermLiabilitiesOtherThanProvisionsQn: QName
