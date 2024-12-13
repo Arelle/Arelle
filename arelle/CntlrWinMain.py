@@ -823,6 +823,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             return
         url = DialogURL.askURL(self.parent, buttonSEC=True, buttonRSS=True)
         if url:
+            url = PackageManager.mappedUrl(url)
             self.updateFileHistory(url, False)
             for xbrlLoadedMethod in pluginClassMethods("CntlrWinMain.Xbrl.Open"):
                 url = xbrlLoadedMethod(self, url) # runs in GUI thread, allows mapping url, mult return url
@@ -841,6 +842,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             return False
         url = DialogURL.askURL(self.parent, buttonSEC=False, buttonRSS=False)
         if url:
+            url = PackageManager.mappedUrl(url)
             self.fileOpenFile(url, importToDTS=True)
 
 

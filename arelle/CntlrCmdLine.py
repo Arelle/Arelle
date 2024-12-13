@@ -6,7 +6,7 @@ This module is Arelle's controller in command line non-interactive mode
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
-from arelle import ValidateDuplicateFacts
+from arelle import PackageManager, ValidateDuplicateFacts
 import gettext, time, datetime, os, shlex, sys, traceback, fnmatch, threading, json, logging, platform
 from optparse import OptionGroup, OptionParser, SUPPRESS_HELP, Option
 import regex as re
@@ -15,7 +15,6 @@ from arelle import (Cntlr, FileSource, ModelDocument, XmlUtil, XbrlConst, Versio
                     ViewFileFormulae, ViewFileRelationshipSet, ViewFileTests, ViewFileRssFeed,
                     ViewFileRoleTypes)
 from arelle.oim.xml.Save import saveOimReportToXmlInstance
-from arelle.packages.report import ReportPackageConst
 from arelle.rendering import RenderingEvaluator
 from arelle.RuntimeOptions import RuntimeOptions, RuntimeOptionsException
 from arelle.BetaFeatures import BETA_FEATURES_AND_DESCRIPTIONS
@@ -1020,7 +1019,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
         if sourceZipStream:
             filesource = FileSource.openFileSource(None, self, sourceZipStream)
         elif len(_entryPoints) == 1 and "file" in _entryPoints[0]: # check if an archive and need to discover entry points (and not IXDS)
-            filesource = FileSource.openFileSource(_entryPoints[0].get("file",None), self, checkIfXmlIsEis=_checkIfXmlIsEis)
+            entryPath = PackageManager.mappedUrl(_entryPoints[0]["file"])
+            filesource = FileSource.openFileSource(entryPath, self, checkIfXmlIsEis=_checkIfXmlIsEis)
         _entrypointFiles = _entryPoints
         if filesource and not filesource.selection and not (sourceZipStream and len(_entrypointFiles) > 0):
             try:
@@ -1044,6 +1044,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             if filesource and filesource.isArchive:
                 filesource.select(_entrypointFile)
             else:
+                _entrypointFile = PackageManager.mappedUrl(_entrypointFile)
                 filesource = FileSource.openFileSource(_entrypointFile, self, sourceZipStream)
             self.entrypointFile = _entrypointFile
             timeNow = XmlUtil.dateunionValue(datetime.datetime.now())
