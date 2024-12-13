@@ -8,6 +8,9 @@ updates:
       gha-dependencies:
         patterns:
           - "*"
+    ignore:
+      - dependency-name: "softprops/action-gh-release"
+        versions: ["2.2.0"]
   - package-ecosystem: "github-actions"
     directory: "/.github/actions/test_conformance_suite"
     schedule:
@@ -16,6 +19,9 @@ updates:
       gha-dependencies:
         patterns:
           - "*"
+    ignore:
+      - dependency-name: "softprops/action-gh-release"
+        versions: ["2.2.0"]
   - package-ecosystem: pip
     directory: "/"
     schedule:
