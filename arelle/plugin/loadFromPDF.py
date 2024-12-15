@@ -94,7 +94,7 @@ Use arelle/examples/viewer/inlinePdfViewer.html with
 from pikepdf import Pdf, Dictionary, Array, Stream, Operator, parse_content_stream, unparse_content_stream, _core, AttachedFileSpec
 from collections import defaultdict, OrderedDict
 from decimal import Decimal
-import sys, os, json
+import sys, os, json, regex as re
 
 DEFAULT_TEMPLATE_FILE_NAME = "ix-template.json"
 DEFAULT_REPORT_FILE_NAME =  "ix-report.json"
@@ -109,6 +109,8 @@ encoding = {"/MacRomanEncoding": mac_encoding,
             "/PDFDocEncoding": pdf_encoding,
             "/StandardEncoding": std_encoding,
             "/WinAnsiEncoding": win_encoding}
+
+pdfFilePkgDirPattern = re.compile(r"(<[^>]+>)(.*)$")
 
 try:
     from arelle.Version import authorLabel, copyrightLabel
@@ -151,39 +153,50 @@ def numToBytes(n):
         b.append(0)
     return bytes(bytearray(b[::-1]))
 
-def fontChar(font, c):
-    if "encoding" in font:
-        return encoding[font["encoding"]][c] # c is a byte, not char
-    if c in font["bfchars"]:
-        return font["bfchars"][c]
-    for start, end, op in font["bfranges"]:
-        if c >= start and c <= end:
-            diff = bytesToNum(c) - bytesToNum(start)
-            if isinstance(op, list):
-                if diff < len(op):
-                    return op[diff]
-                return "?"
-            else:
-                return numToBytes(bytesToNum(op) + diff).decode("UTF-16BE")
-
-
 def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=False, missingIDprefix=DEFAULT_MISSING_ID_PREFIX, saveReport=False,
                 templateFileName=DEFAULT_TEMPLATE_FILE_NAME, reportFileName=DEFAULT_REPORT_FILE_NAME, loadTemplateFromPdf=True, saveReportInPdf=False):
 
     if showInfo:
         print(f"loadFromPDF file: {os.path.basename(filepath)}")
 
-    pdf = Pdf.open(filepath)
+    pdf = Pdf.open(filepath, allow_overwriting_input=saveReportInPdf)
+    isPortableCollection = False # same as PDF portfolio
 
     if showInfo:
         metadata = pdf.open_metadata()
         print("Metadata:")
         for k, v in metadata.items():
             print(f"  {k}: {v}")
+        if "/PageMode" in pdf.Root:
+            print(f"PageMode: {pdf.Root['/PageMode']}")
+        folders = OrderedDict()
+        if "/Collection" in pdf.Root:
+            print("PDF is a Portable Collection (Portfolio)")
+            isPortableCollection = True
+            if "/D" in pdf.Root["/Collection"]:
+                print(f"  Initial document: {pdf.Root['/Collection']['/D']}")
+            def collectionContents(obj, parent):
+                if obj["/Type"] == "/Folder":
+                    if "/ID" in obj and "/Name" in obj:
+                        folderId = str(obj["/ID"])
+                        folderName = str(obj["/Name"])
+                        folders[f"<{folderId}>"] = f"{parent}{folderName}"
+                        if "/Child" in obj:
+                            collectionContents(obj["/Child"], f"{parent}{folderName}/")
+                        if "/Next" in obj:
+                            collectionContents(obj["/Next"], parent)
+            if "/Folders" in pdf.Root["/Collection"] and "/Child" in pdf.Root["/Collection"]["/Folders"]:
+                collectionContents(pdf.Root["/Collection"]["/Folders"]["/Child"], "")
+            print(f"  Folders: {', '.join(k + ': ' + v for k,v in folders.items())}")
         if pdf.attachments:
             print("Attachments:")
             for k, v in pdf.attachments.items():
-                print(f"  {k} Description: {v.description}, Filename: {v.filename},  Size: {v.obj.EF.F.Params.Size}")
+                m = pdfFilePkgDirPattern.match(k)
+                if m:
+                    f = f"{folders.get(m.group(1))}/{m.group(2)}"
+                else:
+                    f = k
+                print(f"  {f} Description: {v.description}, Filename: {v.filename},  Size: {v.obj.EF.F.Params.Size}")
         else:
             print("No attachments")
 
@@ -191,13 +204,30 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=
     ixTextFields = defaultdict(list)
     ixFormFields = []
 
+    def fontChar(font, c):
+        if isPortableCollection:
+            return chr(c)
+        if "encoding" in font:
+            return encoding[font["encoding"]][c] # c is a byte, not char
+        if c in font["bfchars"]:
+            return font["bfchars"][c]
+        for start, end, op in font["bfranges"]:
+            if c >= start and c <= end:
+                diff = bytesToNum(c) - bytesToNum(start)
+                if isinstance(op, list):
+                    if diff < len(op):
+                        return op[diff]
+                    return "?"
+                else:
+                    return numToBytes(bytesToNum(op) + diff).decode("UTF-16BE")
+
     # load marked content (structured paragraph and section strings
     for pIndex, page in enumerate(pdf.pages):
         p = page.objgen[0] # for matching to pdf.js page number
         fonts = {}
         fontRanges = {} # [start, end, toStart or [to values list]
         for name, font in page.get("/Resources",{}).get("/Font", {}).items():
-            if "/ToUnicode" in font:
+            if not isPortableCollection and "/ToUnicode" in font:
                 fm = {}
                 fr = []
                 cr = []
@@ -353,7 +383,7 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=
         if isinstance(obj, (Array, list, tuple)):
             if key == "/Rect":
                 if pdfId or Tu:
-                    formFields[str(altId) or str(pdfId)]["Rect"] = [float(x) if isinstance(x, Decimal) else x for x in obj]
+                    formFields[str(pdfId)]["Rect"] = [float(x) if isinstance(x, Decimal) else x for x in obj]
             else:
                 for v in obj:
                     loadFormFields(v, pdfId, altId, key, indent + "  ")
@@ -366,10 +396,12 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=
                 if k not in ("/IDTree", "/P", "/Parent", "/Pg", "/Ff", "/Mk", "/Q", "/Font", "/Type", "/ColorSpace", "/MediaBox", "/Resources", "/Matrix", "/BBox", "/Border", "/DA", "/Length"):
                     loadFormFields(v, pdfId, altId, k, indent + "  ")
             if "/P" in obj and str(obj["/P"].Type) == "/Page":
-                formFields[str(altId) or str(pdfId)]["Page"] = obj["/P"].objgen[0]
+                formFields[str(pdfId)]["Page"] = obj["/P"].objgen[0]
+                if altId:
+                    formFields[str(pdfId)]["AltId"] = str(altId)
         elif key == "/V":
             if pdfId:
-                formFields[str(altId) or str(pdfId)]["V"] = str(obj)
+                formFields[str(pdfId)]["V"] = str(obj)
     if "/AcroForm" in pdf.Root:
         loadFormFields(pdf.Root["/AcroForm"]["/Fields"])
 
@@ -401,7 +433,7 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=
                     initial_bytes=pdf.attachments[file].get_file().read_bytes()), "utf-8")
                 # no extension
         ixTextFields = defaultdict(list)
-        ixFormFields = []
+        ixFormFields = defaultdict(list)
         # replace fact pdfIdRefs with strings
         for oimFactId, fact in oimObject.get("facts", {}).items():
             idRefs = fact.pop("pdfIdRefs", None)
@@ -416,9 +448,7 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=
                         ixTextFields[oimFactId].extend(structMcid[pdfId])
                     if pdfId in formFields:
                         continTexts.append(formFields[pdfId]["V"])
-                        ixFormFields.append([oimFactId,
-                                             f"p{formFields[pdfId]['Page']}R",
-                                             *formFields[pdfId]["Rect"]])
+                        ixFormFields[oimFactId].append(f"p{formFields[pdfId]['Page']}R_{pdfId}")
                 value = " ".join(continTexts)
                 if format:
                     tr5fn = format.rpartition(":")[2]
@@ -452,9 +482,14 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=
                     pdf,
                     json.dumps(oimObject, indent=2).encode('utf-8'),
                     mime_type='application/json')
+                pdf.save() # resave with attachment added/replaced
                 print("done")
             else:
-                json.dump(oimObject, open(reportFileName,"w"), indent=2)
+                if os.path.isabs(filepath) and not os.path.isabs(reportFileName):
+                    outFile = os.path.join( os.path.dirname(filepath), reportFileName)
+                else:
+                    outFile = reportFileName
+                json.dump(oimObject, open(outFile,"w"), indent=2)
         return oimObject
     return None
 
@@ -566,13 +601,13 @@ if __name__ == "__main__":
         elif arg in ("-h", "-?", "--help"):
             print("command line arguments: \n"
                   "  --showInfo: show structural model and form fields available for mapping \n"
-                  "  --missingIDprefix pdf_: add id to structural elements with text and no ID"
-                  f"  --templateFileName name: use name instead of {DEFAULT_TEMPLATE_FILE_NAME}"
-                  f"  --reportFileName name: use name instead of {DEFAULT_REPORT_FILE_NAME}"
-                  "  --loadTemplateFromPdf: look for template file name in pdf attachments before file system"
-                  "  --loadTemplateFromFile: look for template only in file system"
-                  "  --saveReportInPdf: save template in pdf attachments"
-                  "  --saveReportInFile: save template as file"
+                  "  --missingIDprefix pdf_: add id to structural elements with text and no ID \n"
+                  f"  --templateFileName name: use name instead of {DEFAULT_TEMPLATE_FILE_NAME} \n"
+                  f"  --reportFileName name: use name instead of {DEFAULT_REPORT_FILE_NAME} \n"
+                  "  --loadTemplateFromPdf: look for template file name in pdf attachments before file system \n"
+                  "  --loadTemplateFromFile: look for template only in file system \n"
+                  "  --saveReportInPdf: save template in pdf attachments \n"
+                  "  --saveReportInFile: save template as file \n"
                   "  {file}: .pdf file to process and save as inline XBRL named {file}.xhtml")
         elif arg == "--showInfo":
             showInfo = True # shows StructTree
@@ -595,7 +630,7 @@ if __name__ == "__main__":
         elif arg == "--saveReportInPdf":
             saveReportInPdf = True
         elif arg == "--saveReportInFile":
-            saveReportInFile = False
+            saveReportInPdf = False
         else:
             if not arg.endswith(".pdf"):
                 print("file {} must be a .pdf file".format(arg))
