@@ -63,13 +63,13 @@
   const pdfContext = pdfCanvas.getContext("2d");
 
   var ixvLeft = 0, ixvTop = 0, vTop = 0, fTop = 0,
-      pageRendering = false, pageNumPending = null, pageNum = 1	;
+      pageRendering = false, pageNumPending = null, pageNum = 1    ;
 
   if (urlPattern.test(location.href)) {
      entryUrl = location.href.match(urlPattern)[1];
   } else {
      // this is for testing, provide link to a test pdf or json document
-	 entryUrl = './apple-10-Q4-2024-As-Filed-2pgAcrobat-Tagged.pdf';
+     entryUrl = './apple-10-Q4-2024-As-Filed-2pgAcrobat-Tagged.pdf';
   }
   if (entryUrl.endsWith(".json")) {
     let xhr = new XMLHttpRequest();
@@ -116,8 +116,8 @@
       ixvCanvas.height = pdfCanvas.height;
       ixvCanvas.style.width = pdfCanvas.style.width;
       ixvCanvas.style.height = pdfCanvas.style.height;
- 	  ixvLeft = ixvCanvas.offsetLeft + ixvCanvas.clientLeft;
-  	  ixvTop = ixvCanvas.offsetTop + ixvCanvas.clientTop;
+       ixvLeft = ixvCanvas.offsetLeft + ixvCanvas.clientLeft;
+        ixvTop = ixvCanvas.offsetTop + ixvCanvas.clientTop;
 
       vTop = viewport.viewBox[3]; // y height unscaled
       fTop = vTop + 0;
@@ -150,15 +150,26 @@
           let currentPagePrefix = "p" + page._pageInfo.ref.num + "R";
           rectFactIds = []; // [  [x,y,w,h, [factIds]], ... ]
           let mcidFactIds = {};
-		  Object.entries(ixTextFields).forEach(([factId, mcids]) => {
+          Object.entries(ixTextFields).forEach(([factId, mcids]) => {
               for (const mcid of mcids) {
                  if (mcid.startsWith(currentPagePrefix)) {
                    if (!(mcid in mcidFactIds)) mcidFactIds[mcid] = [];
                    mcidFactIds[mcid].push(factId);
                  }
               }
-		  });
-		  var mcid = null, tag = null;
+          });
+          let fieldFactIds = {};
+          Object.entries(ixFormFields).forEach(([factId, fields]) => {
+              for (const field of fields) {
+                 if (field.startsWith(currentPagePrefix)) {
+                   let fieldName = field.slice(currentPagePrefix.length + 1); // +1 for _ after p{nbr}R
+                   if (!(fieldName in fieldFactIds)) fieldFactIds[fieldName] = [];
+                   fieldFactIds[fieldName].push(factId);
+                 }
+              }
+          });
+          // capture rectangle Fact Ids of text fields
+          var mcid = null, tag = null;
           for (const t of textContent.items) {
             if (t.type == "beginMarkedContentProps") {
                mcid = t.id;
@@ -167,30 +178,42 @@
                mcid = null;
                tag = null;
             } else {
-				if (mcid in mcidFactIds && t.width > 0 && t.height > 0) {
-				  rectFactIds.push( [ t.transform[4], t.transform[5], t.width, t.height, mcidFactIds[mcid] ] )
-				}
-			}
-          }
-          for (const ixFormField of ixFormFields) { // factID, page, x, y, w, h
-            if (ixFormField[1] == currentPagePrefix) {
-              rectFactIds.push( [ ixFormField[2],
-              					  ixFormField[3],
-              					  ixFormField[4] - ixFormField[2],
-              					  ixFormField[5] - ixFormField[3],
-              					  [ ixFormField[0] ] ] );
+                if (mcid in mcidFactIds && t.width > 0 && t.height > 0) {
+                  rectFactIds.push( [ t.transform[4], t.transform[5], t.width, t.height,
+                                      true, // text fields needs padding
+                                      mcidFactIds[mcid] ] )
+                }
             }
           }
-	      ixvContext.strokeStyle = "red";
-          for (const r of rectFactIds) { // x, y, w, h, [factIDs]
-            // pad by 1 on all sides
-			ixvContext.strokeRect((r[0]-2) * vScale, (vTop - r[1]+2) * vScale	, (r[2]+3) * vScale, (-r[3]-2) * vScale);
-          }
+          // capture rectangle Fact Ids of form fields
+          page.getAnnotations().then(function(items) {
+            for (const formFld of items) {
+              if (formFld.fieldName && formFld.fieldType == "Tx") {
+                let fieldId = formFld.fieldName.split('.').at(-1);
+                if (fieldId in fieldFactIds) {
+                  rectFactIds.push( [ formFld.rect[0],
+                                        formFld.rect[1],
+                                        formFld.rect[2] - formFld.rect[0],
+                                        formFld.rect[3] - formFld.rect[1],
+                                      false, // form fields doesn't need padding
+                                        fieldFactIds[fieldId] ] );
+                  }
+                }
+             }
+            ixvContext.strokeStyle = "red";
+            for (const r of rectFactIds) { // x, y, w, h, txtFld, [factIDs]
+              // pad txt flds on all sides
+              let pad = (r[4]) ? 2 : 0;
+              ixvContext.strokeRect((r[0]-pad) * vScale,
+                                    (vTop - r[1]+pad) * vScale,
+                                    (r[2]+pad+1) * vScale,
+                                    (-r[3]-pad) * vScale);
+            }
+          });
        } else {
           console.log("textContent but no ix text or form mapping available");
        }
       });
-
       });
    })
     // Update page counters
@@ -219,19 +242,27 @@
       pdf = _pdf;
       document.getElementById('page_count').textContent = pdf.numPages;
 
+      pdf.getMetadata().then(function(metadata) {
+         console.log(metadata); // Metadata object here
+      }).catch(function(err) {
+         console.log('Error getting meta data');
+         console.log(err);
+      });
+
+
       pdf.getAttachments().then(function(attachments) {
          if (!jsonReportText) {
             // find file "ixReport.json"
             const rpt = 'ix-report.json';
-            if (rpt in attachments) {
+            if (attachments && rpt in attachments) {
                 loadJsonReport(new TextDecoder().decode(attachments[rpt].content));
             }
          }
          /* uncomment to process each attachment file
-		 Object.entries(attachments).forEach(([fileId, attachment]) => {
-		    const content = new TextDecoder().decode(attachment.content);
-		 });
-		 */
+         Object.entries(attachments).forEach(([fileId, attachment]) => {
+            const content = new TextDecoder().decode(attachment.content);
+         });
+         */
       });
 
       // Initial/first page rendering
@@ -248,16 +279,15 @@
        loadingErr = "Json loaded is not an OIM instance objects";
     } else if (oimInst.documentInfo.documentType != "https://xbrl.org/2021/xbrl-json") {
        loadingErr = "Json loaded does not have OIM json instance documentType";
-    } else if (!("pdfMapping" in oimInst && "file" in oimInst["pdfMapping"])) {
-       loadingErr = "Json loaded does not have pdfMapping object";
+    } else if (!("ixbrl-pdf:mapping" in oimInst && "file" in oimInst["ixbrl-pdf:mapping"])) {
+       loadingErr = "Json loaded does not have ixbrl-pdf:mapping object";
     } else {
-       const pdfMapping = oimInst.pdfMapping;
+       const pdfMapping = oimInst['ixbrl-pdf:mapping'];
        pdfUrl = pdfMapping.file;
        ixTarget = pdfMapping.target;
        ixFacts = oimInst.facts;
        ixTextFields = pdfMapping.ixTextFields;
        ixFormFields = pdfMapping.ixFormFields;
-       console.log("oim json instance loaded successfully");
     }
   }
 
@@ -309,10 +339,10 @@
                 vX + " vy=" + vY);
     if (rectFactIds) {
        var facts = "", factIds = "";
-       for (const r of rectFactIds) { // x, y, w, h, factIDs
+       for (const r of rectFactIds) { // x, y, w, h, isTxt, factIDs
            if (vX >= r[0] && vX <= r[0] + r[2] && vY >= r[1] && vY <= r[1] + r[3]) {
                // fact is highlighted, add to fact window
-               for (const factId of r[4]) {
+               for (const factId of r[5]) {
                  facts += JSON.stringify(ixFacts[factId], undefined, 2) + "\n";
                  factIds += ((factIds) ? ", " : "") + factId;
                }
