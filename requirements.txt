@@ -1,5 +1,5 @@
 # core modules
-certifi==2024.8.30
+certifi==2024.12.14
 filelock==3.16.1
 lxml==5.3.0
 OpenPyXL==3.1.5
@@ -15,7 +15,8 @@ pycountry==24.6.1
 # EDGAR plugins
 NumPy==2.0.2 ; python_version <= "3.9"
 NumPy==2.2.0 ; python_version > "3.9"
-Matplotlib==3.9.4
+Matplotlib==3.9.4 ; python_version <= "3.9"
+Matplotlib==3.10.0 ; python_version > "3.9"
 holidays==0.62
 pytz==2024.2
 Tornado==6.4.2
