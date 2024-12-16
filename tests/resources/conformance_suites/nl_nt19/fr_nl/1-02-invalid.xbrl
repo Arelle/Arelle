@@ -1,0 +1,31 @@
+<xbrl
+        xmlns="http://www.xbrl.org/2003/instance"
+        xmlns:mock="http://www.mock.com/mock"
+        xmlns:link="http://www.xbrl.org/2003/linkbase"
+        xmlns:xlink="http://www.w3.org/1999/xlink"
+        title="Test∓"> <!-- CAUSE: disallowed character in attribute -->
+     ÿ ⃏ ' " ₠ <!-- allowed characters -->
+    <link:schemaRef
+            xlink:href="mock-taxonomy.xsd"
+            xlink:type="simple"/>
+    <context id="ctx-1">
+        ⃐ <!-- CAUSE: disallowed character in context -->
+        <entity>
+            <identifier scheme="http://www.kvk.nl/kvk-id">12345678и</identifier> <!-- CAUSE: disallowed character in identifier -->
+        </entity>
+        <period>
+            <startDate>2021-01-01</startDate>
+            <endDate>2021-12-31</endDate>
+        </period>
+    </context>
+    <mock:String contextRef="ctx-1">
+        FACT 1 и  <!-- CAUSE: disallowed character in fact value -->
+    </mock:String>
+    <mock:String contextRef="ctx-1">
+        FACT 2
+        <!-- й --> <!-- CAUSE: disallowed character in comment in fact value -->
+    </mock:String>
+    <mock:String contextRef="ctx-1">
+        FACT 3 
+    </mock:String>
+</xbrl>
