@@ -17,6 +17,7 @@ NAMESPACE_CMN = 'http://xbrl.dcca.dk/cmn'
 NAMESPACE_FSA = 'http://xbrl.dcca.dk/fsa'
 NAMESPACE_GSD = 'http://xbrl.dcca.dk/gsd'
 NAMESPACE_SOB = 'http://xbrl.dcca.dk/sob'
+PERSONNEL_EXPENSE_THRESHOLD = 200000
 ROUNDING_MARGIN = 1000
 
 
@@ -37,6 +38,7 @@ class ValidationPluginExtension(ValidationPlugin):
             auditedExtendedReviewEnglish='Auditor\'s report on extended review',
             auditedFinancialStatementsDanish='Revisionspåtegning',
             auditedFinancialStatementsEnglish='Auditor\'s report on audited financial statements',
+            averageNumberOfEmployeesQn=qname(f'{{{NAMESPACE_FSA}}}AverageNumberOfEmployees'),
             classOfReportingEntityQn=qname(f'{{{NAMESPACE_FSA}}}ClassOfReportingEntity'),
             consolidatedMemberQn=qname(f'{{{NAMESPACE_CMN}}}ConsolidatedMember'),
             consolidatedSoloDimensionQn=qname(f'{{{NAMESPACE_CMN}}}ConsolidatedSoloDimension'),
@@ -66,6 +68,7 @@ class ValidationPluginExtension(ValidationPlugin):
                 qname(f'{{{NAMESPACE_FSA}}}TransferredToReserveForDevelopmentExpenditure'),
                 qname(f'{{{NAMESPACE_FSA}}}TransferredToReserveForEntrepreneurialCompany'),
             ]),
+            employeeBenefitsExpenseQn=qname(f'{{{NAMESPACE_FSA}}}EmployeeBenefitsExpense'),
             equityQn=qname(f'{{{NAMESPACE_FSA}}}Equity'),
             extraordinaryCostsQn=qname(f'{{{NAMESPACE_FSA}}}ExtraordinaryCosts'),
             extraordinaryIncomeQn=qname(f'{{{NAMESPACE_FSA}}}ExtraordinaryIncome'),
@@ -95,4 +98,5 @@ class ValidationPluginExtension(ValidationPlugin):
             taxExpenseQn=qname(f'{{{NAMESPACE_FSA}}}TaxExpense'),
             typeOfAuditorAssistanceQn=qname(f'{{{NAMESPACE_CMN}}}TypeOfAuditorAssistance'),
             typeOfReportingPeriodDimensionQn=qname(f'{{{NAMESPACE_GSD}}}TypeOfReportingPeriodDimension'),
+            wagesAndSalariesQn=qname(f'{{{NAMESPACE_FSA}}}WagesAndSalaries'),
         )

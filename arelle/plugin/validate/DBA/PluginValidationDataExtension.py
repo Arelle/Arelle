@@ -23,6 +23,7 @@ class PluginValidationDataExtension(PluginData):
     auditedExtendedReviewEnglish: str
     auditedFinancialStatementsDanish: str
     auditedFinancialStatementsEnglish: str
+    averageNumberOfEmployeesQn: QName
     classOfReportingEntityQn: QName
     consolidatedMemberQn: QName
     consolidatedSoloDimensionQn: QName
@@ -31,6 +32,7 @@ class PluginValidationDataExtension(PluginData):
     dateOfGeneralMeetingQn: QName
     descriptionOfQualificationsOfAssuranceEngagementPerformedQn: QName
     distributionOfResultsQns: frozenset[QName]
+    employeeBenefitsExpenseQn: QName
     equityQn: QName
     extraordinaryCostsQn: QName
     extraordinaryIncomeQn: QName
@@ -60,6 +62,7 @@ class PluginValidationDataExtension(PluginData):
     taxExpenseQn: QName
     typeOfAuditorAssistanceQn: QName
     typeOfReportingPeriodDimensionQn: QName
+    wagesAndSalariesQn: QName
 
     _contextFactMap: dict[str, dict[QName, ModelFact]] | None = None
     _reportingPeriodContexts: list[ModelContext] | None = None

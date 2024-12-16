@@ -17,7 +17,7 @@ from arelle.utils.validate.Validation import Validation
 from arelle.XmlValidateConst import VALID
 from . import errorOnDateFactComparison, errorOnRequiredFact, getFactsWithDimension, getFactsGroupedByContextId, errorOnRequiredPositiveFact
 from ..PluginValidationDataExtension import PluginValidationDataExtension
-from ..ValidationPluginExtension import DANISH_CURRENCY_ID, ROUNDING_MARGIN
+from ..ValidationPluginExtension import DANISH_CURRENCY_ID, ROUNDING_MARGIN, PERSONNEL_EXPENSE_THRESHOLD
 
 _: TypeGetText
 
@@ -403,6 +403,40 @@ def rule_fr77(
                     liabilities=liabilityFact.effectiveValue,
                     shortLiabilities=shortLiabilityFact.effectiveValue,
                     modelObject=[equityFact, liabilityFact, shortLiabilityFact]
+                )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr75(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR75: The company must provide information on the number of employees. The rule is activated if personnel costs (fsa:EmployeeBenefitsExpense) or salaries (fsa:WagesAndSalaries) are greater
+    than DKK 200,000, and no number of employees (fsa:AverageNumberOfEmployees) has been specified.
+    """
+    groupedFacts = getFactsGroupedByContextId(val.modelXbrl, pluginData.employeeBenefitsExpenseQn, pluginData.wagesAndSalariesQn, pluginData.averageNumberOfEmployeesQn)
+    for contextID, facts in groupedFacts.items():
+        benefitsFact = None
+        wagesFact = None
+        employeesFact = None
+        for fact in facts:
+            if fact.qname == pluginData.employeeBenefitsExpenseQn and fact.unit.id == DANISH_CURRENCY_ID and fact.xValid >= VALID and cast(decimal.Decimal, fact.xValue) >= PERSONNEL_EXPENSE_THRESHOLD:
+                benefitsFact = fact
+            elif fact.qname == pluginData.wagesAndSalariesQn and fact.unit.id == DANISH_CURRENCY_ID and fact.xValid >= VALID and cast(decimal.Decimal, fact.xValue) >= PERSONNEL_EXPENSE_THRESHOLD:
+                wagesFact = fact
+            elif fact.qname == pluginData.averageNumberOfEmployeesQn and fact.xValid >= VALID and cast(decimal.Decimal, fact.xValue) > 0:
+                employeesFact = fact
+        if (benefitsFact is not None or wagesFact is not None) and employeesFact is None:
+                yield Validation.error(
+                    codes="DBA.FR75",
+                    msg=_("The company must provide information on the number of employees. The rule is activated if personnel costs (fsa:EmployeeBenefitsExpense) "
+                          "or salaries (fsa:WagesAndSalaries) are greater than DKK 200,000, and no number of employees (fsa:AverageNumberOfEmployees) has been specified."),
+                    modelObject=[benefitsFact, wagesFact]
                 )
 
 
