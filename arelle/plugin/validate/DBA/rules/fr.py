@@ -312,7 +312,6 @@ def rule_fr74(
 ) -> Iterable[Validation]:
     """
     DBA.FR74a:Provisions [hierarchy:fsa:Provisions] and underlying fields must each be less than or equal to the balance sheet total (fsa:LiabilitiesAndEquity) minus equity (fsa:Equity).
-
     DBA.FR74b: Liabilities (fsa:LiabilitiesOtherThanProvisions) must be less than or equal to total assets (fsa:LiabilitiesAndEquity) minus equity (fsa:Equity).
     """
     groupedFacts = getFactsGroupedByContextId(val.modelXbrl, pluginData.equityQn, pluginData.liabilitiesAndEquityQn, pluginData.provisionsQn, pluginData.liabilitiesOtherThanProvisionsQn)
@@ -334,7 +333,7 @@ def rule_fr74(
             if not cast(decimal.Decimal, liabilityFact.xValue) - cast(decimal.Decimal, equityFact.xValue) >= cast(decimal.Decimal, provisionFact.xValue) - ROUNDING_MARGIN:
                 yield Validation.error(
                     codes="DBA.FR74a",
-                    msg=_("DBA.FR74a: Provisions (fsa:Provisions) must be less than or equal to the balance sheet total (fsa:LiabilitiesAndEquity) minus equity (fsa:Equity)."
+                    msg=_("Provisions (fsa:Provisions) must be less than or equal to the balance sheet total (fsa:LiabilitiesAndEquity) minus equity (fsa:Equity)."
                           "LiabilitiesAndEquity: %(liabilities)s, Equity: %(equity)s, Provisions: %(provisions)s"),
                     equity=equityFact.effectiveValue,
                     liabilities=liabilityFact.effectiveValue,
@@ -351,6 +350,59 @@ def rule_fr74(
                     liabilityOther=liabilityOtherFact.effectiveValue,
                     liabilities=liabilityFact.effectiveValue,
                     modelObject=[equityFact, liabilityFact, liabilityOtherFact]
+                )
+
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr77(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR77b: Long-term liabilities (fsa:LongtermLiabilitiesOtherThanProvisions) must be less than or equal to the balance sheet total (fsa:LiabilitiesAndEquity) minus equity (fsa:Equity).
+    DBA.FR77b: Short-term liabilities (fsa:ShorttermLiabilitiesOtherThanProvisions) must be less than or equal to the balance sheet total (fsa:LiabilitiesAndEquity) minus equity (fsa:Equity).
+    """
+    groupedFacts = getFactsGroupedByContextId(val.modelXbrl, pluginData.equityQn, pluginData.liabilitiesAndEquityQn, pluginData.longtermLiabilitiesOtherThanProvisionsQn, pluginData.shorttermLiabilitiesOtherThanProvisionsQn)
+    for contextID, facts in groupedFacts.items():
+        equityFact = None
+        liabilityFact = None
+        longLiabilityFact = None
+        shortLiabilityFact = None
+        for fact in facts:
+            if fact.qname == pluginData.equityQn and fact.unit.id == DANISH_CURRENCY_ID:
+                equityFact = fact
+            elif fact.qname == pluginData.liabilitiesQn and fact.unit.id == DANISH_CURRENCY_ID:
+                liabilityFact = fact
+            elif fact.qname == pluginData.longtermLiabilitiesOtherThanProvisionsQn and fact.unit.id == DANISH_CURRENCY_ID:
+                longLiabilityFact = fact
+            elif fact.qname == pluginData.shorttermLiabilitiesOtherThanProvisionsQn and fact.unit.id == DANISH_CURRENCY_ID:
+                shortLiabilityFact = fact
+        if equityFact is not None and liabilityFact is not None and longLiabilityFact is not None and equityFact.xValid >= VALID and liabilityFact.xValid >= VALID and longLiabilityFact.xValid >= VALID:
+            if not cast(decimal.Decimal, liabilityFact.xValue) - cast(decimal.Decimal, equityFact.xValue) >= cast(decimal.Decimal, longLiabilityFact.xValue) - ROUNDING_MARGIN:
+                yield Validation.error(
+                    codes="DBA.FR77a",
+                    msg=_("Long-term liabilities (fsa:LongtermLiabilitiesOtherThanProvisions) must be less than or equal to the balance sheet total (fsa:LiabilitiesAndEquity) minus equity (fsa:Equity)."
+                          "LiabilitiesAndEquity: %(liabilities)s, Equity: %(equity)s, LongtermLiabilitiesOtherThanProvisions: %(longLiabilities)s"),
+                    equity=equityFact.effectiveValue,
+                    liabilities=liabilityFact.effectiveValue,
+                    longLiabilities=longLiabilityFact.effectiveValue,
+                    modelObject=[equityFact, liabilityFact, longLiabilityFact]
+                )
+        if equityFact is not None and liabilityFact is not None and shortLiabilityFact is not None and equityFact.xValid >= VALID and liabilityFact.xValid >= VALID and shortLiabilityFact.xValid >= VALID:
+            if not cast(decimal.Decimal, liabilityFact.xValue) - cast(decimal.Decimal, equityFact.xValue) >= cast(decimal.Decimal, shortLiabilityFact.xValue) - ROUNDING_MARGIN:
+                yield Validation.error(
+                    codes="DBA.FR77b",
+                    msg=_("Short-term liabilities (fsa:ShorttermLiabilitiesOtherThanProvisions) must be less than or equal to the balance sheet total (fsa:LiabilitiesAndEquity) minus equity (fsa:Equity)."
+                          "LiabilitiesAndEquity: %(liabilities)s, Equity: %(equity)s, ShorttermLiabilitiesOtherThanProvisions: %(shortLiabilities)s"),
+                    equity=equityFact.effectiveValue,
+                    liabilities=liabilityFact.effectiveValue,
+                    shortLiabilities=shortLiabilityFact.effectiveValue,
+                    modelObject=[equityFact, liabilityFact, shortLiabilityFact]
                 )
 
 

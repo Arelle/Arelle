@@ -177,10 +177,10 @@ def getFactsGroupedByContextId(modelXbrl: ModelXbrl, *conceptQns: QName) -> dict
     facts: set[ModelFact] = set()
     for conceptQn in conceptQns:
         facts.update(modelXbrl.factsByQname.get(conceptQn, set()))
-    grouped_facts: dict[str, list[ModelFact]] = {}
+    groupedFacts: dict[str, list[ModelFact]] = {}
     for fact in facts:
-        context_id = fact.contextID
-        if context_id not in grouped_facts:
-            grouped_facts[context_id] = []
-        grouped_facts[context_id].append(fact)
-    return grouped_facts
+        contextId = fact.contextID
+        if contextId not in groupedFacts:
+            groupedFacts[contextId] = []
+        groupedFacts[contextId].append(fact)
+    return dict(sorted(groupedFacts.items()))
