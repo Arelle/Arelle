@@ -669,7 +669,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                         modelXbrl.error("ESEF.2.2.7.improperApplicationOfEscapeAttribute",
                                           _("Facts with datatype 'dtr-types:textBlockItemType' MUST use the 'escape' attribute set to 'true'. Facts with any other datatype MUST use the 'escape' attribute set to 'false' - fact %(conceptName)s"),
                                           modelObject=f, conceptName=f.concept.qname)
-                    if f.effectiveValue == "0" and f.xValue != 0:
+                    if f.effectiveValue in ["0", "-0"] and f.xValue != 0:
                         modelXbrl.warning("ESEF.2.2.5.roundedValueBelowScaleNotNull",
                                           _("A value that has been rounded and is below the scale should show a value of zero. It has been found to have the value %(value)s - fact %(conceptName)s"),
                                           modelObject=f, value=f.value, conceptName=f.concept.qname)
