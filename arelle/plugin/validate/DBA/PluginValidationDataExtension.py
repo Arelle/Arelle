@@ -26,6 +26,7 @@ class PluginValidationDataExtension(PluginData):
     auditedNonAssuranceReportsDanish: str
     auditedNonAssuranceReportsEnglish: str
     averageNumberOfEmployeesQn: QName
+    balanceSheetQnLessThanOrEqualToAssets: frozenset[QName]
     classOfReportingEntityQn: QName
     consolidatedMemberQn: QName
     consolidatedSoloDimensionQn: QName

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.FR63"
+        description="DBA.FR63: Error code FR63: The annual report contains items in the balance sheet (year's figures
+        or comparison figures) which are greater than the balance sheet total. Assets and underlying accounting items
+        must be less than or equal to the balance sheet total."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid" name="Invalid">
+        <description>
+            Assets in Context ID-8 is smaller than AcquiredIntangibleAssets and Assets in Context ID-9 is smaller than NoncurrentAssets
+        </description>
+        <data>
+            <instance readMeFirst="true">fr63-invalid.xbrl</instance>
+        </data>
+        <result>
+            <error>DBA.FR63</error>
+            <error>DBA.FR63</error>
+        </result>
+    </variation>
+</testcase>

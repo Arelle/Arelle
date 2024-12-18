@@ -304,6 +304,46 @@ def rule_fr56(
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
+def rule_fr63(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR63: Items in the balance sheet must be less than or equal to the balance sheet total. Assets must be
+    less than or equal to the balance sheet total. Applies to both the year's figures and comparative figures.
+    """
+    modelXbrl = val.modelXbrl
+    asset_facts = modelXbrl.factsByQname.get(pluginData.assetsQn)
+    if asset_facts is not None:
+        for asset_fact in asset_facts:
+            if asset_fact.xValid >= VALID and isinstance(asset_fact.xValue, decimal.Decimal):
+                concepts_in_error = []
+                facts_in_error = []
+                for balance_sheet_qn in pluginData.balanceSheetQnLessThanOrEqualToAssets:
+                    balance_sheet_qn_facts = modelXbrl.factsByQname.get(balance_sheet_qn)
+                    if balance_sheet_qn_facts is not None:
+                        for balance_sheet_qn_fact in balance_sheet_qn_facts:
+                            if (balance_sheet_qn_fact.xValid >= VALID and
+                                    isinstance(balance_sheet_qn_fact.xValue, decimal.Decimal) and
+                                    asset_fact.contextID == balance_sheet_qn_fact.contextID and
+                                    asset_fact.xValue < balance_sheet_qn_fact.xValue):
+                                concepts_in_error.append(balance_sheet_qn.localName)
+                                facts_in_error.append(balance_sheet_qn_fact)
+                if len(facts_in_error) > 0:
+                    yield Validation.error(
+                        codes='DBA.FR63',
+                        msg=_("The annual report contains items in the balance sheet (year's figures or comparison "
+                              "figures) which are greater than the balance sheet total(Assets). The following "
+                              "fields do not comply: {}").format(concepts_in_error),
+                        modelObject=facts_in_error
+                    )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
 def rule_fr74(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
