@@ -212,7 +212,7 @@ def rule_fr52(
     facts = modelXbrl.factsByQname.get(pluginData.proposedExtraordinaryDividendRecognisedInLiabilitiesQn)
     if facts is not None:
         yield Validation.warning(
-            codes='DBA.FR53',
+            codes='DBA.FR52',
             msg=_("The concept ProposedExtraordinaryDividendRecognisedInLiabilities should not be used"),
             modelObject=facts
         )
