@@ -23,6 +23,8 @@ class PluginValidationDataExtension(PluginData):
     auditedExtendedReviewEnglish: str
     auditedFinancialStatementsDanish: str
     auditedFinancialStatementsEnglish: str
+    auditedNonAssuranceReportsDanish: str
+    auditedNonAssuranceReportsEnglish: str
     averageNumberOfEmployeesQn: QName
     classOfReportingEntityQn: QName
     consolidatedMemberQn: QName
@@ -58,6 +60,7 @@ class PluginValidationDataExtension(PluginData):
     reportingPeriodEndDateQn: QName
     reportingPeriodStartDateQn: QName
     shorttermLiabilitiesOtherThanProvisionsQn: QName
+    signatureOfAuditorsDate: QName
     taxExpenseOnOrdinaryActivitiesQn: QName
     taxExpenseQn: QName
     typeOfAuditorAssistanceQn: QName
