@@ -502,7 +502,7 @@ def rule_fr92(
                     pluginData.auditedNonAssuranceReportsDanish,
                     pluginData.auditedNonAssuranceReportsEnglish,
                 ]:
-                    signature_facts = modelXbrl.factsByQname.get(pluginData.signatureOfAuditorsDate)
+                    signature_facts = modelXbrl.factsByQname.get(pluginData.signatureOfAuditorsDateQn)
                     if signature_facts is None:
                         yield Validation.warning(
                             codes='DBA.FR92',

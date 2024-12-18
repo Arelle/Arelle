@@ -60,7 +60,7 @@ class PluginValidationDataExtension(PluginData):
     reportingPeriodEndDateQn: QName
     reportingPeriodStartDateQn: QName
     shorttermLiabilitiesOtherThanProvisionsQn: QName
-    signatureOfAuditorsDate: QName
+    signatureOfAuditorsDateQn: QName
     taxExpenseOnOrdinaryActivitiesQn: QName
     taxExpenseQn: QName
     typeOfAuditorAssistanceQn: QName
