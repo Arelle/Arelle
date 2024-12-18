@@ -199,6 +199,28 @@ def rule_fr48(
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
+def rule_fr52(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR52: Any usage of fsa:ProposedExtraordinaryDividendRecognisedInLiabilities is prohibited.
+    """
+    modelXbrl = val.modelXbrl
+    facts = modelXbrl.factsByQname.get(pluginData.proposedExtraordinaryDividendRecognisedInLiabilitiesQn)
+    if facts is not None:
+        yield Validation.warning(
+            codes='DBA.FR52',
+            msg=_("The concept ProposedExtraordinaryDividendRecognisedInLiabilities should not be used"),
+            modelObject=facts
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
 def rule_fr53(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
@@ -208,7 +230,7 @@ def rule_fr53(
     """
     DBA.FR53: Information is missing on the audit company's CVR no. and the audit firm's name.
 
-    The audit firm's CVR number and name of audit firm must be provided when (fsa:TypeOfAuditorAssistance) is
+    The audit firm's CVR number and name of audit firm should be provided when (fsa:TypeOfAuditorAssistance) is
     tagged with one of the following values:
     - (Revisionspåtegning)  / (Auditor's report on audited financial statements)
     - (Erklæring om udvidet gennemgang) / (Auditor's report on extended review)
@@ -240,7 +262,7 @@ def rule_fr53(
                     if len(missing_concepts) > 0:
                         yield Validation.warning(
                             codes='DBA.FR53',
-                            msg=_("The following concepts must be tagged: {} when {} is tagged with the value of {}").format(
+                            msg=_("The following concepts should be tagged: {} when {} is tagged with the value of {}").format(
                                 ",".join(missing_concepts),
                                 pluginData.typeOfAuditorAssistanceQn.localName,
                                 fact.xValue
@@ -504,7 +526,7 @@ def rule_fr92(
                 ]:
                     signature_facts = modelXbrl.factsByQname.get(pluginData.signatureOfAuditorsDateQn)
                     if signature_facts is None:
-                        yield Validation.warning(
+                        yield Validation.error(
                             codes='DBA.FR92',
                             msg=_("SignatureOfAuditorsDate must be tagged when {} is tagged with the value of {}").format(
                                 pluginData.typeOfAuditorAssistanceQn.localName,

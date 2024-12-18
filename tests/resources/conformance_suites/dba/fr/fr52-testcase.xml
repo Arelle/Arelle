@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.FR52"
+        description="DBA.FR52: fsa:ProposedExtraordinaryDividendRecognisedInLiabilities should not be used."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid" name="Invalid">
+        <description>
+            Fact is incorrectly tagged with the concept fsa:ProposedExtraordinaryDividendRecognisedInLiabilities.
+        </description>
+        <data>
+            <instance readMeFirst="true">fr52-invalid.xbrl</instance>
+        </data>
+        <result>
+            <error>DBA.FR52</error>
+        </result>
+    </variation>
+</testcase>
