@@ -92,6 +92,7 @@ class ValidationPluginExtension(ValidationPlugin):
             precedingReportingPeriodStartDateQn=qname(f'{{{NAMESPACE_GSD}}}PrecedingReportingPeriodStartDate'),
             profitLossQn=qname(f'{{{NAMESPACE_FSA}}}ProfitLoss'),
             proposedDividendRecognisedInEquityQn=qname(f'{{{NAMESPACE_FSA}}}ProposedDividendRecognisedInEquity'),
+            proposedExtraordinaryDividendRecognisedInLiabilitiesQn=qname(f'{{{NAMESPACE_FSA}}}ProposedExtraordinaryDividendRecognisedInLiabilities'),
             provisionsQn=qname(f'{{{NAMESPACE_FSA}}}Provisions'),
             reportingPeriodEndDateQn=qname(f'{{{NAMESPACE_GSD}}}ReportingPeriodEndDate'),
             reportingPeriodStartDateQn=qname(f'{{{NAMESPACE_GSD}}}ReportingPeriodStartDate'),
