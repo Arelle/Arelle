@@ -240,7 +240,7 @@ def rule_fr53(
                     if len(missing_concepts) > 0:
                         yield Validation.warning(
                             codes='DBA.FR53',
-                            msg = _("The following concepts must be tagged: {} when {} is tagged with the value of {}").format(
+                            msg=_("The following concepts must be tagged: {} when {} is tagged with the value of {}").format(
                                 ",".join(missing_concepts),
                                 pluginData.typeOfAuditorAssistanceQn.localName,
                                 fact.xValue
@@ -463,3 +463,52 @@ def rule_fr81(
                   "must be at least one fact, with either the Danish ('da') or English ('en') language attribute."),
             modelObject=[val.modelXbrl.modelDocument]
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr92(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR92: Information is missing on the auditor's signature date.
+
+    The auditor's signature date must be provided when (fsa:TypeOfAuditorAssistance) is
+    tagged with one of the following values:
+    - (Revisionspåtegning)  / (Auditor's report on audited financial statements)
+    - (Erklæring om udvidet gennemgang) / (Auditor's report on extended review)
+    - (Den uafhængige revisors erklæringer (review)) / (The independent auditor's reports (Review))
+    - (Andre erklæringer med sikkerhed) / (The independent auditor's reports (Other assurance Reports))
+    - (Andre erklæringer uden sikkerhed) / (Auditor's reports (Other non-assurance reports))
+    """
+    modelXbrl = val.modelXbrl
+    facts = modelXbrl.factsByQname.get(pluginData.typeOfAuditorAssistanceQn)
+    if facts is not None:
+        for fact in facts:
+            if fact.xValid >= VALID:
+                if fact.xValue in [
+                    pluginData.auditedFinancialStatementsDanish,
+                    pluginData.auditedFinancialStatementsEnglish,
+                    pluginData.auditedExtendedReviewDanish,
+                    pluginData.auditedExtendedReviewEnglish,
+                    pluginData.independentAuditorsReportDanish,
+                    pluginData.independentAuditorsReportEnglish,
+                    pluginData.auditedAssuranceReportsDanish,
+                    pluginData.auditedAssuranceReportsEnglish,
+                    pluginData.auditedNonAssuranceReportsDanish,
+                    pluginData.auditedNonAssuranceReportsEnglish,
+                ]:
+                    signature_facts = modelXbrl.factsByQname.get(pluginData.signatureOfAuditorsDateQn)
+                    if signature_facts is None:
+                        yield Validation.warning(
+                            codes='DBA.FR92',
+                            msg=_("SignatureOfAuditorsDate must be tagged when {} is tagged with the value of {}").format(
+                                pluginData.typeOfAuditorAssistanceQn.localName,
+                                fact.xValue
+                            ),
+                            modelObject=fact
+                        )
