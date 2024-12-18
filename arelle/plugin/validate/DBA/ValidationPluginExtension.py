@@ -96,7 +96,7 @@ class ValidationPluginExtension(ValidationPlugin):
             reportingPeriodEndDateQn=qname(f'{{{NAMESPACE_GSD}}}ReportingPeriodEndDate'),
             reportingPeriodStartDateQn=qname(f'{{{NAMESPACE_GSD}}}ReportingPeriodStartDate'),
             shorttermLiabilitiesOtherThanProvisionsQn=qname(f'{{{NAMESPACE_FSA}}}ShorttermLiabilitiesOtherThanProvisions'),
-            signatureOfAuditorsDate=qname(f'{{{NAMESPACE_FSA}}}SignatureOfAuditorsDate'),
+            signatureOfAuditorsDate=qname(f'{{{NAMESPACE_ARR}}}SignatureOfAuditorsDate'),
             taxExpenseOnOrdinaryActivitiesQn=qname(f'{{{NAMESPACE_FSA}}}TaxExpenseOnOrdinaryActivities'),
             taxExpenseQn=qname(f'{{{NAMESPACE_FSA}}}TaxExpense'),
             typeOfAuditorAssistanceQn=qname(f'{{{NAMESPACE_CMN}}}TypeOfAuditorAssistance'),
