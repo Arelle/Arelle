@@ -18,7 +18,6 @@ config = ConformanceSuiteConfig(
     ]],
     args=[
         '--disclosureSystem', 'efm-pragmatic',
-        '--formula', 'run',
     ],
     assets=[
         ConformanceSuiteAssetConfig.conformance_suite(

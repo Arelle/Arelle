@@ -11,7 +11,6 @@ config = ConformanceSuiteConfig(
         ),
     ],
     args=[
-        '--formula', 'run',
         '--infoset',
     ],
     expected_failure_ids=frozenset([
