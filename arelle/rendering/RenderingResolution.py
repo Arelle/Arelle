@@ -801,6 +801,11 @@ def addDefaultedDimensionsToLeafNodes(strctMdlNode, coveredDims=None, defaultedD
         coveredDims = coveredDims - set(strctMdlNode.aspectValue(Aspect.OMIT_DIMENSIONS))
     if hasattr(strctMdlNode.defnMdlNode, "deemedDefaultedDims"):
         defaultedDims = defaultedDims | getattr(strctMdlNode.defnMdlNode, "deemedDefaultedDims")
+    if strctMdlNode.rollup == ROLLUP_IMPLIES_DEFAULT_MEMBER:
+        deemedDefaultedDims = defaultedDims - coveredDims
+        if deemedDefaultedDims:
+            strctMdlNode.deemedDefaultedDims = deemedDefaultedDims
+            defaultedDims -= deemedDefaultedDims
     if strctMdlNode.strctMdlChildNodes:
         for childStrctMdlNode in strctMdlNode.strctMdlChildNodes:
             addDefaultedDimensionsToLeafNodes(childStrctMdlNode, coveredDims, defaultedDims)
