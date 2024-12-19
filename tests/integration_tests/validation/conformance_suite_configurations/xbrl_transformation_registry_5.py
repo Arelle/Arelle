@@ -2,9 +2,6 @@ from pathlib import PurePath, Path
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig
 
 config = ConformanceSuiteConfig(
-    args=[
-        '--formula', 'run',
-    ],
     assets=[
         ConformanceSuiteAssetConfig.conformance_suite(
             Path('trr-5.0.zip'),

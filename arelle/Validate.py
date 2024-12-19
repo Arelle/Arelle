@@ -685,6 +685,9 @@ class Validate:
         if userExpectedErrors := testcaseExpectedErrors.get(variationIdPath):
             if expected is None:
                 expected = []
+            if isinstance(expected, str):
+                assert expected in {"valid", "invalid"}, f"unhandled expected value string '{expected}'"
+                expected = []
             expected.extend(userExpectedErrors)
             if expectedCount is not None:
                 expectedCount += len(userExpectedErrors)
@@ -695,25 +698,17 @@ class Validate:
             elif expectedCount is None:
                 expectedCount = 0
         if expected == "valid":
-            if numErrors == 0:
-                status = "pass"
-            else:
-                status = "fail"
+            status = "pass" if numErrors == 0 else "fail"
         elif expected == "invalid":
-            if numErrors == 0:
-                status = "fail"
-            else:
-                status = "pass"
+            status = "fail" if numErrors == 0 else "pass"
         elif expected in (None, []) and numErrors == 0:
             status = "pass"
         elif isinstance(expected,(QName,str,dict,list)): # string or assertion id counts dict
             status = "fail"
             _passCount = 0
-            if isinstance(expected, list):
-                _expectedList = expected.copy() # need shallow copy
-            else:
-                _expectedList = [expected]
-            if not isinstance(expected, list): expected = [expected]
+            _expectedList = expected.copy() if isinstance(expected, list) else [expected]
+            if not isinstance(expected, list):
+                expected = [expected]
             for testErr in _errors:
                 if isinstance(testErr,str) and testErr.startswith("ESEF."): # compared as list of strings to QName localname
                     testErr = testErr.rpartition(".")[2]
@@ -728,7 +723,7 @@ class Validate:
                             # XDT xml schema tests expected results
                             (_exp.namespaceURI == XbrlConst.xdtSchemaErrorNS and errPrefix == "xmlSchema")):
                             _expMatched = True
-                    elif type(testErr) == type(_exp):
+                    elif type(testErr) is type(_exp):
                         if isinstance(testErr,dict):
                             if len(testErr) == len(_exp) and all(
                                 k in testErr and counts == testErr[k][:len(counts)]
