@@ -87,7 +87,9 @@ class ValidationPluginExtension(ValidationPlugin):
             noncurrentAssetsQn=qname(f'{{{NAMESPACE_FSA}}}NoncurrentAssets'),
             nameAndSurnameOfChairmanOfGeneralMeetingQn=qname(f'{{{NAMESPACE_GSD}}}NameAndSurnameOfChairmanOfGeneralMeeting'),
             nameOfAuditFirmQn=qname(f'{{{NAMESPACE_CMN}}}NameOfAuditFirm'),
+            otherEmployeeExpenseQn=qname(f'{{{NAMESPACE_FSA}}}OtherEmployeeExpense'),
             positiveProfitThreshold=1000,
+            postemploymentBenefitExpenseQn=qname(f'{{{NAMESPACE_FSA}}}PostemploymentBenefitExpense'),
             precedingReportingPeriodEndDateQn=qname(f'{{{NAMESPACE_GSD}}}PredingReportingPeriodEndDate'),  # Typo in taxonomy
             precedingReportingPeriodStartDateQn=qname(f'{{{NAMESPACE_GSD}}}PrecedingReportingPeriodStartDate'),
             profitLossQn=qname(f'{{{NAMESPACE_FSA}}}ProfitLoss'),

@@ -326,6 +326,48 @@ def rule_fr56(
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
+def rule_fr71(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR71: The accounts must not contain negative personnel costs
+
+    Costs must be reported as positive numbers in the XBRL file. It indicates that there is an error in the setup of the XBRL file.
+    The following elements are checked:
+        • Personnel costs (fsa:EmployeeBenefitsExpense),
+        • Salaries (fsa:WagesAndSalaries)
+        • Pensions (fsa:PostemploymentBenefitExpense)
+        • Other personnel costs (fsa:OtherEmployeeExpense)
+
+    Both on the year's figures and comparative figures."
+    """
+    modelXbrl = val.modelXbrl
+    facts_in_error = []
+    for cost_qn in [
+        pluginData.employeeBenefitsExpenseQn,
+        pluginData.wagesAndSalariesQn,
+        pluginData.postemploymentBenefitExpenseQn,
+        pluginData.otherEmployeeExpenseQn
+    ]:
+        facts = modelXbrl.factsByQname.get(cost_qn)
+        if facts is not None:
+            for fact in facts:
+                if fact.xValid >= VALID and isinstance(fact.xValue, decimal.Decimal) and fact.xValue < 0:
+                    facts_in_error.append(fact)
+    if len(facts_in_error) > 0:
+        yield Validation.warning(
+            codes="DBA.FR71",
+            msg=_("Costs must be reported as positive numbers in the XBRL file"),
+            modelObject=facts_in_error
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
 def rule_fr74(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
