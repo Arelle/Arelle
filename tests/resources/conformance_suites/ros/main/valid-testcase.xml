@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="Valid"
+        description="These are the valid testcases for the ROS conformance suite."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="Valid_ifrs" name="Valid IFRS">
+        <description>
+            This is a valid IE IFRS document.
+        </description>
+        <data>
+            <instance readMeFirst="true">valid-ifrs.htm</instance>
+        </data>
+        <result expected="valid"/>
+    </variation>
+    <variation id="Valid_101" name="Valid IE FRS 101">
+        <description>
+            This is a valid IE FRS 101 document.
+        </description>
+        <data>
+            <instance readMeFirst="true">valid-101.htm</instance>
+        </data>
+        <result expected="valid"/>
+    </variation>
+</testcase>

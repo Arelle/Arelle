@@ -16,27 +16,57 @@ from arelle.utils.PluginData import PluginData
 @dataclass
 class PluginValidationDataExtension(PluginData):
     annualReportTypes: frozenset[str]
+    assetsQn: QName
+    auditedAssuranceReportsDanish: str
+    auditedAssuranceReportsEnglish: str
+    auditedExtendedReviewDanish: str
+    auditedExtendedReviewEnglish: str
+    auditedFinancialStatementsDanish: str
+    auditedFinancialStatementsEnglish: str
+    auditedNonAssuranceReportsDanish: str
+    auditedNonAssuranceReportsEnglish: str
+    averageNumberOfEmployeesQn: QName
+    classOfReportingEntityQn: QName
     consolidatedMemberQn: QName
     consolidatedSoloDimensionQn: QName
     dateOfApprovalOfAnnualReportQn: QName
     dateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod: QName
     dateOfGeneralMeetingQn: QName
+    descriptionOfQualificationsOfAssuranceEngagementPerformedQn: QName
     distributionOfResultsQns: frozenset[QName]
+    employeeBenefitsExpenseQn: QName
     equityQn: QName
     extraordinaryCostsQn: QName
     extraordinaryIncomeQn: QName
     extraordinaryResultBeforeTaxQn: QName
+    fr37RestrictedText: str
+    identificationNumberCvrOfAuditFirmQn: QName
+    independentAuditorsReportDanish: str
+    independentAuditorsReportEnglish: str
     informationOnTypeOfSubmittedReportQn: QName
+    liabilitiesQn: QName
+    liabilitiesAndEquityQn: QName
+    liabilitiesOtherThanProvisionsQn: QName
+    longtermLiabilitiesOtherThanProvisionsQn: QName
+    noncurrentAssetsQn: QName
+    nameAndSurnameOfChairmanOfGeneralMeetingQn: QName
+    nameOfAuditFirmQn: QName
     positiveProfitThreshold: float
     precedingReportingPeriodEndDateQn: QName
     precedingReportingPeriodStartDateQn: QName
     profitLossQn: QName
     proposedDividendRecognisedInEquityQn: QName
+    proposedExtraordinaryDividendRecognisedInLiabilitiesQn: QName
+    provisionsQn: QName
     reportingPeriodEndDateQn: QName
     reportingPeriodStartDateQn: QName
+    shorttermLiabilitiesOtherThanProvisionsQn: QName
+    signatureOfAuditorsDateQn: QName
     taxExpenseOnOrdinaryActivitiesQn: QName
     taxExpenseQn: QName
+    typeOfAuditorAssistanceQn: QName
     typeOfReportingPeriodDimensionQn: QName
+    wagesAndSalariesQn: QName
 
     _contextFactMap: dict[str, dict[QName, ModelFact]] | None = None
     _reportingPeriodContexts: list[ModelContext] | None = None

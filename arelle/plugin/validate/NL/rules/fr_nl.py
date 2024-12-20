@@ -5,8 +5,9 @@ from __future__ import annotations
 
 import codecs
 from collections import defaultdict
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, BinaryIO, Iterable, cast
+from typing import Any, BinaryIO, cast
 
 import regex
 from lxml import etree
@@ -24,6 +25,7 @@ from ..DisclosureSystems import (
     DISCLOSURE_SYSTEM_NT16,
     DISCLOSURE_SYSTEM_NT17,
     DISCLOSURE_SYSTEM_NT18,
+    DISCLOSURE_SYSTEM_NT19,
 )
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
@@ -73,6 +75,7 @@ XHTML_LIST_ITEM_TYPES = {
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
         DISCLOSURE_SYSTEM_NT18,
+        DISCLOSURE_SYSTEM_NT19,
     ],
 )
 def rule_fr_nl_1_02(
@@ -122,7 +125,8 @@ def rule_fr_nl_1_02(
     disclosureSystems=[
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
-        DISCLOSURE_SYSTEM_NT18
+        DISCLOSURE_SYSTEM_NT18,
+        DISCLOSURE_SYSTEM_NT19,
     ],
 )
 def rule_fr_nl_1_03(
@@ -150,6 +154,7 @@ def rule_fr_nl_1_03(
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
         DISCLOSURE_SYSTEM_NT18,
+        DISCLOSURE_SYSTEM_NT19,
     ],
 )
 def rule_fr_nl_1_04(
@@ -208,7 +213,8 @@ def rule_fr_nl_1_04(
     disclosureSystems=[
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
-        DISCLOSURE_SYSTEM_NT18
+        DISCLOSURE_SYSTEM_NT18,
+        DISCLOSURE_SYSTEM_NT19,
     ],
 )
 def rule_fr_nl_1_05(
@@ -236,6 +242,7 @@ def rule_fr_nl_1_05(
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
         DISCLOSURE_SYSTEM_NT18,
+        DISCLOSURE_SYSTEM_NT19,
     ],
 )
 def rule_fr_nl_1_06(
@@ -269,6 +276,7 @@ def rule_fr_nl_1_06(
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
         DISCLOSURE_SYSTEM_NT18,
+        DISCLOSURE_SYSTEM_NT19,
     ],
 )
 def rule_fr_nl_1_01(
@@ -302,6 +310,7 @@ def rule_fr_nl_1_01(
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
         DISCLOSURE_SYSTEM_NT18,
+        DISCLOSURE_SYSTEM_NT19,
     ],
 )
 def rule_fr_nl_2_03(
@@ -330,7 +339,8 @@ def rule_fr_nl_2_03(
     disclosureSystems=[
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
-        DISCLOSURE_SYSTEM_NT18
+        DISCLOSURE_SYSTEM_NT18,
+        DISCLOSURE_SYSTEM_NT19,
     ],
 )
 def rule_fr_nl_2_04(
@@ -361,7 +371,8 @@ def rule_fr_nl_2_04(
     disclosureSystems=[
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
-        DISCLOSURE_SYSTEM_NT18
+        DISCLOSURE_SYSTEM_NT18,
+        DISCLOSURE_SYSTEM_NT19,
     ],
 )
 def rule_fr_nl_2_05(
@@ -393,6 +404,7 @@ def rule_fr_nl_2_05(
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
         DISCLOSURE_SYSTEM_NT18,
+        DISCLOSURE_SYSTEM_NT19,
     ],
 )
 def rule_fr_nl_2_06(
@@ -439,7 +451,8 @@ def rule_fr_nl_2_06(
     disclosureSystems=[
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
-        DISCLOSURE_SYSTEM_NT18
+        DISCLOSURE_SYSTEM_NT18,
+        DISCLOSURE_SYSTEM_NT19,
     ],
 )
 def rule_fr_nl_2_07(
@@ -465,7 +478,8 @@ def rule_fr_nl_2_07(
     disclosureSystems=[
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
-        DISCLOSURE_SYSTEM_NT18
+        DISCLOSURE_SYSTEM_NT18,
+        DISCLOSURE_SYSTEM_NT19,
     ],
 )
 def rule_fr_nl_3_01(
@@ -497,7 +511,8 @@ def rule_fr_nl_3_01(
     disclosureSystems=[
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
-        DISCLOSURE_SYSTEM_NT18
+        DISCLOSURE_SYSTEM_NT18,
+        DISCLOSURE_SYSTEM_NT19,
     ],
 )
 def rule_fr_nl_3_02(
@@ -523,7 +538,8 @@ def rule_fr_nl_3_02(
     disclosureSystems=[
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
-        DISCLOSURE_SYSTEM_NT18
+        DISCLOSURE_SYSTEM_NT18,
+        DISCLOSURE_SYSTEM_NT19,
     ],
 )
 def rule_fr_nl_3_03(
@@ -550,7 +566,8 @@ def rule_fr_nl_3_03(
     disclosureSystems=[
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
-        DISCLOSURE_SYSTEM_NT18
+        DISCLOSURE_SYSTEM_NT18,
+        DISCLOSURE_SYSTEM_NT19,
     ],
 )
 def rule_fr_nl_3_04(
@@ -579,7 +596,8 @@ def rule_fr_nl_3_04(
     disclosureSystems=[
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
-        DISCLOSURE_SYSTEM_NT18
+        DISCLOSURE_SYSTEM_NT18,
+        DISCLOSURE_SYSTEM_NT19,
     ],
 )
 def rule_fr_nl_4_01(
@@ -608,7 +626,8 @@ def rule_fr_nl_4_01(
     disclosureSystems=[
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
-        DISCLOSURE_SYSTEM_NT18
+        DISCLOSURE_SYSTEM_NT18,
+        DISCLOSURE_SYSTEM_NT19,
     ],
 )
 def rule_fr_nl_4_02(
@@ -636,7 +655,8 @@ def rule_fr_nl_4_02(
     disclosureSystems=[
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
-        DISCLOSURE_SYSTEM_NT18
+        DISCLOSURE_SYSTEM_NT18,
+        DISCLOSURE_SYSTEM_NT19,
     ],
 )
 def rule_fr_nl_5_01(
@@ -669,7 +689,8 @@ def rule_fr_nl_5_01(
     disclosureSystems=[
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
-        DISCLOSURE_SYSTEM_NT18
+        DISCLOSURE_SYSTEM_NT18,
+        DISCLOSURE_SYSTEM_NT19,
     ],
 )
 def rule_fr_nl_5_03(
@@ -695,7 +716,8 @@ def rule_fr_nl_5_03(
     disclosureSystems=[
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
-        DISCLOSURE_SYSTEM_NT18
+        DISCLOSURE_SYSTEM_NT18,
+        DISCLOSURE_SYSTEM_NT19,
     ],
 )
 def rule_fr_nl_5_06(
@@ -721,7 +743,8 @@ def rule_fr_nl_5_06(
     disclosureSystems=[
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
-        DISCLOSURE_SYSTEM_NT18
+        DISCLOSURE_SYSTEM_NT18,
+        DISCLOSURE_SYSTEM_NT19,
     ],
 )
 def rule_fr_nl_5_11(
@@ -822,7 +845,8 @@ def rule_fr_nl_5_11(
     disclosureSystems=[
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
-        DISCLOSURE_SYSTEM_NT18
+        DISCLOSURE_SYSTEM_NT18,
+        DISCLOSURE_SYSTEM_NT19,
     ],
 )
 def rule_fr_nl_6_01(

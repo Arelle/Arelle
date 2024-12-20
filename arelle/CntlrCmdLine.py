@@ -6,9 +6,9 @@ This module is Arelle's controller in command line non-interactive mode
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
-from arelle import ValidateDuplicateFacts
+from arelle import PackageManager, ValidateDuplicateFacts
 import gettext, time, datetime, os, shlex, sys, traceback, fnmatch, threading, json, logging, platform
-from optparse import OptionGroup, OptionParser, SUPPRESS_HELP
+from optparse import OptionGroup, OptionParser, SUPPRESS_HELP, Option
 import regex as re
 from arelle import (Cntlr, FileSource, ModelDocument, XmlUtil, XbrlConst, Version,
                     ViewFileDTS, ViewFileFactList, ViewFileFactTable, ViewFileConcepts,
@@ -38,6 +38,7 @@ win32file = win32api = win32process = pywintypes = None
 STILL_ACTIVE = 259 # MS Windows process status constants
 PROCESS_QUERY_INFORMATION = 0x400
 DISABLE_PERSISTENT_CONFIG_OPTION = "--disablePersistentConfig"
+TESTCASE_EXPECTED_ERRORS_OPTION="testcaseExpectedErrors"
 UILANG_OPTION = '--uiLang'
 _: TypeGetText
 
@@ -59,7 +60,7 @@ def main():
     parseAndRun(args)
 
 
-def wsgiApplication(extraArgs=[]): # for example call wsgiApplication(["--plugins=EdgarRenderer"])
+def wsgiApplication(extraArgs=[]): # for example call wsgiApplication(["--plugins=EDGAR/render"])
     return parseAndRun( ["--webserver=::wsgi"] + extraArgs )
 
 
@@ -144,6 +145,10 @@ def parseArgs(args):
                       action="store_true",
                       dest="validateXmlOim",
                       help=_("Enables OIM validation for XML and iXBRL documents. OIM only formats (json, csv) are always OIM validated."))
+    parser.add_option("--reportPackage", "--reportPackage",
+                      action="store_true",
+                      dest="reportPackage",
+                      help=_("Ignore detected file type and validate all files as Report Packages."))
     parser.add_option("--deduplicateFacts", "--deduplicatefacts",
                       choices=[a.value for a in ValidateDuplicateFacts.DeduplicationType],
                       dest="deduplicateFacts",
@@ -281,6 +286,8 @@ def parseArgs(args):
                              "if this option is not specified, -v or --validate will validate and run formulas if present"))
     parser.add_option("--formulaParamExprResult", "--formulaparamexprresult", action="store_true", dest="formulaParamExprResult", help=_("Specify formula tracing."))
     parser.add_option("--formulaParamInputValue", "--formulaparaminputvalue", action="store_true", dest="formulaParamInputValue", help=_("Specify formula tracing."))
+    parser.add_option("--formulaMaximumMessageInterpolationLength", "--formulamaximummessageinterpolationlength", action="store", dest="formulaMaximumMessageInterpolationLength", type="int",
+                      help=_("Truncate interpolated expressions in formula messages to this length."), default=1000)
     parser.add_option("--formulaCallExprSource", "--formulacallexprsource", action="store_true", dest="formulaCallExprSource", help=_("Specify formula tracing."))
     parser.add_option("--formulaCallExprCode", "--formulacallexprcode", action="store_true", dest="formulaCallExprCode", help=_("Specify formula tracing."))
     parser.add_option("--formulaCallExprEval", "--formulacallexpreval", action="store_true", dest="formulaCallExprEval", help=_("Specify formula tracing."))
@@ -301,6 +308,8 @@ def parseArgs(args):
     parser.add_option("--formulaVarExpressionResult", "--formulavarexpressionresult", action="store_true", dest="formulaVarExpressionResult", help=_("Specify formula tracing."))
     parser.add_option("--formulaVarFilterWinnowing", "--formulavarfilterwinnowing", action="store_true", dest="formulaVarFilterWinnowing", help=_("Specify formula tracing."))
     parser.add_option("--formulaVarFiltersResult", "--formulavarfiltersresult", action="store_true", dest="formulaVarFiltersResult", help=_("Specify formula tracing."))
+    parser.add_option("--testcaseExpectedErrors", "--testcaseexpectederrors", action="append", dest=TESTCASE_EXPECTED_ERRORS_OPTION,
+                      help=_("For testcase results, specify comma separated additional expected errors by test case id. --testcaseExpectedErrors=testcase-index.xml:test_id1|IOerror,oime:invalidTaxonomy"))
     parser.add_option("--testcaseFilter", "--testcasefilter", action="append", dest="testcaseFilters",
                       help=_("If any filters are provided, any testcase variation path in the form {testcaseFilepath}:{testcaseVariationId} that doesn't pass any filter "
                              "will be skipped." ))
@@ -347,7 +356,7 @@ def parseArgs(args):
                              R" (e.g., 'http://arelle.org/files/hello_web.py', 'C:\Program Files\Arelle\examples\plugin\hello_dolly.py' to load, "
                              "or ../examples/plugin/hello_dolly.py for relative use of examples directory) "
                              "Local python files do not require .py suffix, e.g., hello_dolly without .py is sufficient, "
-                             "Packaged plug-in urls are their directory's url (e.g., --plugins EdgarRenderer or --plugins xbrlDB).  " ))
+                             "Packaged plug-in urls are their directory's url (e.g., --plugins EDGAR/render or --plugins xbrlDB).  " ))
     parser.add_option("--packages", "--package", action="append", dest="packages",
                       help=_("Load taxonomy packages. Option can be repeated for multiple files. "
                              "If a directory is specified, all .zip files in the directory will be loaded. "
@@ -482,6 +491,14 @@ def parseArgs(args):
         if optionName in pluginOptionDestinations:
             pluginOptions[optionName] = optionValue
         else:
+            if optionName == TESTCASE_EXPECTED_ERRORS_OPTION and optionValue is not None:
+                expectedErrors = {}
+                for expectedError in optionValue:
+                    expectedErrorSplit = expectedError.split('|')
+                    if len(expectedErrorSplit) != 2:
+                        parser.error(_("--testcaseExpectedErrors must be in the format '--testcaseExpectedErrors=testcase-index.xml:v-1|errorCode1,errorCode2,...'"))
+                    expectedErrors[expectedErrorSplit[0]] = expectedErrorSplit[1].split(',')
+                optionValue = expectedErrors
             baseOptions[optionName] = optionValue
     try:
         runtimeOptions = RuntimeOptions(pluginOptions=pluginOptions, **baseOptions)
@@ -528,41 +545,58 @@ def configAndRunCntlr(options, arellePluginModules):
                            logFormat=(options.logFormat or "[%(messageCode)s] %(message)s - %(file)s"),
                            logLevel=(options.logLevel or "DEBUG"),
                            logToBuffer=getattr(options, "logToBuffer", False),
-                           logTextMaxLength=options.logTextMaxLength,  # e.g., used by EdgarRenderer to require buffered logging
+                           logTextMaxLength=options.logTextMaxLength,  # e.g., used by EDGAR/render to require buffered logging
                            logRefObjectProperties=options.logRefObjectProperties,
-                           logXmlMaxAttributeLength=options.logXmlMaxAttributeLength)
+                           logXmlMaxAttributeLength=options.logXmlMaxAttributeLength,
+                           logPropagate=options.logPropagate)
         cntlr.postLoggingInit()  # Cntlr options after logging is started
         cntlr.run(options)
         return cntlr
 
 
-def filesourceEntrypointFiles(filesource, entrypointFiles=[], inlineOnly=False):
+def filesourceEntrypointFiles(filesource, entrypointFiles=None, inlineOnly=False):
+    if entrypointFiles is None:
+        entrypointFiles = []
     if filesource.isArchive:
         if filesource.isTaxonomyPackage:  # if archive is also a taxonomy package, activate mappings
             filesource.loadTaxonomyPackageMappings()
         # HF note: a web api request to load a specific file from archive is ignored, is this right?
         del entrypointFiles[:] # clear out archive from entrypointFiles
-        # attempt to find inline XBRL files before instance files, .xhtml before probing others (ESMA)
-        urlsByType = {}
-        if not entrypointFiles:
+        if reportPackage := filesource.reportPackage:
+            assert isinstance(filesource.basefile, str)
+            for report in reportPackage.reports or []:
+                if report.isInline:
+                    reportEntries = [{"file": f} for f in report.fullPathFiles]
+                    ixdsDiscovered = False
+                    for pluginXbrlMethod in pluginClassMethods("InlineDocumentSet.Discovery"):
+                        pluginXbrlMethod(filesource, reportEntries)
+                        ixdsDiscovered = True
+                    if not ixdsDiscovered and len(reportEntries) > 1:
+                        raise RuntimeError(_("Loading error. Inline document set encountered. Enable 'InlineDocumentSet' plug-in to load this filing: {0}").format(filesource.url))
+                    entrypointFiles.extend(reportEntries)
+                elif not inlineOnly:
+                    entrypointFiles.append({"file": report.fullPathPrimary})
+        else:
+            # attempt to find inline XBRL files before instance files, .xhtml before probing others (ESMA)
+            urlsByType = {}
             for _archiveFile in (filesource.dir or ()): # .dir might be none if IOerror
                 filesource.select(_archiveFile)
                 identifiedType = ModelDocument.Type.identify(filesource, filesource.url)
                 if identifiedType in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL, ModelDocument.Type.HTML):
                     urlsByType.setdefault(identifiedType, []).append(filesource.url)
-        # use inline instances, if any, else non-inline instances
-        for identifiedType in ((ModelDocument.Type.INLINEXBRL,) if inlineOnly else (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INSTANCE)):
-            for url in urlsByType.get(identifiedType, []):
-                entrypointFiles.append({"file":url})
-            if entrypointFiles:
-                if identifiedType == ModelDocument.Type.INLINEXBRL:
-                    for pluginXbrlMethod in pluginClassMethods("InlineDocumentSet.Discovery"):
-                        pluginXbrlMethod(filesource, entrypointFiles) # group into IXDS if plugin feature is available
-                break # found inline (or non-inline) entrypoint files, don't look for any other type
-        # for ESEF non-consolidated xhtml documents accept an xhtml entry point
-        if not entrypointFiles and not inlineOnly:
-            for url in urlsByType.get(ModelDocument.Type.HTML, []):
-                entrypointFiles.append({"file":url})
+            # use inline instances, if any, else non-inline instances
+            for identifiedType in ((ModelDocument.Type.INLINEXBRL,) if inlineOnly else (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INSTANCE)):
+                for url in urlsByType.get(identifiedType, []):
+                    entrypointFiles.append({"file":url})
+                if entrypointFiles:
+                    if identifiedType == ModelDocument.Type.INLINEXBRL:
+                        for pluginXbrlMethod in pluginClassMethods("InlineDocumentSet.Discovery"):
+                            pluginXbrlMethod(filesource, entrypointFiles) # group into IXDS if plugin feature is available
+                    break # found inline (or non-inline) entrypoint files, don't look for any other type
+            # for ESEF non-consolidated xhtml documents accept an xhtml entry point
+            if not entrypointFiles and not inlineOnly:
+                for url in urlsByType.get(ModelDocument.Type.HTML, []):
+                    entrypointFiles.append({"file":url})
 
 
     elif os.path.isdir(filesource.url):
@@ -584,12 +618,31 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=[], inlineOnly=False):
 
 class ParserForDynamicPlugins:
     def __init__(self, options):
+        self._long_opt = {}
+        self._short_opt = {}
+        self.conflict_handler = 'error'
+        self.defaults = {}
+        self.option_class = Option
         self.options = options
+
     def add_option(self, *args, **kwargs):
         if 'dest' in kwargs:
             _dest = kwargs['dest']
             if not hasattr(self.options, _dest):
-                setattr(self.options, _dest, kwargs.get('default',None))
+                setattr(self.options, _dest, kwargs.get('default'))
+
+    def add_option_group(self, featureGroup, *args, **kwargs):
+        for opt in featureGroup.option_list:
+            if hasattr(opt, "dest"):
+                self.add_option(dest=opt.dest, default=getattr(opt, 'default', None))
+
+    def __getattr__(self, name: str) -> None:
+        return None
+
+
+def _pluginHasCliOptions(moduleInfo):
+    return "CntlrCmdLine.Options" in moduleInfo["classMethods"]
+
 
 class CntlrCmdLine(Cntlr.Cntlr):
     """
@@ -611,9 +664,6 @@ class CntlrCmdLine(Cntlr.Cntlr):
         :param options: OptionParser options from parse_args of main argv arguments (when called from command line) or corresponding arguments from web service (REST) request.
         :type options: optparse.Values
         """
-        sourceZipStream = sourceZipStream or options.sourceZipStream
-        responseZipStream = responseZipStream or options.responseZipStream
-
         for b in BETA_FEATURES_AND_DESCRIPTIONS.keys():
             self.betaFeatures[b] = getattr(options, b)
         if options.statusPipe or options.monitorParentProcess:
@@ -698,6 +748,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             resetPlugins = False
             savePluginChanges = True
             showPluginModules = False
+            loadPluginOptions = False
             for pluginCmd in options.plugins.split('|'):
                 cmd = pluginCmd.strip()
                 if cmd == "show":
@@ -710,8 +761,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         self.addToLog(_("Addition of plug-in {0} successful.").format(moduleInfo.get("name")),
                                       messageCode="info", file=moduleInfo.get("moduleURL"))
                         resetPlugins = True
-                        if "CntlrCmdLine.Options" in moduleInfo["classMethods"]:
-                            addedPluginWithCntlrCmdLineOptions = True
+                        if _pluginHasCliOptions(moduleInfo):
+                            loadPluginOptions = True
                     else:
                         self.addToLog(_("Unable to load plug-in."), messageCode="info", file=cmd[1:])
                 elif cmd.startswith("~"):
@@ -734,6 +785,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         moduleInfo = PluginManager.addPluginModule(cmd)
                         if moduleInfo:
                             resetPlugins = True
+                            if _pluginHasCliOptions(moduleInfo):
+                                loadPluginOptions = True
                     if moduleInfo:
                         self.addToLog(_("Activation of plug-in {0} successful, version {1}.").format(moduleInfo.get("name"), moduleInfo.get("version")),
                                       messageCode="info", file=moduleInfo.get("moduleURL"))
@@ -745,11 +798,11 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     PluginManager.reset()
                     if savePluginChanges:
                         PluginManager.save(self)
-                    if options.webserver: # options may need reparsing dynamically
-                        _optionsParser = ParserForDynamicPlugins(options)
-                        # add plug-in options
-                        for optionsExtender in pluginClassMethods("CntlrCmdLine.Options"):
-                            optionsExtender(_optionsParser)
+                if loadPluginOptions:
+                    _optionsParser = ParserForDynamicPlugins(options)
+                    # add plug-in options
+                    for optionsExtender in pluginClassMethods("CntlrCmdLine.Options"):
+                        optionsExtender(_optionsParser)
 
             if showPluginModules:
                 self.addToLog(_("Plug-in modules:"), messageCode="info")
@@ -796,6 +849,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             duplicateTypeArg = ValidateDuplicateFacts.DuplicateTypeArg(options.validateDuplicateFacts)
             duplicateType = duplicateTypeArg.duplicateType()
             self.modelManager.validateDuplicateFacts = duplicateType
+        self.modelManager.validateAllFilesAsReportPackages = bool(options.reportPackage)
         if options.utrUrl:  # override disclosureSystem utrUrl
             self.modelManager.disclosureSystem.utrUrl = [options.utrUrl]
             # can be set now because the utr is first loaded at validation time
@@ -862,6 +916,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             fo.parameterValues = dict(((qname(key, noPrefixIsNoNamespace=True),(None,value))
                                        for param in options.parameters.split(parameterSeparator)
                                        for key,sep,value in (param.partition('='),) ) )
+        fo.maximumMessageInterpolationLength = options.formulaMaximumMessageInterpolationLength
         if options.formulaParamExprResult:
             fo.traceParameterExpressionResult = True
         if options.formulaParamInputValue:
@@ -906,6 +961,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
             fo.traceVariableFilterWinnowing = True
         if options.formulaVarFiltersResult:
             fo.traceVariableFiltersResult = True
+        if options.testcaseExpectedErrors:
+            fo.testcaseExpectedErrors = options.testcaseExpectedErrors
         if options.testcaseFilters:
             fo.testcaseFilters = options.testcaseFilters
         if options.testcaseResultsCaptureWarnings:
@@ -962,19 +1019,32 @@ class CntlrCmdLine(Cntlr.Cntlr):
         if sourceZipStream:
             filesource = FileSource.openFileSource(None, self, sourceZipStream)
         elif len(_entryPoints) == 1 and "file" in _entryPoints[0]: # check if an archive and need to discover entry points (and not IXDS)
-            filesource = FileSource.openFileSource(_entryPoints[0].get("file",None), self, checkIfXmlIsEis=_checkIfXmlIsEis)
+            entryPath = PackageManager.mappedUrl(_entryPoints[0]["file"])
+            filesource = FileSource.openFileSource(entryPath, self, checkIfXmlIsEis=_checkIfXmlIsEis)
         _entrypointFiles = _entryPoints
-        if filesource and not filesource.selection:
-            if not (sourceZipStream and len(_entrypointFiles) > 0):
+        if filesource and not filesource.selection and not (sourceZipStream and len(_entrypointFiles) > 0):
+            try:
                 filesourceEntrypointFiles(filesource, _entrypointFiles)
+            except Exception as err:
+                self.addToLog(str(err), messageCode="error", level=logging.ERROR)
+                return False
 
         for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Filing.Start"):
             pluginXbrlMethod(self, options, filesource, _entrypointFiles, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
+        if len(_entrypointFiles) == 0:
+            if options.entrypointFile:
+                msg = _("No XBRL entry points could be loaded from provided file: {}").format(options.entrypointFile)
+            else:
+                # web server post request does not have a file name.
+                msg = _("No XBRL entry points could be loaded from provided input")
+            self.addToLog(msg, messageCode="error", level=logging.ERROR)
+            success = False
         for _entrypoint in _entrypointFiles:
             _entrypointFile = _entrypoint.get("file", None) if isinstance(_entrypoint,dict) else _entrypoint
             if filesource and filesource.isArchive:
                 filesource.select(_entrypointFile)
             else:
+                _entrypointFile = PackageManager.mappedUrl(_entrypointFile)
                 filesource = FileSource.openFileSource(_entrypointFile, self, sourceZipStream)
             self.entrypointFile = _entrypointFile
             timeNow = XmlUtil.dateunionValue(datetime.datetime.now())
@@ -984,6 +1054,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
             try:
                 if filesource:
                     modelXbrl = self.modelManager.load(filesource, _("views loading"), entrypoint=_entrypoint)
+                    if filesource.isArchive:
+                        # Keep archive filesource potentially used by multiple reports open.
+                        modelXbrl.closeFileSource = False
             except ModelDocument.LoadingException:
                 pass
             except Exception as err:
@@ -1136,7 +1209,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                             ViewFileRoleTypes.viewRoleTypes(modelXbrl, options.arcroleTypesFile, "Arcrole Types", isArcrole=True, lang=options.labelLang)
 
                         for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Xbrl.Run"):
-                            pluginXbrlMethod(self, options, modelXbrl, _entrypoint, responseZipStream=responseZipStream)
+                            pluginXbrlMethod(self, options, modelXbrl, _entrypoint, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
 
                 except (IOError, EnvironmentError) as err:
                     self.addToLog(_("[IOError] Failed to save output:\n {0}").format(err),
@@ -1185,6 +1258,10 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         self.modelManager.close(modelDiffReport)
                     elif modelXbrl:
                         self.modelManager.close(modelXbrl)
+        if not options.keepOpen:
+            # Archive filesource potentially used by multiple reports may still be open.
+            filesource.close()
+
         if success:
             if options.validate:
                 for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Filing.Validate"):

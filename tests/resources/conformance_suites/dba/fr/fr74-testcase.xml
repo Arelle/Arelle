@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.FR74"
+        description="
+        DBA.FR74a:Provisions [hierarchy:fsa:Provisions] and underlying fields must each be less than or equal to the balance sheet total (fsa:LiabilitiesAndEquity) minus equity (fsa:Equity).
+        DBA.FR74b: Liabilities (fsa:LiabilitiesOtherThanProvisions) must be less than or equal to total assets (fsa:LiabilitiesAndEquity) minus equity (fsa:Equity)."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid-74a" name="Invalid-74a">
+        <description>
+            Provisions is NOT less than or equal to LiabilitiesAndEquity minus Equity.
+        </description>
+        <data>
+            <instance readMeFirst="true">fr74a-invalid.xbrl</instance>
+        </data>
+        <result>
+            <error>DBA.FR74a</error>
+        </result>
+    </variation>
+    <variation id="invalid-74b" name="Invalid-74b">
+        <description>
+            LiabilitiesOtherThanProvisions is NOT less than or equal to LiabilitiesAndEquity minus Equity.
+        </description>
+        <data>
+            <instance readMeFirst="true">fr74b-invalid.xbrl</instance>
+        </data>
+        <result>
+            <error>DBA.FR74b</error>
+        </result>
+    </variation>
+</testcase>

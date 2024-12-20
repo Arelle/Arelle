@@ -8,6 +8,9 @@ updates:
       gha-dependencies:
         patterns:
           - "*"
+    ignore:
+      - dependency-name: "softprops/action-gh-release"
+        versions: ["2.2.0"]
   - package-ecosystem: "github-actions"
     directory: "/.github/actions/test_conformance_suite"
     schedule:
@@ -16,6 +19,9 @@ updates:
       gha-dependencies:
         patterns:
           - "*"
+    ignore:
+      - dependency-name: "softprops/action-gh-release"
+        versions: ["2.2.0"]
   - package-ecosystem: pip
     directory: "/"
     schedule:
@@ -26,8 +32,18 @@ updates:
           - "*"
     ignore:
       - dependency-name: "cx_Freeze"
+  - package-ecosystem: nuget
+    directories:
+      - /tests/integration_tests/ui_tests/ArelleGUITest
+      - /tests/integration_tests/ui_tests/ArelleGUITest/ArelleGUITest
+    schedule:
+      interval: weekly
+    groups:
+      dotnet-dependencies:
+        patterns:
+          - "*"
   - package-ecosystem: docker
-    directory: "/"
+    directory: "/docker/"
     schedule:
       interval: weekly
     allow:

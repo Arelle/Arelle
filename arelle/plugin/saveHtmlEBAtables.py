@@ -11,7 +11,7 @@ def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
         import os, io
         from arelle import Version, XbrlConst, XmlUtil
         from arelle.ViewFileRenderedGrid import viewRenderedGrid
-        from arelle.ModelRenderingObject import ModelEuTable, ModelTable
+        from arelle.ModelRenderingObject import DefnMdlTable
 
         numTableFiles = 0
 
@@ -62,7 +62,7 @@ table {background:#fff}
         def viewTable(modelTable):
             if modelTable is None:
                 return
-            if isinstance(modelTable, (ModelEuTable, ModelTable)):
+            if isinstance(modelTable, (DefnMdlTable)):
                 # status
                 dts.modelManager.cntlr.addToLog("viewing: " + modelTable.id)
                 # for table file name, use table ELR
@@ -70,7 +70,6 @@ table {background:#fff}
                 viewRenderedGrid(dts,
                                  tblFile,
                                  lang=lang,
-                                 sourceView=View(modelTable, False, False, True),
                                  cssExtras=tblCssExtras)
 
                 # generaate menu entry

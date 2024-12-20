@@ -192,6 +192,7 @@ class ConformanceSuiteConfig:
     cache_version_id: str | None = None
     capture_warnings: bool = True
     ci_enabled: bool = True
+    expected_additional_testcase_errors: dict[str, frozenset[str]] = field(default_factory=dict)
     expected_failure_ids: frozenset[str] = frozenset()
     expected_missing_testcases: frozenset[str] = frozenset()
     expected_model_errors: frozenset[str] = frozenset()
@@ -225,6 +226,9 @@ class ConformanceSuiteConfig:
         overlapping_expected_testcase_ids = self.expected_failure_ids.intersection(self.required_locale_by_ids)
         assert not overlapping_expected_testcase_ids, \
             f'Testcase IDs in both expected failures and required locales: {sorted(overlapping_expected_testcase_ids)}'
+        overlapping_expected_failure_testcase_ids = self.expected_failure_ids.intersection(self.expected_additional_testcase_errors.keys())
+        assert not overlapping_expected_failure_testcase_ids, \
+            f'Testcase IDs in both expected failures and expected additional errors: {sorted(overlapping_expected_failure_testcase_ids)}'
         assert not self.network_or_cache_required or self.package_paths or self.cache_version_id, \
             'If network or cache is required, either packages must be used or a cache version ID must be provided.'
 

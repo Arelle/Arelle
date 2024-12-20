@@ -7,7 +7,6 @@ from tests.integration_tests.validation.conformance_suite_config import (
 config = ConformanceSuiteConfig(
     args=[
         '--disclosureSystem', 'esef-2023',
-        '--formula', 'run',
     ],
     assets=[
         ConformanceSuiteAssetConfig.conformance_suite(

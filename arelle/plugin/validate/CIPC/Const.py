@@ -12,6 +12,25 @@ cipcModules = {
     "ifrs_for_smes": "ifrs-smes"
     }
 
+mustNotBeHiddenElements = [
+    "cipc-ca:BusinessAddressCity",
+    "cipc-ca:BusinessAddressPostalCode",
+    "cipc-ca:BusinessAddressStreetName",
+    "cipc-ca:DisclosureOfDirectorsReportExplanatory",
+    "cipc-ca:DisclosureOfDirectorsResponsibilityExplanatory",
+    "cipc-ca:FullRegisteredNameOfCompany",
+    "cipc-ca:RegistrationNumberOfCompany",
+    "cipc-ca-enum:DescriptionOfNatureOfFinancialStatements",
+    "ifrs-full:DateOfEndOfReportingPeriod2013",
+    "ifrs-full:DescriptionOfNatureOfFinancialStatements",
+    "ifrs-full:DescriptionOfPresentationCurrency",
+    "ifrs-full:Revenue",
+    "ifrs-smes:DateOfEndOfReportingPeriod2013",
+    "ifrs-smes:DescriptionOfNatureOfFinancialStatements",
+    "ifrs-smes:DescriptionOfPresentationCurrency",
+    "ifrs-smes:Revenue",
+]
+
 ''' these validations now done by CIPC formulas
 mandatoryElements = {
     "ca_fas": {

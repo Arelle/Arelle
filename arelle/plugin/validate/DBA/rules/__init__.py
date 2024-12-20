@@ -5,8 +5,10 @@ from __future__ import annotations
 
 import datetime
 import itertools
-from typing import Iterable, Callable, cast, Union
+from collections.abc import Callable, Iterable
+from typing import Optional, cast
 
+from arelle.ModelDocument import ModelDocument
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import ModelXbrl
@@ -52,25 +54,73 @@ def errorOnDateFactComparison(
         )
 
 
-def findFactsWithDimension(
+def errorOnRequiredFact(
+        modelXbrl: ModelXbrl,
+        factQn: QName,
+        code: str,
+        message: str,
+) -> Iterable[Validation]:
+    """
+    Yields an error if a fact with the given QName is not tagged with a non-nil value.
+    :return: Yields validation errors.
+    """
+    facts: set[ModelFact] = modelXbrl.factsByQname.get(factQn, set())
+    if facts:
+        for fact in facts:
+            if not fact.isNil:
+                return
+    yield Validation.error(
+        codes=code,
+        msg=message,
+)
+
+
+def errorOnRequiredPositiveFact(
+        modelXbrl: ModelXbrl,
+        facts: set[ModelFact],
+        code: str,
+        message: str,
+) -> Iterable[Validation]:
+    """
+    Yields an error if a fact with the given QName is not tagged with a valid date and a non-nil value.
+    :return: Yields validation errors.
+    """
+    errorModelObjects: list[ModelFact | ModelDocument| None] = []
+    if not facts:
+        errorModelObjects.append(modelXbrl.modelDocument)
+    else:
+        for fact in facts:
+            if fact.xValid >= VALID and cast(int, fact.xValue) < 0:
+                errorModelObjects.append(fact)
+    if errorModelObjects:
+        yield Validation.error(
+            codes=code,
+            msg=message,
+            modelObject=errorModelObjects
+        )
+
+
+def getFactsWithDimension(
         val: ValidateXbrl,
         conceptQn: QName,
         dimensionQn: QName,
         membeQn: QName
-) -> bool:
+) -> set[ModelFact ]:
+    foundFacts: set[ModelFact] = set()
     facts = val.modelXbrl.factsByQname.get(conceptQn)
     if facts:
         for fact in facts:
-            if fact.context is None:
-                continue
-            elif (fact.context.dimMemberQname(
-                    dimensionQn
-            ) == membeQn
-                  and fact.context.qnameDims.keys() == {dimensionQn}):
-                return True
-            elif not len(fact.context.qnameDims):
-                return True
-    return False
+            if fact is not None:
+                if fact.context is None:
+                    continue
+                elif (fact.context.dimMemberQname(
+                        dimensionQn
+                ) == membeQn
+                      and fact.context.qnameDims.keys() == {dimensionQn}):
+                    foundFacts.add(fact)
+                elif not len(fact.context.qnameDims):
+                    foundFacts.add(fact)
+    return foundFacts
 
 
 def getValidDateFacts(
@@ -113,7 +163,7 @@ def getValidDateFactsWithDefaultDimension(
             memberQn = dimensionDefaultConcept.qname
     facts = getValidDateFacts(modelXbrl, factQn)
     for fact in facts:
-        factMemberQn = cast(Union[QName, None], fact.context.dimMemberQname(dimensionQn))
+        factMemberQn = cast(Optional[QName], fact.context.dimMemberQname(dimensionQn))
         if memberQn is None or memberQn == factMemberQn:
             results.append(fact)
     return results
@@ -127,7 +177,10 @@ def getFactsGroupedByContextId(modelXbrl: ModelXbrl, *conceptQns: QName) -> dict
     facts: set[ModelFact] = set()
     for conceptQn in conceptQns:
         facts.update(modelXbrl.factsByQname.get(conceptQn, set()))
-    return {
-        k: sorted(v, key=lambda f: f.objectIndex)
-        for k, v in itertools.groupby(facts, key=lambda f: f.contextID)
-    }
+    groupedFacts: dict[str, list[ModelFact]] = {}
+    for fact in facts:
+        contextId = fact.contextID
+        if contextId not in groupedFacts:
+            groupedFacts[contextId] = []
+        groupedFacts[contextId].append(fact)
+    return dict(sorted(groupedFacts.items()))

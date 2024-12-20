@@ -32,7 +32,12 @@ __author__ = "Guilherme Polo <ggpolo@gmail.com>"
 __all__ = ["ArrayVar", "Table"]
 
 import os
+from pathlib import Path
 import collections.abc
+import platform
+
+from arelle.SystemInfo import PlatformOS
+
 try:
     import tkinter
 except ImportError:
@@ -119,6 +124,21 @@ class Table(tkinter.Widget):
         global _TKTABLE_LOADED
         if not _TKTABLE_LOADED:
             tktable_lib = os.environ.get('TKTABLE_LIBRARY')
+            if not tktable_lib:
+                plat = PlatformOS.getPlatformOS()
+                machine = platform.machine()
+                lib_dir = Path(__file__).parent / "resources" / "libs" / "Tktable2.11"
+                if plat == PlatformOS.MACOS:
+                    if machine == "arm64":
+                        lib_dir = lib_dir / "macos-arm64"
+                    else:
+                        lib_dir = lib_dir / "macos-x86_64"
+                elif plat == PlatformOS.WINDOWS:
+                    lib_dir = lib_dir / "win-x86_64"
+                else:
+                    lib_dir = lib_dir / "linux-x86_64"
+                if lib_dir.exists():
+                    tktable_lib = str(lib_dir)
             if tktable_lib:
                 master.tk.eval('global auto_path; '
                                'lappend auto_path {%s}' % tktable_lib)

@@ -11,7 +11,7 @@ import regex
 from unittest.mock import Mock
 
 from arelle.ModelValue import QName, DateTime, Time, isoDuration, gDay, gMonth, gMonthDay, gYear, gYearMonth
-from arelle.XmlValidate import validateValue, VALID, UNKNOWN, INVALID, VALID_ID, NMTOKENPattern, namePattern, NCNamePattern, VALID_NO_CONTENT
+from arelle.XmlValidate import validateValue, VALID, UNKNOWN, INVALID, VALID_ID, NMTOKENPattern, namePattern, NCNamePattern, VALID_NO_CONTENT, XsdPattern
 
 FLOAT_CASES = [
     {"value": "-1", "expected": (-1, -1, VALID)},
@@ -414,10 +414,10 @@ BASE_XSD_TYPES = {
         {"value": "invalid", "expected": ("=", None, INVALID)},
     ],
     "xsd-pattern": [
-        {"value": r"\c+", "expected": ("=", NMTOKENPattern, VALID)},
-        {"value": r"\i\c*", "expected": ("=", namePattern, VALID)},
-        {"value": r"[\i-[:]][\c-[:]]*", "expected": ("=", NCNamePattern, VALID)},
-        # {"value": "test", "expected": ("=", XsdPattern().compile("test"), VALID)},  # TODO: XsdPattern equality not working
+        {"value": r"\c+", "expected": ("=", XsdPattern(xsdPattern=r"\c+", pyPattern=NMTOKENPattern), VALID)},
+        {"value": r"\i\c*", "expected": ("=", XsdPattern(xsdPattern=r"\i\c*", pyPattern=namePattern), VALID)},
+        {"value": r"[\i-[:]][\c-[:]]*", "expected": ("=", XsdPattern(xsdPattern=r"[\i-[:]][\c-[:]]*", pyPattern=NCNamePattern), VALID)},
+        {"value": "test", "expected": ("=", XsdPattern.compile("test"), VALID)},
         {"value": r"invalid(", "expected": ("=", None, INVALID)},
     ],
 }

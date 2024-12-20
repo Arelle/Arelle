@@ -25,6 +25,7 @@ class FormulaOptions():
         self.cacheSize = 10_000_000  # maximum number of fact aspect comparisons to cache
         self.compileOnly = False # compile but don't execute formulas
         self.formulaAction = None # none, validate, run
+        self.maximumMessageInterpolationLength = None
         self.traceParameterExpressionResult = False
         self.traceParameterInputValue = False
         self.traceCallExpressionSource = False
@@ -53,6 +54,7 @@ class FormulaOptions():
         self.testcaseFilters = None
         self.testcaseResultsCaptureWarnings = False
         self.testcaseResultOptions = None
+        self.testcaseExpectedErrors = None
         if isinstance(savedValues, dict):
             self.__dict__.update(savedValues)
 
@@ -2605,8 +2607,10 @@ class ModelMessage(ModelFormulaResource):
             return set()    # no expressions
 
     def evaluate(self, xpCtx, contextItem=None):
-        return self.formatString.format([xpCtx.evaluateAtomicValue(p, 'xs:string', contextItem=contextItem)
-                                         for p in self.expressionProgs])
+        return self.formatString.format([
+            str(xpCtx.evaluateAtomicValue(p, 'xs:string', contextItem=contextItem))[:xpCtx.formulaOptions.maximumMessageInterpolationLength]
+            for p in self.expressionProgs
+        ])
 
     @property
     def propertyView(self):

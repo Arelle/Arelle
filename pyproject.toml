@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools~=69.0", "wheel~=0.42", "setuptools_scm[toml]~=8.0"]
+requires = ["setuptools>=73,<76", "wheel~=0.44", "setuptools_scm[toml]~=8.1"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -19,7 +19,6 @@ classifiers = [
     'License :: OSI Approved :: Apache Software License',
     'Natural Language :: English',
     'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.8',
     'Programming Language :: Python :: 3.9',
     'Programming Language :: Python :: 3.10',
     'Programming Language :: Python :: 3.11',
@@ -27,14 +26,15 @@ classifiers = [
     'Operating System :: OS Independent',
     'Topic :: Text Processing :: Markup :: XML'
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.9,<3.13"
 dependencies = [
     'certifi',
     'filelock',
     'isodate==0.*',
     'lxml>=4,<6',
-    'numpy==1.*',
+    'numpy>=1,<3',
     'openpyxl==3.*',
+    'pillow>=10,<12',
     'pyparsing==3.*',
     'python-dateutil==2.*',
     'regex',
@@ -106,19 +106,22 @@ enable_error_code = "ignore-without-code"
 python_version = "3.12"
 show_error_codes = true
 strict = true
-# EFM-htm is an invalid Python package name
 # Others are not included in repo, but commonly copied into working directory by devs.
 exclude = '''(?x)(
-    ^arelle/plugin/EdgarRenderer
+    ^arelle/plugin/EDGAR
     | ^arelle/plugin/FERC
     | ^arelle/plugin/iXBRLViewerPlugin
+    | ^arelle/plugin/semanticHash.py
+    | ^arelle/plugin/serializer
+    | ^arelle/plugin/SimpleXBRLModel
     | ^arelle/plugin/validate/DQC.py
-    | ^arelle/plugin/validate/EFM-htm
     | ^arelle/plugin/validate/eforms.py
     | ^arelle/plugin/validate/ESEF-DQC.py
     | ^arelle/plugin/xendr
     | ^arelle/plugin/Xince.py
+    | ^arelle/plugin/xodel
     | ^arelle/plugin/xule
+    | ^arelle/resources
 )'''
 
 # --- ignore modules ---
@@ -184,7 +187,6 @@ module = [
     'arelle.ValidateInfoset',
     'arelle.ValidateUtr',
     'arelle.ValidateVersReport',
-    'arelle.ValidateXbrlCalcs',
     'arelle.ValidateXbrlCalcs',
     'arelle.ValidateXbrlDTS',
     'arelle.ValidateXbrlDimensions',
@@ -328,14 +330,12 @@ module = [
     'arelle.plugin.security.cryptAES_CBC',
     'arelle.plugin.security.cryptAES_EAX',
     'arelle.plugin.streamingExtensions',
-    'arelle.plugin.transforms.SEC.*',
     'arelle.plugin.transforms.tester',
     'arelle.plugin.unpackSecEisFile',
     'arelle.plugin.validate.CIPC',
     'arelle.plugin.validate.EBA',
-    'arelle.plugin.validate.EFM.*',
     'arelle.plugin.validate.FERC',
-    'arelle.plugin.validate.ROS',
+    'arelle.plugin.validate.ROS.*',
     'arelle.plugin.validate.UK',
     'arelle.plugin.xbrlDB',
     'arelle.plugin.xbrlDB.DialogRssWatchExtender',
@@ -355,25 +355,7 @@ module = [
     'arelle.plugin.xbrlDB.tableFacts',
     'arelle.plugin.xuleSaver',
     'arelle.webserver.bottle',
-    'tests.plugin.testcaseCalc11ValidateSetup',
-    'tests.plugin.testcaseIxExpectedHtmlFixup',
-    'tests.unit_tests.arelle.conftest',
-    'tests.unit_tests.arelle.formula.test_fact_aspects_cache',
-    'tests.unit_tests.arelle.plugin.test_plugin_imports',
-    'tests.unit_tests.arelle.test_betafeatures',
-    'tests.unit_tests.arelle.test_cntlr',
-    'tests.unit_tests.arelle.test_import',
-    'tests.unit_tests.arelle.test_locale',
-    'tests.unit_tests.arelle.test_modelmanager',
-    'tests.unit_tests.arelle.test_packagemanager',
-    'tests.unit_tests.arelle.test_pluginmanager',
-    'tests.unit_tests.arelle.test_qname',
-    'tests.unit_tests.arelle.test_runtimeoptions',
-    'tests.unit_tests.arelle.test_updater',
-    'tests.unit_tests.arelle.test_urlutil',
-    'tests.unit_tests.arelle.test_version',
-    'tests.unit_tests.arelle.test_xmlvalidate',
-    'tests.unit_tests.arelle.utils.validate.test_decorator',
+    'tests.*',
 ]
 ignore_errors = true
 

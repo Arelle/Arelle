@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig
+from tests.integration_tests.validation.conformance_suite_configurations.cipc_current import config as cipc_current
 from tests.integration_tests.validation.conformance_suite_configurations.dba_current import config as dba_current
 from tests.integration_tests.validation.conformance_suite_configurations.efm_current import config as efm_current
 from tests.integration_tests.validation.conformance_suite_configurations.efm_reg_dqc import config as efm_reg_dqc
@@ -15,9 +16,12 @@ from tests.integration_tests.validation.conformance_suite_configurations.hmrc_cu
 from tests.integration_tests.validation.conformance_suite_configurations.kvk_nt16 import config as kvk_nt16
 from tests.integration_tests.validation.conformance_suite_configurations.kvk_nt17 import config as kvk_nt17
 from tests.integration_tests.validation.conformance_suite_configurations.kvk_nt18 import config as kvk_nt18
+from tests.integration_tests.validation.conformance_suite_configurations.kvk_nt19 import config as kvk_nt19
 from tests.integration_tests.validation.conformance_suite_configurations.nl_nt16 import config as nl_nt16
 from tests.integration_tests.validation.conformance_suite_configurations.nl_nt17 import config as nl_nt17
 from tests.integration_tests.validation.conformance_suite_configurations.nl_nt18 import config as nl_nt18
+from tests.integration_tests.validation.conformance_suite_configurations.nl_nt19 import config as nl_nt19
+from tests.integration_tests.validation.conformance_suite_configurations.ros_current import config as ros_current
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_2_1 import config as xbrl_2_1
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_calculations_1_1 import config as xbrl_calculations_1_1
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_dimensions_1_0 import config as xbrl_dimensions_1_0
@@ -42,6 +46,7 @@ from tests.integration_tests.validation.conformance_suite_configurations.xbrl_ut
 
 
 ALL_CONFORMANCE_SUITE_CONFIGS: tuple[ConformanceSuiteConfig, ...] = (
+    cipc_current,
     dba_current,
     efm_current,
     efm_reg_dqc,
@@ -56,9 +61,12 @@ ALL_CONFORMANCE_SUITE_CONFIGS: tuple[ConformanceSuiteConfig, ...] = (
     kvk_nt16,
     kvk_nt17,
     kvk_nt18,
+    kvk_nt19,
     nl_nt16,
     nl_nt17,
     nl_nt18,
+    nl_nt19,
+    ros_current,
     xbrl_2_1,
     xbrl_calculations_1_1,
     xbrl_dimensions_1_0,

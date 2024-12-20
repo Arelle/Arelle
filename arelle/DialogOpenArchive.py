@@ -32,24 +32,18 @@ def askArchiveFile(parent, filesource, multiselect=False, selectFiles=None):
     try:
         filenames = filesource.dir
         if filenames is not None:   # an IO or other error can return None
-            if filesource.isTaxonomyPackage:
-                dialog = DialogOpenArchive(parent,
-                                           ENTRY_POINTS,
-                                           filesource,
-                                           filenames,
-                                           _("Select Entry Point"),
-                                           _("File"),
-                                           showAltViewButton=True,
-                                           multiselect=multiselect)
-            else:
-                dialog = DialogOpenArchive(parent,
-                                           ARCHIVE,
-                                           filesource,
-                                           filenames,
-                                           _("Select Archive File"),
-                                           _("File"),
-                                           multiselect=multiselect,
-                                           selectFiles=selectFiles)
+            noReportTaxonomyPackage = bool(filesource.isTaxonomyPackage and not filesource.isReportPackage)
+            dialog = DialogOpenArchive(
+                parent,
+                ENTRY_POINTS if noReportTaxonomyPackage else ARCHIVE,
+                filesource,
+                filenames,
+                _("Select Entry Point") if noReportTaxonomyPackage else _("Select Archive File"),
+                _("File"),
+                showAltViewButton=noReportTaxonomyPackage,
+                multiselect=multiselect,
+                selectFiles=selectFiles,
+            )
             if dialog.accepted:
                 return filesource.url
     except Exception as e:
@@ -66,7 +60,7 @@ def selectDisclosureSystem(parent, disclosureSystem):
     if not disclosureSystemSelections and messagebox.askokcancel(
         _("Load disclosure systems"),
         _("Disclosure systems are provided by plug-ins, no applicable plug-in(s) have been enabled. \n\n"
-          "Press OK to open the plug-in manager and select plug-in(s) (e.g., validate or EdgarRenderer).")):
+          "Press OK to open the plug-in manager and select plug-in(s) (e.g., validate or EDGAR/render).")):
         from arelle import DialogPluginManager
         DialogPluginManager.dialogPluginManager(parent)
         return None

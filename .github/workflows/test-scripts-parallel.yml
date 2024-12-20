@@ -7,11 +7,11 @@ permissions: {}
 
 jobs:
   find-tests:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       names: ${{ steps.get-test-names.outputs.names }}
     steps:
-      - uses: actions/checkout@v4.1.7
+      - uses: actions/checkout@v4.2.2
         with:
           persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha }}
@@ -28,23 +28,22 @@ jobs:
       matrix:
         name: ${{ fromJson(needs.find-tests.outputs.names) }}
         os:
-          - macos-12
-          - ubuntu-22.04
+          - macos-14
+          - ubuntu-24.04
           - windows-2022
         python-version:
-          - '3.8'
           - '3.9'
           - '3.10'
           - '3.11'
           - '3.12'
     steps:
-      - uses: actions/checkout@v4.1.7
+      - uses: actions/checkout@v4.2.2
         with:
           persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
       - name: Install Python 3
-        uses: actions/setup-python@v5.1.0
+        uses: actions/setup-python@v5.3.0
         with:
           cache: 'pip'
           check-latest: true
@@ -52,14 +51,16 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip setuptools wheel
-          pip install -r requirements-dev.txt
+          pip install -r requirements-test.txt
           pip install -r requirements-plugins.txt
       - name: Run integration tests with pytest
         run: |
           pytest -s --disable-warnings --name="${{ matrix.name }}" --download-cache --offline --arelle="python arelleCmdLine.py" tests/integration_tests/scripts/test_scripts.py
       - name: Upload test artifacts
         if: always()
-        uses: actions/upload-artifact@v4.3.3
+        uses: actions/upload-artifact@v4.4.3
         with:
           name: ${{ matrix.name }}_${{ matrix.os }}_${{ matrix.python-version }}_logs
+          if-no-files-found: error
+          include-hidden-files: true
           path: '.test/**/*.logfile.*'

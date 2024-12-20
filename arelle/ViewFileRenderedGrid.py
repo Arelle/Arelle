@@ -15,6 +15,7 @@ from arelle.ModelRenderingObject import (StrctMdlBreakdown, StrctMdlStructuralNo
                                          DefnMdlClosedDefinitionNode, DefnMdlRuleDefinitionNode, DefnMdlAspectNode,
                                          OPEN_ASPECT_ENTRY_SURROGATE, ROLLUP_SPECIFIES_MEMBER, ROLLUP_FOR_DIMENSION_RELATIONSHIP_NODE,
                                          aspectStrctNodes)
+from arelle.rendering.RenderingLayout import layoutTable
 from arelle.rendering.RenderingResolution import resolveTableStructure, RENDER_UNITS_PER_CHAR
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import DEFAULT

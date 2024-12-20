@@ -4,6 +4,11 @@
         xsi:noNamespaceSchemaLocation="../../../../config/disclosuresystems.xsd">
     <!-- see arelle/config/disclosuresystems.xml for full comments -->
     <DisclosureSystem
+            names="NT19|nt19|NT19-preview|nt19-preview"
+            description="Checks for NT19"
+            validationType="NL"
+    />
+    <DisclosureSystem
             names="NT18|nt18|NT18-preview|nt18-preview"
             description="Checks for NT18"
             validationType="NL"

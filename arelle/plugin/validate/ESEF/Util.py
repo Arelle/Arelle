@@ -6,8 +6,8 @@ from __future__ import annotations
 import json
 import os
 from collections import defaultdict
-from collections.abc import Collection
-from typing import Any, Dict, Generator, List, Union, cast
+from collections.abc import Collection, Generator
+from typing import Any, Union, cast
 import regex as re
 
 from lxml.etree import _Element
@@ -29,7 +29,7 @@ from .Const import esefCorNsPattern, esefNotesStatementConcepts, esefTaxonomyNam
 _: TypeGetText
 
 YEAR_GROUP = "year"
-DISCLOSURE_SYSTEM_YEAR_PATTERN = re.compile(rf"esef-(?:unconsolidated-)?(?P<{YEAR_GROUP}>20\d\d)")
+DISCLOSURE_SYSTEM_YEAR_PATTERN = re.compile(rf"esef-(?:unconsolidated-)?(?P<{YEAR_GROUP}>20\d\d)(?:-draft)?")
 
 
 def getDisclosureSystemYear(modelXbrl: ModelXbrl) -> int:
@@ -64,7 +64,7 @@ def isInEsefTaxonomy(val: ValidateXbrl, modelObject: ModelObject | None) -> bool
 
 
 def resourcesFilePath(modelManager: ModelManager, fileName: str) -> str:
-    # resourcesDir can be in cache dir (production) or in validate/EFM/resources (for development)
+    # resourcesDir can be in cache dir (production) or in validate/ESEF/resources (for development)
     _resourcesDir = os.path.join( os.path.dirname(__file__), "resources") # dev/testing location
 
     if not os.path.isabs(_resourcesDir):
@@ -79,7 +79,7 @@ def loadAuthorityValidations(modelXbrl: ModelXbrl) -> list[Any] | dict[Any, Any]
     _file = openFileStream(modelXbrl.modelManager.cntlr, resourcesFilePath(modelXbrl.modelManager, "authority-validations.json"), 'rt', encoding='utf-8')
     validations = json.load(_file) # {localName: date, ...}
     _file.close()
-    return cast(Union[Dict[Any, Any], List[Any]], validations)
+    return cast(Union[dict[Any, Any], list[Any]], validations)
 
 
 def checkForMultiLangDuplicates(modelXbrl: ModelXbrl) -> None:

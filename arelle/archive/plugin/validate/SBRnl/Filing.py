@@ -376,7 +376,7 @@ def validateFiling(val, modelXbrl):
                     _("Typed dimension domain element %(concept)s has disallowed complex content"),
                     modelObject=domainElt, concept=domainElt.qname)
 
-    modelXbrl.profileActivity("... SBR role types and type facits checks", minTimeToShow=1.0)
+    modelXbrl.profileActivity("... SBR role types and type facets checks", minTimeToShow=1.0)
     # end moved from ValidateFiling
 
     # 3.2.4.4 check each using prefix against taxonomy declaring the prefix

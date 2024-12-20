@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://xbrl.org/2005/conformance"
+  name="NL.FR-KVK-5.01"
+  description="The attribute 'decimals' on monetary values MUST be filled with allowed values."
+  outpath=''
+  owner="support@arelle.org"
+  xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+  <variation id="invalid-decimals" name="Invalid Monetary Decimals Value">
+    <description>
+        The instance has a monetary fact with an invalid 'decimals' value.
+    </description>
+    <data>
+        <instance readMeFirst="true">5-01-invalid-decimals.xbrl</instance>
+    </data>
+    <result>
+      <error>NL.FR-KVK-5.01</error>
+    </result>
+  </variation>
+</testcase>

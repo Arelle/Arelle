@@ -22,7 +22,7 @@ objects to interface to SQL-obtained data.
 
 ModelType represents an anonymous or explicit element type.  It includes methods that determine
 the base XBRL type (such as monetaryItemType), the base XML type (such as decimal), substitution
-group chains, facits, and attributes.
+group chains, facets, and attributes.
 
 ModelAttributeGroup and ModelAttribute provide sufficient mechanism to identify element attributes,
 their types, and their default or fixed values.
@@ -756,10 +756,10 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
     def isEnumeration2Item(self):
         """(bool) -- True if derived from enum2 item types"""
         try:
-            return self._isEnum
+            return self._isEnum2
         except AttributeError:
-            self._isEnum = self.instanceOfType(XbrlConst.qnEnumeration2ItemTypes)
-            return self._isEnum
+            self._isEnum2 = self.instanceOfType(XbrlConst.qnEnumeration2ItemTypes)
+            return self._isEnum2
 
     @property
     def enumDomainQname(self):
@@ -1408,7 +1408,7 @@ class ModelType(ModelNamableTerm):
                 ("QName", self.qname),
                 ("xsd type", self.baseXsdType),
                 ("derived from", self.qnameDerivedFrom),
-                ("facits", self.facets))
+                ("facets", self.facets))
 
     def __repr__(self):
         return ("modelType[{0}, qname: {1}, derivedFrom: {2}, {3}, line {4}]"

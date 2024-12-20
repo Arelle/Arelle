@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.FR75"
+        description="
+        DBA.FR75: The company must provide information on the number of employees. The rule is activated if personnel costs (fsa:EmployeeBenefitsExpense) or salaries (fsa:WagesAndSalaries)
+        are greater than DKK 200,000, and no number of employees (fsa:AverageNumberOfEmployees) has been specified."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid" name="Invalid">
+        <description>
+            AverageNumberOfEmployees was not specified.
+        </description>
+        <data>
+            <instance readMeFirst="true">fr75-invalid.xbrl</instance>
+        </data>
+        <result>
+            <error>DBA.FR75</error>
+        </result>
+    </variation>
+</testcase>

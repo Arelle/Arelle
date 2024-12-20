@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.FR77"
+        description="
+        DBA.FR77b: Long-term liabilities (fsa:LongtermLiabilitiesOtherThanProvisions) must be less than or equal to the balance sheet total (fsa:LiabilitiesAndEquity) minus equity (fsa:Equity).
+        DBA.FR77b: Short-term liabilities (fsa:ShorttermLiabilitiesOtherThanProvisions) must be less than or equal to the balance sheet total (fsa:LiabilitiesAndEquity) minus equity (fsa:Equity)."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid-77a" name="Invalid-77a">
+        <description>
+            Long-term liabilities is NOT less than or equal to LiabilitiesAndEquity minus Equity.
+        </description>
+        <data>
+            <instance readMeFirst="true">fr77a-invalid.xbrl</instance>
+        </data>
+        <result>
+            <error>DBA.FR77a</error>
+        </result>
+    </variation>
+    <variation id="invalid-77b" name="Invalid-77b">
+        <description>
+            Short-term liabilities is NOT less than or equal to LiabilitiesAndEquity minus Equity.
+        </description>
+        <data>
+            <instance readMeFirst="true">fr77b-invalid.xbrl</instance>
+        </data>
+        <result>
+            <error>DBA.FR77b</error>
+        </result>
+    </variation>
+</testcase>

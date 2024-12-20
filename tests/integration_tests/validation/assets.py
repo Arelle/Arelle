@@ -105,4 +105,11 @@ NL_PACKAGES: dict[str, list[ConformanceSuiteAssetConfig]] = {
         ),
         NL_BASE,
     ],
+    'NT19': [
+        ConformanceSuiteAssetConfig.public_taxonomy_package(
+            Path('NT19_20241209_Taxonomie_SBRLight.zip'),
+            public_download_url='https://www.sbr-nl.nl/sites/default/files/bestanden/taxonomie/NT19_20241209%20Taxonomie%28SBRlight%29.zip',
+        ),
+        NL_BASE,
+    ],
 }

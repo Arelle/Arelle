@@ -15,11 +15,11 @@ permissions: {}
 
 jobs:
   find-tests:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       matrix: ${{ steps.build-test-matrix.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v4.1.7
+      - uses: actions/checkout@v4.2.2
         with:
           persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha }}
@@ -40,7 +40,7 @@ jobs:
         test: ${{ fromJson(needs.find-tests.outputs.matrix) }}
     environment: ${{ matrix.test.environment }}
     steps:
-      - uses: actions/checkout@v4.1.7
+      - uses: actions/checkout@v4.2.2
         with:
           persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha }}

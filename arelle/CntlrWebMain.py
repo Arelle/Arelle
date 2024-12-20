@@ -62,7 +62,8 @@ def getRuntimeOptions() -> RuntimeOptions:
     global _RUNTIME_OPTIONS
     if _RUNTIME_OPTIONS is None:
         raise ValueError(_('_RUNTIME_OPTIONS accessed before it was set.'))
-    return deepcopy(_RUNTIME_OPTIONS)
+    options = deepcopy(_RUNTIME_OPTIONS)
+    return options
 
 def setRuntimeOptions(runtimeOptions: RuntimeOptions) -> None:
     global _RUNTIME_OPTIONS
@@ -654,7 +655,7 @@ as follows:</td></tr>
 <br/><code>xml</code>: XML structured results.
 <br/><code>json</code>: JSON results.
 <br/><code>text</code>: Plain text results (no markup).
-<br/><code>zip</code>: Zip results (for multi-file results, such as from EdgarRenderer).</td></tr>
+<br/><code>zip</code>: Zip results (for multi-file results, such as from EDGAR/render).</td></tr>
 <tr><td style="text-indent: 1em;">file</td><td>Alternate way to specify file name or url by a parameter.  Files ending in .json will be loaded as xBRL-JSON.</td></tr>
 <tr><td style="text-indent: 1em;">import</td><td>A list of files to import to the DTS, such as additional formula
 or label linkbases.  Multiple file names are separated by a '|' character.</td></tr>

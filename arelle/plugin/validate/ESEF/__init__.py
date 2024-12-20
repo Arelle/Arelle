@@ -37,7 +37,7 @@ curl -X POST "-HContent-type: application/zip" -T TC1_valid.zip "http://localhos
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, cast
+from typing import Any, cast
 
 import regex as re
 from lxml.etree import XMLParser, XMLSyntaxError, parse
@@ -131,14 +131,18 @@ class ESEFPlugin(PluginHooks):
                     if documentType in {ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE}:
                         return None  # allow zipped test case to load normally
 
-                if disclosureSystemYear >= 2023 and not modelXbrl.fileSource.isZip:
-                    modelXbrl.error("ESEF.2.6.1.disallowedReportPackageFileExtension",
-                                    _("A report package MUST conform to the .ZIP File Format Specification and MUST have a .zip extension."),
+                isZipFormat = modelXbrl.fileSource.isZip
+                hasZipFileExtension = modelXbrl.fileSource.type.lower() == ".zip" or (modelXbrl.fileSource.type == ".xbri" and disclosureSystemYear >= 2024)
+                if disclosureSystemYear >= 2023 and not (isZipFormat and hasZipFileExtension):
+                    errorMessage = _("A report package MUST conform to the .ZIP File Format Specification and MUST have a .zip{} extension.")
+                    errorMessage = errorMessage.format(_(" or .xbri") if disclosureSystemYear >= 2024 else "")
+                    modelXbrl.error("ESEF.2.6.3.disallowedReportPackageFileExtension",
+                                    errorMessage,
                                     fileSourceType=modelXbrl.fileSource.type,
                                     modelObject=modelXbrl)
                     return LoadingException("ESEF Report Package must be .ZIP File Format")
                 if modelXbrl.fileSource.isArchive:
-                    if not validateTaxonomyPackage(modelXbrl.modelManager.cntlr, modelXbrl.fileSource):
+                    if not hasZipFileExtension or not validateTaxonomyPackage(modelXbrl.modelManager.cntlr, modelXbrl.fileSource):
                         modelXbrl.error("ESEF.RTS.Annex.III.3.missingOrInvalidTaxonomyPackage",
                             _("Single reporting package with issuer's XBRL extension taxonomy files and Inline XBRL instance document must be compliant with the latest recommended version of the Taxonomy Packages specification (1.0)"),
                             modelObject=modelXbrl)
@@ -228,7 +232,7 @@ class ESEFPlugin(PluginHooks):
         authorityValidations = loadAuthorityValidations(val.modelXbrl)
         # loadAuthorityValidations returns either a list or a dict but in this context, we expect a dict.
         # By using cast, we let mypy know that a list is _not_ expected here.
-        authorityValidations = cast(Dict[Any, Any], authorityValidations)
+        authorityValidations = cast(dict[Any, Any], authorityValidations)
 
         val.authParam = authorityValidations["default"]
         for name in val.disclosureSystem.names:
@@ -308,9 +312,6 @@ class ESEFPlugin(PluginHooks):
                             _("RTS on ESEF requires valid XBRL instances, %(numXbrlErrors)s errors were reported."),
                             modelObject=modelXbrl, numXbrlErrors=numXbrlErrors)
 
-        # force reporting of unsatisfied assertions for which there are no messages
-        traceUnmessagedUnsatisfiedAssertions = True
-
     @staticmethod
     def validateFormulaCompiled(
         modelXbrl: ModelXbrl,
@@ -369,7 +370,7 @@ __pluginInfo__ = {
         "Validate ESMA ESEF-2022",
         "validate/ESEF_2022",
     ],
-    "version": "1.2023.00",
+    "version": "1.2024.00",
     "description": """ESMA ESEF Filer Manual and RTS Validations.""",
     "license": "Apache-2",
     "author": authorLabel,

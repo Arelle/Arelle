@@ -17,14 +17,14 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Checkout EdgarRenderer
+    - name: Checkout EDGAR
       if: ${{ inputs.name == 'efm_current' }}
-      uses: actions/checkout@v4.1.7
+      uses: actions/checkout@v4.2.2
       with:
-        repository: Arelle/EdgarRenderer
-        path: arelle/plugin/EdgarRenderer
+        repository: Arelle/EDGAR
+        path: arelle/plugin/EDGAR
     - name: Install Python 3
-      uses: actions/setup-python@v5.1.0
+      uses: actions/setup-python@v5.3.0
       with:
         cache: 'pip'
         check-latest: true
@@ -33,7 +33,7 @@ runs:
       shell: bash
       run: |
         python -m pip install --upgrade pip setuptools wheel
-        pip install -r requirements-dev.txt
+        pip install -r requirements-test.txt
     - name: Run integration tests with pytest
       shell: bash
       run: |
@@ -57,7 +57,7 @@ runs:
         printf 'artifact-name=%s%s %s %s logs' "${{ inputs.short_name || inputs.name }}" "${{ inputs.shard && format(' {0}', inputs.shard) || '' }}" "${{ runner.os }}" "${{ inputs.python_version }}" >> $GITHUB_OUTPUT
     - name: Upload logs and reports
       if: always()
-      uses: actions/upload-artifact@v4.3.3
+      uses: actions/upload-artifact@v4.4.3
       with:
         name: ${{ steps.build-artifact-name.outputs.artifact-name }}
         if-no-files-found: error

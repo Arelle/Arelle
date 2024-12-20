@@ -5,6 +5,7 @@ from __future__ import annotations
 #import xml.sax, xml.sax.handler
 from lxml.etree import XML, DTD, SubElement, _ElementTree, _Comment, _ProcessingInstruction, XMLSyntaxError, XMLParser
 from dataclasses import dataclass
+from PIL import Image as pilImage
 import os, io, base64
 import regex as re
 import string
@@ -658,10 +659,11 @@ def validateTextBlockFacts(modelXbrl):
                                             attribute=attrValue, element=eltTag)
                                     else:   # test file contents
                                         try:
-                                            if validateGraphicFile(f1, attrValue) != attrValue.lower()[-3:]:
+                                            graphicFileFormat = validateGraphicFile(f1, attrValue, checkIfAnimated=allowedImageTypes.get("disallow-animated"))
+                                            if graphicFileFormat != attrValue.lower()[-3:]:
                                                 modelXbrl.error(("EFM.6.05.16.graphicFileContent", "FERC.6.05.16.graphicFileContent"),
-                                                    _("Fact %(fact)s of context %(contextID)s references a graphics file which has invalid format '%(attribute)s' for <%(element)s>"),
-                                                    modelObject=f1, fact=f1.qname, contextID=f1.contextID,
+                                                    _("Fact %(fact)s of context %(contextID)s references a graphics file which has invalid format %(format)s in '%(attribute)s' for <%(element)s>"),
+                                                    modelObject=f1, fact=f1.qname, contextID=f1.contextID, format=graphicFileFormat,
                                                     attribute=attrValue, element=eltTag)
                                         except IOError as err:
                                             modelXbrl.error(("EFM.6.05.16.graphicFileError", "FERC.6.05.16.graphicFileError"),
@@ -801,10 +803,11 @@ def validateHtmlContent(modelXbrl, referenceElt, htmlEltTree, validatedObjectLab
                             messageCodes=("EFM.6.05.34.graphicFileType", "EFM.5.02.05.graphicFileType", "FERC.6.05.34.graphicFileType", "FERC.5.02.05.graphicFileType"))
                     else:   # test file contents
                         try:
-                            if validateGraphicFile(referenceElt, attrValue) != attrValue.lower()[-3:]:
+                            graphicFileFormat = validateGraphicFile(referenceElt, attrValue, checkIfAnimated=allowedImageTypes.get("disallow-animated"))
+                            if graphicFileFormat != attrValue.lower()[-3:]:
                                 modelXbrl.error(messageCodePrefix +"graphicFileContent",
-                                    _("%(validatedObjectLabel)s references a graphics file which has invalid format '%(attribute)s' for <%(element)s>"),
-                                    modelObject=elt, validatedObjectLabel=validatedObjectLabel,
+                                    _("%(validatedObjectLabel)s references a graphics file which has invalid format %(format)s in '%(attribute)s' for <%(element)s>"),
+                                    modelObject=elt, validatedObjectLabel=validatedObjectLabel, format=graphicFileFormat,
                                     attribute=attrValue, element=eltTag,
                                     messageCodes=("EFM.6.05.34.graphicFileContent", "EFM.5.02.05.graphicFileContent", "FERC.6.05.34.graphicFileContent", "FERC.5.02.05.graphicFileContent"))
                         except IOError as err:
@@ -975,17 +978,23 @@ def validateGraphicHeaderType(data: bytes) -> str:
     else:
         return "unrecognized"
 
-def validateGraphicFile(elt, graphicFile):
+def validateGraphicFile(elt, graphicFile, checkIfAnimated=False):
     base = elt.modelDocument.baseForElement(elt)
     normalizedUri = elt.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(graphicFile, base)
     if not elt.modelXbrl.fileSource.isInArchive(normalizedUri):
         normalizedUri = elt.modelXbrl.modelManager.cntlr.webCache.getfilename(normalizedUri)
     # all Edgar graphic files must be resolved locally
     #normalizedUri = elt.modelXbrl.modelManager.cntlr.webCache.getfilename(normalizedUri)
+    hdrType = None
     if normalizedUri: # may be None if file doesn't exist
         with elt.modelXbrl.fileSource.file(normalizedUri,binary=True)[0] as fh:
-            return validateGraphicHeaderType(fh.read(11))
-    return None
+            hdrType = validateGraphicHeaderType(fh.read(11))
+            if checkIfAnimated and hdrType == "gif": # check if animated
+                fh.seek(0) # position at start of file
+                with pilImage.open(fh) as img:
+                    if getattr(img, "is_animated", False):
+                        hdrType = "gif-animated"
+    return hdrType
 
 def referencedFiles(modelXbrl, localFilesOnly=True):
     initModelDocumentTypeReferences()

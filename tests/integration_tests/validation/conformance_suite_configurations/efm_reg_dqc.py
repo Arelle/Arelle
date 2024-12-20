@@ -5,7 +5,6 @@ from tests.integration_tests.validation.conformance_suite_config import Conforma
 config = ConformanceSuiteConfig(
     args=[
         '--disclosureSystem', 'efm-pragmatic',
-        '--formula', 'run',
     ],
     assets=[
         ConformanceSuiteAssetConfig.conformance_suite(
@@ -18,7 +17,7 @@ config = ConformanceSuiteConfig(
     ci_enabled=False,
     info_url='N/A',
     name=PurePath(__file__).stem,
-    plugins=frozenset({'validate/EFM', 'inlineXbrlDocumentSet'}),
+    plugins=frozenset({'EDGAR/validate', 'inlineXbrlDocumentSet'}),
     test_case_result_options='match-any',
     shards=64,
 )

@@ -4,72 +4,47 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 import datetime
+import decimal
 import itertools
-from typing import Any, Iterable, cast
+from collections.abc import Iterable
+from typing import Any, cast
 
 from arelle.typing import TypeGetText
 from arelle.ValidateXbrl import ValidateXbrl
-
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
-from . import errorOnDateFactComparison, findFactsWithDimension, getFactsGroupedByContextId
+from arelle.XmlValidateConst import VALID
+from . import errorOnDateFactComparison, errorOnRequiredFact, getFactsWithDimension, getFactsGroupedByContextId, errorOnRequiredPositiveFact
 from ..PluginValidationDataExtension import PluginValidationDataExtension
-
+from ..ValidationPluginExtension import DANISH_CURRENCY_ID, ROUNDING_MARGIN, PERSONNEL_EXPENSE_THRESHOLD
 
 _: TypeGetText
 
-
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
-def rule_fr4(
-    pluginData: PluginValidationDataExtension,
-    val: ValidateXbrl,
-    *args: Any,
-    **kwargs: Any,
-) -> Iterable[Validation]:
-    """
-    DBA.FR4: The end date of the accounting period (gsd:ReportingPeriodEndDate with
-    default TypeOfReportingPeriodDimension) must not be before the start date of the
-    accounting period (gsd:ReportingPeriodStartDate with default TypeOfReportingPeriodDimension)
-    """
-    return errorOnDateFactComparison(
-        val.modelXbrl,
-        fact1Qn=pluginData.reportingPeriodStartDateQn,
-        fact2Qn=pluginData.reportingPeriodEndDateQn,
-        dimensionQn=pluginData.typeOfReportingPeriodDimensionQn,
-        code='DBA.FR4',
-        message=_("Error code FR4: Accounting period end date='%(fact2)s' "
-                  "must not be before Accounting period start date='%(fact1)s'"),
-        assertion=lambda startDate, endDate: startDate <= endDate,
-    )
-
-
-@validation(
-    hook=ValidationHook.XBRL_FINALLY,
-)
-def rule_fr5(
+def rule_fr1(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    DBA.FR5: General meeting date (gsd:DateOfGeneralMeeting) must not be before the
-    end date of the accounting period (gsd:ReportingPeriodEndDate with default
-    TypeOfReportingPeriodDimension)
+    DBA.FR1: First and last name of the conductor for the general meeting or person who takes the conductor's place is missing
+    Companies that hold a general meeting and therefore provide a general meeting date
+    (gsd:DateOfGeneralMeeting) must also provide the name of the director
+    (gsd:NameAndSurnameOfChairmanOfGeneralMeeting).
     """
-    return errorOnDateFactComparison(
-        val.modelXbrl,
-        fact1Qn=pluginData.reportingPeriodEndDateQn,
-        fact2Qn=pluginData.dateOfGeneralMeetingQn,
-        dimensionQn=pluginData.typeOfReportingPeriodDimensionQn,
-        code='DBA.FR5',
-        message=_("Error code FR5: General meeting date='%(fact2)s' "
-                  "must be after Accounting period end date='%(fact1)s'"),
-        assertion=lambda endDate, meetingDate: endDate < meetingDate,
-    )
+    meetingFacts = val.modelXbrl.factsByQname.get(pluginData.dateOfGeneralMeetingQn)
+    if meetingFacts:
+        chairmanFacts = val.modelXbrl.factsByQname.get(pluginData.nameAndSurnameOfChairmanOfGeneralMeetingQn)
+        if not chairmanFacts:
+            yield Validation.error(
+                codes="DBA.FR1",
+                msg=_("First and last name of the conductor for the general meeting or person who takes the conductor's place is missing"),
+                modelObject=[val.modelXbrl.modelDocument]
+            )
 
 
 @validation(
@@ -92,7 +67,7 @@ def rule_fr7(
         fact2Qn=pluginData.dateOfApprovalOfAnnualReportQn,
         dimensionQn=pluginData.typeOfReportingPeriodDimensionQn,
         code='DBA.FR7',
-        message=_("Error code FR7: Date of approval of the annual report='%(fact2)s' "
+        message=_("Date of approval of the annual report='%(fact2)s' "
                   "must be after the end date of the accounting period='%(fact1)s'"),
         assertion=lambda endDate, approvalDate: endDate < approvalDate,
     )
@@ -101,84 +76,37 @@ def rule_fr7(
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
-def rule_fr9(
+def rule_fr34(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    DBA.FR9: The year's result (fsa:ProfitLoss) must be filled in as part of the income statement.
-    The control only looks at instances without dimensions or instances that only have the dimension
-    (ConsolidatedSoloDimension with ConsolidatedMember).
-
-    Implementation: Find any occurrence of fsa:ProfitLoss with no dimensions or with dimensions of
-    ConsolidatedSoloDimension with ConsolidatedMember.  If nothing is found, trigger an error.
+    DBA.FR34: If Equity does not equal 0 more fields are required.  At least one field must be filled in on the balance sheet in addition to equity:
+    Assets, NoncurrentAssets, CurrentAssets, LongtermLiabilitiesOtherThanProvisions, ShorttermLiabilitiesOtherThanProvisions, LiabilitiesOtherThanProvisions, LiabilitiesAndEquity
     """
-    if not findFactsWithDimension(
-            val, pluginData.profitLossQn, pluginData.consolidatedSoloDimensionQn,
-            pluginData.consolidatedSoloDimensionQn
-    ):
-        yield Validation.error(
-            codes="DBA.FR9",
-            msg=_("Error code FR9: The year's result in the income statement must be filled in."),
-            modelObject=val.modelXbrl.modelDocument
-        )
-
-
-@validation(
-    hook=ValidationHook.XBRL_FINALLY,
-)
-def rule_fr10(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
-        *args: Any,
-        **kwargs: Any,
-) -> Iterable[Validation]:
-    """
-    DBA.FR10: Equity (fsa:Equity) must be filled in. The control only looks at instances without
-    dimensions or instances that only have the dimension (ConsolidatedSoloDimension with ConsolidatedMember).
-    Instances of "Equity" with other dimensions do not lift the reporting obligation.
-
-    Implementation: Find any occurrence of fsa:Equity with no dimensions or with dimensions of
-    ConsolidatedSoloDimension with ConsolidatedMember.  If nothing is found, trigger an error.
-
-    """
-    if not findFactsWithDimension(
-            val, pluginData.equityQn,
-            pluginData.consolidatedSoloDimensionQn, pluginData.consolidatedMemberQn
-    ):
-        yield Validation.error(
-            codes="DBA.FR10",
-            msg=_("Error code FR10: Equity in the balance sheet must be filled in."),
-            modelObject=val.modelXbrl.modelDocument
-        )
-
-
-@validation(
-    hook=ValidationHook.XBRL_FINALLY,
-)
-def rule_fr39(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
-        *args: Any,
-        **kwargs: Any,
-) -> Iterable[Validation]:
-    """
-    DBA.FR39: Date of extraordinary dividend (fsb:DateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod)
-    must be after the end of the financial year (gsd:ReportingPeriodEndDate) (with default
-    TypeOfReportingPeriodDimension)
-    """
-    return errorOnDateFactComparison(
-        val.modelXbrl,
-        fact1Qn=pluginData.reportingPeriodEndDateQn,
-        fact2Qn=pluginData.dateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod,
-        dimensionQn=pluginData.typeOfReportingPeriodDimensionQn,
-        code='DBA.FR39',
-        message=_("Error code FR39: A date for extraordinary dividend '%(fact2)s' "
-                  "has been specified. The date must be after the end of the financial year '%(fact1)s'."),
-        assertion=lambda endDate, dividendDate: endDate < dividendDate,
-    )
+    equityFacts = val.modelXbrl.factsByQname.get(pluginData.equityQn)
+    nonZeroEquityFacts = []
+    if equityFacts:
+        for fact in equityFacts:
+            if fact.xValid >= VALID:
+                if fact.xValue != 0:
+                    nonZeroEquityFacts.append(fact)
+    if nonZeroEquityFacts:
+        otherRequiredFactsQnames = [
+            pluginData.assetsQn, pluginData.noncurrentAssetsQn, pluginData.longtermLiabilitiesOtherThanProvisionsQn,
+            pluginData.shorttermLiabilitiesOtherThanProvisionsQn, pluginData.liabilitiesOtherThanProvisionsQn, pluginData.liabilitiesAndEquityQn
+        ]
+        hasEquityRequiredFacts = any(val.modelXbrl.factsByQname.get(factQname) for factQname in otherRequiredFactsQnames)
+        if not hasEquityRequiredFacts:
+            yield Validation.error(
+                codes="DBA.FR34",
+                msg=_("If Equity is filled in and is not zero, at least one other field must also be filled in: "
+                        "Assets, NoncurrentAssets, CurrentAssets, LongtermLiabilitiesOtherThanProvisions, ShorttermLiabilitiesOtherThanProvisions, "
+                        "LiabilitiesOtherThanProvisions, LiabilitiesAndEquity."),
+                modelObject=nonZeroEquityFacts
+            )
 
 
 @validation(
@@ -218,7 +146,8 @@ def rule_fr41(
         profitLossFact = factMap.get(pluginData.profitLossQn)
         if profitLossFact is None:
             continue
-        if cast(float, profitLossFact.xValue) <= pluginData.positiveProfitThreshold:
+
+        if profitLossFact.xValid >= VALID and cast(decimal.Decimal, profitLossFact.xValue) <= pluginData.positiveProfitThreshold:
             continue
         taxExpenseFact = factMap.get(pluginData.taxExpenseQn)
         if taxExpenseFact is not None and not taxExpenseFact.isNil:
@@ -228,7 +157,7 @@ def rule_fr41(
             continue
         yield Validation.warning(
             codes='DBA.FR41',
-            msg=_("ADVICE FR41: The annual report does not contain information on tax "
+            msg=_("The annual report does not contain information on tax "
                   "on the year's profit. If the profit for the year in the income "
                   "statement is positive, either 'Tax on profit for the year' or "
                   "'Tax on ordinary profit' must be filled in."),
@@ -261,7 +190,7 @@ def rule_fr48(
     if len(foundFacts) > 0:
         yield Validation.warning(
             codes="DBA.FR48",
-            msg=_("ADVICE FR48: Annual reports with a start date of 1/1 2016 or later must not use the fields:"
+            msg=_("Annual reports with a start date of 1/1 2016 or later must not use the fields:"
                   "'Extraordinary profit before tax', 'Extraordinary income', 'Extraordinary costs'."),
             modelObject=foundFacts
     )
@@ -270,63 +199,76 @@ def rule_fr48(
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
-def rule_fr55(
+def rule_fr52(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    DBA.FR55: If a period with an end date immediately before the currently selected start
-    date (gsd:ReportingPeriodStartDate) has previously been reported, the previous accounting
-    period should be marked (gsd:PrecedingReportingPeriodStartDate and gsd:PredingReportingPeriodEndDate).
-
-    Note: "PredingReportingPeriodEndDate" is a typo in the taxonomy.
+    DBA.FR52: Any usage of fsa:ProposedExtraordinaryDividendRecognisedInLiabilities is prohibited.
     """
-    reportingPeriods = {}
-    for contextId, factMap in pluginData.contextFactMap(val.modelXbrl).items():
-        reportTypeFact = factMap.get(pluginData.informationOnTypeOfSubmittedReportQn)
-        if reportTypeFact is None or str(reportTypeFact.xValue) not in pluginData.annualReportTypes:
-            continue  # Non-annual reports are not considered
-        # Structure the above facts into tuples
-        reportingPeriods[contextId] = (
-            factMap.get(pluginData.reportingPeriodStartDateQn),
-            factMap.get(pluginData.reportingPeriodEndDateQn),
-            factMap.get(pluginData.precedingReportingPeriodStartDateQn),
-            factMap.get(pluginData.precedingReportingPeriodEndDateQn),
+    modelXbrl = val.modelXbrl
+    facts = modelXbrl.factsByQname.get(pluginData.proposedExtraordinaryDividendRecognisedInLiabilitiesQn)
+    if facts is not None:
+        yield Validation.warning(
+            codes='DBA.FR52',
+            msg=_("The concept ProposedExtraordinaryDividendRecognisedInLiabilities should not be used"),
+            modelObject=facts
         )
 
-    for previousContextId, currentContextId in itertools.permutations(reportingPeriods.keys(), 2):
-        previousStartDateFact, previousEndDateFact, __, __ = reportingPeriods[previousContextId]
-        currentStartDateFact, currentEndDateFact, precedingStartDateFact, precedingEndDateFact = reportingPeriods[currentContextId]
 
-        # Exit if reporting periods are not sequential
-        if previousEndDateFact is None or currentStartDateFact is None:
-            continue
-        previousEndDate = cast(datetime.datetime, previousEndDateFact.xValue)
-        currentStartDate = cast(datetime.datetime, currentStartDateFact.xValue)
-        if previousEndDate > currentStartDate:
-            continue  # End date not before or equal to start date
-        if previousEndDate.date() < currentStartDate.date() - datetime.timedelta(days=1):
-            continue  # End date not "immediately" before start date
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr53(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR53: Information is missing on the audit company's CVR no. and the audit firm's name.
 
-        # These contexts are sequential
-        precedingStartDate = cast(datetime.datetime, precedingStartDateFact.xValue) if precedingStartDateFact is not None else None
-        previousStartDate = cast(datetime.datetime, previousStartDateFact.xValue) if previousStartDateFact is not None else None
-        precedingEndDate = cast(datetime.datetime, precedingEndDateFact.xValue) if precedingEndDateFact is not None else None
-        previousEndDate = cast(datetime.datetime, previousEndDateFact.xValue) if previousEndDateFact is not None else None
-
-        if precedingStartDate != previousStartDate or precedingEndDate != previousEndDate:
-            yield Validation.warning(
-                codes='DBA.FR55',
-                msg=_("ADVICE FR55: The annual report does not contain an indication of the previous accounting period. "
-                      "If an annual report with a period with an end date immediately before the currently selected "
-                      "start date has previously been reported, the previous accounting period should be indicated. "
-                      "Previous period has been found [%(previousStartDate)s - %(previousEndDate)s]"),
-                modelObject=(previousStartDateFact, previousEndDateFact, precedingStartDateFact, precedingEndDateFact, currentStartDateFact),
-                previousStartDate=previousStartDate,
-                previousEndDate=previousEndDate,
-            )
+    The audit firm's CVR number and name of audit firm should be provided when (fsa:TypeOfAuditorAssistance) is
+    tagged with one of the following values:
+    - (Revisionspåtegning)  / (Auditor's report on audited financial statements)
+    - (Erklæring om udvidet gennemgang) / (Auditor's report on extended review)
+    - (Den uafhængige revisors erklæringer (review)) / (The independent auditor's reports (Review))
+    - (Andre erklæringer med sikkerhed) / (The independent auditor's reports (Other assurance Reports))
+    """
+    modelXbrl = val.modelXbrl
+    facts = modelXbrl.factsByQname.get(pluginData.typeOfAuditorAssistanceQn)
+    if facts is not None:
+        for fact in facts:
+            if fact.xValid >= VALID:
+                if fact.xValue in [
+                    pluginData.auditedFinancialStatementsDanish,
+                    pluginData.auditedFinancialStatementsEnglish,
+                    pluginData.auditedExtendedReviewDanish,
+                    pluginData.auditedExtendedReviewEnglish,
+                    pluginData.independentAuditorsReportDanish,
+                    pluginData.independentAuditorsReportEnglish,
+                    pluginData.auditedAssuranceReportsDanish,
+                    pluginData.auditedAssuranceReportsEnglish
+                ]:
+                    missing_concepts = []
+                    cvr_facts = modelXbrl.factsByQname.get(pluginData.identificationNumberCvrOfAuditFirmQn)
+                    auditor_name_facts = modelXbrl.factsByQname.get(pluginData.nameOfAuditFirmQn)
+                    if cvr_facts is None:
+                        missing_concepts.append(pluginData.identificationNumberCvrOfAuditFirmQn.localName)
+                    if auditor_name_facts is None:
+                        missing_concepts.append(pluginData.identificationNumberCvrOfAuditFirmQn.localName)
+                    if len(missing_concepts) > 0:
+                        yield Validation.warning(
+                            codes='DBA.FR53',
+                            msg=_("The following concepts should be tagged: {} when {} is tagged with the value of {}").format(
+                                ",".join(missing_concepts),
+                                pluginData.typeOfAuditorAssistanceQn.localName,
+                                fact.xValue
+                            ),
+                            modelObject=fact
+                        )
 
 
 @validation(
@@ -358,10 +300,11 @@ def rule_fr56(
             continue
         profitLossFact = None
         for fact in profitLossFacts:
-            profitLossValue = cast(float, fact.xValue)
-            if not (-pluginData.positiveProfitThreshold <= profitLossValue <= pluginData.positiveProfitThreshold):
-                profitLossFact = fact
-                break
+            if fact.xValid >= VALID:
+                profitLossValue = cast(decimal.Decimal, fact.xValue)
+                if not (-pluginData.positiveProfitThreshold <= profitLossValue <= pluginData.positiveProfitThreshold):
+                    profitLossFact = fact
+                    break
         if profitLossFact is None:
             continue
         distributionFacts = distributionFactsMap.get(contextId, [])
@@ -373,11 +316,150 @@ def rule_fr56(
         if not valid:
             yield Validation.warning(
                 codes='DBA.FR56',
-                msg=_("ADVICE FR56: The annual report does not contain a profit distribution. "
+                msg=_("The annual report does not contain a profit distribution. "
                       "The annual report must contain a profit and loss statement with a "
                       "distribution of profits."),
                 modelObject=profitLossFact
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr74(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR74a:Provisions [hierarchy:fsa:Provisions] and underlying fields must each be less than or equal to the balance sheet total (fsa:LiabilitiesAndEquity) minus equity (fsa:Equity).
+    DBA.FR74b: Liabilities (fsa:LiabilitiesOtherThanProvisions) must be less than or equal to total assets (fsa:LiabilitiesAndEquity) minus equity (fsa:Equity).
+    """
+    groupedFacts = getFactsGroupedByContextId(val.modelXbrl, pluginData.equityQn, pluginData.liabilitiesAndEquityQn, pluginData.provisionsQn, pluginData.liabilitiesOtherThanProvisionsQn)
+    for contextID, facts in groupedFacts.items():
+        equityFact = None
+        liabilityFact = None
+        liabilityOtherFact = None
+        provisionFact = None
+        for fact in facts:
+            if fact.qname == pluginData.equityQn and fact.unit.id == DANISH_CURRENCY_ID:
+                equityFact = fact
+            elif fact.qname == pluginData.liabilitiesQn and fact.unit.id == DANISH_CURRENCY_ID:
+                liabilityFact = fact
+            elif fact.qname == pluginData.provisionsQn and fact.unit.id == DANISH_CURRENCY_ID:
+                provisionFact = fact
+            elif fact.qname == pluginData.liabilitiesOtherThanProvisionsQn and fact.unit.id == DANISH_CURRENCY_ID:
+                liabilityOtherFact = fact
+        if equityFact is not None and liabilityFact is not None and provisionFact is not None and equityFact.xValid >= VALID and liabilityFact.xValid >= VALID and provisionFact.xValid >= VALID:
+            if not cast(decimal.Decimal, liabilityFact.xValue) - cast(decimal.Decimal, equityFact.xValue) >= cast(decimal.Decimal, provisionFact.xValue) - ROUNDING_MARGIN:
+                yield Validation.error(
+                    codes="DBA.FR74a",
+                    msg=_("Provisions (fsa:Provisions) must be less than or equal to the balance sheet total (fsa:LiabilitiesAndEquity) minus equity (fsa:Equity)."
+                          "LiabilitiesAndEquity: %(liabilities)s, Equity: %(equity)s, Provisions: %(provisions)s"),
+                    equity=equityFact.effectiveValue,
+                    liabilities=liabilityFact.effectiveValue,
+                    provisions=provisionFact.effectiveValue,
+                    modelObject=[equityFact, liabilityFact, provisionFact]
+                )
+        if equityFact is not None and liabilityOtherFact is not None and liabilityFact is not None and equityFact.xValid >= VALID and liabilityFact.xValid >= VALID and liabilityOtherFact.xValid >= VALID:
+            if not cast(decimal.Decimal, liabilityFact.xValue) - cast(decimal.Decimal, equityFact.xValue) >= cast(decimal.Decimal, liabilityOtherFact.xValue) - ROUNDING_MARGIN:
+                yield Validation.error(
+                    codes="DBA.FR74b",
+                    msg=_("Liabilities (fsa:LiabilitiesOtherThanProvisions) must be less than or equal to total assets (fsa:LiabilitiesAndEquity) minus equity (fsa:Equity)."
+                          "LiabilitiesAndEquity: %(liabilities)s, Equity: %(equity)s, LiabilitiesOtherThanProvisions: %(liabilityOther)s"),
+                    equity=equityFact.effectiveValue,
+                    liabilityOther=liabilityOtherFact.effectiveValue,
+                    liabilities=liabilityFact.effectiveValue,
+                    modelObject=[equityFact, liabilityFact, liabilityOtherFact]
+                )
+
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr77(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR77b: Long-term liabilities (fsa:LongtermLiabilitiesOtherThanProvisions) must be less than or equal to the balance sheet total (fsa:LiabilitiesAndEquity) minus equity (fsa:Equity).
+    DBA.FR77b: Short-term liabilities (fsa:ShorttermLiabilitiesOtherThanProvisions) must be less than or equal to the balance sheet total (fsa:LiabilitiesAndEquity) minus equity (fsa:Equity).
+    """
+    groupedFacts = getFactsGroupedByContextId(val.modelXbrl, pluginData.equityQn, pluginData.liabilitiesAndEquityQn, pluginData.longtermLiabilitiesOtherThanProvisionsQn, pluginData.shorttermLiabilitiesOtherThanProvisionsQn)
+    for contextID, facts in groupedFacts.items():
+        equityFact = None
+        liabilityFact = None
+        longLiabilityFact = None
+        shortLiabilityFact = None
+        for fact in facts:
+            if fact.qname == pluginData.equityQn and fact.unit.id == DANISH_CURRENCY_ID:
+                equityFact = fact
+            elif fact.qname == pluginData.liabilitiesQn and fact.unit.id == DANISH_CURRENCY_ID:
+                liabilityFact = fact
+            elif fact.qname == pluginData.longtermLiabilitiesOtherThanProvisionsQn and fact.unit.id == DANISH_CURRENCY_ID:
+                longLiabilityFact = fact
+            elif fact.qname == pluginData.shorttermLiabilitiesOtherThanProvisionsQn and fact.unit.id == DANISH_CURRENCY_ID:
+                shortLiabilityFact = fact
+        if equityFact is not None and liabilityFact is not None and longLiabilityFact is not None and equityFact.xValid >= VALID and liabilityFact.xValid >= VALID and longLiabilityFact.xValid >= VALID:
+            if not cast(decimal.Decimal, liabilityFact.xValue) - cast(decimal.Decimal, equityFact.xValue) >= cast(decimal.Decimal, longLiabilityFact.xValue) - ROUNDING_MARGIN:
+                yield Validation.error(
+                    codes="DBA.FR77a",
+                    msg=_("Long-term liabilities (fsa:LongtermLiabilitiesOtherThanProvisions) must be less than or equal to the balance sheet total (fsa:LiabilitiesAndEquity) minus equity (fsa:Equity)."
+                          "LiabilitiesAndEquity: %(liabilities)s, Equity: %(equity)s, LongtermLiabilitiesOtherThanProvisions: %(longLiabilities)s"),
+                    equity=equityFact.effectiveValue,
+                    liabilities=liabilityFact.effectiveValue,
+                    longLiabilities=longLiabilityFact.effectiveValue,
+                    modelObject=[equityFact, liabilityFact, longLiabilityFact]
+                )
+        if equityFact is not None and liabilityFact is not None and shortLiabilityFact is not None and equityFact.xValid >= VALID and liabilityFact.xValid >= VALID and shortLiabilityFact.xValid >= VALID:
+            if not cast(decimal.Decimal, liabilityFact.xValue) - cast(decimal.Decimal, equityFact.xValue) >= cast(decimal.Decimal, shortLiabilityFact.xValue) - ROUNDING_MARGIN:
+                yield Validation.error(
+                    codes="DBA.FR77b",
+                    msg=_("Short-term liabilities (fsa:ShorttermLiabilitiesOtherThanProvisions) must be less than or equal to the balance sheet total (fsa:LiabilitiesAndEquity) minus equity (fsa:Equity)."
+                          "LiabilitiesAndEquity: %(liabilities)s, Equity: %(equity)s, ShorttermLiabilitiesOtherThanProvisions: %(shortLiabilities)s"),
+                    equity=equityFact.effectiveValue,
+                    liabilities=liabilityFact.effectiveValue,
+                    shortLiabilities=shortLiabilityFact.effectiveValue,
+                    modelObject=[equityFact, liabilityFact, shortLiabilityFact]
+                )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr75(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR75: The company must provide information on the number of employees. The rule is activated if personnel costs (fsa:EmployeeBenefitsExpense) or salaries (fsa:WagesAndSalaries) are greater
+    than DKK 200,000, and no number of employees (fsa:AverageNumberOfEmployees) has been specified.
+    """
+    groupedFacts = getFactsGroupedByContextId(val.modelXbrl, pluginData.employeeBenefitsExpenseQn, pluginData.wagesAndSalariesQn, pluginData.averageNumberOfEmployeesQn)
+    for contextID, facts in groupedFacts.items():
+        benefitsFact = None
+        wagesFact = None
+        employeesFact = None
+        for fact in facts:
+            if fact.qname == pluginData.employeeBenefitsExpenseQn and fact.unit.id == DANISH_CURRENCY_ID and fact.xValid >= VALID and cast(decimal.Decimal, fact.xValue) >= PERSONNEL_EXPENSE_THRESHOLD:
+                benefitsFact = fact
+            elif fact.qname == pluginData.wagesAndSalariesQn and fact.unit.id == DANISH_CURRENCY_ID and fact.xValid >= VALID and cast(decimal.Decimal, fact.xValue) >= PERSONNEL_EXPENSE_THRESHOLD:
+                wagesFact = fact
+            elif fact.qname == pluginData.averageNumberOfEmployeesQn and fact.xValid >= VALID and cast(decimal.Decimal, fact.xValue) > 0:
+                employeesFact = fact
+        if (benefitsFact is not None or wagesFact is not None) and employeesFact is None:
+                yield Validation.error(
+                    codes="DBA.FR75",
+                    msg=_("The company must provide information on the number of employees. The rule is activated if personnel costs (fsa:EmployeeBenefitsExpense) "
+                          "or salaries (fsa:WagesAndSalaries) are greater than DKK 200,000, and no number of employees (fsa:AverageNumberOfEmployees) has been specified."),
+                    modelObject=[benefitsFact, wagesFact]
+                )
 
 
 @validation(
@@ -403,3 +485,52 @@ def rule_fr81(
                   "must be at least one fact, with either the Danish ('da') or English ('en') language attribute."),
             modelObject=[val.modelXbrl.modelDocument]
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr92(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR92: Information is missing on the auditor's signature date.
+
+    The auditor's signature date must be provided when (fsa:TypeOfAuditorAssistance) is
+    tagged with one of the following values:
+    - (Revisionspåtegning)  / (Auditor's report on audited financial statements)
+    - (Erklæring om udvidet gennemgang) / (Auditor's report on extended review)
+    - (Den uafhængige revisors erklæringer (review)) / (The independent auditor's reports (Review))
+    - (Andre erklæringer med sikkerhed) / (The independent auditor's reports (Other assurance Reports))
+    - (Andre erklæringer uden sikkerhed) / (Auditor's reports (Other non-assurance reports))
+    """
+    modelXbrl = val.modelXbrl
+    facts = modelXbrl.factsByQname.get(pluginData.typeOfAuditorAssistanceQn)
+    if facts is not None:
+        for fact in facts:
+            if fact.xValid >= VALID:
+                if fact.xValue in [
+                    pluginData.auditedFinancialStatementsDanish,
+                    pluginData.auditedFinancialStatementsEnglish,
+                    pluginData.auditedExtendedReviewDanish,
+                    pluginData.auditedExtendedReviewEnglish,
+                    pluginData.independentAuditorsReportDanish,
+                    pluginData.independentAuditorsReportEnglish,
+                    pluginData.auditedAssuranceReportsDanish,
+                    pluginData.auditedAssuranceReportsEnglish,
+                    pluginData.auditedNonAssuranceReportsDanish,
+                    pluginData.auditedNonAssuranceReportsEnglish,
+                ]:
+                    signature_facts = modelXbrl.factsByQname.get(pluginData.signatureOfAuditorsDateQn)
+                    if signature_facts is None:
+                        yield Validation.error(
+                            codes='DBA.FR92',
+                            msg=_("SignatureOfAuditorsDate must be tagged when {} is tagged with the value of {}").format(
+                                pluginData.typeOfAuditorAssistanceQn.localName,
+                                fact.xValue
+                            ),
+                            modelObject=fact
+                        )

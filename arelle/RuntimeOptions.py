@@ -4,7 +4,9 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 from dataclasses import InitVar, dataclass
-from typing import Any, Optional, Union, Pattern, BinaryIO
+from typing import Any, Optional, Union
+
+import regex as re
 
 from arelle.FileSource import FileNamedStringIO
 from arelle.SystemInfo import hasWebServer
@@ -25,9 +27,7 @@ class RuntimeOptions:
         using the pluginOptions InitVar and applied to the class using setattr() in __post_init
         RuntimeOptionsException is raised if an improper combination of options are specified.
     """
-    _initialized: bool = False
     pluginOptions: InitVar[Optional[dict[str, RuntimeOptionValue]]] = None
-    strictOptions: bool = True  # Accessing options that are not defined will raise an AttributeError
 
     abortOnMajorError: Optional[bool] = None
     about: Optional[str] = None
@@ -64,6 +64,7 @@ class RuntimeOptions:
     formulaCallExprSource: Optional[bool] = None
     formulaCompileOnly: Optional[bool] = None
     formulaFormulaRules: Optional[bool] = None
+    formulaMaximumMessageInterpolationLength: Optional[int] = None
     formulaParamExprResult: Optional[bool] = None
     formulaParamInputValue: Optional[bool] = None
     formulaRunIDs: Optional[int] = None
@@ -98,6 +99,7 @@ class RuntimeOptions:
     logFormat: Optional[str] = None
     logLevel: Optional[str] = None
     logLevelFilter: Optional[str] = None
+    logPropagate: Optional[bool] = None
     logRefObjectProperties: Optional[bool] = None
     logTextMaxLength: Optional[int] = None
     logXmlMaxAttributeLength: Optional[int] = None
@@ -112,9 +114,9 @@ class RuntimeOptions:
     plugins: Optional[str] = None
     preFile: Optional[str] = None
     proxy: Optional[str] = None
-    redirectFallbacks: Optional[dict[Pattern[str], str]] = None
+    redirectFallbacks: Optional[dict[re.Pattern[str], str]] = None
     relationshipCols: Optional[int] = None
-    responseZipStream: Optional[BinaryIO] = None
+    reportPackage: Optional[bool] = None
     roleTypesFile: Optional[str] = None
     rssReport: Optional[str] = None
     rssReportCols: Optional[int] = None
@@ -124,11 +126,11 @@ class RuntimeOptions:
     showOptions: Optional[bool] = None
     skipDTS: Optional[bool] = None
     skipLoading: Optional[bool] = None
-    sourceZipStream: Optional[BinaryIO] = None
     statusPipe: Optional[str] = None
     tableFile: Optional[str] = None
     testReport: Optional[str] = None
     testReportCols: Optional[int] = None
+    testcaseExpectedErrors: Optional[dict[str, list[str]]] = None
     testcaseFilters: Optional[list[str]] = None
     testcaseResultOptions: Optional[str] = None
     testcaseResultsCaptureWarnings: Optional[bool] = None
@@ -150,34 +152,11 @@ class RuntimeOptions:
     webserver: Optional[str] = None
     xdgConfigHome: Optional[str] = None
 
-    def __delattr__(self, name: str) -> Any:
-        """
-        Delete attribute while silencing AttributeError if it does not exist and `strictOptions` is False.
-        :param name:
-        :return: None
-        """
-        try:
-            object.__delattr__(self, name)
-        except AttributeError as exc:
-            if self.strictOptions:
-                raise exc
-
     def __eq__(self, other: Any) -> bool:
         """ Default dataclass implementation doesn't consider plugin applied options. """
         if isinstance(other, RuntimeOptions):
             return vars(self) == vars(other)
         return NotImplemented
-
-    def __getattr__(self, name: str) -> Any:
-        """
-        If an attribute isn't found, it may be an unspecified plugin option.
-        Return None for any attributes not found on the class.
-        :param name:
-        :return: None
-        """
-        if self._initialized and not self.strictOptions:
-            return None
-        raise AttributeError(name)
 
     def __repr__(self) -> str:
         """ Default dataclass implementation doesn't consider plugin applied options. """
@@ -219,4 +198,3 @@ class RuntimeOptions:
                 self.roleTypesFile, self.arcroleTypesFile
         )):
             raise RuntimeOptionsException('Incorrect arguments with webserver')
-        self._initialized = True

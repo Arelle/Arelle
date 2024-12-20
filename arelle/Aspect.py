@@ -1,3 +1,6 @@
+"""
+See COPYRIGHT.md for copyright information.
+"""
 from arelle import XbrlConst
 from arelle.ModelValue import QName
 

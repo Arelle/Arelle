@@ -7,7 +7,7 @@ import os, sys, traceback, uuid
 import regex as re
 from collections import defaultdict
 from collections.abc import Iterable
-from typing import Dict, TYPE_CHECKING, Any, Type, TypeVar, Union, cast, Optional, List, Set, Tuple
+from typing import TYPE_CHECKING, Any, TypeVar, Union, cast, Optional
 import logging
 from decimal import Decimal
 
@@ -38,6 +38,7 @@ if TYPE_CHECKING:
     from arelle.ModelValue import QName
     from arelle.PrototypeDtsObject import LinkPrototype
     from arelle.typing import EmptyTuple, TypeGetText, LocaleDict
+    from arelle.ValidateUtr import UtrEntry
 
     _: TypeGetText  # Handle gettext
 else:
@@ -54,10 +55,10 @@ DEFAULTorNONDEFAULT = sys.intern("default-or-non-default")
 EMPTY_TUPLE: EmptyTuple = ()
 _NOT_FOUND = object()
 
-LoggableValue = Union[str, Dict[Any, Any], List[Any], Set[Any], Tuple[Any, ...]]
+LoggableValue = Union[str, dict[Any, Any], list[Any], set[Any], tuple[Any, ...]]
 
 
-def load(modelManager: ModelManager, url: str | FileSourceClass, nextaction: str | None = None, base: str | None = None, useFileSource: FileSourceClass | None = None, errorCaptureLevel: str | None = None, **kwargs: str) -> ModelXbrl:
+def load(modelManager: ModelManager, url: str | FileSourceClass, nextaction: str | None = None, base: str | None = None, useFileSource: FileSourceClass | None = None, errorCaptureLevel: str | None = None, **kwargs: Any) -> ModelXbrl:
     """Each loaded instance, DTS, testcase, testsuite, versioning report, or RSS feed, is represented by an
     instance of a ModelXbrl object. The ModelXbrl object has a collection of ModelDocument objects, each
     representing an XML document (for now, with SQL whenever its time comes). One of the modelDocuments of
@@ -138,7 +139,7 @@ def loadSchemalocatedSchemas(modelXbrl: ModelXbrl) -> None:
             modelDocumentsSchemaLocated |= modelDocuments
 
 
-MatchSubstitutionGroupValueType = TypeVar('MatchSubstitutionGroupValueType', Type[ModelObject], bool)
+MatchSubstitutionGroupValueType = TypeVar('MatchSubstitutionGroupValueType', type[ModelObject], bool)
 
 
 class ModelXbrl:
@@ -291,7 +292,7 @@ class ModelXbrl:
     entryLoadingUrl: str
     fileSource: FileSourceClass
     ixdsDocUrls: list[str]
-    ixdsHtmlElements: list[str]
+    ixdsHtmlElements: list[Any]
     isDimensionsValidated: bool
     locale: LocaleDict | None
     modelDocument: ModelDocumentClass | None
@@ -307,6 +308,7 @@ class ModelXbrl:
     _nonNilFactsInInstance: set[ModelFact]
     _startedProfiledActivity: float
     _startedTimeStat: float
+    _qnameUtrUnits: dict[QName, UtrEntry]
 
     def __init__(self,  modelManager: ModelManager, errorCaptureLevel: str | None = None) -> None:
         self.modelManager = modelManager
@@ -442,7 +444,7 @@ class ModelXbrl:
         return None
 
     def roleUriTitle(self, roleURI: str) -> str:
-        return re.sub(r"([A-Z])", r" \1", os.path.basename(roleURI)).title()
+        return re.sub(r"(?!^)[A-Z]", r" \g<0>", os.path.basename(roleURI)).title()
 
     def roleTypeDefinition(self, roleURI: str, lang: str | None = None) -> str:
         modelRoles  = self.roleTypes.get(roleURI, ())
@@ -656,8 +658,8 @@ class ModelXbrl:
                     self.info("arelle:info",
                         _("Create context for %(priItem)s, cannot determine valid context elements, no suitable hypercubes"),
                         modelObject=self, priItem=priItem)
-                    # fp.context.qnameDims is actually of type Dict[QName, DimValuePrototype]
-                fpDims = cast(Dict[Union[int, 'QName'], Union['QName', DimValuePrototype]], fp.context.qnameDims)
+                    # fp.context.qnameDims is actually of type dict[QName, DimValuePrototype]
+                fpDims = cast(dict[Union[int, 'QName'], Union['QName', DimValuePrototype]], fp.context.qnameDims)
             else:
                 fpDims = dims # dims known to be valid (such as for inline extraction)
             for dimQname in sorted(fpDims.keys()):
@@ -804,7 +806,7 @@ class ModelXbrl:
             self._factsByDatatype[notStrict, typeQname] = fbdt = set()
             for f in self.factsInInstance:
                 c = f.concept
-                if c is not None and (c.typeQname == typeQname or (notStrict and c.type.isDerivedFrom(typeQname))):
+                if c is not None and (c.typeQname == typeQname or (notStrict and c.type is not None and c.type.isDerivedFrom(typeQname))):
                     fbdt.add(f)
             return fbdt
 
@@ -1345,3 +1347,19 @@ class ModelXbrl:
                   _("DTS of %(entryFile)s has %(numberOfFiles)s files packaged into %(packageOutputFile)s"),
                 modelObject=self,
                 entryFile=os.path.basename(entryFilename), packageOutputFile=pkgFilename, numberOfFiles=numFiles)
+
+    @property
+    def qnameUtrUnits(self) -> dict[QName, UtrEntry]:
+        try:
+            return self._qnameUtrUnits
+        except AttributeError:
+            from arelle.ValidateUtr import ValidateUtr
+            utrEntries = ValidateUtr(self).utrItemTypeEntries
+            qnameUtrUnits = {}
+            for unitType, unitMap in utrEntries.items():
+                for unitId, unit in unitMap.items():
+                    unitQName = unit.qname()
+                    if unitQName:
+                        qnameUtrUnits[unitQName] = unit
+            self._qnameUtrUnits = qnameUtrUnits
+            return self._qnameUtrUnits

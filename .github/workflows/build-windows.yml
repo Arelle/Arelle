@@ -3,8 +3,8 @@ name: Build Windows
 on:
   workflow_call:
     inputs:
-      edgar_renderer_ref:
-        description: 'Arelle/EdgarRenderer branch, tag or SHA to checkout (blank for default)'
+      edgar_ref:
+        description: 'Arelle/EDGAR branch, tag or SHA to checkout (blank for default)'
         required: false
         type: string
       python_version:
@@ -31,8 +31,8 @@ on:
         value: ${{ jobs.build-windows.outputs.zip_uploaded_artifact_name }}
   workflow_dispatch:
     inputs:
-      edgar_renderer_ref:
-        description: 'Arelle/EdgarRenderer branch, tag or SHA to checkout (blank for default)'
+      edgar_ref:
+        description: 'Arelle/EDGAR branch, tag or SHA to checkout (blank for default)'
         required: false
         type: string
       python_version:
@@ -60,19 +60,19 @@ jobs:
 
     steps:
     - name: Checkout arelle
-      uses: actions/checkout@v4.1.7
+      uses: actions/checkout@v4.2.2
       with:
         fetch-depth: 0
-    - name: Checkout EdgarRenderer
-      uses: actions/checkout@v4.1.7
+    - name: Checkout EDGAR
+      uses: actions/checkout@v4.2.2
       with:
-        repository: Arelle/EdgarRenderer
-        path: arelle/plugin/EdgarRenderer
-        ref: ${{ inputs.edgar_renderer_ref }}
+        repository: Arelle/EDGAR
+        path: arelle/plugin/EDGAR
+        ref: ${{ inputs.edgar_ref }}
     - shell: cmd
-      run: rmdir /s /q arelle\plugin\EdgarRenderer\.git
+      run: rmdir /s /q arelle\plugin\EDGAR\.git
     - name: Checkout xule
-      uses: actions/checkout@v4.1.7
+      uses: actions/checkout@v4.2.2
       with:
         repository: xbrlus/xule
         path: xule
@@ -85,7 +85,7 @@ jobs:
     - shell: cmd
       run: rmdir /s /q xule
     - name: Set up Python ${{ inputs.python_version }}
-      uses: actions/setup-python@v5.1.0
+      uses: actions/setup-python@v5.3.0
       with:
         cache: 'pip'
         check-latest: true
@@ -109,8 +109,6 @@ jobs:
         echo "zip_uploaded_artifact_name=windows zip distribution" >> $env:GITHUB_OUTPUT
     - name: Build exe
       run: ./scripts/buildWinDist.bat
-    - name: Copy Tktable2.11
-      run: xcopy libs\win64\Tktable2.11 ${{ env.BUILD_PATH }}\lib /y
     - name: Delete .git
       shell: cmd
       run: if exist "${{ env.BUILD_PATH }}\.git" rmdir /s /q ${{ env.BUILD_PATH }}\.git
@@ -123,25 +121,27 @@ jobs:
       run: 7z a -tzip ..\..\${{ steps.define-artifact-names.outputs.zip_build_artifact_path }} *
     - name: Upload installer artifact
       id: upload-installer-artifact
-      uses: actions/upload-artifact@v4.3.3
+      uses: actions/upload-artifact@v4.4.3
       with:
         name: ${{ steps.define-artifact-names.outputs.exe_uploaded_artifact_name }}
         if-no-files-found: error
         path: ${{ steps.define-artifact-names.outputs.exe_build_artifact_path }}
     - name: Upload zip artifact
       id: upload-zip-artifact
-      uses: actions/upload-artifact@v4.3.3
+      uses: actions/upload-artifact@v4.4.3
       with:
         name: ${{ steps.define-artifact-names.outputs.zip_uploaded_artifact_name }}
         if-no-files-found: error
         path: ${{ steps.define-artifact-names.outputs.zip_build_artifact_path }}
     - name: "[Test] Test build"
       run: |
-        pip install -r requirements-dev.txt
+        pip install -r requirements-test.txt
         pytest -s --disable-warnings --all-frozen-builds --download-cache --offline --arelle="${{ env.BUILD_PATH }}\arelleCmdLine.exe" tests/integration_tests/scripts/test_scripts.py
     - name: "[Test] Upload test artifacts"
       if: always()
-      uses: actions/upload-artifact@v4.3.3
+      uses: actions/upload-artifact@v4.4.3
       with:
         name: 'windows test logs'
+        if-no-files-found: error
+        include-hidden-files: true
         path: '.test/**/*.logfile.xml'

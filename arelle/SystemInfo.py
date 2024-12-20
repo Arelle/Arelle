@@ -20,7 +20,7 @@ class PlatformOS(Enum):
     def getPlatformOS() -> PlatformOS:
         """
         Using system.platform() raises a value error exception
-        in windows testing envs and macOS with Python 3.8
+        in windows testing envs
         """
         if sys.platform == "darwin":
             return PlatformOS.MACOS

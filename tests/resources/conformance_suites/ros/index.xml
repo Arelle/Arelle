@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcases name="ROS">
+    <testcase uri='main/ros6-testcase.xml' />
+    <testcase uri='main/ros18-testcase.xml' />
+    <testcase uri='main/ros19-testcase.xml' />
+    <testcase uri='main/valid-testcase.xml' />
+</testcases>

@@ -66,7 +66,7 @@ includeLibs = [
     "lxml.etree",
     "lxml.html",
     "lxml",
-    "numpy.core._methods",
+    "numpy._core._methods",
     "numpy.lib.format",
     "numpy",
     "openpyxl",
@@ -88,7 +88,7 @@ options = {
     }
 }
 
-if os.path.exists("arelle/plugin/EdgarRenderer"):
+if os.path.exists("arelle/plugin/EDGAR"):
     includeLibs.append("cherrypy")
     includeLibs.append("dateutil")
     includeLibs.append("dateutil.relativedelta")
@@ -117,7 +117,6 @@ if sys.platform == LINUX_PLATFORM:
 elif sys.platform == MACOS_PLATFORM:
     guiExecutable = Executable(script="arelleGUI.py", target_name="arelleGUI")
     includeFiles.append(("arelle/scripts-macOS", "scripts"))
-    includeFiles.append(("libs/macos/Tktable2.11", "Tktable2.11"))
     options["bdist_mac"] = {
         "iconfile": "arelle/images/arelle.icns",
         "bundle_name": "Arelle",
@@ -161,7 +160,7 @@ else:
 setup(
     executables=[guiExecutable, cliExecutable],
     options=options,
-    setup_requires=["setuptools_scm~=8.0"],
+    setup_requires=["setuptools_scm~=8.1"],
     use_scm_version={
         "tag_regex": r"^(?:[\w-]+-?)?(?P<version>[vV]?\d+(?:\.\d+){0,2}[^\+]*)(?:\+.*)?$",
         "write_to": os.path.normcase("arelle/_version.py"),

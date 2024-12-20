@@ -362,10 +362,14 @@ class DialogPackageManager(Toplevel):
                 _version = pkgTxmy.get("Version")
                 _license = pkgTxmy.get("License",{}).get("Name")
                 _url = pkgTxmy.get("Links",{}).get("AuthoritativeURL")
-                choices.append((_name,
-                                "name: {}\ndescription: {}\nversion: {}\nlicense: {}".format(
-                                        _name, _description, _version, _license),
-                                _url,  _version, _description, _license))
+                if _url.endswith(".zip"):
+                    # Ignore taxonomies that lack a direct download link.
+                    # Although future valid taxonomy download links from the registry might not have a ".zip" extension,
+                    # as of October 27th, 2024, all links that without a zip file extension have been invalid.
+                    choices.append((_name,
+                                    "name: {}\ndescription: {}\nversion: {}\nlicense: {}".format(
+                                            _name, _description, _version, _license),
+                                    _url,  _version, _description, _license))
             self.loadPackageUrl(DialogOpenArchive.selectPackage(self, choices))
         except (TypeError) as err:
             messagebox.showwarning(_("Unable to retrieve standard packages.  "),
@@ -417,9 +421,8 @@ class DialogPackageManager(Toplevel):
             self.addPackageInfo(packageInfo)
             self.loadTreeViews()
         else:
-            messagebox.showwarning(_("Package is not itself a taxonomy package.  "),
-                                   _("File does not itself contain a manifest file: \n\n{0}\n\n  "
-                                     "If opening an archive file, the manifest file search pattern currently is \"\", please press \"Manifest\" to change manifest file name pattern, e.g.,, \"*.taxonomyPackage.xml\", if needed.  ")
+            messagebox.showwarning(_("Package is not a taxonomy package."),
+                                   _("The selected file is not a taxonomy package. It does not contain a manifest file: \n\n{0}\n\n")
                                    .format(url),
                                    parent=self)
 

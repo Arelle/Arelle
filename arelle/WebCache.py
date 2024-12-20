@@ -6,11 +6,12 @@ e.g., User-Agent: Sample Company Name AdminContact@<sample company domain>.com
 
 '''
 from __future__ import annotations
+import contextlib
 
 
-from filelock import FileLock
+from filelock import FileLock, Timeout
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional, Pattern
+from typing import TYPE_CHECKING, Any
 import os, posixpath, sys, time, calendar, io, json, logging, shutil, zlib
 import regex as re
 from urllib.parse import quote, unquote
@@ -38,7 +39,7 @@ DIRECTORY_INDEX_FILE = "!~DirectoryIndex~!"
 FILE_LOCK_TIMEOUT = 30
 INF = float("inf")
 RETRIEVAL_RETRY_COUNT = 5
-HTTP_USER_AGENT = 'Mozilla/5.0 (Arelle/{})'.format(__version__)
+HTTP_USER_AGENT = 'Mozilla/5.0 (Arelle/{}) Email/NotRegistered@arelle.org'.format(__version__)
 
 def proxyDirFmt(httpProxyTuple):
     if isinstance(httpProxyTuple,(tuple,list)) and len(httpProxyTuple) == 5:
@@ -213,7 +214,7 @@ class WebCache:
     def httpsRedirect(self, value):
         self._httpsRedirect = value
 
-    def redirectFallback(self, matchPattern: Pattern, replaceFormat: str):
+    def redirectFallback(self, matchPattern: re.Pattern, replaceFormat: str):
         self._redirectFallbackMap[matchPattern] = replaceFormat
 
     def resetProxies(self, httpProxyTuple):
@@ -297,7 +298,7 @@ class WebCache:
             filepath = filepath.replace('/', '\\')
         return filepath
 
-    def normalizeUrl(self, url: Optional[str], base: Optional[str] = None) -> Any:
+    def normalizeUrl(self, url: str | None, base: str | None = None) -> Any:
         if url:
             if url.startswith("file://"): url = url[7:]
             elif url.startswith("file:\\"): url = url[6:]
@@ -552,12 +553,29 @@ class WebCache:
             retrievingDueToRecheckInterval: bool = False,
             retryCount: int = 5) -> bool:
         before_timestamp = WebCache._getFileTimestamp(filepath)
-        with FileLock(filepath + '.lock', timeout=FILE_LOCK_TIMEOUT):
-            after_timestamp = WebCache._getFileTimestamp(filepath)
-            if after_timestamp > before_timestamp:
-                # Another process just downloaded the file, use it instead.
-                return True
-            return self._downloadFile(url, filepath, retrievingDueToRecheckInterval, retryCount)
+        fileInCache = False
+        lock = FileLock(filepath + '.lock', timeout=FILE_LOCK_TIMEOUT)
+        try:
+            with lock.acquire():
+                after_timestamp = WebCache._getFileTimestamp(filepath)
+                if after_timestamp > before_timestamp:
+                    # Another process just downloaded the file, use it instead.
+                    fileInCache = True
+                else:
+                    fileInCache = self._downloadFile(url, filepath, retrievingDueToRecheckInterval, retryCount)
+            # Clean up the lock file. The lock context manager releases the file lock but does not delete the lock file.
+            # There is a minor race condition when multiple Arelle processes run concurrently. One process may release
+            # its lock, and another may acquire it before the first process can delete the lock file. In this case, the
+            # first process will suppress the OSError and continue, while the second process will skip downloading the
+            # file because the file timestamp has updated, and then remove the lock file before returning.
+            with contextlib.suppress(OSError):
+                os.remove(lock.lock_file)
+        except Timeout:
+            self.cntlr.addToLog(_("Unable to obtain exclusive write access to download file. Delete file and retry: %(lockfile)s"),
+                                messageCode="webCache:cacheFileLocked",
+                                messageArgs={"lockfile": lock.lock_file},
+                                level=logging.ERROR)
+        return fileInCache
 
     def _downloadFile(
             self,

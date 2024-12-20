@@ -16,7 +16,7 @@ on:
         required: true
         type: string
       os:
-        default: ubuntu-22.04
+        default: ubuntu-24.04
         description: Operating system to use
         required: true
         type: string
@@ -36,7 +36,7 @@ jobs:
     runs-on: ${{ inputs.os }}
     environment: ${{ inputs.environment }}
     steps:
-      - uses: actions/checkout@v4.1.7
+      - uses: actions/checkout@v4.2.2
         with:
           persist-credentials: false
       - name: Configure AWS Credentials

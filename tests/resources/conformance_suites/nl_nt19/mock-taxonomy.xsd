@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<xs:schema
+        mock="http://www.mock.com/mock"
+        xmlns:link="http://www.xbrl.org/2003/linkbase"
+        xmlns:nl-types="http://www.nltaxonomie.nl/nt19/sbr/20240301/dictionary/nl-types"
+        xmlns:xbrli="http://www.xbrl.org/2003/instance"
+        xmlns:xlink="http://www.w3.org/1999/xlink"
+        xmlns:xs="http://www.w3.org/2001/XMLSchema"
+        attributeFormDefault="unqualified"
+        elementFormDefault="qualified"
+        id="mock"
+        targetNamespace="http://www.mock.com/mock">
+    <xs:import namespace="http://www.nltaxonomie.nl/nt19/sbr/20240301/dictionary/nl-types"
+               schemaLocation="http://www.nltaxonomie.nl/nt19/sbr/20240301/dictionary/nl-types.xsd"/>
+    <xs:element abstract="false" id="mock_String" name="String" nillable="false"
+                substitutionGroup="xbrli:item" type="xbrli:stringItemType" xbrli:periodType="duration"/>
+    <xs:element abstract="false" id="mock_FormattedExplanation" name="FormattedExplanation" nillable="false"
+                substitutionGroup="xbrli:item" type="nl-types:formattedExplanationItemType" xbrli:periodType="duration"/>
+    <xs:element abstract="false" id="mock_Monetary" name="Monetary" nillable="false"
+                substitutionGroup="xbrli:item" type="xbrli:monetaryItemType" xbrli:periodType="duration"/>
+</xs:schema>

@@ -1,17 +1,17 @@
 from __future__ import annotations
 
+import logging
 import os
 import urllib.request
-import zipfile
 from pathlib import Path
-from shutil import rmtree
 
 from arelle.RuntimeOptions import RuntimeOptions
 # include import start
 from arelle.api.Session import Session
+from arelle.logging.handlers.StructuredMessageLogHandler import StructuredMessageLogHandler
 # include import end
 from tests.integration_tests.integration_test_util import get_s3_uri
-from tests.integration_tests.scripts.script_util import parse_args, validate_log_xml, assert_result, prepare_logfile
+from tests.integration_tests.scripts.script_util import parse_args, validate_log_xml, assert_result
 
 errors = []
 this_file = Path(__file__)
@@ -36,25 +36,46 @@ report_zip_url = get_s3_uri(
 print(f"Downloading samples: {samples_zip_path}")
 urllib.request.urlretrieve(report_zip_url, samples_zip_path)
 
+
+class TestFilter(logging.Filter):
+    filtered_records = []
+
+    def filter(self, record):
+        if record.levelname == 'INFO':
+            self.filtered_records.append(record)
+            return False
+        return True
+
+
+log_filter = TestFilter()
+log_handler = StructuredMessageLogHandler()
 print(f"Generating IXBRL viewer: {viewer_path}")
 # include start
 with open(samples_zip_path, 'rb') as stream:
     options = RuntimeOptions(
-        sourceZipStream=stream,
         entrypointFile=str(target_path),
         internetConnectivity='offline' if arelle_offline else 'online',
         keepOpen=True,
-        logFile='logToStructuredMessage',
         logFormat="[%(messageCode)s] %(message)s - %(file)s",
+        logPropagate=False,
         pluginOptions={
             'saveViewerDest': str(viewer_path),
             'viewer_feature_review': True,
         },
         plugins='ixbrl-viewer',
-        strictOptions=False,
     )
+    # Plugin default options haven't been applied yet.
+    assert not hasattr(options, 'viewerURL')
     with Session() as session:
-        session.run(options)
+        session.run(
+            options,
+            sourceZipStream=stream,
+            logHandler=log_handler,
+            logFilters=[log_filter],
+        )
+        # Plugin default options were applied.
+        assert hasattr(options, "viewerURL")
+        assert options.viewerURL.endswith("ixbrlviewer.js")
         log_xml = session.get_logs('xml')
 # include end
 
@@ -62,7 +83,14 @@ print(f"Checking for viewer: {viewer_path}")
 if not viewer_path.exists():
     errors.append(f'Viewer not generated at "{viewer_path}"')
 
-print(f"Checking log XML for errors...")
+print("Checking for filtered logs...")
+expected_filtered = 5
+actual_filtered = len(log_filter.filtered_records)
+if actual_filtered != expected_filtered:
+    errors.append(f'Expected {expected_filtered} filtered log records, found {actual_filtered}.')
+
+print("Checking log XML for errors...")
+assert log_xml == log_handler.getXml(clearLogBuffer=False, includeDeclaration=False)
 errors += validate_log_xml(log_xml)
 
 assert_result(errors)

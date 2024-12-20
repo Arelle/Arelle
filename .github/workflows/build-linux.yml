@@ -3,8 +3,8 @@ name: Build Linux
 on:
   workflow_call:
     inputs:
-      edgar_renderer_ref:
-        description: 'Arelle/EdgarRenderer branch, tag or SHA to checkout (blank for default)'
+      edgar_ref:
+        description: 'Arelle/EDGAR branch, tag or SHA to checkout (blank for default)'
         required: false
         type: string
       openssl_version:
@@ -13,7 +13,7 @@ on:
         required: false
         type: string
       python_version:
-        default: '3.12.4'
+        default: '3.12.7'
         description: 'Python version to use'
         required: false
         type: string
@@ -30,8 +30,8 @@ on:
         value: ${{ jobs.build-linux.outputs.uploaded_artifact_name }}
   workflow_dispatch:
     inputs:
-      edgar_renderer_ref:
-        description: 'Arelle/EdgarRenderer branch, tag or SHA to checkout (blank for default)'
+      edgar_ref:
+        description: 'Arelle/EDGAR branch, tag or SHA to checkout (blank for default)'
         required: false
         type: string
       openssl_version:
@@ -40,7 +40,7 @@ on:
         required: true
         type: string
       python_version:
-        default: '3.12.4'
+        default: '3.12.7'
         description: 'Python version to use'
         required: true
         type: string
@@ -53,26 +53,26 @@ permissions: {}
 
 jobs:
   build-linux:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       artifact_versioned_name: ${{ steps.define-artifact-names.outputs.artifact_versioned_name }}
       uploaded_artifact_name: ${{ steps.define-artifact-names.outputs.uploaded_artifact_name }}
 
     steps:
       - name: Checkout arelle
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4.2.2
         with:
           fetch-depth: 0
-      - name: Checkout EdgarRenderer
-        uses: actions/checkout@v4.1.7
+      - name: Checkout EDGAR
+        uses: actions/checkout@v4.2.2
         with:
-          repository: Arelle/EdgarRenderer
-          path: arelle/plugin/EdgarRenderer
-          ref: ${{ inputs.edgar_renderer_ref }}
-      - name: Cleanup EdgarRenderer
-        run: rm -rf arelle/plugin/EdgarRenderer/.git
+          repository: Arelle/EDGAR
+          path: arelle/plugin/EDGAR
+          ref: ${{ inputs.edgar_ref }}
+      - name: Cleanup EDGAR
+        run: rm -rf arelle/plugin/EDGAR/.git
       - name: Checkout XULE
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4.2.2
         with:
           repository: xbrlus/xule
           path: xule
@@ -85,9 +85,9 @@ jobs:
       - name: Cleanup XULE
         run: rm -rf xule
       - name: Docker setup buildx
-        uses: docker/setup-buildx-action@v3.3.0
+        uses: docker/setup-buildx-action@v3.8.0
       - name: Docker build
-        uses: docker/build-push-action@v6.2.0
+        uses: docker/build-push-action@v6.10.0
         with:
           build-args: |
             "OPENSSL_VERSION=${{ inputs.openssl_version }}"
@@ -111,13 +111,13 @@ jobs:
         run: |
           echo "ARTIFACT_NAME=arelle-ubuntu.tgz" >> $GITHUB_ENV
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4.3.3
+        uses: actions/upload-artifact@v4.4.3
         with:
           name: ${{ steps.define-artifact-names.outputs.uploaded_artifact_name }}
           if-no-files-found: error
           path: ${{ env.BUILD_ARTIFACT_PATH }}
       - name: "[Test] Set up Python ${{ inputs.python_version }}"
-        uses: actions/setup-python@v5.1.0
+        uses: actions/setup-python@v5.3.0
         with:
           cache: 'pip'
           check-latest: true
@@ -126,11 +126,13 @@ jobs:
         run : |
           mkdir .test_build
           tar -xvzf "${{ env.BUILD_ARTIFACT_PATH }}" -C .test_build
-          pip install -r requirements-dev.txt
+          pip install -r requirements-test.txt
           pytest -s --disable-warnings --all-frozen-builds --download-cache --offline --arelle=".test_build/arelleCmdLine" tests/integration_tests/scripts/test_scripts.py
       - name: "[Test] Upload test artifacts"
         if: always()
-        uses: actions/upload-artifact@v4.3.3
+        uses: actions/upload-artifact@v4.4.3
         with:
           name: 'linux test logs'
+          if-no-files-found: error
+          include-hidden-files: true
           path: '.test/**/*.logfile.xml'

@@ -8,8 +8,8 @@ on:
         required: false
         default: true
         type: boolean
-      edgar_renderer_ref:
-        description: 'Arelle/EdgarRenderer branch, tag or SHA to checkout (blank for default)'
+      edgar_ref:
+        description: 'Arelle/EDGAR branch, tag or SHA to checkout (blank for default)'
         required: false
         type: string
       python_version:
@@ -35,8 +35,8 @@ on:
         required: false
         default: true
         type: boolean
-      edgar_renderer_ref:
-        description: 'Arelle/EdgarRenderer branch, tag or SHA to checkout (blank for default)'
+      edgar_ref:
+        description: 'Arelle/EDGAR branch, tag or SHA to checkout (blank for default)'
         required: false
         type: string
       python_version:
@@ -54,18 +54,19 @@ permissions: {}
 jobs:
   build-macos:
     environment: release
-    runs-on: macos-12
+    # Intel runner produces universal binary
+    runs-on: macos-13
     outputs:
       artifact_versioned_name: ${{ steps.define-artifact-names.outputs.artifact_versioned_name }}
       uploaded_artifact_name: ${{ steps.define-artifact-names.outputs.uploaded_artifact_name }}
 
     steps:
       - name: Checkout arelle
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4.2.2
         with:
           fetch-depth: 0
       - name: Install Python
-        uses: actions/setup-python@v5.1.0
+        uses: actions/setup-python@v5.3.0
         with:
           cache: 'pip'
           check-latest: true
@@ -73,13 +74,13 @@ jobs:
       - run: |
           python -m pip install --upgrade pip setuptools wheel
           pip install -r requirements-build.txt
-      - uses: actions/checkout@v4.1.7
+      - uses: actions/checkout@v4.2.2
         with:
-          repository: Arelle/EdgarRenderer
-          path: arelle/plugin/EdgarRenderer
-          ref: ${{ inputs.edgar_renderer_ref }}
-      - run: rm -rf arelle/plugin/EdgarRenderer/.git
-      - uses: actions/checkout@v4.1.7
+          repository: Arelle/EDGAR
+          path: arelle/plugin/EDGAR
+          ref: ${{ inputs.edgar_ref }}
+      - run: rm -rf arelle/plugin/EDGAR/.git
+      - uses: actions/checkout@v4.2.2
         with:
           repository: xbrlus/xule
           path: tmp
@@ -180,18 +181,20 @@ jobs:
           hdiutil detach "${DEVICE}"
           hdiutil convert dist_dmg/arelle_tmp.dmg -format UDZO -imagekey zlib-level=9 -o ${{ env.DMG_BUILD_ARTIFACT_PATH }}
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4.3.3
+        uses: actions/upload-artifact@v4.4.3
         with:
           name: ${{ steps.define-artifact-names.outputs.uploaded_artifact_name }}
           if-no-files-found: error
           path: ${{ env.DMG_BUILD_ARTIFACT_PATH }}
       - name: "[Test] Test build artifact"
         run : |
-          pip install -r requirements-dev.txt
+          pip install -r requirements-test.txt
           pytest -s --disable-warnings --all-frozen-builds --download-cache --offline --arelle="build/Arelle.app/Contents/MacOS/arelleCmdLine" tests/integration_tests/scripts/test_scripts.py
       - name: "[Test] Upload test artifacts"
         if: always()
-        uses: actions/upload-artifact@v4.3.3
+        uses: actions/upload-artifact@v4.4.3
         with:
           name: 'macos test logs'
+          if-no-files-found: error
+          include-hidden-files: true
           path: '.test/**/*.logfile.xml'

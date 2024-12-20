@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="Valid"
+        description="This is a valid filing."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="valid" name="Valid">
+        <description>
+            This testcase validates cleanly.
+        </description>
+        <data>
+            <instance readMeFirst="true">valid - 1982-008520-07 - 2019.xhtml</instance>
+        </data>
+        <result>
+        </result>
+    </variation>
+</testcase>

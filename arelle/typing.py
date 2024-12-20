@@ -4,16 +4,14 @@ Type hints for Arelle.
 """
 from __future__ import annotations
 
-import sys
-from typing import Callable, Tuple, TypeVar
-
-from typing import TypedDict  # pylint: disable=no-name-in-module
+from collections.abc import Callable
+from typing import TypedDict, TypeVar  # pylint: disable=no-name-in-module
 
 TypeGetText = Callable[[str], str]
 
 OptionalString = TypeVar("OptionalString", str, None)
 
-EmptyTuple = Tuple[()]
+EmptyTuple = tuple[()]
 
 
 class LocaleDict(TypedDict):

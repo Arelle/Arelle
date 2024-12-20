@@ -5,11 +5,12 @@ from __future__ import annotations
 
 from _decimal import Decimal
 from collections import defaultdict
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from enum import auto, Flag, Enum
 from functools import cached_property
 from math import isnan
-from typing import cast, Iterator, Any, SupportsFloat, Tuple
+from typing import cast, Any, SupportsFloat
 
 from arelle import XmlValidateConst
 from arelle.ModelInstanceObject import ModelFact, ModelContext, ModelUnit
@@ -455,7 +456,7 @@ class FactValueEqualityType(Enum):
     LANGUAGE = 'language'
 
 
-TypeFactValueEqualityKey = Tuple[FactValueEqualityType, Tuple[Any, ...]]
+TypeFactValueEqualityKey = tuple[FactValueEqualityType, tuple[Any, ...]]
 
 
 def getFactValueEqualityKey(fact: ModelFact) -> TypeFactValueEqualityKey:

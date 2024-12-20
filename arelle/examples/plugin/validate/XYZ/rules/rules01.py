@@ -3,7 +3,8 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-from typing import Any, Iterable, cast
+from collections.abc import Iterable
+from typing import Any, cast
 
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.XmlValidate import VALID

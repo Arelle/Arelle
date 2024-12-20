@@ -335,12 +335,16 @@ class Cntlr:
         logFileEncoding:str | None = None,
         logFormat: str | None = None,
         logLevel: str | None = None,
+        logFilters: list[logging.Filter] | None = None,
         logHandler: logging.Handler | None = None,
         logToBuffer: bool = False,
         logTextMaxLength: int | None = None,
         logRefObjectProperties: bool = True,
-        logXmlMaxAttributeLength: int | None = None
+        logXmlMaxAttributeLength: int | None = None,
+        logPropagate: bool | None = None,
     ) -> None:
+        if logFilters is None:
+            logFilters = []
         # add additional logging levels (for python 2.7, all of these are ints)
         logging.addLevelName(logging.INFO - 1, "INFO-RESULT") # result data, has @name, @value, optional href to source and readable message
         logging.addLevelName(logging.INFO + 1, "INFO-SEMANTIC")
@@ -382,6 +386,10 @@ class Cntlr:
         else:
             self.logger = None
         if self.logger:
+            if logPropagate is not None:
+                self.logger.propagate = logPropagate
+            for logFilter in logFilters:
+                self.logger.addFilter(logFilter)
             try:
                 self.logger.setLevel((logLevel or "debug").upper())
             except ValueError:

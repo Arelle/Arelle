@@ -16,13 +16,28 @@ KNOWN_FAILURES = frozenset([
     'arelle.archive.plugin.sphinx.SphinxEvaluator',
     'arelle.archive.plugin.validate.XFsyntax.xf',
     'arelle.formula.FormulaEvaluator',
-    'arelle.plugin.validate.EFM-htm.Const',
-    'arelle.plugin.validate.EFM-htm.__init__',
 ])
+# Don't test common third party plugins which may be copied into a developer's workspace.
+IGNORE_MODULE_PREFIXES = (
+    'arelle.plugin.EDGAR',
+    'arelle.plugin.FERC',
+    'arelle.plugin.iXBRLViewerPlugin',
+    'arelle.plugin.semanticHash',
+    'arelle.plugin.serializer',
+    'arelle.plugin.SimpleXBRLModel',
+    'arelle.plugin.validate/DQC',
+    'arelle.plugin.validate/eforms',
+    'arelle.plugin.validate/ESEF-DQC',
+    'arelle.plugin.xendr',
+    'arelle.plugin.Xince',
+    'arelle.plugin.xodel',
+    'arelle.plugin.xule',
+    'arelle.resources',
+)
 MODULE_NAMES = [
-    g.replace('/', '.').replace('\\', '.').replace('.py', '')
+    module_name
     for g in glob.glob('arelle/**/*.py', recursive=True)
-    if not g.startswith(tuple(f'arelle/plugin/{p}/' for p in ['EdgarRenderer', 'iXBRLViewerPlugin', 'xule']))
+    if not (module_name := g.replace('/', '.').replace('\\', '.').replace('.py', '')).startswith(IGNORE_MODULE_PREFIXES)
 ]
 TEST_PARAMS = [
     pytest.param(

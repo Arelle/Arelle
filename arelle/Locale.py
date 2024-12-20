@@ -12,10 +12,10 @@ import locale
 import subprocess
 import sys
 import unicodedata
-from collections.abc import Mapping
+from collections.abc import Callable, Generator, Mapping
 from decimal import Decimal
 from fractions import Fraction
-from typing import Any, Callable, Generator, cast
+from typing import Any, cast
 
 import regex as re
 

@@ -8,8 +8,9 @@ Users of this API should expect changes in future releases.
 """
 from __future__ import annotations
 
+import logging
 from types import TracebackType
-from typing import Any, Type
+from typing import Any, BinaryIO
 
 from arelle import PluginManager, PackageManager
 from arelle.CntlrCmdLine import CntlrCmdLine, createCntlrAndPreloadPlugins
@@ -26,7 +27,7 @@ class Session:
 
     def __exit__(
         self,
-        exc_type: Type[BaseException],
+        exc_type: type[BaseException],
         exc_val: BaseException,
         exc_tb: TracebackType | None
     ) -> None:
@@ -72,10 +73,20 @@ class Session:
             return []
         return self._cntlr.modelManager.loadedModelXbrls
 
-    def run(self, options: RuntimeOptions) -> bool:
+    def run(
+        self,
+        options: RuntimeOptions,
+        sourceZipStream: BinaryIO | None = None,
+        responseZipStream: BinaryIO | None = None,
+        logHandler: logging.Handler | None = None,
+        logFilters: list[logging.Filter] | None = None,
+    ) -> bool:
         """
         Perform a run using the given options.
         :param options: Options to use for the run.
+        :param sourceZipStream: Optional stream to read source data from.
+        :param responseZipStream: Options stream to write response data to.
+        :param logHandler: Optional log handler to use for logging.
         :return: True if the run was successful, False otherwise.
         """
         PackageManager.reset()
@@ -96,11 +107,16 @@ class Session:
         if options.logRefObjectProperties is not None:
             logRefObjectProperties = options.logRefObjectProperties
         if options.webserver:
+            assert sourceZipStream is None, "Source streaming is not supported with webserver"
+            assert responseZipStream is None, "Response streaming is not supported with webserver"
             if not self._cntlr.logger:
                 self._cntlr.startLogging(
                     logFileName='logToBuffer',
+                    logFilters=logFilters,
+                    logHandler=logHandler,
                     logTextMaxLength=options.logTextMaxLength,
                     logRefObjectProperties=logRefObjectProperties,
+                    logPropagate=options.logPropagate,
                 )
                 self._cntlr.postLoggingInit()
             from arelle import CntlrWebMain
@@ -113,10 +129,17 @@ class Session:
                     logFileMode=options.logFileMode,
                     logFormat=(options.logFormat or "[%(messageCode)s] %(message)s - %(file)s"),
                     logLevel=(options.logLevel or "DEBUG"),
+                    logFilters=logFilters,
+                    logHandler=logHandler,
                     logToBuffer=options.logFile == 'logToBuffer',
-                    logTextMaxLength=options.logTextMaxLength,  # e.g., used by EdgarRenderer to require buffered logging
+                    logTextMaxLength=options.logTextMaxLength,  # e.g., used by EDGAR/render to require buffered logging
                     logRefObjectProperties=logRefObjectProperties,
-                    logXmlMaxAttributeLength=options.logXmlMaxAttributeLength
+                    logXmlMaxAttributeLength=options.logXmlMaxAttributeLength,
+                    logPropagate=options.logPropagate,
                 )
                 self._cntlr.postLoggingInit()  # Cntlr options after logging is started
-            return self._cntlr.run(options)
+            return self._cntlr.run(
+                options,
+                sourceZipStream=sourceZipStream,
+                responseZipStream=responseZipStream,
+            )

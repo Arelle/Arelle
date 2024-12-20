@@ -1,9 +1,10 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
+from __future__ import annotations
+
 import os, io, logging
 from collections import defaultdict
-from typing import Optional
 
 from arelle import XmlUtil, XbrlConst, ModelValue
 from arelle.ModelObject import ModelObject
@@ -351,7 +352,7 @@ class ModelTestcaseVariation(ModelObject):
         return None
 
     @property
-    def match(self) -> Optional[str]:
+    def match(self) -> str | None:
         resultElement = XmlUtil.descendant(self, None, "result")
         if resultElement is None:
             return None
@@ -365,6 +366,13 @@ class ModelTestcaseVariation(ModelObject):
                 return _count
         return None
 
+    @property
+    def expectedReportCount(self):
+        resultElement = XmlUtil.descendant(self, None, "result")
+        if resultElement is None:
+            return None
+        report_count = resultElement.get('report_count')
+        return int(report_count) if report_count is not None else None
 
     @property
     def severityLevel(self):

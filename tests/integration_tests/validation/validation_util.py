@@ -8,12 +8,12 @@ import os.path
 import statistics
 import zipfile
 from collections import defaultdict
-from collections.abc import Generator
-from contextlib import nullcontext
+from collections.abc import Callable, Generator
+from contextlib import AbstractContextManager, nullcontext
 from dataclasses import dataclass
 from heapq import heapreplace
 from pathlib import PurePosixPath, Path
-from typing import Any, Callable, ContextManager, TYPE_CHECKING, cast
+from typing import Any, TYPE_CHECKING, cast
 from unittest.mock import patch
 
 from lxml import etree
@@ -247,6 +247,7 @@ def _get_elems_by_local_name(tree: etree._ElementTree, local_name: str) -> list[
 
 def get_conformance_suite_arguments(config: ConformanceSuiteConfig, filename: str,
         additional_plugins: frozenset[str], build_cache: bool, offline: bool, log_to_file: bool,
+        expected_additional_testcase_errors: dict[str, frozenset[str]],
         expected_failure_ids: frozenset[str], shard: int | None,
         testcase_filters: list[str]) -> tuple[list[Any], dict[str, Any]]:
     use_shards = shard is not None
@@ -278,6 +279,8 @@ def get_conformance_suite_arguments(config: ConformanceSuiteConfig, filename: st
         args.extend(['--internetConnectivity', 'offline'])
     for pattern in testcase_filters:
         args.extend(['--testcaseFilter', pattern])
+    for testcase_id, errors in expected_additional_testcase_errors.items():
+        args.extend(['--testcaseExpectedErrors', f'{testcase_id}|{",".join(errors)}'])
     kws = dict(
         expected_failure_ids=expected_failure_ids,
         expected_model_errors=config.expected_model_errors,
@@ -321,6 +324,15 @@ def get_conformance_suite_test_results_with_shards(
         test_paths = shard.paths
         additional_plugins = shard.plugins
         all_test_paths = {path for test_shard in test_shards for path in test_shard.paths}
+
+        unrecognized_additional_error_ids = {_id.rsplit(':', 1)[0] for _id in config.expected_additional_testcase_errors.keys()} - all_test_paths
+        assert not unrecognized_additional_error_ids, f'Unrecognized expected additional error IDs: {unrecognized_additional_error_ids}'
+        expected_additional_testcase_errors = {}
+        for expected_id, errors in config.expected_additional_testcase_errors.items():
+            test_path, test_id = expected_id.rsplit(':', 1)
+            if test_id in test_paths.get(test_path, []):
+                expected_additional_testcase_errors[expected_id] = errors
+
         unrecognized_expected_failure_ids = {_id.rsplit(':', 1)[0] for _id in config.expected_failure_ids} - all_test_paths
         assert not unrecognized_expected_failure_ids, f'Unrecognized expected failure IDs: {unrecognized_expected_failure_ids}'
         expected_failure_ids = set()
@@ -328,6 +340,7 @@ def get_conformance_suite_test_results_with_shards(
             test_path, test_id = expected_failure_id.rsplit(':', 1)
             if test_id in test_paths.get(test_path, []):
                 expected_failure_ids.add(expected_failure_id)
+
         testcase_filters = sorted([
             f'*{os.path.sep}{path}:{vid}'
             for path, vids in test_paths.items()
@@ -338,10 +351,11 @@ def get_conformance_suite_test_results_with_shards(
         args = get_conformance_suite_arguments(
             config=config, filename=filename, additional_plugins=additional_plugins,
             build_cache=build_cache, offline=offline, log_to_file=log_to_file, shard=shard_id,
+            expected_additional_testcase_errors=expected_additional_testcase_errors,
             expected_failure_ids=frozenset(expected_failure_ids), testcase_filters=testcase_filters,
         )
         tasks.append(args)
-    url_context_manager: ContextManager[Any]
+    url_context_manager: AbstractContextManager[Any]
     if config.url_replace:
         url_context_manager = patch('arelle.WebCache.WebCache.normalizeUrl', normalize_url_function(config))
     else:
@@ -372,9 +386,10 @@ def get_conformance_suite_test_results_without_shards(
     args, kws = get_conformance_suite_arguments(
         config=config, filename=filename, additional_plugins=additional_plugins,
         build_cache=build_cache, offline=offline, log_to_file=log_to_file, shard=None,
+        expected_additional_testcase_errors=config.expected_additional_testcase_errors,
         expected_failure_ids=expected_failure_ids, testcase_filters=[],
     )
-    url_context_manager: ContextManager[Any]
+    url_context_manager: AbstractContextManager[Any]
     if config.url_replace:
         url_context_manager = patch('arelle.WebCache.WebCache.normalizeUrl', normalize_url_function(config))
     else:
@@ -437,8 +452,7 @@ def save_timing_file(config: ConformanceSuiteConfig, results: list[ParameterSet]
     for result in results:
         testcase_id = result.id
         values = result.values[0]
-        # TODO: revisit typing here once 3.8 removed
-        status = values.get('status')  # type: ignore[union-attr]
+        status = values.get('status')
         assert status, f'Test result has no status: {testcase_id}'
         if status == 'skip':
             continue

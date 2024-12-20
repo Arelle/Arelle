@@ -1,35 +1,35 @@
 # core modules
-certifi==2024.6.2
-filelock==3.15.4
-lxml==5.2.2
+certifi==2024.12.14
+filelock==3.16.1
+lxml==5.3.0
 OpenPyXL==3.1.5
-pyparsing==3.1.2
-regex==2024.5.15
-isodate==0.6.1
+pyparsing==3.2.0
+regex==2024.11.6
+isodate==0.7.2
 aniso8601==9.0.1
 CherryPy==18.10.0
 Cheroot==10.0.1
 python-dateutil==2.9.0.post0
 pycountry==24.6.1
 # plugins
-# EdgarRenderer plugin
-NumPy==1.24.4 ; python_version <= "3.8"
-NumPy==1.26.2 ; python_version > "3.8"
-Matplotlib==3.7.4 ; python_version <= "3.8"
-Matplotlib==3.8.2 ; python_version > "3.8"
-holidays==0.52
-pytz==2024.1
-Tornado==6.4.1
+# EDGAR plugins
+NumPy==2.0.2 ; python_version <= "3.9"
+NumPy==2.2.0 ; python_version > "3.9"
+Matplotlib==3.9.4 ; python_version <= "3.9"
+Matplotlib==3.10.0 ; python_version > "3.9"
+holidays==0.63
+pytz==2024.2
+Tornado==6.4.2
 # security plugin
-PyCryptodome==3.20.0
+PyCryptodome==3.21.0
 # xbrlDB plugin
 cx_Oracle==8.3.0
 pg8000==1.31.2
 PyMySQL==1.1.1
-pyodbc==5.1.0
-RDFLib==7.0.0
+pyodbc==5.2.0
+RDFLib==7.1.1
 # other
 graphviz==0.20.3
-Pillow==10.4.0
-pywin32==306 ; sys_platform == "win32"
-tinycss2==1.3.0
+Pillow==11.0.0
+pywin32==308 ; sys_platform == "win32"
+tinycss2==1.4.0

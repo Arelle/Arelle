@@ -17,15 +17,16 @@ from arelle import ModelDocument, XbrlConst
 from arelle.ModelDtsObject import ModelResource
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFact, ModelInlineFootnote
 from arelle.ModelObject import ModelObject
+from arelle.ModelValue import qname
 from arelle.Version import authorLabel, copyrightLabel
-from arelle.XbrlConst import ixbrlAll, xhtml
-from .Const import cipcModules # , mandatoryElements
+from arelle.XbrlConst import xhtml, qnIXbrl11Hidden
+from .Const import cipcModules, mustNotBeHiddenElements
 
 cipcBlockedInlineHtmlElements = {
     'object', 'script'}
 
 namePattern = re.compile(r"^(.*) - ((18|19|20)\d{2}-[0-9]+-(06|07|08|09|10|12|20|21|22|23|24|25|26|30|31)) - (20[1-9]\d)$")
-reportingModulePattern = re.compile(r"http://xbrl.cipc.co.za/taxonomy/.*/\w*(ca_fas|full_ifrs|ifrs_for_smes)\w*[_-]20[12][0-9]-[0-9]{2}-[0-9]{2}.xsd")
+reportingModulePattern = re.compile(r"https?://xbrl.cipc.co.za/taxonomy/.*/\w*(ca_fas|full_ifrs|ifrs_for_smes)\w*[_-]20[12][0-9]-[0-9]{2}-[0-9]{2}.xsd")
 
 TRANSFORMATION_REGISTRY_3 = {
     'namespace': 'http://www.xbrl.org/inlineXBRL/transformation/2015-02-26',
@@ -179,14 +180,31 @@ def validateXbrlFinally(val, *args, **kwargs):
         # build namespace maps
         nsMap = {}
         for ns in modelXbrl.namespaceDocs.keys():
-            if ns.endswith("/ca"):
+            if ns.endswith("taxonomy/ca"):
                 nsMap["cipc-ca"] = ns
-            elif ns.endswith("/ca/enum"):
+            elif ns.endswith("taxonomy/ca/enum"):
                 nsMap["cipc-ca-enum"] = ns
             elif ns.endswith("/ifrs-full"):
                 nsMap["ifrs-full"] = ns
             elif ns.endswith("/ifrs-smes"):
                 nsMap["ifrs-smes"] = ns
+
+        foundHiddenFacts = []
+        mustNotBeHiddenQnames = set()
+        for prefixedName in mustNotBeHiddenElements:
+            prefix, _sep, name = prefixedName.rpartition(":")
+            mustNotBeHiddenQnames.add(qname(nsMap.get(prefix), name))
+        for concept in mustNotBeHiddenQnames:
+            facts = val.modelXbrl.factsByQname.get(concept, ())
+            for fact in facts:
+                if qnIXbrl11Hidden in fact.ancestorQnames:
+                    foundHiddenFacts.append(fact)
+        if foundHiddenFacts:
+            modelXbrl.error("CIPC.MandatoryElementInHiddenSection",
+                            _("These mandatory concepts can not appear in a hidden section: %(facts)s."),
+                            modelObject=foundHiddenFacts,
+                            facts=", ".join(sorted(set(str(fact.qname) for fact in foundHiddenFacts)))
+                            )
 
         ''' checked by CIPC formula
         # build mandatory and footnoteIfNil tables by ns qname in use

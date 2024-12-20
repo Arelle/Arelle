@@ -2,28 +2,39 @@
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
-from typing import IO, TYPE_CHECKING, Any, Union, cast
-import zipfile, tarfile, os, io, errno, base64, gzip, zlib, struct, random
+
+import base64
+import errno
+import gzip
+import io
+import os
+import random
+import struct
+import tarfile
+import zipfile
+import zlib
+from typing import IO, TYPE_CHECKING, Any, cast
+
 import regex as re
 from lxml import etree
-from arelle import XmlUtil
-from arelle import PackageManager
-from arelle.UrlUtil import isHttpUrl
-from arelle.typing import TypeGetText
-import arelle.PluginManager
 
+import arelle.PluginManager
+from arelle import PackageManager, XmlUtil
+from arelle.packages.report.DetectReportPackage import isReportPackageExtension
+from arelle.packages.report.ReportPackage import ReportPackage
+from arelle.typing import TypeGetText
+from arelle.UrlUtil import isHttpUrl
 
 _: TypeGetText
 
 if TYPE_CHECKING:
     from arelle.Cntlr import Cntlr
-    from _typeshed import SupportsRead
 
 
-archivePathSeparators = (".zip" + os.sep, ".tar.gz" + os.sep, ".eis" + os.sep, ".xml" + os.sep, ".xfd" + os.sep, ".frm" + os.sep, '.taxonomyPackage.xml' + os.sep) + \
+archivePathSeparators = (".zip" + os.sep, ".xbr" + os.sep, ".xbri" + os.sep, ".tar.gz" + os.sep, ".eis" + os.sep, ".xml" + os.sep, ".xfd" + os.sep, ".frm" + os.sep, '.taxonomyPackage.xml' + os.sep) + \
                         ((".zip/", ".tar.gz/", ".eis/", ".xml/", ".xfd/", ".frm/", '.taxonomyPackage.xml/') if os.sep != "/" else ()) #acomodate windows and http styles
 
-archiveFilenameSuffixes = {".zip", ".tar.gz", ".eis", ".xml", ".xfd", ".frm"}
+archiveFilenameSuffixes = {".zip", ".xbr", ".xbri", ".tar.gz", ".eis", ".xml", ".xfd", ".frm"}
 
 POST_UPLOADED_ZIP = os.sep + "POSTupload.zip"
 SERVER_WEB_CACHE = os.sep + "_HTTP_CACHE"
@@ -56,13 +67,23 @@ def openFileSource(
             selection: str | None = archivepathSelection[1]
 
             assert selection is not None
+            selectionIsEmbeddedZip = False
             if (
                 sourceFileSource is not None
                 and sourceFileSource.dir is not None
                 and sourceFileSource.isArchive
                 and selection in sourceFileSource.dir
-                and selection.endswith(".zip")
             ):
+                if isReportPackageExtension(selection):
+                    selectionIsEmbeddedZip = True
+                else:
+                    try:
+                        assert isinstance(sourceFileSource.fs, zipfile.ZipFile)
+                        with sourceFileSource.fs.open(selection) as f:
+                            selectionIsEmbeddedZip = zipfile.is_zipfile(f)
+                    except Exception:
+                        pass
+            if selectionIsEmbeddedZip:
                 assert cntlr is not None
                 filesource = FileSource(filename, cntlr)
                 selection = None
@@ -90,19 +111,19 @@ def archiveFilenameParts(filename: str | None, checkIfXmlIsEis: bool = False) ->
 
 class FileNamedStringIO(io.StringIO):  # provide string IO in memory but behave as a fileName string
     def __init__(self, fileName: str, *args: Any, **kwargs: Any) -> None:
-        super(FileNamedStringIO, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fileName = fileName
 
     def close(self) -> None:
         del self.fileName
-        super(FileNamedStringIO, self).close()
+        super().close()
 
     def __str__(self) -> str:
         return self.fileName
 
 class FileNamedTextIOWrapper(io.TextIOWrapper):  # provide string IO in memory but behave as a fileName string
     def __init__(self, fileName: str, *args: Any, **kwargs: Any):
-        super(FileNamedTextIOWrapper, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fileName = fileName
 
     def __str__(self) -> str:
@@ -110,19 +131,19 @@ class FileNamedTextIOWrapper(io.TextIOWrapper):  # provide string IO in memory b
 
 class FileNamedBytesIO(io.BytesIO):  # provide Bytes IO in memory but behave as a fileName string
     def __init__(self, fileName: str, *args: Any, **kwargs: Any) -> None:
-        super(FileNamedBytesIO, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fileName = fileName
 
     def close(self) -> None:
         del self.fileName
-        super(FileNamedBytesIO, self).close()
+        super().close()
 
     def __str__(self) -> str:
         return self.fileName
 
-class ArchiveFileIOError(IOError):
+class ArchiveFileIOError(OSError):
     def __init__(self, fileSource: FileSource, errno: int, fileName: str) -> None:
-        super(ArchiveFileIOError, self).__init__(errno,
+        super().__init__(errno,
                                                  _("Archive {}").format(fileSource.url),
                                                  fileName)
         self.fileName = fileName
@@ -139,16 +160,19 @@ class FileSource:
     url: str | list[str] | None
     basefile: str | list[str] | None
     xfdDocument: etree._ElementTree | None
+    taxonomyPackage: dict[str, str | dict[str, str]] | None
+    mappedPaths: dict[str, str] | None
 
     def __init__(self, url: str, cntlr: Cntlr | None = None, checkIfXmlIsEis: bool = False) -> None:
         self.url = str(url)  # allow either string or FileNamedStringIO
         self.baseIsHttp = isHttpUrl(self.url)
         self.cntlr = cntlr
-        self.type = self.url.lower()[-7:]
-        self.isTarGz = self.type == ".tar.gz"
-        if not self.isTarGz:
-            self.type = self.type[3:]
-        self.isZip = self.type == ".zip"
+        self.isTarGz = self.url.lower().endswith(".tar.gz")
+        if self.isTarGz:
+            self.type = ".tar.gz"
+        else:
+            self.type = os.path.splitext(self.url.lower())[1]
+        self.isZip = self.type == ".zip" or isReportPackageExtension(self.url)
         self.isZipBackslashed = False # windows style backslashed paths
         self.isEis = self.type == ".eis"
         self.isXfd = (self.type == ".xfd" or self.type == ".frm")
@@ -161,6 +185,20 @@ class FileSource:
         self.referencedFileSources = {}  # archive file name, fileSource object
         self.taxonomyPackage = None # taxonomy package
         self.mappedPaths = None  # remappings of path segments may be loaded by taxonomyPackage manifest
+        self.isValid = True # filesource is assumed to be valid until a call to open fails.
+        if not self.isZip:
+            # Try to detect zip files with unrecognized file extensions.
+            try:
+                basefile = self.cntlr.webCache.getfilename(self.url) if self.cntlr is not None else self.url
+                if basefile:
+                    with openFileStream(self.cntlr, basefile, 'rb') as fileStream:
+                        self.isZip = zipfile.is_zipfile(fileStream)
+            except Exception as err:
+                # Log the error, but don't record a validation error.
+                # Validation is deferred to the validation classes. Filesource is unaware of the specific errors that should be raised.
+                self.logError(err)
+                pass
+
 
         # for SEC xml files, check if it's an EIS anyway
         if (not (self.isZip or self.isEis or self.isXfd or self.isRss) and
@@ -172,12 +210,13 @@ class FileSource:
                     assert self.cntlr is not None
                     _filename = self.cntlr.webCache.getfilename(self.url)
                     assert _filename is not None
-                    file = open(_filename, 'r', errors='replace')
+                    file = open(_filename, errors='replace')
                     l = file.read(256) # may have comments before first element
                     file.close()
                     if re.match(r"\s*(<[?]xml[^?]+[?]>)?\s*(<!--.*-->\s*)*<(cor[a-z]*:|sdf:|\w+:)?edgarSubmission", l):
                         self.isEis = True
-                except EnvironmentError as err:
+                except OSError as err:
+                    self.isValid = False
                     if self.cntlr:
                         self.cntlr.addToLog(_("[{0}] {1}").format(type(err).__name__, err))
                     pass
@@ -187,7 +226,7 @@ class FileSource:
             self.cntlr.addToLog(_("[{0}] {1}").format(type(err).__name__, err))
 
     def open(self, reloadCache: bool = False) -> None:
-        if not self.isOpen:
+        if self.isValid and not self.isOpen:
             if (self.isZip or self.isTarGz or self.isEis or self.isXfd or self.isRss or self.isInstalledTaxonomyPackage) and self.cntlr:
                 assert isinstance(self.url, str)
                 self.basefile = self.cntlr.webCache.getfilename(self.url, reload=reloadCache)
@@ -202,7 +241,8 @@ class FileSource:
                     fileStream = openFileStream(self.cntlr, self.basefile, 'rb')
                     self.fs = zipfile.ZipFile(fileStream, mode="r")
                     self.isOpen = True
-                except (EnvironmentError, zipfile.BadZipFile) as err:
+                except (OSError, zipfile.BadZipFile) as err:
+                    self.isValid = False
                     self.logError(err)
                     pass
             elif self.isTarGz:
@@ -210,7 +250,8 @@ class FileSource:
                     assert isinstance(self.basefile, str)
                     self.fs = tarfile.open(self.basefile, "r:gz")
                     self.isOpen = True
-                except EnvironmentError as err:
+                except OSError as err:
+                    self.isValid = False
                     self.logError(err)
                     pass
             elif self.isEis:
@@ -233,7 +274,8 @@ class FileSource:
                             break
                         buf += zlib.decompress(compressedBytes)
                     file.close()
-                except EnvironmentError as err:
+                except OSError as err:
+                    self.isValid = False
                     self.logError(err)
                     pass
                 #uncomment to save for debugging
@@ -252,10 +294,8 @@ class FileSource:
                         self.eisDocument = etree.parse(_file, parser=parser)
                         _file.close()
                         self.isOpen = True
-                    except EnvironmentError as err:
-                        self.logError(err)
-                        return # provide error message later
-                    except etree.LxmlError as err:
+                    except (OSError, etree.LxmlError) as err:
+                        self.isValid = False
                         self.logError(err)
                         return # provide error message later
 
@@ -290,7 +330,8 @@ class FileSource:
                                     ungzippedBytes += readBytes
                                     if len(readBytes) == 0 or (lenUncomp - lenRead) <= 0:
                                         break
-                        except IOError as err:
+                        except OSError:
+                            self.isValid = False
                             pass # provide error message later
 
                         i += lenCompr + 4
@@ -307,10 +348,8 @@ class FileSource:
                     self.xfdDocument = etree.parse(file)
                     file.close()
                     self.isOpen = True
-                except EnvironmentError as err:
-                    self.logError(err)
-                    return # provide error message later
-                except etree.LxmlError as err:
+                except (OSError, etree.LxmlError) as err:
+                    self.isValid = False
                     self.logError(err)
                     return # provide error message later
 
@@ -319,10 +358,8 @@ class FileSource:
                     assert isinstance(self.basefile, str)
                     self.rssDocument = etree.parse(self.basefile)
                     self.isOpen = True
-                except EnvironmentError as err:
-                    self.logError(err)
-                    return # provide error message later
-                except etree.LxmlError as err:
+                except (OSError, etree.LxmlError) as err:
+                    self.isValid = False
                     self.logError(err)
                     return # provide error message later
 
@@ -332,16 +369,16 @@ class FileSource:
                 self.loadTaxonomyPackageMappings()
 
     def loadTaxonomyPackageMappings(self, errors: list[str] = [], expectTaxonomyPackage: bool = False) -> None:
-        if not self.mappedPaths and (self.taxonomyPackageMetadataFiles or expectTaxonomyPackage):
+        if not self.mappedPaths and (self.taxonomyPackageMetadataFiles or expectTaxonomyPackage) and self.cntlr:
             if PackageManager.validateTaxonomyPackage(self.cntlr, self, errors=errors):
                 assert isinstance(self.baseurl, str)
                 metadata = self.baseurl + os.sep + self.taxonomyPackageMetadataFiles[0]
-                self.taxonomyPackage = PackageManager.parsePackage(self.cntlr, self, metadata,  # type: ignore[no-untyped-call]
+                self.taxonomyPackage = PackageManager.parsePackage(self.cntlr, self, metadata,
                                                                    os.sep.join(os.path.split(metadata)[:-1]) + os.sep,
                                                                    errors=errors)
 
                 assert self.taxonomyPackage is not None
-                self.mappedPaths = self.taxonomyPackage.get("remappings")
+                self.mappedPaths = cast('dict[str, str]', self.taxonomyPackage.get("remappings"))
 
     def openZipStream(self, sourceZipStream: str) -> None:
         if not self.isOpen:
@@ -396,6 +433,19 @@ class FileSource:
     @property
     def isTaxonomyPackage(self) -> bool:
         return bool(self.isZip and self.taxonomyPackageMetadataFiles) or self.isInstalledTaxonomyPackage
+
+    @property
+    def isReportPackage(self) -> bool:
+        return self.reportPackage is not None
+
+    @property
+    def reportPackage(self) -> ReportPackage | None:
+        try:
+            self._reportPackage: ReportPackage | None
+            return self._reportPackage
+        except AttributeError:
+            self._reportPackage = ReportPackage.fromFileSource(self)
+            return self._reportPackage
 
     @property
     def taxonomyPackageMetadataFiles(self) -> list[str]:
@@ -502,8 +552,8 @@ class FileSource:
                         b = stripDeclarationBytes(b)
                     return (FileNamedTextIOWrapper(filepath, io.BytesIO(b), encoding=encoding),
                             encoding)
-                except KeyError:
-                    raise ArchiveFileIOError(self, errno.ENOENT, archiveFileName)
+                except KeyError as err:
+                    raise ArchiveFileIOError(self, errno.ENOENT, archiveFileName) from err
             elif archiveFileSource.isTarGz:
                 try:
                     assert isinstance(archiveFileSource.fs, tarfile.TarFile)
@@ -519,13 +569,13 @@ class FileSource:
                         b = stripDeclarationBytes(b)
                     return (FileNamedTextIOWrapper(filepath, io.BytesIO(b), encoding=encoding),
                             encoding)
-                except KeyError:
+                except KeyError as err:
                     # Note 2022-09-06
                     # The following error is raised by mypy, indicating there's a bug here:
                     # Missing positional argument "fileName"
                     # Not fixing this bug as a part of this PR
                     # Also expecting second argument to be int but is str here
-                    raise ArchiveFileIOError(self, archiveFileName) # type: ignore[call-arg, arg-type]
+                    raise ArchiveFileIOError(self, archiveFileName) from err # type: ignore[call-arg, arg-type]
             elif archiveFileSource.isEis:
                 assert self.eisDocument is not None
                 for docElt in self.eisDocument.iter(tag="{http://www.sec.gov/edgar/common}document"):
@@ -699,7 +749,7 @@ class FileSource:
                         XmlUtil.text(descendantPubDate),
                         instDoc))
                 self.filesDir = files
-            except (EnvironmentError,
+            except (OSError,
                     etree.LxmlError) as err:
                 pass
         elif self.isInstalledTaxonomyPackage:
@@ -738,6 +788,14 @@ class FileSource:
             else:
                 self.url = self.basedUrl(selection)
 
+    @property
+    def urlBasename(self) -> list[str] | str | None:
+        if isinstance(self.url, str):
+            return os.path.basename(self.url)
+        if isinstance(self.url, list):
+            return [os.path.basename(url) for url in self.url]
+        return None
+
 def openFileStream(
     cntlr: Cntlr | None, filepath: str, mode: str = "r", encoding: str | None = None
 ) -> io.BytesIO | IO[Any]:
@@ -755,10 +813,10 @@ def openFileStream(
     if isHttpUrl(filepath) and cntlr:
         _cacheFilepath = cntlr.webCache.getfilename(filepath, normalize=True) # normalize is separate step in ModelDocument retrieval, combined here
         if _cacheFilepath is None:
-            raise IOError(_("Unable to open file: {0}.").format(filepath))
+            raise OSError(_("Unable to open file: {0}.").format(filepath))
         filepath = _cacheFilepath
     if not filepath and cntlr:
-        raise IOError(_("Unable to open file: \"{0}\".").format(filepath))
+        raise OSError(_("Unable to open file: \"{0}\".").format(filepath))
     # file path may be server (or memcache) or local file system
     if filepath.startswith(SERVER_WEB_CACHE) and cntlr:
         filestream = None
@@ -811,7 +869,7 @@ def openXmlFileStream(
         # allow filepath to close
     # this may not be needed for Mac or Linux, needs confirmation!!!
     if text is None:  # ok to read as utf-8
-        return io.open(filepath, 'rt', encoding=encoding or 'utf-8'), encoding
+        return open(filepath, encoding=encoding or 'utf-8'), encoding
     else:
         if stripDeclaration:
             text = stripDeclarationText(text)
@@ -841,7 +899,7 @@ def saveFile(cntlr: Cntlr, filepath: str, contents: str, encoding: str | None = 
     if isHttpUrl(filepath):
         _cacheFilepath = cntlr.webCache.getfilename(filepath)
         if _cacheFilepath is None:
-            raise IOError(_("Unable to open file: {0}.").format(filepath))
+            raise OSError(_("Unable to open file: {0}.").format(filepath))
         filepath = _cacheFilepath
     # file path may be server (or memcache) or local file system
     if filepath.startswith(SERVER_WEB_CACHE):
@@ -852,7 +910,7 @@ def saveFile(cntlr: Cntlr, filepath: str, contents: str, encoding: str | None = 
         _dirpath = os.path.dirname(filepath)
         if not os.path.exists(_dirpath): # directory must exist before io.open
             os.makedirs(_dirpath)
-        with io.open(filepath, mode, encoding=(encoding or 'utf-8')) as f:
+        with open(filepath, mode, encoding=(encoding or 'utf-8')) as f:
             f.write(contents)
 
 # GAE Blobcache
