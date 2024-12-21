@@ -21,6 +21,11 @@ on:
         description: 'xbrlus/xule branch, tag or SHA to checkout (blank for default)'
         required: false
         type: string
+      create_dmg_attempt_limit:
+        description: 'Number of attempts to create the DMG (workaround for macos-13 runner bug)'
+        required: false
+        default: 10
+        type: number
     outputs:
       artifact_versioned_name:
         description: 'The file name of the DMG including the version, e.g. "arelle-macos-1.0.0.dmg".'
@@ -48,6 +53,11 @@ on:
         description: 'xbrlus/xule branch, tag or SHA to checkout (blank for default)'
         required: false
         type: string
+      create_dmg_attempt_limit:
+        description: 'Number of attempts to create the DMG (workaround for macos-13 runner bug)'
+        required: true
+        default: 10
+        type: number
 
 permissions: {}
 
@@ -144,7 +154,19 @@ jobs:
           mkdir dist_dmg
           SIZE=`du -ms | awk '{print int($1 + 20 + 0.5)}'`
           ls build
-          hdiutil create -srcfolder build/Arelle.app -volname Arelle -fs HFS+ -fsargs "-c c=64,a=16,e=16" -format UDRW -size ${SIZE}M dist_dmg/arelle_tmp.dmg
+          # Retry used to workaround macos-13 runner bug. Can be removed when bug is fixed or we update to macos-14:
+          # https://github.com/actions/runner-images/issues/7522
+          for i in {1..${{ inputs.create_dmg_attempt_limit }}}; do
+            if hdiutil create -ov -srcfolder build/Arelle.app -volname Arelle -fs HFS+ -fsargs "-c c=64,a=16,e=16" -format UDRW -size ${SIZE}M dist_dmg/arelle_tmp.dmg; then
+              echo "Successfully created DMG on attempt $i"
+              break
+            elif [[ $i -eq ${{ inputs.create_dmg_attempt_limit }} ]]; then
+              echo "Failed to create DMG after $i attempts"
+              exit 1
+            else
+              echo "Failed to create DMG on attempt $i, retrying"
+            fi
+          done
           echo "Created DMG: arelle_tmp.dmg"
           DEVICE=$(hdiutil attach -readwrite -noverify dist_dmg/arelle_tmp.dmg | egrep '^/dev/' | sed 1q | awk '{print $1}')
           sleep 2
