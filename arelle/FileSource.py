@@ -13,7 +13,7 @@ import struct
 import tarfile
 import zipfile
 import zlib
-from typing import IO, TYPE_CHECKING, Any, cast
+from typing import IO, TYPE_CHECKING, Any, TextIO, cast
 
 import regex as re
 from lxml import etree
@@ -517,11 +517,7 @@ class FileSource:
         binary: bool = False,
         stripDeclaration: bool = False,
         encoding: str | None = None,
-    ) -> (
-            tuple[io.BytesIO | IO[Any]]
-            | tuple[FileNamedTextIOWrapper, str | None]
-            | tuple[io.TextIOWrapper, str | None]
-        ):
+    ) -> tuple[io.BytesIO | IO[Any]] | tuple[TextIO, str | None]:
         '''
             for text, return a tuple of (open file handle, encoding)
             for binary, return a tuple of (open file handle, )
@@ -849,7 +845,7 @@ def openFileStream(
 
 def openXmlFileStream(
     cntlr: Cntlr | None, filepath: str, stripDeclaration: bool = False
-) -> tuple[io.TextIOWrapper, str]:
+) -> tuple[TextIO, str]:
     # returns tuple: (fileStream, encoding)
     openedFileStream = openFileStream(cntlr, filepath, 'rb')
 
