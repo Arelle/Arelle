@@ -86,7 +86,7 @@ class ViewTests(ViewWinTree.ViewTree):
                     testcases.append((referencedDocument.uri, referencedDocument.objectId()))
             testcases.sort()
             for i, testcaseTuple in enumerate(testcases):
-                self.viewTestcase(self.modelXbrl.modelObject(testcaseTuple[1]), node, i)
+                self.viewTestcase(self.modelXbrl.modelObject(testcaseTuple[1]), node, i, modelDocument.uri)
         elif modelDocument.type in (ModelDocument.Type.TESTCASE, ModelDocument.Type.REGISTRYTESTCASE):
             self.viewTestcase(modelDocument, parentNode, 1)
         elif modelDocument.type == ModelDocument.Type.XPATHTESTSUITE:
@@ -95,9 +95,15 @@ class ViewTests(ViewWinTree.ViewTree):
         else:
             pass
 
-    def viewTestcase(self, modelDocument, parentNode, n):
+    def viewTestcase(self, modelDocument, parentNode, n, parentUri=None):
+        name = os.path.basename(modelDocument.uri)
+        if parentUri: # determine relative testcase location
+            baseDir = os.path.dirname(parentUri)
+            testDir = os.path.dirname(modelDocument.uri)
+            if testDir.startswith(baseDir) and len(baseDir) < len(testDir):
+                name = testDir[len(baseDir)+1:] + os.sep + name
         node = self.treeView.insert(parentNode, "end", modelDocument.objectId(),
-                                    text=os.path.basename(modelDocument.uri),
+                                    text=name,
                                     tags=("odd" if n & 1 else "even",))
         self.id += 1;
         if hasattr(modelDocument, "testcaseVariations"):
