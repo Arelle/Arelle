@@ -254,11 +254,12 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     docDirPath = re.split(r"[/\\]", doc.uri)
                     reportCorrectlyPlacedInPackage = reportIsInZipFile = False
                     for i, dir in enumerate(docDirPath):
-                        if dir.lower().endswith(".zip"):
+                        dirBasename, dirExtension = os.path.splitext(dir)
+                        if dirExtension in (".zip", ".xbri"):
                             if reportIsInZipFile: # report package was nested in a zip file
                                 ixdsDocDirs.clear() # ignore containing zip
                             reportIsInZipFile = True
-                            packageName = dir[:-4] # web service posted zips are always named POSTupload.zip instead of the source file name
+                            packageName = dirBasename # web service posted zips are always named POSTupload.zip instead of the source file name
                             if len(docDirPath) >= i + 2 and packageName in (docDirPath[i+1],"POSTupload") and docDirPath[i+2] == "reports":
                                 ixdsDocDirs.add("/".join(docDirPath[i+3:-1]))
                                 reportCorrectlyPlacedInPackage = True
