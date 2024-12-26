@@ -40,7 +40,7 @@ from arelle.XbrlConst import (
     notAll as hc_notAll,
     parentChild,
     standardLabel,
-    summationItem,
+    summationItems,
     widerNarrower,
     xhtml,
 )
@@ -249,34 +249,34 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                         modelXbrl.error("ESEF.RTS.Annex.III.Par.1.invalidInlineXBRL",
                             _("Invalid inline XBRL namespace: %(namespace)s"),
                             modelObject=doc, namespace=doc.ixNS)
-                    if esefDisclosureSystemYear <= 2023:
-                        # check location in a taxonomy package
-                        # ixds loading for ESEF expects all xhtml instances to be combined into single IXDS regardless of directory in report zip
-                        docDirPath = re.split(r"[/\\]", doc.uri)
-                        reportCorrectlyPlacedInPackage = reportIsInZipFile = False
-                        for i, dir in enumerate(docDirPath):
-                            if dir.lower().endswith(".zip"):
-                                if reportIsInZipFile: # report package was nested in a zip file
-                                    ixdsDocDirs.clear() # ignore containing zip
-                                reportIsInZipFile = True
-                                packageName = dir[:-4] # web service posted zips are always named POSTupload.zip instead of the source file name
-                                if len(docDirPath) >= i + 2 and packageName in (docDirPath[i+1],"POSTupload") and docDirPath[i+2] == "reports":
-                                    ixdsDocDirs.add("/".join(docDirPath[i+3:-1]))
-                                    reportCorrectlyPlacedInPackage = True
-                                else:
-                                    ixdsDocDirs.add("/".join(docDirPath[i+1:len(docDirPath)-1])) # needed for error msg on orphaned instance docs
-                        if not reportIsInZipFile:
-                            modelXbrl.error("ESEF.2.6.1.reportIncorrectlyPlacedInPackage",
-                                _("Inline XBRL document MUST be included within an ESEF report package as defined in "
-                                "http://www.xbrl.org/WGN/report-packages/WGN-2018-08-14/report-packages-WGN-2018-08-14"
-                                ".html: %(fileName)s (Document is not in a zip archive)"),
-                                modelObject=doc, fileName=doc.basename)
-                        elif not reportCorrectlyPlacedInPackage:
-                            modelXbrl.error("ESEF.2.6.1.reportIncorrectlyPlacedInPackage",
-                                _("Inline XBRL document MUST be included within an ESEF report package as defined in "
-                                "http://www.xbrl.org/WGN/report-packages/WGN-2018-08-14/report-packages-WGN-2018-08-14"
-                                ".html: %(fileName)s (Document file not in correct place in package)"),
-                                modelObject=doc, fileName=doc.basename)
+                    # check location in a taxonomy package
+                    # ixds loading for ESEF expects all xhtml instances to be combined into single IXDS regardless of directory in report zip
+                    docDirPath = re.split(r"[/\\]", doc.uri)
+                    reportCorrectlyPlacedInPackage = reportIsInZipFile = False
+                    for i, dir in enumerate(docDirPath):
+                        dirBasename, dirExtension = os.path.splitext(dir)
+                        if dirExtension in (".zip", ".xbri"):
+                            if reportIsInZipFile: # report package was nested in a zip file
+                                ixdsDocDirs.clear() # ignore containing zip
+                            reportIsInZipFile = True
+                            packageName = dirBasename # web service posted zips are always named POSTupload.zip instead of the source file name
+                            if len(docDirPath) >= i + 2 and packageName in (docDirPath[i+1],"POSTupload") and docDirPath[i+2] == "reports":
+                                ixdsDocDirs.add("/".join(docDirPath[i+3:-1]))
+                                reportCorrectlyPlacedInPackage = True
+                            else:
+                                ixdsDocDirs.add("/".join(docDirPath[i+1:len(docDirPath)-1])) # needed for error msg on orphaned instance docs
+                    if not reportIsInZipFile:
+                        modelXbrl.error("ESEF.2.6.1.reportIncorrectlyPlacedInPackage",
+                            _("Inline XBRL document MUST be included within an ESEF report package as defined in "
+                               "http://www.xbrl.org/WGN/report-packages/WGN-2018-08-14/report-packages-WGN-2018-08-14"
+                               ".html: %(fileName)s (Document is not in a zip archive)"),
+                            modelObject=doc, fileName=doc.basename)
+                    elif not reportCorrectlyPlacedInPackage:
+                        modelXbrl.error("ESEF.2.6.1.reportIncorrectlyPlacedInPackage",
+                             _("Inline XBRL document MUST be included within an ESEF report package as defined in "
+                               "http://www.xbrl.org/WGN/report-packages/WGN-2018-08-14/report-packages-WGN-2018-08-14"
+                               ".html: %(fileName)s (Document file not in correct place in package)"),
+                            modelObject=doc, fileName=doc.basename)
                 else: # non-consolidated
                     if docTypeMatch:
                         if not docTypeMatch.group(1) or docTypeMatch.group(1).lower() == "html":
@@ -855,7 +855,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
         unreportedLbElts = set()
         for arcroles, error, checkRoots, lbType in (
                     ((parentChild,), "elements{}UsedForTagging{}AppliedInPresentationLinkbase", True, "presentation"),
-                    ((summationItem,), "elements{}UsedForTagging{}AppliedInCalculationLinkbase", False, "calculation"),
+                    ((summationItems,), "elements{}UsedForTagging{}AppliedInCalculationLinkbase", False, "calculation"),
                     ((hc_all, hc_notAll, dimensionDomain,domainMember), "elements{}UsedForTagging{}AppliedInDefinitionLinkbase", False, "definition")):
             if lbType == "calculation":
                 reportedEltsNotInLb = set(c for c in conceptsUsedByFacts if c.isNumeric)
@@ -865,7 +865,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 for rel in modelXbrl.relationshipSet(arcrole).modelRelationships:
                     fr = rel.fromModelObject
                     to = rel.toModelObject
-                    if arcrole in (parentChild, summationItem):
+                    if arcrole in (parentChild, summationItems):
                         if fr is not None and not fr.isAbstract and fr not in conceptsUsed and isExtension(val, rel):
                             unreportedLbElts.add(fr)
                         if to is not None and not to.isAbstract and to not in conceptsUsed and isExtension(val, rel):

@@ -125,6 +125,7 @@ class RuntimeOptions:
     showEnvironment: Optional[bool] = None
     showOptions: Optional[bool] = None
     skipDTS: Optional[bool] = None
+    skipBaseTaxonomiesValidation: Optional[bool] = None
     skipLoading: Optional[bool] = None
     statusPipe: Optional[str] = None
     tableFile: Optional[str] = None

@@ -323,7 +323,7 @@ class Validate:
                     if archivePath:
                         with self.useFileSource.fs.open(archivePath[1]) as embeddedFile:
                             readMeFirstUriIsEmbeddedZipFile = zipfile.is_zipfile(embeddedFile)
-            if not readMeFirstUriIsEmbeddedZipFile:
+            if not (readMeFirstUriIsEmbeddedZipFile or isReportPackageExtension(readMeFirstUri)):
                 modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager,
                                             readMeFirstUri,
                                             _("validating"),

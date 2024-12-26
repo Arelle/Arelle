@@ -249,7 +249,7 @@ def parseArgs(args):
                       help=_("Skip DTS activities (loading, discovery, validation), useful when an instance needs only to be parsed."))
     parser.add_option("--skipLoading", "--skiploading", action="store", dest="skipLoading",
                       help=_("Skip loading discovered or schemaLocated files matching pattern (unix-style file name patterns separated by '|'), useful when not all linkbases are needed."))
-    parser.add_option("--skipBaseTaxonomiesValidation", "--skipbasetaxonomiesvalidation", action="storeTrue", dest="skipBaseTaxonomiesValidation",
+    parser.add_option("--skipBaseTaxonomiesValidation", "--skipbasetaxonomiesvalidation", action="store_true", dest="skipBaseTaxonomiesValidation",
                       help=_("Skip validation of base taxonomies."))
     parser.add_option("--logFile", "--logfile", action="store", dest="logFile",
                       help=_("Write log messages into file, otherwise they go to standard output.  "
