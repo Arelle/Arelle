@@ -70,6 +70,7 @@ class ModelManager:
         self.validateAllFilesAsReportPackages = False
         self.validateDuplicateFacts = ValidateDuplicateFacts.DuplicateType.NONE
         self.validateXmlOim = False
+        self.skipBaseTaxonomiesValidation = False
         self.setLocale()
         ValidateXbrlCalcs.init() # required due to circular dependencies in module
 
