@@ -262,9 +262,10 @@ def checkDTS(val: ValidateXbrl, modelDocument: ModelDocument.ModelDocument, chec
     val.extendedElementName = None
     isFilingDocument = False
     # validate contents of entry point document or its sibling/descendant documents or in report package of entry point
-    if ((modelDocument.uri.startswith(val.modelXbrl.uriDir) or # document uri in same subtree as entry doocument
-         (val.modelXbrl.fileSource.isOpen and modelDocument.filepath.startswith(val.modelXbrl.fileSource.baseurl))) and # document in entry submission's package
-        modelDocument.targetNamespace not in val.disclosureSystem.baseTaxonomyNamespaces and
+    if ((((modelDocument.uri.startswith(val.modelXbrl.uriDir) or # document uri in same subtree as entry doocument
+          (val.modelXbrl.fileSource.isOpen and modelDocument.filepath.startswith(val.modelXbrl.fileSource.baseurl))) and # document in entry submission's package
+          modelDocument.targetNamespace not in val.disclosureSystem.baseTaxonomyNamespaces)
+         or not val.modelXbrl.modelManager.skipBaseTaxonomiesValidation) and
         modelDocument.xmlDocument):
         isFilingDocument = True
         val.valUsedPrefixes = set()

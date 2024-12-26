@@ -180,6 +180,11 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.validateAllFilesAsReportPackages.trace("w", self.setValidateAllFilesAsReportPackages)
         validateMenu.add_checkbutton(label=_("Validate all files as Report Packages"), underline=0, variable=self.validateAllFilesAsReportPackages, onvalue=True, offvalue=False)
 
+        self.modelManager.skipBaseTaxonomiesValidation = self.config.setdefault("skipBaseTaxonomiesValidation", False)
+        self.skipBaseTaxonomiesValidation = BooleanVar(value=self.modelManager.skipBaseTaxonomiesValidation)
+        self.skipBaseTaxonomiesValidation.trace("w", self.setSkipBaseTaxonomiesValidation)
+        validateMenu.add_checkbutton(label=_("Skip validation of base taxonomies"), underline=0, variable=self.skipBaseTaxonomiesValidation, onvalue=True, offvalue=False)
+
         self.validateDuplicateFacts = None
         self.buildValidateDuplicateFactsMenu(validateMenu)
 
@@ -1418,6 +1423,12 @@ class CntlrWinMain (Cntlr.Cntlr):
     def setValidateAllFilesAsReportPackages(self, *args):
         self.modelManager.validateAllFilesAsReportPackages = self.validateAllFilesAsReportPackages.get()
         self.config["validateAllFilesAsReportPackages"] = self.modelManager.validateAllFilesAsReportPackages
+        self.saveConfig()
+        self.setValidateTooltipText()
+
+    def setSkipBaseTaxonomiesValidation(self, *args):
+        self.modelManager.skipBaseTaxonomiesValidation = self.skipBaseTaxonomiesValidation.get()
+        self.config["skipBaseTaxonomiesValidation"] = self.modelManager.skipBaseTaxonomiesValidation
         self.saveConfig()
         self.setValidateTooltipText()
 
