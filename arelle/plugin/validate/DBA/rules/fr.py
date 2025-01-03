@@ -258,7 +258,7 @@ def rule_fr53(
                     if cvr_facts is None:
                         missing_concepts.append(pluginData.identificationNumberCvrOfAuditFirmQn.localName)
                     if auditor_name_facts is None:
-                        missing_concepts.append(pluginData.identificationNumberCvrOfAuditFirmQn.localName)
+                        missing_concepts.append(pluginData.nameOfAuditFirmQn.localName)
                     if len(missing_concepts) > 0:
                         yield Validation.warning(
                             codes='DBA.FR53',
