@@ -422,7 +422,7 @@ class ModelXbrl:
         else:
             return self.fileSource.url
 
-    def relationshipSet(self, arcrole: tuple[str, ...] | str, linkrole: tuple[str, ...] | str | None = None, linkqname: QName | None = None, arcqname: QName | None = None, includeProhibits: bool = False) -> ModelRelationshipSetClass:
+    def relationshipSet(self, arcrole: tuple[str] | str, linkrole: tuple[str, ...] | str | None = None, linkqname: QName | None = None, arcqname: QName | None = None, includeProhibits: bool = False) -> ModelRelationshipSetClass:
         """Returns a relationship set matching specified parameters (only arcrole is required).
 
         Resolve and determine relationship set.  If a relationship set of the same parameters was previously resolved, it is returned from a cache.
