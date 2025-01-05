@@ -319,7 +319,7 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
                     if esefTaxonomyYear >= 2024:
                         for arc in linkElt.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}calculationArc"):
                             if arc.get("{http://www.w3.org/1999/xlink}arcrole") != "https://xbrl.org/2023/arcrole/summation-item":
-                                val.modelXbrl.error("ESEF.3.4.1.incorrectSummationItemArcroleUsed",
+                                val.modelXbrl.error("ESEF.3.4.1.IncorrectSummationItemArcroleUsed",
                                                     _("Starting from the ESEF 2024 taxonomy, only calculation linkbases using the arcrole 'https://xbrl.org/2023/arcrole/summation-item' are permitted. Arcrole  %(arcrole)s has been found."),
                                                     arcrole=arc.get("{http://www.w3.org/1999/xlink}arcrole"))
                 if linkEltName == "definitionLink":
