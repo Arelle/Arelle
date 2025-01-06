@@ -130,6 +130,12 @@ class ValidationPluginExtension(ValidationPlugin):
                 qname(f'{{{NAMESPACE_FSA}}}CashAndCashEquivalents'),
                 qname(f'{{{NAMESPACE_FSA}}}AssetsMeantForSale'),
             ]),
+            basisForAdverseOpinionDanish='Grundlag for afkræftende konklusion',
+            basisForAdverseOpinionEnglish='Basis for Adverse Opinion',
+            basisForDisclaimerOpinionDanish='Grundlag for manglende konklusion',
+            basisForDisclaimerOpinionEnglish='Basis for Disclaimer of Opinion',
+            basisForQualifiedOpinionDanish='Grundlag for konklusion med forbehold',
+            basisForQualifiedOpinionEnglish='Basis for Qualified Opinion',
             classOfReportingEntityQn=qname(f'{{{NAMESPACE_FSA}}}ClassOfReportingEntity'),
             consolidatedMemberQn=qname(f'{{{NAMESPACE_CMN}}}ConsolidatedMember'),
             consolidatedSoloDimensionQn=qname(f'{{{NAMESPACE_CMN}}}ConsolidatedSoloDimension'),
@@ -137,6 +143,7 @@ class ValidationPluginExtension(ValidationPlugin):
             dateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod=qname(f'{{{NAMESPACE_FSA}}}DateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod'),
             dateOfGeneralMeetingQn=qname(f'{{{NAMESPACE_GSD}}}DateOfGeneralMeeting'),
             descriptionOfQualificationsOfAssuranceEngagementPerformedQn=qname(f'{{{NAMESPACE_ARR}}}DescriptionOfQualificationsOfAssuranceEngagementPerformed'),
+            descriptionsOfQualificationsOfReviewedFinancialStatementsQn=qname(f'{{{NAMESPACE_ARR}}}DescriptionsOfQualificationsOfReviewedFinancialStatements'),
             distributionOfResultsQns=frozenset([
                 qname(f'{{{NAMESPACE_FSA}}}DistributionsResultDistribution'),
                 qname(f'{{{NAMESPACE_FSA}}}ExtraordinaryDistributions'),
@@ -192,6 +199,7 @@ class ValidationPluginExtension(ValidationPlugin):
             taxExpenseOnOrdinaryActivitiesQn=qname(f'{{{NAMESPACE_FSA}}}TaxExpenseOnOrdinaryActivities'),
             taxExpenseQn=qname(f'{{{NAMESPACE_FSA}}}TaxExpense'),
             typeOfAuditorAssistanceQn=qname(f'{{{NAMESPACE_CMN}}}TypeOfAuditorAssistance'),
+            typeOfBasisForModifiedOpinionOnFinancialStatementsReviewQn=qname(f'{{{NAMESPACE_ARR}}}TypeOfBasisForModifiedOpinionOnFinancialStatementsReview'),
             typeOfReportingPeriodDimensionQn=qname(f'{{{NAMESPACE_GSD}}}TypeOfReportingPeriodDimension'),
             wagesAndSalariesQn=qname(f'{{{NAMESPACE_FSA}}}WagesAndSalaries'),
         )

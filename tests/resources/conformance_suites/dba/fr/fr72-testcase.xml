@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.FR72"
+        description="DBA.FR72: Information is missing on modifications to the statement of review."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid" name="Invalid">
+        <description>
+            TypeOfBasisForModifiedOpinionOnFinancialStatementsReview is reported as 'Grundlag for afkræftende konklusion'
+            which indicates that DescriptionsOfQualificationsOfReviewedFinancialStatements should be tagged
+        </description>
+        <data>
+            <instance readMeFirst="true">fr72-invalid.xbrl</instance>
+        </data>
+        <result>
+            <error>DBA.FR72</error>
+        </result>
+    </variation>
+</testcase>
