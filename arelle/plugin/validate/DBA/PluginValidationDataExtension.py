@@ -48,6 +48,7 @@ class PluginValidationDataExtension(PluginData):
     extraordinaryIncomeQn: QName
     extraordinaryResultBeforeTaxQn: QName
     fr37RestrictedText: str
+    hasNotGivenRiseToReservationsText: frozenset[str]
     identificationNumberCvrOfAuditFirmQn: QName
     independentAuditorsReportDanish: str
     independentAuditorsReportEnglish: str

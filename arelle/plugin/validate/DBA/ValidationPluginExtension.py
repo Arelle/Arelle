@@ -172,6 +172,10 @@ class ValidationPluginExtension(ValidationPlugin):
             extraordinaryIncomeQn=qname(f'{{{NAMESPACE_FSA}}}ExtraordinaryIncome'),
             extraordinaryResultBeforeTaxQn=qname(f'{{{NAMESPACE_FSA}}}ExtraordinaryResultBeforeTax'),
             fr37RestrictedText='has not given rise to reservations',
+            hasNotGivenRiseToReservationsText=frozenset([
+                'har ikke givet anledning til forbehold',
+                'has not given rise to reservations',
+            ]),
             identificationNumberCvrOfAuditFirmQn=qname(f'{{{NAMESPACE_CMN}}}IdentificationNumberCvrOfAuditFirm'),
             independentAuditorsReportDanish='Den uafhængige revisors erklæringer (review)',
             independentAuditorsReportEnglish='The independent auditor\'s reports (Review)',
