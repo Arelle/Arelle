@@ -112,6 +112,34 @@ def rule_fr34(
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
+def rule_fr36(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR36: arr:DescriptionsOfQualificationsOfReviewedFinancialStatements must not contain the following text:
+        - 'har ikke givet anledning til forbehold'
+        - 'has not given rise to reservations'
+    """
+    modelXbrl = val.modelXbrl
+    description_facts = modelXbrl.factsByQname.get(pluginData.descriptionsOfQualificationsOfReviewedFinancialStatementsQn)
+    if description_facts is not None:
+        for description_fact in description_facts:
+            if description_fact.xValid >= VALID:
+                for text in pluginData.hasNotGivenRiseToReservationsText:
+                    if text in str(description_fact.xValue):
+                        yield Validation.error(
+                            codes="DBA.FR36",
+                            msg=_("The value of DescriptionsOfQualificationsOfReviewedFinancialStatements must not contain the text: \'{}\'".format(text)),
+                            modelObject=description_fact
+                        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
 def rule_fr37(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
@@ -129,7 +157,7 @@ def rule_fr37(
         for description_fact in description_facts:
             if description_fact.xValid >= VALID:
                 for text in pluginData.hasNotGivenRiseToReservationsText:
-                    if text in description_fact.xValue:
+                    if text in str(description_fact.xValue):
                         yield Validation.error(
                             codes="DBA.FR37",
                             msg=_("The value of DescriptionOfQualificationsOfAssuranceEngagementPerformed must not contain the text: \'{}\'".format(text)),
