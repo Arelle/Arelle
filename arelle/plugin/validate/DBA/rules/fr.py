@@ -112,6 +112,62 @@ def rule_fr34(
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
+def rule_fr36(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR36: arr:DescriptionsOfQualificationsOfReviewedFinancialStatements must not contain the following text:
+        - 'har ikke givet anledning til forbehold'
+        - 'has not given rise to reservations'
+    """
+    modelXbrl = val.modelXbrl
+    description_facts = modelXbrl.factsByQname.get(pluginData.descriptionsOfQualificationsOfReviewedFinancialStatementsQn)
+    if description_facts is not None:
+        for description_fact in description_facts:
+            if description_fact.xValid >= VALID:
+                for text in pluginData.hasNotGivenRiseToReservationsText:
+                    if text in str(description_fact.xValue):
+                        yield Validation.error(
+                            codes="DBA.FR36",
+                            msg=_("The value of DescriptionsOfQualificationsOfReviewedFinancialStatements must not contain the text: \'{}\'".format(text)),
+                            modelObject=description_fact
+                        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr37(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR37: arr:DescriptionOfQualificationsOfAssuranceEngagementPerformed must not contain the following text:
+        - 'har ikke givet anledning til forbehold'
+        - 'has not given rise to reservations'
+    """
+    modelXbrl = val.modelXbrl
+    description_facts = modelXbrl.factsByQname.get(pluginData.descriptionOfQualificationsOfAssuranceEngagementPerformedQn)
+    if description_facts is not None:
+        for description_fact in description_facts:
+            if description_fact.xValid >= VALID:
+                for text in pluginData.hasNotGivenRiseToReservationsText:
+                    if text in str(description_fact.xValue):
+                        yield Validation.error(
+                            codes="DBA.FR37",
+                            msg=_("The value of DescriptionOfQualificationsOfAssuranceEngagementPerformed must not contain the text: \'{}\'".format(text)),
+                            modelObject=description_fact
+                        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
 def rule_fr41(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
@@ -408,6 +464,46 @@ def rule_fr71(
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
+def rule_fr72(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR72: If the value of arr:TypeOfBasisForModifiedOpinionOnFinancialStatementsReview is set to one of the following:
+        Grundlag for konklusion med forbehold // Basis for Qualified Opinion
+        Grundlag for afkræftende konklusion // Basis for Adverse Opinion
+        Grundlag for manglende konklusion // Basis for Disclaimer of Opinion
+    then arr:DescriptionsOfQualificationsOfReviewedFinancialStatements must be tagged.
+    """
+    modelXbrl = val.modelXbrl
+    review_facts = modelXbrl.factsByQname.get(pluginData.typeOfBasisForModifiedOpinionOnFinancialStatementsReviewQn)
+    if review_facts is not None:
+        for review_fact in review_facts:
+            if review_fact.xValid >= VALID and review_fact.xValue in [
+                pluginData.basisForAdverseOpinionDanish,
+                pluginData.basisForAdverseOpinionEnglish,
+                pluginData.basisForDisclaimerOpinionDanish,
+                pluginData.basisForDisclaimerOpinionEnglish,
+                pluginData.basisForQualifiedOpinionDanish,
+                pluginData.basisForQualifiedOpinionEnglish,
+            ]:
+                description_facts = modelXbrl.factsByQname.get(pluginData.descriptionsOfQualificationsOfReviewedFinancialStatementsQn)
+                if description_facts is None:
+                    yield Validation.warning(
+                        codes='DBA.FR72',
+                        msg=_("DescriptionsOfQualificationsOfReviewedFinancialStatements must be tagged when {} is tagged with the value of {}").format(
+                            pluginData.typeOfBasisForModifiedOpinionOnFinancialStatementsReviewQn.localName,
+                            review_fact.xValue
+                        ),
+                        modelObject=review_fact
+                    )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
 def rule_fr74(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
@@ -456,6 +552,39 @@ def rule_fr74(
                     modelObject=[equityFact, liabilityFact, liabilityOtherFact]
                 )
 
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr75(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR75: The company must provide information on the number of employees. The rule is activated if personnel costs (fsa:EmployeeBenefitsExpense) or salaries (fsa:WagesAndSalaries) are greater
+    than DKK 200,000, and no number of employees (fsa:AverageNumberOfEmployees) has been specified.
+    """
+    groupedFacts = getFactsGroupedByContextId(val.modelXbrl, pluginData.employeeBenefitsExpenseQn, pluginData.wagesAndSalariesQn, pluginData.averageNumberOfEmployeesQn)
+    for contextID, facts in groupedFacts.items():
+        benefitsFact = None
+        wagesFact = None
+        employeesFact = None
+        for fact in facts:
+            if fact.qname == pluginData.employeeBenefitsExpenseQn and fact.unit.id == DANISH_CURRENCY_ID and fact.xValid >= VALID and cast(decimal.Decimal, fact.xValue) >= PERSONNEL_EXPENSE_THRESHOLD:
+                benefitsFact = fact
+            elif fact.qname == pluginData.wagesAndSalariesQn and fact.unit.id == DANISH_CURRENCY_ID and fact.xValid >= VALID and cast(decimal.Decimal, fact.xValue) >= PERSONNEL_EXPENSE_THRESHOLD:
+                wagesFact = fact
+            elif fact.qname == pluginData.averageNumberOfEmployeesQn and fact.xValid >= VALID and cast(decimal.Decimal, fact.xValue) > 0:
+                employeesFact = fact
+        if (benefitsFact is not None or wagesFact is not None) and employeesFact is None:
+            yield Validation.error(
+                codes="DBA.FR75",
+                msg=_("The company must provide information on the number of employees. The rule is activated if personnel costs (fsa:EmployeeBenefitsExpense) "
+                      "or salaries (fsa:WagesAndSalaries) are greater than DKK 200,000, and no number of employees (fsa:AverageNumberOfEmployees) has been specified."),
+                modelObject=[benefitsFact, wagesFact]
+            )
 
 
 @validation(
@@ -507,40 +636,6 @@ def rule_fr77(
                     liabilities=liabilityFact.effectiveValue,
                     shortLiabilities=shortLiabilityFact.effectiveValue,
                     modelObject=[equityFact, liabilityFact, shortLiabilityFact]
-                )
-
-
-@validation(
-    hook=ValidationHook.XBRL_FINALLY,
-)
-def rule_fr75(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
-        *args: Any,
-        **kwargs: Any,
-) -> Iterable[Validation]:
-    """
-    DBA.FR75: The company must provide information on the number of employees. The rule is activated if personnel costs (fsa:EmployeeBenefitsExpense) or salaries (fsa:WagesAndSalaries) are greater
-    than DKK 200,000, and no number of employees (fsa:AverageNumberOfEmployees) has been specified.
-    """
-    groupedFacts = getFactsGroupedByContextId(val.modelXbrl, pluginData.employeeBenefitsExpenseQn, pluginData.wagesAndSalariesQn, pluginData.averageNumberOfEmployeesQn)
-    for contextID, facts in groupedFacts.items():
-        benefitsFact = None
-        wagesFact = None
-        employeesFact = None
-        for fact in facts:
-            if fact.qname == pluginData.employeeBenefitsExpenseQn and fact.unit.id == DANISH_CURRENCY_ID and fact.xValid >= VALID and cast(decimal.Decimal, fact.xValue) >= PERSONNEL_EXPENSE_THRESHOLD:
-                benefitsFact = fact
-            elif fact.qname == pluginData.wagesAndSalariesQn and fact.unit.id == DANISH_CURRENCY_ID and fact.xValid >= VALID and cast(decimal.Decimal, fact.xValue) >= PERSONNEL_EXPENSE_THRESHOLD:
-                wagesFact = fact
-            elif fact.qname == pluginData.averageNumberOfEmployeesQn and fact.xValid >= VALID and cast(decimal.Decimal, fact.xValue) > 0:
-                employeesFact = fact
-        if (benefitsFact is not None or wagesFact is not None) and employeesFact is None:
-                yield Validation.error(
-                    codes="DBA.FR75",
-                    msg=_("The company must provide information on the number of employees. The rule is activated if personnel costs (fsa:EmployeeBenefitsExpense) "
-                          "or salaries (fsa:WagesAndSalaries) are greater than DKK 200,000, and no number of employees (fsa:AverageNumberOfEmployees) has been specified."),
-                    modelObject=[benefitsFact, wagesFact]
                 )
 
 

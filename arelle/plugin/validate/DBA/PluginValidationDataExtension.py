@@ -27,6 +27,12 @@ class PluginValidationDataExtension(PluginData):
     auditedNonAssuranceReportsEnglish: str
     averageNumberOfEmployeesQn: QName
     balanceSheetQnLessThanOrEqualToAssets: frozenset[QName]
+    basisForAdverseOpinionDanish: str
+    basisForAdverseOpinionEnglish: str
+    basisForDisclaimerOpinionDanish: str
+    basisForDisclaimerOpinionEnglish: str
+    basisForQualifiedOpinionDanish: str
+    basisForQualifiedOpinionEnglish: str
     classOfReportingEntityQn: QName
     consolidatedMemberQn: QName
     consolidatedSoloDimensionQn: QName
@@ -34,6 +40,7 @@ class PluginValidationDataExtension(PluginData):
     dateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod: QName
     dateOfGeneralMeetingQn: QName
     descriptionOfQualificationsOfAssuranceEngagementPerformedQn: QName
+    descriptionsOfQualificationsOfReviewedFinancialStatementsQn: QName
     distributionOfResultsQns: frozenset[QName]
     employeeBenefitsExpenseQn: QName
     equityQn: QName
@@ -41,6 +48,7 @@ class PluginValidationDataExtension(PluginData):
     extraordinaryIncomeQn: QName
     extraordinaryResultBeforeTaxQn: QName
     fr37RestrictedText: str
+    hasNotGivenRiseToReservationsText: frozenset[str]
     identificationNumberCvrOfAuditFirmQn: QName
     independentAuditorsReportDanish: str
     independentAuditorsReportEnglish: str
@@ -68,6 +76,7 @@ class PluginValidationDataExtension(PluginData):
     taxExpenseOnOrdinaryActivitiesQn: QName
     taxExpenseQn: QName
     typeOfAuditorAssistanceQn: QName
+    typeOfBasisForModifiedOpinionOnFinancialStatementsReviewQn: QName
     typeOfReportingPeriodDimensionQn: QName
     wagesAndSalariesQn: QName
 

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.FR37"
+        description="DBA.FR37: arr:DescriptionOfQualificationsOfAssuranceEngagementPerformed must not contain the
+                    following text: 'har ikke givet anledning til forbehold' or 'has not given rise to reservations'."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid" name="Invalid">
+        <description>
+            DescriptionOfQualificationsOfAssuranceEngagementPerformed contains 'has not given rise to reservations'
+        </description>
+        <data>
+            <instance readMeFirst="true">fr37-invalid.xbrl</instance>
+        </data>
+        <result>
+            <error>DBA.FR37</error>
+        </result>
+    </variation>
+</testcase>
