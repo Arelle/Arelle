@@ -57,6 +57,7 @@ class PluginValidationDataExtension(PluginData):
     liabilitiesAndEquityQn: QName
     liabilitiesOtherThanProvisionsQn: QName
     longtermLiabilitiesOtherThanProvisionsQn: QName
+    managementEndorsementQns: frozenset[QName]
     noncurrentAssetsQn: QName
     nameAndSurnameOfChairmanOfGeneralMeetingQn: QName
     nameOfAuditFirmQn: QName

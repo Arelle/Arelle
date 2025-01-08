@@ -76,6 +76,36 @@ def rule_fr7(
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
+def rule_fr20(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR20: The annual report is missing a management endorsement. An annual report must always contain a management
+    endorsement if the company has more than one management member or if the company prepares an annual report according
+    to accounting class D.
+    """
+    modelXbrl = val.modelXbrl
+    for concept_qn in pluginData.managementEndorsementQns:
+        facts = modelXbrl.factsByQname.get(concept_qn)
+        if facts is not None:
+            for fact in facts:
+                if fact.xValid >= VALID and not fact.isNil:
+                    return
+    yield Validation.error(
+        codes="DBA.FR20",
+        msg=_("The annual report does not contain a management endorsement. Please tag one of the following elements: {}".format(
+            [qn.localName for qn in pluginData.managementEndorsementQns]
+        )),
+        modelObject=val.modelXbrl.modelDocument
+    )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
 def rule_fr34(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
