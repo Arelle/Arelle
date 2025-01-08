@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.FR25"
+        description="DBA.FR25: arr:DescriptionOfQualificationsOfFinancialStatementsExtendedReview must not contain the
+                    following text: 'har ikke givet anledning til forbehold' or 'has not given rise to reservations'
+                    when cmn:TypeOfAuditorAssistance is 'Erklæring om udvidet gennemgang' or 'Auditor's report on
+                    extended review'."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid" name="Invalid">
+        <description>
+            DescriptionOfQualificationsOfFinancialStatementsExtendedReview contains 'har ikke givet anledning til forbehold'
+        </description>
+        <data>
+            <instance readMeFirst="true">fr25-invalid.xbrl</instance>
+        </data>
+        <result>
+            <error>DBA.FR25</error>
+        </result>
+    </variation>
+</testcase>

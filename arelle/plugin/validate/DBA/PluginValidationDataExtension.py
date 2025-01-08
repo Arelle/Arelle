@@ -41,6 +41,7 @@ class PluginValidationDataExtension(PluginData):
     dateOfGeneralMeetingQn: QName
     descriptionOfQualificationsOfAssuranceEngagementPerformedQn: QName
     descriptionOfQualificationsOfAuditedFinancialStatementsQn: QName
+    descriptionOfQualificationsOfFinancialStatementsExtendedReviewQn: QName
     descriptionsOfQualificationsOfReviewedFinancialStatementsQn: QName
     distributionOfResultsQns: frozenset[QName]
     employeeBenefitsExpenseQn: QName
