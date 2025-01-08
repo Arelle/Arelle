@@ -65,6 +65,8 @@
             "https://www.xbrl.org/lrr/",
             "http://www.xbrl.org/utr/",
             "https://www.xbrl.org/utr/",
+            "http://xbrl.org/2020/extensible-enumerations-2.0",
+            "https://xbrl.org/2020/extensible-enumerations-2.0",
             "http://www.w3.org/1999/xlink/",
             "https://www.w3.org/1999/xlink/"
         ],
@@ -143,7 +145,9 @@
         ],
         "effectiveTaxonomyURLs": [
             "http://www.esma.europa.eu/taxonomy/2022-03-24/esef_cor.xsd",
-            "https://www.esma.europa.eu/taxonomy/2022-03-24/esef_cor.xsd"
+            "https://www.esma.europa.eu/taxonomy/2022-03-24/esef_cor.xsd",
+            "http://www.esma.europa.eu/taxonomy/2024-03-27/esef_cor.xsd",
+            "https://www.esma.europa.eu/taxonomy/2024-03-27/esef_cor.xsd"
         ]
     },
     "AT": {
