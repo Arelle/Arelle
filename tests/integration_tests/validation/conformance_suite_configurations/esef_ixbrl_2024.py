@@ -9,7 +9,7 @@ from tests.integration_tests.validation.conformance_suite_config import (
 
 config = ConformanceSuiteConfig(
     args=[
-        '--disclosureSystem', 'esef-2024-draft',
+        '--disclosureSystem', 'esef-2024',
     ],
     assets=[
         ConformanceSuiteAssetConfig.conformance_suite(

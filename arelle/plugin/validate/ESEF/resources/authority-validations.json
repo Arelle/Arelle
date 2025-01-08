@@ -132,7 +132,7 @@
             "https://www.esma.europa.eu/taxonomy/2022-03-24/esef_cor.xsd"
         ]
     },
-    "ESEF-2024-DRAFT": {
+    "ESEF-2024": {
         "outdatedTaxonomyURLs": [
             "http://www.esma.europa.eu/taxonomy/2017-03-31/esef_cor.xsd",
             "https://www.esma.europa.eu/taxonomy/2017-03-31/esef_cor.xsd",
