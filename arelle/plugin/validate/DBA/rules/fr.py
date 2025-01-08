@@ -111,6 +111,35 @@ def rule_fr34(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+ )
+def rule_fr35(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR35: The annual report does not contain a section on applied accounting practices. The annual report must
+    contain a section on the accounting practices used.
+    """
+    modelXbrl = val.modelXbrl
+    for concept_qn in pluginData.accountingPolicyConceptQns:
+        facts = modelXbrl.factsByQname.get(concept_qn)
+        if facts is not None:
+            for fact in facts:
+                if fact.xValid >= VALID and not fact.isNil:
+                    return
+    yield Validation.error(
+        codes="DBA.FR35",
+        msg=_("The annual report does not contain information on applied accounting practices. Please tag one of the following elements: {}".format(
+            [qn.localName for qn in pluginData.accountingPolicyConceptQns]
+        )),
+        modelObject=val.modelXbrl.modelDocument
+    )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
 )
 def rule_fr36(
         pluginData: PluginValidationDataExtension,
