@@ -40,6 +40,7 @@ class PluginValidationDataExtension(PluginData):
     dateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod: QName
     dateOfGeneralMeetingQn: QName
     descriptionOfQualificationsOfAssuranceEngagementPerformedQn: QName
+    descriptionOfQualificationsOfAuditedFinancialStatementsQn: QName
     descriptionsOfQualificationsOfReviewedFinancialStatementsQn: QName
     distributionOfResultsQns: frozenset[QName]
     employeeBenefitsExpenseQn: QName
