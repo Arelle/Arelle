@@ -41,6 +41,19 @@ INF = float("inf")
 RETRIEVAL_RETRY_COUNT = 5
 HTTP_USER_AGENT = 'Mozilla/5.0 (Arelle/{}) Email/NotRegistered@arelle.org'.format(__version__)
 
+# The xbrl.org server accepts requests for both http and https as well as with or without the WWW subdomain.
+# Don't require duplicating these files in the cache.
+_XBRL_ORG_URL_PREFIXES = frozenset([
+    "http://www.xbrl.org/",
+    "http://xbrl.org/",
+    "https://www.xbrl.org/",
+    "https://xbrl.org/",
+])
+XBRL_ORG_CACHE_REDIRECTS = {
+    prefix: _XBRL_ORG_URL_PREFIXES.difference({prefix})
+    for prefix in _XBRL_ORG_URL_PREFIXES
+}
+
 def proxyDirFmt(httpProxyTuple):
     if isinstance(httpProxyTuple,(tuple,list)) and len(httpProxyTuple) == 5:
         useOsProxy, urlAddr, urlPort, user, password = httpProxyTuple
@@ -338,7 +351,7 @@ class WebCache:
     def encodeForFilename(self, pathpart):
         return self.encodeFileChars.sub(lambda m: '^{0:03}'.format(ord(m.group(0))), pathpart)
 
-    def _fallbackRedirect(self, url: str, originalFilepath: str) -> str:
+    def _fallbackRedirect(self, url: str, originalFilepath: str, cacheDir: str) -> str:
         """
         If the original URL does not map to an existing cache file,
         we'll check each fallback redirect pattern to see if modifying
@@ -357,6 +370,7 @@ class WebCache:
             redirectUrl = toPattern.format(*match[1:])
             redirectFilepath = self.urlToCacheFilepath(
                 redirectUrl,
+                cacheDir,
                 useRedirectFallback=False  # prevent infinite recursion
             )
             if os.path.exists(redirectFilepath):
@@ -376,6 +390,17 @@ class WebCache:
                         level=logging.WARNING,
                     )
                 return redirectFilepath
+        for fromUrlPrefix, toUrlPrefixes in XBRL_ORG_CACHE_REDIRECTS.items():
+            if url.startswith(fromUrlPrefix):
+                for toUrlPrefix in toUrlPrefixes:
+                    redirectFilepath = self.urlToCacheFilepath(
+                        toUrlPrefix + url[len(fromUrlPrefix):],
+                        cacheDir,
+                        useRedirectFallback=False
+                    )
+                    if os.path.exists(redirectFilepath):
+                        return redirectFilepath
+                break
         return originalFilepath
 
     def urlToCacheFilepath(self, url: str, cacheDir: str | None = None, useRedirectFallback: bool = True) -> str:
@@ -406,7 +431,7 @@ class WebCache:
             filepath.append(DIRECTORY_INDEX_FILE)
         joined_filepath = os.sep.join(filepath)
         if useRedirectFallback:
-            return self._fallbackRedirect(url, joined_filepath)
+            return self._fallbackRedirect(url, joined_filepath, cacheDir)
         return joined_filepath
 
     def cacheFilepathToUrl(self, cacheFilepath: str, cacheDir: str | None = None) -> str:
