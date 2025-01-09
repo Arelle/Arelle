@@ -332,7 +332,7 @@ class ModelXbrl:
         self.qnameGroupDefinitions: dict[QName, Any] = {}
         self.qnameTypes: dict[QName, ModelType] = {}  # contains ModelTypes by qname key of type
         self.baseSets: defaultdict[tuple[str, str | None, QName | None, QName | None], list[ModelObject | LinkPrototype]] = defaultdict(list)  # contains ModelLinks for keys arcrole, arcrole#linkrole
-        self.relationshipSets: dict[tuple[str] | tuple[str, tuple[str, ...] | str | None, QName | None, QName | None, bool], ModelRelationshipSetClass] = {}  # contains ModelRelationshipSets by bas set keys
+        self.relationshipSets: dict[tuple[str] | tuple[tuple[str, ...] | str, tuple[str, ...] | str | None, QName | None, QName | None, bool], ModelRelationshipSetClass] = {}  # contains ModelRelationshipSets by bas set keys
         self.qnameDimensionDefaults: dict[QName, QName] = {}  # contains qname of dimension (index) and default member(value)
         self.facts: list[ModelFact] = []
         self.factsInInstance: set[ModelFact] = set()
@@ -422,7 +422,7 @@ class ModelXbrl:
         else:
             return self.fileSource.url
 
-    def relationshipSet(self, arcrole: str, linkrole: tuple[str, ...] | str | None = None, linkqname: QName | None = None, arcqname: QName | None = None, includeProhibits: bool = False) -> ModelRelationshipSetClass:
+    def relationshipSet(self, arcrole: tuple[str, ...] | str, linkrole: tuple[str, ...] | str | None = None, linkqname: QName | None = None, arcqname: QName | None = None, includeProhibits: bool = False) -> ModelRelationshipSetClass:
         """Returns a relationship set matching specified parameters (only arcrole is required).
 
         Resolve and determine relationship set.  If a relationship set of the same parameters was previously resolved, it is returned from a cache.

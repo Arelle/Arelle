@@ -99,7 +99,7 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
         parentChildRelSet = val.modelXbrl.relationshipSet(XbrlConst.parentChild)
         widerNarrowerRelSet = val.modelXbrl.relationshipSet(XbrlConst.widerNarrower)
         generalSpecialRelSet = val.modelXbrl.relationshipSet(XbrlConst.generalSpecial)
-        calcRelSet = val.modelXbrl.relationshipSet(XbrlConst.summationItem)
+        calcRelSet = val.modelXbrl.relationshipSet(XbrlConst.summationItems)
         dimensionDefaults = val.modelXbrl.relationshipSet(dimensionDefault, DefaultDimensionLinkroles)
         labelsRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
         if modelDocument.targetNamespace is not None:
