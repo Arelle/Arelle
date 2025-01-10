@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.FR24"
+        description="DBA.FR24: arr:DescriptionOfQualificationsOfAuditedFinancialStatements must not contain the
+                    following text: 'har ikke givet anledning til forbehold' or 'has not given rise to reservations'
+                    when cmn:TypeOfAuditorAssistance is 'Revisionspåtegning' or 'Auditor's report on audited financial
+                    statements'."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid" name="Invalid">
+        <description>
+            DescriptionOfQualificationsOfAuditedFinancialStatements contains 'har ikke givet anledning til forbehold'
+        </description>
+        <data>
+            <instance readMeFirst="true">fr24-invalid.xbrl</instance>
+        </data>
+        <result>
+            <error>DBA.FR24</error>
+        </result>
+    </variation>
+</testcase>

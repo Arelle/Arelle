@@ -267,6 +267,8 @@ class ValidationPluginExtension(ValidationPlugin):
             dateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod=qname(f'{{{NAMESPACE_FSA}}}DateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod'),
             dateOfGeneralMeetingQn=qname(f'{{{NAMESPACE_GSD}}}DateOfGeneralMeeting'),
             descriptionOfQualificationsOfAssuranceEngagementPerformedQn=qname(f'{{{NAMESPACE_ARR}}}DescriptionOfQualificationsOfAssuranceEngagementPerformed'),
+            descriptionOfQualificationsOfAuditedFinancialStatementsQn=qname(f'{{{NAMESPACE_ARR}}}DescriptionOfQualificationsOfAuditedFinancialStatements'),
+            descriptionOfQualificationsOfFinancialStatementsExtendedReviewQn=qname(f'{{{NAMESPACE_ARR}}}DescriptionOfQualificationsOfFinancialStatementsExtendedReview'),
             descriptionsOfQualificationsOfReviewedFinancialStatementsQn=qname(f'{{{NAMESPACE_ARR}}}DescriptionsOfQualificationsOfReviewedFinancialStatements'),
             distributionOfResultsQns=frozenset([
                 qname(f'{{{NAMESPACE_FSA}}}DistributionsResultDistribution'),

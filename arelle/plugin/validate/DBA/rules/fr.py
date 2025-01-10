@@ -96,11 +96,85 @@ def rule_fr20(
                     return
     yield Validation.error(
         codes="DBA.FR20",
-        msg=_("The annual report does not contain a management endorsement. Please tag one of the following elements: {}".format(
+        msg=_("The annual report does not contain a management endorsement. Please tag one of the following elements: {}").format(
             [qn.localName for qn in pluginData.managementEndorsementQns]
-        )),
+        ),
         modelObject=val.modelXbrl.modelDocument
     )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr24(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR24: When cmn:TypeOfAuditorAssistance is "Revisionspåtegning" or "Auditor's report on audited financial statements"
+    then arr:DescriptionOfQualificationsOfAuditedFinancialStatements must not contain the following text:
+        - 'har ikke givet anledning til forbehold'
+        - 'has not given rise to reservations'
+    """
+    modelXbrl = val.modelXbrl
+    type_of_auditors_assistance_facts = modelXbrl.factsByQname.get(pluginData.typeOfAuditorAssistanceQn)
+    if type_of_auditors_assistance_facts is not None:
+        for auditor_fact in type_of_auditors_assistance_facts:
+            if (auditor_fact.xValid >= VALID and
+                    (auditor_fact.xValue == pluginData.auditedFinancialStatementsDanish or
+                     auditor_fact.xValue == pluginData.auditedFinancialStatementsEnglish)):
+                description_facts = modelXbrl.factsByQname.get(pluginData.descriptionOfQualificationsOfAuditedFinancialStatementsQn)
+                if description_facts is not None:
+                    for description_fact in description_facts:
+                        if description_fact.xValid >= VALID:
+                            for text in pluginData.hasNotGivenRiseToReservationsText:
+                                if text in str(description_fact.xValue):
+                                    yield Validation.error(
+                                        codes="DBA.FR24",
+                                        msg=_("The value of DescriptionOfQualificationsOfAuditedFinancialStatements must not "
+                                              "contain the text: \'{}\', when TypeOfAuditorAssistance is set to \'Revisionspåtegning\' "
+                                              "or \'Auditor's report on audited financial statements\'").format(text),
+                                        modelObject=description_fact
+                                    )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr25(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR25: When cmn:TypeOfAuditorAssistance is "Erklæring om udvidet gennemgang" or "Auditor's report on extended review"
+    then arr:DescriptionOfQualificationsOfFinancialStatementsExtendedReview must not contain the following text:
+        - 'har ikke givet anledning til forbehold'
+        - 'has not given rise to reservations'
+    """
+    modelXbrl = val.modelXbrl
+    type_of_auditors_assistance_facts = modelXbrl.factsByQname.get(pluginData.typeOfAuditorAssistanceQn)
+    if type_of_auditors_assistance_facts is not None:
+        for auditor_fact in type_of_auditors_assistance_facts:
+            if (auditor_fact.xValid >= VALID and
+                    (auditor_fact.xValue == pluginData.auditedExtendedReviewDanish or
+                     auditor_fact.xValue == pluginData.auditedExtendedReviewEnglish)):
+                description_facts = modelXbrl.factsByQname.get(pluginData.descriptionOfQualificationsOfFinancialStatementsExtendedReviewQn)
+                if description_facts is not None:
+                    for description_fact in description_facts:
+                        if description_fact.xValid >= VALID:
+                            for text in pluginData.hasNotGivenRiseToReservationsText:
+                                if text in str(description_fact.xValue):
+                                    yield Validation.error(
+                                        codes="DBA.FR25",
+                                        msg=_("The value of DescriptionOfQualificationsOfFinancialStatementsExtendedReview must not "
+                                              "contain the text: \'{}\', when TypeOfAuditorAssistance is set to \'Erklæring om udvidet "
+                                              "gennemgang\' or \'Auditor's report on extended review\'").format(text),
+                                        modelObject=description_fact
+                                    )
 
 
 @validation(
@@ -161,9 +235,9 @@ def rule_fr35(
                     return
     yield Validation.error(
         codes="DBA.FR35",
-        msg=_("The annual report does not contain information on applied accounting practices. Please tag one of the following elements: {}".format(
+        msg=_("The annual report does not contain information on applied accounting practices. Please tag one of the following elements: {}").format(
             [qn.localName for qn in pluginData.accountingPolicyConceptQns]
-        )),
+        ),
         modelObject=val.modelXbrl.modelDocument
     )
 
