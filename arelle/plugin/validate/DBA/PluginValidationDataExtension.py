@@ -15,6 +15,7 @@ from arelle.utils.PluginData import PluginData
 
 @dataclass
 class PluginValidationDataExtension(PluginData):
+    accountingPolicyConceptQns: frozenset[QName]
     annualReportTypes: frozenset[str]
     assetsQn: QName
     auditedAssuranceReportsDanish: str
