@@ -80,6 +80,19 @@ ESEF_PACKAGES: dict[int, list[ConformanceSuiteAssetConfig]] = {
         ),
         LEI_2020_07_02,
     ],
+    2024: [
+        # https://www.esma.europa.eu/document/esef-taxonomy-2024
+        ConformanceSuiteAssetConfig.public_taxonomy_package(
+            Path('esef_taxonomy_2024.zip'),
+            public_download_url='https://www.esma.europa.eu/sites/default/files/2025-01/esef_taxonomy_2024.zip',
+        ),
+        # https://www.ifrs.org/issued-standards/ifrs-taxonomy/ifrs-accounting-taxonomy-2024/
+        ConformanceSuiteAssetConfig.public_taxonomy_package(
+            Path('IFRSAT-2024-03-27_29.08.24.zip'),
+            public_download_url='https://www.ifrs.org/content/dam/ifrs/standards/taxonomy/ifrs-taxonomies/IFRSAT-2024-03-27_29.08.24.zip'
+        ),
+        LEI_2020_07_02,
+    ],
 }
 
 NL_BASE = ConformanceSuiteAssetConfig.public_taxonomy_package(Path('nltaxonomie-nl-20240326.zip'))

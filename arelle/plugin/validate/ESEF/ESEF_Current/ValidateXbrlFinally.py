@@ -40,7 +40,7 @@ from arelle.XbrlConst import (
     notAll as hc_notAll,
     parentChild,
     standardLabel,
-    summationItem,
+    summationItems,
     widerNarrower,
     xhtml,
 )
@@ -855,7 +855,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
         unreportedLbElts = set()
         for arcroles, error, checkRoots, lbType in (
                     ((parentChild,), "elements{}UsedForTagging{}AppliedInPresentationLinkbase", True, "presentation"),
-                    ((summationItem,), "elements{}UsedForTagging{}AppliedInCalculationLinkbase", False, "calculation"),
+                    ((summationItems,), "elements{}UsedForTagging{}AppliedInCalculationLinkbase", False, "calculation"),
                     ((hc_all, hc_notAll, dimensionDomain,domainMember), "elements{}UsedForTagging{}AppliedInDefinitionLinkbase", False, "definition")):
             if lbType == "calculation":
                 reportedEltsNotInLb = set(c for c in conceptsUsedByFacts if c.isNumeric)
@@ -865,7 +865,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 for rel in modelXbrl.relationshipSet(arcrole).modelRelationships:
                     fr = rel.fromModelObject
                     to = rel.toModelObject
-                    if arcrole in (parentChild, summationItem):
+                    if arcrole in (parentChild, summationItems):
                         if fr is not None and not fr.isAbstract and fr not in conceptsUsed and isExtension(val, rel):
                             unreportedLbElts.add(fr)
                         if to is not None and not to.isAbstract and to not in conceptsUsed and isExtension(val, rel):

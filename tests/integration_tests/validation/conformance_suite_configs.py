@@ -9,9 +9,11 @@ from tests.integration_tests.validation.conformance_suite_configurations.efm_reg
 from tests.integration_tests.validation.conformance_suite_configurations.esef_ixbrl_2021 import config as esef_ixbrl_2021
 from tests.integration_tests.validation.conformance_suite_configurations.esef_ixbrl_2022 import config as esef_ixbrl_2022
 from tests.integration_tests.validation.conformance_suite_configurations.esef_ixbrl_2023 import config as esef_ixbrl_2023
+from tests.integration_tests.validation.conformance_suite_configurations.esef_ixbrl_2024 import config as esef_ixbrl_2024
 from tests.integration_tests.validation.conformance_suite_configurations.esef_xhtml_2021 import config as esef_xhtml_2021
 from tests.integration_tests.validation.conformance_suite_configurations.esef_xhtml_2022 import config as esef_xhtml_2022
 from tests.integration_tests.validation.conformance_suite_configurations.esef_xhtml_2023 import config as esef_xhtml_2023
+from tests.integration_tests.validation.conformance_suite_configurations.esef_xhtml_2024 import config as esef_xhtml_2024
 from tests.integration_tests.validation.conformance_suite_configurations.hmrc_current import config as hmrc_current
 from tests.integration_tests.validation.conformance_suite_configurations.kvk_nt16 import config as kvk_nt16
 from tests.integration_tests.validation.conformance_suite_configurations.kvk_nt17 import config as kvk_nt17
@@ -54,9 +56,11 @@ ALL_CONFORMANCE_SUITE_CONFIGS: tuple[ConformanceSuiteConfig, ...] = (
     esef_ixbrl_2021,
     esef_ixbrl_2022,
     esef_ixbrl_2023,
+    esef_ixbrl_2024,
     esef_xhtml_2021,
     esef_xhtml_2022,
     esef_xhtml_2023,
+    esef_xhtml_2024,
     hmrc_current,
     kvk_nt16,
     kvk_nt17,
