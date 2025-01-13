@@ -515,6 +515,41 @@ def rule_fr56(
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
+def rule_fr58(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR58: If fsa:ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportAudit is tagged then one of the following concepts MUST also be tagged:
+    fsa:ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyTheCriminalCodeAndFiscalTaxAndSubsidyLegislationAudit
+    fsa:ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyTheCompaniesActOrEquivalentLegislationThatTheCompanyIsSubjectToAudit
+    fsa:ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyLegislationOnFinancialReportingIncludingAccountingAndStorageOfAccountingRecordsAudit
+    fsa:ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyOtherMattersAudit
+
+    """
+    modelXbrl = val.modelXbrl
+    indicatorFacts = modelXbrl.factsByQname.get(pluginData.reportingResponsibilitiesOnApprovedAuditorsReportAuditQn)
+    if indicatorFacts is not None:
+        for qname in pluginData.declarationObligationQns:
+            facts = modelXbrl.factsByQname.get(qname)
+            if facts is not None:
+                return
+        yield Validation.warning(
+            codes='DBA.FR58',
+            msg=_("When the field 'Declaration obligations according to the declaration order ' (ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportAudit) is completed, "
+                    "one or more of the sub-items below must be indicated: "
+                    "Declaration obligations according to the declaration order, including especially the Criminal Code as well as tax, levy and subsidy legislation (audit) (ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyTheCriminalCodeAndFiscalTaxAndSubsidyLegislationAudit)"
+                    "Declaration obligations according to the declaration order, including especially the company law or similar legislation laid down for the company (audit) (ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyTheCompaniesActOrEquivalentLegislationThatTheCompanyIsSubjectToAudit)"
+                    "Declaration obligations according to the declaration order, including especially the legislation on financial reporting, including on bookkeeping and storage of accounting material (audit) (ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyLegislationOnFinancialReportingIncludingAccountingAndStorageOfAccountingRecordsAudit)"
+                    "Declaration obligations according to the declaration order, including other matters in particular (revision (ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyOtherMattersAudit)"),
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
 def rule_fr63(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,

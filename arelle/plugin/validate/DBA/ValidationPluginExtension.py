@@ -270,6 +270,12 @@ class ValidationPluginExtension(ValidationPlugin):
             dateOfApprovalOfAnnualReportQn=qname(f'{{{NAMESPACE_SOB}}}DateOfApprovalOfAnnualReport'),
             dateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod=qname(f'{{{NAMESPACE_FSA}}}DateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod'),
             dateOfGeneralMeetingQn=qname(f'{{{NAMESPACE_GSD}}}DateOfGeneralMeeting'),
+            declarationObligationQns=frozenset([
+                qname(f'{{{NAMESPACE_ARR}}}ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyTheCriminalCodeAndFiscalTaxAndSubsidyLegislationAudit'),
+                qname(f'{{{NAMESPACE_ARR}}}ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyTheCompaniesActOrEquivalentLegislationThatTheCompanyIsSubjectToAudit'),
+                qname(f'{{{NAMESPACE_ARR}}}ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyLegislationOnFinancialReportingIncludingAccountingAndStorageOfAccountingRecordsAudit'),
+                qname(f'{{{NAMESPACE_ARR}}}ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyOtherMattersAudit'),
+                ]),
             descriptionOfQualificationsOfAssuranceEngagementPerformedQn=qname(f'{{{NAMESPACE_ARR}}}DescriptionOfQualificationsOfAssuranceEngagementPerformed'),
             descriptionOfQualificationsOfAuditedFinancialStatementsQn=qname(f'{{{NAMESPACE_ARR}}}DescriptionOfQualificationsOfAuditedFinancialStatements'),
             descriptionOfQualificationsOfFinancialStatementsExtendedReviewQn=qname(f'{{{NAMESPACE_ARR}}}DescriptionOfQualificationsOfFinancialStatementsExtendedReview'),
@@ -364,6 +370,7 @@ class ValidationPluginExtension(ValidationPlugin):
             registeredReportingPeriodDeviatingFromReportedReportingPeriodDueArbitraryDatesMemberQn=qname(f'{{{NAMESPACE_GSD}}}RegisteredReportingPeriodDeviatingFromReportedReportingPeriodDueArbitraryDatesMember'),
             reportingPeriodEndDateQn=qname(f'{{{NAMESPACE_GSD}}}ReportingPeriodEndDate'),
             reportingPeriodStartDateQn=qname(f'{{{NAMESPACE_GSD}}}ReportingPeriodStartDate'),
+            reportingResponsibilitiesOnApprovedAuditorsReportAuditQn=qname(f'{{{NAMESPACE_ARR}}}ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsAudit'),
             reportingResponsibilitiesOnApprovedAuditorsReportsExtendedReviewQn=qname(f'{{{NAMESPACE_ARR}}}ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsExtendedReview'),
             reportingObligationQns = frozenset([
                 qname(f'{{{NAMESPACE_ARR}}}ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyTheCriminalCodeAndFiscalTaxAndSubsidyLegislationExtendedReview'),
