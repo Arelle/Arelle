@@ -6,7 +6,7 @@ OpenPyXL==3.1.5
 pyparsing==3.2.1
 regex==2024.11.6
 isodate==0.7.2
-aniso8601==9.0.1
+aniso8601==10.0.0
 CherryPy==18.10.0
 Cheroot==10.0.1
 python-dateutil==2.9.0.post0
@@ -17,7 +17,7 @@ NumPy==2.0.2 ; python_version <= "3.9"
 NumPy==2.2.0 ; python_version > "3.9"
 Matplotlib==3.9.4 ; python_version <= "3.9"
 Matplotlib==3.10.0 ; python_version > "3.9"
-holidays==0.63
+holidays==0.64
 pytz==2024.2
 Tornado==6.4.2
 # security plugin
@@ -27,7 +27,7 @@ cx_Oracle==8.3.0
 pg8000==1.31.2
 PyMySQL==1.1.1
 pyodbc==5.2.0
-RDFLib==7.1.1
+RDFLib==7.1.2
 # other
 graphviz==0.20.3
 Pillow==11.1.0
