@@ -58,7 +58,7 @@ jobs:
           pytest -s --disable-warnings --name="${{ matrix.name }}" --download-cache --offline --arelle="python arelleCmdLine.py" tests/integration_tests/scripts/test_scripts.py
       - name: Upload test artifacts
         if: always()
-        uses: actions/upload-artifact@v4.5.0
+        uses: actions/upload-artifact@v4.6.0
         with:
           name: ${{ matrix.name }}_${{ matrix.os }}_${{ matrix.python-version }}_logs
           if-no-files-found: error
