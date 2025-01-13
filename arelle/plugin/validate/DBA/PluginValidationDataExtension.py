@@ -5,7 +5,9 @@ from __future__ import annotations
 
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import cast, Pattern
+from typing import cast
+
+import regex
 
 from arelle.ModelInstanceObject import ModelFact, ModelContext
 from arelle.ModelValue import QName
@@ -37,7 +39,7 @@ class PluginValidationDataExtension(PluginData):
     classOfReportingEntityQn: QName
     consolidatedMemberQn: QName
     consolidatedSoloDimensionQn: QName
-    cpr_regex: Pattern[str]
+    cpr_regex: regex.regex.Pattern[str]
     dateOfApprovalOfAnnualReportQn: QName
     dateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod: QName
     dateOfGeneralMeetingQn: QName
