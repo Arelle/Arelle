@@ -73,6 +73,7 @@ class PluginValidationDataExtension(PluginData):
     proposedDividendRecognisedInEquityQn: QName
     proposedExtraordinaryDividendRecognisedInLiabilitiesQn: QName
     provisionsQn: QName
+    registeredReportingPeriodDeviatingFromReportedReportingPeriodDueArbitraryDatesMemberQn: QName
     reportingPeriodEndDateQn: QName
     reportingPeriodStartDateQn: QName
     shorttermLiabilitiesOtherThanProvisionsQn: QName

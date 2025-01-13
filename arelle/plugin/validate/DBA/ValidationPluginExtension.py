@@ -357,6 +357,7 @@ class ValidationPluginExtension(ValidationPlugin):
             proposedDividendRecognisedInEquityQn=qname(f'{{{NAMESPACE_FSA}}}ProposedDividendRecognisedInEquity'),
             proposedExtraordinaryDividendRecognisedInLiabilitiesQn=qname(f'{{{NAMESPACE_FSA}}}ProposedExtraordinaryDividendRecognisedInLiabilities'),
             provisionsQn=qname(f'{{{NAMESPACE_FSA}}}Provisions'),
+            registeredReportingPeriodDeviatingFromReportedReportingPeriodDueArbitraryDatesMemberQn=qname(f'{{{NAMESPACE_GSD}}}RegisteredReportingPeriodDeviatingFromReportedReportingPeriodDueArbitraryDatesMember'),
             reportingPeriodEndDateQn=qname(f'{{{NAMESPACE_GSD}}}ReportingPeriodEndDate'),
             reportingPeriodStartDateQn=qname(f'{{{NAMESPACE_GSD}}}ReportingPeriodStartDate'),
             shorttermLiabilitiesOtherThanProvisionsQn=qname(f'{{{NAMESPACE_FSA}}}ShorttermLiabilitiesOtherThanProvisions'),
