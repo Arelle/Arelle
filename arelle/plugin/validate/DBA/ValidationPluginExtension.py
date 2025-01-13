@@ -9,7 +9,7 @@ from arelle.typing import TypeGetText
 from arelle.utils.validate.ValidationPlugin import ValidationPlugin
 from .PluginValidationDataExtension import PluginValidationDataExtension
 
-import re
+import regex as re
 
 _: TypeGetText
 

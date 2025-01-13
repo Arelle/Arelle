@@ -39,7 +39,7 @@ def rule_tc02(
     if possible_cpr_values:
         yield Validation.warning(
             'DBA.TC02',
-            'The value of a typed dimension looks like a CPR number. Please check the number and verify that it is not '
-            'a CPR number as CPR numbers must not be used in typed dimension values.',
+            _('The value of a typed dimension looks like a CPR number. Please check the number and verify that it is not '
+            'a CPR number as CPR numbers must not be used in typed dimension values.'),
             modelObject=possible_cpr_values
         )
