@@ -21,6 +21,38 @@ from ..ValidationPluginExtension import DANISH_CURRENCY_ID, ROUNDING_MARGIN, PER
 
 _: TypeGetText
 
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_tm32(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.TM33: ReportingPeriodStartDate with the dimension of
+    TypeOfReportingPeriodDimension:RegisteredReportingPeriodDeviatingFromReportedReportingPeriodDueArbitraryDatesMember
+    must only be tagged once.
+    """
+    modelXbrl = val.modelXbrl
+    valid_facts = []
+    end_date_facts = modelXbrl.factsByQname.get(pluginData.reportingPeriodStartDateQn)
+    if end_date_facts is not None:
+        for fact in end_date_facts:
+            member = fact.context.qnameDims.get(pluginData.typeOfReportingPeriodDimensionQn)
+            if member is not None and member.memberQname == pluginData.registeredReportingPeriodDeviatingFromReportedReportingPeriodDueArbitraryDatesMemberQn:
+                valid_facts.append(fact)
+        if len(valid_facts) > 1:
+            yield Validation.error(
+                'DBA.TM32',
+                _('ReportingPeriodStartDate with the dimension of TypeOfReportingPeriodDimension:RegisteredReportingPeriodDeviatingFromReportedReportingPeriodDueArbitraryDatesMember '
+                  'must only be tagged once. {} facts were found.').format(len(valid_facts)),
+                modelObject=valid_facts
+            )
+
+
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
