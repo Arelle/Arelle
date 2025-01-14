@@ -39,6 +39,7 @@ class PluginValidationDataExtension(PluginData):
     consolidatedMemberQn: QName
     consolidatedSoloDimensionQn: QName
     dateOfApprovalOfAnnualReportQn: QName
+    dateOfApprovalOfReportQn: QName
     dateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod: QName
     dateOfGeneralMeetingQn: QName
     descriptionOfQualificationsOfAssuranceEngagementPerformedQn: QName

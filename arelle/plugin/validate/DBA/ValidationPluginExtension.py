@@ -265,6 +265,7 @@ class ValidationPluginExtension(ValidationPlugin):
             consolidatedMemberQn=qname(f'{{{NAMESPACE_CMN}}}ConsolidatedMember'),
             consolidatedSoloDimensionQn=qname(f'{{{NAMESPACE_CMN}}}ConsolidatedSoloDimension'),
             dateOfApprovalOfAnnualReportQn=qname(f'{{{NAMESPACE_SOB}}}DateOfApprovalOfAnnualReport'),
+            dateOfApprovalOfReportQn=qname(f'{{{NAMESPACE_GSD}}}DateOfApprovalOfReport'),
             dateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod=qname(f'{{{NAMESPACE_FSA}}}DateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod'),
             dateOfGeneralMeetingQn=qname(f'{{{NAMESPACE_GSD}}}DateOfGeneralMeeting'),
             descriptionOfQualificationsOfAssuranceEngagementPerformedQn=qname(f'{{{NAMESPACE_ARR}}}DescriptionOfQualificationsOfAssuranceEngagementPerformed'),
