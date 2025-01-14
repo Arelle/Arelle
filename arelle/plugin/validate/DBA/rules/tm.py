@@ -25,6 +25,21 @@ _: TypeGetText
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
+def rule_tm12(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.TM12: gsd:IdentificationNumberCvrOfReportingEntity must be specified
+    """
+    return errorOnMandatoryFacts(val.modelXbrl, pluginData.identificationNumberCvrOfReportingEntityQn, 'DBA.TM12')
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
 def rule_tm13(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
