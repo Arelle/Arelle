@@ -18,6 +18,7 @@ from arelle.utils.PluginData import PluginData
 @dataclass
 class PluginValidationDataExtension(PluginData):
     accountingPolicyConceptQns: frozenset[QName]
+    allReportingPeriodsMemberQn: QName
     annualReportTypes: frozenset[str]
     assetsQn: QName
     auditedAssuranceReportsDanish: str
@@ -76,6 +77,7 @@ class PluginValidationDataExtension(PluginData):
     proposedDividendRecognisedInEquityQn: QName
     proposedExtraordinaryDividendRecognisedInLiabilitiesQn: QName
     provisionsQn: QName
+    registeredReportingPeriodDeviatingFromReportedReportingPeriodDueArbitraryDatesMemberQn: QName
     reportingPeriodEndDateQn: QName
     reportingPeriodStartDateQn: QName
     shorttermLiabilitiesOtherThanProvisionsQn: QName
