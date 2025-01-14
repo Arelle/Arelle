@@ -308,7 +308,6 @@ class ValidationPluginExtension(ValidationPlugin):
             ]),
             identificationNumberCvrOfAuditFirmQn=qname(f'{{{NAMESPACE_CMN}}}IdentificationNumberCvrOfAuditFirm'),
             identificationNumberCvrOfReportingEntityQn=qname(f'{{{NAMESPACE_GSD}}}IdentificationNumberCvrOfReportingEntity'),
-            identificationNumberGreenlandRegnrOfReportingEntityQn=qname(f'{{{NAMESPACE_GSD}}}IdentificationNumberGreenlandRegnrOfReportingEntity'),
             independentAuditorsReportDanish='Den uafhængige revisors erklæringer (review)',
             independentAuditorsReportEnglish='The independent auditor\'s reports (Review)',
             informationOnTypeOfSubmittedReportQn=qname(f'{{{NAMESPACE_GSD}}}InformationOnTypeOfSubmittedReport'),

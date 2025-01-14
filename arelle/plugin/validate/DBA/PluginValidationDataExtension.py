@@ -58,7 +58,6 @@ class PluginValidationDataExtension(PluginData):
     hasNotGivenRiseToReservationsText: frozenset[str]
     identificationNumberCvrOfAuditFirmQn: QName
     identificationNumberCvrOfReportingEntityQn: QName
-    identificationNumberGreenlandRegnrOfReportingEntityQn: QName
     independentAuditorsReportDanish: str
     independentAuditorsReportEnglish: str
     informationOnTypeOfSubmittedReportQn: QName
