@@ -10,7 +10,7 @@ from typing import Any
 
 from arelle.Version import authorLabel, copyrightLabel
 from .ValidationPluginExtension import ValidationPluginExtension
-from .rules import fr, tm
+from .rules import fr, tc, tm
 
 PLUGIN_NAME = "Validate DBA"
 DISCLOSURE_SYSTEM_VALIDATION_TYPE = "DBA"
@@ -20,7 +20,7 @@ validationPlugin = ValidationPluginExtension(
     name=PLUGIN_NAME,
     disclosureSystemConfigUrl=Path(__file__).parent / "resources" / "config.xml",
     validationTypes=[DISCLOSURE_SYSTEM_VALIDATION_TYPE],
-    validationRuleModules=[fr, tm],
+    validationRuleModules=[fr, tc, tm],
 )
 
 
