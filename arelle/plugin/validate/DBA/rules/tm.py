@@ -173,6 +173,21 @@ def rule_tm24(
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
+def rule_tm25(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.TM25: gsd:AddressOfSubmittingEnterpriseStreetAndNumber must be specified
+    """
+    return errorOnMandatoryFacts(val.modelXbrl, pluginData.addressOfSubmittingEnterpriseStreetAndNumberQn, 'DBA.TM25')
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
 def rule_tm26(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
