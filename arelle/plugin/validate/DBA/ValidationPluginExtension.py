@@ -307,6 +307,7 @@ class ValidationPluginExtension(ValidationPlugin):
                 'has not given rise to reservations',
             ]),
             identificationNumberCvrOfAuditFirmQn=qname(f'{{{NAMESPACE_CMN}}}IdentificationNumberCvrOfAuditFirm'),
+            identificationNumberCvrOfReportingEntityQn=qname(f'{{{NAMESPACE_GSD}}}IdentificationNumberCvrOfReportingEntity'),
             identificationNumberGreenlandRegnrOfReportingEntityQn=qname(f'{{{NAMESPACE_GSD}}}IdentificationNumberGreenlandRegnrOfReportingEntity'),
             independentAuditorsReportDanish='Den uafhængige revisors erklæringer (review)',
             independentAuditorsReportEnglish='The independent auditor\'s reports (Review)',
