@@ -85,6 +85,28 @@ def rule_tm20(
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
+def rule_tm30(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.TM30: gsd:DateOfGeneralMeeting must only be tagged once if tagged
+    """
+    modelXbrl = val.modelXbrl
+    facts = modelXbrl.factsByQname.get(pluginData.dateOfGeneralMeetingQn)
+    if facts is not None and len(facts) > 1:
+        yield Validation.error(
+            'DBA.TM31',
+            _('DateOfGeneralMeeting must only be tagged once. {} facts were found.').format(len(facts)),
+            modelObject=facts
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
 def rule_tm31(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,

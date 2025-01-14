@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.TM30"
+        description="DBA.TM30: DateOfGeneralMeeting must only be tagged once."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid" name="Invalid">
+        <description>
+            DateOfGeneralMeeting is tagged twice with two different values
+        </description>
+        <data>
+            <instance readMeFirst="true">tm30-invalid.xbrl</instance>
+        </data>
+        <result>
+            <error>DBA.TM30</error>
+        </result>
+    </variation>
+</testcase>
