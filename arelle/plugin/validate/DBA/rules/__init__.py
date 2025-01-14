@@ -12,9 +12,13 @@ from arelle.ModelDocument import ModelDocument
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import ModelXbrl
-from arelle.XmlValidateConst import VALID
+from arelle.typing import TypeGetText
 from arelle.utils.validate.Validation import Validation
 from arelle.ValidateXbrl import ValidateXbrl
+from arelle.XmlValidateConst import VALID
+
+
+_: TypeGetText
 
 
 def errorOnDateFactComparison(
@@ -51,6 +55,23 @@ def errorOnDateFactComparison(
             modelObject=[fact1, fact2],
             fact1=fact1.xValue,
             fact2=fact2.xValue,
+        )
+
+
+def errorOnMultipleFacts(
+        modelXbrl: ModelXbrl,
+        factQn: QName,
+        code: str,
+) -> Iterable[Validation]:
+    """
+    Yields an error if the specified QName appears on more than one fact
+    """
+    facts = modelXbrl.factsByQname.get(factQn)
+    if facts is not None and len(facts) > 1:
+        yield Validation.error(
+            code,
+            _('{} must only be tagged once. {} facts were found.').format(factQn.localName, len(facts)),
+            modelObject=facts
         )
 
 

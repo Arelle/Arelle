@@ -152,6 +152,8 @@ class ValidationPluginExtension(ValidationPlugin):
                 qname(f'{{{NAMESPACE_FSA}}}InformationOnUncertaintiesRelatingToGoingConcern'),
                 qname(f'{{{NAMESPACE_FSA}}}SubsidiariesHasPresentedTheAnnualReportEtc.WithReferenceToTheDanishFinancialStatementsAct78aConcerningTheExceptionForReportingClassCMediumsizeSubsidiariesWhichChoosesToPresentTheAnnualReportEtcAccordingToReportingClassB'),
             ]),
+            addressOfSubmittingEnterprisePostcodeAndTownQn=qname(f'{{{NAMESPACE_GSD}}}AddressOfSubmittingEnterprisePostcodeAndTown'),
+            addressOfSubmittingEnterpriseStreetAndNumberQn=qname(f'{{{NAMESPACE_GSD}}}AddressOfSubmittingEnterpriseStreetAndNumber'),
             allReportingPeriodsMemberQn=qname(f'{{{NAMESPACE_GSD}}}AllReportingPeriodsMember'),
             annualReportTypes=frozenset([
                 'Årsrapport',
@@ -268,6 +270,7 @@ class ValidationPluginExtension(ValidationPlugin):
             consolidatedSoloDimensionQn=qname(f'{{{NAMESPACE_CMN}}}ConsolidatedSoloDimension'),
             cpr_regex=re.compile(r'^([0-2][0-9]|3[0-1])(0[1-9]|1[0-2])[0-9]{2}-[0-9]{4}'),
             dateOfApprovalOfAnnualReportQn=qname(f'{{{NAMESPACE_SOB}}}DateOfApprovalOfAnnualReport'),
+            dateOfApprovalOfReportQn=qname(f'{{{NAMESPACE_GSD}}}DateOfApprovalOfReport'),
             dateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod=qname(f'{{{NAMESPACE_FSA}}}DateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod'),
             dateOfGeneralMeetingQn=qname(f'{{{NAMESPACE_GSD}}}DateOfGeneralMeeting'),
             declarationObligationQns=frozenset([
@@ -313,6 +316,7 @@ class ValidationPluginExtension(ValidationPlugin):
                 'has not given rise to reservations',
             ]),
             identificationNumberCvrOfAuditFirmQn=qname(f'{{{NAMESPACE_CMN}}}IdentificationNumberCvrOfAuditFirm'),
+            identificationNumberCvrOfReportingEntityQn=qname(f'{{{NAMESPACE_GSD}}}IdentificationNumberCvrOfReportingEntity'),
             independentAuditorsReportDanish='Den uafhængige revisors erklæringer (review)',
             independentAuditorsReportEnglish='The independent auditor\'s reports (Review)',
             informationOnTypeOfSubmittedReportQn=qname(f'{{{NAMESPACE_GSD}}}InformationOnTypeOfSubmittedReport'),
@@ -358,6 +362,8 @@ class ValidationPluginExtension(ValidationPlugin):
             noncurrentAssetsQn=qname(f'{{{NAMESPACE_FSA}}}NoncurrentAssets'),
             nameAndSurnameOfChairmanOfGeneralMeetingQn=qname(f'{{{NAMESPACE_GSD}}}NameAndSurnameOfChairmanOfGeneralMeeting'),
             nameOfAuditFirmQn=qname(f'{{{NAMESPACE_CMN}}}NameOfAuditFirm'),
+            nameOfReportingEntityQn=qname(f'{{{NAMESPACE_GSD}}}NameOfReportingEntity'),
+            nameOfSubmittingEnterpriseQn=qname(f'{{{NAMESPACE_GSD}}}NameOfSubmittingEnterprise'),
             otherEmployeeExpenseQn=qname(f'{{{NAMESPACE_FSA}}}OtherEmployeeExpense'),
             positiveProfitThreshold=1000,
             postemploymentBenefitExpenseQn=qname(f'{{{NAMESPACE_FSA}}}PostemploymentBenefitExpense'),

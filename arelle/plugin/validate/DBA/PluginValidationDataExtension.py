@@ -18,6 +18,8 @@ from arelle.utils.PluginData import PluginData
 @dataclass
 class PluginValidationDataExtension(PluginData):
     accountingPolicyConceptQns: frozenset[QName]
+    addressOfSubmittingEnterprisePostcodeAndTownQn: QName
+    addressOfSubmittingEnterpriseStreetAndNumberQn: QName
     allReportingPeriodsMemberQn: QName
     annualReportTypes: frozenset[str]
     assetsQn: QName
@@ -42,6 +44,7 @@ class PluginValidationDataExtension(PluginData):
     consolidatedSoloDimensionQn: QName
     cpr_regex: regex.regex.Pattern[str]
     dateOfApprovalOfAnnualReportQn: QName
+    dateOfApprovalOfReportQn: QName
     dateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod: QName
     dateOfGeneralMeetingQn: QName
     descriptionOfQualificationsOfAssuranceEngagementPerformedQn: QName
@@ -58,6 +61,7 @@ class PluginValidationDataExtension(PluginData):
     fr37RestrictedText: str
     hasNotGivenRiseToReservationsText: frozenset[str]
     identificationNumberCvrOfAuditFirmQn: QName
+    identificationNumberCvrOfReportingEntityQn: QName
     independentAuditorsReportDanish: str
     independentAuditorsReportEnglish: str
     informationOnTypeOfSubmittedReportQn: QName
@@ -69,6 +73,8 @@ class PluginValidationDataExtension(PluginData):
     noncurrentAssetsQn: QName
     nameAndSurnameOfChairmanOfGeneralMeetingQn: QName
     nameOfAuditFirmQn: QName
+    nameOfReportingEntityQn: QName
+    nameOfSubmittingEnterpriseQn: QName
     otherEmployeeExpenseQn: QName
     positiveProfitThreshold: float
     postemploymentBenefitExpenseQn: QName
