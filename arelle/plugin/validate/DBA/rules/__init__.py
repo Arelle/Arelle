@@ -75,6 +75,24 @@ def errorOnMandatoryFacts(
         )
 
 
+def errorOnMultipleFacts(
+        modelXbrl: ModelXbrl,
+        factQn: QName,
+        code: str,
+) -> Iterable[Validation]:
+    """
+    Yields an error if the specified QName appears on more than one fact
+    :return: Yields validation errors
+    """
+    facts = modelXbrl.factsByQname.get(factQn)
+    if facts is not None and len(facts) > 1:
+        yield Validation.error(
+            code,
+            _('{} must only be tagged once. {} facts were found.').format(factQn.localName, len(facts)),
+            modelObject=facts
+        )
+
+
 def errorOnRequiredFact(
         modelXbrl: ModelXbrl,
         factQn: QName,

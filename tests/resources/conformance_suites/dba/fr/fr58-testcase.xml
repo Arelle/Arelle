@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.FR58"
+        description="DBA.FR58: If arr:ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportAudit is tagged then one of the following concepts MUST also be tagged:
+        arr:ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyTheCriminalCodeAndFiscalTaxAndSubsidyLegislationAudit
+        arr:ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyTheCompaniesActOrEquivalentLegislationThatTheCompanyIsSubjectToAudit
+        arr:ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyLegislationOnFinancialReportingIncludingAccountingAndStorageOfAccountingRecordsAudit
+        arr:ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyOtherMattersAudit"
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid" name="Invalid">
+        <description>
+            ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportAudit is tagged but none of the other elements are tagged.
+        </description>
+        <data>
+            <instance readMeFirst="true">fr58-invalid.xbrl</instance>
+        </data>
+        <result>
+            <error>DBA.FR58</error>
+        </result>
+    </variation>
+    <variation id="valid" name="Valid">
+        <description>
+            ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportAudit is tagged and
+            ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyTheCriminalCodeAndFiscalTaxAndSubsidyLegislationAudit is tagged.
+        </description>
+        <data>
+            <instance readMeFirst="true">fr58-valid.xbrl</instance>
+        </data>
+        <result>
+        </result>
+    </variation>
+</testcase>
