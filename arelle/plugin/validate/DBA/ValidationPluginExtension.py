@@ -352,6 +352,7 @@ class ValidationPluginExtension(ValidationPlugin):
             noncurrentAssetsQn=qname(f'{{{NAMESPACE_FSA}}}NoncurrentAssets'),
             nameAndSurnameOfChairmanOfGeneralMeetingQn=qname(f'{{{NAMESPACE_GSD}}}NameAndSurnameOfChairmanOfGeneralMeeting'),
             nameOfAuditFirmQn=qname(f'{{{NAMESPACE_CMN}}}NameOfAuditFirm'),
+            nameOfReportingEntityQn=qname(f'{{{NAMESPACE_GSD}}}NameOfReportingEntity'),
             nameOfSubmittingEnterpriseQn=qname(f'{{{NAMESPACE_GSD}}}NameOfSubmittingEnterprise'),
             otherEmployeeExpenseQn=qname(f'{{{NAMESPACE_FSA}}}OtherEmployeeExpense'),
             positiveProfitThreshold=1000,
