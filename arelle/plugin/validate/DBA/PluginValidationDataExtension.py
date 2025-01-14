@@ -80,6 +80,8 @@ class PluginValidationDataExtension(PluginData):
     registeredReportingPeriodDeviatingFromReportedReportingPeriodDueArbitraryDatesMemberQn: QName
     reportingPeriodEndDateQn: QName
     reportingPeriodStartDateQn: QName
+    reportingResponsibilitiesOnApprovedAuditorsReportsExtendedReviewQn: QName
+    reportingObligationQns: frozenset[QName]
     shorttermLiabilitiesOtherThanProvisionsQn: QName
     signatureOfAuditorsDateQn: QName
     taxExpenseOnOrdinaryActivitiesQn: QName
