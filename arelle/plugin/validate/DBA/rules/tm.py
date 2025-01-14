@@ -15,9 +15,8 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from arelle.XmlValidateConst import VALID
-from . import errorOnDateFactComparison, errorOnRequiredFact, getFactsWithDimension, getFactsGroupedByContextId, errorOnRequiredPositiveFact
+from . import errorOnMultipleFacts
 from ..PluginValidationDataExtension import PluginValidationDataExtension
-from ..ValidationPluginExtension import DANISH_CURRENCY_ID, ROUNDING_MARGIN, PERSONNEL_EXPENSE_THRESHOLD
 
 _: TypeGetText
 
@@ -34,14 +33,7 @@ def rule_tm13(
     """
     DBA.TM13: gsd:IdentificationNumberCvrOfReportingEntity must only be tagged once if tagged
     """
-    modelXbrl = val.modelXbrl
-    facts = modelXbrl.factsByQname.get(pluginData.identificationNumberCvrOfReportingEntityQn)
-    if facts is not None and len(facts) > 1:
-        yield Validation.error(
-            'DBA.TM13',
-            _('IdentificationNumberCvrOfReportingEntity must only be tagged once. {} facts were found.').format(len(facts)),
-            modelObject=facts
-        )
+    return errorOnMultipleFacts(val.modelXbrl, pluginData.identificationNumberCvrOfReportingEntityQn, 'DBA.TM13')
 
 
 @validation(
@@ -56,14 +48,7 @@ def rule_tm16(
     """
     DBA.TM16: gsd:InformationOnTypeOfSubmittedReport must only be tagged once if tagged
     """
-    modelXbrl = val.modelXbrl
-    facts = modelXbrl.factsByQname.get(pluginData.informationOnTypeOfSubmittedReportQn)
-    if facts is not None and len(facts) > 1:
-        yield Validation.error(
-            'DBA.TM16',
-            _('InformationOnTypeOfSubmittedReport must only be tagged once. {} facts were found.').format(len(facts)),
-            modelObject=facts
-        )
+    return errorOnMultipleFacts(val.modelXbrl, pluginData.informationOnTypeOfSubmittedReportQn, 'DBA.TM16')
 
 
 @validation(
@@ -138,14 +123,7 @@ def rule_tm22(
     """
     DBA.TM22: gsd:NameOfReportingEntity must only be tagged once if tagged
     """
-    modelXbrl = val.modelXbrl
-    facts = modelXbrl.factsByQname.get(pluginData.nameOfReportingEntityQn)
-    if facts is not None and len(facts) > 1:
-        yield Validation.error(
-            'DBA.TM22',
-            _('NameOfReportingEntity must only be tagged once. {} facts were found.').format(len(facts)),
-            modelObject=facts
-        )
+    return errorOnMultipleFacts(val.modelXbrl, pluginData.nameOfReportingEntityQn, 'DBA.TM22')
 
 
 @validation(
@@ -160,14 +138,7 @@ def rule_tm24(
     """
     DBA.TM24: gsd:NameOfSubmittingEnterprise must only be tagged once if tagged
     """
-    modelXbrl = val.modelXbrl
-    facts = modelXbrl.factsByQname.get(pluginData.nameOfSubmittingEnterpriseQn)
-    if facts is not None and len(facts) > 1:
-        yield Validation.error(
-            'DBA.TM24',
-            _('NameOfSubmittingEnterprise must only be tagged once. {} facts were found.').format(len(facts)),
-            modelObject=facts
-        )
+    return errorOnMultipleFacts(val.modelXbrl, pluginData.nameOfSubmittingEnterpriseQn, 'DBA.TM24')
 
 
 @validation(
@@ -182,14 +153,7 @@ def rule_tm26(
     """
     DBA.TM26: gsd:AddressOfSubmittingEnterpriseStreetAndNumber must only be tagged once if tagged
     """
-    modelXbrl = val.modelXbrl
-    facts = modelXbrl.factsByQname.get(pluginData.addressOfSubmittingEnterpriseStreetAndNumberQn)
-    if facts is not None and len(facts) > 1:
-        yield Validation.error(
-            'DBA.TM26',
-            _('AddressOfSubmittingEnterpriseStreetAndNumber must only be tagged once. {} facts were found.').format(len(facts)),
-            modelObject=facts
-        )
+    return errorOnMultipleFacts(val.modelXbrl, pluginData.addressOfSubmittingEnterpriseStreetAndNumberQn, 'DBA.TM26')
 
 
 @validation(
@@ -204,14 +168,7 @@ def rule_tm28(
     """
     DBA.TM28: gsd:AddressOfSubmittingEnterprisePostcodeAndTown must only be tagged once if tagged
     """
-    modelXbrl = val.modelXbrl
-    facts = modelXbrl.factsByQname.get(pluginData.addressOfSubmittingEnterprisePostcodeAndTownQn)
-    if facts is not None and len(facts) > 1:
-        yield Validation.error(
-            'DBA.TM28',
-            _('AddressOfSubmittingEnterprisePostcodeAndTown must only be tagged once. {} facts were found.').format(len(facts)),
-            modelObject=facts
-        )
+    return errorOnMultipleFacts(val.modelXbrl, pluginData.addressOfSubmittingEnterprisePostcodeAndTownQn, 'DBA.TM28')
 
 
 @validation(
@@ -226,14 +183,7 @@ def rule_tm30(
     """
     DBA.TM30: gsd:DateOfGeneralMeeting must only be tagged once if tagged
     """
-    modelXbrl = val.modelXbrl
-    facts = modelXbrl.factsByQname.get(pluginData.dateOfGeneralMeetingQn)
-    if facts is not None and len(facts) > 1:
-        yield Validation.error(
-            'DBA.TM30',
-            _('DateOfGeneralMeeting must only be tagged once. {} facts were found.').format(len(facts)),
-            modelObject=facts
-        )
+    return errorOnMultipleFacts(val.modelXbrl, pluginData.dateOfGeneralMeetingQn, 'DBA.TM30')
 
 
 @validation(
@@ -248,14 +198,7 @@ def rule_tm31(
     """
     DBA.TM31: gsd:DateOfApprovalOfReport must only be tagged once if tagged
     """
-    modelXbrl = val.modelXbrl
-    facts = modelXbrl.factsByQname.get(pluginData.dateOfApprovalOfReportQn)
-    if facts is not None and len(facts) > 1:
-        yield Validation.error(
-            'DBA.TM31',
-            _('DateOfApprovalOfReport must only be tagged once. {} facts were found.').format(len(facts)),
-            modelObject=facts
-        )
+    return errorOnMultipleFacts(val.modelXbrl, pluginData.dateOfApprovalOfReportQn, 'DBA.TM31')
 
 
 @validation(
