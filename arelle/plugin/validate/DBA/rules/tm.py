@@ -25,6 +25,66 @@ _: TypeGetText
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
+def rule_tm18(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.TM18: ReportingPeriodStartDate with either no dimensionality or with the default dimension of
+    TypeOfReportingPeriodDimension:AllReportingPeriodsMember must only be tagged once.
+    """
+    modelXbrl = val.modelXbrl
+    valid_facts = []
+    start_date_facts = modelXbrl.factsByQname.get(pluginData.reportingPeriodStartDateQn)
+    if start_date_facts is not None:
+        for fact in start_date_facts:
+            if not fact.context.scenDimValues:
+                valid_facts.append(fact)
+        if len(valid_facts) > 1:
+            yield Validation.error(
+                'DBA.TM18',
+                _('ReportingPeriodStartDate with either no dimensionality or with the default dimension of '
+                  'TypeOfReportingPeriodDimension:AllReportingPeriodsMember must only be tagged once. {} facts '
+                  'were found.').format(len(valid_facts)),
+                modelObject=valid_facts
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_tm20(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.TM20: ReportingPeriodEndDate with either no dimensionality or with the default dimension of
+    TypeOfReportingPeriodDimension:AllReportingPeriodsMember must only be tagged once.
+    """
+    modelXbrl = val.modelXbrl
+    valid_facts = []
+    end_date_facts = modelXbrl.factsByQname.get(pluginData.reportingPeriodEndDateQn)
+    if end_date_facts is not None:
+        for fact in end_date_facts:
+            if not fact.context.scenDimValues:
+                valid_facts.append(fact)
+        if len(valid_facts) > 1:
+            yield Validation.error(
+                'DBA.TM20',
+                _('ReportingPeriodEndDate with either no dimensionality or with the default dimension of '
+                  'TypeOfReportingPeriodDimension:AllReportingPeriodsMember must only be tagged once. {} facts '
+                  'were found.').format(len(valid_facts)),
+                modelObject=valid_facts
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
 def rule_tm32(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
@@ -38,9 +98,9 @@ def rule_tm32(
     """
     modelXbrl = val.modelXbrl
     valid_facts = []
-    end_date_facts = modelXbrl.factsByQname.get(pluginData.reportingPeriodStartDateQn)
-    if end_date_facts is not None:
-        for fact in end_date_facts:
+    start_date_facts = modelXbrl.factsByQname.get(pluginData.reportingPeriodStartDateQn)
+    if start_date_facts is not None:
+        for fact in start_date_facts:
             member = fact.context.qnameDims.get(pluginData.typeOfReportingPeriodDimensionQn)
             if member is not None and member.memberQname == pluginData.registeredReportingPeriodDeviatingFromReportedReportingPeriodDueArbitraryDatesMemberQn:
                 valid_facts.append(fact)

@@ -150,6 +150,7 @@ class ValidationPluginExtension(ValidationPlugin):
                 qname(f'{{{NAMESPACE_FSA}}}InformationOnUncertaintiesRelatingToGoingConcern'),
                 qname(f'{{{NAMESPACE_FSA}}}SubsidiariesHasPresentedTheAnnualReportEtc.WithReferenceToTheDanishFinancialStatementsAct78aConcerningTheExceptionForReportingClassCMediumsizeSubsidiariesWhichChoosesToPresentTheAnnualReportEtcAccordingToReportingClassB'),
             ]),
+            allReportingPeriodsMemberQn=qname(f'{{{NAMESPACE_GSD}}}AllReportingPeriodsMember'),
             annualReportTypes=frozenset([
                 'Årsrapport',
                 'årsrapport',

@@ -6,7 +6,7 @@
         name="DBA.TM33"
         description="DBA.TM33: ReportingPeriodEndDate with the dimension of
         TypeOfReportingPeriodDimension:RegisteredReportingPeriodDeviatingFromReportedReportingPeriodDueArbitraryDatesMember
-        must only be tagged once.."
+        must only be tagged once."
         outpath=''
         owner="support@arelle.org"
         xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
