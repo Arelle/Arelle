@@ -217,6 +217,28 @@ def rule_tm28(
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
+def rule_tm29(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.TM29: Either gsd:DateOfGeneralMeeting or gsd:DateOfApprovalOfReport must be specified
+    """
+    modelXbrl = val.modelXbrl
+    meeting_facts = modelXbrl.factsByQname.get(pluginData.dateOfGeneralMeetingQn)
+    approval_facts = modelXbrl.factsByQname.get(pluginData.dateOfApprovalOfReportQn)
+    if meeting_facts is None and approval_facts is None:
+        yield Validation.error(
+            'DBA.TM29',
+            _('Either DateOfGeneralMeeting or DateOfApprovalOfReport must be tagged in the document.')
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
 def rule_tm30(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
