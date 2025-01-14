@@ -48,6 +48,7 @@ class PluginValidationDataExtension(PluginData):
     descriptionOfQualificationsOfAuditedFinancialStatementsQn: QName
     descriptionOfQualificationsOfFinancialStatementsExtendedReviewQn: QName
     descriptionsOfQualificationsOfReviewedFinancialStatementsQn: QName
+    declarationObligationQns: frozenset[QName]
     distributionOfResultsQns: frozenset[QName]
     employeeBenefitsExpenseQn: QName
     equityQn: QName
@@ -80,6 +81,7 @@ class PluginValidationDataExtension(PluginData):
     registeredReportingPeriodDeviatingFromReportedReportingPeriodDueArbitraryDatesMemberQn: QName
     reportingPeriodEndDateQn: QName
     reportingPeriodStartDateQn: QName
+    reportingResponsibilitiesOnApprovedAuditorsReportAuditQn: QName
     reportingResponsibilitiesOnApprovedAuditorsReportsExtendedReviewQn: QName
     reportingObligationQns: frozenset[QName]
     shorttermLiabilitiesOtherThanProvisionsQn: QName
