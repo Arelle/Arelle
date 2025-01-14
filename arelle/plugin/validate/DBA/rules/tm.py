@@ -25,6 +25,28 @@ _: TypeGetText
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
+def rule_tm14(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.TM14: gsd:IdentificationNumberGreenlandRegnrOfReportingEntity must only be tagged once if tagged
+    """
+    modelXbrl = val.modelXbrl
+    facts = modelXbrl.factsByQname.get(pluginData.identificationNumberGreenlandRegnrOfReportingEntityQn)
+    if facts is not None and len(facts) > 1:
+        yield Validation.error(
+            'DBA.TM14',
+            _('IdentificationNumberGreenlandRegnrOfReportingEntity must only be tagged once. {} facts were found.').format(len(facts)),
+            modelObject=facts
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
 def rule_tm16(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
