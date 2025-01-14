@@ -85,6 +85,28 @@ def rule_tm20(
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
+def rule_tm24(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.TM24: gsd:NameOfSubmittingEnterprise must only be tagged once if tagged
+    """
+    modelXbrl = val.modelXbrl
+    facts = modelXbrl.factsByQname.get(pluginData.nameOfSubmittingEnterpriseQn)
+    if facts is not None and len(facts) > 1:
+        yield Validation.error(
+            'DBA.TM24',
+            _('NameOfSubmittingEnterprise must only be tagged once. {} facts were found.').format(len(facts)),
+            modelObject=facts
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
 def rule_tm26(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,

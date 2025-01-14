@@ -68,6 +68,7 @@ class PluginValidationDataExtension(PluginData):
     noncurrentAssetsQn: QName
     nameAndSurnameOfChairmanOfGeneralMeetingQn: QName
     nameOfAuditFirmQn: QName
+    nameOfSubmittingEnterpriseQn: QName
     otherEmployeeExpenseQn: QName
     positiveProfitThreshold: float
     postemploymentBenefitExpenseQn: QName
