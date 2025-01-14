@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.TM32"
+        description="DBA.TM32: ReportingPeriodStartDate with the dimension of
+        TypeOfReportingPeriodDimension:RegisteredReportingPeriodDeviatingFromReportedReportingPeriodDueArbitraryDatesMember
+        must only be tagged once."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid" name="Invalid">
+        <description>
+            ReportingPeriodStartDate with the dimension of
+            TypeOfReportingPeriodDimension:RegisteredReportingPeriodDeviatingFromReportedReportingPeriodDueArbitraryDatesMember appears twice
+        </description>
+        <data>
+            <instance readMeFirst="true">tm32-invalid.xbrl</instance>
+        </data>
+        <result>
+            <error>DBA.TM32</error>
+        </result>
+    </variation>
+</testcase>
