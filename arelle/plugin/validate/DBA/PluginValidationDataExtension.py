@@ -17,6 +17,7 @@ from arelle.utils.PluginData import PluginData
 class PluginValidationDataExtension(PluginData):
     accountingPolicyConceptQns: frozenset[QName]
     addressOfSubmittingEnterprisePostcodeAndTownQn: QName
+    addressOfSubmittingEnterpriseStreetAndNumberQn: QName
     allReportingPeriodsMemberQn: QName
     annualReportTypes: frozenset[str]
     assetsQn: QName

@@ -151,6 +151,7 @@ class ValidationPluginExtension(ValidationPlugin):
                 qname(f'{{{NAMESPACE_FSA}}}SubsidiariesHasPresentedTheAnnualReportEtc.WithReferenceToTheDanishFinancialStatementsAct78aConcerningTheExceptionForReportingClassCMediumsizeSubsidiariesWhichChoosesToPresentTheAnnualReportEtcAccordingToReportingClassB'),
             ]),
             addressOfSubmittingEnterprisePostcodeAndTownQn=qname(f'{{{NAMESPACE_GSD}}}AddressOfSubmittingEnterprisePostcodeAndTown'),
+            addressOfSubmittingEnterpriseStreetAndNumberQn=qname(f'{{{NAMESPACE_GSD}}}AddressOfSubmittingEnterpriseStreetAndNumber'),
             allReportingPeriodsMemberQn=qname(f'{{{NAMESPACE_GSD}}}AllReportingPeriodsMember'),
             annualReportTypes=frozenset([
                 'Årsrapport',

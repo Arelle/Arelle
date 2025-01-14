@@ -25,6 +25,8 @@
     <testcase uri='fr/valid-testcase.xml' />
     <testcase uri='tm/tm18-testcase.xml' />
     <testcase uri='tm/tm20-testcase.xml' />
+    <testcase uri='tm/tm26-testcase.xml' />
+    <testcase uri='tm/tm28-testcase.xml' />
     <testcase uri='tm/tm30-testcase.xml' />
     <testcase uri='tm/tm31-testcase.xml' />
     <testcase uri='tm/tm32-testcase.xml' />
