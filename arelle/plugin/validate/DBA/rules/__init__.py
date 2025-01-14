@@ -12,9 +12,13 @@ from arelle.ModelDocument import ModelDocument
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import ModelXbrl
-from arelle.XmlValidateConst import VALID
+from arelle.typing import TypeGetText
 from arelle.utils.validate.Validation import Validation
 from arelle.ValidateXbrl import ValidateXbrl
+from arelle.XmlValidateConst import VALID
+
+
+_: TypeGetText
 
 
 def errorOnDateFactComparison(
@@ -51,6 +55,23 @@ def errorOnDateFactComparison(
             modelObject=[fact1, fact2],
             fact1=fact1.xValue,
             fact2=fact2.xValue,
+        )
+
+
+def errorOnMandatoryFacts(
+        modelXbrl: ModelXbrl,
+        factQn: QName,
+        code: str,
+) -> Iterable[Validation]:
+    """
+    Yields an error when the specified factQn does not appear on a tagged fact in the document
+    :return: Yields validation errors
+    """
+    facts = modelXbrl.factsByQname.get(factQn)
+    if facts is None:
+        yield Validation.error(
+            code,
+            _('{} must be tagged in the document.').format(factQn.localName)
         )
 
 

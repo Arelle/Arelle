@@ -15,7 +15,7 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from arelle.XmlValidateConst import VALID
-from . import errorOnDateFactComparison, errorOnRequiredFact, getFactsWithDimension, getFactsGroupedByContextId, errorOnRequiredPositiveFact
+from . import errorOnMandatoryFacts
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 from ..ValidationPluginExtension import DANISH_CURRENCY_ID, ROUNDING_MARGIN, PERSONNEL_EXPENSE_THRESHOLD
 
@@ -190,6 +190,21 @@ def rule_tm26(
             _('AddressOfSubmittingEnterpriseStreetAndNumber must only be tagged once. {} facts were found.').format(len(facts)),
             modelObject=facts
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_tm27(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.TM27: gsd:AddressOfSubmittingEnterprisePostcodeAndTown must be specified
+    """
+    return errorOnMandatoryFacts(val.modelXbrl, pluginData.addressOfSubmittingEnterprisePostcodeAndTownQn, 'DBA.TM27')
 
 
 @validation(
