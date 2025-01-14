@@ -23,6 +23,7 @@
     <testcase uri='fr/fr81-testcase.xml' />
     <testcase uri='fr/fr92-testcase.xml' />
     <testcase uri='fr/valid-testcase.xml' />
+    <testcase uri='tm/tm16-testcase.xml' />
     <testcase uri='tm/tm18-testcase.xml' />
     <testcase uri='tm/tm20-testcase.xml' />
     <testcase uri='tm/tm22-testcase.xml' />

@@ -25,6 +25,28 @@ _: TypeGetText
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
+def rule_tm16(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.TM16: gsd:InformationOnTypeOfSubmittedReport must only be tagged once if tagged
+    """
+    modelXbrl = val.modelXbrl
+    facts = modelXbrl.factsByQname.get(pluginData.informationOnTypeOfSubmittedReportQn)
+    if facts is not None and len(facts) > 1:
+        yield Validation.error(
+            'DBA.TM16',
+            _('InformationOnTypeOfSubmittedReport must only be tagged once. {} facts were found.').format(len(facts)),
+            modelObject=facts
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
 def rule_tm18(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
