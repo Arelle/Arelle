@@ -312,7 +312,7 @@
     <fsa:CashFlowsFromUsedInInvestingActivities contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">-240807000</fsa:CashFlowsFromUsedInInvestingActivities>
     <fsa:CashFlowsFromUsedInOperatingActivities contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">320184000</fsa:CashFlowsFromUsedInOperatingActivities>
     <fsa:CashFlowsFromUsedInOperatingActivities contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">100033000</fsa:CashFlowsFromUsedInOperatingActivities>
-    <fsa:ClassOfReportingEntity contextRef="ID_0" xml:lang="da">Regnskabsklasse C, stor virksomhed</fsa:ClassOfReportingEntity>
+    <fsa:ClassOfReportingEntity contextRef="ID_0" xml:lang="da">Reporting class A</fsa:ClassOfReportingEntity>
     <fsa:ConclusionOfLeaseObligations contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">-269269000</fsa:ConclusionOfLeaseObligations>
     <fsa:ConclusionOfLeaseObligations contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">0000</fsa:ConclusionOfLeaseObligations>
     <fsa:ContributedCapital contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">30000000</fsa:ContributedCapital>

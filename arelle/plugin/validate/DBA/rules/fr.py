@@ -868,6 +868,59 @@ def rule_fr81(
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
+def rule_fr89(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR89: If ClassOfReportingEntity is one of the following values:
+
+    Regnskabsklasse C, mellemstor virksomhed // Reporting class C, medium-size enterprise
+    Regnskabsklasse C, stor virksomhed // Reporting class C, large enterprise
+    Regnskabsklasse D // Reporting class D
+    Then TypeOfAuditorAssistance should be: Revisionspåtegning // Auditor's report on audited financial statements
+    """
+    modelXbrl = val.modelXbrl
+    auditorFacts = modelXbrl.factsByQname.get(pluginData.typeOfAuditorAssistanceQn)
+    if auditorFacts is not None:
+        for auditorFact in auditorFacts:
+            if auditorFact.xValid >= VALID and auditorFact.xValue in [
+                pluginData.auditedFinancialStatementsDanish,
+                pluginData.auditedFinancialStatementsEnglish
+            ]:
+                return
+    classFacts = []
+    facts = modelXbrl.factsByQname.get(pluginData.classOfReportingEntityQn)
+    if facts is not None:
+        for fact in facts:
+            if fact.xValid >= VALID:
+                if fact.xValue in [
+                    pluginData.reportingClassCLargeDanish,
+                    pluginData.reportingClassCLargeEnglish,
+                    pluginData.reportingClassCMediumDanish,
+                    pluginData.reportingClassCMediumEnglish,
+                    pluginData.reportingClassDDanish,
+                    pluginData.reportingClassDEnglish,
+                ]:
+                    classFacts.append(fact)
+        if len(classFacts) > 0:
+            yield Validation.error(
+                codes='DBA.FR89',
+                msg=_("TypeOfAuditorAssistance should be {} or {} when {} is tagged with the value of {}.").format(
+                    pluginData.auditedFinancialStatementsDanish,
+                    pluginData.auditedFinancialStatementsEnglish,
+                    pluginData.classOfReportingEntityQn.localName,
+                    classFacts[0].xValue
+                ),
+                modelObject=classFacts[0]
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
 def rule_fr92(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
