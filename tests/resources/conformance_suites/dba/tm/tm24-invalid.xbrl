@@ -529,7 +529,7 @@
     <gsd:NameOfFinancialInstitution contextRef="ID_0" xml:lang="da">NameOfFinancialInstitution</gsd:NameOfFinancialInstitution>
     <gsd:NameOfReportingEntity contextRef="ID_0" xml:lang="da">NameOfReportingEntity</gsd:NameOfReportingEntity>
     <gsd:NameOfSubmittingEnterprise contextRef="ID_0" xml:lang="da">NameOfSubmittingEnterprise</gsd:NameOfSubmittingEnterprise>
-    <gsd:NameOfSubmittingEnterprise contextRef="ID_0" xml:lang="da">SomeNameThatsNotTheSubmittingEnterprise</gsd:NameOfSubmittingEnterprise>
+    <gsd:NameOfSubmittingEnterprise contextRef="ID_0" xml:lang="en">SomeNameThatsNotTheSubmittingEnterprise</gsd:NameOfSubmittingEnterprise>
     <gsd:PrecedingReportingPeriodStartDate contextRef="ID_0" xml:lang="da">2021-01-01</gsd:PrecedingReportingPeriodStartDate>
     <gsd:PredingReportingPeriodEndDate contextRef="ID_0" xml:lang="da">2021-12-31</gsd:PredingReportingPeriodEndDate>
     <gsd:RegisteredOfficeOfReportingEntity contextRef="ID_0" xml:lang="da">111, place</gsd:RegisteredOfficeOfReportingEntity>

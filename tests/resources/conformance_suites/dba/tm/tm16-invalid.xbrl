@@ -525,7 +525,7 @@
     <gsd:IdentificationNumberCvrOfReportingEntity contextRef="ID_0" xml:lang="da">00000000</gsd:IdentificationNumberCvrOfReportingEntity>
     <gsd:IdentificationNumberCvrOfSubmittingEnterprise contextRef="ID_0" xml:lang="da">00000000</gsd:IdentificationNumberCvrOfSubmittingEnterprise>
     <gsd:InformationOnTypeOfSubmittedReport contextRef="ID_0" xml:lang="da">Årsrapport</gsd:InformationOnTypeOfSubmittedReport>
-    <gsd:InformationOnTypeOfSubmittedReport contextRef="ID_0" xml:lang="da">likvidationsregnskab</gsd:InformationOnTypeOfSubmittedReport>
+    <gsd:InformationOnTypeOfSubmittedReport contextRef="ID_0" xml:lang="en">likvidationsregnskab</gsd:InformationOnTypeOfSubmittedReport>
     <gsd:NameAndSurnameOfChairmanOfGeneralMeeting contextRef="ID_0" xml:lang="da"> NameAndSurnameOfChairmanOfGeneralMeeting </gsd:NameAndSurnameOfChairmanOfGeneralMeeting>
     <gsd:NameOfFinancialInstitution contextRef="ID_0" xml:lang="da">NameOfFinancialInstitution</gsd:NameOfFinancialInstitution>
     <gsd:NameOfReportingEntity contextRef="ID_0" xml:lang="da">NameOfReportingEntity</gsd:NameOfReportingEntity>
