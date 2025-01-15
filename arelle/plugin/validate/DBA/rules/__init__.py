@@ -67,8 +67,8 @@ def errorOnMandatoryFacts(
     Yields an error when the specified factQn does not appear on a tagged fact in the document
     :return: Yields validation errors
     """
-    facts = modelXbrl.factsByQname.get(factQn)
-    if facts is None:
+    facts = modelXbrl.factsByQname.get(factQn, set())
+    if len(facts) == 0:
         yield Validation.error(
             code,
             _('{} must be tagged in the document.').format(factQn.localName)
@@ -84,8 +84,8 @@ def errorOnMultipleFacts(
     Yields an error if the specified QName appears on more than one fact
     :return: Yields validation errors
     """
-    facts = modelXbrl.factsByQname.get(factQn)
-    if facts is not None and len(facts) > 1:
+    facts = modelXbrl.factsByQname.get(factQn, set())
+    if len(facts) > 1:
         yield Validation.error(
             code,
             _('{} must only be tagged once. {} facts were found.').format(factQn.localName, len(facts)),
@@ -104,10 +104,9 @@ def errorOnRequiredFact(
     :return: Yields validation errors.
     """
     facts: set[ModelFact] = modelXbrl.factsByQname.get(factQn, set())
-    if facts:
-        for fact in facts:
-            if not fact.isNil:
-                return
+    for fact in facts:
+        if not fact.isNil:
+            return
     yield Validation.error(
         codes=code,
         msg=message,
@@ -146,19 +145,15 @@ def getFactsWithDimension(
         membeQn: QName
 ) -> set[ModelFact ]:
     foundFacts: set[ModelFact] = set()
-    facts = val.modelXbrl.factsByQname.get(conceptQn)
-    if facts:
-        for fact in facts:
-            if fact is not None:
-                if fact.context is None:
-                    continue
-                elif (fact.context.dimMemberQname(
-                        dimensionQn
-                ) == membeQn
-                      and fact.context.qnameDims.keys() == {dimensionQn}):
-                    foundFacts.add(fact)
-                elif not len(fact.context.qnameDims):
-                    foundFacts.add(fact)
+    facts = val.modelXbrl.factsByQname.get(conceptQn, set())
+    for fact in facts:
+        if fact is not None:
+            if fact.context is None:
+                continue
+            elif fact.context.dimMemberQname(dimensionQn) == membeQn and fact.context.qnameDims.keys() == {dimensionQn}:
+                foundFacts.add(fact)
+            elif not len(fact.context.qnameDims):
+                foundFacts.add(fact)
     return foundFacts
 
 

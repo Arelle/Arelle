@@ -36,10 +36,10 @@ def rule_fr1(
     (gsd:DateOfGeneralMeeting) must also provide the name of the director
     (gsd:NameAndSurnameOfChairmanOfGeneralMeeting).
     """
-    meetingFacts = val.modelXbrl.factsByQname.get(pluginData.dateOfGeneralMeetingQn)
-    if meetingFacts:
-        chairmanFacts = val.modelXbrl.factsByQname.get(pluginData.nameAndSurnameOfChairmanOfGeneralMeetingQn)
-        if not chairmanFacts:
+    meetingFacts = val.modelXbrl.factsByQname.get(pluginData.dateOfGeneralMeetingQn, set())
+    if len(meetingFacts) > 0:
+        chairmanFacts = val.modelXbrl.factsByQname.get(pluginData.nameAndSurnameOfChairmanOfGeneralMeetingQn, set())
+        if len(chairmanFacts) == 0:
             yield Validation.error(
                 codes="DBA.FR1",
                 msg=_("First and last name of the conductor for the general meeting or person who takes the conductor's place is missing"),
@@ -89,11 +89,10 @@ def rule_fr20(
     """
     modelXbrl = val.modelXbrl
     for concept_qn in pluginData.managementEndorsementQns:
-        facts = modelXbrl.factsByQname.get(concept_qn)
-        if facts is not None:
-            for fact in facts:
-                if fact.xValid >= VALID and not fact.isNil:
-                    return
+        facts = modelXbrl.factsByQname.get(concept_qn, set())
+        for fact in facts:
+            if fact.xValid >= VALID and not fact.isNil:
+                return
     yield Validation.error(
         codes="DBA.FR20",
         msg=_("The annual report does not contain a management endorsement. Please tag one of the following elements: {}").format(
@@ -119,25 +118,23 @@ def rule_fr24(
         - 'has not given rise to reservations'
     """
     modelXbrl = val.modelXbrl
-    type_of_auditors_assistance_facts = modelXbrl.factsByQname.get(pluginData.typeOfAuditorAssistanceQn)
-    if type_of_auditors_assistance_facts is not None:
-        for auditor_fact in type_of_auditors_assistance_facts:
-            if (auditor_fact.xValid >= VALID and
-                    (auditor_fact.xValue == pluginData.auditedFinancialStatementsDanish or
-                     auditor_fact.xValue == pluginData.auditedFinancialStatementsEnglish)):
-                description_facts = modelXbrl.factsByQname.get(pluginData.descriptionOfQualificationsOfAuditedFinancialStatementsQn)
-                if description_facts is not None:
-                    for description_fact in description_facts:
-                        if description_fact.xValid >= VALID:
-                            for text in pluginData.hasNotGivenRiseToReservationsText:
-                                if text in str(description_fact.xValue):
-                                    yield Validation.error(
-                                        codes="DBA.FR24",
-                                        msg=_("The value of DescriptionOfQualificationsOfAuditedFinancialStatements must not "
-                                              "contain the text: \'{}\', when TypeOfAuditorAssistance is set to \'Revisionspåtegning\' "
-                                              "or \'Auditor's report on audited financial statements\'").format(text),
-                                        modelObject=description_fact
-                                    )
+    type_of_auditors_assistance_facts = modelXbrl.factsByQname.get(pluginData.typeOfAuditorAssistanceQn, set())
+    for auditor_fact in type_of_auditors_assistance_facts:
+        if (auditor_fact.xValid >= VALID and
+                (auditor_fact.xValue == pluginData.auditedFinancialStatementsDanish or
+                 auditor_fact.xValue == pluginData.auditedFinancialStatementsEnglish)):
+            description_facts = modelXbrl.factsByQname.get(pluginData.descriptionOfQualificationsOfAuditedFinancialStatementsQn, set())
+            for description_fact in description_facts:
+                if description_fact.xValid >= VALID:
+                    for text in pluginData.hasNotGivenRiseToReservationsText:
+                        if text in str(description_fact.xValue):
+                            yield Validation.error(
+                                codes="DBA.FR24",
+                                msg=_("The value of DescriptionOfQualificationsOfAuditedFinancialStatements must not "
+                                      "contain the text: \'{}\', when TypeOfAuditorAssistance is set to \'Revisionspåtegning\' "
+                                      "or \'Auditor's report on audited financial statements\'").format(text),
+                                modelObject=description_fact
+                            )
 
 
 @validation(
@@ -156,25 +153,23 @@ def rule_fr25(
         - 'has not given rise to reservations'
     """
     modelXbrl = val.modelXbrl
-    type_of_auditors_assistance_facts = modelXbrl.factsByQname.get(pluginData.typeOfAuditorAssistanceQn)
-    if type_of_auditors_assistance_facts is not None:
-        for auditor_fact in type_of_auditors_assistance_facts:
-            if (auditor_fact.xValid >= VALID and
-                    (auditor_fact.xValue == pluginData.auditedExtendedReviewDanish or
-                     auditor_fact.xValue == pluginData.auditedExtendedReviewEnglish)):
-                description_facts = modelXbrl.factsByQname.get(pluginData.descriptionOfQualificationsOfFinancialStatementsExtendedReviewQn)
-                if description_facts is not None:
-                    for description_fact in description_facts:
-                        if description_fact.xValid >= VALID:
-                            for text in pluginData.hasNotGivenRiseToReservationsText:
-                                if text in str(description_fact.xValue):
-                                    yield Validation.error(
-                                        codes="DBA.FR25",
-                                        msg=_("The value of DescriptionOfQualificationsOfFinancialStatementsExtendedReview must not "
-                                              "contain the text: \'{}\', when TypeOfAuditorAssistance is set to \'Erklæring om udvidet "
-                                              "gennemgang\' or \'Auditor's report on extended review\'").format(text),
-                                        modelObject=description_fact
-                                    )
+    type_of_auditors_assistance_facts = modelXbrl.factsByQname.get(pluginData.typeOfAuditorAssistanceQn, set())
+    for auditor_fact in type_of_auditors_assistance_facts:
+        if (auditor_fact.xValid >= VALID and
+                (auditor_fact.xValue == pluginData.auditedExtendedReviewDanish or
+                 auditor_fact.xValue == pluginData.auditedExtendedReviewEnglish)):
+            description_facts = modelXbrl.factsByQname.get(pluginData.descriptionOfQualificationsOfFinancialStatementsExtendedReviewQn, set())
+            for description_fact in description_facts:
+                if description_fact.xValid >= VALID:
+                    for text in pluginData.hasNotGivenRiseToReservationsText:
+                        if text in str(description_fact.xValue):
+                            yield Validation.error(
+                                codes="DBA.FR25",
+                                msg=_("The value of DescriptionOfQualificationsOfFinancialStatementsExtendedReview must not "
+                                      "contain the text: \'{}\', when TypeOfAuditorAssistance is set to \'Erklæring om udvidet "
+                                      "gennemgang\' or \'Auditor's report on extended review\'").format(text),
+                                modelObject=description_fact
+                            )
 
 
 @validation(
@@ -190,19 +185,18 @@ def rule_fr34(
     DBA.FR34: If Equity does not equal 0 more fields are required.  At least one field must be filled in on the balance sheet in addition to equity:
     Assets, NoncurrentAssets, CurrentAssets, LongtermLiabilitiesOtherThanProvisions, ShorttermLiabilitiesOtherThanProvisions, LiabilitiesOtherThanProvisions, LiabilitiesAndEquity
     """
-    equityFacts = val.modelXbrl.factsByQname.get(pluginData.equityQn)
+    equityFacts = val.modelXbrl.factsByQname.get(pluginData.equityQn, set())
     nonZeroEquityFacts = []
-    if equityFacts:
-        for fact in equityFacts:
-            if fact.xValid >= VALID:
-                if fact.xValue != 0:
-                    nonZeroEquityFacts.append(fact)
+    for fact in equityFacts:
+        if fact.xValid >= VALID:
+            if fact.xValue != 0:
+                nonZeroEquityFacts.append(fact)
     if nonZeroEquityFacts:
         otherRequiredFactsQnames = [
             pluginData.assetsQn, pluginData.noncurrentAssetsQn, pluginData.longtermLiabilitiesOtherThanProvisionsQn,
             pluginData.shorttermLiabilitiesOtherThanProvisionsQn, pluginData.liabilitiesOtherThanProvisionsQn, pluginData.liabilitiesAndEquityQn
         ]
-        hasEquityRequiredFacts = any(val.modelXbrl.factsByQname.get(factQname) for factQname in otherRequiredFactsQnames)
+        hasEquityRequiredFacts = any(val.modelXbrl.factsByQname.get(factQname, set()) for factQname in otherRequiredFactsQnames)
         if not hasEquityRequiredFacts:
             yield Validation.error(
                 codes="DBA.FR34",
@@ -228,11 +222,10 @@ def rule_fr35(
     """
     modelXbrl = val.modelXbrl
     for concept_qn in pluginData.accountingPolicyConceptQns:
-        facts = modelXbrl.factsByQname.get(concept_qn)
-        if facts is not None:
-            for fact in facts:
-                if fact.xValid >= VALID and not fact.isNil:
-                    return
+        facts = modelXbrl.factsByQname.get(concept_qn, set())
+        for fact in facts:
+            if fact.xValid >= VALID and not fact.isNil:
+                return
     yield Validation.error(
         codes="DBA.FR35",
         msg=_("The annual report does not contain information on applied accounting practices. Please tag one of the following elements: {}").format(
@@ -257,17 +250,16 @@ def rule_fr36(
         - 'has not given rise to reservations'
     """
     modelXbrl = val.modelXbrl
-    description_facts = modelXbrl.factsByQname.get(pluginData.descriptionsOfQualificationsOfReviewedFinancialStatementsQn)
-    if description_facts is not None:
-        for description_fact in description_facts:
-            if description_fact.xValid >= VALID:
-                for text in pluginData.hasNotGivenRiseToReservationsText:
-                    if text in str(description_fact.xValue):
-                        yield Validation.error(
-                            codes="DBA.FR36",
-                            msg=_("The value of DescriptionsOfQualificationsOfReviewedFinancialStatements must not contain the text: \'{}\'".format(text)),
-                            modelObject=description_fact
-                        )
+    description_facts = modelXbrl.factsByQname.get(pluginData.descriptionsOfQualificationsOfReviewedFinancialStatementsQn, set())
+    for description_fact in description_facts:
+        if description_fact.xValid >= VALID:
+            for text in pluginData.hasNotGivenRiseToReservationsText:
+                if text in str(description_fact.xValue):
+                    yield Validation.error(
+                        codes="DBA.FR36",
+                        msg=_("The value of DescriptionsOfQualificationsOfReviewedFinancialStatements must not contain the text: \'{}\'".format(text)),
+                        modelObject=description_fact
+                    )
 
 
 @validation(
@@ -285,17 +277,16 @@ def rule_fr37(
         - 'has not given rise to reservations'
     """
     modelXbrl = val.modelXbrl
-    description_facts = modelXbrl.factsByQname.get(pluginData.descriptionOfQualificationsOfAssuranceEngagementPerformedQn)
-    if description_facts is not None:
-        for description_fact in description_facts:
-            if description_fact.xValid >= VALID:
-                for text in pluginData.hasNotGivenRiseToReservationsText:
-                    if text in str(description_fact.xValue):
-                        yield Validation.error(
-                            codes="DBA.FR37",
-                            msg=_("The value of DescriptionOfQualificationsOfAssuranceEngagementPerformed must not contain the text: \'{}\'".format(text)),
-                            modelObject=description_fact
-                        )
+    description_facts = modelXbrl.factsByQname.get(pluginData.descriptionOfQualificationsOfAssuranceEngagementPerformedQn, set())
+    for description_fact in description_facts:
+        if description_fact.xValid >= VALID:
+            for text in pluginData.hasNotGivenRiseToReservationsText:
+                if text in str(description_fact.xValue):
+                    yield Validation.error(
+                        codes="DBA.FR37",
+                        msg=_("The value of DescriptionOfQualificationsOfAssuranceEngagementPerformed must not contain the text: \'{}\'".format(text)),
+                        modelObject=description_fact
+                    )
 
 
 @validation(
@@ -373,8 +364,8 @@ def rule_fr48(
     disallowedFactQnames = [pluginData.extraordinaryCostsQn, pluginData.extraordinaryIncomeQn, pluginData.extraordinaryResultBeforeTaxQn]
     foundFacts = []
     for factQname in disallowedFactQnames:
-        facts = val.modelXbrl.factsByQname.get(factQname)
-        if facts:
+        facts = val.modelXbrl.factsByQname.get(factQname, set())
+        if len(facts) > 0:
             foundFacts.append(facts)
     if len(foundFacts) > 0:
         yield Validation.warning(
@@ -398,8 +389,8 @@ def rule_fr52(
     DBA.FR52: Any usage of fsa:ProposedExtraordinaryDividendRecognisedInLiabilities is prohibited.
     """
     modelXbrl = val.modelXbrl
-    facts = modelXbrl.factsByQname.get(pluginData.proposedExtraordinaryDividendRecognisedInLiabilitiesQn)
-    if facts is not None:
+    facts = modelXbrl.factsByQname.get(pluginData.proposedExtraordinaryDividendRecognisedInLiabilitiesQn, set())
+    if len(facts) > 0:
         yield Validation.warning(
             codes='DBA.FR52',
             msg=_("The concept ProposedExtraordinaryDividendRecognisedInLiabilities should not be used"),
@@ -427,37 +418,36 @@ def rule_fr53(
     - (Andre erklæringer med sikkerhed) / (The independent auditor's reports (Other assurance Reports))
     """
     modelXbrl = val.modelXbrl
-    facts = modelXbrl.factsByQname.get(pluginData.typeOfAuditorAssistanceQn)
-    if facts is not None:
-        for fact in facts:
-            if fact.xValid >= VALID:
-                if fact.xValue in [
-                    pluginData.auditedFinancialStatementsDanish,
-                    pluginData.auditedFinancialStatementsEnglish,
-                    pluginData.auditedExtendedReviewDanish,
-                    pluginData.auditedExtendedReviewEnglish,
-                    pluginData.independentAuditorsReportDanish,
-                    pluginData.independentAuditorsReportEnglish,
-                    pluginData.auditedAssuranceReportsDanish,
-                    pluginData.auditedAssuranceReportsEnglish
-                ]:
-                    missing_concepts = []
-                    cvr_facts = modelXbrl.factsByQname.get(pluginData.identificationNumberCvrOfAuditFirmQn)
-                    auditor_name_facts = modelXbrl.factsByQname.get(pluginData.nameOfAuditFirmQn)
-                    if cvr_facts is None:
-                        missing_concepts.append(pluginData.identificationNumberCvrOfAuditFirmQn.localName)
-                    if auditor_name_facts is None:
-                        missing_concepts.append(pluginData.nameOfAuditFirmQn.localName)
-                    if len(missing_concepts) > 0:
-                        yield Validation.warning(
-                            codes='DBA.FR53',
-                            msg=_("The following concepts should be tagged: {} when {} is tagged with the value of {}").format(
-                                ",".join(missing_concepts),
-                                pluginData.typeOfAuditorAssistanceQn.localName,
-                                fact.xValue
-                            ),
-                            modelObject=fact
-                        )
+    facts = modelXbrl.factsByQname.get(pluginData.typeOfAuditorAssistanceQn, set())
+    for fact in facts:
+        if fact.xValid >= VALID:
+            if fact.xValue in [
+                pluginData.auditedFinancialStatementsDanish,
+                pluginData.auditedFinancialStatementsEnglish,
+                pluginData.auditedExtendedReviewDanish,
+                pluginData.auditedExtendedReviewEnglish,
+                pluginData.independentAuditorsReportDanish,
+                pluginData.independentAuditorsReportEnglish,
+                pluginData.auditedAssuranceReportsDanish,
+                pluginData.auditedAssuranceReportsEnglish
+            ]:
+                missing_concepts = []
+                cvr_facts = modelXbrl.factsByQname.get(pluginData.identificationNumberCvrOfAuditFirmQn, set())
+                auditor_name_facts = modelXbrl.factsByQname.get(pluginData.nameOfAuditFirmQn, set())
+                if len(cvr_facts) == 0:
+                    missing_concepts.append(pluginData.identificationNumberCvrOfAuditFirmQn.localName)
+                if len(auditor_name_facts) == 0:
+                    missing_concepts.append(pluginData.nameOfAuditFirmQn.localName)
+                if len(missing_concepts) > 0:
+                    yield Validation.warning(
+                        codes='DBA.FR53',
+                        msg=_("The following concepts should be tagged: {} when {} is tagged with the value of {}").format(
+                            ",".join(missing_concepts),
+                            pluginData.typeOfAuditorAssistanceQn.localName,
+                            fact.xValue
+                        ),
+                        modelObject=fact
+                    )
 
 
 @validation(
@@ -530,21 +520,21 @@ def rule_fr58(
 
     """
     modelXbrl = val.modelXbrl
-    indicatorFacts = modelXbrl.factsByQname.get(pluginData.reportingResponsibilitiesOnApprovedAuditorsReportAuditQn)
-    if indicatorFacts is not None:
+    indicatorFacts = modelXbrl.factsByQname.get(pluginData.reportingResponsibilitiesOnApprovedAuditorsReportAuditQn, set())
+    if len(indicatorFacts) > 0:
         for qname in pluginData.declarationObligationQns:
-            facts = modelXbrl.factsByQname.get(qname)
-            if facts is not None:
+            facts = modelXbrl.factsByQname.get(qname, set())
+            if len(facts) > 0:
                 return
-        yield Validation.warning(
-            codes='DBA.FR58',
-            msg=_("When the field 'Declaration obligations according to the declaration order ' (ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportAudit) is completed, "
-                    "one or more of the sub-items below must be indicated: "
-                    "Declaration obligations according to the declaration order, including especially the Criminal Code as well as tax, levy and subsidy legislation (audit) (ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyTheCriminalCodeAndFiscalTaxAndSubsidyLegislationAudit)"
-                    "Declaration obligations according to the declaration order, including especially the company law or similar legislation laid down for the company (audit) (ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyTheCompaniesActOrEquivalentLegislationThatTheCompanyIsSubjectToAudit)"
-                    "Declaration obligations according to the declaration order, including especially the legislation on financial reporting, including on bookkeeping and storage of accounting material (audit) (ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyLegislationOnFinancialReportingIncludingAccountingAndStorageOfAccountingRecordsAudit)"
-                    "Declaration obligations according to the declaration order, including other matters in particular (revision (ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyOtherMattersAudit)"),
-            )
+            yield Validation.warning(
+                codes='DBA.FR58',
+                msg=_("When the field 'Declaration obligations according to the declaration order ' (ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportAudit) is completed, "
+                        "one or more of the sub-items below must be indicated: "
+                        "Declaration obligations according to the declaration order, including especially the Criminal Code as well as tax, levy and subsidy legislation (audit) (ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyTheCriminalCodeAndFiscalTaxAndSubsidyLegislationAudit)"
+                        "Declaration obligations according to the declaration order, including especially the company law or similar legislation laid down for the company (audit) (ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyTheCompaniesActOrEquivalentLegislationThatTheCompanyIsSubjectToAudit)"
+                        "Declaration obligations according to the declaration order, including especially the legislation on financial reporting, including on bookkeeping and storage of accounting material (audit) (ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyLegislationOnFinancialReportingIncludingAccountingAndStorageOfAccountingRecordsAudit)"
+                        "Declaration obligations according to the declaration order, including other matters in particular (revision (ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyOtherMattersAudit)"),
+                )
 
 
 @validation(
@@ -561,30 +551,28 @@ def rule_fr63(
     less than or equal to the balance sheet total. Applies to both the year's figures and comparative figures.
     """
     modelXbrl = val.modelXbrl
-    asset_facts = modelXbrl.factsByQname.get(pluginData.assetsQn)
-    if asset_facts is not None:
-        for asset_fact in asset_facts:
-            if asset_fact.xValid >= VALID and isinstance(asset_fact.xValue, decimal.Decimal):
-                concepts_in_error = []
-                facts_in_error = []
-                for balance_sheet_qn in pluginData.balanceSheetQnLessThanOrEqualToAssets:
-                    balance_sheet_qn_facts = modelXbrl.factsByQname.get(balance_sheet_qn)
-                    if balance_sheet_qn_facts is not None:
-                        for balance_sheet_qn_fact in balance_sheet_qn_facts:
-                            if (balance_sheet_qn_fact.xValid >= VALID and
-                                    isinstance(balance_sheet_qn_fact.xValue, decimal.Decimal) and
-                                    asset_fact.contextID == balance_sheet_qn_fact.contextID and
-                                    asset_fact.xValue < balance_sheet_qn_fact.xValue):
-                                concepts_in_error.append(balance_sheet_qn.localName)
-                                facts_in_error.append(balance_sheet_qn_fact)
-                if len(facts_in_error) > 0:
-                    yield Validation.error(
-                        codes='DBA.FR63',
-                        msg=_("The annual report contains items in the balance sheet (year's figures or comparison "
-                              "figures) which are greater than the balance sheet total(Assets). The following "
-                              "fields do not comply: {}").format(concepts_in_error),
-                        modelObject=facts_in_error
-                    )
+    asset_facts = modelXbrl.factsByQname.get(pluginData.assetsQn, set())
+    for asset_fact in asset_facts:
+        if asset_fact.xValid >= VALID and isinstance(asset_fact.xValue, decimal.Decimal):
+            concepts_in_error = []
+            facts_in_error = []
+            for balance_sheet_qn in pluginData.balanceSheetQnLessThanOrEqualToAssets:
+                balance_sheet_qn_facts = modelXbrl.factsByQname.get(balance_sheet_qn, set())
+                for balance_sheet_qn_fact in balance_sheet_qn_facts:
+                    if (balance_sheet_qn_fact.xValid >= VALID and
+                            isinstance(balance_sheet_qn_fact.xValue, decimal.Decimal) and
+                            asset_fact.contextID == balance_sheet_qn_fact.contextID and
+                            asset_fact.xValue < balance_sheet_qn_fact.xValue):
+                        concepts_in_error.append(balance_sheet_qn.localName)
+                        facts_in_error.append(balance_sheet_qn_fact)
+            if len(facts_in_error) > 0:
+                yield Validation.error(
+                    codes='DBA.FR63',
+                    msg=_("The annual report contains items in the balance sheet (year's figures or comparison "
+                          "figures) which are greater than the balance sheet total(Assets). The following "
+                          "fields do not comply: {}").format(concepts_in_error),
+                    modelObject=facts_in_error
+                )
 
 
 @validation(
@@ -616,11 +604,10 @@ def rule_fr71(
         pluginData.postemploymentBenefitExpenseQn,
         pluginData.otherEmployeeExpenseQn
     ]:
-        facts = modelXbrl.factsByQname.get(cost_qn)
-        if facts is not None:
-            for fact in facts:
-                if fact.xValid >= VALID and isinstance(fact.xValue, decimal.Decimal) and fact.xValue < 0:
-                    facts_in_error.append(fact)
+        facts = modelXbrl.factsByQname.get(cost_qn, set())
+        for fact in facts:
+            if fact.xValid >= VALID and isinstance(fact.xValue, decimal.Decimal) and fact.xValue < 0:
+                facts_in_error.append(fact)
     if len(facts_in_error) > 0:
         yield Validation.warning(
             codes="DBA.FR71",
@@ -646,27 +633,26 @@ def rule_fr72(
     then arr:DescriptionsOfQualificationsOfReviewedFinancialStatements must be tagged.
     """
     modelXbrl = val.modelXbrl
-    review_facts = modelXbrl.factsByQname.get(pluginData.typeOfBasisForModifiedOpinionOnFinancialStatementsReviewQn)
-    if review_facts is not None:
-        for review_fact in review_facts:
-            if review_fact.xValid >= VALID and review_fact.xValue in [
-                pluginData.basisForAdverseOpinionDanish,
-                pluginData.basisForAdverseOpinionEnglish,
-                pluginData.basisForDisclaimerOpinionDanish,
-                pluginData.basisForDisclaimerOpinionEnglish,
-                pluginData.basisForQualifiedOpinionDanish,
-                pluginData.basisForQualifiedOpinionEnglish,
-            ]:
-                description_facts = modelXbrl.factsByQname.get(pluginData.descriptionsOfQualificationsOfReviewedFinancialStatementsQn)
-                if description_facts is None:
-                    yield Validation.warning(
-                        codes='DBA.FR72',
-                        msg=_("DescriptionsOfQualificationsOfReviewedFinancialStatements must be tagged when {} is tagged with the value of {}").format(
-                            pluginData.typeOfBasisForModifiedOpinionOnFinancialStatementsReviewQn.localName,
-                            review_fact.xValue
-                        ),
-                        modelObject=review_fact
-                    )
+    review_facts = modelXbrl.factsByQname.get(pluginData.typeOfBasisForModifiedOpinionOnFinancialStatementsReviewQn, set())
+    for review_fact in review_facts:
+        if review_fact.xValid >= VALID and review_fact.xValue in [
+            pluginData.basisForAdverseOpinionDanish,
+            pluginData.basisForAdverseOpinionEnglish,
+            pluginData.basisForDisclaimerOpinionDanish,
+            pluginData.basisForDisclaimerOpinionEnglish,
+            pluginData.basisForQualifiedOpinionDanish,
+            pluginData.basisForQualifiedOpinionEnglish,
+        ]:
+            description_facts = modelXbrl.factsByQname.get(pluginData.descriptionsOfQualificationsOfReviewedFinancialStatementsQn, set())
+            if len(description_facts) == 0:
+                yield Validation.warning(
+                    codes='DBA.FR72',
+                    msg=_("DescriptionsOfQualificationsOfReviewedFinancialStatements must be tagged when {} is tagged with the value of {}").format(
+                        pluginData.typeOfBasisForModifiedOpinionOnFinancialStatementsReviewQn.localName,
+                        review_fact.xValue
+                    ),
+                    modelObject=review_fact
+                )
 
 
 @validation(
@@ -685,11 +671,11 @@ def rule_fr73(
     arr:ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyLegislationOnFinancialReportingInApplication
     """
     modelXbrl = val.modelXbrl
-    indicatorFacts = modelXbrl.factsByQname.get(pluginData.reportingResponsibilitiesOnApprovedAuditorsReportsExtendedReviewQn)
-    if indicatorFacts is not None:
+    indicatorFacts = modelXbrl.factsByQname.get(pluginData.reportingResponsibilitiesOnApprovedAuditorsReportsExtendedReviewQn, set())
+    if len(indicatorFacts) > 0:
         for qname in pluginData.reportingObligationQns:
-            facts = modelXbrl.factsByQname.get(qname)
-            if facts is not None:
+            facts = modelXbrl.factsByQname.get(qname, set())
+            if len(facts) > 0:
                 return
         yield Validation.warning(
             codes='DBA.FR73',
@@ -886,29 +872,28 @@ def rule_fr92(
     - (Andre erklæringer uden sikkerhed) / (Auditor's reports (Other non-assurance reports))
     """
     modelXbrl = val.modelXbrl
-    facts = modelXbrl.factsByQname.get(pluginData.typeOfAuditorAssistanceQn)
-    if facts is not None:
-        for fact in facts:
-            if fact.xValid >= VALID:
-                if fact.xValue in [
-                    pluginData.auditedFinancialStatementsDanish,
-                    pluginData.auditedFinancialStatementsEnglish,
-                    pluginData.auditedExtendedReviewDanish,
-                    pluginData.auditedExtendedReviewEnglish,
-                    pluginData.independentAuditorsReportDanish,
-                    pluginData.independentAuditorsReportEnglish,
-                    pluginData.auditedAssuranceReportsDanish,
-                    pluginData.auditedAssuranceReportsEnglish,
-                    pluginData.auditedNonAssuranceReportsDanish,
-                    pluginData.auditedNonAssuranceReportsEnglish,
-                ]:
-                    signature_facts = modelXbrl.factsByQname.get(pluginData.signatureOfAuditorsDateQn)
-                    if signature_facts is None:
-                        yield Validation.error(
-                            codes='DBA.FR92',
-                            msg=_("SignatureOfAuditorsDate must be tagged when {} is tagged with the value of {}").format(
-                                pluginData.typeOfAuditorAssistanceQn.localName,
-                                fact.xValue
-                            ),
-                            modelObject=fact
-                        )
+    facts = modelXbrl.factsByQname.get(pluginData.typeOfAuditorAssistanceQn, set())
+    for fact in facts:
+        if fact.xValid >= VALID:
+            if fact.xValue in [
+                pluginData.auditedFinancialStatementsDanish,
+                pluginData.auditedFinancialStatementsEnglish,
+                pluginData.auditedExtendedReviewDanish,
+                pluginData.auditedExtendedReviewEnglish,
+                pluginData.independentAuditorsReportDanish,
+                pluginData.independentAuditorsReportEnglish,
+                pluginData.auditedAssuranceReportsDanish,
+                pluginData.auditedAssuranceReportsEnglish,
+                pluginData.auditedNonAssuranceReportsDanish,
+                pluginData.auditedNonAssuranceReportsEnglish,
+            ]:
+                signature_facts = modelXbrl.factsByQname.get(pluginData.signatureOfAuditorsDateQn, set())
+                if len(signature_facts) == 0:
+                    yield Validation.error(
+                        codes='DBA.FR92',
+                        msg=_("SignatureOfAuditorsDate must be tagged when {} is tagged with the value of {}").format(
+                            pluginData.typeOfAuditorAssistanceQn.localName,
+                            fact.xValue
+                        ),
+                        modelObject=fact
+                    )
