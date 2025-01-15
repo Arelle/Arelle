@@ -85,6 +85,12 @@ class PluginValidationDataExtension(PluginData):
     proposedExtraordinaryDividendRecognisedInLiabilitiesQn: QName
     provisionsQn: QName
     registeredReportingPeriodDeviatingFromReportedReportingPeriodDueArbitraryDatesMemberQn: QName
+    reportingClassCLargeDanish: str
+    reportingClassCLargeEnglish: str
+    reportingClassCMediumDanish: str
+    reportingClassCMediumEnglish: str
+    reportingClassDDanish: str
+    reportingClassDEnglish: str
     reportingPeriodEndDateQn: QName
     reportingPeriodStartDateQn: QName
     reportingResponsibilitiesOnApprovedAuditorsReportAuditQn: QName
@@ -94,6 +100,8 @@ class PluginValidationDataExtension(PluginData):
     signatureOfAuditorsDateQn: QName
     taxExpenseOnOrdinaryActivitiesQn: QName
     taxExpenseQn: QName
+    typeOfAuditorAssistanceDanish: str
+    typeOfAuditorAssistanceEnglish: str
     typeOfAuditorAssistanceQn: QName
     typeOfBasisForModifiedOpinionOnFinancialStatementsReviewQn: QName
     typeOfReportingPeriodDimensionQn: QName

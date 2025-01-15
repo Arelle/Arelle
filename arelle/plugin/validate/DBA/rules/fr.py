@@ -502,6 +502,43 @@ def rule_fr56(
             )
 
 
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr59(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR59: When the annual report contains an audit report, which is when TypeOfAuditorAssistance = Revisionspåtegning / Auditor's report on audited financial statements, then the concept
+    arr:DescriptionOfQualificationsOfAuditedFinancialStatement must be filled in.
+    """
+    modelXbrl = val.modelXbrl
+    descriptonFacts = modelXbrl.factsByQname.get(pluginData.descriptionOfQualificationsOfAuditedFinancialStatementsQn)
+    indicatorFacts = []
+    if descriptonFacts is not None:
+        return
+    auditorFacts = modelXbrl.factsByQname.get(pluginData.typeOfAuditorAssistanceQn)
+    if auditorFacts is not None:
+        for aFact in auditorFacts:
+            if aFact.xValid >= VALID:
+                if aFact.xValue in [
+                    pluginData.auditedFinancialStatementsDanish,
+                    pluginData.auditedFinancialStatementsEnglish,
+                ]:
+                    indicatorFacts.append(aFact)
+        if len(indicatorFacts) > 0:
+            yield Validation.error(
+                codes='DBA.FR59',
+                msg=_("DescriptionOfQualificationsOfAuditedFinancialStatement must be tagged when {} is tagged with the value of {}").format(
+                    pluginData.typeOfAuditorAssistanceQn.localName,
+                    indicatorFacts[0].xValue),
+                    modelObject=indicatorFacts[0])
+
+
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
@@ -849,6 +886,59 @@ def rule_fr81(
                   "must be at least one fact, with either the Danish ('da') or English ('en') language attribute."),
             modelObject=[val.modelXbrl.modelDocument]
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr89(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR89: If ClassOfReportingEntity is one of the following values:
+
+    Regnskabsklasse C, mellemstor virksomhed // Reporting class C, medium-size enterprise
+    Regnskabsklasse C, stor virksomhed // Reporting class C, large enterprise
+    Regnskabsklasse D // Reporting class D
+    Then TypeOfAuditorAssistance should be: Revisionspåtegning // Auditor's report on audited financial statements
+    """
+    modelXbrl = val.modelXbrl
+    auditorFacts = modelXbrl.factsByQname.get(pluginData.typeOfAuditorAssistanceQn)
+    if auditorFacts is not None:
+        for auditorFact in auditorFacts:
+            if auditorFact.xValid >= VALID and auditorFact.xValue in [
+                pluginData.auditedFinancialStatementsDanish,
+                pluginData.auditedFinancialStatementsEnglish
+            ]:
+                return
+    classFacts = []
+    facts = modelXbrl.factsByQname.get(pluginData.classOfReportingEntityQn)
+    if facts is not None:
+        for fact in facts:
+            if fact.xValid >= VALID:
+                if fact.xValue in [
+                    pluginData.reportingClassCLargeDanish,
+                    pluginData.reportingClassCLargeEnglish,
+                    pluginData.reportingClassCMediumDanish,
+                    pluginData.reportingClassCMediumEnglish,
+                    pluginData.reportingClassDDanish,
+                    pluginData.reportingClassDEnglish,
+                ]:
+                    classFacts.append(fact)
+        if len(classFacts) > 0:
+            yield Validation.error(
+                codes='DBA.FR89',
+                msg=_("TypeOfAuditorAssistance should be {} or {} when {} is tagged with the value of {}.").format(
+                    pluginData.auditedFinancialStatementsDanish,
+                    pluginData.auditedFinancialStatementsEnglish,
+                    pluginData.classOfReportingEntityQn.localName,
+                    classFacts[0].xValue
+                ),
+                modelObject=classFacts[0]
+            )
 
 
 @validation(
