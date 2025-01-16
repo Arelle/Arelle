@@ -125,7 +125,7 @@ def getFactsWithDimension(
         val: ValidateXbrl,
         conceptQn: QName,
         dimensionQn: QName,
-        membeQn: QName
+        memberQns: list[QName]
 ) -> set[ModelFact ]:
     foundFacts: set[ModelFact] = set()
     facts = val.modelXbrl.factsByQname.get(conceptQn)
@@ -136,13 +136,28 @@ def getFactsWithDimension(
                     continue
                 elif (fact.context.dimMemberQname(
                         dimensionQn
-                ) == membeQn
+                ) in memberQns
                       and fact.context.qnameDims.keys() == {dimensionQn}):
                     foundFacts.add(fact)
                 elif not len(fact.context.qnameDims):
                     foundFacts.add(fact)
     return foundFacts
 
+
+def getFactsWithoutDimension(
+        val: ValidateXbrl,
+        conceptQn: QName,
+) -> set[ModelFact ]:
+    foundFacts: set[ModelFact] = set()
+    facts = val.modelXbrl.factsByQname.get(conceptQn, set())
+    foundFacts = {
+        fact for fact in facts
+        if fact is not None
+        if fact.xValid >= VALID
+        if fact.context is not None
+        if len(fact.context.qnameDims) == 0
+        }
+    return foundFacts
 
 def getValidDateFacts(
         modelXbrl: ModelXbrl,

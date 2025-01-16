@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.FR57"
+        description=
+                "DBA.FR57.MarkingOfPeriod(Error):Correct marking of the period:
+                Previous accounting period is marked(fsa:PrecedingReportingPeriodStartDate), even though it is the first accounting period.
+
+                DBA.FR57.ProfitLoss(Error):
+                The profit for the year (fsa:ProfitLoss) in the income statement must be filled in
+
+                DBA.FR57.Equity(Error):
+                The equity (fsa:Equity) in the balance sheet must be filled in
+
+                DBA.FR57.Assets(Error):
+                Assets (fsa:Assets) must be stated and must not be negative
+
+                DBA.FR57.LiabilitiesAndEquity(Error):
+                Liabilities (fsa:LiabilitiesAndEquity) must be stated and must not be negative
+
+                DBA.FR57.Equality(Error):
+                Assets (fsa:Assets) must equal Liabilities (fsa:LiabilitiesAndEquity)"
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="equality" name="Equality Mismatch">
+        <description>
+            Assets does not equal LiabilitiesAndEquity
+        </description>
+        <data>
+            <instance readMeFirst="true">fr57-equality.xbrl</instance>
+        </data>
+        <result>
+            <error>DBA.FR57.Equality</error>
+        </result>
+    </variation>
+    <variation id="missing-current" name="Missing Current">
+        <description>
+            Profit Loss, Equity, Assets, Liabilities and Equity are missing for the current reporting period
+        </description>
+        <data>
+            <instance readMeFirst="true">fr57-missing-current.xbrl</instance>
+        </data>
+        <result>
+            <error>DBA.FR57.Assets</error>
+            <error>DBA.FR57.Equity</error>
+            <error>DBA.FR57.LiabilitiesAndEquity</error>
+            <error>DBA.FR57.ProfitLoss</error>
+        </result>
+    </variation>
+    <variation id="missing-previous" name="Missing Previous">
+        <description>
+            Profit Loss, Equity, Assets, Liabilities and Equity are missing for the previous reporting period
+        </description>
+        <data>
+            <instance readMeFirst="true">fr57-missing-previous.xbrl</instance>
+        </data>
+        <result>
+            <error>DBA.FR57.Assets</error>
+            <error>DBA.FR57.Equity</error>
+            <error>DBA.FR57.LiabilitiesAndEquity</error>
+            <error>DBA.FR57.ProfitLoss</error>
+        </result>
+    </variation>
+    <variation id="negative-facts" name="Negative Facts">
+        <description>
+            Assets and LiabilitiesAndEquity are negative
+        </description>
+        <data>
+            <instance readMeFirst="true">fr57-negative-facts.xbrl</instance>
+        </data>
+        <result>
+            <error>DBA.FR57.NegativeAssets</error>
+            <error>DBA.FR57.NegativeLiabilitiesAndEquity</error>
+            <error>DBA.FR63</error>
+            <error>DBA.FR74a</error>
+            <error>DBA.FR74b</error>
+            <error>DBA.FR77a</error>
+            <error>DBA.FR77b</error>
+        </result>
+    </variation>
+    <variation id="no-current-period" name="No Current Period">
+        <description>
+            ReportingPeriodStartDate and ReportingPeriodEndDate are not tagged.
+        </description>
+        <data>
+            <instance readMeFirst="true">fr57-no-current-period.xbrl</instance>
+        </data>
+        <result>
+            <error>DBA.FR57.MarkingOfPeriod</error>
+        </result>
+    </variation>
+
+</testcase>
