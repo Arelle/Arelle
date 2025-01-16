@@ -25,6 +25,30 @@ _: TypeGetText
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
+def rule_tr02(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.TR02: gsd:IdentificationNumberCvrOfReportingEntity must have the absolute URI 'http://www.dcca.dk/cvr' as
+    context entity identifier scheme
+    """
+    cvr_facts = val.modelXbrl.factsByQname.get(pluginData.identificationNumberCvrOfReportingEntityQn, set())
+    if len(cvr_facts) > 0:
+        cvr_fact = cvr_facts.pop()
+        if not cvr_fact.context.entityIdentifier[0] == 'http://www.dcca.dk/cvr':
+            yield Validation.error(
+                codes='DBA.TR02',
+                msg=_("IdentificationNumberCvrOfReportingEntity must have the absolute URI 'http://www.dcca.dk/cvr' as context entity identifier scheme"),
+                modelObject=cvr_fact
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
 def rule_tr03(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
