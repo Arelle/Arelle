@@ -99,6 +99,7 @@ class PluginValidationDataExtension(PluginData):
     reportingObligationQns: frozenset[QName]
     shorttermLiabilitiesOtherThanProvisionsQn: QName
     signatureOfAuditorsDateQn: QName
+    soloMemberQn: QName
     taxExpenseOnOrdinaryActivitiesQn: QName
     taxExpenseQn: QName
     typeOfAuditorAssistanceDanish: str
