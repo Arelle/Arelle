@@ -557,7 +557,7 @@
     <gsd:PredingReportingPeriodEndDate contextRef="ID_0" xml:lang="da">2021-12-31</gsd:PredingReportingPeriodEndDate>
     <gsd:RegisteredOfficeOfReportingEntity contextRef="ID_0" xml:lang="da">111, place</gsd:RegisteredOfficeOfReportingEntity>
     <gsd:ReportingPeriodEndDate contextRef="ID_0" xml:lang="da">2022-12-31</gsd:ReportingPeriodEndDate>
-    <gsd:ReportingPeriodEndDate contextRef="ID_999" xml:lang="da">2021-12-31</gsd:ReportingPeriodEndDate>
+    <gsd:ReportingPeriodEndDate contextRef="ID_999" xml:lang="da">2022-12-31</gsd:ReportingPeriodEndDate>
     <gsd:ReportingPeriodEndDate contextRef="ID_1000" xml:lang="da">2022-12-31</gsd:ReportingPeriodEndDate>
     <gsd:ReportingPeriodStartDate contextRef="ID_0" xml:lang="da">2022-01-01</gsd:ReportingPeriodStartDate>
     <gsd:TelephoneNumberOfReportingEntity contextRef="ID_0" xml:lang="da">00000000</gsd:TelephoneNumberOfReportingEntity>
