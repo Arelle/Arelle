@@ -16,10 +16,40 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from arelle.XmlValidateConst import VALID
-from . import errorOnMultipleFacts
+from . import lookup_namespaced_facts
 from ..PluginValidationDataExtension import PluginValidationDataExtension
+from ..ValidationPluginExtension import NAMESPACE_GSD
 
 _: TypeGetText
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_tr01(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.TR01: All GSD facts must have context with the same entity and period as gsd:IdentificationNumberCvrOfReportingEntity
+    """
+    cvr_facts = val.modelXbrl.factsByQname.get(pluginData.identificationNumberCvrOfReportingEntityQn, set())
+    if len(cvr_facts) > 0:
+        cvr_fact = cvr_facts.pop()
+        gsd_facts = lookup_namespaced_facts(val.modelXbrl, NAMESPACE_GSD)
+        facts_in_error = []
+        for fact in gsd_facts:
+            if (fact.context.entityIdentifier != cvr_fact.context.entityIdentifier or
+                    fact.context.periodHash != cvr_fact.context.periodHash):
+                facts_in_error.append(fact)
+        if len(facts_in_error) > 0:
+            yield Validation.error(
+                codes='DBA.TR01',
+                msg=_("Facts tagged with gsd-namespaced concepts must have a context with the same entity and period as IdentificationNumberCvrOfReportingEntity"),
+                modelObject=facts_in_error
+            )
 
 
 @validation(

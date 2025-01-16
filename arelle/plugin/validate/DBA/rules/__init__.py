@@ -205,3 +205,11 @@ def getFactsGroupedByContextId(modelXbrl: ModelXbrl, *conceptQns: QName) -> dict
             groupedFacts[contextId] = []
         groupedFacts[contextId].append(fact)
     return dict(sorted(groupedFacts.items()))
+
+
+def lookup_namespaced_facts(modelXbrl, namespaceURI):
+    """
+    Returns the set of facts that are tagged with a concept from a particular namespace
+    :Return: a set of facts
+    """
+    return {f for f in modelXbrl.facts if f.concept.qname.namespaceURI == namespaceURI and f.xValid >= VALID and f.xValue is not None}
