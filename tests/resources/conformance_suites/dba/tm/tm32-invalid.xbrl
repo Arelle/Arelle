@@ -25,8 +25,8 @@
             <xbrli:identifier scheme="http://www.dcca.dk/cvr">54399219</xbrli:identifier>
         </xbrli:entity>
         <xbrli:period>
-            <xbrli:startDate>2021-01-01</xbrli:startDate>
-            <xbrli:endDate>2021-12-31</xbrli:endDate>
+            <xbrli:startDate>2022-01-01</xbrli:startDate>
+            <xbrli:endDate>2022-12-31</xbrli:endDate>
         </xbrli:period>
         <xbrli:scenario>
             <xbrldi:explicitMember dimension="gsd:TypeOfReportingPeriodDimension">gsd:RegisteredReportingPeriodDeviatingFromReportedReportingPeriodDueArbitraryDatesMember</xbrldi:explicitMember>

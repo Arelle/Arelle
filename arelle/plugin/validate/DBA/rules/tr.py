@@ -120,13 +120,13 @@ def rule_tr05(
     if len(cvr_facts) > 0 and len(filtered_start_date_facts) > 0:
         cvr_fact = cvr_facts.pop()
         start_date_fact = filtered_start_date_facts.pop()
-        if start_date_fact.xValid >= VALID and start_date_fact.xValue != cvr_fact.context.startDate:
+        if start_date_fact.xValid >= VALID and start_date_fact.xValue != cvr_fact.context.startDatetime:
             yield Validation.error(
                 codes='DBA.TR05',
                 msg=_("ReportingPeriodStartDate must specify the same date({}) as period startDate({}) in the context "
                       "of IdentificationNumberCvrOfReportingEntity").format(
                     start_date_fact.xValue,
-                    cvr_fact.context.startDate
+                    cvr_fact.context.startDatetime.date()
                 ),
                 modelObject=[start_date_fact, cvr_fact]
             )
@@ -151,13 +151,13 @@ def rule_tr06(
     if len(cvr_facts) > 0 and len(filtered_end_date_fact) > 0:
         cvr_fact = cvr_facts.pop()
         end_date_fact = filtered_end_date_fact.pop()
-        if end_date_fact.xValid >= VALID and end_date_fact.xValue != cvr_fact.context.endDate:
+        if end_date_fact.xValid >= VALID and end_date_fact.xValue != cvr_fact.context.endDatetime:
             yield Validation.error(
                 codes='DBA.TR06',
                 msg=_("ReportingPeriodEndDate must specify the same date({}) as period endDate({}) in the context of "
                       "IdentificationNumberCvrOfReportingEntity").format(
                     end_date_fact.xValue,
-                    cvr_fact.context.endDate
+                    cvr_fact.context.endDatetime.date()
                 ),
                 modelObject=[end_date_fact, cvr_fact]
             )
