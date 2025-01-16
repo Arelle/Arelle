@@ -25,6 +25,26 @@ _: TypeGetText
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
+def rule_tr09(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.TR09: All contexts must have the same identifier scheme and value
+    """
+    entity_identifier_values = {context.entityIdentifier for context in val.modelXbrl.contexts.values()}
+    if len(entity_identifier_values) > 1:
+        yield Validation.error(
+            'DBA.TR09',
+            _('All contexts must have the same identifier scheme and value')
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
 def rule_tr19(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
