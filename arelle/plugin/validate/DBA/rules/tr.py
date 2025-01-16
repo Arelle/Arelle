@@ -3,12 +3,9 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-import datetime
-import decimal
-import itertools
 from collections import defaultdict
 from collections.abc import Iterable
-from typing import Any, cast
+from typing import Any
 
 from arelle.typing import TypeGetText
 from arelle.ValidateXbrl import ValidateXbrl
@@ -68,7 +65,7 @@ def rule_tr02(
     cvr_facts = val.modelXbrl.factsByQname.get(pluginData.identificationNumberCvrOfReportingEntityQn, set())
     if len(cvr_facts) > 0:
         cvr_fact = cvr_facts.pop()
-        if not cvr_fact.context.entityIdentifier[0] == 'http://www.dcca.dk/cvr':
+        if cvr_fact.context.entityIdentifier[0] != 'http://www.dcca.dk/cvr':
             yield Validation.error(
                 codes='DBA.TR02',
                 msg=_("IdentificationNumberCvrOfReportingEntity must have the absolute URI 'http://www.dcca.dk/cvr' as context entity identifier scheme"),
@@ -92,7 +89,7 @@ def rule_tr03(
     cvr_facts = val.modelXbrl.factsByQname.get(pluginData.identificationNumberCvrOfReportingEntityQn, set())
     if len(cvr_facts) > 0:
         cvr_fact = cvr_facts.pop()
-        if cvr_fact.xValid >= VALID and not cvr_fact.xValue == cvr_fact.context.entityIdentifier[1]:
+        if cvr_fact.xValid >= VALID and cvr_fact.xValue != cvr_fact.context.entityIdentifier[1]:
             yield Validation.error(
                 codes='DBA.TR03',
                 msg=_("IdentificationNumberCvrOfReportingEntity must have the CVR number({}) specified in "
@@ -123,7 +120,7 @@ def rule_tr05(
     if len(cvr_facts) > 0 and len(filtered_start_date_facts) > 0:
         cvr_fact = cvr_facts.pop()
         start_date_fact = filtered_start_date_facts.pop()
-        if start_date_fact.xValid >= VALID and not start_date_fact.xValue == cvr_fact.context.startDate:
+        if start_date_fact.xValid >= VALID and start_date_fact.xValue != cvr_fact.context.startDate:
             yield Validation.error(
                 codes='DBA.TR05',
                 msg=_("ReportingPeriodStartDate must specify the same date({}) as period startDate({}) in the context "
@@ -154,7 +151,7 @@ def rule_tr06(
     if len(cvr_facts) > 0 and len(filtered_end_date_fact) > 0:
         cvr_fact = cvr_facts.pop()
         end_date_fact = filtered_end_date_fact.pop()
-        if end_date_fact.xValid >= VALID and not end_date_fact.xValue == cvr_fact.context.endDate:
+        if end_date_fact.xValid >= VALID and end_date_fact.xValue != cvr_fact.context.endDate:
             yield Validation.error(
                 codes='DBA.TR06',
                 msg=_("ReportingPeriodEndDate must specify the same date({}) as period endDate({}) in the context of "
