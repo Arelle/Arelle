@@ -25,6 +25,34 @@ _: TypeGetText
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
+def rule_tr03(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.TR03: gsd:IdentificationNumberCvrOfReportingEntity must have the CVR number specified in gsd:IdentificationNumberCvrOfReportingEntity
+    as the context entity identifier.
+    """
+    cvr_facts = val.modelXbrl.factsByQname.get(pluginData.identificationNumberCvrOfReportingEntityQn, set())
+    if len(cvr_facts) > 0:
+        cvr_fact = cvr_facts.pop()
+        if cvr_fact.xValid >= VALID and not cvr_fact.xValue == cvr_fact.context.entityIdentifier[1]:
+            yield Validation.error(
+                codes='DBA.TR03',
+                msg=_("IdentificationNumberCvrOfReportingEntity must have the CVR number({}) specified in "
+                      "IdentificationNumberCvrOfReportingEntity as the context entity identifier({}).").format(
+                    cvr_fact.xValue,
+                    cvr_fact.context.entityIdentifier[1]
+                ),
+                modelObject=cvr_fact
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
 def rule_tr05(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
