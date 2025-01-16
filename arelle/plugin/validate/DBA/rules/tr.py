@@ -25,6 +25,37 @@ _: TypeGetText
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
+def rule_tr05(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.TR05: gsd:ReportingPeriodStartDate must specify the same date as period startDate in the context of
+    gsd:IdentificationNumberCvrOfReportingEntity
+    """
+    cvr_facts = val.modelXbrl.factsByQname.get(pluginData.identificationNumberCvrOfReportingEntityQn, set())
+    start_date_facts = val.modelXbrl.factsByQname.get(pluginData.reportingPeriodStartDateQn, set())
+    filtered_start_date_facts = {f for f in start_date_facts if not f.context.scenDimValues}
+    if len(cvr_facts) > 0 and len(filtered_start_date_facts) > 0:
+        cvr_fact = cvr_facts.pop()
+        start_date_fact = filtered_start_date_facts.pop()
+        if start_date_fact.xValid >= VALID and not start_date_fact.xValue == cvr_fact.context.startDate:
+            yield Validation.error(
+                codes='DBA.TR05',
+                msg=_("ReportingPeriodStartDate must specify the same date({}) as period startDate({}) in the context "
+                      "of IdentificationNumberCvrOfReportingEntity").format(
+                    start_date_fact.xValue,
+                    cvr_fact.context.startDate
+                ),
+                modelObject=[start_date_fact, cvr_fact]
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
 def rule_tr06(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
