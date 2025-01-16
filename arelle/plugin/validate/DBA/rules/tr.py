@@ -34,7 +34,7 @@ def rule_tr01(
     """
     cvr_facts = val.modelXbrl.factsByQname.get(pluginData.identificationNumberCvrOfReportingEntityQn, set())
     if len(cvr_facts) > 0:
-        cvr_fact = cvr_facts.pop()
+        cvr_fact = next(iter(cvr_facts))
         gsd_facts = lookup_namespaced_facts(val.modelXbrl, NAMESPACE_GSD)
         facts_in_error = []
         for fact in gsd_facts:
@@ -64,7 +64,7 @@ def rule_tr02(
     """
     cvr_facts = val.modelXbrl.factsByQname.get(pluginData.identificationNumberCvrOfReportingEntityQn, set())
     if len(cvr_facts) > 0:
-        cvr_fact = cvr_facts.pop()
+        cvr_fact = next(iter(cvr_facts))
         if cvr_fact.context.entityIdentifier[0] != 'http://www.dcca.dk/cvr':
             yield Validation.error(
                 codes='DBA.TR02',
@@ -88,7 +88,7 @@ def rule_tr03(
     """
     cvr_facts = val.modelXbrl.factsByQname.get(pluginData.identificationNumberCvrOfReportingEntityQn, set())
     if len(cvr_facts) > 0:
-        cvr_fact = cvr_facts.pop()
+        cvr_fact = next(iter(cvr_facts))
         if cvr_fact.xValid >= VALID and cvr_fact.xValue != cvr_fact.context.entityIdentifier[1]:
             yield Validation.error(
                 codes='DBA.TR03',
@@ -118,8 +118,8 @@ def rule_tr05(
     start_date_facts = val.modelXbrl.factsByQname.get(pluginData.reportingPeriodStartDateQn, set())
     filtered_start_date_facts = {f for f in start_date_facts if not f.context.scenDimValues}
     if len(cvr_facts) > 0 and len(filtered_start_date_facts) > 0:
-        cvr_fact = cvr_facts.pop()
-        start_date_fact = filtered_start_date_facts.pop()
+        cvr_fact = next(iter(cvr_facts))
+        start_date_fact = next(iter(filtered_start_date_facts))
         if start_date_fact.xValid >= VALID and start_date_fact.xValue != cvr_fact.context.startDatetime:
             yield Validation.error(
                 codes='DBA.TR05',
@@ -149,8 +149,8 @@ def rule_tr06(
     end_date_facts = val.modelXbrl.factsByQname.get(pluginData.reportingPeriodEndDateQn, set())
     filtered_end_date_fact = {f for f in end_date_facts if not f.context.scenDimValues}
     if len(cvr_facts) > 0 and len(filtered_end_date_fact) > 0:
-        cvr_fact = cvr_facts.pop()
-        end_date_fact = filtered_end_date_fact.pop()
+        cvr_fact = next(iter(cvr_facts))
+        end_date_fact = next(iter(filtered_end_date_fact))
         if end_date_fact.xValid >= VALID and end_date_fact.xValue != cvr_fact.context.endDatetime:
             yield Validation.error(
                 codes='DBA.TR06',
