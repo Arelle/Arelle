@@ -20,6 +20,15 @@
             <xbrli:endDate>2022-12-31</xbrli:endDate>
         </xbrli:period>
     </xbrli:context>
+    <xbrli:context id="ID_100">
+        <xbrli:entity>
+            <xbrli:identifier scheme="http://www.dcca.dk/cvr">54399219</xbrli:identifier>
+        </xbrli:entity>
+        <xbrli:period>
+            <xbrli:startDate>2021-01-01</xbrli:startDate>
+            <xbrli:endDate>2022-12-31</xbrli:endDate>
+        </xbrli:period>
+    </xbrli:context>
     <xbrli:context id="ID_999">
         <xbrli:entity>
             <xbrli:identifier scheme="http://www.dcca.dk/cvr">54399219</xbrli:identifier>
@@ -461,6 +470,7 @@
     <fsa:ProceedsFromSalesOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">2583000</fsa:ProceedsFromSalesOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities>
     <fsa:ProfitLoss contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">203795000</fsa:ProfitLoss>
     <fsa:ProfitLoss contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">12946000</fsa:ProfitLoss>
+    <fsa:ProfitLoss contextRef="ID_100" xml:lang="da" unitRef="DKK" decimals="-3">100</fsa:ProfitLoss>
     <fsa:ProfitLoss contextRef="ID_11" xml:lang="da" unitRef="DKK" decimals="-3">0000</fsa:ProfitLoss>
     <fsa:ProfitLoss contextRef="ID_12" xml:lang="da" unitRef="DKK" decimals="-3">0000</fsa:ProfitLoss>
     <fsa:ProfitLoss contextRef="ID_13" xml:lang="da" unitRef="DKK" decimals="-3">23795000</fsa:ProfitLoss>
@@ -534,6 +544,7 @@
     <fsa:ShorttermTradeReceivables contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">23751000</fsa:ShorttermTradeReceivables>
     <fsa:TaxExpense contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">57577000</fsa:TaxExpense>
     <fsa:TaxExpense contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">1708000</fsa:TaxExpense>
+    <fsa:TaxExpense contextRef="ID_100" xml:lang="da" unitRef="DKK" decimals="-3">1708000</fsa:TaxExpense>
     <fsa:TransferredToFromRetainedEarnings contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">-23795000</fsa:TransferredToFromRetainedEarnings>
     <fsa:TransferredToFromRetainedEarnings contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">-12946000</fsa:TransferredToFromRetainedEarnings>
     <gsd:AddressOfSubmittingEnterprisePostcodeAndTown contextRef="ID_0" xml:lang="da">København K, 1304</gsd:AddressOfSubmittingEnterprisePostcodeAndTown>
