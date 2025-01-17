@@ -225,4 +225,4 @@ def lookup_namespaced_facts(modelXbrl: ModelXbrl, namespaceURI: str) -> set[Mode
     Returns the set of facts that are tagged with a concept from a particular namespace
     :Return: a set of facts
     """
-    return {f for f in modelXbrl.facts if f.concept.qname.namespaceURI == namespaceURI and f.xValid >= VALID and f.xValue is not None}
+    return {f for f in modelXbrl.facts if f.xValid >= VALID and f.xValue is not None and f.concept.qname.namespaceURI == namespaceURI}
