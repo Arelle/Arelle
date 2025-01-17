@@ -19,7 +19,6 @@
         </data>
         <result>
             <error>DBA.TM18</error>
-            <error>DBA.FR57.ProfitLoss</error>
         </result>
     </variation>
 </testcase>
