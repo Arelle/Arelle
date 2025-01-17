@@ -399,8 +399,11 @@
     <fsa:InformationOnReportingClassOfEntity contextRef="ID_0" xml:lang="da">Årsrapporten for Arp-Hansen Hotel Group A/S for 2022 er aflagt i overensstemmelse med årsregnskabslovens bestemmelser for store virksomheder i regnskabsklasse C. </fsa:InformationOnReportingClassOfEntity>
     <fsa:IntangibleAssets contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">8740000</fsa:IntangibleAssets>
     <fsa:IntangibleAssets contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">9800000</fsa:IntangibleAssets>
+    <fsa:Inventories contextRef="ID_8" xml:lang="en" unitRef="DKK" decimals="-3">0000000</fsa:Inventories>
+    <fsa:Inventories contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">2954000</fsa:Inventories>
     <fsa:Inventories contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">2954000</fsa:Inventories>
     <fsa:Inventories contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">1890000</fsa:Inventories>
+    <fsa:Inventories contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">999890000</fsa:Inventories>
     <fsa:LandAndBuildings contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">7979239000</fsa:LandAndBuildings>
     <fsa:LandAndBuildings contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">7549101000</fsa:LandAndBuildings>
     <fsa:LeaseholdImprovements contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">20916000</fsa:LeaseholdImprovements>
@@ -519,7 +522,6 @@
     <gsd:AddressOfSubmittingEnterpriseStreetAndNumber contextRef="ID_0" xml:lang="da">Adelgade 15</gsd:AddressOfSubmittingEnterpriseStreetAndNumber>
     <gsd:DateOfFoundationOfReportingEntity contextRef="ID_0" xml:lang="da">1983-12-23</gsd:DateOfFoundationOfReportingEntity>
     <gsd:DateOfGeneralMeeting contextRef="ID_0" xml:lang="da">2023-03-23</gsd:DateOfGeneralMeeting>
-    <gsd:DateOfGeneralMeeting contextRef="ID_0" xml:lang="en">2022-03-23</gsd:DateOfGeneralMeeting>
     <gsd:EmailOfReportingEntity contextRef="ID_0" xml:lang="da">EmailOfReportingEntity@EmailOfReportingEntity</gsd:EmailOfReportingEntity>
     <gsd:FaxNumberOfReportingEntity contextRef="ID_0" xml:lang="da">00000000</gsd:FaxNumberOfReportingEntity>
     <gsd:HomepageOfReportingEntity contextRef="ID_0" xml:lang="da">HomepageOfReportingEntity</gsd:HomepageOfReportingEntity>

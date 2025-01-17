@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.TM29"
+        description="DBA.TM29: Either gsd:DateOfGeneralMeeting or gsd:DateOfApprovalOfReport must be specified."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid" name="Invalid">
+        <description>
+            Neither gsd:DateOfGeneralMeeting or gsd:DateOfApprovalOfReport is tagged
+        </description>
+        <data>
+            <instance readMeFirst="true">tm29-invalid.xbrl</instance>
+        </data>
+        <result>
+            <error>DBA.TM29</error>
+        </result>
+    </variation>
+</testcase>
