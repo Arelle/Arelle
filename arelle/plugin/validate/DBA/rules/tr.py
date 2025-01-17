@@ -7,6 +7,7 @@ from collections import defaultdict
 from collections.abc import Iterable
 from typing import Any
 
+from arelle import ModelValue
 from arelle.typing import TypeGetText
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.utils.PluginHooks import ValidationHook
@@ -151,13 +152,15 @@ def rule_tr06(
     if len(cvr_facts) > 0 and len(filtered_end_date_fact) > 0:
         cvr_fact = next(iter(cvr_facts))
         end_date_fact = next(iter(filtered_end_date_fact))
-        if end_date_fact.xValid >= VALID and end_date_fact.xValue != cvr_fact.context.endDatetime:
+        if (end_date_fact.xValid >= VALID and
+                isinstance(end_date_fact.xValue, ModelValue.DateTime) and
+                end_date_fact.xValue.date() != cvr_fact.context.endDate):
             yield Validation.error(
                 codes='DBA.TR06',
                 msg=_("ReportingPeriodEndDate must specify the same date({}) as period endDate({}) in the context of "
                       "IdentificationNumberCvrOfReportingEntity").format(
-                    end_date_fact.xValue,
-                    cvr_fact.context.endDatetime.date()
+                    end_date_fact.xValue.date(),
+                    cvr_fact.context.endDate
                 ),
                 modelObject=[end_date_fact, cvr_fact]
             )
