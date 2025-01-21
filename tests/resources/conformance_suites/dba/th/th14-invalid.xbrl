@@ -16,10 +16,10 @@
             <xbrli:identifier scheme="http://www.dcca.dk/cvr">54399219</xbrli:identifier>
         </xbrli:entity>
         <xbrli:period>
-            <xbrli:forever/>
+            <xbrli:startDate>2022-01-01</xbrli:startDate>
+            <xbrli:endDate>2022-12-31</xbrli:endDate>
         </xbrli:period>
     </xbrli:context>
-
     <xbrli:context id="ID_3">
         <xbrli:entity>
             <xbrli:identifier scheme="http://www.dcca.dk/cvr">54399219</xbrli:identifier>
@@ -523,8 +523,8 @@
     <gsd:FaxNumberOfReportingEntity contextRef="ID_0" xml:lang="da">00000000</gsd:FaxNumberOfReportingEntity>
     <gsd:HomepageOfReportingEntity contextRef="ID_0" xml:lang="da">HomepageOfReportingEntity</gsd:HomepageOfReportingEntity>
     <gsd:IdentificationNumberCvrOfReportingEntity contextRef="ID_0" xml:lang="da">54399219</gsd:IdentificationNumberCvrOfReportingEntity>
-    <gsd:IdentificationNumberCvrOfSubmittingEnterprise contextRef="ID_0" xml:lang="da">00000000</gsd:IdentificationNumberCvrOfSubmittingEnterprise>
-    <gsd:InformationOnTypeOfSubmittedReport contextRef="ID_0" xml:lang="da">Årsrapport</gsd:InformationOnTypeOfSubmittedReport>
+    <gsd:IdentificationNumberCvrOfSubmittingEnterprise contextRef="ID_0" xml:lang="da">54399219</gsd:IdentificationNumberCvrOfSubmittingEnterprise>
+    <gsd:InformationOnTypeOfSubmittedReport contextRef="ID_0" xml:lang="da">Selskabsselvangivelse</gsd:InformationOnTypeOfSubmittedReport>
     <gsd:NameAndSurnameOfChairmanOfGeneralMeeting contextRef="ID_0" xml:lang="da"> NameAndSurnameOfChairmanOfGeneralMeeting </gsd:NameAndSurnameOfChairmanOfGeneralMeeting>
     <gsd:NameOfFinancialInstitution contextRef="ID_0" xml:lang="da">NameOfFinancialInstitution</gsd:NameOfFinancialInstitution>
     <gsd:NameOfReportingEntity contextRef="ID_0" xml:lang="da">NameOfReportingEntity</gsd:NameOfReportingEntity>

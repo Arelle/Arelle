@@ -311,6 +311,12 @@ class ValidationPluginExtension(ValidationPlugin):
             extraordinaryIncomeQn=qname(f'{{{NAMESPACE_FSA}}}ExtraordinaryIncome'),
             extraordinaryResultBeforeTaxQn=qname(f'{{{NAMESPACE_FSA}}}ExtraordinaryResultBeforeTax'),
             fr37RestrictedText='has not given rise to reservations',
+            forbiddenTypeOfSubmittedReportEnumerations=frozenset([
+                'Selskabsselvangivelse',
+                'Erklæring om undtagelse fra aflæggelse årsrapport',
+                'ESG-rapport',
+                'ESG report',
+                ]),
             hasNotGivenRiseToReservationsText=frozenset([
                 'har ikke givet anledning til forbehold',
                 'has not given rise to reservations',
