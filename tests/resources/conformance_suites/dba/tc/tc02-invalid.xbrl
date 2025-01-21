@@ -523,7 +523,7 @@
     <gsd:EmailOfReportingEntity contextRef="ID_0" xml:lang="da">EmailOfReportingEntity@EmailOfReportingEntity</gsd:EmailOfReportingEntity>
     <gsd:FaxNumberOfReportingEntity contextRef="ID_0" xml:lang="da">00000000</gsd:FaxNumberOfReportingEntity>
     <gsd:HomepageOfReportingEntity contextRef="ID_0" xml:lang="da">HomepageOfReportingEntity</gsd:HomepageOfReportingEntity>
-    <gsd:IdentificationNumberCvrOfReportingEntity contextRef="ID_0" xml:lang="da">00000000</gsd:IdentificationNumberCvrOfReportingEntity>
+    <gsd:IdentificationNumberCvrOfReportingEntity contextRef="ID_0" xml:lang="da">54399219</gsd:IdentificationNumberCvrOfReportingEntity>
     <gsd:IdentificationNumberCvrOfSubmittingEnterprise contextRef="ID_0" xml:lang="da">00000000</gsd:IdentificationNumberCvrOfSubmittingEnterprise>
     <gsd:InformationOnTypeOfSubmittedReport contextRef="ID_0" xml:lang="da">Årsrapport</gsd:InformationOnTypeOfSubmittedReport>
     <gsd:NameAndSurnameOfChairmanOfGeneralMeeting contextRef="ID_0" xml:lang="da"> NameAndSurnameOfChairmanOfGeneralMeeting </gsd:NameAndSurnameOfChairmanOfGeneralMeeting>

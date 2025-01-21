@@ -36,7 +36,7 @@
     </xbrli:context>
     <xbrli:context id="ID_4">
         <xbrli:entity>
-            <xbrli:identifier scheme="http://www.dcca.dk/cvr">54399219</xbrli:identifier>
+            <xbrli:identifier scheme="http://www.dcca.dk/cvr">09090909</xbrli:identifier>
         </xbrli:entity>
         <xbrli:period>
             <xbrli:startDate>2022-01-01</xbrli:startDate>
@@ -518,6 +518,7 @@
     <gsd:AddressOfSubmittingEnterprisePostcodeAndTown contextRef="ID_0" xml:lang="da">København K, 1304</gsd:AddressOfSubmittingEnterprisePostcodeAndTown>
     <gsd:AddressOfSubmittingEnterpriseStreetAndNumber contextRef="ID_0" xml:lang="da">Adelgade 15</gsd:AddressOfSubmittingEnterpriseStreetAndNumber>
     <gsd:DateOfFoundationOfReportingEntity contextRef="ID_0" xml:lang="da">1983-12-23</gsd:DateOfFoundationOfReportingEntity>
+    <gsd:DateOfGeneralMeeting contextRef="ID_0" xml:lang="da">2023-03-23</gsd:DateOfGeneralMeeting>
     <gsd:EmailOfReportingEntity contextRef="ID_0" xml:lang="da">EmailOfReportingEntity@EmailOfReportingEntity</gsd:EmailOfReportingEntity>
     <gsd:FaxNumberOfReportingEntity contextRef="ID_0" xml:lang="da">00000000</gsd:FaxNumberOfReportingEntity>
     <gsd:HomepageOfReportingEntity contextRef="ID_0" xml:lang="da">HomepageOfReportingEntity</gsd:HomepageOfReportingEntity>
