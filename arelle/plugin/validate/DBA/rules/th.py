@@ -16,6 +16,28 @@ from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
 
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_th05 (
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.TH05: Contexts should not contain segments or unclosed periods
+    """
+    contexts = val.modelXbrl.contexts.values()
+    for context in contexts:
+        if context.hasSegment:
+            yield Validation.error(
+                'DBA.TH05',
+                _('Contexts should not contain segments.'),
+                modelObject=context,
+            )
+
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )

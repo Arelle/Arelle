@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.TH05"
+        description="DBA.TH05: Contexts should not contain segments."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid" name="Invalid">
+        <description>
+            Contexts should not contain segments.
+        </description>
+        <data>
+            <instance readMeFirst="true">th05-invalid.xbrl</instance>
+        </data>
+        <result>
+            <error>DBA.TH05</error>
+        </result>
+    </variation>
+</testcase>
