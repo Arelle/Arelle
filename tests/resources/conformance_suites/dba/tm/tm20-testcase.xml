@@ -19,6 +19,7 @@
         </data>
         <result>
             <error>DBA.TM20</error>
+            <error>DBA.FR57.MarkingOfPeriod</error>
         </result>
     </variation>
 </testcase>

@@ -239,6 +239,21 @@ def getFactsGroupedByContextId(modelXbrl: ModelXbrl, *conceptQns: QName) -> dict
     return dict(sorted(groupedFacts.items()))
 
 
+def groupFactsByContextHash(facts: set[ModelFact] ) -> dict[str, list[ModelFact]]:
+    """
+    Groups facts by their contextDimAwareHash.
+    :return: A dictionary of contextDimAwareHashes to list of facts.
+    """
+    groupedFacts: dict[str, list[ModelFact]] = {}
+    for fact in facts:
+        if fact.xValid >= VALID:
+            contextHash = fact.context.contextDimAwareHash
+            if contextHash not in groupedFacts:
+                groupedFacts[contextHash] = []
+            groupedFacts[contextHash].append(fact)
+    return dict(sorted(groupedFacts.items()))
+
+
 def lookup_namespaced_facts(modelXbrl: ModelXbrl, namespaceURI: str) -> set[ModelFact]:
     """
     Returns the set of facts that are tagged with a concept from a particular namespace

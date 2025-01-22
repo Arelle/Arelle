@@ -9,13 +9,15 @@ import itertools
 from collections.abc import Iterable
 from typing import Any, cast
 
+from botocore.endpoint_provider import TreeRule
+
 from arelle.typing import TypeGetText
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from arelle.XmlValidateConst import VALID
-from . import errorOnDateFactComparison, errorOnRequiredFact, getFactsWithDimension, getFactsGroupedByContextId, errorOnRequiredPositiveFact, getFactsWithoutDimension
+from . import errorOnDateFactComparison, errorOnRequiredFact, getFactsWithDimension, getFactsGroupedByContextId, errorOnRequiredPositiveFact, getFactsWithoutDimension, groupFactsByContextHash
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 from ..ValidationPluginExtension import DANISH_CURRENCY_ID, ROUNDING_MARGIN, PERSONNEL_EXPENSE_THRESHOLD
 
@@ -605,26 +607,16 @@ def rule_fr57(
     DBA.FR57.Equality(Error):
     Assets (fsa:Assets) must equal Liabilities (fsa:LiabilitiesAndEquity)
     """
-    currenEndDateFacts = getFactsWithDimension(val, pluginData.reportingPeriodEndDateQn, pluginData.consolidatedSoloDimensionQn, [pluginData.consolidatedMemberQn, pluginData.soloMemberQn])
-    currentEndDateFact = next(
-        (fact for fact in currenEndDateFacts if fact is not None and fact.xValid >= VALID),
-        None
-    )
     currenStartDateFacts =  getFactsWithDimension(val,pluginData.reportingPeriodStartDateQn, pluginData.consolidatedSoloDimensionQn, [pluginData.consolidatedMemberQn, pluginData.soloMemberQn])
-    currentStartDateFact = next(
-        (fact for fact in currenStartDateFacts if fact is not None and fact.xValid >= VALID),
-        None
-    )
-    previousEndDateFacts = getFactsWithDimension(val, pluginData.precedingReportingPeriodEndDateQn, pluginData.consolidatedSoloDimensionQn, [pluginData.consolidatedMemberQn, pluginData.soloMemberQn])
-    previousEndDateFact = next(
-        (fact for fact in previousEndDateFacts if fact is not None and fact.xValid >= VALID),
-        None
-    )
-    previousStartDateFacts = getFactsWithDimension(val, pluginData.precedingReportingPeriodStartDateQn, pluginData.consolidatedSoloDimensionQn, [pluginData.consolidatedMemberQn, pluginData.soloMemberQn])
-    previousStartDateFact = next(
-        (fact for fact in previousStartDateFacts if fact is not None and fact.xValid >= VALID),
-        None
-    )
+    currentEndDateFacts = getFactsWithDimension(val, pluginData.reportingPeriodEndDateQn, pluginData.consolidatedSoloDimensionQn, [pluginData.consolidatedMemberQn, pluginData.soloMemberQn])
+    currentGroupedFacts = groupFactsByContextHash(currenStartDateFacts.union(currentEndDateFacts))
+    precedingEndDateFacts = getFactsWithDimension(val, pluginData.precedingReportingPeriodEndDateQn, pluginData.consolidatedSoloDimensionQn, [pluginData.consolidatedMemberQn, pluginData.soloMemberQn])
+    precedingStartDateFacts = getFactsWithDimension(val, pluginData.precedingReportingPeriodStartDateQn, pluginData.consolidatedSoloDimensionQn, [pluginData.consolidatedMemberQn, pluginData.soloMemberQn])
+    precedingGroupedFacts = groupFactsByContextHash(precedingEndDateFacts.union(precedingStartDateFacts))
+    currentEndDateFact = None
+    currentStartDateFact = None
+    precedingStartDateFact = None
+    precedingEndDateFact = None
     foundCurrentAssets = None
     foundCurrentLiabilitiesAndEquity = None
     foundPreviousAssets = None
@@ -636,74 +628,92 @@ def rule_fr57(
     liabilitiesAndEquityErrors = []
     negativeAssetFacts = []
     negativeLiabilitiesAndEquityFacts = []
-    if previousEndDateFact is not None and previousStartDateFact is not None and (currentStartDateFact is None or currentEndDateFact is None):
+    currentPeriodFound = any(len(facts) == 2 for facts in currentGroupedFacts.values())
+    precedingPeriodFound = any(len(facts) == 2 for facts in precedingGroupedFacts.values())
+    if precedingPeriodFound and not currentPeriodFound:
         yield Validation.error(
             codes="DBA.FR57.MarkingOfPeriod",
             msg=_("The company has marked the previous accounting period, even though it is the first accounting period."),
         )
-    elif currentStartDateFact is not None and currentEndDateFact is not None:
+    elif currentPeriodFound:
         assetsFacts = getFactsWithoutDimension(val, pluginData.assetsQn)
         equityFacts = getFactsWithoutDimension(val, pluginData.equityQn)
         profitLossFacts = getFactsWithoutDimension(val, pluginData.profitLossQn)
         liabilitiesAndEquityFacts = getFactsWithoutDimension(val, pluginData.liabilitiesAndEquityQn)
-        for asset in assetsFacts:
-            if asset.context.endDatetime - datetime.timedelta(days=1) == currentEndDateFact.xValue:
-                foundCurrentAssets = asset
-                if cast(int, asset.xValue) < 0:
-                        negativeAssetFacts.append(asset)
-        for liabilitiesAndEquity in liabilitiesAndEquityFacts:
-            if liabilitiesAndEquity.context.endDatetime - datetime.timedelta(days=1) == currentEndDateFact.xValue:
-                foundCurrentLiabilitiesAndEquity = liabilitiesAndEquity
-                if cast(int, liabilitiesAndEquity.xValue) < 0:
-                    negativeLiabilitiesAndEquityFacts.append(liabilitiesAndEquity)
-        foundCurrentEquity = any(
-            equity.context.endDatetime - datetime.timedelta(days=1) == currentEndDateFact.xValue
-            for equity in equityFacts
-        )
-        foundCurrentProfitLoss = any(
-            profitLoss.context.startDatetime == currentStartDateFact.xValue and
-            profitLoss.context.endDatetime - datetime.timedelta(days=1) == currentEndDateFact.xValue
-            for profitLoss in profitLossFacts
-        )
-        if foundCurrentAssets is not None and foundCurrentLiabilitiesAndEquity is not None:
-            if foundCurrentAssets.xValue != foundCurrentLiabilitiesAndEquity.xValue:
-                equalityErrorPairs.append((foundCurrentAssets, foundCurrentLiabilitiesAndEquity))
-        if foundCurrentAssets is None:
-            assetErrors.append(currentEndDateFact.xValue)
-        if foundCurrentEquity is False:
-            equityErrors.append(currentEndDateFact.xValue)
-        if foundCurrentLiabilitiesAndEquity is None:
-            liabilitiesAndEquityErrors.append(currentEndDateFact.xValue)
-        if foundCurrentProfitLoss is False:
-            profitLossErrors.append([currentStartDateFact.xValue, currentEndDateFact.xValue])
-        if previousStartDateFact is not None and previousEndDateFact is not None:
-            for asset in assetsFacts:
-                if asset.context.endDatetime - datetime.timedelta(days=1) == previousEndDateFact.xValue:
-                    foundPreviousAssets = asset
-                    if cast(int, asset.xValue) < 0:
-                        negativeAssetFacts.append(asset)
-            for liabilitiesAndEquity in liabilitiesAndEquityFacts:
-                if liabilitiesAndEquity.context.endDatetime - datetime.timedelta(days=1) == previousEndDateFact.xValue:
-                    foundPreviousLiabilitiesAndEquity = liabilitiesAndEquity
-                    if cast(int, liabilitiesAndEquity.xValue) < 0:
-                        negativeLiabilitiesAndEquityFacts.append(liabilitiesAndEquity)
-            foundPreviousEquity = any(
-                equity.context.endDatetime - datetime.timedelta(days=1) == previousEndDateFact.xValue
-                for equity in equityFacts
-            )
-            foundPreviousProfitLoss = any(
-                profitLoss.context.startDatetime == previousStartDateFact.xValue and
-                profitLoss.context.endDatetime - datetime.timedelta(days=1) == previousEndDateFact.xValue
-                for profitLoss in profitLossFacts
-            )
-            if foundPreviousAssets is None:
-                assetErrors.append(previousEndDateFact.xValue)
-            if foundPreviousEquity is False:
-                equityErrors.append(previousEndDateFact.xValue)
-            if foundPreviousLiabilitiesAndEquity is None:
-                liabilitiesAndEquityErrors.append(previousEndDateFact.xValue)
-            if foundPreviousProfitLoss is False:
-                profitLossErrors.append([previousStartDateFact.xValue, previousEndDateFact.xValue])
+        for context, facts in currentGroupedFacts.items():
+            if len(facts) == 2:
+                for fact in facts:
+                    if fact.qname == pluginData.reportingPeriodStartDateQn:
+                        currentStartDateFact = fact
+                    elif fact.qname == pluginData.reportingPeriodEndDateQn:
+                        currentEndDateFact = fact
+                if currentEndDateFact is not None and currentStartDateFact is not None:
+                    for asset in assetsFacts:
+                        if asset.context.endDatetime - datetime.timedelta(days=1) == currentEndDateFact.xValue:
+                            foundCurrentAssets = asset
+                            if cast(int, asset.xValue) < 0:
+                                    negativeAssetFacts.append(asset)
+                    for liabilitiesAndEquity in liabilitiesAndEquityFacts:
+                        if liabilitiesAndEquity.context.endDatetime - datetime.timedelta(days=1) == currentEndDateFact.xValue:
+                            foundCurrentLiabilitiesAndEquity = liabilitiesAndEquity
+                            if cast(int, liabilitiesAndEquity.xValue) < 0:
+                                negativeLiabilitiesAndEquityFacts.append(liabilitiesAndEquity)
+                    foundCurrentEquity = any(
+                        equity.context.endDatetime - datetime.timedelta(days=1) == currentEndDateFact.xValue
+                        for equity in equityFacts
+                    )
+                    foundCurrentProfitLoss = any(
+                        profitLoss.context.startDatetime == currentStartDateFact.xValue and
+                        profitLoss.context.endDatetime - datetime.timedelta(days=1) == currentEndDateFact.xValue
+                        for profitLoss in profitLossFacts
+                    )
+                    if foundCurrentAssets is not None and foundCurrentLiabilitiesAndEquity is not None:
+                        if foundCurrentAssets.xValue != foundCurrentLiabilitiesAndEquity.xValue:
+                            equalityErrorPairs.append((foundCurrentAssets, foundCurrentLiabilitiesAndEquity))
+                    if foundCurrentAssets is None:
+                        assetErrors.append(currentEndDateFact.xValue)
+                    if foundCurrentEquity is False:
+                        equityErrors.append(currentEndDateFact.xValue)
+                    if foundCurrentLiabilitiesAndEquity is None:
+                        liabilitiesAndEquityErrors.append(currentEndDateFact.xValue)
+                    if foundCurrentProfitLoss is False:
+                        profitLossErrors.append([currentStartDateFact.xValue, currentEndDateFact.xValue])
+        if precedingPeriodFound:
+            for context, facts in precedingGroupedFacts.items():
+                if len(facts) == 2:
+                    for fact in facts:
+                        if fact.qname == pluginData.precedingReportingPeriodStartDateQn:
+                            precedingStartDateFact = fact
+                        elif fact.qname == pluginData.precedingReportingPeriodEndDateQn:
+                            precedingEndDateFact = fact
+                    if precedingStartDateFact is not None and precedingEndDateFact is not None:
+                        for asset in assetsFacts:
+                            if asset.context.endDatetime - datetime.timedelta(days=1) == precedingEndDateFact.xValue:
+                                foundPreviousAssets = asset
+                                if cast(int, asset.xValue) < 0:
+                                    negativeAssetFacts.append(asset)
+                        for liabilitiesAndEquity in liabilitiesAndEquityFacts:
+                            if liabilitiesAndEquity.context.endDatetime - datetime.timedelta(days=1) == precedingEndDateFact.xValue:
+                                foundPreviousLiabilitiesAndEquity = liabilitiesAndEquity
+                                if cast(int, liabilitiesAndEquity.xValue) < 0:
+                                    negativeLiabilitiesAndEquityFacts.append(liabilitiesAndEquity)
+                        foundPreviousEquity = any(
+                            equity.context.endDatetime - datetime.timedelta(days=1) == precedingEndDateFact.xValue
+                            for equity in equityFacts
+                        )
+                        foundPreviousProfitLoss = any(
+                            profitLoss.context.startDatetime == precedingStartDateFact.xValue and
+                            profitLoss.context.endDatetime - datetime.timedelta(days=1) == precedingEndDateFact.xValue
+                            for profitLoss in profitLossFacts
+                        )
+                        if foundPreviousAssets is None:
+                            assetErrors.append(precedingEndDateFact.xValue)
+                        if foundPreviousEquity is False:
+                            equityErrors.append(precedingEndDateFact.xValue)
+                        if foundPreviousLiabilitiesAndEquity is None:
+                            liabilitiesAndEquityErrors.append(precedingEndDateFact.xValue)
+                        if foundPreviousProfitLoss is False:
+                            profitLossErrors.append([precedingStartDateFact.xValue, precedingEndDateFact.xValue])
     if not len(assetErrors) == 0:
         yield Validation.error(
             codes="DBA.FR57.Assets",
