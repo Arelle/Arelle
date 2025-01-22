@@ -16,14 +16,6 @@
             <xbrli:identifier scheme="http://www.dcca.dk/cvr">54399219</xbrli:identifier>
         </xbrli:entity>
         <xbrli:period>
-            <xbrli:forever/>
-        </xbrli:period>
-    </xbrli:context>
-    <xbrli:context id="ID_100">
-        <xbrli:entity>
-            <xbrli:identifier scheme="http://www.dcca.dk/cvr">54399219</xbrli:identifier>
-        </xbrli:entity>
-        <xbrli:period>
             <xbrli:startDate>2022-01-01</xbrli:startDate>
             <xbrli:endDate>2022-12-31</xbrli:endDate>
         </xbrli:period>
@@ -303,7 +295,7 @@
     <fsa:AdjustmentsOfHedgingInstrumentsAtFairValue contextRef="ID_12" xml:lang="da" unitRef="DKK" decimals="-3">18188000</fsa:AdjustmentsOfHedgingInstrumentsAtFairValue>
     <fsa:AdjustmentsOfHedgingInstrumentsAtFairValue contextRef="ID_13" xml:lang="da" unitRef="DKK" decimals="-3">-18188000</fsa:AdjustmentsOfHedgingInstrumentsAtFairValue>
     <fsa:AdjustmentsOfHedgingInstrumentsAtFairValue contextRef="ID_14" xml:lang="da" unitRef="DKK" decimals="-3">0000</fsa:AdjustmentsOfHedgingInstrumentsAtFairValue>
-    <fsa:Assets contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">8858363000</fsa:Assets>
+    <fsa:Assets contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">-8858363000</fsa:Assets>
     <fsa:Assets contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">8160805000</fsa:Assets>
     <fsa:AverageNumberOfEmployees contextRef="ID_0" xml:lang="da" unitRef="decimal" decimals="0">641</fsa:AverageNumberOfEmployees>
     <fsa:AverageNumberOfEmployees contextRef="ID_10" xml:lang="da" unitRef="decimal" decimals="0">474</fsa:AverageNumberOfEmployees>
@@ -413,7 +405,7 @@
     <fsa:LandAndBuildings contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">7549101000</fsa:LandAndBuildings>
     <fsa:LeaseholdImprovements contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">20916000</fsa:LeaseholdImprovements>
     <fsa:LeaseholdImprovements contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">26141000</fsa:LeaseholdImprovements>
-    <fsa:LiabilitiesAndEquity contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">8858363000</fsa:LiabilitiesAndEquity>
+    <fsa:LiabilitiesAndEquity contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">-8858363000</fsa:LiabilitiesAndEquity>
     <fsa:LiabilitiesAndEquity contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">8160805000</fsa:LiabilitiesAndEquity>
     <fsa:LiabilitiesOtherThanProvisions contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">4299840000</fsa:LiabilitiesOtherThanProvisions>
     <fsa:LiabilitiesOtherThanProvisions contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">4272778000</fsa:LiabilitiesOtherThanProvisions>
@@ -447,7 +439,6 @@
     <fsa:ProceedsFromSalesOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">100000</fsa:ProceedsFromSalesOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities>
     <fsa:ProceedsFromSalesOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">2583000</fsa:ProceedsFromSalesOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities>
     <fsa:ProfitLoss contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">203795000</fsa:ProfitLoss>
-    <fsa:ProfitLoss contextRef="ID_100" xml:lang="da" unitRef="DKK" decimals="-3">203795000</fsa:ProfitLoss>
     <fsa:ProfitLoss contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">12946000</fsa:ProfitLoss>
     <fsa:ProfitLoss contextRef="ID_11" xml:lang="da" unitRef="DKK" decimals="-3">0000</fsa:ProfitLoss>
     <fsa:ProfitLoss contextRef="ID_12" xml:lang="da" unitRef="DKK" decimals="-3">0000</fsa:ProfitLoss>
@@ -522,10 +513,8 @@
     <fsa:ShorttermTradeReceivables contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">23751000</fsa:ShorttermTradeReceivables>
     <fsa:TaxExpense contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">57577000</fsa:TaxExpense>
     <fsa:TaxExpense contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">1708000</fsa:TaxExpense>
-    <fsa:TaxExpense contextRef="ID_100" xml:lang="da" unitRef="DKK" decimals="-3">1708000</fsa:TaxExpense>
     <fsa:TransferredToFromRetainedEarnings contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">-23795000</fsa:TransferredToFromRetainedEarnings>
     <fsa:TransferredToFromRetainedEarnings contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">-12946000</fsa:TransferredToFromRetainedEarnings>
-    <fsa:TransferredToFromRetainedEarnings contextRef="ID_100" xml:lang="da" unitRef="DKK" decimals="-3">-12946000</fsa:TransferredToFromRetainedEarnings>
     <gsd:AddressOfSubmittingEnterprisePostcodeAndTown contextRef="ID_0" xml:lang="da">København K, 1304</gsd:AddressOfSubmittingEnterprisePostcodeAndTown>
     <gsd:AddressOfSubmittingEnterpriseStreetAndNumber contextRef="ID_0" xml:lang="da">Adelgade 15</gsd:AddressOfSubmittingEnterpriseStreetAndNumber>
     <gsd:DateOfFoundationOfReportingEntity contextRef="ID_0" xml:lang="da">1983-12-23</gsd:DateOfFoundationOfReportingEntity>
@@ -559,7 +548,7 @@
     <mrv:StatementOfTargetFiguresAndPoliciesForTheUnderrepresentedGender contextRef="ID_0" xml:lang="da">Måltal og politikker vedrørende det underrepræsenteret køn Arp-Hansen Hotel Groups væsentligste ressource er kompetente medarbejdere. Det er derfor selskabets mål, at rekruttere de bedst egnede bestyrelsesmedlemmer, direktører og andre ledende medarbejdere uanset køn. Arp-Hansen Hotel Groups kompetenceudviklingsprogram understøtter denne praksis. Selskabets fuldtidsarbejdsstyrke (FTE) i 2022 er på 623 medarbejdere fordelt med en kønsdiversitet på 48% kvinder og 52% mænd. Blandt selskabets afdelingsledere er 49% kvinder og 51% mænd. Dette er et udtryk for den måde og kultur, som selskabet drives efter snarere end en bevidst målsætning omkring balance mellem kønnene. Lønforskellen mellem køn (pr. FTE) er på 1,04 målt på forskellen på median mandlig løn i forhold til median kvindelig løn. I 2022 har medarbejderomsætningshastigheden været 25,6% og vurderes at være på et normalt niveau. Sammenlignes med Dansk Erhvervs statistikker ligger servicebranchen (2020) generelt på ca. 30%. Måltal for bestyrelsen Den øverste ledelse, som er bestyrelsen i Arp-Hansen Hotel Group består p.t. af 5 medlemmer, som alle er mænd. Bestyrelsessammensætningen er uændret i forhold til sidste år. Selskabet har sat som mål, at fordelingen i bestyrelsen skal være på et niveau omkring 20/80% (kvinder/mænd) senest ved udgangen af 2025 og 40/60% (kvinder/mænd) ved udgangen af 2027. Bestyrelsen vil fremadrettet så vidt det er muligt indstille egnede kvindelige kandidater for at nå målene. Det har været og er fortsat selskabet vurdering, at bestyrelsen med sin nuværende sammensætning repræsenterer de kompetencer, der er essentielle for selskabets virke og ledelse, hvorfor der ej heller hidtil har været behov for udskiftning i sammensætningen. Måltal for den kønsmæssige sammensætning af den øvrige koncernledelse Den øvrige ledelse består af 3 kvinder og 1 mand. Dette giver en fordeling af den øvrige ledelse på 75/25%. Dette giver en fordeling af samlede ledelse på 66/33%. Det tilstræbes, at fordelingen på begge ledelsesniveauer fortsat er jævnbyrdig i de kommende år. Blandt selskabets hoteldirektører er sammensætningen kvinde/mand 54/46%. Politik for den kønsmæssige sammensætning af ledelsen Traditionelt har Arp-Hansen Hotel Group sigtet mod en ligestilling mellem kønnene idet den bedst egnede person er blevet valgt til den pågældende opgave. Denne politik fastholdes og måltallene for den kønsmæssige sammensætning forventes opfyldt. </mrv:StatementOfTargetFiguresAndPoliciesForTheUnderrepresentedGender>
     <sob:ConfirmationThatAnnualReportIsPresentedInAccordanceWithRequirementsProvidedForByLegislationAnyStandardsAndRequirementsProvidedByArticlesOfAssociationOrByAgreement contextRef="ID_0" xml:lang="da">Årsrapporten aflægges i overensstemmelse med årsregnskabsloven. </sob:ConfirmationThatAnnualReportIsPresentedInAccordanceWithRequirementsProvidedForByLegislationAnyStandardsAndRequirementsProvidedByArticlesOfAssociationOrByAgreement>
     <sob:ConfirmationThatFinancialStatementGivesTrueAndFairViewOfAssetsLiabilitiesEquityFinancialPositionAndResults contextRef="ID_0" xml:lang="da">Det er vores opfattelse, at årsregnskabet giver et retvisende billede af selskabets aktiver, passiver og finansielle stilling pr. 31. december 2022 samt af resultatet af selskabets aktiviteter og pengestrømme for regnskabsåret 1. januar 2022 - 31. december 2022. </sob:ConfirmationThatFinancialStatementGivesTrueAndFairViewOfAssetsLiabilitiesEquityFinancialPositionAndResults>
-    <sob:DateOfApprovalOfAnnualReport contextRef="ID_0" xml:lang="da">2024-03-16</sob:DateOfApprovalOfAnnualReport>
+    <sob:DateOfApprovalOfAnnualReport contextRef="ID_0" xml:lang="da">2023-03-16</sob:DateOfApprovalOfAnnualReport>
     <sob:IdentificationOfApprovedAnnualReport contextRef="ID_0" xml:lang="da">Ledelsen har dags dato behandlet og godkendt årsrapporten for regnskabsåret 1. januar 2022 - 31. december 2022 for Arp-Hansen Hotel Group A/S. </sob:IdentificationOfApprovedAnnualReport>
     <sob:ManagementsStatementAboutManagementsReview contextRef="ID_0" xml:lang="da">Ledelsesberetningen indeholder efter vores opfattelse en retvisende redegørelse for de forhold, beretningen omhandler. </sob:ManagementsStatementAboutManagementsReview>
     <sob:PlaceOfSignatureOfStatement contextRef="ID_0" xml:lang="da">Gentofte</sob:PlaceOfSignatureOfStatement>

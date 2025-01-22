@@ -9,13 +9,15 @@ import itertools
 from collections.abc import Iterable
 from typing import Any, cast
 
+from botocore.endpoint_provider import TreeRule
+
 from arelle.typing import TypeGetText
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from arelle.XmlValidateConst import VALID
-from . import errorOnDateFactComparison, errorOnRequiredFact, getFactsWithDimension, getFactsGroupedByContextId, errorOnRequiredPositiveFact
+from . import errorOnDateFactComparison, errorOnRequiredFact, getFactsWithDimension, getFactsGroupedByContextId, errorOnRequiredPositiveFact, getFactsWithoutDimension, groupFactsByContextHash
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 from ..ValidationPluginExtension import DANISH_CURRENCY_ID, ROUNDING_MARGIN, PERSONNEL_EXPENSE_THRESHOLD
 
@@ -571,6 +573,203 @@ def rule_fr58(
                     "Declaration obligations according to the declaration order, including especially the company law or similar legislation laid down for the company (audit) (ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyTheCompaniesActOrEquivalentLegislationThatTheCompanyIsSubjectToAudit)"
                     "Declaration obligations according to the declaration order, including especially the legislation on financial reporting, including on bookkeeping and storage of accounting material (audit) (ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyLegislationOnFinancialReportingIncludingAccountingAndStorageOfAccountingRecordsAudit)"
                     "Declaration obligations according to the declaration order, including other matters in particular (revision (ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyOtherMattersAudit)"),
+            )
+
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr57(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR57.MarkingOfPeriod(Error):
+    Previous accounting period is marked(fsa:PrecedingReportingPeriodStartDate), even though it is the first accounting period.
+    The company has marked the previous accounting period, even though it is the first accounting period. If the previous accounting period is marked,
+    the control expects comparative figures.
+
+    DBA.FR57.ProfitLoss(Error):
+    The profit for the year (fsa:ProfitLoss) in the income statement must be filled in
+
+    DBA.FR57.Equity(Error):
+    The equity (fsa:Equity) in the balance sheet must be filled in
+
+    DBA.FR57.Assets(Error):
+    Assets (fsa:Assets) must be stated and must not be negative
+
+    DBA.FR57.LiabilitiesAndEquity(Error):
+    Liabilities (fsa:LiabilitiesAndEquity) must be stated and must not be negative
+
+    DBA.FR57.Equality(Error):
+    Assets (fsa:Assets) must equal Liabilities (fsa:LiabilitiesAndEquity)
+    """
+    currenStartDateFacts =  getFactsWithDimension(val,pluginData.reportingPeriodStartDateQn, pluginData.consolidatedSoloDimensionQn, [pluginData.consolidatedMemberQn, pluginData.soloMemberQn])
+    currentEndDateFacts = getFactsWithDimension(val, pluginData.reportingPeriodEndDateQn, pluginData.consolidatedSoloDimensionQn, [pluginData.consolidatedMemberQn, pluginData.soloMemberQn])
+    currentGroupedFacts = groupFactsByContextHash(currenStartDateFacts.union(currentEndDateFacts))
+    precedingEndDateFacts = getFactsWithDimension(val, pluginData.precedingReportingPeriodEndDateQn, pluginData.consolidatedSoloDimensionQn, [pluginData.consolidatedMemberQn, pluginData.soloMemberQn])
+    precedingStartDateFacts = getFactsWithDimension(val, pluginData.precedingReportingPeriodStartDateQn, pluginData.consolidatedSoloDimensionQn, [pluginData.consolidatedMemberQn, pluginData.soloMemberQn])
+    precedingGroupedFacts = groupFactsByContextHash(precedingEndDateFacts.union(precedingStartDateFacts))
+    currentEndDateFact = None
+    currentStartDateFact = None
+    precedingStartDateFact = None
+    precedingEndDateFact = None
+    foundCurrentAssets = None
+    foundCurrentLiabilitiesAndEquity = None
+    foundPreviousAssets = None
+    foundPreviousLiabilitiesAndEquity = None
+    assetErrors = []
+    equityErrors = []
+    equalityErrorPairs = []
+    profitLossErrors = []
+    liabilitiesAndEquityErrors = []
+    negativeAssetFacts = []
+    negativeLiabilitiesAndEquityFacts = []
+    currentPeriodFound = any(len(facts) == 2 for facts in currentGroupedFacts.values())
+    precedingPeriodFound = any(len(facts) == 2 for facts in precedingGroupedFacts.values())
+    if precedingPeriodFound and not currentPeriodFound:
+        yield Validation.error(
+            codes="DBA.FR57.MarkingOfPeriod",
+            msg=_("The company has marked the previous accounting period, even though it is the first accounting period."),
+        )
+    elif currentPeriodFound:
+        assetsFacts = getFactsWithoutDimension(val, pluginData.assetsQn)
+        equityFacts = getFactsWithoutDimension(val, pluginData.equityQn)
+        profitLossFacts = getFactsWithoutDimension(val, pluginData.profitLossQn)
+        liabilitiesAndEquityFacts = getFactsWithoutDimension(val, pluginData.liabilitiesAndEquityQn)
+        for context, facts in currentGroupedFacts.items():
+            if len(facts) == 2:
+                for fact in facts:
+                    if fact.qname == pluginData.reportingPeriodStartDateQn:
+                        currentStartDateFact = fact
+                    elif fact.qname == pluginData.reportingPeriodEndDateQn:
+                        currentEndDateFact = fact
+                if currentEndDateFact is not None and currentStartDateFact is not None:
+                    for asset in assetsFacts:
+                        if asset.context.endDatetime - datetime.timedelta(days=1) == currentEndDateFact.xValue:
+                            foundCurrentAssets = asset
+                            if cast(int, asset.xValue) < 0:
+                                    negativeAssetFacts.append(asset)
+                    for liabilitiesAndEquity in liabilitiesAndEquityFacts:
+                        if liabilitiesAndEquity.context.endDatetime - datetime.timedelta(days=1) == currentEndDateFact.xValue:
+                            foundCurrentLiabilitiesAndEquity = liabilitiesAndEquity
+                            if cast(int, liabilitiesAndEquity.xValue) < 0:
+                                negativeLiabilitiesAndEquityFacts.append(liabilitiesAndEquity)
+                    foundCurrentEquity = any(
+                        equity.context.endDatetime - datetime.timedelta(days=1) == currentEndDateFact.xValue
+                        for equity in equityFacts
+                    )
+                    foundCurrentProfitLoss = any(
+                        profitLoss.context.startDatetime == currentStartDateFact.xValue and
+                        profitLoss.context.endDatetime - datetime.timedelta(days=1) == currentEndDateFact.xValue
+                        for profitLoss in profitLossFacts
+                    )
+                    if foundCurrentAssets is not None and foundCurrentLiabilitiesAndEquity is not None:
+                        if foundCurrentAssets.xValue != foundCurrentLiabilitiesAndEquity.xValue:
+                            equalityErrorPairs.append((foundCurrentAssets, foundCurrentLiabilitiesAndEquity))
+                    if foundCurrentAssets is None:
+                        assetErrors.append(currentEndDateFact.xValue)
+                    if foundCurrentEquity is False:
+                        equityErrors.append(currentEndDateFact.xValue)
+                    if foundCurrentLiabilitiesAndEquity is None:
+                        liabilitiesAndEquityErrors.append(currentEndDateFact.xValue)
+                    if foundCurrentProfitLoss is False:
+                        profitLossErrors.append([currentStartDateFact.xValue, currentEndDateFact.xValue])
+        if precedingPeriodFound:
+            for context, facts in precedingGroupedFacts.items():
+                if len(facts) == 2:
+                    for fact in facts:
+                        if fact.qname == pluginData.precedingReportingPeriodStartDateQn:
+                            precedingStartDateFact = fact
+                        elif fact.qname == pluginData.precedingReportingPeriodEndDateQn:
+                            precedingEndDateFact = fact
+                    if precedingStartDateFact is not None and precedingEndDateFact is not None:
+                        for asset in assetsFacts:
+                            if asset.context.endDatetime - datetime.timedelta(days=1) == precedingEndDateFact.xValue:
+                                foundPreviousAssets = asset
+                                if cast(int, asset.xValue) < 0:
+                                    negativeAssetFacts.append(asset)
+                        for liabilitiesAndEquity in liabilitiesAndEquityFacts:
+                            if liabilitiesAndEquity.context.endDatetime - datetime.timedelta(days=1) == precedingEndDateFact.xValue:
+                                foundPreviousLiabilitiesAndEquity = liabilitiesAndEquity
+                                if cast(int, liabilitiesAndEquity.xValue) < 0:
+                                    negativeLiabilitiesAndEquityFacts.append(liabilitiesAndEquity)
+                        foundPreviousEquity = any(
+                            equity.context.endDatetime - datetime.timedelta(days=1) == precedingEndDateFact.xValue
+                            for equity in equityFacts
+                        )
+                        foundPreviousProfitLoss = any(
+                            profitLoss.context.startDatetime == precedingStartDateFact.xValue and
+                            profitLoss.context.endDatetime - datetime.timedelta(days=1) == precedingEndDateFact.xValue
+                            for profitLoss in profitLossFacts
+                        )
+                        if foundPreviousAssets is None:
+                            assetErrors.append(precedingEndDateFact.xValue)
+                        if foundPreviousEquity is False:
+                            equityErrors.append(precedingEndDateFact.xValue)
+                        if foundPreviousLiabilitiesAndEquity is None:
+                            liabilitiesAndEquityErrors.append(precedingEndDateFact.xValue)
+                        if foundPreviousProfitLoss is False:
+                            profitLossErrors.append([precedingStartDateFact.xValue, precedingEndDateFact.xValue])
+    if not len(assetErrors) == 0:
+        yield Validation.error(
+            codes="DBA.FR57.Assets",
+            msg=_("Assets (fsa:Assets) must be stated and must not be negative. "
+                  "There is a problem with the reporting period ending: %(periods)s"),
+            periods = ", ".join([cast(datetime.datetime, dt).strftime("%Y-%m-%d") for dt in assetErrors])
+        )
+    if not len(negativeAssetFacts) == 0:
+        for fact in negativeAssetFacts:
+            yield Validation.error(
+                codes="DBA.FR57.NegativeAssets",
+                msg=_("Assets (fsa:Assets) must not be negative. "
+                      "Assets was tagged with the value: %(factValue)s"),
+                factValue = fact.effectiveValue,
+                modelObject=fact
+            )
+    if not len(equalityErrorPairs) == 0:
+        for pair in equalityErrorPairs:
+            yield Validation.error(
+                codes="DBA.FR57.Equality",
+                msg=_("The total of Assets (fsa:Assets) must be equal to the total of Liabilities and Equity (fsa:LiabilitiesAndEquity)."
+                      "Assets: %(Assets)s  Liabilities and Equity: %(LiabilitiesAndEquity)s"),
+                Assets=pair[0].effectiveValue,
+                LiabilitiesAndEquity=pair[1].effectiveValue,
+                modelObject=pair
+            )
+    if not len(equityErrors) == 0:
+        yield Validation.error(
+            codes="DBA.FR57.Equity",
+            msg=_("The equity (fsa:Equity) in the balance sheet must be filled in. There is a problem with the reporting period ending: %(periods)s"),
+            periods = ", ".join([cast(datetime.datetime, dt).strftime("%Y-%m-%d") for dt in equityErrors])
+        )
+    if not len(negativeLiabilitiesAndEquityFacts) == 0:
+        for fact in negativeLiabilitiesAndEquityFacts:
+            yield Validation.error(
+                codes="DBA.FR57.NegativeLiabilitiesAndEquity",
+                msg=_("Liabilities and Equity (fsa:LiabilitiesAndEquity) must not be negative."
+                      "Liabilities and Equity was tagged with the value: %(factValue)s"),
+                factValue = fact.effectiveValue,
+                modelObject=fact
+            )
+    if not len(liabilitiesAndEquityErrors) == 0:
+        yield Validation.error(
+            codes="DBA.FR57.LiabilitiesAndEquity",
+            msg=_("Liabilities and equity (fsa:LiabilitiesAndEquity) in the balance sheet must be filled in."
+                  "There is a problem with the reporting period ending: %(periods)s"),
+            periods = ", ".join([cast(datetime.datetime, dt).strftime("%Y-%m-%d") for dt in liabilitiesAndEquityErrors])
+        )
+    if not len(profitLossErrors) == 0:
+        for profitLossError in profitLossErrors:
+            yield Validation.error(
+                codes="DBA.FR57.ProfitLoss",
+                msg=_("The profit for the year (fsa:ProfitLoss) in the income statement must be filled in."
+                      "There is a problem with the reporting periods starting %(start)s and ending: %(end)s"),
+                start = profitLossError[0],
+                end = profitLossError[1]
             )
 
 

@@ -142,20 +142,39 @@ def getFactsWithDimension(
         val: ValidateXbrl,
         conceptQn: QName,
         dimensionQn: QName,
-        membeQn: QName
+        memberQns: list[QName]
+) -> set[ModelFact ]:
+    foundFacts: set[ModelFact] = set()
+    facts = val.modelXbrl.factsByQname.get(conceptQn)
+    if facts:
+        for fact in facts:
+            if fact is not None:
+                if fact.context is None:
+                    continue
+                elif (fact.context.dimMemberQname(
+                        dimensionQn
+                ) in memberQns
+                      and fact.context.qnameDims.keys() == {dimensionQn}):
+                    foundFacts.add(fact)
+                elif not len(fact.context.qnameDims):
+                    foundFacts.add(fact)
+    return foundFacts
+
+
+def getFactsWithoutDimension(
+        val: ValidateXbrl,
+        conceptQn: QName,
 ) -> set[ModelFact ]:
     foundFacts: set[ModelFact] = set()
     facts = val.modelXbrl.factsByQname.get(conceptQn, set())
-    for fact in facts:
-        if fact is not None:
-            if fact.context is None:
-                continue
-            elif fact.context.dimMemberQname(dimensionQn) == membeQn and fact.context.qnameDims.keys() == {dimensionQn}:
-                foundFacts.add(fact)
-            elif not len(fact.context.qnameDims):
-                foundFacts.add(fact)
+    foundFacts = {
+        fact for fact in facts
+        if fact is not None
+        if fact.xValid >= VALID
+        if fact.context is not None
+        if len(fact.context.qnameDims) == 0
+        }
     return foundFacts
-
 
 def getValidDateFacts(
         modelXbrl: ModelXbrl,
@@ -217,6 +236,21 @@ def getFactsGroupedByContextId(modelXbrl: ModelXbrl, *conceptQns: QName) -> dict
         if contextId not in groupedFacts:
             groupedFacts[contextId] = []
         groupedFacts[contextId].append(fact)
+    return dict(sorted(groupedFacts.items()))
+
+
+def groupFactsByContextHash(facts: set[ModelFact] ) -> dict[str, list[ModelFact]]:
+    """
+    Groups facts by their contextDimAwareHash.
+    :return: A dictionary of contextDimAwareHashes to list of facts.
+    """
+    groupedFacts: dict[str, list[ModelFact]] = {}
+    for fact in facts:
+        if fact.xValid >= VALID:
+            contextHash = fact.context.contextDimAwareHash
+            if contextHash not in groupedFacts:
+                groupedFacts[contextHash] = []
+            groupedFacts[contextHash].append(fact)
     return dict(sorted(groupedFacts.items()))
 
 

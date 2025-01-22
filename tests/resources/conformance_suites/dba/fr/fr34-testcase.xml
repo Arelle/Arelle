@@ -17,6 +17,8 @@
         </data>
         <result>
             <error>DBA.FR34</error>
+            <error>DBA.FR57.Assets</error>
+            <error>DBA.FR57.LiabilitiesAndEquity</error>
         </result>
     </variation>
 </testcase>

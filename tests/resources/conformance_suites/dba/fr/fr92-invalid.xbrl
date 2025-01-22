@@ -293,6 +293,8 @@
     <fsa:AdjustmentsOfHedgingInstrumentsAtFairValue contextRef="ID_12" xml:lang="da" unitRef="DKK" decimals="-3">18188000</fsa:AdjustmentsOfHedgingInstrumentsAtFairValue>
     <fsa:AdjustmentsOfHedgingInstrumentsAtFairValue contextRef="ID_13" xml:lang="da" unitRef="DKK" decimals="-3">-18188000</fsa:AdjustmentsOfHedgingInstrumentsAtFairValue>
     <fsa:AdjustmentsOfHedgingInstrumentsAtFairValue contextRef="ID_14" xml:lang="da" unitRef="DKK" decimals="-3">0000</fsa:AdjustmentsOfHedgingInstrumentsAtFairValue>
+    <fsa:Assets contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">8858363000</fsa:Assets>
+    <fsa:Assets contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">8160805000</fsa:Assets>
     <fsa:AverageNumberOfEmployees contextRef="ID_0" xml:lang="da" unitRef="decimal" decimals="0">641</fsa:AverageNumberOfEmployees>
     <fsa:AverageNumberOfEmployees contextRef="ID_10" xml:lang="da" unitRef="decimal" decimals="0">474</fsa:AverageNumberOfEmployees>
     <fsa:CashAndCashEquivalents contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">331190000</fsa:CashAndCashEquivalents>
@@ -377,6 +379,9 @@
     <fsa:EmployeeBenefitsExpense contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">343744000</fsa:EmployeeBenefitsExpense>
     <fsa:EmployeeBenefitsExpense contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">233755000</fsa:EmployeeBenefitsExpense>
     <fsa:Equity contextRef="ID_20" xml:lang="da" unitRef="DKK" decimals="-3">0000</fsa:Equity>
+    <fsa:Equity contextRef="ID_17" xml:lang="da" unitRef="DKK" decimals="-3">-30000000</fsa:Equity>
+    <fsa:Equity contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">3545327000</fsa:Equity>
+    <fsa:Equity contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">3015353000</fsa:Equity>
     <fsa:ExplanationOfEntitysDefinitionOfCashAndCashEquivalents contextRef="ID_0" xml:lang="da">Likvider omfatter likvide beholdninger og kortfristede værdipapirer som uden hindring kan omsættes til likvide beholdninger. </fsa:ExplanationOfEntitysDefinitionOfCashAndCashEquivalents>
     <fsa:ExplanationOfPrepayments contextRef="ID_0" xml:lang="da">14. Periodeafgrænsningsposter Licenser og abonnementer 5.426 3.345 Øvrige periodeafgrænsningsposter 16.793 37.631 Saldo ultimo 22.219 40.976 </fsa:ExplanationOfPrepayments>
     <fsa:FixturesFittingsToolsAndEquipment contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">174224000</fsa:FixturesFittingsToolsAndEquipment>
@@ -400,6 +405,8 @@
     <fsa:LongtermInvestmentsAndReceivables contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">389000</fsa:LongtermInvestmentsAndReceivables>
     <fsa:LongtermMortgageDebt contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">3988430000</fsa:LongtermMortgageDebt>
     <fsa:LongtermMortgageDebt contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">3753877000</fsa:LongtermMortgageDebt>
+    <fsa:LiabilitiesAndEquity contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">8858363000</fsa:LiabilitiesAndEquity>
+    <fsa:LiabilitiesAndEquity contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">8160805000</fsa:LiabilitiesAndEquity>
     <fsa:NetIncreaseDecreaseInCashAndCashEquivalents contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">213583000</fsa:NetIncreaseDecreaseInCashAndCashEquivalents>
     <fsa:NetIncreaseDecreaseInCashAndCashEquivalents contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">131791000</fsa:NetIncreaseDecreaseInCashAndCashEquivalents>
     <fsa:OtherAdjustments contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">0000</fsa:OtherAdjustments>

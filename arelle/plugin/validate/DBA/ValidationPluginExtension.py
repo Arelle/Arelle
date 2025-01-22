@@ -397,6 +397,7 @@ class ValidationPluginExtension(ValidationPlugin):
             ]),
             shorttermLiabilitiesOtherThanProvisionsQn=qname(f'{{{NAMESPACE_FSA}}}ShorttermLiabilitiesOtherThanProvisions'),
             signatureOfAuditorsDateQn=qname(f'{{{NAMESPACE_ARR}}}SignatureOfAuditorsDate'),
+            soloMemberQn=qname(f'{{{NAMESPACE_CMN}}}SoloMember'),
             taxExpenseOnOrdinaryActivitiesQn=qname(f'{{{NAMESPACE_FSA}}}TaxExpenseOnOrdinaryActivities'),
             taxExpenseQn=qname(f'{{{NAMESPACE_FSA}}}TaxExpense'),
             typeOfAuditorAssistanceDanish='Revisionspåtegning',
