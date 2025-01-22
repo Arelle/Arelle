@@ -804,7 +804,7 @@ class ModelXbrl:
             self._factsByDatatype[notStrict, typeQname] = fbdt = set()
             for f in self.factsInInstance:
                 c = f.concept
-                if c is not None and (c.typeQname == typeQname or (notStrict and c.type.isDerivedFrom(typeQname))):
+                if c is not None and (c.typeQname == typeQname or (notStrict and c.type is not None and c.type.isDerivedFrom(typeQname))):
                     fbdt.add(f)
             return fbdt
 
