@@ -120,17 +120,18 @@ def rule_tr05(
     filtered_start_date_facts = {f for f in start_date_facts if not f.context.scenDimValues}
     if len(cvr_facts) > 0 and len(filtered_start_date_facts) > 0:
         cvr_fact = next(iter(cvr_facts))
-        start_date_fact = next(iter(filtered_start_date_facts))
-        if start_date_fact.xValid >= VALID and start_date_fact.xValue != cvr_fact.context.startDatetime:
-            yield Validation.error(
-                codes='DBA.TR05',
-                msg=_("ReportingPeriodStartDate must specify the same date({}) as period startDate({}) in the context "
-                      "of IdentificationNumberCvrOfReportingEntity").format(
-                    start_date_fact.xValue,
-                    cvr_fact.context.startDatetime.date()
-                ),
-                modelObject=[start_date_fact, cvr_fact]
-            )
+        if cvr_fact.context.startDatetime is not None:
+            start_date_fact = next(iter(filtered_start_date_facts))
+            if start_date_fact.xValid >= VALID and start_date_fact.xValue != cvr_fact.context.startDatetime:
+                yield Validation.error(
+                    codes='DBA.TR05',
+                    msg=_("ReportingPeriodStartDate must specify the same date({}) as period startDate({}) in the context "
+                          "of IdentificationNumberCvrOfReportingEntity").format(
+                        start_date_fact.xValue,
+                        cvr_fact.context.startDatetime.date()
+                    ),
+                    modelObject=[start_date_fact, cvr_fact]
+                )
 
 
 @validation(

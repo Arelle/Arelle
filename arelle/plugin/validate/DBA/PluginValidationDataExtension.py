@@ -59,6 +59,7 @@ class PluginValidationDataExtension(PluginData):
     extraordinaryIncomeQn: QName
     extraordinaryResultBeforeTaxQn: QName
     fr37RestrictedText: str
+    forbiddenTypeOfSubmittedReportEnumerations: frozenset[str]
     hasNotGivenRiseToReservationsText: frozenset[str]
     identificationNumberCvrOfAuditFirmQn: QName
     identificationNumberCvrOfReportingEntityQn: QName
