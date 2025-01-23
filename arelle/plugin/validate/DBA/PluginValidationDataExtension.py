@@ -97,6 +97,7 @@ class PluginValidationDataExtension(PluginData):
     reportingResponsibilitiesOnApprovedAuditorsReportAuditQn: QName
     reportingResponsibilitiesOnApprovedAuditorsReportsExtendedReviewQn: QName
     reportingObligationQns: frozenset[QName]
+    schemaRefUri: str
     shorttermLiabilitiesOtherThanProvisionsQn: QName
     signatureOfAuditorsDateQn: QName
     soloMemberQn: QName
