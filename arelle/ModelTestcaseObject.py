@@ -333,6 +333,8 @@ class ModelTestcaseVariation(ModelObject):
                 return expected
             for assertElement in XmlUtil.children(resultElement, None, "assert"):
                 num = assertElement.get("num")
+                if num.startswith("EXG."):
+                    return num
                 if num == "99999": # inline test, use name as expected
                     return assertElement.get("name")
                 if len(num) == 5:
