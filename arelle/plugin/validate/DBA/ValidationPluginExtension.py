@@ -114,6 +114,7 @@ class ValidationPluginExtension(ValidationPlugin):
                 qname(f'{{{NAMESPACE_FSA}}}DescriptionOfRecognitionAndMeasurementBasisForDiscontinuedOperationsBalanceSheet'),
                 qname(f'{{{NAMESPACE_FSA}}}DescriptionOfRemainingPositiveOrNegativeBalancesRelatedToAcquisitionAndUnitingOfInterestsAndMethodsUsedInConnectionWithTheirCalculation'),
                 qname(f'{{{NAMESPACE_FSA}}}DescriptionOfWritedownsOfCurrentAssetsThatExceedNormalWritedowns'),
+                qname(f'{{{NAMESPACE_FSA}}}DisclosureOfAccountingPolicies'),
                 qname(f'{{{NAMESPACE_FSA}}}DisclosureOfTrueAndFairViewAndGoingConcern'),
                 qname(f'{{{NAMESPACE_FSA}}}ExplanationOfAmortizationPeriodForGoodwill'),
                 qname(f'{{{NAMESPACE_FSA}}}ExplanationOfAssumptionsOnWhichChosenCalculationMethodHasBeenBasedForFinancialAssetsAndLiabilitiesMeasuredAtNetPresentValueOrAmortisedCost'),

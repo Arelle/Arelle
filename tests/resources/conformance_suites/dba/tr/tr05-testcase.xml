@@ -14,7 +14,7 @@
             ReportingPeriodStartDate value does not match the PeriodStart value in the context of IdentificationNumberCvrOfReportingEntity
         </description>
         <data>
-            <instance readMeFirst="true">tr05-invalid.xbrl</instance>
+            <instance readMeFirst="true">tr05-invalid.xhtml</instance>
         </data>
         <result>
             <error>DBA.TR05</error>

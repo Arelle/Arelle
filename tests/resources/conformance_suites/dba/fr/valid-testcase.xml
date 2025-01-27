@@ -28,4 +28,14 @@
         </data>
         <result expected="valid"/>
     </variation>
+    <variation id="valid-ixbrl-001" name="Valid-ixbrl-001">
+        <description>
+            A valid ixbrl that triggers no DBA validation errors.
+        </description>
+        <data>
+            <!-- Source: https://datacvr.virk.dk/enhed/virksomhed/32570119-->
+            <instance readMeFirst="true">valid-ixbrl-001.xhtml</instance>
+        </data>
+        <result expected="valid"/>
+    </variation>
 </testcase>
