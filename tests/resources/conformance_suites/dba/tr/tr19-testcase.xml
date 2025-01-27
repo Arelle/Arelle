@@ -18,7 +18,7 @@
             Inventories is tagged twice with 2 different values for the same context, unit and language
         </description>
         <data>
-            <instance readMeFirst="true">tr19-invalid.xbrl</instance>
+            <instance readMeFirst="true">tr19-invalid.xhtml</instance>
         </data>
         <result>
             <error>DBA.TR19</error>
