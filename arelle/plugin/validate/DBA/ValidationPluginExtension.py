@@ -395,6 +395,7 @@ class ValidationPluginExtension(ValidationPlugin):
                 qname(f'{{{NAMESPACE_ARR}}}ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyTheCompaniesActOrEquivalentLegislationThatTheCompanyIsSubjectToExtendedReview'),
                 qname(f'{{{NAMESPACE_ARR}}}ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyLegislationOnFinancialReportingInApplication'),
             ]),
+            schemaRefUri='http://archprod.service.eogs.dk/taxonomy/',
             shorttermLiabilitiesOtherThanProvisionsQn=qname(f'{{{NAMESPACE_FSA}}}ShorttermLiabilitiesOtherThanProvisions'),
             signatureOfAuditorsDateQn=qname(f'{{{NAMESPACE_ARR}}}SignatureOfAuditorsDate'),
             soloMemberQn=qname(f'{{{NAMESPACE_CMN}}}SoloMember'),

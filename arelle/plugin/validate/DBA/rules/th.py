@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
+from arelle import ModelDocument
 from collections.abc import Iterable
 from typing import Any
 
@@ -20,6 +21,35 @@ _: TypeGetText
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
+def rule_th01(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.TH01: The “schemaRef” must contain “http://archprod.service.eogs.dk/taxonomy/”
+    """
+    modelXbrl = val.modelXbrl
+    for doc in modelXbrl.urlDocs.values():
+        if doc.type == ModelDocument.Type.INSTANCE:
+            for refDoc, docRef in doc.referencesDocument.items():
+                if docRef.referringModelObject.localName == "schemaRef":
+                    href = refDoc.uri
+                    if href.startswith(pluginData.schemaRefUri):
+                        continue
+                    else:
+                        yield Validation.error(
+                            codes='DBA.TH01',
+                            msg=_('The "schemaRef" must contain "{}".'
+                                  'The "schemaRef" as reported is "{}".').format(pluginData.schemaRefUri, href),
+                            modelObject=doc,
+                        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
 def rule_th05 (
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
@@ -27,7 +57,7 @@ def rule_th05 (
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    DBA.TH05: Contexts should not contain segments or unclosed periods
+    DBA.TH05: Contexts should not contain segments
     """
     contexts = val.modelXbrl.contexts.values()
     for context in contexts:
@@ -37,6 +67,7 @@ def rule_th05 (
                 _('Contexts should not contain segments.'),
                 modelObject=context,
             )
+
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
