@@ -40,9 +40,9 @@ def rule_th01(
                         continue
                     else:
                         yield Validation.error(
-                            codes='DBA.TH01',
-                            msg=_('The "schemaRef" must contain "{}".'
-                                  'The "schemaRef" as reported is "{}".').format(pluginData.schemaRefUri, href),
+                            codes="DBA.TH01",
+                            msg=_("The 'link:schemaRef' must contain '{}'."
+                                  "The 'link:schemaRef' as reported is {}.").format(pluginData.schemaRefUri, href),
                             modelObject=doc,
                         )
 
@@ -90,6 +90,54 @@ def rule_th06 (
                     _('The CVR (gsd:IdentificationNumberCvrOfReportingEntity) context period cannot be forever.'),
                     modelObject=fact,
                 )
+
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_th10 (
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.TH10: The taxonomy must be identified via a schema ref to an entry point, so the instance MUST NOT contain the following:
+    linkbaseRef
+    roleRef
+    more than one schemaRef
+    """
+    linkbaseRefModelObjects = []
+    roleRefModelObjects = []
+    schemaRefModelObjects = []
+    for doc in val.modelXbrl.urlDocs.values():
+        if doc.type == ModelDocument.Type.INSTANCE:
+            for refDoc, docRef in doc.referencesDocument.items():
+                if docRef.referringModelObject.localName == "linkbaseRef":
+                    linkbaseRefModelObjects.append(docRef.referringModelObject)
+                if docRef.referringModelObject.localName == "schemaRef":
+                    schemaRefModelObjects.append(docRef.referringModelObject)
+                if docRef.referringModelObject.localName == "roleRef":
+                    roleRefModelObjects.append(docRef.referringModelObject)
+    if len(schemaRefModelObjects) > 1:
+            yield Validation.error(
+                codes="DBA.TH10",
+                msg=_("The 'link:schemaRef' element must only occur once."),
+                modelObject=schemaRefModelObjects
+            )
+    if len(linkbaseRefModelObjects) > 0:
+        yield Validation.error(
+            codes="DBA.TH10",
+            msg=_("The 'link:linkbaseRef' element must not occur."),
+            modelObject=linkbaseRefModelObjects
+        )
+    if len(roleRefModelObjects) > 0:
+        yield Validation.error(
+            codes="DBA.TH10",
+            msg=_("The 'link:roleRef' element must not occur."),
+            modelObject=roleRefModelObjects
+        )
 
 
 @validation(

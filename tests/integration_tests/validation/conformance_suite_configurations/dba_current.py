@@ -12,7 +12,7 @@ config = ConformanceSuiteConfig(
         ),
         ConformanceSuiteAssetConfig.public_taxonomy_package(Path('ARL-XBRL20221001-20221117.zip')),
     ],
-    cache_version_id='X4sPTYvzeKWZt1FtXc8DAAm7sNDp6lTn',
+    cache_version_id='gqg_wyX4Tx52sj4WljjDswZLJqH0zvaU',
     info_url='https://erhvervsstyrelsen.dk/vejledning-teknisk-vejledning-og-dokumentation-regnskab-20-taksonomier-aktuelle',
     name=PurePath(__file__).stem,
     network_or_cache_required=False,

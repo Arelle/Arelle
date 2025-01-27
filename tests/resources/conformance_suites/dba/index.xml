@@ -32,6 +32,7 @@
     <testcase uri='th/th01-testcase.xml' />
     <testcase uri='th/th05-testcase.xml' />
     <testcase uri='th/th06-testcase.xml' />
+    <testcase uri='th/th10-testcase.xml' />
     <testcase uri='th/th14-testcase.xml' />
     <testcase uri='tm/tm12-testcase.xml' />
     <testcase uri='tm/tm13-testcase.xml' />
