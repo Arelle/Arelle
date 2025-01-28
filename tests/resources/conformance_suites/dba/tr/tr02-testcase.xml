@@ -14,7 +14,7 @@
             IdentificationNumberCvrOfReportingEntity entity identifier scheme is not http://www.dcca.dk/cvr
         </description>
         <data>
-            <instance readMeFirst="true">tr02-invalid.xbrl</instance>
+            <instance readMeFirst="true">tr02-invalid.xhtml</instance>
         </data>
         <result>
             <error>DBA.TR02</error>

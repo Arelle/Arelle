@@ -14,7 +14,7 @@
             ReportingPeriodEndDate value does not match the PeriodEnd value in the context of IdentificationNumberCvrOfReportingEntity
         </description>
         <data>
-            <instance readMeFirst="true">tr06-invalid.xbrl</instance>
+            <instance readMeFirst="true">tr06-invalid.xhtml</instance>
         </data>
         <result>
             <error>DBA.TR06</error>
