@@ -260,3 +260,24 @@ def lookup_namespaced_facts(modelXbrl: ModelXbrl, namespaceURI: str) -> set[Mode
     :Return: a set of facts
     """
     return {f for f in modelXbrl.facts if f.xValid >= VALID and f.xValue is not None and f.concept.qname.namespaceURI == namespaceURI}
+
+
+def minimumRequiredFactsFound(
+        modelXbrl: ModelXbrl,
+        factQns: frozenset[QName],
+        requiredCount: int,
+) -> bool:
+    """
+    This function indicates if a minimum number of facts from a given set of QNames have been tagged in the document.
+    :return: Boolean.
+    """
+    count = 0
+    for factQn in factQns:
+        facts: set[ModelFact] = modelXbrl.factsByQname.get(factQn, set())
+        for fact in facts:
+            if fact is not None and fact.xValid >= VALID:
+                count += 1
+                break
+        if count >= requiredCount:
+            return True
+    return False
