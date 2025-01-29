@@ -5,11 +5,8 @@ from __future__ import annotations
 
 import datetime
 import decimal
-import itertools
 from collections.abc import Iterable
 from typing import Any, cast
-
-from botocore.endpoint_provider import TreeRule
 
 from arelle.typing import TypeGetText
 from arelle.ValidateXbrl import ValidateXbrl
@@ -17,9 +14,10 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from arelle.XmlValidateConst import VALID
-from . import errorOnDateFactComparison, errorOnRequiredFact, getFactsWithDimension, getFactsGroupedByContextId, errorOnRequiredPositiveFact, getFactsWithoutDimension, groupFactsByContextHash
+from . import errorOnDateFactComparison, errorOnRequiredFact, getFactsWithDimension, getFactsGroupedByContextId, errorOnRequiredPositiveFact, getFactsWithoutDimension, groupFactsByContextHash, \
+    minimumRequiredFactsFound
 from ..PluginValidationDataExtension import PluginValidationDataExtension
-from ..ValidationPluginExtension import DANISH_CURRENCY_ID, ROUNDING_MARGIN, PERSONNEL_EXPENSE_THRESHOLD
+from ..ValidationPluginExtension import DANISH_CURRENCY_ID, ROUNDING_MARGIN, PERSONNEL_EXPENSE_THRESHOLD, REQUIRED_DISCLOSURE_OF_EQUITY_FACTS, REQUIRED_STATEMENT_OF_CHANGES_IN_EQUITY_FACTS
 
 _: TypeGetText
 
@@ -172,6 +170,49 @@ def rule_fr25(
                                       "gennemgang\' or \'Auditor's report on extended review\'").format(text),
                                 modelObject=description_fact
                             )
+
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr33(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR33: For groups in accounting classes C and D, either Statement of changes in equity [hierarchy:fsa:StatementOfChangesInEquity] must have a minimum of three fields filled in from
+    [hierarchy:fsa:StatementOfChangesInEquity] or two fields in
+    Information on equity [hierarchy:fsa:DisclosureOfEquity].
+    """
+    reportingClass = False
+    classOfReportingEntityFacts = val.modelXbrl.factsByQname.get(pluginData.classOfReportingEntityQn, set())
+    for fact in classOfReportingEntityFacts:
+        if fact is not None and fact.xValid >= VALID:
+            if fact.xValue in pluginData.cClassOfReportingEntityEnums or fact.xValue in pluginData.dClassOfReportingEntityEnums:
+                reportingClass = True
+                break
+    if not reportingClass:
+        reportingClass = any(
+            fact and fact.xValid >= VALID
+            for fact in val.modelXbrl.factsByQname.get(pluginData.selectedElementsFromReportingClassCQn, set())
+        )
+    if not reportingClass:
+        reportingClass = any(
+            fact and fact.xValid >= VALID
+            for fact in val.modelXbrl.factsByQname.get(pluginData.selectedElementsFromReportingClassDQn, set())
+        )
+    if reportingClass:
+        if not minimumRequiredFactsFound(val.modelXbrl, pluginData.disclosureOfEquityQns, REQUIRED_DISCLOSURE_OF_EQUITY_FACTS):
+            if not minimumRequiredFactsFound(val.modelXbrl, pluginData.statementOfChangesInEquityQns, REQUIRED_STATEMENT_OF_CHANGES_IN_EQUITY_FACTS):
+                yield Validation.error(
+                    codes="DBA.FR33",
+                    msg=_("For groups in accounting classes C and D, either Statement of Changes in Equity '[hierarchy:fsa:StatementOfChangesInEquity]' must have a minimum of three fields filled in "
+                          "Or two fields in Information on Equity [hierarchy:fsa:DisclosureOfEquity] ."),
+                    modelObject=val.modelXbrl.modelDocument
+                )
 
 
 @validation(

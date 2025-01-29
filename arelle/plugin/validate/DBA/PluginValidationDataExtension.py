@@ -39,7 +39,10 @@ class PluginValidationDataExtension(PluginData):
     basisForDisclaimerOpinionEnglish: str
     basisForQualifiedOpinionDanish: str
     basisForQualifiedOpinionEnglish: str
+    cClassOfReportingEntityEnums: frozenset[str]
     classOfReportingEntityQn: QName
+    dClassOfReportingEntityEnums: frozenset[str]
+    disclosureOfEquityQns: frozenset[QName]
     consolidatedMemberQn: QName
     consolidatedSoloDimensionQn: QName
     cpr_regex: regex.regex.Pattern[str]
@@ -98,9 +101,12 @@ class PluginValidationDataExtension(PluginData):
     reportingResponsibilitiesOnApprovedAuditorsReportsExtendedReviewQn: QName
     reportingObligationQns: frozenset[QName]
     schemaRefUri: str
+    selectedElementsFromReportingClassCQn: QName
+    selectedElementsFromReportingClassDQn: QName
     shorttermLiabilitiesOtherThanProvisionsQn: QName
     signatureOfAuditorsDateQn: QName
     soloMemberQn: QName
+    statementOfChangesInEquityQns: frozenset[QName]
     taxExpenseOnOrdinaryActivitiesQn: QName
     taxExpenseQn: QName
     typeOfAuditorAssistanceDanish: str
