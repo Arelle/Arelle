@@ -349,7 +349,7 @@ CsvMemberTypes = {
     "/tableTemplates/*/columns": dict,
     "/tableTemplates/*/decimals": (int,str),
     "/tableTemplates/*/dimensions": dict,
-    "/tableTemplates/*:*": (int,float,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
+    "/tableTemplates/*/*:*": (int,float,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
     "/tableTemplates/*/dimensions/concept": str,
     "/tableTemplates/*/dimensions/entity": str,
     "/tableTemplates/*/dimensions/period": str,
