@@ -8,6 +8,7 @@ import decimal
 from collections.abc import Iterable
 from typing import Any, cast
 
+from arelle.XbrlConst import xhtml
 from arelle.typing import TypeGetText
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.utils.PluginHooks import ValidationHook
@@ -1126,6 +1127,42 @@ def rule_fr81(
                   "must be at least one fact, with either the Danish ('da') or English ('en') language attribute."),
             modelObject=[val.modelXbrl.modelDocument]
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr87(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR87:  InlineXBRL must not link to external CSS. The IXBRL file must have all CSS inline.
+    """
+    modelXbrl = val.modelXbrl
+    _xhtmlNs = "{{{}}}".format(xhtml)
+    _xhtmlNsLen = len(_xhtmlNs)
+    if hasattr(modelXbrl, "ixdsHtmlElements"):
+        for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements: # ix root elements for all ix docs in IXDS
+            ixNStag = ixdsHtmlRootElt.modelDocument.ixNStag
+            ixTags = set(ixNStag + ln for ln in ("nonNumeric", "nonFraction", "references", "relationship"))
+        ixTargets = set()
+        for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
+            for elt in ixdsHtmlRootElt.iter():
+                eltTag = elt.tag
+                if eltTag in ixTags:
+                    ixTargets.add( elt.get("target") )
+                else:
+                    if eltTag.startswith(_xhtmlNs):
+                        eltTag = eltTag[_xhtmlNsLen:]
+                        if eltTag == "link" and elt.get("type") == "text/css":
+                            yield Validation.error(
+                                codes='DBA.FR87',
+                                msg=_("CSS must be embedded in the inline XBRL document. The document contains a link to an external CSS file."),
+                                modelObject=elt,
+                            )
 
 
 @validation(
