@@ -15,7 +15,7 @@
             TypeOfReportingPeriodDimension:AllReportingPeriodsMember
         </description>
         <data>
-            <instance readMeFirst="true">tm18-invalid.xbrl</instance>
+            <instance readMeFirst="true">tm18-invalid.xhtml</instance>
         </data>
         <result>
             <error>DBA.TM18</error>

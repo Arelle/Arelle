@@ -16,7 +16,7 @@
             TypeOfReportingPeriodDimension:RegisteredReportingPeriodDeviatingFromReportedReportingPeriodDueArbitraryDatesMember appears twice
         </description>
         <data>
-            <instance readMeFirst="true">tm33-invalid.xbrl</instance>
+            <instance readMeFirst="true">tm33-invalid.xhtml</instance>
         </data>
         <result>
             <error>DBA.TM33</error>

@@ -13,7 +13,7 @@
             gsd:AddressOfSubmittingEnterprisePostcodeAndTown is not tagged
         </description>
         <data>
-            <instance readMeFirst="true">tm27-invalid.xbrl</instance>
+            <instance readMeFirst="true">tm27-invalid.xhtml</instance>
         </data>
         <result>
             <error>DBA.TM27</error>
