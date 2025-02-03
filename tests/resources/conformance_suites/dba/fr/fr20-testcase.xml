@@ -15,7 +15,7 @@
             The annual report does not contain a management endorsement
         </description>
         <data>
-            <instance readMeFirst="true">fr20-invalid.xbrl</instance>
+            <instance readMeFirst="true">fr20-invalid.xhtml</instance>
         </data>
         <result>
             <error>DBA.FR20</error>

@@ -13,7 +13,7 @@
             EmployeeBenefitsExpense is reported incorrectly as negative
         </description>
         <data>
-            <instance readMeFirst="true">fr71-invalid.xbrl</instance>
+            <instance readMeFirst="true">fr71-invalid.xhtml</instance>
         </data>
         <result>
             <error>DBA.FR71</error>

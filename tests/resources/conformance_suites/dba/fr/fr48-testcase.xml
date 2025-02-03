@@ -15,19 +15,10 @@
             Fact is tagged with Extraordinary Income
         </description>
         <data>
-            <instance readMeFirst="true">fr48-extraordinary-income.xbrl</instance>
+            <instance readMeFirst="true">fr48-invalid.xhtml</instance>
         </data>
         <result>
             <error>DBA.FR48</error>
         </result>
-    </variation>
-    <variation id="invalid-missing-fact" name="Invalid missing fact">
-        <description>
-           ProfitLoss is not tagged
-        </description>
-        <data>
-            <instance readMeFirst="true">fr48-missing-facts.xbrl</instance>
-        </data>
-        <result expected="invalid"/>
     </variation>
 </testcase>

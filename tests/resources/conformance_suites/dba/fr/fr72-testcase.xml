@@ -14,7 +14,7 @@
             which indicates that DescriptionsOfQualificationsOfReviewedFinancialStatements should be tagged
         </description>
         <data>
-            <instance readMeFirst="true">fr72-invalid.xbrl</instance>
+            <instance readMeFirst="true">fr72-invalid.xhtml</instance>
         </data>
         <result>
             <error>DBA.FR72</error>

@@ -14,7 +14,7 @@
             DescriptionsOfQualificationsOfReviewedFinancialStatements contains 'has not given rise to reservations'
         </description>
         <data>
-            <instance readMeFirst="true">fr36-invalid.xbrl</instance>
+            <instance readMeFirst="true">fr36-invalid.xhtml</instance>
         </data>
         <result>
             <error>DBA.FR36</error>

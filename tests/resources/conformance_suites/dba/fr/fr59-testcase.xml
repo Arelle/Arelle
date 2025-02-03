@@ -14,7 +14,7 @@
             TypeOfAuditorAssistance = Revisionspåtegning and DescriptionOfQualificationsOfAuditedFinancialStatement is not tagged.
         </description>
         <data>
-            <instance readMeFirst="true">fr59-invalid.xbrl</instance>
+            <instance readMeFirst="true">fr59-invalid.xhtml</instance>
         </data>
         <result>
             <error>DBA.FR59</error>
