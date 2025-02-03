@@ -32,7 +32,7 @@ def rule_th01(
     """
     modelXbrl = val.modelXbrl
     for doc in modelXbrl.urlDocs.values():
-        if doc.type == ModelDocument.Type.INSTANCE:
+        if doc.type == ModelDocument.Type.INLINEXBRL:
             for refDoc, docRef in doc.referencesDocument.items():
                 if docRef.referringModelObject.localName == "schemaRef":
                     href = refDoc.uri
@@ -112,14 +112,15 @@ def rule_th10 (
     roleRefModelObjects = []
     schemaRefModelObjects = []
     for doc in val.modelXbrl.urlDocs.values():
-        if doc.type == ModelDocument.Type.INSTANCE:
+        if doc.type == ModelDocument.Type.INLINEXBRL:
             for refDoc, docRef in doc.referencesDocument.items():
                 if docRef.referringModelObject.localName == "linkbaseRef":
                     linkbaseRefModelObjects.append(docRef.referringModelObject)
                 if docRef.referringModelObject.localName == "schemaRef":
                     schemaRefModelObjects.append(docRef.referringModelObject)
-                if docRef.referringModelObject.localName == "roleRef":
-                    roleRefModelObjects.append(docRef.referringModelObject)
+            for htmlElement in doc.modelXbrl.ixdsHtmlElements:
+                for inlineElement in htmlElement.iterdescendants(tag=doc.ixNStag + "resources"):
+                    roleRefModelObjects.extend(inlineElement.iterchildren("{http://www.xbrl.org/2003/linkbase}roleRef"))
     if len(schemaRefModelObjects) > 1:
             yield Validation.error(
                 codes="DBA.TH10",

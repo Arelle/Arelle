@@ -13,7 +13,7 @@
             First schemaRef is http://xbrl.fasb.org/us-gaap/2015/elts/us-gaap-2015-01-31.xsd.
         </description>
         <data>
-            <instance readMeFirst="true">th10-invalid.xbrl</instance>
+            <instance readMeFirst="true">th10-invalid.xhtml</instance>
         </data>
         <result>
             <error>DBA.TH01</error>
