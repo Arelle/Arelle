@@ -14,7 +14,7 @@
             DescriptionOfQualificationsOfAssuranceEngagementPerformed contains 'has not given rise to reservations'
         </description>
         <data>
-            <instance readMeFirst="true">fr37-invalid.xbrl</instance>
+            <instance readMeFirst="true">fr37-invalid.xhtml</instance>
         </data>
         <result>
             <error>DBA.FR37</error>

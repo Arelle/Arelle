@@ -593,11 +593,11 @@ def rule_fr58(
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    DBA.FR58: If fsa:ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportAudit is tagged then one of the following concepts MUST also be tagged:
-    fsa:ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyTheCriminalCodeAndFiscalTaxAndSubsidyLegislationAudit
-    fsa:ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyTheCompaniesActOrEquivalentLegislationThatTheCompanyIsSubjectToAudit
-    fsa:ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyLegislationOnFinancialReportingIncludingAccountingAndStorageOfAccountingRecordsAudit
-    fsa:ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyOtherMattersAudit
+    DBA.FR58: If arr:ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportAudit is tagged then one of the following concepts MUST also be tagged:
+    arr:ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyTheCriminalCodeAndFiscalTaxAndSubsidyLegislationAudit
+    arr:ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyTheCompaniesActOrEquivalentLegislationThatTheCompanyIsSubjectToAudit
+    arr:ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyLegislationOnFinancialReportingIncludingAccountingAndStorageOfAccountingRecordsAudit
+    arr:ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyOtherMattersAudit
 
     """
     modelXbrl = val.modelXbrl
@@ -986,13 +986,13 @@ def rule_fr74(
         liabilityOtherFact = None
         provisionFact = None
         for fact in facts:
-            if fact.qname == pluginData.equityQn and fact.unit.id == DANISH_CURRENCY_ID:
+            if fact.qname == pluginData.equityQn and fact.unit.id.upper() == DANISH_CURRENCY_ID:
                 equityFact = fact
-            elif fact.qname == pluginData.liabilitiesQn and fact.unit.id == DANISH_CURRENCY_ID:
+            elif fact.qname == pluginData.liabilitiesQn and fact.unit.id.upper() == DANISH_CURRENCY_ID:
                 liabilityFact = fact
-            elif fact.qname == pluginData.provisionsQn and fact.unit.id == DANISH_CURRENCY_ID:
+            elif fact.qname == pluginData.provisionsQn and fact.unit.id.upper() == DANISH_CURRENCY_ID:
                 provisionFact = fact
-            elif fact.qname == pluginData.liabilitiesOtherThanProvisionsQn and fact.unit.id == DANISH_CURRENCY_ID:
+            elif fact.qname == pluginData.liabilitiesOtherThanProvisionsQn and fact.unit.id.upper() == DANISH_CURRENCY_ID:
                 liabilityOtherFact = fact
         if equityFact is not None and liabilityFact is not None and provisionFact is not None and equityFact.xValid >= VALID and liabilityFact.xValid >= VALID and provisionFact.xValid >= VALID:
             if not cast(decimal.Decimal, liabilityFact.xValue) - cast(decimal.Decimal, equityFact.xValue) >= cast(decimal.Decimal, provisionFact.xValue) - ROUNDING_MARGIN:
@@ -1037,9 +1037,9 @@ def rule_fr75(
         wagesFact = None
         employeesFact = None
         for fact in facts:
-            if fact.qname == pluginData.employeeBenefitsExpenseQn and fact.unit.id == DANISH_CURRENCY_ID and fact.xValid >= VALID and cast(decimal.Decimal, fact.xValue) >= PERSONNEL_EXPENSE_THRESHOLD:
+            if fact.qname == pluginData.employeeBenefitsExpenseQn and fact.unit.id.upper() == DANISH_CURRENCY_ID and fact.xValid >= VALID and cast(decimal.Decimal, fact.xValue) >= PERSONNEL_EXPENSE_THRESHOLD:
                 benefitsFact = fact
-            elif fact.qname == pluginData.wagesAndSalariesQn and fact.unit.id == DANISH_CURRENCY_ID and fact.xValid >= VALID and cast(decimal.Decimal, fact.xValue) >= PERSONNEL_EXPENSE_THRESHOLD:
+            elif fact.qname == pluginData.wagesAndSalariesQn and fact.unit.id.upper() == DANISH_CURRENCY_ID and fact.xValid >= VALID and cast(decimal.Decimal, fact.xValue) >= PERSONNEL_EXPENSE_THRESHOLD:
                 wagesFact = fact
             elif fact.qname == pluginData.averageNumberOfEmployeesQn and fact.xValid >= VALID and cast(decimal.Decimal, fact.xValue) > 0:
                 employeesFact = fact
@@ -1072,13 +1072,13 @@ def rule_fr77(
         longLiabilityFact = None
         shortLiabilityFact = None
         for fact in facts:
-            if fact.qname == pluginData.equityQn and fact.unit.id == DANISH_CURRENCY_ID:
+            if fact.qname == pluginData.equityQn and fact.unit.id.upper() == DANISH_CURRENCY_ID:
                 equityFact = fact
-            elif fact.qname == pluginData.liabilitiesQn and fact.unit.id == DANISH_CURRENCY_ID:
+            elif fact.qname == pluginData.liabilitiesQn and fact.unit.id.upper() == DANISH_CURRENCY_ID:
                 liabilityFact = fact
-            elif fact.qname == pluginData.longtermLiabilitiesOtherThanProvisionsQn and fact.unit.id == DANISH_CURRENCY_ID:
+            elif fact.qname == pluginData.longtermLiabilitiesOtherThanProvisionsQn and fact.unit.id.upper() == DANISH_CURRENCY_ID:
                 longLiabilityFact = fact
-            elif fact.qname == pluginData.shorttermLiabilitiesOtherThanProvisionsQn and fact.unit.id == DANISH_CURRENCY_ID:
+            elif fact.qname == pluginData.shorttermLiabilitiesOtherThanProvisionsQn and fact.unit.id.upper() == DANISH_CURRENCY_ID:
                 shortLiabilityFact = fact
         if equityFact is not None and liabilityFact is not None and longLiabilityFact is not None and equityFact.xValid >= VALID and liabilityFact.xValid >= VALID and longLiabilityFact.xValid >= VALID:
             if not cast(decimal.Decimal, liabilityFact.xValue) - cast(decimal.Decimal, equityFact.xValue) >= cast(decimal.Decimal, longLiabilityFact.xValue) - ROUNDING_MARGIN:

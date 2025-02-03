@@ -15,7 +15,7 @@
             Long-term liabilities is NOT less than or equal to LiabilitiesAndEquity minus Equity.
         </description>
         <data>
-            <instance readMeFirst="true">fr77a-invalid.xbrl</instance>
+            <instance readMeFirst="true">fr77a-invalid.xhtml</instance>
         </data>
         <result>
             <error>DBA.FR77a</error>
@@ -26,7 +26,7 @@
             Short-term liabilities is NOT less than or equal to LiabilitiesAndEquity minus Equity.
         </description>
         <data>
-            <instance readMeFirst="true">fr77b-invalid.xbrl</instance>
+            <instance readMeFirst="true">fr77b-invalid.xhtml</instance>
         </data>
         <result>
             <error>DBA.FR77b</error>

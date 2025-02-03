@@ -13,7 +13,7 @@
             Type of Auditors Assistance meets requirements, but cmn:IdentificationNumberCvrOfAuditFirm is missing.
         </description>
         <data>
-            <instance readMeFirst="true">fr53-invalid.xbrl</instance>
+            <instance readMeFirst="true">fr53-invalid.xhtml</instance>
         </data>
         <result>
             <error>DBA.FR53</error>

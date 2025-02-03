@@ -18,7 +18,7 @@
             ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsExtendedReview but none of the other concepts are.
         </description>
         <data>
-            <instance readMeFirst="true">fr73-invalid.xbrl</instance>
+            <instance readMeFirst="true">fr73-invalid.xhtml</instance>
         </data>
         <result>
             <error>DBA.FR73</error>

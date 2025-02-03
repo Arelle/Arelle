@@ -15,7 +15,7 @@
             Provisions is NOT less than or equal to LiabilitiesAndEquity minus Equity.
         </description>
         <data>
-            <instance readMeFirst="true">fr74a-invalid.xbrl</instance>
+            <instance readMeFirst="true">fr74a-invalid.xhtml</instance>
         </data>
         <result>
             <error>DBA.FR74a</error>
@@ -26,7 +26,7 @@
             LiabilitiesOtherThanProvisions is NOT less than or equal to LiabilitiesAndEquity minus Equity.
         </description>
         <data>
-            <instance readMeFirst="true">fr74b-invalid.xbrl</instance>
+            <instance readMeFirst="true">fr74b-invalid.xhtml</instance>
         </data>
         <result>
             <error>DBA.FR74b</error>
