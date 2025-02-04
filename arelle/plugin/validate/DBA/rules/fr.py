@@ -8,6 +8,7 @@ import decimal
 from collections.abc import Iterable
 from typing import Any, cast
 
+from arelle import ModelDocument
 from arelle.XbrlConst import xhtml
 from arelle.typing import TypeGetText
 from arelle.ValidateXbrl import ValidateXbrl
@@ -1125,6 +1126,26 @@ def rule_fr81(
             codes="DBA.FR81",
             msg=_("The digital annual report does not contain a technical indication of the language used. There "
                   "must be at least one fact, with either the Danish ('da') or English ('en') language attribute."),
+            modelObject=[val.modelXbrl.modelDocument]
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr83(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR83: This control blocks reporting in XBRL and thus only allows reporting with inlineXBRL.
+    """
+    if val.modelXbrl.modelDocument is not None and val.modelXbrl.modelDocument.type != ModelDocument.Type.INLINEXBRL:
+        yield Validation.error(
+            codes="DBA.FR83",
+            msg=_("The digital annual report must be reported in inlineXBRL."),
             modelObject=[val.modelXbrl.modelDocument]
         )
 
