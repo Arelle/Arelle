@@ -19,7 +19,8 @@ from . import errorOnRequiredFact, errorOnMultipleFacts
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 from ..DisclosureSystems import (
     ARL_2022_PREVIEW,
-    ARL_2024_PREVIEW
+    ARL_2024_PREVIEW,
+    ARL_2024_MULTI_TARGET_PREVIEW
 )
 
 _: TypeGetText
@@ -29,7 +30,8 @@ _: TypeGetText
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_tm12(
@@ -53,7 +55,8 @@ def rule_tm12(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_tm13(
@@ -72,7 +75,8 @@ def rule_tm13(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_tm16(
@@ -91,7 +95,8 @@ def rule_tm16(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_tm18(
@@ -124,7 +129,8 @@ def rule_tm18(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_tm20(
@@ -157,7 +163,8 @@ def rule_tm20(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_tm22(
@@ -174,6 +181,11 @@ def rule_tm22(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        ARL_2022_PREVIEW,
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
+    ],
 )
 def rule_tm24(
         pluginData: PluginValidationDataExtension,
@@ -191,7 +203,8 @@ def rule_tm24(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_tm25(
@@ -215,7 +228,8 @@ def rule_tm25(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_tm26(
@@ -234,7 +248,8 @@ def rule_tm26(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_tm27(
@@ -258,7 +273,8 @@ def rule_tm27(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_tm28(
@@ -277,7 +293,8 @@ def rule_tm28(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_tm29(
@@ -303,7 +320,8 @@ def rule_tm29(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_tm30(
@@ -322,7 +340,8 @@ def rule_tm30(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_tm31(
@@ -341,7 +360,8 @@ def rule_tm31(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_tm32(
@@ -375,7 +395,8 @@ def rule_tm32(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_tm33(

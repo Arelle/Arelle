@@ -21,7 +21,8 @@ from ..PluginValidationDataExtension import PluginValidationDataExtension
 from ..ValidationPluginExtension import DANISH_CURRENCY_ID, ROUNDING_MARGIN, PERSONNEL_EXPENSE_THRESHOLD, REQUIRED_DISCLOSURE_OF_EQUITY_FACTS, REQUIRED_STATEMENT_OF_CHANGES_IN_EQUITY_FACTS
 from ..DisclosureSystems import (
     ARL_2022_PREVIEW,
-    ARL_2024_PREVIEW
+    ARL_2024_PREVIEW,
+    ARL_2024_MULTI_TARGET_PREVIEW
 )
 
 _: TypeGetText
@@ -30,7 +31,8 @@ _: TypeGetText
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_fr1(
@@ -60,7 +62,8 @@ def rule_fr1(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_fr7(
@@ -90,7 +93,8 @@ def rule_fr7(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_fr20(
@@ -123,7 +127,8 @@ def rule_fr20(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_fr24(
@@ -162,7 +167,8 @@ def rule_fr24(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_fr25(
@@ -202,7 +208,8 @@ def rule_fr25(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_fr33(
@@ -248,7 +255,8 @@ def rule_fr33(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_fr34(
@@ -287,7 +295,8 @@ def rule_fr34(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
  )
 def rule_fr35(
@@ -319,7 +328,8 @@ def rule_fr35(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_fr36(
@@ -350,7 +360,8 @@ def rule_fr36(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_fr37(
@@ -381,7 +392,8 @@ def rule_fr37(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_fr41(
@@ -441,7 +453,8 @@ def rule_fr41(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_fr48(
@@ -476,7 +489,8 @@ def rule_fr48(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_fr52(
@@ -502,7 +516,8 @@ def rule_fr52(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_fr53(
@@ -558,7 +573,8 @@ def rule_fr53(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_fr56(
@@ -615,7 +631,8 @@ def rule_fr56(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_fr59(
@@ -655,7 +672,8 @@ def rule_fr59(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_fr58(
@@ -695,7 +713,8 @@ def rule_fr58(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_fr57(
@@ -895,7 +914,8 @@ def rule_fr57(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_fr63(
@@ -937,7 +957,8 @@ def rule_fr63(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_fr71(
@@ -982,7 +1003,8 @@ def rule_fr71(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_fr72(
@@ -1025,7 +1047,8 @@ def rule_fr72(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_fr73(
@@ -1062,7 +1085,8 @@ def rule_fr73(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_fr74(
@@ -1118,7 +1142,8 @@ def rule_fr74(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_fr75(
@@ -1156,7 +1181,8 @@ def rule_fr75(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_fr77(
@@ -1212,7 +1238,8 @@ def rule_fr77(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_fr81(
@@ -1241,7 +1268,8 @@ def rule_fr81(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_fr87(
@@ -1281,7 +1309,8 @@ def rule_fr87(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_fr89(
@@ -1338,7 +1367,8 @@ def rule_fr89(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_fr92(

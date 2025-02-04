@@ -15,7 +15,8 @@ from arelle.XmlValidateConst import VALID
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 from ..DisclosureSystems import (
     ARL_2022_PREVIEW,
-    ARL_2024_PREVIEW
+    ARL_2024_PREVIEW,
+    ARL_2024_MULTI_TARGET_PREVIEW
 )
 
 _: TypeGetText
@@ -24,7 +25,8 @@ _: TypeGetText
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_tc02(

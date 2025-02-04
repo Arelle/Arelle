@@ -16,7 +16,8 @@ from arelle.XmlValidateConst import VALID
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 from ..DisclosureSystems import (
     ARL_2022_PREVIEW,
-    ARL_2024_PREVIEW
+    ARL_2024_PREVIEW,
+    ARL_2024_MULTI_TARGET_PREVIEW
 )
 
 _: TypeGetText
@@ -26,7 +27,8 @@ _: TypeGetText
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_th01(
@@ -59,7 +61,8 @@ def rule_th01(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_th05 (
@@ -85,7 +88,8 @@ def rule_th05 (
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_th06 (
@@ -113,7 +117,8 @@ def rule_th06 (
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_th10 (
@@ -165,7 +170,8 @@ def rule_th10 (
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_th14 (

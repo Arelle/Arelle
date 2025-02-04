@@ -19,7 +19,8 @@ from ..PluginValidationDataExtension import PluginValidationDataExtension
 from ..ValidationPluginExtension import NAMESPACE_GSD
 from ..DisclosureSystems import (
     ARL_2022_PREVIEW,
-    ARL_2024_PREVIEW
+    ARL_2024_PREVIEW,
+    ARL_2024_MULTI_TARGET_PREVIEW
 )
 
 _: TypeGetText
@@ -29,7 +30,8 @@ _: TypeGetText
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_tr01(
@@ -195,7 +197,8 @@ def rule_tr06(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_tr09(
@@ -219,7 +222,8 @@ def rule_tr09(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW
     ],
 )
 def rule_tr19(
