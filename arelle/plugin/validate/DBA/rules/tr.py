@@ -17,6 +17,7 @@ from arelle.XmlValidateConst import VALID
 from . import lookup_namespaced_facts
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 from ..ValidationPluginExtension import NAMESPACE_GSD
+from ..DisclosureSystems import STAND_ALONE_DISCLOSURE_SYSTEMS
 
 _: TypeGetText
 
@@ -52,6 +53,7 @@ def rule_tr01(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=STAND_ALONE_DISCLOSURE_SYSTEMS,
 )
 def rule_tr02(
         pluginData: PluginValidationDataExtension,
@@ -76,6 +78,7 @@ def rule_tr02(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=STAND_ALONE_DISCLOSURE_SYSTEMS,
 )
 def rule_tr03(
         pluginData: PluginValidationDataExtension,
@@ -104,6 +107,7 @@ def rule_tr03(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=STAND_ALONE_DISCLOSURE_SYSTEMS,
 )
 def rule_tr05(
         pluginData: PluginValidationDataExtension,
@@ -136,6 +140,7 @@ def rule_tr05(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=STAND_ALONE_DISCLOSURE_SYSTEMS,
 )
 def rule_tr06(
         pluginData: PluginValidationDataExtension,
