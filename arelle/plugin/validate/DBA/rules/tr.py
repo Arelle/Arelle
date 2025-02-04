@@ -17,22 +17,13 @@ from arelle.XmlValidateConst import VALID
 from . import lookup_namespaced_facts
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 from ..ValidationPluginExtension import NAMESPACE_GSD
-from ..DisclosureSystems import (
-    ARL_2022_PREVIEW,
-    ARL_2024_PREVIEW,
-    ARL_2024_MULTI_TARGET_PREVIEW
-)
+from ..DisclosureSystems import STAND_ALONE_DISCLOSURE_SYSTEMS
 
 _: TypeGetText
 
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW,
-        ARL_2024_MULTI_TARGET_PREVIEW
-    ],
 )
 def rule_tr01(
         pluginData: PluginValidationDataExtension,
@@ -62,10 +53,7 @@ def rule_tr01(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
-    ],
+    disclosureSystems=STAND_ALONE_DISCLOSURE_SYSTEMS,
 )
 def rule_tr02(
         pluginData: PluginValidationDataExtension,
@@ -90,10 +78,7 @@ def rule_tr02(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
-    ],
+    disclosureSystems=STAND_ALONE_DISCLOSURE_SYSTEMS,
 )
 def rule_tr03(
         pluginData: PluginValidationDataExtension,
@@ -122,10 +107,7 @@ def rule_tr03(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
-    ],
+    disclosureSystems=STAND_ALONE_DISCLOSURE_SYSTEMS,
 )
 def rule_tr05(
         pluginData: PluginValidationDataExtension,
@@ -158,10 +140,7 @@ def rule_tr05(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW
-    ],
+    disclosureSystems=STAND_ALONE_DISCLOSURE_SYSTEMS,
 )
 def rule_tr06(
         pluginData: PluginValidationDataExtension,
@@ -195,11 +174,6 @@ def rule_tr06(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW,
-        ARL_2024_MULTI_TARGET_PREVIEW
-    ],
 )
 def rule_tr09(
         pluginData: PluginValidationDataExtension,
@@ -220,11 +194,6 @@ def rule_tr09(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW,
-        ARL_2024_MULTI_TARGET_PREVIEW
-    ],
 )
 def rule_tr19(
         pluginData: PluginValidationDataExtension,

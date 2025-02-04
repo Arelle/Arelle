@@ -19,21 +19,11 @@ from . import errorOnDateFactComparison, errorOnRequiredFact, getFactsWithDimens
     minimumRequiredFactsFound
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 from ..ValidationPluginExtension import DANISH_CURRENCY_ID, ROUNDING_MARGIN, PERSONNEL_EXPENSE_THRESHOLD, REQUIRED_DISCLOSURE_OF_EQUITY_FACTS, REQUIRED_STATEMENT_OF_CHANGES_IN_EQUITY_FACTS
-from ..DisclosureSystems import (
-    ARL_2022_PREVIEW,
-    ARL_2024_PREVIEW,
-    ARL_2024_MULTI_TARGET_PREVIEW
-)
 
 _: TypeGetText
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW,
-        ARL_2024_MULTI_TARGET_PREVIEW
-    ],
 )
 def rule_fr1(
         pluginData: PluginValidationDataExtension,
@@ -60,11 +50,6 @@ def rule_fr1(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW,
-        ARL_2024_MULTI_TARGET_PREVIEW
-    ],
 )
 def rule_fr7(
         pluginData: PluginValidationDataExtension,
@@ -91,11 +76,6 @@ def rule_fr7(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW,
-        ARL_2024_MULTI_TARGET_PREVIEW
-    ],
 )
 def rule_fr20(
         pluginData: PluginValidationDataExtension,
@@ -125,11 +105,6 @@ def rule_fr20(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW,
-        ARL_2024_MULTI_TARGET_PREVIEW
-    ],
 )
 def rule_fr24(
         pluginData: PluginValidationDataExtension,
@@ -165,11 +140,6 @@ def rule_fr24(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW,
-        ARL_2024_MULTI_TARGET_PREVIEW
-    ],
 )
 def rule_fr25(
         pluginData: PluginValidationDataExtension,
@@ -206,11 +176,6 @@ def rule_fr25(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW,
-        ARL_2024_MULTI_TARGET_PREVIEW
-    ],
 )
 def rule_fr33(
         pluginData: PluginValidationDataExtension,
@@ -253,11 +218,6 @@ def rule_fr33(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW,
-        ARL_2024_MULTI_TARGET_PREVIEW
-    ],
 )
 def rule_fr34(
         pluginData: PluginValidationDataExtension,
@@ -293,11 +253,6 @@ def rule_fr34(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW,
-        ARL_2024_MULTI_TARGET_PREVIEW
-    ],
  )
 def rule_fr35(
         pluginData: PluginValidationDataExtension,
@@ -326,11 +281,6 @@ def rule_fr35(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW,
-        ARL_2024_MULTI_TARGET_PREVIEW
-    ],
 )
 def rule_fr36(
         pluginData: PluginValidationDataExtension,
@@ -358,11 +308,6 @@ def rule_fr36(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW,
-        ARL_2024_MULTI_TARGET_PREVIEW
-    ],
 )
 def rule_fr37(
         pluginData: PluginValidationDataExtension,
@@ -390,11 +335,6 @@ def rule_fr37(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW,
-        ARL_2024_MULTI_TARGET_PREVIEW
-    ],
 )
 def rule_fr41(
         pluginData: PluginValidationDataExtension,
@@ -451,11 +391,6 @@ def rule_fr41(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW,
-        ARL_2024_MULTI_TARGET_PREVIEW
-    ],
 )
 def rule_fr48(
         pluginData: PluginValidationDataExtension,
@@ -487,11 +422,6 @@ def rule_fr48(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW,
-        ARL_2024_MULTI_TARGET_PREVIEW
-    ],
 )
 def rule_fr52(
         pluginData: PluginValidationDataExtension,
@@ -514,11 +444,6 @@ def rule_fr52(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW,
-        ARL_2024_MULTI_TARGET_PREVIEW
-    ],
 )
 def rule_fr53(
         pluginData: PluginValidationDataExtension,
@@ -571,11 +496,6 @@ def rule_fr53(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW,
-        ARL_2024_MULTI_TARGET_PREVIEW
-    ],
 )
 def rule_fr56(
         pluginData: PluginValidationDataExtension,
@@ -629,11 +549,6 @@ def rule_fr56(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW,
-        ARL_2024_MULTI_TARGET_PREVIEW
-    ],
 )
 def rule_fr59(
         pluginData: PluginValidationDataExtension,
@@ -670,11 +585,6 @@ def rule_fr59(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW,
-        ARL_2024_MULTI_TARGET_PREVIEW
-    ],
 )
 def rule_fr58(
         pluginData: PluginValidationDataExtension,
@@ -711,11 +621,6 @@ def rule_fr58(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW,
-        ARL_2024_MULTI_TARGET_PREVIEW
-    ],
 )
 def rule_fr57(
         pluginData: PluginValidationDataExtension,
@@ -912,11 +817,6 @@ def rule_fr57(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW,
-        ARL_2024_MULTI_TARGET_PREVIEW
-    ],
 )
 def rule_fr63(
         pluginData: PluginValidationDataExtension,
@@ -955,11 +855,6 @@ def rule_fr63(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW,
-        ARL_2024_MULTI_TARGET_PREVIEW
-    ],
 )
 def rule_fr71(
         pluginData: PluginValidationDataExtension,
@@ -1001,11 +896,6 @@ def rule_fr71(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW,
-        ARL_2024_MULTI_TARGET_PREVIEW
-    ],
 )
 def rule_fr72(
         pluginData: PluginValidationDataExtension,
@@ -1045,11 +935,6 @@ def rule_fr72(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW,
-        ARL_2024_MULTI_TARGET_PREVIEW
-    ],
 )
 def rule_fr73(
         pluginData: PluginValidationDataExtension,
@@ -1083,11 +968,6 @@ def rule_fr73(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW,
-        ARL_2024_MULTI_TARGET_PREVIEW
-    ],
 )
 def rule_fr74(
         pluginData: PluginValidationDataExtension,
@@ -1140,11 +1020,6 @@ def rule_fr74(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW,
-        ARL_2024_MULTI_TARGET_PREVIEW
-    ],
 )
 def rule_fr75(
         pluginData: PluginValidationDataExtension,
@@ -1179,11 +1054,6 @@ def rule_fr75(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW,
-        ARL_2024_MULTI_TARGET_PREVIEW
-    ],
 )
 def rule_fr77(
         pluginData: PluginValidationDataExtension,
@@ -1236,11 +1106,6 @@ def rule_fr77(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW,
-        ARL_2024_MULTI_TARGET_PREVIEW
-    ],
 )
 def rule_fr81(
         pluginData: PluginValidationDataExtension,
@@ -1266,11 +1131,6 @@ def rule_fr81(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW,
-        ARL_2024_MULTI_TARGET_PREVIEW
-    ],
 )
 def rule_fr87(
         pluginData: PluginValidationDataExtension,
@@ -1307,11 +1167,6 @@ def rule_fr87(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW,
-        ARL_2024_MULTI_TARGET_PREVIEW
-    ],
 )
 def rule_fr89(
         pluginData: PluginValidationDataExtension,
@@ -1365,11 +1220,6 @@ def rule_fr89(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW,
-        ARL_2024_MULTI_TARGET_PREVIEW
-    ],
 )
 def rule_fr92(
         pluginData: PluginValidationDataExtension,

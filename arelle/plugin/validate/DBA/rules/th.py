@@ -14,22 +14,12 @@ from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from arelle.XmlValidateConst import VALID
 from ..PluginValidationDataExtension import PluginValidationDataExtension
-from ..DisclosureSystems import (
-    ARL_2022_PREVIEW,
-    ARL_2024_PREVIEW,
-    ARL_2024_MULTI_TARGET_PREVIEW
-)
 
 _: TypeGetText
 
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW,
-        ARL_2024_MULTI_TARGET_PREVIEW
-    ],
 )
 def rule_th01(
         pluginData: PluginValidationDataExtension,
@@ -59,11 +49,6 @@ def rule_th01(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW,
-        ARL_2024_MULTI_TARGET_PREVIEW
-    ],
 )
 def rule_th05 (
         pluginData: PluginValidationDataExtension,
@@ -86,11 +71,6 @@ def rule_th05 (
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW,
-        ARL_2024_MULTI_TARGET_PREVIEW
-    ],
 )
 def rule_th06 (
         pluginData: PluginValidationDataExtension,
@@ -115,11 +95,6 @@ def rule_th06 (
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW,
-        ARL_2024_MULTI_TARGET_PREVIEW
-    ],
 )
 def rule_th10 (
         pluginData: PluginValidationDataExtension,
@@ -168,11 +143,6 @@ def rule_th10 (
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        ARL_2022_PREVIEW,
-        ARL_2024_PREVIEW,
-        ARL_2024_MULTI_TARGET_PREVIEW
-    ],
 )
 def rule_th14 (
         pluginData: PluginValidationDataExtension,
