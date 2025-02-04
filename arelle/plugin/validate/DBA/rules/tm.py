@@ -17,12 +17,20 @@ from arelle.utils.validate.Validation import Validation
 from arelle.XmlValidateConst import VALID
 from . import errorOnRequiredFact, errorOnMultipleFacts
 from ..PluginValidationDataExtension import PluginValidationDataExtension
+from ..DisclosureSystems import (
+    ARL_2022_PREVIEW,
+    ARL_2024_PREVIEW
+)
 
 _: TypeGetText
 
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        ARL_2022_PREVIEW,
+        ARL_2024_PREVIEW
+    ],
 )
 def rule_tm12(
         pluginData: PluginValidationDataExtension,
@@ -43,6 +51,10 @@ def rule_tm12(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        ARL_2022_PREVIEW,
+        ARL_2024_PREVIEW
+    ],
 )
 def rule_tm13(
         pluginData: PluginValidationDataExtension,
@@ -58,6 +70,10 @@ def rule_tm13(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        ARL_2022_PREVIEW,
+        ARL_2024_PREVIEW
+    ],
 )
 def rule_tm16(
         pluginData: PluginValidationDataExtension,
@@ -73,6 +89,10 @@ def rule_tm16(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        ARL_2022_PREVIEW,
+        ARL_2024_PREVIEW
+    ],
 )
 def rule_tm18(
         pluginData: PluginValidationDataExtension,
@@ -102,6 +122,10 @@ def rule_tm18(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        ARL_2022_PREVIEW,
+        ARL_2024_PREVIEW
+    ],
 )
 def rule_tm20(
         pluginData: PluginValidationDataExtension,
@@ -131,6 +155,10 @@ def rule_tm20(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        ARL_2022_PREVIEW,
+        ARL_2024_PREVIEW
+    ],
 )
 def rule_tm22(
         pluginData: PluginValidationDataExtension,
@@ -161,6 +189,10 @@ def rule_tm24(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        ARL_2022_PREVIEW,
+        ARL_2024_PREVIEW
+    ],
 )
 def rule_tm25(
         pluginData: PluginValidationDataExtension,
@@ -181,6 +213,10 @@ def rule_tm25(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        ARL_2022_PREVIEW,
+        ARL_2024_PREVIEW
+    ],
 )
 def rule_tm26(
         pluginData: PluginValidationDataExtension,
@@ -196,6 +232,10 @@ def rule_tm26(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        ARL_2022_PREVIEW,
+        ARL_2024_PREVIEW
+    ],
 )
 def rule_tm27(
         pluginData: PluginValidationDataExtension,
@@ -216,6 +256,10 @@ def rule_tm27(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        ARL_2022_PREVIEW,
+        ARL_2024_PREVIEW
+    ],
 )
 def rule_tm28(
         pluginData: PluginValidationDataExtension,
@@ -231,6 +275,10 @@ def rule_tm28(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        ARL_2022_PREVIEW,
+        ARL_2024_PREVIEW
+    ],
 )
 def rule_tm29(
         pluginData: PluginValidationDataExtension,
@@ -253,6 +301,10 @@ def rule_tm29(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        ARL_2022_PREVIEW,
+        ARL_2024_PREVIEW
+    ],
 )
 def rule_tm30(
         pluginData: PluginValidationDataExtension,
@@ -268,6 +320,10 @@ def rule_tm30(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        ARL_2022_PREVIEW,
+        ARL_2024_PREVIEW
+    ],
 )
 def rule_tm31(
         pluginData: PluginValidationDataExtension,
@@ -283,6 +339,10 @@ def rule_tm31(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        ARL_2022_PREVIEW,
+        ARL_2024_PREVIEW
+    ],
 )
 def rule_tm32(
         pluginData: PluginValidationDataExtension,
@@ -313,6 +373,10 @@ def rule_tm32(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        ARL_2022_PREVIEW,
+        ARL_2024_PREVIEW
+    ],
 )
 def rule_tm33(
         pluginData: PluginValidationDataExtension,
