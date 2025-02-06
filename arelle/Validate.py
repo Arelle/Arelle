@@ -654,6 +654,7 @@ class Validate:
                              (_exp == "EFM.6.04.03" and (testErr.startswith("xmlSchema:") or testErr.startswith("utr:") or testErr.startswith("xbrl.") or testErr.startswith("xlink:"))) or
                              (_exp == "EFM.6.05.35" and testErr.startswith("utre:")) or
                              (_exp.startswith("EFM.") and testErr.startswith(_exp)) or
+                             (_exp.startswith("EXG.") and testErr.startswith(_exp)) or
                              (_exp == "vere:invalidDTSIdentifier" and testErr.startswith("xbrl"))
                              ))):
                             _expMatched = True
