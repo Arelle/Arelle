@@ -845,7 +845,7 @@ def static_base_uri(xc, p, contextItem, args):
     raise fnFunctionNotAvailable()
 
 # added in XPATH 3
-def  format_number(xc, p, args):
+def format_number(xc, p, contextItem, args):
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
     value = numericArg(xc, p, args, 0, missingArgFallback='NaN', emptyFallback='NaN')
     picture = stringArg(xc, args, 1, "xs:string", missingArgFallback='', emptyFallback='')
