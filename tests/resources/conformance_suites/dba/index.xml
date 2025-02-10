@@ -29,6 +29,7 @@
     <testcase uri='fr/fr83-testcase.xml' />
     <testcase uri='fr/fr87-testcase.xml' />
     <testcase uri='fr/fr89-testcase.xml' />
+    <testcase uri='fr/fr91-testcase.xml' />
     <testcase uri='fr/fr92-testcase.xml' />
     <testcase uri='fr/valid-testcase.xml' />
     <testcase uri='tc/tc02-testcase.xml' />
