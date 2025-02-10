@@ -36,7 +36,6 @@ archivePathSeparators = (".zip" + os.sep, ".xbr" + os.sep, ".xbri" + os.sep, ".t
 
 archiveFilenameSuffixes = {".zip", ".xbr", ".xbri", ".tar.gz", ".eis", ".xml", ".xfd", ".frm"}
 
-POST_UPLOADED_ZIP = os.sep + "POSTupload.zip"
 SERVER_WEB_CACHE = os.sep + "_HTTP_CACHE"
 
 TAXONOMY_PACKAGE_FILE_NAMES = ('.taxonomyPackage.xml', 'catalog.xml') # pre-PWD packages
@@ -49,9 +48,11 @@ def openFileSource(
     reloadCache: bool = False,
     base: str | None = None,
     sourceFileSource: FileSource | None = None,
+    sourceZipStreamFileName: str | None = None,
 ) -> FileSource:
     if sourceZipStream:
-        filesource = FileSource(POST_UPLOADED_ZIP, cntlr)
+        sourceZipStreamFileName = os.sep + (sourceZipStreamFileName or "POSTupload.zip")
+        filesource = FileSource(sourceZipStreamFileName, cntlr)
         filesource.openZipStream(sourceZipStream)
         if filename:
             filesource.select(filename)
