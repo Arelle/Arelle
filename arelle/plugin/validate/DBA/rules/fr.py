@@ -547,79 +547,6 @@ def rule_fr56(
             )
 
 
-
-@validation(
-    hook=ValidationHook.XBRL_FINALLY,
-)
-def rule_fr59(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
-        *args: Any,
-        **kwargs: Any,
-) -> Iterable[Validation]:
-    """
-    DBA.FR59: When the annual report contains an audit report, which is when TypeOfAuditorAssistance = Revisionspåtegning / Auditor's report on audited financial statements, then the concept
-    arr:DescriptionOfQualificationsOfAuditedFinancialStatement must be filled in.
-    """
-    modelXbrl = val.modelXbrl
-    descriptonFacts = modelXbrl.factsByQname.get(pluginData.descriptionOfQualificationsOfAuditedFinancialStatementsQn)
-    indicatorFacts = []
-    if descriptonFacts is not None:
-        return
-    auditorFacts = modelXbrl.factsByQname.get(pluginData.typeOfAuditorAssistanceQn)
-    if auditorFacts is not None:
-        for aFact in auditorFacts:
-            if aFact.xValid >= VALID:
-                if aFact.xValue in [
-                    pluginData.auditedFinancialStatementsDanish,
-                    pluginData.auditedFinancialStatementsEnglish,
-                ]:
-                    indicatorFacts.append(aFact)
-        if len(indicatorFacts) > 0:
-            yield Validation.error(
-                codes='DBA.FR59',
-                msg=_("DescriptionOfQualificationsOfAuditedFinancialStatement must be tagged when {} is tagged with the value of {}").format(
-                    pluginData.typeOfAuditorAssistanceQn.localName,
-                    indicatorFacts[0].xValue),
-                    modelObject=indicatorFacts[0])
-
-
-@validation(
-    hook=ValidationHook.XBRL_FINALLY,
-)
-def rule_fr58(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
-        *args: Any,
-        **kwargs: Any,
-) -> Iterable[Validation]:
-    """
-    DBA.FR58: If arr:ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportAudit is tagged then one of the following concepts MUST also be tagged:
-    arr:ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyTheCriminalCodeAndFiscalTaxAndSubsidyLegislationAudit
-    arr:ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyTheCompaniesActOrEquivalentLegislationThatTheCompanyIsSubjectToAudit
-    arr:ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyLegislationOnFinancialReportingIncludingAccountingAndStorageOfAccountingRecordsAudit
-    arr:ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyOtherMattersAudit
-
-    """
-    modelXbrl = val.modelXbrl
-    indicatorFacts = modelXbrl.factsByQname.get(pluginData.reportingResponsibilitiesOnApprovedAuditorsReportAuditQn, set())
-    if len(indicatorFacts) > 0:
-        for qname in pluginData.declarationObligationQns:
-            facts = modelXbrl.factsByQname.get(qname, set())
-            if len(facts) > 0:
-                return
-        yield Validation.warning(
-            codes='DBA.FR58',
-            msg=_("When the field 'Declaration obligations according to the declaration order ' (ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportAudit) is completed, "
-                    "one or more of the sub-items below must be indicated: "
-                    "Declaration obligations according to the declaration order, including especially the Criminal Code as well as tax, levy and subsidy legislation (audit) (ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyTheCriminalCodeAndFiscalTaxAndSubsidyLegislationAudit)"
-                    "Declaration obligations according to the declaration order, including especially the company law or similar legislation laid down for the company (audit) (ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyTheCompaniesActOrEquivalentLegislationThatTheCompanyIsSubjectToAudit)"
-                    "Declaration obligations according to the declaration order, including especially the legislation on financial reporting, including on bookkeeping and storage of accounting material (audit) (ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyLegislationOnFinancialReportingIncludingAccountingAndStorageOfAccountingRecordsAudit)"
-                    "Declaration obligations according to the declaration order, including other matters in particular (revision (ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyOtherMattersAudit)"),
-            )
-
-
-
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
@@ -814,6 +741,77 @@ def rule_fr57(
                 start = profitLossError[0],
                 end = profitLossError[1]
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr58(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR58: If arr:ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportAudit is tagged then one of the following concepts MUST also be tagged:
+    arr:ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyTheCriminalCodeAndFiscalTaxAndSubsidyLegislationAudit
+    arr:ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyTheCompaniesActOrEquivalentLegislationThatTheCompanyIsSubjectToAudit
+    arr:ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyLegislationOnFinancialReportingIncludingAccountingAndStorageOfAccountingRecordsAudit
+    arr:ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyOtherMattersAudit
+
+    """
+    modelXbrl = val.modelXbrl
+    indicatorFacts = modelXbrl.factsByQname.get(pluginData.reportingResponsibilitiesOnApprovedAuditorsReportAuditQn, set())
+    if len(indicatorFacts) > 0:
+        for qname in pluginData.declarationObligationQns:
+            facts = modelXbrl.factsByQname.get(qname, set())
+            if len(facts) > 0:
+                return
+        yield Validation.warning(
+            codes='DBA.FR58',
+            msg=_("When the field 'Declaration obligations according to the declaration order ' (ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportAudit) is completed, "
+                  "one or more of the sub-items below must be indicated: "
+                  "Declaration obligations according to the declaration order, including especially the Criminal Code as well as tax, levy and subsidy legislation (audit) (ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyTheCriminalCodeAndFiscalTaxAndSubsidyLegislationAudit)"
+                  "Declaration obligations according to the declaration order, including especially the company law or similar legislation laid down for the company (audit) (ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyTheCompaniesActOrEquivalentLegislationThatTheCompanyIsSubjectToAudit)"
+                  "Declaration obligations according to the declaration order, including especially the legislation on financial reporting, including on bookkeeping and storage of accounting material (audit) (ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyLegislationOnFinancialReportingIncludingAccountingAndStorageOfAccountingRecordsAudit)"
+                  "Declaration obligations according to the declaration order, including other matters in particular (revision (ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyOtherMattersAudit)"),
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr59(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR59: When the annual report contains an audit report, which is when TypeOfAuditorAssistance = Revisionspåtegning / Auditor's report on audited financial statements, then the concept
+    arr:DescriptionOfQualificationsOfAuditedFinancialStatement must be filled in.
+    """
+    modelXbrl = val.modelXbrl
+    descriptonFacts = modelXbrl.factsByQname.get(pluginData.descriptionOfQualificationsOfAuditedFinancialStatementsQn)
+    indicatorFacts = []
+    if descriptonFacts is not None:
+        return
+    auditorFacts = modelXbrl.factsByQname.get(pluginData.typeOfAuditorAssistanceQn)
+    if auditorFacts is not None:
+        for aFact in auditorFacts:
+            if aFact.xValid >= VALID:
+                if aFact.xValue in [
+                    pluginData.auditedFinancialStatementsDanish,
+                    pluginData.auditedFinancialStatementsEnglish,
+                ]:
+                    indicatorFacts.append(aFact)
+        if len(indicatorFacts) > 0:
+            yield Validation.error(
+                codes='DBA.FR59',
+                msg=_("DescriptionOfQualificationsOfAuditedFinancialStatement must be tagged when {} is tagged with the value of {}").format(
+                    pluginData.typeOfAuditorAssistanceQn.localName,
+                    indicatorFacts[0].xValue),
+                modelObject=indicatorFacts[0])
 
 
 @validation(
@@ -1237,6 +1235,35 @@ def rule_fr89(
                 ),
                 modelObject=classFacts[0]
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_fr91(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR91: If the annual report contains information about both the general meeting date
+    (gsd:DateOfGeneralMeeting) and the annual accounts meeting date (gsd:DateOfApprovalOfReport), the values must be the same.
+    """
+    approvalOfReportFact = None
+    generalMeetingFact = None
+    approvalFacts = (val.modelXbrl.factsByQname.get(pluginData.dateOfApprovalOfReportQn, set()))
+    if len(approvalFacts) > 0:
+        approvalOfReportFact = next(iter(approvalFacts), None)
+    meetingFacts = val.modelXbrl.factsByQname.get(pluginData.dateOfGeneralMeetingQn, set())
+    if len(meetingFacts) > 0:
+        generalMeetingFact = next(iter(meetingFacts), None)
+    if generalMeetingFact is not None and generalMeetingFact.xValid >= VALID and approvalOfReportFact is not None and approvalOfReportFact.xValid >= VALID and generalMeetingFact.xValue != approvalOfReportFact.xValue:
+        yield Validation.error(
+            codes='DBA.FR91',
+            msg=_("The annual report contains information about both the general meeting date (gsd:DateOfGeneralMeeting) and the annual accounts meeting date (gsd:DateOfApprovalOfReport), the values must be the same."),
+            modelObject=[generalMeetingFact, approvalOfReportFact]
+        )
 
 
 @validation(

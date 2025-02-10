@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.FR91"
+        description="DBA.FR91: If the annual report contains information about both the general meeting date (gsd:DateOfGeneralMeeting)
+        and the annual accounts meeting date (gsd:DateOfApprovalOfReport), the values must be the same."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid" name="Invalid">
+        <description>
+            DateofGeneralMeeting and DateOfApprovalOfReport are different
+        </description>
+        <data>
+            <instance readMeFirst="true">fr91-invalid.xhtml</instance>
+        </data>
+        <result>
+            <error>DBA.FR91</error>
+        </result>
+    </variation>
+</testcase>
