@@ -69,6 +69,7 @@ class PluginValidationDataExtension(PluginData):
     independentAuditorsReportDanish: str
     independentAuditorsReportEnglish: str
     informationOnTypeOfSubmittedReportQn: QName
+    legalEntityIdentifierOfReportingEntityQn: QName
     liabilitiesQn: QName
     liabilitiesAndEquityQn: QName
     liabilitiesOtherThanProvisionsQn: QName

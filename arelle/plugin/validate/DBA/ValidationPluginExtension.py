@@ -403,6 +403,7 @@ class ValidationPluginExtension(ValidationPlugin):
             independentAuditorsReportDanish='Den uafhængige revisors erklæringer (review)',
             independentAuditorsReportEnglish='The independent auditor\'s reports (Review)',
             informationOnTypeOfSubmittedReportQn=qname(f'{{{NAMESPACE_GSD}}}InformationOnTypeOfSubmittedReport'),
+            legalEntityIdentifierOfReportingEntityQn=qname(f'{{{NAMESPACE_GSD}}}LegalEntityIdentifierOfReportingEntity'),
             liabilitiesQn=qname(f'{{{NAMESPACE_FSA}}}LiabilitiesAndEquity'),
             liabilitiesAndEquityQn=qname(f'{{{NAMESPACE_FSA}}}LiabilitiesAndEquity'),
             liabilitiesOtherThanProvisionsQn=qname(f'{{{NAMESPACE_FSA}}}LiabilitiesOtherThanProvisions'),
