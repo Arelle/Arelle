@@ -17,7 +17,7 @@ from arelle.XmlValidateConst import VALID
 from . import lookup_namespaced_facts
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 from ..ValidationPluginExtension import NAMESPACE_GSD
-from ..DisclosureSystems import STAND_ALONE_DISCLOSURE_SYSTEMS
+from ..DisclosureSystems import MULTI_TARGET_DISCLOSURE_SYSTEMS, STAND_ALONE_DISCLOSURE_SYSTEMS
 
 _: TypeGetText
 
@@ -190,6 +190,30 @@ def rule_tr09(
             'DBA.TR09',
             _('All contexts must have the same identifier scheme and value')
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=MULTI_TARGET_DISCLOSURE_SYSTEMS,
+)
+def rule_tr15(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.TR15: If the context identifier scheme is http://standards.iso.org/iso/17442, all context identifiers must be equal to the value of the field gsd:LegalEntityIdentifierOfReportingEntity.
+    """
+    leiFacts = val.modelXbrl.factsByQname.get(pluginData.legalEntityIdentifierOfReportingEntityQn, set())
+    if len(leiFacts) > 0:
+        leiFact = next(iter(leiFacts))
+        if leiFact is not None and leiFact.context is not None and leiFact.context.entityIdentifier[0] == 'http://standards.iso.org/iso/17442' and leiFact.xValid >= VALID and leiFact.context.entityIdentifier[1] != leiFact.xValue:
+                 yield Validation.error(
+                    codes='DBA.TR15',
+                    msg=_("If the context identifier scheme is http://standards.iso.org/iso/17442, all context identifiers must be equal to the value of the field gsd:LegalEntityIdentifierOfReportingEntity."),
+                    modelObject=leiFact
+                )
 
 
 @validation(
