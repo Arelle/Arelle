@@ -7,7 +7,7 @@ from collections import defaultdict
 from collections.abc import Iterable
 from typing import Any
 
-from arelle import ModelValue
+from arelle import ModelDocument, ModelValue
 from arelle.typing import TypeGetText
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.utils.PluginHooks import ValidationHook
@@ -213,6 +213,31 @@ def rule_tr15(
                     codes='DBA.TR15',
                     msg=_("If the context identifier scheme is http://standards.iso.org/iso/17442, all context identifiers must be equal to the value of the field gsd:LegalEntityIdentifierOfReportingEntity."),
                     modelObject=leiFact
+                )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=MULTI_TARGET_DISCLOSURE_SYSTEMS,
+)
+def rule_tr16(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.TR16: Inline XBRL must contain xml:lang in the root of the inlineXBRL document
+    """
+    modelXbrl = val.modelXbrl
+    for doc in modelXbrl.urlDocs.values():
+        if doc.type == ModelDocument.Type.INLINEXBRL:
+            lang = doc.xmlRootElement.get('{http://www.w3.org/XML/1998/namespace}lang')
+            if not lang:
+                yield Validation.error(
+                    codes='DBA.TR16',
+                    msg=_('Inline XBRL must contain xml:lang in the root of the InlineXBRL document'),
+                    modelObject=doc,
                 )
 
 
