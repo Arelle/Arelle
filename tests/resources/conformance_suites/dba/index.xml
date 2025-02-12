@@ -60,5 +60,6 @@
     <testcase uri='tr/tr05-testcase.xml' />
     <testcase uri='tr/tr06-testcase.xml' />
     <testcase uri='tr/tr09-testcase.xml' />
+    <testcase uri='tr/tr11-testcase.xml' />
     <testcase uri='tr/tr19-testcase.xml' />
 </testcases>

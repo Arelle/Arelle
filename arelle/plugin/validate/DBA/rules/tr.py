@@ -13,8 +13,9 @@ from arelle.ValidateXbrl import ValidateXbrl
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
+from arelle.XbrlConst import xhtml
 from arelle.XmlValidateConst import VALID
-from . import lookup_namespaced_facts
+from . import lookup_namespaced_facts, errorOnForbiddenImage
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 from ..ValidationPluginExtension import NAMESPACE_GSD
 from ..DisclosureSystems import MULTI_TARGET_DISCLOSURE_SYSTEMS, STAND_ALONE_DISCLOSURE_SYSTEMS
@@ -189,6 +190,35 @@ def rule_tr09(
         yield Validation.error(
             'DBA.TR09',
             _('All contexts must have the same identifier scheme and value')
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_tr11(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.TR11: InlineXBRL must not contain references to external images. Only Base64 encoded content is accepted.
+    """
+    imagesToCheck = set()
+    _xhtmlNs = "{{{}}}".format(xhtml)
+    _xhtmlNsLen = len(_xhtmlNs)
+    modelXbrl = val.modelXbrl
+    modelDocument = modelXbrl.modelDocument
+    if modelDocument is not None and modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET):
+        for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
+            for elt in ixdsHtmlRootElt.iter(f'{_xhtmlNs}img'):
+                imagesToCheck.add(elt.get("src","").strip())
+    if len(imagesToCheck) > 0:
+        yield from errorOnForbiddenImage(
+            images = imagesToCheck,
+            code="DBA.TR11",
+            message=("InlineXBRL must not contain references to external images. Additionaly only Base64 encoded content is accepted."),
         )
 
 
