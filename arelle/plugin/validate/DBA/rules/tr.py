@@ -13,7 +13,7 @@ from arelle.ValidateXbrl import ValidateXbrl
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
-from arelle.XbrlConst import xhtml
+from arelle.XbrlConst import xhtml, xml
 from arelle.XmlValidateConst import VALID
 from . import lookup_namespaced_facts, errorOnForbiddenImage
 from ..PluginValidationDataExtension import PluginValidationDataExtension
@@ -269,6 +269,47 @@ def rule_tr16(
                     msg=_('Inline XBRL must contain xml:lang in the root of the InlineXBRL document'),
                     modelObject=doc,
                 )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=MULTI_TARGET_DISCLOSURE_SYSTEMS,
+)
+def rule_tr17(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.TR17: Inline XBRL must NOT contain the HTML <base> element or the xml:base attribute
+    """
+    _xhtmlNs = "{{{}}}".format(xhtml)
+    _xmlNs = "{{{}}}".format(xml)
+    htmlBases = []
+    xmlBases = []
+    modelXbrl = val.modelXbrl
+
+    for doc in modelXbrl.urlDocs.values():
+        if doc.type == ModelDocument.Type.INLINEXBRL:
+            for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
+                for elt in ixdsHtmlRootElt.iter():
+                    if elt.tag == _xhtmlNs + "base":
+                        htmlBases.append(elt)
+                    elif elt.get(_xmlNs + "base") is not None:
+                        xmlBases.append(elt)
+    if len(htmlBases) > 0:
+        yield Validation.error(
+            codes='DBA.TR17',
+            msg=_('The HTML <base> element MUST NOT be used in the Inline XBRL document.'),
+            modelObject=htmlBases,
+        )
+    if len(xmlBases) > 0:
+            yield Validation.error(
+                codes='DBA.TR17',
+                msg=_('The xml:base attribute MUST NOT be used in the Inline XBRL document'),
+                modelObject=xmlBases,
+            )
 
 
 @validation(
