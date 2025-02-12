@@ -13,7 +13,9 @@ from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import ModelXbrl
 from arelle.typing import TypeGetText
+from arelle.UrlUtil import scheme
 from arelle.utils.validate.Validation import Validation
+from arelle.ValidateFilingText import parseImageDataURL
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.XmlValidateConst import VALID
 
@@ -55,6 +57,31 @@ def errorOnDateFactComparison(
             modelObject=[fact1, fact2],
             fact1=fact1.xValue,
             fact2=fact2.xValue,
+        )
+
+
+def errorOnForbiddenImage(
+        images: set[str],
+        code: str,
+        message: str,
+) -> Iterable[Validation]:
+    """
+    Yield an error of an image is an url or not a base64 encoded image
+    images is a list of either urls or data:images.
+    """
+    invalidImages = []
+    for image in images:
+        if scheme(image) in ("http", "https", "ftp"):
+            invalidImages.append(image)
+        elif image.startswith("data:image"):
+            dataURLParts = parseImageDataURL(image)
+            if not dataURLParts or not dataURLParts.isBase64:
+                invalidImages.append(image)
+    if len(invalidImages) > 0:
+        yield Validation.error(
+            codes=code,
+            msg=message,
+            modelObject=invalidImages,
         )
 
 
