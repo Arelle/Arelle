@@ -12,6 +12,7 @@ from arelle.typing import TypeGetText
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
+from arelle.utils.validate.DetectScriptsInXhtml import containsScriptMarkers
 from arelle.utils.validate.Validation import Validation
 from arelle.XbrlConst import xhtml
 from arelle.XmlValidateConst import VALID
@@ -191,6 +192,31 @@ def rule_tr09(
             'DBA.TR09',
             _('All contexts must have the same identifier scheme and value')
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY
+)
+def rule_tr12(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.TR12: InlineXBRL documents may not contain executable code.
+    """
+    modelXbrl = val.modelXbrl
+    for doc in modelXbrl.urlDocs.values():
+        if doc.type == ModelDocument.Type.INLINEXBRL:
+            for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
+                for elt in ixdsHtmlRootElt.iter():
+                    if containsScriptMarkers(elt) is not None:
+                        yield Validation.error(
+                            codes='DBA.TR12',
+                            msg=_('InlineXBRL documents may not contain executable code.'),
+                            modelObject=elt,
+                        )
 
 
 @validation(
