@@ -194,11 +194,14 @@ class FileSource:
                 if basefile:
                     with openFileStream(self.cntlr, basefile, 'rb') as fileStream:
                         self.isZip = zipfile.is_zipfile(fileStream)
+            except OSError:
+                # Can't load self.url content. It's not a zip file.
+                # We don't use os.path.isfile because self.url may be an embeded zip file.
+                pass
             except Exception as err:
-                # Log the error, but don't record a validation error.
+                # Log the error at info level (which is sent to the GUI log), but don't record a validation error.
                 # Validation is deferred to the validation classes. Filesource is unaware of the specific errors that should be raised.
                 self.logError(err)
-                pass
 
 
         # for SEC xml files, check if it's an EIS anyway
