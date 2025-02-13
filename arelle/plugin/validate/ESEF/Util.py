@@ -24,7 +24,7 @@ from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.XmlValidateConst import VALID
 from arelle.typing import TypeGetText
-from .Const import esefCorNsPattern, esefNotesStatementConcepts, esefTaxonomyNamespaceURIs, htmlEventHandlerAttributes, svgEventAttributes
+from .Const import esefCorNsPattern, esefNotesStatementConcepts, esefTaxonomyNamespaceURIs, svgEventAttributes
 
 _: TypeGetText
 
@@ -167,10 +167,6 @@ def isChildOfNotes(
                 return True
     _visited.remove(child)
     return False
-
-
-def hasEventHandlerAttributes(elt: Any) -> bool:
-    return _hasEventAttributes(elt, htmlEventHandlerAttributes)
 
 
 def hasSvgEventAttributes(elt: Any) -> bool:

@@ -23,6 +23,7 @@ from arelle.ModelObject import ModelObject
 from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelValue import QName, qname
 from arelle.PythonUtil import strTruncate
+from arelle.utils.validate.DetectScriptsInXhtml import containsScriptMarkers
 from arelle.UrlUtil import decodeBase64DataImage, isHttpUrl, scheme
 from arelle.ValidateFilingText import parseImageDataURL
 from arelle.ValidateUtr import ValidateUtr
@@ -60,7 +61,7 @@ from ..Const import (
     untransformableTypes,
 )
 from ..Dimensions import checkFilingDimensions
-from ..Util import etreeIterWithDepth, hasEventHandlerAttributes, isExtension
+from ..Util import etreeIterWithDepth, isExtension
 
 _: TypeGetText  # Handle gettext
 
@@ -283,10 +284,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                 if xmlLang:
                                     reportXmlLang = xmlLang
                                     firstRootmostXmlLangDepth = depth
-                        if ((eltTag in ("object", "script")) or
-                            (eltTag == "a" and "javascript:" in elt.get("href","")) or
-                            (eltTag == "img" and "javascript:" in elt.get("src","")) or
-                            (hasEventHandlerAttributes(elt))):
+                        if containsScriptMarkers(elt):
                             modelXbrl.error(f"{contentOtherThanXHTMLGuidance}.executableCodePresent",
                                 _("Inline XBRL documents MUST NOT contain executable code: %(element)s"),
                                 modelObject=elt, element=eltTag)

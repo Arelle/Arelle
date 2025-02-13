@@ -25,8 +25,10 @@ from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelValue import QName
 from arelle.ModelValue import qname
 from arelle.ModelXbrl import ModelXbrl
+
 from arelle.PythonUtil import normalizeSpace
 from arelle.PythonUtil import strTruncate
+from arelle.utils.validate.DetectScriptsInXhtml import containsScriptMarkers
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateUtr import ValidateUtr
 from arelle.ValidateXbrl import ValidateXbrl
@@ -64,7 +66,7 @@ from ..Const import (
     untransformableTypes,
 )
 from ..Dimensions import checkFilingDimensions
-from ..Util import checkForMultiLangDuplicates, etreeIterWithDepth, getEsefNotesStatementConcepts, hasEventHandlerAttributes, isExtension, getDisclosureSystemYear
+from ..Util import checkForMultiLangDuplicates, etreeIterWithDepth, getEsefNotesStatementConcepts, isExtension, getDisclosureSystemYear
 
 _: TypeGetText  # Handle gettext
 
@@ -327,10 +329,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                 if xmlLang:
                                     reportXmlLang = xmlLang
                                     firstRootmostXmlLangDepth = depth
-                        if ((eltTag in ("object", "script")) or
-                            (eltTag == "a" and "javascript:" in elt.get("href", "")) or
-                            (eltTag == "img" and "javascript:" in elt.get("src", "")) or
-                            (hasEventHandlerAttributes(elt))):
+                        if containsScriptMarkers(elt):
                             modelXbrl.error(f"{contentOtherThanXHTMLGuidance}.executableCodePresent",
                                 _("Inline XBRL documents MUST NOT contain executable code: %(element)s"),
                                 modelObject=elt, element=eltTag)
