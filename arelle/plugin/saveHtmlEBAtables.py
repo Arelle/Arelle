@@ -67,10 +67,16 @@ table {background:#fff}
                 dts.modelManager.cntlr.addToLog("viewing: " + modelTable.id)
                 # for table file name, use table ELR
                 tblFile = os.path.join(os.path.dirname(indexFile), modelTable.id + ".html")
+                tableName = modelTable.id
+                if tableName.startswith("eba_t"):
+                    tableName = tableName.removeprefix("eba_t")
+                if tableName.startswith("srb_t"):
+                    tableName = tableName.removeprefix("srb_t")
                 viewRenderedGrid(dts,
                                  tblFile,
                                  lang=lang,
-                                 cssExtras=tblCssExtras)
+                                 cssExtras=tblCssExtras,
+                                 table=tableName)
 
                 # generaate menu entry
                 elt = etree.SubElement(listElt, "{http://www.w3.org/1999/xhtml}li")

@@ -37,7 +37,7 @@ headerOmittedRollupAspects  = {
     Aspect.PERIOD_TYPE, Aspect.START, Aspect.END, Aspect.INSTANT,
     Aspect.UNIT_MEASURES, Aspect.MULTIPLY_BY, Aspect.DIVIDE_BY}
 
-def layoutTable(view):
+def layoutTable(view, table = None):
     view.modelXbrl.modelManager.showStatus(_("layout model generation"))
     viewTblELR = getattr(view, "tblELR", None)
 
@@ -45,6 +45,8 @@ def layoutTable(view):
         tblELRs = (viewTblELR,)
     else:
         tblELRs = sorted(view.modelXbrl.relationshipSet("Table-rendering").linkRoleUris)
+        if table is not None:
+            tblELRs = list(filter(lambda x: x.endswith(table), tblELRs))
 
     view.lytMdlTblMdl = LytMdlTableModel(view.modelXbrl.modelDocument.basename)
 
