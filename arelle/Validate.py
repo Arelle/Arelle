@@ -152,9 +152,28 @@ class Validate:
                 modelObject=rssItem, accessionNumber=rssItem.accessionNumber, formType=rssItem.formType, companyName=rssItem.companyName, period=rssItem.period)
             modelXbrl = None
             try:
-                modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager,
-                                           openFileSource(rssItem.zippedUrl, self.modelXbrl.modelManager.cntlr, reloadCache=reloadCache),
-                                           _("validating"), rssItem=rssItem)
+                rssItemUrl = rssItem.zippedUrl
+                if self.useFileSource.isArchive and (os.path.isabs(rssItemUrl) or not rssItemUrl.endswith(".zip")):
+                    modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager,
+                                               openFileSource(rssItemUrl, self.modelXbrl.modelManager.cntlr, reloadCache=reloadCache),
+                                               _("validating"), rssItem=rssItem)
+                else: # need own file source, may need instance discovery
+                    filesource = FileSource.openFileSource(rssItemUrl, self.modelXbrl.modelManager.cntlr)
+                    if filesource and not filesource.selection and filesource.isArchive:
+                        try:
+                            from arelle.CntlrCmdLine import filesourceEntrypointFiles
+                            entrypoints = filesourceEntrypointFiles(filesource)
+                            if entrypoints:
+                                # resolve an IXDS in entrypoints
+                                for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ArchiveIxds"):
+                                    pluginXbrlMethod(self, filesource,entrypoints)
+                                filesource.select(entrypoints[0].get("file", None) )
+                        except Exception as err:
+                            self.modelXbrl.error("exception:" + type(err).__name__,
+                                _("RSS item validation exception: %(error)s, entry URL: %(instance)s"),
+                                modelXbrl=self.modelXbrl, instance=rssItemUrl, error=err)
+                            continue # don't try to load this entry URL
+                    modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager, filesource, _("validating"), rssItem=rssItem)
                 for pluginXbrlMethod in pluginClassMethods("RssItem.Xbrl.Loaded"):
                     pluginXbrlMethod(modelXbrl, {}, rssItem)
                 if getattr(rssItem, "doNotProcessRSSitem", False) or modelXbrl.modelDocument is None:
