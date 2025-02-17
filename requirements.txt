@@ -14,7 +14,7 @@ pycountry==24.6.1
 # plugins
 # EDGAR plugins
 NumPy==2.0.2 ; python_version <= "3.9"
-NumPy==2.2.0 ; python_version > "3.9"
+NumPy==2.2.3 ; python_version > "3.9"
 Matplotlib==3.9.4 ; python_version <= "3.9"
 Matplotlib==3.10.0 ; python_version > "3.9"
 holidays==0.66
