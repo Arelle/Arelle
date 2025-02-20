@@ -168,13 +168,13 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
                         narrowerConcept = widerNarrowerRelSet.toModelObject(modelConcept)
 
                         # Transform the qname to str for the later join()
-                        widerTypes = set(str(r.toModelObject.typeQname) for r in widerConcept)
-                        narrowerTypes = set(str(r.fromModelObject.typeQname) for r in narrowerConcept)
+                        widerTypes = set(r.toModelObject.typeQname for r in widerConcept)
+                        narrowerTypes = set(r.fromModelObject.typeQname for r in narrowerConcept)
 
-                        if (narrowerTypes and narrowerTypes != {str(modelConcept.typeQname)}) or (widerTypes and widerTypes != {str(modelConcept.typeQname)}):
+                        if (narrowerTypes and narrowerTypes != {modelConcept.typeQname}) or (widerTypes and widerTypes != {modelConcept.typeQname}):
                             widerNarrowerType = "{} {}".format(
-                                "Wider: {}".format(", ".join(widerTypes)) if widerTypes else "",
-                                "Narrower: {}".format(", ".join(narrowerTypes)) if narrowerTypes else ""
+                                "Wider: {}".format(", ".join(t.clarkNotation for t in widerTypes)) if widerTypes else "",
+                                "Narrower: {}".format(", ".join(t.clarkNotation for t in narrowerTypes)) if narrowerTypes else ""
                             )
                             val.modelXbrl.warning("ESEF.1.4.1.differentExtensionDataType",
                                                 _("Issuers should anchor their extension elements to ESEF core taxonomy elements sharing the same data type. Concept: %(qname)s type: %(type)s %(widerNarrowerType)s"),
