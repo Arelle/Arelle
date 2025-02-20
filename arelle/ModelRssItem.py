@@ -151,10 +151,8 @@ class ModelRssItem(ModelObject):
     def zippedUrl(self):
         enclosure = XmlUtil.childAttr(self, None, "enclosure", "url")
         if enclosure:
-            # modify url to use zip file
-            _path, sep, file = (self.url or "").rpartition("/")
-            # return path + sep + self.accessionNumber + "-xbrl.zip" + sep + file
-            return enclosure + sep + file
+            # retrun enclosure which may contain multi-IXDSes and multi-doc primary files
+            return enclosure
         else: # no zipped enclosure, just use unzipped file
             return self.url
 
