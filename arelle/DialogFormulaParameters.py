@@ -79,7 +79,7 @@ class DialogFormulaParameters(Toplevel):
         # checkbox entries
         label(frame, 1, y, "Parameter Trace:")
         label(frame, 1, y + 3, "API Calls Trace:")
-        label(frame, 1, y + 8, "Testcase Results:")
+        label(frame, 1, y + 8, "Testcase Results & RSS Items:")
         label(frame, 2, y, "Variable Set Trace:")
         label(frame, 3, y, "Variables Trace:")
         self.checkboxes = (

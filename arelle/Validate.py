@@ -143,6 +143,10 @@ class Validate:
         self.modelXbrl.info("info", "RSS Feed", modelDocument=self.modelXbrl)
         from arelle.FileSource import openFileSource
         reloadCache = getattr(self.modelXbrl, "reloadCache", False)
+        if self.modelXbrl.modelManager.formulaOptions.testcaseResultsCaptureWarnings:
+            errorCaptureLevel = logging._checkLevel("WARNING")
+        else:
+            errorCaptureLevel = logging._checkLevel("INCONSISTENCY")# default is INCONSISTENCY
         for rssItem in self.modelXbrl.modelDocument.rssItems:
             if getattr(rssItem, "skipRssItem", False):
                 self.modelXbrl.info("info", _("skipping RSS Item %(accessionNumber)s %(formType)s %(companyName)s %(period)s"),
@@ -173,7 +177,7 @@ class Validate:
                                 _("RSS item validation exception: %(error)s, entry URL: %(instance)s"),
                                 modelXbrl=self.modelXbrl, instance=rssItemUrl, error=err)
                             continue # don't try to load this entry URL
-                    modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager, filesource, _("validating"), rssItem=rssItem)
+                    modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager, filesource, _("validating"), rssItem=rssItem, errorCaptureLevel=errorCaptureLevel)
                 for pluginXbrlMethod in pluginClassMethods("RssItem.Xbrl.Loaded"):
                     pluginXbrlMethod(modelXbrl, {}, rssItem)
                 if getattr(rssItem, "doNotProcessRSSitem", False) or modelXbrl.modelDocument is None:

@@ -146,7 +146,7 @@ class DialogRssWatch(Toplevel):
                     "Unsuccessful formula assertions",
                     "alertAssertionUnsuccessful"),
            checkbox(frame, 2, row+2,
-                    "Validation errors",
+                    "Validation errors (or warnings, see Formula Parameters)",
                     "alertValiditionError"),
            # Note: if adding to this list keep ModelFormulaObject.FormulaOptions in sync
            )

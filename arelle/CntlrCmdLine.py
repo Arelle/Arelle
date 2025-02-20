@@ -314,7 +314,7 @@ def parseArgs(args):
                       help=_("If any filters are provided, any testcase variation path in the form {testcaseFilepath}:{testcaseVariationId} that doesn't pass any filter "
                              "will be skipped." ))
     parser.add_option("--testcaseResultsCaptureWarnings", "--testcaseresultscapturewarnings", action="store_true", dest="testcaseResultsCaptureWarnings",
-                      help=_("For testcase variations capture warning results, default is inconsistency or warning if there is any warning expected result.  "))
+                      help=_("For testcase variations and RSS feed items, capture warning results, default is inconsistency or warning if there is any warning expected result.  "))
     parser.add_option("--testcaseResultOptions", choices=("match-any", "match-all"), action="store", dest="testcaseResultOptions",
                       help=_("For testcase results, default is match any expected result, options to match any or match all expected result(s).  "))
     parser.add_option("--formulaRunIDs", "--formularunids", action="store", dest="formulaRunIDs", help=_("Specify formula/assertion IDs to run, separated by a '|' character, or a regex expression."))
