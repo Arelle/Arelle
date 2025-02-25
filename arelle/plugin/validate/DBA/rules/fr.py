@@ -799,7 +799,7 @@ def rule_fr59(
 ) -> Iterable[Validation]:
     """
     DBA.FR59: When the annual report contains an audit report, which is when TypeOfAuditorAssistance = Revisionspåtegning / Auditor's report on audited financial statements, then the concept
-    arr:DescriptionOfQualificationsOfAuditedFinancialStatement must be filled in.
+    arr:DescriptionOfQualificationsOfAuditedFinancialStatements must be filled in.
     """
     modelXbrl = val.modelXbrl
     descriptonFacts = modelXbrl.factsByQname.get(pluginData.descriptionOfQualificationsOfAuditedFinancialStatementsQn)
@@ -818,7 +818,7 @@ def rule_fr59(
         if len(indicatorFacts) > 0:
             yield Validation.error(
                 codes='DBA.FR59',
-                msg=_("DescriptionOfQualificationsOfAuditedFinancialStatement must be tagged when {} is tagged with the value of {}").format(
+                msg=_("DescriptionOfQualificationsOfAuditedFinancialStatements must be tagged when {} is tagged with the value of {}").format(
                     pluginData.typeOfAuditorAssistanceQn.localName,
                     indicatorFacts[0].xValue),
                 modelObject=indicatorFacts[0])
