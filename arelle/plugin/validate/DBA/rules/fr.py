@@ -20,7 +20,7 @@ from . import errorOnDateFactComparison, errorOnRequiredFact, getFactsWithDimens
     minimumRequiredFactsFound
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 from ..ValidationPluginExtension import DANISH_CURRENCY_ID, ROUNDING_MARGIN, PERSONNEL_EXPENSE_THRESHOLD, REQUIRED_DISCLOSURE_OF_EQUITY_FACTS, REQUIRED_STATEMENT_OF_CHANGES_IN_EQUITY_FACTS
-from ..DisclosureSystems import STAND_ALONE_DISCLOSURE_SYSTEMS
+from ..DisclosureSystems import MULTI_TARGET_DISCLOSURE_SYSTEMS, STAND_ALONE_DISCLOSURE_SYSTEMS
 
 _: TypeGetText
 
@@ -1144,6 +1144,27 @@ def rule_fr81(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=MULTI_TARGET_DISCLOSURE_SYSTEMS,
+)
+def rule_fr82(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR82: This control blocks reporting in XBRL and thus only allows reporting with inlineXBRL for DK ESEF.
+    """
+    if val.modelXbrl.modelDocument is not None and val.modelXbrl.modelDocument.type != ModelDocument.Type.INLINEXBRL:
+        yield Validation.error(
+            codes="DBA.FR82",
+            msg=_("The digital annual report must be reported in inlineXBRL for DK ESEF."),
+            modelObject=[val.modelXbrl.modelDocument]
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=STAND_ALONE_DISCLOSURE_SYSTEMS,
 )
 def rule_fr83(
@@ -1153,12 +1174,12 @@ def rule_fr83(
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    DBA.FR83: This control blocks reporting in XBRL and thus only allows reporting with inlineXBRL.
+    DBA.FR83: This control blocks reporting in XBRL and thus only allows reporting with inlineXBRL for DK GAAP.
     """
     if val.modelXbrl.modelDocument is not None and val.modelXbrl.modelDocument.type != ModelDocument.Type.INLINEXBRL:
         yield Validation.error(
             codes="DBA.FR83",
-            msg=_("The digital annual report must be reported in inlineXBRL."),
+            msg=_("The digital annual report must be reported in inlineXBRL for DK GAAP."),
             modelObject=[val.modelXbrl.modelDocument]
         )
 
