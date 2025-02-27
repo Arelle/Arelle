@@ -261,11 +261,8 @@ def checkDTS(val: ValidateXbrl, modelDocument: ModelDocument.ModelDocument, chec
     # XML validation checks (remove if using validating XML)
     val.extendedElementName = None
     isFilingDocument = False
-    # validate contents of entry point document or its sibling/descendant documents or in report package of entry point
-    if ((modelDocument.uri.startswith(val.modelXbrl.uriDir) or # document uri in same subtree as entry doocument
-         (val.modelXbrl.fileSource.isOpen and modelDocument.filepath.startswith(val.modelXbrl.fileSource.baseurl))) and # document in entry submission's package
-        modelDocument.targetNamespace not in val.disclosureSystem.baseTaxonomyNamespaces and
-        modelDocument.xmlDocument):
+
+    if modelDocument.xmlDocument is not None:
         isFilingDocument = True
         val.valUsedPrefixes = set()
         val.schemaRoleTypes = {}
@@ -289,8 +286,15 @@ def checkDTS(val: ValidateXbrl, modelDocument: ModelDocument.ModelDocument, chec
         del val.valUsedPrefixes
         del val.schemaRoleTypes
         del val.schemaArcroleTypes
-    for pluginXbrlMethod in pluginClassMethods("Validate.XBRL.DTS.document"):
-        pluginXbrlMethod(val, modelDocument, isFilingDocument)
+
+        if _isExtensionTaxonomyDocument(val, modelDocument):
+            # While not captured in the hook name, the Validate.XBRL.DTS.document hook has been historically used by
+            # plugins (see EDGAR plugin) to validate extension taxonomies. This worked because Arelle didn't fully
+            # validate base taxonomy documents. Although Arelle now validates all documents, it retains this logic for
+            # the plugin hook to prevent running validation rules intended solely for extension taxonomy documents
+            # against base taxonomy documents.
+            for pluginXbrlMethod in pluginClassMethods("Validate.XBRL.DTS.document"):
+                pluginXbrlMethod(val, modelDocument, isFilingDocument)
 
     val.roleRefURIs = None
     val.arcroleRefURIs = None
@@ -1388,3 +1392,15 @@ def checkIxContinuationChain(val, elt, chain=None):
                 if contAt is not None:
                     chain.append(elt)
                 checkIxContinuationChain(val, contAt, chain)
+
+def _isExtensionTaxonomyDocument(val: ValidateXbrl, modelDocument: ModelDocument.ModelDocument) -> bool:
+    if modelDocument.targetNamespace in val.disclosureSystem.baseTaxonomyNamespaces:
+        # plugin defined base taxonomy namespace.
+        return False
+
+    if modelDocument.uri.startswith(val.modelXbrl.uriDir):
+        # document uri in same subtree as entry doocument.
+        return True
+
+    # check if document in entry submission's package.
+    return val.modelXbrl.fileSource.isOpen and modelDocument.filepath.startswith(val.modelXbrl.fileSource.baseurl)
