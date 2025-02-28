@@ -1,8 +1,10 @@
 import pytest
 import regex
 
-from arelle.FunctionFn import tokenize
+from arelle.FunctionFn import tokenize, normalize_space
 from arelle.formula import XPathContext
+
+from test_xmlutil import COLLAPSE_WHITESPACE_TESTS
 
 # See https://www.w3.org/TR/xpath-functions/#func-tokenize for test sources:
 TOKENIZE_TESTS = [
@@ -53,3 +55,33 @@ def test_tokenize(args, expected, raises):
     else:
         with pytest.raises(XPathContext.XPathException, match=regex.escape(raises)):
             result = tokenize(xc, p, contextItem, args)
+
+
+@pytest.mark.parametrize("test,expected", COLLAPSE_WHITESPACE_TESTS)
+def test_normalize_whitespace(test, expected):
+    xc = None
+    p = None
+    contextItem = None
+    args = (test,)
+    result = normalize_space(xc, p, contextItem, args)
+    assert result == expected
+
+
+XPATH_NORMALIZE_SPACE_EXAMPLES = {
+    (
+        (
+            " The    wealthy curled darlings                                         of    our    nation. ",
+        ),
+        "The wealthy curled darlings of our nation.",
+    ),
+    (((),), ""),
+}
+
+
+@pytest.mark.parametrize("args,expected", XPATH_NORMALIZE_SPACE_EXAMPLES)
+def test_normalize_whitespace_examples(args, expected):
+    xc = None
+    p = None
+    contextItem = None
+    result = normalize_space(xc, p, contextItem, args)
+    assert result == expected
