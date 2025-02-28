@@ -927,8 +927,10 @@ class XPathContext:
             x = qname(e, v)
         elif baseXsdType == "anyURI":
             x = anyURI(v.strip())
+        elif baseXsdType == "normalizedString":
+            # https://www.w3.org/TR/xmlschema-2/#normalizedString
+            x = XmlUtil.replaceWhitespace(v)
         elif baseXsdType in (
-            "normalizedString",
             "token",
             "language",
             "NMTOKEN",
@@ -938,7 +940,9 @@ class XPathContext:
             "IDREF",
             "ENTITY",
         ):
-            x = v.strip()
+            # https://www.w3.org/TR/xmlschema-2/#token
+            # That is token and its derived built-in types
+            x = XmlUtil.collapseWhitespace(v)
         elif baseXsdType == "XBRLI_DATEUNION":
             x = dateTime(v, type=DATEUNION)
         elif baseXsdType == "date":
