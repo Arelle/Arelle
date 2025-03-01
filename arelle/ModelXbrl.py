@@ -1012,8 +1012,8 @@ class ModelXbrl:
 
         for argCode in messageCodes if isinstance(messageCodes,tuple) else (messageCodes,):
             if (isinstance(argCode, ModelValue.QName) or
-                (_validationType and argCode.startswith(_validationType)) or
-                (not _exclusiveTypesPattern or _exclusiveTypesPattern.match(argCode) == None)):
+                (_validationType and argCode and argCode.startswith(_validationType)) or
+                (not _exclusiveTypesPattern or _exclusiveTypesPattern.match(argCode or "") == None)):
                 effectiveMessageCode = argCode
                 break
         return effectiveMessageCode
