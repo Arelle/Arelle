@@ -108,7 +108,7 @@ class ViewFactList(ViewWinTree.ViewTree):
                     self.treeView.set(node, "language", lang)
                     if self.footnotesRelationshipSet.fromModelObject(modelFact):
                         self.treeView.set(node, "footnoted", "*")
-                    self.treeView.set(node, "value", modelFact.effectiveValue.strip())
+                    self.treeView.set(node, "value", modelFact.effectiveValue)
                 self.id += 1;
                 n += 1
                 self.viewFacts(modelFact.modelTupleFacts, node, n)

@@ -424,8 +424,12 @@ class ModelFact(ModelObject):
                         return Locale.format(self.modelXbrl.locale, "{:.{}f}", (num,dec), True)
                 except ValueError:
                     return "(error)"
+            # non-numeric fact at this point
             if len(val) == 0: # zero length string for HMRC fixed fact
                 return "(reported)"
+            if self.xValid >= VALID:
+                # Prefer the PSVI value
+                return str(self.xValue)
             return val
         except Exception as ex:
             return str(ex)  # could be transform value of inline fact
@@ -576,7 +580,7 @@ class ModelFact(ModelObject):
                  ("decimals", self.decimals),
                  ("precision", self.precision),
                  ("xsi:nil", self.xsiNil),
-                 ("value", self.effectiveValue.strip()))
+                 ("value", self.effectiveValue))
                  if self.isItem else () ))
 
     def __repr__(self):
@@ -669,7 +673,10 @@ class ModelInlineValueObject:
                 self._ixValue = v
             else:
                 if self.localName == "nonNumeric":
-                    self._ixValue = v
+                    if self.xValid >= VALID:
+                        self._ixValue = str(self.xValue)
+                    else:
+                        self._ixValue = v
                 elif self.localName == "tuple":
                     self._ixValue = ""
                 elif self.localName == "fraction":
