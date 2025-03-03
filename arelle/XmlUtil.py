@@ -202,7 +202,10 @@ def innerText(
     try:
         text = "".join(text for text in innerTextNodes(element, ixExclude, ixEscape, ixContinuation, ixResolveUris))
         if strip:
-            return text.strip(" \t\r\n") # strip follows xml whitespace collapse, only blank, tab and newlines
+            # Defined as removing leading and trailing [ \t\r\n], the same
+            # characters as xs:whiteSpace operates on. Note, this is a different
+            # normlization to any of whiteSpace = preserve/replace/collapse
+            return text.strip(" \t\r\n")
         return text
     except (AttributeError, TypeError):
         return ""
