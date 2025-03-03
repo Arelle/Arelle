@@ -39,11 +39,12 @@ REPLACE_WHITESPACE_TESTS = [
     ("\n", " "),
     ("\r", " "),
     ("\t", " "),
+    ("\r\t\n", " " * 3),
+    ("\t\t \n\n \r\r", " " * 8),
+    ("\r \n \t", " " * 5),
     # literal or entity \v and \f are illegal in XML but we shouldn't be touching them
     ("\r\v\t", " \v "),
     ("\r\f\t", " \f "),
-    ("\r\t\n", "   "),
-    ("\t\t \n\n \r\r", " " * 8),
     # Python's whitespace (\s, str.isspace) definition includes em space (U+2003)
     # but XSD replace does not so we shouldn't be touching it
     ("1\u2003", "1\u2003"),
@@ -64,20 +65,20 @@ COLLAPSE_WHITESPACE_TESTS = [
     ("\t", ""),
     ("\r\t\n", ""),
     ("\t\t \n\n \r\r", ""),
-    (" " * 10, ""),
-    (" " * 10 + "1", "1"),
-    (" " * 10 + "1  1", "1 1"),
-    (" " * 10 + "1  1" + " " * 10, "1 1"),
-    ("\r \n \t", ""),
     ("\r \n \t", ""),
     # literal or entity \v and \f are illegal in XML but we shouldn't be touching them
     ("\r\v\t", "\v"),
     ("\r\f\t", "\f"),
-    (" x  xm   xml    xmln     ", "x xm xml xmln"),
-    ("time: \n\tround\n\ttuit  \r\n", "time: round tuit"),
     # Python's whitespace (\s, str.strip) definition includes em space (U+2003)
     # but XSD collapse does not so we shouldn't be touching it
     (" \u2003 \u2003  ", "\u2003 \u2003"),
+    (" " * 10, ""),
+    (" " * 10 + "1", "1"),
+    (" " * 10 + "1  1", "1 1"),
+    (" " * 10 + "1  1" + " " * 10, "1 1"),
+    ("  \r\n  the \tspace  \t\nis  \n  right  \r\n\r\n", "the space is right"),
+    (" x  xm   xml    xmln     ", "x xm xml xmln"),
+    ("time: \n\tround\n\ttuit  \r\n", "time: round tuit"),
 ]
 
 
