@@ -202,9 +202,9 @@ def innerText(
     try:
         text = "".join(text for text in innerTextNodes(element, ixExclude, ixEscape, ixContinuation, ixResolveUris))
         if strip:
-            # Defined as removing leading and trailing [ \t\r\n], the same
-            # characters as xs:whiteSpace operates on. Note, this is a different
-            # normlization to any of whiteSpace = preserve/replace/collapse
+            # For legacy reasons, strip=True removes leading/trailing
+            # whitespace even though most callers probably want
+            # collapseWhitespace semantics instead.
             return text.strip(" \t\r\n")
         return text
     except (AttributeError, TypeError):
