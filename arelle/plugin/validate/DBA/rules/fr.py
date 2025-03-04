@@ -16,8 +16,8 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from arelle.XmlValidateConst import VALID
-from . import errorOnDateFactComparison, errorOnRequiredFact, getFactsWithDimension, getFactsGroupedByContextId, errorOnRequiredPositiveFact, getFactsWithoutDimension, groupFactsByContextHash, \
-    minimumRequiredFactsFound
+from . import errorOnDateFactComparison, getFactsWithDimension, getFactsGroupedByContextId, getFactsWithoutDimension, groupFactsByContextHash, \
+    minimumRequiredFactsFound, consolidatedDimensionExists
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 from ..ValidationPluginExtension import DANISH_CURRENCY_ID, ROUNDING_MARGIN, PERSONNEL_EXPENSE_THRESHOLD, REQUIRED_DISCLOSURE_OF_EQUITY_FACTS, REQUIRED_STATEMENT_OF_CHANGES_IN_EQUITY_FACTS
 from ..DisclosureSystems import MULTI_TARGET_DISCLOSURE_SYSTEMS, STAND_ALONE_DISCLOSURE_SYSTEMS
@@ -259,7 +259,7 @@ def rule_fr34(
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=STAND_ALONE_DISCLOSURE_SYSTEMS,
- )
+)
 def rule_fr35(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
@@ -271,18 +271,32 @@ def rule_fr35(
     contain a section on the accounting practices used.
     """
     modelXbrl = val.modelXbrl
+    noDimensionFacts = set()
+    consolidatedDimensionFacts = set()
     for concept_qn in pluginData.accountingPolicyConceptQns:
         facts = modelXbrl.factsByQname.get(concept_qn, set())
         for fact in facts:
             if fact.xValid >= VALID and not fact.isNil:
-                return
-    yield Validation.error(
-        codes="DBA.FR35",
-        msg=_("The annual report does not contain information on applied accounting practices. Please tag one of the following elements: {}").format(
-            [qn.localName for qn in pluginData.accountingPolicyConceptQns]
-        ),
-        modelObject=val.modelXbrl.modelDocument
-    )
+                if not fact.context.scenDimValues:
+                    noDimensionFacts.add(fact)
+                if pluginData.consolidatedSoloDimensionQn in fact.context.scenDimValues:
+                    consolidatedDimensionFacts.add(fact)
+    if len(noDimensionFacts) == 0:
+        yield Validation.error(
+            codes="DBA.FR35.noDimension",
+            msg=_("The annual report does not contain information on applied accounting practices. Please tag one of the following elements without a dimension: {}").format(
+                [qn.localName for qn in pluginData.accountingPolicyConceptQns]
+            ),
+            modelObject=val.modelXbrl.modelDocument
+        )
+    if consolidatedDimensionExists(modelXbrl, pluginData.consolidatedSoloDimensionQn) and len(consolidatedDimensionFacts) == 0:
+        yield Validation.error(
+            codes="DBA.FR35.consolidatedSoloDimension",
+            msg=_("The annual report does not contain information on applied accounting practices. Please tag one of the following elements with the ConsolidatedSoloDimension: {}").format(
+                [qn.localName for qn in pluginData.accountingPolicyConceptQns]
+            ),
+            modelObject=val.modelXbrl.modelDocument
+        )
 
 
 @validation(
@@ -802,26 +816,39 @@ def rule_fr59(
     arr:DescriptionOfQualificationsOfAuditedFinancialStatements must be filled in.
     """
     modelXbrl = val.modelXbrl
-    descriptonFacts = modelXbrl.factsByQname.get(pluginData.descriptionOfQualificationsOfAuditedFinancialStatementsQn)
-    indicatorFacts = []
-    if descriptonFacts is not None:
-        return
-    auditorFacts = modelXbrl.factsByQname.get(pluginData.typeOfAuditorAssistanceQn)
-    if auditorFacts is not None:
-        for aFact in auditorFacts:
-            if aFact.xValid >= VALID:
-                if aFact.xValue in [
-                    pluginData.auditedFinancialStatementsDanish,
-                    pluginData.auditedFinancialStatementsEnglish,
-                ]:
-                    indicatorFacts.append(aFact)
-        if len(indicatorFacts) > 0:
-            yield Validation.error(
-                codes='DBA.FR59',
-                msg=_("DescriptionOfQualificationsOfAuditedFinancialStatements must be tagged when {} is tagged with the value of {}").format(
-                    pluginData.typeOfAuditorAssistanceQn.localName,
-                    indicatorFacts[0].xValue),
-                modelObject=indicatorFacts[0])
+    noDimensionDescriptionFacts = []
+    consolidatedDescriptionFacts = []
+    descriptionFacts = modelXbrl.factsByQname.get(pluginData.descriptionOfQualificationsOfAuditedFinancialStatementsQn, set())
+    for dFact in descriptionFacts:
+        if not dFact.context.scenDimValues:
+            noDimensionDescriptionFacts.append(dFact)
+        if pluginData.consolidatedSoloDimensionQn in dFact.context.scenDimValues:
+            consolidatedDescriptionFacts.append(dFact)
+    noDimensionIndicatorFacts = []
+    consolidatedIndicatorFacts = []
+    auditorFacts = modelXbrl.factsByQname.get(pluginData.typeOfAuditorAssistanceQn, set())
+    for aFact in auditorFacts:
+        if aFact.xValid >= VALID and aFact.xValue in [pluginData.auditedFinancialStatementsDanish, pluginData.auditedFinancialStatementsEnglish]:
+            if not aFact.context.scenDimValues:
+                noDimensionIndicatorFacts.append(aFact)
+            if pluginData.consolidatedSoloDimensionQn in aFact.context.scenDimValues:
+                consolidatedIndicatorFacts.append(aFact)
+    if len(noDimensionIndicatorFacts) > 0 and len(noDimensionDescriptionFacts) == 0:
+        yield Validation.error(
+            codes='DBA.FR59.noDimension',
+            msg=_("DescriptionOfQualificationsOfAuditedFinancialStatement must be tagged without dimensions when {} is tagged with the value of {}").format(
+                pluginData.typeOfAuditorAssistanceQn.localName,
+                noDimensionIndicatorFacts[0].xValue),
+            modelObject=noDimensionIndicatorFacts[0])
+    if (consolidatedDimensionExists(modelXbrl, pluginData.consolidatedSoloDimensionQn) and
+            len(consolidatedIndicatorFacts) > 0 and
+            len(consolidatedDescriptionFacts) == 0):
+        yield Validation.error(
+            codes='DBA.FR59.consolidatedSoloDimension',
+            msg=_("DescriptionOfQualificationsOfAuditedFinancialStatement must be tagged with ConsolidatedSoloDimension when {} is tagged with the value of {}").format(
+                pluginData.typeOfAuditorAssistanceQn.localName,
+                consolidatedIndicatorFacts[0].xValue),
+            modelObject=consolidatedIndicatorFacts[0])
 
 
 @validation(

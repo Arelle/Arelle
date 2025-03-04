@@ -308,3 +308,15 @@ def minimumRequiredFactsFound(
         if count >= requiredCount:
             return True
     return False
+
+
+def consolidatedDimensionExists(modelXbrl: ModelXbrl, consolidatedSoloQn: QName) -> bool:
+    """
+    Check to see if the ConsolidatedSoloDimension is used in the filing
+
+    :return: Boolean
+    """
+    for context in modelXbrl.contexts.values():
+        if consolidatedSoloQn in context.qnameDims:
+            return True
+    return False
