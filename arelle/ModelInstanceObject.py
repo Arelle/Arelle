@@ -42,6 +42,7 @@ from arelle.Aspect import Aspect
 from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals, roundValue, rangeValue, ValidateCalcsMode
 from arelle.XmlValidateConst import UNVALIDATED, INVALID, VALID
 from arelle.XmlValidate import validate as xmlValidate
+from arelle.XmlUtil import collapseWhitespace
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from math import isnan, isinf
 from arelle.ModelObject import ModelObject
@@ -634,13 +635,21 @@ class ModelInlineValueObject:
     @property
     def rawValue(self):
         ixEscape = self.get("escape") in ("true", "1")
-        return XmlUtil.innerText(
+        raw = XmlUtil.innerText(
             self,
             ixExclude="tuple" if self.elementQname == XbrlConst.qnIXbrl11Tuple else "html",
             ixEscape=ixEscape,
             ixContinuation=(self.elementQname == XbrlConst.qnIXbrl11NonNumeric),
             ixResolveUris=ixEscape,
-            strip=(self.format is not None))  # transforms are whitespace-collapse, otherwise it is preserved.
+            strip = False)
+        if self.format is not None:
+            # Most transforms are whitespace-collapse, so do that now.
+            #
+            # TODO: this collapsing should be moved to the individual
+            # transformation functions in order to support non-collapsing
+            # transformations
+            raw = collapseWhitespace(raw)
+        return raw
 
     @property
     def value(self):
