@@ -116,7 +116,7 @@ class ViewFacts(ViewFile.View):
                         elif col == "Lang":
                             cols.append( lang )
                         elif col == "Value":
-                            cols.append( "(nil)" if modelFact.xsiNil == "true" else modelFact.effectiveValue.strip() )
+                            cols.append( "(nil)" if modelFact.xsiNil == "true" else modelFact.effectiveValue )
                         elif col == "EntityScheme":
                             cols.append( modelFact.context.entityIdentifier[0] )
                         elif col == "EntityIdentifier":

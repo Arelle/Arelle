@@ -53,8 +53,8 @@ from arelle.PluginManager import pluginClassMethods
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.PythonUtil import flattenSequence
 from arelle.ValidateXbrlCalcs import roundValue
-from arelle.XmlValidate import collapseWhitespacePattern, UNVALIDATED, VALID
-from arelle.XmlUtil import elementChildSequence, xmlstring, addQnameValue, addChild
+from arelle.XmlValidate import UNVALIDATED, VALID
+from arelle.XmlUtil import elementChildSequence, xmlstring, addQnameValue, addChild, collapseWhitespace
 from arelle import XbrlConst, ValidateXbrlDimensions
 from arelle.UrlUtil import authority, ensureUrl
 from .SqlDb import XPDBException, isSqlConnection, SqlDbConnection
@@ -1092,7 +1092,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                   fact.decimals,
                                   roundValue(fact.value, fact.precision, fact.decimals) if fact.isNumeric and not fact.isNil else None,
                                   fact.xmlLang if not fact.isNumeric and not fact.isNil else None,
-                                  collapseWhitespacePattern.sub(' ', fact.value.strip()) if fact.value is not None else None,
+                                  collapseWhitespace(value) if fact.value is not None else None,
                                   fact.value,
                                   ))
             table = self.getTable('fact', 'fact_pk',
@@ -1149,7 +1149,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                      None if isinstance(toObj, ModelFact) else toObj.role,
                                      self.factId[(self.documentIds[toObj.modelDocument], elementChildSequence(toObj))] if isinstance(toObj, ModelFact) else None,
                                      None if isinstance(toObj, ModelFact) else toObj.xmlLang,
-                                     None if isinstance(toObj, ModelFact) else collapseWhitespacePattern.sub(' ', xmlstring(toObj, stripXmlns=True, contentsOnly=True, includeText=True)),
+                                     None if isinstance(toObj, ModelFact) else collapseWhitespace(xmlstring(toObj, stripXmlns=True, contentsOnly=True, includeText=True)),
                                      None if isinstance(toObj, ModelFact) else xmlstring(toObj, stripXmlns=True, contentsOnly=True, includeText=True))
                                     for fact in self.modelXbrl.factsInInstance
                                     for footnoteRel in footnotesRelationshipSet.fromModelObject(fact)

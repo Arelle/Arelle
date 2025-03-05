@@ -193,10 +193,14 @@ def string_length(xc, p, contextItem, args):
     if len(args) > 1: raise XPathContext.FunctionNumArgs()
     return len( stringArg(xc, args, 0, "xs:string", missingArgFallback=contextItem) )
 
-nonSpacePattern = re.compile(r"\S+")
+
 def normalize_space(xc, p, contextItem, args):
+    # https://www.w3.org/TR/xpath-functions/#func-normalize-space
+    # Defined to be the same as whitespace = collapse in XML schema
+    # So we use the same implementation
     if len(args) > 1: raise XPathContext.FunctionNumArgs()
-    return ' '.join( nonSpacePattern.findall( stringArg(xc, args, 0, "xs:string", missingArgFallback=contextItem) ) )
+    return XmlUtil.collapseWhitespace(stringArg(xc, args, 0, "xs:string", missingArgFallback=contextItem))
+
 
 def normalize_unicode(xc, p, contextItem, args):
     raise fnFunctionNotAvailable()
