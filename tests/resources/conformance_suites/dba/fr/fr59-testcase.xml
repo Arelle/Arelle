@@ -17,7 +17,7 @@
             <instance readMeFirst="true">fr59-invalid.xhtml</instance>
         </data>
         <result>
-            <error>DBA.FR59</error>
+            <error>DBA.FR59.noDimension</error>
         </result>
     </variation>
 </testcase>

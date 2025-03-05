@@ -17,7 +17,7 @@
             <instance readMeFirst="true">fr35-invalid.xhtml</instance>
         </data>
         <result>
-            <error>DBA.FR35</error>
+            <error>DBA.FR35.noDimension</error>
         </result>
     </variation>
 </testcase>
