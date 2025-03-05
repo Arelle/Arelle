@@ -40,7 +40,7 @@ headerOmittedRollupAspects  = {
     Aspect.UNIT_MEASURES, Aspect.MULTIPLY_BY, Aspect.DIVIDE_BY}
 
 
-def viewRenderedGrid(modelXbrl, outfile, lang=None, viewTblELR=None, sourceView=None, diffToFile=False, cssExtras=""):
+def viewRenderedGrid(modelXbrl, outfile, lang=None, viewTblELR=None, sourceView=None, diffToFile=False, cssExtras="", table=None):
     modelXbrl.modelManager.showStatus(_("saving rendered tagle"))
     view = ViewRenderedGrid(modelXbrl, outfile, lang, cssExtras)
 
@@ -50,7 +50,7 @@ def viewRenderedGrid(modelXbrl, outfile, lang=None, viewTblELR=None, sourceView=
         else:
             lytMdlTblMdl = layoutTable(sourceView)
     else:
-        layoutTable(view)
+        layoutTable(view, table)
         lytMdlTblMdl = view.lytMdlTblMdl
     if view.tblElt is not None: # may be None if there is no table
         view.view(lytMdlTblMdl)
