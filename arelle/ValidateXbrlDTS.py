@@ -975,7 +975,7 @@ def checkElements(val, modelDocument, parent):
                                 modelObject=(elt,e2))
                     else:
                         c = XmlUtil.children(elt, '*', '*')
-                        if not c and elt.text is None:
+                        if not c and XmlUtil.innerText(elt, strip = False) == '':
                             val.modelXbrl.error(ixMsgCode("nonFraction", elt, sect="constraint"),
                                 _("Inline XBRL ix:nonFraction The text node child, if present, MUST be a non-empty string."),
                                 modelObject=elt)
