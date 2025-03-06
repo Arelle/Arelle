@@ -701,7 +701,7 @@ class ModelInlineValueObject:
                         num = Decimal(v)
                     except (ValueError, InvalidOperation):
                         self.setInvalid()
-                        raise ValueError("Invalid value for {} number: {}".format(self.localName, v))
+                        raise ValueError("Invalid value for {} number: '{}'".format(self.localName, v))
                     try:
                         scale = self.scale
                         if scale is not None:
@@ -717,7 +717,7 @@ class ModelInlineValueObject:
                             self._ixValue = "{:f}".format(num)
                     except (ValueError, InvalidOperation):
                         self.setInvalid()
-                        raise ValueError("Invalid value for {} scale {} for number {}".format(self.localName, scale, v))
+                        raise ValueError("Invalid value for {} scale '{}' for number '{}'".format(self.localName, scale, v))
             return self._ixValue
 
     @property
