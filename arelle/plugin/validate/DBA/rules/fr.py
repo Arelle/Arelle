@@ -273,15 +273,16 @@ def rule_fr35(
     modelXbrl = val.modelXbrl
     noDimensionFacts = set()
     consolidatedDimensionFacts = set()
+    checkConsolidated = consolidatedDimensionExists(modelXbrl, pluginData.consolidatedSoloDimensionQn)
     for concept_qn in pluginData.accountingPolicyConceptQns:
         facts = modelXbrl.factsByQname.get(concept_qn, set())
         for fact in facts:
             if fact.xValid >= VALID and not fact.isNil:
                 if not fact.context.scenDimValues:
                     noDimensionFacts.add(fact)
-                if pluginData.consolidatedSoloDimensionQn in fact.context.scenDimValues:
+                if pluginData.consolidatedSoloDimensionQn in [dim.qname for dim in fact.context.scenDimValues.keys()]:
                     consolidatedDimensionFacts.add(fact)
-    if len(noDimensionFacts) == 0:
+    if not checkConsolidated and len(noDimensionFacts) == 0:
         yield Validation.error(
             codes="DBA.FR35.noDimension",
             msg=_("The annual report does not contain information on applied accounting practices. Please tag one of the following elements without a dimension: {}").format(
@@ -289,7 +290,7 @@ def rule_fr35(
             ),
             modelObject=val.modelXbrl.modelDocument
         )
-    if consolidatedDimensionExists(modelXbrl, pluginData.consolidatedSoloDimensionQn) and len(consolidatedDimensionFacts) == 0:
+    if checkConsolidated and len(consolidatedDimensionFacts) == 0:
         yield Validation.error(
             codes="DBA.FR35.consolidatedSoloDimension",
             msg=_("The annual report does not contain information on applied accounting practices. Please tag one of the following elements with the ConsolidatedSoloDimension: {}").format(
@@ -824,6 +825,7 @@ def rule_fr59(
             noDimensionDescriptionFacts.append(dFact)
         if pluginData.consolidatedSoloDimensionQn in dFact.context.scenDimValues:
             consolidatedDescriptionFacts.append(dFact)
+    checkConsolidated = consolidatedDimensionExists(modelXbrl, pluginData.consolidatedSoloDimensionQn)
     noDimensionIndicatorFacts = []
     consolidatedIndicatorFacts = []
     auditorFacts = modelXbrl.factsByQname.get(pluginData.typeOfAuditorAssistanceQn, set())
@@ -831,18 +833,16 @@ def rule_fr59(
         if aFact.xValid >= VALID and aFact.xValue in [pluginData.auditedFinancialStatementsDanish, pluginData.auditedFinancialStatementsEnglish]:
             if not aFact.context.scenDimValues:
                 noDimensionIndicatorFacts.append(aFact)
-            if pluginData.consolidatedSoloDimensionQn in aFact.context.scenDimValues:
+            if pluginData.consolidatedSoloDimensionQn in [dim.qname for dim in aFact.context.scenDimValues.keys()]:
                 consolidatedIndicatorFacts.append(aFact)
-    if len(noDimensionIndicatorFacts) > 0 and len(noDimensionDescriptionFacts) == 0:
+    if not checkConsolidated and len(noDimensionIndicatorFacts) > 0 and len(noDimensionDescriptionFacts) == 0:
         yield Validation.error(
             codes='DBA.FR59.noDimension',
             msg=_("DescriptionOfQualificationsOfAuditedFinancialStatement must be tagged without dimensions when {} is tagged with the value of {}").format(
                 pluginData.typeOfAuditorAssistanceQn.localName,
                 noDimensionIndicatorFacts[0].xValue),
             modelObject=noDimensionIndicatorFacts[0])
-    if (consolidatedDimensionExists(modelXbrl, pluginData.consolidatedSoloDimensionQn) and
-            len(consolidatedIndicatorFacts) > 0 and
-            len(consolidatedDescriptionFacts) == 0):
+    if checkConsolidated and len(consolidatedIndicatorFacts) > 0 and len(consolidatedDescriptionFacts) == 0:
         yield Validation.error(
             codes='DBA.FR59.consolidatedSoloDimension',
             msg=_("DescriptionOfQualificationsOfAuditedFinancialStatement must be tagged with ConsolidatedSoloDimension when {} is tagged with the value of {}").format(
