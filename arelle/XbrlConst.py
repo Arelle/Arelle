@@ -772,6 +772,7 @@ standardLinkbaseRefRoles = {
     "http://www.xbrl.org/2003/role/calculationLinkbaseRef",
     "http://www.xbrl.org/2003/role/definitionLinkbaseRef",
     "http://www.xbrl.org/2003/role/labelLinkbaseRef",
+    "http://www.xbrl.org/2003/role/link",
     "http://www.xbrl.org/2003/role/presentationLinkbaseRef",
     "http://www.xbrl.org/2003/role/referenceLinkbaseRef",
 }
@@ -780,7 +781,7 @@ standardRoles = (
     standardLabelRoles
     | standardReferenceRoles
     | standardLinkbaseRefRoles
-    | {"http://www.xbrl.org/2003/role/link", "http://www.xbrl.org/2003/role/footnote"}
+    | {"http://www.xbrl.org/2003/role/footnote"}
 )
 
 
