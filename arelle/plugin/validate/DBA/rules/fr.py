@@ -823,7 +823,7 @@ def rule_fr59(
     for dFact in descriptionFacts:
         if not dFact.context.scenDimValues:
             noDimensionDescriptionFacts.append(dFact)
-        if pluginData.consolidatedSoloDimensionQn in dFact.context.scenDimValues:
+        if pluginData.consolidatedSoloDimensionQn in [dim.qname for dim in dFact.context.scenDimValues.keys()]:
             consolidatedDescriptionFacts.append(dFact)
     checkConsolidated = consolidatedDimensionExists(modelXbrl, pluginData.consolidatedSoloDimensionQn)
     noDimensionIndicatorFacts = []
