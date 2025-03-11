@@ -68,6 +68,7 @@ class ModelManager:
         self.customTransforms: dict[QName, Callable[[str], str]] | None = None
         self.isLocaleSet = False
         self.validateAllFilesAsReportPackages = False
+        self.validateBaseTaxonomyDocuments = True
         self.validateDuplicateFacts = ValidateDuplicateFacts.DuplicateType.NONE
         self.validateXmlOim = False
         self.setLocale()

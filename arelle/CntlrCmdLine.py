@@ -137,6 +137,11 @@ def parseArgs(args):
                       choices=[a.value for a in ValidateDuplicateFacts.DUPLICATE_TYPE_ARG_MAP],
                       dest="validateDuplicateFacts",
                       help=_("Select which types of duplicates should trigger warnings."))
+    parser.add_option("--skipBaseTaxonomiesValidation", "--skipbasetaxonomiesvalidation",
+                      action="store_false",
+                      dest="validateBaseTaxonomyDocuments",
+                      default=True,
+                      help=_("Skip validation of base taxonomies. Can improve performance, but will not validate base taxonomy documents."))
     parser.add_option("--saveOIMToXMLReport", "--saveoimtoxmlreport", "--saveOIMinstance", "--saveoiminstance",
                       action="store",
                       dest="saveOIMToXMLReport",
@@ -844,6 +849,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
         else:
             self.modelManager.disclosureSystem.select(None) # just load ordinary mappings
             self.modelManager.validateDisclosureSystem = False
+        self.modelManager.validateBaseTaxonomyDocuments = bool(options.validateBaseTaxonomyDocuments)
         self.modelManager.validateXmlOim = bool(options.validateXmlOim)
         if options.validateDuplicateFacts:
             duplicateTypeArg = ValidateDuplicateFacts.DuplicateTypeArg(options.validateDuplicateFacts)

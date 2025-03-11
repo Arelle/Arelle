@@ -263,31 +263,33 @@ def checkDTS(val: ValidateXbrl, modelDocument: ModelDocument.ModelDocument, chec
     isFilingDocument = False
 
     if modelDocument.xmlDocument is not None:
-        isFilingDocument = True
-        val.valUsedPrefixes = set()
-        val.schemaRoleTypes = {}
-        val.schemaArcroleTypes = {}
-        val.referencedNamespaces = set()
+        isExtensionTaxonomyDoc = _isExtensionTaxonomyDocument(val, modelDocument)
+        if val.modelXbrl.modelManager.validateBaseTaxonomyDocuments or isExtensionTaxonomyDoc:
+            isFilingDocument = True
+            val.valUsedPrefixes = set()
+            val.schemaRoleTypes = {}
+            val.schemaArcroleTypes = {}
+            val.referencedNamespaces = set()
 
-        val.containsRelationship = False
+            val.containsRelationship = False
 
-        checkElements(val, modelDocument, modelDocument.xmlDocument)
+            checkElements(val, modelDocument, modelDocument.xmlDocument)
 
-        if (modelDocument.type == ModelDocument.Type.INLINEXBRL and
-            val.validateGFM and
-            (val.documentTypeEncoding.lower() != 'utf-8' or val.metaContentTypeEncoding.lower() != 'utf-8')):
-            val.modelXbrl.error("GFM.1.10.4",
-                    _("XML declaration encoding %(encoding)s and meta content type encoding %(metaContentTypeEncoding)s must both be utf-8"),
-                    modelXbrl=modelDocument, encoding=val.documentTypeEncoding,
-                    metaContentTypeEncoding=val.metaContentTypeEncoding)
-        if val.validateSBRNL:
-            for pluginXbrlMethod in pluginClassMethods("Validate.SBRNL.DTS.document"):
-                pluginXbrlMethod(val, modelDocument)
-        del val.valUsedPrefixes
-        del val.schemaRoleTypes
-        del val.schemaArcroleTypes
+            if (modelDocument.type == ModelDocument.Type.INLINEXBRL and
+                val.validateGFM and
+                (val.documentTypeEncoding.lower() != 'utf-8' or val.metaContentTypeEncoding.lower() != 'utf-8')):
+                val.modelXbrl.error("GFM.1.10.4",
+                        _("XML declaration encoding %(encoding)s and meta content type encoding %(metaContentTypeEncoding)s must both be utf-8"),
+                        modelXbrl=modelDocument, encoding=val.documentTypeEncoding,
+                        metaContentTypeEncoding=val.metaContentTypeEncoding)
+            if val.validateSBRNL:
+                for pluginXbrlMethod in pluginClassMethods("Validate.SBRNL.DTS.document"):
+                    pluginXbrlMethod(val, modelDocument)
+            del val.valUsedPrefixes
+            del val.schemaRoleTypes
+            del val.schemaArcroleTypes
 
-        if _isExtensionTaxonomyDocument(val, modelDocument):
+        if isExtensionTaxonomyDoc:
             # While not captured in the hook name, the Validate.XBRL.DTS.document hook has been historically used by
             # plugins (see EDGAR plugin) to validate extension taxonomies. This worked because Arelle didn't fully
             # validate base taxonomy documents. Although Arelle now validates all documents, it retains this logic for

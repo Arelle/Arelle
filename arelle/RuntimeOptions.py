@@ -140,6 +140,7 @@ class RuntimeOptions:
     utrUrl: Optional[str] = None
     utrValidate: Optional[bool] = None
     validate: Optional[bool] = None
+    validateBaseTaxonomyDocuments: Optional[bool] = None
     validateDuplicateFacts: Optional[str] = None
     validateXmlOim: Optional[bool] = None
     validateEFM: Optional[bool] = None
