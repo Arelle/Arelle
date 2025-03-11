@@ -18,6 +18,7 @@ config = ConformanceSuiteConfig(
     ]],
     args=[
         '--disclosureSystem', 'efm-pragmatic',
+        '--skipBaseTaxonomiesValidation',
     ],
     assets=[
         ConformanceSuiteAssetConfig.conformance_suite(
