@@ -1182,7 +1182,8 @@ def rule_fr82(
     """
     DBA.FR82: This control blocks reporting in XBRL and thus only allows reporting with inlineXBRL for DK ESEF.
     """
-    if val.modelXbrl.modelDocument is not None and val.modelXbrl.modelDocument.type != ModelDocument.Type.INLINEXBRL:
+    if (val.modelXbrl.modelDocument is not None and
+            val.modelXbrl.modelDocument.type not in [ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET]):
         yield Validation.error(
             codes="DBA.FR82",
             msg=_("The digital annual report must be reported in inlineXBRL for DK ESEF."),
@@ -1203,7 +1204,8 @@ def rule_fr83(
     """
     DBA.FR83: This control blocks reporting in XBRL and thus only allows reporting with inlineXBRL for DK GAAP.
     """
-    if val.modelXbrl.modelDocument is not None and val.modelXbrl.modelDocument.type != ModelDocument.Type.INLINEXBRL:
+    if (val.modelXbrl.modelDocument is not None and
+            val.modelXbrl.modelDocument.type not in [ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET]):
         yield Validation.error(
             codes="DBA.FR83",
             msg=_("The digital annual report must be reported in inlineXBRL for DK GAAP."),
