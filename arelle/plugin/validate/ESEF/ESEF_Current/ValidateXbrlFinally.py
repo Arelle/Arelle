@@ -851,7 +851,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
 
 
         # unused elements in linkbases
-        unreportedLbElts = set()
+        unreportedLbLocs = set()
         for arcroles, error, checkRoots, lbType in (
                     ((parentChild,), "elements{}UsedForTagging{}AppliedInPresentationLinkbase", True, "presentation"),
                     ((summationItems,), "elements{}UsedForTagging{}AppliedInCalculationLinkbase", False, "calculation"),
@@ -866,15 +866,15 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     to = rel.toModelObject
                     if arcrole in (parentChild, summationItems):
                         if fr is not None and not fr.isAbstract and fr not in conceptsUsed and isExtension(val, rel):
-                            unreportedLbElts.add(fr)
+                            unreportedLbLocs.add(rel.fromLocator)
                         if to is not None and not to.isAbstract and to not in conceptsUsed and isExtension(val, rel):
-                            unreportedLbElts.add(to)
+                            unreportedLbLocs.add(rel.toLocator)
                     elif arcrole in (hc_all, domainMember, dimensionDomain):
                         # all primary items
                         if fr is not None and not fr.isAbstract and rel.isUsable and fr not in conceptsUsed and isExtension(val, rel) and not fr.type.isDomainItemType:
-                            unreportedLbElts.add(to)
+                            unreportedLbLocs.add(rel.toLocator)
                         if to is not None and not to.isAbstract and rel.isUsable and to not in conceptsUsed and isExtension(val, rel) and not to.type.isDomainItemType:
-                            unreportedLbElts.add(to)
+                            unreportedLbLocs.add(rel.toLocator)
                     reportedEltsNotInLb.discard(fr)
                     reportedEltsNotInLb.discard(to)
 
@@ -889,11 +889,11 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
             if reportedEltsNotInLb and lbType != "calculation":
                 modelXbrl.warning(f"ESEF.3.4.6.UsableConceptsNotIncludedIn{lbType.title()}Link",
                     _("All concepts used by tagged facts SHOULD be in extension taxonomy %(linkbaseType)s relationships: %(elements)s."),
-                    modelObject=reportedEltsNotInLb, elements=", ".join(sorted((str(c.qname) for c in reportedEltsNotInLb))), linkbaseType=lbType)
-        if unreportedLbElts:
+                    modelObject=reportedEltsNotInLb, elements=", ".join(sorted(str(c.qname) for c in reportedEltsNotInLb)), linkbaseType=lbType)
+        if unreportedLbLocs:
             modelXbrl.warning("ESEF.3.4.6.UsableConceptsNotAppliedByTaggedFacts",
                 _("All usable concepts in extension taxonomy relationships SHOULD be applied by tagged facts: %(elements)s."),
-                modelObject=unreportedLbElts, elements=", ".join(sorted((str(c.qname) for c in unreportedLbElts))))
+                modelObject=unreportedLbLocs, elements=", ".join(sorted(str(loc.dereference().qname) for loc in unreportedLbLocs)))
 
         anchoringToAbstractConcept = set()
         for rel in modelXbrl.relationshipSet(widerNarrower).modelRelationships:
