@@ -20,6 +20,7 @@ from arelle.packages.PackageType import PackageType
 from arelle.typing import TypeGetText
 from arelle.UrlUtil import isAbsolute, isHttpUrl
 from arelle.XmlValidate import lxmlResolvingParser
+pluginClassMethods = None
 
 if TYPE_CHECKING:
     from arelle.Cntlr import Cntlr
@@ -343,6 +344,7 @@ _cntlr = None
 
 def init(cntlr: Cntlr, loadPackagesConfig: bool = True) -> None:
     global packagesJsonFile, packagesConfig, packagesMappings, _cntlr
+
     if loadPackagesConfig:
         try:
             packagesJsonFile = cntlr.userAppDir + os.sep + "taxonomyPackages.json"
@@ -624,6 +626,11 @@ def rebuildRemappings(cntlr):
 
 
 def isMappedUrl(url):
+    global pluginClassMethods
+    if pluginClassMethods is None:
+        from arelle.PluginManager import pluginClassMethods
+    for pluginMethod in pluginClassMethods("TaxonomyPackage.AutoLoad"):
+        pluginMethod(_cntlr, packagesConfig, url)
     return (packagesConfig is not None and url is not None and
             any(url.startswith(mapFrom) and not url.startswith(mapTo) # prevent recursion in mapping for url hosted Packages
                 for mapFrom, mapTo in packagesConfig.get('remappings', {}).items()))
