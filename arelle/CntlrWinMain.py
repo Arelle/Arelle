@@ -25,7 +25,6 @@ try:
     import syslog
 except ImportError:
     syslog = None
-import tkinter.tix
 import tkinter.filedialog
 import tkinter.messagebox, traceback
 import tkinter.simpledialog
@@ -306,7 +305,6 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.statusbarTimerId  = self.statusbar.after(5000, self.uiClearStatusTimerEvent)
         self.statusbar.grid(row=2, column=0, columnspan=2, sticky=EW)
 
-        #self.balloon = tkinter.tix.Balloon(windowFrame, statusbar=self.statusbar)
         self.toolbar_images = []
         toolbar = Frame(windowFrame)
         menubarColumn = 0
