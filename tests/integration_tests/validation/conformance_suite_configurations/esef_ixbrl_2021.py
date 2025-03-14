@@ -8,6 +8,7 @@ from tests.integration_tests.validation.conformance_suite_config import (
 config = ConformanceSuiteConfig(
     args=[
         '--disclosureSystem', 'esef-2021',
+        "--skipBaseTaxonomiesValidation",
     ],
     assets=[
         ConformanceSuiteAssetConfig.conformance_suite(

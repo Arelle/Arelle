@@ -5,6 +5,7 @@ from tests.integration_tests.validation.conformance_suite_config import Conforma
 config = ConformanceSuiteConfig(
     args=[
         '--disclosureSystem', 'efm-pragmatic',
+        "--skipBaseTaxonomiesValidation",
     ],
     assets=[
         ConformanceSuiteAssetConfig.conformance_suite(

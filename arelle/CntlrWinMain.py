@@ -169,6 +169,11 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.validateUtr.trace("w", self.setValidateUtr)
         validateMenu.add_checkbutton(label=_("Unit Type Registry validation"), underline=0, variable=self.validateUtr, onvalue=True, offvalue=False)
 
+        self.modelManager.validateBaseTaxonomyDocuments = self.config.setdefault("validateBaseTaxonomyDocuments", True)
+        self.validateBaseTaxonomyDocuments = BooleanVar(value=self.modelManager.validateBaseTaxonomyDocuments)
+        self.validateBaseTaxonomyDocuments.trace("w", self.setValidateBaseTaxonomyDocuments)
+        validateMenu.add_checkbutton(label=_("Validate base taxonomy documents"), underline=0, variable=self.validateBaseTaxonomyDocuments, onvalue=True, offvalue=False)
+
         self.modelManager.validateXmlOim = self.config.setdefault("validateXmlOim", False)
         self.validateXmlOim = BooleanVar(value=self.modelManager.validateXmlOim)
         self.validateXmlOim.trace("w", self.setValidateXmlOim)
@@ -1404,6 +1409,12 @@ class CntlrWinMain (Cntlr.Cntlr):
     def setValidateUtr(self, *args):
         self.modelManager.validateUtr = self.validateUtr.get()
         self.config["validateUtr"] = self.modelManager.validateUtr
+        self.saveConfig()
+        self.setValidateTooltipText()
+
+    def setValidateBaseTaxonomyDocuments(self, *args):
+        self.modelManager.validateBaseTaxonomyDocuments = self.validateBaseTaxonomyDocuments.get()
+        self.config["validateBaseTaxonomyDocuments"] = self.modelManager.validateBaseTaxonomyDocuments
         self.saveConfig()
         self.setValidateTooltipText()
 

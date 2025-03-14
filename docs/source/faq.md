@@ -22,6 +22,24 @@ for consensus.
 
 [change-request]: project:index.md#bug-report-or-feature-request
 
+## Can I Optimize Validation Performance?
+
+By default, Arelle validates the complete DTS (discoverable taxonomy set).
+However, you can improve performance in cases where validating the entire
+taxonomy set isn't necessary. For instance, when validating reports against a
+known-valid taxonomy like US GAAP 2024, you may only need to validate your
+report's documents rather than re-validating the base taxonomy.
+
+To optimize performance in such cases:
+
+- CLI: Use the `--skipBaseTaxonomiesValidation` option
+- GUI: Uncheck the `Validate base taxonomy documents` option under the
+  `Validate` menu
+
+This optimization is particularly useful for service providers who regularly
+validate reports against standard taxonomies, reducing validation time while
+maintaining the integrity of report-specific validation.
+
 ## Why Are Concept Details Missing From the Viewer?
 
 Concept details missing from the Arelle ixbrl-viewer or Edgar Renderer? Check the
