@@ -6,7 +6,7 @@ from tests.integration_tests.validation.conformance_suite_config import (
     ConformanceSuiteConfig,
 )
 
-CONFORMANCE_SUITE_ZIP_NAME = 'efm-72-241216.zip'
+CONFORMANCE_SUITE_ZIP_NAME = 'efm-73d-250219.zip'
 
 config = ConformanceSuiteConfig(
     additional_plugins_by_prefix=[(f'conf/{t}', frozenset({'EDGAR/render'})) for t in [
@@ -27,10 +27,19 @@ config = ConformanceSuiteConfig(
             source=AssetSource.S3_PUBLIC,
         )
     ],
-    cache_version_id='uP0cfVbwatKVkwwuQ9m6ogaYt1exP01M',
+    expected_failure_ids=frozenset(f'conf/{s}' for s in [
+        # Test case failure due to EFM 25.1 running against prior conformance suite.
+        # Failures are expected to be resolved with the release of the 25.1 conformance suite.
+        "605-instance-syntax/605-20-required-document-elts/605-20-man/605-20-man-testcase.xml:_394gw",
+    ]),
+    cache_version_id='vdnIlAvzCgYXhM_5sm6pPDEZKtswihfA',
     info_url='https://www.sec.gov/structureddata/osdinteractivedatatestsuite',
     name=PurePath(__file__).stem,
-    plugins=frozenset({'EDGAR/validate', 'inlineXbrlDocumentSet'}),
+    plugins=frozenset({
+        'EDGAR/validate',
+        'inlineXbrlDocumentSet',
+        'xule',
+    }),
     shards=40,
     test_case_result_options='match-any',
 )
