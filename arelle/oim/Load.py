@@ -1608,6 +1608,8 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                                                      (tableDimensions, "table dimension"),
                                                                      (reportDimensions, "report dimension")):
                                         for dimName, dimValue in inheritedDims.items():
+                                            if dimSource.startswith("propertyGroup"):
+                                                factDimensionPropGrpCol[dimName] = propGroupDimSource[dimName]
                                             if dimName not in colFactDims and dimName not in noValueDimNames:
                                                 dimValue = inheritedDims[dimName]
                                                 dimAttr = None
@@ -1651,8 +1653,6 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                                     noValueDimNames.add(dimName)
                                                 else:
                                                     colFactDims[dimName] = dimValue
-                                                if dimSource.startswith("propertyGroup"):
-                                                    factDimensionPropGrpCol[dimName] = propGroupDimSource[dimName]
                                     if factDecimals.get(colName) is not None:
                                         dimValue = factDecimals[colName]
                                         dimSource = "column decimals"
