@@ -30,7 +30,11 @@ config = ConformanceSuiteConfig(
     cache_version_id='uP0cfVbwatKVkwwuQ9m6ogaYt1exP01M',
     info_url='https://www.sec.gov/structureddata/osdinteractivedatatestsuite',
     name=PurePath(__file__).stem,
-    plugins=frozenset({'EDGAR/validate', 'inlineXbrlDocumentSet'}),
+    plugins=frozenset({
+        'EDGAR/validate',
+        'inlineXbrlDocumentSet',
+        'xule',
+    }),
     shards=40,
     test_case_result_options='match-any',
 )
