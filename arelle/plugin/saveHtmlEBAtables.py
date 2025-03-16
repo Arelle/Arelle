@@ -15,47 +15,78 @@ from arelle.ModelDocument import Type
 from arelle.ModelObjectFactory import parser
 from arelle.ModelRenderingObject import DefnMdlTable
 from arelle.rendering import RenderingEvaluator
+from arelle.typing import TypeGetText
 from arelle.ViewFileRenderedGrid import viewRenderedGrid
 
-INDEX_DOCUMENT_HTML = '''
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head id="Left">
+_: TypeGetText
+
+MENU_HTML = '''<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      margin: 0;
+      padding: 10px;
+      font-family: Arial, sans-serif;
+      color: #243e5e;
+    }
+    .nav-list-menu-ul {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+    }
+    .nav-list-menu-li {
+      margin: 5px 0;
+      padding: 5px;
+      border-bottom: 1px solid #eee;
+    }
+    .nav-list-menu-link {
+      text-decoration: none;
+      cursor: pointer;
+      display: block;
+      background: none;
+      border: none;
+      padding: 0;
+    }
+    .nav-list-menu-link:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
-<body class="LTR IE7 ENGB">
-    <ul class="CMSListMenuUL" id="Vertical2"/>
+<body>
+    <ul class="nav-list-menu-ul"/>
 </body>
 </html>
 '''
 
-TOP_FRAME_HTML = '''
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head id="Top">
+CENTER_LANDING_HTML = '''<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+    }
+    #page-title {
+      margin-bottom: 20px;
+    }
+    #page-title h1 {
+      color: #243e5e;
+      margin-top: 0;
+    }
+    #content-center {
+      margin-top: 20px;
+      line-height: 1.5;
+    }
+  </style>
 </head>
-  <body class="LTR IE7 ENGB">
-    <div id="topsection">
-      <div id="topsectionLeft" style="cursor:pointer;" onclick="location.href='https://www.eba.europa.eu/';"></div>
-      <div id="topsectionRight"></div>
-      <div id="topnavigation"></div>
-    </div>
-  </body>
-</html>
-'''
-
-CENTER_LANDING_HTML = '''
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head id="Center">
-</head>
-<body class="LTR IE7 ENGB">
-  <div id="plc_lt_zoneContent_usercontrol_userControlElem_ContentPanel">
-    <div id="plc_lt_zoneContent_usercontrol_userControlElem_PanelTitle">
-      <div id="pagetitle" style="float:left;width:500px;">
-        <h1>Taxonomy Tables Viewer</h1>
-      </div>
-    </div>
+<body>
+  <div id="page-title">
+    <h1>Taxonomy Tables Viewer</h1>
   </div>
-  <div style="clear:both;"></div>
-  <div id="contentcenter">
-    <p style="text-align: justify; margin-top: 0pt; margin-bottom: 0pt">Please select tables to view by clicking in the left column.</p>
+  <div id="content-center">
+    <p>Please select tables to view by clicking in the left column.</p>
   </div>
 </body>
 </html>
@@ -66,33 +97,79 @@ table {background:#fff}
 '''
 
 def indexFileHTML(indexBaseName: str) -> str:
-    return f'''
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head id="Head1">
-  <title>European Banking Authority - EBA  - FINREP Taxonomy</title>
-  <meta name="generator" content="Arelle(r) {Version.version}" />
-  <meta name="provider" content="Aguilonius(r)" />
-  <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
-  <meta http-equiv="pragma" content="no-cache" />
-  <meta http-equiv="content-style-type" content="text/css" />
-  <meta http-equiv="content-script-type" content="text/javascript" />
+    return f'''<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EBA - Tablesets</title>
+  <style>
+    html, body {{
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+    }}
+    #header {{
+      background: rgb(36, 62, 94);
+      color: rgb(255, 255, 255);
+      height: 40px;
+    }}
+    #header h1 {{
+      font-size: 1.5em;
+      margin: 0.25em;
+    }}
+    #main-container {{
+      display: flex;
+      flex: 1;
+      height: calc(100vh - 40px);
+    }}
+    #menu-container {{
+      width: 360px;
+      border-right: 2px solid #243e5e;
+      overflow-y: auto;
+      box-sizing: border-box;
+    }}
+    #content-container {{
+      flex: 1;
+      overflow: auto;
+      box-sizing: border-box;
+    }}
+    iframe {{
+      border: none;
+      width: 100%;
+      height: 100%;
+    }}
+  </style>
+  <script>
+    function loadContent(url) {{
+      document.getElementById('content-frame').src = url;
+    }}
+  </script>
 </head>
-<frameset border="0" frameborder="0" rows="90,*">
-   <frame name="head" src="{indexBaseName}TopFrame.html" scrolling="no" marginwidth="0" marginheight="10"/>
-   <frameset  bordercolor="#0000cc" border="10" frameborder="no" framespacing="0" cols="360, *">
-      <frame src="{indexBaseName}FormsFrame.html" name="menu" bordercolor="#0000cc"/>
-      <frame src="{indexBaseName}CenterLanding.html" name="body" bordercolor="#0000cc"/>
-   </frameset>
-</frameset>
+<body>
+  <div id="header"><h1>EBA - Tablesets</h1></div>
+  <div id="main-container">
+    <div id="menu-container">
+      <iframe src="{indexBaseName}FormsFrame.html" width="100%" height="100%" frameborder="0" id="menu-frame"></iframe>
+    </div>
+    <div id="content-container">
+      <iframe src="{indexBaseName}CenterLanding.html" width="100%" height="100%" frameborder="0" id="content-frame"></iframe>
+    </div>
+  </div>
+</body>
+</html>
 '''
-
 
 def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
     try:
         numTableFiles = 0
         _parser = parser(dts, None)[0]
-        indexDocument = etree.fromstring(INDEX_DOCUMENT_HTML, parser=_parser, base_url=indexFile)
-        listElt = indexDocument.find(".//{http://www.w3.org/1999/xhtml}ul")
+        menuFrameDocument = etree.fromstring(MENU_HTML, parser=_parser, base_url=indexFile)
+        listElt = menuFrameDocument.find(".//ul")
         assert listElt is not None, "No list element in index document"
 
         indexBase = indexFile.rpartition(".")[0]
@@ -116,18 +193,16 @@ def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
                                  cssExtras=TABLE_CSS_EXTRAS,
                                  table=tableName)
 
-                elt = etree.SubElement(listElt, "{http://www.w3.org/1999/xhtml}li")
-                elt.set("class", "CMSListMenuLI")
+                elt = etree.SubElement(listElt, "li")
+                elt.set("class", "nav-list-menu-li")
                 elt.set("id", tableId)
-                elt = etree.SubElement(elt, "{http://www.w3.org/1999/xhtml}a")
+                elt = etree.SubElement(elt, "button")
                 elt.text = modelTable.genLabel(lang=lang, strip=True)
-                elt.set("class", "CMSListMenuLink")
-                elt.set("href", "javascript:void(0)")
-                elt.set("onClick", f"javascript:parent.body.location.href='{tableId}.html';")
+                elt.set("class", "nav-list-menu-link")
+                elt.set("onClick", f"javascript:parent.loadContent('{tableId}.html');")
                 elt.text = modelTable.genLabel(lang=lang, strip=True)
             else:
-                elt = etree.SubElement(listElt, "{http://www.w3.org/1999/xhtml}li")
-                elt.set("class", "CMSListMenuLink")
+                elt = etree.SubElement(listElt, "li")
                 elt.set("id", tableId)
                 elt.text = modelTable.label(lang=lang, strip=True)
 
@@ -145,13 +220,10 @@ def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
             viewTable(modelTable)
 
         with open(indexBase + "FormsFrame.html", "w", encoding="utf-8") as fh:
-            XmlUtil.writexml(fh, indexDocument, encoding="utf-8")
+            XmlUtil.writexml(fh, menuFrameDocument, encoding="utf-8")
 
         with open(indexFile, "w", encoding="utf-8") as fh:
             fh.write(indexFileHTML(os.path.basename(indexBase)))
-
-        with open(indexBase + "TopFrame.html", "w", encoding="utf-8") as fh:
-            fh.write(TOP_FRAME_HTML)
 
         with open(indexBase + "CenterLanding.html", "w", encoding="utf-8") as fh:
             fh.write(CENTER_LANDING_HTML)
