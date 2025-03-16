@@ -4,9 +4,9 @@ that will save a directory containing HTML Tablesets with an EBA index page.
 
 See COPYRIGHT.md for copyright information.
 '''
-import io
 import os
 import threading
+from operator import itemgetter
 
 from lxml import etree
 
@@ -89,49 +89,26 @@ def indexFileHTML(indexBaseName: str) -> str:
 
 def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
     try:
-
         numTableFiles = 0
-
-        file = io.StringIO(INDEX_DOCUMENT_HTML)
-        _parser, parserLookupName, parserLookupClass = parser(dts,None)
-        indexDocument = etree.parse(file,parser=_parser,base_url=indexFile)
-        file.close()
-        #xmlDocument.getroot().init(self)  ## is this needed ??
-        for listElt in  indexDocument.iter(tag="{http://www.w3.org/1999/xhtml}ul"):
-            break
-
-        class nonTkBooleanVar():
-            def __init__(self, value=True):
-                self.value = value
-            def set(self, value):
-                self.value = value
-            def get(self):
-                return self.value
-
-        class View():
-            def __init__(self, tableOrELR, ignoreDimValidity, xAxisChildrenFirst, yAxisChildrenFirst):
-                self.tblELR = tableOrELR
-                # context menu boolean vars (non-tkinter boolean
-                self.ignoreDimValidity = nonTkBooleanVar(value=ignoreDimValidity)
-                self.xAxisChildrenFirst = nonTkBooleanVar(value=xAxisChildrenFirst)
-                self.yAxisChildrenFirst = nonTkBooleanVar(value=yAxisChildrenFirst)
+        _parser = parser(dts, None)[0]
+        indexDocument = etree.fromstring(INDEX_DOCUMENT_HTML, parser=_parser, base_url=indexFile)
+        listElt = indexDocument.find(".//{http://www.w3.org/1999/xhtml}ul")
+        assert listElt is not None, "No list element in index document"
 
         indexBase = indexFile.rpartition(".")[0]
         groupTableRels = dts.modelXbrl.relationshipSet(XbrlConst.euGroupTable)
         modelTables = []
-        # order number is missing
         def viewTable(modelTable):
             if modelTable is None:
                 return
-            if isinstance(modelTable, (DefnMdlTable)):
-                # status
-                dts.modelManager.cntlr.addToLog("viewing: " + modelTable.id)
-                # for table file name, use table ELR
-                tblFile = os.path.join(os.path.dirname(indexFile), modelTable.id + ".html")
-                tableName = modelTable.id
+            tableId = modelTable.id or ""
+            if isinstance(modelTable, DefnMdlTable):
+                dts.modelManager.cntlr.addToLog("viewing: " + tableId)
+                tblFile = os.path.join(os.path.dirname(indexFile), tableId + ".html")
+                tableName = tableId
                 if tableName.startswith("eba_t"):
                     tableName = tableName.removeprefix("eba_t")
-                if tableName.startswith("srb_t"):
+                elif tableName.startswith("srb_t"):
                     tableName = tableName.removeprefix("srb_t")
                 viewRenderedGrid(dts,
                                  tblFile,
@@ -139,27 +116,23 @@ def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
                                  cssExtras=TABLE_CSS_EXTRAS,
                                  table=tableName)
 
-                # generaate menu entry
                 elt = etree.SubElement(listElt, "{http://www.w3.org/1999/xhtml}li")
                 elt.set("class", "CMSListMenuLI")
-                elt.set("id", modelTable.id)
+                elt.set("id", tableId)
                 elt = etree.SubElement(elt, "{http://www.w3.org/1999/xhtml}a")
                 elt.text = modelTable.genLabel(lang=lang, strip=True)
                 elt.set("class", "CMSListMenuLink")
                 elt.set("href", "javascript:void(0)")
-                elt.set("onClick", "javascript:parent.body.location.href='{0}';".format(modelTable.id + ".html"))
+                elt.set("onClick", f"javascript:parent.body.location.href='{tableId}.html';")
                 elt.text = modelTable.genLabel(lang=lang, strip=True)
-
-            else:  # just a header
-                # generaate menu entry
+            else:
                 elt = etree.SubElement(listElt, "{http://www.w3.org/1999/xhtml}li")
                 elt.set("class", "CMSListMenuLink")
-                elt.set("id", modelTable.id)
+                elt.set("id", tableId)
                 elt.text = modelTable.label(lang=lang, strip=True)
 
             for rel in groupTableRels.fromModelObject(modelTable):
                 viewTable(rel.toModelObject)
-
 
         for rootConcept in groupTableRels.rootConcepts:
             sourceline = 0
@@ -168,26 +141,20 @@ def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
                 break
             modelTables.append((rootConcept, sourceline))
 
-        for modelTable, order in sorted(modelTables, key=lambda x: x[1]):
+        for modelTable, _order in sorted(modelTables, key=itemgetter(1)):
             viewTable(modelTable)
 
-        with open(indexBase + "FormsFrame.html", "wt", encoding="utf-8") as fh:
+        with open(indexBase + "FormsFrame.html", "w", encoding="utf-8") as fh:
             XmlUtil.writexml(fh, indexDocument, encoding="utf-8")
 
-        with open(indexFile, "wt", encoding="utf-8") as fh:
+        with open(indexFile, "w", encoding="utf-8") as fh:
             fh.write(indexFileHTML(os.path.basename(indexBase)))
 
-        with open(indexBase + "TopFrame.html", "wt", encoding="utf-8") as fh:
+        with open(indexBase + "TopFrame.html", "w", encoding="utf-8") as fh:
             fh.write(TOP_FRAME_HTML)
 
-        with open(indexBase + "CenterLanding.html", "wt", encoding="utf-8") as fh:
+        with open(indexBase + "CenterLanding.html", "w", encoding="utf-8") as fh:
             fh.write(CENTER_LANDING_HTML)
-
-        # to merge gif's and style sheets, use a zipfile sibling of the python plug-in file.
-        #import zipfile
-        #zf = zipfile.ZipFile(__file__.rpartition('.')[0] + "Files.zip", mode="r")
-        #zf.extractall(path=os.path.dirname(indexBase))
-        #zf.close()
 
         dts.info("info:saveEBAtables",
                  _("Tables index file of %(entryFile)s has %(numberTableFiles)s table files with index file %(indexFile)s."),
@@ -202,18 +169,15 @@ def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
             exc_info=True)
 
 def saveHtmlEbaTablesMenuEntender(cntlr, menu, *args, **kwargs):
-    # Extend menu with an item for the save infoset plugin
     menu.add_command(label="Save HTML EBA Tables",
                      underline=0,
                      command=lambda: saveHtmlEbaTablesMenuCommand(cntlr) )
 
 def saveHtmlEbaTablesMenuCommand(cntlr):
-    # save Infoset menu item has been invoked
     if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:
         cntlr.addToLog("No DTS loaded.")
         return
 
-        # get file name into which to save log file while in foreground thread
     indexFile = cntlr.uiFileDialog("save",
             title=_("arelle - Save HTML EBA Tables Index file"),
             initialdir=cntlr.config.setdefault("htmlEbaTablesFileDir","."),
@@ -232,24 +196,20 @@ def saveHtmlEbaTablesMenuCommand(cntlr):
     thread.start()
 
 def saveHtmlEbaTablesCommandLineOptionExtender(parser, *args, **kwargs):
-    # extend command line options with a save DTS option
     parser.add_option("--save-EBA-tablesets",
                       action="store",
                       dest="ebaTablesetIndexFile",
                       help=_("Save HTML EBA Tablesets index file, with tablest HTML files to out directory specify 'generateOutFiles'."))
 
 def saveHtmlEbaTablesCommandLineXbrlLoaded(cntlr, options, modelXbrl, *args, **kwargs):
-    # extend XBRL-loaded run processing for this option
     if getattr(options, "ebaTablesetIndexFile", None) and options.ebaTablesetIndexFile == "generateEBAFiles" and modelXbrl.modelDocument.type in (Type.TESTCASESINDEX, Type.TESTCASE):
         cntlr.modelManager.generateEBAFiles = True
 
 def saveHtmlEbaTablesCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
-    # extend XBRL-loaded run processing for this option
     if getattr(options, "ebaTablesetIndexFile", None) and options.ebaTablesetIndexFile != "generateEBAFiles":
         if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:
             cntlr.addToLog("No taxonomy loaded.")
             return
-
         RenderingEvaluator.init(modelXbrl)
         generateHtmlEbaTablesetFiles(cntlr.modelManager.modelXbrl, options.ebaTablesetIndexFile)
 
@@ -257,7 +217,7 @@ def saveHtmlEbaTablesCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwar
 __pluginInfo__ = {
     'name': 'Save HTML EBA Tables',
     'version': '0.9',
-    'description': "This plug-in adds a feature to a directory containing HTML Tablesets with an EBA index page.  ",
+    'description': "This plug-in adds a feature to a directory containing HTML Tablesets with an EBA index page.",
     'license': 'Apache-2',
     'author': Version.authorLabel,
     'copyright': Version.copyrightLabel,
