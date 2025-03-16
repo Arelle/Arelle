@@ -4,14 +4,22 @@ that will save a directory containing HTML Tablesets with an EBA index page.
 
 See COPYRIGHT.md for copyright information.
 '''
-from arelle.Version import authorLabel, copyrightLabel
+import io
+import os
+import threading
+
+from lxml import etree
+
+from arelle import Version, XbrlConst, XmlUtil
+from arelle.ModelDocument import Type
+from arelle.ModelObjectFactory import parser
+from arelle.ModelRenderingObject import DefnMdlTable
+from arelle.rendering import RenderingEvaluator
+from arelle.ViewFileRenderedGrid import viewRenderedGrid
+
 
 def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
     try:
-        import os, io
-        from arelle import Version, XbrlConst, XmlUtil
-        from arelle.ViewFileRenderedGrid import viewRenderedGrid
-        from arelle.ModelRenderingObject import DefnMdlTable
 
         numTableFiles = 0
 
@@ -26,10 +34,8 @@ def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
 </html>
 '''
          )
-        from arelle.ModelObjectFactory import parser
-        parser, parserLookupName, parserLookupClass = parser(dts,None)
-        from lxml import etree
-        indexDocument = etree.parse(file,parser=parser,base_url=indexFile)
+        _parser, parserLookupName, parserLookupClass = parser(dts,None)
+        indexDocument = etree.parse(file,parser=_parser,base_url=indexFile)
         file.close()
         #xmlDocument.getroot().init(self)  ## is this needed ??
         for listElt in  indexDocument.iter(tag="{http://www.w3.org/1999/xhtml}ul"):
@@ -212,7 +218,6 @@ def saveHtmlEbaTablesMenuEntender(cntlr, menu, *args, **kwargs):
 
 def saveHtmlEbaTablesMenuCommand(cntlr):
     # save Infoset menu item has been invoked
-    from arelle.ModelDocument import Type
     if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:
         cntlr.addToLog("No DTS loaded.")
         return
@@ -225,11 +230,9 @@ def saveHtmlEbaTablesMenuCommand(cntlr):
             defaultextension=".html")
     if not indexFile:
         return False
-    import os
     cntlr.config["htmlEbaTablesFileDir"] = os.path.dirname(indexFile)
     cntlr.saveConfig()
 
-    import threading
     thread = threading.Thread(target=lambda
                                   _dts=cntlr.modelManager.modelXbrl,
                                   _indexFile=indexFile:
@@ -246,7 +249,6 @@ def saveHtmlEbaTablesCommandLineOptionExtender(parser, *args, **kwargs):
 
 def saveHtmlEbaTablesCommandLineXbrlLoaded(cntlr, options, modelXbrl, *args, **kwargs):
     # extend XBRL-loaded run processing for this option
-    from arelle.ModelDocument import Type
     if getattr(options, "ebaTablesetIndexFile", None) and options.ebaTablesetIndexFile == "generateEBAFiles" and modelXbrl.modelDocument.type in (Type.TESTCASESINDEX, Type.TESTCASE):
         cntlr.modelManager.generateEBAFiles = True
 
@@ -257,7 +259,6 @@ def saveHtmlEbaTablesCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwar
             cntlr.addToLog("No taxonomy loaded.")
             return
 
-        from arelle.rendering import RenderingEvaluator
         RenderingEvaluator.init(modelXbrl)
         generateHtmlEbaTablesetFiles(cntlr.modelManager.modelXbrl, options.ebaTablesetIndexFile)
 
@@ -267,8 +268,8 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': "This plug-in adds a feature to a directory containing HTML Tablesets with an EBA index page.  ",
     'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    'author': Version.authorLabel,
+    'copyright': Version.copyrightLabel,
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': saveHtmlEbaTablesMenuEntender,
     'CntlrCmdLine.Options': saveHtmlEbaTablesCommandLineOptionExtender,
