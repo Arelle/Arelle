@@ -322,7 +322,6 @@ module = [
     'arelle.plugin.profileFormula',
     'arelle.plugin.saveCHComponentFile',
     'arelle.plugin.saveDTS',
-    'arelle.plugin.saveHtmlEBAtables',
     'arelle.plugin.saveLoadableExcel',
     'arelle.plugin.saveLoadableOIM',
     'arelle.plugin.saveSKOS',

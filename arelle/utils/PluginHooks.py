@@ -95,6 +95,33 @@ class PluginHooks(ABC):
         raise NotImplementedError
 
     @staticmethod
+    def cntlrCmdLineXbrlLoaded(
+        cntlr: CntlrCmdLine,
+        options: RuntimeOptions,
+        modelXbrl: ModelXbrl,
+        entrypoint: dict[str, str] | None = None,
+        responseZipStream: BinaryIO | None = None,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        """
+        Plugin hook: `CntlrCmdLine.Xbrl.Loaded`
+
+        This hook is triggered after loading, but prior to validation (if requested) and loading views.
+        It's useful if you need to perform operations with the XBRL model prior to rendering views.
+
+        :param cntlr: The [Cntlr](#arelle.Cntlr.Cntlr) being initialized.
+        :param options: Parsed options object.
+        :param modelXbrl: The loaded [ModelXbrl](#arelle.ModelXbrl.ModelXbrl).
+        :param entrypoint: The entrypoint that was parsed to load the model.
+        :param responseZipStream: The response zip stream if loaded from the webserver and the user requested a zip response.
+        :param args: Argument capture to ensure new parameters don't break plugin hook.
+        :param kwargs: Argument capture to ensure new named parameters don't break plugin hook.
+        :return: None
+        """
+        raise NotImplementedError
+
+    @staticmethod
     def cntlrCmdLineXbrlRun(
         cntlr: CntlrCmdLine,
         options: RuntimeOptions,
