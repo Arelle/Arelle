@@ -17,13 +17,7 @@ from arelle.ModelRenderingObject import DefnMdlTable
 from arelle.rendering import RenderingEvaluator
 from arelle.ViewFileRenderedGrid import viewRenderedGrid
 
-
-def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
-    try:
-
-        numTableFiles = 0
-
-        file = io.StringIO('''
+INDEX_DOCUMENT_HTML = '''
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head id="Left">
 </head>
@@ -32,7 +26,73 @@ def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
 </body>
 </html>
 '''
-         )
+
+TOP_FRAME_HTML = '''
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="Top">
+</head>
+  <body class="LTR IE7 ENGB">
+    <div id="topsection">
+      <div id="topsectionLeft" style="cursor:pointer;" onclick="location.href='https://www.eba.europa.eu/';"></div>
+      <div id="topsectionRight"></div>
+      <div id="topnavigation"></div>
+    </div>
+  </body>
+</html>
+'''
+
+CENTER_LANDING_HTML = '''
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="Center">
+</head>
+<body class="LTR IE7 ENGB">
+  <div id="plc_lt_zoneContent_usercontrol_userControlElem_ContentPanel">
+    <div id="plc_lt_zoneContent_usercontrol_userControlElem_PanelTitle">
+      <div id="pagetitle" style="float:left;width:500px;">
+        <h1>Taxonomy Tables Viewer</h1>
+      </div>
+    </div>
+  </div>
+  <div style="clear:both;"></div>
+  <div id="contentcenter">
+    <p style="text-align: justify; margin-top: 0pt; margin-bottom: 0pt">Please select tables to view by clicking in the left column.</p>
+  </div>
+</body>
+</html>
+'''
+
+TABLE_CSS_EXTRAS = '''
+table {background:#fff}
+'''
+
+def indexFileHTML(indexBaseName: str) -> str:
+    return f'''
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="Head1">
+  <title>European Banking Authority - EBA  - FINREP Taxonomy</title>
+  <meta name="generator" content="Arelle(r) {Version.version}" />
+  <meta name="provider" content="Aguilonius(r)" />
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+  <meta http-equiv="pragma" content="no-cache" />
+  <meta http-equiv="content-style-type" content="text/css" />
+  <meta http-equiv="content-script-type" content="text/javascript" />
+</head>
+<frameset border="0" frameborder="0" rows="90,*">
+   <frame name="head" src="{indexBaseName}TopFrame.html" scrolling="no" marginwidth="0" marginheight="10"/>
+   <frameset  bordercolor="#0000cc" border="10" frameborder="no" framespacing="0" cols="360, *">
+      <frame src="{indexBaseName}FormsFrame.html" name="menu" bordercolor="#0000cc"/>
+      <frame src="{indexBaseName}CenterLanding.html" name="body" bordercolor="#0000cc"/>
+   </frameset>
+</frameset>
+'''
+
+
+def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
+    try:
+
+        numTableFiles = 0
+
+        file = io.StringIO(INDEX_DOCUMENT_HTML)
         _parser, parserLookupName, parserLookupClass = parser(dts,None)
         indexDocument = etree.parse(file,parser=_parser,base_url=indexFile)
         file.close()
@@ -59,9 +119,6 @@ def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
         indexBase = indexFile.rpartition(".")[0]
         groupTableRels = dts.modelXbrl.relationshipSet(XbrlConst.euGroupTable)
         modelTables = []
-        tblCssExtras='''
-table {background:#fff}
-'''
         # order number is missing
         def viewTable(modelTable):
             if modelTable is None:
@@ -79,7 +136,7 @@ table {background:#fff}
                 viewRenderedGrid(dts,
                                  tblFile,
                                  lang=lang,
-                                 cssExtras=tblCssExtras,
+                                 cssExtras=TABLE_CSS_EXTRAS,
                                  table=tableName)
 
                 # generaate menu entry
@@ -118,68 +175,13 @@ table {background:#fff}
             XmlUtil.writexml(fh, indexDocument, encoding="utf-8")
 
         with open(indexFile, "wt", encoding="utf-8") as fh:
-            fh.write(
-'''
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head id="Head1">
-  <title>European Banking Authority - EBA  - FINREP Taxonomy</title>
-  <meta name="generator" content="Arelle(r) {0}" />
-  <meta name="provider" content="Aguilonius(r)" />
-  <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
-  <meta http-equiv="pragma" content="no-cache" />
-  <meta http-equiv="content-style-type" content="text/css" />
-  <meta http-equiv="content-script-type" content="text/javascript" />
-</head>
-<frameset border="0" frameborder="0" rows="90,*">
-   <frame name="head" src="{1}" scrolling="no" marginwidth="0" marginheight="10"/>
-   <frameset  bordercolor="#0000cc" border="10" frameborder="no" framespacing="0" cols="360, *">
-      <frame src="{2}" name="menu" bordercolor="#0000cc"/>
-      <frame src="{3}" name="body" bordercolor="#0000cc"/>
-   </frameset>
-</frameset>
-'''.format(Version.version,
-           os.path.basename(indexBase) + "TopFrame.html",
-           os.path.basename(indexBase) + "FormsFrame.html",
-           os.path.basename(indexBase) + "CenterLanding.html",
-           ))
+            fh.write(indexFileHTML(os.path.basename(indexBase)))
 
         with open(indexBase + "TopFrame.html", "wt", encoding="utf-8") as fh:
-            fh.write(
-'''
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head id="Top">
-</head>
-  <body class="LTR IE7 ENGB">
-    <div id="topsection">
-      <div id="topsectionLeft" style="cursor:pointer;" onclick="location.href='https://www.eba.europa.eu/';"></div>
-      <div id="topsectionRight"></div>
-      <div id="topnavigation"></div>
-    </div>
-  </body>
-</html>
-''')
+            fh.write(TOP_FRAME_HTML)
 
         with open(indexBase + "CenterLanding.html", "wt", encoding="utf-8") as fh:
-            fh.write(
-'''
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head id="Center">
-</head>
-<body class="LTR IE7 ENGB">
-  <div id="plc_lt_zoneContent_usercontrol_userControlElem_ContentPanel">
-    <div id="plc_lt_zoneContent_usercontrol_userControlElem_PanelTitle">
-      <div id="pagetitle" style="float:left;width:500px;">
-        <h1>Taxonomy Tables Viewer</h1>
-      </div>
-    </div>
-  </div>
-  <div style="clear:both;"></div>
-  <div id="contentcenter">
-    <p style="text-align: justify; margin-top: 0pt; margin-bottom: 0pt">Please select tables to view by clicking in the left column.</p>
-  </div>
-</body>
-</html>
-''')
+            fh.write(CENTER_LANDING_HTML)
 
         # to merge gif's and style sheets, use a zipfile sibling of the python plug-in file.
         #import zipfile
