@@ -26,7 +26,6 @@ def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
         file = io.StringIO('''
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head id="Left">
-  <link type="text/css" rel="stylesheet" href="http://arelle.org/files/EBA/style20121210/eba.css" />
 </head>
 <body class="LTR IE7 ENGB">
     <ul class="CMSListMenuUL" id="Vertical2"/>
@@ -61,7 +60,6 @@ def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
         groupTableRels = dts.modelXbrl.relationshipSet(XbrlConst.euGroupTable)
         modelTables = []
         tblCssExtras='''
-body {background-image:url('http://arelle.org/files/EBA/style20121210/lhsbackground.jpg')}
 table {background:#fff}
 '''
         # order number is missing
@@ -131,7 +129,6 @@ table {background:#fff}
   <meta http-equiv="pragma" content="no-cache" />
   <meta http-equiv="content-style-type" content="text/css" />
   <meta http-equiv="content-script-type" content="text/javascript" />
-  <link type="text/css" rel="stylesheet" href="http://arelle.org/files/EBA/style20121210/eba.css" />
 </head>
 <frameset border="0" frameborder="0" rows="90,*">
    <frame name="head" src="{1}" scrolling="no" marginwidth="0" marginheight="10"/>
@@ -151,19 +148,12 @@ table {background:#fff}
 '''
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head id="Top">
-  <link type="text/css" rel="stylesheet" href="http://arelle.org/files/EBA/style20121210/eba.css" />
 </head>
   <body class="LTR IE7 ENGB">
-   <div id="topsection">
-      <div id="topsectionLeft" style="cursor:pointer;" onclick="location.href='http://www.eba.europa.eu/home.aspx';"></div>
+    <div id="topsection">
+      <div id="topsectionLeft" style="cursor:pointer;" onclick="location.href='https://www.eba.europa.eu/';"></div>
       <div id="topsectionRight"></div>
-      <div id="topnavigation">
-      <ul id="menuElem">
-        <li><a href="http://www.eba.europa.eu/topnav/Contacts.aspx">Contacts</a></li>
-        <li><a href="http://www.eba.europa.eu/topnav/Links.aspx">Links</a></li>
-        <li><a href="http://www.eba.europa.eu/topnav/Sitemap.aspx">Sitemap</a></li>
-        <li><a href="http://www.eba.europa.eu/topnav/Legal-Notice.aspx">Legal Notice</a></li>
-      </ul>
+      <div id="topnavigation"></div>
     </div>
   </body>
 </html>
@@ -174,7 +164,6 @@ table {background:#fff}
 '''
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head id="Center">
-  <link type="text/css" rel="stylesheet" href="http://http://arelle.org/files/EBA/style20121210/eba.css" />
 </head>
 <body class="LTR IE7 ENGB">
   <div id="plc_lt_zoneContent_usercontrol_userControlElem_ContentPanel">
