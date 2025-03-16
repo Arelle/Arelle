@@ -1,9 +1,10 @@
-'''
+"""
 Save HTML EBA Tables is an example of a plug-in to both GUI menu and command line/web service
 that will save a directory containing HTML Tablesets with an EBA index page.
 
 See COPYRIGHT.md for copyright information.
-'''
+"""
+
 import os
 import threading
 from operator import itemgetter
@@ -20,7 +21,7 @@ from arelle.ViewFileRenderedGrid import viewRenderedGrid
 
 _: TypeGetText
 
-MENU_HTML = '''<!DOCTYPE html>
+MENU_HTML = """<!DOCTYPE html>
 <html>
 <head>
   <style>
@@ -57,9 +58,9 @@ MENU_HTML = '''<!DOCTYPE html>
     <ul class="nav-list-menu-ul"/>
 </body>
 </html>
-'''
+"""
 
-CENTER_LANDING_HTML = '''<!DOCTYPE html>
+CENTER_LANDING_HTML = """<!DOCTYPE html>
 <html>
 <head>
   <style>
@@ -90,11 +91,12 @@ CENTER_LANDING_HTML = '''<!DOCTYPE html>
   </div>
 </body>
 </html>
-'''
+"""
 
-TABLE_CSS_EXTRAS = '''
+TABLE_CSS_EXTRAS = """
 table {background:#fff}
-'''
+"""
+
 
 def indexFileHTML(indexBaseName: str) -> str:
     return f'''<!DOCTYPE html>
@@ -164,6 +166,7 @@ def indexFileHTML(indexBaseName: str) -> str:
 </html>
 '''
 
+
 def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
     try:
         numTableFiles = 0
@@ -175,6 +178,7 @@ def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
         indexBase = indexFile.rpartition(".")[0]
         groupTableRels = dts.modelXbrl.relationshipSet(XbrlConst.euGroupTable)
         modelTables = []
+
         def viewTable(modelTable):
             if modelTable is None:
                 return
@@ -187,11 +191,7 @@ def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
                     tableName = tableName.removeprefix("eba_t")
                 elif tableName.startswith("srb_t"):
                     tableName = tableName.removeprefix("srb_t")
-                viewRenderedGrid(dts,
-                                 tblFile,
-                                 lang=lang,
-                                 cssExtras=TABLE_CSS_EXTRAS,
-                                 table=tableName)
+                viewRenderedGrid(dts, tblFile, lang=lang, cssExtras=TABLE_CSS_EXTRAS, table=tableName)
 
                 elt = etree.SubElement(listElt, "li")
                 elt.set("class", "nav-list-menu-li")
@@ -228,54 +228,75 @@ def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
         with open(indexBase + "CenterLanding.html", "w", encoding="utf-8") as fh:
             fh.write(CENTER_LANDING_HTML)
 
-        dts.info("info:saveEBAtables",
-                 _("Tables index file of %(entryFile)s has %(numberTableFiles)s table files with index file %(indexFile)s."),
-                 modelObject=dts,
-                 entryFile=dts.uri, numberTableFiles=numTableFiles, indexFile=indexFile)
+        dts.info(
+            "info:saveEBAtables",
+            _("Tables index file of %(entryFile)s has %(numberTableFiles)s table files with index file %(indexFile)s."),
+            modelObject=dts,
+            entryFile=dts.uri,
+            numberTableFiles=numTableFiles,
+            indexFile=indexFile,
+        )
 
         dts.modelManager.showStatus(_("Saved EBA HTML Table Files"), 5000)
     except Exception as ex:
-        dts.error("exception",
-            _("HTML EBA Tableset files generation exception: %(error)s"), error=ex,
+        dts.error(
+            "exception",
+            _("HTML EBA Tableset files generation exception: %(error)s"),
+            error=ex,
             modelXbrl=dts,
-            exc_info=True)
+            exc_info=True,
+        )
+
 
 def saveHtmlEbaTablesMenuEntender(cntlr, menu, *args, **kwargs):
-    menu.add_command(label="Save HTML EBA Tables",
-                     underline=0,
-                     command=lambda: saveHtmlEbaTablesMenuCommand(cntlr) )
+    menu.add_command(label="Save HTML EBA Tables", underline=0, command=lambda: saveHtmlEbaTablesMenuCommand(cntlr))
+
 
 def saveHtmlEbaTablesMenuCommand(cntlr):
     if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:
         cntlr.addToLog("No DTS loaded.")
         return
 
-    indexFile = cntlr.uiFileDialog("save",
-            title=_("arelle - Save HTML EBA Tables Index file"),
-            initialdir=cntlr.config.setdefault("htmlEbaTablesFileDir","."),
-            filetypes=[(_("HTML index file .html"), "*.html")],
-            defaultextension=".html")
+    indexFile = cntlr.uiFileDialog(
+        "save",
+        title=_("arelle - Save HTML EBA Tables Index file"),
+        initialdir=cntlr.config.setdefault("htmlEbaTablesFileDir", "."),
+        filetypes=[(_("HTML index file .html"), "*.html")],
+        defaultextension=".html",
+    )
     if not indexFile:
         return False
     cntlr.config["htmlEbaTablesFileDir"] = os.path.dirname(indexFile)
     cntlr.saveConfig()
 
-    thread = threading.Thread(target=lambda
-                                  _dts=cntlr.modelManager.modelXbrl,
-                                  _indexFile=indexFile:
-                                        generateHtmlEbaTablesetFiles(_dts, _indexFile))
+    thread = threading.Thread(
+        target=lambda _dts=cntlr.modelManager.modelXbrl, _indexFile=indexFile: generateHtmlEbaTablesetFiles(
+            _dts, _indexFile
+        )
+    )
     thread.daemon = True
     thread.start()
 
+
 def saveHtmlEbaTablesCommandLineOptionExtender(parser, *args, **kwargs):
-    parser.add_option("--save-EBA-tablesets",
-                      action="store",
-                      dest="ebaTablesetIndexFile",
-                      help=_("Save HTML EBA Tablesets index file, with tablest HTML files to out directory specify 'generateOutFiles'."))
+    parser.add_option(
+        "--save-EBA-tablesets",
+        action="store",
+        dest="ebaTablesetIndexFile",
+        help=_(
+            "Save HTML EBA Tablesets index file, with tablest HTML files to out directory specify 'generateOutFiles'."
+        ),
+    )
+
 
 def saveHtmlEbaTablesCommandLineXbrlLoaded(cntlr, options, modelXbrl, *args, **kwargs):
-    if getattr(options, "ebaTablesetIndexFile", None) and options.ebaTablesetIndexFile == "generateEBAFiles" and modelXbrl.modelDocument.type in (Type.TESTCASESINDEX, Type.TESTCASE):
+    if (
+        getattr(options, "ebaTablesetIndexFile", None)
+        and options.ebaTablesetIndexFile == "generateEBAFiles"
+        and modelXbrl.modelDocument.type in (Type.TESTCASESINDEX, Type.TESTCASE)
+    ):
         cntlr.modelManager.generateEBAFiles = True
+
 
 def saveHtmlEbaTablesCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
     if getattr(options, "ebaTablesetIndexFile", None) and options.ebaTablesetIndexFile != "generateEBAFiles":
@@ -287,15 +308,15 @@ def saveHtmlEbaTablesCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwar
 
 
 __pluginInfo__ = {
-    'name': 'Save HTML EBA Tables',
-    'version': '0.9',
-    'description': "This plug-in adds a feature to a directory containing HTML Tablesets with an EBA index page.",
-    'license': 'Apache-2',
-    'author': Version.authorLabel,
-    'copyright': Version.copyrightLabel,
+    "name": "Save HTML EBA Tables",
+    "version": "0.9",
+    "description": "This plug-in adds a feature to a directory containing HTML Tablesets with an EBA index page.",
+    "license": "Apache-2",
+    "author": Version.authorLabel,
+    "copyright": Version.copyrightLabel,
     # classes of mount points (required)
-    'CntlrWinMain.Menu.Tools': saveHtmlEbaTablesMenuEntender,
-    'CntlrCmdLine.Options': saveHtmlEbaTablesCommandLineOptionExtender,
-    'CntlrCmdLine.Xbrl.Loaded': saveHtmlEbaTablesCommandLineXbrlLoaded,
-    'CntlrCmdLine.Xbrl.Run': saveHtmlEbaTablesCommandLineXbrlRun,
+    "CntlrWinMain.Menu.Tools": saveHtmlEbaTablesMenuEntender,
+    "CntlrCmdLine.Options": saveHtmlEbaTablesCommandLineOptionExtender,
+    "CntlrCmdLine.Xbrl.Loaded": saveHtmlEbaTablesCommandLineXbrlLoaded,
+    "CntlrCmdLine.Xbrl.Run": saveHtmlEbaTablesCommandLineXbrlRun,
 }
