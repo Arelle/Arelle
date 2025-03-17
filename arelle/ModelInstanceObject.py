@@ -428,6 +428,9 @@ class ModelFact(ModelObject):
             # non-numeric fact at this point
             if len(val) == 0: # zero length string for HMRC fixed fact
                 return "(reported)"
+            if self.xValid >= VALID and isinstance(self.xValue, str):
+                # Prefer the xs:whiteSpace normalized version of strings
+                return self.xValue
             return val
         except Exception as ex:
             return str(ex)  # could be transform value of inline fact
