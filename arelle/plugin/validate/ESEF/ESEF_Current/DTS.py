@@ -168,8 +168,8 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
                         narrowerConcept = widerNarrowerRelSet.toModelObject(modelConcept)
 
                         # Transform the qname to str for the later join()
-                        widerTypes = set(r.toModelObject.typeQname for r in widerConcept)
-                        narrowerTypes = set(r.fromModelObject.typeQname for r in narrowerConcept)
+                        widerTypes = set(r.toModelObject.typeQname for r in widerConcept if r.toModelObject is not None)
+                        narrowerTypes = set(r.fromModelObject.typeQname for r in narrowerConcept if r.fromModelObject is not None)
 
                         if (narrowerTypes and narrowerTypes != {modelConcept.typeQname}) or (widerTypes and widerTypes != {modelConcept.typeQname}):
                             widerNarrowerType = "{} {}".format(
