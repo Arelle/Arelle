@@ -6,33 +6,58 @@ This module is Arelle's controller in command line non-interactive mode
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
-from arelle import PackageManager, ValidateDuplicateFacts
-import gettext, time, datetime, os, shlex, sys, traceback, fnmatch, threading, json, logging, platform
-from optparse import OptionGroup, OptionParser, SUPPRESS_HELP, Option
+
+import datetime
+import fnmatch
+import gettext
+import glob
+import json
+import logging
+import os
+import platform
+import shlex
+import sys
+import threading
+import time
+import traceback
+from optparse import SUPPRESS_HELP, Option, OptionGroup, OptionParser
+from pprint import pprint
+
 import regex as re
-from arelle import (Cntlr, FileSource, ModelDocument, XmlUtil, XbrlConst, Version,
-                    ViewFileDTS, ViewFileFactList, ViewFileFactTable, ViewFileConcepts,
-                    ViewFileFormulae, ViewFileRelationshipSet, ViewFileTests, ViewFileRssFeed,
-                    ViewFileRoleTypes)
+from lxml import etree
+
+from arelle import (
+    Cntlr,
+    FileSource,
+    ModelDocument,
+    PackageManager,
+    PluginManager,
+    ValidateDuplicateFacts,
+    Version,
+    ViewFileConcepts,
+    ViewFileDTS,
+    ViewFileFactList,
+    ViewFileFactTable,
+    ViewFileFormulae,
+    ViewFileRelationshipSet,
+    ViewFileRoleTypes,
+    ViewFileRssFeed,
+    ViewFileTests,
+    XbrlConst,
+    XmlUtil,
+)
+from arelle.BetaFeatures import BETA_FEATURES_AND_DESCRIPTIONS
+from arelle.Locale import format_string, setApplicationLocale, setDisableRTL
+from arelle.ModelFormulaObject import FormulaOptions
+from arelle.ModelValue import qname
 from arelle.oim.xml.Save import saveOimReportToXmlInstance
 from arelle.rendering import RenderingEvaluator
 from arelle.RuntimeOptions import RuntimeOptions, RuntimeOptionsException
-from arelle.BetaFeatures import BETA_FEATURES_AND_DESCRIPTIONS
-from arelle.ModelValue import qname
-from arelle.Locale import format_string, setApplicationLocale, setDisableRTL
-from arelle.ModelFormulaObject import FormulaOptions
-from arelle import PluginManager
-from arelle.PluginManager import pluginClassMethods
 from arelle.SocketUtils import INTERNET_CONNECTIVITY, OFFLINE
+from arelle.SystemInfo import PlatformOS, getSystemInfo, getSystemWordSize, hasWebServer, isCGI, isGAE
 from arelle.typing import TypeGetText
 from arelle.UrlUtil import isHttpUrl
-from arelle.Version import copyrightLabel
 from arelle.WebCache import proxyTuple
-from arelle.SystemInfo import getSystemInfo, getSystemWordSize, hasWebServer, isCGI, isGAE, PlatformOS
-from pprint import pprint
-import logging
-from lxml import etree
-import glob
 
 win32file = win32api = win32process = pywintypes = None
 STILL_ACTIVE = 259 # MS Windows process status constants
@@ -394,7 +419,7 @@ def parseArgs(args):
                         PluginManager.reset()
             break
     # add plug-in options
-    for optionsExtender in pluginClassMethods("CntlrCmdLine.Options"):
+    for optionsExtender in PluginManager.pluginClassMethods("CntlrCmdLine.Options"):
         optionsExtender(parser)
     pluginLastOptionIndex = len(parser.option_list)
     pluginLastOptionsGroupIndex = len(parser.option_groups)
@@ -456,7 +481,7 @@ def parseArgs(args):
             version=Version.__version__,
             wordSize=getSystemWordSize(),
             platform=platform.machine(),
-            copyrightLabel=copyrightLabel,
+            copyrightLabel=Version.copyrightLabel,
             pythonVersion=f'{sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]}',
             lxmlVersion=f'{etree.LXML_VERSION[0]}.{etree.LXML_VERSION[1]}.{etree.LXML_VERSION[2]}',
             bottleCopyright="\n   Bottle (c) 2011-2013 Marcel Hellkamp" if hasWebServer() else ""
@@ -565,7 +590,7 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=None, inlineOnly=False
                 if report.isInline:
                     reportEntries = [{"file": f} for f in report.fullPathFiles]
                     ixdsDiscovered = False
-                    for pluginXbrlMethod in pluginClassMethods("InlineDocumentSet.Discovery"):
+                    for pluginXbrlMethod in PluginManager.pluginClassMethods("InlineDocumentSet.Discovery"):
                         pluginXbrlMethod(filesource, reportEntries)
                         ixdsDiscovered = True
                     if not ixdsDiscovered and len(reportEntries) > 1:
@@ -587,7 +612,7 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=None, inlineOnly=False
                     entrypointFiles.append({"file":url})
                 if entrypointFiles:
                     if identifiedType == ModelDocument.Type.INLINEXBRL:
-                        for pluginXbrlMethod in pluginClassMethods("InlineDocumentSet.Discovery"):
+                        for pluginXbrlMethod in PluginManager.pluginClassMethods("InlineDocumentSet.Discovery"):
                             pluginXbrlMethod(filesource, entrypointFiles) # group into IXDS if plugin feature is available
                     break # found inline (or non-inline) entrypoint files, don't look for any other type
             # for ESEF non-consolidated xhtml documents accept an xhtml entry point
@@ -608,7 +633,7 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=None, inlineOnly=False
                 if identifiedType in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
                     entrypointFiles.append({"file":_path})
         if hasInline: # group into IXDS if plugin feature is available
-            for pluginXbrlMethod in pluginClassMethods("InlineDocumentSet.Discovery"):
+            for pluginXbrlMethod in PluginManager.pluginClassMethods("InlineDocumentSet.Discovery"):
                 pluginXbrlMethod(filesource, entrypointFiles)
 
     return entrypointFiles
@@ -798,7 +823,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 if loadPluginOptions:
                     _optionsParser = ParserForDynamicPlugins(options)
                     # add plug-in options
-                    for optionsExtender in pluginClassMethods("CntlrCmdLine.Options"):
+                    for optionsExtender in PluginManager.pluginClassMethods("CntlrCmdLine.Options"):
                         optionsExtender(_optionsParser)
 
             if showPluginModules:
@@ -978,7 +1003,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
 
         # run utility command line options that don't depend on entrypoint Files
         hasUtilityPlugin = False
-        for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Utility.Run"):
+        for pluginXbrlMethod in PluginManager.pluginClassMethods("CntlrCmdLine.Utility.Run"):
             hasUtilityPlugin = True
             try:
                 pluginXbrlMethod(self, options, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
@@ -1026,7 +1051,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 self.addToLog(str(err), messageCode="error", level=logging.ERROR)
                 return False
 
-        for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Filing.Start"):
+        for pluginXbrlMethod in PluginManager.pluginClassMethods("CntlrCmdLine.Filing.Start"):
             pluginXbrlMethod(self, options, filesource, _entrypointFiles, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
         if len(_entrypointFiles) == 0:
             if options.entrypointFile:
@@ -1087,10 +1112,10 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     if modelXbrl.errors:
                         success = False    # loading errors, don't attempt to utilize loaded DTS
                 if modelXbrl.modelDocument.type in ModelDocument.Type.TESTCASETYPES:
-                    for pluginXbrlMethod in pluginClassMethods("Testcases.Start"):
+                    for pluginXbrlMethod in PluginManager.pluginClassMethods("Testcases.Start"):
                         pluginXbrlMethod(self, options, modelXbrl)
                 else: # not a test case, probably instance or DTS
-                    for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Xbrl.Loaded"):
+                    for pluginXbrlMethod in PluginManager.pluginClassMethods("CntlrCmdLine.Xbrl.Loaded"):
                         pluginXbrlMethod(self, options, modelXbrl, _entrypoint, responseZipStream=responseZipStream)
                     if options.saveOIMToXMLReport:
                         if modelXbrl.loadedFromOIM and modelXbrl.modelDocument is not None:
@@ -1139,7 +1164,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     for modelXbrl in [self.modelManager.modelXbrl] + getattr(self.modelManager.modelXbrl, "supplementalModelXbrls", []):
                         hasFormulae = modelXbrl.hasFormulae
                         isAlreadyValidated = False
-                        for pluginXbrlMethod in pluginClassMethods("ModelDocument.IsValidated"):
+                        for pluginXbrlMethod in PluginManager.pluginClassMethods("ModelDocument.IsValidated"):
                             if pluginXbrlMethod(modelXbrl): # e.g., streaming extensions already has validated
                                 isAlreadyValidated = True
                         if options.validate and not isAlreadyValidated:
@@ -1205,7 +1230,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         if options.arcroleTypesFile:
                             ViewFileRoleTypes.viewRoleTypes(modelXbrl, options.arcroleTypesFile, "Arcrole Types", isArcrole=True, lang=options.labelLang)
 
-                        for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Xbrl.Run"):
+                        for pluginXbrlMethod in PluginManager.pluginClassMethods("CntlrCmdLine.Xbrl.Run"):
                             pluginXbrlMethod(self, options, modelXbrl, _entrypoint, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
 
                 except OSError as err:
@@ -1261,9 +1286,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
 
         if success:
             if options.validate:
-                for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Filing.Validate"):
+                for pluginXbrlMethod in PluginManager.pluginClassMethods("CntlrCmdLine.Filing.Validate"):
                     pluginXbrlMethod(self, options, filesource, _entrypointFiles, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
-            for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Filing.End"):
+            for pluginXbrlMethod in PluginManager.pluginClassMethods("CntlrCmdLine.Filing.End"):
                 pluginXbrlMethod(self, options, filesource, _entrypointFiles, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
         self.username = self.password = None #dereference password
         self._clearPluginData()
