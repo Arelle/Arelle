@@ -51,10 +51,7 @@ def main():
        :type message: [str]
        """
     envArgs = os.getenv("ARELLE_ARGS")
-    if envArgs:
-        args = shlex.split(envArgs)
-    else:
-        args = sys.argv[1:]
+    args = shlex.split(envArgs) if envArgs else sys.argv[1:]
     setApplicationLocale()
     gettext.install("arelle")
     parseAndRun(args)
@@ -96,7 +93,7 @@ def parseArgs(args):
     cntlr = CntlrCmdLine(uiLang=uiLang, disable_persistent_config=disable_persistent_config)  # This Cntlr is needed for translations and to enable the web cache.  The cntlr is not used outside the parse function
     usage = "usage: %prog [options]"
     parser = OptionParser(usage,
-                          version="Arelle(r) {0} ({1}bit)".format(Version.__version__, getSystemWordSize()),
+                          version=f"Arelle(r) {Version.__version__} ({getSystemWordSize()}bit)",
                           conflict_handler="resolve") # allow reloading plug-in options without errors
     parser.add_option("-f", "--file", dest="entrypointFile",
                       help=_("FILENAME is an entry point, which may be "
@@ -652,7 +649,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
     """
 
     def __init__(self, logFileName=None, uiLang=None, disable_persistent_config=False):
-        super(CntlrCmdLine, self).__init__(hasGui=False, uiLang=uiLang, disable_persistent_config=disable_persistent_config)
+        super().__init__(hasGui=False, uiLang=uiLang, disable_persistent_config=disable_persistent_config)
         self.preloadedPlugins =  {}
 
     def run(self, options: RuntimeOptions, sourceZipStream=None, responseZipStream=None, sourceZipStreamFileName=None) -> bool:
@@ -664,24 +661,24 @@ class CntlrCmdLine(Cntlr.Cntlr):
         :param options: OptionParser options from parse_args of main argv arguments (when called from command line) or corresponding arguments from web service (REST) request.
         :type options: optparse.Values
         """
-        for b in BETA_FEATURES_AND_DESCRIPTIONS.keys():
+        for b in BETA_FEATURES_AND_DESCRIPTIONS:
             self.betaFeatures[b] = getattr(options, b)
         if options.statusPipe or options.monitorParentProcess:
             try:
                 global win32file, win32api, win32process, pywintypes
                 import win32file, win32api, win32process, pywintypes
             except ImportError: # win32 not installed
-                self.addToLog("--statusPipe {} cannot be installed, packages for win32 missing".format(options.statusPipe))
+                self.addToLog(f"--statusPipe {options.statusPipe} cannot be installed, packages for win32 missing")
                 options.statusPipe = options.monitorParentProcess = None
         if options.statusPipe:
             try:
-                self.statusPipe = win32file.CreateFile("\\\\.\\pipe\\{}".format(options.statusPipe),
+                self.statusPipe = win32file.CreateFile(f"\\\\.\\pipe\\{options.statusPipe}",
                                                        win32file.GENERIC_READ | win32file.GENERIC_WRITE, 0, None, win32file.OPEN_EXISTING, win32file.FILE_FLAG_NO_BUFFERING, None)
                 self.showStatus = self.showStatusOnPipe
                 self.lastStatusTime = 0.0
                 self.parentProcessHandle = None
             except pywintypes.error: # named pipe doesn't exist
-                self.addToLog("--statusPipe {} has not been created by calling program".format(options.statusPipe))
+                self.addToLog(f"--statusPipe {options.statusPipe} has not been created by calling program")
         if options.monitorParentProcess:
             try:
                 self.parentProcessHandle = win32api.OpenProcess(PROCESS_QUERY_INFORMATION, False, int(options.monitorParentProcess))
@@ -693,14 +690,14 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     _t.start()
                 monitorParentProcess()
             except ImportError: # win32 not installed
-                self.addToLog("--monitorParentProcess {} cannot be installed, packages for win32api and win32process missing".format(options.monitorParentProcess))
+                self.addToLog(f"--monitorParentProcess {options.monitorParentProcess} cannot be installed, packages for win32api and win32process missing")
             except (ValueError, pywintypes.error): # parent process doesn't exist
-                self.addToLog("--monitorParentProcess Process {} Id is invalid".format(options.monitorParentProcess))
+                self.addToLog(f"--monitorParentProcess Process {options.monitorParentProcess} Id is invalid")
                 sys.exit()
         if options.showOptions: # debug options
             for optName, optValue in sorted(options.__dict__.items(), key=lambda optItem: optItem[0]):
-                self.addToLog("Option {0}={1}".format(optName, optValue), messageCode="info")
-            self.addToLog("sys.argv {0}".format(sys.argv), messageCode="info")
+                self.addToLog(f"Option {optName}={optValue}", messageCode="info")
+            self.addToLog(f"sys.argv {sys.argv}", messageCode="info")
 
         setDisableRTL(options.disableRtl) # not saved to config
 
@@ -730,7 +727,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     ":****" if password else "",
                     "@" if (user or password) else "",
                     urlAddr,
-                    ":{0}".format(urlPort) if urlPort else ""), messageCode="info")
+                    f":{urlPort}" if urlPort else ""), messageCode="info")
             else:
                 self.addToLog(_("Proxy is disabled."), messageCode="info")
         if options.noCertificateCheck:
@@ -1006,7 +1003,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             except ValueError as e:
                 # is it malformed json?
                 if _f.startswith("[{") or _f.endswith("]}") or '"file:"' in _f:
-                    self.addToLog(_("File name parameter appears to be malformed JSON: {0}\n{1}".format(e, _f)),
+                    self.addToLog(_("File name parameter appears to be malformed JSON: {}\n{}").format(e, _f),
                                   messageCode="FileNameFormatError",
                                   level=logging.ERROR)
                     success = False
@@ -1211,7 +1208,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Xbrl.Run"):
                             pluginXbrlMethod(self, options, modelXbrl, _entrypoint, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
 
-                except (IOError, EnvironmentError) as err:
+                except OSError as err:
                     self.addToLog(_("[IOError] Failed to save output:\n {0}").format(err),
                                   messageCode="IOError",
                                   file=options.entrypointFile,
