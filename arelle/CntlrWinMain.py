@@ -34,6 +34,7 @@ from arelle import XbrlConst
 from arelle.PluginManager import pluginClassMethods
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateXbrlCalcs import ValidateCalcsMode as CalcsMode
+from arelle.ValidateXbrlDTS import ValidateBaseTaxonomiesMode
 from arelle.Version import copyrightLabel
 from arelle.oim.xml.Save import saveOimReportToXmlInstance
 import logging
@@ -164,6 +165,16 @@ class CntlrWinMain (Cntlr.Cntlr):
         for calcChoiceMenuLabel, calcChoiceEnumValue in CalcsMode.menu().items():
             calcMenu.add_radiobutton(label=calcChoiceMenuLabel, underline=0, var=self.calcChoiceEnumVar, value=calcChoiceEnumValue)
         toolsMenu.add_cascade(label=_("Calc linkbase"), menu=calcMenu, underline=0)
+
+        baseValidateModeMenu = Menu(self.menubar, tearoff=0)
+        baseValidationModeName = self.config.setdefault("baseTaxonomyValidationMode", ValidateBaseTaxonomiesMode.DISCLOSURE_SYSTEM.value)
+        self.modelManager.baseTaxonomyValidationMode = ValidateBaseTaxonomiesMode.fromName(baseValidationModeName)
+        self.baseTaxonomyValidationModeEnumVar = StringVar(self.parent, value=baseValidationModeName)
+        self.baseTaxonomyValidationModeEnumVar.trace("w", self.setBaseTaxonomyValidationModeEnumVar)
+        for modeLabel, modeValue in ValidateBaseTaxonomiesMode.menu().items():
+            baseValidateModeMenu.add_radiobutton(label=modeLabel, underline=0, var=self.baseTaxonomyValidationModeEnumVar, value=modeValue)
+        validateMenu.add_cascade(label=_("Base taxonomy validation"), menu=baseValidateModeMenu, underline=0)
+
         self.modelManager.validateUtr = self.config.setdefault("validateUtr",True)
         self.validateUtr = BooleanVar(value=self.modelManager.validateUtr)
         self.validateUtr.trace("w", self.setValidateUtr)
@@ -1398,6 +1409,13 @@ class CntlrWinMain (Cntlr.Cntlr):
     def setCalcChoiceEnumVar(self, *args):
         self.modelManager.validateCalcs = self.calcChoiceEnumVar.get()
         self.config["validateCalcsEnum"] = self.modelManager.validateCalcs
+        self.saveConfig()
+        self.setValidateTooltipText()
+
+    def setBaseTaxonomyValidationModeEnumVar(self, *args):
+        modeName = self.baseTaxonomyValidationModeEnumVar.get()
+        self.modelManager.baseTaxonomyValidationMode = ValidateBaseTaxonomiesMode.fromName(modeName)
+        self.config["baseTaxonomyValidationMode"] = modeName
         self.saveConfig()
         self.setValidateTooltipText()
 

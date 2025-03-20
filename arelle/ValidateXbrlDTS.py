@@ -2,6 +2,7 @@
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
+from enum import Enum, auto
 from typing import TYPE_CHECKING
 from arelle import (ModelDocument, ModelDtsObject, HtmlUtil, UrlUtil, XmlUtil, XbrlUtil, XbrlConst,
                     XmlValidate)
@@ -48,6 +49,37 @@ standard_roles_other = ("xbrl.5.1.3", ())
 inlineDisplayNonePattern = re.compile(r"display\s*:\s*none")
 # lookbehind below is to ignore even numbers of \ before illegal escape character
 illegalXsdPatternEscapeChar = re.compile(r"(?:(?:^|[^\\])(?:\\\\)*)(\\[^nrt\\|.^?*+{}()[\]pPsSiIcCdDwW-])")
+
+class ValidateBaseTaxonomiesMode(Enum):
+    DISCLOSURE_SYSTEM = "disclosureSystem"
+    NONE = "none"
+    ALL = "all"
+
+    @staticmethod
+    def fromName(modeName: str) -> ValidateBaseTaxonomiesMode:
+        for mode in ValidateBaseTaxonomiesMode:
+            if mode.value == modeName:
+                return mode
+        raise ValueError(f"Unknown ValidateBaseTaxonomiesMode: {modeName}")
+
+    @staticmethod
+    def tooltip(enum: ValidateBaseTaxonomiesMode):
+        if enum == ValidateBaseTaxonomiesMode.DISCLOSURE_SYSTEM:
+            return _("Skip validation of base taxonomy files which are known to be valid by the disclosure system")
+        if enum == ValidateBaseTaxonomiesMode.NONE:
+            return _("Skip validation of all base taxonomy files")
+        if enum == ValidateBaseTaxonomiesMode.ALL:
+            return _("Validate all base taxonomy files")
+        raise ValueError(f"Unknown ValidateBaseTaxonomiesMode: {enum}")
+
+    @staticmethod
+    def menu():
+        return {
+            _("Use disclosure system settings"): ValidateBaseTaxonomiesMode.DISCLOSURE_SYSTEM.value,
+            _("Don't validate any base files"): ValidateBaseTaxonomiesMode.NONE.value,
+            _("Validate all base files"): ValidateBaseTaxonomiesMode.ALL.value,
+        }
+
 
 def arcFromConceptQname(arcElement):
     modelRelationship = baseSetRelationship(arcElement)

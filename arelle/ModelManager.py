@@ -9,6 +9,7 @@ import gc, sys, traceback, logging
 from arelle import ModelXbrl, Validate, DisclosureSystem, PackageManager, ValidateXbrlCalcs, ValidateDuplicateFacts
 from arelle.ModelFormulaObject import FormulaOptions
 from arelle.PluginManager import pluginClassMethods
+from arelle.ValidateXbrlDTS import ValidateBaseTaxonomiesMode
 from arelle.typing import LocaleDict
 
 if TYPE_CHECKING:
@@ -67,6 +68,7 @@ class ModelManager:
         self.loadedModelXbrls = []
         self.customTransforms: dict[QName, Callable[[str], str]] | None = None
         self.isLocaleSet = False
+        self.baseTaxonomyValidationMode = ValidateBaseTaxonomiesMode.DISCLOSURE_SYSTEM
         self.validateAllFilesAsReportPackages = False
         self.validateDuplicateFacts = ValidateDuplicateFacts.DuplicateType.NONE
         self.validateXmlOim = False

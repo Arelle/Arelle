@@ -57,6 +57,7 @@ from arelle.SocketUtils import INTERNET_CONNECTIVITY, OFFLINE
 from arelle.SystemInfo import PlatformOS, getSystemInfo, getSystemWordSize, hasWebServer, isCGI, isGAE
 from arelle.typing import TypeGetText
 from arelle.UrlUtil import isHttpUrl
+from arelle.ValidateXbrlDTS import ValidateBaseTaxonomiesMode
 from arelle.WebCache import proxyTuple
 
 win32file = win32api = win32process = pywintypes = None
@@ -159,6 +160,15 @@ def parseArgs(args):
                       choices=[a.value for a in ValidateDuplicateFacts.DUPLICATE_TYPE_ARG_MAP],
                       dest="validateDuplicateFacts",
                       help=_("Select which types of duplicates should trigger warnings."))
+    parser.add_option("--baseTaxonomyValidation", "--basetaxonomyvalidation",
+                      choices=("disclosureSystem", "none", "all"),
+                      dest="baseTaxonomyValidationMode",
+                      default="disclosureSystem",
+                      help=_("""Specify if base taxonomies should be validated.
+                             Skipping validation of base taxonomy files which are known to be valid can significantly reduce validation time.
+                             disclosureSystem - (default) skip validation of base taxonomy files which are known to be valid by the disclosure system
+                             none - skip validation of all base taxonomies
+                             all - validate all base taxonomies"""))
     parser.add_option("--saveOIMToXMLReport", "--saveoimtoxmlreport", "--saveOIMinstance", "--saveoiminstance",
                       action="store",
                       dest="saveOIMToXMLReport",
@@ -866,6 +876,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
         else:
             self.modelManager.disclosureSystem.select(None) # just load ordinary mappings
             self.modelManager.validateDisclosureSystem = False
+        if options.baseTaxonomyValidationMode is not None:
+            self.modelManager.baseTaxonomyValidationMode = ValidateBaseTaxonomiesMode.fromName(options.baseTaxonomyValidationMode)
         self.modelManager.validateXmlOim = bool(options.validateXmlOim)
         if options.validateDuplicateFacts:
             duplicateTypeArg = ValidateDuplicateFacts.DuplicateTypeArg(options.validateDuplicateFacts)
