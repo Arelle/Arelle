@@ -277,10 +277,11 @@ def tzinfo(tz: str | None) -> datetime.timezone | None:
     else:
         return datetime.timezone(datetime.timedelta(hours=int(tz[0:3]), minutes=int(tz[0]+tz[4:6])))
 
-def tzinfoStr(dt: datetime.datetime) -> str:
-    tz = str(dt.tzinfo or "")
-    if tz.startswith("UTC"):
-        return tz[3:] or "Z"
+def tzinfoStr(dt: datetime.datetime | datetime.date) -> str:
+    if isinstance(dt, datetime.datetime):
+        tz = str(dt.tzinfo or "")
+        if tz.startswith("UTC"):
+            return tz[3:] or "Z"
     return ""
 
 def dateTime(

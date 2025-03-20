@@ -1035,7 +1035,7 @@ def dateunionValue(
 ) -> str:
     if not isinstance(datetimeValue, (datetime.datetime, datetime.date)):
         return "INVALID"
-    tz = tzinfoStr(datetimeValue)  # type: ignore[arg-type]  # ModelValue type hints
+    tz = tzinfoStr(datetimeValue)
     isDate = getattr(
         datetimeValue, 'dateOnly', False) or not hasattr(datetimeValue, 'hour')
     if isDate or (
