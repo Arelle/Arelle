@@ -44,11 +44,11 @@ def resolveTableStructure(view, viewTblELR):
 
         # find an ELR for this table object
         defnMdlTable = viewTblELR
-        strctMdlTable = StrctMdlTable(defnMdlTable)
+        strctMdlTableSet = StrctMdlTableSet(defnMdlTable)
         for rel in view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD)).fromModelObject(defnMdlTable):
             # find relationships in table's linkrole
             view.defnSubtreeRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableBreakdownTree, XbrlConst.tableBreakdownTreeMMDD), rel.linkrole)
-            return resolveTableAxesStructure(view, strctMdlTable,
+            return resolveTableAxesStructure(view, strctMdlTableSet,
                                              view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD), rel.linkrole))
         # no relationships from table found
         return None
