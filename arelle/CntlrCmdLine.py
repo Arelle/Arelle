@@ -597,6 +597,10 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=None, inlineOnly=False
             if not entrypointFiles and not inlineOnly:
                 for url in urlsByType.get(ModelDocument.Type.HTML, []):
                     entrypointFiles.append({"file":url})
+            if not entrypointFiles and filesource.taxonomyPackage is not None:
+                for packageEntry in filesource.taxonomyPackage.get('entryPoints', {}).values():
+                    for _resolvedUrl, remappedUrl, _closest in packageEntry:
+                        entrypointFiles.append({"file": remappedUrl})
 
 
     elif os.path.isdir(filesource.url):
