@@ -293,36 +293,42 @@ def checkDTS(val: ValidateXbrl, modelDocument: ModelDocument.ModelDocument, chec
     # XML validation checks (remove if using validating XML)
     val.extendedElementName = None
     isFilingDocument = False
-    # validate contents of entry point document or its sibling/descendant documents or in report package of entry point
-    if ((modelDocument.uri.startswith(val.modelXbrl.uriDir) or # document uri in same subtree as entry doocument
-         (val.modelXbrl.fileSource.isOpen and modelDocument.filepath.startswith(val.modelXbrl.fileSource.baseurl))) and # document in entry submission's package
-        modelDocument.targetNamespace not in val.disclosureSystem.baseTaxonomyNamespaces and
-        modelDocument.xmlDocument):
-        isFilingDocument = True
-        val.valUsedPrefixes = set()
-        val.schemaRoleTypes = {}
-        val.schemaArcroleTypes = {}
-        val.referencedNamespaces = set()
 
-        val.containsRelationship = False
+    if modelDocument.xmlDocument is not None:
+        isExtensionTaxonomyDoc = _isExtensionTaxonomyDocument(val, modelDocument)
+        if isExtensionTaxonomyDoc or _shouldValidateBaseTaxonomyDoc(val, modelDocument):
+            isFilingDocument = True
+            val.valUsedPrefixes = set()
+            val.schemaRoleTypes = {}
+            val.schemaArcroleTypes = {}
+            val.referencedNamespaces = set()
 
-        checkElements(val, modelDocument, modelDocument.xmlDocument)
+            val.containsRelationship = False
 
-        if (modelDocument.type == ModelDocument.Type.INLINEXBRL and
-            val.validateGFM and
-            (val.documentTypeEncoding.lower() != 'utf-8' or val.metaContentTypeEncoding.lower() != 'utf-8')):
-            val.modelXbrl.error("GFM.1.10.4",
-                    _("XML declaration encoding %(encoding)s and meta content type encoding %(metaContentTypeEncoding)s must both be utf-8"),
-                    modelXbrl=modelDocument, encoding=val.documentTypeEncoding,
-                    metaContentTypeEncoding=val.metaContentTypeEncoding)
-        if val.validateSBRNL:
-            for pluginXbrlMethod in pluginClassMethods("Validate.SBRNL.DTS.document"):
-                pluginXbrlMethod(val, modelDocument)
-        del val.valUsedPrefixes
-        del val.schemaRoleTypes
-        del val.schemaArcroleTypes
-    for pluginXbrlMethod in pluginClassMethods("Validate.XBRL.DTS.document"):
-        pluginXbrlMethod(val, modelDocument, isFilingDocument)
+            checkElements(val, modelDocument, modelDocument.xmlDocument)
+
+            if (modelDocument.type == ModelDocument.Type.INLINEXBRL and
+                val.validateGFM and
+                (val.documentTypeEncoding.lower() != 'utf-8' or val.metaContentTypeEncoding.lower() != 'utf-8')):
+                val.modelXbrl.error("GFM.1.10.4",
+                        _("XML declaration encoding %(encoding)s and meta content type encoding %(metaContentTypeEncoding)s must both be utf-8"),
+                        modelXbrl=modelDocument, encoding=val.documentTypeEncoding,
+                        metaContentTypeEncoding=val.metaContentTypeEncoding)
+            if val.validateSBRNL:
+                for pluginXbrlMethod in pluginClassMethods("Validate.SBRNL.DTS.document"):
+                    pluginXbrlMethod(val, modelDocument)
+            del val.valUsedPrefixes
+            del val.schemaRoleTypes
+            del val.schemaArcroleTypes
+
+        if isExtensionTaxonomyDoc:
+            # While not captured in the hook name, the Validate.XBRL.DTS.document hook has been historically used by
+            # plugins (see EDGAR plugin) to validate extension taxonomies. This worked because Arelle didn't fully
+            # validate base taxonomy documents. Although Arelle now validates all documents, it retains this logic for
+            # the plugin hook to prevent running validation rules intended solely for extension taxonomy documents
+            # against base taxonomy documents.
+            for pluginXbrlMethod in pluginClassMethods("Validate.XBRL.DTS.document"):
+                pluginXbrlMethod(val, modelDocument, isFilingDocument)
 
     val.roleRefURIs = None
     val.arcroleRefURIs = None
@@ -1420,3 +1426,21 @@ def checkIxContinuationChain(val, elt, chain=None):
                 if contAt is not None:
                     chain.append(elt)
                 checkIxContinuationChain(val, contAt, chain)
+
+def _isExtensionTaxonomyDocument(val: ValidateXbrl, modelDocument: ModelDocument.ModelDocument) -> bool:
+    if modelDocument.uri.startswith(val.modelXbrl.uriDir):
+        # document uri in same subtree as entry doocument.
+        return True
+
+    # check if document in entry submission's package.
+    return val.modelXbrl.fileSource.isOpen and modelDocument.filepath.startswith(val.modelXbrl.fileSource.baseurl)
+
+def _shouldValidateBaseTaxonomyDoc(val: ValidateXbrl, modelDocument: ModelDocument.ModelDocument) -> bool:
+    baseTaxonomyValidationMode = val.modelXbrl.modelManager.baseTaxonomyValidationMode
+    if baseTaxonomyValidationMode == ValidateBaseTaxonomiesMode.NONE:
+        return False
+    if baseTaxonomyValidationMode == ValidateBaseTaxonomiesMode.ALL:
+        return True
+    if baseTaxonomyValidationMode == ValidateBaseTaxonomiesMode.DISCLOSURE_SYSTEM:
+        return modelDocument.uri not in getattr(val.disclosureSystem, "standardTaxonomiesDict", {})
+    raise ValueError(f"Invalid base taxonomy validation mode: {baseTaxonomyValidationMode}")
