@@ -4,6 +4,7 @@ from tests.integration_tests.validation.conformance_suite_config import Conforma
 config = ConformanceSuiteConfig(
     args=[
         '--disclosureSystem', 'arl-2024-multi-target-preview',
+        '--baseTaxonomyValidation', 'none',
     ],
     assets=[
         ConformanceSuiteAssetConfig.local_conformance_suite(

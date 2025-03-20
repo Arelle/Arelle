@@ -10,6 +10,7 @@ from tests.integration_tests.validation.conformance_suite_config import (
 config = ConformanceSuiteConfig(
     args=[
         '--disclosureSystem', 'esef-2024',
+        '--baseTaxonomyValidation', 'none',
     ],
     assets=[
         ConformanceSuiteAssetConfig.conformance_suite(
