@@ -33,6 +33,7 @@ class RuntimeOptions:
     about: Optional[str] = None
     anchFile: Optional[str] = None
     arcroleTypesFile: Optional[str] = None
+    baseTaxonomyValidationMode: Optional[str] = None
     betaObjectModel: Optional[bool] = False
     cacheDirectory: Optional[str] = None
     calFile: Optional[str] = None

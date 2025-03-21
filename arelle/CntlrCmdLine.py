@@ -6,33 +6,59 @@ This module is Arelle's controller in command line non-interactive mode
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
-from arelle import PackageManager, ValidateDuplicateFacts
-import gettext, time, datetime, os, shlex, sys, traceback, fnmatch, threading, json, logging, platform
-from optparse import OptionGroup, OptionParser, SUPPRESS_HELP, Option
+
+import datetime
+import fnmatch
+import gettext
+import glob
+import json
+import logging
+import os
+import platform
+import shlex
+import sys
+import threading
+import time
+import traceback
+from optparse import SUPPRESS_HELP, Option, OptionGroup, OptionParser
+from pprint import pprint
+
 import regex as re
-from arelle import (Cntlr, FileSource, ModelDocument, XmlUtil, XbrlConst, Version,
-                    ViewFileDTS, ViewFileFactList, ViewFileFactTable, ViewFileConcepts,
-                    ViewFileFormulae, ViewFileRelationshipSet, ViewFileTests, ViewFileRssFeed,
-                    ViewFileRoleTypes)
+from lxml import etree
+
+from arelle import (
+    Cntlr,
+    FileSource,
+    ModelDocument,
+    PackageManager,
+    PluginManager,
+    ValidateDuplicateFacts,
+    Version,
+    ViewFileConcepts,
+    ViewFileDTS,
+    ViewFileFactList,
+    ViewFileFactTable,
+    ViewFileFormulae,
+    ViewFileRelationshipSet,
+    ViewFileRoleTypes,
+    ViewFileRssFeed,
+    ViewFileTests,
+    XbrlConst,
+    XmlUtil,
+)
+from arelle.BetaFeatures import BETA_FEATURES_AND_DESCRIPTIONS
+from arelle.Locale import format_string, setApplicationLocale, setDisableRTL
+from arelle.ModelFormulaObject import FormulaOptions
+from arelle.ModelValue import qname
 from arelle.oim.xml.Save import saveOimReportToXmlInstance
 from arelle.rendering import RenderingEvaluator
 from arelle.RuntimeOptions import RuntimeOptions, RuntimeOptionsException
-from arelle.BetaFeatures import BETA_FEATURES_AND_DESCRIPTIONS
-from arelle.ModelValue import qname
-from arelle.Locale import format_string, setApplicationLocale, setDisableRTL
-from arelle.ModelFormulaObject import FormulaOptions
-from arelle import PluginManager
-from arelle.PluginManager import pluginClassMethods
 from arelle.SocketUtils import INTERNET_CONNECTIVITY, OFFLINE
+from arelle.SystemInfo import PlatformOS, getSystemInfo, getSystemWordSize, hasWebServer, isCGI, isGAE
 from arelle.typing import TypeGetText
 from arelle.UrlUtil import isHttpUrl
-from arelle.Version import copyrightLabel
+from arelle.ValidateXbrlDTS import ValidateBaseTaxonomiesMode
 from arelle.WebCache import proxyTuple
-from arelle.SystemInfo import getSystemInfo, getSystemWordSize, hasWebServer, isCGI, isGAE, PlatformOS
-from pprint import pprint
-import logging
-from lxml import etree
-import glob
 
 win32file = win32api = win32process = pywintypes = None
 STILL_ACTIVE = 259 # MS Windows process status constants
@@ -51,10 +77,7 @@ def main():
        :type message: [str]
        """
     envArgs = os.getenv("ARELLE_ARGS")
-    if envArgs:
-        args = shlex.split(envArgs)
-    else:
-        args = sys.argv[1:]
+    args = shlex.split(envArgs) if envArgs else sys.argv[1:]
     setApplicationLocale()
     gettext.install("arelle")
     parseAndRun(args)
@@ -96,7 +119,7 @@ def parseArgs(args):
     cntlr = CntlrCmdLine(uiLang=uiLang, disable_persistent_config=disable_persistent_config)  # This Cntlr is needed for translations and to enable the web cache.  The cntlr is not used outside the parse function
     usage = "usage: %prog [options]"
     parser = OptionParser(usage,
-                          version="Arelle(r) {0} ({1}bit)".format(Version.__version__, getSystemWordSize()),
+                          version=f"Arelle(r) {Version.__version__} ({getSystemWordSize()}bit)",
                           conflict_handler="resolve") # allow reloading plug-in options without errors
     parser.add_option("-f", "--file", dest="entrypointFile",
                       help=_("FILENAME is an entry point, which may be "
@@ -137,6 +160,15 @@ def parseArgs(args):
                       choices=[a.value for a in ValidateDuplicateFacts.DUPLICATE_TYPE_ARG_MAP],
                       dest="validateDuplicateFacts",
                       help=_("Select which types of duplicates should trigger warnings."))
+    parser.add_option("--baseTaxonomyValidation", "--basetaxonomyvalidation",
+                      choices=("disclosureSystem", "none", "all"),
+                      dest="baseTaxonomyValidationMode",
+                      default="disclosureSystem",
+                      help=_("""Specify if base taxonomies should be validated.
+                             Skipping validation of base taxonomy files which are known to be valid can significantly reduce validation time.
+                             disclosureSystem - (default) skip validation of base taxonomy files which are known to be valid by the disclosure system
+                             none - skip validation of all base taxonomies
+                             all - validate all base taxonomies"""))
     parser.add_option("--saveOIMToXMLReport", "--saveoimtoxmlreport", "--saveOIMinstance", "--saveoiminstance",
                       action="store",
                       dest="saveOIMToXMLReport",
@@ -397,7 +429,7 @@ def parseArgs(args):
                         PluginManager.reset()
             break
     # add plug-in options
-    for optionsExtender in pluginClassMethods("CntlrCmdLine.Options"):
+    for optionsExtender in PluginManager.pluginClassMethods("CntlrCmdLine.Options"):
         optionsExtender(parser)
     pluginLastOptionIndex = len(parser.option_list)
     pluginLastOptionsGroupIndex = len(parser.option_groups)
@@ -459,7 +491,7 @@ def parseArgs(args):
             version=Version.__version__,
             wordSize=getSystemWordSize(),
             platform=platform.machine(),
-            copyrightLabel=copyrightLabel,
+            copyrightLabel=Version.copyrightLabel,
             pythonVersion=f'{sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]}',
             lxmlVersion=f'{etree.LXML_VERSION[0]}.{etree.LXML_VERSION[1]}.{etree.LXML_VERSION[2]}',
             bottleCopyright="\n   Bottle (c) 2011-2013 Marcel Hellkamp" if hasWebServer() else ""
@@ -568,7 +600,7 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=None, inlineOnly=False
                 if report.isInline:
                     reportEntries = [{"file": f} for f in report.fullPathFiles]
                     ixdsDiscovered = False
-                    for pluginXbrlMethod in pluginClassMethods("InlineDocumentSet.Discovery"):
+                    for pluginXbrlMethod in PluginManager.pluginClassMethods("InlineDocumentSet.Discovery"):
                         pluginXbrlMethod(filesource, reportEntries)
                         ixdsDiscovered = True
                     if not ixdsDiscovered and len(reportEntries) > 1:
@@ -590,7 +622,7 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=None, inlineOnly=False
                     entrypointFiles.append({"file":url})
                 if entrypointFiles:
                     if identifiedType == ModelDocument.Type.INLINEXBRL:
-                        for pluginXbrlMethod in pluginClassMethods("InlineDocumentSet.Discovery"):
+                        for pluginXbrlMethod in PluginManager.pluginClassMethods("InlineDocumentSet.Discovery"):
                             pluginXbrlMethod(filesource, entrypointFiles) # group into IXDS if plugin feature is available
                     break # found inline (or non-inline) entrypoint files, don't look for any other type
             # for ESEF non-consolidated xhtml documents accept an xhtml entry point
@@ -615,7 +647,7 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=None, inlineOnly=False
                 if identifiedType in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
                     entrypointFiles.append({"file":_path})
         if hasInline: # group into IXDS if plugin feature is available
-            for pluginXbrlMethod in pluginClassMethods("InlineDocumentSet.Discovery"):
+            for pluginXbrlMethod in PluginManager.pluginClassMethods("InlineDocumentSet.Discovery"):
                 pluginXbrlMethod(filesource, entrypointFiles)
 
     return entrypointFiles
@@ -656,7 +688,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
     """
 
     def __init__(self, logFileName=None, uiLang=None, disable_persistent_config=False):
-        super(CntlrCmdLine, self).__init__(hasGui=False, uiLang=uiLang, disable_persistent_config=disable_persistent_config)
+        super().__init__(hasGui=False, uiLang=uiLang, disable_persistent_config=disable_persistent_config)
         self.preloadedPlugins =  {}
 
     def run(self, options: RuntimeOptions, sourceZipStream=None, responseZipStream=None, sourceZipStreamFileName=None) -> bool:
@@ -668,24 +700,24 @@ class CntlrCmdLine(Cntlr.Cntlr):
         :param options: OptionParser options from parse_args of main argv arguments (when called from command line) or corresponding arguments from web service (REST) request.
         :type options: optparse.Values
         """
-        for b in BETA_FEATURES_AND_DESCRIPTIONS.keys():
+        for b in BETA_FEATURES_AND_DESCRIPTIONS:
             self.betaFeatures[b] = getattr(options, b)
         if options.statusPipe or options.monitorParentProcess:
             try:
                 global win32file, win32api, win32process, pywintypes
                 import win32file, win32api, win32process, pywintypes
             except ImportError: # win32 not installed
-                self.addToLog("--statusPipe {} cannot be installed, packages for win32 missing".format(options.statusPipe))
+                self.addToLog(f"--statusPipe {options.statusPipe} cannot be installed, packages for win32 missing")
                 options.statusPipe = options.monitorParentProcess = None
         if options.statusPipe:
             try:
-                self.statusPipe = win32file.CreateFile("\\\\.\\pipe\\{}".format(options.statusPipe),
+                self.statusPipe = win32file.CreateFile(f"\\\\.\\pipe\\{options.statusPipe}",
                                                        win32file.GENERIC_READ | win32file.GENERIC_WRITE, 0, None, win32file.OPEN_EXISTING, win32file.FILE_FLAG_NO_BUFFERING, None)
                 self.showStatus = self.showStatusOnPipe
                 self.lastStatusTime = 0.0
                 self.parentProcessHandle = None
             except pywintypes.error: # named pipe doesn't exist
-                self.addToLog("--statusPipe {} has not been created by calling program".format(options.statusPipe))
+                self.addToLog(f"--statusPipe {options.statusPipe} has not been created by calling program")
         if options.monitorParentProcess:
             try:
                 self.parentProcessHandle = win32api.OpenProcess(PROCESS_QUERY_INFORMATION, False, int(options.monitorParentProcess))
@@ -697,14 +729,14 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     _t.start()
                 monitorParentProcess()
             except ImportError: # win32 not installed
-                self.addToLog("--monitorParentProcess {} cannot be installed, packages for win32api and win32process missing".format(options.monitorParentProcess))
+                self.addToLog(f"--monitorParentProcess {options.monitorParentProcess} cannot be installed, packages for win32api and win32process missing")
             except (ValueError, pywintypes.error): # parent process doesn't exist
-                self.addToLog("--monitorParentProcess Process {} Id is invalid".format(options.monitorParentProcess))
+                self.addToLog(f"--monitorParentProcess Process {options.monitorParentProcess} Id is invalid")
                 sys.exit()
         if options.showOptions: # debug options
             for optName, optValue in sorted(options.__dict__.items(), key=lambda optItem: optItem[0]):
-                self.addToLog("Option {0}={1}".format(optName, optValue), messageCode="info")
-            self.addToLog("sys.argv {0}".format(sys.argv), messageCode="info")
+                self.addToLog(f"Option {optName}={optValue}", messageCode="info")
+            self.addToLog(f"sys.argv {sys.argv}", messageCode="info")
 
         setDisableRTL(options.disableRtl) # not saved to config
 
@@ -734,7 +766,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     ":****" if password else "",
                     "@" if (user or password) else "",
                     urlAddr,
-                    ":{0}".format(urlPort) if urlPort else ""), messageCode="info")
+                    f":{urlPort}" if urlPort else ""), messageCode="info")
             else:
                 self.addToLog(_("Proxy is disabled."), messageCode="info")
         if options.noCertificateCheck:
@@ -805,7 +837,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 if loadPluginOptions:
                     _optionsParser = ParserForDynamicPlugins(options)
                     # add plug-in options
-                    for optionsExtender in pluginClassMethods("CntlrCmdLine.Options"):
+                    for optionsExtender in PluginManager.pluginClassMethods("CntlrCmdLine.Options"):
                         optionsExtender(_optionsParser)
 
             if showPluginModules:
@@ -848,6 +880,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
         else:
             self.modelManager.disclosureSystem.select(None) # just load ordinary mappings
             self.modelManager.validateDisclosureSystem = False
+        if options.baseTaxonomyValidationMode is not None:
+            self.modelManager.baseTaxonomyValidationMode = ValidateBaseTaxonomiesMode.fromName(options.baseTaxonomyValidationMode)
         self.modelManager.validateXmlOim = bool(options.validateXmlOim)
         if options.validateDuplicateFacts:
             duplicateTypeArg = ValidateDuplicateFacts.DuplicateTypeArg(options.validateDuplicateFacts)
@@ -985,7 +1019,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
 
         # run utility command line options that don't depend on entrypoint Files
         hasUtilityPlugin = False
-        for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Utility.Run"):
+        for pluginXbrlMethod in PluginManager.pluginClassMethods("CntlrCmdLine.Utility.Run"):
             hasUtilityPlugin = True
             try:
                 pluginXbrlMethod(self, options, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
@@ -1010,7 +1044,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             except ValueError as e:
                 # is it malformed json?
                 if _f.startswith("[{") or _f.endswith("]}") or '"file:"' in _f:
-                    self.addToLog(_("File name parameter appears to be malformed JSON: {0}\n{1}".format(e, _f)),
+                    self.addToLog(_("File name parameter appears to be malformed JSON: {}\n{}").format(e, _f),
                                   messageCode="FileNameFormatError",
                                   level=logging.ERROR)
                     success = False
@@ -1033,7 +1067,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 self.addToLog(str(err), messageCode="error", level=logging.ERROR)
                 return False
 
-        for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Filing.Start"):
+        for pluginXbrlMethod in PluginManager.pluginClassMethods("CntlrCmdLine.Filing.Start"):
             pluginXbrlMethod(self, options, filesource, _entrypointFiles, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
         if len(_entrypointFiles) == 0:
             if options.entrypointFile:
@@ -1094,10 +1128,10 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     if modelXbrl.errors:
                         success = False    # loading errors, don't attempt to utilize loaded DTS
                 if modelXbrl.modelDocument.type in ModelDocument.Type.TESTCASETYPES:
-                    for pluginXbrlMethod in pluginClassMethods("Testcases.Start"):
+                    for pluginXbrlMethod in PluginManager.pluginClassMethods("Testcases.Start"):
                         pluginXbrlMethod(self, options, modelXbrl)
                 else: # not a test case, probably instance or DTS
-                    for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Xbrl.Loaded"):
+                    for pluginXbrlMethod in PluginManager.pluginClassMethods("CntlrCmdLine.Xbrl.Loaded"):
                         pluginXbrlMethod(self, options, modelXbrl, _entrypoint, responseZipStream=responseZipStream)
                     if options.saveOIMToXMLReport:
                         if modelXbrl.loadedFromOIM and modelXbrl.modelDocument is not None:
@@ -1146,7 +1180,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     for modelXbrl in [self.modelManager.modelXbrl] + getattr(self.modelManager.modelXbrl, "supplementalModelXbrls", []):
                         hasFormulae = modelXbrl.hasFormulae
                         isAlreadyValidated = False
-                        for pluginXbrlMethod in pluginClassMethods("ModelDocument.IsValidated"):
+                        for pluginXbrlMethod in PluginManager.pluginClassMethods("ModelDocument.IsValidated"):
                             if pluginXbrlMethod(modelXbrl): # e.g., streaming extensions already has validated
                                 isAlreadyValidated = True
                         if options.validate and not isAlreadyValidated:
@@ -1212,10 +1246,10 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         if options.arcroleTypesFile:
                             ViewFileRoleTypes.viewRoleTypes(modelXbrl, options.arcroleTypesFile, "Arcrole Types", isArcrole=True, lang=options.labelLang)
 
-                        for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Xbrl.Run"):
+                        for pluginXbrlMethod in PluginManager.pluginClassMethods("CntlrCmdLine.Xbrl.Run"):
                             pluginXbrlMethod(self, options, modelXbrl, _entrypoint, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
 
-                except (IOError, EnvironmentError) as err:
+                except OSError as err:
                     self.addToLog(_("[IOError] Failed to save output:\n {0}").format(err),
                                   messageCode="IOError",
                                   file=options.entrypointFile,
@@ -1268,9 +1302,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
 
         if success:
             if options.validate:
-                for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Filing.Validate"):
+                for pluginXbrlMethod in PluginManager.pluginClassMethods("CntlrCmdLine.Filing.Validate"):
                     pluginXbrlMethod(self, options, filesource, _entrypointFiles, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
-            for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Filing.End"):
+            for pluginXbrlMethod in PluginManager.pluginClassMethods("CntlrCmdLine.Filing.End"):
                 pluginXbrlMethod(self, options, filesource, _entrypointFiles, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
         self.username = self.password = None #dereference password
         self._clearPluginData()

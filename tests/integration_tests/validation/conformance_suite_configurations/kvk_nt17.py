@@ -9,6 +9,7 @@ EXTRACTED_PATH = Path(ZIP_PATH.stem)
 config = ConformanceSuiteConfig(
     args=[
         '--disclosureSystem', 'NT17',
+        '--baseTaxonomyValidation', 'none',
     ],
     assets=[
         ConformanceSuiteAssetConfig.nested_conformance_suite(
