@@ -30,6 +30,17 @@ allowing for efficient data handling in Arelle.
   python arelleCmdLine.py --plugins saveLoadableOIM --file filing-documents.zip --saveTestcaseOimFileSuffix -savedOim.csv
   ```
 
+- **Deduplicate facts**
+  To save an OIM instance with duplicate fact removed use the `--deduplicateOimFacts` argument with either `complete`,
+  `consistent-pairs`, or `consistent-sets` as the value.
+  For details on what eaxctly consitutes a duplicate fact and why there are multiple options read the
+  [Fact Deduplication][fact-deduplication] documentation.
+  ```bash
+  python arelleCmdLine.py --plugins saveLoadableOIM --file filing-documents.zip --saveLoadableOIM example.json --deduplicateOimFacts complete
+  ```
+
+[fact-deduplication]: project:/user_guides/fact_deduplication.md
+
 ### GUI Usage
 
 - **Save Re-Loadable Output**:
@@ -51,6 +62,7 @@ import json
 import os
 import threading
 import zipfile
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
@@ -58,7 +70,7 @@ from math import isinf, isnan
 from numbers import Number
 from optparse import OptionParser
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Iterable, Optional, cast
+from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Optional, cast
 
 import regex as re
 from openpyxl import Workbook
@@ -66,7 +78,7 @@ from openpyxl.cell.cell import WriteOnlyCell
 from openpyxl.styles import Alignment, Color, PatternFill, fills
 from openpyxl.worksheet.dimensions import ColumnDimension
 
-from arelle import ModelDocument, XbrlConst
+from arelle import ModelDocument, ValidateDuplicateFacts, XbrlConst
 from arelle.ModelInstanceObject import ModelContext, ModelFact
 from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelValue import (
@@ -446,6 +458,16 @@ def saveLoadableOIM(
     if isJSON:
         oimFeatures["xbrl:canonicalValues"] = True
 
+    factsToSave = modelXbrl.facts
+    pluginData = modelXbrl.modelManager.cntlr.getPluginData(PLUGIN_NAME)
+    if isinstance(pluginData, SaveLoadableOIMPluginData) and pluginData.deduplicateFactsType is not None:
+        deduplicatedFacts = frozenset(ValidateDuplicateFacts.getDeduplicatedFacts(modelXbrl, pluginData.deduplicateFactsType))
+        duplicateFacts = frozenset(f for f in modelXbrl.facts if f not in deduplicatedFacts)
+        if duplicateFacts:
+            for fact in duplicateFacts:
+                ValidateDuplicateFacts.logDeduplicatedFact(modelXbrl, fact)
+            factsToSave = [f for f in factsToSave if f not in duplicateFacts]
+
     if isJSON:
         # save JSON
         oimReport["facts"] = oimFacts = {}
@@ -465,7 +487,7 @@ def saveLoadableOIM(
                 if fact.modelTupleFacts:
                     saveJsonFacts(fact.modelTupleFacts, oimFacts)
 
-        saveJsonFacts(modelXbrl.facts, oimFacts)
+        saveJsonFacts(factsToSave, oimFacts)
 
         # add footnotes as pseudo facts
         for ftObj in footnoteFacts:
@@ -651,7 +673,7 @@ def saveLoadableOIM(
                 _writerow(aspectCols(fact))
                 saveCSVfacts(fact.modelTupleFacts)
 
-        saveCSVfacts(modelXbrl.facts)
+        saveCSVfacts(factsToSave)
         _close()
 
         # save footnotes
@@ -747,6 +769,7 @@ def saveOimFiles(
 
 @dataclass
 class SaveLoadableOIMPluginData(PluginData):
+    deduplicateFactsType: ValidateDuplicateFacts.DeduplicationType | None
     saveTestcaseOimFileSuffix: str | None
 
 
@@ -775,6 +798,12 @@ class SaveLoadableOIMPlugin(PluginHooks):
             dest="saveTestcaseOimFileSuffix",
             help=_("Save Testcase Variation OIM file (argument file suffix and type, such as -savedOim.csv"),
         )
+        parser.add_option(
+            "--deduplicateOimFacts",
+            action="store",
+            choices=[a.value for a in ValidateDuplicateFacts.DeduplicationType],
+            dest="deduplicateOimFacts",
+            help=_("Remove duplicate facts when saving the OIM instance"))
 
     @staticmethod
     def cntlrCmdLineUtilityRun(
@@ -783,8 +812,12 @@ class SaveLoadableOIMPlugin(PluginHooks):
         *args: Any,
         **kwargs: Any,
     ) -> None:
+        deduplicateOimFacts = cast(Optional[str], getattr(options, "deduplicateOimFacts", None))
         saveTestcaseOimFileSuffix = cast(Optional[str], getattr(options, "saveTestcaseOimFileSuffix", None))
-        pluginData = SaveLoadableOIMPluginData(PLUGIN_NAME, saveTestcaseOimFileSuffix)
+        deduplicateFactsType = None
+        if deduplicateOimFacts is not None:
+            deduplicateFactsType = ValidateDuplicateFacts.DeduplicationType(deduplicateOimFacts)
+        pluginData = SaveLoadableOIMPluginData(PLUGIN_NAME, deduplicateFactsType, saveTestcaseOimFileSuffix)
         cntlr.setPluginData(pluginData)
 
     @staticmethod
