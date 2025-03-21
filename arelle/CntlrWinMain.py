@@ -988,7 +988,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 hasView = ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, XbrlConst.parentChild, lang=self.labelLang)
                 if hasView and topView is None: topView = modelXbrl.views[-1]
                 currentAction = "calculation linkbase view"
-                hasView = ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, ("Calculation",(XbrlConst.summationItem, XbrlConst.summationItem11)), lang=self.labelLang)
+                hasView = ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, ("Calculation", XbrlConst.summationItems), lang=self.labelLang)
                 if hasView and topView is None: topView = modelXbrl.views[-1]
                 currentAction = "dimensions relationships view"
                 hasView = ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, "XBRL-dimensions", lang=self.labelLang)
