@@ -681,7 +681,16 @@ class CntlrWinMain (Cntlr.Cntlr):
                     elif isinstance(view, ViewWinDTS.ViewDTS):
                         ViewFileDTS.viewDTS(modelXbrl, filename)
                     else:
-                        ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, filename, view.tabTitle, view.arcrole, labelrole=view.labelrole, lang=view.lang)
+                        if isinstance(view.arcrole, tuple) and len(view.arcrole) > 0 and view.arcrole[0] == "Calculation":
+                            # "arcrole" is overloaded with special strings that are sometimes used magically to query
+                            # the model and other times just to provide a header value. In the case of Calculation, it's
+                            # only the header used in the GUI view and including it here when going to save will throw
+                            # an exception.
+                            arcrole = XbrlConst.summationItems
+                        else:
+                            arcrole = view.arcrole
+
+                        ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, filename, view.tabTitle, arcrole, labelrole=view.labelrole, lang=view.lang)
                 except (IOError, EnvironmentError) as err:
                     tkinter.messagebox.showwarning(_("arelle - Error"),
                                         _("Failed to save {0}:\n{1}").format(
