@@ -31,8 +31,10 @@ COL_WIDTHS = {
     "Name": 40, "Namespace": 60, "LocalName": 40, "Documentation": 80
     }
 
-def hasCalcArcrole(arcroles: tuple[str] | str) -> bool:
-    return any(arcrole in XbrlConst.summationItems for arcrole in (arcroles if isinstance(arcroles, (tuple,list)) else (arcroles,)))
+def hasCalcArcrole(arcroles: tuple[str | tuple[str, ...], ...] | str) -> bool:
+    if isinstance(arcroles, (tuple, list)):
+        return any(hasCalcArcrole(arcrole) for arcrole in arcroles)
+    return arcroles in XbrlConst.summationItems
 
 class ViewRelationshipSet(ViewFile.View):
     def __init__(self, modelXbrl, outfile, header, labelrole, lang, cols):
