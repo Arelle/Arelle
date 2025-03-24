@@ -1296,7 +1296,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         self.modelManager.close(modelDiffReport)
                     elif modelXbrl:
                         self.modelManager.close(modelXbrl)
-        if not options.keepOpen:
+        if filesource is not None and not options.keepOpen:
             # Archive filesource potentially used by multiple reports may still be open.
             filesource.close()
 
