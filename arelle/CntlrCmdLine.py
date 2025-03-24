@@ -1069,7 +1069,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
 
         for pluginXbrlMethod in PluginManager.pluginClassMethods("CntlrCmdLine.Filing.Start"):
             pluginXbrlMethod(self, options, filesource, _entrypointFiles, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
-        if len(_entrypointFiles) == 0:
+        if len(_entrypointFiles) == 0 and not options.packages:
             if options.entrypointFile:
                 msg = _("No XBRL entry points could be loaded from provided file: {}").format(options.entrypointFile)
             else:
