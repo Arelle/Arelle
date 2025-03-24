@@ -817,7 +817,7 @@ expr <<= orExpr
 # doesn't reset the streamlined setting of the Forward expression instance.
 assert isinstance(expr.expr, ParserElement)
 expr.streamlined = expr.expr.streamlined
-xpathExpr = expr + StringEnd()  # type: ignore[no-untyped-call]
+xpathExpr = expr + StringEnd()
 
 
 # map operator symbols to corresponding arithmetic operations
