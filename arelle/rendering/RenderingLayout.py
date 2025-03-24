@@ -464,7 +464,7 @@ def bodyCells(view, row, yStrctNodes, xStrctNodes, zAspectStrctNodes, lytMdlYCel
                     if justify is None:
                         justify = "right" if fp.isNumeric else "left"
                     if conceptNotAbstract:
-                        if factsVals or ignoreDimValidity or isFactDimensionallyValid(self, fp) or isEntryPrototype:
+                        if factsVals or ignoreDimValidity or isFactDimensionallyValid(view, fp) or isEntryPrototype:
                             lytMdlCell = LytMdlBodyCell(lytMdlXCells, isOpenAspectEntrySurrogate)
                             lytMdlCell.facts = factsVals
                     fp.clear()  # dereference
