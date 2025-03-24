@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DisclosureSystems
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="../../../../config/disclosuresystems.xsd">
+    <!-- see arelle/config/disclosuresystems.xml for full comments -->
+    <DisclosureSystem
+            names="KVK iXBRL NT19|KVK-iXBRL-NT19|kvk-ixbrl-nt19"
+            description="KVK iXBRL 2024"
+            validationType="NL-iXBRL"
+    />
+</DisclosureSystems>
