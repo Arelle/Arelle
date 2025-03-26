@@ -1640,8 +1640,10 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                                                 factDimensionSourceCol[dimName] = paramName
                                                         elif paramName in tableParameters:
                                                             dimValue = tableParameters[paramName]
+                                                            factDimensionSourceCol[dimName] = paramName
                                                         elif paramName in reportParameters:
                                                             dimValue = reportParameters[paramName]
+                                                            factDimensionSourceCol[dimName] = paramName
                                                         elif paramName in unreportedFactDimensionColumns:
                                                             dimValue = NONE_CELL
                                                         else:
