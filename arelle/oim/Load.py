@@ -318,7 +318,7 @@ CsvMemberTypes = {
     "/documentInfo/baseURL": URIType,
     "/documentInfo/documentType": str,
     "/documentInfo/features": dict,
-    "/documentInfo/features/*:*": (int,float,bool,str,type(None)),
+    "/documentInfo/features/*:*": (int,float,bool,str,dict,list,type(None),NoRecursionCheck),
     "/documentInfo/final": dict,
     "/documentInfo/namespaces": dict,
     "/documentInfo/namespaces/*": URIType,
