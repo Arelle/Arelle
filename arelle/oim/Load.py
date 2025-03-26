@@ -1673,7 +1673,10 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                     elif "decimals" in cellPropGroup:
                                         dimValue = cellPropGroup["decimals"]
                                         dimSource = "propertyGroup " + propFromColName
-                                        factDimensionPropGrpCol["decimals"] = propGroupDimSource[dimName]
+                                        if _isParamRef(dimValue):
+                                            factDimensionPropGrpCol["decimals"] = _getParamRefName(dimValue)
+                                        else:
+                                            factDimensionPropGrpCol["decimals"] = dimValue
                                     elif tableDecimals is not None:
                                         dimValue = tableDecimals
                                         dimSource = "table decimals"
