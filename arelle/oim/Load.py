@@ -318,7 +318,7 @@ CsvMemberTypes = {
     "/documentInfo/baseURL": URIType,
     "/documentInfo/documentType": str,
     "/documentInfo/features": dict,
-    "/documentInfo/features/*:*": (int,float,bool,str,type(None)),
+    "/documentInfo/features/*:*": (int,float,bool,str,dict,list,type(None),NoRecursionCheck),
     "/documentInfo/final": dict,
     "/documentInfo/namespaces": dict,
     "/documentInfo/namespaces/*": URIType,
@@ -377,6 +377,7 @@ CsvMemberTypes = {
     "/tableTemplates/*/columns/*/propertiesFrom/": str,
     "/tableTemplates/*/columns/*/propertyGroups": dict,
     "/tableTemplates/*/columns/*/propertyGroups/*": dict,
+    "/tableTemplates/*/columns/*/propertyGroups/*/*:*": (int,float,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
     "/tableTemplates/*/columns/*/propertyGroups/*/decimals": (int,str),
     "/tableTemplates/*/columns/*/propertyGroups/*/dimensions": dict,
     "/tableTemplates/*/columns/*/propertyGroups/*/dimensions/concept": str,
@@ -1316,8 +1317,8 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         # check table parameters
                         tableParameterReferenceNames = set()
                         def checkParamRef(paramValue, factColName=None, dimName=None):
-                            if isinstance(paramValue, str) and paramValue.startswith("$") and not paramValue.startswith("$$"):
-                                paramName = paramValue[1:].partition("@")[0]
+                            if _isParamRef(paramValue):
+                                paramName = _getParamRefName(paramValue)
                                 tableParameterReferenceNames.add(paramName)
                         unitDims = set()
                         for factColName, colDims in factDimensions.items():
@@ -1540,16 +1541,21 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                     for propFromColName in propFromColNames:
                                         if propFromColName in rowPropGroups:
                                             for prop, val in rowPropGroups[propFromColName].items():
+                                                if ":" in prop:
+                                                    # Extension property
+                                                    continue
                                                 if isinstance(val, dict):
                                                     _valDict = cellPropGroup.setdefault(prop, {})
                                                     for dim, _val in val.items():
                                                         _valDict[dim] = _val
                                                         propGroupDimSource[dim] = propFromColName
-                                                        if _val.startswith("$") and not _val.startswith("$$"):
-                                                            rowPropGrpParamRefs.add(_val.partition("@")[0][1:])
+                                                        if _isParamRef(_val):
+                                                            rowPropGrpParamRefs.add(_getParamRefName(_val))
                                                 else:
                                                     cellPropGroup[prop] = val
                                                     propGroupDimSource[prop] = propFromColName
+                                                    if _isParamRef(val):
+                                                        rowPropGrpParamRefs.add(_getParamRefName(val))
                                     if factDimensions[colName] is None:
                                         if colName in paramRefColNames:
                                             value = _cellValue(row[colNameIndex[colName]])
@@ -1560,8 +1566,14 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                         if not cellPropGroup:
                                             continue # not a fact column
                                     for rowPropGrpParamRef in rowPropGrpParamRefs:
-                                        value = _cellValue(row[colNameIndex[rowPropGrpParamRef]])
-                                        if value is EMPTY_CELL or value is NONE_CELL:
+                                        value = None
+                                        if rowPropGrpParamRef in colNameIndex:
+                                            value = _cellValue(row[colNameIndex[rowPropGrpParamRef]])
+                                        elif rowPropGrpParamRef in tableParameters:
+                                            value = tableParameters.get(rowPropGrpParamRef)
+                                        elif rowPropGrpParamRef in reportParameters:
+                                            value = reportParameters.get(rowPropGrpParamRef)
+                                        if value in (None, EMPTY_CELL, NONE_CELL):
                                             emptyCols.add(rowPropGrpParamRef)
                                     # assemble row and fact Ids
                                     if idColIndex is not None and not rowId:
@@ -1628,8 +1640,10 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                                                 factDimensionSourceCol[dimName] = paramName
                                                         elif paramName in tableParameters:
                                                             dimValue = tableParameters[paramName]
+                                                            factDimensionSourceCol[dimName] = paramName
                                                         elif paramName in reportParameters:
                                                             dimValue = reportParameters[paramName]
+                                                            factDimensionSourceCol[dimName] = paramName
                                                         elif paramName in unreportedFactDimensionColumns:
                                                             dimValue = NONE_CELL
                                                         else:
@@ -1659,7 +1673,10 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                     elif "decimals" in cellPropGroup:
                                         dimValue = cellPropGroup["decimals"]
                                         dimSource = "propertyGroup " + propFromColName
-                                        factDimensionPropGrpCol["decimals"] = propGroupDimSource[dimName]
+                                        if _isParamRef(dimValue):
+                                            factDimensionPropGrpCol["decimals"] = _getParamRefName(dimValue)
+                                        else:
+                                            factDimensionPropGrpCol["decimals"] = dimValue
                                     elif tableDecimals is not None:
                                         dimValue = tableDecimals
                                         dimSource = "table decimals"
@@ -1840,7 +1857,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         error("xbrlce:invalidJSONStructure",
                               _("Invalid value: %(value)s at %(path)s"),
                               modelObject=modelXbrl, value=dimValue, path="/".join(pathSegs+(dimName,)))
-                    elif isinstance(dimValue,str) and dimValue.startswith("$") and not dimValue.startswith("$$"):
+                    elif _isParamRef(dimValue):
                         paramName, _sep, periodSpecifier = dimValue[1:].partition("@")
                         if _sep and periodSpecifier not in ("start", "end"):
                             error("xbrlce:invalidPeriodSpecifier",
@@ -2799,6 +2816,18 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     traceback=traceback.format_tb(sys.exc_info()[2]))
 
     return _return
+
+def _isParamRef(value):
+    if not isinstance(value, str):
+        return False
+    if not value.startswith("$"):
+        return False
+    return not value.startswith("$$")
+
+def _getParamRefName(paramRef):
+    prefixStripped = paramRef.removeprefix("$")
+    periodSpecifierRemoved = prefixStripped.partition("@")[0]
+    return periodSpecifierRemoved
 
 def isOimLoadable(normalizedUri, filepath):
     _ext = os.path.splitext(filepath)[1]
