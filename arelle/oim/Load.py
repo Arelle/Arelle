@@ -1541,6 +1541,9 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                     for propFromColName in propFromColNames:
                                         if propFromColName in rowPropGroups:
                                             for prop, val in rowPropGroups[propFromColName].items():
+                                                if ":" in prop:
+                                                    # Extension property
+                                                    continue
                                                 if isinstance(val, dict):
                                                     _valDict = cellPropGroup.setdefault(prop, {})
                                                     for dim, _val in val.items():
