@@ -1554,6 +1554,8 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                                 else:
                                                     cellPropGroup[prop] = val
                                                     propGroupDimSource[prop] = propFromColName
+                                                    if _isParamRef(val):
+                                                        rowPropGrpParamRefs.add(_getParamRefName(val))
                                     if factDimensions[colName] is None:
                                         if colName in paramRefColNames:
                                             value = _cellValue(row[colNameIndex[colName]])
@@ -1564,8 +1566,14 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                         if not cellPropGroup:
                                             continue # not a fact column
                                     for rowPropGrpParamRef in rowPropGrpParamRefs:
-                                        value = _cellValue(row[colNameIndex[rowPropGrpParamRef]])
-                                        if value is EMPTY_CELL or value is NONE_CELL:
+                                        value = None
+                                        if rowPropGrpParamRef in colNameIndex:
+                                            value = _cellValue(row[colNameIndex[rowPropGrpParamRef]])
+                                        elif rowPropGrpParamRef in tableParameters:
+                                            value = tableParameters.get(rowPropGrpParamRef)
+                                        elif rowPropGrpParamRef in reportParameters:
+                                            value = reportParameters.get(rowPropGrpParamRef)
+                                        if value in (None, EMPTY_CELL, NONE_CELL):
                                             emptyCols.add(rowPropGrpParamRef)
                                     # assemble row and fact Ids
                                     if idColIndex is not None and not rowId:
