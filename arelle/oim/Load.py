@@ -377,6 +377,7 @@ CsvMemberTypes = {
     "/tableTemplates/*/columns/*/propertiesFrom/": str,
     "/tableTemplates/*/columns/*/propertyGroups": dict,
     "/tableTemplates/*/columns/*/propertyGroups/*": dict,
+    "/tableTemplates/*/columns/*/propertyGroups/*/*:*": (int,float,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
     "/tableTemplates/*/columns/*/propertyGroups/*/decimals": (int,str),
     "/tableTemplates/*/columns/*/propertyGroups/*/dimensions": dict,
     "/tableTemplates/*/columns/*/propertyGroups/*/dimensions/concept": str,
