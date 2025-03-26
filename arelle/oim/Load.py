@@ -1317,8 +1317,8 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         # check table parameters
                         tableParameterReferenceNames = set()
                         def checkParamRef(paramValue, factColName=None, dimName=None):
-                            if isinstance(paramValue, str) and paramValue.startswith("$") and not paramValue.startswith("$$"):
-                                paramName = paramValue[1:].partition("@")[0]
+                            if _isParamRef(paramValue):
+                                paramName = _getParamRefName(paramValue)
                                 tableParameterReferenceNames.add(paramName)
                         unitDims = set()
                         for factColName, colDims in factDimensions.items():
@@ -1549,8 +1549,8 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                                     for dim, _val in val.items():
                                                         _valDict[dim] = _val
                                                         propGroupDimSource[dim] = propFromColName
-                                                        if _val.startswith("$") and not _val.startswith("$$"):
-                                                            rowPropGrpParamRefs.add(_val.partition("@")[0][1:])
+                                                        if _isParamRef(_val):
+                                                            rowPropGrpParamRefs.add(_getParamRefName(_val))
                                                 else:
                                                     cellPropGroup[prop] = val
                                                     propGroupDimSource[prop] = propFromColName
@@ -1844,7 +1844,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         error("xbrlce:invalidJSONStructure",
                               _("Invalid value: %(value)s at %(path)s"),
                               modelObject=modelXbrl, value=dimValue, path="/".join(pathSegs+(dimName,)))
-                    elif isinstance(dimValue,str) and dimValue.startswith("$") and not dimValue.startswith("$$"):
+                    elif _isParamRef(dimValue):
                         paramName, _sep, periodSpecifier = dimValue[1:].partition("@")
                         if _sep and periodSpecifier not in ("start", "end"):
                             error("xbrlce:invalidPeriodSpecifier",
@@ -2803,6 +2803,18 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     traceback=traceback.format_tb(sys.exc_info()[2]))
 
     return _return
+
+def _isParamRef(value):
+    if not isinstance(value, str):
+        return False
+    if not value.startswith("$"):
+        return False
+    return not value.startswith("$$")
+
+def _getParamRefName(paramRef):
+    prefixStripped = paramRef.removeprefix("$")
+    periodSpecifierRemoved = prefixStripped.partition("@")[0]
+    return periodSpecifierRemoved
 
 def isOimLoadable(normalizedUri, filepath):
     _ext = os.path.splitext(filepath)[1]
