@@ -233,9 +233,9 @@ def getLocale() -> str | None:
     # Try getting locale language code from system on macOS and Windows before resorting to the less reliable locale.getlocale.
     systemLocale = None
     if sys.platform == MACOS_PLATFORM:
-        systemLocale = _tryRunShellCommand("defaults read -g AppleLocale")
+        systemLocale = _tryRunCommand("defaults", "read", "-g", "AppleLocale")
     elif sys.platform == WINDOWS_PLATFORM:
-        systemLocale = _tryRunShellCommand("pwsh", "-Command", "Get-Culture | Select -ExpandProperty IetfLanguageTag")
+        systemLocale = _tryRunCommand("pwsh", "-Command", "Get-Culture | Select -ExpandProperty IetfLanguageTag")
     if pythonCompatibleLocale := findCompatibleLocale(systemLocale):
         _locale = pythonCompatibleLocale
     elif sys.version_info < (3, 12):
@@ -247,9 +247,9 @@ def getLocale() -> str | None:
     return _locale
 
 
-def _tryRunShellCommand(*args: str) -> str | None:
+def _tryRunCommand(*args: str) -> str | None:
     """
-    Tries to return the results of the provided shell command.
+    Tries to return the results of the provided command.
     Returns stdout or None if the command exists with a non-zero code.
     """
     try:
@@ -257,7 +257,6 @@ def _tryRunShellCommand(*args: str) -> str | None:
             args,
             capture_output=True,
             check=True,
-            shell=True,
             text=True,
             # A call to get std handle throws an OSError if stdin is not specified when run on Windows as a service.
             stdin=subprocess.PIPE,
@@ -314,7 +313,7 @@ def getLocaleList() -> list[str]:
     global _systemLocales
     if _systemLocales is not None:
         return _systemLocales
-    if sys.platform != WINDOWS_PLATFORM and (locales := _tryRunShellCommand("locale -a")):
+    if sys.platform != WINDOWS_PLATFORM and (locales := _tryRunCommand("locale", "-a")):
         _systemLocales = locales.splitlines()
     else:
         _systemLocales = []
