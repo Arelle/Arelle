@@ -253,7 +253,13 @@ def _tryRunShellCommand(*args: str) -> str | None:
     Returns stdout or None if the command exists with a non-zero code.
     """
     try:
-        return subprocess.run(args, capture_output=True, check=True, shell=True, text=True).stdout.strip()
+        return subprocess.run(
+            args,
+            capture_output=True,
+            check=True,
+            shell=True,
+            text=True,
+        ).stdout.strip()
     except subprocess.SubprocessError:
         return None
 

@@ -5,11 +5,12 @@ Python version specific utilities
 do not convert 3 to 2
 '''
 from __future__ import annotations
+
 import sys
-from decimal import Decimal
-from fractions import Fraction
 from collections import OrderedDict
 from collections.abc import MappingView, MutableSet
+from decimal import Decimal
+from fractions import Fraction
 from typing import Any
 
 from arelle.typing import OptionalString
