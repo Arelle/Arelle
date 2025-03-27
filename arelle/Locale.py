@@ -259,6 +259,8 @@ def _tryRunShellCommand(*args: str) -> str | None:
             check=True,
             shell=True,
             text=True,
+            # A call to get std handle throws an OSError if stdin is not specified when run on Windows as a service.
+            stdin=subprocess.PIPE,
         ).stdout.strip()
     except subprocess.SubprocessError:
         return None
