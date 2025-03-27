@@ -9,7 +9,6 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 import locale
-import subprocess
 import sys
 import unicodedata
 from collections.abc import Callable, Generator, Mapping
@@ -19,6 +18,7 @@ from typing import Any, cast
 
 import regex as re
 
+from arelle.PythonUtil import tryRunCommand
 from arelle.typing import LocaleDict, TypeGetText
 
 _: TypeGetText
@@ -233,9 +233,9 @@ def getLocale() -> str | None:
     # Try getting locale language code from system on macOS and Windows before resorting to the less reliable locale.getlocale.
     systemLocale = None
     if sys.platform == MACOS_PLATFORM:
-        systemLocale = _tryRunCommand("defaults", "read", "-g", "AppleLocale")
+        systemLocale = tryRunCommand("defaults", "read", "-g", "AppleLocale")
     elif sys.platform == WINDOWS_PLATFORM:
-        systemLocale = _tryRunCommand("pwsh", "-Command", "Get-Culture | Select -ExpandProperty IetfLanguageTag")
+        systemLocale = tryRunCommand("pwsh", "-Command", "Get-Culture | Select -ExpandProperty IetfLanguageTag")
     if pythonCompatibleLocale := findCompatibleLocale(systemLocale):
         _locale = pythonCompatibleLocale
     elif sys.version_info < (3, 12):
@@ -245,24 +245,6 @@ def getLocale() -> str | None:
     else:
         _locale = locale.getlocale()[0]
     return _locale
-
-
-def _tryRunCommand(*args: str) -> str | None:
-    """
-    Tries to return the results of the provided command.
-    Returns stdout or None if the command exists with a non-zero code.
-    """
-    try:
-        return subprocess.run(
-            args,
-            capture_output=True,
-            check=True,
-            text=True,
-            # A call to get std handle throws an OSError if stdin is not specified when run on Windows as a service.
-            stdin=subprocess.PIPE,
-        ).stdout.strip()
-    except (OSError, subprocess.SubprocessError):
-        return None
 
 
 iso3region = {
@@ -313,7 +295,7 @@ def getLocaleList() -> list[str]:
     global _systemLocales
     if _systemLocales is not None:
         return _systemLocales
-    if sys.platform != WINDOWS_PLATFORM and (locales := _tryRunCommand("locale", "-a")):
+    if sys.platform != WINDOWS_PLATFORM and (locales := tryRunCommand("locale", "-a")):
         _systemLocales = locales.splitlines()
     else:
         _systemLocales = []
