@@ -5,11 +5,13 @@ Python version specific utilities
 do not convert 3 to 2
 '''
 from __future__ import annotations
+
+import subprocess
 import sys
-from decimal import Decimal
-from fractions import Fraction
 from collections import OrderedDict
 from collections.abc import MappingView, MutableSet
+from decimal import Decimal
+from fractions import Fraction
 from typing import Any
 
 from arelle.typing import OptionalString
@@ -249,3 +251,21 @@ def pyObjectSize(obj, seen=None):
     elif hasattr(obj, '__iter__') and not isinstance(obj, (str, bytes, bytearray)):
         size += sum([pyObjectSize(i, seen) for i in obj])
     return size
+
+
+def tryRunCommand(*args: str) -> str | None:
+    """
+    Tries to return the results of the provided command.
+    Returns stdout or None if the command exists with a non-zero code.
+    """
+    try:
+        return subprocess.run(
+            args,
+            capture_output=True,
+            check=True,
+            text=True,
+            # A call to get std handle throws an OSError if stdin is not specified when run on Windows as a service.
+            stdin=subprocess.PIPE,
+        ).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        return None
