@@ -898,7 +898,7 @@ isInitialized = False
 
 
 def initializeParser(modelManager: ModelManager) -> bool:
-    global isInitialized, ixtFunctionNamespaces
+    global isInitialized
     if not isInitialized:
         from arelle import FunctionIxt
         ixtFunctionNamespaces.update(FunctionIxt.ixtNamespaceFunctions.keys())
