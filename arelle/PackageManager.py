@@ -342,7 +342,7 @@ packagesMappings = {}
 _cntlr = None
 
 def init(cntlr: Cntlr, loadPackagesConfig: bool = True) -> None:
-    global packagesJsonFile, packagesConfig, packagesMappings, _cntlr
+    global packagesJsonFile, packagesConfig, _cntlr
     if loadPackagesConfig:
         try:
             packagesJsonFile = cntlr.userAppDir + os.sep + "taxonomyPackages.json"

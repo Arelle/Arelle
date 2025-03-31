@@ -41,7 +41,6 @@ POST = 'POST'
 _CNTLR: CntlrCmdLine | None = None
 
 def getCntlr() -> CntlrCmdLine:
-    global _CNTLR
     if _CNTLR is None:
         raise ValueError(_('_CNTLR accessed before it was set.'))
     return _CNTLR
@@ -59,7 +58,6 @@ def getLogHandler() -> LogToBufferHandler:
 _RUNTIME_OPTIONS: RuntimeOptions | None = None
 
 def getRuntimeOptions() -> RuntimeOptions:
-    global _RUNTIME_OPTIONS
     if _RUNTIME_OPTIONS is None:
         raise ValueError(_('_RUNTIME_OPTIONS accessed before it was set.'))
     options = deepcopy(_RUNTIME_OPTIONS)

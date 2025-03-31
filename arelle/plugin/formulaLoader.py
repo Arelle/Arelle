@@ -1698,7 +1698,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
 def parse(cntlr, _logMessage, xfFiles, modelXbrl=None, debugParsing=False):
     from pyparsing import ParseException, ParseSyntaxException
 
-    global xc, logMessage
+    global logMessage
     logMessage = _logMessage
 
     xfsGrammar = compileXfsGrammar(cntlr, debugParsing)

@@ -159,7 +159,6 @@ def logPluginTrace(message: str, level: Number) -> None:
     :param message: Message to be logged
     :param level: Log level of message (e.g. logging.INFO)
     """
-    global pluginTraceFileLogger
     if pluginTraceFileLogger:
         pluginTraceFileLogger.log(level, message)
     if level >= logging.ERROR:
