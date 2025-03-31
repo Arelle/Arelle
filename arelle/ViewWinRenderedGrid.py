@@ -442,21 +442,21 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                     #                 ).text = "\n".join(v for f, v, justify in lytMdlCell.facts)
                     if f is not None:
                         fp = f
+                        value = v
                         objectId = f.objectId()
                     else:
                         cellAspectValues = dict((c.aspect, c.value) 
                                                 for aC in (self.zConstraints, self.xConstraints[xColNum], self.yConstraints[yRowNum])
                                                 for c in aC)
                         fp = FactPrototype(self, cellAspectValues)
+                        value = None
                         objectId = "f{0}".format(len(self.factPrototypes))
                         self.factPrototypes.append(fp)  # for property views
                         for aspect, aspectValue in cellAspectValues.items():
                             if isinstance(aspectValue, str) and aspectValue.startswith(OPEN_ASPECT_ENTRY_SURROGATE):
                                 self.factPrototypeAspectEntryObjectIds[objectId].add(aspectValue)
                     if fp is not None and not fp.concept.isAbstract:
-                        value = v
-                        fp = f
-                        modelConcept = f.concept
+                        modelConcept = fp.concept
                         if (justify is None) and modelConcept is not None:
                             justify = XbrlTable.TG_RIGHT_JUSTIFIED if modelConcept.isNumeric else XbrlTable.TG_LEFT_JUSTIFIED
                         if modelConcept is not None and modelConcept.isEnumeration:
@@ -519,7 +519,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                                          xColNum,
                                                          yRowNum,
                                                          justification=justify,
-                                                         #objectId=objectId,
+                                                         objectId=objectId,
                                                          backgroundColourTag=self.getbackgroundColor(fp))
                             else:
                                 qNameValues = newAspectValues
@@ -534,7 +534,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                                             qNameValues,
                                                             xColNum,
                                                             yRowNum,
-                                                            #objectId=objectId,
+                                                            objectId=objectId,
                                                             selectindex=selectedIdx,
                                                             codes=newAspectQNames)
                         elif modelConcept is not None and modelConcept.type.qname == XbrlConst.qnXbrliBooleanItemType:
@@ -552,7 +552,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                                         booleanValues,
                                                         xColNum,
                                                         yRowNum,
-                                                        #objectId=objectId,
+                                                        objectId=objectId,
                                                         selectindex=selectedIdx)
                         else:
                             if TRACE_TK: print(f"body cell x {leftCol + i} y {yRowNum} value {value}")
@@ -560,7 +560,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                                      xColNum,
                                                      yRowNum,
                                                      justification=justify,
-                                                     #objectId=objectId,
+                                                     objectId=objectId,
                                                      backgroundColourTag=self.getbackgroundColor(fp))
                 yRowNum += 1
 
