@@ -85,7 +85,7 @@ jobs:
     - shell: cmd
       run: rmdir /s /q xule
     - name: Set up Python ${{ inputs.python_version }}
-      uses: actions/setup-python@v5.4.0
+      uses: actions/setup-python@v5.5.0
       with:
         cache: 'pip'
         check-latest: true
