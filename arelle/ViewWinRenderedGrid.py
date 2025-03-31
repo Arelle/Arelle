@@ -348,7 +348,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                     for lytMdlCell in lytMdlHdr.lytMdlCells:
                         if lytMdlCell.isOpenAspectEntrySurrogate:
                             continue # strip all open aspect entry surrogates from layout model file
-                        if TRACE_TK: print(f"xAxis hdr x {xValue} y {yValue} cols {columnspan} rows {rowspan} isRollUpParent {isRollUpParent} value \"{headerLabel}\"")
+                        if TRACE_TK: print(f"xAxis hdr x {xValue} y {yValue} cols {lytMdlCell.span} rows {1} isRollUpParent {lytMdlCell.rollup} value \"{lytMdlCell.labelXmlText(iLabel,'')}\"")
                         self.table.initHeaderCellValue(lytMdlCell.labelXmlText(iLabel,""),
                                                        xValue, yValue,
                                                        lytMdlCell.span - 1,
@@ -373,10 +373,10 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                 if all(lytMdlCell.isOpenAspectEntrySurrogate for lytMdlCell in lytMdlHdr.lytMdlCells):
                     continue # skip header with only open aspect entry surrogate
                 for lytMdlCell in lytMdlHdr.lytMdlCells:
+                    if lytMdlCell.isOpenAspectEntrySurrogate:
+                        continue # strip all open aspect entry surrogates from layout model file
                     for iLabel in range(lytMdlHdr.maxNumLabels):
-                        if lytMdlCell.isOpenAspectEntrySurrogate:
-                            continue # strip all open aspect entry surrogates from layout model file
-                        if TRACE_TK: print(f"yAxis hdr x {xValue} y {yValue} cols {columnspan +  nestedColumnspan} rows {rowspan} rollup {yStrctNode.rollup} value \"{headerLabel}\"")
+                        if TRACE_TK: print(f"yAxis hdr x {xValue + iLabel} y {row + yRow} cols {1} rows {lytMdlCell.span} rollup {lytMdlCell.rollup} value \"{lytMdlCell.labelXmlText(iLabel,'')}\"")
                         self.table.initHeaderCellValue(lytMdlCell.labelXmlText(iLabel,""),
                                                        xValue + iLabel, row + yRow,
                                                        0, #columnspan + nestedColumnspan - 1,
@@ -421,7 +421,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
         lytMdlYBodyCell = lytMdlZBodyCell.lytMdlBodyChildren[self.zTbl]
         yRowNum = topRow
         for lytMdlXBodyCell in lytMdlYBodyCell.lytMdlBodyChildren:
-            if True: # not any(lytMdlCell.isOpenAspectEntrySurrogate for lytMdlCell in lytMdlXBodyCell.lytMdlBodyChildren):
+            if not any(lytMdlCell.isOpenAspectEntrySurrogate for lytMdlCell in lytMdlXBodyCell.lytMdlBodyChildren):
                 for i, lytMdlCell in enumerate(lytMdlXBodyCell.lytMdlBodyChildren):
                     if lytMdlCell.isOpenAspectEntrySurrogate:
                         continue
@@ -535,7 +535,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                                         #objectId=objectId,
                                                         selectindex=selectedIdx)
                         else:
-                            if TRACE_TK: print(f"body cell x {xValue} y {yValue} value {value}")
+                            if TRACE_TK: print(f"body cell x {leftCol + i} y {yRowNum} value {value}")
                             self.table.initCellValue(value,
                                                      leftCol + i,
                                                      yRowNum,
