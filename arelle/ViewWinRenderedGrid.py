@@ -209,6 +209,9 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             if lytMdlTableSet.srcLinkrole == viewTblELR:
                 break
         self.lytMdlTable = lytMdlTableSet.lytMdlTables[0] # only one table in table set?
+        self.zConstraints = set()
+        self.xConstraints = defaultdict(set) # index by xColNum
+        self.yConstraints = defaultdict(set) # index by yRowNum
         if self.zHdrElts is None:
             # each Z is a separate table in the outer table
             lytMdlZHdrs = self.lytMdlTable.lytMdlAxisHeaders("z")
@@ -232,6 +235,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                         self.zAspectChoices[zConstraint] = defaultdict(set)
                                     self.zAspectChoices[zConstraint][zAspLbl].add(zRow)
                                 zRow += 1
+                            self.zConstraints.update(lytMdlZCell.lytMdlConstraints)
             else:
                 self.zHdrElts = [[]]
                 numZtbls = 1
@@ -361,6 +365,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                                            not any(nxtHdrCell.rollup
                                                                    for nxtHdrCell in lytMdlGrp.lytMdlHeaders[iHdr+1].lytMdlCells))
                                                        )
+                        self.xConstraints[xValue].update(lytMdlCell.lytMdlConstraints)
                         xValue += lytMdlCell.span or 1
                     yValue += 1
 
@@ -390,6 +395,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                                                    for nxtHdrCell in lytMdlGrp.lytMdlHeaders[iHdr+1].lytMdlCells))
                                                        #width=3 if lytMdlCell.rollup else None
                                                        )
+                        self.yConstraints[row + yRow].update(lytMdlCell.lytMdlConstraints)
                     yRow += lytMdlCell.span
                 xValue += lytMdlHdr.maxNumLabels
 
@@ -422,7 +428,8 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
         yRowNum = topRow
         for lytMdlXBodyCell in lytMdlYBodyCell.lytMdlBodyChildren:
             if not any(lytMdlCell.isOpenAspectEntrySurrogate for lytMdlCell in lytMdlXBodyCell.lytMdlBodyChildren):
-                for i, lytMdlCell in enumerate(lytMdlXBodyCell.lytMdlBodyChildren):
+                for iBodyCell, lytMdlCell in enumerate(lytMdlXBodyCell.lytMdlBodyChildren):
+                    xColNum = leftCol + iBodyCell
                     if lytMdlCell.isOpenAspectEntrySurrogate:
                         continue
                     justify = "left"
@@ -434,6 +441,19 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                     #                                  "style":f"text-align:{justify};width:8em;"}
                     #                 ).text = "\n".join(v for f, v, justify in lytMdlCell.facts)
                     if f is not None:
+                        fp = f
+                        objectId = f.objectId()
+                    else:
+                        cellAspectValues = dict((c.aspect, c.value) 
+                                                for aC in (self.zConstraints, self.xConstraints[xColNum], self.yConstraints[yRowNum])
+                                                for c in aC)
+                        fp = FactPrototype(self, cellAspectValues)
+                        objectId = "f{0}".format(len(self.factPrototypes))
+                        self.factPrototypes.append(fp)  # for property views
+                        for aspect, aspectValue in cellAspectValues.items():
+                            if isinstance(aspectValue, str) and aspectValue.startswith(OPEN_ASPECT_ENTRY_SURROGATE):
+                                self.factPrototypeAspectEntryObjectIds[objectId].add(aspectValue)
+                    if fp is not None and not fp.concept.isAbstract:
                         value = v
                         fp = f
                         modelConcept = f.concept
@@ -459,9 +479,9 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                             if TRACE_TK: print(f"body comboBox enums x {xValue} y {yValue} values {effectiveValue} value {enumerationValues}")
                             self.table.initCellCombobox(effectiveValue,
                                                         enumerationValues,
-                                                        leftCol + i,
+                                                        xColNum,
                                                         yRowNum,
-                                                        #objectId=objectId,
+                                                        objectId=objectId,
                                                         selectindex=selectedIdx,
                                                         codes=enumerationDict)
                         elif modelConcept is not None and modelConcept.type.qname == XbrlConst.qnXbrliQNameItemType:
@@ -496,7 +516,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                 newAspectValues = None
                             if newAspectValues is None:
                                 self.table.initCellValue(value,
-                                                         leftCol + i,
+                                                         xColNum,
                                                          yRowNum,
                                                          justification=justify,
                                                          #objectId=objectId,
@@ -512,7 +532,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                 if TRACE_TK: print(f"body comboBox qnames x {xValue} y {yValue} values {effectiveValue} value {qNameValues}")
                                 self.table.initCellCombobox(effectiveValue,
                                                             qNameValues,
-                                                            leftCol + i,
+                                                            xColNum,
                                                             yRowNum,
                                                             #objectId=objectId,
                                                             selectindex=selectedIdx,
@@ -530,14 +550,14 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                             if TRACE_TK: print(f"body comboBox bools x {xValue} y {yValue} values {effectiveValue} value {booleanValues}")
                             self.table.initCellCombobox(effectiveValue,
                                                         booleanValues,
-                                                        leftCol + i,
+                                                        xColNum,
                                                         yRowNum,
                                                         #objectId=objectId,
                                                         selectindex=selectedIdx)
                         else:
                             if TRACE_TK: print(f"body cell x {leftCol + i} y {yRowNum} value {value}")
                             self.table.initCellValue(value,
-                                                     leftCol + i,
+                                                     xColNum,
                                                      yRowNum,
                                                      justification=justify,
                                                      #objectId=objectId,
