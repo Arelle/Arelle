@@ -241,18 +241,18 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                 numZtbls = 1
             self.zTbl = 0
             # get number of y header columns
-            numYHdrCols = 0
+            self.numYHdrCols = 0
             for lytMdlYGrp in self.lytMdlTable.lytMdlAxisHeaders("y").lytMdlGroups:
                 for lytMdlYHdr in lytMdlYGrp.lytMdlHeaders:
-                    numYHdrCols +=  lytMdlYHdr.maxNumLabels
-            numXHdrRows = 0
+                    self.numYHdrCols +=  lytMdlYHdr.maxNumLabels
+            self.numXHdrRows = 0
             for lytMdlXGrp in self.lytMdlTable.lytMdlAxisHeaders("x").lytMdlGroups:
                 for lytMdlXHdr in lytMdlXGrp.lytMdlHeaders:
-                    numXHdrRows += lytMdlXHdr.maxNumLabels
+                    self.numXHdrRows += lytMdlXHdr.maxNumLabels
 
-        dataFirstRow = self.colHdrTopRow + numXHdrRows
+        dataFirstRow = self.colHdrTopRow + self.numXHdrRows
         if TRACE_TK: print(f"resizeTable rows {self.dataFirstRow+self.dataRows} cols {self.dataFirstCol+self.dataCols} titleRows {self.dataFirstRow} titleColumns {self.dataFirstCol})")
-        self.table.resizeTable(dataFirstRow+self.dataRows, numYHdrCols+self.dataCols, titleRows=dataFirstRow, titleColumns=numYHdrCols)
+        self.table.resizeTable(dataFirstRow+self.dataRows, self.numYHdrCols+self.dataCols, titleRows=dataFirstRow, titleColumns=self.numYHdrCols)
 
         try:
             # review row header wrap widths and limit to 2/3 of the frame width (all are screen units)
@@ -281,10 +281,10 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             self.factPrototypeAspectEntryObjectIds.clear()
             if TRACE_TK: print(f"tbl hdr x {0} y {0} cols {self.dataFirstCol} rows {self.dataFirstRow} value {(self.defnMdlTable.genLabel(lang=self.lang, strip=True) or self.roledefinition)}")
             self.table.initHeaderCellValue(lytMdlTableSet.label,
-                                           0, 0, numYHdrCols-1, dataFirstRow - 1,
+                                           0, 0, self.numYHdrCols-1, dataFirstRow - 1,
                                            XbrlTable.TG_TOP_LEFT_JUSTIFIED)
-            self.zAxis(clearZchoices, numXHdrRows)
-            self.xAxis(numYHdrCols, self.colHdrTopRow)
+            self.zAxis(clearZchoices, self.numXHdrRows)
+            self.xAxis(self.numYHdrCols, self.colHdrTopRow)
             self.yAxis(0, dataFirstRow)
             for fp in self.factPrototypes: # dereference prior facts
                 if fp is not None:
@@ -292,7 +292,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             self.factPrototypes = []
 
             startedAt2 = time.time()
-            self.bodyCells(numYHdrCols, dataFirstRow)
+            self.bodyCells(self.numYHdrCols, dataFirstRow)
             #print("bodyCells {:.2f}secs ".format(time.time() - startedAt2) + self.roledefinition)
 
             self.table.clearModificationStatus()
@@ -336,7 +336,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             if asp != comboAspect:
                 zTblsForAspect &= self.zAspectChoices[asp][aspVal]
         if len(zTblsForAspect) > 0:
-            self.zTbl = zTblsForAspect.pop()
+            self.zTbl = next(iter(zTblsForAspect)) # get first of set
             self.view() # redraw grid
 
     def xAxis(self, leftCol, topRow):
