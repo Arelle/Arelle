@@ -455,7 +455,13 @@ class WebCache:
     def getfilename(
             self, url: str | None, base: str | None = None,
             reload: bool = False, checkModifiedTime: bool = False,
-            normalize: bool = False, filenameOnly: bool = False) -> str | None:
+            normalize: bool = False, filenameOnly: bool = False,
+            allowTransformation: bool = True) -> str | None:
+        if allowTransformation:
+            for pluginXbrlMethod in pluginClassMethods("WebCache.TransformURL"):
+                url, final = pluginXbrlMethod(self.cntlr, url, base)
+                if final:
+                    return url
         if url is None:
             return url
         if base is not None or normalize:

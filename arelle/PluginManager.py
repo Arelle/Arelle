@@ -485,7 +485,7 @@ def _get_name_dir_prefix(
     packageImportPrefix: str
 
     moduleFilename = controller.webCache.getfilename(
-        url=moduleURL, normalize=True, base=pluginBase
+        url=moduleURL, normalize=True, base=pluginBase, allowTransformation=False
     )
 
     if moduleFilename:

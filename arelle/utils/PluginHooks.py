@@ -790,3 +790,26 @@ class PluginHooks(ABC):
         :return: None
         """
         raise NotImplementedError
+
+    @staticmethod
+    def webCacheTransformUrl(
+            cntlr: CntlrCmdLine,
+            url: str | None,
+            base: str | None,
+            *args: Any,
+            **kwargs: Any,
+    ) -> tuple[str | None, bool]:
+        """
+        Plugin hook: `WebCache.TransformURL`
+
+        This hook is triggered before the web cache maps a URL to a file path.
+        It's useful if you need to map certain URLs to a location other than the web cache.
+
+        :param cntlr: The [Cntlr](#arelle.Cntlr.Cntlr) being initialized.
+        :param url: The URL to transform.
+        :param base: The base URL.
+        :param args: Argument capture to ensure new parameters don't break plugin hook.
+        :param kwargs: Argument capture to ensure new named parameters don't break plugin hook.
+        :return: Tuple of transformed URL or filepath and a boolean indicating if the URL should be returned as the final filename.
+        """
+        raise NotImplementedError
