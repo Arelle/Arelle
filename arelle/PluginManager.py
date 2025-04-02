@@ -105,10 +105,13 @@ def save(cntlr: Cntlr) -> None:
             f.write(jsonStr)
         pluginConfigChanged = False
 
-def close():  # close all loaded methods
-    pluginConfig.clear()
-    modulePluginInfos.clear()
-    pluginMethodsForClasses.clear()
+def close() -> None:  # close all loaded methods
+    if pluginConfig is not None:
+        pluginConfig.clear()
+    if modulePluginInfos is not None:
+        modulePluginInfos.clear()
+    if pluginMethodsForClasses is not None:
+        pluginMethodsForClasses.clear()
     global webCache
     webCache = None
 

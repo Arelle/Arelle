@@ -36,6 +36,7 @@ class Session:
     def close(self) -> None:
         if self._cntlr is not None:
             self._cntlr.close()
+        PluginManager.close()
 
     def get_log_messages(self) -> list[dict[str, Any]]:
         """
