@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
+import regex as re
 from collections import defaultdict
 from dataclasses import dataclass
 
@@ -10,6 +11,11 @@ from arelle.ModelInstanceObject import ModelUnit, ModelContext, ModelFact
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import ModelXbrl
 from arelle.utils.PluginData import PluginData
+
+
+XBRLI_IDENTIFIER_PATTERN = {
+    re.compile(r"^(?!00)\d{8}$")
+}
 
 
 @dataclass

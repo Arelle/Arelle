@@ -10,7 +10,7 @@ from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.validate.ValidationPlugin import ValidationPlugin
-from .DisclosureSystems import DISCLOSURE_SYSTEM_NT16, DISCLOSURE_SYSTEM_NT17, DISCLOSURE_SYSTEM_NT18, DISCLOSURE_SYSTEM_NT19
+from .DisclosureSystems import DISCLOSURE_SYSTEM_NT16, DISCLOSURE_SYSTEM_NT17, DISCLOSURE_SYSTEM_NT18, DISCLOSURE_SYSTEM_NT19, DISCLOSURE_SYSTEM_NT2024
 from .PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
@@ -129,7 +129,7 @@ class ValidationPluginExtension(ValidationPlugin):
                 'kvk-rpt-jaarverantwoording-2023-nlgaap-verzekeringsmaatschappijen.xsd',
                 'kvk-rpt-jaarverantwoording-2023-nlgaap-zorginstellingen.xsd',
             ]}
-        elif disclosureSystem == DISCLOSURE_SYSTEM_NT19:
+        elif disclosureSystem == DISCLOSURE_SYSTEM_NT19 or disclosureSystem == DISCLOSURE_SYSTEM_NT2024:
             jenvNamespace = 'http://www.nltaxonomie.nl/nt19/jenv/20241211/dictionary/jenv-bw2-data'
             kvkINamespace = 'http://www.nltaxonomie.nl/nt19/kvk/20241211/dictionary/kvk-data'
             nlTypesNamespace = 'http://www.nltaxonomie.nl/nt19/sbr/20240301/dictionary/nl-types'
