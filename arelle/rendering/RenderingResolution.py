@@ -151,7 +151,6 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
                 view.dataRows += strctMdlBreakdown.leafNodeCount
             elif axis == "z":
                 view.zAxisBreakdowns = len(axisBrkdnRels)
-            break # 2nd and following breakdown nodes resolved by cartesianProductExpander within resolveDefinition
         if not axisBrkdnRels: # no breakdown rels
             strctMdlBreakdown = resolveDefinition(view, strctMdlTable, None, 1, facts, 0, axisBrkdnRels, axis=axis)
             strctMdlBreakdown.setHasOpenNode()
