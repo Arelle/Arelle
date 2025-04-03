@@ -19,62 +19,105 @@ manifest file (such as JP FSA) that identifies inline XBRL documents.
 
 ### Command Line Usage
 
-- **Loading Inline XBRL Documents from a Zip File**:
-  ```bash
-  python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file '[{"ixds": [{"file": "filing-documents.zip"}]}]'
-  ```
-  This command loads all inline XBRL documents within a zip file as an Inline XBRL Document Set.
+- **Load from a ZIP file**:
 
-- **Loading Inline XBRL Documents from a Directory**:
+    Simple:
+    ```bash
+    python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file report.zip
+    ```
+
+    Verbose:
+    ```bash
+    python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file '[{"ixds": [{"file": "report.zip"}]}]'
+    ```
+
+- **Load from a directory**:
+
+  Simple:
+  ```bash
+  python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file filing-documents-directory
+  ```
+
+  Verbose:
   ```bash
   python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file '[{"ixds": [{"file": "filing-documents-directory"}]}]'
   ```
-  This command loads all inline XBRL documents within a specified directory.
 
-- **Loading with Default Target Document**:
+- **Load multiple documents**:
+
+  Simple:
+  ```bash
+  python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file 'document-1.html|document-2.html'
+  ```
+
+  Verbose:
   ```bash
   python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file '[{"ixds": [{"file1": "document-1.html", "file2": "document-2.html"}]}]'
   ```
-  Load two inline XBRL documents using the default Target Document.
 
-- **Specifying a Different Target Document**:
-  ```bash
-  python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file '[{"ixds": [{"file1": "document-1.html", "file2": "document-2.html"}], "ixdsTarget": "DKGAAP"}]'
-  ```
-  Load two inline XBRL documents using the `DKGAAP` Target Document.
+- **Specify target document**:
 
-- **Loading Multiple Document Sets**:
-  ```bash
-  python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file '[{"ixds": [{"file": "filing-documents-1.zip"}]}, {"ixds": [{"file": "filing-documents-2.zip"}]}]'
-  ```
-  Load two separate Inline XBRL Document Sets.
+  - **Default target**:
 
-- **Extracting and Saving XML Instance**:
+    Simple:
+    ```bash
+    python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file report.zip --inlineTarget "(default)"
+    ```
+
+    Verbose:
+    ```bash
+    python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file '[{"ixds": [{"file": "report.zip"}], "ixdsTarget": "(default)"}]'
+    ```
+
+  - **Named target (e.g., DKGAAP)**:
+
+    Simple:
+    ```bash
+    python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file report.zip --inlineTarget DKGAAP
+    ```
+
+    Verbose:
+    ```bash
+    python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file '[{"ixds": [{"file": "report.zip"}], "ixdsTarget": "DKGAAP"}]'
+    ```
+
+- **Load multiple IXDS sets**:
+
   ```bash
-  python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file '[{"ixds": [{"file": "filing-documents.zip"}]}] --saveInstance'
+  python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file '[{"ixds": [{"file": "report-1.zip"}]}, {"ixds": [{"file": "report-2.zip"}]}]'
   ```
-  Extract and save the XML Instance of the default Target Document from an Inline XBRL Document Set.
+
+- **Extract XML instance**:
+
+  ```bash
+  python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file reports/report.html --saveInstance
+  ```
 
 ### GUI Usage
 
-- **Loading Inline Documents as an IXDS**:
-  1. Navigate to the `File` menu.
-  2. Select `Open File Inline Doc Set`.
-  3. Command/Control select multiple files to load them as an Inline XBRL Document Set.
+- **Load IXDS documents**:
 
-- **Extracting and Saving XML Instance**:
-  1. Load the Inline XBRL Document Set.
-  2. Navigate to `Tools` in the menu.
-  3. Select `Save target document` to save the XML Instance.
+  1. Go to the File menu.
+  2. Select "Open File Inline Doc Set".
+  3. Ctrl/Cmd-click to select multiple files as an IXDS.
+
+- **Save XML instance**:
+
+  1. Load the IXDS.
+  2. Open the Tools menu.
+  3. Select "Save target document" to export the XML instance.
 
 ## Additional Notes
 
-- Windows users must escape quotes and backslashes within the JSON file parameter structure:
-`.\\arelleCmdLine.exe --plugins inlineXbrlDocumentSet --file "[{""ixds"":[{""file"":""C:\\\\filing-documents.zip""}], ""ixdsTarget"":""DKGAAP""}]" --package "C:\\taxonomy-package.zip"`
-- If a JSON structure is specified in the `--file` option without an `ixdsTarget`, the default target is assumed.
-- To specify a non-default target in the absence of a JSON file argument, use the formula parameter `ixdsTarget`.
-- For EDGAR style encoding of non-ASCII characters, use the `--encodeSavedXmlChars` argument.
-- Extracted XML instance is saved to the same directory as the IXDS with the suffix `_extracted.xbrl`.
+- On Windows, escape quotes and backslashes when using verbose JSON:
+  ```pwsh
+  .\\arelleCmdLine.exe --plugins inlineXbrlDocumentSet --file
+  "[{""ixds"":[{""file"":""C:\\\\report.zip""}], ""ixdsTarget"":""DKGAAP""}]"
+  ```
+- If no "ixdsTarget" is specified in JSON, all targets are loaded.
+- "(default)" matches the default IXDS target (i.e., no target defined in the instance).
+- Use "--encodeSavedXmlChars" to apply EDGAR-style encoding to non-ASCII characters.
+- The extracted XML instance is saved in the same directory with the suffix "_extracted.xbrl".
 """
 from __future__ import annotations
 
