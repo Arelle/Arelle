@@ -29,6 +29,7 @@ classifiers = [
 ]
 requires-python = ">=3.9,<3.14"
 dependencies = [
+    'bottle>=0.13,<0.14',
     'certifi',
     'filelock',
     'isodate==0.*',
