@@ -15,16 +15,16 @@ import zipfile
 from collections.abc import Iterable
 from copy import deepcopy
 
+from bottle import Bottle, HTTPResponse, request, response, static_file  # type: ignore[import-untyped]
+
 from arelle import Version
 from arelle.CntlrCmdLine import CntlrCmdLine
 from arelle.FileSource import FileNamedStringIO
-from arelle.PluginManager import pluginClassMethods
-from arelle.RuntimeOptions import RuntimeOptions
 from arelle.logging.formatters.LogFormatter import LogFormatter
 from arelle.logging.handlers.LogToBufferHandler import LogToBufferHandler
+from arelle.PluginManager import pluginClassMethods
+from arelle.RuntimeOptions import RuntimeOptions
 from arelle.typing import TypeGetText
-from arelle.webserver.bottle import (Bottle, HTTPResponse, request, response,
-                                     static_file)
 
 _: TypeGetText
 
@@ -136,13 +136,13 @@ def startWebserver(cntlr: CntlrCmdLine, options: RuntimeOptions) -> Bottle | Non
         elif server == "cgi":
             if sys.stdin is None:
                 sys.stdin = open(os.devnull, 'r')
-            app.run(server=server)  # type: ignore[no-untyped-call]
+            app.run(server=server)
             sys.exit(0)
         elif server:
             sys.path.insert(0,os.path.join(os.path.dirname(__file__),"webserver"))
-            app.run(host=host, port=port or 80, server=server)  # type: ignore[no-untyped-call]
+            app.run(host=host, port=port or 80, server=server)
         else:
-            app.run(host=host, port=port or 80)  # type: ignore[no-untyped-call]
+            app.run(host=host, port=port or 80)
     return None
 
 def cgiInterface(cgiAppPath: str) -> str | HTTPResponse:

@@ -24,7 +24,7 @@ from arelle.ModelValue import (DATETIME, dateTime, dayTimeDuration, qname,
                                yearMonthDuration)
 from arelle.PluginManager import pluginClassMethods
 from arelle.PrototypeInstanceObject import DimValuePrototype
-from arelle.PythonUtil import attrdict, strTruncate
+from arelle.PythonUtil import attrdict, isRootedPath, strTruncate
 from arelle.typing import TypeGetText
 from arelle.ValidateDuplicateFacts import (DuplicateTypeArg,
                                            getDuplicateFactSetsWithType)
@@ -1769,7 +1769,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
         # relativize taxonomyRefs to base where feasible
         txBase = os.path.dirname(documentBase or (modelXbrl.entryLoadingUrl if modelXbrl else ""))
         for i, tUrl in enumerate(taxonomyRefs or ()):
-            if not UrlUtil.isAbsolute(tUrl) and os.path.isabs(tUrl) and not UrlUtil.isAbsolute(txBase) and os.path.isabs(txBase):
+            if not UrlUtil.isAbsolute(tUrl) and isRootedPath(tUrl) and not UrlUtil.isAbsolute(txBase) and isRootedPath(txBase):
                 taxonomyRefs[i] = os.path.relpath(tUrl, txBase)
         prevErrLen = len(modelXbrl.errors) # track any xbrl validation errors
         xbrliNamespacePrefix = None

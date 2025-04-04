@@ -6,6 +6,7 @@ do not convert 3 to 2
 '''
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 from collections import OrderedDict
@@ -269,3 +270,10 @@ def tryRunCommand(*args: str) -> str | None:
         ).stdout.strip()
     except (OSError, subprocess.SubprocessError):
         return None
+
+def isRootedPath(path: str) -> bool:
+    """
+    Implements legacy behavior of os.path.isabs() prior to Python 3.13
+    where True was returned for paths beginning with slashes on Windows.
+    """
+    return os.path.isabs(path) or path.startswith(("/", "\\"))

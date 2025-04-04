@@ -4,8 +4,14 @@ See COPYRIGHT.md for copyright information.
 Provides infrastructure for local viewers of GUI applications such as inline XBRL viewers
 
 '''
-from arelle.webserver.bottle import Bottle, request, static_file, HTTPResponse
-import threading, time, logging, sys, traceback
+import logging
+import sys
+import threading
+import time
+import traceback
+
+from bottle import Bottle, HTTPResponse, request
+
 
 class LocalViewer:
     noCacheHeaders = {'Cache-Control': 'no-cache, no-store, must-revalidate',
