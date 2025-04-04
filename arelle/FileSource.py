@@ -20,6 +20,7 @@ from lxml import etree
 
 import arelle.PluginManager
 from arelle import PackageManager, XmlUtil
+from arelle.PythonUtil import isRootedPath
 from arelle.packages.report.DetectReportPackage import isReportPackageExtension
 from arelle.packages.report.ReportPackage import ReportPackage
 from arelle.typing import TypeGetText
@@ -769,7 +770,7 @@ class FileSource:
 
     def basedUrl(self, selection: str) -> str:
         baseurl = getattr(self, "baseurl", None)
-        if not baseurl or isHttpUrl(selection) or os.path.isabs(selection):
+        if not baseurl or isHttpUrl(selection) or isRootedPath(selection):
             return selection
         assert isinstance(baseurl, str)
         if self.baseIsHttp or os.sep == '/':
