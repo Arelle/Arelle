@@ -139,7 +139,7 @@ from arelle.ModelObject import ModelObject
 from arelle.ModelValue import INVALIDixVALUE, qname
 from arelle.PluginManager import pluginClassMethods
 from arelle.PrototypeDtsObject import ArcPrototype, LocPrototype
-from arelle.PythonUtil import attrdict
+from arelle.PythonUtil import attrdict, isLegacyAbs
 from arelle.RuntimeOptions import RuntimeOptions
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateDuplicateFacts import DeduplicationType
@@ -305,7 +305,7 @@ def createTargetInstance(
     def addLocallyReferencedFile(elt,filingFiles):
         if elt.tag in ("a", "img"):
             for attrTag, attrValue in elt.items():
-                if attrTag in ("href", "src") and not isHttpUrl(attrValue) and not os.path.isabs(attrValue):
+                if attrTag in ("href", "src") and not isHttpUrl(attrValue) and not isLegacyAbs(attrValue):
                     attrValue = attrValue.partition('#')[0] # remove anchor
                     if attrValue: # ignore anchor references to base document
                         attrValue = os.path.normpath(attrValue) # change url path separators to host separators

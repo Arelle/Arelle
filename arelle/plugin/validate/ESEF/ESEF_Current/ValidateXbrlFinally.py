@@ -26,7 +26,7 @@ from arelle.ModelValue import QName
 from arelle.ModelValue import qname
 from arelle.ModelXbrl import ModelXbrl
 
-from arelle.PythonUtil import normalizeSpace
+from arelle.PythonUtil import isLegacyAbs, normalizeSpace
 from arelle.PythonUtil import strTruncate
 from arelle.utils.validate.DetectScriptsInXhtml import containsScriptMarkers
 from arelle.UrlUtil import isHttpUrl
@@ -378,7 +378,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                     modelObject=elt, element=eltTag)
                             elif len(modelXbrl.ixdsHtmlElements) > 1:
                                 _file = elt.get("href")
-                                if not _file or isHttpUrl(_file) or os.path.isabs(_file):
+                                if not _file or isHttpUrl(_file) or isLegacyAbs(_file):
                                     modelXbrl.warning("ESEF.2.5.4.externalCssReportPackage",
                                         _("The CSS file should be physically stored within the report package: %{file}s."),
                                         modelObject=elt, file=_file)

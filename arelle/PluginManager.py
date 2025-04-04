@@ -15,6 +15,7 @@ from types import ModuleType
 from typing import TYPE_CHECKING, Any, cast
 from arelle.Locale import getLanguageCodes
 import arelle.FileSource
+from arelle.PythonUtil import isLegacyAbs
 from arelle.UrlUtil import isAbsolute
 from pathlib import Path
 from collections import OrderedDict, defaultdict
@@ -447,7 +448,7 @@ def moduleModuleInfo(
                     mergedImportURLs.append(moduleImport + ".py")
             imports = []
             for _url in mergedImportURLs:
-                if isAbsolute(_url) or os.path.isabs(_url):
+                if isAbsolute(_url) or isLegacyAbs(_url):
                     _importURL = _url # URL is absolute http or local file system
                 else: # check if exists relative to this module's directory
                     _importURL = os.path.join(os.path.dirname(moduleURL), os.path.normpath(_url))

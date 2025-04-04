@@ -6,6 +6,7 @@ do not convert 3 to 2
 '''
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 from collections import OrderedDict
@@ -269,3 +270,15 @@ def tryRunCommand(*args: str) -> str | None:
         ).stdout.strip()
     except (OSError, subprocess.SubprocessError):
         return None
+
+def isLegacyAbs(path: str) -> bool:
+    """
+    Implements legacy behavior of os.path.isabs() prior to Python 3.13
+    where True was returned for paths beginning with single slashes on Windows.
+    """
+    if os.path.isabs(path):
+        return True
+    from arelle.SystemInfo import PlatformOS
+    if PlatformOS.getPlatformOS() == PlatformOS.WINDOWS:
+        return path.startswith(("/", "\\"))
+    return False

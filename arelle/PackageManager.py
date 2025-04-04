@@ -15,6 +15,7 @@ from urllib.parse import urljoin
 from lxml import etree
 
 from arelle import Locale
+from arelle.PythonUtil import isLegacyAbs
 from arelle.packages import PackageValidation
 from arelle.packages.PackageType import PackageType
 from arelle.typing import TypeGetText
@@ -314,7 +315,7 @@ def _parseCatalog(
                             replaceValue = os.path.join(base, replaceValue)
                         if replaceValue and not isAbsolute(replaceValue):
                             # neither None nor ''
-                            if not os.path.isabs(replaceValue):
+                            if not isLegacyAbs(replaceValue):
                                 replaceValue = fileBase + replaceValue
                             if not isHttpUrl(replaceValue):
                                 replaceValue = replaceValue.replace("/", os.sep)
