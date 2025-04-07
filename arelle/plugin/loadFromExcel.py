@@ -11,7 +11,7 @@ import regex as re
 from fnmatch import fnmatch
 from collections import defaultdict, OrderedDict
 from arelle import PythonUtil, XbrlConst, ModelDocument, UrlUtil
-from arelle.PythonUtil import OrderedDefaultDict, OrderedSet
+from arelle.PythonUtil import OrderedDefaultDict, OrderedSet, isLegacyAbs
 from arelle.ModelDocument import Type, create as createModelDocument
 from arelle.ModelValue import qname, QName
 from arelle.Version import authorLabel, copyrightLabel
@@ -212,7 +212,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
         if baseDir is None:
             baseDir = thisDoc.extensionSchemaRelDirname
         if (baseDir is not None and
-            not (UrlUtil.isAbsolute(filename) or os.path.isabs(filename))):
+            not (UrlUtil.isAbsolute(filename) or isLegacyAbs(filename))):
             return posixpath.relpath(filename, baseDir)
         return filename
 
@@ -279,7 +279,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                     thisDoc.extensionSchemaPrefix = prefix
                     thisDoc.extensionSchemaFilename = filename
                     thisDoc.extensionSchemaNamespaceURI = namespaceURI
-                    if not UrlUtil.isAbsolute(filename) and not os.path.isabs(filename):
+                    if not UrlUtil.isAbsolute(filename) and not isLegacyAbs(filename):
                         thisDoc.extensionSchemaRelDirname = posixpath.dirname(filename)
                     else:
                         thisDoc.extensionSchemaRelDirname = None
@@ -1893,7 +1893,7 @@ def saveDts(cntlr, modelXbrl, outputDtsDir):
     import shutil
     excelFileDir = os.path.dirname(modelXbrl.fileSource.url)
     def saveToFile(url):
-        if os.path.isabs(url):
+        if isLegacyAbs(url):
             return url
         filepath = os.path.join(outputDtsDir, url)
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
@@ -1908,7 +1908,7 @@ def saveDts(cntlr, modelXbrl, outputDtsDir):
                     if refDoc.type == ModelDocument.Type.LINKBASE:
                         cntlr.showStatus(_("Saving XBRL DTS: {0}").format(os.path.basename(refDoc.uri)))
                         refDoc.save(saveToFile(refDoc.uri), updateFileHistory=False)
-        elif not (UrlUtil.isAbsolute(doc.uri) or os.path.isabs(doc.uri) or outputDtsDir == excelFileDir):
+        elif not (UrlUtil.isAbsolute(doc.uri) or isLegacyAbs(doc.uri) or outputDtsDir == excelFileDir):
             srcfile = os.path.join(excelFileDir, doc.uri)
             destfile = saveToFile(doc.uri)
             if os.path.exists(srcfile):

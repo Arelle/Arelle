@@ -15,6 +15,8 @@ if TYPE_CHECKING:
     from optparse import OptionParser
     from tkinter import Menu
 
+    from bottle import Bottle  # type: ignore[import-untyped]
+
     from arelle.Cntlr import Cntlr
     from arelle.CntlrCmdLine import CntlrCmdLine
     from arelle.CntlrWinMain import CntlrWinMain
@@ -25,7 +27,6 @@ if TYPE_CHECKING:
     from arelle.ModelManager import ModelManager
     from arelle.ModelXbrl import ModelXbrl
     from arelle.ValidateXbrl import ValidateXbrl
-    from arelle.webserver.bottle import Bottle
 
 
 class ValidationHook(Enum):
@@ -191,7 +192,7 @@ class PluginHooks(ABC):
         app.route('/rest/my-run/<file:path>', ("GET", "POST"), my_run)
         ```
 
-        :param app: The [Bottle](#arelle.webserver.bottle.Bottle) server.
+        :param app: The Bottle server.
         :param cntlr: The [controller](#arelle.CntlrCmdLine.CntlrCmdLine) for the server.
         :param host: The webserver host.
         :param port: The webserver port.

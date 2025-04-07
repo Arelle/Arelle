@@ -486,7 +486,7 @@ def parseArgs(args):
                           "\n   Python(r) {pythonVersion} (c) 2001-2013 Python Software Foundation"
                           "\n   PyParsing (c) 2003-2013 Paul T. McGuire"
                           "\n   lxml {lxmlVersion} (c) 2004 Infrae, ElementTree (c) 1999-2004 by Fredrik Lundh"
-                          "{bottleCopyright}"
+                          "\n   Bottle (c) 2009-2024 Marcel Hellkamp"
                           "\n   May include installable plug-in modules with author-specific license terms").format(
             version=Version.__version__,
             wordSize=getSystemWordSize(),
@@ -494,7 +494,6 @@ def parseArgs(args):
             copyrightLabel=Version.copyrightLabel,
             pythonVersion=f'{sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]}',
             lxmlVersion=f'{etree.LXML_VERSION[0]}.{etree.LXML_VERSION[1]}.{etree.LXML_VERSION[2]}',
-            bottleCopyright="\n   Bottle (c) 2011-2013 Marcel Hellkamp" if hasWebServer() else ""
         ))
         parser.exit()  # Printing the message in parser.exit sends it to stderr NOT stdout
     elif options.diagnostics:

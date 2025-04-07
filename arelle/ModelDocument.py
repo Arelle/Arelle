@@ -20,7 +20,7 @@ from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelObjectFactory import parser
 from arelle.PrototypeDtsObject import LinkPrototype, LocPrototype, ArcPrototype, DocumentPrototype, PrototypeElementTree
 from arelle.PluginManager import pluginClassMethods
-from arelle.PythonUtil import OrderedDefaultDict, normalizeSpace
+from arelle.PythonUtil import OrderedDefaultDict, isLegacyAbs, normalizeSpace
 from arelle.XhtmlValidate import ixMsgCode
 from arelle.XmlValidateConst import VALID
 from arelle.XmlValidate import validate as xmlValidate, lxmlSchemaValidate
@@ -1106,7 +1106,7 @@ class ModelDocument:
                         break # break because it is now absolute
             baseElt = baseElt.getparent()
         if base: # neither None nor ''
-            if base.startswith('http://') or os.path.isabs(base):
+            if base.startswith('http://') or isLegacyAbs(base):
                 return base
             else:
                 return os.path.dirname(self.uri) + "/" + base

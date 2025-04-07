@@ -12,6 +12,7 @@ from collections import defaultdict, OrderedDict
 from arelle import (FileSource, ModelXbrl, ModelDocument, ModelVersReport, XbrlConst,
                ValidateXbrl, ValidateVersReport,
                ValidateInfoset, ViewFileRenderedLayout, UrlUtil)
+from arelle.PythonUtil import isLegacyAbs
 from arelle.formula import ValidateFormula
 from arelle.ModelDocument import Type, ModelDocumentReference, load as modelDocumentLoad
 from arelle.ModelDtsObject import ModelResource
@@ -157,7 +158,7 @@ class Validate:
             modelXbrl = None
             try:
                 rssItemUrl = rssItem.zippedUrl
-                if self.useFileSource.isArchive and (os.path.isabs(rssItemUrl) or not rssItemUrl.endswith(".zip")):
+                if self.useFileSource.isArchive and (isLegacyAbs(rssItemUrl) or not rssItemUrl.endswith(".zip")):
                     modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager,
                                                openFileSource(rssItemUrl, self.modelXbrl.modelManager.cntlr, reloadCache=reloadCache),
                                                _("validating"), rssItem=rssItem)
@@ -337,7 +338,7 @@ class Validate:
             PackageManager.packageInfo(self.modelXbrl.modelManager.cntlr, readMeFirstUri, reload=True, errors=modelXbrl.errors)
         else: # not a multi-schemaRef versioning report
             readMeFirstUriIsEmbeddedZipFile = False
-            if self.useFileSource.isArchive and not os.path.isabs(readMeFirstUri):
+            if self.useFileSource.isArchive and not isLegacyAbs(readMeFirstUri):
                 if isReportPackageExtension(readMeFirstUri):
                     readMeFirstUriIsEmbeddedZipFile = True
                 else:
@@ -360,7 +361,7 @@ class Validate:
                 newSourceFileSource = False
                 if (
                     self.useFileSource
-                    and not os.path.isabs(readMeFirstUri)
+                    and not isLegacyAbs(readMeFirstUri)
                     and (readMeFirstUriIsEmbeddedZipFile or isReportPackageExtension(readMeFirstUri))
                 ):
                     if self.useFileSource.isArchive:

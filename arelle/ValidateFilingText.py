@@ -9,6 +9,7 @@ from PIL import Image as pilImage
 import os, io, base64
 import regex as re
 import string
+from arelle.PythonUtil import isLegacyAbs
 from arelle.XbrlConst import ixbrlAll, xhtml
 from arelle.XmlUtil import setXmlns, xmlstring, xmlDeclarationPattern, XmlDeclarationLocationException
 from arelle.ModelObject import ModelObject
@@ -1007,7 +1008,7 @@ def referencedFiles(modelXbrl, localFilesOnly=True):
                 if (attrTag in ("href", "src") and
                     scheme(attrValue) not in ("data", "javascript") and (
                         not localFilesOnly or
-                        (not isHttpUrl(attrValue) and not os.path.isabs(attrValue)))):
+                        (not isHttpUrl(attrValue) and not isLegacyAbs(attrValue)))):
                     attrValue = attrValue.partition('#')[0].strip() # remove anchor
                     if attrValue not in ("", "."): # ignore anchor references to base document
                         base = docElt.modelDocument.baseForElement(docElt)
