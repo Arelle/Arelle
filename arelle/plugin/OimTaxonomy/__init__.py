@@ -3,7 +3,7 @@ See COPYRIGHT.md for copyright information.
 
 ## Overview
 
-The Load OIM Taxonomy plugin is designed to load taxonomy objects from JSON that adheres to the Open Information
+The OIM Taxonomy plugin is designed to load taxonomy objects from JSON that adheres to the Open Information
 Model (OIM) Taxonomy Specification.
 
 ## Usage Instructions
@@ -16,10 +16,12 @@ For debugging, saves the xsd objects loaded from the OIM taxonomy if
 
 """
 import os, sys, io, time, traceback, json, logging, zipfile, datetime, isodate
+from decimal import Decimal
 import regex as re
 from math import isnan, log10
 from lxml import etree
 from collections import defaultdict, OrderedDict
+from typing import TYPE_CHECKING, Any, TypeVar, Union, cast, Optional
 from arelle.ModelDocument import Type, create as createModelDocument, load as loadModelDocument
 from arelle.ModelDtsObject import ModelResource
 from arelle import XbrlConst, ModelDocument, ModelXbrl, PackageManager, ValidateXbrlDimensions
@@ -29,7 +31,8 @@ from arelle.ModelValue import qname, dateTime, DateTime, DATETIME, yearMonthDura
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.oim.Load import (OIMException, NotOIMException, EMPTY_DICT, EMPTY_LIST, NoRecursionCheck,
                              CheckPrefix, WhitespaceUntrimmedPattern,
-                             URIType, QNameType, LangType, URIType, SQNameType
+                             URIType, QNameType, LangType, URIType, SQNameType,
+                             SQNamePattern, CanonicalIntegerPattern
                              )
 from arelle.PythonUtil import attrdict, flattenToSet, strTruncate
 from arelle.UrlUtil import isHttpUrl, isAbsolute as isAbsoluteUri, isValidUriReference
@@ -46,22 +49,23 @@ from arelle.XmlValidateConst import VALID
 from arelle.XmlValidate import integerPattern, languagePattern, NCNamePattern, QNamePattern, validate as xmlValidate
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
 
+from .XbrlDts import XbrlDts
+from .XbrlTaxonomy import XbrlTaxonomy
+
+oimTaxonomyDocTypePattern = re.compile(r"\s*\{.*\"documentType\"\s*:\s*\"https://xbrl.org/PWD/[0-9]{4}-[0-9]{2}-[0-9]{2}/oim\"", flags=re.DOTALL)
+oimTaxonomyDocTypes = (
+        "https://xbrl.org/PWD/2025-01-31/oim",
+    )
+
 saveOIMTaxonomySchemaFiles = False
 SAVE_OIM_SCHEMA_CMDLINE_PARAMETER = "--saveOIMschemafile"
 SAVE_OIM_SCHEMA_FORULA_PARAMETER = qname("saveOIMschemafile", noPrefixIsNoNamespace=True)
 
-ClarkQNamePattern = re.compile(
-    r"\{[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
-     r"[_\-\."
-     r"\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*\}"
-    "[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
-     r"[_\-\."
-     "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*")
+class QNameAtContextType:
+    pass # fake class for detecting QName type + @start/end in JSON structure check
 
+PROPERTY_TYPE = (QNameType,str,int,float,bool,NoRecursionCheck,CheckPrefix)
 
-jsonDocumentTypes = (
-        "https://xbrl.org/PWD/2023-05-17/cti",
-    )
 
 UnrecognizedDocMemberTypes = {
     "/documentInfo": dict,
@@ -88,206 +92,282 @@ JsonMemberTypes = {
     "/documentInfo/*:*": (int,float,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
     # taxonomy
     "/taxonomy": dict,
-    "/taxonomy/*": dict,
-    "/taxonomy/*/name": str,
-    "/taxonomy/*/familyName": str,
-    "/taxonomy/*/version": str,
-    "/taxonomy/*/entryPoint": str,
+    "/taxonomy/name": str,
+    "/taxonomy/familyName": str,
+    "/taxonomy/version": str,
+    "/taxonomy/entryPoint": str,
 
-    "/taxonomy/*/importedTaxonomies": list,
-    "/taxonomy/*/importedTaxonomies/*": dict,
-    "/taxonomy/*/importedTaxonomies/*/taxonomyName": QNameType,
+    "/taxonomy/importedTaxonomies": list,
+    "/taxonomy/importedTaxonomies/*": dict,
+    "/taxonomy/importedTaxonomies/*/taxonomyName": QNameType,
 
-    "/taxonomy/*/propertyTypes": list,
-    "/taxonomy/*/propertyTypes/*": dict,
-    "/taxonomy/*/propertyTypes/*/abstract": bool,
-    "/taxonomy/*/propertyTypes/*/name": QNameType,
-    "/taxonomy/*/propertyTypes/*/immutable": bool,
-    "/taxonomy/*/propertyTypes/*/dataType": QNameType,
-    "/taxonomy/*/propertyTypes/*/allowedObjects": list,
-    "/taxonomy/*/propertyTypes/*/allowedObjects/*": QNameType,
+    "/taxonomy/propertyTypes": list,
+    "/taxonomy/propertyTypes/*": dict,
+    "/taxonomy/propertyTypes/*/name": QNameType,
+    "/taxonomy/propertyTypes/*/dataType": QNameType,
+    "/taxonomy/propertyTypes/*/enumerationDomain": QNameType,
+    "/taxonomy/propertyTypes/*/immutable": bool,
+    "/taxonomy/propertyTypes/*/allowedObjects": list,
+    "/taxonomy/propertyTypes/*/allowedObjects/*": QNameType,
 
-    "/taxonomy/*/abstracts": list,
-    "/taxonomy/*/abstracts/*": dict,
-    "/taxonomy/*/abstracts/*/name": QNameType,
+    "/taxonomy/abstracts": list,
+    "/taxonomy/abstracts/*": dict,
+    "/taxonomy/abstracts/*/name": QNameType,
 
-    "/taxonomy/*/concepts": list,
-    "/taxonomy/*/concepts/*": dict,
-    "/taxonomy/*/concepts/*/abstract": bool,
-    "/taxonomy/*/concepts/*/name": QNameType,
-    "/taxonomy/*/concepts/*/dataType": QNameType,
-    "/taxonomy/*/concepts/*/nillable": bool,
-    "/taxonomy/*/concepts/*/periodType": str,
-    "/taxonomy/*/concepts/*/properties": list,
-    "/taxonomy/*/concepts/*/properties/*": dict,
-    "/taxonomy/*/concepts/*/properties/*/xbrl:balance": str,
+    "/taxonomy/concepts": list,
+    "/taxonomy/concepts/*": dict,
+    "/taxonomy/concepts/*/name": QNameType,
+    "/taxonomy/concepts/*/dataType": QNameType,
+    "/taxonomy/concepts/*/periodType": str,
+    "/taxonomy/concepts/*/enumerationDomain": QNameType,
+    "/taxonomy/concepts/*/nillable": bool,
+    "/taxonomy/concepts/*/properties": list,
+    "/taxonomy/concepts/*/properties/*": dict,
+    "/taxonomy/concepts/*/properties/*/xbrl:balance": str,
+    "/taxonomy/concepts/*/properties/*/*:*": PROPERTY_TYPE,
 
-    "/taxonomy/*/members": list,
-    "/taxonomy/*/members/*": dict,
-    "/taxonomy/*/members/*/name": QNameType,
+    "/taxonomy/members": list,
+    "/taxonomy/members/*": dict,
+    "/taxonomy/members/*/name": QNameType,
 
-    "/taxonomy/*/dimensions": list,
-    "/taxonomy/*/dimensions/*": dict,
-    "/taxonomy/*/dimensions/*/name": QNameType,
-    "/taxonomy/*/dimensions/*/domainDataType": QNameType,
-    "/taxonomy/*/dimensions/*/dimensionType": str,
-    "/taxonomy/*/dimensions/*/cubeTypes": list,
-    "/taxonomy/*/dimensions/*/cubeTypes/*": QNameType,
+    "/taxonomy/dimensions": list,
+    "/taxonomy/dimensions/*": dict,
+    "/taxonomy/dimensions/*/name": QNameType,
+    "/taxonomy/dimensions/*/domainDataType": QNameType,
+    "/taxonomy/dimensions/*/dimensionType": str,
+    "/taxonomy/dimensions/*/cubeTypes": list,
+    "/taxonomy/dimensions/*/cubeTypes/*": QNameType,
 
-    "/taxonomy/*/networks": list,
-    "/taxonomy/*/networks/*": dict,
-    "/taxonomy/*/networks/*/name": str,
-    "/taxonomy/*/networks/*/description": str,
-    "/taxonomy/*/networks/*/networkURI": URIType,
-    "/taxonomy/*/concepts/*/order": (int,float),
-    "/taxonomy/*/networks/*/relationships": list,
-    "/taxonomy/*/networks/*/relationships/*": dict,
-    "/taxonomy/*/networks/*/relationships/*/order": (int,float),
-    "/taxonomy/*/networks/*/relationships/*/weight": (int,float),
-    "/taxonomy/*/networks/*/relationships/*/preferredLabel": (QNameType,type(None)),
-    "/taxonomy/*/networks/*/relationships/*/source": QNameType,
-    "/taxonomy/*/networks/*/relationships/*/target": QNameType,
+    "/taxonomy/networks": list,
+    "/taxonomy/networks/*": dict,
+    "/taxonomy/networks/*/name": QNameType,
+    "/taxonomy/networks/*/relationshipTypeName": QNameType,
+    "/taxonomy/networks/*/roots": list,
+    "/taxonomy/networks/*/extendTargetName": bool,
+    "/taxonomy/networks/*/relationships": list,
+    "/taxonomy/networks/*/relationships/*": dict,
+    "/taxonomy/networks/*/relationships/*/source": QNameType,
+    "/taxonomy/networks/*/relationships/*/target": QNameType,
+    "/taxonomy/networks/*/relationships/*/order": (int,float),
+    "/taxonomy/networks/*/relationships/*/weight": (int,float),
+    "/taxonomy/networks/*/relationships/*/preferredLabel": QNameType,
+    "/taxonomy/networks/*/relationships/*/usable": bool,
+    "/taxonomy/networks/*/relationships/*/properties": list,
+    "/taxonomy/networks/*/relationships/*/properties/*": dict,
+    "/taxonomy/networks/*/relationships/*/properties/*/*:*": PROPERTY_TYPE,
+    "/taxonomy/networks/*/properties": list,
+    "/taxonomy/networks/*/properties/*": dict,
+    "/taxonomy/networks/*/properties/*/*:*": PROPERTY_TYPE,
 
-    "/taxonomy/*/entities": list,
-    "/taxonomy/*/entities/*": dict,
-    "/taxonomy/*/entities/*/name": QNameType,
+    "/taxonomy/entities": list,
+    "/taxonomy/entities/*": dict,
+    "/taxonomy/entities/*/name": SQNameType,
+    "/taxonomy/entities/*/properties": list,
+    "/taxonomy/entities/*/properties/*": dict,
+    "/taxonomy/entities/*/properties/*/*:*": PROPERTY_TYPE,
 
-    "/taxonomy/*/units": list,
-    "/taxonomy/*/units/*": dict,
-    "/taxonomy/*/units/*/name": QNameType,
-    "/taxonomy/*/units/*/dataType": QNameType,
-    "/taxonomy/*/units/*/baseStandard": str,
-    "/taxonomy/*/units/*/dataTypeNumerator": QNameType,
-    "/taxonomy/*/units/*/dataTypeDenominator": QNameType,
+    "/taxonomy/units": list,
+    "/taxonomy/units/*": dict,
+    "/taxonomy/units/*/name": SQNameType,
+    "/taxonomy/units/*/dataType": QNameType,
+    "/taxonomy/units/*/baseStandard": str,
+    "/taxonomy/units/*/dataTypeNumerator": QNameType,
+    "/taxonomy/units/*/dataTypeDenominator": QNameType,
 
-    "/taxonomy/*/groups": list,
-    "/taxonomy/*/groups/*": dict,
-    "/taxonomy/*/groups/*/name": QNameType,
-    "/taxonomy/*/groups/*/groupURI": URIType,
+    "/taxonomy/groups": list,
+    "/taxonomy/groups/*": dict,
+    "/taxonomy/groups/*/name": QNameType,
+    "/taxonomy/groups/*/groupURI": URIType,
+    "/taxonomy/groups/*/properties": list,
+    "/taxonomy/groups/*/properties/*": dict,
+    "/taxonomy/groups/*/properties/*/*:*": PROPERTY_TYPE,
 
-    "/taxonomy/*/groupContents": list,
-    "/taxonomy/*/groupContents/*": dict,
-    "/taxonomy/*/groupContents/*/groupName": QNameType,
-    "/taxonomy/*/groupContents/*/relatedNames": list,
-    "/taxonomy/*/groupContents/*/relatedNames/*": QNameType,
+    "/taxonomy/groupContents": list,
+    "/taxonomy/groupContents/*": dict,
+    "/taxonomy/groupContents/*/groupName": QNameType,
+    "/taxonomy/groupContents/*/relatedNames": list,
+    "/taxonomy/groupContents/*/relatedNames/*": QNameType,
 
-    "/taxonomy/*/relationshipTypes": list,
-    "/taxonomy/*/relationshipTypes/*": dict,
-    "/taxonomy/*/relationshipTypes/*/name": QNameType,
-    "/taxonomy/*/relationshipTypes/*/relationshipTypeURI": URIType,
-    "/taxonomy/*/relationshipTypes/*/cycles": str,
-    "/taxonomy/*/relationshipTypes/*/allowedLinkProperties": list,
-    "/taxonomy/*/relationshipTypes/*/allowedLinkProperties/*": QNameType,
-    "/taxonomy/*/relationshipTypes/*/requiredLinkProperties": list,
-    "/taxonomy/*/relationshipTypes/*/requiredLinkProperties/*": QNameType,
-    "/taxonomy/*/relationshipTypes/*/sourceObjects": list,
-    "/taxonomy/*/relationshipTypes/*/sourceObjects/*": QNameType,
-    "/taxonomy/*/relationshipTypes/*/targetObjects": list,
-    "/taxonomy/*/relationshipTypes/*/targetObjects/*": QNameType,
+    "/taxonomy/relationshipTypes": list,
+    "/taxonomy/relationshipTypes/*": dict,
+    "/taxonomy/relationshipTypes/*/name": QNameType,
+    "/taxonomy/relationshipTypes/*/relationshipTypeURI": URIType,
+    "/taxonomy/relationshipTypes/*/cycles": str,
+    "/taxonomy/relationshipTypes/*/allowedLinkProperties": list,
+    "/taxonomy/relationshipTypes/*/allowedLinkProperties/*": QNameType,
+    "/taxonomy/relationshipTypes/*/requiredLinkProperties": list,
+    "/taxonomy/relationshipTypes/*/requiredLinkProperties/*": QNameType,
+    "/taxonomy/relationshipTypes/*/sourceObjects": list,
+    "/taxonomy/relationshipTypes/*/sourceObjects/*": QNameType,
+    "/taxonomy/relationshipTypes/*/targetObjects": list,
+    "/taxonomy/relationshipTypes/*/targetObjects/*": QNameType,
 
-    "/taxonomy/*/cubes": list,
-    "/taxonomy/*/cubes/*": dict,
-    "/taxonomy/*/cubes/*/name": QNameType,
-    "/taxonomy/*/cubes/*/cubeType": QNameType,
-    "/taxonomy/*/cubes/*/cubeDimensions": list,
-    "/taxonomy/*/cubes/*/cubeDimensions/*": dict,
-    "/taxonomy/*/cubes/*/cubeDimensions/*/dimensionName": QNameType,
-    "/taxonomy/*/cubes/*/cubeDimensions/*/QNameType": QNameType,
-    "/taxonomy/*/cubes/*/cubeDimensions/*/allowDomainFacts": bool,
+    "/taxonomy/cubes": list,
+    "/taxonomy/cubes/*": dict,
+    "/taxonomy/cubes/*/name": QNameType,
+    "/taxonomy/cubes/*/cubeType": QNameType,
+    "/taxonomy/cubes/*/cubeDimensions": list,
+    "/taxonomy/cubes/*/cubeDimensions/*": dict,
+    "/taxonomy/cubes/*/cubeDimensions/*/dimensionName": QNameType,
+    "/taxonomy/cubes/*/cubeDimensions/*/domainName": QNameType,
+    "/taxonomy/cubes/*/cubeDimensions/*/domainSort": str,
+    "/taxonomy/cubes/*/cubeDimensions/*/allowDomainFacts": bool,
+    "/taxonomy/cubes/*/cubeDimensions/*/exclude": bool,
+    "/taxonomy/cubes/*/cubeDimensions/*/periodConstraints": list,
+    "/taxonomy/cubes/*/cubeDimensions/*/periodConstraints/*": dict,
+    "/taxonomy/cubes/*/cubeDimensions/*/periodConstraints/*/periodType": str,
+    "/taxonomy/cubes/*/cubeDimensions/*/periodConstraints/*/timeSpan": str,
+    "/taxonomy/cubes/*/cubeDimensions/*/periodConstraints/*/periodFormat": str,
+    "/taxonomy/cubes/*/cubeDimensions/*/periodConstraints/*/gMonthDay": dict,
+    "/taxonomy/cubes/*/cubeDimensions/*/periodConstraints/*/gMonthDay/conceptName": QNameType,
+    "/taxonomy/cubes/*/cubeDimensions/*/periodConstraints/*/gMonthDay/context": QNameAtContextType,
+    "/taxonomy/cubes/*/cubeDimensions/*/periodConstraints/*/gMonthDay/value": str,
+    "/taxonomy/cubes/*/cubeDimensions/*/periodConstraints/*/gMonthDay/timeShift": str,
+    "/taxonomy/cubes/*/cubeDimensions/*/periodConstraints/*/endDate": dict,
+    "/taxonomy/cubes/*/cubeDimensions/*/periodConstraints/*/endDate/conceptName": QNameType,
+    "/taxonomy/cubes/*/cubeDimensions/*/periodConstraints/*/endDate/context": QNameAtContextType,
+    "/taxonomy/cubes/*/cubeDimensions/*/periodConstraints/*/endDate/value": str,
+    "/taxonomy/cubes/*/cubeDimensions/*/periodConstraints/*/endDate/timeShift": str,
+    "/taxonomy/cubes/*/cubeDimensions/*/periodConstraints/*/startDate": dict,
+    "/taxonomy/cubes/*/cubeDimensions/*/periodConstraints/*/startDate/conceptName": QNameType,
+    "/taxonomy/cubes/*/cubeDimensions/*/periodConstraints/*/startDate/context": QNameAtContextType,
+    "/taxonomy/cubes/*/cubeDimensions/*/periodConstraints/*/startDate/value": str,
+    "/taxonomy/cubes/*/cubeDimensions/*/periodConstraints/*/startDate/timeShift": str,
+    "/taxonomy/cubes/*/cubeDimensions/*/periodConstraints/*/after": dict,
+    "/taxonomy/cubes/*/cubeDimensions/*/periodConstraints/*/after/conceptName": QNameType,
+    "/taxonomy/cubes/*/cubeDimensions/*/periodConstraints/*/after/context": QNameAtContextType,
+    "/taxonomy/cubes/*/cubeDimensions/*/periodConstraints/*/after/value": str,
+    "/taxonomy/cubes/*/cubeDimensions/*/periodConstraints/*/after/timeShift": str,
+    "/taxonomy/cubes/*/cubeDimensions/*/periodConstraints/*/before": dict,
+    "/taxonomy/cubes/*/cubeDimensions/*/periodConstraints/*/before/conceptName": QNameType,
+    "/taxonomy/cubes/*/cubeDimensions/*/periodConstraints/*/before/context": QNameAtContextType,
+    "/taxonomy/cubes/*/cubeDimensions/*/periodConstraints/*/before/value": str,
+    "/taxonomy/cubes/*/cubeDimensions/*/periodConstraints/*/before/timeShift": str,
+    "/taxonomy/cubes/*/cubeDimensions/*/unitConstraints": list,
+    "/taxonomy/cubes/*/cubeDimensions/*/unitConstraints/*": dict,
+    "/taxonomy/cubes/*/cubeDimensions/*/unitConstraints/*/": QNameType,
+    "/taxonomy/cubes/*/cubeNetworks": list,
+    "/taxonomy/cubes/*/cubeNetworks/*": QNameType,
+    "/taxonomy/cubes/*/excludeCubes": list,
+    "/taxonomy/cubes/*/excludeCubes/*": QNameType,
+    "/taxonomy/cubes/*/cubeComplete": bool,
+    "/taxonomy/cubes/*/properties": list,
+    "/taxonomy/cubes/*/properties/*": dict,
+    "/taxonomy/cubes/*/properties/*/*:*": PROPERTY_TYPE,
 
-    "/taxonomy/*/networks": list,
-    "/taxonomy/*/networks/*": dict,
-    "/taxonomy/*/networks/*/name": QNameType,
-    "/taxonomy/*/networks/*/relationshipTypeName": QNameType,
-    "/taxonomy/*/networks/*/roots": list,
-    "/taxonomy/*/networks/*/roots/*": QNameType,
-    "/taxonomy/*/networks/*/relationships": list,
-    "/taxonomy/*/networks/*/relationships/*": dict,
-    "/taxonomy/*/networks/*/relationships/*/source": QNameType,
-    "/taxonomy/*/networks/*/relationships/*/target": QNameType,
-    "/taxonomy/*/networks/*/relationships/*/order": (int,float),
-    "/taxonomy/*/networks/*/relationships/*/weight": (int,float,type(None)),
+    "/taxonomy/networks": list,
+    "/taxonomy/networks/*": dict,
+    "/taxonomy/networks/*/name": QNameType,
+    "/taxonomy/networks/*/relationshipTypeName": QNameType,
+    "/taxonomy/networks/*/roots": list,
+    "/taxonomy/networks/*/roots/*": QNameType,
+    "/taxonomy/networks/*/relationships": list,
+    "/taxonomy/networks/*/relationships/*": dict,
+    "/taxonomy/networks/*/relationships/*/source": QNameType,
+    "/taxonomy/networks/*/relationships/*/target": QNameType,
+    "/taxonomy/networks/*/relationships/*/order": (int,float),
+    "/taxonomy/networks/*/relationships/*/weight": (int,float,type(None)),
+    "/taxonomy/networks/*/relationships/*/properties": list,
+    "/taxonomy/networks/*/relationships/*/properties/*": dict,
+    "/taxonomy/networks/*/relationships/*/properties/*/*:*": PROPERTY_TYPE,
 
-    "/taxonomy/*/domains": list,
-    "/taxonomy/*/domains/*": dict,
-    "/taxonomy/*/domains/*/name": QNameType,
-    "/taxonomy/*/domains/*/baseDomain": QNameType,
-    "/taxonomy/*/domains/*/allowedMembers": list,
-    "/taxonomy/*/domains/*/allowedMembers/*": QNameType,
-    "/taxonomy/*/domains/*/relationships": list,
-    "/taxonomy/*/domains/*/relationships/*": dict,
-    "/taxonomy/*/domains/*/relationships/*/source": QNameType,
-    "/taxonomy/*/domains/*/relationships/*/target": QNameType,
-    "/taxonomy/*/domains/*/relationships/*/order": (int,float),
+    "/taxonomy/domains": list,
+    "/taxonomy/domains/*": dict,
+    "/taxonomy/domains/*/name": QNameType,
+    "/taxonomy/domains/*/baseDomain": QNameType,
+    "/taxonomy/domains/*/allowedMembers": list,
+    "/taxonomy/domains/*/allowedMembers/*": QNameType,
+    "/taxonomy/domains/*/relationships": list,
+    "/taxonomy/domains/*/relationships/*": dict,
+    "/taxonomy/domains/*/relationships/*/source": QNameType,
+    "/taxonomy/domains/*/relationships/*/target": QNameType,
+    "/taxonomy/domains/*/relationships/*/order": (int,float),
+    "/taxonomy/domains/*/relationships/*/weight": (int,float),
+    "/taxonomy/domains/*/relationships/*/preferredLabel": QNameType,
+    "/taxonomy/domains/*/relationships/*/usable": bool,
+    "/taxonomy/domains/*/relationships/*/properties": list,
+    "/taxonomy/domains/*/relationships/*/properties/*": dict,
+    "/taxonomy/domains/*/relationships/*/properties/*/*:*": PROPERTY_TYPE,
 
-    "/taxonomy/*/labels": list,
-    "/taxonomy/*/labels/*": dict,
-    "/taxonomy/*/labels/*/relatedName": QNameType,
-    "/taxonomy/*/labels/*/labelType": QNameType,
-    "/taxonomy/*/labels/*/language": LangType,
-    "/taxonomy/*/labels/*/value": str,
+    "/taxonomy/labels": list,
+    "/taxonomy/labels/*": dict,
+    "/taxonomy/labels/*/relatedName": QNameType,
+    "/taxonomy/labels/*/labelType": QNameType,
+    "/taxonomy/labels/*/language": LangType,
+    "/taxonomy/labels/*/value": str,
 
-    "/taxonomy/*/dataTypes": list,
-    "/taxonomy/*/dataTypes/*": dict,
-    "/taxonomy/*/dataTypes/*/name": QNameType,
-    "/taxonomy/*/dataTypes/*/enumeration": list,
-    "/taxonomy/*/dataTypes/*/enumeration/*": (QNameType, str, int, float),
-    "/taxonomy/*/dataTypes/*/minInclusive": Decimal,
-    "/taxonomy/*/dataTypes/*/maxInclusive": Decimal,
-    "/taxonomy/*/dataTypes/*/minExclusive": Decimal,
-    "/taxonomy/*/dataTypes/*/maxExclusive": Decimal,
-    "/taxonomy/*/dataTypes/*/totalDigits": int,
-    "/taxonomy/*/dataTypes/*/fractionDigits": int,
-    "/taxonomy/*/dataTypes/*/length": int,
-    "/taxonomy/*/dataTypes/*/minLength": int,
-    "/taxonomy/*/dataTypes/*/maxLength": int,
-    "/taxonomy/*/dataTypes/*/whiteSpace": str,
-    "/taxonomy/*/dataTypes/*/pattern": str,
-    "/taxonomy/*/dataTypes/*/unitTypes": dict,
-    "/taxonomy/*/dataTypes/*/unitTypes/*": dict,
+    "/taxonomy/dataTypes": list,
+    "/taxonomy/dataTypes/*": dict,
+    "/taxonomy/dataTypes/*/name": QNameType,
+    "/taxonomy/dataTypes/*/baseType": QNameType,
+    "/taxonomy/dataTypes/*/enumeration": list,
+    "/taxonomy/dataTypes/*/enumeration/*": (QNameType, str, int, float),
+    "/taxonomy/dataTypes/*/minInclusive": Decimal,
+    "/taxonomy/dataTypes/*/maxInclusive": Decimal,
+    "/taxonomy/dataTypes/*/minExclusive": Decimal,
+    "/taxonomy/dataTypes/*/maxExclusive": Decimal,
+    "/taxonomy/dataTypes/*/totalDigits": int,
+    "/taxonomy/dataTypes/*/fractionDigits": int,
+    "/taxonomy/dataTypes/*/length": int,
+    "/taxonomy/dataTypes/*/minLength": int,
+    "/taxonomy/dataTypes/*/maxLength": int,
+    "/taxonomy/dataTypes/*/whiteSpace": str,
+    "/taxonomy/dataTypes/*/pattern": str,
+    "/taxonomy/dataTypes/*/unitTypes": dict,
+    "/taxonomy/dataTypes/*/unitTypes/*": dict,
 
-    "/taxonomy/*/cubeTypes": list,
-    "/taxonomy/*/cubeTypes/*": dict,
-    "/taxonomy/*/cubeTypes/*/name": QNameType,
-    "/taxonomy/*/cubeTypes/*/baseCubeType": QNameType,
-    "/taxonomy/*/cubeTypes/*/conceptDimension": bool,
-    "/taxonomy/*/cubeTypes/*/periodDimension": bool,
-    "/taxonomy/*/cubeTypes/*/entityDimension": bool,
-    "/taxonomy/*/cubeTypes/*/unitDimension": bool,
-    "/taxonomy/*/cubeTypes/*/taxonomyDefinedDimensions": bool,
-    "/taxonomy/*/cubeTypes/*/allowedCubeDimensions": list,
-    "/taxonomy/*/cubeTypes/*/allowedCubeDimensions/*": dict,
-    "/taxonomy/*/cubeTypes/*/allowedCubeDimensions/*/dimensionName": QNameType,
-    "/taxonomy/*/cubeTypes/*/allowedCubeDimensions/*/min": int,
-    "/taxonomy/*/cubeTypes/*/allowedCubeDimensions/*/max": int,
-    "/taxonomy/*/cubeTypes/*/requiredCubeRelationships": list,
-    "/taxonomy/*/cubeTypes/*/requiredCubeRelationships/*": dict,
-    "/taxonomy/*/cubeTypes/*/requiredCubeRelationships/*/relationshipTypeName": QNameType,
-    "/taxonomy/*/cubeTypes/*/requiredCubeRelationships/*/source": QNameType,
-    "/taxonomy/*/cubeTypes/*/requiredCubeRelationships/*/target": QNameType,
+    "/taxonomy/cubeTypes": list,
+    "/taxonomy/cubeTypes/*": dict,
+    "/taxonomy/cubeTypes/*/name": QNameType,
+    "/taxonomy/cubeTypes/*/baseCubeType": QNameType,
+    "/taxonomy/cubeTypes/*/conceptDimension": bool,
+    "/taxonomy/cubeTypes/*/periodDimension": bool,
+    "/taxonomy/cubeTypes/*/entityDimension": bool,
+    "/taxonomy/cubeTypes/*/unitDimension": bool,
+    "/taxonomy/cubeTypes/*/taxonomyDefinedDimensions": bool,
+    "/taxonomy/cubeTypes/*/allowedCubeDimensions": list,
+    "/taxonomy/cubeTypes/*/allowedCubeDimensions/*": dict,
+    "/taxonomy/cubeTypes/*/allowedCubeDimensions/*/dimensionName": QNameType,
+    "/taxonomy/cubeTypes/*/allowedCubeDimensions/*/min": int,
+    "/taxonomy/cubeTypes/*/allowedCubeDimensions/*/max": int,
+    "/taxonomy/cubeTypes/*/requiredCubeRelationships": list,
+    "/taxonomy/cubeTypes/*/requiredCubeRelationships/*": dict,
+    "/taxonomy/cubeTypes/*/requiredCubeRelationships/*/relationshipTypeName": QNameType,
+    "/taxonomy/cubeTypes/*/requiredCubeRelationships/*/source": QNameType,
+    "/taxonomy/cubeTypes/*/requiredCubeRelationships/*/target": QNameType,
 
-    "/taxonomy/*/references": list,
-    "/taxonomy/*/references/*": dict,
-    "/taxonomy/*/references/*/name": QNameType,
-    "/taxonomy/*/references/*/extendTargetName": QNameType,
-    "/taxonomy/*/references/*/relatedNames": list,
-    "/taxonomy/*/references/*/relatedNames/*": QNameType,
-    "/taxonomy/*/references/*/referenceType": QNameType,
-    "/taxonomy/*/references/*/language": LangType,
-    "/taxonomy/*/references/*/properties": list,
-    "/taxonomy/*/references/*/properties/*": dict,
+    "/taxonomy/references": list,
+    "/taxonomy/references/*": dict,
+    "/taxonomy/references/*/name": QNameType,
+    "/taxonomy/references/*/extendTargetName": QNameType,
+    "/taxonomy/references/*/relatedNames": list,
+    "/taxonomy/references/*/relatedNames/*": QNameType,
+    "/taxonomy/references/*/referenceType": QNameType,
+    "/taxonomy/references/*/language": LangType,
+    "/taxonomy/references/*/properties": list,
+    "/taxonomy/references/*/properties/*": dict,
+    "/taxonomy/references/*/properties/*/*:*": PROPERTY_TYPE,
 
     # custom properties on taxonomy are unchecked
-    "/taxonomy/*/*:*": (int,float,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
+    "/taxonomy/*:*": (int,float,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
     }
 JsonRequiredMembers = {
     "/": {"documentInfo"},
-    "/documentInfo/": {"documentType","namespaces"},
-    "/taxonomy/*/": {"name", "namespace","entryPoint"},
-    "/taxonomy/*/networks/*/": {"name", "networkURI", "relationships"},
-    "/taxonomy/*/networks/*/relationships/*/": {"relationshipType", "source","target"},
-    "/taxonomy/*/labels/*/": {"labelType", "value", "language"},
-    "/taxonomy/*/references/*/": {"referenceType"},
+    "/documentInfo/": {"documentType", "namespaces"},
+    "/taxonomy/": {"name", "entryPoint"},
+    "/taxonomy/importedTaxonomies/*/":  {"taxonomyName"},
+    "/taxonomy/concepts/*/": {"name", "dataType", "periodType"},
+    "/taxonomy/abstracts/*/": {"name"},
+    "/taxonomy/dimensions/*/": {"name", "dimensionType"},
+    "/taxonomy/domains/*/": {"name"},
+    "/taxonomy/members/*/": {"name"},
+    "/taxonomy/cubes/*/": {"name", "cubeDimensions"},
+    "/taxonomy/cubes/*/cubeDimensions/*/": {"dimensionName"},
+    "/taxonomy/networks/*/relationships/*/": {"source","target"},
+    "/taxonomy/labels/*/": {"labelType", "value", "language"},
+    "/taxonomy/references/*/": {"referenceType"},
+    "/taxonomy/propertyTypes/*/":  {"name", "dataType"},
+    "/taxonomy/dataTypes/*/":  {"name", "baseType"},
 
     "/facts/*/dimensions/": {"concept"}
     }
@@ -351,10 +431,14 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
         documentInfo = jsonGet(oimObject, "documentInfo", {})
         documentType = jsonGet(documentInfo, "documentType")
         taxonomyObj = jsonGet(oimObject, "taxonomy", {})
-        if documentType not in jsonDocumentTypes:
+        if not documentType:
+            error("oimce:unsupportedDocumentType",
+                  _("/documentInfo/docType is missing."),
+                  file=oimFile)
+        elif documentType not in oimTaxonomyDocTypes:
             error("oimce:unsupportedDocumentType",
                   _("Unrecognized /documentInfo/docType: %(documentType)s"),
-                  documentType=documentType)
+                  file=oimFile, documentType=documentType)
             return {}
         oimRequiredMembers = JsonRequiredMembers
         oimMemberTypes = JsonMemberTypes
@@ -363,6 +447,8 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
         invalidQNames = []
         missingRequiredMembers = []
         unexpectedMembers = []
+        extensionProperties = {} # key is property QName, value is property path
+
         def showPathObj(parts, obj): # this can be replaced with jsonPath syntax if appropriate
             try:
                 shortObjStr = json.dumps(obj)
@@ -384,7 +470,13 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         if (mbrTypes is SQNameType or (isinstance(mbrTypes,tuple) and SQNameType in mbrTypes)):
                             if not isinstance(mbrObj, str) or not SQNamePattern.match(mbrObj):
                                 invalidSQNames.append(showPathObj(pathParts, mbrObj))
-                        elif (not ((mbrTypes is QNameType or (isinstance(mbrTypes,tuple) and QNameType in mbrTypes)) and isinstance(mbrObj, str) and ClarkQNamePattern.match(mbrObj)) and
+                        elif (mbrTypes is QNameAtContextType or (isinstance(mbrTypes,tuple) and QNameAtContextType in mbrTypes)):
+                            if not isinstance(mbrObj, str):
+                                invalidMemberTypes.append(showPathObj(pathParts, mbrObj))
+                            _qn, _sep, _atCntx = mbrObj.partition("@")
+                            if _atCntx not in ("start", "end", "") or not QNamePattern.match(_qn):
+                                invalidMemberTypes.append(showPathObj(pathParts, mbrObj))
+                        elif (not ((mbrTypes is QNameType or (isinstance(mbrTypes,tuple) and QNameType in mbrTypes)) and isinstance(mbrObj, str) and QNamePattern.match(mbrObj)) and
                             not ((mbrTypes is LangType or (isinstance(mbrTypes,tuple) and LangType in mbrTypes)) and isinstance(mbrObj, str) and languagePattern.match(mbrObj)) and
                             not ((mbrTypes is URIType or (isinstance(mbrTypes,tuple) and URIType in mbrTypes)) and isinstance(mbrObj, str) and isValidUriReference(mbrObj) and not WhitespaceUntrimmedPattern.match(mbrObj)) and
                             #not (mbrTypes is IdentifierType and isinstance(mbrObj, str) and isinstance(mbrObj, str) and IdentifierPattern.match(mbrObj)) and
@@ -411,8 +503,10 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         mbrPath = path + "*" # for recursion
                     else:
                         unexpectedMembers.append(showPathObj(pathParts, mbrObj))
-                    if isinstance(mbrObj, (dict,list)):
+                    if isinstance(mbrObj, dict):
                         checkMemberTypes(mbrObj, mbrPath + "/", pathParts)
+                    elif isinstance(mbrObj, list):
+                        checkMemberTypes(mbrObj, mbrPath + "/*", pathParts)
                     pathParts.pop() # remove mbrName
             if (isinstance(obj,list)):
                 mbrNdx = 1
@@ -421,8 +515,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     pathParts.append(mbrNdx)
                     if mbrPath in oimMemberTypes:
                         mbrTypes = oimMemberTypes[mbrPath]
-                        if (not (mbrTypes is IdentifierType and isinstance(mbrObj, str) and isinstance(mbrObj, str) and IdentifierPattern.match(mbrObj)) and
-                            not ((mbrTypes is URIType or (isinstance(mbrTypes,tuple) and URIType in mbrTypes)) and isinstance(mbrObj, str) and isValidUriReference(mbrObj) and not WhitespaceUntrimmedPattern.match(mbrObj)) and
+                        if (not ((mbrTypes is URIType or (isinstance(mbrTypes,tuple) and URIType in mbrTypes)) and isinstance(mbrObj, str) and isValidUriReference(mbrObj) and not WhitespaceUntrimmedPattern.match(mbrObj)) and
                             not isinstance(mbrObj, mbrTypes)):
                             invalidMemberTypes.append(showPathObj(pathParts, mbrObj))
                     if isinstance(mbrObj, (dict,list)):
@@ -441,8 +534,15 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
               "\n ".join(msg), documentType=documentType,
               sourceFileLine=oimFile, missing=", ".join(missingRequiredMembers), unexpected=", ".join(unexpectedMembers))
 
+        # check extension properties (where metadata specifies CheckPrefix)
+        for extPropSQName, extPropertyPath in extensionProperties.items():
+            extPropPrefix = extPropSQName.partition(":")[0]
+            if extPropPrefix not in namespaces:
+                error("oimte:unboundPrefix",
+                      _("The extension property QName prefix was not defined in namespaces: %(extensionProperty)s."),
+                      modelObject=modelXbrl, extensionProperty=extPropertyPath)
+
         currentAction = "identifying Metadata objects"
-        taxonomyRefs = taxonomyObj.get("importedTaxonomies", EMPTY_LIST)
 
         # import referenced taxonomies
         txBase = os.path.dirname(oimFile)
@@ -461,17 +561,54 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                   # base=txBase or modelXbrl.entryLoadingUrl
                   )
             schemaDoc.inDTS = True
+            xbrlDts = cast(XbrlDts, modelXbrl)
         else: # API implementation
-            modelXbrl = ModelXbrl.create(
+            xbrlDts = ModelDts.create(
                 cntlr.modelManager,
                 Type.SCHEMA,
                 initialComment="loaded from OIM Taxonomy {}".format(mappedUri),
                 base=txBase)
-            _return = modelXbrl.modelDocument
+            _return = xbrlDts.modelDocument
         if len(modelXbrl.errors) > prevErrLen:
             error("oime:invalidTaxonomy",
                   _("Unable to obtain a valid taxonomy from URLs provided"),
-                  modelObject=modelXbrl)
+                  modelObject=xbrlDts)
+        namespacePrefixes = {}
+        prefixNamespaces = {}
+        for nsObj in documentInfo.get("namespaces", EMPTY_DICT):
+            ns = nsObj.get("uri","")
+            prefix = nsObj.get("prefix","")
+            if ns and prefix:
+                namespacePrefixes[ns] = prefix
+                prefixNamespaces[prefix] = ns
+                setXmlns(schemaDoc, prefix, ns)
+            if nsObj.get("documentNamespace",False):
+                schemaDoc.targetNamespace = ns
+            url = nsObj.get("url","")
+        taxonomyName = qname(taxonomyObj.get("name"), prefixNamespaces)
+        if not taxonomyName:
+            xbrlDts.error("oime:missingQNameProperty",
+                          _("Taxonomy must have a name (QName) property"),
+                          modelObject=xbrlDts, ref=oimFile)
+        xbrlTaxonomy = XbrlTaxonomy(xbrlDts,
+                                    taxonomyName,                   # required QName (prefixed name string)
+                                    taxonomyObj.get("entryPoint"),  # required AnyURI
+                                    taxonomyObj.get("familyName"),  # optional
+                                    taxonomyObj.get("version"))     # optional
+
+        for iImpTxmy, impTxmyObj in enumerate(taxonomyObj.get("importedTaxonomies", EMPTY_LIST)):
+            impTxmyName = qname(impTxmyObj.get("taxonomyName"), prefixNamespaces)
+            if not impTxmyName:
+                xbrlDts.error("oime:missingQNameProperty",
+                              _("/taxonomy/importedTaxonomies[%(iImpTxmy)s] must have a taxonomyName (QName) property"),
+                              modelObject=modelDts, ref=oimFile, index=iImpTxmy)
+        
+        
+        return schemaDoc
+        
+        ####################### convert to XML Taxonomy
+            
+        # convert into XML Taxonomy
         schemaElt = schemaDoc.xmlRootElement
         annotationElt = addChild(schemaElt, QN_ANNOTATION)
         appinfoElt = addChild(annotationElt, QN_APPINFO)
@@ -488,18 +625,6 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 "namespace": txmyRefObj.get("namespace"),
                 "schemaLocation": txmyRefObj.get("entryPoint")})
 
-        namespacePrefixes = {}
-        prefixNamespaces = {}
-        for nsObj in documentInfo.get("namespaces", EMPTY_DICT):
-            ns = nsObj.get("uri","")
-            prefix = nsObj.get("prefix","")
-            if ns and prefix:
-                namespacePrefixes[ns] = prefix
-                prefixNamespaces[prefix] = ns
-                setXmlns(schemaDoc, prefix, ns)
-            if nsObj.get("documentNamespace",False):
-                schemaDoc.targetNamespace = ns
-            url = nsObj.get("url","")
         # additional namespaces needed
         for prefix, ns in (("xlink", "http://www.w3.org/1999/xlink"),
                            ("ref", "http://www.xbrl.org/2006/ref"),
@@ -858,7 +983,7 @@ def isOimTaxonomyLoadable(modelXbrl, mappedUri, normalizedUri, filepath, **kwarg
     if _ext == ".json":
         with io.open(filepath, 'rt', encoding='utf-8') as f:
             _fileStart = f.read(4096)
-        if _fileStart and re.match(r"\s*\{.*\"documentType\"\s*:\s*\"https://xbrl.org/PWD/[0-9]{4}-[0-9]{2}-[0-9]{2}/cti\"", _fileStart, flags=re.DOTALL):
+        if _fileStart and oimTaxonomyDocTypePattern.match(_fileStart):
             lastFilePathIsOIM = True
             lastFilePath = filepath
     return lastFilePathIsOIM
@@ -885,9 +1010,9 @@ def filingStart(self, options, *args, **kwargs):
         saveOIMTaxonomySchemaFiles = True
 
 __pluginInfo__ = {
-    'name': 'Load OIM Taxonomy',
+    'name': 'OIM Taxonomy',
     'version': '1.2',
-    'description': "This plug-in loads XBRL taxonomy objects from JSON.",
+    'description': "This plug-in implements XBRL taxonomy objects loaded from JSON.",
     'license': 'Apache-2',
     'author': authorLabel,
     'copyright': copyrightLabel,
