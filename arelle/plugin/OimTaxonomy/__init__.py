@@ -534,14 +534,6 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
               "\n ".join(msg), documentType=documentType,
               sourceFileLine=oimFile, missing=", ".join(missingRequiredMembers), unexpected=", ".join(unexpectedMembers))
 
-        # check extension properties (where metadata specifies CheckPrefix)
-        for extPropSQName, extPropertyPath in extensionProperties.items():
-            extPropPrefix = extPropSQName.partition(":")[0]
-            if extPropPrefix not in namespaces:
-                error("oimte:unboundPrefix",
-                      _("The extension property QName prefix was not defined in namespaces: %(extensionProperty)s."),
-                      modelObject=modelXbrl, extensionProperty=extPropertyPath)
-
         currentAction = "identifying Metadata objects"
 
         # import referenced taxonomies
@@ -590,6 +582,15 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             xbrlDts.error("oime:missingQNameProperty",
                           _("Taxonomy must have a name (QName) property"),
                           modelObject=xbrlDts, ref=oimFile)
+
+        # check extension properties (where metadata specifies CheckPrefix)
+        for extPropSQName, extPropertyPath in extensionProperties.items():
+            extPropPrefix = extPropSQName.partition(":")[0]
+            if extPropPrefix not in prefixNamespaces:
+                error("oimte:unboundPrefix",
+                      _("The extension property QName prefix was not defined in namespaces: %(extensionProperty)s."),
+                      modelObject=modelXbrl, extensionProperty=extPropertyPath)
+
         xbrlTaxonomy = XbrlTaxonomy(xbrlDts,
                                     taxonomyName,                   # required QName (prefixed name string)
                                     taxonomyObj.get("entryPoint"),  # required AnyURI
