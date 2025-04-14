@@ -18,7 +18,7 @@ NumPy==2.0.2 ; python_version <= "3.9"
 NumPy==2.2.4 ; python_version > "3.9"
 Matplotlib==3.9.4 ; python_version <= "3.9"
 Matplotlib==3.10.1 ; python_version > "3.9"
-holidays==0.69
+holidays==0.70
 pytz==2025.2
 Tornado==6.4.2
 # security plugin
@@ -31,6 +31,6 @@ pyodbc==5.2.0
 RDFLib==7.1.4
 # other
 graphviz==0.20.3
-Pillow==11.1.0
+Pillow==11.2.1
 pywin32==310 ; sys_platform == "win32"
 tinycss2==1.4.0
