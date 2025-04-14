@@ -16,7 +16,7 @@ from typing import Any
 from arelle.ModelDocument import LoadingException, ModelDocument
 from arelle.Version import authorLabel, copyrightLabel
 from .ValidationPluginExtension import ValidationPluginExtension
-from .rules import br_kvk, fg_nl, fr_kvk, fr_nl
+from .rules import br_kvk, fg_nl, fr_kvk, fr_nl, nl_kvk
 
 PLUGIN_NAME = "Validate NL"
 DISCLOSURE_SYSTEM_VALIDATION_TYPE = "NL"
@@ -26,7 +26,7 @@ validationPlugin = ValidationPluginExtension(
     name=PLUGIN_NAME,
     disclosureSystemConfigUrl=Path(__file__).parent / "resources" / "config.xml",
     validationTypes=[DISCLOSURE_SYSTEM_VALIDATION_TYPE],
-    validationRuleModules=[br_kvk, fg_nl, fr_kvk, fr_nl],
+    validationRuleModules=[br_kvk, fg_nl, fr_kvk, fr_nl, nl_kvk],
 )
 
 
