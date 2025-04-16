@@ -21,7 +21,7 @@ from arelle.utils.validate.Validation import Validation
 from ..DisclosureSystems import (
     DISCLOSURE_SYSTEM_INLINE_NT19
 )
-from ..PluginValidationDataExtension import PluginValidationDataExtension, XBRLI_IDENTIFIER_PATTERN
+from ..PluginValidationDataExtension import PluginValidationDataExtension, XBRLI_IDENTIFIER_PATTERN, XBRLI_IDENTIFIER_SCHEMA
 
 if TYPE_CHECKING:
     from arelle.ModelXbrl import ModelXbrl
@@ -55,13 +55,40 @@ def rule_nl_kvk_3_1_1_1(
     NL-KVK.3.1.1.1: xbrli:identifier content to match KVK number format that must consist of 8 consecutive digits;
     first two digits must not be '00'.
     """
-    entityIdentifierValues = {context.entityIdentifier for context in val.modelXbrl.contexts.values()}
+    entityIdentifierValues = pluginData.entityIdentifiersInDocument(val.modelXbrl)
     for entityId in entityIdentifierValues:
-        if not XBRLI_IDENTIFIER_PATTERN.match(entityId):
+        if not XBRLI_IDENTIFIER_PATTERN.match(entityId[1]):
             yield Validation.error(
                 codes='NL.NL-KVK-3.1.1.1',
                 msg=_('xbrli:identifier content to match KVK number format that must consist of 8 consecutive digits.'
                       'Additionally the first two digits must not be "00".'),
+                modelObject = val.modelXbrl
+            )
+            return
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_INLINE_NT19
+    ],
+)
+def rule_nl_kvk_3_1_1_2(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.3.1.1.2: Scheme attribute of xbrli:identifier must be http://www.kvk.nl/kvk-id.
+    """
+    entityIdentifierValues = pluginData.entityIdentifiersInDocument(val.modelXbrl)
+    for entityId in entityIdentifierValues:
+        if XBRLI_IDENTIFIER_SCHEMA != entityId[0]:
+            yield Validation.error(
+                codes='NL.NL-KVK-3.1.1.2',
+                msg=_('The scheme attribute of the xbrli:identifier does not match the required content.'
+                      'This should be "http://www.kvk.nl/kvk-id".'),
                 modelObject = val.modelXbrl
             )
             return
