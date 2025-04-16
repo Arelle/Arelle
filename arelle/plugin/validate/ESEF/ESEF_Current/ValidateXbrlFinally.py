@@ -664,14 +664,14 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     if not f.id:
                         factsMissingId.append(f)
                     escaped = f.get("escape") in ("true", "1")
-                    if escaped != f.concept.type.isTextBlock:
+                    if f.concept is not None and escaped != f.concept.isTextBlock:
                         modelXbrl.error("ESEF.2.2.7.improperApplicationOfEscapeAttribute",
                                           _("Facts with datatype 'dtr-types:textBlockItemType' MUST use the 'escape' attribute set to 'true'. Facts with any other datatype MUST use the 'escape' attribute set to 'false' - fact %(conceptName)s"),
                                           modelObject=f, conceptName=f.concept.qname)
                     if f.effectiveValue in ["0", "-0"] and f.xValue != 0:
                         modelXbrl.warning("ESEF.2.2.5.roundedValueBelowScaleNotNull",
                                           _("A value that has been rounded and is below the scale should show a value of zero. It has been found to have the value %(value)s - fact %(conceptName)s"),
-                                          modelObject=f, value=f.value, conceptName=f.concept.qname)
+                                          modelObject=f, value=f.value, conceptName=getattr(f.concept, "qname", ""))
                 if f.precision is not None:
                     precisionFacts.add(f)
                 if f.isNumeric and f.concept is not None and getattr(f, "xValid", 0) >= VALID:
