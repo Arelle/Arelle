@@ -208,7 +208,7 @@ def inlineXbrlDocumentSetLoader(modelXbrl, normalizedUri, filepath, isEntry=Fals
             elif "ixdsTarget" in kwargs: # passed from validate (multio test cases)
                 _target = kwargs["ixdsTarget"]
             else:
-                _target = modelXbrl.modelManager.formulaOptions.parameterValues["ixdsTarget"][1]
+                _target = modelXbrl.modelManager.formulaOptions.parameterValues[qname("ixdsTarget")][1]
             modelXbrl.ixdsTarget = None if _target == DEFAULT_TARGET else _target or None
         except (KeyError, AttributeError, IndexError, TypeError):
             pass # set later in selectTargetDocument plugin method
