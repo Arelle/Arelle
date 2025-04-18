@@ -620,7 +620,7 @@ def validateTextBlockFacts(modelXbrl):
                                 if attrTag in efmBlockedInlineHtmlElementAttributes.get(eltTag,()):
                                     modelXbrl.error(("EFM.5.02.05.disallowedAttribute", "FERC.5.02.05.disallowedAttribute"),
                                         _("%(validatedObjectLabel)s has disallowed attribute on element <%(element)s>: %(attribute)s=\"%(value)s\""),
-                                        modelObject=elt, validatedObjectLabel=validatedObjectLabel,
+                                        modelObject=elt, validatedObjectLabel=f1.qname,
                                         element=eltTag, attribute=attrTag, value=attrValue)
                             if ((attrTag == "href" and eltTag == "a") or
                                 (attrTag == "src" and eltTag == "img")):
