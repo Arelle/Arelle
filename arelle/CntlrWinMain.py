@@ -923,7 +923,10 @@ class CntlrWinMain (Cntlr.Cntlr):
             self.parent.title(_("arelle - {0}").format(
                             os.path.basename(modelXbrl.modelDocument.uri)))
             self.setValidateTooltipText()
-            if modelXbrl.modelDocument.type in ModelDocument.Type.TESTCASETYPES:
+            if any(extViews(self, modelXbrl)
+                   for extViews in pluginClassMethods("CntlrWinMain.Xbrl.Views")):
+                currentAction = "ext views provided"
+            elif modelXbrl.modelDocument.type in ModelDocument.Type.TESTCASETYPES:
                 currentAction = "tree view of tests"
                 ViewWinTests.viewTests(modelXbrl, self.tabWinTopRt)
                 topView = modelXbrl.views[-1]

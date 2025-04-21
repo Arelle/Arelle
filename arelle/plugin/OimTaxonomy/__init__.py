@@ -44,14 +44,18 @@ from .XbrlReference import XbrlReference, XbrlReferenceType
 from .XbrlTransform import XbrlTransform
 from .XbrlUnit import XbrlUnit
 from .XbrlTaxonomy import XbrlTaxonomy
+from .XbrlTaxonomyObject import XbrlReferencableTaxonomyObject
 from .XbrlDts import XbrlDts, castToDts
-from .XbrlTypes import XbrlTaxonomyType, QNameKeyType
+from .XbrlTypes import XbrlTaxonomyType, QNameKeyType, SQNameKeyType, DefaultTrue, DefaultFalse
+from .ModelValueMore import SQName
+from .ViewXbrlTxmyObj import viewXbrlTxmyObj
+
 
 from arelle.oim.Load import (SQNameType, QNameType, URIType, LangType, NoRecursionCheck,
                              DUPJSONKEY, DUPJSONVALUE, EMPTY_DICT, EMPTY_LIST,
                              CheckPrefix, OIMException, NotOIMException,
                              WhitespaceUntrimmedPattern, SQNamePattern, CanonicalIntegerPattern)
-from arelle.FunctionFn import name
+from arelle.FunctionFn import name, true
 
 oimTaxonomyDocTypePattern = re.compile(r"\s*\{.*\"documentType\"\s*:\s*\"https://xbrl.org/PWD/[0-9]{4}-[0-9]{2}-[0-9]{2}/oim\"", flags=re.DOTALL)
 oimTaxonomyDocTypes = (
@@ -102,15 +106,6 @@ JsonMemberTypes = {
     "/taxonomy/importedTaxonomies/*": dict,
     "/taxonomy/importedTaxonomies/*/taxonomyName": QNameType,
 
-    "/taxonomy/propertyTypes": list,
-    "/taxonomy/propertyTypes/*": dict,
-    "/taxonomy/propertyTypes/*/name": QNameType,
-    "/taxonomy/propertyTypes/*/dataType": QNameType,
-    "/taxonomy/propertyTypes/*/enumerationDomain": QNameType,
-    "/taxonomy/propertyTypes/*/immutable": bool,
-    "/taxonomy/propertyTypes/*/allowedObjects": list,
-    "/taxonomy/propertyTypes/*/allowedObjects/*": QNameType,
-
     "/taxonomy/abstracts": list,
     "/taxonomy/abstracts/*": dict,
     "/taxonomy/abstracts/*/name": QNameType,
@@ -126,83 +121,6 @@ JsonMemberTypes = {
     "/taxonomy/concepts/*/properties/*": dict,
     "/taxonomy/concepts/*/properties/*/xbrl:balance": str,
     "/taxonomy/concepts/*/properties/*/*:*": PROPERTY_TYPE,
-
-    "/taxonomy/members": list,
-    "/taxonomy/members/*": dict,
-    "/taxonomy/members/*/name": QNameType,
-
-    "/taxonomy/dimensions": list,
-    "/taxonomy/dimensions/*": dict,
-    "/taxonomy/dimensions/*/name": QNameType,
-    "/taxonomy/dimensions/*/domainDataType": QNameType,
-    "/taxonomy/dimensions/*/dimensionType": str,
-    "/taxonomy/dimensions/*/cubeTypes": list,
-    "/taxonomy/dimensions/*/cubeTypes/*": QNameType,
-
-    "/taxonomy/networks": list,
-    "/taxonomy/networks/*": dict,
-    "/taxonomy/networks/*/name": QNameType,
-    "/taxonomy/networks/*/relationshipTypeName": QNameType,
-    "/taxonomy/networks/*/roots": list,
-    "/taxonomy/networks/*/roots/*": QNameType,
-    "/taxonomy/networks/*/extendTargetName": bool,
-    "/taxonomy/networks/*/relationships": list,
-    "/taxonomy/networks/*/relationships/*": dict,
-    "/taxonomy/networks/*/relationships/*/source": QNameType,
-    "/taxonomy/networks/*/relationships/*/target": QNameType,
-    "/taxonomy/networks/*/relationships/*/order": (int,float),
-    "/taxonomy/networks/*/relationships/*/weight": (int,float),
-    "/taxonomy/networks/*/relationships/*/preferredLabel": QNameType,
-    "/taxonomy/networks/*/relationships/*/usable": bool,
-    "/taxonomy/networks/*/relationships/*/properties": list,
-    "/taxonomy/networks/*/relationships/*/properties/*": dict,
-    "/taxonomy/networks/*/relationships/*/properties/*/*:*": PROPERTY_TYPE,
-    "/taxonomy/networks/*/properties": list,
-    "/taxonomy/networks/*/properties/*": dict,
-    "/taxonomy/networks/*/properties/*/*:*": PROPERTY_TYPE,
-
-    "/taxonomy/entities": list,
-    "/taxonomy/entities/*": dict,
-    "/taxonomy/entities/*/name": SQNameType,
-    "/taxonomy/entities/*/properties": list,
-    "/taxonomy/entities/*/properties/*": dict,
-    "/taxonomy/entities/*/properties/*/*:*": PROPERTY_TYPE,
-
-    "/taxonomy/units": list,
-    "/taxonomy/units/*": dict,
-    "/taxonomy/units/*/name": SQNameType,
-    "/taxonomy/units/*/dataType": QNameType,
-    "/taxonomy/units/*/baseStandard": str,
-    "/taxonomy/units/*/dataTypeNumerator": QNameType,
-    "/taxonomy/units/*/dataTypeDenominator": QNameType,
-
-    "/taxonomy/groups": list,
-    "/taxonomy/groups/*": dict,
-    "/taxonomy/groups/*/name": QNameType,
-    "/taxonomy/groups/*/groupURI": URIType,
-    "/taxonomy/groups/*/properties": list,
-    "/taxonomy/groups/*/properties/*": dict,
-    "/taxonomy/groups/*/properties/*/*:*": PROPERTY_TYPE,
-
-    "/taxonomy/groupContents": list,
-    "/taxonomy/groupContents/*": dict,
-    "/taxonomy/groupContents/*/groupName": QNameType,
-    "/taxonomy/groupContents/*/relatedNames": list,
-    "/taxonomy/groupContents/*/relatedNames/*": QNameType,
-
-    "/taxonomy/relationshipTypes": list,
-    "/taxonomy/relationshipTypes/*": dict,
-    "/taxonomy/relationshipTypes/*/name": QNameType,
-    "/taxonomy/relationshipTypes/*/relationshipTypeURI": URIType,
-    "/taxonomy/relationshipTypes/*/cycles": str,
-    "/taxonomy/relationshipTypes/*/allowedLinkProperties": list,
-    "/taxonomy/relationshipTypes/*/allowedLinkProperties/*": QNameType,
-    "/taxonomy/relationshipTypes/*/requiredLinkProperties": list,
-    "/taxonomy/relationshipTypes/*/requiredLinkProperties/*": QNameType,
-    "/taxonomy/relationshipTypes/*/sourceObjects": list,
-    "/taxonomy/relationshipTypes/*/sourceObjects/*": QNameType,
-    "/taxonomy/relationshipTypes/*/targetObjects": list,
-    "/taxonomy/relationshipTypes/*/targetObjects/*": QNameType,
 
     "/taxonomy/cubes": list,
     "/taxonomy/cubes/*": dict,
@@ -257,46 +175,25 @@ JsonMemberTypes = {
     "/taxonomy/cubes/*/properties/*": dict,
     "/taxonomy/cubes/*/properties/*/*:*": PROPERTY_TYPE,
 
-    "/taxonomy/networks": list,
-    "/taxonomy/networks/*": dict,
-    "/taxonomy/networks/*/name": QNameType,
-    "/taxonomy/networks/*/relationshipTypeName": QNameType,
-    "/taxonomy/networks/*/roots": list,
-    "/taxonomy/networks/*/roots/*": QNameType,
-    "/taxonomy/networks/*/relationships": list,
-    "/taxonomy/networks/*/relationships/*": dict,
-    "/taxonomy/networks/*/relationships/*/source": QNameType,
-    "/taxonomy/networks/*/relationships/*/target": QNameType,
-    "/taxonomy/networks/*/relationships/*/order": (int,float),
-    "/taxonomy/networks/*/relationships/*/weight": (int,float,type(None)),
-    "/taxonomy/networks/*/relationships/*/properties": list,
-    "/taxonomy/networks/*/relationships/*/properties/*": dict,
-    "/taxonomy/networks/*/relationships/*/properties/*/*:*": PROPERTY_TYPE,
-
-    "/taxonomy/domains": list,
-    "/taxonomy/domains/*": dict,
-    "/taxonomy/domains/*/name": QNameType,
-    "/taxonomy/domains/*/baseDomain": QNameType,
-    "/taxonomy/domains/*/allowedMembers": list,
-    "/taxonomy/domains/*/allowedMembers/*": QNameType,
-    "/taxonomy/domains/*/relationships": list,
-    "/taxonomy/domains/*/relationships/*": dict,
-    "/taxonomy/domains/*/relationships/*/source": QNameType,
-    "/taxonomy/domains/*/relationships/*/target": QNameType,
-    "/taxonomy/domains/*/relationships/*/order": (int,float),
-    "/taxonomy/domains/*/relationships/*/weight": (int,float),
-    "/taxonomy/domains/*/relationships/*/preferredLabel": QNameType,
-    "/taxonomy/domains/*/relationships/*/usable": bool,
-    "/taxonomy/domains/*/relationships/*/properties": list,
-    "/taxonomy/domains/*/relationships/*/properties/*": dict,
-    "/taxonomy/domains/*/relationships/*/properties/*/*:*": PROPERTY_TYPE,
-
-    "/taxonomy/labels": list,
-    "/taxonomy/labels/*": dict,
-    "/taxonomy/labels/*/relatedName": QNameType,
-    "/taxonomy/labels/*/labelType": QNameType,
-    "/taxonomy/labels/*/language": LangType,
-    "/taxonomy/labels/*/value": str,
+    "/taxonomy/cubeTypes": list,
+    "/taxonomy/cubeTypes/*": dict,
+    "/taxonomy/cubeTypes/*/name": QNameType,
+    "/taxonomy/cubeTypes/*/baseCubeType": QNameType,
+    "/taxonomy/cubeTypes/*/conceptDimension": bool,
+    "/taxonomy/cubeTypes/*/periodDimension": bool,
+    "/taxonomy/cubeTypes/*/entityDimension": bool,
+    "/taxonomy/cubeTypes/*/unitDimension": bool,
+    "/taxonomy/cubeTypes/*/taxonomyDefinedDimensions": bool,
+    "/taxonomy/cubeTypes/*/allowedCubeDimensions": list,
+    "/taxonomy/cubeTypes/*/allowedCubeDimensions/*": dict,
+    "/taxonomy/cubeTypes/*/allowedCubeDimensions/*/dimensionName": QNameType,
+    "/taxonomy/cubeTypes/*/allowedCubeDimensions/*/min": int,
+    "/taxonomy/cubeTypes/*/allowedCubeDimensions/*/max": int,
+    "/taxonomy/cubeTypes/*/requiredCubeRelationships": list,
+    "/taxonomy/cubeTypes/*/requiredCubeRelationships/*": dict,
+    "/taxonomy/cubeTypes/*/requiredCubeRelationships/*/relationshipTypeName": QNameType,
+    "/taxonomy/cubeTypes/*/requiredCubeRelationships/*/source": QNameType,
+    "/taxonomy/cubeTypes/*/requiredCubeRelationships/*/target": QNameType,
 
     "/taxonomy/dataTypes": list,
     "/taxonomy/dataTypes/*": dict,
@@ -318,25 +215,91 @@ JsonMemberTypes = {
     "/taxonomy/dataTypes/*/unitTypes": dict,
     "/taxonomy/dataTypes/*/unitTypes/*": dict,
 
-    "/taxonomy/cubeTypes": list,
-    "/taxonomy/cubeTypes/*": dict,
-    "/taxonomy/cubeTypes/*/name": QNameType,
-    "/taxonomy/cubeTypes/*/baseCubeType": QNameType,
-    "/taxonomy/cubeTypes/*/conceptDimension": bool,
-    "/taxonomy/cubeTypes/*/periodDimension": bool,
-    "/taxonomy/cubeTypes/*/entityDimension": bool,
-    "/taxonomy/cubeTypes/*/unitDimension": bool,
-    "/taxonomy/cubeTypes/*/taxonomyDefinedDimensions": bool,
-    "/taxonomy/cubeTypes/*/allowedCubeDimensions": list,
-    "/taxonomy/cubeTypes/*/allowedCubeDimensions/*": dict,
-    "/taxonomy/cubeTypes/*/allowedCubeDimensions/*/dimensionName": QNameType,
-    "/taxonomy/cubeTypes/*/allowedCubeDimensions/*/min": int,
-    "/taxonomy/cubeTypes/*/allowedCubeDimensions/*/max": int,
-    "/taxonomy/cubeTypes/*/requiredCubeRelationships": list,
-    "/taxonomy/cubeTypes/*/requiredCubeRelationships/*": dict,
-    "/taxonomy/cubeTypes/*/requiredCubeRelationships/*/relationshipTypeName": QNameType,
-    "/taxonomy/cubeTypes/*/requiredCubeRelationships/*/source": QNameType,
-    "/taxonomy/cubeTypes/*/requiredCubeRelationships/*/target": QNameType,
+    "/taxonomy/dimensions": list,
+    "/taxonomy/dimensions/*": dict,
+    "/taxonomy/dimensions/*/name": QNameType,
+    "/taxonomy/dimensions/*/domainDataType": QNameType,
+    "/taxonomy/dimensions/*/dimensionType": str,
+    "/taxonomy/dimensions/*/cubeTypes": list,
+    "/taxonomy/dimensions/*/cubeTypes/*": QNameType,
+
+    "/taxonomy/domains": list,
+    "/taxonomy/domains/*": dict,
+    "/taxonomy/domains/*/name": QNameType,
+    "/taxonomy/domains/*/baseDomain": QNameType,
+    "/taxonomy/domains/*/allowedMembers": list,
+    "/taxonomy/domains/*/allowedMembers/*": QNameType,
+    "/taxonomy/domains/*/relationships": list,
+    "/taxonomy/domains/*/relationships/*": dict,
+    "/taxonomy/domains/*/relationships/*/source": QNameType,
+    "/taxonomy/domains/*/relationships/*/target": QNameType,
+    "/taxonomy/domains/*/relationships/*/order": (int,float),
+    "/taxonomy/domains/*/relationships/*/weight": (int,float),
+    "/taxonomy/domains/*/relationships/*/preferredLabel": QNameType,
+    "/taxonomy/domains/*/relationships/*/usable": bool,
+    "/taxonomy/domains/*/relationships/*/properties": list,
+    "/taxonomy/domains/*/relationships/*/properties/*": dict,
+    "/taxonomy/domains/*/relationships/*/properties/*/*:*": PROPERTY_TYPE,
+
+    "/taxonomy/entities": list,
+    "/taxonomy/entities/*": dict,
+    "/taxonomy/entities/*/name": SQNameType,
+    "/taxonomy/entities/*/properties": list,
+    "/taxonomy/entities/*/properties/*": dict,
+    "/taxonomy/entities/*/properties/*/*:*": PROPERTY_TYPE,
+
+    "/taxonomy/groups": list,
+    "/taxonomy/groups/*": dict,
+    "/taxonomy/groups/*/name": QNameType,
+    "/taxonomy/groups/*/groupURI": URIType,
+    "/taxonomy/groups/*/properties": list,
+    "/taxonomy/groups/*/properties/*": dict,
+    "/taxonomy/groups/*/properties/*/*:*": PROPERTY_TYPE,
+
+    "/taxonomy/groupContents": list,
+    "/taxonomy/groupContents/*": dict,
+    "/taxonomy/groupContents/*/groupName": QNameType,
+    "/taxonomy/groupContents/*/relatedNames": list,
+    "/taxonomy/groupContents/*/relatedNames/*": QNameType,
+
+    "/taxonomy/labels": list,
+    "/taxonomy/labels/*": dict,
+    "/taxonomy/labels/*/relatedName": QNameType,
+    "/taxonomy/labels/*/labelType": QNameType,
+    "/taxonomy/labels/*/language": LangType,
+    "/taxonomy/labels/*/value": str,
+
+    "/taxonomy/members": list,
+    "/taxonomy/members/*": dict,
+    "/taxonomy/members/*/name": QNameType,
+
+    "/taxonomy/networks": list,
+    "/taxonomy/networks/*": dict,
+    "/taxonomy/networks/*/name": QNameType,
+    "/taxonomy/networks/*/relationshipTypeName": QNameType,
+    "/taxonomy/networks/*/roots": list,
+    "/taxonomy/networks/*/roots/*": QNameType,
+    "/taxonomy/networks/*/extendTargetName": bool,
+    "/taxonomy/networks/*/relationships": list,
+    "/taxonomy/networks/*/relationships/*": dict,
+    "/taxonomy/networks/*/relationships/*/source": QNameType,
+    "/taxonomy/networks/*/relationships/*/target": QNameType,
+    "/taxonomy/networks/*/relationships/*/order": (int,float),
+    "/taxonomy/networks/*/relationships/*/weight": (int,float),
+    "/taxonomy/networks/*/relationships/*/preferredLabel": QNameType,
+    "/taxonomy/networks/*/relationships/*/usable": bool,
+    "/taxonomy/networks/*/relationships/*/properties": list,
+    "/taxonomy/networks/*/relationships/*/properties/*": dict,
+    "/taxonomy/networks/*/relationships/*/properties/*/*:*": PROPERTY_TYPE,
+
+    "/taxonomy/propertyTypes": list,
+    "/taxonomy/propertyTypes/*": dict,
+    "/taxonomy/propertyTypes/*/name": QNameType,
+    "/taxonomy/propertyTypes/*/dataType": QNameType,
+    "/taxonomy/propertyTypes/*/enumerationDomain": QNameType,
+    "/taxonomy/propertyTypes/*/immutable": bool,
+    "/taxonomy/propertyTypes/*/allowedObjects": list,
+    "/taxonomy/propertyTypes/*/allowedObjects/*": QNameType,
 
     "/taxonomy/references": list,
     "/taxonomy/references/*": dict,
@@ -349,6 +312,43 @@ JsonMemberTypes = {
     "/taxonomy/references/*/properties": list,
     "/taxonomy/references/*/properties/*": dict,
     "/taxonomy/references/*/properties/*/*:*": PROPERTY_TYPE,
+
+    "/taxonomy/referenceTypes": list,
+    "/taxonomy/referenceTypes/*": dict,
+    "/taxonomy/referenceTypes/*/name": QNameType,
+    "/taxonomy/referenceTypes/*/uri": URIType,
+    "/taxonomy/referenceTypes/*/allowedObjects": list,
+    "/taxonomy/referenceTypes/*/allowedObjects/*": QNameType,
+    "/taxonomy/referenceTypes/*/orderedProperties": list,
+    "/taxonomy/referenceTypes/*/orderedProperties/*": QNameType,
+    "/taxonomy/referenceTypes/*/requiredProperties": list,
+    "/taxonomy/referenceTypes/*/requiredProperties/*": QNameType,
+
+    "/taxonomy/relationshipTypes": list,
+    "/taxonomy/relationshipTypes/*": dict,
+    "/taxonomy/relationshipTypes/*/name": QNameType,
+    "/taxonomy/relationshipTypes/*/relationshipTypeURI": URIType,
+    "/taxonomy/relationshipTypes/*/cycles": str,
+    "/taxonomy/relationshipTypes/*/allowedLinkProperties": list,
+    "/taxonomy/relationshipTypes/*/allowedLinkProperties/*": QNameType,
+    "/taxonomy/relationshipTypes/*/requiredLinkProperties": list,
+    "/taxonomy/relationshipTypes/*/requiredLinkProperties/*": QNameType,
+    "/taxonomy/relationshipTypes/*/sourceObjects": list,
+    "/taxonomy/relationshipTypes/*/sourceObjects/*": QNameType,
+    "/taxonomy/relationshipTypes/*/targetObjects": list,
+    "/taxonomy/relationshipTypes/*/targetObjects/*": QNameType,
+
+    "/taxonomy/units": list,
+    "/taxonomy/units/*": dict,
+    "/taxonomy/units/*/name": SQNameType,
+    "/taxonomy/units/*/dataType": QNameType,
+    "/taxonomy/units/*/baseStandard": str,
+    "/taxonomy/units/*/dataTypeNumerator": QNameType,
+    "/taxonomy/units/*/dataTypeDenominator": QNameType,
+
+    "/taxonomy/networks/*/properties": list,
+    "/taxonomy/networks/*/properties/*": dict,
+    "/taxonomy/networks/*/properties/*/*:*": PROPERTY_TYPE,
 
     # custom properties on taxonomy are unchecked
     "/taxonomy/*:*": (int,float,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
@@ -374,152 +374,6 @@ JsonRequiredMembers = {
     "/facts/*/dimensions/": {"concept"}
     }
 
-# JsonObjectClasses corresponds to the JSON object structure
-#    "class" indicates the Python Class to be instantiated by the object
-#    Objects to be embedded within the class are nested in the object class
-#    Nested objects have a singular name, their collections are named plural of nested object's name
-#    Nested properties which are fields are defined by their declared type in the class
-JsonObjectClasses = {
-    "taxonomy": {
-        "class": XbrlTaxonomy,
-        "key": "name",
-        "importedTaxonomy": {
-            "class": XbrlTaxonomy,
-            "property": {
-                "class": XbrlProperty
-            }
-        },
-        "abstract": {
-            "class": XbrlAbstract,
-            "property": {
-                "class": XbrlProperty
-            }
-        },
-        "concept": {
-            "class": XbrlConcept,
-            "property": {
-                "class": XbrlProperty
-            }
-        },
-        "cube": {
-            "class": XbrlCube,
-            "cubeDimension": {
-                "class": XbrlCubeDimension,
-                "periodConstraint": {
-                    "class": XbrlPeriodConstraint,
-                    "monthDay": {
-                        "class": XbrlDateResolution
-                    },
-                    "endDate": {
-                        "class": XbrlDateResolution
-                    },
-                    "startDate": {
-                        "class": XbrlDateResolution
-                    },
-                    "onOrAfter": {
-                        "class": XbrlDateResolution
-                    },
-                    "onOrBefore": {
-                        "class": XbrlDateResolution
-                    }
-                }
-            },
-            "property": {
-                "class": XbrlProperty
-            }
-        },
-        "cubeType": {
-            "class": XbrlCubeType,
-            "allowedCubeDimension": {
-                "class": XbrlAllowedCubeDimension
-            },
-            "requiredCubeRelationship": {
-                "class": XbrlRequiredCubeRelationship
-            }
-        },
-        "dataType": {
-            "class": XbrlConcept,
-            "unitType": {
-                "class": XbrlUnitType
-            }
-        },
-        "dimension": {
-            "class": XbrlConcept,
-            "property": {
-                "class": XbrlProperty
-            }
-        },
-        "domain": {
-            "class": XbrlConcept,
-            "relationship": XbrlRelationship,
-            "property": {
-                "class": XbrlProperty
-            }
-        },
-        "entity": {
-            "class": XbrlConcept,
-            "property": {
-                "class": XbrlConcept
-            }
-        },
-        "group": {
-            "class": XbrlConcept,
-            "property": {
-                "class": XbrlConcept
-            }
-        },
-        "groupContent": {
-            "class": XbrlGroupContent
-        },
-        "label": {
-            "class": XbrlConcept,
-            "property": XbrlProperty
-        },
-        "member": {
-            "class": XbrlConcept,
-            "property": {
-                "class": XbrlConcept
-            }
-        },
-        "network": {
-            "class": XbrlConcept,
-            "relationship": {
-                "class": XbrlRelationship,
-                "property": XbrlProperty
-            },
-            "property": {
-                "class": XbrlConcept
-            }
-        },
-        "propertyType": {
-            "class": XbrlConcept
-        },
-        "reference": {
-            "class": XbrlConcept,
-            "property": {
-                "class": XbrlConcept
-            }
-        },
-        "referenceType": {
-            "class": XbrlConcept
-        },
-        "relationshipType": {
-            "class": XbrlConcept
-        },
-        "tableTemplate": {
-            "class": XbrlConcept
-        },
-        "transform": {
-            "class": XbrlConcept
-        },
-        "unit": {
-            "class": XbrlConcept
-        },
-        "property": {
-            "class": XbrlConcept
-        }
-    }
-}
 
 EMPTY_SET = set()
 
@@ -882,13 +736,14 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         objClass = ownrPropType # e.g just a Concept but no owning collection
                     if objClass == XbrlTaxonomyType:
                         objClass = XbrlTaxonomy
-                    xbrlDts.dtsObjectIndex += 1
-                    newObj = objClass(dtsObjectIndex=xbrlDts.dtsObjectIndex) # e.g. this is the new Concept
+                    dtsObjectIndex = len(xbrlDts.modelObjects)
+                    newObj = objClass(dtsObjectIndex=dtsObjectIndex) # e.g. this is the new Concept
+                    xbrlDts.modelObjects.append(newObj)
                     keyValue = None
                     for propName, propType in getattr(objClass, "__annotations__", EMPTY_DICT).items():
                         optional = False
                         if isinstance(getattr(propType, "__origin__", None), type(Union)): # Optional[ ] type
-                            if propType.__args__[-1] == type(None):
+                            if propType.__args__[-1] in (type(None), DefaultTrue, DefaultFalse):
                                 optional = True
                             propType = propType.__args__[0] # use first of union for prop value creation
                         if propName in jsonObj:
@@ -896,7 +751,6 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             if isinstance(propType, GenericAlias):
                                 propClass = propType.__origin__ # collection type such as OrderedSet, dict
                                 if len(propType.__args__) == 2: # dict
-                                    print(f"dict prop {propName} needs implementation") # not supported yet
                                     _keyClass = propType.__args__[0] # class of key such as QNameKey
                                     eltClass = propType.__args__[1] # class of collection elements such as XbrlConcept
                                 elif len(propType.__args__) == 1: # set such as OrderedSet or list
@@ -909,7 +763,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                         if isinstance(eltClass, str) or eltClass.__name__.startswith("Xbrl"): # nested Xbrl objects
                                             createTaxonomyObjects(propName, listObj, newObj, pathParts + [propName, str(iObj)])
                                         else: # collection contains ordinary values
-                                            if eltClass in (QName, QNameKeyType):
+                                            if eltClass in (QName, QNameKeyType, SQName, SQNameKeyType):
                                                 listObj = qname(listObj, prefixNamespaces)
                                                 if listObj is None:
                                                     error("xbrlte:invalidQName",
@@ -921,7 +775,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                             else:
                                                 collectionProp.append(listObj)
                             else:
-                                if propType in (QName, QNameKeyType):
+                                if propType in (QName, QNameKeyType, SQName, SQNameKeyType):
                                     jsonValue = qname(jsonValue, prefixNamespaces)
                                     if jsonValue is None:
                                         error("xbrlte:invalidQName",
@@ -933,6 +787,10 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                     keyValue = jsonValue # e.g. the QNAme of the new object for parent object collection
                         elif propType == type(oimParentObj):
                             setattr(newObj, propName, oimParentObj)
+                        elif propType == DefaultTrue:
+                            setattr(newObj, propName, True)
+                        elif propType == DefaultFalse:
+                            setattr(newObj, propName, False)
                         else: # unexpected json element
                             propPath = f"{'/'.join(pathParts + [objName, propName])}={jsonObj.get(propName,'absent')}"
                             if not optional:
@@ -945,6 +803,8 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             ownrProp.add(newObj)
                         else:
                             ownrProp.append(newObj)
+                    if isinstance(newObj, XbrlReferencableTaxonomyObject):
+                        xbrlDts.taxonomyObjects[keyValue] = newObj
 
         createTaxonomyObjects("taxonomy", oimObject["taxonomy"], xbrlDts, ["", "taxonomy"])
 
@@ -1361,6 +1221,17 @@ def filingStart(self, options, *args, **kwargs):
     global saveOIMTaxonomySchemaFiles
     if options.saveOIMTaxonomySchemaFiles:
         saveOIMTaxonomySchemaFiles = True
+        
+def oimTaxonomyViews(cntlr, xbrlDts):
+    if isinstance(xbrlDts, XbrlDts):
+        if xbrlDts.taxonomies: # has at least one taxonomy
+            xbrlTxmy = next(iter(xbrlDts.taxonomies.values())) # first taxonomy for now
+            viewXbrlTxmyObj(xbrlDts, XbrlConcept, xbrlTxmy.concepts, cntlr.tabWinBtm, "XBRL Concepts")
+            viewXbrlTxmyObj(xbrlDts, XbrlGroupContent, xbrlTxmy.groupContents, cntlr.tabWinTopRt, "XBRL Groups")
+            viewXbrlTxmyObj(xbrlDts, XbrlNetwork, xbrlTxmy.networks, cntlr.tabWinTopRt, "XBRL Networks")
+            viewXbrlTxmyObj(xbrlDts, XbrlCube, xbrlTxmy.cubes, cntlr.tabWinTopRt, "XBRL Cubes")
+            return True # block ordinary taxonomy views
+    return False
 
 __pluginInfo__ = {
     'name': 'OIM Taxonomy',
@@ -1372,6 +1243,7 @@ __pluginInfo__ = {
     # classes of mount points (required)
     'CntlrCmdLine.Options': optionsExtender,
     'CntlrCmdLine.Filing.Start': filingStart,
+    'CntlrWinMain.Xbrl.Views': oimTaxonomyViews,
     'ModelDocument.IsPullLoadable': isOimTaxonomyLoadable,
     'ModelDocument.PullLoader': oimTaxonomyLoader
 }

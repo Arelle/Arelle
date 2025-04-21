@@ -2,18 +2,18 @@
 See COPYRIGHT.md for copyright information.
 """
 
-from typing import TYPE_CHECKING, TypeAlias, Optional
+from typing import TYPE_CHECKING, TypeAlias, Optional, Any
 from decimal import Decimal
 
 from arelle.ModelValue import QName
 from arelle.PythonUtil import OrderedSet
 from .XbrlProperty import XbrlProperty
 from .XbrlTypes import XbrlTaxonomyType, QNameKeyType
-from .XbrlTaxonomyObject import XbrlTaxonomyObject
+from .XbrlTaxonomyObject import XbrlReferencableTaxonomyObject
 
 XbrlUnitTypeType: TypeAlias = "XbrlUnitType"
 
-class XbrlConcept(XbrlTaxonomyObject):
+class XbrlConcept(XbrlReferencableTaxonomyObject):
     taxonomy: XbrlTaxonomyType
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the concept object.
     dataType: QName # (required) Indicates the dataType of the concept. These are provided as a QName based on the datatypes specified in the XBRL 2.1 specification and any custom datatype defined in the taxonomy.
@@ -22,11 +22,11 @@ class XbrlConcept(XbrlTaxonomyObject):
     nillable: Optional[bool] # (optional) Used to specify if the concept can have a nill value. The default value is true.
     properties: OrderedSet[XbrlProperty] # (optional) ordered set of property objects used to specify additional properties associated with the concept using the property object. Only immutable properties as defined in the propertyType object can be added to a concept.
 
-class XbrlDataType(XbrlTaxonomyObject):
+class XbrlDataType(XbrlReferencableTaxonomyObject):
     taxonomy: XbrlTaxonomyType
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the datatype object.
     baseType: QName # (required) The base type is a QName that uniquely identifies the base datatype the datatype is based on.
-    enumeration: OrderedSet[str | Decimal] # (optional) Defines an ordered set of enumerated values of the datatype if applicable
+    enumeration: OrderedSet[Any] # (optional) Defines an ordered set of enumerated values of the datatype if applicable
     minInclusive: Optional[Decimal] # (optional) Defines a decimal value to indicate a min inclusive cardinal value for a type. Only applies to types based on float, double and decimal.
     maxInclusive: Optional[Decimal] # (optional) Defines a decimal value to indicate a max inclusive cardinal value for a type. Only applies to types based on float, double and decimal.
     minExclusive: Optional[Decimal] # (optional) Defines a decimal value to indicate a min exclusive cardinal value for a type. Only applies to types based on float, double and decimal.
@@ -40,8 +40,9 @@ class XbrlDataType(XbrlTaxonomyObject):
     pattern: set[str] # (optional) Defines a string as a single regex expressions. At least one of the regex patterns must match. (Uses XML regex)
     unitTypes: OrderedSet[XbrlUnitTypeType] # unitType comprising a dataType expressed as a value of the datatype. For example xbrli:flow has unit datatypes of xbrli:volume and xbrli:time
 
-class XbrlUnitType(XbrlTaxonomyObject):
-    relatedName: QName # (required) Defines a QName that the label is associated with.
+class XbrlUnitType(XbrlReferencableTaxonomyObject):
+    taxonomy: XbrlTaxonomyType
+    relatedName: QNameKeyType # (required) Defines a QName that the label is associated with.
     dataTypeNumerator: Optional[XbrlDataType] # (optional) Defines the numerator datatype of of the datatype
     dataTypeDenominator: Optional[XbrlDataType] # (optional) Defines the denominator datatype used by a unit used to define a value of the datatype
     dataTypeMutiplier: Optional[XbrlDataType] # (optional) Defines a mutiplier datatype used by a unit used to define a value of the datatype

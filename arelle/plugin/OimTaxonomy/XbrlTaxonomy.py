@@ -7,6 +7,7 @@ from collections import OrderedDict
 
 from arelle.ModelValue import QName, AnyURI
 from arelle.PythonUtil import OrderedSet
+from .ModelValueMore import SQName
 from .XbrlDts import XbrlDts
 from .XbrlImportedTaxonomy import XbrlImportedTaxonomy
 from .XbrlProperty import XbrlProperty
@@ -39,11 +40,11 @@ class XbrlTaxonomy(XbrlTaxonomyObject):
     dataTypes: OrderedSet[XbrlDataType] # ordered set of dataType objects.
     dimensions: OrderedSet[XbrlDimension] # ordered set of dimension objects.
     domains: OrderedSet[XbrlDomain] # (optional) ordered set of domain objects.
-    members: OrderedSet[XbrlMember] #  ordered set of member objects.
-    entities: OrderedSet[XbrlEntity] # (optional) ordered set of entity objects.
-    groups:OrderedSet[XbrlGroup] #  ordered set of group objects.
+    entities: OrderedDict[SQName, XbrlEntity] # (optional) ordered set of entity objects.
+    groups: OrderedSet[XbrlGroup] #  ordered set of group objects.
     groupContents: OrderedSet[XbrlGroupContent] # ordered set of groupContent objects that link a group QName to a list of network or cube objects.
     labels: OrderedSet[XbrlLabel] # ordered set of label objects.
+    members: OrderedSet[XbrlMember] #  ordered set of member objects.
     networks: OrderedSet[XbrlNetwork] # ordered set of network objects.
     propertyTypes: OrderedSet[XbrlPropertyType] # ordered set of propertyType objects.
     references: OrderedSet[XbrlReference] # ordered set of reference objects.

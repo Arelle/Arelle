@@ -324,7 +324,7 @@ class ViewTree:
             self.sortImages = (PhotoImage(file=os.path.join(self.modelXbrl.modelManager.cntlr.imagesDir, "columnSortUp.gif")),
                                PhotoImage(file=os.path.join(self.modelXbrl.modelManager.cntlr.imagesDir, "columnSortDown.gif")),
                                PhotoImage())
-        for col in ("#0",) + self.treeView["columns"]:
+        for col in ("#0",) + (self.treeView["columns"] or () ):
             self.treeView.heading(col, command=lambda c=col: self.sortColumn(c))
         if not startUnsorted:
             self.treeView.heading(initialSortCol, image=self.sortImages[not initialSortDirForward])
