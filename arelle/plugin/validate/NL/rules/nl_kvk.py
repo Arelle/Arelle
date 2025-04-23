@@ -92,3 +92,25 @@ def rule_nl_kvk_3_1_1_2(
                 modelObject = val.modelXbrl
             )
             return
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_nl_kvk_3_1_3_1 (
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.3.1.3.1: xbrli:segment must not be used in contexts.
+    """
+    contexts = val.modelXbrl.contexts.values()
+    for context in contexts:
+        if context.hasSegment:
+            yield Validation.error(
+                'NL-KVK.3.1.3.1',
+                _('xbrli:segment must not be used in contexts.'),
+                modelObject=context,
+            )
