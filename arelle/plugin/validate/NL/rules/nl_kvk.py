@@ -92,3 +92,51 @@ def rule_nl_kvk_3_1_1_2(
                 modelObject = val.modelXbrl
             )
             return
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_INLINE_NT19
+    ],
+)
+def rule_nl_kvk_3_1_2_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.3.1.2.1: xbrli:startDate, xbrli:endDate, xbrli:instant formatted as yyyy-mm-dd without time.
+    """
+    contextsWithPeriodTime = pluginData.getContextWithPeriodTime(val.modelXbrl)
+    if len(contextsWithPeriodTime) !=0:
+        yield Validation.error(
+            codes='NL.NL-KVK-3.1.2.1',
+            msg=_('xbrli:startDate, xbrli:endDate, xbrli:instant must be formatted as yyyy-mm-dd without time'),
+            modelObject = contextsWithPeriodTime
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_INLINE_NT19
+    ],
+)
+def rule_nl_kvk_3_1_2_2(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.3.1.2.1: xbrli:startDate, xbrli:endDate, xbrli:instant format to be formatted as yyyy-mm-dd without time zone.
+    """
+    contextsWithPeriodTimeZone = pluginData.getContextWithPeriodTimeZone(val.modelXbrl)
+    if len(pluginData.getContextWithPeriodTimeZone(val.modelXbrl)) !=0:
+            yield Validation.error(
+                codes='NL.NL-KVK-3.1.2.2',
+                msg=_('xbrli:startDate, xbrli:endDate, xbrli:instant must be formatted as yyyy-mm-dd without time zone'),
+                modelObject = contextsWithPeriodTimeZone
+            )
