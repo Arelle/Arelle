@@ -1,14 +1,18 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
+from typing import Union
 from collections import defaultdict
 from decimal import Decimal
 from typing import GenericAlias
 from arelle import ViewWinTree, XbrlConst
 from arelle.FunctionFn import false
-from .XbrlCube import XbrlCube
+from arelle.PythonUtil import OrderedSet
+from .XbrlCube import XbrlCube, XbrlPeriodConstraint
+from .XbrlDimension import XbrlDomain
+from .XbrlGroup import XbrlGroupContent
 from .XbrlNetwork import XbrlNetwork
-from .XbrlTaxonomyObject import XbrlTaxonomyObject
+from .XbrlTaxonomyObject import EMPTY_DICT, XbrlTaxonomyObject
 
 def viewXbrlTxmyObj(xbrlDts, objClass, objCollection, tabWin, header, lang=None, altTabWin=None):
     xbrlDts.modelManager.showStatus(_("viewing concepts"))
@@ -22,7 +26,11 @@ def viewXbrlTxmyObj(xbrlDts, objClass, objCollection, tabWin, header, lang=None,
                 continue
         if not isinstance(propType, GenericAlias): # set, dict, etc
             view.propNameTypes.append((propName, propType))
-    view.treeView["columns"] = tuple(propName for propName, _propType in view.propNameTypes[1:])
+    # check nested object types
+    for i in range(len(view.propNameTypes),10):
+        view.propNameTypes.append( (f"col{i+1}",str))
+    view.colNames = tuple(propName for propName, _propType in view.propNameTypes[1:])
+    view.treeView["columns"] = view.colNames
     print(f"cols {view.treeView['columns']}")
     firstCol = True
     for propName, propType in view.propNameTypes:
@@ -37,7 +45,7 @@ def viewXbrlTxmyObj(xbrlDts, objClass, objCollection, tabWin, header, lang=None,
         print(f"trace prop {propName}")
         view.treeView.column(colName, width=w, anchor="w")
         view.treeView.heading(colName, text=propName)
-    view.treeView["displaycolumns"] = tuple(propName for propName, _propType in view.propNameTypes[1:])
+    view.treeView["displaycolumns"] = view.colNames
     view.view()
     view.blockSelectEvent = 1
     view.blockViewModelObject = 0
@@ -63,50 +71,109 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
     def view(self):
         # sort by labels
         self.setColumnsSortable()
+        self.tag_has = defaultdict(list)
         lbls = defaultdict(list)
         role = self.labelrole
         lang = self.lang
         self.clearTreeView()
-        nodeNum = 1
+        self.id = 1
+        nodeNum = 0
         excludedNamespaces = XbrlConst.ixbrlAll.union(
             (XbrlConst.xbrli, XbrlConst.link, XbrlConst.xlink, XbrlConst.xl,
              XbrlConst.xbrldt,
              XbrlConst.xhtml))
         for obj in self.objCollection:
             node = self.treeView.insert("", "end",
-                                        f"{self.objClass.__name__}_{obj.dtsObjectIndex}",
+                                        f"_{self.id}_{obj.dtsObjectIndex}",
                                         text=str(getattr(obj, self.propNameTypes[0][0])),
                                         tags=("odd" if nodeNum & 1 else "even",))
+            self.tag_has[f"_{obj.dtsObjectIndex}"].append(node)
+            self.id += 1
             nodeNum += 1
             for propName, _propType in self.propNameTypes[1:]:
                 self.treeView.set(node, propName, str(getattr(obj, propName, "")))
-            if isinstance(obj, XbrlCube):
+            if isinstance(obj, XbrlGroupContent):
+                self.viewGroupContent(node, nodeNum, obj)
+            elif isinstance(obj, XbrlCube):
                 self.viewDims(node, nodeNum, obj)
-            elif isinstance(obj, XbrlNetwork):
+            elif isinstance(obj, (XbrlNetwork, XbrlDomain)):
                 self.viewRoots(node, nodeNum, obj)
 
     def viewProps(self, parentNode, nodeNum, obj):
         propView = obj.propertyView
         node = self.treeView.insert(parentNode, "end",
-                                    f"{type(obj).__name__}_{obj.dtsObjectIndex}",
+                                    f"_{self.id}_{obj.dtsObjectIndex}",
                                     text=propView[0][1],
                                     tags=("odd" if nodeNum & 1 else "even",))
-        print(f"treeview cols {self.treeView['columns']} len(propView) {len(propView)}")
+        self.tag_has[f"_{obj.dtsObjectIndex}"].append(node)
+        nodeNum += 1
+        self.id += 1
+        print(f"treeview cols {self.colNames} len(propView) {len(propView)}")
         for i, propViewEntry in enumerate(propView[1:]):
-            self.treeView.set(node, self.treeView["columns"][i], propViewEntry[1])
+            if i >= len(self.colNames):
+                print(f"i problem {i}")
+            if len(propViewEntry) < 2:
+                print(f"propViewEntry problem {propViewEntry} class {type(obj).__name__}")
+            self.treeView.set(node, self.colNames[i], propViewEntry[1])
+        # process nested objects
+        for propName, propType in getattr(type(obj), "__annotations__", EMPTY_DICT).items():
+            childObj = getattr(obj, propName, None)
+            if isinstance(getattr(propType, "__origin__", None), type(Union)): # Optional[ ] type
+                if isinstance(propType.__args__[0], XbrlTaxonomyObject): # e.g. dateResolution object
+                    childObj = getattr(obj, propName, None)
+                    if childObj is not None:
+                        self.viewProps(node, nodeNum, childObj)
+            elif getattr(propType, "__origin__", None) in (set, OrderedSet) and issubclass(propType.__args__[0], XbrlTaxonomyObject):
+                if childObj is not None and len(childObj) > 0 and propName != "relationships":
+                    for childObjObj in childObj:
+                        self.viewProps(node, nodeNum, childObjObj)
         return node
+
+    def viewGroupContent(self, parentNode, nodeNum, obj):
+        for relatedObjQn in obj.relatedNames:
+            relatedObj = self.xbrlDts.namedObjects.get(relatedObjQn)
+            if relatedObj is not None:
+                node = self.viewProps(parentNode, nodeNum, relatedObj)
+                nodeNum += 1
+                if isinstance(relatedObj, XbrlCube):
+                    self.viewDims(node, nodeNum, relatedObj)
+                elif isinstance(relatedObj, (XbrlNetwork, XbrlDomain)):
+                    self.viewRoots(node, nodeNum, relatedObj)
 
     def viewDims(self, parentNode, nodeNum, obj):
         for cubeDim in obj.cubeDimensions:
             node = self.viewProps(parentNode, nodeNum, cubeDim)
-            nodeNum += 1            
+            nodeNum += 1
+            domObj = self.xbrlDts.namedObjects.get(getattr(cubeDim, "domainName", None))
+            if domObj is not None:
+                domNode = self.viewProps(node, nodeNum, domObj)
+                nodeNum += 1
+                self.viewRoots(domNode, nodeNum, domObj)
 
     def viewRoots(self, parentNode, nodeNum, obj):
-        for rootQn in getattr(obj, "roots", ()):
-            rootObj = self.xbrlDts.taxonomyObjects.get(rootQn)
+        for qn in obj.relationshipRoots:
+            rootObj = self.xbrlDts.namedObjects.get(qn)
             if rootObj is not None:
-                node = self.viewProps(parentNode, nodeNum, cubeDim)
+                node = self.treeView.insert(parentNode, "end",
+                                            f"_{self.id}_{rootObj.dtsObjectIndex}",
+                                            text=str(qn),
+                                            tags=("odd" if nodeNum & 1 else "even",))
+                self.id += 1
                 nodeNum += 1
+                for relObj in obj.relationshipsFrom.get(qn, ()):
+                    self.viewRelationships(node, nodeNum, obj, relObj)
+
+    def viewRelationships(self, parentNode, nodeNum, obj, relObj):
+        qnObj = self.xbrlDts.namedObjects.get(relObj.target)
+        if qnObj is not None:
+            node = self.treeView.insert(parentNode, "end",
+                                        f"_{self.id}_{qnObj.dtsObjectIndex}",
+                                        text=str(relObj.target),
+                                        tags=("odd" if nodeNum & 1 else "even",))
+            self.id += 1
+            nodeNum += 1
+            for relTgtObj in obj.relationshipsFrom.get(relObj.target, ()):
+                self.viewRelationships(node, nodeNum, obj, relTgtObj)
 
     def treeviewEnter(self, *args):
         self.blockSelectEvent = 0
@@ -118,18 +185,22 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
         if self.blockSelectEvent == 0 and self.blockViewModelObject == 0:
             self.blockViewModelObject += 1
             #self.modelXbrl.viewModelObject(self.nodeToObjectId[self.treeView.selection()[0]])
-            self.modelXbrl.viewModelObject(self.treeView.selection()[0])
+            selection = self.treeView.selection()
+            if selection is not None and len(selection)>0:
+                self.xbrlDts.viewTaxonomyObject(selection[0])
             self.blockViewModelObject -= 1
 
     def viewModelObject(self, txmyObj):
         if self.blockViewModelObject == 0:
             self.blockViewModelObject += 1
             try:
-                if isinstance(txmyObj, XbrlTaxonomyObject):
-                    node = f"{self.objClass.__name__}_{obj.dtsObjectIndex}"
-                    if self.treeView.exists(node):
-                        self.treeView.see(node)
-                        self.treeView.selection_set(node)
-            except (AttributeError, KeyError):
+                items = self.tag_has.get(f"_{txmyObj.dtsObjectIndex}")
+                if items:
+                    for item in items:
+                        if self.treeView.exists(item):
+                            self.treeView.see(item)
+                            self.treeView.selection_set(item)
+                            break
+            except (AttributeError, KeyError, ValueError):
                     self.treeView.selection_set(())
             self.blockViewModelObject -= 1

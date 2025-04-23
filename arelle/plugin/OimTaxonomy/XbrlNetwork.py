@@ -2,7 +2,8 @@
 See COPYRIGHT.md for copyright information.
 """
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Any
+from collections import defaultdict
 
 from arelle.ModelValue import QName, AnyURI
 from arelle.PythonUtil import OrderedSet
@@ -20,7 +21,67 @@ class XbrlRelationship(XbrlTaxonomyObject):
     useable: bool # (optional on domain-member) Indicates if the member value is useable on a domain-member relationship.
     properties: OrderedSet[XbrlProperty] # (optional) ordered set of property objects used to specify additional properties associated with the concept using the property object. Only immutable properties as defined in the propertyType object can be added to a concept.
 
-class XbrlNetwork(XbrlReferencableTaxonomyObject):
+    @property
+    def propertyView(self):
+        nestedProperties = [("source",str(self.source)), ("target",str(self.target))]
+        if hasattr(self, "order"):
+            nestedProperties.append( ("order", str(self.order)) )
+        if hasattr(self, "weight"):
+            nestedProperties.append( ("weight", str(self.weight)) )
+        if hasattr(self, "preferredlabel"):
+            nestedProperties.append( ("preferredlabel", str(self.preferredlabel)) )
+        if hasattr(self, "useable"):
+            nestedProperties.append( ("useable", str(self.useable)) )
+        if getattr(self, "properties", None):
+            for propObj in self.properties:
+                nestedProperties.append( (str(propObj.propertyTypeName), str(propObj.propertyValue)) )
+        return ("relationship", f"{str(self.source)}\u2192{self.target}", tuple(nestedProperties))
+
+class XbrlRelationshipSet:
+    _relationshipsFrom: dict[QName, list[XbrlRelationship]] | None
+    _relationshipsTo: dict[QName, list[XbrlRelationship]] | None
+    _roots: OrderedSet[QName] | None
+
+    def __init__(self):
+        self._relationshipsFrom = self._relationshipsTo = self._roots = None
+        if hasattr(self, "roots") and len(getattr(self, "roots")) > 1:
+            self._roots = getattr(self, "roots")
+
+    @property
+    def relationshipsFrom(self):
+        if not hasattr(self, "_relationshipsFrom"):
+            self._relationshipsFrom = defaultdict(list)
+            for relObj in self.relationships:
+                if relObj.source is not None:
+                    self._relationshipsFrom[relObj.source].append(relObj)
+        return self._relationshipsFrom
+
+    @property
+    def relationshipsTo(self):
+        if not hasattr(self, "_relationshipsTo"):
+            self._relationshipsTo = defaultdict(list)
+            for relObj in self.relationships:
+                if relObj.target is not None:
+                    self._relationshipsTo[relObj.target].append(relObj)
+        return self._relationshipsTo
+
+    @property
+    def relationshipRoots(self):
+        if not hasattr(self, "_roots"):
+            if hasattr(self, "roots") and len(getattr(self, "roots")) > 1:
+                self._roots = getattr(self, "roots")
+            else:
+                relsFrom = self.relationshipsFrom
+                relsTo = self.relationshipsTo
+                self._roots = [qnFrom
+                               for qnFrom, relsFrom in relsFrom.items()
+                               if qnFrom not in relsTo or
+                               (len(relsFrom) == 1 and # root-level self-looping ar
+                                len(relsTo[qnFrom]) == 1 and
+                                relsFrom[0].source == relsFrom[0].target)]
+        return self._roots
+
+class XbrlNetwork(XbrlReferencableTaxonomyObject, XbrlRelationshipSet):
     taxonomy: XbrlTaxonomyType
     name: QNameKeyType # (required if no extendedTargetName) The name is a QName that uniquely identifies the network object.
     relationshipTypeName: QName # (required if no extendedTargetName) The relationshipType object of the network expressed as a QName such as xbrl:parent-child

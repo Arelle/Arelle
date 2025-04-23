@@ -8,9 +8,14 @@ from arelle.ModelValue import QName
 from arelle.PythonUtil import OrderedSet
 from .XbrlTaxonomyObject import XbrlTaxonomyObject
 
-class XbrlProperty(XbrlTaxonomyObject):
+class XbrlProperty:
     propertyTypeName: QName # (required) The name is a QName that uniquely identifies the property type object.
     propertyValue: Any # (required) The value of the property, that must be consistent with the datatype of the property.
+
+    @property
+    def propertyView(self):
+        return ( str(getattr(self, "propertyTypeName", "")), str(getattr(self, "propertyValue", "")) )
+
 
 class XbrlPropertyType(XbrlTaxonomyObject):
     name: QName # (required) The name is a QName that uniquely identifies the property type object.

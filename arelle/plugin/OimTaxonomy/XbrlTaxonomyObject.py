@@ -1,7 +1,7 @@
 """
 See COPYRIGHT.md for copyright information.
 """
-from typing import GenericAlias
+from typing import GenericAlias, Any
 
 EMPTY_DICT = {}
 
@@ -23,16 +23,23 @@ class XbrlTaxonomyObject:
                     continue
             if hasattr(self, propName):
                 val = getattr(self, propName)
+                if propName == "properties":
+                    for propObj in val:
+                        propVals.append( ( str(propObj.propertyTypeName), str(propObj.propertyValue) ) )
+                    continue
                 if isinstance(propType, GenericAlias): # set, dict, etc
-                    if isinstance(objClass, XbrlTaxonomyObject):
+                    propValueClass = propType.__args__[-1]
+                    if hasattr(propValueClass, "propertyView"):
                         propVal = [propName, f"({len(val)})", [o.propertyView for o in val]]
-                    else:
+                    elif len(val) > 0:
                         propVal = ", ".join(str(v) for v in val)
+                    else:
+                        continue # omit this property
                 else:
-                    propVal = [propName, f"{val}"]
+                    propVal = (propName, f"{val}")
                 propVals.append(propVal)
-        return propVals
-        
+        return tuple(propVals)
+
     def __repr__(self):
         # print object generic string based on class declaration
         objClass = type(self)
@@ -52,4 +59,6 @@ class XbrlTaxonomyObject:
         return f"{objName}[{', '.join(propVals)}]"
 
 class XbrlReferencableTaxonomyObject(XbrlTaxonomyObject):
-    pass
+
+    def __init__(self,  *args: Any, **kwargs: Any) -> None:
+        super(XbrlReferencableTaxonomyObject, self).__init__(*args, **kwargs)

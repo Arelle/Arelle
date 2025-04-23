@@ -44,7 +44,7 @@ from .XbrlReference import XbrlReference, XbrlReferenceType
 from .XbrlTransform import XbrlTransform
 from .XbrlUnit import XbrlUnit
 from .XbrlTaxonomy import XbrlTaxonomy
-from .XbrlTaxonomyObject import XbrlReferencableTaxonomyObject
+from .XbrlTaxonomyObject import XbrlTaxonomyObject, XbrlReferencableTaxonomyObject
 from .XbrlDts import XbrlDts, castToDts
 from .XbrlTypes import XbrlTaxonomyType, QNameKeyType, SQNameKeyType, DefaultTrue, DefaultFalse
 from .ModelValueMore import SQName
@@ -736,9 +736,15 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         objClass = ownrPropType # e.g just a Concept but no owning collection
                     if objClass == XbrlTaxonomyType:
                         objClass = XbrlTaxonomy
-                    dtsObjectIndex = len(xbrlDts.modelObjects)
-                    newObj = objClass(dtsObjectIndex=dtsObjectIndex) # e.g. this is the new Concept
-                    xbrlDts.modelObjects.append(newObj)
+                    if issubclass(objClass, XbrlTaxonomyObject):
+                        dtsObjectIndex = len(xbrlDts.taxonomyObjects)
+                        newObj = objClass(dtsObjectIndex=dtsObjectIndex) # e.g. this is the new Concept
+                        xbrlDts.taxonomyObjects.append(newObj)
+                    else:
+                        newObj = objClass() # e.g. XbrlProperty
+                        if objClass == XbrlProperty:
+                            k, v = next(iter(jsonObj.items()))
+                            jsonObj = {"propertyTypeName": k, "propertyValue": v}
                     keyValue = None
                     for propName, propType in getattr(objClass, "__annotations__", EMPTY_DICT).items():
                         optional = False
@@ -783,7 +789,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                               file=oimFile, qname=jsonObj[propName], path=f"{'/'.join(pathParts + [propName])}")
                                         continue # skip this property
                                 setattr(newObj, propName, jsonValue)
-                                if keyClass and keyClass == propType:
+                                if (keyClass and keyClass == propType) or (not keyClass and propType in (QNameKeyType, SQNameKeyType)):
                                     keyValue = jsonValue # e.g. the QNAme of the new object for parent object collection
                         elif propType == type(oimParentObj):
                             setattr(newObj, propName, oimParentObj)
@@ -804,7 +810,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         else:
                             ownrProp.append(newObj)
                     if isinstance(newObj, XbrlReferencableTaxonomyObject):
-                        xbrlDts.taxonomyObjects[keyValue] = newObj
+                        xbrlDts.namedObjects[keyValue] = newObj
 
         createTaxonomyObjects("taxonomy", oimObject["taxonomy"], xbrlDts, ["", "taxonomy"])
 
@@ -1221,7 +1227,7 @@ def filingStart(self, options, *args, **kwargs):
     global saveOIMTaxonomySchemaFiles
     if options.saveOIMTaxonomySchemaFiles:
         saveOIMTaxonomySchemaFiles = True
-        
+
 def oimTaxonomyViews(cntlr, xbrlDts):
     if isinstance(xbrlDts, XbrlDts):
         if xbrlDts.taxonomies: # has at least one taxonomy
