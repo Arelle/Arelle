@@ -3,6 +3,8 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
+from typing import cast, Any
+
 import regex as re
 from collections import defaultdict
 from dataclasses import dataclass
@@ -11,6 +13,7 @@ from arelle.ModelInstanceObject import ModelUnit, ModelContext, ModelFact
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import ModelXbrl
 from arelle.utils.PluginData import PluginData
+from arelle.XmlValidate import lexicalPatterns
 
 
 XBRLI_IDENTIFIER_PATTERN = re.compile(r"^(?!00)\d{8}$")
@@ -32,6 +35,8 @@ class PluginValidationDataExtension(PluginData):
     textFormattingWrapper: str
 
     _contextsByDocument: dict[str, list[ModelContext]] | None = None
+    _contextsWithPeriodTime: list[ModelContext | None] | None = None
+    _contextsWithPeriodTimeZone: list[ModelContext | None] | None = None
     _entityIdentifiers: set[tuple[str, str]] | None = None
     _factsByDocument: dict[str, list[ModelFact]] | None = None
     _unitsByDocument: dict[str, list[ModelUnit]] | None = None
@@ -44,6 +49,25 @@ class PluginValidationDataExtension(PluginData):
             contextsByDocument[context.modelDocument.filepath].append(context)
         self._contextsByDocument = dict(contextsByDocument)
         return self._contextsByDocument
+
+    def checkContexts(self, allContexts: dict[str, list[ModelContext]]) -> None:
+        contextsWithPeriodTime: list[ModelContext | None] = []
+        contextsWithPeriodTimeZone: list[ModelContext | None] = []
+        datetimePattern = lexicalPatterns["XBRLI_DATEUNION"]
+        for contexts in allContexts.values():
+            for context in contexts:
+                for uncastElt in context.iterdescendants("{http://www.xbrl.org/2003/instance}startDate",
+                                                          "{http://www.xbrl.org/2003/instance}endDate",
+                                                          "{http://www.xbrl.org/2003/instance}instant"):
+                    elt = cast(Any, uncastElt)
+                    m = datetimePattern.match(elt.stringValue)
+                    if m:
+                        if m.group(1):
+                            contextsWithPeriodTime.append(context)
+                        if m.group(3):
+                            contextsWithPeriodTimeZone.append(context)
+        self._contextsWithPeriodTime = contextsWithPeriodTime
+        self._contextsWithPeriodTimeZone = contextsWithPeriodTimeZone
 
     def entityIdentifiersInDocument(self, modelXbrl: ModelXbrl) -> set[tuple[str, str]]:
         if self._entityIdentifiers is not None:
@@ -59,6 +83,18 @@ class PluginValidationDataExtension(PluginData):
             factsByDocument[fact.modelDocument.filepath].append(fact)
         self._factsByDocument = dict(factsByDocument)
         return self._factsByDocument
+
+    def getContextWithPeriodTime(self, modelXbrl: ModelXbrl) -> list[ModelContext | None]:
+        if self._contextsWithPeriodTime is None:
+            self.checkContexts(self.contextsByDocument(modelXbrl))
+        assert(self._contextsWithPeriodTime is not None)
+        return self._contextsWithPeriodTime
+
+    def getContextWithPeriodTimeZone(self, modelXbrl: ModelXbrl) -> list[ModelContext | None]:
+        if self._contextsWithPeriodTimeZone is None:
+            self.checkContexts(self.contextsByDocument(modelXbrl))
+        assert (self._contextsWithPeriodTimeZone is not None)
+        return self._contextsWithPeriodTimeZone
 
     def unitsByDocument(self, modelXbrl: ModelXbrl) -> dict[str, list[ModelUnit]]:
         if self._unitsByDocument is not None:
