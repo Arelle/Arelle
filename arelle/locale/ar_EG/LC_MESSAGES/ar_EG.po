@@ -520,13 +520,13 @@ msgstr "تجميع إحصاءات تعريفية، مثل توقيتات اعم�
 msgid ""
 "start web server on host:port[:server] for REST and web access, e.g., --"
 "webserver locahost:8080, or specify nondefault a server name, such as "
-"cherrypy, --webserver locahost:8080:cherrypy. (It is possible to specify "
+"cheroot, --webserver locahost:8080:cheroot. (It is possible to specify "
 "options to be defaults for the web server, such as disclosureSystem and "
 "validations, but not including file names.) "
 msgstr ""
 "تشغيل الويب سيرفير على عنوان host:port[:server] لعمليات REST، مثال webserver "
-"locahost:8080--، او تحديد نوع سيرفير اخر مثل cherrypy على سبيل المثال "
-"webserver locahost:8080:cherrypy--. (يمكن تحديد خيارات مفترضة للويب سيرفير "
+"locahost:8080--، او تحديد نوع سيرفير اخر مثل cheroot على سبيل المثال "
+"webserver locahost:8080:cheroot--. (يمكن تحديد خيارات مفترضة للويب سيرفير "
 "مثل disclosureSystem و validations ولا يتضمن ذلك اسم الملف.) "
 
 #: CntlrCmdLine.py:379
@@ -2599,7 +2599,6 @@ msgstr ""
 msgid ""
 "\n"
 "   Bottle \\u00a9 2011-2013 Marcel Hellkamp\n"
-"   CherryPy \\u00a9 2002-2013 CherryPy Team"
 msgstr ""
 
 #: CntlrWinMain.py:1343

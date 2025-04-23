@@ -405,7 +405,7 @@ def parseArgs(args):
     if hasWebServer():
         parser.add_option("--webserver", action="store", dest="webserver",
                           help=_("start web server on host:port[:server] for REST and web access, e.g., --webserver locahost:8080, "
-                                 "or specify nondefault a server name, such as cherrypy, --webserver locahost:8080:cherrypy. "
+                                 "or specify nondefault a server name, such as cheroot, --webserver locahost:8080:cheroot. "
                                  "(It is possible to specify options to be defaults for the web server, such as disclosureSystem and validations, but not including file names.) "))
     pluginOptionsIndex = len(parser.option_list)
     pluginOptionsGroupIndex = len(parser.option_groups)

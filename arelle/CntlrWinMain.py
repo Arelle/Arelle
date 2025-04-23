@@ -1487,7 +1487,6 @@ class CntlrWinMain (Cntlr.Cntlr):
                               "\n   PyParsing \u00a9 2003-2013 Paul T. McGuire"
                               "\n   lxml {lxmlVersion} \u00a9 2004 Infrae, ElementTree \u00a9 1999-2004 by Fredrik Lundh"
                               "\n   Bottle \u00a9 2009-2024 Marcel Hellkamp"
-                              "\n   CherryPy \u00a9 2004-2019 CherryPy Team"
                               "\n   May include installable plug-in modules with author-specific license terms").format(
                                   version=Version.__version__,
                                   wordSize=self.systemWordSize,
