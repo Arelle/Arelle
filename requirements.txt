@@ -8,7 +8,6 @@ regex==2024.11.6
 isodate==0.7.2
 aniso8601==10.0.1
 bottle==0.13.2
-CherryPy==18.10.0
 Cheroot==10.0.1
 python-dateutil==2.9.0.post0
 pycountry==24.6.1

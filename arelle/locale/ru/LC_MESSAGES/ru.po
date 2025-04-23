@@ -261,8 +261,8 @@ msgid "Collect profile statistics, such as timing of validation activities and f
 msgstr "Собирать статистику профиля, например, время исполнения валидации."
 
 #: arelle\CntlrCmdLine.py:308
-msgid "start web server on host:port[:server] for REST and web access, e.g., --webserver locahost:8080, or specify nondefault a server name, such as cherrypy, --webserver locahost:8080:cherrypy. (It is possible to specify options to be defaults for the web server, such as disclosureSystem and validations, but not including file names.) "
-msgstr "запустите веб-сервер на host:port[:server] для REST и веб-доступа, например, --webserver locahost:8080, или укажите имя сервера не по умолчанию, например cherrypy, --webserver locahost:8080:cherrypy. (Можно указать параметры по умолчанию для веб-сервера, такие как системы раскрытия информации и валиидаций, но не включая имена файлов.) "
+msgid "start web server on host:port[:server] for REST and web access, e.g., --webserver locahost:8080, or specify nondefault a server name, such as cheroot, --webserver locahost:8080:cheroot. (It is possible to specify options to be defaults for the web server, such as disclosureSystem and validations, but not including file names.) "
+msgstr "запустите веб-сервер на host:port[:server] для REST и веб-доступа, например, --webserver locahost:8080, или укажите имя сервера не по умолчанию, например cheroot, --webserver locahost:8080:cheroot. (Можно указать параметры по умолчанию для веб-сервера, такие как системы раскрытия информации и валиидаций, но не включая имена файлов.) "
 
 #: arelle\CntlrCmdLine.py:336
 msgid "Show product version, copyright, and license."

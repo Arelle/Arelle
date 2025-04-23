@@ -64,7 +64,6 @@ ObjectMaker = [
 ]
 WebServer = [
     'cheroot>=8,<11',
-    'CherryPy==18.*',
     'tornado==6.*',
 ]
 

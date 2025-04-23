@@ -24,9 +24,6 @@ Python®: Copyright (c) 2001-2022 Python Software Foundation; All Rights Reserve
 aniso8601: Copyright (c) 2021, Brandon Nielsen, All rights reserved.
 [License](https://github.com/sloanlance/aniso8601/blob/master/LICENSE)
 
-cherrypy: cheroot Copyright © 2004-2020, CherryPy Team. All rights reserved.
-[License](https://github.com/cherrypy/cherrypy/blob/main/LICENSE.md)
-
 cx_Freeze: Copyright © 2020-2022, Marcelo Duarte, 2007-2020, Anthony Tuininga,
 2001-2006, Computronix (Canada) Ltd., Edmonton, Alberta, Canada. All rights reserved.
 [License](https://cx-freeze.readthedocs.io/en/latest/license.html)
