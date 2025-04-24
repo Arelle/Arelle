@@ -35,8 +35,10 @@ class PluginValidationDataExtension(PluginData):
     textFormattingWrapper: str
 
     _contextsByDocument: dict[str, list[ModelContext]] | None = None
+    _contextsWithImproperContent: list[ModelContext | None] | None = None
     _contextsWithPeriodTime: list[ModelContext | None] | None = None
     _contextsWithPeriodTimeZone: list[ModelContext | None] | None = None
+    _contextsWithSegments: list[ModelContext | None] | None = None
     _entityIdentifiers: set[tuple[str, str]] | None = None
     _factsByDocument: dict[str, list[ModelFact]] | None = None
     _unitsByDocument: dict[str, list[ModelUnit]] | None = None
@@ -51,8 +53,10 @@ class PluginValidationDataExtension(PluginData):
         return self._contextsByDocument
 
     def checkContexts(self, allContexts: dict[str, list[ModelContext]]) -> None:
+        contextsWithImproperContent: list[ModelContext | None] = []
         contextsWithPeriodTime: list[ModelContext | None] = []
         contextsWithPeriodTimeZone: list[ModelContext | None] = []
+        contextsWithSegments: list[ModelContext | None] = []
         datetimePattern = lexicalPatterns["XBRLI_DATEUNION"]
         for contexts in allContexts.values():
             for context in contexts:
@@ -66,8 +70,14 @@ class PluginValidationDataExtension(PluginData):
                             contextsWithPeriodTime.append(context)
                         if m.group(3):
                             contextsWithPeriodTimeZone.append(context)
+                if context.hasSegment:
+                    contextsWithSegments.append(context)
+                if context.nonDimValues("scenario"):  # type: ignore[no-untyped-call]
+                    contextsWithImproperContent.append(context)
+        self._contextsWithImproperContent = contextsWithImproperContent
         self._contextsWithPeriodTime = contextsWithPeriodTime
         self._contextsWithPeriodTimeZone = contextsWithPeriodTimeZone
+        self._contextsWithSegments = contextsWithSegments
 
     def entityIdentifiersInDocument(self, modelXbrl: ModelXbrl) -> set[tuple[str, str]]:
         if self._entityIdentifiers is not None:
@@ -84,17 +94,29 @@ class PluginValidationDataExtension(PluginData):
         self._factsByDocument = dict(factsByDocument)
         return self._factsByDocument
 
-    def getContextWithPeriodTime(self, modelXbrl: ModelXbrl) -> list[ModelContext | None]:
+    def getContextsWithImproperContent(self, modelXbrl: ModelXbrl) -> list[ModelContext | None]:
+        if self._contextsWithImproperContent is None:
+            self.checkContexts(self.contextsByDocument(modelXbrl))
+        assert(self._contextsWithImproperContent is not None)
+        return self._contextsWithImproperContent
+
+    def getContextsWithPeriodTime(self, modelXbrl: ModelXbrl) -> list[ModelContext | None]:
         if self._contextsWithPeriodTime is None:
             self.checkContexts(self.contextsByDocument(modelXbrl))
         assert(self._contextsWithPeriodTime is not None)
         return self._contextsWithPeriodTime
 
-    def getContextWithPeriodTimeZone(self, modelXbrl: ModelXbrl) -> list[ModelContext | None]:
+    def getContextsWithPeriodTimeZone(self, modelXbrl: ModelXbrl) -> list[ModelContext | None]:
         if self._contextsWithPeriodTimeZone is None:
             self.checkContexts(self.contextsByDocument(modelXbrl))
         assert (self._contextsWithPeriodTimeZone is not None)
         return self._contextsWithPeriodTimeZone
+
+    def getContextsWithSegments(self, modelXbrl: ModelXbrl) -> list[ModelContext | None]:
+        if self._contextsWithSegments is None:
+            self.checkContexts(self.contextsByDocument(modelXbrl))
+        assert(self._contextsWithSegments is not None)
+        return self._contextsWithSegments
 
     def unitsByDocument(self, modelXbrl: ModelXbrl) -> dict[str, list[ModelUnit]]:
         if self._unitsByDocument is not None:
