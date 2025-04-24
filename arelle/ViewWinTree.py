@@ -220,14 +220,16 @@ class ViewTree:
                                     modelObject=self.modelXbrl.modelDocument, title=self.tabTitle, error=str(ex))
                 self.menu = None
 
-    def menuAddLabelRoles(self, includeConceptName=False, menulabel=None):
+    def menuAddLabelRoles(self, includeConceptName=False, menulabel=None, usedLabelroles=None):
         if self.menu:
             try:
                 if menulabel is None: menulabel = _("Label role")
                 rolesMenu = Menu(self.viewFrame, tearoff=0)
                 self.menu.add_cascade(label=menulabel, menu=rolesMenu, underline=0)
-                from arelle.ModelRelationshipSet import labelroles
-                for x in labelroles(self.modelXbrl, includeConceptName):
+                if usedLabelroles is None: # provided for OIM taxonomy
+                    from arelle.ModelRelationshipSet import labelroles
+                    usedLabelroles = labelroles(self.modelXbrl, includeConceptName) # arelle infrastructure
+                for x in usedLabelroles:
                     rolesMenu.add_command(label=x[0][1:], underline=0, command=lambda a=x[1]: self.setLabelrole(a))
             except Exception as ex: # tkinter menu problem maybe
                 self.modelXbrl.info("arelle:internalException",

@@ -7,12 +7,15 @@ from decimal import Decimal
 from typing import GenericAlias
 from arelle import ViewWinTree, XbrlConst
 from arelle.FunctionFn import false
+from arelle.ModelValue import qname
 from arelle.PythonUtil import OrderedSet
 from .XbrlCube import XbrlCube, XbrlPeriodConstraint
 from .XbrlDimension import XbrlDomain
 from .XbrlGroup import XbrlGroupContent
 from .XbrlNetwork import XbrlNetwork
 from .XbrlTaxonomyObject import EMPTY_DICT, XbrlTaxonomyObject
+from .XbrlConst import qnStdLabel
+
 
 def viewXbrlTxmyObj(xbrlDts, objClass, objCollection, tabWin, header, lang=None, altTabWin=None):
     xbrlDts.modelManager.showStatus(_("viewing concepts"))
@@ -26,12 +29,17 @@ def viewXbrlTxmyObj(xbrlDts, objClass, objCollection, tabWin, header, lang=None,
                 continue
         if not isinstance(propType, GenericAlias): # set, dict, etc
             view.propNameTypes.append((propName, propType))
+    # add label col if first col is name for Concepts pane
+    if view.propNameTypes and view.propNameTypes[0][0] == "name":
+        if objClass.__name__ == "XbrlConcept":
+            view.propNameTypes.insert(0, ("label", str))
+        else:
+            view.propNameTypes[0] = ("name", view.propNameTypes[0][1])
     # check nested object types
     for i in range(len(view.propNameTypes),10):
         view.propNameTypes.append( (f"col{i+1}",str))
     view.colNames = tuple(propName for propName, _propType in view.propNameTypes[1:])
     view.treeView["columns"] = view.colNames
-    print(f"cols {view.treeView['columns']}")
     firstCol = True
     for propName, propType in view.propNameTypes:
         colName = propName
@@ -42,10 +50,10 @@ def viewXbrlTxmyObj(xbrlDts, objClass, objCollection, tabWin, header, lang=None,
             w = 50
         else:
             w = 120
-        print(f"trace prop {propName}")
         view.treeView.column(colName, width=w, anchor="w")
         view.treeView.heading(colName, text=propName)
     view.treeView["displaycolumns"] = view.colNames
+    view.labelrole = qnStdLabel
     view.view()
     view.blockSelectEvent = 1
     view.blockViewModelObject = 0
@@ -57,7 +65,11 @@ def viewXbrlTxmyObj(xbrlDts, objClass, objCollection, tabWin, header, lang=None,
     menu = view.contextMenu()
     view.menuAddClipboard()
     view.menuAddLangs()
-    view.menuAddLabelRoles()
+    
+    view.menuAddLabelRoles(usedLabelroles=
+        (("1Name",XbrlConst.conceptNameLabelRole),
+         ("2Standard Label", qnStdLabel)) +
+        tuple((f"3{t}", t) for t in sorted(xbrlDts.labelTypes) if t != qnStdLabel))
     view.menuAddNameStyle()
     view.menuAddViews(addClose=False, tabWin=altTabWin)
 
@@ -85,13 +97,13 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
         for obj in self.objCollection:
             node = self.treeView.insert("", "end",
                                         f"_{self.id}_{obj.dtsObjectIndex}",
-                                        text=str(getattr(obj, self.propNameTypes[0][0])),
+                                        text=str(obj.getProperty(self.propNameTypes[0][0], self.labelrole, self.lang, "")),
                                         tags=("odd" if nodeNum & 1 else "even",))
             self.tag_has[f"_{obj.dtsObjectIndex}"].append(node)
             self.id += 1
             nodeNum += 1
             for propName, _propType in self.propNameTypes[1:]:
-                self.treeView.set(node, propName, str(getattr(obj, propName, "")))
+                self.treeView.set(node, propName, str(obj.getProperty(propName)))
             if isinstance(obj, XbrlGroupContent):
                 self.viewGroupContent(node, nodeNum, obj)
             elif isinstance(obj, XbrlCube):
@@ -108,7 +120,6 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
         self.tag_has[f"_{obj.dtsObjectIndex}"].append(node)
         nodeNum += 1
         self.id += 1
-        print(f"treeview cols {self.colNames} len(propView) {len(propView)}")
         for i, propViewEntry in enumerate(propView[1:]):
             if i >= len(self.colNames):
                 print(f"i problem {i}")
@@ -156,7 +167,7 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
             if rootObj is not None:
                 node = self.treeView.insert(parentNode, "end",
                                             f"_{self.id}_{rootObj.dtsObjectIndex}",
-                                            text=str(qn),
+                                            text=str(rootObj.getProperty("label", self.labelrole, self.lang, "")),
                                             tags=("odd" if nodeNum & 1 else "even",))
                 self.id += 1
                 nodeNum += 1
@@ -168,7 +179,7 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
         if qnObj is not None:
             node = self.treeView.insert(parentNode, "end",
                                         f"_{self.id}_{qnObj.dtsObjectIndex}",
-                                        text=str(relObj.target),
+                                        text=self.xbrlDts.labelValue(relObj.target, self.labelrole, self.lang),
                                         tags=("odd" if nodeNum & 1 else "even",))
             self.id += 1
             nodeNum += 1

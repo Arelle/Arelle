@@ -2,12 +2,12 @@
 See COPYRIGHT.md for copyright information.
 """
 
-from typing import TYPE_CHECKING, cast, Any
-from collections import OrderedDict # OrderedDict is not same as dict, has additional key order features
+from typing import TYPE_CHECKING, cast, Any, ClassVar
+from collections import OrderedDict, defaultdict # OrderedDict is not same as dict, has additional key order features
 
 from arelle.ModelValue import QName
-from arelle.ModelXbrl import ModelXbrl, create as modelXbrlCreate
-from .XbrlTypes import XbrlTaxonomyType, QNameKeyType
+from arelle.ModelXbrl import ModelXbrl, create as modelXbrlCreate, XbrlConst
+from .XbrlTypes import XbrlTaxonomyType, QNameKeyType, XbrlLabelType, XbrlPropertyType
 from .XbrlTaxonomyObject import XbrlTaxonomyObject, XbrlReferencableTaxonomyObject
 
 def castToDts(modelXbrl):
@@ -17,6 +17,7 @@ def castToDts(modelXbrl):
         modelXbrl.dtsObjectIndex = 0
         modelXbrl.taxonomyObjects: list[XbrlTaxonomyObject] = []
         modelXbrl.namedObjects: OrderedDict[QNameKeyType, XbrlReferencableTaxonomyObject] = OrderedDict() # not visible metadata
+        modelXbrl.tagObjects: defaultdict[QName, list[XbrlReferencableTaxonomyObject]] = defaultdict(list) # labels and references
     return modelXbrl
 
 
@@ -28,10 +29,50 @@ class XbrlDts(ModelXbrl): # complete wrapper for ModelXbrl
         super(XbrlDts, self).__init__(*args, **kwargs)
         self.taxonomyObjects: list[XbrlTaxonomyObject] = []
         self.namedObjects: OrderedDict[QNameKeyType, XbrlReferencableTaxonomyObject] = OrderedDict() # not visible metadata
+        self.tagObjects: defaultdict[QName, list[XbrlReferencableTaxonomyObject]] = defaultdict(list) # labels and references
 
     @property
     def xbrlTaxonomy(self):
         return cast(XbrlTaxonomy, self.modelDocument)
+    
+    @property
+    def labelTypes(self):
+        return set(obj.labelType for l in self.tagObjects.values() for obj in l if hasattr(obj, "labelType"))
+    
+    @property
+    def referenceTypes(self):
+        return set(obj.referenceType for l in self.tagObjects.values() for obj in l if hasattr(obj, "referenceType"))
+    
+    def labelValue(self, name: QName, labelType: QName, lang: str | None = None, fallbackToName: bool = True) -> str | None:
+        if labelType == XbrlConst.conceptNameLabelRole:
+            return str(name)
+        if lang is None:
+            lang = self.modelXbrl.modelManager.defaultLang
+        for tagObj in self.tagObjects.get(name, ()):
+            tagLang = getattr(tagObj, "language", lang)
+            if (getattr(tagObj, "labelType", None) == labelType and # causes skipping of reference objects
+                (not lang or tagLang.startswith(lang) or lang.startswith(tagLang))): # TBD replace with 2.1 language detection
+                if hasattr(tagObj, "value"):
+                    return tagObj.value
+                elif len(getattr(tagObj, "properties", ())) > 0:
+                    return tagObj.propertyView
+        # give up
+        if fallbackToName:
+            return str(name)
+        return None
+    
+    def referenceProperties(self, name: QName, referenceType: QName | None, lang: str | None = None) -> list[XbrlPropertyType]:
+        refProperties = defaultdict(list)
+        if lang is None:
+            lang = self.modelXbrl.modelManager.defaultLang
+        for tagObj in self.tagObjects.get(name, ()):
+            tagLang = getattr(tagObj, "language", lang)
+            refType = getattr(tagObj, "referenceType", None)
+            if (refType is not None and (not referenceType or referenceType == refType) and # causes skipping of label objects
+                (not lang or tagLang.startswith(lang) or lang.startswith(tagLang))): # TBD replace with 2.1 language detection
+                refProperties[refType].extend(getattr(tagObj, "properties", []))
+        return refProperties
+    
 
     # UI thread viewTaxonomyObject
     def viewTaxonomyObject(self, objectId: str | int) -> None:

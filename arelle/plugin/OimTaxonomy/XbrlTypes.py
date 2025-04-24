@@ -6,6 +6,8 @@ from typing import TypeAlias
 from arelle.ModelValue import QName
 
 XbrlDtsType: TypeAlias = "XbrlDts"
+XbrlLabelType: TypeAlias = "XbrlLabel"
+XbrlPropertyType: TypeAlias = "XbrlProperty"
 XbrlTaxonomyType: TypeAlias = "XbrlTaxonomy"
 class QNameKeyType(QName): # a QName which is also the primary key for parent collection object
     pass

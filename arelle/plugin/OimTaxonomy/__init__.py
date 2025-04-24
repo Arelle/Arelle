@@ -47,8 +47,10 @@ from .XbrlTaxonomy import XbrlTaxonomy
 from .XbrlTaxonomyObject import XbrlTaxonomyObject, XbrlReferencableTaxonomyObject
 from .XbrlDts import XbrlDts, castToDts
 from .XbrlTypes import XbrlTaxonomyType, QNameKeyType, SQNameKeyType, DefaultTrue, DefaultFalse
+from .ValidateDTS import validateDTS
 from .ModelValueMore import SQName
 from .ViewXbrlTxmyObj import viewXbrlTxmyObj
+from .XbrlConst import oimTaxonomyDocTypePattern, oimTaxonomyDocTypes
 
 
 from arelle.oim.Load import (SQNameType, QNameType, URIType, LangType, NoRecursionCheck,
@@ -56,11 +58,6 @@ from arelle.oim.Load import (SQNameType, QNameType, URIType, LangType, NoRecursi
                              CheckPrefix, OIMException, NotOIMException,
                              WhitespaceUntrimmedPattern, SQNamePattern, CanonicalIntegerPattern)
 from arelle.FunctionFn import name, true
-
-oimTaxonomyDocTypePattern = re.compile(r"\s*\{.*\"documentType\"\s*:\s*\"https://xbrl.org/PWD/[0-9]{4}-[0-9]{2}-[0-9]{2}/oim\"", flags=re.DOTALL)
-oimTaxonomyDocTypes = (
-        "https://xbrl.org/PWD/2025-01-31/oim",
-    )
 
 saveOIMTaxonomySchemaFiles = False
 SAVE_OIM_SCHEMA_CMDLINE_PARAMETER = "--saveOIMschemafile"
@@ -119,8 +116,8 @@ JsonMemberTypes = {
     "/taxonomy/concepts/*/nillable": bool,
     "/taxonomy/concepts/*/properties": list,
     "/taxonomy/concepts/*/properties/*": dict,
-    "/taxonomy/concepts/*/properties/*/xbrl:balance": str,
-    "/taxonomy/concepts/*/properties/*/*:*": PROPERTY_TYPE,
+    "/taxonomy/concepts/*/properties/*/propertyTypeName": QNameType,
+    "/taxonomy/concepts/*/properties/*/value": PROPERTY_TYPE,
 
     "/taxonomy/cubes": list,
     "/taxonomy/cubes/*": dict,
@@ -173,7 +170,8 @@ JsonMemberTypes = {
     "/taxonomy/cubes/*/cubeComplete": bool,
     "/taxonomy/cubes/*/properties": list,
     "/taxonomy/cubes/*/properties/*": dict,
-    "/taxonomy/cubes/*/properties/*/*:*": PROPERTY_TYPE,
+    "/taxonomy/cubes/*/properties/*/propertyTypeName": QNameType,
+    "/taxonomy/cubes/*/properties/*/value": PROPERTY_TYPE,
 
     "/taxonomy/cubeTypes": list,
     "/taxonomy/cubeTypes/*": dict,
@@ -239,14 +237,16 @@ JsonMemberTypes = {
     "/taxonomy/domains/*/relationships/*/usable": bool,
     "/taxonomy/domains/*/relationships/*/properties": list,
     "/taxonomy/domains/*/relationships/*/properties/*": dict,
-    "/taxonomy/domains/*/relationships/*/properties/*/*:*": PROPERTY_TYPE,
+    "/taxonomy/domains/*/relationships/*/properties/*/propertyTypeName": QNameType,
+    "/taxonomy/domains/*/relationships/*/properties/*/value": PROPERTY_TYPE,
 
     "/taxonomy/entities": list,
     "/taxonomy/entities/*": dict,
     "/taxonomy/entities/*/name": SQNameType,
     "/taxonomy/entities/*/properties": list,
     "/taxonomy/entities/*/properties/*": dict,
-    "/taxonomy/entities/*/properties/*/*:*": PROPERTY_TYPE,
+    "/taxonomy/entities/*/properties/*/propertyTypeName": QNameType,
+    "/taxonomy/entities/*/properties/*/value": PROPERTY_TYPE,
 
     "/taxonomy/groups": list,
     "/taxonomy/groups/*": dict,
@@ -254,7 +254,8 @@ JsonMemberTypes = {
     "/taxonomy/groups/*/groupURI": URIType,
     "/taxonomy/groups/*/properties": list,
     "/taxonomy/groups/*/properties/*": dict,
-    "/taxonomy/groups/*/properties/*/*:*": PROPERTY_TYPE,
+    "/taxonomy/groups/*/properties/*/propertyTypeName": QNameType,
+    "/taxonomy/groups/*/properties/*/value": PROPERTY_TYPE,
 
     "/taxonomy/groupContents": list,
     "/taxonomy/groupContents/*": dict,
@@ -290,7 +291,8 @@ JsonMemberTypes = {
     "/taxonomy/networks/*/relationships/*/usable": bool,
     "/taxonomy/networks/*/relationships/*/properties": list,
     "/taxonomy/networks/*/relationships/*/properties/*": dict,
-    "/taxonomy/networks/*/relationships/*/properties/*/*:*": PROPERTY_TYPE,
+    "/taxonomy/networks/*/relationships/*/properties/*/propertyTypeName": QNameType,
+    "/taxonomy/networks/*/relationships/*/properties/*/value": PROPERTY_TYPE,
 
     "/taxonomy/propertyTypes": list,
     "/taxonomy/propertyTypes/*": dict,
@@ -311,7 +313,8 @@ JsonMemberTypes = {
     "/taxonomy/references/*/language": LangType,
     "/taxonomy/references/*/properties": list,
     "/taxonomy/references/*/properties/*": dict,
-    "/taxonomy/references/*/properties/*/*:*": PROPERTY_TYPE,
+    "/taxonomy/references/*/properties/*/propertyTypeName": QNameType,
+    "/taxonomy/references/*/properties/*/value": PROPERTY_TYPE,
 
     "/taxonomy/referenceTypes": list,
     "/taxonomy/referenceTypes/*": dict,
@@ -348,7 +351,8 @@ JsonMemberTypes = {
 
     "/taxonomy/networks/*/properties": list,
     "/taxonomy/networks/*/properties/*": dict,
-    "/taxonomy/networks/*/properties/*/*:*": PROPERTY_TYPE,
+    "/taxonomy/networks/*/properties/*/propertyTypeName": QNameType,
+    "/taxonomy/networks/*/properties/*/value": PROPERTY_TYPE,
 
     # custom properties on taxonomy are unchecked
     "/taxonomy/*:*": (int,float,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
@@ -423,8 +427,6 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             _dict = {}
             _valueKeyDict = {}
             for key, value in keyValuePairs:
-                if key == "frameworkName":
-                    print("trace")
                 if isinstance(value, dict):
                     if key == "documentInfo" and "documentType" in value:
                         global documentType
@@ -506,7 +508,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
         try:
             _file = modelXbrl.fileSource.file(oimFile, encoding="utf-8-sig")[0]
             with _file as f:
-                oimObject = json.load(f, object_pairs_hook=loadDict)
+                oimObject = json.load(f, object_pairs_hook=loadDict, parse_float=Decimal)
         except UnicodeDecodeError as ex:
             raise OIMException("{}:invalidJSON".format(errPrefix),
                   _("File MUST use utf-8 encoding: %(file)s, error %(error)s"),
@@ -742,10 +744,8 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         xbrlDts.taxonomyObjects.append(newObj)
                     else:
                         newObj = objClass() # e.g. XbrlProperty
-                        if objClass == XbrlProperty:
-                            k, v = next(iter(jsonObj.items()))
-                            jsonObj = {"propertyTypeName": k, "propertyValue": v}
                     keyValue = None
+                    relatedNames = [] # to tag an object with labels or references
                     for propName, propType in getattr(objClass, "__annotations__", EMPTY_DICT).items():
                         optional = False
                         if isinstance(getattr(propType, "__origin__", None), type(Union)): # Optional[ ] type
@@ -776,6 +776,8 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                                           _("QName is invalid: %(qname)s, jsonObj: %(path)s"),
                                                           file=oimFile, qname=jsonObj[propName], path=f"{'/'.join(pathParts + [propName, str(iObj)])}")
                                                     continue # skip this property
+                                                if propName == "relatedNames":
+                                                    relatedNames.append(listObj)
                                             if propClass in (set, OrderedSet):
                                                 collectionProp.add(listObj)
                                             else:
@@ -788,17 +790,19 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                               _("QName is invalid: %(qname)s, jsonObj: %(path)s"),
                                               file=oimFile, qname=jsonObj[propName], path=f"{'/'.join(pathParts + [propName])}")
                                         continue # skip this property
+                                    if propName == "relatedName":
+                                        relatedNames.append(jsonValue)
                                 setattr(newObj, propName, jsonValue)
                                 if (keyClass and keyClass == propType) or (not keyClass and propType in (QNameKeyType, SQNameKeyType)):
                                     keyValue = jsonValue # e.g. the QNAme of the new object for parent object collection
-                        elif propType == type(oimParentObj):
+                        elif propType in (type(oimParentObj), type(oimParentObj).__name__): # propType may be a TypeAlias which is a string name of class
                             setattr(newObj, propName, oimParentObj)
                         elif propType == DefaultTrue:
                             setattr(newObj, propName, True)
                         elif propType == DefaultFalse:
                             setattr(newObj, propName, False)
                         else: # unexpected json element
-                            propPath = f"{'/'.join(pathParts + [objName, propName])}={jsonObj.get(propName,'absent')}"
+                            propPath = f"{'/'.join(pathParts + [objName, propName])}={jsonObj.get(propName,'(absent)')}"
                             if not optional:
                                 jsonEltsReqdButMissing.append(propPath)
                     if isinstance(ownrPropType, GenericAlias):
@@ -811,6 +815,9 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             ownrProp.append(newObj)
                     if isinstance(newObj, XbrlReferencableTaxonomyObject):
                         xbrlDts.namedObjects[keyValue] = newObj
+                    if isinstance(newObj, (XbrlLabel, XbrlReference)) and relatedNames:
+                        for relatedQn in relatedNames:
+                            xbrlDts.tagObjects[relatedQn].append(newObj)
 
         createTaxonomyObjects("taxonomy", oimObject["taxonomy"], xbrlDts, ["", "taxonomy"])
 
@@ -822,6 +829,8 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             error("arelle:missingOimTaxonomyJsonElements",
                   _("Json file missing required elements: %(missingElements)s"),
                   file=oimFile, missingElements=", ".join(jsonEltsReqdButMissing))
+
+        validateDTS(xbrlDts)
 
         return schemaDoc
 
