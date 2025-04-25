@@ -116,7 +116,7 @@ JsonMemberTypes = {
     "/taxonomy/concepts/*/nillable": bool,
     "/taxonomy/concepts/*/properties": list,
     "/taxonomy/concepts/*/properties/*": dict,
-    "/taxonomy/concepts/*/properties/*/propertyTypeName": QNameType,
+    "/taxonomy/concepts/*/properties/*/property": QNameType,
     "/taxonomy/concepts/*/properties/*/value": PROPERTY_TYPE,
 
     "/taxonomy/cubes": list,
@@ -170,7 +170,7 @@ JsonMemberTypes = {
     "/taxonomy/cubes/*/cubeComplete": bool,
     "/taxonomy/cubes/*/properties": list,
     "/taxonomy/cubes/*/properties/*": dict,
-    "/taxonomy/cubes/*/properties/*/propertyTypeName": QNameType,
+    "/taxonomy/cubes/*/properties/*/property": QNameType,
     "/taxonomy/cubes/*/properties/*/value": PROPERTY_TYPE,
 
     "/taxonomy/cubeTypes": list,
@@ -237,7 +237,7 @@ JsonMemberTypes = {
     "/taxonomy/domains/*/relationships/*/usable": bool,
     "/taxonomy/domains/*/relationships/*/properties": list,
     "/taxonomy/domains/*/relationships/*/properties/*": dict,
-    "/taxonomy/domains/*/relationships/*/properties/*/propertyTypeName": QNameType,
+    "/taxonomy/domains/*/relationships/*/properties/*/property": QNameType,
     "/taxonomy/domains/*/relationships/*/properties/*/value": PROPERTY_TYPE,
 
     "/taxonomy/entities": list,
@@ -245,7 +245,7 @@ JsonMemberTypes = {
     "/taxonomy/entities/*/name": SQNameType,
     "/taxonomy/entities/*/properties": list,
     "/taxonomy/entities/*/properties/*": dict,
-    "/taxonomy/entities/*/properties/*/propertyTypeName": QNameType,
+    "/taxonomy/entities/*/properties/*/property": QNameType,
     "/taxonomy/entities/*/properties/*/value": PROPERTY_TYPE,
 
     "/taxonomy/groups": list,
@@ -254,7 +254,7 @@ JsonMemberTypes = {
     "/taxonomy/groups/*/groupURI": URIType,
     "/taxonomy/groups/*/properties": list,
     "/taxonomy/groups/*/properties/*": dict,
-    "/taxonomy/groups/*/properties/*/propertyTypeName": QNameType,
+    "/taxonomy/groups/*/properties/*/property": QNameType,
     "/taxonomy/groups/*/properties/*/value": PROPERTY_TYPE,
 
     "/taxonomy/groupContents": list,
@@ -291,7 +291,7 @@ JsonMemberTypes = {
     "/taxonomy/networks/*/relationships/*/usable": bool,
     "/taxonomy/networks/*/relationships/*/properties": list,
     "/taxonomy/networks/*/relationships/*/properties/*": dict,
-    "/taxonomy/networks/*/relationships/*/properties/*/propertyTypeName": QNameType,
+    "/taxonomy/networks/*/relationships/*/properties/*/property": QNameType,
     "/taxonomy/networks/*/relationships/*/properties/*/value": PROPERTY_TYPE,
 
     "/taxonomy/propertyTypes": list,
@@ -313,7 +313,7 @@ JsonMemberTypes = {
     "/taxonomy/references/*/language": LangType,
     "/taxonomy/references/*/properties": list,
     "/taxonomy/references/*/properties/*": dict,
-    "/taxonomy/references/*/properties/*/propertyTypeName": QNameType,
+    "/taxonomy/references/*/properties/*/property": QNameType,
     "/taxonomy/references/*/properties/*/value": PROPERTY_TYPE,
 
     "/taxonomy/referenceTypes": list,
@@ -351,7 +351,7 @@ JsonMemberTypes = {
 
     "/taxonomy/networks/*/properties": list,
     "/taxonomy/networks/*/properties/*": dict,
-    "/taxonomy/networks/*/properties/*/propertyTypeName": QNameType,
+    "/taxonomy/networks/*/properties/*/property": QNameType,
     "/taxonomy/networks/*/properties/*/value": PROPERTY_TYPE,
 
     # custom properties on taxonomy are unchecked

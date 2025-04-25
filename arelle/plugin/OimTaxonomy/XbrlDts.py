@@ -34,15 +34,15 @@ class XbrlDts(ModelXbrl): # complete wrapper for ModelXbrl
     @property
     def xbrlTaxonomy(self):
         return cast(XbrlTaxonomy, self.modelDocument)
-    
+
     @property
     def labelTypes(self):
         return set(obj.labelType for l in self.tagObjects.values() for obj in l if hasattr(obj, "labelType"))
-    
+
     @property
     def referenceTypes(self):
         return set(obj.referenceType for l in self.tagObjects.values() for obj in l if hasattr(obj, "referenceType"))
-    
+
     def labelValue(self, name: QName, labelType: QName, lang: str | None = None, fallbackToName: bool = True) -> str | None:
         if labelType == XbrlConst.conceptNameLabelRole:
             return str(name)
@@ -60,7 +60,7 @@ class XbrlDts(ModelXbrl): # complete wrapper for ModelXbrl
         if fallbackToName:
             return str(name)
         return None
-    
+
     def referenceProperties(self, name: QName, referenceType: QName | None, lang: str | None = None) -> list[XbrlPropertyType]:
         refProperties = defaultdict(list)
         if lang is None:
@@ -72,7 +72,7 @@ class XbrlDts(ModelXbrl): # complete wrapper for ModelXbrl
                 (not lang or tagLang.startswith(lang) or lang.startswith(tagLang))): # TBD replace with 2.1 language detection
                 refProperties[refType].extend(getattr(tagObj, "properties", []))
         return refProperties
-    
+
 
     # UI thread viewTaxonomyObject
     def viewTaxonomyObject(self, objectId: str | int) -> None:

@@ -5,6 +5,7 @@ See COPYRIGHT.md for copyright information.
 from arelle.XmlValidate import languagePattern
 from .XbrlConcept import XbrlDataType
 from .XbrlCube import XbrlCube
+from .XbrlDimension import XbrlDomain
 from .XbrlGroup import XbrlGroup
 from .XbrlLabel import XbrlLabel
 from .XbrlNetwork import XbrlNetwork
@@ -12,13 +13,34 @@ from .XbrlReference import XbrlReference
 from .XbrlTableTemplate import XbrlTableTemplate
 
 def validateDTS(dts):
-    
+
     for txmy in dts.taxonomies.values():
         validateTaxonomy(dts, txmy)
-        
+
+def objType(obj):
+    clsName = type(obj).__name__
+    if clsName.startswith("Xbrl"):
+        return clsName[4:]
+    return clsName
+
+def validateProperties(dts, oimFile, txmy, obj):
+    for propObj in getattr(obj, "properties", ()):
+        propTypeQn = getattr(propObj, "property", None)
+        if propTypeQn not in dts.namedObjects or not isinstance(dts.namedObjects[propTypeQn], XbrlPropertyType):
+            dts.error("oime:invalidPropertyTypeObject",
+                      _("%(parentObjName)s %(parentName)s property %(name)s has invalid dataType %(dataType)s"),
+                      file=oimFile, parentObjName=objType(obj), parentName=getattr(obj,"name","(n/a)"),
+                      name=obj.name, dataType=propTypeQn)
+        for allowedObjQn in getattr(obj, "allowedObjects", ()):
+            if allowedObjQn not in objectsWithProperties:
+                dts.error("oime:invalidAllowedObject",
+                          _("%(parentObjName)s %(parentName)s property %(name)s has invalid allowed object %(allowedObj)s"),
+                          file=oimFile, parentObjName=objType(obj), parentName=getattr(obj,"name","(n/a)"),
+                          name=obj.name, allowedObj=allowedObjQn)
+
 def validateTaxonomy(dts, txmy):
     oimFile = txmy.entryPoint
-    
+
     # Concept Objects
     for cncpt in txmy.concepts:
         perType = getattr(cncpt, "periodType", None)
@@ -27,11 +49,16 @@ def validateTaxonomy(dts, txmy):
                       _("Concept %(name)s has invalid period type %(perType)s"),
                       file=oimFile, name=cncpt.name, perType=perType)
         dataTypeQn = getattr(cncpt, "dataType", "(absent)")
-        if dataTypeQn not in dts.namedObjects or type(dts.namedObjects[dataTypeQn]) != XbrlDataType:
+        if dataTypeQn not in dts.namedObjects or not isinstance(dts.namedObjects[dataTypeQn], XbrlDataType):
             dts.error("oime:invalidDataTypeObject",
                       _("Concept %(name)s has invalid dataType %(dataType)s"),
                       file=oimFile, name=cncpt.name, dataType=dataTypeQn)
-            
+        enumDomQn = getattr(cncpt, "enumerationDomain", None)
+        if enumDomQn and (enumDomQn not in dts.namedObjects or not isinstance(dts.namedObjects[enumDomQn], XbrlDomain)):
+            dts.error("oime:invalidEnumerationDomainObject",
+                      _("Concept %(name)s has invalid enumeration domain reference %(enumDomain)s"),
+                      file=oimFile, name=cncpt.name, enumDomain=enumDomQn)
+        validateProperties(dts, oimFile, txmy, cncpt)
 
     # Label Objects
     for labelObj in txmy.labels:
@@ -46,7 +73,8 @@ def validateTaxonomy(dts, txmy):
             dts.error("oime:unresolvedRelatedName",
                       _("Label %(name)s has invalid related object %(relName)s"),
                       file=oimFile, name=name, relName=relName)
-            
+        validateProperties(dts, oimFile, txmy, labelObj)
+
     # Reference Objects
     for refObj in txmy.references:
         name = getattr(refObj, "name", "(missing)")
@@ -60,7 +88,8 @@ def validateTaxonomy(dts, txmy):
                 dts.error("oime:unresolvedRelatedName",
                           _("Reference %(name)s has invalid related object %(relName)s"),
                           file=oimFile, name=name, relName=relName)
-                
+        validateProperties(dts, oimFile, txmy, refObj)
+
     # Cube Objects
     for cubeObj in txmy.cubes:
         if getattr(cubeObj, "taxonomyDefinedDimension", True) and getattr(cubeObj, "allowedCubeDimensions", ()):
@@ -79,7 +108,8 @@ def validateTaxonomy(dts, txmy):
             dts.error("oimte:duplicateTaxonomyDefinedDimensions",
                       _("The allowedCubeDimensions property on cube %(name)s duplicate these dimension object(s): %(dimensions)s"),
                       file=oimFile, name=name, dimensions=", ".join(str(qn) for qn, ct in dimQnCounts.items if ct > 1))
-            
+        validateProperties(dts, oimFile, txmy, cubeObj)
+
     # GroupContent Objects
     for grpCntObj in txmy.groupContents:
         grpQn = getattr(grpCntObj, "groupName", "(absent)")
@@ -92,3 +122,4 @@ def validateTaxonomy(dts, txmy):
                 dts.error("oimte:invalidGroupObject",
                           _("The groupContent object %(name)s relatedName %(relName)s MUST only include QNames associated with network objects, cube objects or table template objects."),
                           file=oimFile, name=grpCntObj.groupName, relName=relName)
+        validateProperties(dts, oimFile, txmy, grpCntObj)

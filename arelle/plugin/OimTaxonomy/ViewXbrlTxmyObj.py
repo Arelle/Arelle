@@ -65,7 +65,7 @@ def viewXbrlTxmyObj(xbrlDts, objClass, objCollection, tabWin, header, lang=None,
     menu = view.contextMenu()
     view.menuAddClipboard()
     view.menuAddLangs()
-    
+
     view.menuAddLabelRoles(usedLabelroles=
         (("1Name",XbrlConst.conceptNameLabelRole),
          ("2Standard Label", qnStdLabel)) +

@@ -14,7 +14,7 @@ class XbrlTaxonomyObject:
     @property
     def xbrlDts(self):
         return None
-        
+
     def getProperty(self, propertyName, propertyClass=None, propertyType=None, language=None, defaultValue=None):
         return getattr(self, propertyName, defaultValue)
 
@@ -34,7 +34,7 @@ class XbrlTaxonomyObject:
                 val = getattr(self, propName)
                 if propName == "properties":
                     for propObj in val:
-                        propVals.append( (str(getattr(propObj, "propertyTypeName", "")), str(getattr(propObj, "value", ""))) )
+                        propVals.append( (str(getattr(propObj, "property", "")), str(getattr(propObj, "value", ""))) )
                     continue
                 if propName == "name" and val and issubclass(objClass, XbrlReferencableTaxonomyObject):
                     # insert label first if any
@@ -55,7 +55,7 @@ class XbrlTaxonomyObject:
                 propVals.append(propVal)
         if referenceProperties:
             for refType, refObjs in sorted(referenceProperties.items(), key=lambda a: str(a[0])):
-                propVals.append( 
+                propVals.append(
                     ("references", str(refType), tuple(
                     (getattr(rp, "propertyTypeName", ""), getattr(rp, "value", "")) for rp in refObjs)))
         return tuple(propVals)
@@ -82,13 +82,13 @@ class XbrlReferencableTaxonomyObject(XbrlTaxonomyObject):
 
     def __init__(self,  *args: Any, **kwargs: Any) -> None:
         super(XbrlReferencableTaxonomyObject, self).__init__(*args, **kwargs)
-        
+
     @property
     def xbrlDts(self):
         if hasattr(self, "taxonomy"):
             return self.taxonomy.dts
         return None
-        
+
     def getProperty(self, propertyName, propertyType=None, language=None, defaultValue=None):
         if propertyName == "label" and hasattr(self, "name"):
             return self.xbrlDts.labelValue(self.name, propertyType or qnStdLabel, language)
