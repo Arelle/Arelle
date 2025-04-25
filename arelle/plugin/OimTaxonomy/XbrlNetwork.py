@@ -93,7 +93,7 @@ class XbrlNetwork(XbrlReferencableTaxonomyObject, XbrlRelationshipSet):
 class XbrlRelationshipType(XbrlReferencableTaxonomyObject):
     taxonomy: XbrlTaxonomyType
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the relationshipType object.
-    relationshipTypeURI: AnyURI # (optional) The URI identifies the uri of the relationship type for historical and backward compatibility purposes.
+    uri: AnyURI # (optional) The URI identifies the uri of the relationship type for historical and backward compatibility purposes.
     cycles: QName # (required) The cycles attribute indicates if the relationship when used in a hierarchy can include cycles. Possible values are any, none, and undirected. Any means cycles are allowed in the relationships, undirected means cycles are allowed, but they must be undirected, and none means cycles are not allowed in the relationships.
     allowedLinkProperties: OrderedSet[QName] # (optional) Defines an ordered set of property QNames that can be included on the relationship type. Each property is represented as the QName defined in the propertyType object. Only properties defined in this list can be added to the specific relationship type.
     requiredLinkProperties: OrderedSet[QName] # (optional) Defines an ordered set of property QNames that MUST be included on the relationship type. Each property is represented as the QName defined in the propertyType object.

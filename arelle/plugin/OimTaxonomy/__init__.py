@@ -95,7 +95,7 @@ JsonMemberTypes = {
     # taxonomy
     "/taxonomy": dict,
     "/taxonomy/name": str,
-    "/taxonomy/familyName": str,
+    "/taxonomy/frameworkName": str,
     "/taxonomy/version": str,
     "/taxonomy/entryPoint": str,
 
@@ -185,8 +185,9 @@ JsonMemberTypes = {
     "/taxonomy/cubeTypes/*/allowedCubeDimensions": list,
     "/taxonomy/cubeTypes/*/allowedCubeDimensions/*": dict,
     "/taxonomy/cubeTypes/*/allowedCubeDimensions/*/dimensionName": QNameType,
-    "/taxonomy/cubeTypes/*/allowedCubeDimensions/*/min": int,
-    "/taxonomy/cubeTypes/*/allowedCubeDimensions/*/max": int,
+    "/taxonomy/cubeTypes/*/allowedCubeDimensions/*/dimensionType": str,
+    "/taxonomy/cubeTypes/*/allowedCubeDimensions/*/dimensionDataType": QNameType,
+    "/taxonomy/cubeTypes/*/allowedCubeDimensions/*/required": bool,
     "/taxonomy/cubeTypes/*/requiredCubeRelationships": list,
     "/taxonomy/cubeTypes/*/requiredCubeRelationships/*": dict,
     "/taxonomy/cubeTypes/*/requiredCubeRelationships/*/relationshipTypeName": QNameType,
@@ -217,7 +218,6 @@ JsonMemberTypes = {
     "/taxonomy/dimensions/*": dict,
     "/taxonomy/dimensions/*/name": QNameType,
     "/taxonomy/dimensions/*/domainDataType": QNameType,
-    "/taxonomy/dimensions/*/dimensionType": str,
     "/taxonomy/dimensions/*/cubeTypes": list,
     "/taxonomy/dimensions/*/cubeTypes/*": QNameType,
 
@@ -269,6 +269,13 @@ JsonMemberTypes = {
     "/taxonomy/labels/*/labelType": QNameType,
     "/taxonomy/labels/*/language": LangType,
     "/taxonomy/labels/*/value": str,
+
+    "/taxonomy/labelTypes": list,
+    "/taxonomy/labelTypes/*": dict,
+    "/taxonomy/labelTypes/*/name": QNameType,
+    "/taxonomy/labelTypes/*/uri": URIType,
+    "/taxonomy/labelTypes/*/dataType": QNameType,
+    "/taxonomy/labelTypes/*/allowedObjects": list,
 
     "/taxonomy/members": list,
     "/taxonomy/members/*": dict,
@@ -330,7 +337,7 @@ JsonMemberTypes = {
     "/taxonomy/relationshipTypes": list,
     "/taxonomy/relationshipTypes/*": dict,
     "/taxonomy/relationshipTypes/*/name": QNameType,
-    "/taxonomy/relationshipTypes/*/relationshipTypeURI": URIType,
+    "/taxonomy/relationshipTypes/*/uri": URIType,
     "/taxonomy/relationshipTypes/*/cycles": str,
     "/taxonomy/relationshipTypes/*/allowedLinkProperties": list,
     "/taxonomy/relationshipTypes/*/allowedLinkProperties/*": QNameType,
@@ -354,6 +361,50 @@ JsonMemberTypes = {
     "/taxonomy/networks/*/properties/*/property": QNameType,
     "/taxonomy/networks/*/properties/*/value": PROPERTY_TYPE,
 
+    "/taxonomy/tableTemplates": list,
+    "/taxonomy/tableTemplates/*": dict,
+    "/taxonomy/tableTemplates/*/name": SQNameType,
+    "/taxonomy/tableTemplates/*/rowIdColumn": str,
+    "/taxonomy/tableTemplates/*/columns": list,
+    "/taxonomy/tableTemplates/*/columns/*": dict,
+    "/taxonomy/tableTemplates/*/columns/*": dict,
+    "/taxonomy/tableTemplates/*/columns/*/comment": bool,
+    "/taxonomy/tableTemplates/*/columns/*/decimals": (int,str),
+    "/taxonomy/tableTemplates/*/columns/*/dimensions": dict,
+    "/taxonomy/tableTemplates/*/columns/*/*:*": (int,float,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
+    # dimensions (column)
+    "/taxonomy/tableTemplates/*/columns/*/dimensions/concept": str,
+    "/taxonomy/tableTemplates/*/columns/*/dimensions/entity": str,
+    "/taxonomy/tableTemplates/*/columns/*/dimensions/period": str,
+    "/taxonomy/tableTemplates/*/columns/*/dimensions/unit": str,
+    "/taxonomy/tableTemplates/*/columns/*/dimensions/language": str,
+    "/taxonomy/tableTemplates/*/columns/*/dimensions/*:*": str,
+    "/taxonomy/tableTemplates/*/columns/*/dimensions/$*": str,
+    # property groups (column)
+    "/taxonomy/tableTemplates/*/columns/*/propertiesFrom": list,
+    "/taxonomy/tableTemplates/*/columns/*/propertiesFrom/": str,
+    "/taxonomy/tableTemplates/*/columns/*/propertyGroups": dict,
+    "/taxonomy/tableTemplates/*/columns/*/propertyGroups/*": dict,
+    "/taxonomy/tableTemplates/*/columns/*/propertyGroups/*/decimals": (int,str),
+    "/taxonomy/tableTemplates/*/columns/*/propertyGroups/*/dimensions": dict,
+    "/taxonomy/tableTemplates/*/columns/*/propertyGroups/*/dimensions/concept": str,
+    "/taxonomy/tableTemplates/*/columns/*/propertyGroups/*/dimensions/entity": str,
+    "/taxonomy/tableTemplates/*/columns/*/propertyGroups/*/dimensions/period": str,
+    "/taxonomy/tableTemplates/*/columns/*/propertyGroups/*/dimensions/unit": str,
+    "/taxonomy/tableTemplates/*/columns/*/propertyGroups/*/dimensions/language": str,
+    "/taxonomy/tableTemplates/*/columns/*/propertyGroups/*/dimensions/*:*": str,
+    "/taxonomy/tableTemplates/*/columns/*/propertyGroups/*/dimensions/$*": str,
+    "/taxonomy/tableTemplates/*/dimensions": list,
+    "/taxonomy/tableTemplates/*/dimensions/*": dict,
+    "/taxonomy/tableTemplates/*/dimensions/concept": str,
+    "/taxonomy/tableTemplates/*/dimensions/entity": str,
+    "/taxonomy/tableTemplates/*/dimensions/period": str,
+    "/taxonomy/tableTemplates/*/dimensions/unit": str,
+    "/taxonomy/tableTemplates/*/dimensions/language": str,
+    "/taxonomy/tableTemplates/*/dimensions/noteId": str,
+    "/taxonomy/tableTemplates/*/dimensions/*:*": str,
+    "/taxonomy/tableTemplates/*/dimensions/$*": str,
+
     # custom properties on taxonomy are unchecked
     "/taxonomy/*:*": (int,float,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
     }
@@ -364,7 +415,7 @@ JsonRequiredMembers = {
     "/taxonomy/importedTaxonomies/*/":  {"taxonomyName"},
     "/taxonomy/concepts/*/": {"name", "dataType", "periodType"},
     "/taxonomy/abstracts/*/": {"name"},
-    "/taxonomy/dimensions/*/": {"name", "dimensionType"},
+    "/taxonomy/dimensions/*/": {"name"},
     "/taxonomy/domains/*/": {"name"},
     "/taxonomy/members/*/": {"name"},
     "/taxonomy/cubes/*/": {"name", "cubeDimensions"},
@@ -449,12 +500,13 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                 normalizedDict[_key] = _value
                             else: # do put into dictionary, only report if it's a map object
                                 normalizedDict[_key] = _value
-                                if _value in normalizedValueKeyDict:
-                                    if DUPJSONVALUE not in normalizedDict:
-                                        normalizedDict[DUPJSONVALUE] = []
-                                    normalizedDict[DUPJSONVALUE].append((_value, _key, normalizedValueKeyDict[_value]))
-                                else:
-                                    normalizedValueKeyDict[_value] = _key
+                                if key == "namespaces":
+                                    if _value in normalizedValueKeyDict:
+                                        if DUPJSONVALUE not in normalizedDict:
+                                            normalizedDict[DUPJSONVALUE] = []
+                                        normalizedDict[DUPJSONVALUE].append((_value, _key, normalizedValueKeyDict[_value]))
+                                    else:
+                                        normalizedValueKeyDict[_value] = _key
                             if key == "namespaces":
                                 if not XmlValidate.NCNamePattern.match(_key):
                                     ldError("{}:invalidJSONStructure",
@@ -495,6 +547,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     _dict[DUPJSONKEY].append((key, value, _dict[key]))
                 else: # do put into dictionary, only report if it's a map object
                     _dict[key] = value
+                    '''
                     if isinstance(value, str):
                         if value in _valueKeyDict:
                             if DUPJSONVALUE not in _dict:
@@ -502,6 +555,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             _dict[DUPJSONVALUE].append((value, key, _valueKeyDict[value]))
                         else:
                             _valueKeyDict[value] = key
+                    '''
             return _dict
 
         errPrefix = "xbrlte"
@@ -626,9 +680,10 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             msg.append(_("Required element(s) are missing from metadata: %(missing)s"))
         if unexpectedMembers:
             msg.append(_("Unexpected element(s) in metadata: %(unexpected)s"))
-        error("{}:invalidJSONStructure".format(errPrefix),
-              "\n ".join(msg), documentType=documentType,
-              sourceFileLine=oimFile, missing=", ".join(missingRequiredMembers), unexpected=", ".join(unexpectedMembers))
+        if msg:
+            error("{}:invalidJSONStructure".format(errPrefix),
+                  "\n ".join(msg), documentType=documentType,
+                  sourceFileLine=oimFile, missing=", ".join(missingRequiredMembers), unexpected=", ".join(unexpectedMembers))
 
         currentAction = "identifying Metadata objects"
 

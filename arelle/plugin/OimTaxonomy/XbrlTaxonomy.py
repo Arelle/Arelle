@@ -30,7 +30,7 @@ from .XbrlTableTemplate import XbrlTableTemplate
 class XbrlTaxonomy(XbrlTaxonomyObject):
     dts: XbrlDts
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the taxonomy object.
-    familyName: Optional[str] # (optional) The family name of the taxonomy such as "US-GAAP" that indicates the taxonomy broad taxonomy family. The family name stays consistent between regular taxonomy releases of the same taxonomy domain.
+    frameworkName: Optional[str] # (optional) The framework name of the taxonomy such as "US-GAAP" that indicates the taxonomy broad taxonomy family. The framework name stays consistent between regular taxonomy releases of the same taxonomy domain.
     version: Optional[str] # (optional) Used to identify the version of the taxonomy such as the year of release.
     entryPoint: AnyURI # (required) The uri entry point location of the taxonomy object that is used to locate the taxonomy.
     importedTaxonomies: OrderedSet[XbrlImportedTaxonomy] # ordered set of importedTaxonomy objects that can comprise QName of the taxonomy to be imported, an object type or a taxonomy object referenced by its QName.
