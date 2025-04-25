@@ -191,7 +191,11 @@ class FileSource:
         if not self.isZip:
             # Try to detect zip files with unrecognized file extensions.
             try:
-                basefile = self.cntlr.webCache.getfilename(self.url) if self.cntlr is not None else self.url
+                if self.cntlr is not None and hasattr(self.cntlr, "modelManager"):
+                    basefile = self.cntlr.webCache.getfilename( # cache remapping
+                        self.cntlr.modelManager.disclosureSystem.mappedUrl(self.url)) # local remapping
+                else:
+                    basefile = self.url
                 if basefile:
                     with openFileStream(self.cntlr, basefile, 'rb') as fileStream:
                         self.isZip = zipfile.is_zipfile(fileStream)
@@ -213,7 +217,8 @@ class FileSource:
             elif checkIfXmlIsEis:
                 try:
                     assert self.cntlr is not None
-                    _filename = self.cntlr.webCache.getfilename(self.url)
+                    _filename = self.cntlr.webCache.getfilename(
+                        self.cntlr.modelManager.disclosureSystem.mappedUrl(self.url))
                     assert _filename is not None
                     file = open(_filename, errors='replace')
                     l = file.read(256) # may have comments before first element
@@ -234,7 +239,8 @@ class FileSource:
         if self.isValid and not self.isOpen:
             if (self.isZip or self.isTarGz or self.isEis or self.isXfd or self.isRss or self.isInstalledTaxonomyPackage) and self.cntlr:
                 assert isinstance(self.url, str)
-                self.basefile = self.cntlr.webCache.getfilename(self.url, reload=reloadCache)
+                self.basefile = self.cntlr.webCache.getfilename(
+                    self.cntlr.modelManager.disclosureSystem.mappedUrl(self.url), reload=reloadCache)
             else:
                 self.basefile = self.url
             self.baseurl = self.url # url gets changed by selection
@@ -473,8 +479,11 @@ class FileSource:
 
     def isMappedUrl(self, url: str) -> bool:
         if self.mappedPaths is not None:
-            return any(url.startswith(mapFrom)
-                       for mapFrom in self.mappedPaths)
+            if any(url.startswith(mapFrom)
+                       for mapFrom in self.mappedPaths):
+                return True
+        if self.cntlr and self.cntlr.modelManager.disclosureSystem.isMappedUrl(url):
+            return True
         return False
 
     def mappedUrl(self, url: str) -> str:
@@ -483,6 +492,8 @@ class FileSource:
                 if url.startswith(mapFrom):
                     url = mapTo + url[len(mapFrom):]
                     break
+        if self.cntlr:
+            return self.cntlr.modelManager.disclosureSystem.mappedUrl(url)
         return url
 
     def fileSourceContainingFilepath(self, filepath: str | None) -> FileSource | None:
@@ -811,7 +822,8 @@ def openFileStream(
     if archiveFilenameParts(filepath): # file is in an archive
         return openFileSource(filepath, cntlr).file(filepath, binary='b' in mode, encoding=encoding)[0]
     if isHttpUrl(filepath) and cntlr:
-        _cacheFilepath = cntlr.webCache.getfilename(filepath, normalize=True) # normalize is separate step in ModelDocument retrieval, combined here
+        _cacheFilepath = cntlr.webCache.getfilename(
+            cntlr.modelManager.disclosureSystem.mappedUrl(filepath), normalize=True) # normalize is separate step in ModelDocument retrieval, combined here
         if _cacheFilepath is None:
             raise OSError(_("Unable to open file: {0}.").format(filepath))
         filepath = _cacheFilepath
