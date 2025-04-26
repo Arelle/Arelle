@@ -411,11 +411,9 @@ class DisclosureSystem:
         if url in self.mappedFiles:
             return True
         else:  # handle mapped paths
-            mappedUrl = url
             for mapFrom, mapTo in self.mappedPaths:
                 if url.startswith(mapFrom):
                     return True
-                    break
         return False
 
     def uriAuthorityValid(self, uri):
