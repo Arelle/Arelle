@@ -4,6 +4,8 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 from datetime import date, timedelta
+
+from arelle.XmlValidateConst import VALID
 from dateutil import relativedelta
 from collections.abc import Iterable
 from typing import Any, cast, TYPE_CHECKING
@@ -185,4 +187,85 @@ def rule_nl_kvk_3_1_3_2 (
             codes='NL.NL-KVK-3.1.3.2.scenarioContainsNotAllowedContent',
             msg=_('xbrli:scenario must only contain content defined in XBRL Dimensions specification.'),
             modelObject = contextsWithImproperContent
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_INLINE_NT19
+    ],
+)
+def rule_nl_kvk_3_1_4_1 (
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+     NL-KVK.3.1.4.1: All entity identifiers and schemes must have identical content.
+    """
+    entityIdentifierValues = pluginData.entityIdentifiersInDocument(val.modelXbrl)
+    if len(entityIdentifierValues) >1:
+        yield Validation.error(
+            codes='NL.NL-KVK-3.1.4.1',
+            msg=_('All entity identifiers and schemes must have identical content.'),
+            modelObject = entityIdentifierValues
+        )
+
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_INLINE_NT19
+    ],
+)
+def rule_nl_kvk_3_1_4_2 (
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.3.1.4.2: xbrli:identifier value must be identical to bw2-titel9:ChamberOfCommerceRegistrationNumber fact value.
+    """
+    registrationNumberFacts = val.modelXbrl.factsByQname.get(pluginData.chamberOfCommerceRegistrationNumberQn, set())
+    if len(registrationNumberFacts) > 0:
+        regFact = next(iter(registrationNumberFacts))
+        if regFact.xValid >= VALID and regFact.xValue != regFact.context.entityIdentifier[1]:
+            yield Validation.error(
+                codes='NL-KVK.3.1.4.2',
+                msg=_("xbrli:identifier value must be identical to bw2-titel9:ChamberOfCommerceRegistrationNumber fact value.").format(
+                    regFact.xValue,
+                    regFact.context.entityIdentifier[1]
+                ),
+                modelObject=regFact
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_INLINE_NT19
+    ],
+)
+def rule_nl_kvk_3_2_1_1 (
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.3.2.1.1: precision should not be used on numeric facts.
+    """
+    factsWithPrecision = []
+    for fact in val.modelXbrl.facts:
+        if fact is not None and fact.isNumeric and fact.precision:
+            factsWithPrecision.append(fact)
+    if len(factsWithPrecision) >0:
+        yield Validation.error(
+            codes='NL.NL-KVK-3.2.1.1',
+            msg=_('Precision should not be used on numeric facts.'),
+            modelObject = factsWithPrecision
         )

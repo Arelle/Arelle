@@ -1,3 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xbrl [
+  <!ENTITY reg "&#174;">
+  <!ENTITY plus "&#43;">
+]>
 <xbrl xmlns="http://www.xbrl.org/2003/instance" title="Test&reg;"> <!-- CAUSE: disallowed named reference, in attribute -->
     <!-- &#1080; &#1081; --> <!-- CAUSE: disallowed decimal numeric references, in comment -->
     <!-- &#x0000; &#x20D0; --> <!-- CAUSE: disallowed hexadecimal numeric references, in comment -->

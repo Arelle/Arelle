@@ -396,7 +396,7 @@ class DisclosureSystem:
                                              level=logging.ERROR)
             etree.clear_error_log()
 
-    def mappedUrl(self, url):
+    def mappedUrl(self, url: str) -> str:
         if url in self.mappedFiles:
             mappedUrl = self.mappedFiles[url]
         else:  # handle mapped paths
@@ -406,6 +406,15 @@ class DisclosureSystem:
                     mappedUrl = mapTo + url[len(mapFrom):]
                     break
         return mappedUrl
+
+    def isMappedUrl(self, url: str) -> bool:
+        if url in self.mappedFiles:
+            return True
+        else:  # handle mapped paths
+            for mapFrom, mapTo in self.mappedPaths:
+                if url.startswith(mapFrom):
+                    return True
+        return False
 
     def uriAuthorityValid(self, uri):
         if self.standardTaxonomiesUrl:
