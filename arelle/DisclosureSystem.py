@@ -407,6 +407,15 @@ class DisclosureSystem:
                     break
         return mappedUrl
 
+    def isMappedUrl(self, url):
+        if url in self.mappedFiles:
+            return True
+        else:  # handle mapped paths
+            for mapFrom, mapTo in self.mappedPaths:
+                if url.startswith(mapFrom):
+                    return True
+        return False
+
     def uriAuthorityValid(self, uri):
         if self.standardTaxonomiesUrl:
             return UrlUtil.authority(uri) in self.standardAuthorities
