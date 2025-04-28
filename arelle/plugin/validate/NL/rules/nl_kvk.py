@@ -198,6 +198,31 @@ def rule_nl_kvk_3_1_3_2 (
         DISCLOSURE_SYSTEM_INLINE_NT19
     ],
 )
+def rule_nl_kvk_3_1_4_1 (
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+     NL-KVK.3.1.4.1: All entity identifiers and schemes must have identical content.
+    """
+    entityIdentifierValues = pluginData.entityIdentifiersInDocument(val.modelXbrl)
+    if len(entityIdentifierValues) >1:
+        yield Validation.error(
+            codes='NL.NL-KVK-3.1.4.1',
+            msg=_('All entity identifiers and schemes must have identical content.'),
+            modelObject = entityIdentifierValues
+        )
+
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_INLINE_NT19
+    ],
+)
 def rule_nl_kvk_3_1_4_2 (
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
