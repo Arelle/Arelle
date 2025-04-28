@@ -158,6 +158,14 @@ NL_PACKAGES: dict[str, list[ConformanceSuiteAssetConfig]] = {
             Path('KVK_taxonomie_2024_draft.zip'),
             public_download_url='',
         ),
+        ConformanceSuiteAssetConfig.public_taxonomy_package(
+            Path('JenV_taxonomie_2024_draft.zip'),
+            public_download_url='',
+        ),
+        ConformanceSuiteAssetConfig.public_taxonomy_package(
+            Path('RJ_taxonomie_2024_draft.zip'),
+            public_download_url='',
+        ),
         LEI_2020_07_02,
     ],
 }

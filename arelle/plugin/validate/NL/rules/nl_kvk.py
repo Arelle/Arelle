@@ -18,9 +18,7 @@ from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
-from ..DisclosureSystems import (
-    DISCLOSURE_SYSTEM_INLINE_NT19
-)
+from ..DisclosureSystems import DISCLOSURE_SYSTEM_NL_INLINE_2024
 from ..PluginValidationDataExtension import PluginValidationDataExtension, XBRLI_IDENTIFIER_PATTERN, XBRLI_IDENTIFIER_SCHEMA
 
 if TYPE_CHECKING:
@@ -42,7 +40,7 @@ def _getReportingPeriodDateValue(modelXbrl: ModelXbrl, qname: QName) -> date | N
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
-        DISCLOSURE_SYSTEM_INLINE_NT19
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
     ],
 )
 def rule_nl_kvk_3_1_1_1(
@@ -70,7 +68,7 @@ def rule_nl_kvk_3_1_1_1(
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
-        DISCLOSURE_SYSTEM_INLINE_NT19
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
     ],
 )
 def rule_nl_kvk_3_1_1_2(
@@ -97,7 +95,7 @@ def rule_nl_kvk_3_1_1_2(
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
-        DISCLOSURE_SYSTEM_INLINE_NT19
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
     ],
 )
 def rule_nl_kvk_3_1_2_1(
@@ -121,7 +119,7 @@ def rule_nl_kvk_3_1_2_1(
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
-        DISCLOSURE_SYSTEM_INLINE_NT19
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
     ],
 )
 def rule_nl_kvk_3_1_2_2(
@@ -145,7 +143,7 @@ def rule_nl_kvk_3_1_2_2(
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
-        DISCLOSURE_SYSTEM_INLINE_NT19
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
     ],
 )
 def rule_nl_kvk_3_1_3_1 (
@@ -169,7 +167,7 @@ def rule_nl_kvk_3_1_3_1 (
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
-        DISCLOSURE_SYSTEM_INLINE_NT19
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
     ],
 )
 def rule_nl_kvk_3_1_3_2 (
