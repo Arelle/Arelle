@@ -4,6 +4,8 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 from datetime import date, timedelta
+
+from arelle.XmlValidateConst import VALID
 from dateutil import relativedelta
 from collections.abc import Iterable
 from typing import Any, cast, TYPE_CHECKING
@@ -188,3 +190,32 @@ def rule_nl_kvk_3_1_3_2 (
             msg=_('xbrli:scenario must only contain content defined in XBRL Dimensions specification.'),
             modelObject = contextsWithImproperContent
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_INLINE_NT19
+    ],
+)
+def rule_nl_kvk_3_1_4_2 (
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.3.1.4.2: xbrli:identifier value must be identical to bw2-titel9:ChamberOfCommerceRegistrationNumber fact value.
+    """
+    registrationNumberFacts = val.modelXbrl.factsByQname.get(pluginData.chamberOfCommerceRegistrationNumberQn, set())
+    if len(registrationNumberFacts) > 0:
+        regFact = next(iter(registrationNumberFacts))
+        if regFact.xValid >= VALID and regFact.xValue != regFact.context.entityIdentifier[1]:
+            yield Validation.error(
+                codes='NL-KVK.3.1.4.2',
+                msg=_("xbrli:identifier value must be identical to bw2-titel9:ChamberOfCommerceRegistrationNumber fact value.").format(
+                    regFact.xValue,
+                    regFact.context.entityIdentifier[1]
+                ),
+                modelObject=regFact
+            )
