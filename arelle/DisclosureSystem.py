@@ -396,7 +396,7 @@ class DisclosureSystem:
                                              level=logging.ERROR)
             etree.clear_error_log()
 
-    def mappedUrl(self, url):
+    def mappedUrl(self, url: str) -> str:
         if url in self.mappedFiles:
             mappedUrl = self.mappedFiles[url]
         else:  # handle mapped paths
@@ -407,7 +407,7 @@ class DisclosureSystem:
                     break
         return mappedUrl
 
-    def isMappedUrl(self, url):
+    def isMappedUrl(self, url: str) -> bool:
         if url in self.mappedFiles:
             return True
         else:  # handle mapped paths

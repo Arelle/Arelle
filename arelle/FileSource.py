@@ -818,7 +818,7 @@ def openFileStream(
             cntlr
             and hasattr(cntlr, "modelManager")
         ): # may be called early in initialization for PluginManager
-        filepath = cntlr.modelManager.disclosureSystem.mappedUrl(filepath)  # type: ignore[no-untyped-call]
+        filepath = cntlr.modelManager.disclosureSystem.mappedUrl(filepath)
     if archiveFilenameParts(filepath): # file is in an archive
         return openFileSource(filepath, cntlr).file(filepath, binary='b' in mode, encoding=encoding)[0]
     if isHttpUrl(filepath) and cntlr:
