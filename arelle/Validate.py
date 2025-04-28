@@ -734,7 +734,7 @@ class Validate:
             if not isinstance(expected, list):
                 expected = [expected]
             for testErr in _errors:
-                if isinstance(testErr,str) and testErr.startswith("ESEF."): # compared as list of strings to QName localname
+                if isinstance(testErr,str) and (testErr.startswith("ESEF.") or testErr.startswith("NL.NL-KVK")): # compared as list of strings to QName localname
                     testErr = testErr.rpartition(".")[2]
                 for _exp in _expectedList:
                     _expMatched = False

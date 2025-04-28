@@ -112,7 +112,7 @@ def rule_nl_kvk_3_1_2_1(
     contextsWithPeriodTime = pluginData.getContextsWithPeriodTime(val.modelXbrl)
     if len(contextsWithPeriodTime) !=0:
         yield Validation.error(
-            codes='NL.NL-KVK-3.1.2.1',
+            codes='NL.NL-KVK-3.1.2.1.periodWithTimeContent',
             msg=_('xbrli:startDate, xbrli:endDate, xbrli:instant must be formatted as yyyy-mm-dd without time'),
             modelObject = contextsWithPeriodTime
         )
@@ -136,7 +136,7 @@ def rule_nl_kvk_3_1_2_2(
     contextsWithPeriodTimeZone = pluginData.getContextsWithPeriodTimeZone(val.modelXbrl)
     if len(contextsWithPeriodTimeZone) !=0:
             yield Validation.error(
-                codes='NL.NL-KVK-3.1.2.2',
+                codes='NL.NL-KVK-3.1.2.2.periodWithTimeZone',
                 msg=_('xbrli:startDate, xbrli:endDate, xbrli:instant must be formatted as yyyy-mm-dd without time zone'),
                 modelObject = contextsWithPeriodTimeZone
             )
@@ -160,7 +160,7 @@ def rule_nl_kvk_3_1_3_1 (
     contextsWithSegments = pluginData.getContextsWithSegments(val.modelXbrl)
     if len(contextsWithSegments) !=0:
         yield Validation.error(
-            codes='NL.NL-KVK-3.1.3.1',
+            codes='NL.NL-KVK-3.1.3.1.segmentUsed',
             msg=_('xbrli:segment must not be used in contexts.'),
             modelObject = contextsWithSegments
         )
@@ -184,7 +184,7 @@ def rule_nl_kvk_3_1_3_2 (
     contextsWithImproperContent = pluginData.getContextsWithImproperContent(val.modelXbrl)
     if len(contextsWithImproperContent) !=0:
         yield Validation.error(
-            codes='NL.NL-KVK-3.1.3.2',
+            codes='NL.NL-KVK-3.1.3.2.scenarioContainsNotAllowedContent',
             msg=_('xbrli:scenario must only contain content defined in XBRL Dimensions specification.'),
             modelObject = contextsWithImproperContent
         )
