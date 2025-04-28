@@ -193,7 +193,7 @@ def rule_nl_kvk_3_1_3_2 (
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
-        DISCLOSURE_SYSTEM_INLINE_NT19
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
     ],
 )
 def rule_nl_kvk_3_1_4_1 (
@@ -218,7 +218,7 @@ def rule_nl_kvk_3_1_4_1 (
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
-        DISCLOSURE_SYSTEM_INLINE_NT19
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
     ],
 )
 def rule_nl_kvk_3_1_4_2 (
@@ -247,7 +247,7 @@ def rule_nl_kvk_3_1_4_2 (
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
-        DISCLOSURE_SYSTEM_INLINE_NT19
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
     ],
 )
 def rule_nl_kvk_3_2_1_1 (
@@ -265,7 +265,7 @@ def rule_nl_kvk_3_2_1_1 (
             factsWithPrecision.append(fact)
     if len(factsWithPrecision) >0:
         yield Validation.error(
-            codes='NL.NL-KVK-3.2.1.1',
+            codes='NL.NL-KVK-3.2.1.1.precisionAttributeUsed',
             msg=_('Precision should not be used on numeric facts.'),
             modelObject = factsWithPrecision
         )

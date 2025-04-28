@@ -5,7 +5,7 @@ from tests.integration_tests.validation.conformance_suite_config import Conforma
 
 config = ConformanceSuiteConfig(
     args=[
-        '--disclosureSystem', 'INLINE-NT19',
+        '--disclosureSystem', 'NL-INLINE-2024',
         '--baseTaxonomyValidation', 'none',
     ],
     assets=[
@@ -19,7 +19,6 @@ config = ConformanceSuiteConfig(
     ],
     expected_failure_ids=frozenset([
         # Not Implemented
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-2-1_1/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-2-3_1/index.xml:TC3_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-2-3_1/index.xml:TC4_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-2-4_2/index.xml:TC4_invalid',
