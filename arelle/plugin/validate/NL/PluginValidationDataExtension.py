@@ -21,16 +21,17 @@ XBRLI_IDENTIFIER_SCHEMA = 'http://www.kvk.nl/kvk-id'
 
 @dataclass
 class PluginValidationDataExtension(PluginData):
-    financialReportingPeriodCurrentStartDateQn: QName
-    financialReportingPeriodCurrentEndDateQn: QName
-    financialReportingPeriodPreviousStartDateQn: QName
-    financialReportingPeriodPreviousEndDateQn: QName
-    formattedExplanationItemTypeQn: QName
+    chamberOfCommerceRegistrationNumberQn: QName
     documentAdoptionDateQn: QName
     documentAdoptionStatusQn: QName
     documentResubmissionUnsurmountableInaccuraciesQn: QName
     entrypointRoot: str
     entrypoints: set[str]
+    financialReportingPeriodCurrentStartDateQn: QName
+    financialReportingPeriodCurrentEndDateQn: QName
+    financialReportingPeriodPreviousStartDateQn: QName
+    financialReportingPeriodPreviousEndDateQn: QName
+    formattedExplanationItemTypeQn: QName
     textFormattingSchemaPath: str
     textFormattingWrapper: str
 

@@ -23,6 +23,7 @@ class ValidationPluginExtension(ValidationPlugin):
             jenvNamespace = 'http://www.nltaxonomie.nl/nt16/jenv/20211208/dictionary/jenv-bw2-data'
             kvkINamespace = 'http://www.nltaxonomie.nl/nt16/kvk/20211208/dictionary/kvk-data'
             nlTypesNamespace = 'http://www.nltaxonomie.nl/nt16/sbr/20210301/dictionary/nl-types'
+            titel9Namespace = ''
             entrypointRoot = 'http://www.nltaxonomie.nl/nt16/kvk/20211208/entrypoints/'
             entrypoints = {entrypointRoot + e for e in [
                 'kvk-rpt-jaarverantwoording-2021-ifrs-full.xsd',
@@ -59,6 +60,7 @@ class ValidationPluginExtension(ValidationPlugin):
             jenvNamespace = 'http://www.nltaxonomie.nl/nt17/jenv/20221214/dictionary/jenv-bw2-data'
             kvkINamespace = 'http://www.nltaxonomie.nl/nt17/kvk/20221214/dictionary/kvk-data'
             nlTypesNamespace = 'http://www.nltaxonomie.nl/nt17/sbr/20220301/dictionary/nl-types'
+            titel9Namespace = ''
             entrypointRoot = 'http://www.nltaxonomie.nl/nt17/kvk/20221214/entrypoints/'
             entrypoints = {entrypointRoot + e for e in [
                 'kvk-rpt-jaarverantwoording-2022-ifrs-full.xsd',
@@ -96,6 +98,7 @@ class ValidationPluginExtension(ValidationPlugin):
             jenvNamespace = 'http://www.nltaxonomie.nl/nt18/jenv/20231213/dictionary/jenv-bw2-data'
             kvkINamespace = 'http://www.nltaxonomie.nl/nt18/kvk/20231213/dictionary/kvk-data'
             nlTypesNamespace = 'http://www.nltaxonomie.nl/nt18/sbr/20230301/dictionary/nl-types'
+            titel9Namespace = ''
             entrypointRoot = 'http://www.nltaxonomie.nl/nt18/kvk/20231213/entrypoints/'
             entrypoints = {entrypointRoot + e for e in [
                 'kvk-rpt-jaarverantwoording-2023-ifrs-full.xsd',
@@ -133,6 +136,7 @@ class ValidationPluginExtension(ValidationPlugin):
             jenvNamespace = 'http://www.nltaxonomie.nl/nt19/jenv/20241211/dictionary/jenv-bw2-data'
             kvkINamespace = 'http://www.nltaxonomie.nl/nt19/kvk/20241211/dictionary/kvk-data'
             nlTypesNamespace = 'http://www.nltaxonomie.nl/nt19/sbr/20240301/dictionary/nl-types'
+            titel9Namespace = 'https://www.nltaxonomie.nl/jenv/2024-03-31/bw2-titel9-cor'
             entrypointRoot = 'http://www.nltaxonomie.nl/nt19/kvk/20241211/entrypoints/'
             entrypoints = {entrypointRoot + e for e in [
                 'kvk-rpt-jaarverantwoording-2024-ifrs-full.xsd',
@@ -170,16 +174,17 @@ class ValidationPluginExtension(ValidationPlugin):
             raise ValueError(f'Invalid NL disclosure system: {disclosureSystem}')
         return PluginValidationDataExtension(
             self.name,
-            financialReportingPeriodCurrentStartDateQn=qname(f'{{{jenvNamespace}}}FinancialReportingPeriodCurrentStartDate'),
-            financialReportingPeriodCurrentEndDateQn=qname(f'{{{jenvNamespace}}}FinancialReportingPeriodCurrentEndDate'),
-            financialReportingPeriodPreviousStartDateQn=qname(f'{{{jenvNamespace}}}FinancialReportingPeriodPreviousStartDate'),
-            financialReportingPeriodPreviousEndDateQn=qname(f'{{{jenvNamespace}}}FinancialReportingPeriodPreviousEndDate'),
-            formattedExplanationItemTypeQn=qname(f'{{{nlTypesNamespace}}}formattedExplanationItemType'),
+            chamberOfCommerceRegistrationNumberQn=qname(f'{{{titel9Namespace}}}ChamberOfCommerceRegistrationNumber'),
             documentAdoptionDateQn=qname(f'{{{jenvNamespace}}}DocumentAdoptionDate'),
             documentAdoptionStatusQn=qname(f'{{{jenvNamespace}}}DocumentAdoptionStatus'),
             documentResubmissionUnsurmountableInaccuraciesQn=qname(f'{{{kvkINamespace}}}DocumentResubmissionDueToUnsurmountableInaccuracies'),
             entrypointRoot=entrypointRoot,
             entrypoints=entrypoints,
+            financialReportingPeriodCurrentStartDateQn=qname(f'{{{jenvNamespace}}}FinancialReportingPeriodCurrentStartDate'),
+            financialReportingPeriodCurrentEndDateQn=qname(f'{{{jenvNamespace}}}FinancialReportingPeriodCurrentEndDate'),
+            financialReportingPeriodPreviousStartDateQn=qname(f'{{{jenvNamespace}}}FinancialReportingPeriodPreviousStartDate'),
+            financialReportingPeriodPreviousEndDateQn=qname(f'{{{jenvNamespace}}}FinancialReportingPeriodPreviousEndDate'),
+            formattedExplanationItemTypeQn=qname(f'{{{nlTypesNamespace}}}formattedExplanationItemType'),
             textFormattingSchemaPath='sbr-text-formatting.xsd',
             textFormattingWrapper='<formattedText xmlns="http://www.nltaxonomie.nl/2017/xbrl/sbr-text-formatting">{}</formattedText>',
         )
