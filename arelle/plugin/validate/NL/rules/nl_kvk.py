@@ -244,3 +244,30 @@ def rule_nl_kvk_3_1_4_2 (
                 ),
                 modelObject=regFact
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_INLINE_NT19
+    ],
+)
+def rule_nl_kvk_3_2_1_1 (
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.3.2.1.1: precision should not be used on numeric facts.
+    """
+    factsWithPrecision = []
+    for fact in val.modelXbrl.facts:
+        if fact is not None and fact.isNumeric and fact.precision:
+            factsWithPrecision.append(fact)
+    if len(factsWithPrecision) >0:
+        yield Validation.error(
+            codes='NL.NL-KVK-3.2.1.1',
+            msg=_('Precision should not be used on numeric facts.'),
+            modelObject = factsWithPrecision
+        )
