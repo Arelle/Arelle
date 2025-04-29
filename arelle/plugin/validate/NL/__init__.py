@@ -14,6 +14,8 @@ from pathlib import Path
 from typing import Any
 
 from arelle.ModelDocument import LoadingException, ModelDocument
+from arelle.ModelXbrl import ModelXbrl
+from arelle.ValidateXbrl import ValidateXbrl
 from arelle.Version import authorLabel, copyrightLabel
 from .ValidationPluginExtension import ValidationPluginExtension
 from .rules import br_kvk, fg_nl, fr_kvk, fr_nl, nl_kvk
@@ -46,6 +48,16 @@ def validateXbrlFinally(*args: Any, **kwargs: Any) -> None:
     return validationPlugin.validateXbrlFinally(*args, **kwargs)
 
 
+def modelTestcaseVariationReportPackageIxdsOptions(
+        val: ValidateXbrl,
+        rptPkgIxdsOptions: dict[str, bool],
+        *args: Any,
+        **kwargs: Any,
+) -> None:
+    rptPkgIxdsOptions["lookOutsideReportsDirectory"] = True
+    rptPkgIxdsOptions["combineIntoSingleIxds"] = True
+
+
 __pluginInfo__ = {
     "name": PLUGIN_NAME,
     "version": "0.0.1",
@@ -53,8 +65,10 @@ __pluginInfo__ = {
     "license": "Apache-2",
     "author": authorLabel,
     "copyright": copyrightLabel,
+    "import": ("inlineXbrlDocumentSet",),  # import dependent modules
     "DisclosureSystem.Types": disclosureSystemTypes,
     "DisclosureSystem.ConfigURL": disclosureSystemConfigURL,
     "ModelXbrl.LoadComplete": modelXbrlLoadComplete,
     "Validate.XBRL.Finally": validateXbrlFinally,
+    "ModelTestcaseVariation.ReportPackageIxdsOptions": modelTestcaseVariationReportPackageIxdsOptions,
 }
