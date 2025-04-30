@@ -27,7 +27,7 @@ class XbrlTaxonomyObject:
         referenceProperties = None
         for propName, propType in getattr(objClass, "__annotations__", EMPTY_DICT).items():
             if initialParentObjProp:
-                initialParentProp = False
+                initialParentObjProp = False
                 if isinstance(propType, str) or propType.__name__.startswith("Xbrl"): # skip taxonomy alias type
                     continue
             if hasattr(self, propName):
@@ -36,7 +36,7 @@ class XbrlTaxonomyObject:
                     for propObj in val:
                         propVals.append( (str(getattr(propObj, "property", "")), str(getattr(propObj, "value", ""))) )
                     continue
-                if propName == "name" and val and issubclass(objClass, XbrlReferencableTaxonomyObject):
+                if propName in ("name", "groupName") and val and issubclass(objClass, XbrlReferencableTaxonomyObject):
                     # insert label first if any
                     label = self.xbrlDts.labelValue(val, qnStdLabel, fallbackToName=False)
                     if label:

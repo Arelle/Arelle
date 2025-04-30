@@ -46,7 +46,8 @@ def viewXbrlTxmyObj(xbrlDts, objClass, objCollection, tabWin, header, lang=None,
         if firstCol:
             firstCol = False
             colName = "#0"
-        if isinstance(propType, (int,float,Decimal)):
+            w = 360
+        elif isinstance(propType, (int,float,Decimal)):
             w = 50
         else:
             w = 120
@@ -63,6 +64,8 @@ def viewXbrlTxmyObj(xbrlDts, objClass, objCollection, tabWin, header, lang=None,
 
     # languages menu
     menu = view.contextMenu()
+    if objClass.__name__ != "XbrlConcept":
+        view.menuAddExpandCollapse() # for tree view panes but not for Concept table pane
     view.menuAddClipboard()
     view.menuAddLangs()
 
@@ -95,9 +98,10 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
              XbrlConst.xbrldt,
              XbrlConst.xhtml))
         for obj in self.objCollection:
+            propName = self.propNameTypes[0][0]
             node = self.treeView.insert("", "end",
                                         f"_{self.id}_{obj.dtsObjectIndex}",
-                                        text=str(obj.getProperty(self.propNameTypes[0][0], self.labelrole, self.lang, "")),
+                                        text=str(self.xbrlDts.labelValue(obj.getProperty(propName), self.labelrole, self.lang)),
                                         tags=("odd" if nodeNum & 1 else "even",))
             self.tag_has[f"_{obj.dtsObjectIndex}"].append(node)
             self.id += 1
@@ -155,11 +159,13 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
         for cubeDim in obj.cubeDimensions:
             node = self.viewProps(parentNode, nodeNum, cubeDim)
             nodeNum += 1
-            domObj = self.xbrlDts.namedObjects.get(getattr(cubeDim, "domainName", None))
-            if domObj is not None:
-                domNode = self.viewProps(node, nodeNum, domObj)
-                nodeNum += 1
-                self.viewRoots(domNode, nodeNum, domObj)
+            domName = getattr(cubeDim, "domainName", None)
+            if domName:
+                domObj = self.xbrlDts.namedObjects.get(domName)
+                if domObj is not None:
+                    domNode = self.viewProps(node, nodeNum, domObj)
+                    nodeNum += 1
+                    self.viewRoots(domNode, nodeNum, domObj)
 
     def viewRoots(self, parentNode, nodeNum, obj):
         for qn in obj.relationshipRoots:
@@ -172,19 +178,27 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
                 self.id += 1
                 nodeNum += 1
                 for relObj in obj.relationshipsFrom.get(qn, ()):
-                    self.viewRelationships(node, nodeNum, obj, relObj)
+                    self.viewRelationships(node, nodeNum, obj, relObj, set())
 
-    def viewRelationships(self, parentNode, nodeNum, obj, relObj):
-        qnObj = self.xbrlDts.namedObjects.get(relObj.target)
+    def viewRelationships(self, parentNode, nodeNum, obj, relObj, visited):
+        target = relObj.target
+        qnObj = self.xbrlDts.namedObjects.get(target)
         if qnObj is not None:
+            loop = target in visited
+            txt = self.xbrlDts.labelValue(relObj.target, self.labelrole, self.lang)
+            if loop:
+                txt = "(loop) " + txt
             node = self.treeView.insert(parentNode, "end",
                                         f"_{self.id}_{qnObj.dtsObjectIndex}",
-                                        text=self.xbrlDts.labelValue(relObj.target, self.labelrole, self.lang),
+                                        text=txt,
                                         tags=("odd" if nodeNum & 1 else "even",))
             self.id += 1
             nodeNum += 1
-            for relTgtObj in obj.relationshipsFrom.get(relObj.target, ()):
-                self.viewRelationships(node, nodeNum, obj, relTgtObj)
+            if not loop:
+                visited.add(target)
+                for relTgtObj in obj.relationshipsFrom.get(relObj.target, ()):
+                    self.viewRelationships(node, nodeNum, obj, relTgtObj, visited)
+                visited.remove(target)
 
     def treeviewEnter(self, *args):
         self.blockSelectEvent = 0

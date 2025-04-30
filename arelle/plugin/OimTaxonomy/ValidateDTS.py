@@ -28,9 +28,9 @@ def validateProperties(dts, oimFile, txmy, obj):
         propTypeQn = getattr(propObj, "property", None)
         if propTypeQn not in dts.namedObjects or not isinstance(dts.namedObjects[propTypeQn], XbrlPropertyType):
             dts.error("oime:invalidPropertyTypeObject",
-                      _("%(parentObjName)s %(parentName)s property %(name)s has invalid dataType %(dataType)s"),
+                      _("%(parentObjName)s %(parentName)s property %(name)s has undefined dataType %(dataType)s"),
                       file=oimFile, parentObjName=objType(obj), parentName=getattr(obj,"name","(n/a)"),
-                      name=obj.name, dataType=propTypeQn)
+                      name=propTypeQn, dataType=propTypeQn)
         for allowedObjQn in getattr(obj, "allowedObjects", ()):
             if allowedObjQn not in objectsWithProperties:
                 dts.error("oime:invalidAllowedObject",
@@ -39,7 +39,7 @@ def validateProperties(dts, oimFile, txmy, obj):
                           name=obj.name, allowedObj=allowedObjQn)
 
 def validateTaxonomy(dts, txmy):
-    oimFile = txmy.entryPoint
+    oimFile = getattr(txmy, "entryPoint", "")
 
     # Concept Objects
     for cncpt in txmy.concepts:
