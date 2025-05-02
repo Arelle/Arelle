@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 '''
 
 from arelle.XmlValidate import languagePattern
+from arelle.oim.Load import EMPTY_DICT
 from .XbrlConcept import XbrlDataType
 from .XbrlCube import XbrlCube
 from .XbrlDimension import XbrlDomain
@@ -42,7 +43,7 @@ def validateTaxonomy(dts, txmy):
     oimFile = getattr(txmy, "entryPoint", "")
 
     # Concept Objects
-    for cncpt in txmy.concepts:
+    for cncpt in getattr(txmy, "concepts", EMPTY_DICT):
         perType = getattr(cncpt, "periodType", None)
         if perType not in ("instant", "duration"):
             dts.error("oime:invalidPropertyValue",
@@ -61,7 +62,7 @@ def validateTaxonomy(dts, txmy):
         validateProperties(dts, oimFile, txmy, cncpt)
 
     # Label Objects
-    for labelObj in txmy.labels:
+    for labelObj in getattr(txmy, "labels", EMPTY_DICT):
         name = getattr(labelObj, "name", "(missing)")
         lang = getattr(labelObj, "language", "(missing)")
         if not languagePattern.match(lang):
@@ -76,7 +77,7 @@ def validateTaxonomy(dts, txmy):
         validateProperties(dts, oimFile, txmy, labelObj)
 
     # Reference Objects
-    for refObj in txmy.references:
+    for refObj in getattr(txmy, "references", EMPTY_DICT):
         name = getattr(refObj, "name", "(missing)")
         lang = getattr(refObj, "language", "(missing)")
         if not languagePattern.match(lang):
@@ -91,7 +92,7 @@ def validateTaxonomy(dts, txmy):
         validateProperties(dts, oimFile, txmy, refObj)
 
     # Cube Objects
-    for cubeObj in txmy.cubes:
+    for cubeObj in getattr(txmy, "cubes", EMPTY_DICT):
         if getattr(cubeObj, "taxonomyDefinedDimension", True) and getattr(cubeObj, "allowedCubeDimensions", ()):
             dts.error("oimte:inconsistentTaxonomyDefinedDimensionProperty",
                       _("The allowedCubeDimensions property on cube %(name)s MUST only be used when the taxonomyDefinedDimension value is true"),
@@ -111,7 +112,7 @@ def validateTaxonomy(dts, txmy):
         validateProperties(dts, oimFile, txmy, cubeObj)
 
     # GroupContent Objects
-    for grpCntObj in txmy.groupContents:
+    for grpCntObj in getattr(txmy, "groupContents", EMPTY_DICT):
         grpQn = getattr(grpCntObj, "groupName", "(absent)")
         if grpQn not in dts.namedObjects or type(dts.namedObjects[grpQn]) != XbrlGroup:
             dts.error("oimte:invalidGroupObject",

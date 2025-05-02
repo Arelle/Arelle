@@ -7,11 +7,12 @@ from collections import OrderedDict, defaultdict # OrderedDict is not same as di
 
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import ModelXbrl, create as modelXbrlCreate, XbrlConst
+from .XbrlConcept import XbrlConcept, XbrlDataType
 from .XbrlTypes import XbrlTaxonomyType, QNameKeyType, XbrlLabelType, XbrlPropertyType
-from .XbrlTaxonomyObject import XbrlTaxonomyObject, XbrlReferencableTaxonomyObject
+from .XbrlTaxonomyObject import XbrlTaxonomyObject, XbrlReferencableTaxonomyObject, XbrlTaxonomyTagObject
 
 def castToDts(modelXbrl):
-    if isinstance(modelXbrl, ModelXbrl):
+    if not isinstance(modelXbrl, XbrlDts) and isinstance(modelXbrl, ModelXbrl):
         modelXbrl.__class__ = XbrlDts
         modelXbrl.taxonomies: OrderedDict[QNameKeyType, XbrlTaxonomyType] = OrderedDict()
         modelXbrl.dtsObjectIndex = 0
@@ -92,6 +93,19 @@ class XbrlDts(ModelXbrl): # complete wrapper for ModelXbrl
             self.modelManager.addToLog(_("Exception viewing properties {0} {1} at {2}").format(
                             modelObject,
                             err, traceback.format_tb(sys.exc_info()[2])))
+
+    # dts-wide object accumulator properties
+    def filterNamedObjects(self, _class):
+        if issubclass(_class, XbrlReferencableTaxonomyObject):
+            objdict = self.namedObjects
+        elif issubclass(_class, XbrlTaxonomyTagObject):
+            objdict = self.tagObjects
+        else:
+            objdict = {}
+        for obj in objdict.values():
+            if isinstance(obj, _class):
+                yield obj
+        
 
 def create(*args: Any, **kwargs: Any) -> XbrlDts:
     return cast(XbrlDts, modelXbrlCreate(*args, **kwargs))

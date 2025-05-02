@@ -17,7 +17,7 @@ from .XbrlCube import XbrlCube, XbrlCubeType
 from .XbrlDimension import XbrlDimension, XbrlDomain, XbrlMember
 from .XbrlEntity import XbrlEntity
 from .XbrlGroup import XbrlGroup, XbrlGroupContent
-from .XbrlLabel import XbrlLabel
+from .XbrlLabel import XbrlLabel, XbrlLabelType
 from .XbrlNetwork import XbrlNetwork, XbrlRelationship, XbrlRelationshipType
 from .XbrlProperty import XbrlProperty, XbrlPropertyType
 from .XbrlReference import XbrlReference, XbrlReferenceType
@@ -45,6 +45,7 @@ class XbrlTaxonomy(XbrlTaxonomyObject):
     groups: OrderedSet[XbrlGroup] #  ordered set of group objects.
     groupContents: OrderedSet[XbrlGroupContent] # ordered set of groupContent objects that link a group QName to a list of network or cube objects.
     labels: OrderedSet[XbrlLabel] # ordered set of label objects.
+    labelTypes: OrderedSet[XbrlLabelType] # rdered set of labelType objects.
     members: OrderedSet[XbrlMember] #  ordered set of member objects.
     networks: OrderedSet[XbrlNetwork] # ordered set of network objects.
     propertyTypes: OrderedSet[XbrlPropertyType] # ordered set of propertyType objects.

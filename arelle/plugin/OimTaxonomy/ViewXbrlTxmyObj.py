@@ -2,6 +2,7 @@
 See COPYRIGHT.md for copyright information.
 '''
 from typing import Union
+from types import UnionType
 from collections import defaultdict
 from decimal import Decimal
 from typing import GenericAlias
@@ -17,15 +18,20 @@ from .XbrlTaxonomyObject import EMPTY_DICT, XbrlTaxonomyObject
 from .XbrlConst import qnStdLabel
 
 
-def viewXbrlTxmyObj(xbrlDts, objClass, objCollection, tabWin, header, lang=None, altTabWin=None):
+def viewXbrlTxmyObj(xbrlDts, objClass, tabWin, header, additionalViews=None):
     xbrlDts.modelManager.showStatus(_("viewing concepts"))
-    view = ViewXbrlTxmyObj(xbrlDts, objClass, objCollection, tabWin, header, lang)
+    view = ViewXbrlTxmyObj(xbrlDts, objClass, tabWin, header)
     view.propNameTypes = []
     initialParentObjProp = True
     for propName, propType in getattr(objClass, "__annotations__", {}).items():
         if initialParentObjProp:
             initialParentProp = False
-            if isinstance(propType, str) or propType.__name__.startswith("Xbrl"): # skip taxonomy alias type
+            if isinstance(propType, str):
+                continue
+            elif isinstance(propType, UnionType):
+                if any(arg.__name__.startswith("Xbrl") for arg in propType.__args__):
+                    continue
+            elif propType.__name__.startswith("Xbrl"): # skip taxonomy alias type
                 continue
         if not isinstance(propType, GenericAlias): # set, dict, etc
             view.propNameTypes.append((propName, propType))
@@ -74,14 +80,13 @@ def viewXbrlTxmyObj(xbrlDts, objClass, objCollection, tabWin, header, lang=None,
          ("2Standard Label", qnStdLabel)) +
         tuple((f"3{t}", t) for t in sorted(xbrlDts.labelTypes) if t != qnStdLabel))
     view.menuAddNameStyle()
-    view.menuAddViews(addClose=False, tabWin=altTabWin)
+    view.menuAddViews(addClose=False, additionalViews=additionalViews, additionalViewMethod=viewXbrlTxmyObj)
 
 class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
-    def __init__(self, xbrlDts, objClass, objCollection, tabWin, header, lang):
-        super(ViewXbrlTxmyObj, self).__init__(xbrlDts, tabWin, header, True, lang)
+    def __init__(self, xbrlDts, objClass, tabWin, header):
+        super(ViewXbrlTxmyObj, self).__init__(xbrlDts, tabWin, header, True, None)
         self.xbrlDts = xbrlDts
         self.objClass = objClass
-        self.objCollection = objCollection
 
     def view(self):
         # sort by labels
@@ -97,11 +102,11 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
             (XbrlConst.xbrli, XbrlConst.link, XbrlConst.xlink, XbrlConst.xl,
              XbrlConst.xbrldt,
              XbrlConst.xhtml))
-        for obj in self.objCollection:
+        for obj in self.xbrlDts.filterNamedObjects(self.objClass): # this is a yield generator
             propName = self.propNameTypes[0][0]
             node = self.treeView.insert("", "end",
                                         f"_{self.id}_{obj.dtsObjectIndex}",
-                                        text=str(self.xbrlDts.labelValue(obj.getProperty(propName), self.labelrole, self.lang)),
+                                        text=str(self.xbrlDts.labelValue(obj.getProperty(propName, self.labelrole), self.labelrole, self.lang)),
                                         tags=("odd" if nodeNum & 1 else "even",))
             self.tag_has[f"_{obj.dtsObjectIndex}"].append(node)
             self.id += 1

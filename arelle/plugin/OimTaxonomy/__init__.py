@@ -21,7 +21,7 @@ from typing import TYPE_CHECKING, cast, GenericAlias, Union
 import os, io, json, sys, time, traceback
 import regex as re
 from decimal import Decimal
-from arelle.ModelDocument import Type,  create as createModelDocument
+from arelle.ModelDocument import load, Type,  create as createModelDocument
 from arelle.ModelValue import qname, QName
 from arelle.PythonUtil import SEQUENCE_TYPES, OrderedSet
 from arelle.Version import authorLabel, copyrightLabel
@@ -44,13 +44,13 @@ from .XbrlReference import XbrlReference, XbrlReferenceType
 from .XbrlTransform import XbrlTransform
 from .XbrlUnit import XbrlUnit
 from .XbrlTaxonomy import XbrlTaxonomy
-from .XbrlTaxonomyObject import XbrlTaxonomyObject, XbrlReferencableTaxonomyObject
+from .XbrlTaxonomyObject import XbrlTaxonomyObject, XbrlReferencableTaxonomyObject, XbrlTaxonomyTagObject
 from .XbrlDts import XbrlDts, castToDts
 from .XbrlTypes import XbrlTaxonomyType, QNameKeyType, SQNameKeyType, DefaultTrue, DefaultFalse
 from .ValidateDTS import validateDTS
 from .ModelValueMore import SQName
 from .ViewXbrlTxmyObj import viewXbrlTxmyObj
-from .XbrlConst import oimTaxonomyDocTypePattern, oimTaxonomyDocTypes
+from .XbrlConst import oimTaxonomyDocTypePattern, oimTaxonomyDocTypes, qnXbrlLabel, bakedInObjects
 
 
 from arelle.oim.Load import (SQNameType, QNameType, URIType, LangType, NoRecursionCheck,
@@ -455,7 +455,7 @@ def jsonGet(tbl, key, default=None):
         return tbl.get(key, default)
     return default
 
-def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
+def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwargs):
     from arelle import ModelDocument, ModelXbrl, XmlUtil
     from arelle.ModelDocument import ModelDocumentReference
     from arelle.ModelValue import qname
@@ -560,9 +560,13 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
 
         errPrefix = "xbrlte"
         try:
-            _file = modelXbrl.fileSource.file(oimFile, encoding="utf-8-sig")[0]
-            with _file as f:
-                oimObject = json.load(f, object_pairs_hook=loadDict, parse_float=Decimal)
+            if isinstance(oimFile, dict) and oimFile.get("documentInfo",{}).get("documentType") in oimTaxonomyDocTypes:
+                oimObject = oimFile
+                oimFile = "BakedInConstants"
+            else:
+                _file = modelXbrl.fileSource.file(oimFile, encoding="utf-8-sig")[0]
+                with _file as f:
+                    oimObject = json.load(f, object_pairs_hook=loadDict, parse_float=Decimal)
         except UnicodeDecodeError as ex:
             raise OIMException("{}:invalidJSON".format(errPrefix),
                   _("File MUST use utf-8 encoding: %(file)s, error %(error)s"),
@@ -716,8 +720,12 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             error("oime:invalidTaxonomy",
                   _("Unable to obtain a valid taxonomy from URLs provided"),
                   modelObject=xbrlDts)
+        # first OIM Taxonomy load Baked In objects
+        if not xbrlDts.namedObjects and not "loadingBakedInObjects" in kwargs:
+            loadOIMTaxonomy(cntlr, error, warning, modelXbrl, bakedInObjects, "BakedIn", loadingBakedInObjects=True, **kwargs)
         namespacePrefixes = {}
         prefixNamespaces = {}
+        namespaceUrls = {}
         for nsObj in documentInfo.get("namespaces", EMPTY_DICT):
             ns = nsObj.get("uri","")
             prefix = nsObj.get("prefix","")
@@ -728,6 +736,8 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             if nsObj.get("documentNamespace",False):
                 schemaDoc.targetNamespace = ns
             url = nsObj.get("url","")
+            if url:
+                namespaceUrls[ns] = url
         taxonomyName = qname(taxonomyObj.get("name"), prefixNamespaces)
         if not taxonomyName:
             xbrlDts.error("oime:missingQNameProperty",
@@ -743,11 +753,23 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                       modelObject=modelXbrl, extensionProperty=extPropertyPath)
 
         for iImpTxmy, impTxmyObj in enumerate(taxonomyObj.get("importedTaxonomies", EMPTY_LIST)):
+            if qnXbrlLabel in getattr(impTxmyObj, "includeObjectTypes",()):
+                impTxmyObj.includeObjectTypes.delete(qnXbrlLabel)
+                xbrlDts.error("oimte:invalidObjectType",
+                              _("/taxonomy/importedTaxonomies[%(iImpTxmy)s] must not have a label object in the includeObjectTypes property"),
+                              modelObject=xbrlDts, ref=oimFile, index=iImpTxmy)
             impTxmyName = qname(impTxmyObj.get("taxonomyName"), prefixNamespaces)
-            if not impTxmyName:
+            if impTxmyName:
+                ns = impTxmyName.namespaceURI
+                # if already imported ignore it (for now)
+                if ns not in xbrlDts.namespaceDocs:
+                    url = namespaceUrls.get(ns)
+                    if url:
+                        load(xbrlDts, url, base=oimFile, isDiscovered=schemaDoc.inDTS, isIncluded=kwargs.get("isIncluded"), namespace=ns)
+            else:
                 xbrlDts.error("oime:missingQNameProperty",
                               _("/taxonomy/importedTaxonomies[%(iImpTxmy)s] must have a taxonomyName (QName) property"),
-                              modelObject=modelDts, ref=oimFile, index=iImpTxmy)
+                              modelObject=xbrlDts, ref=oimFile, index=iImpTxmy)
         def singular(name):
             if name.endswith("ies"):
                 return name[:-3] + "y"
@@ -758,7 +780,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             if name.endswith("y"):
                 return name[:-1] + "ies"
             else:
-                return name
+                return name + "s"
         def addToCol(oimParentObj, objName, newObj, key):
             parentCol = getattr(oimParentObj, plural(objName), None) # parent collection object
             if colObj is not None:
@@ -870,7 +892,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             ownrProp.append(newObj)
                     if isinstance(newObj, XbrlReferencableTaxonomyObject):
                         xbrlDts.namedObjects[keyValue] = newObj
-                    if isinstance(newObj, (XbrlLabel, XbrlReference)) and relatedNames:
+                    elif isinstance(newObj, XbrlTaxonomyTagObject) and relatedNames:
                         for relatedQn in relatedNames:
                             xbrlDts.tagObjects[relatedQn].append(newObj)
 
@@ -885,7 +907,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                   _("Json file missing required elements: %(missingElements)s"),
                   file=oimFile, missingElements=", ".join(jsonEltsReqdButMissing))
 
-        validateDTS(xbrlDts)
+        xbrlDts.namespaceDocs[taxonomyName.namespaceURI].append(schemaDoc)
 
         return schemaDoc
 
@@ -1255,6 +1277,12 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
     lastFilePathIsOIM = False
     return _return
 
+def oimTaxonomyValidator(val, parameters):
+    if not isinstance(val.modelXbrl, XbrlDts): # if no OIM Taxonomy DTS give up
+        return
+
+    validateDTS(val.modelXbrl)
+
 lastFilePath = None
 lastFilePathIsOIM = False
 
@@ -1277,7 +1305,7 @@ def oimTaxonomyLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
 
     cntlr = modelXbrl.modelManager.cntlr
     cntlr.showStatus(_("Loading OIM taxonomy file: {0}").format(os.path.basename(filepath)))
-    doc = loadOIMTaxonomy(cntlr, modelXbrl.error, modelXbrl.warning, modelXbrl, filepath, mappedUri)
+    doc = loadOIMTaxonomy(cntlr, modelXbrl.error, modelXbrl.warning, modelXbrl, filepath, mappedUri, **kwargs)
     if doc is None:
         return None # not an OIM file
     return doc
@@ -1294,13 +1322,25 @@ def filingStart(self, options, *args, **kwargs):
 
 def oimTaxonomyViews(cntlr, xbrlDts):
     if isinstance(xbrlDts, XbrlDts):
-        if xbrlDts.taxonomies: # has at least one taxonomy
-            xbrlTxmy = next(iter(xbrlDts.taxonomies.values())) # first taxonomy for now
-            viewXbrlTxmyObj(xbrlDts, XbrlConcept, xbrlTxmy.concepts, cntlr.tabWinBtm, "XBRL Concepts")
-            viewXbrlTxmyObj(xbrlDts, XbrlGroupContent, xbrlTxmy.groupContents, cntlr.tabWinTopRt, "XBRL Groups")
-            viewXbrlTxmyObj(xbrlDts, XbrlNetwork, xbrlTxmy.networks, cntlr.tabWinTopRt, "XBRL Networks")
-            viewXbrlTxmyObj(xbrlDts, XbrlCube, xbrlTxmy.cubes, cntlr.tabWinTopRt, "XBRL Cubes")
-            return True # block ordinary taxonomy views
+        initialViews = ((XbrlConcept, cntlr.tabWinBtm, "XBRL Concepts"),
+                        (XbrlGroupContent, cntlr.tabWinTopRt, "XBRL Groups"),
+                        (XbrlNetwork, cntlr.tabWinTopRt, "XBRL Networks"),
+                        (XbrlCube, cntlr.tabWinTopRt, "XBRL Cubes")
+                        )
+        additionalViews = ((XbrlAbstract, cntlr.tabWinBtm, "XBRL Abstracts"),
+                           (XbrlCubeType, cntlr.tabWinBtm, "XBRL Cube Types"),
+                           (XbrlDataType, cntlr.tabWinBtm, "XBRL Data Types"),
+                           (XbrlEntity, cntlr.tabWinBtm, "XBRL Entities"),
+                           (XbrlLabel, cntlr.tabWinBtm, "XBRL Labels"),
+                           (XbrlLabelType, cntlr.tabWinBtm, "XBRL Label Types"),
+                           (XbrlPropertyType, cntlr.tabWinBtm, "XBRL Property Types"),
+                           (XbrlReferenceType, cntlr.tabWinBtm, "XBRL Reference Types"),
+                           (XbrlRelationshipType, cntlr.tabWinBtm, "XBRL Relationship Types"),
+                           (XbrlTransform, cntlr.tabWinBtm, "XBRL Transforms"),
+                           (XbrlUnit, cntlr.tabWinBtm, "XBRL Units"),)
+        for view in initialViews:
+            viewXbrlTxmyObj(xbrlDts, *view, additionalViews)
+        return True # block ordinary taxonomy views
     return False
 
 __pluginInfo__ = {
@@ -1315,5 +1355,6 @@ __pluginInfo__ = {
     'CntlrCmdLine.Filing.Start': filingStart,
     'CntlrWinMain.Xbrl.Views': oimTaxonomyViews,
     'ModelDocument.IsPullLoadable': isOimTaxonomyLoadable,
-    'ModelDocument.PullLoader': oimTaxonomyLoader
+    'ModelDocument.PullLoader': oimTaxonomyLoader,
+    'Validate.XBRL.Start': oimTaxonomyValidator
 }

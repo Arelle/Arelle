@@ -93,3 +93,17 @@ class XbrlReferencableTaxonomyObject(XbrlTaxonomyObject):
         if propertyName == "label" and hasattr(self, "name"):
             return self.xbrlDts.labelValue(self.name, propertyType or qnStdLabel, language)
         return getattr(self, propertyName, defaultValue)
+
+class XbrlTaxonomyTagObject(XbrlTaxonomyObject):
+
+    def __init__(self,  *args: Any, **kwargs: Any) -> None:
+        super(XbrlTaxonomyTagObject, self).__init__(*args, **kwargs)
+
+    @property
+    def xbrlDts(self):
+        if hasattr(self, "taxonomy"):
+            return self.taxonomy.dts
+        return None
+
+    def getProperty(self, propertyName, propertyType=None, language=None, defaultValue=None):
+        return getattr(self, propertyName, defaultValue)

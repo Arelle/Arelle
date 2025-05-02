@@ -9,9 +9,9 @@ from arelle.PythonUtil import OrderedSet
 from .XbrlProperty import XbrlProperty
 from .XbrlTypes import XbrlTaxonomyType, QNameKeyType
 from .ModelValueMore import SQName
-from .XbrlTaxonomyObject import XbrlReferencableTaxonomyObject
+from .XbrlTaxonomyObject import XbrlReferencableTaxonomyObject, XbrlTaxonomyTagObject
 
-class XbrlReference(XbrlReferencableTaxonomyObject):
+class XbrlReference(XbrlTaxonomyTagObject):
     taxonomy: XbrlTaxonomyType
     name: QNameKeyType # (required if no extendTargetame) The name is a QName that uniquely identifies the reference object.
     extendTargetName: QName # (required if no name) Names the reference object that the defined relatedNames property should be appended to. The relatedNames property in the reference with this property are appended to the end of the relatedName property defined in the target reference object. This property cannot be used in conjunction with the name property.
