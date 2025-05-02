@@ -441,7 +441,7 @@ def createTargetInstance(
         arcrole, linkrole, linkqname, arcqname = linkKey
         if (linkrole and linkqname and arcqname and  # fully specified roles
             arcrole != "XBRL-footnotes" and
-            any(lP.modelDocument.type in [Type.INLINEXBRL,Type.INLINEXBRLDOCUMENTSET] for lP in linkPrototypes)):
+            any(lP.modelDocument.type in (Type.INLINEXBRL, Type.INLINEXBRLDOCUMENTSET) for lP in linkPrototypes)):
             for linkPrototype in linkPrototypes:
                 if linkPrototype not in footnoteLinks[linkrole]:
                     footnoteLinks[linkrole].append(linkPrototype)
