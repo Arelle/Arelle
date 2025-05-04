@@ -12,13 +12,12 @@ from .XbrlTypes import XbrlTaxonomyType, QNameKeyType
 from .XbrlTaxonomyObject import XbrlTaxonomyObject, XbrlReferencableTaxonomyObject
 
 class XbrlRelationship(XbrlTaxonomyObject):
-    network: XbrlTaxonomyType
     source: QName # (required) This attribute identifies the source concept of the relationship type. The value of the attribute must be a QName.
     target: QName # (required) This attribute identifies the target concept of the relationship type. The value of the attribute must be a QName.
     order: Optional[int] # (optional) This is used to order the relationships if the order is different than the order that the relationship appears in the list of relationships. The order property can be used on any relationship type.
     weight: Optional[int] # (required on summation-item) Weight of a summation-item relationship type.
-    preferredlabel: QName # (optional on parent-child) The preferred label QName of a parent-child relationship type.
-    useable: bool # (optional on domain-member) Indicates if the member value is useable on a domain-member relationship.
+    preferredlabel: Optional[QName] # (optional on parent-child) The preferred label QName of a parent-child relationship type.
+    usable: Optional[bool] # (optional on domain-member) Indicates if the member value is useable on a domain-member relationship.
     properties: OrderedSet[XbrlProperty] # (optional) ordered set of property objects used to specify additional properties associated with the concept using the property object. Only immutable properties as defined in the propertyType object can be added to a concept.
 
     @property
@@ -87,7 +86,7 @@ class XbrlNetwork(XbrlReferencableTaxonomyObject, XbrlRelationshipSet):
     relationshipTypeName: QName # (required if no extendedTargetName) The relationshipType object of the network expressed as a QName such as xbrl:parent-child
     roots: OrderedSet[QName] # (optional) A list of the root objects of the network object. This allows a single object to be associated with a network without the need for a relationship. The order of roots in the list indicates the order in which the roots should appear. If no root is specified for a list of relationships the roots property is inferred from the relationships defined.
     relationships: OrderedSet[XbrlRelationship] # (optional) A set of the relationship objects comprising the network.
-    extendTargetName: QName # (required if no name) Names the network object that the defined network relationships should be appended to. The items in the network with this property are appended to the end of the relationships or roots defined in the target network object. This property cannot be used in conjunction with the relationshipTypeName and name property.
+    extendTargetName: Optional[QName] # (required if no name) Names the network object that the defined network relationships should be appended to. The items in the network with this property are appended to the end of the relationships or roots defined in the target network object. This property cannot be used in conjunction with the relationshipTypeName and name property.
     properties: OrderedSet[XbrlProperty] # (optional) ordered set of property objects used to specify additional properties associated with the concept using the property object. Only immutable properties as defined in the propertyType object can be added to a concept.
 
 class XbrlRelationshipType(XbrlReferencableTaxonomyObject):

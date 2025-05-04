@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Optional
 from arelle.ModelValue import QName, DateTime, YearMonthDayTimeDuration
 from arelle.PythonUtil import OrderedSet
 from .XbrlProperty import XbrlProperty
-from .XbrlTypes import XbrlTaxonomyType, QNameKeyType, DefaultTrue
+from .XbrlTypes import XbrlTaxonomyType, QNameKeyType, DefaultTrue, DefaultFalse
 from .ModelValueMore import QNameAt, SQName
 from .XbrlTaxonomyObject import XbrlTaxonomyObject, XbrlReferencableTaxonomyObject
 
@@ -29,9 +29,9 @@ class XbrlPeriodConstraint(XbrlTaxonomyObject):
 
 class XbrlCubeDimension(XbrlTaxonomyObject):
     dimensionName: QName # (required) The QName of the dimension object that is used to identify the dimension. For the core dimensions of concept, period, entity and unit, the core dimension QNames of xbrl:concept, xbrl:period, xbrl:entity, xbrl:unit and xbrl:language are used. The dimension object indicates if the dimension is typed or explicit.
-    domainName: QName # (required if explicit dimension) The QName of the domain object that is used to identify the domain associated with the dimension. Only one domain can be associated with a dimension. The domain name cannot be provided for a typed dimension or the period core dimension.
-    domainSort: str # (optional if typed dimension) A string value that indicates the sort order of the typed dimension. The values can be either asc or desc. The values are case insensitive. This indicates if the cube is viewed the order of the values shown on the typed dimension. This cannot be used on an explicit dimension.
-    allowDomainFacts: bool # (optional    ) A boolean value that indicates if facts not identified with the dimension are included in the cube. For typed and explicit dimensions the value defaults to false. A value of true for a typed or explicit dimension will include facts that don't use the dimension in the cube. For the period core dimension, forever facts or facts with no period dimension are included when this value is set to true. For units, this is a unit with no units such as a string or date. For the entity core dimension, it is fact values with no entity. This property cannot be used on the concept core dimension.
+    domainName: Optional[QName] # (required if explicit dimension) The QName of the domain object that is used to identify the domain associated with the dimension. Only one domain can be associated with a dimension. The domain name cannot be provided for a typed dimension or the period core dimension.
+    domainSort: Optional[str] # (optional if typed dimension) A string value that indicates the sort order of the typed dimension. The values can be either asc or desc. The values are case insensitive. This indicates if the cube is viewed the order of the values shown on the typed dimension. This cannot be used on an explicit dimension.
+    allowDomainFacts: bool | DefaultFalse # (optional    ) A boolean value that indicates if facts not identified with the dimension are included in the cube. For typed and explicit dimensions the value defaults to false. A value of true for a typed or explicit dimension will include facts that don't use the dimension in the cube. For the period core dimension, forever facts or facts with no period dimension are included when this value is set to true. For units, this is a unit with no units such as a string or date. For the entity core dimension, it is fact values with no entity. This property cannot be used on the concept core dimension.
     periodConstraints: set[XbrlPeriodConstraint] # (optional only for period core dimension) Defines an ordered set of periodConstraint objects to restrict fact values in a cube to fact values with a specified period.
     unitConstraints: OrderedSet[QName] # (optional only for unit core dimension) Defines an ordered set of unit object QNames that facts must have to be included in the cube.
 
@@ -47,8 +47,9 @@ class XbrlCube(XbrlReferencableTaxonomyObject):
 
 class XbrlAllowedCubeDimension(XbrlTaxonomyObject):
     dimensionName: Optional[QName] # (optional) The dimension QName that identifies the taxonomy defined dimension.
-    min: Optional[int] # (optional) Indicates the minimum occurrences of the dimension. If the value is 0 the dimension is optional, if the value is greater than 0 then at least 1 or more dimensions is required.
-    max: Optional[int] # (optional if dimensionName not specified) Indicates the maximum number of dimensions permitted that meets the values derived from domainDataType.
+    dimensionType: Optional[str] # (optional) The dimension QName that identifies the taxonomy defined dimension.
+    dimensionDataType: Optional[QName] # (optional) The dimension QName that identifies the taxonomy defined dimension.
+    required: bool | DefaultFalse # (optional) The dimension QName that identifies the taxonomy defined dimension.
 
 class XbrlRequiredCubeRelationship(XbrlTaxonomyObject):
     relationshipTypeName: QName # (required) The relationship type QName of a relationship. This requires that at lease one of these relationship types exist on the cube.
@@ -62,6 +63,6 @@ class XbrlCubeType(XbrlReferencableTaxonomyObject):
     periodDimension: bool | DefaultTrue # (optional) boolean to indicate if the period core dimension is included in the cube. Defaults to true.
     entityDimension: bool | DefaultTrue # (optional) boolean to indicate if the entity core dimension is included in the cube. Defaults to true.
     unitDimension: bool | DefaultTrue # (optional) boolean to indicate if the unit core dimension is included in the cube. Defaults to true.
-    taxonomyDefinedDimension: bool | DefaultTrue # (optional) boolean to indicate if taxonomy defined dimensions are included in the cube. Defaults to true.
+    taxonomyDefinedDimensions   : bool | DefaultTrue # (optional) boolean to indicate if taxonomy defined dimensions are included in the cube. Defaults to true.
     allowedCubeDimensions: OrderedSet[XbrlAllowedCubeDimension] # (optional) An ordered set of allowedCubeDimension objects that are permitted to be used on the cube. If the property is not defined then any dimensions can be associated with the cube.
     requiredCubeRelationships: OrderedSet[XbrlRequiredCubeRelationship] # (optional) An ordered set of requiredCubeRelationship objects that at a minimum must be associated with the cube.

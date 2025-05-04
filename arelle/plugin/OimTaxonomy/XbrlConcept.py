@@ -31,11 +31,11 @@ class XbrlDataType(XbrlReferencableTaxonomyObject):
     maxInclusive: Optional[Decimal] # (optional) Defines a decimal value to indicate a max inclusive cardinal value for a type. Only applies to types based on float, double and decimal.
     minExclusive: Optional[Decimal] # (optional) Defines a decimal value to indicate a min exclusive cardinal value for a type. Only applies to types based on float, double and decimal.
     maxExclusive: Optional[Decimal] # (optional) Defines a decimal value to indicate a max exclusive cardinal value for a type. Only applies to types based on float, double and decimal.
-    totalDigits: int # (optional) Defines an int value to indicate total digits of a value. Only applies to types based on float, double and decimal.
-    fractionDigits: int # (optional) Defines an int of digits to the right of the decimal place. Only applies to types based on float, double and decimal.
-    length: int # (optional) Defines an int value used to define the length of a string value.
-    minLength: int # (optional) Defines an int used to define minimum length of a string value.
-    maxLength: int # (optional) Defines an int used to define maximum length of a string value.
+    totalDigits: Optional[int] # (optional) Defines an int value to indicate total digits of a value. Only applies to types based on float, double and decimal.
+    fractionDigits: Optional[int] # (optional) Defines an int of digits to the right of the decimal place. Only applies to types based on float, double and decimal.
+    length: Optional[int] # (optional) Defines an int value used to define the length of a string value.
+    minLength: Optional[int] # (optional) Defines an int used to define minimum length of a string value.
+    maxLength: Optional[int] # (optional) Defines an int used to define maximum length of a string value.
     whiteSpace: Optional[str] # (optional) Defines a string one of preserve, replace or collapse.
     pattern: set[str] # (optional) Defines a string as a single regex expressions. At least one of the regex patterns must match. (Uses XML regex)
     unitTypes: OrderedSet[XbrlUnitTypeType] # unitType comprising a dataType expressed as a value of the datatype. For example xbrli:flow has unit datatypes of xbrli:volume and xbrli:time

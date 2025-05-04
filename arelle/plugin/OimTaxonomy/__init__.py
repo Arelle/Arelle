@@ -17,9 +17,11 @@ For debugging, saves the xsd objects loaded from the OIM taxonomy if
 """
 
 from typing import TYPE_CHECKING, cast, GenericAlias, Union
+from types import UnionType
 
 import os, io, json, sys, time, traceback
 import regex as re
+from collections import OrderedDict
 from decimal import Decimal
 from arelle.ModelDocument import load, Type,  create as createModelDocument
 from arelle.ModelValue import qname, QName
@@ -467,6 +469,10 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
         startingErrorCount = len(modelXbrl.errors) if modelXbrl else 0
         startedAt = time.time()
         documentType = None # set by loadDict
+        includeObjects = kwargs.get("includeObjects")
+        includeObjectTypes = kwargs.get("includeObjectTypes")
+        excludeLabels = kwargs.get("excludeLabels", False)
+        followImport = kwargs.get("followImport", True)
 
         currentAction = "loading and parsing OIM Taxonomy file"
         loadDictErrors = []
@@ -562,15 +568,20 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
         try:
             if isinstance(oimFile, dict) and oimFile.get("documentInfo",{}).get("documentType") in oimTaxonomyDocTypes:
                 oimObject = oimFile
-                oimFile = "BakedInConstants"
+                href = "BakedInConstants"
+                txFileName = href
+                txBase = None
             else:
                 _file = modelXbrl.fileSource.file(oimFile, encoding="utf-8-sig")[0]
+                href = os.path.basename(oimFile)
+                txFileName = oimFile
+                txBase = os.path.dirname(oimFile) # import referenced taxonomies
                 with _file as f:
                     oimObject = json.load(f, object_pairs_hook=loadDict, parse_float=Decimal)
         except UnicodeDecodeError as ex:
             raise OIMException("{}:invalidJSON".format(errPrefix),
                   _("File MUST use utf-8 encoding: %(file)s, error %(error)s"),
-                  file=oimFile, error=str(ex))
+                  sourceFileLine=oimFile, error=str(ex))
         except json.JSONDecodeError as ex:
             raise OIMException("{}:invalidJSON".format(errPrefix),
                     "JSON error while %(action)s, %(file)s, error %(error)s",
@@ -591,7 +602,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
 
         # report loadDict errors
         for msgCode, msgText, kwargs in loadDictErrors:
-            error(msgCode.format(errPrefix), msgText, href=oimFile, **kwargs)
+            error(msgCode.format(errPrefix), msgText, sourceFileLine=href, **kwargs)
         del loadDictErrors[:]
 
         oimRequiredMembers = JsonRequiredMembers
@@ -603,6 +614,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
         unexpectedMembers = []
         extensionProperties = {} # key is property QName, value is property path
 
+        '''
         def showPathObj(parts, obj): # this can be replaced with jsonPath syntax if appropriate
             try:
                 shortObjStr = json.dumps(obj)
@@ -688,11 +700,9 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
             error("{}:invalidJSONStructure".format(errPrefix),
                   "\n ".join(msg), documentType=documentType,
                   sourceFileLine=oimFile, missing=", ".join(missingRequiredMembers), unexpected=", ".join(unexpectedMembers))
+        '''
 
         currentAction = "identifying Metadata objects"
-
-        # import referenced taxonomies
-        txBase = os.path.dirname(oimFile)
 
         # create the taxonomy document
         currentAction = "creating schema"
@@ -702,7 +712,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
             schemaDoc = _return = createModelDocument(
                   modelXbrl,
                   Type.SCHEMA,
-                  oimFile,
+                  txFileName,
                   initialComment="loaded from OIM Taxonomy {}".format(mappedUri),
                   documentEncoding="utf-8",
                   # base=txBase or modelXbrl.entryLoadingUrl
@@ -719,7 +729,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
         if len(modelXbrl.errors) > prevErrLen:
             error("oime:invalidTaxonomy",
                   _("Unable to obtain a valid taxonomy from URLs provided"),
-                  modelObject=xbrlDts)
+                  sourceFileLine=href)
         # first OIM Taxonomy load Baked In objects
         if not xbrlDts.namedObjects and not "loadingBakedInObjects" in kwargs:
             loadOIMTaxonomy(cntlr, error, warning, modelXbrl, bakedInObjects, "BakedIn", loadingBakedInObjects=True, **kwargs)
@@ -742,7 +752,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
         if not taxonomyName:
             xbrlDts.error("oime:missingQNameProperty",
                           _("Taxonomy must have a name (QName) property"),
-                          modelObject=xbrlDts, ref=oimFile)
+                          sourceFileLine=href)
 
         # check extension properties (where metadata specifies CheckPrefix)
         for extPropSQName, extPropertyPath in extensionProperties.items():
@@ -750,26 +760,30 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
             if extPropPrefix not in prefixNamespaces:
                 error("oimte:unboundPrefix",
                       _("The extension property QName prefix was not defined in namespaces: %(extensionProperty)s."),
-                      modelObject=modelXbrl, extensionProperty=extPropertyPath)
+                      sourceFileLine=href, extensionProperty=extPropertyPath)
 
         for iImpTxmy, impTxmyObj in enumerate(taxonomyObj.get("importedTaxonomies", EMPTY_LIST)):
             if qnXbrlLabel in getattr(impTxmyObj, "includeObjectTypes",()):
                 impTxmyObj.includeObjectTypes.delete(qnXbrlLabel)
                 xbrlDts.error("oimte:invalidObjectType",
                               _("/taxonomy/importedTaxonomies[%(iImpTxmy)s] must not have a label object in the includeObjectTypes property"),
-                              modelObject=xbrlDts, ref=oimFile, index=iImpTxmy)
+                              sourceFileLine=href, index=iImpTxmy)
             impTxmyName = qname(impTxmyObj.get("taxonomyName"), prefixNamespaces)
             if impTxmyName:
                 ns = impTxmyName.namespaceURI
                 # if already imported ignore it (for now)
-                if ns not in xbrlDts.namespaceDocs:
+                if ns not in xbrlDts.namespaceDocs and followImport:
                     url = namespaceUrls.get(ns)
                     if url:
-                        load(xbrlDts, url, base=oimFile, isDiscovered=schemaDoc.inDTS, isIncluded=kwargs.get("isIncluded"), namespace=ns)
+                        load(xbrlDts, url, base=oimFile, isDiscovered=schemaDoc.inDTS, isIncluded=kwargs.get("isIncluded"), namespace=ns,
+                             includeObjects=(qname(qn, prefixNamespaces) for qn in impTxmyObj.get("includeObjects",())) or None,
+                             includeObjectTypes=(qname(qn, prefixNamespaces) for qn in impTxmyObj.get("includeObjectTypes",())) or None,
+                             excludeLabels=impTxmyObj.get("excludeLabels",False),
+                             followImport=impTxmyObj.get("followImport",True))
             else:
                 xbrlDts.error("oime:missingQNameProperty",
                               _("/taxonomy/importedTaxonomies[%(iImpTxmy)s] must have a taxonomyName (QName) property"),
-                              modelObject=xbrlDts, ref=oimFile, index=iImpTxmy)
+                              sourceFileLine=href, index=iImpTxmy)
         def singular(name):
             if name.endswith("ies"):
                 return name[:-3] + "y"
@@ -819,39 +833,55 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                         dtsObjectIndex = len(xbrlDts.taxonomyObjects)
                         newObj = objClass(dtsObjectIndex=dtsObjectIndex) # e.g. this is the new Concept
                         xbrlDts.taxonomyObjects.append(newObj)
+                        classCountProp = f"_{objClass.__name__}Count"
+                        classIndex = getattr(oimParentObj, classCountProp, 0)
+                        setattr(newObj, "_classIndex", classIndex)
+                        setattr(oimParentObj, classCountProp,classIndex+1)
                     else:
                         newObj = objClass() # e.g. XbrlProperty
                     keyValue = None
                     relatedNames = [] # to tag an object with labels or references
+                    unexpectedJsonProps = set(jsonObj.keys())
                     for propName, propType in getattr(objClass, "__annotations__", EMPTY_DICT).items():
                         optional = False
-                        if isinstance(getattr(propType, "__origin__", None), type(Union)): # Optional[ ] type
+                        if isinstance(propType, UnionType) or isinstance(getattr(propType, "__origin__", None), type(Union)): # Optional[ ] type
                             if propType.__args__[-1] in (type(None), DefaultTrue, DefaultFalse):
                                 optional = True
-                            propType = propType.__args__[0] # use first of union for prop value creation
+                            propType = propClass = propType.__args__[0] # use first of union for prop value creation
+                        elif isinstance(propType, GenericAlias):
+                            propClass = propType.__origin__ # collection type such as OrderedSet, dict
+                            collectionProp = propClass()
+                            setattr(newObj, propName, collectionProp) # fresh new dict or OrderedSet (even if no contents for it)
+                        else:
+                            propClass = propType
                         if propName in jsonObj:
+                            unexpectedJsonProps.remove(propName)
+                            if propName == "labels" and excludeLabels:
+                                continue
                             jsonValue = jsonObj[propName]
                             if isinstance(propType, GenericAlias):
-                                propClass = propType.__origin__ # collection type such as OrderedSet, dict
                                 if len(propType.__args__) == 2: # dict
                                     _keyClass = propType.__args__[0] # class of key such as QNameKey
                                     eltClass = propType.__args__[1] # class of collection elements such as XbrlConcept
                                 elif len(propType.__args__) == 1: # set such as OrderedSet or list
                                     _keyClass = None
                                     eltClass = propType.__args__[0]
-                                collectionProp = propClass()
-                                setattr(newObj, propName, collectionProp) # fresh new dict or OrderedSet
                                 if isinstance(jsonValue, list):
                                     for iObj, listObj in enumerate(jsonValue):
                                         if isinstance(eltClass, str) or eltClass.__name__.startswith("Xbrl"): # nested Xbrl objects
-                                            createTaxonomyObjects(propName, listObj, newObj, pathParts + [propName, str(iObj)])
+                                            if isinstance(listObj, dict):
+                                                createTaxonomyObjects(propName, listObj, newObj, pathParts + [propName, str(iObj)])
+                                            else:
+                                                error("xbrlte:invalidObjectType",
+                                                      _("Object expected but non-object found: %(listObj)s, jsonObj: %(path)s"),
+                                                      sourceFileLine=href, listObj=listObj, path=f"{'/'.join(pathParts + [propName, str(iObj)])}")
                                         else: # collection contains ordinary values
                                             if eltClass in (QName, QNameKeyType, SQName, SQNameKeyType):
                                                 listObj = qname(listObj, prefixNamespaces)
                                                 if listObj is None:
                                                     error("xbrlte:invalidQName",
                                                           _("QName is invalid: %(qname)s, jsonObj: %(path)s"),
-                                                          file=oimFile, qname=jsonObj[propName], path=f"{'/'.join(pathParts + [propName, str(iObj)])}")
+                                                          sourceFileLine=href, qname=jsonObj[propName], path=f"{'/'.join(pathParts + [propName, str(iObj)])}")
                                                     continue # skip this property
                                                 if propName == "relatedNames":
                                                     relatedNames.append(listObj)
@@ -865,7 +895,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                                     if jsonValue is None:
                                         error("xbrlte:invalidQName",
                                               _("QName is invalid: %(qname)s, jsonObj: %(path)s"),
-                                              file=oimFile, qname=jsonObj[propName], path=f"{'/'.join(pathParts + [propName])}")
+                                              sourceFileLine=href, qname=jsonObj[propName], path=f"{'/'.join(pathParts + [propName])}")
                                         continue # skip this property
                                     if propName == "relatedName":
                                         relatedNames.append(jsonValue)
@@ -878,10 +908,13 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                             setattr(newObj, propName, True)
                         elif propType == DefaultFalse:
                             setattr(newObj, propName, False)
-                        else: # unexpected json element
-                            propPath = f"{'/'.join(pathParts + [objName, propName])}={jsonObj.get(propName,'(absent)')}"
+                        else: # absent json element
                             if not optional:
-                                jsonEltsReqdButMissing.append(propPath)
+                                if not propClass in (dict, set, OrderedSet, OrderedDict):
+                                    jsonEltsReqdButMissing.append(f"{'/'.join(pathParts + [propName])}")
+                    if unexpectedJsonProps:
+                        for propName in unexpectedJsonProps:
+                            jsonEltsNotInObjClass.append(f"{'/'.join(pathParts + [propName])}={jsonObj.get(propName,'(absent)')}")
                     if isinstance(ownrPropType, GenericAlias):
                         if len(ownrPropType.__args__) == 2:
                             if keyValue:
@@ -901,11 +934,11 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
         if jsonEltsNotInObjClass:
             error("arelle:undeclaredOimTaxonomyJsonElements",
                   _("Json file has elements not declared in Arelle object classes: %(undeclaredElements)s"),
-                  file=oimFile, undeclaredElements=", ".join(jsonEltsNotInObjClass))
+                  sourceFileLine=href, undeclaredElements=", ".join(jsonEltsNotInObjClass))
         if jsonEltsReqdButMissing:
             error("arelle:missingOimTaxonomyJsonElements",
                   _("Json file missing required elements: %(missingElements)s"),
-                  file=oimFile, missingElements=", ".join(jsonEltsReqdButMissing))
+                  sourceFileLine=href, missingElements=", ".join(jsonEltsReqdButMissing))
 
         xbrlDts.namespaceDocs[taxonomyName.namespaceURI].append(schemaDoc)
 

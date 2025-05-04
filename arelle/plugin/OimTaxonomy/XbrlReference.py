@@ -26,4 +26,4 @@ class XbrlReferenceType(XbrlReferencableTaxonomyObject):
     uri: Optional[AnyURI] # (optional) A uri used to identify the reference type of reference objects for backward compatability with XBRL 2.1 taxonomies.
     allowedObjects: OrderedSet[QName] # (optional) Defines an ordered set of object types that can use the referenceType.
     orderedPropertiesproperties: OrderedSet[XbrlProperty] # (optional) Defines an ordered set of property QNames that can be used with the reference.
-    requiredPropertiesproperties: OrderedSet[XbrlProperty] # (optional) Defines an ordered set of property QNames that must be included within a defined reference type.
+    requiredProperties: OrderedSet[QName] # (optional) Defines an ordered set of property QNames that must be included within a defined reference type.

@@ -2,6 +2,7 @@
 See COPYRIGHT.md for copyright information.
 """
 from typing import GenericAlias, Any
+import os
 from .XbrlConst import qnStdLabel
 
 EMPTY_DICT = {}
@@ -14,6 +15,16 @@ class XbrlTaxonomyObject:
     @property
     def xbrlDts(self):
         return None
+
+    @property
+    def entryLoadingUrl(self):
+        href = os.path.basename(getattr(getattr(self, 'taxonomy', None), 'entryPoint', '(N/A)'))
+        className = type(self).__name__
+        if className.startswith("Xbrl"):
+            classIndex = getattr(self, "_classIndex", None)
+            if classIndex is not None:
+                href = f"{href}/{className[4].lower()}{className[5:]}[{classIndex}]"
+        return href
 
     def getProperty(self, propertyName, propertyClass=None, propertyType=None, language=None, defaultValue=None):
         return getattr(self, propertyName, defaultValue)

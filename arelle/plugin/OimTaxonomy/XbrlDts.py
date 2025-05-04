@@ -105,6 +105,16 @@ class XbrlDts(ModelXbrl): # complete wrapper for ModelXbrl
         for obj in objdict.values():
             if isinstance(obj, _class):
                 yield obj
+
+    def error(self, *args, **kwargs):
+        if "xbrlObject" in kwargs:
+            kwargs["sourceFileLine"] = kwargs["xbrlObject"].entryLoadingUrl
+            super(XbrlDts, self).error(*args, **kwargs)
+
+    def warning(self, *args, **kwargs):
+        if "xbrlObject" in kwargs:
+            kwargs["sourceFileLine"] = kwargs["xbrlObject"].entryLoadingUrl
+            super(XbrlDts, self).warning(*args, **kwargs)
         
 
 def create(*args: Any, **kwargs: Any) -> XbrlDts:

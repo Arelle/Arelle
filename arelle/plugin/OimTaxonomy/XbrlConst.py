@@ -56,6 +56,7 @@ bakedInObjects = {
         "frameworkName": "types",
         "version": "2025",
         "entryPoint": "https://arelle.org/baked-in-taxonomy",
+        "resolved": False,
         "dataTypes": [
             {
                 "name": "xbrli:monetary",

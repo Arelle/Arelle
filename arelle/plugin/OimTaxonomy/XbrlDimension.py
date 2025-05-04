@@ -14,7 +14,8 @@ from .XbrlTaxonomyObject import XbrlReferencableTaxonomyObject
 class XbrlDimension(XbrlReferencableTaxonomyObject):
     taxonomy: XbrlTaxonomyType
     name: QNameKeyType # (required) Optional[The]QName Optional[of]the Optional[dimension]object.
-    domainDataType: QName#  (required Optional[for]typed dimension) Optional[The]QName Optional[of]the Optional[datatype]for Optional[a]typed dimension.
+    domainDataType: Optional[QName] #  (required Optional[for]typed dimension) Optional[The]QName Optional[of]the Optional[datatype]for Optional[a]typed dimension.
+    baseDomain: Optional[QName] # (required for explicit dimension) The QName of of the base domain for the dimension.
     cubeTypes: OrderedSet[QName] # (optional) Optional[an]ordered Optional[set]of Optional[QNames]that Optional[indicate]the Optional[cube]type Optional[the]dimension Optional[can]only Optional[apply]to. Optional[Must]be Optional[a]QName Optional[value]defined Optional[by]built Optional[in]cube Optional[types]or Optional[taxonomy]defined Optional[cube]types. Optional[For]example xbrl:eventCube, xbrl:referenceCube etc. Optional[If]not Optional[defined]the Optional[dimension]can Optional[be]applied Optional[to]any Optional[cube]type.
     properties: OrderedSet[XbrlProperty] # (optional) Optional[an]ordered Optional[set]of Optional[property]objects Optional[used]to Optional[specify]additional Optional[properties]associated Optional[with]the Optional[dimension]using Optional[the]property object. Optional[Only]immutable Optional[properties]as Optional[defined]in Optional[the]propertyType Optional[object]can Optional[be]added Optional[to]a dimension.
 
