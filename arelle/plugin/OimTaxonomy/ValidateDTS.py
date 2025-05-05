@@ -68,6 +68,53 @@ def validateTaxonomy(dts, txmy):
                       xbrlObject=cncpt, name=cncpt.name, enumDomain=enumDomQn)
         validateProperties(dts, oimFile, txmy, cncpt)
 
+
+    # Cube Objects
+    for cubeObj in txmy.cubes:
+        if cubeObj.taxonomyDefinedDimension and cubeObj.allowedCubeDimensions:
+            dts.error("oimte:inconsistentTaxonomyDefinedDimensionProperty",
+                      _("The allowedCubeDimensions property on cube %(name)s MUST only be used when the taxonomyDefinedDimension value is true"),
+                      xbrlObject=cubeObj, name=name)
+        dimQnCounts = {}
+        for allowedCubeDimObj in cubeObj.allowedCubeDimensions:
+            dimQn = allowedCubeDimObj.dimensionName
+            if dimQn not in dts.namedObjects or type(dts.namedObjects[dim]) != XbrlDimension:
+                dts.error("oimte:invalidTaxonomyDefinedDimension",
+                          _("The allowedCubeDimensions property on cube %(name)s MUST resolve to a dimension object: %(dimension)s"),
+                          xbrlObject=cubeObj, name=name, dimension=dimQn)
+            dimQnCounts[dimQn] = dimQnCounts.get(dimQn, 0) + 1
+        if any(c > 1 for c in dimQnCounts.values()):
+            dts.error("oimte:duplicateTaxonomyDefinedDimensions",
+                      _("The allowedCubeDimensions property on cube %(name)s duplicate these dimension object(s): %(dimensions)s"),
+                      xbrlObject=cubeObj, name=name, dimensions=", ".join(str(qn) for qn, ct in dimQnCounts.items if ct > 1))
+        validateProperties(dts, oimFile, txmy, cubeObj)
+
+    # Dimension Objects
+    for dimObj in txmy.dimensions:
+        for cubeTypeQn in dimObj.cubeTypes:
+            if cubeTypeQn not in dts.namedObjects or type(dts.namedObjects[cubeTypeQn]) != XbrlCubeType:
+                dts.error("oimte:invalidPropertyValue",
+                          _("The cubeType object QName %(name)s MUST be a valid cubeType object in the dts"),
+                          xbrlObject=dimObj, name=cubeTypeQn)
+        if dimObj.domainDataType and dimObj.domainDataType not in dts.namedObjects or type(dts.namedObjects[dimObj.domainDataType]) != XbrlDataType:
+            dts.error("oimte:invalidPropertyValue",
+                      _("The domainDataType object QName %(name)s MUST be a valid dataType object in the dts"),
+                      xbrlObject=dimObj, name=dimObj.domainDataType)
+
+    # GroupContent Objects
+    for grpCntObj in txmy.groupContents:
+        grpQn = grpCntObj.groupName
+        if grpQn not in dts.namedObjects or type(dts.namedObjects[grpQn]) != XbrlGroup:
+            dts.error("oimte:invalidGroupObject",
+                      _("The groupContent object groupName QName %(name)s MUST be a valid group object in the dts"),
+                      xbrlObject=grpCntObj, name=grpQn)
+        for relName in grpCntObj.relatedNames:
+            if relName not in dts.namedObjects or type(dts.namedObjects[relName]) not in (XbrlNetwork, XbrlCube, XbrlTableTemplate):
+                dts.error("oimte:invalidGroupObject",
+                          _("The groupContent object %(name)s relatedName %(relName)s MUST only include QNames associated with network objects, cube objects or table template objects."),
+                          xbrlObject=grpCntObj, name=grpCntObj.groupName, relName=relName)
+        validateProperties(dts, oimFile, txmy, grpCntObj)
+
     # Label Objects
     for labelObj in txmy.labels:
         relatedName = labelObj.relatedName
@@ -97,37 +144,3 @@ def validateTaxonomy(dts, txmy):
                           _("Reference %(name)s has invalid related object %(relName)s"),
                           xbrlObject=refObj, name=name, relName=relName)
         validateProperties(dts, oimFile, txmy, refObj)
-
-    # Cube Objects
-    for cubeObj in txmy.cubes:
-        if cubeObj.taxonomyDefinedDimension and cubeObj.allowedCubeDimensions:
-            dts.error("oimte:inconsistentTaxonomyDefinedDimensionProperty",
-                      _("The allowedCubeDimensions property on cube %(name)s MUST only be used when the taxonomyDefinedDimension value is true"),
-                      xbrlObject=cubeObj, name=name)
-        dimQnCounts = {}
-        for allowedCubeDimObj in cubeObj.allowedCubeDimensions:
-            dimQn = allowedCubeDimObj.dimensionName
-            if dimQn not in dts.namedObjects or type(dts.namedObjects[dim]) != XbrlDimension:
-                dts.error("oimte:invalidTaxonomyDefinedDimension",
-                          _("The allowedCubeDimensions property on cube %(name)s MUST resolve to a dimension object: %(dimension)s"),
-                          xbrlObject=cubeObj, name=name, dimension=dimQn)
-            dimQnCounts[dimQn] = dimQnCounts.get(dimQn, 0) + 1
-        if any(c > 1 for c in dimQnCounts.values()):
-            dts.error("oimte:duplicateTaxonomyDefinedDimensions",
-                      _("The allowedCubeDimensions property on cube %(name)s duplicate these dimension object(s): %(dimensions)s"),
-                      xbrlObject=cubeObj, name=name, dimensions=", ".join(str(qn) for qn, ct in dimQnCounts.items if ct > 1))
-        validateProperties(dts, oimFile, txmy, cubeObj)
-
-    # GroupContent Objects
-    for grpCntObj in txmy.groupContents:
-        grpQn = grpCntObj.groupName
-        if grpQn not in dts.namedObjects or type(dts.namedObjects[grpQn]) != XbrlGroup:
-            dts.error("oimte:invalidGroupObject",
-                      _("The groupContent object groupName QName %(name)s MUST be a valid group object in the dts"),
-                      xbrlObject=grpCntObj, name=grpQn)
-        for relName in grpCntObj.relatedNames:
-            if relName not in dts.namedObjects or type(dts.namedObjects[relName]) not in (XbrlNetwork, XbrlCube, XbrlTableTemplate):
-                dts.error("oimte:invalidGroupObject",
-                          _("The groupContent object %(name)s relatedName %(relName)s MUST only include QNames associated with network objects, cube objects or table template objects."),
-                          xbrlObject=grpCntObj, name=grpCntObj.groupName, relName=relName)
-        validateProperties(dts, oimFile, txmy, grpCntObj)

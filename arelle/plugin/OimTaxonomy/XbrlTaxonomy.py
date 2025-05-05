@@ -25,7 +25,7 @@ from .XbrlTransform import XbrlTransform
 from .XbrlUnit import XbrlUnit
 from .XbrlTypes import QNameKeyType, XbrlTaxonomyType
 from .XbrlTaxonomyObject import XbrlTaxonomyObject
-from .XbrlTableTemplate import XbrlTableTemplate
+from .XbrlTableTemplate import XbrlTableTemplate, XbrlDataTable
 
 class XbrlTaxonomy(XbrlTaxonomyObject):
     dts: XbrlDts
@@ -54,6 +54,7 @@ class XbrlTaxonomy(XbrlTaxonomyObject):
     referenceTypes: OrderedSet[XbrlReferenceType] # ordered set of referenceType objects.
     relationshipTypes: OrderedSet[XbrlRelationshipType] # ordered set of relationshipType objects.
     tableTemplates: OrderedSet[XbrlTableTemplate] # ordered set of tableTemplate objects.
+    dataTable: OrderedSet[XbrlDataTable] # (optional) ordered set of dataTable objects.
     transforms: OrderedSet[XbrlTransform] # (optional) an ordered set of transform objects.
     units: OrderedSet[XbrlUnit] # ordered set of unit objects.
     properties: OrderedSet[XbrlProperty] # ordered set of property objects used to specify additional properties associated with the taxonomy. Only immutable properties as defined in the propertyType object can be added to a taxonom

@@ -52,41 +52,18 @@ from .XbrlTypes import XbrlTaxonomyType, QNameKeyType, SQNameKeyType, DefaultTru
 from .ValidateDTS import validateDTS
 from .ModelValueMore import SQName
 from .ViewXbrlTxmyObj import viewXbrlTxmyObj
-from .XbrlConst import oimTaxonomyDocTypePattern, oimTaxonomyDocTypes, qnXbrlLabel, bakedInObjects
+from .XbrlConst import xbrl, oimTaxonomyDocTypePattern, oimTaxonomyDocTypes, qnXbrlLabel, bakedInObjects
 
 
-from arelle.oim.Load import (SQNameType, QNameType, URIType, LangType, NoRecursionCheck,
-                             DUPJSONKEY, DUPJSONVALUE, EMPTY_DICT, EMPTY_LIST,
-                             CheckPrefix, OIMException, NotOIMException,
-                             WhitespaceUntrimmedPattern, SQNamePattern, CanonicalIntegerPattern)
+from arelle.oim.Load import (DUPJSONKEY, DUPJSONVALUE, EMPTY_DICT, EMPTY_LIST,
+                             OIMException, NotOIMException)
 from arelle.FunctionFn import name, true
 
 saveOIMTaxonomySchemaFiles = False
 SAVE_OIM_SCHEMA_CMDLINE_PARAMETER = "--saveOIMschemafile"
 SAVE_OIM_SCHEMA_FORULA_PARAMETER = qname("saveOIMschemafile", noPrefixIsNoNamespace=True)
 
-class QNameAtContextType:
-    pass # fake class for detecting QName type + @start/end in JSON structure check
-
 EMPTY_SET = set()
-
-NS_XBRL = "https://xbrl.org/2021"
-
-QN_SCHEMA = qname("{http://www.w3.org/2001/XMLSchema}xs:schema")
-QN_ANNOTATION = qname("{http://www.w3.org/2001/XMLSchema}xs:annotation")
-QN_APPINFO = qname("{http://www.w3.org/2001/XMLSchema}xs:appinfo")
-QN_IMPORT = qname("{http://www.w3.org/2001/XMLSchema}xs:import")
-QN_ELEMENT = qname("{http://www.w3.org/2001/XMLSchema}xs:element")
-QN_PERIOD_TYPE = qname("{http://www.xbrl.org/2003/instance}xbrli:periodType")
-QN_BALANCE = qname("{http://www.xbrl.org/2003/instance}xbrli:balance")
-QN_SUBS_GROUP = qname("{http://www.w3.org/2001/XMLSchema}xs:substitutionGroup")
-QN_ROLE_TYPE = qname("{http://www.xbrl.org/2003/linkbase}link:roleType")
-QN_ROLE_TYPE = qname("{http://www.xbrl.org/2003/linkbase}link:roleType")
-QN_DEFINITION = qname("{http://www.xbrl.org/2003/linkbase}link:definition")
-QN_USED_ON = qname("{http://www.xbrl.org/2003/linkbase}link:usedOn")
-
-QN_PRIMARY_DIMENSION = qname(f"{NS_XBRL}xbrl:PrimaryDimension")
-QN_PERIOD_DIMENSION = qname(f"{NS_XBRL}xbrl:PeriodDimension")
 
 def jsonGet(tbl, key, default=None):
     if isinstance(tbl, dict):
@@ -241,10 +218,6 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
             error(msgCode.format(errPrefix), msgText, sourceFileLine=href, **kwargs)
         del loadDictErrors[:]
 
-        invalidMemberTypes = []
-        invalidQNames = []
-        missingRequiredMembers = []
-        unexpectedMembers = []
         extensionProperties = {} # key is property QName, value is property path
 
 
@@ -486,6 +459,19 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
 
         ####################### convert to XML Taxonomy
 
+
+        QN_ANNOTATION = qname("{http://www.w3.org/2001/XMLSchema}xs:annotation")
+        QN_APPINFO = qname("{http://www.w3.org/2001/XMLSchema}xs:appinfo")
+        QN_IMPORT = qname("{http://www.w3.org/2001/XMLSchema}xs:import")
+        QN_ELEMENT = qname("{http://www.w3.org/2001/XMLSchema}xs:element")
+        QN_PERIOD_TYPE = qname("{http://www.xbrl.org/2003/instance}xbrli:periodType")
+        QN_BALANCE = qname("{http://www.xbrl.org/2003/instance}xbrli:balance")
+        QN_SUBS_GROUP = qname("{http://www.w3.org/2001/XMLSchema}xs:substitutionGroup")
+        QN_ROLE_TYPE = qname("{http://www.xbrl.org/2003/linkbase}link:roleType")
+        QN_ROLE_TYPE = qname("{http://www.xbrl.org/2003/linkbase}link:roleType")
+        QN_DEFINITION = qname("{http://www.xbrl.org/2003/linkbase}link:definition")
+        QN_USED_ON = qname("{http://www.xbrl.org/2003/linkbase}link:usedOn")
+
         # convert into XML Taxonomy
         schemaElt = schemaDoc.xmlRootElement
         annotationElt = addChild(schemaElt, QN_ANNOTATION)
@@ -507,7 +493,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
         for prefix, ns in (("xlink", "http://www.w3.org/1999/xlink"),
                            ("ref", "http://www.xbrl.org/2006/ref"),
                            ("xbrldt", "http://xbrl.org/2005/xbrldt"),
-                           ("xbrl", NS_XBRL)):
+                           ("xbrl", xbrl)):
             if ns not in namespacePrefixes:
                 namespacePrefixes[ns] = prefix
                 prefixNamespaces[prefix] = ns
