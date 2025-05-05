@@ -19,3 +19,5 @@ class DefaultTrue: # a bool which if absent defaults to true
     pass
 class DefaultFalse: # a bool which if absent defaults to false
     pass
+class DefaultZero: # a number which if absent defaults to zero
+    pass

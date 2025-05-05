@@ -43,7 +43,7 @@ bakedInObjects = {
             {
                 "documentNamespace": True,
                 "prefix": "xbrli",
-                "uri": "http://www.xbrl.org/2025/instance"
+                "uri": "https://xbrl.org/2025/instance"
             },
             {
                 "prefix": "xs",
