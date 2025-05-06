@@ -606,7 +606,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
             for context in contextsWithWrongInstantDate:
                 modelXbrl.error("ESEF.2.1.2.inappropriateInstantDate",
                                 _("Instant date %(actualValue)s in context %(contextID)s shall be replaced by %(expectedValue)s to ensure a better comparability between the facts."),
-                                modelObject=contextsWithWrongInstantDate, actualValue=context.instantDate, expectedValue=context.instantDate - timedelta(days=1), contextID=context.id)
+                                modelObject=context, actualValue=context.instantDate, expectedValue=context.instantDate - timedelta(days=1), contextID=context.id)
 
         # identify unique contexts and units
         mapContext = {}
