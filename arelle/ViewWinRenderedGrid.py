@@ -455,7 +455,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                         for aspect, aspectValue in cellAspectValues.items():
                             if isinstance(aspectValue, str) and aspectValue.startswith(OPEN_ASPECT_ENTRY_SURROGATE):
                                 self.factPrototypeAspectEntryObjectIds[objectId].add(aspectValue)
-                    if fp is not None and not fp.concept.isAbstract:
+                    if fp is not None and fp.concept is not None and not fp.concept.isAbstract:
                         modelConcept = fp.concept
                         if (justify is None) and modelConcept is not None:
                             justify = XbrlTable.TG_RIGHT_JUSTIFIED if modelConcept.isNumeric else XbrlTable.TG_LEFT_JUSTIFIED
@@ -485,15 +485,15 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                                         selectindex=selectedIdx,
                                                         codes=enumerationDict)
                         elif modelConcept is not None and modelConcept.type.qname == XbrlConst.qnXbrliQNameItemType:
-                            if eurofilingModelPrefix in concept.nsmap and concept.nsmap.get(eurofilingModelPrefix) == eurofilingModelNamespace:
-                                hierarchy = concept.get("{" + eurofilingModelNamespace + "}" + "hierarchy", None)
-                                domainQNameAsString = concept.get("{" + eurofilingModelNamespace + "}" + "domain", None)
+                            if eurofilingModelPrefix in modelConcept.nsmap and modelConcept.nsmap.get(eurofilingModelPrefix) == eurofilingModelNamespace:
+                                hierarchy = modelConcept.get("{" + eurofilingModelNamespace + "}" + "hierarchy", None)
+                                domainQNameAsString = modelConcept.get("{" + eurofilingModelNamespace + "}" + "domain", None)
                                 if hierarchy is not None and domainQNameAsString is not None:
                                     newAspectValues = [""]
                                     newAspectQNames = dict()
                                     newAspectQNames[""] = None
                                     domPrefix, _, domLocalName = domainQNameAsString.strip().rpartition(":")
-                                    domNamespace = concept.nsmap.get(domPrefix)
+                                    domNamespace = modelConcept.nsmap.get(domPrefix)
                                     relationships = concept_relationships(self.rendrCntx,
                                          None,
                                          (QName(domPrefix, domNamespace, domLocalName),
