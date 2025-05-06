@@ -476,7 +476,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                             except ValueError:
                                 effectiveValue = enumerationValues[0]
                                 selectedIdx = 0
-                            if TRACE_TK: print(f"body comboBox enums x {xColNum} y {yRowNum} values {effectiveValue} value {enumerationValues}")
+                            if TRACE_TK: print(f"body comboBox enums x {xColNum} y {yRowNum} values {enumerationValues} value {effectiveValue}")
                             self.table.initCellCombobox(effectiveValue,
                                                         enumerationValues,
                                                         xColNum,
@@ -529,7 +529,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                 except ValueError:
                                     effectiveValue = qNameValues[0]
                                     selectedIdx = 0
-                                if TRACE_TK: print(f"body comboBox qnames x {xColNum} y {yRowNum} values {effectiveValue} value {qNameValues}")
+                                if TRACE_TK: print(f"body comboBox qnames x {xColNum} y {yRowNum} values {qNameValues} value {effectiveValue}")
                                 self.table.initCellCombobox(effectiveValue,
                                                             qNameValues,
                                                             xColNum,
