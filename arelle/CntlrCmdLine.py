@@ -603,7 +603,7 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=None, inlineOnly=False
                         pluginXbrlMethod(filesource, reportEntries)
                         ixdsDiscovered = True
                     if not ixdsDiscovered and len(reportEntries) > 1:
-                        raise RuntimeError(_("Loading error. Inline document set encountered. Enable 'InlineDocumentSet' plug-in to load this filing: {0}").format(filesource.url))
+                        raise RuntimeError(_("Loading error. Inline document set encountered. Enable 'InlineXbrlDocumentSet' plug-in to load this filing: {0}").format(filesource.url))
                     entrypointFiles.extend(reportEntries)
                 elif not inlineOnly:
                     entrypointFiles.append({"file": report.fullPathPrimary})
