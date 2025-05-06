@@ -722,7 +722,7 @@ def saveLoadableOIMMenuCommand(cntlr: CntlrWinMain) -> None:
         or cntlr.modelManager.modelXbrl is None
         or cntlr.modelManager.modelXbrl.modelDocument is None
         or cntlr.modelManager.modelXbrl.modelDocument.type
-        not in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL)
+        not in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET)
     ):
         return
         # get file name into which to save log file while in foreground thread
