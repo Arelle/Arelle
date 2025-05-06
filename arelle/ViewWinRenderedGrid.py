@@ -126,6 +126,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
         self.ignoreDimValidity = BooleanVar(value=self.options.setdefault("ignoreDimValidity",True))
         formulaEvaluatorInit() # one-time module initialization
         self.conceptMessageIssued = False
+        self.tblMenuEntries = {}
 
     def close(self):
         super(ViewRenderedGrid, self).close()
@@ -138,22 +139,21 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             self.rendrCntx = None # remove the reference but do not manipulate since it may still be in use and shared
 
     def loadTablesMenu(self):
-        tblMenuEntries = {}
-        self.tablesToELR = {}
-        for lytMdlTableSet in self.lytMdlTblMdl.lytMdlTableSets:
-            # table name
-            modelRoleTypes = self.modelXbrl.roleTypes.get(lytMdlTableSet.srcLinkrole)
-            if modelRoleTypes is not None and len(modelRoleTypes) > 0:
-                # roledefinition = modelRoleTypes[0].definition
-                roledefinition = self.modelXbrl.roleTypeDefinition(lytMdlTableSet.srcLinkrole, self.lang) # Definition in selected language
-                if roledefinition is None or roledefinition == "":
-                    roledefinition = os.path.basename(tblLinkroleUri)
-                # add table to menu if there's any entry
-                tblMenuEntries[roledefinition] = lytMdlTableSet.srcLinkrole
+        if not self.tblMenuEntries:
+            for lytMdlTableSet in self.lytMdlTblMdl.lytMdlTableSets:
+                # table name
+                modelRoleTypes = self.modelXbrl.roleTypes.get(lytMdlTableSet.srcLinkrole)
+                if modelRoleTypes is not None and len(modelRoleTypes) > 0:
+                    # roledefinition = modelRoleTypes[0].definition
+                    roledefinition = self.modelXbrl.roleTypeDefinition(lytMdlTableSet.srcLinkrole, self.lang) # Definition in selected language
+                    if roledefinition is None or roledefinition == "":
+                        roledefinition = os.path.basename(lytMdlTableSet.srcLinkrole)
+                    # add table to menu if there's any entry
+                    self.tblMenuEntries[roledefinition] = lytMdlTableSet.srcLinkrole
         self.tablesMenu.delete(0, self.tablesMenuLength)
         self.tablesMenuLength = 0
         self.tblELR = None
-        for tblMenuEntry in sorted(tblMenuEntries.items()):
+        for tblMenuEntry in sorted(self.tblMenuEntries.items()):
             tbl,elr = tblMenuEntry
             self.tablesMenu.add_command(label=tbl, command=lambda e=elr: self.view(viewTblELR=e)) # use this to activate profiling from menu selection:  , profile=True))
             self.tablesMenuLength += 1
@@ -600,10 +600,12 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             try:
                 if isinstance(modelObject, ModelDtsObject.ModelRelationship):
                     objectId = modelObject.toModelObject.objectId()
+                elif isinstance(modelObject, ModelDtsObject.ModelRoleType):
+                    objectId = self.modelXbrl.roleTypeDefinition(modelObject.roleURI, self.lang)
                 else:
                     objectId = modelObject.objectId()
-                if objectId in self.tablesToELR:
-                    self.view(viewTblELR=self.tablesToELR[objectId])
+                if objectId in self.tblMenuEntries:
+                    self.view(viewTblELR=self.tblMenuEntries[objectId])
                     try:
                         self.modelXbrl.modelManager.cntlr.currentView = self.modelXbrl.guiViews.tableView
                         # force focus (synch) on the corresponding "Table" tab (useful in case of several instances)
