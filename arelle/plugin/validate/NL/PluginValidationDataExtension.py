@@ -37,9 +37,9 @@ class ContextData:
 
 @dataclass(frozen=True)
 class FootnoteData:
+    factLangFootnotes: dict[ModelInlineFootnote, set[str]]
     noMatchLangFootnotes: set[ModelInlineFootnote]
     orphanedFootnotes: set[ModelInlineFootnote]
-    factLangFootnotes: dict[ModelInlineFootnote, set[str]]
 
 @dataclass
 class PluginValidationDataExtension(PluginData):
@@ -104,9 +104,9 @@ class PluginValidationDataExtension(PluginData):
     def checkFootnotes(self, modelXbrl: ModelXbrl) -> FootnoteData:
         factLangs = self.factLangs(modelXbrl)
         footnotesRelationshipSet = modelXbrl.relationshipSet("XBRL-footnotes")
+        factLangFootnotes = defaultdict(set)
         orphanedFootnotes = set()
         noMatchLangFootnotes = set()
-        factLangFootnotes = defaultdict(set)
         for elts in modelXbrl.ixdsEltById.values():   # type: ignore[attr-defined]
             for elt in elts:
                 if isinstance(elt, ModelInlineFootnote):
@@ -121,9 +121,9 @@ class PluginValidationDataExtension(PluginData):
                                 factLangFootnotes[rel.fromModelObject].add(elt.xmlLang)
         factLangFootnotes.default_factory = None
         return FootnoteData(
+            factLangFootnotes=dict(factLangFootnotes),
             noMatchLangFootnotes=noMatchLangFootnotes,
             orphanedFootnotes=orphanedFootnotes,
-            factLangFootnotes=dict(factLangFootnotes),
         )
 
     @lru_cache(1)
@@ -158,14 +158,14 @@ class PluginValidationDataExtension(PluginData):
     def getContextsWithSegments(self, modelXbrl: ModelXbrl) -> list[ModelContext | None]:
         return self.checkContexts(modelXbrl).contextsWithSegments
 
+    def getFactLangFootnotes(self, modelXbrl: ModelXbrl) -> dict[ModelInlineFootnote, set[str]]:
+        return self.checkFootnotes(modelXbrl).factLangFootnotes
+
     def getNoMatchLangFootnotes(self, modelXbrl: ModelXbrl) -> set[ModelInlineFootnote]:
         return self.checkFootnotes(modelXbrl).noMatchLangFootnotes
 
     def getOrphanedFootnotes(self, modelXbrl: ModelXbrl) -> set[ModelInlineFootnote]:
         return self.checkFootnotes(modelXbrl).orphanedFootnotes
-
-    def getFactLangFootnotes(self, modelXbrl: ModelXbrl) -> dict[ModelInlineFootnote, set[str]]:
-        return self.checkFootnotes(modelXbrl).factLangFootnotes
 
     @lru_cache(1)
     def getReportXmlLang(self, modelXbrl: ModelXbrl) -> str | None:

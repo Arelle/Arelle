@@ -1846,7 +1846,7 @@ class ModelRelationship(ModelObject):
 
     @property
     def orderDecimal(self):
-        """(decimal) -- Value of xlink:order attribute, NaN if not convertable to float, or None if not specified"""
+        """(decimal) -- Value of xlink:order attribute, NaN if not convertible to float, or None if not specified"""
         try:
             return decimal.Decimal(self.order)
         except decimal.InvalidOperation:
