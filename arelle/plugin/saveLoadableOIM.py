@@ -553,6 +553,8 @@ def saveLoadableOIM(
             if outputZip:
                 fh.seek(0)
                 outputZip.writestr(os.path.basename(oimFile), fh.read())
+        if not outputZip:
+            modelXbrl.modelManager.cntlr.showStatus(_("Saved JSON OIM file {}").format(oimFile))
 
     elif isCSVorXL:
         # save CSV
@@ -754,16 +756,17 @@ def saveLoadableOIM(
         # save metadata
         if isCSV:
             assert isinstance(_baseURL, str)
-            with open(_baseURL + "-metadata.json", "w", encoding="utf-8") as fh:
+            csvMetadataFile = _baseURL + "-metadata.json"
+            with open(csvMetadataFile, "w", encoding="utf-8") as fh:
                 fh.write(json.dumps(oimReport, ensure_ascii=False, indent=2, sort_keys=False))
+            modelXbrl.modelManager.cntlr.showStatus(_("Saved CSV OIM metadata file {}").format(csvMetadataFile))
         elif isXL:
             _open(None, "metadata")
             _writerow(["metadata"], header=True)
             _writerow([json.dumps(oimReport, ensure_ascii=False, indent=1, sort_keys=False)])
             _close()
-
-        if isXL:
             workbook.save(oimFile)
+            modelXbrl.modelManager.cntlr.showStatus(_("Saved Excel file {}").format(oimFile))
 
 
 def saveLoadableOIMMenuCommand(cntlr: CntlrWinMain) -> None:
