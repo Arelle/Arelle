@@ -780,7 +780,7 @@ def saveLoadableOIMMenuCommand(cntlr: CntlrWinMain) -> None:
     oimFile = cntlr.uiFileDialog(
         "save",
         title=_("arelle - Save Loadable OIM file"),
-        initialdir=cntlr.config.setdefault("loadableExcelFileDir", "."),
+        initialdir=cntlr.config.setdefault("loadableOIMFileDir", "."),
         filetypes=[(_("JSON file .json"), "*.json"), (_("CSV file .csv"), "*.csv"), (_("XLSX file .xlsx"), "*.xlsx")],
         defaultextension=".json",
     )  # type: ignore[no-untyped-call]
