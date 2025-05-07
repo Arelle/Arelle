@@ -776,6 +776,10 @@ def saveLoadableOIMMenuCommand(cntlr: CntlrWinMain) -> None:
         or cntlr.modelManager.modelXbrl.modelDocument.type
         not in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET)
     ):
+        cntlr.addToLog(
+            messageCode="arelleOIMsaver",
+            message=_("No supported XBRL instance documents loaded that can be saved to OIM format."),
+        )
         return
         # get file name into which to save log file while in foreground thread
     oimFile = cntlr.uiFileDialog(
@@ -786,6 +790,7 @@ def saveLoadableOIMMenuCommand(cntlr: CntlrWinMain) -> None:
         defaultextension=".json",
     )  # type: ignore[no-untyped-call]
     if not isinstance(oimFile, str):
+        # User cancelled file dialog.
         return
 
     cntlr.config["loadableOIMFileDir"] = os.path.dirname(oimFile)
