@@ -9,12 +9,13 @@ import regex as re
 from collections import defaultdict
 from dataclasses import dataclass
 
-from arelle.ModelInstanceObject import ModelUnit, ModelContext, ModelFact
+from arelle import XbrlConst
+from arelle.ModelDtsObject import ModelResource
+from arelle.ModelInstanceObject import ModelUnit, ModelContext, ModelFact, ModelInlineFootnote
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import ModelXbrl
 from arelle.utils.PluginData import PluginData
 from arelle.XmlValidate import lexicalPatterns
-
 
 XBRLI_IDENTIFIER_PATTERN = re.compile(r"^(?!00)\d{8}$")
 XBRLI_IDENTIFIER_SCHEMA = 'http://www.kvk.nl/kvk-id'
@@ -42,6 +43,9 @@ class PluginValidationDataExtension(PluginData):
     _contextsWithSegments: list[ModelContext | None] | None = None
     _entityIdentifiers: set[tuple[str, str]] | None = None
     _factsByDocument: dict[str, list[ModelFact]] | None = None
+    _factLangs: set[str] | None = None
+    _noMatchLangFootnotes: set[ModelInlineFootnote] | None = None
+    _orphanedFootnotes: set[ModelInlineFootnote] | None = None
     _unitsByDocument: dict[str, list[ModelUnit]] | None = None
 
     def contextsByDocument(self, modelXbrl: ModelXbrl) -> dict[str, list[ModelContext]]:
@@ -80,6 +84,23 @@ class PluginValidationDataExtension(PluginData):
         self._contextsWithPeriodTimeZone = contextsWithPeriodTimeZone
         self._contextsWithSegments = contextsWithSegments
 
+    def checkFootnote(self, modelXbrl: ModelXbrl) -> None:
+        factLangs = self.factLangs(modelXbrl)
+        footnotesRelationshipSet = modelXbrl.relationshipSet("XBRL-footnotes")
+        orphanedFootnotes = set()
+        noMatchLangFootnotes = set()
+        for elts in modelXbrl.ixdsEltById.values():   # type: ignore[attr-defined]
+            for elt in elts:
+                if isinstance(elt, ModelInlineFootnote):
+                    if elt.textValue is not None:
+                        if not any(isinstance(rel.fromModelObject, ModelFact)
+                                   for rel in footnotesRelationshipSet.toModelObject(elt)):
+                            orphanedFootnotes.add(elt)
+                        if not elt.xmlLang in factLangs:
+                            noMatchLangFootnotes.add(elt)
+        self._noMatchLangFootnotes = noMatchLangFootnotes
+        self._orphanedFootnotes = orphanedFootnotes
+
     def entityIdentifiersInDocument(self, modelXbrl: ModelXbrl) -> set[tuple[str, str]]:
         if self._entityIdentifiers is not None:
             return self._entityIdentifiers
@@ -94,6 +115,16 @@ class PluginValidationDataExtension(PluginData):
             factsByDocument[fact.modelDocument.filepath].append(fact)
         self._factsByDocument = dict(factsByDocument)
         return self._factsByDocument
+
+    def factLangs(self, modelXbrl: ModelXbrl) -> set[str]:
+        if self._factLangs is not None:
+                return self._factLangs
+        factLangs = set()
+        for fact in modelXbrl.facts:
+            if fact is not None:
+                factLangs.add(fact.xmlLang)
+        self._factLangs = factLangs
+        return self._factLangs
 
     def getContextsWithImproperContent(self, modelXbrl: ModelXbrl) -> list[ModelContext | None]:
         if self._contextsWithImproperContent is None:
@@ -118,6 +149,18 @@ class PluginValidationDataExtension(PluginData):
             self.checkContexts(self.contextsByDocument(modelXbrl))
         assert(self._contextsWithSegments is not None)
         return self._contextsWithSegments
+
+    def getNoMatchLangFootnotes(self, modelXbrl: ModelXbrl) -> set[ModelInlineFootnote]:
+        if self._noMatchLangFootnotes is None:
+            self.checkFootnote(modelXbrl)
+        assert(self._noMatchLangFootnotes is not None)
+        return self._noMatchLangFootnotes
+
+    def getOrphanedFootnotes(self, modelXbrl: ModelXbrl) -> set[ModelInlineFootnote]:
+        if self._orphanedFootnotes is None:
+            self.checkFootnote(modelXbrl)
+        assert(self._orphanedFootnotes is not None)
+        return self._orphanedFootnotes
 
     def unitsByDocument(self, modelXbrl: ModelXbrl) -> dict[str, list[ModelUnit]]:
         if self._unitsByDocument is not None:

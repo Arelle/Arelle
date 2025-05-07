@@ -269,3 +269,50 @@ def rule_nl_kvk_3_2_1_1 (
             msg=_('Precision should not be used on numeric facts.'),
             modelObject = factsWithPrecision
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
+def rule_nl_kvk_3_3_1_1 (
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.3.3.1.1: Ensure that every nonempty <link:footnote> element is associated with at least one fact in the XBRL document.
+    """
+    orphanedFootnotes = pluginData.getOrphanedFootnotes(val.modelXbrl)
+    if len(orphanedFootnotes) >0:
+        yield Validation.error(
+            codes='NL.NL-KVK.3.3.1.1.unusedFootnote',
+            msg=_('Ensure that every nonempty <link:footnote> element is associated with at least one fact in the XBRL document.'),
+            modelObject = orphanedFootnotes
+        )
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
+def rule_nl_kvk_3_3_1_2 (
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.3.3.1.2: The xml:lang attribute of each footnote matches the language of at least one textual fact.
+    """
+    noMatchLangFootnotes = pluginData.getNoMatchLangFootnotes(val.modelXbrl)
+    if len(noMatchLangFootnotes) >0:
+        yield Validation.error(
+            codes='NL.NL-KVK.3.3.1.2.footnoteInLanguagesOtherThanLanguageOfContentOfAnyTextualFact',
+            msg=_('The xml:lang attribute of each footnote matches the language of at least one textual fact.'),
+            modelObject = noMatchLangFootnotes
+        )
