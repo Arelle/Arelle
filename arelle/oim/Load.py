@@ -74,6 +74,7 @@ reservedLinkTypeAndGroupAliases = {
 XLINKTYPE = "{http://www.w3.org/1999/xlink}type"
 XLINKLABEL = "{http://www.w3.org/1999/xlink}label"
 XLINKARCROLE = "{http://www.w3.org/1999/xlink}arcrole"
+XLINKROLE = "{http://www.w3.org/1999/xlink}role"
 XLINKFROM = "{http://www.w3.org/1999/xlink}from"
 XLINKTO = "{http://www.w3.org/1999/xlink}to"
 XLINKHREF = "{http://www.w3.org/1999/xlink}href"
@@ -2717,6 +2718,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             footnoteLinkNotes[linkrole].add(noteId)
                             xbrlNote = xbrlNoteTbl[noteId]
                             attrs = {XLINKTYPE: "resource",
+                                     XLINKROLE: XbrlConst.footnote,
                                      XLINKLABEL: footnoteToLabel,
                                      "id": idDeduped(modelXbrl, noteId),
                                      # "oimNoteId": noteId
