@@ -241,7 +241,11 @@ def saveLoadableOIM(
                 elif isinstance(obj, Decimal):
                     # XML canonical representation of decimal requires a decimal point.
                     # https://www.w3.org/TR/xmlschema-2/#decimal-canonical-representation
-                    return f"{obj:.1f}" if obj % 1 == 0 else f"{obj}"
+                    if obj % 1 == 0:
+                        return f"{obj:.1f}"
+                    intPart, fracPart = f"{obj:f}".split(".")
+                    canonicalFracPart = fracPart.rstrip("0") or "0"
+                    return f"{intPart}.{canonicalFracPart}"
                 else:
                     return f"{obj}"
             except Exception:
