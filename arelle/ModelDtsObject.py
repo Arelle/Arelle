@@ -1691,6 +1691,7 @@ class RelationStatus:
 
 arcCustAttrsExclusions = {XbrlConst.xlink, "use","priority","order","weight","preferredLabel"}
 modelObjectAttrs = frozenset(dir(ModelObject))
+DECIMAL_1_0 = decimal.Decimal('1.0')
 
 class ModelRelationship(ModelObject):
     """
@@ -1847,11 +1848,20 @@ class ModelRelationship(ModelObject):
 
     @property
     def orderDecimal(self):
-        """(decimal) -- Value of xlink:order attribute, NaN if not convertible to float, or None if not specified"""
+        """(decimal) -- Value of xlink:order attribute, NaN if not convertible to decimal, or 1.0 if not specified"""
         try:
-            return decimal.Decimal(self.order)
-        except decimal.InvalidOperation:
-            return decimal.Decimal("NaN")
+            return self.arcElement._orderDecimal
+        except AttributeError:
+            o = self.arcElement.get("order")
+            if o is None:
+                order = DECIMAL_1_0
+            else:
+                try:
+                    order = decimal.Decimal(o)
+                except decimal.InvalidOperation:
+                    order = decimal.Decimal("NaN")
+            self.arcElement._orderDecimal = order
+            return order
 
     @property
     def priority(self):
