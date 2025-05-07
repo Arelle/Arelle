@@ -395,12 +395,14 @@ def saveLoadableOIM(
                     _link[groupPrefix] = []
                 elif isCSVorXL:
                     _link[groupPrefix] = {}
+            tgtId = toObj.id if toObj.id else f"f{toObj.objectIndex}"
             if isJSON:
                 tgtIdList = _link[groupPrefix]
+                tgtIdList.append(tgtId)
             elif isCSVorXL:
-                tgtIdList = _link[groupPrefix].setdefault(srcId, [])
-            tgtId = toObj.id if toObj.id else f"f{toObj.objectIndex}"
-            tgtIdList.append(tgtId)
+                # Footnote links in xBRL-CSV include the CSV table identifier.
+                tgtIdList = _link[groupPrefix].setdefault(f"facts.r_{srcId}.value", [])
+                tgtIdList.append(f"footnotes.r_{tgtId}.footnote")
             footnote = {
                 "group": footnoteRel.linkrole,
                 "footnoteType": footnoteRel.arcrole,
@@ -717,21 +719,31 @@ def saveLoadableOIM(
 
         # save footnotes
         if footnotesRelationshipSet.modelRelationships:
-            footnotes = sorted(
-                (footnote for fact in modelXbrl.facts for footnote in factFootnotes(fact, csvLinks=csvLinks)),
-                key=lambda footnote: footnote["id"],
-            )
+            footnotesDeduplicatedById = {
+                footnote["id"]: footnote
+                for fact in modelXbrl.facts
+                for footnote in factFootnotes(fact, csvLinks=csvLinks)
+            }
+            footnotes = sorted(footnotesDeduplicatedById.values(), key=operator.itemgetter("id"))
             if footnotes:  # text footnotes
-                oimTables["footnotes"] = csvFtTable = {}
-                csvFtTable["url"] = "tbd"
-                csvFtTable["tableDimensions"] = {}
-                csvFtTable["factColumns"] = csvFtFactColumns = {}
-                csvFtFactColumns["footnote"] = csvFtValCol = {}
-                csvFtValCol["id"] = "$id"
-                csvFtValCol["noteId"] = "$id"
-                csvFtValCol["concept"] = "xbrl:note"
-                csvFtValCol["language"] = "$language"
-                _open("-footnotes.csv", "footnotes", csvFtTable)
+                footnotesTable = {"template": "footnotes"}
+                oimTables["footnotes"] = footnotesTable
+                csvTableTemplates[footnotesTable["template"]] = {
+                    "rowIdColumn" : "id",
+                    "dimensions": {
+                        "language": "$language"
+                    },
+                    "columns": {
+                        "id": {},
+                        "footnote": {
+                            "dimensions": {
+                                "concept": "xbrl:note",
+                            },
+                        },
+                        "language": {},
+                    }
+                }
+                _open("-footnotes.csv", "footnotes", footnotesTable)
                 cols = ("id", "footnote", "language")
                 _writerow(cols, header=True)
                 for footnote in footnotes:
