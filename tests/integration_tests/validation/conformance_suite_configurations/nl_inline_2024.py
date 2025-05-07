@@ -26,8 +26,7 @@ config = ConformanceSuiteConfig(
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-2-7_1/index.xml:TC5_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-2-7_1/index.xml:TC6_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-2-7_1/index.xml:TC7_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-3-1_1/index.xml:TC2_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-3-1_2/index.xml:TC3_invalid',
+        'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-3-1_2/index.xml:TC3_invalid', # Expects an error code with a preceding double quote. G3-3-1_3 expects the same code without the typo.
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-3-1_3/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-4-1_1/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-4-1_2/index.xml:TC2_invalid',
@@ -61,6 +60,7 @@ config = ConformanceSuiteConfig(
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-1-2_2/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-2-0_1/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-2-0_2/index.xml:TC2_invalid',
+        'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-2-1_1/index.xml:TC2_invalid', # Expects scenarioNotUsedInExtensionTaxonomy and segmentUsed errors.  scenarioNotUsedInExtensionTaxonomy not yet implemented.
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-2-2_2/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-2-3_1/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-3-1_1/index.xml:TC2_invalid',
@@ -114,5 +114,5 @@ config = ConformanceSuiteConfig(
     network_or_cache_required=False,
     plugins=frozenset({'validate/NL'}),
     shards=8,
-    test_case_result_options='match-any',
+    test_case_result_options='match-all',
 )
