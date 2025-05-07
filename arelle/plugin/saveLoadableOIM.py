@@ -209,7 +209,8 @@ def saveLoadableOIM(
     isXL = oimFile.endswith(".xlsx")
     isCSVorXL = isCSV or isXL
     if not isJSON and not isCSVorXL:
-        return
+        oimFile = oimFile + ".json"
+        isJSON = True
 
     namespacePrefixes = NamespacePrefixes({nsOim: "xbrl"})
     if extensionPrefixes:
