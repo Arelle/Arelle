@@ -9,8 +9,7 @@ import regex as re
 from collections import defaultdict
 from dataclasses import dataclass
 
-from arelle import XbrlConst
-from arelle.ModelDtsObject import ModelResource
+from arelle.FunctionIxt import ixtNamespaces
 from arelle.ModelInstanceObject import ModelUnit, ModelContext, ModelFact, ModelInlineFootnote
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import ModelXbrl
@@ -19,6 +18,12 @@ from arelle.XmlValidate import lexicalPatterns
 
 XBRLI_IDENTIFIER_PATTERN = re.compile(r"^(?!00)\d{8}$")
 XBRLI_IDENTIFIER_SCHEMA = 'http://www.kvk.nl/kvk-id'
+
+DISALLOWED_IXT_NAMESPACES = frozenset((
+    ixtNamespaces["ixt v1"],
+    ixtNamespaces["ixt v2"],
+    ixtNamespaces["ixt v3"],
+))
 
 @dataclass
 class PluginValidationDataExtension(PluginData):
