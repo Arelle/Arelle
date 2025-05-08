@@ -14,7 +14,7 @@ from .XbrlProperty import XbrlProperty
 from .XbrlAbstract import XbrlAbstract
 from .XbrlConcept import XbrlConcept, XbrlDataType, XbrlUnitType
 from .XbrlCube import XbrlCube, XbrlCubeType, XbrlCubeDimension, XbrlPeriodConstraint, XbrlDateResolution
-from .XbrlDimension import XbrlDimension, XbrlDomain, XbrlMember
+from .XbrlDimension import XbrlDimension, XbrlDomain, XbrlDomainRoot, XbrlMember
 from .XbrlEntity import XbrlEntity
 from .XbrlGroup import XbrlGroup, XbrlGroupContent
 from .XbrlLabel import XbrlLabel, XbrlLabelType
@@ -42,7 +42,8 @@ class XbrlTaxonomy(XbrlTaxonomyObject):
     dataTypes: OrderedSet[XbrlDataType] # ordered set of dataType objects.
     dimensions: OrderedSet[XbrlDimension] # ordered set of dimension objects.
     domains: OrderedSet[XbrlDomain] # (optional) ordered set of domain objects.
-    entities: OrderedDict[SQName, XbrlEntity] # (optional) ordered set of entity objects.
+    domainRoots: OrderedSet[XbrlDomainRoot] # (optional) ordered set of domain root objects.
+    entities: OrderedSet[XbrlEntity] # (optional) ordered set of entity objects.
     groups: OrderedSet[XbrlGroup] #  ordered set of group objects.
     groupContents: OrderedSet[XbrlGroupContent] # ordered set of groupContent objects that link a group QName to a list of network or cube objects.
     labels: OrderedSet[XbrlLabel] # ordered set of label objects.
@@ -54,11 +55,11 @@ class XbrlTaxonomy(XbrlTaxonomyObject):
     referenceTypes: OrderedSet[XbrlReferenceType] # ordered set of referenceType objects.
     relationshipTypes: OrderedSet[XbrlRelationshipType] # ordered set of relationshipType objects.
     tableTemplates: OrderedSet[XbrlTableTemplate] # ordered set of tableTemplate objects.
-    dataTable: OrderedSet[XbrlDataTable] # (optional) ordered set of dataTable objects.
+    dataTables: OrderedSet[XbrlDataTable] # (optional) ordered set of dataTable objects.
     transforms: OrderedSet[XbrlTransform] # (optional) an ordered set of transform objects.
     units: OrderedSet[XbrlUnit] # ordered set of unit objects.
     properties: OrderedSet[XbrlProperty] # ordered set of property objects used to specify additional properties associated with the taxonomy. Only immutable properties as defined in the propertyType object can be added to a taxonom
-    
+
 xbrlObjectTypes = {
         qname("{https://xbrl.org/2025}xbrl:taxonomyObject"): XbrlTaxonomy,
         qname("{https://xbrl.org/2025}xbrl:importTaxonomyObject"): XbrlImportedTaxonomy,

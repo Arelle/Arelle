@@ -13,9 +13,11 @@ oimTaxonomyDocTypes = (
 
 xbrl = "https://xbrl.org/2025"
 
-qnXbrlLabel = qname("{https://xbrl.org/2025}xbrl:label")
-
 qnStdLabel = qname("{https://xbrl.org/2025}xbrli:label")
+qnXsDate = qname("{http://www.w3.org/2001/XMLSchema}xs:date")
+qnXsQName = qname("{http://www.w3.org/2001/XMLSchema}xs:QName")
+
+qnXbrlLabelObj = qname("{https://xbrl.org/2025}xbrl:labelObject")
 
 objectsWithProperties = {
     qname("{https://xbrl.org/2025}xbrl:taxonomyObject"),
@@ -27,7 +29,7 @@ objectsWithProperties = {
     qname("{https://xbrl.org/2025}xbrl:entityObject"),
     qname("{https://xbrl.org/2025}xbrl:groupObject"),
     qname("{https://xbrl.org/2025}xbrl:networkObject"),
-    qname("{https://xbrl.org/2025}xbrl:labelObject"),
+    qnXbrlLabelObj,
     qname("{https://xbrl.org/2025}xbrl:memberObject"),
     qname("{https://xbrl.org/2025}xbrl:referenceObject"),
     }

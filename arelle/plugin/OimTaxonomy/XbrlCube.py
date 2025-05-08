@@ -4,7 +4,7 @@ See COPYRIGHT.md for copyright information.
 
 from typing import TYPE_CHECKING, Optional
 
-from arelle.ModelValue import QName, DateTime, YearMonthDayTimeDuration
+from arelle.ModelValue import qname, QName, DateTime, YearMonthDayTimeDuration
 from arelle.PythonUtil import OrderedSet
 from .XbrlProperty import XbrlProperty
 from .XbrlTypes import XbrlTaxonomyType, QNameKeyType, DefaultTrue, DefaultFalse
@@ -66,3 +66,20 @@ class XbrlCubeType(XbrlReferencableTaxonomyObject):
     taxonomyDefinedDimensions   : bool | DefaultTrue # (optional) boolean to indicate if taxonomy defined dimensions are included in the cube. Defaults to true.
     allowedCubeDimensions: OrderedSet[XbrlAllowedCubeDimension] # (optional) An ordered set of allowedCubeDimension objects that are permitted to be used on the cube. If the property is not defined then any dimensions can be associated with the cube.
     requiredCubeRelationships: OrderedSet[XbrlRequiredCubeRelationship] # (optional) An ordered set of requiredCubeRelationship objects that at a minimum must be associated with the cube.
+
+baseCubeTypes = {
+    qname("{https://xbrl.org/2025}xbrl:eventCube"),
+    qname("{https://xbrl.org/2025}xbrl:positionCube"),
+    qname("{https://xbrl.org/2025}xbrl:referenceCube"),
+    qname("{https://xbrl.org/2025}xbrl:reportCube"),
+    qname("{https://xbrl.org/2025}xbrl:journalCube"),
+    qname("{https://xbrl.org/2025}xbrl:eventDetailsCube"),
+    qname("{https://xbrl.org/2025}xbrl:timeSeriesCube"),
+    qname("{https://xbrl.org/2025}xbrl:defaultCube")
+    }
+
+periodCoreDim = qname("{https://xbrl.org/2025}xbrl:period")
+conceptCoreDim = qname("{https://xbrl.org/2025}xbrl:concept"),
+entityCoreDim = qname("{https://xbrl.org/2025}xbrl:entity"),
+unitCoreDim = qname("{https://xbrl.org/2025}xbrl:unit"),
+languageCoreDim = qname("{https://xbrl.org/2025}xbrl:language"),

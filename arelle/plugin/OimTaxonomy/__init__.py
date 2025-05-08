@@ -52,7 +52,7 @@ from .XbrlTypes import XbrlTaxonomyType, QNameKeyType, SQNameKeyType, DefaultTru
 from .ValidateDTS import validateDTS
 from .ModelValueMore import SQName
 from .ViewXbrlTxmyObj import viewXbrlTxmyObj
-from .XbrlConst import xbrl, oimTaxonomyDocTypePattern, oimTaxonomyDocTypes, qnXbrlLabel, bakedInObjects
+from .XbrlConst import xbrl, oimTaxonomyDocTypePattern, oimTaxonomyDocTypes, qnXbrlLabelObj, bakedInObjects
 
 
 from arelle.oim.Load import (DUPJSONKEY, DUPJSONVALUE, EMPTY_DICT, EMPTY_LIST,
@@ -282,8 +282,8 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                       sourceFileLine=href, extensionProperty=extPropertyPath)
 
         for iImpTxmy, impTxmyObj in enumerate(taxonomyObj.get("importedTaxonomies", EMPTY_LIST)):
-            if qnXbrlLabel in getattr(impTxmyObj, "includeObjectTypes",()):
-                impTxmyObj.includeObjectTypes.delete(qnXbrlLabel)
+            if qnXbrlLabelObj in getattr(impTxmyObj, "includeObjectTypes",()):
+                impTxmyObj.includeObjectTypes.delete(qnXbrlLabelObj)
                 xbrlDts.error("oimte:invalidObjectType",
                               _("/taxonomy/importedTaxonomies[%(iImpTxmy)s] must not have a label object in the includeObjectTypes property"),
                               sourceFileLine=href, index=iImpTxmy)

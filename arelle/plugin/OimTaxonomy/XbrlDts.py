@@ -67,7 +67,7 @@ class XbrlDts(ModelXbrl): # complete wrapper for ModelXbrl
         if lang is None:
             lang = self.modelXbrl.modelManager.defaultLang
         for tagObj in self.tagObjects.get(name, ()):
-            tagLang = getattr(tagObj, "language", lang)
+            tagLang = getattr(tagObj, "language", None) or lang
             refType = getattr(tagObj, "referenceType", None)
             if (refType is not None and (not referenceType or referenceType == refType) and # causes skipping of label objects
                 (not lang or tagLang.startswith(lang) or lang.startswith(tagLang))): # TBD replace with 2.1 language detection
@@ -108,14 +108,22 @@ class XbrlDts(ModelXbrl): # complete wrapper for ModelXbrl
 
     def error(self, *args, **kwargs):
         if "xbrlObject" in kwargs:
-            kwargs["sourceFileLine"] = kwargs["xbrlObject"].entryLoadingUrl
+            argValue = kwargs["xbrlObject"].entryLoadingUrl
+            if isinstance(argValue, (tuple,list)):
+                kwargs["sourceFileLines"] = argValue
+            else:
+                kwargs["sourceFileLine"] = argValue
             super(XbrlDts, self).error(*args, **kwargs)
 
     def warning(self, *args, **kwargs):
         if "xbrlObject" in kwargs:
-            kwargs["sourceFileLine"] = kwargs["xbrlObject"].entryLoadingUrl
+            argValue = kwargs["xbrlObject"].entryLoadingUrl
+            if isinstance(argValue, (tuple,list)):
+                kwargs["sourceFileLines"] = argValue
+            else:
+                kwargs["sourceFileLine"] = argValue
             super(XbrlDts, self).warning(*args, **kwargs)
-        
+
 
 def create(*args: Any, **kwargs: Any) -> XbrlDts:
     return cast(XbrlDts, modelXbrlCreate(*args, **kwargs))
