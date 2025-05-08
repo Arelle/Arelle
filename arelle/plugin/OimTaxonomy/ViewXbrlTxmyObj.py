@@ -60,7 +60,10 @@ def viewXbrlTxmyObj(xbrlDts, objClass, tabWin, header, additionalViews=None):
         view.treeView.column(colName, width=w, anchor="w")
         view.treeView.heading(colName, text=propName)
     view.treeView["displaycolumns"] = view.colNames
-    view.labelrole = qnStdLabel
+    if objClass.__name__ == "XbrlReference":
+        view.labelRole = None
+    else:
+        view.labelrole = qnStdLabel
     view.view()
     view.blockSelectEvent = 1
     view.blockViewModelObject = 0
@@ -102,7 +105,7 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
             (XbrlConst.xbrli, XbrlConst.link, XbrlConst.xlink, XbrlConst.xl,
              XbrlConst.xbrldt,
              XbrlConst.xhtml))
-        for obj in self.xbrlDts.filterNamedObjects(self.objClass): # this is a yield generator
+        for obj in self.xbrlDts.filterNamedObjects(self.objClass, role, lang): # this is a yield generator
             propName = self.propNameTypes[0][0]
             node = self.treeView.insert("", "end",
                                         f"_{self.id}_{obj.dtsObjectIndex}",

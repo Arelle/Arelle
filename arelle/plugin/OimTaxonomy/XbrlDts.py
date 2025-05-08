@@ -95,16 +95,18 @@ class XbrlDts(ModelXbrl): # complete wrapper for ModelXbrl
                             err, traceback.format_tb(sys.exc_info()[2])))
 
     # dts-wide object accumulator properties
-    def filterNamedObjects(self, _class):
+    def filterNamedObjects(self, _class, _type=None, _lang=None):
         if issubclass(_class, XbrlReferencableTaxonomyObject):
-            objdict = self.namedObjects
+            for obj in self.namedObjects.values():
+                if isinstance(obj, _class):
+                    yield obj
         elif issubclass(_class, XbrlTaxonomyTagObject):
-            objdict = self.tagObjects
-        else:
-            objdict = {}
-        for obj in objdict.values():
-            if isinstance(obj, _class):
-                yield obj
+            for objs in self.tagObjects.values():
+                for obj in objs:
+                    if (isinstance(obj, _class) and
+                        (not _type or _type == obj._type) and
+                        (not _lang or not obj.language or _lang.startswith(obj.language) or obj.language.startswith(lang))):
+                        yield obj
 
     def error(self, *args, **kwargs):
         if "xbrlObject" in kwargs:

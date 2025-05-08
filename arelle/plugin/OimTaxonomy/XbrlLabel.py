@@ -19,6 +19,10 @@ class XbrlLabel(XbrlTaxonomyTagObject):
     value: str # (required) The text of the label.
     properties: OrderedSet[XbrlProperty] # (optional) ordered set of property objects used to specify additional properties associated with the concept using the property object. Only immutable properties as defined in the propertyType object can be added to a concept.
 
+    @property
+    def _type(self):
+        return self.labelType
+
 class XbrlLabelType(XbrlReferencableTaxonomyObject):
     taxonomy: XbrlTaxonomyType
     name: QName # (required) The name is a QName that uniquely identifies the label type object.

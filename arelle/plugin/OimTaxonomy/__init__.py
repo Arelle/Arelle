@@ -893,6 +893,7 @@ def oimTaxonomyViews(cntlr, xbrlDts):
                            (XbrlLabel, cntlr.tabWinBtm, "XBRL Labels"),
                            (XbrlLabelType, cntlr.tabWinBtm, "XBRL Label Types"),
                            (XbrlPropertyType, cntlr.tabWinBtm, "XBRL Property Types"),
+                           (XbrlReference, cntlr.tabWinBtm, "XBRL References"),
                            (XbrlReferenceType, cntlr.tabWinBtm, "XBRL Reference Types"),
                            (XbrlRelationshipType, cntlr.tabWinBtm, "XBRL Relationship Types"),
                            (XbrlTransform, cntlr.tabWinBtm, "XBRL Transforms"),

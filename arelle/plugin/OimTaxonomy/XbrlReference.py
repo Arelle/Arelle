@@ -20,6 +20,10 @@ class XbrlReference(XbrlTaxonomyTagObject):
     language: Optional[str] # (optional) Defines the language of the reference using a valid BCP 47 [BCP47] language code.
     properties: OrderedSet[XbrlProperty] # (optional) an ordered set of property objects used to identify the properties of the reference.
 
+    @property
+    def _type(self):
+        return self.referenceType
+
 class XbrlReferenceType(XbrlReferencableTaxonomyObject):
     taxonomy: XbrlTaxonomyType
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the reference type object.
