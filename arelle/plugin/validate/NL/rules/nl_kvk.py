@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 
+from arelle.ModelInstanceObject import ModelInlineFact
 from arelle.XmlValidateConst import VALID
 from dateutil import relativedelta
 from collections.abc import Iterable
@@ -21,7 +22,7 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from ..DisclosureSystems import DISCLOSURE_SYSTEM_NL_INLINE_2024
-from ..PluginValidationDataExtension import PluginValidationDataExtension, XBRLI_IDENTIFIER_PATTERN, XBRLI_IDENTIFIER_SCHEMA
+from ..PluginValidationDataExtension import PluginValidationDataExtension, XBRLI_IDENTIFIER_PATTERN, XBRLI_IDENTIFIER_SCHEMA, DISALLOWED_IXT_NAMESPACES
 
 if TYPE_CHECKING:
     from arelle.ModelXbrl import ModelXbrl
@@ -268,6 +269,34 @@ def rule_nl_kvk_3_2_1_1 (
             codes='NL.NL-KVK-3.2.1.1.precisionAttributeUsed',
             msg=_('Precision should not be used on numeric facts.'),
             modelObject = factsWithPrecision
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
+def rule_nl_kvk_3_2_3_1 (
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.3.2.3.1: Transformation Registry 4 or newer are allowed. Everything else is prohibited.
+    """
+    transformRegistryErrors = []
+    for fact in val.modelXbrl.facts:
+        if isinstance(fact, ModelInlineFact):
+            if fact.format is not None and fact.format.namespaceURI in DISALLOWED_IXT_NAMESPACES:
+                transformRegistryErrors.append(fact)
+    if len(transformRegistryErrors) >0:
+        yield Validation.error(
+            codes='NL.NL-KVK.3.2.3.1.incorrectTransformationRuleApplied',
+            msg=_('Transformation Registry 4 or newer are allowed. Everything else is prohibited.'),
+            modelObject = transformRegistryErrors
         )
 
 

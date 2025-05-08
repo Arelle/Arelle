@@ -19,8 +19,6 @@ config = ConformanceSuiteConfig(
     ],
     expected_failure_ids=frozenset([
         # Not Implemented
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-2-3_1/index.xml:TC3_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-2-3_1/index.xml:TC4_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-2-4_2/index.xml:TC4_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-2-7_1/index.xml:TC4_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-2-7_1/index.xml:TC5_invalid',
