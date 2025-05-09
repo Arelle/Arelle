@@ -272,8 +272,7 @@ class FileSource:
                     assert isinstance(self.basefile, str)
                     file: io.BufferedReader | io.BytesIO | io.StringIO | None = open(self.basefile, 'rb')
                     assert isinstance(file, (io.BufferedReader, io.BytesIO))
-                    more = True
-                    while more:
+                    while True:
                         l = file.read(8)
                         if len(l) < 8:
                             break
