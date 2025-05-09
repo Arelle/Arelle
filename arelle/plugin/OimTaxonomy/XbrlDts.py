@@ -110,21 +110,21 @@ class XbrlDts(ModelXbrl): # complete wrapper for ModelXbrl
 
     def error(self, *args, **kwargs):
         if "xbrlObject" in kwargs:
-            argValue = kwargs["xbrlObject"].entryLoadingUrl
+            argValue = kwargs["xbrlObject"]
             if isinstance(argValue, (tuple,list)):
-                kwargs["sourceFileLines"] = argValue
+                kwargs["sourceFileLines"] = [a.entryLoadingUrl for a in argValue]
             else:
-                kwargs["sourceFileLine"] = argValue
-            super(XbrlDts, self).error(*args, **kwargs)
+                kwargs["sourceFileLine"] = argValue.entryLoadingUrl
+        super(XbrlDts, self).error(*args, **kwargs)
 
     def warning(self, *args, **kwargs):
         if "xbrlObject" in kwargs:
-            argValue = kwargs["xbrlObject"].entryLoadingUrl
+            argValue = kwargs["xbrlObject"]
             if isinstance(argValue, (tuple,list)):
-                kwargs["sourceFileLines"] = argValue
+                kwargs["sourceFileLines"] = [a.entryLoadingUrl for a in argValue]
             else:
-                kwargs["sourceFileLine"] = argValue
-            super(XbrlDts, self).warning(*args, **kwargs)
+                kwargs["sourceFileLine"] = argValue.entryLoadingUrl
+        super(XbrlDts, self).warning(*args, **kwargs)
 
 
 def create(*args: Any, **kwargs: Any) -> XbrlDts:

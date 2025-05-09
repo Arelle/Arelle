@@ -6,15 +6,16 @@ from arelle.ModelValue import qname
 
 # MERGE TO arelle.XbrlConst when promoting plugin to infrastructure
 
-oimTaxonomyDocTypePattern = re.compile(r"\s*\{.*\"documentType\"\s*:\s*\"https://xbrl.org/PWD/[0-9]{4}-[0-9]{2}-[0-9]{2}/oim\"", flags=re.DOTALL)
+oimTaxonomyDocTypePattern = re.compile(r"\s*\{.*\"documentType\"\s*:\s*\"https://xbrl.org/[0-9]{4}/taxonomy\"", flags=re.DOTALL)
 oimTaxonomyDocTypes = (
-        "https://xbrl.org/PWD/2025-01-31/oim",
+        "https://xbrl.org/2025/taxonomy",
     )
 
 xbrl = "https://xbrl.org/2025"
 
 qnStdLabel = qname("{https://xbrl.org/2025}xbrli:label")
 qnXsDate = qname("{http://www.w3.org/2001/XMLSchema}xs:date")
+qnXsDateTime = qname("{http://www.w3.org/2001/XMLSchema}xs:dateTime")
 qnXsQName = qname("{http://www.w3.org/2001/XMLSchema}xs:QName")
 
 qnXbrlLabelObj = qname("{https://xbrl.org/2025}xbrl:labelObject")
@@ -37,21 +38,11 @@ objectsWithProperties = {
 bakedInObjects = {
     "documentInfo": {
         "documentType": oimTaxonomyDocTypes[0],
-        "namespaces": [
-            {
-                "prefix": "xbrl",
-                "uri": "https://xbrl.org/2025"
-            },
-            {
-                "documentNamespace": True,
-                "prefix": "xbrli",
-                "uri": "https://xbrl.org/2025/instance"
-            },
-            {
-                "prefix": "xs",
-                "uri": "http://www.w3.org/2001/XMLSchema"
-            }
-        ]
+        "namespaces": {
+            "xbrl": "https://xbrl.org/2025",
+            "xbrli": "https://xbrl.org/2025/instance",
+            "xs": "http://www.w3.org/2001/XMLSchema"
+        }
     },
     "taxonomy": {
         "name": "xbrl:baked-in-taxonomy",

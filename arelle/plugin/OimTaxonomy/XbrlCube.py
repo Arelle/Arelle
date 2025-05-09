@@ -12,8 +12,8 @@ from .ModelValueMore import QNameAt, SQName
 from .XbrlTaxonomyObject import XbrlTaxonomyObject, XbrlReferencableTaxonomyObject
 
 class XbrlDateResolution(XbrlTaxonomyObject):
-    conceptName: QName # (optional) Identifies the QName of a concept object that has a date fact value. The values of the concept object resolves to a set of dates. If no value exists in the report then the property is ignored, and no date constraint is enforced on the cube.
-    context: QNameAt # (optional) Identifies the QName of a concept object that has a value. The context of the fact values resolves to a set of dates. If no value exists in the report then the property is ignored. The context suffix must be either @end or @start. If an @ value is not provided then the suffix defaults to @end.
+    conceptName: Optional[QName] # (optional) Identifies the QName of a concept object that has a date fact value. The values of the concept object resolves to a set of dates. If no value exists in the report then the property is ignored, and no date constraint is enforced on the cube.
+    context: Optional[QNameAt] # (optional) Identifies the QName of a concept object that has a value. The context of the fact values resolves to a set of dates. If no value exists in the report then the property is ignored. The context suffix must be either @end or @start. If an @ value is not provided then the suffix defaults to @end.
     value: Optional[DateTime] # (optional) A literal date value representing the end date.
     timeShift: Optional[YearMonthDayTimeDuration] # (optional) Defines a time duration shift from the date derived form either the value, context or name properties. The duration of the time shift is defined using the XML duration type to define a duration of time. A negative operator is used to deduct the timeShift from the resolved date.
 
@@ -79,7 +79,9 @@ baseCubeTypes = {
     }
 
 periodCoreDim = qname("{https://xbrl.org/2025}xbrl:period")
-conceptCoreDim = qname("{https://xbrl.org/2025}xbrl:concept"),
-entityCoreDim = qname("{https://xbrl.org/2025}xbrl:entity"),
-unitCoreDim = qname("{https://xbrl.org/2025}xbrl:unit"),
-languageCoreDim = qname("{https://xbrl.org/2025}xbrl:language"),
+conceptCoreDim = qname("{https://xbrl.org/2025}xbrl:concept")
+entityCoreDim = qname("{https://xbrl.org/2025}xbrl:entity")
+unitCoreDim = qname("{https://xbrl.org/2025}xbrl:unit")
+languageCoreDim = qname("{https://xbrl.org/2025}xbrl:language")
+
+coreDimensions = {periodCoreDim, conceptCoreDim, entityCoreDim, unitCoreDim, languageCoreDim}

@@ -33,7 +33,6 @@ class XbrlTaxonomy(XbrlTaxonomyObject):
     frameworkName: Optional[str] # (optional) The framework name of the taxonomy such as "US-GAAP" that indicates the taxonomy broad taxonomy family. The framework name stays consistent between regular taxonomy releases of the same taxonomy domain.
     version: Optional[str] # (optional) Used to identify the version of the taxonomy such as the year of release.
     resolved: bool # (required) Used to indicate if the taxonomy is in a resolved form. Allowable values are true or false. True indicates that the taxonomy is a complete model including all objects post dts processing that has resolved all importedTaxonomy objects, extendTargetName attributes and domain filters. False indicates that the taxonomy is pre dts processing and is not in resolved form.
-    entryPoint: AnyURI # (required) The uri entry point location of the taxonomy object that is used to locate the taxonomy.
     importedTaxonomies: OrderedSet[XbrlImportedTaxonomy] # ordered set of importedTaxonomy objects that can comprise QName of the taxonomy to be imported, an object type or a taxonomy object referenced by its QName.
     abstracts: OrderedSet[XbrlAbstract] # ordered set of abstract objects.
     concepts: OrderedSet[XbrlConcept] # ordered set of concept objects.
@@ -91,3 +90,4 @@ xbrlObjectTypes = {
         qname("{https://xbrl.org/2025}xbrl:unitObject"): XbrlUnit,
         qname("{https://xbrl.org/2025}xbrl:unitTypeObject"): XbrlUnitType,
     }
+xbrlObjectQNames = dict((v,k) for k,v in xbrlObjectTypes.items())

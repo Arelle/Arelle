@@ -9,7 +9,7 @@ from arelle.ModelValue import QName
 from arelle.PythonUtil import OrderedSet
 from .XbrlProperty import XbrlProperty
 from .XbrlTypes import XbrlTaxonomyType, QNameKeyType
-from .XbrlTaxonomyObject import XbrlReferencableTaxonomyObject
+from .XbrlTaxonomyObject import XbrlTaxonomyObject, XbrlReferencableTaxonomyObject
 
 XbrlUnitTypeType: TypeAlias = "XbrlUnitType"
 
@@ -40,9 +40,7 @@ class XbrlDataType(XbrlReferencableTaxonomyObject):
     pattern: set[str] # (optional) Defines a string as a single regex expressions. At least one of the regex patterns must match. (Uses XML regex)
     unitTypes: OrderedSet[XbrlUnitTypeType] # unitType comprising a dataType expressed as a value of the datatype. For example xbrli:flow has unit datatypes of xbrli:volume and xbrli:time
 
-class XbrlUnitType(XbrlReferencableTaxonomyObject):
-    taxonomy: XbrlTaxonomyType
-    relatedName: QNameKeyType # (required) Defines a QName that the label is associated with.
+class XbrlUnitType(XbrlTaxonomyObject):
     dataTypeNumerator: Optional[XbrlDataType] # (optional) Defines the numerator datatype of of the datatype
     dataTypeDenominator: Optional[XbrlDataType] # (optional) Defines the denominator datatype used by a unit used to define a value of the datatype
     dataTypeMutiplier: Optional[XbrlDataType] # (optional) Defines a mutiplier datatype used by a unit used to define a value of the datatype

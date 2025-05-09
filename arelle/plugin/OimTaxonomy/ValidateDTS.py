@@ -6,16 +6,20 @@ import regex as re
 from arelle.XmlValidate import languagePattern
 from arelle.oim.Load import EMPTY_DICT
 from .XbrlConcept import XbrlConcept, XbrlDataType
-from .XbrlCube import XbrlCube, XbrlCubeType, baseCubeTypes, periodCoreDim, conceptCoreDim, entityCoreDim, unitCoreDim, languageCoreDim
-from .XbrlDimension import XbrlDimension, XbrlDomain, XbrlDomainRoot
-from .XbrlGroup import XbrlGroup
+from .XbrlCube import (XbrlCube, XbrlCubeType, baseCubeTypes, XbrlCubeDimension,
+                       periodCoreDim, conceptCoreDim, entityCoreDim, unitCoreDim, languageCoreDim, coreDimensions)
+from .XbrlDimension import XbrlDimension, XbrlDomain, XbrlDomainRoot, XbrlMember
+from .XbrlEntity import XbrlEntity
+from .XbrlGroup import XbrlGroup, XbrlGroupContent
 from .XbrlImportedTaxonomy import XbrlImportedTaxonomy
 from .XbrlLabel import XbrlLabel
-from .XbrlNetwork import XbrlNetwork
+from .XbrlNetwork import XbrlNetwork, XbrlRelationship, XbrlRelationshipType
+from .XbrlProperty import XbrlPropertyType
 from .XbrlReference import XbrlReference
 from .XbrlTableTemplate import XbrlTableTemplate
-from .XbrlTaxonomy import XbrlTaxonomy, xbrlObjectTypes
-from .XbrlConst import qnXsQName
+from .XbrlTaxonomy import XbrlTaxonomy, xbrlObjectTypes, xbrlObjectQNames
+from .XbrlUnit import XbrlUnit
+from .XbrlConst import qnXsQName, qnXsDateTime, objectsWithProperties
 
 perCnstrtFmtStartEndPattern = re.compile(r".*@(start|end)")
 
@@ -33,20 +37,21 @@ def objType(obj):
 def validateProperties(dts, oimFile, txmy, obj):
     for propObj in obj.properties:
         propTypeQn = propObj.property
-        if propTypeQn not in dts.namedObjects or not isinstance(dts.namedObjects[propTypeQn], XbrlPropertyType):
+        propTypeObj = dts.namedObjects.get(propTypeQn)
+        if not isinstance(propTypeObj, XbrlPropertyType):
             dts.error("oime:invalidPropertyTypeObject",
                       _("%(parentObjName)s %(parentName)s property %(name)s has undefined dataType %(dataType)s"),
                       file=oimFile, parentObjName=objType(obj), parentName=getattr(obj,"name","(n/a)"),
                       name=propTypeQn, dataType=propTypeQn)
-        for allowedObjQn in obj.allowedObjects:
-            if allowedObjQn not in objectsWithProperties:
-                dts.error("oime:invalidAllowedObject",
-                          _("%(parentObjName)s %(parentName)s property %(name)s has invalid allowed object %(allowedObj)s"),
+        elif propTypeObj.allowedObjects:
+            if xbrlObjectQNames[propTypeObj] not in propTypeObj.allowedObjects:
+                dts.error("oime:disallowedObjectProperty",
+                          _("%(parentObjName)s %(parentName)s property %(name)s not an allowed property type for the object."),
                           file=oimFile, parentObjName=objType(obj), parentName=getattr(obj,"name","(n/a)"),
-                          name=obj.name, allowedObj=allowedObjQn)
+                          name=propTypeQn)
 
 def validateTaxonomy(dts, txmy):
-    oimFile = txmy.entryPoint
+    oimFile = str(txmy.name)
 
     def assertObjectType(obj, objType):
         if not isinstance(obj, objType):
@@ -57,7 +62,7 @@ def validateTaxonomy(dts, txmy):
     # Taxonomy object
     assertObjectType(txmy, XbrlTaxonomy)
 
-    for impTxmyObj in txmy.importedTaxomies:
+    for impTxmyObj in txmy.importedTaxonomies:
         assertObjectType(impTxmyObj, XbrlImportedTaxonomy)
         for qnObjType in impTxmyObj.includeObjectTypes:
             if qnObjType in xbrlObjectTypes:
@@ -94,6 +99,7 @@ def validateTaxonomy(dts, txmy):
     # Cube Objects
     for cubeObj in txmy.cubes:
         assertObjectType(cubeObj, XbrlCube)
+        name = cubeObj.name
         if cubeObj.cubeType and cubeObj.cubeType not in baseCubeTypes:
             if not isinstance(dts.namedObjects.get(cubeObj.cubeType), XbrlCubeType):
                 dts.error("oimte:invalidPropertyValue",
@@ -102,7 +108,7 @@ def validateTaxonomy(dts, txmy):
         dimQnCounts = {}
         for allowedCubeDimObj in cubeObj.cubeDimensions:
             dimQn = allowedCubeDimObj.dimensionName
-            if not isinstance(dts.namedObjects.get(dim), XbrlDimension):
+            if dimQn not in coreDimensions and not isinstance(dts.namedObjects.get(dimQn), XbrlDimension):
                 dts.error("oimte:invalidTaxonomyDefinedDimension",
                           _("The allowedCubeDimensions property on cube %(name)s MUST resolve to a dimension object: %(dimension)s"),
                           xbrlObject=cubeObj, name=name, dimension=dimQn)
@@ -130,59 +136,62 @@ def validateTaxonomy(dts, txmy):
         cncptDataTypeQNs = set()
         for cubeDimObj in cubeObj.cubeDimensions:
             assertObjectType(cubeDimObj, XbrlCubeDimension)
+            dimName = cubeDimObj.dimensionName
             if cubeDimObj.domainSort not in (None, "asc", "desc"):
                 dts.error("oimte:invalidCubeDimensionProperty",
                           _("Cube %(name)s domainSort property MUST be asc or desc, not %(domainSort)s."),
                           xbrlObject=cubeObj, name=name, domainSort=cubeDimObj.domainSort)
-            if cubeDimObj.periodConstraints and cubeDimObj.dimensionName != periodCoreDim:
+            if cubeDimObj.periodConstraints and dimName != periodCoreDim:
                 dts.error("oimte:invalidDimensionConstraint",
                           _("Cube %(name)s periodConstraints property MUST only be used where the dimensionName property has a QName value of xbrl:period, not %(qname)s."),
-                          xbrlObject=cubeObj, name=name, qname=cubeDimObj.dimensionName)
-            if cubeDimObj.unitConstraints and cubeDimObj.dimensionName != unitCoreDim:
+                          xbrlObject=cubeObj, name=name, qname=dimName)
+            if cubeDimObj.unitConstraints and dimName != unitCoreDim:
                 dts.error("oimte:invalidDimensionConstraint",
                           _("Cube %(name)s unitConstraints property MUST only be used where the dimensionName property has a QName value of xbrl:unit not %(qname)s."),
-                          xbrlObject=cubeObj, name=name, qname=cubeDimObj.dimensionName)
-            if cubeDimObj.dimensionName == conceptCoreDim and isinstance(dts.namedObjects.get(cubeDimObj.domainName), XbrlDomain):
+                          xbrlObject=cubeObj, name=name, qname=dimName)
+            if dimName == conceptCoreDim and isinstance(dts.namedObjects.get(cubeDimObj.domainName), XbrlDomain):
                 for relObj in dts.namedObjects[cubeDimObj.domainName].relationships:
                     if not isinstance(dts.namedObjects.get(getattr(relObj, "source", None),None), XbrlConcept):
                         dts.error("oimte:invalidRelationshipSource",
                                   _("Cube %(name)s conceptConstraints domain relationships must be from concepts."),
-                                  xbrlObject=(cubeObj,cubeDimOBj,relObj), name=name, qname=cubeDimObj.dimensionName)
+                                  xbrlObject=(cubeObj,cubeDimOBj,relObj), name=name, qname=dimName)
                     if isinstance(dts.namedObjects.get(getattr(relObj, "target", None),None), XbrlConcept):
                         cncptDataTypeQNs.add(relObj.target.dataType)
                     else:
                         dts.error("oimte:invalidRelationshipTarget",
                                   _("Cube %(name)s conceptConstraints domain relationships must be to concepts."),
-                                  xbrlObject=(cubeObj,cubeDimOBj,relObj), name=name, qname=cubeDimObj.dimensionName)
-            if cubeDimObj.dimensionName == entityCoreDim and isinstance(dts.namedObjects.get(cubeDimObj.domainName), XbrlDomain):
+                                  xbrlObject=(cubeObj,cubeDimOBj,relObj), name=name, qname=dimName)
+            if dimName == entityCoreDim and isinstance(dts.namedObjects.get(cubeDimObj.domainName), XbrlDomain):
                 for relObj in dts.namedObjects[cubeDimObj.domainName].relationships:
                     if not isinstance(dts.namedObjects.get(getattr(relObj, "source", None),None), XbrlEntity):
                         dts.error("oimte:invalidRelationshipSource",
                                   _("Cube %(name)s entityConstraints domain relationships must be from entities."),
-                                  xbrlObject=(cubeObj,cubeDimObj,relObj), name=name, qname=cubeDimObj.dimensionName)
+                                  xbrlObject=(cubeObj,cubeDimObj,relObj), name=name, qname=dimName)
                     if not isinstance(dts.namedObjects.get(getattr(relObj, "target", None),None), XbrlEntity):
                         dts.error("oimte:invalidRelationshipTarget",
                                   _("Cube %(name)s entityConstraints domain relationships must be to entities."),
-                                  xbrlObject=(cubeObj,cubeDimObj,relObj), name=name, qname=cubeDimObj.dimensionName)
-            if isinstance(dts.namedObjects.get(cubeDimObj.dimensionName), XbrlDimension):
-                dimObj = dts.namedObjects[cubeDimObj.dimensionName]
+                                  xbrlObject=(cubeObj,cubeDimObj,relObj), name=name, qname=dimName)
+            if dimName not in coreDimensions and isinstance(dts.namedObjects.get(dimName), XbrlDimension):
+                dimObj = dts.namedObjects[dimName]
                 if dimObj.domainDataType: # typed
-                    if dimObj.domainName:
+                    if dimObj.domainRoot:
                         dts.error("oimte:invalidQNameReference",
-                                  _("Cube %(name)s typed dimension %(qname)s must not specify a domain."),
-                                  xbrlObject=(cubeObj,cubeDimOBj,dimObj), name=name, qname=cubeDimObj.dimensionName)
-                    else: # explicit dim
-                        for relObj in dts.namedObjects[cubeDimObj.domainName].relationships:
+                                  _("Cube %(name)s typed dimension %(qname)s must not specify a domain root."),
+                                  xbrlObject=(cubeObj,cubeDimOBj,dimObj), name=name, qname=dimName)
+                else: # explicit dim
+                    domObj = dts.namedObjects.get(cubeDimObj.domainName)
+                    if domObj:
+                        for relObj in domObj.relationships:
                             if not isinstance(dts.namedObjects.get(getattr(relObj, "target", None),None), XbrlMember):
                                 dts.error("oimte:invalidRelationshipTarget",
                                           _("Cube %(name)s explicit dimension domain relationships must be to members."),
-                                          xbrlObject=(cubeObj,dimObj,relObj), name=name, qname=cubeDimObj.dimensionName)
-            if cubeDimObj.domainName and cubeDimObj.dimensionName in (periodCoreDim, unitCoreDim, languageCoreDim):
+                                          xbrlObject=(cubeObj,dimObj,relObj), name=name, qname=dimName)
+            if cubeDimObj.domainName and dimName in (periodCoreDim, unitCoreDim, languageCoreDim):
                 dts.error("oimte:invalidCubeDimensionProperty",
                           _("Cube %(name)s domainName property MUST NOT be used where the dimensionName property has a QName value %(qname)s."),
-                          xbrlObject=cubeObj, name=name, qname=cubeDimObj.dimensionName)
+                          xbrlObject=cubeObj, name=name, qname=dimName)
 
-            if cubeDimObj.dimensionName == periodCoreDim:
+            if dimName == periodCoreDim:
                 for perConstObj in cubeDimObj.periodConstraints:
                     if perConstObj.periodType not in ("instant", "duration"):
                         dts.error("oimte:invalidPeriodRepresentation",
@@ -196,7 +205,7 @@ def validateTaxonomy(dts, txmy):
                         dts.error("oimte:invalidPeriodRepresentation",
                                   _("Cube %(name)s period constraint periodFormat property MUST NOT be used with the timeSpan, endDate or startDate properties."),
                                   xbrlObject=(cubeObj,cubeDimObj), name=name)
-                    if perConstObj.periodType != "instant" and perCnstrtFmtStartEndPattern.match(perConstObj.periodFormat):
+                    if perConstObj.periodType != "instant" and perConstObj.periodFormat and perCnstrtFmtStartEndPattern.match(perConstObj.periodFormat):
                         dts.error("oimte:invalidPeriodRepresentation",
                                   _("Cube %(name)s period constraint periodFormat the suffix of @start or @end MUST only be used with periodType of instant."),
                                   xbrlObject=(cubeObj,cubeDimObj), name=name)
@@ -208,18 +217,18 @@ def validateTaxonomy(dts, txmy):
                         if dtResObj is not None:
                             if dtResObj.conceptName:
                                 cncpt = dts.namedObjects.get(dtResObj.conceptName)
-                                if not cncpt or cncpt.dataType.basetype != qnXsDate:
+                                if not cncpt or not isinstance(dts.namedObjects.get(cncpt.dataType), XbrlDataType) or dts.namedObjects[cncpt.dataType].baseType != qnXsDateTime:
                                     dts.error("oimte:invalidPeriodRepresentation",
                                               _("Cube %(name)s period constraint concept %(qname)s base type MUST be a date."),
                                               xbrlObject=(cubeObj,cubeDimObj), name=name, qname=dtResObj.conceptName)
                             if dtResObj.context:
-                                name, _sep, suffix = dtResObj.context.lpartition("@")
+                                name, _sep, suffix = dtResObj.context.partition("@")
                                 cncpt = dts.namedObjects.get(name)
                                 if not cncpt or not isinstance(cncpt, XbrlConcept) or (suffix and (suffix not in ("start","end"))):
                                     dts.error("oimte:invalidPeriodRepresentation",
                                               _("Cube %(name)s period constraint concept %(qname)s base type MUST be a concept and any suffix MUST be start or end."),
                                               xbrlObject=(cubeObj,cubeDimObj), name=name, qname=dtResObj.context)
-                            if dtResObj.timeShift and (value or (dtResObj.conceptName and not dtResObj.context) or (dtResObj.context and not dtResObj.conceptName)):
+                            if dtResObj.timeShift and (dtResObj.value or (dtResObj.conceptName and not dtResObj.context) or (dtResObj.context and not dtResObj.conceptName)):
                                     dts.error("oimte:invalidPeriodRepresentation",
                                               _("Cube %(name)s period constraint concept %(qname)s timeShift MUST be sed with only one of the properties name, or context."),
                                               xbrlObject=(cubeObj,cubeDimObj), name=name, qname=dtResObj.context)
@@ -227,8 +236,8 @@ def validateTaxonomy(dts, txmy):
                 if cubeDimObj.periodConstraints:
                     dts.error("oimte:invalidDimensionConstraint",
                               _("Cube %(name)s periodConstraints property MUST only be used where the dimensionName property has a QName value of xbrl:period, not %(qname)s."),
-                              xbrlObject=cubeObj, name=name, qname=cubeDimObj.dimensionName)
-            if cubeDimObj.dimensionName == unitCoreDim:
+                              xbrlObject=cubeObj, name=name, qname=dimName)
+            if dimName == unitCoreDim:
                 for unitCnstrtQn in cubeDimObj.unitConstraints:
                     unitObj = dts.namedObjects.get(unitCnstrtQn)
                     if unitObj and isinstance(unitObj, XbrlUnit):
@@ -241,7 +250,7 @@ def validateTaxonomy(dts, txmy):
                 if cubeDimObj.unitConstraints:
                     dts.error("oimte:invalidDimensionConstraint",
                               _("Cube %(name)s unitConstraints property MUST only be used where the dimensionName property has a QName value of xbrl:unit, not %(qname)s."),
-                              xbrlObject=(cubeObj,cubeDimObj), name=name, qname=cubeDimObj.dimensionName)
+                              xbrlObject=(cubeObj,cubeDimObj), name=name, qname=dimName)
         for unitDataTypeQN in unitDataTypeQNs:
             if unitDataTypeQN not in cncptDataTypeQNs:
                 dts.error("oimte:invalidDataTypeObject",
@@ -249,10 +258,10 @@ def validateTaxonomy(dts, txmy):
                           xbrlObject=(cubeObj,cubeDimObj), name=name, dataType=unitDataTypeQN)
 
     # DataType Objects
-    for dtObj in txmy.dimensions:
+    for dtObj in txmy.dataTypes:
         assertObjectType(dtObj, XbrlDataType)
-        bt = dt.basetype
-        if bt and bt.namespaceURI != "http://www.w3.org/2001/XMLSchema" and not isinstance(dts.namedObjects.get(bt), XbrlDataType):
+        btQn = dtObj.baseType
+        if btQn and btQn.namespaceURI != "http://www.w3.org/2001/XMLSchema" and not isinstance(dts.namedObjects.get(btQn), XbrlDataType):
             dts.error("oimte:invalidPropertyValue",
                       _("The dataType object %(name)s MUST define a valid baseType which must be a dataType object in the dts"),
                       xbrlObject=dtObj, name=dt.name)
@@ -267,7 +276,7 @@ def validateTaxonomy(dts, txmy):
 
     # Dimension Objects
     for dimObj in txmy.dimensions:
-        assertObjectType(imObj, XbrlDimension)
+        assertObjectType(dimObj, XbrlDimension)
         for cubeTypeQn in dimObj.cubeTypes:
             if not isinstance(dts.namedObjects.get(cubeTypeQn), XbrlCubeType):
                 dts.error("oimte:invalidPropertyValue",
@@ -331,11 +340,10 @@ def validateTaxonomy(dts, txmy):
                       _("The groupContent object groupName QName %(name)s MUST be a valid group object in the dts"),
                       xbrlObject=grpCntObj, name=grpQn)
         for relName in grpCntObj.relatedNames:
-            if relName not in dts.namedObjects or type(dts.namedObjects[relName]) not in (XbrlNetwork, XbrlCube, XbrlTableTemplate):
+            if relName not in dts.namedObjects or not isinstance(dts.namedObjects.get(relName), (XbrlNetwork, XbrlCube, XbrlTableTemplate)):
                 dts.error("oimte:invalidGroupObject",
                           _("The groupContent object %(name)s relatedName %(relName)s MUST only include QNames associated with network objects, cube objects or table template objects."),
                           xbrlObject=grpCntObj, name=grpCntObj.groupName, relName=relName)
-        validateProperties(dts, oimFile, txmy, grpCntObj)
 
     # Label Objects
     for labelObj in txmy.labels:
@@ -379,8 +387,8 @@ def validateTaxonomy(dts, txmy):
             assertObjectType(relObj, XbrlRelationship)
             if  relObj.source not in dts.namedObjects or relObj.target not in dts.namedObjects:
                 dts.error("oimte:missingTargetObject",
-                          _("The network %(name)s relationship[%(nbr)s] source and target MUST be objects in the DTS."),
-                          xbrlObject=domObj, name=ntwkObj.name, nbr=i)
+                          _("The network %(name)s relationship[%(nbr)s] source, %(source)s, and target, %(target)s, MUST be objects in the DTS."),
+                          xbrlObject=domObj, name=ntwkObj.name, nbr=i, source=relObj.source, target=relObj.target)
             validateProperties(dts, oimFile, txmy, relObj)
         validateProperties(dts, oimFile, txmy, ntwkObj)
 
@@ -395,12 +403,15 @@ def validateTaxonomy(dts, txmy):
             dts.error("oimte:invalidDataTypeObject",
                       _("The propertyType %(name)s dataType %(qname)s MUST be a valid dataType object in the dts"),
                       xbrlObject=ntwkObj, name=propTpObj.name, qname=propTpObj.dataType)
-        validateProperties(dts, oimFile, txmy, propTpObj)
+        for allowedObjQn in propTpObj.allowedObjects:
+            if allowedObjQn not in objectsWithProperties:
+                dts.error("oime:invalidAllowedObject",
+                          _("The property %(name)s has an invalid allowed object %(allowedObj)s"),
+                          file=oimFile, name=propTpObj.name, allowedObj=allowedObjQn)
 
     # RelationshipType Objects
     for relTpObj in txmy.relationshipTypes:
-        assertObjectType(relTpObj, XbrlRelaionshipType)
-        validateProperties(dts, oimFile, txmy, relTpObj)
+        assertObjectType(relTpObj, XbrlRelationshipType)
 
     # Reference Objects
     for refObj in txmy.references:
@@ -420,12 +431,12 @@ def validateTaxonomy(dts, txmy):
 
 
     # Unit Objects
-    for unitObj in txmy.domains:
+    for unitObj in txmy.units:
         assertObjectType(unitObj, XbrlUnit)
         usedDataTypes = set()
 
         for dtProp in ("dataType", "dataTypeNumerator", "aTypeDenominator"):
-            dtQn = getattr(unitObj,dtProp)
+            dtQn = getattr(unitObj, dtProp, None)
             if dtQn:
                 if not isinstance(dts.namedObjects.get(dtQn), XbrlDataType):
                     dts.error("oimte:invalidUnitDataType",

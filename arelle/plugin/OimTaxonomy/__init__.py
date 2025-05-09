@@ -16,7 +16,7 @@ For debugging, saves the xsd objects loaded from the OIM taxonomy if
 
 """
 
-from typing import TYPE_CHECKING, cast, GenericAlias, Union
+from typing import TYPE_CHECKING, cast, GenericAlias, Union, _UnionGenericAlias
 from types import UnionType
 
 import os, io, json, sys, time, traceback
@@ -55,7 +55,7 @@ from .ViewXbrlTxmyObj import viewXbrlTxmyObj
 from .XbrlConst import xbrl, oimTaxonomyDocTypePattern, oimTaxonomyDocTypes, qnXbrlLabelObj, bakedInObjects
 
 
-from arelle.oim.Load import (DUPJSONKEY, DUPJSONVALUE, EMPTY_DICT, EMPTY_LIST,
+from arelle.oim.Load import (DUPJSONKEY, DUPJSONVALUE, EMPTY_DICT, EMPTY_LIST, UrlInvalidPattern,
                              OIMException, NotOIMException)
 from arelle.FunctionFn import name, true
 
@@ -255,18 +255,16 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
         namespacePrefixes = {}
         prefixNamespaces = {}
         namespaceUrls = {}
-        for nsObj in documentInfo.get("namespaces", EMPTY_DICT):
-            ns = nsObj.get("uri","")
-            prefix = nsObj.get("prefix","")
+        for prefix, ns in documentInfo.get("namespaces", EMPTY_DICT).items():
             if ns and prefix:
                 namespacePrefixes[ns] = prefix
                 prefixNamespaces[prefix] = ns
                 setXmlns(schemaDoc, prefix, ns)
-            if nsObj.get("documentNamespace",False):
-                schemaDoc.targetNamespace = ns
-            url = nsObj.get("url","")
-            if url:
-                namespaceUrls[ns] = url
+        if "documentNamespace" in documentInfo:
+            schemaDoc.targetNamespace = prefixNamespaces.get(documentInfo["documentNamespace"])
+        if "urlMapping" in documentInfo:
+            for prefix, url in documentInfo["urlMapping"].items():
+                namespaceUrls[prefixNamespaces.get(prefix)] = url
         taxonomyName = qname(taxonomyObj.get("name"), prefixNamespaces)
         if not taxonomyName:
             xbrlDts.error("oime:missingQNameProperty",
@@ -344,6 +342,9 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                         if ownrProp is None: # the parent object's dict or OrderedSet doesn't exist yet
                             ownrProp = ownrPropClass()
                             setattr(oimParentObj, propName, ownrProp) # fresh new dict or OrderedSet
+                    elif isinstance(ownrPropType, _UnionGenericAlias) and ownrPropType.__args__[-1] == type(None): # optional nested object
+                        keyClass = None
+                        objClass = ownrPropType.__args__[0]
                     else: # parent      is just an object field, not a  collection
                         objClass = ownrPropType # e.g just a Concept but no owning collection
                     if objClass == XbrlTaxonomyType:
@@ -403,7 +404,11 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                                                 collectionProp.add(listObj)
                                             else:
                                                 collectionProp.append(listObj)
+                            elif isinstance(propType, _UnionGenericAlias) and propType.__args__[-1] == type(None) and isinstance(jsonValue,dict): # optional embdded object
+                                createTaxonomyObjects(propName, jsonValue, newObj, pathParts + [propName]) # object property
                             else:
+                                if isinstance(propType, _UnionGenericAlias) and propType.__args__[-1] == type(None):
+                                    propType = propType.__args__[0] # scalar property
                                 if propType in (QName, QNameKeyType, SQName, SQNameKeyType):
                                     jsonValue = qname(jsonValue, prefixNamespaces)
                                     if jsonValue is None:
@@ -418,7 +423,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                                     keyValue = jsonValue # e.g. the QNAme of the new object for parent object collection
                         elif propType in (type(oimParentObj), type(oimParentObj).__name__): # propType may be a TypeAlias which is a string name of class
                             setattr(newObj, propName, oimParentObj)
-                        elif ((isinstance(propType, UnionType) or isinstance(getattr(propType, "__origin__", None), type(Union))) and # Optional[ ] type
+                        elif ((isinstance(propType, (UnionType,_UnionGenericAlias)) or isinstance(getattr(propType, "__origin__", None), type(Union))) and # Optional[ ] type
                                propType.__args__[-1] in (type(None), DefaultTrue, DefaultFalse, DefaultZero)):
                                   setattr(newObj, propName, {type(None): None, DefaultTrue: True, DefaultFalse: False, DefaultZero:0}[propType.__args__[-1]]) # use first of union for prop value creation
                         else: # absent json element
@@ -436,6 +441,8 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                             ownrProp.add(newObj)
                         else:
                             ownrProp.append(newObj)
+                    elif isinstance(ownrPropType, _UnionGenericAlias) and ownrPropType.__args__[-1] == type(None): # optional nested object
+                        setattr(oimParentObj, pathParts[-1], newObj)
                     if isinstance(newObj, XbrlReferencableTaxonomyObject):
                         xbrlDts.namedObjects[keyValue] = newObj
                     elif isinstance(newObj, XbrlTaxonomyTagObject) and relatedNames:
@@ -839,8 +846,13 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
 def oimTaxonomyValidator(val, parameters):
     if not isinstance(val.modelXbrl, XbrlDts): # if no OIM Taxonomy DTS give up
         return
-
-    validateDTS(val.modelXbrl)
+    try:
+        validateDTS(val.modelXbrl)
+    except Exception as ex:
+        val.modelXbrl.error("arelleOIMloader:error",
+                "Error while validating, error %(errorType)s %(error)s\n traceback %(traceback)s",
+                modelObject=val.modelXbrl, errorType=ex.__class__.__name__, error=ex,
+                traceback=traceback.format_tb(sys.exc_info()[2]))
 
 lastFilePath = None
 lastFilePathIsOIM = False

@@ -18,7 +18,7 @@ class XbrlTaxonomyObject:
 
     @property
     def entryLoadingUrl(self):
-        href = os.path.basename(getattr(getattr(self, 'taxonomy', None), 'entryPoint', '(N/A)'))
+        href = str(getattr(getattr(self, 'taxonomy', None), 'name', '(none)'))
         className = type(self).__name__
         if className.startswith("Xbrl"):
             classIndex = getattr(self, "_classIndex", None)
@@ -80,7 +80,7 @@ class XbrlTaxonomyObject:
         for propName, propType in getattr(objClass, "__annotations__", EMPTY_DICT).items():
             if initialParentObjProp:
                 initialParentProp = False
-                if isinstance(propType, str) or propType.__name__.startswith("Xbrl"): # skip taxonomy alias type
+                if isinstance(propType, str) or getattr(propType, "__name__", "").startswith("Xbrl"): # skip taxonomy alias type
                     continue
             if hasattr(self, propName):
                 val = getattr(self, propName)
