@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Optional
 
 from arelle.ModelValue import qname, QName, DateTime, YearMonthDayTimeDuration
 from arelle.PythonUtil import OrderedSet
+from .XbrlConst import xbrl
 from .XbrlProperty import XbrlProperty
 from .XbrlTypes import XbrlTaxonomyType, QNameKeyType, DefaultTrue, DefaultFalse
 from .ModelValueMore import QNameAt, SQName
@@ -68,20 +69,20 @@ class XbrlCubeType(XbrlReferencableTaxonomyObject):
     requiredCubeRelationships: OrderedSet[XbrlRequiredCubeRelationship] # (optional) An ordered set of requiredCubeRelationship objects that at a minimum must be associated with the cube.
 
 baseCubeTypes = {
-    qname("{https://xbrl.org/2025}xbrl:eventCube"),
-    qname("{https://xbrl.org/2025}xbrl:positionCube"),
-    qname("{https://xbrl.org/2025}xbrl:referenceCube"),
-    qname("{https://xbrl.org/2025}xbrl:reportCube"),
-    qname("{https://xbrl.org/2025}xbrl:journalCube"),
-    qname("{https://xbrl.org/2025}xbrl:eventDetailsCube"),
-    qname("{https://xbrl.org/2025}xbrl:timeSeriesCube"),
-    qname("{https://xbrl.org/2025}xbrl:defaultCube")
+    qname(xbrl, "xbrl:eventCube"),
+    qname(xbrl, "xbrl:positionCube"),
+    qname(xbrl, "xbrl:referenceCube"),
+    qname(xbrl, "xbrl:reportCube"),
+    qname(xbrl, "xbrl:journalCube"),
+    qname(xbrl, "xbrl:eventDetailsCube"),
+    qname(xbrl, "xbrl:timeSeriesCube"),
+    qname(xbrl, "xbrl:defaultCube")
     }
 
-periodCoreDim = qname("{https://xbrl.org/2025}xbrl:period")
-conceptCoreDim = qname("{https://xbrl.org/2025}xbrl:concept")
-entityCoreDim = qname("{https://xbrl.org/2025}xbrl:entity")
-unitCoreDim = qname("{https://xbrl.org/2025}xbrl:unit")
-languageCoreDim = qname("{https://xbrl.org/2025}xbrl:language")
+periodCoreDim = qname(xbrl, "xbrl:period")
+conceptCoreDim = qname(xbrl, "xbrl:concept")
+entityCoreDim = qname(xbrl, "xbrl:entity")
+unitCoreDim = qname(xbrl, "xbrl:unit")
+languageCoreDim = qname(xbrl, "xbrl:language")
 
 coreDimensions = {periodCoreDim, conceptCoreDim, entityCoreDim, unitCoreDim, languageCoreDim}

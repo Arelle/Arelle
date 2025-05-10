@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 """
 import regex as re
 from arelle.ModelValue import qname
+from arelle.XbrlConst import xsd
 
 # MERGE TO arelle.XbrlConst when promoting plugin to infrastructure
 
@@ -13,35 +14,35 @@ oimTaxonomyDocTypes = (
 
 xbrl = "https://xbrl.org/2025"
 
-qnStdLabel = qname("{https://xbrl.org/2025}xbrli:label")
-qnXsDate = qname("{http://www.w3.org/2001/XMLSchema}xs:date")
-qnXsDateTime = qname("{http://www.w3.org/2001/XMLSchema}xs:dateTime")
-qnXsQName = qname("{http://www.w3.org/2001/XMLSchema}xs:QName")
+qnStdLabel = qname(xbrl, "xbrli:label")
+qnXsDate = qname(xsd, "xs:date")
+qnXsDateTime = qname(xsd, "xs:dateTime")
+qnXsQName = qname(xsd, "xs:QName")
 
-qnXbrlLabelObj = qname("{https://xbrl.org/2025}xbrl:labelObject")
+qnXbrlLabelObj = qname(xbrl, "xbrl:labelObject")
 
 objectsWithProperties = {
-    qname("{https://xbrl.org/2025}xbrl:taxonomyObject"),
-    qname("{https://xbrl.org/2025}xbrl:conceptObject"),
-    qname("{https://xbrl.org/2025}xbrl:abstractObject"),
-    qname("{https://xbrl.org/2025}xbrl:cubeObject"),
-    qname("{https://xbrl.org/2025}xbrl:dimensionObject"),
-    qname("{https://xbrl.org/2025}xbrl:domainObject"),
-    qname("{https://xbrl.org/2025}xbrl:entityObject"),
-    qname("{https://xbrl.org/2025}xbrl:groupObject"),
-    qname("{https://xbrl.org/2025}xbrl:networkObject"),
+    qname(xbrl, "xbrl:taxonomyObject"),
+    qname(xbrl, "xbrl:conceptObject"),
+    qname(xbrl, "xbrl:abstractObject"),
+    qname(xbrl, "xbrl:cubeObject"),
+    qname(xbrl, "xbrl:dimensionObject"),
+    qname(xbrl, "xbrl:domainObject"),
+    qname(xbrl, "xbrl:entityObject"),
+    qname(xbrl, "xbrl:groupObject"),
+    qname(xbrl, "xbrl:networkObject"),
     qnXbrlLabelObj,
-    qname("{https://xbrl.org/2025}xbrl:memberObject"),
-    qname("{https://xbrl.org/2025}xbrl:referenceObject"),
+    qname(xbrl, "xbrl:memberObject"),
+    qname(xbrl, "xbrl:referenceObject"),
     }
 
 bakedInObjects = {
     "documentInfo": {
         "documentType": oimTaxonomyDocTypes[0],
         "namespaces": {
-            "xbrl": "https://xbrl.org/2025",
+            "xbrl": xbrl,
             "xbrli": "https://xbrl.org/2025/instance",
-            "xs": "http://www.w3.org/2001/XMLSchema"
+            "xs": xsd
         }
     },
     "taxonomy": {
