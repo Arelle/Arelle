@@ -23,7 +23,6 @@ class ValidationPluginExtension(ValidationPlugin):
             jenvNamespace = 'http://www.nltaxonomie.nl/nt16/jenv/20211208/dictionary/jenv-bw2-data'
             kvkINamespace = 'http://www.nltaxonomie.nl/nt16/kvk/20211208/dictionary/kvk-data'
             nlTypesNamespace = 'http://www.nltaxonomie.nl/nt16/sbr/20210301/dictionary/nl-types'
-            titel9Namespace = ''
             entrypointRoot = 'http://www.nltaxonomie.nl/nt16/kvk/20211208/entrypoints/'
             entrypoints = {entrypointRoot + e for e in [
                 'kvk-rpt-jaarverantwoording-2021-ifrs-full.xsd',
@@ -60,7 +59,6 @@ class ValidationPluginExtension(ValidationPlugin):
             jenvNamespace = 'http://www.nltaxonomie.nl/nt17/jenv/20221214/dictionary/jenv-bw2-data'
             kvkINamespace = 'http://www.nltaxonomie.nl/nt17/kvk/20221214/dictionary/kvk-data'
             nlTypesNamespace = 'http://www.nltaxonomie.nl/nt17/sbr/20220301/dictionary/nl-types'
-            titel9Namespace = ''
             entrypointRoot = 'http://www.nltaxonomie.nl/nt17/kvk/20221214/entrypoints/'
             entrypoints = {entrypointRoot + e for e in [
                 'kvk-rpt-jaarverantwoording-2022-ifrs-full.xsd',
@@ -98,7 +96,6 @@ class ValidationPluginExtension(ValidationPlugin):
             jenvNamespace = 'http://www.nltaxonomie.nl/nt18/jenv/20231213/dictionary/jenv-bw2-data'
             kvkINamespace = 'http://www.nltaxonomie.nl/nt18/kvk/20231213/dictionary/kvk-data'
             nlTypesNamespace = 'http://www.nltaxonomie.nl/nt18/sbr/20230301/dictionary/nl-types'
-            titel9Namespace = ''
             entrypointRoot = 'http://www.nltaxonomie.nl/nt18/kvk/20231213/entrypoints/'
             entrypoints = {entrypointRoot + e for e in [
                 'kvk-rpt-jaarverantwoording-2023-ifrs-full.xsd',
@@ -132,11 +129,10 @@ class ValidationPluginExtension(ValidationPlugin):
                 'kvk-rpt-jaarverantwoording-2023-nlgaap-verzekeringsmaatschappijen.xsd',
                 'kvk-rpt-jaarverantwoording-2023-nlgaap-zorginstellingen.xsd',
             ]}
-        elif disclosureSystem == DISCLOSURE_SYSTEM_NT19 or disclosureSystem == DISCLOSURE_SYSTEM_NL_INLINE_2024:
+        elif disclosureSystem == DISCLOSURE_SYSTEM_NT19:
             jenvNamespace = 'http://www.nltaxonomie.nl/nt19/jenv/20241211/dictionary/jenv-bw2-data'
             kvkINamespace = 'http://www.nltaxonomie.nl/nt19/kvk/20241211/dictionary/kvk-data'
             nlTypesNamespace = 'http://www.nltaxonomie.nl/nt19/sbr/20240301/dictionary/nl-types'
-            titel9Namespace = 'https://www.nltaxonomie.nl/bw2-titel9/2024-12-31/bw2-titel9-cor' if disclosureSystem == DISCLOSURE_SYSTEM_NL_INLINE_2024 else ''
             entrypointRoot = 'http://www.nltaxonomie.nl/nt19/kvk/20241211/entrypoints/'
             entrypoints = {entrypointRoot + e for e in [
                 'kvk-rpt-jaarverantwoording-2024-ifrs-full.xsd',
@@ -170,11 +166,21 @@ class ValidationPluginExtension(ValidationPlugin):
                 'kvk-rpt-jaarverantwoording-2024-nlgaap-verzekeringsmaatschappijen.xsd',
                 'kvk-rpt-jaarverantwoording-2024-nlgaap-zorginstellingen.xsd',
             ]}
+        elif disclosureSystem == DISCLOSURE_SYSTEM_NL_INLINE_2024:
+            jenvNamespace = 'https://www.nltaxonomie.nl/bw2-titel9/2024-12-31/bw2-titel9-cor'
+            kvkINamespace = None
+            nlTypesNamespace = None
+            entrypointRoot = 'http://www.nltaxonomie.nl/kvk/2024-12-31/'
+            entrypoints = {entrypointRoot + e for e in [
+                'kvk-annual-report-ifrs-ext.xsd',
+                'kvk-annual-report-nlgaap-ext.xsd',
+                'kvk-annual-report-other-gaap.xsd',
+            ]}
         else:
             raise ValueError(f'Invalid NL disclosure system: {disclosureSystem}')
         return PluginValidationDataExtension(
             self.name,
-            chamberOfCommerceRegistrationNumberQn=qname(f'{{{titel9Namespace}}}ChamberOfCommerceRegistrationNumber'),
+            chamberOfCommerceRegistrationNumberQn=qname(f'{{{jenvNamespace}}}ChamberOfCommerceRegistrationNumber'),
             documentAdoptionDateQn=qname(f'{{{jenvNamespace}}}DocumentAdoptionDate'),
             documentAdoptionStatusQn=qname(f'{{{jenvNamespace}}}DocumentAdoptionStatus'),
             documentResubmissionUnsurmountableInaccuraciesQn=qname(f'{{{kvkINamespace}}}DocumentResubmissionDueToUnsurmountableInaccuracies'),
