@@ -101,7 +101,7 @@ class PluginValidationDataExtension(PluginData):
                         if not any(isinstance(rel.fromModelObject, ModelFact)
                                    for rel in footnotesRelationshipSet.toModelObject(elt)):
                             orphanedFootnotes.add(elt)
-                        if not elt.xmlLang in factLangs:
+                        if elt.xmlLang not in factLangs:
                             noMatchLangFootnotes.add(elt)
         self._noMatchLangFootnotes = noMatchLangFootnotes
         self._orphanedFootnotes = orphanedFootnotes
@@ -123,7 +123,7 @@ class PluginValidationDataExtension(PluginData):
 
     def factLangs(self, modelXbrl: ModelXbrl) -> set[str]:
         if self._factLangs is not None:
-                return self._factLangs
+            return self._factLangs
         factLangs = set()
         for fact in modelXbrl.facts:
             if fact is not None:
@@ -134,37 +134,37 @@ class PluginValidationDataExtension(PluginData):
     def getContextsWithImproperContent(self, modelXbrl: ModelXbrl) -> list[ModelContext | None]:
         if self._contextsWithImproperContent is None:
             self.checkContexts(self.contextsByDocument(modelXbrl))
-        assert(self._contextsWithImproperContent is not None)
+        assert self._contextsWithImproperContent is not None
         return self._contextsWithImproperContent
 
     def getContextsWithPeriodTime(self, modelXbrl: ModelXbrl) -> list[ModelContext | None]:
         if self._contextsWithPeriodTime is None:
             self.checkContexts(self.contextsByDocument(modelXbrl))
-        assert(self._contextsWithPeriodTime is not None)
+        assert self._contextsWithPeriodTime is not None
         return self._contextsWithPeriodTime
 
     def getContextsWithPeriodTimeZone(self, modelXbrl: ModelXbrl) -> list[ModelContext | None]:
         if self._contextsWithPeriodTimeZone is None:
             self.checkContexts(self.contextsByDocument(modelXbrl))
-        assert (self._contextsWithPeriodTimeZone is not None)
+        assert self._contextsWithPeriodTimeZone is not None
         return self._contextsWithPeriodTimeZone
 
     def getContextsWithSegments(self, modelXbrl: ModelXbrl) -> list[ModelContext | None]:
         if self._contextsWithSegments is None:
             self.checkContexts(self.contextsByDocument(modelXbrl))
-        assert(self._contextsWithSegments is not None)
+        assert self._contextsWithSegments is not None
         return self._contextsWithSegments
 
     def getNoMatchLangFootnotes(self, modelXbrl: ModelXbrl) -> set[ModelInlineFootnote]:
         if self._noMatchLangFootnotes is None:
             self.checkFootnote(modelXbrl)
-        assert(self._noMatchLangFootnotes is not None)
+        assert self._noMatchLangFootnotes is not None
         return self._noMatchLangFootnotes
 
     def getOrphanedFootnotes(self, modelXbrl: ModelXbrl) -> set[ModelInlineFootnote]:
         if self._orphanedFootnotes is None:
             self.checkFootnote(modelXbrl)
-        assert(self._orphanedFootnotes is not None)
+        assert self._orphanedFootnotes is not None
         return self._orphanedFootnotes
 
     def unitsByDocument(self, modelXbrl: ModelXbrl) -> dict[str, list[ModelUnit]]:
