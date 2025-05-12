@@ -59,7 +59,8 @@ class PluginValidationDataExtension(PluginData):
         contextsByDocument = defaultdict(list)
         for context in modelXbrl.contexts.values():
             contextsByDocument[context.modelDocument.filepath].append(context)
-        self._contextsByDocument = dict(contextsByDocument)
+        contextsByDocument.default_factory = None
+        self._contextsByDocument = contextsByDocument
         return self._contextsByDocument
 
     def checkContexts(self, allContexts: dict[str, list[ModelContext]]) -> None:
@@ -118,7 +119,8 @@ class PluginValidationDataExtension(PluginData):
         factsByDocument = defaultdict(list)
         for fact in modelXbrl.facts:
             factsByDocument[fact.modelDocument.filepath].append(fact)
-        self._factsByDocument = dict(factsByDocument)
+        factsByDocument.default_factory = None
+        self._factsByDocument = factsByDocument
         return self._factsByDocument
 
     def factLangs(self, modelXbrl: ModelXbrl) -> set[str]:
@@ -173,5 +175,6 @@ class PluginValidationDataExtension(PluginData):
         unitsByDocument = defaultdict(list)
         for unit in modelXbrl.units.values():
             unitsByDocument[unit.modelDocument.filepath].append(unit)
-        self._unitsByDocument = dict(unitsByDocument)
+        unitsByDocument.default_factory = None
+        self._unitsByDocument = unitsByDocument
         return self._unitsByDocument
