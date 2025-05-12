@@ -89,7 +89,7 @@ class PluginValidationDataExtension(PluginData):
         self._contextsWithPeriodTimeZone = contextsWithPeriodTimeZone
         self._contextsWithSegments = contextsWithSegments
 
-    def checkFootnote(self, modelXbrl: ModelXbrl) -> None:
+    def checkFootnotes(self, modelXbrl: ModelXbrl) -> None:
         factLangs = self.factLangs(modelXbrl)
         footnotesRelationshipSet = modelXbrl.relationshipSet("XBRL-footnotes")
         orphanedFootnotes = set()
@@ -157,13 +157,13 @@ class PluginValidationDataExtension(PluginData):
 
     def getNoMatchLangFootnotes(self, modelXbrl: ModelXbrl) -> set[ModelInlineFootnote]:
         if self._noMatchLangFootnotes is None:
-            self.checkFootnote(modelXbrl)
+            self.checkFootnotes(modelXbrl)
         assert self._noMatchLangFootnotes is not None
         return self._noMatchLangFootnotes
 
     def getOrphanedFootnotes(self, modelXbrl: ModelXbrl) -> set[ModelInlineFootnote]:
         if self._orphanedFootnotes is None:
-            self.checkFootnote(modelXbrl)
+            self.checkFootnotes(modelXbrl)
         assert self._orphanedFootnotes is not None
         return self._orphanedFootnotes
 
