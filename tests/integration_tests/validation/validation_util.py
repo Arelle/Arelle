@@ -247,7 +247,7 @@ def _get_elems_by_local_name(tree: etree._ElementTree, local_name: str) -> list[
 
 def get_conformance_suite_arguments(config: ConformanceSuiteConfig, filename: str,
         additional_plugins: frozenset[str], build_cache: bool, offline: bool, log_to_file: bool,
-        expected_additional_testcase_errors: dict[str, frozenset[str]],
+        expected_additional_testcase_errors: dict[str, dict[str, int]],
         expected_failure_ids: frozenset[str], shard: int | None,
         testcase_filters: list[str]) -> tuple[list[Any], dict[str, Any]]:
     use_shards = shard is not None
@@ -279,7 +279,10 @@ def get_conformance_suite_arguments(config: ConformanceSuiteConfig, filename: st
         args.extend(['--internetConnectivity', 'offline'])
     for pattern in testcase_filters:
         args.extend(['--testcaseFilter', pattern])
-    for testcase_id, errors in expected_additional_testcase_errors.items():
+    for testcase_id, errorCounts in expected_additional_testcase_errors.items():
+        errors = []
+        for error, count in errorCounts.items():
+            errors.extend([error] * count)
         args.extend(['--testcaseExpectedErrors', f'{testcase_id}|{",".join(errors)}'])
     kws = dict(
         expected_failure_ids=expected_failure_ids,

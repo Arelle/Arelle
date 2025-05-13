@@ -17,13 +17,31 @@ config = ConformanceSuiteConfig(
     ],
     expected_additional_testcase_errors={f"report-package-conformance/index.csv:{s}": val for s, val in {
         # "Empty" iXBRL docs are missing schema required elements.
-        "V-301-xbri-with-single-ixds": frozenset({"lxml.SCHEMAV_ELEMENT_CONTENT", "ix11.14.1.2:missingResources"}),
-        "V-302-xbri-with-single-html": frozenset({"lxml.SCHEMAV_ELEMENT_CONTENT", "ix11.14.1.2:missingResources"}),
-        "V-303-xbri-with-single-htm": frozenset({"lxml.SCHEMAV_ELEMENT_CONTENT", "ix11.14.1.2:missingResources"}),
+        "V-301-xbri-with-single-ixds": {
+            "lxml.SCHEMAV_ELEMENT_CONTENT": 1,
+            "ix11.14.1.2:missingResources": 1,
+        },
+        "V-302-xbri-with-single-html": {
+            "lxml.SCHEMAV_ELEMENT_CONTENT": 1,
+            "ix11.14.1.2:missingResources": 1,
+        },
+        "V-303-xbri-with-single-htm": {
+            "lxml.SCHEMAV_ELEMENT_CONTENT": 1,
+            "ix11.14.1.2:missingResources": 1,
+        },
         # Report package references a taxonomy which does not exist.
-        "V-508-xbr-with-no-taxonomy": frozenset({"IOerror", "oime:invalidTaxonomy"}),
-        "V-509-xbr-with-json-in-dot-xhtml-directory": frozenset({"IOerror", "oime:invalidTaxonomy"}),
-        "V-701-zip-with-no-taxonomy": frozenset({"IOerror", "oime:invalidTaxonomy"}),
+        "V-508-xbr-with-no-taxonomy": {
+            "IOerror": 1,
+            "oime:invalidTaxonomy": 1,
+        },
+        "V-509-xbr-with-json-in-dot-xhtml-directory": {
+            "IOerror": 1,
+            "oime:invalidTaxonomy": 1,
+        },
+        "V-701-zip-with-no-taxonomy": {
+            "IOerror": 1,
+            "oime:invalidTaxonomy": 1,
+        },
     }.items()},
     info_url="https://specifications.xbrl.org/work-product-index-taxonomy-packages-report-packages-1.0.html",
     membership_url="https://www.xbrl.org/join",

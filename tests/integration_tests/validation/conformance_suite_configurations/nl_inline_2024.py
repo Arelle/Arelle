@@ -18,9 +18,17 @@ config = ConformanceSuiteConfig(
         *NL_PACKAGES['NL-INLINE-2024'],
     ],
     expected_additional_testcase_errors={f"conformance-suite-2024-sbr-domein-handelsregister/tests/{s}": val for s, val in {
-        'RTS_Annex_IV_Par_2_G3-1-1_2/index.xml:TC2_invalid': frozenset({'message:lei-identifier-format', 'message:valueKvKIdentifierScheme'}),
-        'RTS_Annex_IV_Par_1_G3-1-4_1/index.xml:TC2_invalid': frozenset({'nonIdenticalIdentifier', 'message:valueKvKIdentifier'}),
-        'RTS_Annex_IV_Par_1_G3-1-4_2/index.xml:TC2_invalid': frozenset({'message:valueKvKIdentifier'}),
+        'RTS_Annex_IV_Par_2_G3-1-1_2/index.xml:TC2_invalid': {
+            'message:lei-identifier-format': 105,
+            'message:valueKvKIdentifierScheme': 105,
+        },
+        'RTS_Annex_IV_Par_1_G3-1-4_1/index.xml:TC2_invalid': {
+            'message:valueKvKIdentifier': 13,
+            'nonIdenticalIdentifier': 1,
+        },
+        'RTS_Annex_IV_Par_1_G3-1-4_2/index.xml:TC2_invalid': {
+            'message:valueKvKIdentifier': 13,
+        },
     }.items()},
     expected_failure_ids=frozenset([
         # Conformance Suite Errors

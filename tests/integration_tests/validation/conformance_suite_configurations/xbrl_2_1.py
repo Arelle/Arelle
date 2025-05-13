@@ -21,7 +21,9 @@ config = ConformanceSuiteConfig(
     expected_additional_testcase_errors={f"XBRL-CONF-2024-12-17/Common/{s}": val for s, val in {
         # 202.02b in the absence of source/target constraints, an empty href doesn't pose a problem
         # 202-02b-HrefResolutionCounterExample-custom.xml Expected: valid, Actual: arelle:hrefWarning
-        '200-linkbase/202-xlinkLocator.xml:V-02b': frozenset({'arelle:hrefWarning'}),
+        '200-linkbase/202-xlinkLocator.xml:V-02b': {
+            'arelle:hrefWarning': 1,
+        },
     }.items()},
     expected_missing_testcases=frozenset([f"XBRL-CONF-2024-12-17/Common/{s}" for s in [
         "related-standards/xlink/arc-duplication/arc-duplication-testcase.xml",
