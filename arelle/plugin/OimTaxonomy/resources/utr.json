@@ -12,7 +12,6 @@
     },
     "taxonomy": {
         "resolved" : false,
-        "entryPoint": "utr.json",
         "frameworkName": "utr",
         "name": "utr:UnitsTaxonomyModule",
         "version": "2025",

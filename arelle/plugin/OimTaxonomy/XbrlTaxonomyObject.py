@@ -1,7 +1,7 @@
 """
 See COPYRIGHT.md for copyright information.
 """
-from typing import GenericAlias, Any
+from typing import GenericAlias, _UnionGenericAlias, Any
 import os
 from .XbrlConst import qnStdLabel
 
@@ -56,11 +56,32 @@ class XbrlTaxonomyObject:
                 if isinstance(propType, GenericAlias): # set, dict, etc
                     propValueClass = propType.__args__[-1]
                     if hasattr(propValueClass, "propertyView"):
-                        propVal = [propName, f"({len(val)})", [o.propertyView for o in val]]
+                        # skip empty sets of XBRL objects
+                        if isinstance(val, (set,list)) and propValueClass.__name__.startswith("Xbrl"):
+                            continue
+                        propVal = [propName, f"({len(val)})"]
+                        nestedPropvals = [o.propertyView for o in val]
+                        if isinstance(nestedPropvals, (list, tuple)):
+                            l = len(nestedPropvals)
+                            if l == 1:
+                                if isinstance(nestedPropvals[0], (list, tuple)):
+                                    nestedPropvals = nestedPropvals[0]
+                            elif l > 1:
+                                if isinstance(nestedPropvals[0], (list, tuple)) and isinstance(nestedPropvals[0][0], (list, tuple)) and len(nestedPropvals[0][0]) == 2:
+                                    # flatten properties
+                                    flatPropvals = []
+                                    for i,subPropval in enumerate(nestedPropvals):
+                                        for subPropEnt in subPropval:
+                                            flatPropvals.append([f"[{i}] {subPropEnt[0]}"]+[s for s in subPropEnt[1:]])
+                                    nestedPropvals = flatPropvals
+                        if nestedPropvals:
+                            propVal.extend([nestedPropvals])
                     elif len(val) > 0:
                         propVal = ", ".join(str(v) for v in val)
                     else:
                         continue # omit this property
+                elif val is None and isinstance(propType, _UnionGenericAlias) and propType.__args__[-1] == type(None):
+                    continue # skip showing absent Optional[...] properties
                 else:
                     propVal = (propName, f"{val}")
                 propVals.append(propVal)

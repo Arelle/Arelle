@@ -8,6 +8,7 @@ from collections import OrderedDict, defaultdict # OrderedDict is not same as di
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import ModelXbrl, create as modelXbrlCreate, XbrlConst
 from .XbrlConcept import XbrlConcept, XbrlDataType
+from .XbrlGroup import XbrlGroupContent
 from .XbrlTypes import XbrlTaxonomyType, QNameKeyType, XbrlLabelType, XbrlPropertyType
 from .XbrlTaxonomyObject import XbrlTaxonomyObject, XbrlReferencableTaxonomyObject, XbrlTaxonomyTagObject
 

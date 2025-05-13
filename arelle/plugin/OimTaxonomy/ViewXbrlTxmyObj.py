@@ -12,7 +12,7 @@ from arelle.ModelValue import qname
 from arelle.PythonUtil import OrderedSet
 from .XbrlCube import XbrlCube, XbrlPeriodConstraint
 from .XbrlDimension import XbrlDomain
-from .XbrlGroup import XbrlGroupContent
+from .XbrlGroup import XbrlGroup
 from .XbrlNetwork import XbrlNetwork
 from .XbrlTaxonomyObject import EMPTY_DICT, XbrlTaxonomyObject
 from .XbrlConst import qnStdLabel
@@ -116,7 +116,7 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
             nodeNum += 1
             for propName, _propType in self.propNameTypes[1:]:
                 self.treeView.set(node, propName, str(obj.getProperty(propName)))
-            if isinstance(obj, XbrlGroupContent):
+            if isinstance(obj, XbrlGroup):
                 self.viewGroupContent(node, nodeNum, obj)
             elif isinstance(obj, XbrlCube):
                 self.viewDims(node, nodeNum, obj)
@@ -153,7 +153,8 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
         return node
 
     def viewGroupContent(self, parentNode, nodeNum, obj):
-        for relatedObjQn in obj.relatedNames:
+        # related content for the Group object are under tagged content
+        for relatedObjQn in self.xbrlDts.groupContents.get(obj.name, ()):
             relatedObj = self.xbrlDts.namedObjects.get(relatedObjQn)
             if relatedObj is not None:
                 node = self.viewProps(parentNode, nodeNum, relatedObj)

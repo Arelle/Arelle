@@ -824,7 +824,7 @@
                 "dataType": "xs:decimal",
                 "immutable": true,
                 "allowedObjects": [
-                    "xbrl:relationshipTypeObject"
+                    "xbrl:relationshipObject"
                 ]
             },
             {
@@ -840,7 +840,7 @@
                 "dataType": "xs:decimal",
                 "immutable": false,
                 "allowedObjects": [
-                    "xbrl:relationshipTypeObject"
+                    "xbrl:relationshipObject"
                 ]
             },
             {
@@ -848,7 +848,7 @@
                 "dataType": "xs:QName",
                 "immutable": true,
                 "allowedObjects": [
-                    "xbrl:relationshipTypeObject"
+                    "xbrl:relationshipObject"
                 ]
             },
             {

@@ -21,7 +21,7 @@ from types import UnionType
 
 import os, io, json, sys, time, traceback
 import regex as re
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from decimal import Decimal
 from arelle.ModelDocument import load, Type,  create as createModelDocument
 from arelle.ModelValue import qname, QName
@@ -50,14 +50,17 @@ from .XbrlTaxonomyObject import XbrlTaxonomyObject, XbrlReferencableTaxonomyObje
 from .XbrlDts import XbrlDts, castToDts
 from .XbrlTypes import XbrlTaxonomyType, QNameKeyType, SQNameKeyType, DefaultTrue, DefaultFalse, DefaultZero
 from .ValidateDTS import validateDTS
-from .ModelValueMore import SQName
+from .ModelValueMore import SQName, QNameAt
 from .ViewXbrlTxmyObj import viewXbrlTxmyObj
-from .XbrlConst import xbrl, oimTaxonomyDocTypePattern, oimTaxonomyDocTypes, qnXbrlLabelObj, bakedInObjects
+from .XbrlConst import xbrl, oimTaxonomyDocTypePattern, oimTaxonomyDocTypes, qnXbrlLabelObj, xbrlTaxonomyObjects
 
 
 from arelle.oim.Load import (DUPJSONKEY, DUPJSONVALUE, EMPTY_DICT, EMPTY_LIST, UrlInvalidPattern,
                              OIMException, NotOIMException)
 from arelle.FunctionFn import name, true
+
+RESOURCES_DIR = os.path.join(os.path.dirname(__file__), "resources")
+
 
 saveOIMTaxonomySchemaFiles = False
 SAVE_OIM_SCHEMA_CMDLINE_PARAMETER = "--saveOIMschemafile"
@@ -251,7 +254,12 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                   sourceFileLine=href)
         # first OIM Taxonomy load Baked In objects
         if not xbrlDts.namedObjects and not "loadingBakedInObjects" in kwargs:
-            loadOIMTaxonomy(cntlr, error, warning, modelXbrl, bakedInObjects, "BakedIn", loadingBakedInObjects=True, **kwargs)
+            loadOIMTaxonomy(cntlr, error, warning, modelXbrl, xbrlTaxonomyObjects, "BakedInCoreObjects", loadingBakedInObjects=True, **kwargs)
+            loadOIMTaxonomy(cntlr, error, warning, modelXbrl, os.path.join(RESOURCES_DIR, "xbrlSpec.json"), "BakedInXbrlSpecObjects", loadingBakedInObjects=True, **kwargs)
+            loadOIMTaxonomy(cntlr, error, warning, modelXbrl, os.path.join(RESOURCES_DIR, "types.json"), "BakedInXbrlSpecObjects", loadingBakedInObjects=True, **kwargs)
+            loadOIMTaxonomy(cntlr, error, warning, modelXbrl, os.path.join(RESOURCES_DIR, "utr.json"), "BakedInXbrlSpecObjects", loadingBakedInObjects=True, **kwargs)
+            loadOIMTaxonomy(cntlr, error, warning, modelXbrl, os.path.join(RESOURCES_DIR, "ref.json"), "BakedInXbrlSpecObjects", loadingBakedInObjects=True, **kwargs)
+            loadOIMTaxonomy(cntlr, error, warning, modelXbrl, os.path.join(RESOURCES_DIR, "iso4217.json"), "BakedInXbrlSpecObjects", loadingBakedInObjects=True, **kwargs)
         namespacePrefixes = {}
         prefixNamespaces = {}
         namespaceUrls = {}
@@ -385,18 +393,18 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                                     for iObj, listObj in enumerate(jsonValue):
                                         if isinstance(eltClass, str) or eltClass.__name__.startswith("Xbrl"): # nested Xbrl objects
                                             if isinstance(listObj, dict):
-                                                createTaxonomyObjects(propName, listObj, newObj, pathParts + [propName, str(iObj)])
+                                                createTaxonomyObjects(propName, listObj, newObj, pathParts + [f'{propName}[{iObj}]'])
                                             else:
                                                 error("xbrlte:invalidObjectType",
                                                       _("Object expected but non-object found: %(listObj)s, jsonObj: %(path)s"),
-                                                      sourceFileLine=href, listObj=listObj, path=f"{'/'.join(pathParts + [propName, str(iObj)])}")
+                                                      sourceFileLine=href, listObj=listObj, path=f"{'/'.join(pathParts + [f'{propName}[{iObj}]'])}")
                                         else: # collection contains ordinary values
                                             if eltClass in (QName, QNameKeyType, SQName, SQNameKeyType):
                                                 listObj = qname(listObj, prefixNamespaces)
                                                 if listObj is None:
                                                     error("xbrlte:invalidQName",
                                                           _("QName is invalid: %(qname)s, jsonObj: %(path)s"),
-                                                          sourceFileLine=href, qname=jsonObj[propName], path=f"{'/'.join(pathParts + [propName, str(iObj)])}")
+                                                          sourceFileLine=href, qname=jsonObj[propName], path=f"{'/'.join(pathParts + [f'{propName}[{iObj}]'])}")
                                                     continue # skip this property
                                                 if propName == "relatedNames":
                                                     relatedNames.append(listObj)
@@ -409,13 +417,17 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                             else:
                                 if isinstance(propType, _UnionGenericAlias) and propType.__args__[-1] == type(None):
                                     propType = propType.__args__[0] # scalar property
-                                if propType in (QName, QNameKeyType, SQName, SQNameKeyType):
+                                if propType == QNameAt:
+                                    jsonValue, _sep, atSuffix = jsonValue.partition("@")
+                                if propType in (QName, QNameKeyType, SQName, SQNameKeyType, QNameAt):
                                     jsonValue = qname(jsonValue, prefixNamespaces)
                                     if jsonValue is None:
                                         error("xbrlte:invalidQName",
                                               _("QName is invalid: %(qname)s, jsonObj: %(path)s"),
                                               sourceFileLine=href, qname=jsonObj[propName], path=f"{'/'.join(pathParts + [propName])}")
                                         continue # skip this property
+                                    elif propType == QNameAt:
+                                        jsonValue = QNameAt(jsonValue.prefix, jsonValue.namespaceURI, jsonValue.localName, atSuffix)
                                     if propName == "relatedName":
                                         relatedNames.append(jsonValue)
                                 setattr(newObj, propName, jsonValue)
@@ -891,10 +903,19 @@ def filingStart(self, options, *args, **kwargs):
     if options.saveOIMTaxonomySchemaFiles:
         saveOIMTaxonomySchemaFiles = True
 
+def oimTaxonomyLoaded(cntlr, options, xbrlDts, *args, **kwargs):
+    # index groupContents
+    xbrlDts.groupContents = defaultdict(OrderedSet)
+    for txmy in xbrlDts.taxonomies.values():
+        for grpCnts in txmy.groupContents:
+            for relName in grpCnts.relatedNames:
+                xbrlDts.groupContents[grpCnts.groupName].add(relName)
+
 def oimTaxonomyViews(cntlr, xbrlDts):
+    oimTaxonomyLoaded(cntlr, None, xbrlDts)
     if isinstance(xbrlDts, XbrlDts):
         initialViews = ((XbrlConcept, cntlr.tabWinBtm, "XBRL Concepts"),
-                        (XbrlGroupContent, cntlr.tabWinTopRt, "XBRL Groups"),
+                        (XbrlGroup, cntlr.tabWinTopRt, "XBRL Groups"),
                         (XbrlNetwork, cntlr.tabWinTopRt, "XBRL Networks"),
                         (XbrlCube, cntlr.tabWinTopRt, "XBRL Cubes")
                         )
@@ -925,6 +946,7 @@ __pluginInfo__ = {
     # classes of mount points (required)
     'CntlrCmdLine.Options': optionsExtender,
     'CntlrCmdLine.Filing.Start': filingStart,
+    'CntlrCmdLine.Xbrl.Loaded': oimTaxonomyLoaded,
     'CntlrWinMain.Xbrl.Views': oimTaxonomyViews,
     'ModelDocument.IsPullLoadable': isOimTaxonomyLoadable,
     'ModelDocument.PullLoader': oimTaxonomyLoader,

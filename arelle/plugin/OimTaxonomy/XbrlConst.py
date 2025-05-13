@@ -34,9 +34,10 @@ objectsWithProperties = {
     qnXbrlLabelObj,
     qname(xbrl, "xbrl:memberObject"),
     qname(xbrl, "xbrl:referenceObject"),
+    qname(xbrl, "xbrl:relationshipObject"),
     }
 
-bakedInObjects = {
+xbrlTaxonomyObjects = {
     "documentInfo": {
         "documentType": oimTaxonomyDocTypes[0],
         "namespaces": {
@@ -46,29 +47,11 @@ bakedInObjects = {
         }
     },
     "taxonomy": {
-        "name": "xbrl:baked-in-taxonomy",
+        "name": "xbrl:BuiltInCoreObjectsTaxonomy",
         "frameworkName": "types",
         "version": "2025",
-        "entryPoint": "https://arelle.org/baked-in-taxonomy",
         "resolved": False,
         "dataTypes": [
-            {
-                "name": "xbrli:monetary",
-                "baseType": "xs:decimal"
-            },
-            {
-                "name": "xbrli:shares",
-                "baseType": "xs:decimal"
-            },
-            {
-                "name": "xbrli:pure",
-                "baseType": "xs:decimal"
-            },
-            {
-                "name": "xbrli:nonZeroDecimal",
-                "baseType": "xs:decimal",
-                "minExclusive": 0
-            },
             {
                 "name": "xs:string",
                 "baseType": "xs:string"

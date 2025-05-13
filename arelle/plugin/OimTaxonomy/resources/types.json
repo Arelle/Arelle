@@ -14,7 +14,6 @@
         "name": "xbrli:TypesTaxonomyModule",
         "frameworkName": "types",
         "version": "2025",
-        "entryPoint": "https://www.xbrl.org/2025/types.json",
         "dataTypes": [
             {
                 "name": "xbrli:aggregationType",
@@ -32,6 +31,10 @@
             {
                 "name": "xbrli:monetary",
                 "baseType": "xs:decimal"
+            },
+            {
+                "name": "xbrli:duration",
+                "baseType": "xs:integer"
             },
             {
                 "name": "xbrli:pure",
@@ -618,7 +621,7 @@
                     "xbrli:memory"
                 ],
                 "referenceType": "xbrl:dataTypeRequirement",
-                "properties": [{"property":"ref:requirement", "value":"Interoperable Taxonomy Architecture (ITA) initiative requirement for alignment of the EDINET, IFRS and US GAAP taxonomies."}]
+                "properties": [{"property":"ref:Requirement", "value":"Interoperable Taxonomy Architecture (ITA) initiative requirement for alignment of the EDINET, IFRS and US GAAP taxonomies."}]
                
             },
             {
@@ -627,7 +630,7 @@
                     "xbrli:SQName"
                 ],
                 "referenceType": "xbrl:dataTypeRequirement",
-                "properties": [{"property":"ref:requirement", "value":"This data type is required in order to validate and correctly process SQName values. As SQNames rely on the in-scope namespace prefixes, it is important that consuming software can unambiguously identify values that are SQNames."}]
+                "properties": [{"property":"ref:Requirement", "value":"This data type is required in order to validate and correctly process SQName values. As SQNames rely on the in-scope namespace prefixes, it is important that consuming software can unambiguously identify values that are SQNames."}]
                 
             },
             {
@@ -636,7 +639,7 @@
                     "xbrli:prefixedContent"
                 ],
                 "referenceType": "xbrl:dataTypeRequirement",
-                "properties": [{"property":"ref:requirement", "value":"This data type acts as a supertype for all custom types that rely on namespace-prefix bindings. It allows processors to 'fail fast' if presented with prefixed content that they do not understand, rather than silently breaking or changing the semantics of such values."}]
+                "properties": [{"property":"ref:Requirement", "value":"This data type acts as a supertype for all custom types that rely on namespace-prefix bindings. It allows processors to 'fail fast' if presented with prefixed content that they do not understand, rather than silently breaking or changing the semantics of such values."}]
             },
             {
                 "name": "xbrli:PerUnitReference",
@@ -649,7 +652,7 @@
                     "xbrli:monetaryPerMass"
                 ],
                 "referenceType": "xbrl:dataTypeRequirement",
-                "properties": [{"property":"ref:requirement", "value":"These types are required in order to enable validation and conversion of units (via the Unit Types Registry) for values that are expressed as a price per unit for various physical measures, and reflect industry-specific common practice."}]
+                "properties": [{"property":"ref:Requirement", "value":"These types are required in order to enable validation and conversion of units (via the Unit Types Registry) for values that are expressed as a price per unit for various physical measures, and reflect industry-specific common practice."}]
             },
             {
                 "name": "xbrli:RecStatusReference",

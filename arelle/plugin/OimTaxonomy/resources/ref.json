@@ -11,7 +11,6 @@
     },
     "taxonomy": {
         "resolved" : false,
-        "entryPoint": "ref.json",
         "frameworkName": "ref",
         "name": "ref:ReferencePropertiesTaxonomyModule",
         "version": "2025",
@@ -179,6 +178,22 @@
             {
                 "name": "ref:URIDate",
                 "dataType": "xs:date",
+                "immutable": false,
+                "allowedObjects": [
+                    "xbrl:referenceObject"
+                ]
+            },
+            {
+                "name": "ref:Requirement",
+                "dataType": "xs:string",
+                "immutable": false,
+                "allowedObjects": [
+                    "xbrl:referenceObject"
+                ]
+            },
+            {
+                "name": "ref:Status",
+                "dataType": "xs:string",
                 "immutable": false,
                 "allowedObjects": [
                     "xbrl:referenceObject"

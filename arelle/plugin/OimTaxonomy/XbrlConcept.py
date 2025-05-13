@@ -37,7 +37,7 @@ class XbrlDataType(XbrlReferencableTaxonomyObject):
     minLength: Optional[int] # (optional) Defines an int used to define minimum length of a string value.
     maxLength: Optional[int] # (optional) Defines an int used to define maximum length of a string value.
     whiteSpace: Optional[str] # (optional) Defines a string one of preserve, replace or collapse.
-    pattern: set[str] # (optional) Defines a string as a single regex expressions. At least one of the regex patterns must match. (Uses XML regex)
+    patterns: set[str] # (optional) Defines a string as a single regex expressions. At least one of the regex patterns must match. (Uses XML regex)
     unitTypes: OrderedSet[XbrlUnitTypeType] # unitType comprising a dataType expressed as a value of the datatype. For example xbrli:flow has unit datatypes of xbrli:volume and xbrli:time
 
 class XbrlUnitType(XbrlTaxonomyObject):

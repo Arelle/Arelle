@@ -8,7 +8,7 @@ from arelle.ModelValue import QName, AnyURI
 from arelle.PythonUtil import OrderedSet
 from .ModelValueMore import SQName
 from .XbrlProperty import XbrlProperty
-from .XbrlTypes import XbrlTaxonomyType
+from .XbrlTypes import XbrlTaxonomyType, QNameKeyType
 from .XbrlTaxonomyObject import XbrlTaxonomyObject, XbrlReferencableTaxonomyObject, XbrlTaxonomyTagObject
 
 class XbrlLabel(XbrlTaxonomyTagObject):
@@ -25,7 +25,7 @@ class XbrlLabel(XbrlTaxonomyTagObject):
 
 class XbrlLabelType(XbrlReferencableTaxonomyObject):
     taxonomy: XbrlTaxonomyType
-    name: QName # (required) The name is a QName that uniquely identifies the label type object.
+    name: QNameKeyType # (required) The name is a QName that uniquely identifies the label type object.
     uri: Optional[AnyURI] # (optional) A uri used to identify the label type of label objects for backward compatability with XBRL 2.1 taxonomies.
     dataType: Optional[AnyURI] # (optional) Indicates the dataType of the label object value property. This allows the value of the label to be constrained if required.
     allowedObjects: OrderedSet[QName] # (optional) Defines an ordered set of object types that can use the labelType.
