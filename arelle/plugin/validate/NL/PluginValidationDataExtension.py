@@ -8,6 +8,7 @@ from typing import cast, Any
 import regex as re
 from collections import defaultdict
 from dataclasses import dataclass
+from functools import lru_cache
 
 from arelle.FunctionIxt import ixtNamespaces
 from arelle.ModelInstanceObject import ModelUnit, ModelContext, ModelFact, ModelInlineFootnote
@@ -25,6 +26,18 @@ DISALLOWED_IXT_NAMESPACES = frozenset((
     ixtNamespaces["ixt v3"],
 ))
 
+@dataclass(frozen=True)
+class ContextData:
+    contextsWithImproperContent: list[ModelContext | None]
+    contextsWithPeriodTime: list[ModelContext | None]
+    contextsWithPeriodTimeZone: list[ModelContext | None]
+    contextsWithSegments: list[ModelContext | None]
+
+@dataclass(frozen=True)
+class FootnoteData:
+    noMatchLangFootnotes: set[ModelInlineFootnote]
+    orphanedFootnotes: set[ModelInlineFootnote]
+
 @dataclass
 class PluginValidationDataExtension(PluginData):
     chamberOfCommerceRegistrationNumberQn: QName
@@ -41,28 +54,21 @@ class PluginValidationDataExtension(PluginData):
     textFormattingSchemaPath: str
     textFormattingWrapper: str
 
-    _contextsByDocument: dict[str, list[ModelContext]] | None = None
-    _contextsWithImproperContent: list[ModelContext | None] | None = None
-    _contextsWithPeriodTime: list[ModelContext | None] | None = None
-    _contextsWithPeriodTimeZone: list[ModelContext | None] | None = None
-    _contextsWithSegments: list[ModelContext | None] | None = None
-    _entityIdentifiers: set[tuple[str, str]] | None = None
-    _factsByDocument: dict[str, list[ModelFact]] | None = None
-    _factLangs: set[str] | None = None
-    _noMatchLangFootnotes: set[ModelInlineFootnote] | None = None
-    _orphanedFootnotes: set[ModelInlineFootnote] | None = None
-    _unitsByDocument: dict[str, list[ModelUnit]] | None = None
+    # Identity hash for caching.
+    def __hash__(self) -> int:
+        return id(self)
 
+    @lru_cache(1)
     def contextsByDocument(self, modelXbrl: ModelXbrl) -> dict[str, list[ModelContext]]:
-        if self._contextsByDocument is not None:
-            return self._contextsByDocument
         contextsByDocument = defaultdict(list)
         for context in modelXbrl.contexts.values():
             contextsByDocument[context.modelDocument.filepath].append(context)
-        self._contextsByDocument = dict(contextsByDocument)
-        return self._contextsByDocument
+        contextsByDocument.default_factory = None
+        return contextsByDocument
 
-    def checkContexts(self, allContexts: dict[str, list[ModelContext]]) -> None:
+    @lru_cache(1)
+    def checkContexts(self, modelXbrl: ModelXbrl) -> ContextData:
+        allContexts = self.contextsByDocument(modelXbrl)
         contextsWithImproperContent: list[ModelContext | None] = []
         contextsWithPeriodTime: list[ModelContext | None] = []
         contextsWithPeriodTimeZone: list[ModelContext | None] = []
@@ -84,12 +90,15 @@ class PluginValidationDataExtension(PluginData):
                     contextsWithSegments.append(context)
                 if context.nonDimValues("scenario"):  # type: ignore[no-untyped-call]
                     contextsWithImproperContent.append(context)
-        self._contextsWithImproperContent = contextsWithImproperContent
-        self._contextsWithPeriodTime = contextsWithPeriodTime
-        self._contextsWithPeriodTimeZone = contextsWithPeriodTimeZone
-        self._contextsWithSegments = contextsWithSegments
+        return ContextData(
+            contextsWithImproperContent=contextsWithImproperContent,
+            contextsWithPeriodTime=contextsWithPeriodTime,
+            contextsWithPeriodTimeZone=contextsWithPeriodTimeZone,
+            contextsWithSegments=contextsWithSegments,
+        )
 
-    def checkFootnote(self, modelXbrl: ModelXbrl) -> None:
+    @lru_cache(1)
+    def checkFootnotes(self, modelXbrl: ModelXbrl) -> FootnoteData:
         factLangs = self.factLangs(modelXbrl)
         footnotesRelationshipSet = modelXbrl.relationshipSet("XBRL-footnotes")
         orphanedFootnotes = set()
@@ -101,77 +110,55 @@ class PluginValidationDataExtension(PluginData):
                         if not any(isinstance(rel.fromModelObject, ModelFact)
                                    for rel in footnotesRelationshipSet.toModelObject(elt)):
                             orphanedFootnotes.add(elt)
-                        if not elt.xmlLang in factLangs:
+                        if elt.xmlLang not in factLangs:
                             noMatchLangFootnotes.add(elt)
-        self._noMatchLangFootnotes = noMatchLangFootnotes
-        self._orphanedFootnotes = orphanedFootnotes
+        return FootnoteData(
+            noMatchLangFootnotes=noMatchLangFootnotes,
+            orphanedFootnotes=orphanedFootnotes,
+        )
 
+    @lru_cache(1)
     def entityIdentifiersInDocument(self, modelXbrl: ModelXbrl) -> set[tuple[str, str]]:
-        if self._entityIdentifiers is not None:
-            return self._entityIdentifiers
-        self._entityIdentifiers = {context.entityIdentifier for context in modelXbrl.contexts.values()}
-        return self._entityIdentifiers
+        return {context.entityIdentifier for context in modelXbrl.contexts.values()}
 
+    @lru_cache(1)
     def factsByDocument(self, modelXbrl: ModelXbrl) -> dict[str, list[ModelFact]]:
-        if self._factsByDocument is not None:
-            return self._factsByDocument
         factsByDocument = defaultdict(list)
         for fact in modelXbrl.facts:
             factsByDocument[fact.modelDocument.filepath].append(fact)
-        self._factsByDocument = dict(factsByDocument)
-        return self._factsByDocument
+        factsByDocument.default_factory = None
+        return factsByDocument
 
+    @lru_cache(1)
     def factLangs(self, modelXbrl: ModelXbrl) -> set[str]:
-        if self._factLangs is not None:
-                return self._factLangs
         factLangs = set()
         for fact in modelXbrl.facts:
             if fact is not None:
                 factLangs.add(fact.xmlLang)
-        self._factLangs = factLangs
-        return self._factLangs
+        return factLangs
 
     def getContextsWithImproperContent(self, modelXbrl: ModelXbrl) -> list[ModelContext | None]:
-        if self._contextsWithImproperContent is None:
-            self.checkContexts(self.contextsByDocument(modelXbrl))
-        assert(self._contextsWithImproperContent is not None)
-        return self._contextsWithImproperContent
+        return self.checkContexts(modelXbrl).contextsWithImproperContent
 
     def getContextsWithPeriodTime(self, modelXbrl: ModelXbrl) -> list[ModelContext | None]:
-        if self._contextsWithPeriodTime is None:
-            self.checkContexts(self.contextsByDocument(modelXbrl))
-        assert(self._contextsWithPeriodTime is not None)
-        return self._contextsWithPeriodTime
+        return self.checkContexts(modelXbrl).contextsWithPeriodTime
 
     def getContextsWithPeriodTimeZone(self, modelXbrl: ModelXbrl) -> list[ModelContext | None]:
-        if self._contextsWithPeriodTimeZone is None:
-            self.checkContexts(self.contextsByDocument(modelXbrl))
-        assert (self._contextsWithPeriodTimeZone is not None)
-        return self._contextsWithPeriodTimeZone
+        return self.checkContexts(modelXbrl).contextsWithPeriodTimeZone
 
     def getContextsWithSegments(self, modelXbrl: ModelXbrl) -> list[ModelContext | None]:
-        if self._contextsWithSegments is None:
-            self.checkContexts(self.contextsByDocument(modelXbrl))
-        assert(self._contextsWithSegments is not None)
-        return self._contextsWithSegments
+        return self.checkContexts(modelXbrl).contextsWithSegments
 
     def getNoMatchLangFootnotes(self, modelXbrl: ModelXbrl) -> set[ModelInlineFootnote]:
-        if self._noMatchLangFootnotes is None:
-            self.checkFootnote(modelXbrl)
-        assert(self._noMatchLangFootnotes is not None)
-        return self._noMatchLangFootnotes
+        return self.checkFootnotes(modelXbrl).noMatchLangFootnotes
 
     def getOrphanedFootnotes(self, modelXbrl: ModelXbrl) -> set[ModelInlineFootnote]:
-        if self._orphanedFootnotes is None:
-            self.checkFootnote(modelXbrl)
-        assert(self._orphanedFootnotes is not None)
-        return self._orphanedFootnotes
+        return self.checkFootnotes(modelXbrl).orphanedFootnotes
 
+    @lru_cache(1)
     def unitsByDocument(self, modelXbrl: ModelXbrl) -> dict[str, list[ModelUnit]]:
-        if self._unitsByDocument is not None:
-            return self._unitsByDocument
         unitsByDocument = defaultdict(list)
         for unit in modelXbrl.units.values():
             unitsByDocument[unit.modelDocument.filepath].append(unit)
-        self._unitsByDocument = dict(unitsByDocument)
-        return self._unitsByDocument
+        unitsByDocument.default_factory = None
+        return unitsByDocument
