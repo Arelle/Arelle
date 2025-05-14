@@ -121,7 +121,7 @@ class PluginValidationDataExtension(PluginData):
                                 factLangFootnotes[rel.fromModelObject].add(elt.xmlLang)
         factLangFootnotes.default_factory = None
         return FootnoteData(
-            factLangFootnotes=dict(factLangFootnotes),
+            factLangFootnotes=cast(dict, factLangFootnotes),
             noMatchLangFootnotes=noMatchLangFootnotes,
             orphanedFootnotes=orphanedFootnotes,
         )
