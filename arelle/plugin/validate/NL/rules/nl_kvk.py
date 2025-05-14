@@ -401,3 +401,29 @@ def rule_nl_kvk_3_3_1_2 (
             msg=_('The xml:lang attribute of each footnote matches the language of at least one textual fact.'),
             modelObject = noMatchLangFootnotes
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
+def rule_nl_kvk_3_3_1_3 (
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.3.3.1.3: At least one footnote in the footnote relationship is in the language of the report.
+    """
+    factLangFootnotes = pluginData.getFactLangFootnotes(val.modelXbrl)
+    reportXmlLang = pluginData.getReportXmlLang(val.modelXbrl)
+    nonDefLangFtFacts = set(f for f,langs in factLangFootnotes.items() if reportXmlLang not in langs)
+    if len(nonDefLangFtFacts) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.3.3.1.3.footnoteOnlyInLanguagesOtherThanLanguageOfAReport',
+            msg=_('At least one footnote must have the same language as the report\'s language.'),
+            modelObject=nonDefLangFtFacts
+        )

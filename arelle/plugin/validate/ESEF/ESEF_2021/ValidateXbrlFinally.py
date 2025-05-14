@@ -22,6 +22,7 @@ from arelle.ModelInstanceObject import ModelInlineFootnote
 from arelle.ModelObject import ModelObject
 from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelValue import QName, qname
+from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
 from arelle.PythonUtil import isLegacyAbs, strTruncate
 from arelle.utils.validate.DetectScriptsInXhtml import containsScriptMarkers
 from arelle.UrlUtil import decodeBase64DataImage, isHttpUrl, scheme
@@ -61,7 +62,8 @@ from ..Const import (
     untransformableTypes,
 )
 from ..Dimensions import checkFilingDimensions
-from ..Util import etreeIterWithDepth, isExtension
+from ..Util import isExtension
+
 
 _: TypeGetText  # Handle gettext
 

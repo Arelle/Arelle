@@ -14,8 +14,11 @@ from arelle.FunctionIxt import ixtNamespaces
 from arelle.ModelInstanceObject import ModelUnit, ModelContext, ModelFact, ModelInlineFootnote
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import ModelXbrl
+from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
 from arelle.utils.PluginData import PluginData
 from arelle.XmlValidate import lexicalPatterns
+
+from lxml.etree import EntityBase, _Comment, _ElementTree, _ProcessingInstruction
 
 XBRLI_IDENTIFIER_PATTERN = re.compile(r"^(?!00)\d{8}$")
 XBRLI_IDENTIFIER_SCHEMA = 'http://www.kvk.nl/kvk-id'
@@ -37,6 +40,7 @@ class ContextData:
 class FootnoteData:
     noMatchLangFootnotes: set[ModelInlineFootnote]
     orphanedFootnotes: set[ModelInlineFootnote]
+    factLangFootnotes: dict[ModelInlineFootnote, set[str]]
 
 @dataclass
 class PluginValidationDataExtension(PluginData):
@@ -103,6 +107,7 @@ class PluginValidationDataExtension(PluginData):
         footnotesRelationshipSet = modelXbrl.relationshipSet("XBRL-footnotes")
         orphanedFootnotes = set()
         noMatchLangFootnotes = set()
+        factLangFootnotes = defaultdict(set)
         for elts in modelXbrl.ixdsEltById.values():   # type: ignore[attr-defined]
             for elt in elts:
                 if isinstance(elt, ModelInlineFootnote):
@@ -112,9 +117,14 @@ class PluginValidationDataExtension(PluginData):
                             orphanedFootnotes.add(elt)
                         if elt.xmlLang not in factLangs:
                             noMatchLangFootnotes.add(elt)
+                        for rel in footnotesRelationshipSet.toModelObject(elt):
+                            if rel.fromModelObject is not None:
+                                factLangFootnotes[rel.fromModelObject].add(elt.xmlLang)
+        factLangFootnotes.default_factory = None
         return FootnoteData(
             noMatchLangFootnotes=noMatchLangFootnotes,
             orphanedFootnotes=orphanedFootnotes,
+            factLangFootnotes=dict(factLangFootnotes),
         )
 
     @lru_cache(1)
@@ -154,6 +164,28 @@ class PluginValidationDataExtension(PluginData):
 
     def getOrphanedFootnotes(self, modelXbrl: ModelXbrl) -> set[ModelInlineFootnote]:
         return self.checkFootnotes(modelXbrl).orphanedFootnotes
+
+    def getFactLangFootnotes(self, modelXbrl: ModelXbrl) -> dict[ModelInlineFootnote, set[str]]:
+        return self.checkFootnotes(modelXbrl).factLangFootnotes
+
+    @lru_cache(1)
+    def getReportXmlLang(self, modelXbrl: ModelXbrl) -> str | None:
+        firstIxdsDoc = True
+        reportXmlLang = None
+        firstRootmostXmlLangDepth = 9999999
+        for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
+            for uncast_elt, depth in etreeIterWithDepth(ixdsHtmlRootElt):
+                elt = cast(Any, uncast_elt)
+                eltTag = elt.tag
+                if isinstance(elt, (_ElementTree, _Comment, _ProcessingInstruction, EntityBase)):
+                    continue
+                if firstIxdsDoc and (not reportXmlLang or depth < firstRootmostXmlLangDepth):
+                    xmlLang = elt.get("{http://www.w3.org/XML/1998/namespace}lang")
+                    if xmlLang:
+                        reportXmlLang = xmlLang
+                        firstRootmostXmlLangDepth = depth
+            firstIxdsDoc = False
+        return reportXmlLang
 
     @lru_cache(1)
     def unitsByDocument(self, modelXbrl: ModelXbrl) -> dict[str, list[ModelUnit]]:
