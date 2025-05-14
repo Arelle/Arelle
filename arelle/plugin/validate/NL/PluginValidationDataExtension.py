@@ -6,15 +6,17 @@ from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Any, cast
+from typing import Any, TYPE_CHECKING, cast
 
 import regex as re
 from lxml.etree import _Comment, _ElementTree, _Entity, _ProcessingInstruction
 
 from arelle.FunctionIxt import ixtNamespaces
 from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelInlineFootnote, ModelUnit
+from arelle.ModelObject import ModelObject
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import ModelXbrl
+from arelle.typing import assert_type
 from arelle.utils.PluginData import PluginData
 from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
 from arelle.XmlValidate import lexicalPatterns
@@ -37,7 +39,7 @@ class ContextData:
 
 @dataclass(frozen=True)
 class FootnoteData:
-    factLangFootnotes: dict[ModelInlineFootnote, set[str]]
+    factLangFootnotes: dict[ModelObject, set[str]]
     noMatchLangFootnotes: set[ModelInlineFootnote]
     orphanedFootnotes: set[ModelInlineFootnote]
 
@@ -119,10 +121,13 @@ class PluginValidationDataExtension(PluginData):
                         if elt.xmlLang is not None:
                             for rel in footnotesRelationshipSet.toModelObject(elt):
                                 if rel.fromModelObject is not None:
-                                    factLangFootnotes[rel.fromModelObject].add(elt.xmlLang)
+                                    fromObj = cast(ModelObject, rel.fromModelObject)
+                                    lang = cast(str, elt.xmlLang)
+                                    factLangFootnotes[fromObj].add(lang)
         factLangFootnotes.default_factory = None
+        assert_type(factLangFootnotes, defaultdict[ModelObject, set[str]])
         return FootnoteData(
-            factLangFootnotes=cast(dict, factLangFootnotes),
+            factLangFootnotes=cast(dict[ModelObject, set[str]], factLangFootnotes),
             noMatchLangFootnotes=noMatchLangFootnotes,
             orphanedFootnotes=orphanedFootnotes,
         )
@@ -159,7 +164,7 @@ class PluginValidationDataExtension(PluginData):
     def getContextsWithSegments(self, modelXbrl: ModelXbrl) -> list[ModelContext | None]:
         return self.checkContexts(modelXbrl).contextsWithSegments
 
-    def getFactLangFootnotes(self, modelXbrl: ModelXbrl) -> dict[ModelInlineFootnote, set[str]]:
+    def getFactLangFootnotes(self, modelXbrl: ModelXbrl) -> dict[ModelObject, set[str]]:
         return self.checkFootnotes(modelXbrl).factLangFootnotes
 
     def getNoMatchLangFootnotes(self, modelXbrl: ModelXbrl) -> set[ModelInlineFootnote]:
