@@ -26,6 +26,7 @@ from arelle.ModelValue import QName
 from arelle.ModelValue import qname
 from arelle.ModelXbrl import ModelXbrl
 
+from arelle.plugin.validate.Util import etreeIterWithDepth
 from arelle.PythonUtil import isLegacyAbs, normalizeSpace
 from arelle.PythonUtil import strTruncate
 from arelle.utils.validate.DetectScriptsInXhtml import containsScriptMarkers
@@ -66,7 +67,7 @@ from ..Const import (
     untransformableTypes,
 )
 from ..Dimensions import checkFilingDimensions
-from ..Util import checkForMultiLangDuplicates, etreeIterWithDepth, getEsefNotesStatementConcepts, isExtension, getDisclosureSystemYear
+from ..Util import checkForMultiLangDuplicates, getEsefNotesStatementConcepts, isExtension, getDisclosureSystemYear
 
 _: TypeGetText  # Handle gettext
 
