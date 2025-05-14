@@ -116,9 +116,10 @@ class PluginValidationDataExtension(PluginData):
                             orphanedFootnotes.add(elt)
                         if elt.xmlLang not in factLangs:
                             noMatchLangFootnotes.add(elt)
-                        for rel in footnotesRelationshipSet.toModelObject(elt):
-                            if rel.fromModelObject is not None:
-                                factLangFootnotes[rel.fromModelObject].add(elt.xmlLang)
+                        if elt.xmlLang is not None:
+                            for rel in footnotesRelationshipSet.toModelObject(elt):
+                                if rel.fromModelObject is not None:
+                                    factLangFootnotes[rel.fromModelObject].add(elt.xmlLang)
         factLangFootnotes.default_factory = None
         return FootnoteData(
             factLangFootnotes=cast(dict, factLangFootnotes),
