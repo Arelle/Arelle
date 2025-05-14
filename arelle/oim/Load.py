@@ -839,7 +839,21 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 filepath = modelXbrl.modelManager.cntlr.webCache.getfilename(mappedUrl) # , reload=reloadCache, checkModifiedTime=kwargs.get("checkModifiedTime",False))
                 if filepath:
                     url = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(filepath)
-            if filepath and filepath.endswith(".csv") or ("metadata" in filepath and filepath.endswith(".json")):
+            if filepath is None:
+                if extendingFile is None:
+                    raise OIMException(
+                        "oime:unresolvableFile",
+                        _("Unable to resolve file %(oimFile)s. A taxonomy package may be required to load this report."),
+                        oimFile=oimFile,
+                    )
+                else:
+                    raise OIMException(
+                        "xbrlce:unresolvableBaseMetadataFile",
+                        _("Unable to resolve extended metadata file %(extendingFile)s, referenced from %(oimFile)s. A taxonomy package may be required to load this report."),
+                        extendingFile=extendingFile,
+                        oimFile=oimFile,
+                    )
+            if filepath.endswith(".csv") or ("metadata" in filepath and filepath.endswith(".json")):
                 errPrefix = "xbrlce"
             else:
                 errPrefix = "xbrlje"
