@@ -251,7 +251,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                     self.numXHdrRows += lytMdlXHdr.maxNumLabels
 
         dataFirstRow = self.colHdrTopRow + self.numXHdrRows
-        if TRACE_TK: print(f"resizeTable rows {self.dataFirstRow+self.dataRows} cols {self.dataFirstCol+self.dataCols} titleRows {self.dataFirstRow} titleColumns {self.dataFirstCol})")
+        if TRACE_TK: print(f"resizeTable rows {self.dataFirstRow+self.dataRows} cols {self.numYHdrCols+self.dataCols} titleRows {self.dataFirstRow} titleColumns {self.dataFirstCol})")
         self.table.resizeTable(dataFirstRow+self.dataRows, self.numYHdrCols+self.dataCols, titleRows=dataFirstRow, titleColumns=self.numYHdrCols)
 
         try:
@@ -279,7 +279,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             self.aspectEntryObjectIdsNode.clear()
             self.aspectEntryObjectIdsCell.clear()
             self.factPrototypeAspectEntryObjectIds.clear()
-            if TRACE_TK: print(f"tbl hdr x {0} y {0} cols {self.dataFirstCol} rows {self.dataFirstRow} value {(self.defnMdlTable.genLabel(lang=self.lang, strip=True) or self.roledefinition)}")
+            if TRACE_TK: print(f"tbl hdr x {0} y {0} cols {self.numYHdrCols-1} rows {dataFirstRow - 1} value {lytMdlTableSet.label}")
             self.table.initHeaderCellValue(lytMdlTableSet.label,
                                            0, 0, self.numYHdrCols-1, dataFirstRow - 1,
                                            XbrlTable.TG_TOP_LEFT_JUSTIFIED)
@@ -316,7 +316,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
         # create combo box cells for multiple choice elements
         for iZ, (aspect, aspectChoices) in enumerate(self.zAspectChoices.items()):
             values = [a for a in aspectChoices.keys()]
-            if TRACE_TK: print(f"zAxis comboBox z {iZ} y values {values}")
+            if TRACE_TK: print(f"zAxis comboBox x {self.dataFirstCol} y {iZ} values {values} value {self.zHdrElts[self.zTbl][aspect]} colspan {colSpan}")
             combobox = self.table.initHeaderCombobox(self.dataFirstCol,
                                                      iZ,
                                                      values=values,
