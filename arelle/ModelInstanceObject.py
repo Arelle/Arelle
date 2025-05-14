@@ -795,6 +795,15 @@ class ModelInlineFact(ModelInlineValueObject, ModelFact):
             for inline root element, the xbrli:xbrl element is substituted for by the inline root element"""
         return getattr(self, "_ixFactParent") # set by ModelDocument locateFactInTuple for the inline target's root element
 
+    @property
+    def isEscaped(self):
+        """(bool) -- if true, the fact is escaped"""
+        try:
+            return self._isEscaped
+        except AttributeError:
+            self._isEscaped = self.get("escape") in ("true", "1")
+            return self._isEscaped
+
     def ixIter(self, childOnly=False):
         """(ModelObject) -- child elements (tuple facts) of the inline target instance document"""
         for fact in self.modelTupleFacts:

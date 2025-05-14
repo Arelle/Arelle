@@ -91,7 +91,7 @@ def rule_main(
                 if isinstance(elt, ModelInlineFact):
                     if elt.format is not None and elt.format.namespaceURI not in TR_NAMESPACES:
                         transformRegistryErrors.add(elt)
-                    if elt.get("escape") in ("true","1"):
+                    if elt.isEscaped:
                         modelXbrl.error("ROS.escapedHTML",
                                         _("Escaped (x)html fact content is not supported: %(element)s"),
                                         modelObject=elt, element=eltTag)
