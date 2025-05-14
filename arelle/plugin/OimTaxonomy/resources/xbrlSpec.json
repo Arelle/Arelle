@@ -814,7 +814,7 @@
             {
                 "name": "xbrl:semanticLink",
                 "dataType": "xs:anyURI",
-                "immutable": true,
+                "immutable": false,
                 "allowedObjects": [
                     "xbrl:referenceObject"
                 ]
@@ -822,7 +822,7 @@
             {
                 "name": "xbrl:weight",
                 "dataType": "xs:decimal",
-                "immutable": true,
+                "immutable": false,
                 "allowedObjects": [
                     "xbrl:relationshipObject"
                 ]
@@ -830,7 +830,7 @@
             {
                 "name": "xbrl:aggregation",
                 "dataType": "xbrli:aggregationType",
-                "immutable": true,
+                "immutable": false,
                 "allowedObjects": [
                     "xbrl:relationshipObject"
                 ]
@@ -846,7 +846,7 @@
             {
                 "name":"xbrl:preferredLabel",
                 "dataType": "xs:QName",
-                "immutable": true,
+                "immutable": false,
                 "allowedObjects": [
                     "xbrl:relationshipObject"
                 ]

@@ -261,6 +261,11 @@
                 "name" : "xbrli:volumePerMonetary",
                 "baseType" : "xs:decimal"
             }
+            ,
+            {
+                "name" : "xbrli:perUnit",
+                "baseType" : "xs:decimal"
+            }
         ],
         "labels": [
             {
@@ -714,7 +719,7 @@
                     "xbrli:monetary"
                 ],
                 "referenceType": "xbrl:specStatus",
-                "properties": [{"property":"ref:status", "value":"REC"}]
+                "properties": [{"property":"ref:Status", "value":"REC"}]
             }
         ]
     }

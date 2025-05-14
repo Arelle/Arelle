@@ -12,7 +12,6 @@
     },
     "taxonomy": {
         "resolved" : false,
-        "entryPoint": "iso4217.json",
         "frameworkName": "iso4217",
         "name": "iso4217:iso4217TaxonomyModule",
         "version": "2025",
