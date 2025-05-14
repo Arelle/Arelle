@@ -150,13 +150,13 @@ def validateTaxonomy(dts, txmy):
                     if not isinstance(dts.namedObjects.get(getattr(relObj, "source", None),None), XbrlConcept):
                         dts.error("oimte:invalidRelationshipSource",
                                   _("Cube %(name)s conceptConstraints domain relationships must be from concepts."),
-                                  xbrlObject=(cubeObj,cubeDimOBj,relObj), name=name, qname=dimName)
+                                  xbrlObject=(cubeObj,cubeDimObj,relObj), name=name, qname=dimName)
                     if isinstance(dts.namedObjects.get(getattr(relObj, "target", None),None), XbrlConcept):
-                        cncptDataTypeQNs.add(relObj.target.dataType)
+                        cncptDataTypeQNs.add(dts.namedObjects[relObj.target].dataType)
                     else:
                         dts.error("oimte:invalidRelationshipTarget",
                                   _("Cube %(name)s conceptConstraints domain relationships must be to concepts."),
-                                  xbrlObject=(cubeObj,cubeDimOBj,relObj), name=name, qname=dimName)
+                                  xbrlObject=(cubeObj,cubeDimObj,relObj), name=name, qname=dimName)
             if dimName == entityCoreDim and isinstance(dts.namedObjects.get(cubeDimObj.domainName), XbrlDomain):
                 for relObj in dts.namedObjects[cubeDimObj.domainName].relationships:
                     if not isinstance(dts.namedObjects.get(getattr(relObj, "source", None),None), XbrlEntity):
@@ -173,7 +173,7 @@ def validateTaxonomy(dts, txmy):
                     if dimObj.domainRoot:
                         dts.error("oimte:invalidQNameReference",
                                   _("Cube %(name)s typed dimension %(qname)s must not specify a domain root."),
-                                  xbrlObject=(cubeObj,cubeDimOBj,dimObj), name=name, qname=dimName)
+                                  xbrlObject=(cubeObj,cubeDimObj,dimObj), name=name, qname=dimName)
                 else: # explicit dim
                     domObj = dts.namedObjects.get(cubeDimObj.domainName)
                     if domObj:
