@@ -251,7 +251,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                     self.numXHdrRows += lytMdlXHdr.maxNumLabels
 
         dataFirstRow = self.colHdrTopRow + self.numXHdrRows
-        if TRACE_TK: print(f"resizeTable rows {self.dataFirstRow+self.dataRows} cols {self.numYHdrCols+self.dataCols} titleRows {self.dataFirstRow} titleColumns {self.dataFirstCol})")
+        if TRACE_TK: print(f"resizeTable rows {self.dataFirstRow+self.dataRows} cols {self.numYHdrCols+self.dataCols} titleRows {self.dataFirstRow} titleColumns {self.numYHdrCols})")
         self.table.resizeTable(dataFirstRow+self.dataRows, self.numYHdrCols+self.dataCols, titleRows=dataFirstRow, titleColumns=self.numYHdrCols)
 
         try:
