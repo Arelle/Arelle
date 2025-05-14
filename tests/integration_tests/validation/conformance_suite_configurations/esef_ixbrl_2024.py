@@ -25,7 +25,9 @@ config = ConformanceSuiteConfig(
     expected_additional_testcase_errors={f"esef_conformance_suite_2024/tests/inline_xbrl/{s}": val for s, val in {
         # Typo in the test case namespace declaration: incorrectly uses the Extensible Enumeration 1 namespace with the
         # commonly used Extensible Enumeration 2 prefix: xmlns:enum2="http://xbrl.org/2014/extensible-enumerations"
-        'G2-4-1_1/index.xml:TC2_valid': frozenset({'differentExtensionDataType'}),
+        'G2-4-1_1/index.xml:TC2_valid': {
+            'differentExtensionDataType': 1,
+        },
     }.items()},
     info_url='https://www.esma.europa.eu/document/esef-conformance-suite-2024',
     name=PurePath(__file__).stem,

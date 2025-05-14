@@ -136,7 +136,7 @@ class ValidationPluginExtension(ValidationPlugin):
             jenvNamespace = 'http://www.nltaxonomie.nl/nt19/jenv/20241211/dictionary/jenv-bw2-data'
             kvkINamespace = 'http://www.nltaxonomie.nl/nt19/kvk/20241211/dictionary/kvk-data'
             nlTypesNamespace = 'http://www.nltaxonomie.nl/nt19/sbr/20240301/dictionary/nl-types'
-            titel9Namespace = 'https://www.nltaxonomie.nl/jenv/2024-03-31/bw2-titel9-cor'
+            titel9Namespace = 'https://www.nltaxonomie.nl/bw2-titel9/2024-12-31/bw2-titel9-cor' if disclosureSystem == DISCLOSURE_SYSTEM_NL_INLINE_2024 else ''
             entrypointRoot = 'http://www.nltaxonomie.nl/nt19/kvk/20241211/entrypoints/'
             entrypoints = {entrypointRoot + e for e in [
                 'kvk-rpt-jaarverantwoording-2024-ifrs-full.xsd',
