@@ -116,6 +116,10 @@ class XbrlDts(ModelXbrl): # complete wrapper for ModelXbrl
                 kwargs["sourceFileLines"] = [a.entryLoadingUrl for a in argValue]
             else:
                 kwargs["sourceFileLine"] = argValue.entryLoadingUrl
+        elif "modelObject" in kwargs:
+            modelObject = kwargs["modelObject"]
+            if hasattr(modelObject, "entryLoadingUrl"):
+                kwargs["sourceFileLine"] = modelObject.entryLoadingUrl
         super(XbrlDts, self).error(*args, **kwargs)
 
     def warning(self, *args, **kwargs):

@@ -7,6 +7,7 @@ from decimal import Decimal
 
 from arelle.ModelValue import QName
 from arelle.PythonUtil import OrderedSet
+from arelle.XbrlConst import xsd
 from .XbrlProperty import XbrlProperty
 from .XbrlTypes import XbrlTaxonomyType, QNameKeyType
 from .XbrlTaxonomyObject import XbrlTaxonomyObject, XbrlReferencableTaxonomyObject
@@ -39,6 +40,26 @@ class XbrlDataType(XbrlReferencableTaxonomyObject):
     whiteSpace: Optional[str] # (optional) Defines a string one of preserve, replace or collapse.
     patterns: set[str] # (optional) Defines a string as a single regex expressions. At least one of the regex patterns must match. (Uses XML regex)
     unitTypes: OrderedSet[XbrlUnitTypeType] # unitType comprising a dataType expressed as a value of the datatype. For example xbrli:flow has unit datatypes of xbrli:volume and xbrli:time
+
+    def xsBaseType(self, dts, visitedTypes=None): # find base types thru dataType hierarchy
+        if not visitedTypes: visitedTypes = set() # might be a loop
+        if self.baseType.namespaceURI == xsd:
+            return self.baseType.localName
+        elif self not in visitedTypes:
+            visitedTypes.add(self)
+            baseTypeObj = dts.namedObjects.get(self.baseType)
+            if isinstance(baseTypeObj, XbrlDataType):
+                return baseTypeObj.xsBaseType(dts, visitedTypes)
+            visitedTypes.remove(self)
+        return None
+
+    def xsFacets(self):
+        facets = {}
+        for facet in ("enumeration", "minInclusive", "maxInclusive", "minExclusive", "maxExclusive", "totalDigits", "fractionDigits", "length", "minLength", "maxLength", "whiteSpace", "patterns"):
+            value = getattr(self, facet, None)
+            if value is not None and not(isinstance(value, (set,list,OrderedSet)) and not value):
+                facets[facet] = value
+        return facets
 
 class XbrlUnitType(XbrlTaxonomyObject):
     dataTypeNumerator: Optional[XbrlDataType] # (optional) Defines the numerator datatype of of the datatype

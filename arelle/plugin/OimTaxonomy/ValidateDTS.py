@@ -4,7 +4,8 @@ See COPYRIGHT.md for copyright information.
 
 import regex as re
 from collections import defaultdict
-from arelle.XmlValidate import languagePattern
+from arelle.XmlValidate import languagePattern, validateValue as validateXmlValue
+from arelle.PythonUtil import attrdict
 from arelle.oim.Load import EMPTY_DICT
 from .XbrlAbstract import XbrlAbstract
 from .XbrlConcept import XbrlConcept, XbrlDataType
@@ -37,8 +38,17 @@ def objType(obj):
         return clsName[4:]
     return clsName
 
+def validateValue(dts, obj, value, dataTypeQn, pathElt):
+    dataTypeObj = dts.namedObjects.get(dataTypeQn)
+    if isinstance(dataTypeObj, XbrlDataType): # validity checked in owner object validations
+        prototypeElt = attrdict(elementQname=dataTypeQn,
+                                entryLoadingUrl=obj.entryLoadingUrl + pathElt)
+        validateXmlValue(dts, prototypeElt, None, dataTypeObj.xsBaseType(dts), value, False, False, dataTypeObj.xsFacets())
+
+
+
 def validateProperties(dts, oimFile, txmy, obj):
-    for propObj in obj.properties:
+    for i, propObj in enumerate(obj.properties):
         propTypeQn = propObj.property
         propTypeObj = dts.namedObjects.get(propTypeQn)
         if not isinstance(propTypeObj, XbrlPropertyType):
@@ -46,12 +56,14 @@ def validateProperties(dts, oimFile, txmy, obj):
                       _("%(parentObjName)s %(parentName)s property %(name)s has undefined dataType %(dataType)s"),
                       file=oimFile, parentObjName=objType(obj), parentName=getattr(obj,"name","(n/a)"),
                       name=propTypeQn, dataType=propTypeQn)
-        elif propTypeObj.allowedObjects:
-            if xbrlObjectQNames.get(type(obj)) not in propTypeObj.allowedObjects:
-                dts.error("oime:disallowedObjectProperty",
-                          _("%(parentObjName)s %(parentName)s property %(name)s not an allowed property type for the object."),
-                          file=oimFile, parentObjName=objType(obj), parentName=getattr(obj,"name","(n/a)"),
-                          name=propTypeQn)
+        else: # have property type object
+            if propTypeObj.allowedObjects:
+                if xbrlObjectQNames.get(type(obj)) not in propTypeObj.allowedObjects:
+                    dts.error("oime:disallowedObjectProperty",
+                              _("%(parentObjName)s %(parentName)s property %(name)s not an allowed property type for the object."),
+                              file=oimFile, parentObjName=objType(obj), parentName=getattr(obj,"name","(n/a)"),
+                              name=propTypeQn)
+            validateValue(dts, obj, propObj.value, propTypeObj.dataType, f"/properties[{i}]")
 
 def validateTaxonomy(dts, txmy):
     oimFile = str(txmy.name)
