@@ -57,7 +57,6 @@ from .XbrlConst import xbrl, oimTaxonomyDocTypePattern, oimTaxonomyDocTypes, qnX
 
 from arelle.oim.Load import (DUPJSONKEY, DUPJSONVALUE, EMPTY_DICT, EMPTY_LIST, UrlInvalidPattern,
                              OIMException, NotOIMException)
-from arelle.FunctionFn import name, true
 
 RESOURCES_DIR = os.path.join(os.path.dirname(__file__), "resources")
 
@@ -415,8 +414,10 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                             elif isinstance(propType, _UnionGenericAlias) and propType.__args__[-1] == type(None) and isinstance(jsonValue,dict): # optional embdded object
                                 createTaxonomyObjects(propName, jsonValue, newObj, pathParts + [propName]) # object property
                             else:
+                                optional = False
                                 if isinstance(propType, _UnionGenericAlias) and propType.__args__[-1] == type(None):
                                     propType = propType.__args__[0] # scalar property
+                                    optional = True
                                 if propType == QNameAt:
                                     jsonValue, _sep, atSuffix = jsonValue.partition("@")
                                 if propType in (QName, QNameKeyType, SQName, SQNameKeyType, QNameAt):
@@ -425,7 +426,10 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                                         error("xbrlte:invalidQName",
                                               _("QName is invalid: %(qname)s, jsonObj: %(path)s"),
                                               sourceFileLine=href, qname=jsonObj[propName], path=f"{'/'.join(pathParts + [propName])}")
-                                        continue # skip this property
+                                        if optional:
+                                            jsonValue = None
+                                        else:
+                                            return # skip this nested object entirely
                                     elif propType == QNameAt:
                                         jsonValue = QNameAt(jsonValue.prefix, jsonValue.namespaceURI, jsonValue.localName, atSuffix)
                                     if propName == "relatedName":

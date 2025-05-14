@@ -3,11 +3,14 @@ See COPYRIGHT.md for copyright information.
 '''
 
 import regex as re
+from collections import defaultdict
 from arelle.XmlValidate import languagePattern
 from arelle.oim.Load import EMPTY_DICT
+from .XbrlAbstract import XbrlAbstract
 from .XbrlConcept import XbrlConcept, XbrlDataType
 from .XbrlCube import (XbrlCube, XbrlCubeType, baseCubeTypes, XbrlCubeDimension,
-                       periodCoreDim, conceptCoreDim, entityCoreDim, unitCoreDim, languageCoreDim, coreDimensions)
+                       periodCoreDim, conceptCoreDim, entityCoreDim, unitCoreDim, languageCoreDim, coreDimensions,
+                    conceptDomainRoot, entityDomainRoot, unitDomainRoot)
 from .XbrlDimension import XbrlDimension, XbrlDomain, XbrlDomainRoot, XbrlMember
 from .XbrlEntity import XbrlEntity
 from .XbrlGroup import XbrlGroup, XbrlGroupContent
@@ -147,26 +150,36 @@ def validateTaxonomy(dts, txmy):
                           xbrlObject=cubeObj, name=name, qname=dimName)
             if dimName == conceptCoreDim and isinstance(dts.namedObjects.get(cubeDimObj.domainName), XbrlDomain):
                 for relObj in dts.namedObjects[cubeDimObj.domainName].relationships:
-                    if not isinstance(dts.namedObjects.get(getattr(relObj, "source", None),None), XbrlConcept):
+                    if not isinstance(dts.namedObjects.get(relObj.source,None), (XbrlConcept, XbrlAbstract)) and relObj.source != conceptDomainRoot:
                         dts.error("oimte:invalidRelationshipSource",
-                                  _("Cube %(name)s conceptConstraints domain relationships must be from concepts."),
-                                  xbrlObject=(cubeObj,cubeDimObj,relObj), name=name, qname=dimName)
-                    if isinstance(dts.namedObjects.get(getattr(relObj, "target", None),None), XbrlConcept):
+                                  _("Cube %(name)s conceptConstraints domain relationships must be from concepts, source: %(source)s."),
+                                  xbrlObject=(cubeObj,cubeDimObj,relObj), name=name, qname=dimName, source=relObj.source)
+                    if isinstance(dts.namedObjects.get(relObj.target,None), XbrlConcept):
                         cncptDataTypeQNs.add(dts.namedObjects[relObj.target].dataType)
-                    else:
+                    elif not isinstance(dts.namedObjects.get(relObj.target,None), XbrlAbstract):
                         dts.error("oimte:invalidRelationshipTarget",
-                                  _("Cube %(name)s conceptConstraints domain relationships must be to concepts."),
-                                  xbrlObject=(cubeObj,cubeDimObj,relObj), name=name, qname=dimName)
+                                  _("Cube %(name)s conceptConstraints domain relationships must be to concepts, target: %(target)s."),
+                                  xbrlObject=(cubeObj,cubeDimObj,relObj), name=name, qname=dimName, target=relObj.target)
             if dimName == entityCoreDim and isinstance(dts.namedObjects.get(cubeDimObj.domainName), XbrlDomain):
                 for relObj in dts.namedObjects[cubeDimObj.domainName].relationships:
-                    if not isinstance(dts.namedObjects.get(getattr(relObj, "source", None),None), XbrlEntity):
+                    if not isinstance(dts.namedObjects.get(relObj.source,None), XbrlEntity) and relObj.source != entityDomainRoot:
                         dts.error("oimte:invalidRelationshipSource",
-                                  _("Cube %(name)s entityConstraints domain relationships must be from entities."),
-                                  xbrlObject=(cubeObj,cubeDimObj,relObj), name=name, qname=dimName)
-                    if not isinstance(dts.namedObjects.get(getattr(relObj, "target", None),None), XbrlEntity):
+                                  _("Cube %(name)s entityConstraints domain relationships must be from entities, source: %(source)s."),
+                                  xbrlObject=(cubeObj,cubeDimObj,relObj), name=name, qname=dimName, source=relObj.source)
+                    if not isinstance(dts.namedObjects.get(relObj.target,None), XbrlEntity):
                         dts.error("oimte:invalidRelationshipTarget",
-                                  _("Cube %(name)s entityConstraints domain relationships must be to entities."),
-                                  xbrlObject=(cubeObj,cubeDimObj,relObj), name=name, qname=dimName)
+                                  _("Cube %(name)s entityConstraints domain relationships must be to entities, target: %(target)s."),
+                                  xbrlObject=(cubeObj,cubeDimObj,relObj), name=name, qname=dimName, target=relObj.target)
+            if dimName == unitCoreDim and isinstance(dts.namedObjects.get(cubeDimObj.domainName), XbrlDomain):
+                for relObj in dts.namedObjects[cubeDimObj.domainName].relationships:
+                    if not isinstance(dts.namedObjects.get(relObj.source,None), XbrlUnit) and relObj.source != unitDomainRoot:
+                        dts.error("oimte:invalidRelationshipSource",
+                                  _("Cube %(name)s unitConstraints domain relationships must be from units, source: %(source)s."),
+                                  xbrlObject=(cubeObj,cubeDimObj,relObj), name=name, qname=dimName, source=relObj.source)
+                    if not isinstance(dts.namedObjects.get(relObj.target,None), XbrlUnit):
+                        dts.error("oimte:invalidRelationshipTarget",
+                                  _("Cube %(name)s unitConstraints domain relationships must be to units, target: %(target)s."),
+                                  xbrlObject=(cubeObj,cubeDimObj,relObj), name=name, qname=dimName, target=relObj.target)
             if dimName not in coreDimensions and isinstance(dts.namedObjects.get(dimName), XbrlDimension):
                 dimObj = dts.namedObjects[dimName]
                 if dimObj.domainDataType: # typed
@@ -394,21 +407,29 @@ def validateTaxonomy(dts, txmy):
         assertObjectType(relTpObj, XbrlRelationshipType)
 
     # Reference Objects
+    refsWithInvalidLang = defaultdict(list)
+    refsWithInvalidRelName = []
+    refInvalidNames = []
     for refObj in txmy.references:
         assertObjectType(refObj, XbrlReference)
         name = refObj.name
         lang = refObj.language
         if lang is not None and not languagePattern.match(lang):
-            dts.error("oime:invalidLanguage",
-                      _("Reference %(name)s has invalid language %(lang)s"),
-                      xbrlObject=refObj, name=name, lang=lang)
+            refsWithInvalidLang[lang].append(refObj)
         for relName in refObj.relatedNames:
             if relName not in dts.namedObjects:
-                dts.error("oime:unresolvedRelatedName",
-                          _("Reference %(name)s has invalid related object %(relName)s"),
-                          xbrlObject=refObj, name=name, relName=relName)
+                refsWithInvalidRelName.append(refObj)
+                refInvalidNames.append(relName)
         validateProperties(dts, oimFile, txmy, refObj)
-
+    if refsWithInvalidRelName:
+        dts.warning("oime:unresolvedRelatedNameWarning",
+                  _("References have invalid related object names %(relNames)s"),
+                  xbrlObject=refsWithInvalidRelName, name=name, relNames=", ".join(str(qn) for qn in refInvalidNames))
+    for lang, refObjs in refsWithInvalidLang:
+        dts.warning("oime:invalidLanguageWarning",
+                  _("Reference object(s) have invalid language %(lang)s"),
+                  xbrlObject=refObjs, lang=lang)
+    del refsWithInvalidLang, refsWithInvalidRelName, refInvalidNames # dereference
 
     # Unit Objects
     for unitObj in txmy.units:

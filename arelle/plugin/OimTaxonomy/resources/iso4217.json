@@ -17,7 +17,7 @@
         "version": "2025",
         "importedTaxonomies": [
             {
-                "taxonomyName" :"utr:UnitsTaxonomy",
+                "taxonomyName" :"utr:UnitsTaxonomyModule",
                 "includeObjectTypes": ["xbrl:propertyObject", "xbrl:referenceTypeObject"]
             }
         ],

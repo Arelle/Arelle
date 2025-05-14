@@ -85,3 +85,7 @@ unitCoreDim = qname(xbrl, "xbrl:unit")
 languageCoreDim = qname(xbrl, "xbrl:language")
 
 coreDimensions = {periodCoreDim, conceptCoreDim, entityCoreDim, unitCoreDim, languageCoreDim}
+
+conceptDomainRoot = qname(xbrl, "xbrl:conceptDomain")
+entityDomainRoot = qname(xbrl, "xbrl:entityDomain")
+unitDomainRoot = qname(xbrl, "xbrl:unitDomain")
