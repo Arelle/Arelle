@@ -169,20 +169,17 @@ class PluginValidationDataExtension(PluginData):
 
     @lru_cache(1)
     def getReportXmlLang(self, modelXbrl: ModelXbrl) -> str | None:
-        firstIxdsDoc = True
         reportXmlLang = None
         firstRootmostXmlLangDepth = 9999999
-        for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
-            for uncast_elt, depth in etreeIterWithDepth(ixdsHtmlRootElt):
-                elt = cast(Any, uncast_elt)
+        if modelXbrl.ixdsHtmlElements:
+            ixdsHtmlRootElt = modelXbrl.ixdsHtmlElements[0]
+            for elt, depth in etreeIterWithDepth(ixdsHtmlRootElt):
                 if isinstance(elt, (_Comment, _ElementTree, _Entity, _ProcessingInstruction)):
                     continue
-                if firstIxdsDoc and (not reportXmlLang or depth < firstRootmostXmlLangDepth):
-                    xmlLang = elt.get("{http://www.w3.org/XML/1998/namespace}lang")
-                    if xmlLang:
+                if not reportXmlLang or depth < firstRootmostXmlLangDepth:
+                    if xmlLang := elt.get("{http://www.w3.org/XML/1998/namespace}lang"):
                         reportXmlLang = xmlLang
                         firstRootmostXmlLangDepth = depth
-            firstIxdsDoc = False
         return reportXmlLang
 
     @lru_cache(1)
