@@ -277,7 +277,7 @@
                 "dataType": "xbrli:perShare",
                 "name": "utr:Monetary_per_Share",
                 "dataTypeNumerator": "xbrli:monetary",
-                "dataTypeDenominator": "xbrli:shares"
+                "dataTypeDenominator": "xbrli:sharesType"
                 
             },
             {
@@ -287,22 +287,14 @@
                 "dataTypeDenominator": "xs:decimal"
             },
             {
-                "dataType": "xbrli:pure",
+                "dataType": "xbrli:pureType",
                 "name": "utr:Monetary_per_Monetary",
                 "dataTypeNumerator": "xbrli:monetary",
                 "dataTypeDenominator": "xbrli:monetary"
             },
             {
-                "dataType": "xbrli:pure",
-                "name": "utr:pure"
-            },
-            {
-                "dataType": "xbrli:pure",
+                "dataType": "xbrli:pureType",
                 "name": "utr:Rate"
-            },
-            {
-                "dataType": "xbrli:shares",
-                "name": "utr:shares"
             },
             {
                 "dataType": "xbrli:duration",
@@ -1724,14 +1716,14 @@
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "utr:pure",
+                "relatedName": "xbrli:pure",
                 "value": "pure"
             },
             
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "utr:pure",
+                "relatedName": "xbrli:pure",
                 "value": "Dimensionless (Pure) Number"
             },
             {
@@ -1750,14 +1742,14 @@
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "utr:shares",
+                "relatedName": "xbrli:shares",
                 "value": "Share"
             },
             
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "utr:shares",
+                "relatedName": "xbrli:shares",
                 "value": "Unit of Ownership (Stock)"
             },
             {
@@ -2864,9 +2856,9 @@
                                     "utr:Monetary_per_Share",
                                     "utr:Monetary_per_Decimal",
                                     "utr:Monetary_per_Monetary",
-                                    "utr:pure",
+                                    "xbrli:pure",
                                     "utr:Rate",
-                                    "utr:shares",
+                                    "xbrli:shares",
                                     "utr:Y",
                                     "utr:M",
                                     "utr:D",
@@ -2876,7 +2868,7 @@
                                     "utr:Volume_per_Duration"
                             ],
                 "referenceType" : "utr:unitCreationDate",
-                "properties" : [{"property":"utr:dateUnitCreated", "value":"2012-10-3"}]
+                "properties" : [{"property":"utr:dateUnitCreated", "value":"2012-10-03"}]
                         
             },
             {
@@ -3022,9 +3014,9 @@
                 "relatedNames" : ["utr:Monetary_per_Share",
                                     "utr:Monetary_per_Decimal",
                                     "utr:Monetary_per_Monetary",
-                                    "utr:pure",
+                                    "xbrli:pure",
                                     "utr:Rate",
-                                    "utr:shares" ],
+                                    "xbrli:shares" ],
                 "referenceType" : "xbrl:baseUnitsStandard",
                 "properties" : [{"property":"utr:baseStandardIdentifier", "value":"xbrl"}]
             }

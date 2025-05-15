@@ -17,6 +17,7 @@ xbrl = "https://xbrl.org/2025"
 qnStdLabel = qname(xbrl, "xbrli:label")
 qnXsDate = qname(xsd, "xs:date")
 qnXsDateTime = qname(xsd, "xs:dateTime")
+qnXsDuration = qname(xsd, "xs:duration")
 qnXsQName = qname(xsd, "xs:QName")
 
 qnXbrlLabelObj = qname(xbrl, "xbrl:labelObject")

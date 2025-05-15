@@ -4,9 +4,10 @@ See COPYRIGHT.md for copyright information.
 
 import regex as re
 from collections import defaultdict
+from arelle.ModelValue import QName
 from arelle.XmlValidate import languagePattern, validateValue as validateXmlValue
 from arelle.PythonUtil import attrdict
-from arelle.oim.Load import EMPTY_DICT
+from arelle.oim.Load import EMPTY_DICT, periodForms
 from .XbrlAbstract import XbrlAbstract
 from .XbrlConcept import XbrlConcept, XbrlDataType
 from .XbrlCube import (XbrlCube, XbrlCubeType, baseCubeTypes, XbrlCubeDimension,
@@ -23,7 +24,7 @@ from .XbrlReference import XbrlReference
 from .XbrlTableTemplate import XbrlTableTemplate
 from .XbrlTaxonomy import XbrlTaxonomy, xbrlObjectTypes, xbrlObjectQNames
 from .XbrlUnit import XbrlUnit
-from .XbrlConst import qnXsQName, qnXsDateTime, objectsWithProperties
+from .XbrlConst import qnXsQName, qnXsDateTime, qnXsDuration, objectsWithProperties
 
 perCnstrtFmtStartEndPattern = re.compile(r".*@(start|end)")
 
@@ -39,11 +40,18 @@ def objType(obj):
     return clsName
 
 def validateValue(dts, obj, value, dataTypeQn, pathElt):
-    dataTypeObj = dts.namedObjects.get(dataTypeQn)
-    if isinstance(dataTypeObj, XbrlDataType): # validity checked in owner object validations
-        prototypeElt = attrdict(elementQname=dataTypeQn,
-                                entryLoadingUrl=obj.entryLoadingUrl + pathElt)
-        validateXmlValue(dts, prototypeElt, None, dataTypeObj.xsBaseType(dts), value, False, False, dataTypeObj.xsFacets())
+    if isinstance(dataTypeQn, QName):
+        dataTypeObj = dts.namedObjects.get(dataTypeQn)
+        if not isinstance(dataTypeObj, XbrlDataType): # validity checked in owner object validations
+            return
+        dataTypeLn = dataTypeObj.xsBaseType(dts)
+        facets = dataTypeObj.xsFacets()
+    else: # string data type
+        dataTypeLn = dataTypeQn
+        facets = EMPTY_DICT
+    prototypeElt = attrdict(elementQname=dataTypeQn,
+                            entryLoadingUrl=obj.entryLoadingUrl + pathElt)
+    validateXmlValue(dts, prototypeElt, None, dataTypeLn, value, False, False, facets)
 
 
 
@@ -149,7 +157,7 @@ def validateTaxonomy(dts, txmy):
         validateProperties(dts, oimFile, txmy, cubeObj)
         unitDataTypeQNs = set()
         cncptDataTypeQNs = set()
-        for cubeDimObj in cubeObj.cubeDimensions:
+        for iCubeDim, cubeDimObj in enumerate(cubeObj.cubeDimensions):
             assertObjectType(cubeDimObj, XbrlCubeDimension)
             dimName = cubeDimObj.dimensionName
             if cubeDimObj.domainSort not in (None, "asc", "desc"):
@@ -213,19 +221,26 @@ def validateTaxonomy(dts, txmy):
                           xbrlObject=cubeObj, name=name, qname=dimName)
 
             if dimName == periodCoreDim:
-                for perConstObj in cubeDimObj.periodConstraints:
+                for iPerConst, perConstObj in enumerate(cubeDimObj.periodConstraints):
                     if perConstObj.periodType not in ("instant", "duration"):
                         dts.error("oimte:invalidPeriodRepresentation",
                                   _("Cube %(name)s period constraint periodType property MUST be \"instant\" or \"duration\"."),
                                   xbrlObject=(cubeObj,cubeDimObj), name=name)
-                    if perConstObj.timeSpan and perConstObj.endDate and perConstObj.startDate:
-                        dts.error("oimte:invalidPeriodRepresentation",
-                                  _("Cube %(name)s period constraint timeSpan property MUST NOT be used with both the endDate and startDate properties."),
-                                  xbrlObject=(cubeObj,cubeDimObj), name=name)
-                    if perConstObj.periodFormat and (perConstObj.timeSpan or perConstObj.endDate or perConstObj.startDate):
-                        dts.error("oimte:invalidPeriodRepresentation",
-                                  _("Cube %(name)s period constraint periodFormat property MUST NOT be used with the timeSpan, endDate or startDate properties."),
-                                  xbrlObject=(cubeObj,cubeDimObj), name=name)
+                    if perConstObj.timeSpan:
+                        if perConstObj.endDate and perConstObj.startDate:
+                            dts.error("oimte:invalidPeriodRepresentation",
+                                      _("Cube %(name)s period constraint timeSpan property MUST NOT be used with both the endDate and startDate properties."),
+                                      xbrlObject=(cubeObj,cubeDimObj), name=name)
+                        validateValue(dts, cubeObj, perConstObj.timeSpan, "duration" ,f"/cubeDimensions[{iCubeDim}]/periodConstraints[{iPerConst}]/timeSpan")
+                    if perConstObj.periodFormat:
+                        if perConstObj.timeSpan or perConstObj.endDate or perConstObj.startDate:
+                            dts.error("oimte:invalidPeriodRepresentation",
+                                      _("Cube %(name)s period constraint periodFormat property MUST NOT be used with the timeSpan, endDate or startDate properties."),
+                                      xbrlObject=(cubeObj,cubeDimObj), name=name)
+                        if not any(perFormMatch.match(perConstObj.periodFormat) for _perType, perFormMatch in periodForms):
+                            dts.error("oimte:invalidPeriodRepresentation",
+                                      _("Cube %(name)s periodConstraint[%(perConstNbr)s] periodFormat property, %(periodFormat)s, MUST be a valid period format per xbrl-csv specification."),
+                                      xbrlObject=(cubeObj,cubeDimObj), name=name, perConstNbr=iPerConst, periodFormat=perConstObj.periodFormat)
                     if perConstObj.periodType != "instant" and perConstObj.periodFormat and perCnstrtFmtStartEndPattern.match(perConstObj.periodFormat):
                         dts.error("oimte:invalidPeriodRepresentation",
                                   _("Cube %(name)s period constraint periodFormat the suffix of @start or @end MUST only be used with periodType of instant."),
@@ -234,7 +249,8 @@ def validateTaxonomy(dts, txmy):
                         dts.error("oimte:invalidPeriodRepresentation",
                               _("Cube %(name)s period constraint periodType instant MUST NOT define timeSpan or startDate."),
                                   xbrlObject=(cubeObj,cubeDimObj), name=name)
-                    for dtResObj in (perConstObj.monthDay, perConstObj.endDate, perConstObj.startDate, perConstObj.onOrAfter, perConstObj.onOrBefore):
+                    for dtResProp in ("monthDay", "endDate", "startDate", "onOrAfter", "onOrBefore"):
+                        dtResObj = getattr(perConstObj, dtResProp, None)
                         if dtResObj is not None:
                             if dtResObj.conceptName:
                                 cncpt = dts.namedObjects.get(dtResObj.conceptName)
@@ -248,10 +264,14 @@ def validateTaxonomy(dts, txmy):
                                     dts.error("oimte:invalidPeriodRepresentation",
                                               _("Cube %(name)s period constraint concept %(qname)s base type MUST be a concept and any suffix MUST be start or end."),
                                               xbrlObject=(cubeObj,cubeDimObj), name=name, qname=dtResObj.context)
-                            if dtResObj.timeShift and (dtResObj.value or (dtResObj.conceptName and dtResObj.context)):
+                            if dtResObj.timeShift:
+                                if dtResObj.value or (dtResObj.conceptName and dtResObj.context):
                                     dts.error("oimte:invalidPeriodRepresentation",
                                               _("Cube %(name)s period constraint concept %(qname)s timeShift MUST be used with only one of the properties name, or context."),
                                               xbrlObject=(cubeObj,cubeDimObj), name=name, qname=dtResObj.context)
+                                validateValue(dts, cubeObj, dtResObj.timeShift, "duration" ,f"/cubeDimensions[{iCubeDim}]/periodConstraints[{iPerConst}]/{dtResProp}/timeShift")
+                            if dtResObj.value:
+                                validateValue(dts, cubeObj, dtResObj.value, "XBRLI_DATEUNION", f"/cubeDimensions[{iCubeDim}]/periodConstraints[{iPerConst}]/{dtResProp}/value")
             else:
                 if cubeDimObj.periodConstraints:
                     dts.error("oimte:invalidDimensionConstraint",

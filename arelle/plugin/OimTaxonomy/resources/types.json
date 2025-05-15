@@ -37,11 +37,11 @@
                 "baseType": "xs:integer"
             },
             {
-                "name": "xbrli:pure",
+                "name": "xbrli:pureType",
                 "baseType": "xs:decimal"
             },
             {
-                "name": "xbrli:shares",
+                "name": "xbrli:sharesType",
                 "baseType": "xs:decimal"
             },
             {
@@ -76,7 +76,7 @@
             },
             {
                 "name" : "xbrli:percent",
-                "baseType" : "xbrli:pure"
+                "baseType" : "xbrli:pureType"
             },
             {
                 "name" : "xbrli:perShare",
@@ -267,6 +267,16 @@
                 "baseType" : "xs:decimal"
             }
         ],
+        "units": [
+            {
+                "dataType": "xbrli:pureType",
+                "name": "xbrli:pure"
+            },
+            {
+                "dataType": "xbrli:sharesType",
+                "name": "xbrli:shares"
+            }
+        ],
         "labels": [
             {
                 "relatedName" : "xbrli:aggregationType",
@@ -281,13 +291,13 @@
                 "value" : "The monetary type serves as the datatype for those financial concepts in a taxonomy which denote units in a currency. Instance items with this type must have a unit of measure from the ISO 4217 namespace of currencies."
             },
             {
-                "relatedName" : "xbrli:pure",
+                "relatedName" : "xbrli:pureType",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "This datatype serves as the type for dimensionless numbers such as percentage change, growth rates, and other ratios where the numerator and denominator have the same units."
             },
             {
-                "relatedName" : "xbrli:shares",
+                "relatedName" : "xbrli:sharesType",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "This datatype serves as the datatype for share based financial concepts."
@@ -714,7 +724,7 @@
                     "xbrli:volumePerMonetary",
                     "xbrli:enumerationSet",
                     "xbrli:enumeration",
-                    "xbrli:shares",
+                    "xbrli:sharesType",
                     "xbrli:pure",
                     "xbrli:monetary"
                 ],
