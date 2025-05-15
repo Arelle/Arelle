@@ -18,9 +18,17 @@ config = ConformanceSuiteConfig(
         *NL_PACKAGES['NL-INLINE-2024'],
     ],
     expected_additional_testcase_errors={f"conformance-suite-2024-sbr-domein-handelsregister/tests/{s}": val for s, val in {
-        'RTS_Annex_IV_Par_2_G3-1-1_2/index.xml:TC2_invalid': {
-            'message:lei-identifier-format': 105,
-            'message:valueKvKIdentifierScheme': 105,
+        'G3-2-4_2/index.xml:TC3_valid': {
+            'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 1,
+        },
+        'G4-1-2_1/index.xml:TC2_valid': {
+            'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 1,
+        },
+        'RTS_Annex_II_Par_1_RTS_Annex_IV_par_7/index.xml:TC2_valid': {
+            'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 1,
+        },
+        'RTS_Annex_II_Par_1_RTS_Annex_IV_par_7/index.xml:TC4_invalid': {
+            'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 1,
         },
         'RTS_Annex_IV_Par_1_G3-1-4_1/index.xml:TC2_invalid': {
             'message:valueKvKIdentifier': 13,
@@ -28,6 +36,13 @@ config = ConformanceSuiteConfig(
         },
         'RTS_Annex_IV_Par_1_G3-1-4_2/index.xml:TC2_invalid': {
             'message:valueKvKIdentifier': 13,
+        },
+        'RTS_Annex_IV_Par_2_G3-1-1_2/index.xml:TC2_invalid': {
+            'message:lei-identifier-format': 105,
+            'message:valueKvKIdentifierScheme': 105,
+        },
+        'RTS_Annex_IV_Par_6/index.xml:TC2_valid': {
+            'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 1,
         },
     }.items()},
     expected_failure_ids=frozenset([
@@ -56,7 +71,6 @@ config = ConformanceSuiteConfig(
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-5-1_5/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-5-1_5/index.xml:TC3_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-5-2_1/index.xml:TC3_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-5-2_2/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-5-3_1/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-5-4_1/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-6-2_1/index.xml:TC2_invalid',
