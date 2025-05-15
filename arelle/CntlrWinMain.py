@@ -467,6 +467,8 @@ class CntlrWinMain (Cntlr.Cntlr):
         if not self.modelManager.disclosureSystem.select(self.config.setdefault("disclosureSystem", None)):
             self.validateDisclosureSystem.set(False)
             self.modelManager.validateDisclosureSystem = False
+            self.config["validateDisclosureSystem"] = False
+            self.config["disclosureSystem"] = None
 
         # load argv overrides for modelManager options
         lastArg = None
