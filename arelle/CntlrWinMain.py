@@ -467,6 +467,8 @@ class CntlrWinMain (Cntlr.Cntlr):
         if not self.modelManager.disclosureSystem.select(self.config.setdefault("disclosureSystem", None)):
             self.validateDisclosureSystem.set(False)
             self.modelManager.validateDisclosureSystem = False
+            self.config["validateDisclosureSystem"] = False
+            self.config["disclosureSystem"] = None
 
         # load argv overrides for modelManager options
         lastArg = None
@@ -1111,36 +1113,40 @@ class CntlrWinMain (Cntlr.Cntlr):
             self.fileOpenFile(fileHistory[0])
 
     def validate(self):
-        modelXbrl = self.modelManager.modelXbrl
-        if modelXbrl and modelXbrl.modelDocument:
-            if (modelXbrl.modelManager.validateDisclosureSystem and
-                not modelXbrl.modelManager.disclosureSystem.selection):
-                tkinter.messagebox.showwarning(_("arelle - Warning"),
-                                _("Validation - disclosure system checks is requested but no disclosure system is selected, please select one by validation - select disclosure system."),
-                                parent=self.parent)
-            else:
-                if modelXbrl.modelDocument.type in ModelDocument.Type.TESTCASETYPES:
-                    for pluginXbrlMethod in pluginClassMethods("Testcases.Start"):
-                        pluginXbrlMethod(self, None, modelXbrl)
-                thread = threading.Thread(target=self.backgroundValidate, daemon=True).start()
+        if not self.modelManager.loadedModelXbrls:
+            tkinter.messagebox.showwarning(
+                _("arelle - Warning"),
+                _("No XBRL loaded to validate"),
+                parent=self.parent,
+            )
+            return
+        if self.modelManager.validateDisclosureSystem and not self.modelManager.disclosureSystem.selection:
+            tkinter.messagebox.showwarning(
+                _("arelle - Warning"),
+                _("Validation - disclosure system checks requested but no disclosure system is selected, please select one by validation - select disclosure system."),
+                parent=self.parent,
+            )
+            return
+        threading.Thread(target=self.backgroundValidate, daemon=True).start()
 
     def backgroundValidate(self):
         from arelle import Validate
-        startedAt = time.time()
-        for modelXbrl in [self.modelManager.modelXbrl] + getattr(self.modelManager.modelXbrl, "supplementalModelXbrls", []):
-            priorOutputInstance = modelXbrl.formulaOutputInstance
-            modelXbrl.formulaOutputInstance = None # prevent closing on background thread by validateFormula
-            try:
-                Validate.validate(modelXbrl)
-            except Exception as err:
-                self.addToLog(_("[exception] Validation exception: {0} at {1}").format(
-                               err,
-                               traceback.format_tb(sys.exc_info()[2])))
-            self.addToLog(format_string(self.modelManager.locale,
-                                        _("validated in %.2f secs"),
-                                        time.time() - startedAt))
-            if not modelXbrl.isClosed and (priorOutputInstance or modelXbrl.formulaOutputInstance):
-                self.uiThreadQueue.put((self.showFormulaOutputInstance, [priorOutputInstance, modelXbrl.formulaOutputInstance]))
+        for loadedModelXbrl in self.modelManager.loadedModelXbrls:
+            if loadedModelXbrl.modelDocument:
+                startedAt = time.time()
+                if loadedModelXbrl.modelDocument.type in ModelDocument.Type.TESTCASETYPES:
+                    for pluginXbrlMethod in pluginClassMethods("Testcases.Start"):
+                        pluginXbrlMethod(self, None, loadedModelXbrl)
+                for modelXbrl in [loadedModelXbrl] + getattr(loadedModelXbrl, "supplementalModelXbrls", []):
+                    priorOutputInstance = modelXbrl.formulaOutputInstance
+                    modelXbrl.formulaOutputInstance = None # prevent closing on background thread by validateFormula
+                    try:
+                        Validate.validate(modelXbrl)
+                    except Exception as err:
+                        self.addToLog(_("[exception] Validation exception: {0} at {1}").format(err, traceback.format_tb(sys.exc_info()[2])))
+                    self.addToLog(format_string(self.modelManager.locale, _("validated in %.2f secs: %s"), (time.time() - startedAt, modelXbrl.displayUri)))
+                    if not modelXbrl.isClosed and (priorOutputInstance or modelXbrl.formulaOutputInstance):
+                        self.uiThreadQueue.put((self.showFormulaOutputInstance, [priorOutputInstance, modelXbrl.formulaOutputInstance]))
 
         self.uiThreadQueue.put((self.logSelect, []))
 
