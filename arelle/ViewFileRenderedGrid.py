@@ -109,18 +109,20 @@ class ViewRenderedGrid(ViewFile.View):
                 if lytMdlZHdrs is not None:
                     lytMdlZHdrGroups = lytMdlZHdrs.lytMdlGroups
                     numZtbls = lytMdlTable.numBodyCells("z") or 1 # must have at least 1 z entry
-                    zHdrElts = [[] for i in range(numZtbls)]
+                    zHdrElts = [OrderedDict() for i in range(numZtbls)]
                     for lytMdlZGrp in lytMdlZHdrs.lytMdlGroups:
                         for lytMdlZHdr in lytMdlZGrp.lytMdlHeaders:
                             zRow = 0
                             if all(lytMdlCell.isOpenAspectEntrySurrogate for lytMdlCell in lytMdlZHdr.lytMdlCells):
                                 continue # skip header with only open aspect entry surrogate
                             for lytMdlZCell in lytMdlZHdr.lytMdlCells:
+                                zConstraint = tuple(c.aspect for c in lytMdlZCell.lytMdlConstraints)
                                 for iSpan in range(lytMdlZCell.span):
-                                    zHdrElts[zRow].append([lbl[0] for lbl in lytMdlZCell.labels])
+                                    if not lytMdlZCell.rollup:
+                                        zHdrElts[zRow][zConstraint] = tuple(lbl[0] for lbl in lytMdlZCell.labels)
                                     zRow += 1
                 else:
-                    zHdrElts = [[]]
+                    zHdrElts = [{}]
                     numZtbls = 1
                 zTbl = 0
                 lytMdlZBodyCell = lytMdlTable.lytMdlBodyChildren[0] # examples only show one z cell despite number of tables
@@ -172,7 +174,7 @@ class ViewRenderedGrid(ViewFile.View):
                                     if zHdrElts[zTbl]:
                                         zHdrTblElt = etree.SubElement(zHdrElt,"{http://www.w3.org/1999/xhtml}table",
                                                                       attrib={"style":"border-top:none;border-left:none;border-right:none;border-bottom:none;"})
-                                        for zHdrLblRow in zHdrElts[zTbl]:
+                                        for zHdrLblRow in zHdrElts[zTbl].values():
                                             zHdrRowElt = etree.SubElement(zHdrTblElt, "{http://www.w3.org/1999/xhtml}tr")
                                             for lbl in zHdrLblRow:
                                                 etree.SubElement(zHdrRowElt, "{http://www.w3.org/1999/xhtml}th",
