@@ -130,7 +130,7 @@ def _parsePackageMetadata(
     try:
         metadataFileContent = filesource.file(metadataFile)[0] # URL in zip, plain file in file system or web
         tree = _parseFile(cntlr, parser, metadataFile, metadataFileContent, TP_XSD)
-    except (etree.XMLSyntaxError, etree.DocumentInvalid) as err:
+    except (etree.XMLSyntaxError, etree.DocumentInvalid, etree.XMLSchemaError) as err:
         cntlr.addToLog(_("Taxonomy package file syntax error %(error)s"),
                        messageArgs={"error": str(err)},
                        messageCode="tpe:invalidMetaDataFile",
