@@ -37,7 +37,7 @@ def viewXbrlTxmyObj(xbrlDts, objClass, tabWin, header, additionalViews=None):
             view.propNameTypes.append((propName, propType))
     # add label col if first col is name for Concepts pane
     if view.propNameTypes and view.propNameTypes[0][0] == "name":
-        if objClass.__name__ == "XbrlConcept":
+        if objClass.__name__ in ("XbrlConcept", "XbrlFact"):
             view.propNameTypes.insert(0, ("label", str))
         else:
             view.propNameTypes[0] = ("name", view.propNameTypes[0][1])

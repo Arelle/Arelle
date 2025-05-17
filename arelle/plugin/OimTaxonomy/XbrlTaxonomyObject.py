@@ -4,10 +4,11 @@ See COPYRIGHT.md for copyright information.
 from typing import GenericAlias, _UnionGenericAlias, Any
 import os
 from .XbrlConst import qnStdLabel
+XbrlTaxonomyObject = None # class forward reference
 
 EMPTY_DICT = {}
 
-class XbrlTaxonomyObject:
+class XbrlObject:
 
     def __init__(self, dtsObjectIndex=0, **kwargs):
         self.dtsObjectIndex = dtsObjectIndex
@@ -32,6 +33,7 @@ class XbrlTaxonomyObject:
     @property
     def propertyView(self):
         objClass = type(self)
+        isTaxonomyObject = isinstance(self, XbrlTaxonomyObject)
         objName = objClass.__name__[0].lower() + objClass.__name__[1:]
         propVals = []
         initialParentObjProp = True
@@ -43,16 +45,21 @@ class XbrlTaxonomyObject:
                     continue
             if hasattr(self, propName):
                 val = getattr(self, propName)
-                if propName == "properties":
-                    for propObj in val:
-                        propVals.append( (str(getattr(propObj, "property", "")), str(getattr(propObj, "value", ""))) )
+                if isTaxonomyObject: # for Taxonomy objects, not used by OIM Instance objects
+                    if propName == "properties":
+                        for propObj in val:
+                            propVals.append( (str(getattr(propObj, "property", "")), str(getattr(propObj, "value", ""))) )
+                        continue
+                    if propName in ("name", "groupName") and val and issubclass(objClass, XbrlReferencableTaxonomyObject):
+                        # insert label first if any
+                        label = self.xbrlDts.labelValue(val, qnStdLabel, fallbackToName=False)
+                        if label:
+                            propVals.append( ("label", label) )
+                        referenceProperties = self.xbrlDts.referenceProperties(val, None)
+                elif propName == "dimensions" and isinstance(val, dict):
+                    for propKey, propVal in val.items():
+                        propVals.append( (str(propKey), str(propVal) ) )
                     continue
-                if propName in ("name", "groupName") and val and issubclass(objClass, XbrlReferencableTaxonomyObject):
-                    # insert label first if any
-                    label = self.xbrlDts.labelValue(val, qnStdLabel, fallbackToName=False)
-                    if label:
-                        propVals.append( ("label", label) )
-                    referenceProperties = self.xbrlDts.referenceProperties(val, None)
                 if isinstance(propType, GenericAlias): # set, dict, etc
                     propValueClass = propType.__args__[-1]
                     if hasattr(propValueClass, "propertyView"):
@@ -109,6 +116,12 @@ class XbrlTaxonomyObject:
                     val = f"({len(val)})"
                 propVals.append(f"{propName}: {val}")
         return f"{objName}[{', '.join(propVals)}]"
+
+class XbrlTaxonomyObject(XbrlObject):
+    pass
+
+class XbrlReportObject(XbrlObject):
+    pass
 
 class XbrlReferencableTaxonomyObject(XbrlTaxonomyObject):
 

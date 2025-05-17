@@ -4,34 +4,46 @@ See COPYRIGHT.md for copyright information.
 
 from typing import TYPE_CHECKING, cast, Any, ClassVar
 from collections import OrderedDict, defaultdict # OrderedDict is not same as dict, has additional key order features
-
-from arelle.ModelValue import QName
+import sys, traceback
+from arelle.ModelValue import QName, AnyURI
 from arelle.ModelXbrl import ModelXbrl, create as modelXbrlCreate, XbrlConst
+from arelle.oim.Load import EMPTY_DICT
 from .XbrlConcept import XbrlConcept, XbrlDataType
 from .XbrlGroup import XbrlGroupContent
+from .XbrlReport import addReportProperties, XbrlFact, XbrlReportObject
 from .XbrlTypes import XbrlTaxonomyType, QNameKeyType, XbrlLabelType, XbrlPropertyType
-from .XbrlTaxonomyObject import XbrlTaxonomyObject, XbrlReferencableTaxonomyObject, XbrlTaxonomyTagObject
+from .XbrlTaxonomyObject import XbrlObject, XbrlReferencableTaxonomyObject, XbrlTaxonomyTagObject
 
-def castToDts(modelXbrl):
+def castToDts(modelXbrl, isReport=False):
     if not isinstance(modelXbrl, XbrlDts) and isinstance(modelXbrl, ModelXbrl):
         modelXbrl.__class__ = XbrlDts
         modelXbrl.taxonomies: OrderedDict[QNameKeyType, XbrlTaxonomyType] = OrderedDict()
         modelXbrl.dtsObjectIndex = 0
-        modelXbrl.taxonomyObjects: list[XbrlTaxonomyObject] = []
+        modelXbrl.xbrlObjects: list[XbrlObject] = []
         modelXbrl.namedObjects: OrderedDict[QNameKeyType, XbrlReferencableTaxonomyObject] = OrderedDict() # not visible metadata
         modelXbrl.tagObjects: defaultdict[QName, list[XbrlReferencableTaxonomyObject]] = defaultdict(list) # labels and references
+        if isReport:
+            addReportProperties(modelXbrl)
     return modelXbrl
 
 
 class XbrlDts(ModelXbrl): # complete wrapper for ModelXbrl
     taxonomies: OrderedDict[QNameKeyType, XbrlTaxonomyType]
-    taxonomyObjects: OrderedDict[QNameKeyType, XbrlReferencableTaxonomyObject] # not visible metadata
+    xbrlObjects: list[XbrlObject] # not visible metadata
+    # objects only present for XbrlReports
+    linkTypes: dict[str, AnyURI]
+    linkGroups: dict[str, AnyURI]
+    facts: dict[str, XbrlFact]
 
-    def __init__(self,  *args: Any, **kwargs: Any) -> None:
+    def __init__(self, isReport:bool = False, *args: Any, **kwargs: Any) -> None:
         super(XbrlDts, self).__init__(*args, **kwargs)
-        self.taxonomyObjects: list[XbrlTaxonomyObject] = []
+        self.dtsObjectIndex = 0
+        self.xbrlObjects: list[XbrlObject] = []
         self.namedObjects: OrderedDict[QNameKeyType, XbrlReferencableTaxonomyObject] = OrderedDict() # not visible metadata
         self.tagObjects: defaultdict[QName, list[XbrlReferencableTaxonomyObject]] = defaultdict(list) # labels and references
+        if isReport:
+            addReportProperties(self)
+
 
     @property
     def xbrlTaxonomy(self):
@@ -81,18 +93,18 @@ class XbrlDts(ModelXbrl): # complete wrapper for ModelXbrl
         """Finds taxonomy object, if any, and synchronizes any views displaying it to bring the model object into scrollable view region and highlight it
         :param objectId: string which includes _ordinalNumber, produced by ModelObject.objectId(), or integer object index
         """
-        txmyObj: XbrlTaxonomyObject | str | int = ""
+        xbrlObj: XbrlObject | str | int = ""
         try:
-            if isinstance(objectId, XbrlTaxonomyObject):
-                txmyObj = objectId
+            if isinstance(objectId, XbrlObject):
+                xbrlObj = objectId
             elif isinstance(objectId, str) and objectId.startswith("_"):
-                txmyObj = cast('XbrlTaxonomyObject', self.taxonomyObjects[int(objectId.rpartition("_")[2])])
-            if txmyObj is not None:
+                xbrlObj = cast('XbrlObject', self.xbrlObjects[int(objectId.rpartition("_")[2])])
+            if xbrlObj is not None:
                 for view in self.views:
-                    view.viewModelObject(txmyObj)
+                    view.viewModelObject(xbrlObj)
         except (IndexError, ValueError, AttributeError)as err:
             self.modelManager.addToLog(_("Exception viewing properties {0} {1} at {2}").format(
-                            modelObject,
+                            xbrlObj,
                             err, traceback.format_tb(sys.exc_info()[2])))
 
     # dts-wide object accumulator properties
@@ -108,6 +120,9 @@ class XbrlDts(ModelXbrl): # complete wrapper for ModelXbrl
                         (not _type or _type == obj._type) and
                         (not _lang or not obj.language or _lang.startswith(obj.language) or obj.language.startswith(lang))):
                         yield obj
+        elif issubclass(_class, XbrlReportObject):
+            for obj in getattr(self, "facts", EMPTY_DICT).values():
+                yield obj
 
     def error(self, *args, **kwargs):
         if "xbrlObject" in kwargs:

@@ -43,10 +43,11 @@ from .XbrlLabel import XbrlLabel, XbrlLabelType
 from .XbrlNetwork import XbrlNetwork, XbrlRelationship, XbrlRelationshipType
 from .XbrlProperty import XbrlProperty, XbrlPropertyType
 from .XbrlReference import XbrlReference, XbrlReferenceType
+from .XbrlReport import XbrlFact
 from .XbrlTransform import XbrlTransform
 from .XbrlUnit import XbrlUnit
 from .XbrlTaxonomy import XbrlTaxonomy
-from .XbrlTaxonomyObject import XbrlTaxonomyObject, XbrlReferencableTaxonomyObject, XbrlTaxonomyTagObject
+from .XbrlTaxonomyObject import XbrlObject, XbrlReferencableTaxonomyObject, XbrlTaxonomyTagObject
 from .XbrlDts import XbrlDts, castToDts
 from .XbrlTypes import XbrlTaxonomyType, QNameKeyType, SQNameKeyType, DefaultTrue, DefaultFalse, DefaultZero
 from .ValidateDTS import validateDTS
@@ -205,6 +206,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
         documentInfo = jsonGet(oimObject, "documentInfo", {})
         documentType = jsonGet(documentInfo, "documentType")
         taxonomyObj = jsonGet(oimObject, "taxonomy", {})
+        isReport = "facts" in oimObject # for test purposes report facts can be in json object
         if not documentType:
             error("oimce:unsupportedDocumentType",
                   _("/documentInfo/docType is missing."),
@@ -222,7 +224,6 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
 
         extensionProperties = {} # key is property QName, value is property path
 
-
         currentAction = "identifying Metadata objects"
 
         # create the taxonomy document
@@ -239,7 +240,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                   # base=txBase or modelXbrl.entryLoadingUrl
                   )
             schemaDoc.inDTS = True
-            xbrlDts = castToDts(modelXbrl)
+            xbrlDts = castToDts(modelXbrl, isReport)
         else: # API implementation
             xbrlDts = ModelDts.create(
                 cntlr.modelManager,
@@ -329,6 +330,117 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
 
         jsonEltsNotInObjClass = []
         jsonEltsReqdButMissing = []
+        def createTaxonomyObject(jsonObj, oimParentObj, keyClass, objClass, newObj, pathParts):
+            keyValue = None
+            relatedNames = [] # to tag an object with labels or references
+            unexpectedJsonProps = set(jsonObj.keys())
+            for propName, propType in getattr(objClass, "__annotations__", EMPTY_DICT).items():
+                if isinstance(propType, GenericAlias):
+                    propClass = propType.__origin__ # collection type such as OrderedSet, dict
+                    collectionProp = propClass()
+                    setattr(newObj, propName, collectionProp) # fresh new dict or OrderedSet (even if no contents for it)
+                else:
+                    propClass = propType
+                if propName in jsonObj:
+                    unexpectedJsonProps.remove(propName)
+                    if propName == "labels" and excludeLabels:
+                        continue
+                    jsonValue = jsonObj[propName]
+                    if isinstance(propType, GenericAlias):
+                        if len(propType.__args__) == 2: # dict
+                            _keyClass = propType.__args__[0] # class of key such as QNameKey
+                            eltClass = propType.__args__[1] # class of collection elements such as XbrlConcept
+                        elif len(propType.__args__) == 1: # set such as OrderedSet or list
+                            _keyClass = None
+                            eltClass = propType.__args__[0]
+                        if isinstance(jsonValue, list):
+                            for iObj, listObj in enumerate(jsonValue):
+                                if isinstance(eltClass, str) or eltClass.__name__.startswith("Xbrl"): # nested Xbrl objects
+                                    if isinstance(listObj, dict):
+                                        # this handles lists of dict objects.  For dicts of key-value dict objects see above.
+                                        createTaxonomyObjects(propName, listObj, newObj, pathParts + [f'{propName}[{iObj}]'])
+                                    else:
+                                        error("xbrlte:invalidObjectType",
+                                              _("Object expected but non-object found: %(listObj)s, jsonObj: %(path)s"),
+                                              sourceFileLine=href, listObj=listObj, path=f"{'/'.join(pathParts + [f'{propName}[{iObj}]'])}")
+                                else: # collection contains ordinary values
+                                    if eltClass in (QName, QNameKeyType, SQName, SQNameKeyType):
+                                        listObj = qname(listObj, prefixNamespaces)
+                                        if listObj is None:
+                                            error("xbrlte:invalidQName",
+                                                  _("QName is invalid: %(qname)s, jsonObj: %(path)s"),
+                                                  sourceFileLine=href, qname=jsonObj[propName], path=f"{'/'.join(pathParts + [f'{propName}[{iObj}]'])}")
+                                            continue # skip this property
+                                        if propName == "relatedNames":
+                                            relatedNames.append(listObj)
+                                    if propClass in (set, OrderedSet):
+                                        collectionProp.add(listObj)
+                                    else:
+                                        collectionProp.append(listObj)
+                        elif isinstance(jsonValue, dict) and keyClass:
+                            for iObj, (valKey, valVal) in enumerate(jsonValue.items()):
+                                if isinstance(_keyClass, UnionType):
+                                    if QName in _keyClass.__args__ and ":" in valKey:
+                                        _valKey = qname(listObj, prefixNamespaces)
+                                        if _valKey is None:
+                                            error("xbrlte:invalidQName",
+                                                  _("QName is invalid: %(qname)s, jsonObj: %(path)s"),
+                                                  sourceFileLine=href, qname=_valKey, path=f"{'/'.join(pathParts + [f'{propName}[{iObj}]'])}")
+                                            continue # skip this property
+                                    elif str in _keyClass.__args__:
+                                        _valKey = valKey
+                                    else:
+                                        continue
+                                elif isinstance(_keyClass, str):
+                                    _valKey = valKey
+                                else:
+                                    continue
+                                collectionProp[_valKey] = valVal
+                    elif isinstance(propType, _UnionGenericAlias) and propType.__args__[-1] == type(None) and isinstance(jsonValue,dict): # optional embdded object
+                        createTaxonomyObjects(propName, jsonValue, newObj, pathParts + [propName]) # object property
+                    else:
+                        optional = False
+                        if isinstance(propType, _UnionGenericAlias) and propType.__args__[-1] == type(None):
+                            propType = propType.__args__[0] # scalar property
+                            optional = True
+                        if propType == QNameAt:
+                            jsonValue, _sep, atSuffix = jsonValue.partition("@")
+                        if propType in (QName, QNameKeyType, SQName, SQNameKeyType, QNameAt):
+                            jsonValue = qname(jsonValue, prefixNamespaces)
+                            if jsonValue is None:
+                                error("xbrlte:invalidQName",
+                                      _("QName is invalid: %(qname)s, jsonObj: %(path)s"),
+                                      sourceFileLine=href, qname=jsonObj[propName], path=f"{'/'.join(pathParts + [propName])}")
+                                if optional:
+                                    jsonValue = None
+                                else:
+                                    return # skip this nested object entirely
+                            elif propType == QNameAt:
+                                jsonValue = QNameAt(jsonValue.prefix, jsonValue.namespaceURI, jsonValue.localName, atSuffix)
+                            if propName == "relatedName":
+                                relatedNames.append(jsonValue)
+                        setattr(newObj, propName, jsonValue)
+                        if (keyClass and keyClass == propType) or (not keyClass and propType in (QNameKeyType, SQNameKeyType)):
+                            keyValue = jsonValue # e.g. the QNAme of the new object for parent object collection
+                elif propType in (type(oimParentObj), type(oimParentObj).__name__): # propType may be a TypeAlias which is a string name of class
+                    setattr(newObj, propName, oimParentObj)
+                elif ((isinstance(propType, (UnionType,_UnionGenericAlias)) or isinstance(getattr(propType, "__origin__", None), type(Union))) and # Optional[ ] type
+                       propType.__args__[-1] in (type(None), DefaultTrue, DefaultFalse, DefaultZero)):
+                          setattr(newObj, propName, {type(None): None, DefaultTrue: True, DefaultFalse: False, DefaultZero:0}[propType.__args__[-1]]) # use first of union for prop value creation
+                else: # absent json element
+                    if not propClass in (dict, set, OrderedSet, OrderedDict):
+                        jsonEltsReqdButMissing.append(f"{'/'.join(pathParts + [propName])}")
+                        setattr(newObj, propName, None) # not defaultable but set to None anyway
+            if unexpectedJsonProps:
+                for propName in unexpectedJsonProps:
+                    jsonEltsNotInObjClass.append(f"{'/'.join(pathParts + [propName])}={jsonObj.get(propName,'(absent)')}")
+            if isinstance(newObj, XbrlReferencableTaxonomyObject):
+                xbrlDts.namedObjects[keyValue] = newObj
+            elif isinstance(newObj, XbrlTaxonomyTagObject) and relatedNames:
+                for relatedQn in relatedNames:
+                    xbrlDts.tagObjects[relatedQn].append(newObj)
+            return keyValue
+
         def createTaxonomyObjects(jsonKey, jsonObj, oimParentObj, pathParts):
             # find collection owner in oimParentObj
             for objName in (jsonKey, plural(jsonKey)):
@@ -349,6 +461,14 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                         if ownrProp is None: # the parent object's dict or OrderedSet doesn't exist yet
                             ownrProp = ownrPropClass()
                             setattr(oimParentObj, propName, ownrProp) # fresh new dict or OrderedSet
+                        if objClass == XbrlFact and isinstance(jsonObj, dict): # this is a JSON key-value dict going into a dict, for lists of dicts see below
+                            for id, value in jsonObj.items():
+                                newObj = objClass(dtsObjectIndex=len(xbrlDts.xbrlObjects))
+                                xbrlDts.xbrlObjects.append(newObj)
+                                newObj.id = id
+                                createTaxonomyObject(value, oimParentObj, str, objClass, newObj, pathParts + [f"[{id}]"])
+                                ownrProp[id] = newObj
+                            return
                     elif isinstance(ownrPropType, _UnionGenericAlias) and ownrPropType.__args__[-1] == type(None): # optional nested object
                         keyClass = None
                         objClass = ownrPropType.__args__[0]
@@ -356,99 +476,16 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                         objClass = ownrPropType # e.g just a Concept but no owning collection
                     if objClass == XbrlTaxonomyType:
                         objClass = XbrlTaxonomy
-                    if issubclass(objClass, XbrlTaxonomyObject):
-                        dtsObjectIndex = len(xbrlDts.taxonomyObjects)
-                        newObj = objClass(dtsObjectIndex=dtsObjectIndex) # e.g. this is the new Concept
-                        xbrlDts.taxonomyObjects.append(newObj)
+                    if issubclass(objClass, XbrlObject):
+                        newObj = objClass(dtsObjectIndex=len(xbrlDts.xbrlObjects)) # e.g. this is the new Concept
+                        xbrlDts.xbrlObjects.append(newObj)
                         classCountProp = f"_{objClass.__name__}Count"
                         classIndex = getattr(oimParentObj, classCountProp, 0)
                         setattr(newObj, "_classIndex", classIndex)
                         setattr(oimParentObj, classCountProp,classIndex+1)
                     else:
                         newObj = objClass() # e.g. XbrlProperty
-                    keyValue = None
-                    relatedNames = [] # to tag an object with labels or references
-                    unexpectedJsonProps = set(jsonObj.keys())
-                    for propName, propType in getattr(objClass, "__annotations__", EMPTY_DICT).items():
-                        if isinstance(propType, GenericAlias):
-                            propClass = propType.__origin__ # collection type such as OrderedSet, dict
-                            collectionProp = propClass()
-                            setattr(newObj, propName, collectionProp) # fresh new dict or OrderedSet (even if no contents for it)
-                        else:
-                            propClass = propType
-                        if propName in jsonObj:
-                            unexpectedJsonProps.remove(propName)
-                            if propName == "labels" and excludeLabels:
-                                continue
-                            jsonValue = jsonObj[propName]
-                            if isinstance(propType, GenericAlias):
-                                if len(propType.__args__) == 2: # dict
-                                    _keyClass = propType.__args__[0] # class of key such as QNameKey
-                                    eltClass = propType.__args__[1] # class of collection elements such as XbrlConcept
-                                elif len(propType.__args__) == 1: # set such as OrderedSet or list
-                                    _keyClass = None
-                                    eltClass = propType.__args__[0]
-                                if isinstance(jsonValue, list):
-                                    for iObj, listObj in enumerate(jsonValue):
-                                        if isinstance(eltClass, str) or eltClass.__name__.startswith("Xbrl"): # nested Xbrl objects
-                                            if isinstance(listObj, dict):
-                                                createTaxonomyObjects(propName, listObj, newObj, pathParts + [f'{propName}[{iObj}]'])
-                                            else:
-                                                error("xbrlte:invalidObjectType",
-                                                      _("Object expected but non-object found: %(listObj)s, jsonObj: %(path)s"),
-                                                      sourceFileLine=href, listObj=listObj, path=f"{'/'.join(pathParts + [f'{propName}[{iObj}]'])}")
-                                        else: # collection contains ordinary values
-                                            if eltClass in (QName, QNameKeyType, SQName, SQNameKeyType):
-                                                listObj = qname(listObj, prefixNamespaces)
-                                                if listObj is None:
-                                                    error("xbrlte:invalidQName",
-                                                          _("QName is invalid: %(qname)s, jsonObj: %(path)s"),
-                                                          sourceFileLine=href, qname=jsonObj[propName], path=f"{'/'.join(pathParts + [f'{propName}[{iObj}]'])}")
-                                                    continue # skip this property
-                                                if propName == "relatedNames":
-                                                    relatedNames.append(listObj)
-                                            if propClass in (set, OrderedSet):
-                                                collectionProp.add(listObj)
-                                            else:
-                                                collectionProp.append(listObj)
-                            elif isinstance(propType, _UnionGenericAlias) and propType.__args__[-1] == type(None) and isinstance(jsonValue,dict): # optional embdded object
-                                createTaxonomyObjects(propName, jsonValue, newObj, pathParts + [propName]) # object property
-                            else:
-                                optional = False
-                                if isinstance(propType, _UnionGenericAlias) and propType.__args__[-1] == type(None):
-                                    propType = propType.__args__[0] # scalar property
-                                    optional = True
-                                if propType == QNameAt:
-                                    jsonValue, _sep, atSuffix = jsonValue.partition("@")
-                                if propType in (QName, QNameKeyType, SQName, SQNameKeyType, QNameAt):
-                                    jsonValue = qname(jsonValue, prefixNamespaces)
-                                    if jsonValue is None:
-                                        error("xbrlte:invalidQName",
-                                              _("QName is invalid: %(qname)s, jsonObj: %(path)s"),
-                                              sourceFileLine=href, qname=jsonObj[propName], path=f"{'/'.join(pathParts + [propName])}")
-                                        if optional:
-                                            jsonValue = None
-                                        else:
-                                            return # skip this nested object entirely
-                                    elif propType == QNameAt:
-                                        jsonValue = QNameAt(jsonValue.prefix, jsonValue.namespaceURI, jsonValue.localName, atSuffix)
-                                    if propName == "relatedName":
-                                        relatedNames.append(jsonValue)
-                                setattr(newObj, propName, jsonValue)
-                                if (keyClass and keyClass == propType) or (not keyClass and propType in (QNameKeyType, SQNameKeyType)):
-                                    keyValue = jsonValue # e.g. the QNAme of the new object for parent object collection
-                        elif propType in (type(oimParentObj), type(oimParentObj).__name__): # propType may be a TypeAlias which is a string name of class
-                            setattr(newObj, propName, oimParentObj)
-                        elif ((isinstance(propType, (UnionType,_UnionGenericAlias)) or isinstance(getattr(propType, "__origin__", None), type(Union))) and # Optional[ ] type
-                               propType.__args__[-1] in (type(None), DefaultTrue, DefaultFalse, DefaultZero)):
-                                  setattr(newObj, propName, {type(None): None, DefaultTrue: True, DefaultFalse: False, DefaultZero:0}[propType.__args__[-1]]) # use first of union for prop value creation
-                        else: # absent json element
-                            if not propClass in (dict, set, OrderedSet, OrderedDict):
-                                jsonEltsReqdButMissing.append(f"{'/'.join(pathParts + [propName])}")
-                                setattr(newObj, propName, None) # not defaultable but set to None anyway
-                    if unexpectedJsonProps:
-                        for propName in unexpectedJsonProps:
-                            jsonEltsNotInObjClass.append(f"{'/'.join(pathParts + [propName])}={jsonObj.get(propName,'(absent)')}")
+                    keyValue = createTaxonomyObject(jsonObj, oimParentObj, keyClass, objClass, newObj, pathParts)
                     if isinstance(ownrPropType, GenericAlias):
                         if len(ownrPropType.__args__) == 2:
                             if keyValue:
@@ -459,13 +496,10 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                             ownrProp.append(newObj)
                     elif isinstance(ownrPropType, _UnionGenericAlias) and ownrPropType.__args__[-1] == type(None): # optional nested object
                         setattr(oimParentObj, pathParts[-1], newObj)
-                    if isinstance(newObj, XbrlReferencableTaxonomyObject):
-                        xbrlDts.namedObjects[keyValue] = newObj
-                    elif isinstance(newObj, XbrlTaxonomyTagObject) and relatedNames:
-                        for relatedQn in relatedNames:
-                            xbrlDts.tagObjects[relatedQn].append(newObj)
 
         createTaxonomyObjects("taxonomy", oimObject["taxonomy"], xbrlDts, ["", "taxonomy"])
+        if isReport:
+            createTaxonomyObjects("facts", oimObject["facts"], xbrlDts, ["", "facts"])
 
         if jsonEltsNotInObjClass:
             error("arelle:undeclaredOimTaxonomyJsonElements",
@@ -918,11 +952,15 @@ def oimTaxonomyLoaded(cntlr, options, xbrlDts, *args, **kwargs):
 def oimTaxonomyViews(cntlr, xbrlDts):
     oimTaxonomyLoaded(cntlr, None, xbrlDts)
     if isinstance(xbrlDts, XbrlDts):
-        initialViews = ((XbrlConcept, cntlr.tabWinBtm, "XBRL Concepts"),
-                        (XbrlGroup, cntlr.tabWinTopRt, "XBRL Groups"),
-                        (XbrlNetwork, cntlr.tabWinTopRt, "XBRL Networks"),
-                        (XbrlCube, cntlr.tabWinTopRt, "XBRL Cubes")
-                        )
+        initialViews = []
+        if getattr(xbrlDts, "facts", ()): # has instance facts
+            initialViews.append( (XbrlFact, cntlr.tabWinTopRt, "Report Facts") )
+        initialViews.extend(((XbrlConcept, cntlr.tabWinBtm, "XBRL Concepts"),
+                             (XbrlGroup, cntlr.tabWinTopRt, "XBRL Groups"),
+                             (XbrlNetwork, cntlr.tabWinTopRt, "XBRL Networks"),
+                             (XbrlCube, cntlr.tabWinTopRt, "XBRL Cubes")
+                            ))
+        initialViews = tuple(initialViews)
         additionalViews = ((XbrlAbstract, cntlr.tabWinBtm, "XBRL Abstracts"),
                            (XbrlCubeType, cntlr.tabWinBtm, "XBRL Cube Types"),
                            (XbrlDataType, cntlr.tabWinBtm, "XBRL Data Types"),
