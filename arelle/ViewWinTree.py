@@ -220,14 +220,16 @@ class ViewTree:
                                     modelObject=self.modelXbrl.modelDocument, title=self.tabTitle, error=str(ex))
                 self.menu = None
 
-    def menuAddLabelRoles(self, includeConceptName=False, menulabel=None):
+    def menuAddLabelRoles(self, includeConceptName=False, menulabel=None, usedLabelroles=None):
         if self.menu:
             try:
                 if menulabel is None: menulabel = _("Label role")
                 rolesMenu = Menu(self.viewFrame, tearoff=0)
                 self.menu.add_cascade(label=menulabel, menu=rolesMenu, underline=0)
-                from arelle.ModelRelationshipSet import labelroles
-                for x in labelroles(self.modelXbrl, includeConceptName):
+                if usedLabelroles is None: # provided for OIM taxonomy
+                    from arelle.ModelRelationshipSet import labelroles
+                    usedLabelroles = labelroles(self.modelXbrl, includeConceptName) # arelle infrastructure
+                for x in usedLabelroles:
                     rolesMenu.add_command(label=x[0][1:], underline=0, command=lambda a=x[1]: self.setLabelrole(a))
             except Exception as ex: # tkinter menu problem maybe
                 self.modelXbrl.info("arelle:internalException",
@@ -263,7 +265,7 @@ class ViewTree:
                                     modelObject=self.modelXbrl.modelDocument, title=self.tabTitle, error=str(ex))
                 self.menu = None
 
-    def menuAddViews(self, addClose=True, tabWin=None):
+    def menuAddViews(self, addClose=True, tabWin=None, additionalViews=None, additionalViewMethod=None):
         if self.menu:
             try:
                 if tabWin is None: tabWin = self.tabWin
@@ -273,10 +275,14 @@ class ViewTree:
                 if addClose:
                     viewMenu.add_command(label=_("Close"), underline=0, command=self.close)
                 viewMenu.add_cascade(label=_("Additional view"), menu=newViewsMenu, underline=0)
-                newViewsMenu.add_command(label=_("Arcrole group..."), underline=0, command=lambda: self.newArcroleGroupView(tabWin))
-                from arelle.ModelRelationshipSet import baseSetArcroles
-                for x in baseSetArcroles(self.modelXbrl) + [( " Role Types","!CustomRoleTypes!"), (" Arcrole Types", "!CustomArcroleTypes!")]:
-                    newViewsMenu.add_command(label=x[0][1:], underline=0, command=lambda a=x[1]: self.newView(a, tabWin))
+                if not additionalViews: # 2.1 view
+                    newViewsMenu.add_command(label=_("Arcrole group..."), underline=0, command=lambda: self.newArcroleGroupView(tabWin))
+                    from arelle.ModelRelationshipSet import baseSetArcroles
+                    for x in baseSetArcroles(self.modelXbrl) + [( " Role Types","!CustomRoleTypes!"), (" Arcrole Types", "!CustomArcroleTypes!")]:
+                        newViewsMenu.add_command(label=x[0][1:], underline=0, command=lambda a=x[1]: self.newView(a, tabWin))
+                else:
+                    for viewParams in additionalViews:
+                        newViewsMenu.add_command(label=viewParams[2], underline=0, command=lambda a=additionalViewMethod, b=viewParams, c=additionalViews: a(self.modelXbrl, *b, additionalViews=c))
             except Exception as ex: # tkinter menu problem maybe
                 self.modelXbrl.info("arelle:internalException",
                                     _("Exception creating context add-views menu in %(title)s: %(error)s"),
@@ -324,7 +330,7 @@ class ViewTree:
             self.sortImages = (PhotoImage(file=os.path.join(self.modelXbrl.modelManager.cntlr.imagesDir, "columnSortUp.gif")),
                                PhotoImage(file=os.path.join(self.modelXbrl.modelManager.cntlr.imagesDir, "columnSortDown.gif")),
                                PhotoImage())
-        for col in ("#0",) + self.treeView["columns"]:
+        for col in ("#0",) + (self.treeView["columns"] or () ):
             self.treeView.heading(col, command=lambda c=col: self.sortColumn(c))
         if not startUnsorted:
             self.treeView.heading(initialSortCol, image=self.sortImages[not initialSortDirForward])
