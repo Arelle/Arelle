@@ -777,7 +777,7 @@ def lxmlSchemaValidate(modelDocument: ModelDocument, extraSchema : str | None = 
                                    file=modelDocument.basename,
                                    level=logging.ERROR)
                     modelDocument.modelXbrl.errors.append(msgCode)
-        except etree.XMLSyntaxError as err:
+        except (etree.XMLSyntaxError, etree.XMLSchemaError) as err:
             msgCode = "lxml.schemaError"
             cntlr.addToLog(_("XML file syntax error %(error)s"),
                            messageArgs={"error": str(err)},

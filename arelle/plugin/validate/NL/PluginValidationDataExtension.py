@@ -3,22 +3,21 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-from typing import cast, Any
-
-import regex as re
 from collections import defaultdict
 from dataclasses import dataclass
 from functools import lru_cache
+from typing import Any, cast
+
+import regex as re
+from lxml.etree import _Comment, _ElementTree, _Entity, _ProcessingInstruction
 
 from arelle.FunctionIxt import ixtNamespaces
-from arelle.ModelInstanceObject import ModelUnit, ModelContext, ModelFact, ModelInlineFootnote
+from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelInlineFootnote, ModelUnit
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import ModelXbrl
-from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
 from arelle.utils.PluginData import PluginData
+from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
 from arelle.XmlValidate import lexicalPatterns
-
-from lxml.etree import EntityBase, _Comment, _ElementTree, _ProcessingInstruction
 
 XBRLI_IDENTIFIER_PATTERN = re.compile(r"^(?!00)\d{8}$")
 XBRLI_IDENTIFIER_SCHEMA = 'http://www.kvk.nl/kvk-id'
@@ -176,8 +175,7 @@ class PluginValidationDataExtension(PluginData):
         for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
             for uncast_elt, depth in etreeIterWithDepth(ixdsHtmlRootElt):
                 elt = cast(Any, uncast_elt)
-                eltTag = elt.tag
-                if isinstance(elt, (_ElementTree, _Comment, _ProcessingInstruction, EntityBase)):
+                if isinstance(elt, (_Comment, _ElementTree, _Entity, _ProcessingInstruction)):
                     continue
                 if firstIxdsDoc and (not reportXmlLang or depth < firstRootmostXmlLangDepth):
                     xmlLang = elt.get("{http://www.w3.org/XML/1998/namespace}lang")

@@ -12,7 +12,7 @@ Taxonomy packages:
 """
 import os
 import regex as re
-from lxml.etree import _ElementTree, _Comment, _ProcessingInstruction
+from lxml.etree import _ElementTree, _Comment, _ProcessingInstruction, _Entity
 from arelle import ModelDocument, XbrlConst
 from arelle.ModelDtsObject import ModelResource
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFact, ModelInlineFootnote
@@ -125,7 +125,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                 eltTag = elt.tag
                 if isinstance(elt, ModelObject) and elt.namespaceURI == xhtml:
                     eltTag = elt.localName
-                elif isinstance(elt, (_ElementTree, _Comment, _ProcessingInstruction)):
+                elif isinstance(elt, (_ElementTree, _Comment, _ProcessingInstruction, _Entity)):
                     continue # comment or other non-parsed element
                 else:
                     eltTag = elt.tag
