@@ -11,7 +11,7 @@ from math import isnan
 from typing import Any, cast
 
 import regex as re
-from lxml.etree import EntityBase, _Comment, _ElementTree, _ProcessingInstruction, _Entity
+from lxml.etree import EntityBase, _Comment, _Element, _ElementTree, _ProcessingInstruction, _Entity
 
 from arelle import LeiUtil, ModelDocument, XbrlConst
 from arelle.ModelDtsObject import ModelConcept
@@ -726,7 +726,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 _("The xlink:role attribute of a link:footnote and link:footnoteLink element as well as xlink:arcrole attribute of a link:footnoteArc MUST be defined in the XBRL Specification 2.1."),
                 modelObject=footnoteRoleErrors)
 
-        nonStdFootnoteElts = list()
+        nonStdFootnoteElts: list[_Element] = list()
         for modelLink in modelXbrl.baseSets[("XBRL-footnotes",None,None,None)]:
             for uncast_elt in modelLink.iterchildren():
                 elt = cast(Any, uncast_elt)
