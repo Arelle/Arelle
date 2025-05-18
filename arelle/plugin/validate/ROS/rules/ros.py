@@ -13,7 +13,7 @@ from arelle.typing import TypeGetText
 from arelle.ValidateXbrl import ValidateXbrl
 from collections import defaultdict
 from math import isnan
-from lxml.etree import _ElementTree, _Comment, _ProcessingInstruction, _Entity
+from lxml.etree import _Comment, _ElementTree, _Entity, _ProcessingInstruction
 from arelle import ModelDocument
 from arelle.ModelInstanceObject import ModelInlineFact, ModelUnit
 from arelle.ModelValue import qname
@@ -86,7 +86,7 @@ def rule_main(
         ixTargets = set()
         for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
             for elt in ixdsHtmlRootElt.iter():
-                if isinstance(elt, (_ElementTree, _Comment, _ProcessingInstruction, _Entity)):
+                if isinstance(elt, (_Comment, _ElementTree, _Entity, _ProcessingInstruction)):
                     continue # comment or other non-parsed element
                 if isinstance(elt, ModelInlineFact):
                     if elt.format is not None and elt.format.namespaceURI not in TR_NAMESPACES:

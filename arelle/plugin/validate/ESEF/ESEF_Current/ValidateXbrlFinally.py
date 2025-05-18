@@ -12,7 +12,7 @@ from typing import Any, cast
 
 import regex as re
 import tinycss2.ast  # type: ignore[import-untyped]
-from lxml.etree import EntityBase, _Comment, _Element, _ElementTree, _ProcessingInstruction, _Entity
+from lxml.etree import _Comment, _Element, _ElementTree, _Entity, _ProcessingInstruction
 
 from arelle import LeiUtil, ModelDocument, XbrlConst
 from arelle.ModelDtsObject import ModelConcept
@@ -319,7 +319,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     elt = cast(Any, uncast_elt)
 
                     eltTag = elt.tag
-                    if isinstance(elt, (_ElementTree, _Comment, _ProcessingInstruction, _Entity, EntityBase)):
+                    if isinstance(elt, (_ElementTree, _Comment, _ProcessingInstruction, _Entity)):
                         continue # comment or other non-parsed element
                     else:
                         eltTag = elt.tag
@@ -813,7 +813,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
             for uncast_elt in modelLink.iterchildren():
                 elt = cast(Any, uncast_elt)
 
-                if isinstance(elt, (_ElementTree, _Comment, _ProcessingInstruction, _Entity)):
+                if isinstance(elt, (_Comment, _ElementTree, _Entity, _ProcessingInstruction)):
                     continue # comment or other non-parsed element
                 if elt.qname not in FOOTNOTE_LINK_CHILDREN:
                     nonStdFootnoteElts.append(elt)
