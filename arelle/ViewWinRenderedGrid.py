@@ -140,6 +140,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
 
     def loadTablesMenu(self):
         if not self.tblMenuEntries:
+            self.tablesToELR = {}
             for lytMdlTableSet in self.lytMdlTblMdl.lytMdlTableSets:
                 # table name
                 modelRoleTypes = self.modelXbrl.roleTypes.get(lytMdlTableSet.srcLinkrole)
@@ -150,6 +151,14 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                         roledefinition = os.path.basename(lytMdlTableSet.srcLinkrole)
                     # add table to menu if there's any entry
                     self.tblMenuEntries[roledefinition] = lytMdlTableSet.srcLinkrole
+                    # find table group object corresponding to this table for EBA filings from the root table object
+                    for tableAxisArcrole in getTableAxisArcroles():
+                        tblAxisRelSet = self.modelXbrl.relationshipSet(tableAxisArcrole, lytMdlTableSet.srcLinkrole)
+                        if tblAxisRelSet and len(tblAxisRelSet.modelRelationships) > 0:
+                            for table in tblAxisRelSet.rootConcepts:
+                                # find a table group object corresponding to this table (ugly hack?)
+                                for tableGroupConcept in self.modelXbrl.nameConcepts.get( table.id.replace("_tQ_", "_tgQ_"), () ):
+                                    self.tablesToELR[tableGroupConcept.objectId()] = lytMdlTableSet.srcLinkrole
         self.tablesMenu.delete(0, self.tablesMenuLength)
         self.tablesMenuLength = 0
         self.tblELR = None
@@ -484,7 +493,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                                         objectId=objectId,
                                                         selectindex=selectedIdx,
                                                         codes=enumerationDict)
-                        elif modelConcept is not None and modelConcept.type.qname == XbrlConst.qnXbrliQNameItemType:
+                        elif modelConcept is not None and modelConcept.type is not None and modelConcept.type.qname == XbrlConst.qnXbrliQNameItemType:
                             if eurofilingModelPrefix in modelConcept.nsmap and modelConcept.nsmap.get(eurofilingModelPrefix) == eurofilingModelNamespace:
                                 hierarchy = modelConcept.get("{" + eurofilingModelNamespace + "}" + "hierarchy", None)
                                 domainQNameAsString = modelConcept.get("{" + eurofilingModelNamespace + "}" + "domain", None)
@@ -537,7 +546,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                                             objectId=objectId,
                                                             selectindex=selectedIdx,
                                                             codes=newAspectQNames)
-                        elif modelConcept is not None and modelConcept.type.qname == XbrlConst.qnXbrliBooleanItemType:
+                        elif modelConcept is not None and modelConcept.type is not None and modelConcept.type.qname == XbrlConst.qnXbrliBooleanItemType:
                             booleanValues = ["",
                                              XbrlConst.booleanValueTrue,
                                              XbrlConst.booleanValueFalse]
@@ -604,8 +613,8 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                     objectId = self.modelXbrl.roleTypeDefinition(modelObject.roleURI, self.lang)
                 else:
                     objectId = modelObject.objectId()
-                if objectId in self.tblMenuEntries:
-                    self.view(viewTblELR=self.tblMenuEntries[objectId])
+                if objectId in self.tablesToELR:
+                    self.view(viewTblELR=self.tablesToELR[objectId])
                     try:
                         self.modelXbrl.modelManager.cntlr.currentView = self.modelXbrl.guiViews.tableView
                         # force focus (synch) on the corresponding "Table" tab (useful in case of several instances)
