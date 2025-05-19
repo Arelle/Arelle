@@ -464,6 +464,37 @@ def rule_nl_kvk_3_3_1_3 (
         DISCLOSURE_SYSTEM_NL_INLINE_2024
     ],
 )
+def rule_nl_kvk_3_5_2_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.3.5.2.1: Each tagged text fact MUST have the ‘xml:lang’ attribute assigned or inherited.
+    """
+    factsWithoutLang = []
+    for fact in val.modelXbrl.facts:
+        if (fact is not None and
+                fact.concept is not None and
+                fact.concept.type is not None and
+                fact.concept.type.isOimTextFactType and
+                not fact.xmlLang):
+            factsWithoutLang.append(fact)
+    if len(factsWithoutLang) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.3.5.2.1.undefinedLanguageForTextFact',
+            msg=_('Each tagged text fact MUST have the ‘xml:lang’ attribute assigned or inherited.'),
+            modelObject=factsWithoutLang
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
 def rule_nl_kvk_3_5_2_2(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
