@@ -21,7 +21,7 @@ holidays==0.72
 pytz==2025.2
 Tornado==6.4.2
 # security plugin
-PyCryptodome==3.22.0
+PyCryptodome==3.23.0
 # xbrlDB plugin
 cx_Oracle==8.3.0
 pg8000==1.31.2

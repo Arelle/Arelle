@@ -3,7 +3,7 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 #import xml.sax, xml.sax.handler
-from lxml.etree import XML, DTD, SubElement, _ElementTree, _Comment, _ProcessingInstruction, XMLSyntaxError, XMLParser
+from lxml.etree import XML, DTD, SubElement, _ElementTree, _Comment, _ProcessingInstruction, _Entity, XMLSyntaxError, XMLParser
 from dataclasses import dataclass
 from PIL import Image as pilImage
 import os, io, base64
@@ -604,7 +604,7 @@ def validateTextBlockFacts(modelXbrl):
                         eltTag = elt.tag
                         if isinstance(elt, ModelObject) and elt.namespaceURI == xhtml:
                             eltTag = elt.localName
-                        elif isinstance(elt, (_ElementTree, _Comment, _ProcessingInstruction)):
+                        elif isinstance(elt, (_ElementTree, _Comment, _ProcessingInstruction, _Entity)):
                             continue # comment or other non-parsed element
                         else:
                             eltTag = elt.tag
@@ -730,7 +730,7 @@ def validateHtmlContent(modelXbrl, referenceElt, htmlEltTree, validatedObjectLab
     for elt in htmlEltTree.iter():
         if isinstance(elt, ModelObject) and elt.namespaceURI == xhtml:
             eltTag = elt.localName
-        elif isinstance(elt, (_ElementTree, _Comment, _ProcessingInstruction)):
+        elif isinstance(elt, (_ElementTree, _Comment, _ProcessingInstruction, _Entity)):
             continue # comment or other non-parsed element
         else:
             eltTag = elt.tag

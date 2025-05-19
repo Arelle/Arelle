@@ -11,7 +11,7 @@ from math import isnan
 from typing import Any, cast
 
 import regex as re
-from lxml.etree import EntityBase, _Comment, _ElementTree, _ProcessingInstruction
+from lxml.etree import _Comment, _Element, _ElementTree, _Entity, _ProcessingInstruction
 
 from arelle import LeiUtil, ModelDocument, XbrlConst
 from arelle.ModelDtsObject import ModelConcept
@@ -275,7 +275,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     elt = cast(Any, uncast_elt)
 
                     eltTag = elt.tag
-                    if isinstance(elt, (_ElementTree, _Comment, _ProcessingInstruction, EntityBase)):
+                    if isinstance(elt, (_Comment, _ElementTree, _Entity, _ProcessingInstruction)):
                         continue # comment or other non-parsed element
                     else:
                         eltTag = elt.tag
@@ -726,12 +726,12 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 _("The xlink:role attribute of a link:footnote and link:footnoteLink element as well as xlink:arcrole attribute of a link:footnoteArc MUST be defined in the XBRL Specification 2.1."),
                 modelObject=footnoteRoleErrors)
 
-        nonStdFootnoteElts = list()
+        nonStdFootnoteElts: list[_Element] = list()
         for modelLink in modelXbrl.baseSets[("XBRL-footnotes",None,None,None)]:
             for uncast_elt in modelLink.iterchildren():
                 elt = cast(Any, uncast_elt)
 
-                if isinstance(elt, (_ElementTree, _Comment, _ProcessingInstruction)):
+                if isinstance(elt, (_Comment, _ElementTree, _Entity, _ProcessingInstruction)):
                     continue # comment or other non-parsed element
                 if elt.qname not in FOOTNOTE_LINK_CHILDREN:
                     nonStdFootnoteElts.append(elt)

@@ -364,6 +364,35 @@ def rule_nl_kvk_3_2_4_2 (
         DISCLOSURE_SYSTEM_NL_INLINE_2024
     ],
 )
+def rule_nl_kvk_3_2_7_1 (
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.3.2.7.1: Ensure that any block-tagged facts of type textBlockItemType are assigned @escape="true",
+    while other data types (e.g., xbrli:stringItemType) are assigned @escape="false".
+    """
+    improperlyEscapedFacts = []
+    for fact in val.modelXbrl.facts:
+        if isinstance(fact, ModelInlineFact) and  fact.concept is not None and fact.isEscaped != fact.concept.isTextBlock:
+            improperlyEscapedFacts.append(fact)
+    if len(improperlyEscapedFacts) >0:
+        yield Validation.error(
+            codes='NL.NL-KVK.3.2.7.1.improperApplicationOfEscapeAttribute',
+            msg=_('Ensure that any block-tagged facts of type textBlockItemType are assigned @escape="true",'
+                  'while other data types (e.g., xbrli:stringItemType) are assigned @escape="false".'),
+            modelObject = improperlyEscapedFacts
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
 def rule_nl_kvk_3_3_1_1 (
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
@@ -428,6 +457,37 @@ def rule_nl_kvk_3_3_1_3 (
             codes='NL.NL-KVK.3.3.1.3.footnoteOnlyInLanguagesOtherThanLanguageOfAReport',
             msg=_('At least one footnote must have the same language as the report\'s language.'),
             modelObject=nonDefLangFtFacts
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
+def rule_nl_kvk_3_5_2_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.3.5.2.1: Each tagged text fact MUST have the ‘xml:lang’ attribute assigned or inherited.
+    """
+    factsWithoutLang = []
+    for fact in val.modelXbrl.facts:
+        if (fact is not None and
+                fact.concept is not None and
+                fact.concept.type is not None and
+                fact.concept.type.isOimTextFactType and
+                not fact.xmlLang):
+            factsWithoutLang.append(fact)
+    if len(factsWithoutLang) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.3.5.2.1.undefinedLanguageForTextFact',
+            msg=_('Each tagged text fact MUST have the ‘xml:lang’ attribute assigned or inherited.'),
+            modelObject=factsWithoutLang
         )
 
 
