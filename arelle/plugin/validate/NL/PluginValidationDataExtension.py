@@ -29,6 +29,13 @@ DISALLOWED_IXT_NAMESPACES = frozenset((
     ixtNamespaces["ixt v3"],
 ))
 
+ALLOWABLE_LANGUAGES = frozenset((
+    'nl',
+    'en',
+    'de',
+    'fr'
+))
+
 @dataclass(frozen=True)
 class ContextData:
     contextsWithImproperContent: list[ModelContext | None]
