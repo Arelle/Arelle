@@ -52,10 +52,6 @@ config = ConformanceSuiteConfig(
 
 
         # Not Implemented
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-2-7_1/index.xml:TC4_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-2-7_1/index.xml:TC5_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-2-7_1/index.xml:TC6_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-2-7_1/index.xml:TC7_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-4-1_1/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-4-1_2/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-4-1_3/index.xml:TC2_invalid',

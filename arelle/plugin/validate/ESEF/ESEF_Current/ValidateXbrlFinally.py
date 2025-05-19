@@ -664,8 +664,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 if esefDisclosureSystemYear >= 2024:
                     if not f.id:
                         factsMissingId.append(f)
-                    escaped = f.get("escape") in ("true", "1")
-                    if f.concept is not None and escaped != f.concept.isTextBlock:
+                    if isinstance(f, ModelInlineFact) and f.concept is not None and f.isEscaped != f.concept.isTextBlock:
                         modelXbrl.error("ESEF.2.2.7.improperApplicationOfEscapeAttribute",
                                           _("Facts with datatype 'dtr-types:textBlockItemType' MUST use the 'escape' attribute set to 'true'. Facts with any other datatype MUST use the 'escape' attribute set to 'false' - fact %(conceptName)s"),
                                           modelObject=f, conceptName=f.concept.qname)
