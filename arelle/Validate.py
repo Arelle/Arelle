@@ -492,9 +492,11 @@ class Validate:
         # validate schema, linkbase, or instance
         formulaOutputInstance = None
         modelXbrl = inputDTSes[None][0]
-        expectedDataFiles = set(modelXbrl.modelManager.cntlr.webCache.normalizeUrl(uri, baseForElement)
-                                for d in modelTestcaseVariation.dataUris.values() for uri in d
-                                if not UrlUtil.isAbsolute(uri))
+        expectedDataFiles = set()
+        for d in modelTestcaseVariation.dataUris.values():
+            for uri in d:
+                if not UrlUtil.isAbsolute(uri):
+                    expectedDataFiles.add(self.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(uri, baseForElement))
         foundDataFiles = set()
         variationBase = os.path.dirname(baseForElement)
         for dtsName, inputDTS in inputDTSes.items():  # input instances are also parameters
