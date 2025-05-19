@@ -739,7 +739,10 @@ class Validate:
                 _expectedList = [expected]
             if expectedWarnings and len(expectedWarnings) > 0:
                 _expectedList.extend(expectedWarnings)
-                expectedCount += len(expectedWarnings)
+                if expectedCount is not None:
+                    expectedCount += len(expectedWarnings)
+                else:
+                    expectedCount = len(expectedWarnings)
             if not isinstance(expected, list):
                 expected = [expected]
             for testErr in _errors:
