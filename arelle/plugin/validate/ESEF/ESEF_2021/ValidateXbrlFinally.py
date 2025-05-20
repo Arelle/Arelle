@@ -188,12 +188,12 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 _baseName, _baseExt = os.path.splitext(doc.basename)
                 if _baseExt not in (".xhtml",".html"):
                     if val.consolidated:
-                        XHTMLExtensionGuidance = "2.6.1"
+                        errorCode = "ESEF.2.6.1.incorrectFileExtension"
                         reportType = _("Inline XBRL document included within a ESEF report package")
                     else:
-                        XHTMLExtensionGuidance = "4.1.1"
+                        errorCode = "ESEF.4.1.1.incorrectFileExtension"
                         reportType = _("Stand-alone XHTML document")
-                    modelXbrl.error(f"ESEF.{XHTMLExtensionGuidance}.incorrectFileExtension",
+                    modelXbrl.error(errorCode,
                                     _("%(reportType)s MUST have a .html or .xhtml extension: %(fileName)s"),
                                     modelObject=doc, fileName=doc.basename, reportType=reportType)
                 docinfo = doc.xmlRootElement.getroottree().docinfo
