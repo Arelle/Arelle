@@ -408,17 +408,20 @@ class Validate:
                         return [] # don't try to load this entry URL
                 if filesource and filesource.isReportPackage and not _rptPkgIxdsOptions:
                     if not reportPackageErrors:
-                        for report in filesource.reportPackage.reports or []:
-                            assert isinstance(filesource.basefile, str)
-                            modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager,
-                                                        report.primary,
-                                                        _("validating"),
-                                                        useFileSource=filesource,
-                                                        base=filesource.basefile + "/",
-                                                        errorCaptureLevel=errorCaptureLevel,
-                                                        ixdsTarget=modelTestcaseVariation.ixdsTarget,
-                                                        errors=preLoadingErrors)
-                            loadedModels.append(modelXbrl)
+                        assert isinstance(filesource.basefile, str)
+                        if entrypoints := filesourceEntrypointFiles(filesource):
+                            for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ArchiveIxds"):
+                                pluginXbrlMethod(self, filesource, entrypoints)
+                            for entrypoint in entrypoints:
+                                filesource.select(entrypoint.get("file", None))
+                                modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager,
+                                                            filesource,
+                                                            _("validating"),
+                                                            base=filesource.basefile + "/",
+                                                            errorCaptureLevel=errorCaptureLevel,
+                                                            ixdsTarget=modelTestcaseVariation.ixdsTarget,
+                                                            errors=preLoadingErrors)
+                                loadedModels.append(modelXbrl)
                 else:
                     if _rptPkgIxdsOptions and filesource.isTaxonomyPackage:
                         # Legacy ESEF conformance suite logic.
