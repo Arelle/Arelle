@@ -1,4 +1,5 @@
 {
+    "$schema": "./oim-schema.json",
     "documentInfo": {
         "documentType": "https://xbrl.org/2025/taxonomy",
         "namespaces": {

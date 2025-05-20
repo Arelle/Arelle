@@ -63,7 +63,7 @@ class XbrlCubeType(XbrlReferencableTaxonomyObject):
     periodDimension: bool | DefaultTrue # (optional) boolean to indicate if the period core dimension is included in the cube. Defaults to true.
     entityDimension: bool | DefaultTrue # (optional) boolean to indicate if the entity core dimension is included in the cube. Defaults to true.
     unitDimension: bool | DefaultTrue # (optional) boolean to indicate if the unit core dimension is included in the cube. Defaults to true.
-    taxonomyDefinedDimensions   : bool | DefaultTrue # (optional) boolean to indicate if taxonomy defined dimensions are included in the cube. Defaults to true.
+    taxonomyDefinedDimension: bool | DefaultTrue # (optional) boolean to indicate if taxonomy defined dimensions are included in the cube. Defaults to true.
     allowedCubeDimensions: OrderedSet[XbrlAllowedCubeDimension] # (optional) An ordered set of allowedCubeDimension objects that are permitted to be used on the cube. If the property is not defined then any dimensions can be associated with the cube.
     requiredCubeRelationships: OrderedSet[XbrlRequiredCubeRelationship] # (optional) An ordered set of requiredCubeRelationship objects that at a minimum must be associated with the cube.
 

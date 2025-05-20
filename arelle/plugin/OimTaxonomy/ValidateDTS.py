@@ -314,7 +314,7 @@ def validateTaxonomy(dts, txmy):
                       xbrlObject=dimObj, name=dimObj.domainDataType)
         if dimObj.domainRoot and not isinstance(dts.namedObjects.get(dimObj.domainRoot), XbrlDomainRoot):
             dts.error("oimte:invalidPropertyValue",
-                      _("The dimesion domainRoot object QName %(name)s MUST be a valid domainRoot object in the dts"),
+                      _("The dimension domainRoot object QName %(name)s MUST be a valid domainRoot object in the dts"),
                       xbrlObject=dimObj, name=dimObj.domainRoot)
 
     # Domain Objects

@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING, cast, GenericAlias, Union, _UnionGenericAlias
 from types import UnionType
 
 import os, io, json, sys, time, traceback
+import jsonschema
 import regex as re
 from collections import OrderedDict, defaultdict
 from decimal import Decimal
@@ -60,11 +61,12 @@ from arelle.oim.Load import (DUPJSONKEY, DUPJSONVALUE, EMPTY_DICT, EMPTY_LIST, U
                              OIMException, NotOIMException)
 
 RESOURCES_DIR = os.path.join(os.path.dirname(__file__), "resources")
-
+OIMT_SCHEMA = os.path.join(RESOURCES_DIR, "oim-schema.json")
 
 saveOIMTaxonomySchemaFiles = False
 SAVE_OIM_SCHEMA_CMDLINE_PARAMETER = "--saveOIMschemafile"
 SAVE_OIM_SCHEMA_FORULA_PARAMETER = qname("saveOIMschemafile", noPrefixIsNoNamespace=True)
+jsonschemaValidator = None
 
 EMPTY_SET = set()
 
@@ -74,6 +76,7 @@ def jsonGet(tbl, key, default=None):
     return default
 
 def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwargs):
+    global jsonschemaValidator
     from arelle import ModelDocument, ModelXbrl, XmlUtil
     from arelle.ModelDocument import ModelDocumentReference
     from arelle.ModelValue import qname
@@ -202,7 +205,26 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
             raise OIMException("{}:invalidJSON".format(errPrefix),
                     "JSON error while %(action)s, %(file)s, error %(error)s",
                     file=oimFile, action=currentAction, error=ex)
-        # identify document type (JSON or CSV)
+        # schema validation
+        if jsonschemaValidator is None:
+            with io.open(OIMT_SCHEMA, mode="rt") as fh:
+                jsonschemaValidator = jsonschema.Draft7Validator(json.load(fh))
+        try:
+            for err in jsonschemaValidator.iter_errors(oimObject) or ():
+                path = []
+                for p in err.absolute_path:
+                    path.append(f"[{p}]" if isinstance(p,int) else f"/{p}")
+                msg = err.message
+                error("jsonschema:oimTaxonomyError",
+                      _("Error: %(error)s, jsonObj: %(path)s"),
+                      sourceFileLine=href, error=msg, path="".join(path))
+        except (jsonschema.exceptions.SchemaError, jsonschema.exceptions._RefResolutionError, jsonschema.exceptions.UndefinedTypeCheck) as ex:
+            msg = str(ex)
+            if "PointerToNowhere" in msg:
+                msg = msg[:121]
+            error("jsonschema:schemaError",
+                  _("Error in json schema processing: %(error)s"),
+                  sourceFileLine=href, error=msg)
         documentInfo = jsonGet(oimObject, "documentInfo", {})
         documentType = jsonGet(documentInfo, "documentType")
         taxonomyObj = jsonGet(oimObject, "taxonomy", {})

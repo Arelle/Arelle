@@ -1,4 +1,5 @@
 {
+    "$schema": "./oim-schema.json",
     "documentInfo": {
         "documentType": "https://xbrl.org/2025/taxonomy",
         "namespaces": {
@@ -4471,7 +4472,7 @@
                                     "iso4217:ZWL"
                 ],
                 "referenceType" : "utr:baseUnitsStandard",
-                "properties" : {"property":"utr:baseStandardIdentifier", "value":"iso4217"}
+                "properties" : [{"property":"utr:baseStandardIdentifier", "value":"iso4217"}]
             }
         ]
     }
