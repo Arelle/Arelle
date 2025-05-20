@@ -728,7 +728,7 @@ class Validate:
             status = "fail" if numErrors == 0 else "pass"
         elif expected in (None, []) and numErrors == 0:
             status = "pass"
-        elif isinstance(expected, (QName, str, dict, list)) or (expectedWarnings and len(expectedWarnings) > 0):
+        elif isinstance(expected, (QName, str, dict, list)) or expectedWarnings:
             status = "fail"
             _passCount = 0
             if isinstance(expected, list):
@@ -737,7 +737,7 @@ class Validate:
                 _expectedList = []
             else:
                 _expectedList = [expected]
-            if expectedWarnings and len(expectedWarnings) > 0:
+            if expectedWarnings:
                 _expectedList.extend(expectedWarnings)
                 if expectedCount is not None:
                     expectedCount += len(expectedWarnings)
