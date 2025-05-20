@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 
+import logging
 import sys
 import time
 import traceback
@@ -906,9 +907,14 @@ def initializeParser(modelManager: ModelManager) -> bool:
         modelManager.showStatus(_("initializing formula xpath2 grammar"))
         startedAt = time.time()
         xpathExpr.parse_string("0", parseAll=True)
-        modelManager.addToLog(format_string(modelManager.locale,
-                                    _("Formula xpath2 grammar initialized in %.2f secs"),
-                                    time.time() - startedAt))
+        modelManager.addToLog(
+            format_string(
+                modelManager.locale,
+                _("Formula xpath2 grammar initialized in %.2f secs"),
+                time.time() - startedAt
+            ),
+            level=logging.DEBUG
+        )
         modelManager.showStatus(None)
         isInitialized = True
         return True  # was initialized on this call
