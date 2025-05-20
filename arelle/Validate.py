@@ -1,6 +1,7 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
+import bisect
 import fnmatch
 import os, sys, traceback, logging
 import time
@@ -492,9 +493,17 @@ class Validate:
         # validate schema, linkbase, or instance
         formulaOutputInstance = None
         modelXbrl = inputDTSes[None][0]
-        expectedDataFiles = set(modelXbrl.modelManager.cntlr.webCache.normalizeUrl(uri, baseForElement)
-                                for d in modelTestcaseVariation.dataUris.values() for uri in d
-                                if not UrlUtil.isAbsolute(uri))
+        expectedDataFiles = set()
+        expectedTaxonomyPackages = []
+        for localName, d in modelTestcaseVariation.dataUris.items():
+            for uri in d:
+                if not UrlUtil.isAbsolute(uri):
+                    normalizedUri = self.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(uri, baseForElement)
+                    if localName == "taxonomyPackage":
+                        expectedTaxonomyPackages.append(normalizedUri)
+                    else:
+                        expectedDataFiles.add(normalizedUri)
+        expectedTaxonomyPackages.sort()
         foundDataFiles = set()
         variationBase = os.path.dirname(baseForElement)
         for dtsName, inputDTS in inputDTSes.items():  # input instances are also parameters
@@ -509,16 +518,28 @@ class Validate:
                             if docUrl.replace("-formula.xml", ".xf") in expectedDataFiles:
                                 docUrl = docUrl.replace("-formula.xml", ".xf")
                         foundDataFiles.add(docUrl)
-        if expectedDataFiles - foundDataFiles:
+
+        foundDataFilesInTaxonomyPackages = set()
+        foundTaxonomyPackages = set()
+        for f in foundDataFiles:
+            if i := bisect.bisect(expectedTaxonomyPackages, f):
+                package = expectedTaxonomyPackages[i-1]
+                if f.startswith(package + "/"):
+                    foundDataFilesInTaxonomyPackages.add(f)
+                    foundTaxonomyPackages.add(package)
+
+        expectedNotFound = expectedDataFiles.union(expectedTaxonomyPackages) - foundDataFiles - foundTaxonomyPackages
+        if expectedNotFound:
             modelXbrl.info("arelle:testcaseDataNotUsed",
                 _("Variation %(id)s %(name)s data files not used: %(missingDataFiles)s"),
                 modelObject=modelTestcaseVariation, name=modelTestcaseVariation.name, id=modelTestcaseVariation.id,
-                missingDataFiles=", ".join(sorted(os.path.basename(f) for f in expectedDataFiles - foundDataFiles)))
-        if foundDataFiles - expectedDataFiles:
+                missingDataFiles=", ".join(sorted(os.path.basename(f) for f in expectedNotFound)))
+        foundNotExpected = foundDataFiles - expectedDataFiles - foundDataFilesInTaxonomyPackages
+        if foundNotExpected:
             modelXbrl.info("arelle:testcaseDataUnexpected",
                 _("Variation %(id)s %(name)s files not in variation data: %(unexpectedDataFiles)s"),
                 modelObject=modelTestcaseVariation, name=modelTestcaseVariation.name, id=modelTestcaseVariation.id,
-                unexpectedDataFiles=", ".join(sorted(os.path.basename(f) for f in foundDataFiles - expectedDataFiles)))
+                unexpectedDataFiles=", ".join(sorted(os.path.basename(f) for f in foundNotExpected)))
         if modelXbrl.hasTableRendering or modelTestcaseVariation.resultIsTable:
             try:
                 RenderingEvaluator.init(modelXbrl)
