@@ -4,9 +4,10 @@ See COPYRIGHT.md for copyright information.
 
 from __future__ import annotations
 
+from collections import Counter
 from collections.abc import Generator
 from pathlib import Path, PurePosixPath
-from typing import TYPE_CHECKING, Counter
+from typing import TYPE_CHECKING
 
 from arelle.packages import PackageValidation
 from arelle.packages.PackageType import PackageType
@@ -146,8 +147,8 @@ class ReportPackageValidator:
                     _("Report package must contain at least one report"),
                 )
             if len(reportEntries) > 1 and not any(report.isTopLevel for report in reportEntries):
-                byBaseDir = Counter(report.baseDir for report in reportEntries)
-                if byBaseDir:
+                reportEntriesBySubDir = Counter(report.dir for report in reportEntries or [] if not report.isTopLevel)
+                if any(subdirCount > 1 for subdirCount in reportEntriesBySubDir.values()):
                     return Validation.error(
                         "rpe:multipleReportsInSubdirectory",
                         _("Report package must contain only one report"),
