@@ -26,6 +26,7 @@ from arelle.PluginManager import pluginClassMethods
 from arelle.packages.report.DetectReportPackage import isReportPackageExtension
 from arelle.packages.report.ReportPackageValidator import ReportPackageValidator
 from arelle.rendering import RenderingEvaluator
+from arelle.utils.EntryPointDetection import filesourceEntrypointFiles
 from arelle.XmlUtil import collapseWhitespace, xmlstring
 
 def validate(modelXbrl):
@@ -167,7 +168,6 @@ class Validate:
                     filesource = FileSource.openFileSource(rssItemUrl, self.modelXbrl.modelManager.cntlr)
                     if filesource and not filesource.selection and filesource.isArchive:
                         try:
-                            from arelle.CntlrCmdLine import filesourceEntrypointFiles
                             entrypoints = filesourceEntrypointFiles(filesource)
                             if entrypoints:
                                 # resolve an IXDS in entrypoints
@@ -395,7 +395,6 @@ class Validate:
                             filesource.loadTaxonomyPackageMappings(errors=preLoadingErrors, expectTaxonomyPackage=expectTaxonomyPackage)
                             filesource.select(None) # must select loadable reports (not the taxonomy package itself)
                         elif not filesource.isReportPackage:
-                            from arelle.CntlrCmdLine import filesourceEntrypointFiles
                             entrypoints = filesourceEntrypointFiles(filesource)
                             if entrypoints:
                                 # resolve an IXDS in entrypoints

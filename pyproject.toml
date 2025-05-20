@@ -354,6 +354,7 @@ module = [
     'arelle.plugin.xbrlDB.primaryDocumentFacts',
     'arelle.plugin.xbrlDB.tableFacts',
     'arelle.plugin.xuleSaver',
+    'arelle.utils.EntryPointDetection',
     'arelle.webserver.bottle',
     'tests.*',
 ]
