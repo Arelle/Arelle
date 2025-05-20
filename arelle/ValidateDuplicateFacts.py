@@ -380,7 +380,7 @@ def areFactsValueEqual(factA: ModelFact, factB: ModelFact) -> bool:
 
 
 def getAspectEqualFacts(
-    hashEquivalentFacts: list[ModelFact], includeSingles: bool
+    hashEquivalentFacts: list[ModelFact], includeSingles: bool, useLang: bool = True
 ) -> Iterator[list[ModelFact]]:
     """
     Given a list of concept/context/unit hash-equivalent facts,
@@ -389,20 +389,14 @@ def getAspectEqualFacts(
     :param includeSingles: Whether to include lists of single facts (with no duplicates).
     :return: Lists of aspect-equal facts.
     """
-    aspectEqualFacts: dict[
-        tuple[QName, str | None], dict[tuple[ModelContext, ModelUnit], list[ModelFact]]
-    ] = defaultdict(dict)
-    for (
-        fact
-    ) in (
-        hashEquivalentFacts
-    ):  # check for hash collision by value checks on context and unit
+    aspectEqualFacts: dict[tuple[QName, str | None], dict[tuple[ModelContext, ModelUnit], list[ModelFact]]] = defaultdict(dict)
+    for fact in hashEquivalentFacts:  # check for hash collision by value checks on context and unit
         contextUnitDict = aspectEqualFacts[
             (
                 fact.qname,
                 (
                     cast(str, fact.xmlLang or "").lower()
-                    if fact.concept.type.isWgnStringFactType
+                    if useLang and fact.concept.type.isWgnStringFactType
                     else None
                 ),
             )

@@ -17,7 +17,7 @@ from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
-from arelle.ValidateDuplicateFacts import getHashEquivalentFactGroups
+from arelle.ValidateDuplicateFacts import getHashEquivalentFactGroups, getAspectEqualFacts
 from ..DisclosureSystems import DISCLOSURE_SYSTEM_NL_INLINE_2024
 from ..PluginValidationDataExtension import PluginValidationDataExtension, XBRLI_IDENTIFIER_PATTERN, XBRLI_IDENTIFIER_SCHEMA, DISALLOWED_IXT_NAMESPACES
 
@@ -512,9 +512,10 @@ def rule_nl_kvk_3_5_2_2(
                       f.context is not None]
     factGroups = getHashEquivalentFactGroups(filtered_facts)
     for fgroup in factGroups:
-        if not any(f.xmlLang == reportXmlLang for f in fgroup):
-            yield Validation.error(
-                codes='NL.NL-KVK.3.5.2.2.taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport',
-                msg=_('Tagged text facts MUST be provided in the language of the report.'),
-                modelObject=fgroup
-            )
+        for flist in getAspectEqualFacts(fgroup, includeSingles=True, useLang=False):
+            if not any(f.xmlLang == reportXmlLang for f in flist):
+                yield Validation.error(
+                    codes='NL.NL-KVK.3.5.2.2.taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport',
+                    msg=_('Tagged text facts MUST be provided in the language of the report.'),
+                    modelObject=fgroup
+                )
