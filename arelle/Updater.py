@@ -17,6 +17,7 @@ from urllib.error import URLError
 import regex
 
 from arelle import Version
+from arelle.SystemInfo import getSystemInfo
 from arelle.typing import TypeGetText
 
 if TYPE_CHECKING:
@@ -90,7 +91,9 @@ def _getLatestArelleRelease(cntlr: CntlrWinMain) -> ArelleRelease:
 
 def _getArelleReleaseDownloadUrl(assets: list[dict[str, Any]]) -> str | None:
     if sys.platform == "darwin":
-        return _getArelleReleaseDownloadUrlByFileExtension(assets, ".dmg")
+        if getSystemInfo().get('arch') == 'arm64':
+            return _getArelleReleaseDownloadUrlByFileExtension(assets, ".dmg", nameIncludes='-arm64')
+        return _getArelleReleaseDownloadUrlByFileExtension(assets, ".dmg", nameIncludes='-x64')
     elif sys.platform == "win32":
         return _getArelleReleaseDownloadUrlByFileExtension(assets, ".exe")
     else:
@@ -98,12 +101,13 @@ def _getArelleReleaseDownloadUrl(assets: list[dict[str, Any]]) -> str | None:
 
 
 def _getArelleReleaseDownloadUrlByFileExtension(
-    assets: list[dict[str, Any]], fileExtension: str
+    assets: list[dict[str, Any]], fileExtension: str, nameIncludes: str | None = None,
 ) -> str | None:
     for asset in assets:
         downloadUrl = asset.get("browser_download_url")
         if isinstance(downloadUrl, str) and downloadUrl.endswith(fileExtension):
-            return downloadUrl
+            if nameIncludes is None or nameIncludes in downloadUrl:
+                return downloadUrl
     return None
 
 
