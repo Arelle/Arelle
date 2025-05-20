@@ -17,6 +17,11 @@ on:
         description: 'Python version to use'
         required: false
         type: string
+      python_architecture:
+        default: 'arm64'
+        description: 'Python architecture to use (x64, arm64)'
+        required: false
+        type: string
       xule_ref:
         description: 'xbrlus/xule branch, tag or SHA to checkout (blank for default)'
         required: false
@@ -47,6 +52,11 @@ on:
       python_version:
         default: '3.13.3'
         description: 'Python version to use'
+        required: true
+        type: string
+      python_architecture:
+        default: 'arm64'
+        description: 'Python architecture to use (x64, arm64)'
         required: true
         type: string
       xule_ref:
@@ -80,6 +90,7 @@ jobs:
           cache: 'pip'
           check-latest: true
           python-version: ${{ inputs.python_version }}
+          architecture: ${{ inputs.python_architecture }}
       - run: |
           python -m pip install --upgrade pip setuptools wheel
           pip install -r requirements-build.txt
@@ -104,9 +115,9 @@ jobs:
       - name: Define artifact names
         id: define-artifact-names
         run: |
-          echo "artifact_versioned_name=arelle-macos-${{ env.BUILD_VERSION }}.dmg" >> $GITHUB_OUTPUT
+          echo "artifact_versioned_name=arelle-macos-${{ inputs.python_architecture }}-${{ env.BUILD_VERSION }}.dmg" >> $GITHUB_OUTPUT
           echo "uploaded_artifact_name=macos distribution" >> $GITHUB_OUTPUT
-          echo "DMG_BUILD_ARTIFACT_PATH=dist_dmg/arelle-macos-${{ env.BUILD_VERSION }}.dmg" >> $GITHUB_ENV
+          echo "DMG_BUILD_ARTIFACT_PATH=dist_dmg/arelle-macos-${{ inputs.python_architecture }}-${{ env.BUILD_VERSION }}.dmg" >> $GITHUB_ENV
       - name: Install certificate
         if: ${{ inputs.codesign_and_notarize }}
         env:
