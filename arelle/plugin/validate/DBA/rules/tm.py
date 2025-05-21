@@ -281,7 +281,16 @@ def rule_tm31(
     reportTypeFacts = val.modelXbrl.factsByQname.get(pluginData.informationOnTypeOfSubmittedReportQn, set())
     filteredReportTypeFacts = [f for f in reportTypeFacts if f.xValid >= VALID and f.xValue in pluginData.annualReportTypes]
     if len(filteredReportTypeFacts) > 0:
-        return errorOnMultipleFacts(val.modelXbrl, pluginData.dateOfApprovalOfReportQn, 'DBA.TM31')
+        dateFacts = val.modelXbrl.factsByQname.get(pluginData.dateOfApprovalOfAnnualReportQn, set())
+        if len(dateFacts) > 1:
+            yield Validation.error(
+                'DBA.TM31',
+                _('{} must only be tagged once. {} facts were found.').format(
+                    pluginData.dateOfApprovalOfAnnualReportQn.localName,
+                    len(dateFacts)
+                ),
+                modelObject=dateFacts
+            )
 
 
 @validation(
