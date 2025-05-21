@@ -161,7 +161,10 @@ class ValidationPluginExtension(ValidationPlugin):
             annualReportTypes=frozenset([
                 'Årsrapport',
                 'årsrapport',
-                'Annual report'
+                'Annual report',
+                'Likvidationsregnskab',
+                'likvidationsregnskab',
+                'Liquidation accounts',
             ]),
             assetsQn=qname(f'{{{NAMESPACE_FSA}}}Assets'),
             auditedAssuranceReportsDanish='Andre erklæringer med sikkerhed',

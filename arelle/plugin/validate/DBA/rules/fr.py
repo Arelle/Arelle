@@ -1266,29 +1266,28 @@ def rule_fr89(
     Regnskabsklasse D // Reporting class D
     Then TypeOfAuditorAssistance should be: Revisionspåtegning // Auditor's report on audited financial statements
     """
-    modelXbrl = val.modelXbrl
-    auditorFacts = modelXbrl.factsByQname.get(pluginData.typeOfAuditorAssistanceQn)
-    if auditorFacts is not None:
+    reportTypeFacts = val.modelXbrl.factsByQname.get(pluginData.informationOnTypeOfSubmittedReportQn, set())
+    filteredReportTypeFacts = [f for f in reportTypeFacts if f.xValid >= VALID and f.xValue in pluginData.annualReportTypes]
+    if len(filteredReportTypeFacts) > 0:
+        auditorFacts = val.modelXbrl.factsByQname.get(pluginData.typeOfAuditorAssistanceQn, set())
         for auditorFact in auditorFacts:
             if auditorFact.xValid >= VALID and auditorFact.xValue in [
                 pluginData.auditedFinancialStatementsDanish,
                 pluginData.auditedFinancialStatementsEnglish
             ]:
                 return
-    classFacts = []
-    facts = modelXbrl.factsByQname.get(pluginData.classOfReportingEntityQn)
-    if facts is not None:
+        classFacts = []
+        facts = val.modelXbrl.factsByQname.get(pluginData.classOfReportingEntityQn, set())
         for fact in facts:
-            if fact.xValid >= VALID:
-                if fact.xValue in [
-                    pluginData.reportingClassCLargeDanish,
-                    pluginData.reportingClassCLargeEnglish,
-                    pluginData.reportingClassCMediumDanish,
-                    pluginData.reportingClassCMediumEnglish,
-                    pluginData.reportingClassDDanish,
-                    pluginData.reportingClassDEnglish,
-                ]:
-                    classFacts.append(fact)
+            if fact.xValid >= VALID and fact.xValue in [
+                pluginData.reportingClassCLargeDanish,
+                pluginData.reportingClassCLargeEnglish,
+                pluginData.reportingClassCMediumDanish,
+                pluginData.reportingClassCMediumEnglish,
+                pluginData.reportingClassDDanish,
+                pluginData.reportingClassDEnglish
+            ]:
+                classFacts.append(fact)
         if len(classFacts) > 0:
             yield Validation.error(
                 codes='DBA.FR89',
