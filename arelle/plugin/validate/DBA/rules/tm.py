@@ -241,9 +241,7 @@ def rule_tm29(
     """
     DBA.TM29: Either gsd:DateOfGeneralMeeting or gsd:DateOfApprovalOfReport must be specified
     """
-    reportTypeFacts = val.modelXbrl.factsByQname.get(pluginData.informationOnTypeOfSubmittedReportQn, set())
-    filteredReportTypeFacts = [f for f in reportTypeFacts if f.xValid >= VALID and f.xValue in pluginData.annualReportTypes]
-    if len(filteredReportTypeFacts) > 0:
+    if pluginData.isAnnualReport(val.modelXbrl):
         meeting_facts = val.modelXbrl.factsByQname.get(pluginData.dateOfGeneralMeetingQn, set())
         approval_facts = val.modelXbrl.factsByQname.get(pluginData.dateOfApprovalOfAnnualReportQn, set())
         if len(meeting_facts) == 0 and len(approval_facts) == 0:
@@ -280,9 +278,7 @@ def rule_tm31(
     """
     DBA.TM31: gsd:DateOfApprovalOfReport must only be tagged once if tagged
     """
-    reportTypeFacts = val.modelXbrl.factsByQname.get(pluginData.informationOnTypeOfSubmittedReportQn, set())
-    filteredReportTypeFacts = [f for f in reportTypeFacts if f.xValid >= VALID and f.xValue in pluginData.annualReportTypes]
-    if len(filteredReportTypeFacts) > 0:
+    if pluginData.isAnnualReport(val.modelXbrl):
         dateFacts = val.modelXbrl.factsByQname.get(pluginData.dateOfApprovalOfAnnualReportQn, set())
         if len(dateFacts) > 1:
             yield Validation.error(

@@ -1266,9 +1266,7 @@ def rule_fr89(
     Regnskabsklasse D // Reporting class D
     Then TypeOfAuditorAssistance should be: Revisionspåtegning // Auditor's report on audited financial statements
     """
-    reportTypeFacts = val.modelXbrl.factsByQname.get(pluginData.informationOnTypeOfSubmittedReportQn, set())
-    filteredReportTypeFacts = [f for f in reportTypeFacts if f.xValid >= VALID and f.xValue in pluginData.annualReportTypes]
-    if len(filteredReportTypeFacts) > 0:
+    if pluginData.isAnnualReport(val.modelXbrl):
         auditorFacts = val.modelXbrl.factsByQname.get(pluginData.typeOfAuditorAssistanceQn, set())
         for auditorFact in auditorFacts:
             if auditorFact.xValid >= VALID and auditorFact.xValue in [
@@ -1314,9 +1312,7 @@ def rule_fr91(
     DBA.FR91: If the annual report contains information about both the general meeting date
     (gsd:DateOfGeneralMeeting) and the annual accounts meeting date (gsd:DateOfApprovalOfAnnualReport), the values must be the same.
     """
-    reportTypeFacts = val.modelXbrl.factsByQname.get(pluginData.informationOnTypeOfSubmittedReportQn, set())
-    filteredReportTypeFacts = [f for f in reportTypeFacts if f.xValid >= VALID and f.xValue in pluginData.annualReportTypes]
-    if len(filteredReportTypeFacts) > 0:
+    if pluginData.isAnnualReport(val.modelXbrl):
         approvalOfReportFact = None
         generalMeetingFact = None
         approvalFacts = (val.modelXbrl.factsByQname.get(pluginData.dateOfApprovalOfAnnualReportQn, set()))

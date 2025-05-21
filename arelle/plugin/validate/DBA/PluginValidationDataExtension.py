@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from dataclasses import dataclass
+from functools import lru_cache
 from typing import cast
 
 import regex
@@ -13,6 +14,7 @@ from arelle.ModelInstanceObject import ModelFact, ModelContext
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import ModelXbrl
 from arelle.utils.PluginData import PluginData
+from arelle.XmlValidateConst import VALID
 
 
 @dataclass
@@ -120,6 +122,7 @@ class PluginValidationDataExtension(PluginData):
     _contextFactMap: dict[str, dict[QName, ModelFact]] | None = None
     _reportingPeriodContexts: list[ModelContext] | None = None
 
+    @lru_cache(1)
     def contextFactMap(self, modelXbrl: ModelXbrl) -> dict[str, dict[QName, ModelFact]]:
         if self._contextFactMap is None:
             self._contextFactMap = defaultdict(dict)
@@ -127,6 +130,7 @@ class PluginValidationDataExtension(PluginData):
                 self._contextFactMap[fact.contextID][fact.qname] = fact
         return self._contextFactMap
 
+    @lru_cache(1)
     def getCurrentAndPreviousReportingPeriodContexts(self, modelXbrl: ModelXbrl) -> list[ModelContext]:
         """
         :return: Returns the most recent reporting period contexts (at most two).
@@ -138,6 +142,7 @@ class PluginValidationDataExtension(PluginData):
             return contexts[-2:]
         return contexts
 
+    @lru_cache(1)
     def getReportingPeriodContexts(self, modelXbrl: ModelXbrl) -> list[ModelContext]:
         """
         :return: A sorted list of contexts that match "reporting period" criteria.
@@ -157,3 +162,12 @@ class PluginValidationDataExtension(PluginData):
             contexts.append(context)
         self._reportingPeriodContexts = sorted(contexts, key=lambda c: c.endDatetime)
         return self._reportingPeriodContexts
+
+    @lru_cache(1)
+    def isAnnualReport(self, modelXbrl: ModelXbrl) -> bool:
+        """
+        :return: Return True if Type of Submitted Report value is in the annual report types
+        """
+        reportTypeFacts = modelXbrl.factsByQname.get(self.informationOnTypeOfSubmittedReportQn, set())
+        filteredReportTypeFacts = [f for f in reportTypeFacts if f.xValid >= VALID and f.xValue in self.annualReportTypes]
+        return len(filteredReportTypeFacts) > 0
