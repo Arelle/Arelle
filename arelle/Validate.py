@@ -1,6 +1,7 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
+import bisect
 import fnmatch
 import os, sys, traceback, logging
 import time
@@ -25,6 +26,7 @@ from arelle.PluginManager import pluginClassMethods
 from arelle.packages.report.DetectReportPackage import isReportPackageExtension
 from arelle.packages.report.ReportPackageValidator import ReportPackageValidator
 from arelle.rendering import RenderingEvaluator
+from arelle.utils.EntryPointDetection import filesourceEntrypointFiles
 from arelle.XmlUtil import collapseWhitespace, xmlstring
 
 def validate(modelXbrl):
@@ -166,7 +168,6 @@ class Validate:
                     filesource = FileSource.openFileSource(rssItemUrl, self.modelXbrl.modelManager.cntlr)
                     if filesource and not filesource.selection and filesource.isArchive:
                         try:
-                            from arelle.CntlrCmdLine import filesourceEntrypointFiles
                             entrypoints = filesourceEntrypointFiles(filesource)
                             if entrypoints:
                                 # resolve an IXDS in entrypoints
@@ -394,13 +395,12 @@ class Validate:
                             filesource.loadTaxonomyPackageMappings(errors=preLoadingErrors, expectTaxonomyPackage=expectTaxonomyPackage)
                             filesource.select(None) # must select loadable reports (not the taxonomy package itself)
                         elif not filesource.isReportPackage:
-                            from arelle.CntlrCmdLine import filesourceEntrypointFiles
                             entrypoints = filesourceEntrypointFiles(filesource)
                             if entrypoints:
                                 # resolve an IXDS in entrypoints
                                 for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ArchiveIxds"):
                                     pluginXbrlMethod(self, filesource,entrypoints)
-                                filesource.select(entrypoints[0].get("file", None) )
+                                filesource.select(entrypoints[0].get("file", None))
                     except Exception as err:
                         self.modelXbrl.error("exception:" + type(err).__name__,
                             _("Testcase variation validation exception: %(error)s, entry URL: %(instance)s"),
@@ -408,17 +408,20 @@ class Validate:
                         return [] # don't try to load this entry URL
                 if filesource and filesource.isReportPackage and not _rptPkgIxdsOptions:
                     if not reportPackageErrors:
-                        for report in filesource.reportPackage.reports or []:
-                            assert isinstance(filesource.basefile, str)
-                            modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager,
-                                                        report.primary,
-                                                        _("validating"),
-                                                        useFileSource=filesource,
-                                                        base=filesource.basefile + "/",
-                                                        errorCaptureLevel=errorCaptureLevel,
-                                                        ixdsTarget=modelTestcaseVariation.ixdsTarget,
-                                                        errors=preLoadingErrors)
-                            loadedModels.append(modelXbrl)
+                        assert isinstance(filesource.basefile, str)
+                        if entrypoints := filesourceEntrypointFiles(filesource):
+                            for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ArchiveIxds"):
+                                pluginXbrlMethod(self, filesource, entrypoints)
+                            for entrypoint in entrypoints:
+                                filesource.select(entrypoint.get("file", None))
+                                modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager,
+                                                            filesource,
+                                                            _("validating"),
+                                                            base=filesource.basefile + "/",
+                                                            errorCaptureLevel=errorCaptureLevel,
+                                                            ixdsTarget=modelTestcaseVariation.ixdsTarget,
+                                                            errors=preLoadingErrors)
+                                loadedModels.append(modelXbrl)
                 else:
                     if _rptPkgIxdsOptions and filesource.isTaxonomyPackage:
                         # Legacy ESEF conformance suite logic.
@@ -492,9 +495,17 @@ class Validate:
         # validate schema, linkbase, or instance
         formulaOutputInstance = None
         modelXbrl = inputDTSes[None][0]
-        expectedDataFiles = set(modelXbrl.modelManager.cntlr.webCache.normalizeUrl(uri, baseForElement)
-                                for d in modelTestcaseVariation.dataUris.values() for uri in d
-                                if not UrlUtil.isAbsolute(uri))
+        expectedDataFiles = set()
+        expectedTaxonomyPackages = []
+        for localName, d in modelTestcaseVariation.dataUris.items():
+            for uri in d:
+                if not UrlUtil.isAbsolute(uri):
+                    normalizedUri = self.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(uri, baseForElement)
+                    if localName == "taxonomyPackage":
+                        expectedTaxonomyPackages.append(normalizedUri)
+                    else:
+                        expectedDataFiles.add(normalizedUri)
+        expectedTaxonomyPackages.sort()
         foundDataFiles = set()
         variationBase = os.path.dirname(baseForElement)
         for dtsName, inputDTS in inputDTSes.items():  # input instances are also parameters
@@ -509,16 +520,28 @@ class Validate:
                             if docUrl.replace("-formula.xml", ".xf") in expectedDataFiles:
                                 docUrl = docUrl.replace("-formula.xml", ".xf")
                         foundDataFiles.add(docUrl)
-        if expectedDataFiles - foundDataFiles:
+
+        foundDataFilesInTaxonomyPackages = set()
+        foundTaxonomyPackages = set()
+        for f in foundDataFiles:
+            if i := bisect.bisect(expectedTaxonomyPackages, f):
+                package = expectedTaxonomyPackages[i-1]
+                if f.startswith(package + "/"):
+                    foundDataFilesInTaxonomyPackages.add(f)
+                    foundTaxonomyPackages.add(package)
+
+        expectedNotFound = expectedDataFiles.union(expectedTaxonomyPackages) - foundDataFiles - foundTaxonomyPackages
+        if expectedNotFound:
             modelXbrl.info("arelle:testcaseDataNotUsed",
                 _("Variation %(id)s %(name)s data files not used: %(missingDataFiles)s"),
                 modelObject=modelTestcaseVariation, name=modelTestcaseVariation.name, id=modelTestcaseVariation.id,
-                missingDataFiles=", ".join(sorted(os.path.basename(f) for f in expectedDataFiles - foundDataFiles)))
-        if foundDataFiles - expectedDataFiles:
+                missingDataFiles=", ".join(sorted(os.path.basename(f) for f in expectedNotFound)))
+        foundNotExpected = foundDataFiles - expectedDataFiles - foundDataFilesInTaxonomyPackages
+        if foundNotExpected:
             modelXbrl.info("arelle:testcaseDataUnexpected",
                 _("Variation %(id)s %(name)s files not in variation data: %(unexpectedDataFiles)s"),
                 modelObject=modelTestcaseVariation, name=modelTestcaseVariation.name, id=modelTestcaseVariation.id,
-                unexpectedDataFiles=", ".join(sorted(os.path.basename(f) for f in foundDataFiles - expectedDataFiles)))
+                unexpectedDataFiles=", ".join(sorted(os.path.basename(f) for f in foundNotExpected)))
         if modelXbrl.hasTableRendering or modelTestcaseVariation.resultIsTable:
             try:
                 RenderingEvaluator.init(modelXbrl)
@@ -687,6 +710,7 @@ class Validate:
         testcaseExpectedErrors = self.modelXbrl.modelManager.formulaOptions.testcaseExpectedErrors or {}
         matchAllExpected = testcaseResultOptions == "match-all" or modelTestcaseVariation.match == 'all'
         expectedReportCount = modelTestcaseVariation.expectedReportCount
+        expectedWarnings = modelTestcaseVariation.expectedWarnings if self.modelXbrl.modelManager.formulaOptions.testcaseResultsCaptureWarnings else []
         if expectedReportCount is not None and validateModelCount is not None and expectedReportCount != validateModelCount:
             errors.append("conf:testcaseExpectedReportCountError")
         _blockedMessageCodes = modelTestcaseVariation.blockedMessageCodes # restricts codes examined when provided
@@ -727,10 +751,21 @@ class Validate:
             status = "fail" if numErrors == 0 else "pass"
         elif expected in (None, []) and numErrors == 0:
             status = "pass"
-        elif isinstance(expected,(QName,str,dict,list)): # string or assertion id counts dict
+        elif isinstance(expected, (QName, str, dict, list)) or expectedWarnings:
             status = "fail"
             _passCount = 0
-            _expectedList = expected.copy() if isinstance(expected, list) else [expected]
+            if isinstance(expected, list):
+                _expectedList = expected.copy()
+            elif not expected:
+                _expectedList = []
+            else:
+                _expectedList = [expected]
+            if expectedWarnings:
+                _expectedList.extend(expectedWarnings)
+                if expectedCount is not None:
+                    expectedCount += len(expectedWarnings)
+                else:
+                    expectedCount = len(expectedWarnings)
             if not isinstance(expected, list):
                 expected = [expected]
             for testErr in _errors:

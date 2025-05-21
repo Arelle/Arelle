@@ -158,7 +158,7 @@ class ModelTestcaseVariation(ModelObject):
         except AttributeError:
             self._dataUris = defaultdict(list) # may contain instances, schemas, linkbases
             for dataElement in XmlUtil.descendants(self, None, ("data", "input")):
-                for elt in XmlUtil.descendants(dataElement, None, ("xsd", "schema", "linkbase", "instance")):
+                for elt in XmlUtil.descendants(dataElement, None, ("xsd", "schema", "linkbase", "instance", "taxonomyPackage")):
                     self._dataUris["schema" if elt.localName == "xsd" else elt.localName].append(elt.textValue.strip())
             return self._dataUris
 
@@ -351,6 +351,13 @@ class ModelTestcaseVariation(ModelObject):
         elif self.get("result"):
             return self.get("result")
 
+        return None
+
+    @property
+    def expectedWarnings(self):
+        warningElements = XmlUtil.descendants(self, None, "warning")
+        if isinstance(warningElements, list) and len(warningElements) > 0:
+            return [w.stringValue for w in warningElements]
         return None
 
     @property

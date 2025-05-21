@@ -9,7 +9,7 @@ from arelle.ModelInstanceObject import ModelInlineFact
 from arelle.ValidateDuplicateFacts import getDuplicateFactSets
 from arelle.XmlValidateConst import VALID
 from collections.abc import Iterable
-from typing import Any, TYPE_CHECKING
+from typing import Any, cast, TYPE_CHECKING
 
 from arelle import XmlUtil
 from arelle.ValidateXbrl import ValidateXbrl
@@ -18,8 +18,10 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from arelle.ValidateDuplicateFacts import getHashEquivalentFactGroups, getAspectEqualFacts
+from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
 from ..DisclosureSystems import DISCLOSURE_SYSTEM_NL_INLINE_2024
-from ..PluginValidationDataExtension import PluginValidationDataExtension, XBRLI_IDENTIFIER_PATTERN, XBRLI_IDENTIFIER_SCHEMA, DISALLOWED_IXT_NAMESPACES
+from ..PluginValidationDataExtension import (PluginValidationDataExtension, XBRLI_IDENTIFIER_PATTERN,
+                                             XBRLI_IDENTIFIER_SCHEMA, DISALLOWED_IXT_NAMESPACES, ALLOWABLE_LANGUAGES)
 
 if TYPE_CHECKING:
     from arelle.ModelXbrl import ModelXbrl
@@ -519,3 +521,33 @@ def rule_nl_kvk_3_5_2_2(
                     msg=_('Tagged text facts MUST be provided in the language of the report.'),
                     modelObject=fgroup
                 )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
+def rule_nl_kvk_3_5_2_3 (
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.3.5.2.3: The value of the @xml:lang attribute SHOULD be 'nl' or 'en' or 'de' or 'fr'.
+    """
+    badLangsUsed = set()
+    for ixdsHtmlRootElt in val.modelXbrl.ixdsHtmlElements:
+        for uncast_elt, depth in etreeIterWithDepth(ixdsHtmlRootElt):
+            elt = cast(Any, uncast_elt)
+            xmlLang = elt.get("{http://www.w3.org/XML/1998/namespace}lang")
+            if xmlLang and xmlLang not in ALLOWABLE_LANGUAGES:
+                badLangsUsed.add(xmlLang)
+    if len(badLangsUsed) > 0:
+        yield Validation.warning(
+            codes='NL.NL-KVK.3.5.2.3.invalidLanguageAttribute',
+            msg=_('The lang attribute should use one of the following: \'nl\' or \'en\' or \'de\' or \'fr\'. '
+                  'The following languages are used incorrectly: {}'.format(badLangsUsed)),
+        )
