@@ -7,7 +7,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, TYPE_CHECKING, cast, Iterable
+from typing import Any, cast, Iterable
 
 import regex as re
 from lxml.etree import _Comment, _ElementTree, _Entity, _ProcessingInstruction, _Element

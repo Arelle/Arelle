@@ -4,7 +4,10 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 from collections import defaultdict
+from collections.abc import Iterable
 from datetime import date
+from typing import Any, cast, TYPE_CHECKING
+
 import zipfile
 
 from arelle.ModelDtsObject import ModelLink, ModelResource, ModelType
@@ -13,10 +16,8 @@ from arelle.ModelObject import ModelObject
 from arelle.PrototypeDtsObject import PrototypeObject
 from arelle.ValidateDuplicateFacts import getDuplicateFactSets
 from arelle.XmlValidateConst import VALID
-from collections.abc import Iterable
-from typing import Any, cast, TYPE_CHECKING
 
-from arelle import XmlUtil, XbrlConst, ModelDocument
+from arelle import XbrlConst, XmlUtil
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
@@ -27,13 +28,20 @@ from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
 from ..DisclosureSystems import (ALL_NL_INLINE_DISCLOSURE_SYSTEMS, NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
                                  NL_INLINE_GAAP_OTHER_DISCLOSURE_SYSTEMS)
 from ..LinkbaseType import LinkbaseType
-from ..PluginValidationDataExtension import (PluginValidationDataExtension, ALLOWABLE_LANGUAGES,
-                                             DEFAULT_MEMBER_ROLE_URI, DISALLOWED_IXT_NAMESPACES,
-                                             EFFECTIVE_KVK_GAAP_IFRS_ENTRYPOINT_FILES,
-                                             EFFECTIVE_KVK_GAAP_OTHER_ENTRYPOINT_FILES,
-                                             MAX_REPORT_PACKAGE_SIZE_MBS, NON_DIMENSIONALIZED_LINE_ITEM_LINKROLES,
-                                             TAXONOMY_URLS_BY_YEAR, XBRLI_IDENTIFIER_PATTERN, XBRLI_IDENTIFIER_SCHEMA,
-                                             QN_DOMAIN_ITEM_TYPES)
+from ..PluginValidationDataExtension import (
+    PluginValidationDataExtension,
+    ALLOWABLE_LANGUAGES,
+    DEFAULT_MEMBER_ROLE_URI,
+    DISALLOWED_IXT_NAMESPACES,
+    EFFECTIVE_KVK_GAAP_IFRS_ENTRYPOINT_FILES,
+    EFFECTIVE_KVK_GAAP_OTHER_ENTRYPOINT_FILES,
+    MAX_REPORT_PACKAGE_SIZE_MBS,
+    NON_DIMENSIONALIZED_LINE_ITEM_LINKROLES,
+    QN_DOMAIN_ITEM_TYPES,
+    TAXONOMY_URLS_BY_YEAR,
+    XBRLI_IDENTIFIER_PATTERN,
+    XBRLI_IDENTIFIER_SCHEMA,
+)
 
 if TYPE_CHECKING:
     from arelle.ModelXbrl import ModelXbrl

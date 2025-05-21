@@ -8,10 +8,10 @@ import os
 from typing import cast
 from urllib.parse import unquote
 
-from arelle import ModelDocument
 from lxml.etree import XML, XMLSyntaxError
 from lxml.etree import _Element
 
+from arelle import ModelDocument
 from arelle.ModelObjectFactory import parser
 from arelle.ModelXbrl import ModelXbrl
 from arelle.UrlUtil import decodeBase64DataImage, scheme

@@ -1,4 +1,3 @@
-from operator import truediv
 from typing import Any, Collection
 
 from arelle.XbrlConst import xhtml
