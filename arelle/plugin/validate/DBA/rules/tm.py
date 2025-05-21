@@ -245,7 +245,7 @@ def rule_tm29(
     filteredReportTypeFacts = [f for f in reportTypeFacts if f.xValid >= VALID and f.xValue in pluginData.annualReportTypes]
     if len(filteredReportTypeFacts) > 0:
         meeting_facts = val.modelXbrl.factsByQname.get(pluginData.dateOfGeneralMeetingQn, set())
-        approval_facts = val.modelXbrl.factsByQname.get(pluginData.dateOfApprovalOfReportQn, set())
+        approval_facts = val.modelXbrl.factsByQname.get(pluginData.dateOfApprovalOfAnnualReportQn, set())
         if len(meeting_facts) == 0 and len(approval_facts) == 0:
             yield Validation.error(
                 'DBA.TM29',
