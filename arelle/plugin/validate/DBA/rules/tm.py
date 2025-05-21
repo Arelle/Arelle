@@ -241,14 +241,16 @@ def rule_tm29(
     """
     DBA.TM29: Either gsd:DateOfGeneralMeeting or gsd:DateOfApprovalOfReport must be specified
     """
-    modelXbrl = val.modelXbrl
-    meeting_facts = modelXbrl.factsByQname.get(pluginData.dateOfGeneralMeetingQn, set())
-    approval_facts = modelXbrl.factsByQname.get(pluginData.dateOfApprovalOfReportQn, set())
-    if len(meeting_facts) == 0 and len(approval_facts) == 0:
-        yield Validation.error(
-            'DBA.TM29',
-            _('Either DateOfGeneralMeeting or DateOfApprovalOfReport must be tagged in the document.')
-        )
+    reportTypeFacts = val.modelXbrl.factsByQname.get(pluginData.informationOnTypeOfSubmittedReportQn, set())
+    filteredReportTypeFacts = [f for f in reportTypeFacts if f.xValid >= VALID and f.xValue in pluginData.annualReportTypes]
+    if len(filteredReportTypeFacts) > 0:
+        meeting_facts = val.modelXbrl.factsByQname.get(pluginData.dateOfGeneralMeetingQn, set())
+        approval_facts = val.modelXbrl.factsByQname.get(pluginData.dateOfApprovalOfReportQn, set())
+        if len(meeting_facts) == 0 and len(approval_facts) == 0:
+            yield Validation.error(
+                'DBA.TM29',
+                _('Either DateOfGeneralMeeting or DateOfApprovalOfReport must be tagged in the document.')
+            )
 
 
 @validation(
