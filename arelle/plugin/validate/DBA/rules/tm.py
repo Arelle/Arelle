@@ -239,7 +239,7 @@ def rule_tm29(
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    DBA.TM29: Either gsd:DateOfGeneralMeeting or gsd:DateOfApprovalOfReport must be specified
+    DBA.TM29: Either gsd:DateOfGeneralMeeting or gsd:DateOfApprovalOfAnnualReport must be specified
     """
     if pluginData.isAnnualReport(val.modelXbrl):
         meeting_facts = val.modelXbrl.factsByQname.get(pluginData.dateOfGeneralMeetingQn, set())
@@ -276,7 +276,7 @@ def rule_tm31(
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    DBA.TM31: gsd:DateOfApprovalOfReport must only be tagged once if tagged
+    DBA.TM31: gsd:DateOfApprovalOfAnnualReport must only be tagged once if tagged
     """
     if pluginData.isAnnualReport(val.modelXbrl):
         dateFacts = val.modelXbrl.factsByQname.get(pluginData.dateOfApprovalOfAnnualReportQn, set())
