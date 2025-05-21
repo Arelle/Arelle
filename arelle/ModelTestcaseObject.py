@@ -354,6 +354,13 @@ class ModelTestcaseVariation(ModelObject):
         return None
 
     @property
+    def expectedWarnings(self):
+        warningElements = XmlUtil.descendants(self, None, "warning")
+        if isinstance(warningElements, list) and len(warningElements) > 0:
+            return [w.stringValue for w in warningElements]
+        return None
+
+    @property
     def match(self) -> str | None:
         resultElement = XmlUtil.descendant(self, None, "result")
         if resultElement is None:

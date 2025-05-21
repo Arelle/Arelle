@@ -710,6 +710,7 @@ class Validate:
         testcaseExpectedErrors = self.modelXbrl.modelManager.formulaOptions.testcaseExpectedErrors or {}
         matchAllExpected = testcaseResultOptions == "match-all" or modelTestcaseVariation.match == 'all'
         expectedReportCount = modelTestcaseVariation.expectedReportCount
+        expectedWarnings = modelTestcaseVariation.expectedWarnings if self.modelXbrl.modelManager.formulaOptions.testcaseResultsCaptureWarnings else []
         if expectedReportCount is not None and validateModelCount is not None and expectedReportCount != validateModelCount:
             errors.append("conf:testcaseExpectedReportCountError")
         _blockedMessageCodes = modelTestcaseVariation.blockedMessageCodes # restricts codes examined when provided
@@ -750,10 +751,21 @@ class Validate:
             status = "fail" if numErrors == 0 else "pass"
         elif expected in (None, []) and numErrors == 0:
             status = "pass"
-        elif isinstance(expected,(QName,str,dict,list)): # string or assertion id counts dict
+        elif isinstance(expected, (QName, str, dict, list)) or expectedWarnings:
             status = "fail"
             _passCount = 0
-            _expectedList = expected.copy() if isinstance(expected, list) else [expected]
+            if isinstance(expected, list):
+                _expectedList = expected.copy()
+            elif not expected:
+                _expectedList = []
+            else:
+                _expectedList = [expected]
+            if expectedWarnings:
+                _expectedList.extend(expectedWarnings)
+                if expectedCount is not None:
+                    expectedCount += len(expectedWarnings)
+                else:
+                    expectedCount = len(expectedWarnings)
             if not isinstance(expected, list):
                 expected = [expected]
             for testErr in _errors:
