@@ -49,7 +49,6 @@ class PluginValidationDataExtension(PluginData):
     consolidatedSoloDimensionQn: QName
     cpr_regex: regex.regex.Pattern[str]
     dateOfApprovalOfAnnualReportQn: QName
-    dateOfApprovalOfReportQn: QName
     dateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod: QName
     dateOfGeneralMeetingQn: QName
     descriptionOfQualificationsOfAssuranceEngagementPerformedQn: QName

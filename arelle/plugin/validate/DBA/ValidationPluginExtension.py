@@ -285,7 +285,6 @@ class ValidationPluginExtension(ValidationPlugin):
             consolidatedSoloDimensionQn=qname(f'{{{NAMESPACE_CMN}}}ConsolidatedSoloDimension'),
             cpr_regex=re.compile(r'^([0-2][0-9]|3[0-1])(0[1-9]|1[0-2])[0-9]{2}-[0-9]{4}'),
             dateOfApprovalOfAnnualReportQn=qname(f'{{{NAMESPACE_SOB}}}DateOfApprovalOfAnnualReport'),
-            dateOfApprovalOfReportQn=qname(f'{{{NAMESPACE_GSD}}}DateOfApprovalOfReport'),
             dateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod=qname(f'{{{NAMESPACE_FSA}}}DateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod'),
             dateOfGeneralMeetingQn=qname(f'{{{NAMESPACE_GSD}}}DateOfGeneralMeeting'),
             declarationObligationQns=frozenset([
