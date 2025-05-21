@@ -6,6 +6,7 @@ from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass
 from functools import lru_cache
+from pathlib import Path
 from typing import Any, TYPE_CHECKING, cast
 
 import regex as re
@@ -173,6 +174,31 @@ class PluginValidationDataExtension(PluginData):
 
     def getFactLangFootnotes(self, modelXbrl: ModelXbrl) -> dict[ModelObject, set[str]]:
         return self.checkFootnotes(modelXbrl).factLangFootnotes
+
+    @lru_cache(1)
+    def getFilenameAllowedCharactersPattern(self):
+        return re.compile(
+            r"^[\w\.-]*$",
+            flags=re.ASCII
+        )
+
+    @lru_cache(1)
+    def getFilenameFormatPattern(self):
+        return re.compile(
+            r"^(?<base>\w*)-(?<date>[\w-]*)-(?<lang>\w*)\.(?<extension>html|htm|xhtml)$",
+            flags=re.ASCII
+        )
+
+    @lru_cache(1)
+    def getFilenameParts(self, filename: str) -> dict[str, Any] | None:
+        match = self.getFilenameFormatPattern().match(filename)
+        if match:
+            return match.groupdict()
+        return None
+
+    @lru_cache(1)
+    def getIxdsDocBasenames(self, modelXbrl: ModelXbrl) -> set[str]:
+        return set(Path(url).name for url in modelXbrl.ixdsDocUrls)
 
     def getNoMatchLangFootnotes(self, modelXbrl: ModelXbrl) -> set[ModelInlineFootnote]:
         return self.checkFootnotes(modelXbrl).noMatchLangFootnotes
