@@ -529,7 +529,7 @@ def rule_nl_kvk_3_5_2_2(
         DISCLOSURE_SYSTEM_NL_INLINE_2024
     ],
 )
-def rule_nl_kvk_3_5_2_3 (
+def rule_nl_kvk_3_5_2_3(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
         *args: Any,
@@ -548,8 +548,9 @@ def rule_nl_kvk_3_5_2_3 (
     if len(badLangsUsed) > 0:
         yield Validation.warning(
             codes='NL.NL-KVK.3.5.2.3.invalidLanguageAttribute',
+            badLangsUsed=', '.join(badLangsUsed),
             msg=_('The lang attribute should use one of the following: \'nl\' or \'en\' or \'de\' or \'fr\'. '
-                  'The following languages are used incorrectly: {}'.format(badLangsUsed)),
+                  'The following languages are used incorrectly: %(badLangsUsed)s'),
         )
 
 
