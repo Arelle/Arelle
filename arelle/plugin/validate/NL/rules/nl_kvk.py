@@ -608,7 +608,7 @@ def rule_nl_kvk_3_5_2_1(
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    NL-KVK.3.5.2.1: Each tagged text fact MUST have the ‘xml:lang’ attribute assigned or inherited.
+    NL-KVK.3.5.2.1: Each tagged text fact MUST have the 'xml:lang' attribute assigned or inherited.
     """
     factsWithoutLang = []
     for fact in val.modelXbrl.facts:
@@ -621,7 +621,7 @@ def rule_nl_kvk_3_5_2_1(
     if len(factsWithoutLang) > 0:
         yield Validation.error(
             codes='NL.NL-KVK.3.5.2.1.undefinedLanguageForTextFact',
-            msg=_('Each tagged text fact MUST have the ‘xml:lang’ attribute assigned or inherited.'),
+            msg=_("Each tagged text fact MUST have the 'xml:lang' attribute assigned or inherited."),
             modelObject=factsWithoutLang
         )
 
@@ -996,7 +996,7 @@ def rule_nl_kvk_4_1_2_2(
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    NL-KVK.4.1.2.2: The legal entity’s extension taxonomy MUST import the applicable version of
+    NL-KVK.4.1.2.2: The legal entity's extension taxonomy MUST import the applicable version of
                     the taxonomy files prepared by KVK.
     """
     reportingPeriod = pluginData.getReportingPeriod(val.modelXbrl)
@@ -1216,7 +1216,7 @@ def rule_nl_kvk_4_3_1_1(
 ) -> Iterable[Validation]:
     """
     NL-KVK.4.3.1.1: Anchoring relationships for elements other than concepts MUST not
-    use ‘http://www.esma.europa.eu/xbrl/esef/arcrole/wider-narrower’ arcrole
+    use 'http://www.esma.europa.eu/xbrl/esef/arcrole/wider-narrower' arcrole
     """
     anchorData = pluginData.getAnchorData(val.modelXbrl)
     if len(anchorData.extLineItemsWronglyAnchored) > 0:
@@ -1339,7 +1339,7 @@ def rule_nl_kvk_4_4_2_2(
 ) -> Iterable[Validation]:
     """
     NL-KVK.4.4.2.2: Hypercubes appearing as target of definition arc with
-    http://xbrl.org/int/dim/arcrole/all arcrole MUST have xbrldt:closed attribute set to “true”.
+    http://xbrl.org/int/dim/arcrole/all arcrole MUST have xbrldt:closed attribute set to "true".
     """
     errors = []
     extensionData = pluginData.getExtensionData(val.modelXbrl)
@@ -1367,7 +1367,7 @@ def rule_nl_kvk_4_4_2_3(
 ) -> Iterable[Validation]:
     """
     NL-KVK.4.4.2.3: Hypercubes appearing as target of definition arc with
-    http://xbrl.org/int/dim/arcrole/notAll arcrole MUST have xbrldt:closed attribute set to “false”.
+    http://xbrl.org/int/dim/arcrole/notAll arcrole MUST have xbrldt:closed attribute set to "false".
     """
     errors = []
     extensionData = pluginData.getExtensionData(val.modelXbrl)
@@ -1641,7 +1641,7 @@ def rule_nl_kvk_5_1_3_2(
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    NL-KVK.5.1.3.2: The legal entity’s report MUST import the applicable version of
+    NL-KVK.5.1.3.2: The legal entity's report MUST import the applicable version of
                     the taxonomy files prepared by KVK.
     """
     reportingPeriod = pluginData.getReportingPeriod(val.modelXbrl)
