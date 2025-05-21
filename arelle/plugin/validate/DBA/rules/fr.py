@@ -1312,22 +1312,25 @@ def rule_fr91(
 ) -> Iterable[Validation]:
     """
     DBA.FR91: If the annual report contains information about both the general meeting date
-    (gsd:DateOfGeneralMeeting) and the annual accounts meeting date (gsd:DateOfApprovalOfReport), the values must be the same.
+    (gsd:DateOfGeneralMeeting) and the annual accounts meeting date (gsd:DateOfApprovalOfAnnualReport), the values must be the same.
     """
-    approvalOfReportFact = None
-    generalMeetingFact = None
-    approvalFacts = (val.modelXbrl.factsByQname.get(pluginData.dateOfApprovalOfReportQn, set()))
-    if len(approvalFacts) > 0:
-        approvalOfReportFact = next(iter(approvalFacts), None)
-    meetingFacts = val.modelXbrl.factsByQname.get(pluginData.dateOfGeneralMeetingQn, set())
-    if len(meetingFacts) > 0:
-        generalMeetingFact = next(iter(meetingFacts), None)
-    if generalMeetingFact is not None and generalMeetingFact.xValid >= VALID and approvalOfReportFact is not None and approvalOfReportFact.xValid >= VALID and generalMeetingFact.xValue != approvalOfReportFact.xValue:
-        yield Validation.error(
-            codes='DBA.FR91',
-            msg=_("The annual report contains information about both the general meeting date (gsd:DateOfGeneralMeeting) and the annual accounts meeting date (gsd:DateOfApprovalOfReport), the values must be the same."),
-            modelObject=[generalMeetingFact, approvalOfReportFact]
-        )
+    reportTypeFacts = val.modelXbrl.factsByQname.get(pluginData.informationOnTypeOfSubmittedReportQn, set())
+    filteredReportTypeFacts = [f for f in reportTypeFacts if f.xValid >= VALID and f.xValue in pluginData.annualReportTypes]
+    if len(filteredReportTypeFacts) > 0:
+        approvalOfReportFact = None
+        generalMeetingFact = None
+        approvalFacts = (val.modelXbrl.factsByQname.get(pluginData.dateOfApprovalOfAnnualReportQn, set()))
+        if len(approvalFacts) > 0:
+            approvalOfReportFact = next(iter(approvalFacts), None)
+        meetingFacts = val.modelXbrl.factsByQname.get(pluginData.dateOfGeneralMeetingQn, set())
+        if len(meetingFacts) > 0:
+            generalMeetingFact = next(iter(meetingFacts), None)
+        if generalMeetingFact is not None and generalMeetingFact.xValid >= VALID and approvalOfReportFact is not None and approvalOfReportFact.xValid >= VALID and generalMeetingFact.xValue != approvalOfReportFact.xValue:
+            yield Validation.error(
+                codes='DBA.FR91',
+                msg=_("The annual report contains information about both the general meeting date (gsd:DateOfGeneralMeeting) and the annual accounts meeting date (gsd:DateOfApprovalOfAnnualReport), the values must be the same."),
+                modelObject=[generalMeetingFact, approvalOfReportFact]
+            )
 
 
 @validation(
