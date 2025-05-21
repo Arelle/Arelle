@@ -26,6 +26,7 @@ from arelle.ModelValue import QName
 from arelle.ModelValue import qname
 from arelle.ModelXbrl import ModelXbrl
 
+from arelle.utils.validate.ESEFImage import ImageValidationParameters, checkSVGContentElt, validateImageAndLog
 from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
 from arelle.PythonUtil import isLegacyAbs, normalizeSpace
 from arelle.PythonUtil import strTruncate
@@ -50,7 +51,6 @@ from arelle.XbrlConst import (
 from arelle.XmlValidateConst import VALID
 from arelle.typing import TypeGetText
 from .DTS import checkFilingDTS
-from .Image import checkSVGContentElt, validateImage
 from ..Const import (
     DefaultDimensionLinkroles,
     FOOTNOTE_LINK_CHILDREN,
@@ -63,6 +63,7 @@ from ..Const import (
     mandatory,
     styleCssHiddenPattern,
     styleIxHiddenPattern,
+    supportedImgTypes,
     untransformableTypes,
 )
 from ..Dimensions import checkFilingDimensions
@@ -302,6 +303,14 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
             requiredToDisplayFacts = []
             firstIxdsDoc = True
             contentOtherThanXHTMLGuidance = 'ESEF.2.5.1' if val.consolidated else 'ESEF.4.1.3'  # Different reference for iXBRL and stand-alone XHTML
+            imageValidationParameters = ImageValidationParameters(
+                checkMinExternalResourceSize=True,
+                consolidated = val.consolidated,
+                contentOtherThanXHTMLGuidance=contentOtherThanXHTMLGuidance,
+                missingMimeTypeIsIncorrect=True,
+                recommendBase64EncodingEmbeddedImages=True,
+                supportedImgTypes=supportedImgTypes,
+            )
             # ModelDocument.load has None as a return type. For typing reasons, we need to guard against that here.
             assert modelXbrl.modelDocument is not None
             for ixdsHtmlRootElt in (modelXbrl.ixdsHtmlElements if val.consolidated else # ix root elements for all ix docs in IXDS
@@ -336,12 +345,11 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                             _("Inline XBRL documents SHOULD NOT contain any 'mailto' URI: %(element)s"),
                                             modelObject=elt, element=eltTag)
                         elif eltTag == "{http://www.w3.org/2000/svg}svg":
-                            checkSVGContentElt(elt, elt.modelDocument.baseForElement(elt), modelXbrl, [elt],
-                                           contentOtherThanXHTMLGuidance, val)
+                            checkSVGContentElt(elt, elt.modelDocument.baseForElement(elt), modelXbrl, [elt], imageValidationParameters, val)
                         elif eltTag == "img":
                             src = elt.get("src","").strip()
                             evaluatedMsg = _('On line {line}, "alt" attribute value: "{alt}"').format(line=elt.sourceline, alt=elt.get("alt"))
-                            validateImage(elt.modelDocument.baseForElement(elt), src, modelXbrl, val, elt, evaluatedMsg, contentOtherThanXHTMLGuidance)
+                            validateImageAndLog(elt.modelDocument.baseForElement(elt), src, modelXbrl, val, elt, evaluatedMsg, imageValidationParameters)
                         # links to external documents are allowed as of 2021 per G.2.5.1
                         #    Since ESEF is a format requirement and is not expected to impact the 'human readable layer' of a report,
                         #    this guidance should not be seen as limiting the inclusion of links to external websites, to other documents
@@ -368,7 +376,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
 
                             with elt.modelXbrl.fileSource.file(normalizedUri, binary=True)[0] as fh:
                                 cssContents = fh.read()
-                                validateCssUrl(cssContents.decode(), normalizedUri, modelXbrl, val, elt, contentOtherThanXHTMLGuidance)
+                                validateCssUrl(cssContents.decode(), normalizedUri, modelXbrl, val, elt, imageValidationParameters)
                                 cssContents = None
                             if val.unconsolidated:
                                 modelXbrl.warning("ESEF.4.1.4.externalCssFileForXhtmlDocument",
@@ -385,7 +393,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                     _("Where an Inline XBRL document set contains a single document, the CSS SHOULD be embedded within the document."),
                                     modelObject=elt, element=eltTag)
                         elif eltTag == "style" and elt.get("type") == "text/css":
-                            validateCssUrl(elt.stringValue, elt.modelDocument.baseForElement(elt), modelXbrl, val, elt, contentOtherThanXHTMLGuidance)
+                            validateCssUrl(elt.stringValue, elt.modelDocument.baseForElement(elt), modelXbrl, val, elt, imageValidationParameters)
                             if not val.unconsolidated:
                                 if len(modelXbrl.ixdsHtmlElements) > 1:
                                     modelXbrl.warning("ESEF.2.5.4.embeddedCssForMultiHtmlIXbrlDocumentSets",
@@ -492,7 +500,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                         for declaration in tinycss2.parse_blocks_contents(styleValue):
                             if isinstance(declaration, tinycss2.ast.Declaration):
                                 validateCssUrlContent(declaration.value, ixElt.modelDocument.baseForElement(ixElt),
-                                                      modelXbrl, val, ixElt, contentOtherThanXHTMLGuidance)
+                                                      modelXbrl, val, ixElt, imageValidationParameters)
                             elif isinstance(declaration, tinycss2.ast.ParseError):
                                 modelXbrl.warning("ix.CssParsingError",
                                                   _("The style attribute contains erroneous CSS declaration \"%(styleContent)s\": %(parseError)s"),
@@ -1092,7 +1100,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
     modelXbrl.modelManager.showStatus(None)
 
 
-def validateCssUrl(cssContent:str, normalizedUri:str, modelXbrl: ModelXbrl, val: ValidateXbrl, elt: ModelObject, contentOtherThanXHTMLGuidance: str) -> None:
+def validateCssUrl(cssContent:str, normalizedUri:str, modelXbrl: ModelXbrl, val: ValidateXbrl, elt: ModelObject, params: ImageValidationParameters) -> None:
     css_elements = tinycss2.parse_stylesheet(cssContent)
     for css_element in css_elements:
         if isinstance(css_element, tinycss2.ast.AtRule):
@@ -1100,22 +1108,22 @@ def validateCssUrl(cssContent:str, normalizedUri:str, modelXbrl: ModelXbrl, val:
                 for css_rule in css_element.content:
                     if isinstance(css_rule, tinycss2.ast.URLToken) and "data:font" not in css_rule.value:
                         modelXbrl.warning(
-                            "ESEF.%s.fontIncludedAndNotEmbeddedAsBase64EncodedString" % contentOtherThanXHTMLGuidance,
+                            "ESEF.%s.fontIncludedAndNotEmbeddedAsBase64EncodedString" % params.contentOtherThanXHTMLGuidance,
                             _("Fonts SHOULD be included in the XHTML document as a base64 encoded string: %(file)s."),
                             modelObject=elt, file=css_rule.value)
         if isinstance(css_element, tinycss2.ast.QualifiedRule):
-            validateCssUrlContent(css_element.content, normalizedUri, modelXbrl, val, elt, contentOtherThanXHTMLGuidance)
+            validateCssUrlContent(css_element.content, normalizedUri, modelXbrl, val, elt, params)
 
 
-def validateCssUrlContent(cssRules: list[Any], normalizedUri:str, modelXbrl: ModelXbrl, val: ValidateXbrl, elt: ModelObject, contentOtherThanXHTMLGuidance: str) -> None:
+def validateCssUrlContent(cssRules: list[Any], normalizedUri:str, modelXbrl: ModelXbrl, val: ValidateXbrl, elt: ModelObject, params: ImageValidationParameters) -> None:
     for css_rule in cssRules:
         if isinstance(css_rule, tinycss2.ast.FunctionBlock):
             if css_rule.lower_name == "url":
                 if len(css_rule.arguments):
                     css_rule_url = css_rule.arguments[0].value  # url or base64
                     evaluatedMsg = _('On line {line}').format(line=1) #css_element.source_line)
-                    validateImage(normalizedUri, css_rule_url, modelXbrl, val, elt, evaluatedMsg, contentOtherThanXHTMLGuidance)
+                    validateImageAndLog(normalizedUri, css_rule_url, modelXbrl, val, elt, evaluatedMsg, params)
         elif isinstance(css_rule, tinycss2.ast.URLToken):
             value = css_rule.value
             evaluatedMsg = _('On line {line}').format(line=1) #css_element.source_line)
-            validateImage(normalizedUri, value, modelXbrl, val, elt, evaluatedMsg, contentOtherThanXHTMLGuidance)
+            validateImageAndLog(normalizedUri, value, modelXbrl, val, elt, evaluatedMsg, params)

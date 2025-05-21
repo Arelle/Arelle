@@ -25,6 +25,10 @@ config = ConformanceSuiteConfig(
         'G3-1-3_2/index.xml:TC2_invalid': {
             'extensionTaxonomyLineItemNotLinkedToAnyHypercube': 1,
         },
+        'G3-5-1_5/index.xml:TC2_invalid': {
+            # This is the expected error, but we return two of them, slightly different.
+            'imageFormatNotSupported': 1,
+        },
         'G3-5-3_1/index.xml:TC2_invalid': {
             'arelle:ixdsTargetNotDefined': 1,
             'extensionTaxonomyWrongFilesStructure': 2,
@@ -95,20 +99,13 @@ config = ConformanceSuiteConfig(
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-3-1_2/index.xml:TC3_invalid',  # Expects an error code with a preceding double quote. G3-3-1_3 expects the same code without the typo.
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-4-1_1/index.xml:TC2_invalid',  # Produces: [err:XPTY0004] Variable set Het entity identifier scheme dat bij dit feit hoort MOET het standaard KVK identifier scheme zijn
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-4-1_2/index.xml:TC2_invalid',  # Expects fractionElementUsed”.  Note the double quote at the end.
+        'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-6-2_1/index.xml:TC2_invalid',  # Expects inlineXbrlDocumentSetContainsExternalReferences.  Note incorrect "Set".
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-2-0_2/index.xml:TC2_invalid',  # Expects fractionElementUsed”.  Note the double quote at the end.
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-4-1_1/index.xml:TC2_invalid',  # Expects IncorrectSummationItemArcroleUsed.  Note the capital first character.
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_2_G3-1-1_1/index.xml:TC2_invalid',  # Expects NonIdenticalIdentifier instead of nonIdenticalIdentifier (note the cap N)
 
 
         # Not Implemented
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-5-1_1/index.xml:TC3_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-5-1_1/index.xml:TC4_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-5-1_2/index.xml:TC2_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-5-1_3/index.xml:TC2_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-5-1_4/index.xml:TC2_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-5-1_5/index.xml:TC2_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-5-1_5/index.xml:TC3_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-6-2_1/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G5-1-3_1/index.xml:TC1_valid',  # Must be run with different disclosure system for GAAP Other
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G5-1-3_1/index.xml:TC2_invalid',  # Must be run with different disclosure system for GAAP Other
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G5-1-3_2/index.xml:TC1_valid',  # Must be run with different disclosure system for GAAP Other

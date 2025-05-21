@@ -5,7 +5,9 @@ from __future__ import annotations
 
 import binascii
 import os
-from typing import cast
+
+from dataclasses import dataclass
+from typing import cast, Iterable
 from urllib.parse import unquote
 
 from lxml.etree import XML, XMLSyntaxError
@@ -18,11 +20,58 @@ from arelle.UrlUtil import decodeBase64DataImage, scheme
 from arelle.ValidateFilingText import parseImageDataURL, validateGraphicHeaderType
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
-from ..Const import supportedImgTypes
-from ..Util import getDisclosureSystemYear
+from arelle.utils.validate.Validation import Validation
 
 _: TypeGetText  # Handle gettext
 
+
+@dataclass(frozen=True)
+class ImageValidationParameters:
+    checkMinExternalResourceSize: bool
+    consolidated: bool
+    contentOtherThanXHTMLGuidance: str
+    missingMimeTypeIsIncorrect: bool
+    recommendBase64EncodingEmbeddedImages: bool
+    supportedImgTypes: dict[bool, tuple[str, ...]]
+
+    @classmethod
+    def from_non_esef(
+        cls,
+        checkMinExternalResourceSize: bool,
+        missingMimeTypeIsIncorrect: bool,
+        recommendBase64EncodingEmbeddedImages: bool,
+        supportedImgTypes: dict[bool, tuple[str, ...]],
+    ) -> ImageValidationParameters:
+        return cls(
+            checkMinExternalResourceSize=checkMinExternalResourceSize,
+            consolidated=True,
+            # This must be an ESEF code, even if it's later discarded.
+            contentOtherThanXHTMLGuidance="ESEF.2.5.1",
+            missingMimeTypeIsIncorrect=missingMimeTypeIsIncorrect,
+            recommendBase64EncodingEmbeddedImages=recommendBase64EncodingEmbeddedImages,
+            supportedImgTypes=supportedImgTypes,
+        )
+
+
+def validateImageAndLog(
+    baseUrl: str | None,
+    image: str,
+    modelXbrl: ModelXbrl,
+    val: ValidateXbrl,
+    elts: _Element | list[_Element],
+    evaluatedMsg: str,
+    params: ImageValidationParameters,
+) -> None:
+    for validation in validateImage(
+        baseUrl=baseUrl,
+        image=image,
+        modelXbrl=modelXbrl,
+        val=val,
+        elts=elts,
+        evaluatedMsg=evaluatedMsg,
+        params=params,
+    ):
+        modelXbrl.log(level=validation.level.name, codes=validation.codes, msg=validation.msg, **validation.args)
 
 # check image contents against mime/file ext and for Steganography
 def validateImage(
@@ -32,53 +81,60 @@ def validateImage(
     val: ValidateXbrl,
     elts: _Element | list[_Element],
     evaluatedMsg: str,
-    contentOtherThanXHTMLGuidance: str,
-) -> None:
+    params: ImageValidationParameters,
+) -> Iterable[Validation]:
     """
     image: either an url or base64 in data:image style
     """
+    contentOtherThanXHTMLGuidance = params.contentOtherThanXHTMLGuidance
     # a list of img elements are maintained because an SVG can reference another SVG
     # or other type of image and we need to log the entire reference chain.
     if not isinstance(elts, list):
         elts = [elts]
-    minExternalRessourceSize = val.authParam["minExternalResourceSizekB"]
-    if minExternalRessourceSize != -1:
-        # transform kb to b
-        minExternalRessourceSize = minExternalRessourceSize * 1024
+    if params.checkMinExternalResourceSize:
+        minExternalRessourceSize = val.authParam["minExternalResourceSizekB"]
+        if minExternalRessourceSize != -1:
+            # transform kb to b
+            minExternalRessourceSize = minExternalRessourceSize * 1024
     if scheme(image) in ("http", "https", "ftp"):
-        modelXbrl.error("ESEF.4.1.6.xHTMLDocumentContainsExternalReferences" if val.unconsolidated
-                        else "ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences",
-                        _("Inline XBRL instance documents MUST NOT contain any reference pointing to resources outside the reporting package: %(element)s"),
-                        modelObject=elts, element=elts[0].tag, evaluatedMsg=evaluatedMsg,
-                        messageCodes=("ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences",
-                                      "ESEF.4.1.6.xHTMLDocumentContainsExternalReferences"))
+        yield Validation.error(("ESEF.4.1.6.xHTMLDocumentContainsExternalReferences" if not params.consolidated
+                               else "ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences",
+                               "NL.NL-KVK.3.6.2.1.inlineXbrlDocumentContainsExternalReferences"),
+                               _("Inline XBRL instance documents MUST NOT contain any reference pointing to resources outside the reporting package: %(element)s"),
+                               modelObject=elts, element=elts[0].tag, evaluatedMsg=evaluatedMsg,
+                               messageCodes=("ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences",
+                                             "ESEF.4.1.6.xHTMLDocumentContainsExternalReferences",
+                                             "NL.NL-KVK.3.6.2.1.inlineXbrlDocumentContainsExternalReferences"))
     elif image.startswith("data:image"):
         dataURLParts = parseImageDataURL(image)
         if not dataURLParts or not dataURLParts.isBase64:
-            modelXbrl.warning(f"{contentOtherThanXHTMLGuidance}.embeddedImageNotUsingBase64Encoding",
-                              _("Images included in the XHTML document SHOULD be base64 encoded: %(src)s."),
-                              modelObject=elts, src=image[:128], evaluatedMsg=evaluatedMsg)
+            if params.recommendBase64EncodingEmbeddedImages:
+                yield Validation.warning(f"{contentOtherThanXHTMLGuidance}.embeddedImageNotUsingBase64Encoding",
+                                         _("Images included in the XHTML document SHOULD be base64 encoded: %(src)s."),
+                                         modelObject=elts, src=image[:128], evaluatedMsg=evaluatedMsg)
             if dataURLParts and dataURLParts.mimeSubtype and dataURLParts.data:
-                checkImageContents(None, modelXbrl, elts, dataURLParts.mimeSubtype, False, unquote(dataURLParts.data), val.consolidated, val)
+                yield from checkImageContents(None, modelXbrl, elts, dataURLParts.mimeSubtype, False, unquote(dataURLParts.data), params, True, val)
         else:
-            if not dataURLParts.mimeSubtype:
-                modelXbrl.error(f"{contentOtherThanXHTMLGuidance}.MIMETypeNotSpecified",
-                                _("Images included in the XHTML document MUST be saved with MIME type specifying PNG, GIF, SVG or JPG/JPEG formats: %(src)s."),
-                                modelObject=elts, src=image[:128], evaluatedMsg=evaluatedMsg)
+            hasMimeType = bool(dataURLParts.mimeSubtype)
+            if not hasMimeType:
+                yield Validation.error((f"{contentOtherThanXHTMLGuidance}.MIMETypeNotSpecified", "NL.NL-KVK.3.5.1.2.MIMETypeNotSpecified"),
+                                       _("Images included in the XHTML document MUST be saved with MIME type specifying PNG, GIF, SVG or JPG/JPEG formats: %(src)s."),
+                                       modelObject=elts, src=image[:128], evaluatedMsg=evaluatedMsg)
             elif dataURLParts.mimeSubtype not in ("gif", "jpeg", "png", "svg+xml"):
-                modelXbrl.error(f"{contentOtherThanXHTMLGuidance}.imageFormatNotSupported",
-                                _("Images included in the XHTML document MUST be saved in PNG, GIF, SVG or JPG/JPEG formats: %(src)s."),
-                                modelObject=elts, src=image[:128], evaluatedMsg=evaluatedMsg)
+                yield Validation.error((f"{contentOtherThanXHTMLGuidance}.imageFormatNotSupported", "NL.NL-KVK.3.5.1.5.imageFormatNotSupported"),
+                                       _("Images included in the XHTML document MUST be saved in PNG, GIF, SVG or JPG/JPEG formats: %(src)s."),
+                                       modelObject=elts, src=image[:128], evaluatedMsg=evaluatedMsg)
             # check for malicious image contents
             try:  # allow embedded newlines
                 imgContents = decodeBase64DataImage(dataURLParts.data)
-                checkImageContents(None, modelXbrl, elts, str(dataURLParts.mimeSubtype), False, imgContents, val.consolidated, val)
+                yield from checkImageContents(None, modelXbrl, elts, str(dataURLParts.mimeSubtype), False, imgContents, params, hasMimeType, val)
                 imgContents = b""  # deref, may be very large
 
             except binascii.Error as err:
-                modelXbrl.error(f"{contentOtherThanXHTMLGuidance}.embeddedImageNotUsingBase64Encoding",
-                                _("Base64 encoding error %(err)s in image source: %(src)s."),
-                                modelObject=elts, err=str(err), src=image[:128], evaluatedMsg=evaluatedMsg)
+                if params.recommendBase64EncodingEmbeddedImages:
+                    yield Validation.error(f"{contentOtherThanXHTMLGuidance}.embeddedImageNotUsingBase64Encoding",
+                                           _("Base64 encoding error %(err)s in image source: %(src)s."),
+                                           modelObject=elts, err=str(err), src=image[:128], evaluatedMsg=evaluatedMsg)
     else:
         # presume it to be an image file, check image contents
         try:
@@ -90,19 +146,18 @@ def validateImage(
             with modelXbrl.fileSource.file(normalizedUri, binary=True)[0] as fh:
                 imgContents = cast(bytes, fh.read())
                 imglen += len(imgContents or '')
-                checkImageContents(normalizedUri, modelXbrl, elts, os.path.splitext(image)[1], True, imgContents,
-                                   val.consolidated, val)
+                yield from checkImageContents(normalizedUri, modelXbrl, elts, os.path.splitext(image)[1], True, imgContents, params, False, val)
                 imgContents = b""  # deref, may be very large
-            if getDisclosureSystemYear(modelXbrl) < 2023 and imglen < minExternalRessourceSize:
-                modelXbrl.warning(
-                    "%s.imageIncludedAndNotEmbeddedAsBase64EncodedString" % contentOtherThanXHTMLGuidance,
+            if params.checkMinExternalResourceSize and imglen < minExternalRessourceSize:
+                yield Validation.warning(
+                    ("%s.imageIncludedAndNotEmbeddedAsBase64EncodedString" % contentOtherThanXHTMLGuidance, "NL.NL-KVK.3.5.1.imageIncludedAndNotEmbeddedAsBase64EncodedString"),
                     _("Images SHOULD be included in the XHTML document as a base64 encoded string unless their size exceeds the minimum size for the authority (%(maxImageSize)s): %(file)s."),
                     modelObject=elts, maxImageSize=minExternalRessourceSize, file=os.path.basename(normalizedUri), evaluatedMsg=evaluatedMsg)
         except IOError as err:
             fileReferencingImage = os.path.basename(baseUrl) if baseUrl else ''
-            modelXbrl.error(f"{contentOtherThanXHTMLGuidance}.imageFileCannotBeLoaded",
-                            _("Error opening the file '%(src)s' referenced by '%(fileReferencingImage)s': %(error)s"),
-                            modelObject=elts, src=image, fileReferencingImage=fileReferencingImage, error=err, evaluatedMsg=evaluatedMsg)
+            yield Validation.error((f"{contentOtherThanXHTMLGuidance}.imageFileCannotBeLoaded", "NL.NL-KVK.3.5.1.imageFileCannotBeLoaded"),
+                                   _("Error opening the file '%(src)s' referenced by '%(fileReferencingImage)s': %(error)s"),
+                                   modelObject=elts, src=image, fileReferencingImage=fileReferencingImage, error=err, evaluatedMsg=evaluatedMsg)
 
 
 def checkImageContents(
@@ -112,44 +167,49 @@ def checkImageContents(
     imgType: str,
     isFile: bool,
     data: bytes | str,
-    consolidated: bool,
+    params: ImageValidationParameters,
+    hasMimeType: bool,
     val: ValidateXbrl,
-) -> None:
-    guidance = 'ESEF.2.5.1' if consolidated else 'ESEF.4.1.3'
+) -> Iterable[Validation]:
+    guidance = params.contentOtherThanXHTMLGuidance
     if "svg" in imgType:
         try:
-            checkSVGContent(baseURI, modelXbrl, imgElts, data, guidance, val)
+            yield from checkSVGContent(baseURI, modelXbrl, imgElts, data, params, val)
         except XMLSyntaxError as err:
             try:
-                checkSVGContent(baseURI, modelXbrl, imgElts, unquote(data), guidance, val)  # Try with utf-8 decoded data as in conformance suite G4-1-3_2/TC2
+                yield from checkSVGContent(baseURI, modelXbrl, imgElts, unquote(data), params, val)  # Try with utf-8 decoded data as in conformance suite G4-1-3_2/TC2
             except XMLSyntaxError:
-                modelXbrl.error(f"{guidance}.imageFileCannotBeLoaded",
-                                _("Image SVG has XML error %(error)s"),
-                                modelObject=imgElts, error=err)
+                yield Validation.error((f"{guidance}.imageFileCannotBeLoaded", "NL.NL-KVK.3.5.1.imageFileCannotBeLoaded"),
+                                       _("Image SVG has XML error %(error)s"),
+                                       modelObject=imgElts, error=err)
         except UnicodeDecodeError as err:
-            modelXbrl.error(f"{guidance}.imageFileCannotBeLoaded",
-                _("Image SVG has XML error %(error)s"),
-                modelObject=imgElts, error=err)
+            yield Validation.error((f"{guidance}.imageFileCannotBeLoaded", "NL.NL-KVK.3.5.1.imageFileCannotBeLoaded"),
+                                   _("Image SVG has XML error %(error)s"),
+                                   modelObject=imgElts, error=err)
     else:
         headerType = validateGraphicHeaderType(data)  # type: ignore[arg-type]
         if (("gif" not in imgType and headerType == "gif") or
             ("jpeg" not in imgType and "jpg" not in imgType and headerType == "jpg") or
             ("png" not in imgType and headerType == "png")):
-            imageDoesNotMatchItsFileExtension = f"{guidance}.imageDoesNotMatchItsFileExtension"
-            incorrectMIMETypeSpecified = f"{guidance}.incorrectMIMETypeSpecified"
+            imageDoesNotMatchItsFileExtension = (f"{guidance}.imageDoesNotMatchItsFileExtension", "NL.NL-KVK.3.5.1.4.imageDoesNotMatchItsFileExtension")
+            incorrectMIMETypeSpecified = (f"{guidance}.incorrectMIMETypeSpecified", "NL.NL-KVK.3.5.1.3.incorrectMIMETypeSpecified")
             if isFile:
-                code = imageDoesNotMatchItsFileExtension
+                codes = imageDoesNotMatchItsFileExtension
                 message = _("File type %(headerType)s inferred from file signature does not match the file extension %(imgType)s")
             else:
-                code = incorrectMIMETypeSpecified
+                codes = incorrectMIMETypeSpecified
                 message = _("File type %(headerType)s inferred from file signature does not match the data URL media subtype (MIME subtype) %(imgType)s")
-            modelXbrl.error(code, message,
-                modelObject=imgElts, imgType=imgType, headerType=headerType,
-                messageCodes=(imageDoesNotMatchItsFileExtension, incorrectMIMETypeSpecified))
-        elif not any(it in imgType for it in supportedImgTypes[isFile]):
-            modelXbrl.error(f"{guidance}.imageFormatNotSupported",
-                            _("Images included in the XHTML document MUST be saved in PNG, GIF, SVG or JPEG formats: %(imgType)s is not supported"),
-                            modelObject=imgElts, imgType=imgType)
+            if isFile or params.missingMimeTypeIsIncorrect or hasMimeType:
+                yield Validation.error(codes, message,
+                    modelObject=imgElts, imgType=imgType, headerType=headerType,
+                    messageCodes=(
+                        imageDoesNotMatchItsFileExtension, incorrectMIMETypeSpecified,
+                        "NL.NL-KVK.3.5.1.3.incorrectMIMETypeSpecified", "NL.NL-KVK.3.5.1.4.imageDoesNotMatchItsFileExtension",
+                    ))
+        elif not any(it in imgType for it in params.supportedImgTypes[isFile]):
+            yield Validation.error((f"{guidance}.imageFormatNotSupported", "NL.NL-KVK.3.5.1.5.imageFormatNotSupported"),
+                                   _("Images included in the XHTML document MUST be saved in PNG, GIF, SVG or JPEG formats: %(imgType)s is not supported"),
+                                   modelObject=imgElts, imgType=imgType)
 
 
 def checkSVGContent(
@@ -157,16 +217,16 @@ def checkSVGContent(
     modelXbrl: ModelXbrl,
     imgElts: list[_Element],
     data: bytes | str,
-    guidance: str,
+    params: ImageValidationParameters,
     val: ValidateXbrl,
-) -> None:
+) -> Iterable[Validation]:
     if baseURI:
         svgDoc = cast(ModelDocument.ModelDocument, ModelDocument.load(modelXbrl, baseURI, referringElement=imgElts[0]))
         elt = svgDoc.xmlRootElement
     else:
         _parser, _, _ = parser(modelXbrl, baseURI)
         elt = XML(data, parser=_parser)
-    checkSVGContentElt(elt, baseURI, modelXbrl, imgElts, guidance, val)
+    yield from checkSVGContentElt(elt, baseURI, modelXbrl, imgElts, params, val)
 
 
 def getHref(elt:_Element) -> str:
@@ -183,16 +243,17 @@ def checkSVGContentElt(
     baseUrl: str | None,
     modelXbrl: ModelXbrl,
     imgElts: list[_Element],
-    guidance: str,
+    params: ImageValidationParameters,
     val: ValidateXbrl,
-) -> None:
+) -> Iterable[Validation]:
+    guidance = params.contentOtherThanXHTMLGuidance
     rootElement = True
     for elt in elt.iter():
         if rootElement:
             if elt.tag != "{http://www.w3.org/2000/svg}svg":
-                modelXbrl.error(f"{guidance}.imageFileCannotBeLoaded",
-                                _("Image SVG has root element which is not svg"),
-                                modelObject=imgElts)
+                yield Validation.error((f"{guidance}.imageFileCannotBeLoaded", "NL.NL-KVK.3.5.1.imageFileCannotBeLoaded"),
+                                       _("Image SVG has root element which is not svg"),
+                                       modelObject=imgElts)
             rootElement = False
         # Comments, processing instructions, and maybe other special constructs don't have string tags.
         if not isinstance(elt.tag, str):
@@ -200,14 +261,14 @@ def checkSVGContentElt(
         eltTag = elt.tag.rpartition("}")[2] # strip namespace
         if eltTag == "image":
             imgElts = [*imgElts, elt]
-            validateImage(baseUrl, getHref(elt), modelXbrl, val, imgElts, "", guidance)
+            yield from validateImage(baseUrl, getHref(elt), modelXbrl, val, imgElts, "", params)
         if eltTag in ("object", "script", "audio", "foreignObject", "iframe", "image", "use", "video"):
             href = elt.get("href","")
             if eltTag in ("object", "script") or "javascript:" in href:
-                modelXbrl.error(f"{guidance}.executableCodePresent",
-                                _("Inline XBRL images MUST NOT contain executable code: %(element)s"),
-                                modelObject=imgElts, element=eltTag)
+                yield Validation.error((f"{guidance}.executableCodePresent", "NL.NL-KVK.3.5.1.1.executableCodePresent"),
+                                       _("Inline XBRL images MUST NOT contain executable code: %(element)s"),
+                                       modelObject=imgElts, element=eltTag)
             elif scheme(href) in ("http", "https", "ftp"):
-                modelXbrl.error(f"{guidance}.referencesPointingOutsideOfTheReportingPackagePresent",
-                                _("Inline XBRL instance document [image] MUST NOT contain any reference pointing to resources outside the reporting package: %(element)s"),
-                                modelObject=imgElts, element=eltTag)
+                yield Validation.error((f"{guidance}.referencesPointingOutsideOfTheReportingPackagePresent", "NL.NL-KVK.3.6.2.1.inlineXbrlDocumentContainsExternalReferences"),
+                                       _("Inline XBRL instance document [image] MUST NOT contain any reference pointing to resources outside the reporting package: %(element)s"),
+                                       modelObject=imgElts, element=eltTag)

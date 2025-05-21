@@ -9,11 +9,19 @@ class TestValidateCssUrl(TestCase):
         validateCssUrl(
             '* { background: url("http://example.com") }',
             MagicMock(), modelXbrl, MagicMock(), MagicMock(), MagicMock())
-        self.assertEqual(modelXbrl.error.call_args.args[0], 'ESEF.4.1.6.xHTMLDocumentContainsExternalReferences')
+        expected = dict(
+            level='ERROR',
+            codes=('ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences', 'NL.NL-KVK.3.6.2.1.inlineXbrlDocumentContainsExternalReferences'),
+        )
+        self.assertLessEqual(expected.items(), modelXbrl.log.call_args.kwargs.items())
 
     def test_url_token(self) -> None:
         modelXbrl = MagicMock()
         validateCssUrl(
             '* { background: url(http://example.com) }',
             MagicMock(), modelXbrl, MagicMock(), MagicMock(), MagicMock())
-        self.assertEqual(modelXbrl.error.call_args.args[0], 'ESEF.4.1.6.xHTMLDocumentContainsExternalReferences')
+        expected = dict(
+            level='ERROR',
+            codes=('ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences', 'NL.NL-KVK.3.6.2.1.inlineXbrlDocumentContainsExternalReferences'),
+        )
+        self.assertLessEqual(expected.items(), modelXbrl.log.call_args.kwargs.items())

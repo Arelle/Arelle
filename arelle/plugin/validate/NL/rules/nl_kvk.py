@@ -10,6 +10,8 @@ from typing import Any, cast, TYPE_CHECKING
 
 import zipfile
 
+from lxml.etree import Element
+
 from arelle.ModelDtsObject import ModelLink, ModelResource, ModelType
 from arelle.ModelInstanceObject import ModelInlineFact
 from arelle.ModelObject import ModelObject
@@ -22,6 +24,8 @@ from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
+from arelle.utils.validate.DetectScriptsInXhtml import containsScriptMarkers
+from arelle.utils.validate.ESEFImage import ImageValidationParameters, validateImage
 from arelle.utils.validate.Validation import Validation
 from arelle.ValidateDuplicateFacts import getHashEquivalentFactGroups, getAspectEqualFacts
 from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
@@ -38,6 +42,7 @@ from ..PluginValidationDataExtension import (
     MAX_REPORT_PACKAGE_SIZE_MBS,
     NON_DIMENSIONALIZED_LINE_ITEM_LINKROLES,
     QN_DOMAIN_ITEM_TYPES,
+    SUPPORTED_IMAGE_TYPES_BY_IS_FILE,
     TAXONOMY_URLS_BY_YEAR,
     XBRLI_IDENTIFIER_PATTERN,
     XBRLI_IDENTIFIER_SCHEMA,
@@ -603,6 +608,72 @@ def rule_nl_kvk_3_4_2_1 (
             msg=_('The HTML <base> elements and xml:base attributes MUST NOT be used in the Inline XBRL document'),
             modelObject=baseElements
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_3_5_1_1_non_img (
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.3.5.1.1: Resources embedded or referenced by the XHTML document and its inline XBRL MUST NOT contain executable code.
+    """
+
+    executableElements = []
+    for ixdsHtmlRootElt in val.modelXbrl.ixdsHtmlElements:
+        for elt in ixdsHtmlRootElt.iter(Element):
+            if containsScriptMarkers(elt):
+                executableElements.append(elt)
+    if executableElements:
+        yield Validation.error(
+            codes='NL.NL-KVK.3.5.1.1.executableCodePresent',
+            msg=_("Resources embedded or referenced by the XHTML document and its inline XBRL MUST NOT contain executable code."),
+            modelObject=executableElements,
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_3_5_1_img (
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.3.5.1.1: Inline XBRL images MUST NOT contain executable code.
+    NL-KVK.3.5.1.2: Images included in the XHTML document MUST be saved with MIME type specifying PNG, GIF, SVG or JPG/JPEG formats.
+    NL-KVK.3.5.1.3: File type inferred from file signature does not match the data URL media subtype (MIME subtype).
+    NL-KVK.3.5.1.4: File type inferred from file signature does not match the file extension.
+    NL-KVK.3.5.1.5: Images included in the XHTML document MUST be saved in PNG, GIF, SVG or JPG/JPEG formats.
+    """
+
+    imageValidationParameters = ImageValidationParameters.from_non_esef(
+        checkMinExternalResourceSize=False,
+        missingMimeTypeIsIncorrect=False,
+        recommendBase64EncodingEmbeddedImages=False,
+        supportedImgTypes=SUPPORTED_IMAGE_TYPES_BY_IS_FILE,
+    )
+    for ixdsHtmlRootElt in val.modelXbrl.ixdsHtmlElements:
+        for elt in ixdsHtmlRootElt.iter((f'{{{XbrlConst.xhtml}}}img', '{http://www.w3.org/2000/svg}svg')):
+            src = elt.get('src', '').strip()
+            evaluatedMsg = _('On line {line}, "alt" attribute value: "{alt}"').format(line=elt.sourceline, alt=elt.get('alt'))
+            yield from validateImage(
+                elt.modelDocument.baseForElement(elt),
+                src,
+                val.modelXbrl,
+                val,
+                elt,
+                evaluatedMsg,
+                imageValidationParameters,
+            )
 
 
 @validation(
