@@ -48,16 +48,6 @@ def validateXbrlFinally(*args: Any, **kwargs: Any) -> None:
     return validationPlugin.validateXbrlFinally(*args, **kwargs)
 
 
-def modelTestcaseVariationReportPackageIxdsOptions(
-        val: ValidateXbrl,
-        rptPkgIxdsOptions: dict[str, bool],
-        *args: Any,
-        **kwargs: Any,
-) -> None:
-    rptPkgIxdsOptions["lookOutsideReportsDirectory"] = True
-    rptPkgIxdsOptions["combineIntoSingleIxds"] = True
-
-
 __pluginInfo__ = {
     "name": PLUGIN_NAME,
     "version": "0.0.1",
@@ -70,5 +60,4 @@ __pluginInfo__ = {
     "DisclosureSystem.ConfigURL": disclosureSystemConfigURL,
     "ModelXbrl.LoadComplete": modelXbrlLoadComplete,
     "Validate.XBRL.Finally": validateXbrlFinally,
-    "ModelTestcaseVariation.ReportPackageIxdsOptions": modelTestcaseVariationReportPackageIxdsOptions,
 }

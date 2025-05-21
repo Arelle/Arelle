@@ -18,7 +18,9 @@ config = ConformanceSuiteConfig(
     expected_additional_testcase_errors={f"report-package-conformance/index.csv:{s}": val for s, val in {
         # "Empty" iXBRL docs are missing schema required elements.
         "V-301-xbri-with-single-ixds": {
-            "lxml.SCHEMAV_ELEMENT_CONTENT": 1,
+            # There are two documents in the package, empty1.xhtml and empty2.xhtml,
+            # each missing a title, so we must see two schema errors.
+            "lxml.SCHEMAV_ELEMENT_CONTENT": 2,
             "ix11.14.1.2:missingResources": 1,
         },
         "V-302-xbri-with-single-html": {

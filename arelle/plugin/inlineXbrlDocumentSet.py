@@ -131,7 +131,6 @@ import regex as re
 from lxml.etree import XML, XMLSyntaxError
 
 from arelle import FileSource, ModelXbrl, ValidateDuplicateFacts, ValidateXbrlDimensions, XbrlConst
-from arelle.CntlrCmdLine import filesourceEntrypointFiles
 from arelle.FileSource import archiveFilenameParts, archiveFilenameSuffixes
 from arelle.ModelDocument import ModelDocument, ModelDocumentReference, Type, create, inlineIxdsDiscover, load
 from arelle.ModelInstanceObject import ModelInlineFootnote
@@ -142,6 +141,7 @@ from arelle.PrototypeDtsObject import ArcPrototype, LocPrototype
 from arelle.PythonUtil import attrdict, isLegacyAbs
 from arelle.RuntimeOptions import RuntimeOptions
 from arelle.UrlUtil import isHttpUrl
+from arelle.utils.EntryPointDetection import filesourceEntrypointFiles
 from arelle.ValidateDuplicateFacts import DeduplicationType
 from arelle.ValidateFilingText import CDATApattern
 from arelle.Version import authorLabel, copyrightLabel

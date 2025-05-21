@@ -26,6 +26,7 @@ from arelle.PluginManager import pluginClassMethods
 from arelle.packages.report.DetectReportPackage import isReportPackageExtension
 from arelle.packages.report.ReportPackageValidator import ReportPackageValidator
 from arelle.rendering import RenderingEvaluator
+from arelle.utils.EntryPointDetection import filesourceEntrypointFiles
 from arelle.XmlUtil import collapseWhitespace, xmlstring
 
 def validate(modelXbrl):
@@ -167,7 +168,6 @@ class Validate:
                     filesource = FileSource.openFileSource(rssItemUrl, self.modelXbrl.modelManager.cntlr)
                     if filesource and not filesource.selection and filesource.isArchive:
                         try:
-                            from arelle.CntlrCmdLine import filesourceEntrypointFiles
                             entrypoints = filesourceEntrypointFiles(filesource)
                             if entrypoints:
                                 # resolve an IXDS in entrypoints
@@ -395,7 +395,6 @@ class Validate:
                             filesource.loadTaxonomyPackageMappings(errors=preLoadingErrors, expectTaxonomyPackage=expectTaxonomyPackage)
                             filesource.select(None) # must select loadable reports (not the taxonomy package itself)
                         elif not filesource.isReportPackage:
-                            from arelle.CntlrCmdLine import filesourceEntrypointFiles
                             entrypoints = filesourceEntrypointFiles(filesource)
                             if entrypoints:
                                 # resolve an IXDS in entrypoints
@@ -409,17 +408,20 @@ class Validate:
                         return [] # don't try to load this entry URL
                 if filesource and filesource.isReportPackage and not _rptPkgIxdsOptions:
                     if not reportPackageErrors:
-                        for report in filesource.reportPackage.reports or []:
-                            assert isinstance(filesource.basefile, str)
-                            modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager,
-                                                        report.primary,
-                                                        _("validating"),
-                                                        useFileSource=filesource,
-                                                        base=filesource.basefile + "/",
-                                                        errorCaptureLevel=errorCaptureLevel,
-                                                        ixdsTarget=modelTestcaseVariation.ixdsTarget,
-                                                        errors=preLoadingErrors)
-                            loadedModels.append(modelXbrl)
+                        assert isinstance(filesource.basefile, str)
+                        if entrypoints := filesourceEntrypointFiles(filesource):
+                            for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ArchiveIxds"):
+                                pluginXbrlMethod(self, filesource, entrypoints)
+                            for entrypoint in entrypoints:
+                                filesource.select(entrypoint.get("file", None))
+                                modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager,
+                                                            filesource,
+                                                            _("validating"),
+                                                            base=filesource.basefile + "/",
+                                                            errorCaptureLevel=errorCaptureLevel,
+                                                            ixdsTarget=modelTestcaseVariation.ixdsTarget,
+                                                            errors=preLoadingErrors)
+                                loadedModels.append(modelXbrl)
                 else:
                     if _rptPkgIxdsOptions and filesource.isTaxonomyPackage:
                         # Legacy ESEF conformance suite logic.
