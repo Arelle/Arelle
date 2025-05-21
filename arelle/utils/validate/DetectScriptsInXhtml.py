@@ -92,9 +92,7 @@ def _hasEventAttributes(elt: Any, attributes: Collection[str]) -> bool:
 def containsScriptMarkers(elt: Any) -> Any:
     _xhtmlNs = "{{{}}}".format(xhtml)
     _xhtmlNsLen = len(_xhtmlNs)
-    eltTag = elt.tag
-    if eltTag.startswith(_xhtmlNs):
-        eltTag = eltTag[_xhtmlNsLen:]
+    eltTag = elt.tag.removeprefix(_xhtmlNs)
     if ((eltTag in ("object", "script")) or
             (eltTag == "a" and "javascript:" in elt.get("href","")) or
             (eltTag == "img" and "javascript:" in elt.get("src","")) or
