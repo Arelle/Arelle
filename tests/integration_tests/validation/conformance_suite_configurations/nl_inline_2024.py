@@ -19,16 +19,13 @@ config = ConformanceSuiteConfig(
         *NL_PACKAGES['NL-INLINE-2024'],
     ],
     expected_additional_testcase_errors={f"conformance-suite-2024-sbr-domein-handelsregister/tests/{s}": val for s, val in {
-        'G3-2-4_2/index.xml:TC3_valid': {
-            'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 1,
-        },
         'G4-1-2_1/index.xml:TC2_valid': {
             'undefinedLanguageForTextFact': 1,
-            'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 1,
+            'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 5,
         },
         'RTS_Annex_II_Par_1_RTS_Annex_IV_par_7/index.xml:TC2_valid': {
             'undefinedLanguageForTextFact': 1,
-            'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 1,
+            'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 5,
         },
         'RTS_Annex_IV_Par_1_G3-1-4_1/index.xml:TC2_invalid': {
             'message:valueKvKIdentifier': 13,
@@ -43,7 +40,7 @@ config = ConformanceSuiteConfig(
         },
         'RTS_Annex_IV_Par_6/index.xml:TC2_valid': {
             'undefinedLanguageForTextFact': 1,
-            'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 1,
+            'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 5,
         },
     }.items()},
     expected_failure_ids=frozenset([

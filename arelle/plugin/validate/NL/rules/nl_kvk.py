@@ -17,6 +17,7 @@ from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
+from arelle.ValidateDuplicateFacts import getHashEquivalentFactGroups, getAspectEqualFacts
 from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
 from ..DisclosureSystems import DISCLOSURE_SYSTEM_NL_INLINE_2024
 from ..PluginValidationDataExtension import (PluginValidationDataExtension, XBRLI_IDENTIFIER_PATTERN,
@@ -507,20 +508,19 @@ def rule_nl_kvk_3_5_2_2(
     NL-KVK.3.5.2.2: All tagged text facts MUST be provided in at least the language of the report.
     """
     reportXmlLang = pluginData.getReportXmlLang(val.modelXbrl)
-    factsWithWrongLang = set()
-    for fact in val.modelXbrl.facts:
-        if (fact is not None and
-                fact.concept is not None and
-                fact.concept.type is not None and
-                fact.concept.type.isOimTextFactType and
-                fact.xmlLang != reportXmlLang):
-            factsWithWrongLang.add(fact)
-    if len(factsWithWrongLang) > 0:
-        yield Validation.error(
-            codes='NL.NL-KVK.3.5.2.2.taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport',
-            msg=_('Tagged text facts MUST be provided in the language of the report.'),
-            modelObject=factsWithWrongLang
-        )
+    filtered_facts = [f for f in val.modelXbrl.facts if f.concept is not None and
+                      f.concept.type is not None and
+                      f.concept.type.isOimTextFactType and
+                      f.context is not None]
+    factGroups = getHashEquivalentFactGroups(filtered_facts)
+    for fgroup in factGroups:
+        for flist in getAspectEqualFacts(fgroup, includeSingles=True, useLang=False):
+            if not any(f.xmlLang == reportXmlLang for f in flist):
+                yield Validation.error(
+                    codes='NL.NL-KVK.3.5.2.2.taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport',
+                    msg=_('Tagged text facts MUST be provided in the language of the report.'),
+                    modelObject=fgroup
+                )
 
 
 @validation(
