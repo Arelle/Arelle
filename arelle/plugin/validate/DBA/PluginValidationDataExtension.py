@@ -13,6 +13,7 @@ from arelle.ModelInstanceObject import ModelFact, ModelContext
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import ModelXbrl
 from arelle.utils.PluginData import PluginData
+from arelle.XmlValidateConst import VALID
 
 
 @dataclass
@@ -47,7 +48,6 @@ class PluginValidationDataExtension(PluginData):
     consolidatedSoloDimensionQn: QName
     cpr_regex: regex.regex.Pattern[str]
     dateOfApprovalOfAnnualReportQn: QName
-    dateOfApprovalOfReportQn: QName
     dateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod: QName
     dateOfGeneralMeetingQn: QName
     descriptionOfQualificationsOfAssuranceEngagementPerformedQn: QName
@@ -157,3 +157,11 @@ class PluginValidationDataExtension(PluginData):
             contexts.append(context)
         self._reportingPeriodContexts = sorted(contexts, key=lambda c: c.endDatetime)
         return self._reportingPeriodContexts
+
+    def isAnnualReport(self, modelXbrl: ModelXbrl) -> bool:
+        """
+        :return: Return True if Type of Submitted Report value is in the annual report types
+        """
+        reportTypeFacts = modelXbrl.factsByQname.get(self.informationOnTypeOfSubmittedReportQn, set())
+        filteredReportTypeFacts = [f for f in reportTypeFacts if f.xValid >= VALID and f.xValue in self.annualReportTypes]
+        return len(filteredReportTypeFacts) > 0
