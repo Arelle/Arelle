@@ -185,7 +185,10 @@ class PluginValidationDataExtension(PluginData):
     @lru_cache(1)
     def getFilenameFormatPattern(self):
         return re.compile(
-            r"^(?<base>\w*)-(?<date>[\w-]*)-(?<lang>\w*)\.(?<extension>html|htm|xhtml)$",
+            r"^(?<base>[^-]*)"
+            r"-(?<year>\d{4})-(?<month>0[1-9]|1[012])-(?<day>0?[1-9]|[12][0-9]|3[01])"
+            r"-(?<lang>[^-]*)"
+            r"\.(?<extension>html|htm|xhtml)$",
             flags=re.ASCII
         )
 
