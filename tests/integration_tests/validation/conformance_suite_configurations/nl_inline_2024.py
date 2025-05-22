@@ -19,6 +19,11 @@ config = ConformanceSuiteConfig(
         *NL_PACKAGES['NL-INLINE-2024'],
     ],
     expected_additional_testcase_errors={f"conformance-suite-2024-sbr-domein-handelsregister/tests/{s}": val for s, val in {
+        'G3-6-3_3/index.xml:TC2_invalid': {
+            # Testcase expects only 3.6.3.3, but has a filename that has invalid characters (3.6.3.3)
+            # AND {base} with > 20 characters (3.6.3.1)
+            'baseComponentInDocumentNameExceedsTwentyCharacters': 1,
+        },
         'G4-1-2_1/index.xml:TC2_valid': {
             'undefinedLanguageForTextFact': 1,
             'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 5,

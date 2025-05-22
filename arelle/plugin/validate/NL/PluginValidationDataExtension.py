@@ -176,14 +176,14 @@ class PluginValidationDataExtension(PluginData):
         return self.checkFootnotes(modelXbrl).factLangFootnotes
 
     @lru_cache(1)
-    def getFilenameAllowedCharactersPattern(self):
+    def getFilenameAllowedCharactersPattern(self) -> re.Pattern[str]:
         return re.compile(
             r"^[\w\.-]*$",
             flags=re.ASCII
         )
 
     @lru_cache(1)
-    def getFilenameFormatPattern(self):
+    def getFilenameFormatPattern(self) -> re.Pattern[str]:
         return re.compile(
             r"^(?<base>[^-]*)"
             r"-(?<year>\d{4})-(?<month>0[1-9]|1[012])-(?<day>0?[1-9]|[12][0-9]|3[01])"
@@ -223,6 +223,11 @@ class PluginValidationDataExtension(PluginData):
                         reportXmlLang = xmlLang
                         firstRootmostXmlLangDepth = depth
         return reportXmlLang
+
+    @lru_cache(1)
+    def isFilenameValidCharacters(self, filename: str) -> bool:
+        match = self.getFilenameAllowedCharactersPattern().match(filename)
+        return match is not None
 
     @lru_cache(1)
     def unitsByDocument(self, modelXbrl: ModelXbrl) -> dict[str, list[ModelUnit]]:

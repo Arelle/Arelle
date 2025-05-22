@@ -574,7 +574,7 @@ def rule_nl_kvk_3_6_3_1(
     for basename in pluginData.getIxdsDocBasenames(val.modelXbrl):
         filenameParts = pluginData.getFilenameParts(basename)
         if not filenameParts:
-            continue  # Filename pattern not matched
+            continue  # Filename is not formatted correctly enough to determine {base}
         if len(filenameParts.get('base', '')) > 20:
             invalidBasenames.append(basename)
     if len(invalidBasenames) > 0:
@@ -605,9 +605,6 @@ def rule_nl_kvk_3_6_3_2(
     """
     invalidBasenames = []
     for basename in pluginData.getIxdsDocBasenames(val.modelXbrl):
-        match = pluginData.getFilenameAllowedCharactersPattern().match(basename)
-        if not match:
-            continue  # Let NL-KVK.3.6.3.3 handle this
         filenameParts = pluginData.getFilenameParts(basename)
         if not filenameParts:
             invalidBasenames.append(basename)
@@ -640,8 +637,7 @@ def rule_nl_kvk_3_6_3_3(
     """
     invalidBasenames = []
     for basename in pluginData.getIxdsDocBasenames(val.modelXbrl):
-        match = pluginData.getFilenameAllowedCharactersPattern().match(basename)
-        if not match:
+        if not pluginData.isFilenameValidCharacters(basename):
             invalidBasenames.append(basename)
     if len(invalidBasenames) > 0:
         yield Validation.error(
