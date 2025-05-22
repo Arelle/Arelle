@@ -467,6 +467,128 @@ def rule_nl_kvk_3_3_1_3 (
         DISCLOSURE_SYSTEM_NL_INLINE_2024
     ],
 )
+def rule_nl_kvk_3_4_1_1 (
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.3.4.1.1: ix:tuple element should not be used in the Inline XBRL document.
+    """
+    tuples = pluginData.getTupleElements(val.modelXbrl)
+    if len(tuples) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.3.4.1.1.tupleElementUsed',
+            msg=_('ix:tuple element should not be used in the Inline XBRL document.'),
+            modelObject=tuples
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
+def rule_nl_kvk_3_4_1_2 (
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.3.4.1.2: ix:fraction element should not be used in the Inline XBRL document.
+    """
+    fractions = pluginData.getFractionElements(val.modelXbrl)
+    if len(fractions) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.3.4.1.2.fractionElementUsed',
+            msg=_('ix:fraction element should not be used in the Inline XBRL document.'),
+            modelObject=fractions
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
+def rule_nl_kvk_3_4_1_3 (
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.3.4.1.3: The ix:hidden section should not include elements that are eligible for transformation
+    according to the latest recommended Transformation Rules Registry.
+    """
+    facts = pluginData.getEligibleForTransformHiddenFacts(val.modelXbrl)
+    if len(facts) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.3.4.1.3.transformableElementIncludedInHiddenSection',
+            msg=_('The ix:hidden section should not include elements that are eligible for transformation'
+                  'according to the latest recommended Transformation Rules Registry.'),
+            modelObject=facts
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
+def rule_nl_kvk_3_4_1_4 (
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.3.4.1.4: ix:hidden section should not contain a fact whose @id attribute is not applied on any ix-hidden style.
+    """
+    facts = pluginData.getRequiredToDisplayFacts(val.modelXbrl)
+    if len(facts) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.3.4.1.4.factInHiddenSectionNotInReport',
+            msg=_('ix:hidden section should not contain a fact whose @id attribute is not applied on any -ix-hidden style.'),
+            modelObject=facts
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
+def rule_nl_kvk_3_4_1_5 (
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.3.4.1.5: ix:hidden section should not contain a fact whose @id attribute is not applied on any ix-hidden style.
+    """
+    facts = pluginData.getHiddenFactsOutsideHiddenSection(val.modelXbrl)
+    if len(facts) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.3.4.1.5.kvkIxHiddenStyleNotLinkingFactInHiddenSection',
+            msg=_('Review for -ix-hidden style identifies @id attribute of a fact that is not in ix:hidden section'),
+            modelObject=facts
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
 def rule_nl_kvk_3_5_2_1(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
