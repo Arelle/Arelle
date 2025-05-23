@@ -44,6 +44,7 @@ UNTRANSFORMABLE_TYPES = frozenset((
 "language",
 ))
 STYLE_IX_HIDDEN_PATTERN = re.compile(r"(.*[^\w]|^)ix-hidden\s*:\s*([\w.-]+).*")
+STYLE_CSS_HIDDEN_PATTERN = re.compile(r"(.*[^\w]|^)display\s*:\s*none([^\w].*|$)")
 
 ALLOWABLE_LANGUAGES = frozenset((
     'nl',
@@ -61,6 +62,7 @@ class ContextData:
 
 @dataclass(frozen=True)
 class HiddenElementsData:
+    cssHiddenFacts: set[ModelInlineFact]
     eligibleForTransformHiddenFacts: set[ModelInlineFact]
     hiddenFactsOutsideHiddenSection: set[ModelInlineFact]
     requiredToDisplayFacts: set[ModelInlineFact]
@@ -134,9 +136,11 @@ class PluginValidationDataExtension(PluginData):
 
     @lru_cache(1)
     def checkHiddenElements(self, modelXbrl: ModelXbrl) -> HiddenElementsData:
+        cssHiddenFacts = set()
         eligibleForTransformHiddenFacts = set()
         hiddenEltIds = {}
         hiddenFactsOutsideHiddenSection = set()
+        ixHiddenFacts = set()
         presentedHiddenEltIds = defaultdict(list)
         requiredToDisplayFacts = set()
         for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
@@ -149,6 +153,13 @@ class PluginValidationDataExtension(PluginData):
                                 eligibleForTransformHiddenFacts.add(ixElt)
                         if ixElt.id:
                             hiddenEltIds[ixElt.id] = ixElt
+                        ixHiddenFacts.add(ixElt)
+            for cssHiddenElt in ixdsHtmlRootElt.getroottree().iterfind(".//{http://www.w3.org/1999/xhtml}*[@style]"):
+                if STYLE_CSS_HIDDEN_PATTERN.match(cssHiddenElt.get("style","")):
+                    for tag in (ixNStag + "nonNumeric", ixNStag+"nonFraction"):
+                        for ixElt in cssHiddenElt.iterdescendants(tag=tag):
+                            if ixElt not in ixHiddenFacts:
+                                cssHiddenFacts.add(ixElt)
         for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
             for ixElt in ixdsHtmlRootElt.getroottree().iterfind(".//{http://www.w3.org/1999/xhtml}*[@style]"):
                 styleValue = ixElt.get("style","")
@@ -165,6 +176,7 @@ class PluginValidationDataExtension(PluginData):
                     (ixElt.concept.baseXsdType in UNTRANSFORMABLE_TYPES or ixElt.isNil)):
                 requiredToDisplayFacts.add(ixElt)
         return HiddenElementsData(
+            cssHiddenFacts=cssHiddenFacts,
             eligibleForTransformHiddenFacts=eligibleForTransformHiddenFacts,
             hiddenFactsOutsideHiddenSection=hiddenFactsOutsideHiddenSection,
             requiredToDisplayFacts=requiredToDisplayFacts,
@@ -289,6 +301,9 @@ class PluginValidationDataExtension(PluginData):
 
     def getOrphanedFootnotes(self, modelXbrl: ModelXbrl) -> set[ModelInlineFootnote]:
         return self.checkInlineHTMLElements(modelXbrl).orphanedFootnotes
+
+    def getCssHiddenFacts(self, modelXbrl: ModelXbrl) -> set[ModelInlineFact]:
+        return self.checkHiddenElements(modelXbrl).cssHiddenFacts
 
     def getRequiredToDisplayFacts(self, modelXbrl: ModelXbrl) -> set[ModelInlineFact]:
         return self.checkHiddenElements(modelXbrl).requiredToDisplayFacts
