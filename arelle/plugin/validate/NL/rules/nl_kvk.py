@@ -651,7 +651,7 @@ def rule_nl_kvk_3_5_2_2(
         DISCLOSURE_SYSTEM_NL_INLINE_2024
     ],
 )
-def rule_nl_kvk_3_5_2_3 (
+def rule_nl_kvk_3_5_2_3(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
         *args: Any,
@@ -670,6 +670,102 @@ def rule_nl_kvk_3_5_2_3 (
     if len(badLangsUsed) > 0:
         yield Validation.warning(
             codes='NL.NL-KVK.3.5.2.3.invalidLanguageAttribute',
+            badLangsUsed=', '.join(badLangsUsed),
             msg=_('The lang attribute should use one of the following: \'nl\' or \'en\' or \'de\' or \'fr\'. '
-                  'The following languages are used incorrectly: {}'.format(badLangsUsed)),
+                  'The following languages are used incorrectly: %(badLangsUsed)s'),
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
+def rule_nl_kvk_3_6_3_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.3.6.3.1: The report filename will have the form `{base}-{date}-{lang}.{extension}`.
+    The `{base}` component of the filename SHOULD not exceed twenty characters.
+    """
+    invalidBasenames = []
+    for basename in pluginData.getIxdsDocBasenames(val.modelXbrl):
+        filenameParts = pluginData.getFilenameParts(basename)
+        if not filenameParts:
+            continue  # Filename is not formatted correctly enough to determine {base}
+        if len(filenameParts.get('base', '')) > 20:
+            invalidBasenames.append(basename)
+    if len(invalidBasenames) > 0:
+        yield Validation.warning(
+            codes='NL.NL-KVK.3.6.3.1.baseComponentInDocumentNameExceedsTwentyCharacters',
+            invalidBasenames=', '.join(invalidBasenames),
+            msg=_('The {base} component of the filename is greater than twenty characters. '
+                  'The {base} component can either be the KVK number or the legal entity\'s name. '
+                  'If the legal entity\'s name has been utilized, review to shorten the name to twenty characters or less. '
+                  'Invalid filenames: %(invalidBasenames)s'))
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
+def rule_nl_kvk_3_6_3_2(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.3.6.3.2: Report filename SHOULD match the {base}-{date}-{lang}.{extension} pattern.
+    {extension} MUST be one of the following: html, htm, xhtml.
+    """
+    invalidBasenames = []
+    for basename in pluginData.getIxdsDocBasenames(val.modelXbrl):
+        filenameParts = pluginData.getFilenameParts(basename)
+        if not filenameParts:
+            invalidBasenames.append(basename)
+    if len(invalidBasenames) > 0:
+        yield Validation.warning(
+            codes='NL.NL-KVK.3.6.3.2.documentNameDoesNotFollowNamingConvention',
+            invalidBasenames=', '.join(invalidBasenames),
+            msg=_('The filename does not match the naming convention outlined by the KVK. '
+                  'It is recommended to be in the {base}-{date}-{lang}.{extension} format. '
+                  '{extension} must be one of the following: html, htm, xhtml. '
+                  'Review formatting and update as appropriate. '
+                  'Invalid filenames: %(invalidBasenames)s'))
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
+def rule_nl_kvk_3_6_3_3(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.3.6.3.3: Report filename MUST only contain allowed characters.
+    Filenames can include the following characters: A-Z, a-z, 0-9, underscore ( _ ), period ( . ), hyphen ( - ).
+    """
+    invalidBasenames = []
+    for basename in pluginData.getIxdsDocBasenames(val.modelXbrl):
+        if not pluginData.isFilenameValidCharacters(basename):
+            invalidBasenames.append(basename)
+    if len(invalidBasenames) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.3.6.3.3.documentFileNameIncludesCharactersNotAllowed',
+            invalidBasenames=', '.join(invalidBasenames),
+            msg=_('The file name includes characters that are now allowed. '
+                  'Allowed characters include: A-Z, a-z, 0-9, underscore ( _ ), period ( . ), and hyphen ( - ). '
+                  'Update filing naming to review unallowed characters. '
+                  'Invalid filenames: %(invalidBasenames)s'))

@@ -6,6 +6,7 @@ from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass
 from functools import lru_cache
+from pathlib import Path
 from typing import Any, TYPE_CHECKING, cast
 
 import regex as re
@@ -255,6 +256,34 @@ class PluginValidationDataExtension(PluginData):
     def getHiddenFactsOutsideHiddenSection(self, modelXbrl: ModelXbrl) -> set[ModelInlineFact]:
         return self.checkHiddenElements(modelXbrl).hiddenFactsOutsideHiddenSection
 
+    @lru_cache(1)
+    def getFilenameAllowedCharactersPattern(self) -> re.Pattern[str]:
+        return re.compile(
+            r"^[\w\.-]*$",
+            flags=re.ASCII
+        )
+
+    @lru_cache(1)
+    def getFilenameFormatPattern(self) -> re.Pattern[str]:
+        return re.compile(
+            r"^(?<base>[^-]*)"
+            r"-(?<year>\d{4})-(?<month>0[1-9]|1[012])-(?<day>0?[1-9]|[12][0-9]|3[01])"
+            r"-(?<lang>[^-]*)"
+            r"\.(?<extension>html|htm|xhtml)$",
+            flags=re.ASCII
+        )
+
+    @lru_cache(1)
+    def getFilenameParts(self, filename: str) -> dict[str, Any] | None:
+        match = self.getFilenameFormatPattern().match(filename)
+        if match:
+            return match.groupdict()
+        return None
+
+    @lru_cache(1)
+    def getIxdsDocBasenames(self, modelXbrl: ModelXbrl) -> set[str]:
+        return set(Path(url).name for url in modelXbrl.ixdsDocUrls)
+
     def getNoMatchLangFootnotes(self, modelXbrl: ModelXbrl) -> set[ModelInlineFootnote]:
         return self.checkInlineHTMLElements(modelXbrl).noMatchLangFootnotes
 
@@ -281,6 +310,11 @@ class PluginValidationDataExtension(PluginData):
                         reportXmlLang = xmlLang
                         firstRootmostXmlLangDepth = depth
         return reportXmlLang
+
+    @lru_cache(1)
+    def isFilenameValidCharacters(self, filename: str) -> bool:
+        match = self.getFilenameAllowedCharactersPattern().match(filename)
+        return match is not None
 
     @lru_cache(1)
     def unitsByDocument(self, modelXbrl: ModelXbrl) -> dict[str, list[ModelUnit]]:
