@@ -16,7 +16,7 @@ class XbrlRelationship(XbrlTaxonomyObject):
     target: QName # (required) This attribute identifies the target concept of the relationship type. The value of the attribute must be a QName.
     order: Optional[int] # (optional) This is used to order the relationships if the order is different than the order that the relationship appears in the list of relationships. The order property can be used on any relationship type.
     weight: Optional[int] # (required on summation-item) Weight of a summation-item relationship type.
-    preferredlabel: Optional[QName] # (optional on parent-child) The preferred label QName of a parent-child relationship type.
+    preferredLabel: Optional[QName] # (optional on parent-child) The preferred label QName of a parent-child relationship type.
     usable: Optional[bool] # (optional on domain-member) Indicates if the member value is useable on a domain-member relationship.
     properties: OrderedSet[XbrlProperty] # (optional) ordered set of property objects used to specify additional properties associated with the concept using the property object. Only immutable properties as defined in the propertyType object can be added to a concept.
 
@@ -27,8 +27,8 @@ class XbrlRelationship(XbrlTaxonomyObject):
             nestedProperties.append( ("order", str(self.order)) )
         if hasattr(self, "weight"):
             nestedProperties.append( ("weight", str(self.weight)) )
-        if hasattr(self, "preferredlabel"):
-            nestedProperties.append( ("preferredlabel", str(self.preferredlabel)) )
+        if hasattr(self, "preferredLabel"):
+            nestedProperties.append( ("preferredLabel", str(self.preferredLabel)) )
         if hasattr(self, "useable"):
             nestedProperties.append( ("useable", str(self.useable)) )
         if getattr(self, "properties", None):

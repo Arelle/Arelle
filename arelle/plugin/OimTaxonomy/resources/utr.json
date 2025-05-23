@@ -2774,7 +2774,7 @@
             {
                 "name": "utr:baseStandardIdentifier",
                 "dataType": "xs:string",
-                "immutable": false,
+                "definitional": false,
                 "allowedObjects": [
                     "xbrl:referenceObject"
                 ]
@@ -2782,7 +2782,7 @@
             {
                 "name": "utr:dateUnitCreated",
                 "dataType": "xs:date",
-                "immutable": false,
+                "definitional": false,
                 "allowedObjects": [
                     "xbrl:referenceObject"
                 ]

@@ -32,10 +32,7 @@
       "taxonomy": {
             "type": "object",
             "properties": {
-                "name": {
-                    "type": "string",
-                    "pattern": "^[A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z_][A-Za-z0-9_.-]*$"
-                },
+                "name": { "$ref": "#/definitions/QName" },
                 "resolved": {
                     "type": "boolean"
                 },
@@ -50,20 +47,14 @@
                   "items": {
                     "type": "object",
                     "properties": {
-                      "taxonomyName": {
-                        "type": "string"
-                      },
+                      "taxonomyName": { "$ref": "#/definitions/QName" },
                       "includeObjects": {
                         "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
+                        "items": { "$ref": "#/definitions/QName" }
                       },
                       "includeObjectTypes": {
                         "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
+                        "items": { "$ref": "#/definitions/QName" }
                       },
                       "excludeLabels": {
                         "type": "boolean"
@@ -81,20 +72,14 @@
                     "items": {
                       "type": "object",
                       "properties": {
-                        "name": {
-                          "type": "string"
-                        },
-                        "dataType": {
-                          "type": "string"
-                        },
-                        "immutable": {
+                        "name": { "$ref": "#/definitions/QName" },
+                        "dataType": { "$ref": "#/definitions/QName" },
+                        "definitional": {
                           "type": "boolean"
                         },
                         "allowedObjects": {
                           "type": "array",
-                          "items": {
-                            "type": "string"
-                          }
+                          "items":{ "$ref": "#/definitions/QName" }
                         },
                         "allowedAsLinkProperty": {
                           "type": "boolean"
@@ -109,9 +94,7 @@
                     "items": {
                         "type": "object",
                         "properties": {
-                            "name": {
-                                "type": "string"
-                            },
+                            "name": { "$ref": "#/definitions/QName" },
                              "properties": {
                                 "type": "array",
                                  "items": { "$ref": "#/definitions/propertyObject"},
@@ -127,9 +110,7 @@
                     "items": {
                         "type": "object",
                         "properties": {
-                            "name": {
-                                "type": "string"
-                            },
+                            "name": { "$ref": "#/definitions/QName" },
                              "properties": {
                                 "type": "array",
                                  "items": { "$ref": "#/definitions/propertyObject"},
@@ -145,19 +126,13 @@
                     "items": {
                       "type": "object",
                       "properties": {
-                        "name": {
-                          "type": "string"
-                        },
-                        "dataType": {
-                          "type": "string"
-                        },
+                        "name": { "$ref": "#/definitions/QName" },
+                        "dataType": { "$ref": "#/definitions/QName" },
                         "periodType": {
                           "type": "string",
-                          "enum": ["instant", "duration"]
+                          "enum": ["instant", "duration","none"]
                         },
-                        "enumerationDomain": {
-                          "type": "string"
-                        },
+                        "enumerationDomain": { "$ref": "#/definitions/QName" },
                         "nillable": {
                           "type": "boolean"
                         },
@@ -176,28 +151,16 @@
                     "items": {
                         "type": "object",
                         "properties": {
-                      "name": {
-                        "type": "string",
-                        "description": "QName that uniquely identifies the cube object."
-                      },
-                      "cubeType": {
-                        "type": "string",
-                        "description": "QName identifying the type of data cube being represented."
-                      },
+                      "name": { "$ref": "#/definitions/QName" },
+                      "cubeType": { "$ref": "#/definitions/QName" },
                       "cubeDimensions": {
                         "type": "array",
                         "description": "Ordered set of cubeDimension objects used on the cube.",
                         "items": {
                           "type": "object",
                           "properties": {
-                            "dimensionName": {
-                              "type": "string",
-                              "description": "QName of the dimension object."
-                            },
-                            "domainName": {
-                              "type": "string",
-                              "description": "QName of the domain object associated with the dimension."
-                            },
+                            "dimensionName": { "$ref": "#/definitions/QName" },
+                            "domainName": { "$ref": "#/definitions/QName" },
                             "typedSort": {
                               "type": "string",
                               "enum": ["asc", "desc"],
@@ -220,157 +183,18 @@
                                   },
                                   "timeSpan": {
                                     "type": "string",
+                                    "pattern": "^P(?!$)(\\d+Y)?(\\d+M)?(\\d+D)?(T(\\d+H)?(\\d+M)?(\\d+S)?)?$",
                                     "description": "Duration of time using XML duration type."
                                   },
                                   "periodFormat": {
                                     "type": "string",
                                     "description": "Duration of time with an end date."
                                   },
-                                  "monthDay": {
-                                    "type": "object",
-                                    "description": "Gregorian date that recurs (dateResolution object).",
-                                    "properties": {
-                                        "conceptName": {
-                                          "type": "string",
-                                          "description": "QName of a concept object that has a date fact value."
-                                        },
-                                        "context": {
-                                          "type": "string",
-                                          "description": "QName of a concept object, with optional @end or @start suffix to indicate which date from the context is used."
-                                        },
-                                        "value": {
-                                          "type": "string",
-                                          "format": "date",
-                                          "description": "A literal date value representing the end date."
-                                        },
-                                        "timeShift": {
-                                          "type": "string",
-                                          "description": "A duration (ISO 8601) string to shift the resolved date."
-                                        }
-                                      },
-                                      "oneOf": [
-                                        { "required": ["conceptName"] },
-                                        { "required": ["context"] },
-                                        { "required": ["value"] }
-                                      ],
-                                      "additionalProperties": false
-                                  },
-                                  "endDate": {
-                                    "type": "object",
-                                    "description": "End date for a duration fact or instant fact (dateResolution object).",
-                                    "properties": {
-                                        "conceptName": {
-                                          "type": "string",
-                                          "description": "QName of a concept object that has a date fact value."
-                                        },
-                                        "context": {
-                                          "type": "string",
-                                          "description": "QName of a concept object, with optional @end or @start suffix to indicate which date from the context is used."
-                                        },
-                                        "value": {
-                                          "type": "string",
-                                          "format": "date",
-                                          "description": "A literal date value representing the end date."
-                                        },
-                                        "timeShift": {
-                                          "type": "string",
-                                          "description": "A duration (ISO 8601) string to shift the resolved date."
-                                        }
-                                      },
-                                      "oneOf": [
-                                        { "required": ["conceptName"] },
-                                        { "required": ["context"] },
-                                        { "required": ["value"] }
-                                      ],
-                                      "additionalProperties": false
-                                  },
-                                  "startDate": {
-                                    "type": "object",
-                                    "description": "Start date for a duration fact or instant fact (dateResolution object).",
-                                    "properties": {
-                                        "conceptName": {
-                                          "type": "string",
-                                          "description": "QName of a concept object that has a date fact value."
-                                        },
-                                        "context": {
-                                          "type": "string",
-                                          "description": "QName of a concept object, with optional @end or @start suffix to indicate which date from the context is used."
-                                        },
-                                        "value": {
-                                          "type": "string",
-                                          "format": "date",
-                                          "description": "A literal date value representing the end date."
-                                        },
-                                        "timeShift": {
-                                          "type": "string",
-                                          "description": "A duration (ISO 8601) string to shift the resolved date."
-                                        }
-                                      },
-                                      "oneOf": [
-                                        { "required": ["conceptName"] },
-                                        { "required": ["context"] },
-                                        { "required": ["value"] }
-                                      ],
-                                      "additionalProperties": false
-                                  },
-                                  "onOrAfter": {
-                                    "type": "object",
-                                    "description": "Include facts on or after this date (dateResolution object).",
-                                    "properties": {
-                                        "conceptName": {
-                                          "type": "string",
-                                          "description": "QName of a concept object that has a date fact value."
-                                        },
-                                        "context": {
-                                          "type": "string",
-                                          "description": "QName of a concept object, with optional @end or @start suffix to indicate which date from the context is used."
-                                        },
-                                        "value": {
-                                          "type": "string",
-                                          "format": "date",
-                                          "description": "A literal date value representing the end date."
-                                        },
-                                        "timeShift": {
-                                          "type": "string",
-                                          "description": "A duration (ISO 8601) string to shift the resolved date."
-                                        }
-                                      },
-                                      "oneOf": [
-                                        { "required": ["conceptName"] },
-                                        { "required": ["context"] },
-                                        { "required": ["value"] }
-                                      ],
-                                      "additionalProperties": false
-                                  },
-                                  "onOrBefore": {
-                                    "type": "object",
-                                    "description": "Include facts before or on this date (dateResolution object).",
-                                    "properties": {
-                                        "conceptName": {
-                                          "type": "string",
-                                          "description": "QName of a concept object that has a date fact value."
-                                        },
-                                        "context": {
-                                          "type": "string",
-                                          "description": "QName of a concept object, with optional @end or @start suffix to indicate which date from the context is used."
-                                        },
-                                        "value": {
-                                          "type": "string",
-                                          "format": "date",
-                                          "description": "A literal date value representing the end date."
-                                        },
-                                        "timeShift": {
-                                          "type": "string",
-                                          "description": "A duration (ISO 8601) string to shift the resolved date."
-                                        }
-                                      },
-                                      "oneOf": [
-                                        { "required": ["conceptName"] },
-                                        { "required": ["context"] },
-                                        { "required": ["value"] }
-                                      ],
-                                      "additionalProperties": false
-                                  }
+                                  "monthDay": { "$ref": "#/definitions/dateResolutionObject" },
+                                  "endDate": { "$ref": "#/definitions/dateResolutionObject" },
+                                  "startDate": { "$ref": "#/definitions/dateResolutionObject" },
+                                  "onOrAfter": { "$ref": "#/definitions/dateResolutionObject" },
+                                  "onOrBefore": { "$ref": "#/definitions/dateResolutionObject" }
                                 },
                                 "required": ["periodType"],
                                 "additionalProperties": false
@@ -385,12 +209,12 @@
                       "cubeNetworks": {
                         "type": "array",
                         "description": "Ordered set of network object QNames related to the cube.",
-                        "items": { "type": "string" }
+                        "items": { "$ref": "#/definitions/QName" }
                       },
                       "excludeCubes": {
                         "type": "array",
                         "description": "Ordered set of cube object QNames to be excluded from the cube.",
-                        "items": { "type": "string" }
+                        "items": { "$ref": "#/definitions/QName" }
                       },
                       "cubeComplete": {
                         "type": "boolean",
@@ -411,20 +235,12 @@
                   "items": {
                     "type": "object",
                     "properties": {
-                      "name": {
-                        "type": "string"
-                      },
-                      "domainDataType": {
-                        "type": "string"
-                      },
-                      "domainRoot": {
-                        "type": "string"
-                      },
+                      "name": { "$ref": "#/definitions/QName" },
+                      "domainDataType": { "$ref": "#/definitions/QName" },
+                      "domainRoot": { "$ref": "#/definitions/QName" },
                       "cubeTypes": {
                         "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
+                        "items": { "$ref": "#/definitions/QName" }
                       },
                       "properties": {
                           "type": "array",
@@ -445,32 +261,22 @@
                   "items": {
                   "type": "object",
                       "properties": {
-                        "name": {
-                          "type": "string"
-                        },
-                        "root": {
-                          "type": "string"
-                        },
+                        "name": { "$ref": "#/definitions/QName" },
+                        "root": { "$ref": "#/definitions/QName" },
                         "relationships": {
                           "type": "array",
                           "items": {
                             "type": "object",
                             "properties": {
-                              "source": {
-                                "type": "string"
-                              },
-                              "target": {
-                                "type": "string"
-                              },
+                              "source": { "$ref": "#/definitions/QName" },
+                              "target": { "$ref": "#/definitions/QName" },
                               "order": {
                                 "type": "number"
                               },
                               "weight": {
                                 "type": "number"
                               },
-                              "preferredlabel": {
-                                "type": "string"
-                              },
+                              "preferredlabel": { "$ref": "#/definitions/QName" },
                               "usable": {
                                 "type": "boolean"
                               },
@@ -484,9 +290,7 @@
                           "additionalProperties":   false
                           }
                         },
-                        "extendTargetName": {
-                          "type": "string"
-                        },
+                        "extendTargetName": { "$ref": "#/definitions/QName" },
                         "properties": {
                           "type": "array",
                             "items": { "$ref": "#/definitions/propertyObject"},
@@ -498,7 +302,10 @@
                         { "required": ["extendTargetName"] }
                       ],
                       "not": {
-                        "required": ["name", "extendTargetName"]
+                        "anyOf": [
+                            { "required": ["extendTargetName", "root"] },
+                            { "required": ["extendTargetName", "name"] }
+                          ]
                       },
                       "additionalProperties": false
                     }
@@ -508,9 +315,7 @@
                     "items": {
                         "type": "object",
                         "properties": {
-                            "name": {
-                                "type": "string"
-                            },
+                            "name": { "$ref": "#/definitions/QName" },
                             "properties": {
                                 "type": "array",
                                 "items": { "$ref": "#/definitions/propertyObject" },
@@ -526,38 +331,26 @@
                   "items": {
                   "type": "object",
                       "properties": {
-                        "name": {
-                          "type": "string"
-                        },
-                        "relationshipTypeName": {
-                          "type": "string"
-                        },
+                        "name": { "$ref": "#/definitions/QName" },
+                        "relationshipTypeName": { "$ref": "#/definitions/QName" },
                         "roots": {
                           "type": "array",
-                            "items": {
-                              "type": "string"
-                            }
+                            "items": { "$ref": "#/definitions/QName" }
                         },
                         "relationships": {
                           "type": "array",
                           "items": {
                             "type": "object",
                             "properties": {
-                              "source": {
-                                "type": "string"
-                              },
-                              "target": {
-                                "type": "string"
-                              },
+                              "source": { "$ref": "#/definitions/QName" },
+                              "target": { "$ref": "#/definitions/QName" },
                               "order": {
                                 "type": "number"
                               },
                               "weight": {
                                 "type": "number"
                               },
-                              "preferredlabel": {
-                                "type": "string"
-                              },
+                              "preferredLabel": { "$ref": "#/definitions/QName" },
                               "useable": {
                                 "type": "boolean"
                               },
@@ -571,9 +364,7 @@
                           "additionalProperties": false
                           }
                         },
-                        "extendTargetName": {
-                          "type": "string"
-                        },
+                        "extendTargetName": { "$ref": "#/definitions/QName" },
                         "properties": {
                           "type": "array",
                           "items": { "$ref": "#/definitions/propertyObject" },
@@ -585,7 +376,10 @@
                         { "required": ["extendTargetName"] }
                       ],
                       "not": {
-                        "required": ["name", "extendTargetName"]
+                        "anyOf": [
+                            { "required": ["extendTargetName", "relationshipTypeName"] },
+                            { "required": ["extendTargetName", "name"] }
+                          ]
                       },
                       "additionalProperties": false
                     }
@@ -595,9 +389,7 @@
                     "items": {
                         "type": "object",
                         "properties": {
-                            "name": {
-                                "type": "string"
-                            },
+                            "name": { "$ref": "#/definitions/SQName" },
                             "properties": {
                               "type": "array",
                               "items": { "$ref": "#/definitions/propertyObject" },
@@ -618,18 +410,10 @@
                   "items": {
                     "type": "object",
                     "properties": {
-                      "name": {
-                        "type": "string"
-                      },
-                      "dataType": {
-                        "type": "string"
-                      },
-                      "dataTypeNumerator": {
-                        "type": "string"
-                      },
-                      "dataTypeDenominator": {
-                        "type": "string"
-                      }
+                      "name": { "$ref": "#/definitions/QName" },
+                      "dataType": { "$ref": "#/definitions/QName" },
+                      "dataTypeNumerator": { "$ref": "#/definitions/QName" },
+                      "dataTypeDenominator": { "$ref": "#/definitions/QName" }
                     },
                     "required": ["name", "dataType"],
                     "additionalProperties": false
@@ -640,9 +424,7 @@
                   "items": {
                     "type": "object",
                     "properties": {
-                      "name": {
-                        "type": "string"
-                      },
+                      "name": { "$ref": "#/definitions/QName" },
                       "groupURI": {
                         "type": "string",
                         "format": "uri"
@@ -662,14 +444,10 @@
                   "items": {
                     "type": "object",
                     "properties": {
-                      "groupName": {
-                        "type": "string"
-                      },
+                      "groupName": { "$ref": "#/definitions/QName" },
                       "relatedNames": {
                         "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
+                        "items": { "$ref": "#/definitions/QName" }
                       }
                     },
                     "required": ["groupName", "relatedNames"],
@@ -681,9 +459,7 @@
                   "items": {
                     "type": "object",
                     "properties": {
-                      "name": {
-                        "type": "string"
-                      },
+                      "name": { "$ref": "#/definitions/QName" },
                       "uri": {
                         "type": "string",
                         "format": "uri"
@@ -694,27 +470,19 @@
                       },
                       "allowedLinkProperties": {
                         "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
+                        "items": { "$ref": "#/definitions/QName" }
                       },
                       "requiredLinkProperties": {
                         "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
+                        "items": { "$ref": "#/definitions/QName" }
                       },
                       "sourceObjects": {
                         "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
+                        "items": { "$ref": "#/definitions/QName" }
                       },
                       "targetObjects": {
                         "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
+                        "items": { "$ref": "#/definitions/QName" }
                       }
                     },
                     "required": ["name", "cycles"],
@@ -726,14 +494,8 @@
                   "items": {
                     "type": "object",
                     "properties": {
-                      "relatedName": {
-                        "type": "string",
-                        "description": "QName that the label is associated with."
-                      },
-                      "labelType": {
-                        "type": "string",
-                        "description": "QName representing the label type."
-                      },
+                      "relatedName": { "$ref": "#/definitions/QName" },
+                      "labelType": { "$ref": "#/definitions/QName" },
                       "language": {
                         "type": "string",
                         "description": "Language code (BCP 47)."
@@ -757,23 +519,14 @@
                   "items": {
                     "type": "object",
                      "properties": {
-                        "name": {
-                          "type": "string",
-                          "description": "QName that uniquely identifies the reference object."
-                        },
-                        "extendTargetName": {
-                          "type": "string",
-                          "description": "QName of the reference object to extend."
-                        },
+                        "name": { "$ref": "#/definitions/QName" },
+                        "extendTargetName": { "$ref": "#/definitions/QName" },
                         "relatedNames": {
                           "type": "array",
-                          "items": { "type": "string" },
+                          "items": { "$ref": "#/definitions/QName" },
                           "description": "Ordered QNames the reference is associated with."
                         },
-                        "referenceType": {
-                          "type": "string",
-                          "description": "QName representing the reference type."
-                        },
+                        "referenceType": { "$ref": "#/definitions/QName" },
                         "language": {
                           "type": "string",
                           "description": "Language code (BCP 47)."
@@ -797,22 +550,16 @@
                   "items": {
                     "type": "object",
                      "properties": {
-                        "name": {
-                          "type": "string",
-                          "description": "QName that uniquely identifies the label type object."
-                        },
+                        "name": { "$ref": "#/definitions/QName" },
                         "uri": {
                           "type": "string",
                           "format": "uri",
                           "description": "URI for backward compatibility with XBRL 2.1 taxonomies."
                         },
-                        "dataType": {
-                          "type": "string",
-                          "description": "QName indicating the dataType of the label object value property."
-                        },
+                        "dataType": { "$ref": "#/definitions/QName" },
                         "allowedObjects": {
                           "type": "array",
-                          "items": { "type": "string" },
+                          "items": { "$ref": "#/definitions/QName" },
                           "description": "Ordered set of object types that can use the labelType."
                         }
                       },
@@ -825,10 +572,7 @@
                   "items": {
                     "type": "object",
                      "properties": {
-                        "name": {
-                          "type": "string",
-                          "description": "QName that uniquely identifies the reference type object."
-                        },
+                        "name": { "$ref": "#/definitions/QName" },
                         "uri": {
                           "type": "string",
                           "format": "uri",
@@ -836,17 +580,17 @@
                         },
                         "allowedObjects": {
                           "type": "array",
-                          "items": { "type": "string" },
+                          "items": { "$ref": "#/definitions/QName" },
                           "description": "Ordered set of object types that can use the referenceType."
                         },
                         "orderedProperties": {
                           "type": "array",
-                          "items": { "type": "string" },
+                          "items": { "$ref": "#/definitions/QName" },
                           "description": "Ordered set of property QNames that can be used with the reference."
                         },
                         "requiredProperties": {
                           "type": "array",
-                          "items": { "type": "string" },
+                          "items": { "$ref": "#/definitions/QName" },
                           "description": "Ordered set of property QNames that must be included within a defined reference type."
                         }
                       },
@@ -859,14 +603,8 @@
                     "items": {
                       "type": "object",
                       "properties": {
-                        "name": {
-                          "type": "string",
-                          "description": "QName that uniquely identifies the cube type object."
-                        },
-                        "baseCubeType": {
-                          "type": "string",
-                          "description": "Base cube type that the cube object is based on. Uses the QName of a cubeType object."
-                        },
+                        "name": { "$ref": "#/definitions/QName" },
+                        "baseCubeType": { "$ref": "#/definitions/QName" },
                         "periodDimension": {
                           "type": "boolean",
                           "description": "Indicates if the period core dimension is included in the cube. Defaults to true."
@@ -889,19 +627,13 @@
                           "items": {
                             "type": "object",
                             "properties": {
-                              "dimensionName": {
-                                "type": "string",
-                                "description": "Dimension QName that identifies the taxonomy defined dimension."
-                              },
+                              "dimensionName": { "$ref": "#/definitions/QName" },
                               "dimensionType": {
                                 "type": "string",
                                 "enum": ["typed", "explicit"],
                                 "description": "Indicates that the cube must have a typed or explicit dimension."
                               },
-                              "dimensionDataType": {
-                                "type": "string",
-                                "description": "Data type of the typed dimension."
-                              },
+                              "dimensionDataType": { "$ref": "#/definitions/QName" },
                               "required": {
                                 "type": "boolean",
                                 "description": "True if the defined dimension is required on the cube. Defaults to false."
@@ -916,18 +648,9 @@
                           "items": {
                             "type": "object",
                             "properties": {
-                              "relationshipTypeName": {
-                                "type": "string",
-                                "description": "Relationship type QName of a relationship. Required."
-                              },
-                              "source": {
-                                "type": "string",
-                                "description": "QName of the source object type in the relationship."
-                              },
-                              "target": {
-                                "type": "string",
-                                "description": "QName of the target object type in the relationship."
-                              }
+                              "relationshipTypeName": { "$ref": "#/definitions/QName" },
+                              "source": { "$ref": "#/definitions/QName" },
+                              "target": { "$ref": "#/definitions/QName" }
                             },
                             "required": ["relationshipTypeName"],
                             "additionalProperties": false
@@ -943,14 +666,8 @@
                     "items": {
                       "type": "object",
                         "properties": {
-                          "name": {
-                            "type": "string",
-                            "description": "QName that uniquely identifies the datatype object."
-                          },
-                          "baseType": {
-                            "type": "string",
-                            "description": "QName that uniquely identifies the base datatype the datatype is based on."
-                          },
+                          "name": { "$ref": "#/definitions/QName" },
+                          "baseType": { "$ref": "#/definitions/QName" },
                           "enumeration": {
                             "type": "array",
                             "description": "Ordered set of enumerated values of the datatype if applicable.",
@@ -1006,18 +723,9 @@
                             "type": "object",
                             "description": "UnitType object defining numerator, denominator, and multiplier datatypes.",
                             "properties": {
-                              "dataTypeNumerator": {
-                                "type": "string",
-                                "description": "Numerator datatype."
-                              },
-                              "dataTypeDenominator": {
-                                "type": "string",
-                                "description": "Denominator datatype."
-                              },
-                              "dataTypeMutiplier": {
-                                "type": "string",
-                                "description": "Multiplier datatype."
-                              }
+                              "dataTypeNumerator": { "$ref": "#/definitions/QName" },
+                              "dataTypeDenominator": { "$ref": "#/definitions/QName" },
+                              "dataTypeMutiplier": { "$ref": "#/definitions/QName" }
                             },
                             "additionalProperties": false
                           }
@@ -1031,7 +739,7 @@
                       "items": {
                         "type": "object",
                         "properties": {
-                          "name": { "type": "string" },
+                          "name": { "$ref": "#/definitions/QName" },
                           "columns": {
                             "type": "object",
                             "additionalProperties": {
@@ -1064,14 +772,8 @@
                     "items": {
                       "type": "object",
                         "properties": {
-                          "name": {
-                            "type": "string",
-                            "description": "QName that uniquely identifies the data table object."
-                          },
-                          "cubeName": {
-                            "type": "string",
-                            "description": "QName that identifies the cube associated with the data table."
-                          },
+                          "name": { "$ref": "#/definitions/QName" },
+                          "cubeName": { "$ref": "#/definitions/QName" },
                           "xAxis": {
                               "$ref": "#/definitions/axisObject"
                             },
@@ -1095,18 +797,9 @@
                     "items": {
                         "type": "object",
                        "properties": {
-                            "name": {
-                              "type": "string",
-                              "description": "QName that uniquely identifies the transform object."
-                            },
-                            "inputDataType": {
-                              "type": "string",
-                              "description": "QName indicating the datatype of the input to be transformed."
-                            },
-                            "outputDataType": {
-                              "type": "string",
-                              "description": "QName indicating the datatype of the output after transformation."
-                            }
+                            "name": { "$ref": "#/definitions/QName" },
+                            "inputDataType": { "$ref": "#/definitions/QName" },
+                            "outputDataType": { "$ref": "#/definitions/QName" }
                           },
                           "required": ["name", "inputDataType", "outputDataType"],
                           "additionalProperties": false
@@ -1121,7 +814,7 @@
       "propertyObject": {
       "type": "object",
       "properties": {
-        "property": { "type": "string" },
+        "property": { "$ref": "#/definitions/QName" },
         "value": {}
       },
       "required": ["property", "value"],
@@ -1140,6 +833,10 @@
             "type": "array",
             "description": "Set of strings used as axis labels. Cannot be used with presentationNetwork.",
             "items": { "type": "string" }
+          },
+          "language": {
+            "type": "string",
+            "description": "Defines the language of the axisLabels using a valid BCP 47 [BCP47] language code."
           },
           "presentationNetwork": {
             "type": "string",
@@ -1162,6 +859,7 @@
         "properties": {
           "dimensionName": {
             "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z_][A-Za-z0-9_.-]*$",
             "description": "QName of a dimension defined by the cubeName property."
           },
           "showTotal": {
@@ -1189,7 +887,49 @@
         },
         "required": ["dimensionName"],
         "additionalProperties": false
-      }
+      },
+      "QName": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z_][A-Za-z0-9_.-]*$",
+          "description": "QName that uniquely identifies the object."
+      },
+      "SQName": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z0-9_.-]+$",
+          "description": "QName that uniquely identifies the object."
+      },
+      "dateResolutionObject": {
+          "type": "object",
+          "description": "Gregorian date that recurs (dateResolution object).",
+          "properties": {
+            "conceptName": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z_][A-Za-z0-9_.-]*$",
+              "description": "QName of a concept object that has a date fact value."
+            },
+            "context": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z_][A-Za-z0-9_.-]*(?:@(end|start))?$",
+              "description": "QName of a concept object, with optional @end or @start suffix to indicate which date from the context is used."
+            },
+            "value": {
+              "type": "string",
+              "format": "date",
+              "description": "A literal date value representing the end date."
+            },
+            "timeShift": {
+              "type": "string",
+              "pattern": "^-?P(?!$)(\\d+Y)?(\\d+M)?(\\d+D)?(T(\\d+H)?(\\d+M)?(\\d+S)?)?$",
+              "description": "A duration (ISO 8601) string to shift the resolved date."
+            }
+          },
+          "oneOf": [
+            { "required": ["conceptName"] },
+            { "required": ["context"] },
+            { "required": ["value"] }
+          ],
+          "additionalProperties": false
+        }
       },
     "required": ["documentInfo", "taxonomy"]
 }

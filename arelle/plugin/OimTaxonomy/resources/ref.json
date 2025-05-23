@@ -19,7 +19,7 @@
             {
                 "name": "ref:Publisher",
                 "dataType": "xs:string",
-                "immutable": false,
+                "definitional": false,
                 "allowedObjects": [
                     "xbrl:referenceObject"
                 ]
@@ -27,7 +27,7 @@
             {
                 "name": "ref:Name",
                 "dataType": "xs:string",
-                "immutable": false,
+                "definitional": false,
                 "allowedObjects": [
                     "xbrl:referenceObject"
                 ]
@@ -35,7 +35,7 @@
             {
                 "name": "ref:Number",
                 "dataType": "xs:string",
-                "immutable": false,
+                "definitional": false,
                 "allowedObjects": [
                     "xbrl:referenceObject"
                 ]
@@ -43,7 +43,7 @@
             {
                 "name": "ref:IssueDate",
                 "dataType": "xs:string",
-                "immutable": false,
+                "definitional": false,
                 "allowedObjects": [
                     "xbrl:referenceObject"
                 ]
@@ -51,7 +51,7 @@
             {
                 "name": "ref:Chapter",
                 "dataType": "xs:string",
-                "immutable": false,
+                "definitional": false,
                 "allowedObjects": [
                     "xbrl:referenceObject"
                 ]
@@ -59,7 +59,7 @@
             {
                 "name": "ref:Article",
                 "dataType": "xs:string",
-                "immutable": false,
+                "definitional": false,
                 "allowedObjects": [
                     "xbrl:referenceObject"
                 ]
@@ -67,7 +67,7 @@
             {
                 "name": "ref:Note",
                 "dataType": "xs:string",
-                "immutable": false,
+                "definitional": false,
                 "allowedObjects": [
                     "xbrl:referenceObject"
                 ]
@@ -75,7 +75,7 @@
             {
                 "name": "ref:Section",
                 "dataType": "xs:string",
-                "immutable": false,
+                "definitional": false,
                 "allowedObjects": [
                     "xbrl:referenceObject"
                 ]
@@ -83,7 +83,7 @@
             {
                 "name": "ref:Subsection",
                 "dataType": "xs:string",
-                "immutable": false,
+                "definitional": false,
                 "allowedObjects": [
                     "xbrl:referenceObject"
                 ]
@@ -91,7 +91,7 @@
             {
                 "name": "ref:Paragraph",
                 "dataType": "xs:string",
-                "immutable": false,
+                "definitional": false,
                 "allowedObjects": [
                     "xbrl:referenceObject"
                 ]
@@ -99,7 +99,7 @@
             {
                 "name": "ref:Subparagraph",
                 "dataType": "xs:string",
-                "immutable": false,
+                "definitional": false,
                 "allowedObjects": [
                     "xbrl:referenceObject"
                 ]
@@ -107,7 +107,7 @@
             {
                 "name": "ref:Clause",
                 "dataType": "xs:string",
-                "immutable": false,
+                "definitional": false,
                 "allowedObjects": [
                     "xbrl:referenceObject"
                 ]
@@ -115,7 +115,7 @@
             {
                 "name": "ref:Subclause",
                 "dataType": "xs:string",
-                "immutable": false,
+                "definitional": false,
                 "allowedObjects": [
                     "xbrl:referenceObject"
                 ]
@@ -123,7 +123,7 @@
             {
                 "name": "ref:Appendix",
                 "dataType": "xs:string",
-                "immutable": false,
+                "definitional": false,
                 "allowedObjects": [
                     "xbrl:referenceObject"
                 ]
@@ -131,7 +131,7 @@
             {
                 "name": "ref:Example",
                 "dataType": "xs:string",
-                "immutable": false,
+                "definitional": false,
                 "allowedObjects": [
                     "xbrl:referenceObject"
                 ]
@@ -139,7 +139,7 @@
             {
                 "name": "ref:Page",
                 "dataType": "xs:string",
-                "immutable": false,
+                "definitional": false,
                 "allowedObjects": [
                     "xbrl:referenceObject"
                 ]
@@ -147,7 +147,7 @@
             {
                 "name": "ref:Exhibit",
                 "dataType": "xs:string",
-                "immutable": false,
+                "definitional": false,
                 "allowedObjects": [
                     "xbrl:referenceObject"
                 ]
@@ -155,7 +155,7 @@
             {
                 "name": "ref:Footnote",
                 "dataType": "xs:string",
-                "immutable": false,
+                "definitional": false,
                 "allowedObjects": [
                     "xbrl:referenceObject"
                 ]
@@ -163,7 +163,7 @@
             {
                 "name": "ref:Sentence",
                 "dataType": "xs:string",
-                "immutable": false,
+                "definitional": false,
                 "allowedObjects": [
                     "xbrl:referenceObject"
                 ]
@@ -171,7 +171,7 @@
             {
                 "name": "ref:URI",
                 "dataType": "xs:anyURI",
-                "immutable": false,
+                "definitional": false,
                 "allowedObjects": [
                     "xbrl:referenceObject"
                 ]
@@ -179,7 +179,7 @@
             {
                 "name": "ref:URIDate",
                 "dataType": "xs:date",
-                "immutable": false,
+                "definitional": false,
                 "allowedObjects": [
                     "xbrl:referenceObject"
                 ]
@@ -187,7 +187,7 @@
             {
                 "name": "ref:Requirement",
                 "dataType": "xs:string",
-                "immutable": false,
+                "definitional": false,
                 "allowedObjects": [
                     "xbrl:referenceObject"
                 ]
@@ -195,7 +195,7 @@
             {
                 "name": "ref:Status",
                 "dataType": "xs:string",
-                "immutable": false,
+                "definitional": false,
                 "allowedObjects": [
                     "xbrl:referenceObject"
                 ]
