@@ -130,7 +130,7 @@
                         "dataType": { "$ref": "#/definitions/QName" },
                         "periodType": {
                           "type": "string",
-                          "enum": ["instant", "duration","none"]
+                          "enum": ["instant", "duration", "none"]
                         },
                         "enumerationDomain": { "$ref": "#/definitions/QName" },
                         "nillable": {
@@ -178,7 +178,7 @@
                                 "properties": {
                                   "periodType": {
                                     "type": "string",
-                                    "enum": ["instant", "duration"],
+                                    "enum": ["instant", "duration", "none"],
                                     "description": "Indicates if the period is instant or duration."
                                   },
                                   "timeSpan": {
