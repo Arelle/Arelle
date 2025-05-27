@@ -682,6 +682,31 @@ def rule_nl_kvk_3_5_2_3(
         DISCLOSURE_SYSTEM_NL_INLINE_2024
     ],
 )
+def rule_nl_kvk_3_5_4_1 (
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.3.5.4.1: Where CSS is used to format the reports, transformations MUST NOT be used to hide information by making it not visible
+    e.g. by applying display:none style on any tagged facts.
+    """
+    facts = pluginData.getCssHiddenFacts(val.modelXbrl)
+    if len(facts) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.3.5.4.1.displayNoneUsedToHideTaggedFacts',
+            msg=_('Display:none has been used to hide tagged facts. This is not allowed.'),
+            modelObject=facts
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
 def rule_nl_kvk_3_6_3_1(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
