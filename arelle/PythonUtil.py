@@ -6,18 +6,18 @@ do not convert 3 to 2
 '''
 from __future__ import annotations
 
+import fractions
 import os
 import subprocess
 import sys
 from collections import OrderedDict
 from collections.abc import MappingView, MutableSet
 from decimal import Decimal
-from fractions import Fraction
 from typing import Any
 
 from arelle.typing import OptionalString
 
-STR_NUM_TYPES = (str, int, float, Decimal, Fraction)
+STR_NUM_TYPES = (str, int, float, Decimal, fractions.Fraction)
 
 # python 3 unquote, because py2 unquote doesn't do utf-8 correctly
 def py3unquote(string, encoding='utf-8', errors='replace'):
@@ -227,7 +227,7 @@ class OrderedSet(MutableSet):
 
 def Fraction(numerator,denominator=None):
     if denominator is None:
-        if isinstance(numerator, (Fraction,str,Decimal)):
+        if isinstance(numerator, (fractions.Fraction,str,Decimal)):
             return Fraction(numerator)
     elif isinstance(numerator, Decimal) and isinstance(denominator, Decimal):
         return Fraction(int(numerator), int(denominator))
