@@ -11,7 +11,7 @@ import os
 import subprocess
 import sys
 from collections import OrderedDict
-from collections.abc import Iterable, Iterator, MappingView, MutableSet
+from collections.abc import Iterable, Iterator, MappingView, MutableSet, Set
 from decimal import Decimal
 from typing import Any, TypeVar
 
@@ -247,6 +247,54 @@ class OrderedSet(MutableSet[T]):
         if isinstance(other, Iterable):
             return set(self) == set(other)
         return NotImplemented
+
+class FrozenOrderedSet(Set[T]):
+    """
+    Like frozenset vs set, this is the immutable counterpart to OrderedSet.
+    Maintains insertion order and provides set-like operations without mutation.
+    """
+
+    def __init__(self, iterable: Iterable[T] | None = None) -> None:
+        if iterable is None:
+            self._items: tuple[T, ...] = ()
+            self._set: frozenset[T] = frozenset()
+        else:
+            unique_items = dict.fromkeys(iterable)
+            self._items = tuple(unique_items.keys())
+            self._set = frozenset(unique_items.keys())
+        self._hash: int | None = None
+
+    def __getitem__(self, index: int) -> T:
+        return self._items[index]
+
+    def __len__(self) -> int:
+        return len(self._items)
+
+    def __contains__(self, key: object) -> bool:
+        return key in self._set
+
+    def __iter__(self) -> Iterator[T]:
+        return iter(self._items)
+
+    def __reversed__(self) -> Iterator[T]:
+        return reversed(self._items)
+
+    def __repr__(self) -> str:
+        if not self:
+            return f'{self.__class__.__name__}()'
+        return f'{self.__class__.__name__}({self._items!r})'
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, (FrozenOrderedSet, OrderedSet)):
+            return len(self) == len(other) and list(self) == list(other)
+        if isinstance(other, Iterable):
+            return set(self) == set(other)
+        return NotImplemented
+
+    def __hash__(self) -> int:
+        if self._hash is None:
+            self._hash = hash(self._items)
+        return self._hash
 
 def Fraction(numerator,denominator=None):
     if denominator is None:
