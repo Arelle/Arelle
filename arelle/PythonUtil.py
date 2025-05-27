@@ -11,9 +11,9 @@ import os
 import subprocess
 import sys
 from collections import OrderedDict
-from collections.abc import Iterable, MappingView, MutableSet
+from collections.abc import Iterable, Iterator, MappingView, MutableSet
 from decimal import Decimal
-from typing import Any
+from typing import Any, TypeVar
 
 from arelle.typing import OptionalString
 
@@ -163,68 +163,72 @@ class OrderedDefaultDict(OrderedDict):
         self[key] = _missingValue
         return _missingValue
 
-class OrderedSet(MutableSet):
+
+T = TypeVar('T')
+
+class OrderedSet(MutableSet[T]):
     """
     OrderedSet implementation copied from Python recipe:
     https://code.activestate.com/recipes/576694/
     """
 
-    def __init__(self, iterable=None):
-        self.end = end = []
-        end += [None, end, end]         # sentinel node for doubly linked list
-        self.map = {}                   # key --> [key, prev, next]
+    def __init__(self, iterable: Iterable[T] | None = None) -> None:
+        self.end: list[Any] = []
+        end = self.end
+        end += [None, end, end]            # sentinel node for doubly linked list
+        self.map: dict[T, list[Any]] = {}  # key --> [key, prev, next]
         if iterable is not None:
-            self |= iterable
+            self.update(iterable)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.map)
 
-    def __contains__(self, key):
+    def __contains__(self, key: object) -> bool:
         return key in self.map
 
-    def add(self, key):
+    def add(self, key: T) -> None:
         if key not in self.map:
             end = self.end
             curr = end[1]
             curr[2] = end[1] = self.map[key] = [key, curr, end]
 
-    def update(self, other):
+    def update(self, other: Iterable[T]) -> None:
         for key in other:
             self.add(key)
 
-    def discard(self, key):
+    def discard(self, key: T) -> None:
         if key in self.map:
             key, prev, next = self.map.pop(key)
             prev[2] = next
             next[1] = prev
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[T]:
         end = self.end
         curr = end[2]
         while curr is not end:
             yield curr[0]
             curr = curr[2]
 
-    def __reversed__(self):
+    def __reversed__(self) -> Iterator[T]:
         end = self.end
         curr = end[1]
         while curr is not end:
             yield curr[0]
             curr = curr[1]
 
-    def pop(self, last=True):
+    def pop(self, last: bool = True) -> T:
         if not self:
             raise KeyError('set is empty')
         key = self.end[1][0] if last else self.end[2][0]
         self.discard(key)
         return key
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if not self:
-            return '%s()' % (self.__class__.__name__,)
-        return '%s(%r)' % (self.__class__.__name__, list(self))
+            return f'{self.__class__.__name__}()'
+        return f'{self.__class__.__name__}({list(self)!r})'
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, OrderedSet):
             return len(self) == len(other) and list(self) == list(other)
         if isinstance(other, Iterable):
