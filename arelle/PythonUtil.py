@@ -11,7 +11,7 @@ import os
 import subprocess
 import sys
 from collections import OrderedDict
-from collections.abc import MappingView, MutableSet
+from collections.abc import Iterable, MappingView, MutableSet
 from decimal import Decimal
 from typing import Any
 
@@ -223,7 +223,9 @@ class OrderedSet(MutableSet):
     def __eq__(self, other):
         if isinstance(other, OrderedSet):
             return len(self) == len(other) and list(self) == list(other)
-        return set(self) == set(other)
+        if isinstance(other, Iterable):
+            return set(self) == set(other)
+        return NotImplemented
 
 def Fraction(numerator,denominator=None):
     if denominator is None:
