@@ -20,12 +20,13 @@ from arelle.ModelXbrl import ModelXbrl
 from arelle.typing import assert_type
 from arelle.utils.PluginData import PluginData
 from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
-from arelle.XbrlConst import ixbrl11
+from arelle.XbrlConst import ixbrl11, xhtmlBaseIdentifier, xmlBaseIdentifier
 from arelle.XmlValidate import lexicalPatterns
 from arelle.XmlValidateConst import VALID
 
 XBRLI_IDENTIFIER_PATTERN = re.compile(r"^(?!00)\d{8}$")
 XBRLI_IDENTIFIER_SCHEMA = 'http://www.kvk.nl/kvk-id'
+
 
 DISALLOWED_IXT_NAMESPACES = frozenset((
     ixtNamespaces["ixt v1"],
@@ -69,6 +70,7 @@ class HiddenElementsData:
 
 @dataclass(frozen=True)
 class InlineHTMLData:
+    baseElements: set[Any]
     noMatchLangFootnotes: set[ModelInlineFootnote]
     orphanedFootnotes: set[ModelInlineFootnote]
     tupleElements: set[tuple[Any]]
@@ -184,6 +186,7 @@ class PluginValidationDataExtension(PluginData):
 
     @lru_cache(1)
     def checkInlineHTMLElements(self, modelXbrl: ModelXbrl) -> InlineHTMLData:
+        baseElements = set()
         factLangs = self.factLangs(modelXbrl)
         footnotesRelationshipSet = modelXbrl.relationshipSet("XBRL-footnotes")
         factLangFootnotes = defaultdict(set)
@@ -214,9 +217,15 @@ class PluginValidationDataExtension(PluginData):
                         tupleElements.add(elt)
                     if elt.tag == ixFractionTag:
                         fractionElements.add(elt)
+            for elt, depth in etreeIterWithDepth(ixdsHtmlRootElt):
+                if elt.get(xmlBaseIdentifier) is not None:
+                    baseElements.add(elt)
+                if elt.tag == xhtmlBaseIdentifier:
+                    baseElements.add(elt)
         factLangFootnotes.default_factory = None
         assert_type(factLangFootnotes, defaultdict[ModelObject, set[str]])
         return InlineHTMLData(
+            baseElements=baseElements,
             factLangFootnotes=cast(dict[ModelInlineFootnote, set[str]], factLangFootnotes),
             fractionElements=fractionElements,
             noMatchLangFootnotes=noMatchLangFootnotes,
@@ -243,6 +252,9 @@ class PluginValidationDataExtension(PluginData):
             if fact is not None:
                 factLangs.add(fact.xmlLang)
         return factLangs
+
+    def getBaseElements(self, modelXbrl: ModelXbrl) -> set[Any | None]:
+        return self.checkInlineHTMLElements(modelXbrl).baseElements
 
     def getContextsWithImproperContent(self, modelXbrl: ModelXbrl) -> list[ModelContext | None]:
         return self.checkContexts(modelXbrl).contextsWithImproperContent
