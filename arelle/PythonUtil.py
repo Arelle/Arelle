@@ -164,6 +164,10 @@ class OrderedDefaultDict(OrderedDict):
         return _missingValue
 
 class OrderedSet(MutableSet):
+    """
+    OrderedSet implementation copied from Python recipe:
+    https://code.activestate.com/recipes/576694/
+    """
 
     def __init__(self, iterable=None):
         self.end = end = []
