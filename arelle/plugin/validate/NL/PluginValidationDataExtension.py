@@ -26,7 +26,7 @@ from arelle.XmlValidateConst import VALID
 
 XBRLI_IDENTIFIER_PATTERN = re.compile(r"^(?!00)\d{8}$")
 XBRLI_IDENTIFIER_SCHEMA = 'http://www.kvk.nl/kvk-id'
-
+MAX_REPORT_PACKAGE_SIZE_MBS = 100
 
 DISALLOWED_IXT_NAMESPACES = frozenset((
     ixtNamespaces["ixt v1"],
