@@ -873,6 +873,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                         # all primary items
                         if (
                             fr is not None
+                            and fr.type is not None
                             and not fr.isAbstract
                             and rel.isUsable
                             and fr not in conceptsUsed
@@ -882,6 +883,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                             unreportedLbLocs.add(rel.fromLocator)
                         if (
                             to is not None
+                            and to.type is not None
                             and not to.isAbstract
                             and rel.isUsable
                             and to not in conceptsUsed
