@@ -38,6 +38,7 @@ from arelle.ValidateXbrlDTS import ValidateBaseTaxonomiesMode
 from arelle.Version import copyrightLabel
 from arelle.oim.xml.Save import saveOimReportToXmlInstance
 import logging
+import multiprocessing
 
 import threading, queue
 
@@ -1756,7 +1757,8 @@ def main():
                 application.lift()
                 application.call('wm', 'attributes', '.', '-topmost', True)
                 cntlrWinMain.uiThreadQueue.put((application.call, ['wm', 'attributes', '.', '-topmost', False]))
-                os.system('''/usr/bin/osascript -e 'tell app "Finder" to set frontmost of process "Python" to true' ''')
+                processName = "arelleGUI" if getattr(sys, 'frozen', False) else "python"
+                os.system(f'/usr/bin/osascript -e \'tell app "Finder" to set frontmost of process "{processName}" to true\'')
             application.mainloop()
         except Exception: # unable to start Tk or other fatal error
             exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -1779,6 +1781,8 @@ def main():
                 syslog.closelog()
 
 if __name__ == "__main__":
+    if getattr(sys, 'frozen', False):
+        multiprocessing.freeze_support()
     # this is the entry called by MacOS open and MacOS shell scripts
     # check if ARELLE_ARGS are used to emulate command line operation
     if os.getenv("ARELLE_ARGS"):
