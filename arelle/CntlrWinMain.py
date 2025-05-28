@@ -1757,7 +1757,8 @@ def main():
                 application.lift()
                 application.call('wm', 'attributes', '.', '-topmost', True)
                 cntlrWinMain.uiThreadQueue.put((application.call, ['wm', 'attributes', '.', '-topmost', False]))
-                os.system('''/usr/bin/osascript -e 'tell app "Finder" to set frontmost of process "Python" to true' ''')
+                processName = "arelleGUI" if getattr(sys, 'frozen', False) else "python"
+                os.system(f'/usr/bin/osascript -e \'tell app "Finder" to set frontmost of process "{processName}" to true\'')
             application.mainloop()
         except Exception: # unable to start Tk or other fatal error
             exc_type, exc_value, exc_traceback = sys.exc_info()
