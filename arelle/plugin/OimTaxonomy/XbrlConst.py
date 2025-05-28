@@ -225,7 +225,7 @@ xbrlTaxonomyObjects = {
                 "maxInclusive": 18446744073709551615
             },
             {
-                "name": "xs:unsignedLong",
+                "name": "xs:unsignedInt",
                 "baseType": "xs:unsignedInt",
                 "maxInclusive": 4294967295
             },

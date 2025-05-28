@@ -8,6 +8,7 @@ import sys, traceback
 from arelle.ModelValue import QName, AnyURI
 from arelle.ModelXbrl import ModelXbrl, create as modelXbrlCreate, XbrlConst
 from arelle.oim.Load import EMPTY_DICT
+from arelle.PythonUtil import OrderedSet
 from .XbrlConcept import XbrlConcept, XbrlDataType
 from .XbrlGroup import XbrlGroupContent
 from .XbrlReport import addReportProperties, XbrlFact, XbrlReportObject
@@ -127,7 +128,7 @@ class XbrlDts(ModelXbrl): # complete wrapper for ModelXbrl
     def error(self, *args, **kwargs):
         if "xbrlObject" in kwargs:
             argValue = kwargs["xbrlObject"]
-            if isinstance(argValue, (tuple,list)):
+            if isinstance(argValue, (tuple,list,set,OrderedSet)):
                 kwargs["sourceFileLines"] = [a.entryLoadingUrl for a in argValue]
             else:
                 kwargs["sourceFileLine"] = argValue.entryLoadingUrl

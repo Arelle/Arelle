@@ -61,7 +61,7 @@ from arelle.oim.Load import (DUPJSONKEY, DUPJSONVALUE, EMPTY_DICT, EMPTY_LIST, U
                              OIMException, NotOIMException)
 
 RESOURCES_DIR = os.path.join(os.path.dirname(__file__), "resources")
-OIMT_SCHEMA = os.path.join(RESOURCES_DIR, "oim-schema.json")
+OIMT_SCHEMA = os.path.join(RESOURCES_DIR, "oim-taxonomy-schema.json")
 
 saveOIMTaxonomySchemaFiles = False
 SAVE_OIM_SCHEMA_CMDLINE_PARAMETER = "--saveOIMschemafile"
@@ -352,6 +352,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
 
         jsonEltsNotInObjClass = []
         jsonEltsReqdButMissing = []
+        namedObjectDuplicates = defaultdict(OrderedSet)
         def createTaxonomyObject(jsonObj, oimParentObj, keyClass, objClass, newObj, pathParts):
             keyValue = None
             relatedNames = [] # to tag an object with labels or references
@@ -457,7 +458,15 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                 for propName in unexpectedJsonProps:
                     jsonEltsNotInObjClass.append(f"{'/'.join(pathParts + [propName])}={jsonObj.get(propName,'(absent)')}")
             if isinstance(newObj, XbrlReferencableTaxonomyObject):
-                xbrlDts.namedObjects[keyValue] = newObj
+                if keyValue in xbrlDts.namedObjects:
+                    if objClass == XbrlImportedTaxonomy and type(xbrlDts.namedObjects[keyValue]) == objClass:
+                        # ensure these are the same imported taxonomy and no other objects have the same name
+                        pass
+                    else:
+                        namedObjectDuplicates[keyValue].add(newObj)
+                        namedObjectDuplicates[keyValue].add(xbrlDts.namedObjects[keyValue])
+                else:
+                    xbrlDts.namedObjects[keyValue] = newObj
             elif isinstance(newObj, XbrlTaxonomyTagObject) and relatedNames:
                 for relatedQn in relatedNames:
                     xbrlDts.tagObjects[relatedQn].append(newObj)
@@ -531,6 +540,11 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
             error("arelle:missingOimTaxonomyJsonElements",
                   _("Json file missing required elements: %(missingElements)s"),
                   sourceFileLine=href, missingElements=", ".join(jsonEltsReqdButMissing))
+
+        for qname, dupObjs in namedObjectDuplicates.items():
+            xbrlDts.error("oimte:duplicateObjects",
+                  _("Multiple referenceable objects have the same name: %(qname)s"),
+                  xbrlObject=dupObjs, qname=qname)
 
         xbrlDts.namespaceDocs[taxonomyName.namespaceURI].append(schemaDoc)
 
