@@ -13,6 +13,7 @@ import gettext
 import glob
 import json
 import logging
+import multiprocessing
 import os
 import platform
 import shlex
@@ -56,8 +57,8 @@ from arelle.RuntimeOptions import RuntimeOptions, RuntimeOptionsException
 from arelle.SocketUtils import INTERNET_CONNECTIVITY, OFFLINE
 from arelle.SystemInfo import PlatformOS, getSystemInfo, getSystemWordSize, hasWebServer, isCGI, isGAE
 from arelle.typing import TypeGetText
-from arelle.utils.EntryPointDetection import filesourceEntrypointFiles
 from arelle.UrlUtil import isHttpUrl
+from arelle.utils.EntryPointDetection import filesourceEntrypointFiles
 from arelle.ValidateXbrlDTS import ValidateBaseTaxonomiesMode
 from arelle.WebCache import proxyTuple
 
@@ -1341,11 +1342,6 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     messageCode="info", file=packageInfo.get("URL"))
 
 if __name__ == "__main__":
-    '''
-    if '--COMserver' in sys.argv:
-        from arelle import CntlrComServer
-        CntlrComServer.main()
-    else:
-        main()
-    '''
+    if getattr(sys, 'frozen', False):
+        multiprocessing.freeze_support()
     main()

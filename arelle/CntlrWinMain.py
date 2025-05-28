@@ -38,6 +38,7 @@ from arelle.ValidateXbrlDTS import ValidateBaseTaxonomiesMode
 from arelle.Version import copyrightLabel
 from arelle.oim.xml.Save import saveOimReportToXmlInstance
 import logging
+import multiprocessing
 
 import threading, queue
 
@@ -1779,6 +1780,8 @@ def main():
                 syslog.closelog()
 
 if __name__ == "__main__":
+    if getattr(sys, 'frozen', False):
+        multiprocessing.freeze_support()
     # this is the entry called by MacOS open and MacOS shell scripts
     # check if ARELLE_ARGS are used to emulate command line operation
     if os.getenv("ARELLE_ARGS"):
