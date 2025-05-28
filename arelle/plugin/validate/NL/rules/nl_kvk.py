@@ -706,6 +706,30 @@ def rule_nl_kvk_3_5_2_3(
         DISCLOSURE_SYSTEM_NL_INLINE_2024
     ],
 )
+def rule_nl_kvk_3_5_3_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.3.5.3.1: The default target attribute MUST be used for the annual report content.
+    """
+    targetElements = pluginData.getTargetElements(val.modelXbrl)
+    if targetElements:
+        yield Validation.error(
+            codes='NL.NL-KVK.3.5.3.1.defaultTargetAttributeNotUsed',
+            msg=_('Target attribute must not be used for the annual report content.'),
+            modelObject=targetElements
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
 def rule_nl_kvk_3_5_4_1 (
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,

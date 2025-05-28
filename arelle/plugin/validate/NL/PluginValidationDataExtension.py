@@ -24,6 +24,7 @@ from arelle.XbrlConst import ixbrl11, xhtmlBaseIdentifier, xmlBaseIdentifier
 from arelle.XmlValidate import lexicalPatterns
 from arelle.XmlValidateConst import VALID
 
+IXBRL11 = "http://www.xbrl.org/2013/inlineXBRL"
 XBRLI_IDENTIFIER_PATTERN = re.compile(r"^(?!00)\d{8}$")
 XBRLI_IDENTIFIER_SCHEMA = 'http://www.kvk.nl/kvk-id'
 
@@ -337,6 +338,17 @@ class PluginValidationDataExtension(PluginData):
                         reportXmlLang = xmlLang
                         firstRootmostXmlLangDepth = depth
         return reportXmlLang
+
+    @lru_cache(1)
+    def getTargetElements(self, modelXbrl: ModelXbrl) -> list[Any]:
+        targetElements = []
+        for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
+            ixNStag = getattr(ixdsHtmlRootElt.modelDocument, "ixNStag", IXBRL11)
+            ixTags = set(ixNStag + ln for ln in ("nonNumeric", "nonFraction", "references", "relationship"))
+            for elt, depth in etreeIterWithDepth(ixdsHtmlRootElt):
+                if elt.tag in ixTags and elt.get("target"):
+                    targetElements.append(elt)
+        return targetElements
 
     @lru_cache(1)
     def isFilenameValidCharacters(self, filename: str) -> bool:
