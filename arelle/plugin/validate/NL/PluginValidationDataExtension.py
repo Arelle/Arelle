@@ -306,7 +306,7 @@ class PluginValidationDataExtension(PluginData):
 
     @lru_cache(1)
     def getIxdsDocBasenames(self, modelXbrl: ModelXbrl) -> set[str]:
-        return set(Path(url).name for url in modelXbrl.ixdsDocUrls)
+        return set(Path(url).name for url in getattr(modelXbrl, "ixdsDocUrls", []))
 
     def getNoMatchLangFootnotes(self, modelXbrl: ModelXbrl) -> set[ModelInlineFootnote]:
         return self.checkInlineHTMLElements(modelXbrl).noMatchLangFootnotes
