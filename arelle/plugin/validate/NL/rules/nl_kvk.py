@@ -837,13 +837,12 @@ def rule_nl_kvk_6_1_1_1(
     """
     NL-KVK.6.1.1.1: The size of the report package MUST NOT exceed 100 MB.
     """
-    if val.modelXbrl.fileSource.fs: # must be a zip to be a report package
-        assert isinstance(val.modelXbrl.fileSource.fs, zipfile.ZipFile)
+    if val.modelXbrl.fileSource.fs and isinstance(val.modelXbrl.fileSource.fs, zipfile.ZipFile):
         maxMB = float(MAX_REPORT_PACKAGE_SIZE_MBS)
         _size = sum(zi.compress_size for zi in val.modelXbrl.fileSource.fs.infolist())
-        if _size > maxMB * 1048576:
+        if _size > maxMB * 1000000:
             yield Validation.error(
                 codes='NL.NL-KVK.6.1.1.1.reportPackageMaximumSizeExceeded',
                 msg=_('The size of the report package must not exceed %(maxSize)s MBs, size is %(size)s MBs.'),
-                modelObject=val.modelXbrl, maxSize=MAX_REPORT_PACKAGE_SIZE_MBS, size=int(_size/1048576)
+                modelObject=val.modelXbrl, maxSize=MAX_REPORT_PACKAGE_SIZE_MBS, size=int(_size/1000000)
             )
