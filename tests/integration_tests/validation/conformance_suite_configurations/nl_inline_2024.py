@@ -24,6 +24,11 @@ config = ConformanceSuiteConfig(
             # AND {base} with > 20 characters (3.6.3.1)
             'baseComponentInDocumentNameExceedsTwentyCharacters': 1,
         },
+        'G3-7-1_1/index.xml:TC2_invalid': {
+            'message:valueKvKIdentifier': 13,
+            'nonIdenticalIdentifier': 1,
+            'targetXBRLDocumentWithFormulaErrors':1,
+        },
         'G4-1-2_1/index.xml:TC2_valid': {
             'undefinedLanguageForTextFact': 1,
             'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 5,
@@ -68,7 +73,6 @@ config = ConformanceSuiteConfig(
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-5-3_1/index.xml:TC2_invalid',
         #'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-5-4_1/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-6-2_1/index.xml:TC2_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-7-1_1/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-1-1_1/index.xml:TC3_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-1-1_1/index.xml:TC4_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-1-1_1/index.xml:TC5_invalid',
