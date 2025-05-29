@@ -839,6 +839,8 @@ def rule_nl_kvk_6_1_1_1(
     """
     if val.modelXbrl.fileSource.fs and isinstance(val.modelXbrl.fileSource.fs, zipfile.ZipFile):
         maxMB = float(MAX_REPORT_PACKAGE_SIZE_MBS)
+        # The following code computes report package size by adding the compressed file sizes within the package.
+        # This method of computation is over 99% accurate and gets more accurate the larger the filesize is.
         _size = sum(zi.compress_size for zi in val.modelXbrl.fileSource.fs.infolist())
         if _size > maxMB * 1000000:
             yield Validation.error(
