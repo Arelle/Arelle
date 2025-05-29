@@ -191,10 +191,6 @@
                 "baseType" : "xbrli:noLangToken"
             },
             {
-                "name" : "xbrli:prefixedContent",
-                "baseType" : "xs:token"
-            },
-            {
                 "name" : "xbrli:SQName",
                 "baseType" : "xbrli:prefixedContent",
                 "patterns": ["[^:\\s0-9][^:\\s]*:\\S+"]
@@ -325,25 +321,25 @@
                 "relatedName" : "xbrli:escaped",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
-                "value" : "escapedItemType specializes string. There is no constraint on whether the resulting unescaped content is well-formed or not; this base type exists so that processors know what to do with the content. It is a suitable base type for a data type whose unescaped content must be valid HTML 4.0 (which is not XML)."
+                "value" : "escaped specializes string. There is no constraint on whether the resulting unescaped content is well-formed or not; this base type exists so that processors know what to do with the content. It is a suitable base type for a data type whose unescaped content must be valid HTML 4.0 (which is not XML)."
             },
             {
                 "relatedName" : "xbrli:xmlNodes",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
-                "value" : "xmlNodesItemType specializes escapedItemType. The unescaped content MUST be a sequence of XML text and well-formed XML nodes. This content constraint cannot be captured by a finite length regular expression."
+                "value" : "xmlNodes specializes escaped. The unescaped content MUST be a sequence of XML text and well-formed XML nodes. This content constraint cannot be captured by a finite length regular expression."
             },
             {
                 "relatedName" : "xbrli:xml",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
-                "value" : "xmlItemType specializes xmlNodesItemType. The unescaped content MUST be well-formed XML. This is a suitable base type for elements whose content must conform to a specific XML Schema or DTD. "
+                "value" : "xml specializes xmlNodes. The unescaped content MUST be well-formed XML. This is a suitable base type for elements whose content must conform to a specific XML Schema or DTD. "
             },
             {
                 "relatedName" : "xbrli:textBlock",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
-                "value" : "textBlockItemType specializes xmlNodesItemType. The unescaped content MUST have mixed content containing a simple string, or a fragment of XHTML or a mixture of both."
+                "value" : "textBlock specializes xmlNodes. The unescaped content MUST have mixed content containing a simple string, or a fragment of XHTML or a mixture of both."
             },
             {
                 "relatedName" : "xbrli:percent",
@@ -409,19 +405,19 @@
                 "relatedName" : "xbrli:noDecimalsMonetary",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
-                "value" : "The NoDecimalsMonetaryItemType is a restriction on the xbrli:monetary in that it does not allow cents on the monetary value. Facts using this type MUST have an (inferred) decimals attribute value that is less than or equal to zero, or 'INF'."
+                "value" : "The NoDecimalsMonetary is a restriction on the xbrli:monetary in that it does not allow cents on the monetary value. Facts using this type MUST have an (inferred) decimals attribute value that is less than or equal to zero, or 'INF'."
             },
             {
                 "relatedName" : "xbrli:nonNegativeMonetary",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
-                "value" : "The nonNegativeMonetaryItemType is a restriction on the xbrli:monetary in that it does not allow negative values on the monetary value."
+                "value" : "The nonNegativeMonetary is a restriction on the xbrli:monetary in that it does not allow negative values on the monetary value."
             },
             {
                 "relatedName" : "xbrli:nonNegativeNoDecimalsMonetary",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
-                "value" : "The nonNegativeNoDecimalsMonetaryItemType is a restriction on the xbrli:monetary in that it does not allow cents or negative values on the monetary value. Facts using this type MUST have an (inferred) decimals attribute value that is less than or equal to zero, or 'INF'."
+                "value" : "The nonNegativeNoDecimalsMonetary is a restriction on the xbrli:monetary in that it does not allow cents or negative values on the monetary value. Facts using this type MUST have an (inferred) decimals attribute value that is less than or equal to zero, or 'INF'."
             },
             {
                 "relatedName" : "xbrli:insolation",
@@ -499,37 +495,31 @@
                 "relatedName" : "xbrli:noLangToken",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
-                "value" : "noLangTokenItemType is a derivation of tokenItemType and is used to denote values that should not have an associated language. This is typically used for values that are unique identifiers, rather than human-readable strings. Any in-scope xml:lang declaration is ignored for facts using this type."
+                "value" : "noLangToken is a derivation of token and is used to denote values that should not have an associated language. This is typically used for values that are unique identifiers, rather than human-readable strings. Any in-scope xml:lang declaration is ignored for facts using this type."
             },
             {
                 "relatedName" : "xbrli:noLangString",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
-                "value" : "noLangStringItemType is a derivation of stringItemType and is used to denote values that should not have an associated language. This is typically used for values that are unique identifiers, rather than human-readable strings. Any in-scope xml:lang declaration is ignored for facts using this type."
+                "value" : "noLangString is a derivation of string and is used to denote values that should not have an associated language. This is typically used for values that are unique identifiers, rather than human-readable strings. Any in-scope xml:lang declaration is ignored for facts using this type."
             },
             {
                 "relatedName" : "xbrli:prefixedContent",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
-                "value" : "prefixedContentItemType denotes values that rely for correct interpretation on namespace-prefix bindings in scope at the point of use. All item types that involve prefixed content should derive (directly or indirectly) from QNameItemType or prefixedContentItemType. Processors MUST raise an error if they encounter a fact with a type that is a subtype of prefixedContentItemType that they do not recognise (unless that subtype is itself derived from a subtype that is recognised) as knowledge of the structure of the prefixed content is required to correctly preserve and present such content."
-            },
-            {
-                "relatedName" : "xbrli:prefixedContent",
-                "language" : "en",
-                "labelType" : "xbrl:documentation",
-                "value" : "prefixedContentType provides a simple type equivalent to prefixedContentItemType. This can be used to define typed dimensions domains that contain prefixed content. As for prefixedContentItemType, processors MUST raise an error if they encounter a value with a type that is a subtype of prefixedContentType that they do not recognise (unless that subtype is itself derived from a subtype that is recognised) as knowledge of the structure of the prefixed content is required to correctly preserve and present such content."
+                "value" : "prefixedContent denotes values that rely for correct interpretation on namespace-prefix bindings in scope at the point of use. All item types that involve prefixed content should derive (directly or indirectly) from QName or prefixedContent Processors MUST raise an error if they encounter a fact with a type that is a subtype of prefixedContent that they do not recognise (unless that subtype is itself derived from a subtype that is recognised) as knowledge of the structure of the prefixed content is required to correctly preserve and present such content."
             },
             {
                 "relatedName" : "xbrli:SQName",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
-                "value" : "SQNameType provides a simple type equivalent to SQNameItemType. This can be used to define typed dimensions domains that take SQName values. As for SQNameItemType, the prefix used in an SQName MUST correspond to a namespace prefix that is in scope at the point of use."
+                "value" : "SQName provides a simple type. This can be used to define typed dimensions domains that take SQName values. The prefix used in an SQName MUST correspond to a namespace prefix that is in scope at the point of use."
             },
             {
                 "relatedName" : "xbrli:SQNames",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
-                "value" : "SQNamesType provides a simple type equivalent to SQNamesItemType. This can be used to define typed dimensions domains that take a collection of SQName values. As for SQNamesItemType, the prefix used in an SQName MUST correspond to a namespace prefix that is in scope at the point of use."
+                "value" : "SQNames provides a simple type. This can be used to define typed dimensions domains that take a collection of SQName values. The prefix used in an SQName MUST correspond to a namespace prefix that is in scope at the point of use."
             },
             {
                 "relatedName" : "xbrli:gYearList",
@@ -589,13 +579,13 @@
                 "relatedName" : "xbrli:dateTime",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
-                "value" : "A subtype of xbrli:dateTimeItemType that requires a time component (as xs:dateTime does)."
+                "value" : "A subtype of xbrli:dateTime that requires a time component (as xs:dateTime does)."
             },
             {
                 "relatedName" : "xbrli:ghgEmissions",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
-                "value" : "The greenhouse gas emissions item type is used in preference to massItemType to measure Global Warming Potential, which is often expressed in terms of tonnes of CO2 equivalent."
+                "value" : "The greenhouse gas emissions item type is used in preference to mass to measure Global Warming Potential, which is often expressed in terms of tonnes of CO2 equivalent."
             },
             {
                 "relatedName" : "xbrli:energyPerMonetary",
