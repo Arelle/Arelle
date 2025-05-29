@@ -13,8 +13,11 @@ import pytest
 from arelle import Updater
 from arelle.Updater import ArelleRelease, ArelleVersion
 
-MACOS_DOWNLOAD_URL = (
-    "https://github.com/Arelle/Arelle/releases/download/2.1.3/arelle-macos-2.1.3.dmg"
+MACOS_ARM64_DOWNLOAD_URL = (
+    "https://github.com/Arelle/Arelle/releases/download/2.1.3/arelle-macos-arm64-2.1.3.dmg"
+)
+MACOS_X64_DOWNLOAD_URL = (
+    "https://github.com/Arelle/Arelle/releases/download/2.1.3/arelle-macos-x64-2.1.3.dmg"
 )
 WINDOWS_DOWNLOAD_URL = (
     "https://github.com/Arelle/Arelle/releases/download/2.1.3/arelle-win-2.1.3.exe"
@@ -30,7 +33,8 @@ NEW_SEMVER_VERSION = str(NEW_ARELLE_VERSION)
 def _mockGitHubRelease(
     tagName: str = NEW_SEMVER_VERSION,
     assetUrls: tuple[str] = (
-        MACOS_DOWNLOAD_URL,
+        MACOS_ARM64_DOWNLOAD_URL,
+        MACOS_X64_DOWNLOAD_URL,
         WINDOWS_DOWNLOAD_URL,
         OTHER_DOWNLOAD_URL,
     ),
@@ -105,12 +109,37 @@ class TestArelleVersion:
 
 class TestUpdater:
     @patch("sys.platform", "darwin")
+    @patch("platform.machine")
     @patch("tkinter.messagebox.showinfo")
     @patch("tkinter.messagebox.showwarning")
-    def test_check_for_updates_macos(self, showWarning, showInfo):
+    def test_check_for_updates_macos(self, showWarning, showInfo, machine):
+        machine.return_value = "x64"
         arelleRelease = ArelleRelease(
             version=NEW_ARELLE_VERSION,
-            downloadUrl=MACOS_DOWNLOAD_URL,
+            downloadUrl=MACOS_X64_DOWNLOAD_URL,
+        )
+        cntlr = _mockCntlrWinMain()
+
+        Updater._checkForUpdates(cntlr)
+
+        assert not showInfo.called
+        assert not showWarning.called
+        assert not cntlr.uiThreadQueue.empty()
+        assert cntlr.uiThreadQueue.get_nowait() == (
+            Updater._checkUpdateUrl,
+            [cntlr, arelleRelease],
+        )
+        assert cntlr.uiThreadQueue.empty()
+
+    @patch("sys.platform", "darwin")
+    @patch("platform.machine")
+    @patch("tkinter.messagebox.showinfo")
+    @patch("tkinter.messagebox.showwarning")
+    def test_check_for_updates_macos(self, showWarning, showInfo, machine):
+        machine.return_value = "arm64"
+        arelleRelease = ArelleRelease(
+            version=NEW_ARELLE_VERSION,
+            downloadUrl=MACOS_ARM64_DOWNLOAD_URL,
         )
         cntlr = _mockCntlrWinMain()
 
@@ -219,7 +248,7 @@ class TestUpdater:
     ):
         arelleRelease = ArelleRelease(
             version=NEW_ARELLE_VERSION,
-            downloadUrl=MACOS_DOWNLOAD_URL,
+            downloadUrl=MACOS_ARM64_DOWNLOAD_URL,
         )
         cntlr = _mockCntlrWinMain()
         version.version = OLD_SEMVER_VERSION
@@ -275,7 +304,7 @@ class TestUpdater:
     ):
         arelleRelease = ArelleRelease(
             version=NEW_ARELLE_VERSION,
-            downloadUrl=MACOS_DOWNLOAD_URL,
+            downloadUrl=MACOS_ARM64_DOWNLOAD_URL,
         )
         cntlr = _mockCntlrWinMain()
         version.version = OLD_SEMVER_VERSION
@@ -303,7 +332,7 @@ class TestUpdater:
     ):
         arelleRelease = ArelleRelease(
             version=OLD_ARELLE_VERSION,
-            downloadUrl=MACOS_DOWNLOAD_URL,
+            downloadUrl=MACOS_ARM64_DOWNLOAD_URL,
         )
         cntlr = _mockCntlrWinMain()
         version.version = NEW_SEMVER_VERSION
@@ -339,7 +368,7 @@ class TestUpdater:
     ):
         arelleRelease = ArelleRelease(
             version=updateVersion,
-            downloadUrl=MACOS_DOWNLOAD_URL,
+            downloadUrl=MACOS_ARM64_DOWNLOAD_URL,
         )
         cntlr = _mockCntlrWinMain()
         version.version = currentVersion
@@ -361,7 +390,7 @@ class TestUpdater:
     ):
         arelleRelease = ArelleRelease(
             version=NEW_ARELLE_VERSION,
-            downloadUrl=MACOS_DOWNLOAD_URL,
+            downloadUrl=MACOS_ARM64_DOWNLOAD_URL,
         )
         cntlr = _mockCntlrWinMain()
         version.version = "invalid version string"
@@ -378,7 +407,7 @@ class TestUpdater:
     def test_download(self, showWarning, rename):
         arelleRelease = ArelleRelease(
             version=NEW_ARELLE_VERSION,
-            downloadUrl=MACOS_DOWNLOAD_URL,
+            downloadUrl=MACOS_ARM64_DOWNLOAD_URL,
         )
         cntlr = _mockCntlrWinMain(
             tmpDownloadFilename=os.path.normcase("/tmp/path/tmpfile"),
@@ -390,7 +419,7 @@ class TestUpdater:
         assert not cntlr.uiThreadQueue.empty()
         assert cntlr.uiThreadQueue.get_nowait() == (
             Updater._install,
-            [cntlr, os.path.normcase("/tmp/path/arelle-macos-2.1.3.dmg")],
+            [cntlr, os.path.normcase("/tmp/path/arelle-macos-arm64-2.1.3.dmg")],
         )
         assert cntlr.uiThreadQueue.empty()
 
@@ -411,7 +440,7 @@ class TestUpdater:
     def test_download_failed(self, showWarning, rename):
         arelleRelease = ArelleRelease(
             version=NEW_ARELLE_VERSION,
-            downloadUrl=MACOS_DOWNLOAD_URL,
+            downloadUrl=MACOS_ARM64_DOWNLOAD_URL,
         )
         cntlr = _mockCntlrWinMain(
             tmpDownloadFilename=None,
@@ -427,7 +456,7 @@ class TestUpdater:
     def test_download_process_failed(self, showWarning, rename):
         arelleRelease = ArelleRelease(
             version=NEW_ARELLE_VERSION,
-            downloadUrl=MACOS_DOWNLOAD_URL,
+            downloadUrl=MACOS_ARM64_DOWNLOAD_URL,
         )
         cntlr = _mockCntlrWinMain()
         rename.side_effect = OSError()
