@@ -1240,7 +1240,7 @@ class ModelConceptDataType(ModelConceptFilterWithQnameExpression):
         return set(fact for fact in facts
                    for qn in (self.evalQname(xpCtx,fact),)
                    for c in (fact.concept,)
-                   if c is not None and cmplmt ^ (c.typeQname == qn or (notStrict and c.type.isDerivedFrom(qn))))
+                   if c is not None and cmplmt ^ (c.typeQname == qn or (notStrict and c.type is not None and c.type.isDerivedFrom(qn))))
 
     @property
     def propertyView(self):

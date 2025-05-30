@@ -26,7 +26,7 @@ from arelle.XmlValidateConst import VALID
 
 XBRLI_IDENTIFIER_PATTERN = re.compile(r"^(?!00)\d{8}$")
 XBRLI_IDENTIFIER_SCHEMA = 'http://www.kvk.nl/kvk-id'
-
+MAX_REPORT_PACKAGE_SIZE_MBS = 100
 
 DISALLOWED_IXT_NAMESPACES = frozenset((
     ixtNamespaces["ixt v1"],
@@ -306,7 +306,7 @@ class PluginValidationDataExtension(PluginData):
 
     @lru_cache(1)
     def getIxdsDocBasenames(self, modelXbrl: ModelXbrl) -> set[str]:
-        return set(Path(url).name for url in modelXbrl.ixdsDocUrls)
+        return set(Path(url).name for url in getattr(modelXbrl, "ixdsDocUrls", []))
 
     def getNoMatchLangFootnotes(self, modelXbrl: ModelXbrl) -> set[ModelInlineFootnote]:
         return self.checkInlineHTMLElements(modelXbrl).noMatchLangFootnotes
