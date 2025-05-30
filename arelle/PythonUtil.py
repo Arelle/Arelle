@@ -11,9 +11,10 @@ import os
 import subprocess
 import sys
 from collections import OrderedDict
-from collections.abc import Iterable, Iterator, MappingView, MutableSet, Set
+from collections.abc import Iterable, Iterator, Mapping, MappingView, MutableSet, Set
 from decimal import Decimal
-from typing import Any, TypeVar
+from types import MappingProxyType
+from typing import Any, Generic, TypeVar
 
 from arelle.typing import OptionalString
 
@@ -295,6 +296,42 @@ class FrozenOrderedSet(Set[T]):
         if self._hash is None:
             self._hash = hash(self._items)
         return self._hash
+
+KT = TypeVar('KT')
+VT = TypeVar('VT')
+
+
+class FrozenDict(Generic[KT, VT], Mapping[KT, VT]):
+    def __init__(self, data: Mapping[KT, VT] | None = None) -> None:
+        self._dict: Mapping[KT, VT] = MappingProxyType(dict(data) if data is not None else dict())
+        self._hash: int | None = None
+
+    def __getitem__(self, key: KT) -> VT:
+        return self._dict[key]
+
+    def __iter__(self) -> Iterator[KT]:
+        return iter(self._dict)
+
+    def __len__(self) -> int:
+        return len(self._dict)
+
+    def __repr__(self) -> str:
+        if not self:
+            return f'{self.__class__.__name__}()'
+        return f"{self.__class__.__name__}({self._dict})"
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, FrozenDict):
+            return self._dict == other._dict
+        if isinstance(other, Mapping):
+            return self._dict == other
+        return NotImplemented
+
+    def __hash__(self) -> int:
+        if self._hash is None:
+            self._hash = hash(tuple(sorted(self._dict.items())))
+        return self._hash
+
 
 def Fraction(numerator,denominator=None):
     if denominator is None:
