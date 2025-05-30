@@ -43,6 +43,8 @@ def disclosureSystemConfigURL(*args: Any, **kwargs: Any) -> str:
 def modelXbrlLoadComplete(*args: Any, **kwargs: Any) -> ModelDocument | LoadingException | None:
     return validationPlugin.modelXbrlLoadComplete(*args, **kwargs)
 
+def validateXbrlStart(val: ValidateXbrl, parameters: dict[Any, Any], *args: Any, **kwargs: Any) -> None:
+    val.extensionImportedUrls = set()
 
 def validateXbrlFinally(*args: Any, **kwargs: Any) -> None:
     return validationPlugin.validateXbrlFinally(*args, **kwargs)
@@ -59,5 +61,6 @@ __pluginInfo__ = {
     "DisclosureSystem.Types": disclosureSystemTypes,
     "DisclosureSystem.ConfigURL": disclosureSystemConfigURL,
     "ModelXbrl.LoadComplete": modelXbrlLoadComplete,
+    "Validate.XBRL.Start": validateXbrlStart,
     "Validate.XBRL.Finally": validateXbrlFinally,
 }
