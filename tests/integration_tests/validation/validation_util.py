@@ -299,16 +299,19 @@ def get_conformance_suite_test_results(
         build_cache: bool = False,
         log_to_file: bool = False,
         offline: bool = False,
-        series: bool = False) -> list[ParameterSet]:
+        series: bool = False,
+        testcase_filters: list[str] | None = None,
+) -> list[ParameterSet]:
     assert len(shards) == 0 or config.shards != 1, \
         'Conformance suite configuration must specify shards if --shard is passed'
     if shards:
+        assert not testcase_filters, 'Testcase filters are not supported with shards.'
         return get_conformance_suite_test_results_with_shards(
             config=config, shards=shards, build_cache=build_cache, log_to_file=log_to_file, offline=offline, series=series
         )
     else:
         return get_conformance_suite_test_results_without_shards(
-            config=config, build_cache=build_cache, log_to_file=log_to_file, offline=offline
+            config=config, build_cache=build_cache, log_to_file=log_to_file, offline=offline, testcase_filters=testcase_filters
         )
 
 
@@ -382,7 +385,9 @@ def get_conformance_suite_test_results_without_shards(
         config: ConformanceSuiteConfig,
         build_cache: bool = False,
         log_to_file: bool = False,
-        offline: bool = False) -> list[ParameterSet]:
+        offline: bool = False,
+        testcase_filters: list[str] | None = None,
+) -> list[ParameterSet]:
     additional_plugins = frozenset().union(*(plugins for _, plugins in config.additional_plugins_by_prefix))
     filename = config.entry_point_path.as_posix()
     expected_failure_ids = config.expected_failure_ids
@@ -390,7 +395,7 @@ def get_conformance_suite_test_results_without_shards(
         config=config, filename=filename, additional_plugins=additional_plugins,
         build_cache=build_cache, offline=offline, log_to_file=log_to_file, shard=None,
         expected_additional_testcase_errors=config.expected_additional_testcase_errors,
-        expected_failure_ids=expected_failure_ids, testcase_filters=[],
+        expected_failure_ids=expected_failure_ids, testcase_filters=testcase_filters or [],
     )
     url_context_manager: AbstractContextManager[Any]
     if config.url_replace:
@@ -466,7 +471,7 @@ def save_timing_file(config: ConformanceSuiteConfig, results: list[ParameterSet]
     if durations:
         duration_values = durations.values()
         duration_mean = statistics.mean(duration_values)
-        duration_stdev = statistics.stdev(duration_values)
+        duration_stdev = statistics.stdev(duration_values) if len(duration_values) > 1 else 0
         durations = {
             testcase_id: duration/duration_mean
             for testcase_id, duration in sorted(durations.items())

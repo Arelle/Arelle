@@ -26,6 +26,8 @@ python -m tests.integration_tests.validation.run_conformance_suites --help
   --series              Run shards in series
   --shard SHARD         comma separated list of 0-indexed shards to run
   --test                Run selected conformance suite tests
+  --testcase-filter TESTCASE_FILTER
+                        Filter test cases (see --testcaseFilter)
 ```
 One of the following options *must* be provided to select which suites to use:
 * `--all`: select all configured conformance suites

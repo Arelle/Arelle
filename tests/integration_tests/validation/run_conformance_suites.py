@@ -94,6 +94,11 @@ ARGUMENTS: list[dict[str, Any]] = [
         "action": "store_true",
         "help": "Run selected conformance suite tests"
     },
+    {
+        "name": "--testcase-filter",
+        "action": "append",
+        "help": "Filter test cases (see --testcaseFilter)",
+    }
 ]
 DOWNLOAD_MISSING = 'missing'
 DOWNLOAD_OVERWRITE = 'overwrite'
@@ -129,7 +134,9 @@ def run_conformance_suites(
         download_private: bool = False,
         log_to_file: bool = False,
         offline_option: bool = False,
-        series_option: bool = False) -> list[ParameterSet]:
+        series_option: bool = False,
+        testcase_filters: list[str] | None = None,
+) -> list[ParameterSet]:
     conformance_suite_configs = _get_conformance_suite_names(select_option)
     unique_assets = set()
     for config in conformance_suite_configs:
@@ -160,6 +167,7 @@ def run_conformance_suites(
                 log_to_file=log_to_file,
                 offline=offline_option,
                 series=series_option,
+                testcase_filters=testcase_filters,
             )
             if log_to_file:
                 save_timing_file(config, results)
@@ -190,6 +198,7 @@ def run_conformance_suites_options(options: Namespace) -> list[ParameterSet]:
         log_to_file=options.log_to_file,
         offline_option=options.offline,
         series_option=options.series,
+        testcase_filters=options.testcase_filter
     )
 
 
