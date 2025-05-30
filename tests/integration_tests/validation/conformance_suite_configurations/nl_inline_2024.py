@@ -19,6 +19,9 @@ config = ConformanceSuiteConfig(
         *NL_PACKAGES['NL-INLINE-2024'],
     ],
     expected_additional_testcase_errors={f"conformance-suite-2024-sbr-domein-handelsregister/tests/{s}": val for s, val in {
+        'G3-5-3_1/index.xml:TC2_invalid': {
+            'arelle:ixdsTargetNotDefined': 1
+        },
         'G3-6-3_3/index.xml:TC2_invalid': {
             # Testcase expects only 3.6.3.3, but has a filename that has invalid characters (3.6.3.3)
             # AND {base} with > 20 characters (3.6.3.1)
@@ -65,7 +68,6 @@ config = ConformanceSuiteConfig(
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-5-1_4/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-5-1_5/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-5-1_5/index.xml:TC3_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-5-3_1/index.xml:TC2_invalid',
         #'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-5-4_1/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-6-2_1/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-7-1_1/index.xml:TC2_invalid',

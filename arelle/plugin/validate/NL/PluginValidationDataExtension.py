@@ -339,6 +339,17 @@ class PluginValidationDataExtension(PluginData):
         return reportXmlLang
 
     @lru_cache(1)
+    def getTargetElements(self, modelXbrl: ModelXbrl) -> list[Any]:
+        targetElements = []
+        for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
+            ixNStag = getattr(ixdsHtmlRootElt.modelDocument, "ixNStag", ixbrl11)
+            ixTags = set(ixNStag + ln for ln in ("nonNumeric", "nonFraction", "references", "relationship"))
+            for elt, depth in etreeIterWithDepth(ixdsHtmlRootElt):
+                if elt.tag in ixTags and elt.get("target"):
+                    targetElements.append(elt)
+        return targetElements
+
+    @lru_cache(1)
     def isFilenameValidCharacters(self, filename: str) -> bool:
         match = self.getFilenameAllowedCharactersPattern().match(filename)
         return match is not None
