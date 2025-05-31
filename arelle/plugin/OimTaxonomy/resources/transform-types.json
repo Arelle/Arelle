@@ -1,0 +1,2481 @@
+{
+  "$schema": "../oim-taxonomy-schema.json",
+  "documentInfo": {
+      "documentType": "https://xbrl.org/2025/taxonomy",
+        "namespaces": {
+            "xbrl": "https://xbrl.org/2025",
+            "xbrli":"https://xbrl.org/2025/instance",
+            "xs": "http://www.w3.org/2001/XMLSchema",
+            "xbrltt":"https://xbrl.org/2025/transform-types/"  
+            },
+        "documentNamespace":"xbrltt"
+  },
+  "taxonomy": {
+      "resolved" : false,
+      "name": "xbrltt:TransformsTaxonomyModule",
+      "frameworkName": "transforms",
+      "version": "2025",
+      "dataTypes": [
+        {
+          "name": "xbrltt:dateDayMonthnameBgType",
+          "baseType": "xs:string",
+          "patterns": [
+            "[0-9]{1,2}[^0-9]+(ян|фев|мар|апр|май|маи|юни|юли|авг|сеп|окт|ное|дек|ЯН|ФЕВ|МАР|АПР|МАЙ|МАИ|ЮНИ|ЮЛИ|АВГ|СЕП|ОКТ|НОЕ|ДЕК|Ян|Фев|Мар|Апр|Май|Маи|Юни|Юли|Авг|Сеп|Окт|Ное|Дек)[^0-9]{0,6}"
+          ],
+          "whiteSpace": "collapse"
+        },
+        {
+          "name": "xbrltt:dateDayMonthnameYearBgType",
+          "baseType": "xs:string",
+          "patterns": [
+            "[0-9]{1,2}[^0-9]+(ян|фев|мар|апр|май|маи|юни|юли|авг|сеп|окт|ное|дек|ЯН|ФЕВ|МАР|АПР|МАЙ|МАИ|ЮНИ|ЮЛИ|АВГ|СЕП|ОКТ|НОЕ|ДЕК|Ян|Фев|Мар|Апр|Май|Маи|Юни|Юли|Авг|Сеп|Окт|Ное|Дек)[^0-9]+([0-9]{1,2}|[0-9]{4})[^0-9]*"
+          ],
+          "whiteSpace": "collapse"
+        },
+        {
+          "name": "xbrltt:dateMonthnameYearBgType",
+          "baseType": "xs:string",
+          "patterns": [
+            "(ян|фев|мар|апр|май|маи|юни|юли|авг|сеп|окт|ное|дек|ЯН|ФЕВ|МАР|АПР|МАЙ|МАИ|ЮНИ|ЮЛИ|АВГ|СЕП|ОКТ|НОЕ|ДЕК|Ян|Фев|Мар|Апр|Май|Маи|Юни|Юли|Авг|Сеп|Окт|Ное|Дек)[^0-9]+([0-9]{1,2}|[0-9]{4})[^0-9]*"
+          ],
+          "whiteSpace": "collapse"
+        },
+        {
+          "name": "xbrltt:dateDayMonthnameCsType",
+          "baseType": "xs:string",
+          "patterns": [
+            "[0-9]{1,2}[^0-9]+(ledna|února|unora|března|brezna|dubna|května|kvetna|června|cervna|července|cervence|srpna|září|zari|října|rijna|listopadu|prosince|led|úno|uno|bře|bre|dub|kvě|kve|čvn|cvn|čvc|cvc|srp|zář|zar|říj|rij|lis|pro|LEDNA|ÚNORA|UNORA|BŘEZNA|BREZNA|DUBNA|KVĚTNA|KVETNA|ČERVNA|CERVNA|ČERVENCE|CERVENCE|SRPNA|ZÁŘÍ|ZARI|ŘÍJNA|RIJNA|LISTOPADU|PROSINCE|LED|ÚNO|UNO|BŘE|BRE|DUB|KVĚ|KVE|ČVN|CVN|ČVC|CVC|SRP|ZÁŘ|ZAR|ŘÍJ|RIJ|LIS|PRO|Ledna|Února|Unora|Března|Brezna|Dubna|Května|Kvetna|Června|Cervna|Července|Cervence|Srpna|Září|Zari|Října|Rijna|Listopadu|Prosince|Led|Úno|Uno|Bře|Bre|Dub|Kvě|Kve|Čvn|Cvn|Čvc|Cvc|Srp|Zář|Zar|Říj|Rij|Lis|Pro)\\.?"
+          ],
+          "whiteSpace": "collapse"
+        },
+        {
+          "name": "xbrltt:dateDayMonthnameYearCsType",
+          "baseType": "xs:string",
+          "patterns": [
+            "[0-9]{1,2}[^0-9]+(ledna|února|unora|března|brezna|dubna|května|kvetna|června|cervna|července|cervence|srpna|září|zari|října|rijna|listopadu|prosince|led|úno|uno|bře|bre|dub|kvě|kve|čvn|cvn|čvc|cvc|srp|zář|zar|říj|rij|lis|pro|LEDNA|ÚNORA|UNORA|BŘEZNA|BREZNA|DUBNA|KVĚTNA|KVETNA|ČERVNA|CERVNA|ČERVENCE|CERVENCE|SRPNA|ZÁŘÍ|ZARI|ŘÍJNA|RIJNA|LISTOPADU|PROSINCE|LED|ÚNO|UNO|BŘE|BRE|DUB|KVĚ|KVE|ČVN|CVN|ČVC|CVC|SRP|ZÁŘ|ZAR|ŘÍJ|RIJ|LIS|PRO|Ledna|Února|Unora|Března|Brezna|Dubna|Května|Kvetna|Června|Cervna|Července|Cervence|Srpna|Září|Zari|Října|Rijna|Listopadu|Prosince|Led|Úno|Uno|Bře|Bre|Dub|Kvě|Kve|Čvn|Cvn|Čvc|Cvc|Srp|Zář|Zar|Říj|Rij|Lis|Pro)[^0-9a-zA-Z]+[^0-9]*([0-9]{1,2}|[0-9]{4})"
+          ],
+          "whiteSpace": "collapse"
+        },
+        {
+            "name": "xbrltt:dateMonthnameYearCsType",
+            "baseType": "xs:string",
+            "patterns": [
+                "(leden|ledna|lednu|únor|unor|února|unora|únoru|unoru|březen|brezen|března|brezna|březnu|breznu|duben|dubna|dubnu|květen|kveten|května|kvetna|květnu|kvetnu|červen|cerven|června|cervna|červnu|cervnu|červenec|cervenec|července|cervence|červenci|cervenci|srpen|srpna|srpnu|září|zari|říjen|rijen|října|rijna|říjnu|rijnu|listopad|listopadu|prosinec|prosince|prosinci|led|úno|uno|bře|bre|dub|kvě|kve|čvn|cvn|čvc|cvc|srp|zář|zar|říj|rij|lis|pro|LEDEN|LEDNA|LEDNU|ÚNOR|UNOR|ÚNORA|UNORA|ÚNORU|UNORU|BŘEZEN|BREZEN|BŘEZNA|BREZNA|BŘEZNU|BREZNU|DUBEN|DUBNA|DUBNU|KVĚTEN|KVETEN|KVĚTNA|KVETNA|KVĚTNU|KVETNU|ČERVEN|CERVEN|ČERVNA|CERVNA|ČERVNU|CERVNU|ČERVENEC|CERVENEC|ČERVENCE|CERVENCE|ČERVENCI|CERVENCI|SRPEN|SRPNA|SRPNU|ZÁŘÍ|ZARI|ŘÍJEN|RIJEN|ŘÍJNA|RIJNA|ŘÍJNU|RIJNU|LISTOPAD|LISTOPADU|PROSINEC|PROSINCE|PROSINCI|LED|ÚNO|UNO|BŘE|BRE|DUB|KVĚ|KVE|ČVN|CVN|ČVC|CVC|SRP|ZÁŘ|ZAR|ŘÍJ|RIJ|LIS|PRO|Leden|Ledna|Lednu|Únor|Unor|Února|Unora|Únoru|Unoru|Březen|Brezen|Března|Brezna|Březnu|Breznu|Duben|Dubna|Dubnu|Květen|Kveten|Května|Kvetna|Květnu|Kvetnu|Červen|Cerven|Června|Cervna|Červnu|Cervnu|Červenec|Cervenec|Července|Cervence|Červenci|Cervenci|Srpen|Srpna|Srpnu|Září|Zari|Říjen|Rijen|Října|Rijna|Říjnu|Rijnu|Listopad|Listopadu|Prosinec|Prosince|Prosinci|Led|Úno|Uno|Bře|Bre|Dub|Kvě|Kve|Čvn|Cvn|Čvc|Cvc|Srp|Zář|Zar|Říj|Rij|Lis|Pro)[^0-9a-zA-Z]+[^0-9]*([0-9]{1,2}|[0-9]{4})"
+            ],
+            "whiteSpace": "collapse"
+        },
+        {
+            "name": "xbrltt:dateDayMonthnameCyType",
+            "baseType": "xs:string",
+            "patterns": [
+              "[0-9]{1,2}[^0-9]*[^0-9a-zA-Z]+(ion|chwe|maw|ebr|mai|meh|gor|aws|med|hyd|tach|rhag|ION|CHWE|MAW|EBR|MAI|MEH|GOR|AWS|MED|HYD|TACH|RHAG|Ion|Chwe|Maw|Ebr|Mai|Meh|Gor|Aws|Med|Hyd|Tach|Rhag)[^0-9]{0,7}"
+            ],
+            "whiteSpace": "collapse"
+          },
+          {
+            "name": "xbrltt:dateDayMonthnameYearCyType",
+            "baseType": "xs:string",
+            "patterns": [
+              "[0-9]{1,2}[^0-9]*[^0-9a-zA-Z]+(ion|chwe|maw|ebr|mai|meh|gor|aws|med|hyd|tach|rhag|ION|CHWE|MAW|EBR|MAI|MEH|GOR|AWS|MED|HYD|TACH|RHAG|Ion|Chwe|Maw|Ebr|Mai|Meh|Gor|Aws|Med|Hyd|Tach|Rhag)[^0-9]+([0-9]{1,2}|[0-9]{4})"
+            ],
+            "whiteSpace": "collapse"
+          },
+          {
+            "name": "xbrltt:dateMonthnameYearCyType",
+            "baseType": "xs:string",
+            "patterns": [
+              "(ion|chwe|maw|faw|ebr|mai|fai|meh|feh|gor|ngor|aws|med|fed|hyd|tach|dach|nhach|thach|rhag|rag|ION|CHWE|MAW|FAW|EBR|MAI|FAI|MEH|FEH|GOR|NGOR|AWS|MED|FED|HYD|TACH|DACH|NHACH|THACH|RHAG|RAG|Ion|Chwe|Maw|Faw|Ebr|Mai|Fai|Meh|Feh|Gor|Ngor|Aws|Med|Fedi|Hyd|Tach|Dach|Nhach|Thach|Rhag|Rag)[^0-9]+([0-9]{1,2}|[0-9]{4})"
+            ],
+            "whiteSpace": "collapse"
+          },
+          {
+            "name": "xbrltt:dateDayMonthnameDeType",
+            "baseType": "xs:string",
+            "patterns": [
+              "[0-9]{1,2}[^0-9]+(jan|jän|jaen|feb|mär|maer|mar|apr|mai|jun|jul|aug|sep|okt|nov|dez|JAN|JÄN|JAEN|FEB|MÄR|MAER|MAR|APR|MAI|JUN|JUL|AUG|SEP|OKT|NOV|DEZ|Jan|Jän|Jaen|Feb|Mär|Maer|Mar|Apr|Mai|Jun|Jul|Aug|Sep|Okt|Nov|Dez)[^0-9]{0,6}"
+            ],
+            "whiteSpace": "collapse"
+          },
+          {
+            "name": "xbrltt:dateDayMonthnameYearDeType",
+            "baseType": "xs:string",
+            "patterns": [
+              "[0-9]{1,2}[^0-9]+(jan|jän|jaen|feb|mär|maer|mar|apr|mai|jun|jul|aug|sep|okt|nov|dez|JAN|JÄN|JAEN|FEB|MÄR|MAER|MAR|APR|MAI|JUN|JUL|AUG|SEP|OKT|NOV|DEZ|Jan|Jän|Jaen|Feb|Mär|Maer|Mar|Apr|Mai|Jun|Jul|Aug|Sep|Okt|Nov|Dez)[^0-9]+([0-9]{1,2}|[0-9]{4})"
+            ],
+            "whiteSpace": "collapse"
+          },
+          {
+            "name": "xbrltt:dateMonthnameYearDeType",
+            "baseType": "xs:string",
+            "patterns": [
+              "(jan|jän|jaen|feb|mär|maer|mar|apr|mai|jun|jul|aug|sep|okt|nov|dez|JAN|JÄN|JAEN|FEB|MÄR|MAER|MAR|APR|MAI|JUN|JUL|AUG|SEP|OKT|NOV|DEZ|Jan|Jän|Jaen|Feb|Mär|Maer|Mar|Apr|Mai|Jun|Jul|Aug|Sep|Okt|Nov|Dez)[^0-9]+([0-9]{1,2}|[0-9]{4})"
+            ],
+            "whiteSpace": "collapse"
+          },
+          
+            {
+            "name": "xbrltt:dateDayMonthnameElType",
+            "baseType": "xs:string",
+            "patterns": [
+                "[0-9]{1,2}[^0-9]+(ιαν|ίαν|φεβ|μάρ|μαρ|απρ|άπρ|αρίλ|άρίλ|αριλ|άριλ|μαΐ|μαι|μάι|μαϊ|μάϊ|ιούν|ίούν|ίουν|ιουν|ιούλ|ίούλ|ίουλ|ίουλ|ιουλ|αύγ|αυγ|σεπ|οκτ|όκτ|νοέ|νοε|δεκ|ΙΑΝ|ΊΑΝ|IΑΝ|ΦΕΒ|ΜΆΡ|ΜΑΡ|ΑΠΡ|ΆΠΡ|AΠΡ|AΡΙΛ|ΆΡΙΛ|ΑΡΙΛ|ΜΑΪ́|ΜΑΙ|ΜΆΙ|ΜΑΪ|ΜΆΪ|ΙΟΎΝ|ΊΟΎΝ|ΊΟΥΝ|IΟΥΝ|ΙΟΥΝ|IΟΥΝ|ΙΟΎΛ|ΊΟΎΛ|ΊΟΥΛ|IΟΎΛ|ΙΟΥΛ|IΟΥΛ|ΑΎΓ|ΑΥΓ|ΣΕΠ|ΟΚΤ|ΌΚΤ|OΚΤ|ΝΟΈ|ΝΟΕ|ΔΕΚ|Ιαν|Ίαν|Iαν|Φεβ|Μάρ|Μαρ|Απρ|Άπρ|Aπρ|Αρίλ|Άρίλ|Aρίλ|Aριλ|Άριλ|Αριλ|Μαΐ|Μαι|Μάι|Μαϊ|Μάϊ|Ιούν|Ίούν|Ίουν|Iούν|Ιουν|Iουν|Ιούλ|Ίούλ|Ίουλ|Iούλ|Ιουλ|Iουλ|Αύγ|Αυγ|Σεπ|Οκτ|Όκτ|Oκτ|Νοέ|Νοε|Δεκ)[^0-9]{0,8}"
+            ],
+            "whiteSpace": "collapse"
+            },
+            {
+            "name": "xbrltt:dateDayMonthnameYearElType",
+            "baseType": "xs:string",
+            "patterns": [
+                "[0-9]{1,2}[^0-9]+(ιαν|ίαν|φεβ|μάρ|μαρ|απρ|άπρ|αρίλ|άρίλ|αριλ|άριλ|μαΐ|μαι|μάι|μαϊ|μάϊ|ιούν|ίούν|ίουν|ιουν|ιούλ|ίούλ|ίουλ|ίουλ|ιουλ|αύγ|αυγ|σεπ|οκτ|όκτ|νοέ|νοε|δεκ|ΙΑΝ|ΊΑΝ|IΑΝ|ΦΕΒ|ΜΆΡ|ΜΑΡ|ΑΠΡ|ΆΠΡ|AΠΡ|AΡΙΛ|ΆΡΙΛ|ΑΡΙΛ|ΜΑΪ́|ΜΑΙ|ΜΆΙ|ΜΑΪ|ΜΆΪ|ΙΟΎΝ|ΊΟΎΝ|ΊΟΥΝ|IΟΎΝ|ΙΟΥΝ|IΟΥΝ|ΙΟΎΛ|ΊΟΎΛ|ΊΟΥΛ|IΟΎΛ|ΙΟΥΛ|IΟΥΛ|ΑΎΓ|ΑΥΓ|ΣΕΠ|ΟΚΤ|ΌΚΤ|OΚΤ|ΝΟΈ|ΝΟΕ|ΔΕΚ|Ιαν|Ίαν|Iαν|Φεβ|Μάρ|Μαρ|Απρ|Άπρ|Aπρ|Αρίλ|Άρίλ|Aρίλ|Aριλ|Άριλ|Αριλ|Μαΐ|Μαι|Μάι|Μαϊ|Μάϊ|Ιούν|Ίούν|Ίουν|Iούν|Ιουν|Iουν|Ιούλ|Ίούλ|Ίουλ|Iούλ|Ιουλ|Iουλ|Αύγ|Αυγ|Σεπ|Οκτ|Όκτ|Oκτ|Νοέ|Νοε|Δεκ)[^0-9]+([0-9]{1,2}|[0-9]{4})"
+            ],
+            "whiteSpace": "collapse"
+            },
+            {
+            "name": "xbrltt:dateMonthnameYearElType",
+            "baseType": "xs:string",
+            "patterns": [
+                "(ιαν|ίαν|φεβ|μάρ|μαρ|απρ|άπρ|αρίλ|άρίλ|αριλ|άριλ|μαΐ|μαι|μάι|μαϊ|μάϊ|ιούν|ίούν|ίουν|ιουν|ιούλ|ίούλ|ίουλ|ίουλ|ιουλ|αύγ|αυγ|σεπ|οκτ|όκτ|νοέ|νοε|δεκ|ΙΑΝ|ΊΑΝ|IΑΝ|ΦΕΒ|ΜΆΡ|ΜΑΡ|ΑΠΡ|ΆΠΡ|AΠΡ|AΡΙΛ|ΆΡΙΛ|ΑΡΙΛ|ΜΑΪ́|ΜΑΙ|ΜΆΙ|ΜΑΪ|ΜΆΪ|ΙΟΎΝ|ΊΟΎΝ|ΊΟΥΝ|IΟΎΝ|ΙΟΥΝ|IΟΥΝ|ΙΟΎΛ|ΊΟΎΛ|ΊΟΥΛ|IΟΎΛ|ΙΟΥΛ|IΟΥΛ|ΑΎΓ|ΑΥΓ|ΣΕΠ|ΟΚΤ|ΌΚΤ|OΚΤ|ΝΟΈ|ΝΟΕ|ΔΕΚ|Ιαν|Ίαν|Iαν|Φεβ|Μάρ|Μαρ|Απρ|Άπρ|Aπρ|Αρίλ|Άρίλ|Aρίλ|Aριλ|Άριλ|Αριλ|Μαΐ|Μαι|Μάι|Μαϊ|Μάϊ|Ιούν|Ίούν|Ίουν|Iούν|Ιουν|Iουν|Ιούλ|Ίούλ|Ίουλ|Iούλ|Ιουλ|Iουλ|Αύγ|Αυγ|Σεπ|Οκτ|Όκτ|Oκτ|Νοέ|Νοε|Δεκ)[^0-9]+([0-9]{1,2}|[0-9]{4})"
+            ],
+            "whiteSpace": "collapse"
+            },
+          {
+                "name": "xbrltt:dateDayMonthnameEsType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9]{1,2}[^0-9]+(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic|ENE|FEB|MAR|ABR|MAY|JUN|JUL|AGO|SEP|OCT|NOV|DIC|Ene|Feb|Mar|Abr|May|Jun|Jul|Ago|Sep|Oct|Nov|Dic)[^0-9]{0,7}"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateDayMonthnameYearEsType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9]{1,2}[^0-9]+(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic|ENE|FEB|MAR|ABR|MAY|JUN|JUL|AGO|SEP|OCT|NOV|DIC|Ene|Feb|Mar|Abr|May|Jun|Jul|Ago|Sep|Oct|Nov|Dic)[^0-9]+([0-9]{1,2}|[0-9]{4})"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateMonthnameYearEsType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic|ENE|FEB|MAR|ABR|MAY|JUN|JUL|AGO|SEP|OCT|NOV|DIC|Ene|Feb|Mar|Abr|May|Jun|Jul|Ago|Sep|Oct|Nov|Dic)[^0-9]+([0-9]{1,2}|[0-9]{4})"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateDayMonthnameEtType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9]{1,2}[^0-9]+(jaan|veebr|märts|marts|apr|mai|juuni|juuli|aug|sept|okt|nov|dets|JAAN|VEEBR|MÄRTS|MARTS|APR|MAI|JUUNI|JUULI|AUG|SEPT|OKT|NOV|DETS|Jaan|Veebr|Märts|Marts|Apr|Mai|Juuni|Juuli|Aug|Sept|Okt|Nov|Dets)[^0-9]{0,5}"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateDayMonthnameYearEtType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9]{1,2}[^0-9]+(jaan|veebr|märts|marts|apr|mai|juuni|juuli|aug|sept|okt|nov|dets|JAAN|VEEBR|MÄRTS|MARTS|APR|MAI|JUUNI|JUULI|AUG|SEPT|OKT|NOV|DETS|Jaan|Veebr|Märts|Marts|Apr|Mai|Juuni|Juuli|Aug|Sept|Okt|Nov|Dets)[^0-9]+([0-9]{1,2}|[0-9]{4})"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateMonthnameYearEtType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "(jaan|veebr|märts|marts|apr|mai|juuni|juuli|aug|sept|okt|nov|dets|JAAN|VEEBR|MÄRTS|MARTS|APR|MAI|JUUNI|JUULI|AUG|SEPT|OKT|NOV|DETS|Jaan|Veebr|Märts|Marts|Apr|Mai|Juuni|Juuli|Aug|Sept|Okt|Nov|Dets)[^0-9]+([0-9]{1,2}|[0-9]{4})"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateDayMonthnameFiType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9]{1,2}[^0-9]*[^0-9a-zA-Z]+(tam|hel|maa|huh|tou|kes|hei|elo|syy|lok|mar|jou|TAM|HEL|MAA|HUH|TOU|KES|HEI|ELO|SYY|LOK|MAR|JOU|Tam|Hel|Maa|Huh|Tou|Kes|Hei|Elo|Syy|Lok|Mar|Jou)[^0-9]{0,8}"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateDayMonthnameYearFiType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9]{1,2}[^0-9]*[^0-9a-zA-Z]+(tam|hel|maa|huh|tou|kes|hei|elo|syy|lok|mar|jou|TAM|HEL|MAA|HUH|TOU|KES|HEI|ELO|SYY|LOK|MAR|JOU|Tam|Hel|Maa|Huh|Tou|Kes|Hei|Elo|Syy|Lok|Mar|Jou)[^0-9]+([0-9]{1,2}|[0-9]{4})"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateMonthnameYearFiType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "(tam|hel|maa|huh|tou|kes|hei|elo|syy|lok|mar|jou|TAM|HEL|MAA|HUH|TOU|KES|HEI|ELO|SYY|LOK|MAR|JOU|Tam|Hel|Maa|Huh|Tou|Kes|Hei|Elo|Syy|Lok|Mar|Jou)[^0-9]+([0-9]{1,2}|[0-9]{4})"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateDayMonthnameFrType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9]{1,2}[^0-9]+(janv|févr|fevr|mars|avr|mai|juin|juil|août|aout|sept|oct|nov|déc|dec|JANV|FÉVR|FEVR|MARS|AVR|MAI|JUIN|JUIL|AOÛT|AOUT|SEPT|OCT|NOV|DÉC|DEC|Janv|Févr|Fevr|Mars|Avr|Mai|Juin|Juil|Août|Aout|Sept|Oct|Nov|Déc|Dec)[^0-9]{0,5}"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateDayMonthnameYearFrType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9]{1,2}[^0-9]+(janv|févr|fevr|mars|avr|mai|juin|juil|août|aout|sept|oct|nov|déc|dec|JANV|FÉVR|FEVR|MARS|AVR|MAI|JUIN|JUIL|AOÛT|AOUT|SEPT|OCT|NOV|DÉC|DEC|Janv|Févr|Fevr|Mars|Avr|Mai|Juin|Juil|Août|Aout|Sept|Oct|Nov|Déc|Dec)[^0-9]+([0-9]{1,2}|[0-9]{4})"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateMonthnameYearFrType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "(janv|févr|fevr|mars|avr|mai|juin|juil|août|aout|sept|oct|nov|déc|dec|JANV|FÉVR|FEVR|MARS|AVR|MAI|JUIN|JUIL|AOÛT|AOUT|SEPT|OCT|NOV|DÉC|DEC|Janv|Févr|Fevr|Mars|Avr|Mai|Juin|Juil|Août|Aout|Sept|Oct|Nov|Déc|Dec)[^0-9]+([0-9]{1,2}|[0-9]{4})"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateDayMonthnameHrType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9]{1,2}[^0-9]+(sij|velj|ožu|ozu|tra|svi|lip|srp|kol|ruj|lis|stu|pro|SIJ|VELJ|OŽU|OZU|TRA|SVI|LIP|SRP|KOL|RUJ|LIS|STU|PRO|Sij|Velj|Ožu|Ozu|Tra|Svi|Lip|Srp|Kol|Ruj|Lis|Stu|Pro)[^0-9]{0,6}"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateDayMonthnameYearHrType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9]{1,2}[^0-9]+(sij|velj|ožu|ozu|tra|svi|lip|srp|kol|ruj|lis|stu|pro|SIJ|VELJ|OŽU|OZU|TRA|SVI|LIP|SRP|KOL|RUJ|LIS|STU|PRO|Sij|Velj|Ožu|Ozu|Tra|Svi|Lip|Srp|Kol|Ruj|Lis|Stu|Pro)[^0-9]+([0-9]{1,2}|[0-9]{4})"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateMonthnameYearHrType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "(sij|velj|ožu|ozu|tra|svi|lip|srp|kol|ruj|lis|stu|pro|SIJ|VELJ|OŽU|OZU|TRA|SVI|LIP|SRP|KOL|RUJ|LIS|STU|PRO|Sij|Velj|Ožu|Ozu|Tra|Svi|Lip|Srp|Kol|Ruj|Lis|Stu|Pro)[^0-9]+([0-9]{1,2}|[0-9]{4})"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateMonthnameDayHuType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "(jan|feb|márc|marc|ápr|apr|máj|maj|jún|jun|júl|jul|aug|szept|okt|nov|dec|JAN|FEB|MÁRC|MARC|ÁPR|APR|MÁJ|MAJ|JÚN|JUN|JÚL|JUL|AUG|SZEPT|OKT|NOV|DEC|Jan|Feb|Márc|Marc|Ápr|Apr|Máj|Maj|Jún|Jun|Júl|Jul|Aug|Szept|Okt|Nov|Dec)[^0-9]{0,7}[^0-9]+[0-9]{1,2}"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateYearMonthnameDayHuType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "([0-9]{1,2}|[0-9]{4})[^0-9]+(jan|feb|márc|marc|ápr|apr|máj|maj|jún|jun|júl|jul|aug|szept|okt|nov|dec|JAN|FEB|MÁRC|MARC|ÁPR|APR|MÁJ|MAJ|JÚN|JUN|JÚL|JUL|AUG|SZEPT|OKT|NOV|DEC|Jan|Feb|Márc|Marc|Ápr|Apr|Máj|Maj|Jún|Jun|Júl|Jul|Aug|Szept|Okt|Nov|Dec)[^0-9]+[0-9]{1,2}"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateYearMonthnameHuType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "([0-9]{1,2}|[0-9]{4})[^0-9]+(jan|feb|márc|marc|ápr|apr|máj|maj|jún|jun|júl|jul|aug|szept|okt|nov|dec|JAN|FEB|MÁRC|MARC|ÁPR|APR|MÁJ|MAJ|JÚN|JUN|JÚL|JUL|AUG|SZEPT|OKT|NOV|DEC|Jan|Feb|Márc|Marc|Ápr|Apr|Máj|Maj|Jún|Jun|Júl|Jul|Aug|Szept|Okt|Nov|Dec)[^0-9]{0,7}"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateDayMonthnameItType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9]{1,2}[^0-9]+(gen|feb|mar|apr|mag|giu|lug|ago|set|ott|nov|dic|GEN|FEB|MAR|APR|MAG|GIU|LUG|AGO|SET|OTT|NOV|DIC|Gen|Feb|Mar|Apr|Mag|Giu|Lug|Ago|Set|Ott|Nov|Dic)[^0-9]{0,6}"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateDayMonthnameYearItType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9]{1,2}[^0-9]+(gen|feb|mar|apr|mag|giu|lug|ago|set|ott|nov|dic|GEN|FEB|MAR|APR|MAG|GIU|LUG|AGO|SET|OTT|NOV|DIC|Gen|Feb|Mar|Apr|Mag|Giu|Lug|Ago|Set|Ott|Nov|Dic)[^0-9]+([0-9]{1,2}|[0-9]{4})"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateMonthnameYearItType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "(gen|feb|mar|apr|mag|giu|lug|ago|set|ott|nov|dic|GEN|FEB|MAR|APR|MAG|GIU|LUG|AGO|SET|OTT|NOV|DIC|Gen|Feb|Mar|Apr|Mag|Giu|Lug|Ago|Set|Ott|Nov|Dic)[^0-9]+([0-9]{1,2}|[0-9]{4})"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateMonthnameDayLtType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "(sau|vas|kov|bal|geg|bir|lie|rugp|rgp|rugs|rgs|spa|spl|lap|gru|grd|SAU|VAS|KOV|BAL|GEG|BIR|LIE|RUGP|RGP|RUGS|RGS|SPA|SPL|LAP|GRU|GRD|Sau|Vas|Kov|Bal|Geg|Bir|Lie|Rugp|Rgp|Rugs|Rgs|Spa|Spl|Lap|Gru|Grd)[^0-9]{0,6}[^0-9]+[0-9]{1,2}[^0-9]*"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateYearMonthnameDayLtType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "([0-9]{1,2}|[0-9]{4})[^0-9]*[^0-9a-zA-Z]+(sau|vas|kov|bal|geg|bir|lie|rugp|rgp|rugs|rgs|spa|spl|lap|gru|grd|SAU|VAS|KOV|BAL|GEG|BIR|LIE|RUGP|RGP|RUGS|RGS|SPA|SPL|LAP|GRU|GRD|Sau|Vas|Kov|Bal|Geg|Bir|Lie|Rugp|Rgp|Rugs|Rgs|Spa|Spl|Lap|Gru|Grd)[^0-9]+[0-9]{1,2}[^0-9]*"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateYearMonthnameLtType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "([0-9]{1,2}|[0-9]{4})[^0-9]*[^0-9a-zA-Z]+(sau|vas|kov|bal|geg|bir|lie|rugp|rgp|rugs|rgs|spa|spl|lap|gru|grd|SAU|VAS|KOV|BAL|GEG|BIR|LIE|RUGP|RGP|RUGS|RGS|SPA|SPL|LAP|GRU|GRD|Sau|Vas|Kov|Bal|Geg|Bir|Lie|Rugp|Rgp|Rugs|Rgs|Spa|Spl|Lap|Gru|Grd)[^0-9]*"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateDayMonthnameLvType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9]{1,2}[^0-9]+(janv|febr|marts|apr|maijs|jūn|jun|jūl|jul|aug|sept|okt|nov|dec|JANV|FEBR|MARTS|APR|MAIJS|JŪN|JUN|JŪL|JUL|AUG|SEPT|OKT|NOV|DEC|Janv|Febr|Marts|Apr|Maijs|Jūn|Jun|Jūl|Jul|Aug|Sept|Okt|Nov|Dec)[^0-9]{0,6}"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateYearDayMonthnameLvType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "([0-9]{1,2}|[0-9]{4})[^0-9]+[0-9]{1,2}[^0-9]+(janv|febr|marts|apr|maijs|jūn|jun|jūl|jul|aug|sept|okt|nov|dec|JANV|FEBR|MARTS|APR|MAIJS|JŪN|JUN|JŪL|JUL|AUG|SEPT|OKT|NOV|DEC|Janv|Febr|Marts|Apr|Maijs|Jūn|Jun|Jūl|Jul|Aug|Sept|Okt|Nov|Dec)[^0-9]*"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateYearMonthnameLvType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "([0-9]{1,2}|[0-9]{4})[^0-9]+(janv|febr|marts|apr|maijs|jūn|jun|jūl|jul|aug|sept|okt|nov|dec|JANV|FEBR|MARTS|APR|MAIJS|JŪN|JUN|JŪL|JUL|AUG|SEPT|OKT|NOV|DEC|Janv|Febr|Marts|Apr|Maijs|Jūn|Jun|Jūl|Jul|Aug|Sept|Okt|Nov|Dec)[^0-9]{0,7}"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateDayMonthnameNlType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9]{1,2}[^0-9]+(jan|feb|maa|mrt|apr|mei|jun|jul|aug|sep|okt|nov|dec|JAN|FEB|MAA|MRT|APR|MEI|JUN|JUL|AUG|SEP|OKT|NOV|DEC|Jan|Feb|Maa|Mrt|Apr|Mei|Jun|Jul|Aug|Sep|Okt|Nov|Dec)[^0-9]{0,6}"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateDayMonthnameYearNlType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9]{1,2}[^0-9]+(jan|feb|maa|mrt|apr|mei|jun|jul|aug|sep|okt|nov|dec|JAN|FEB|MAA|MRT|APR|MEI|JUN|JUL|AUG|SEP|OKT|NOV|DEC|Jan|Feb|Maa|Mrt|Apr|Mei|Jun|Jul|Aug|Sep|Okt|Nov|Dec)[^0-9]+([0-9]{1,2}|[0-9]{4})"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateMonthnameYearNlType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "(jan|feb|maa|mrt|apr|mei|jun|jul|aug|sep|okt|nov|dec|JAN|FEB|MAA|MRT|APR|MEI|JUN|JUL|AUG|SEP|OKT|NOV|DEC|Jan|Feb|Maa|Mrt|Apr|Mei|Jun|Jul|Aug|Sep|Okt|Nov|Dec)[^0-9]+([0-9]{1,2}|[0-9]{4})"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateDayMonthnameNoType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9]{1,2}[^0-9]+(jan|feb|mar|apr|mai|jun|jul|aug|sep|okt|nov|des|JAN|FEB|MAR|APR|MAI|JUN|JUL|AUG|SEP|OKT|NOV|DES|Jan|Feb|Mar|Apr|Mai|Jun|Jul|Aug|Sep|Okt|Nov|Des)[^0-9]{0,6}"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateDayMonthnameYearNoType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9]{1,2}[^0-9]+(jan|feb|mar|apr|mai|jun|jul|aug|sep|okt|nov|des|JAN|FEB|MAR|APR|MAI|JUN|JUL|AUG|SEP|OKT|NOV|DES|Jan|Feb|Mar|Apr|Mai|Jun|Jul|Aug|Sep|Okt|Nov|Des)[^0-9]+([0-9]{1,2}|[0-9]{4})"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateMonthnameYearNoType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "(jan|feb|mar|apr|mai|jun|jul|aug|sep|okt|nov|des|JAN|FEB|MAR|APR|MAI|JUN|JUL|AUG|SEP|OKT|NOV|DES|Jan|Feb|Mar|Apr|Mai|Jun|Jul|Aug|Sep|Okt|Nov|Des)[^0-9]+([0-9]{1,2}|[0-9]{4})"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateDayMonthnamePlType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9]{1,2}[^0-9]*[^0-9a-zA-Z]+(sty|lut|mar|kwi|maj|cze|lip|sie|wrz|paź|paz|lis|gru|STY|LUT|MAR|KWI|MAJ|CZE|LIP|SIE|WRZ|PAŹ|PAZ|LIS|GRU|Sty|Lut|Mar|Kwi|Maj|Cze|Lip|Sie|Wrz|Paź|Paz|Lis|Gru)[^0-9]{0,9}"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateDayMonthnameYearPlType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9]{1,2}[^0-9]*[^0-9a-zA-Z]+(sty|lut|mar|kwi|maj|cze|lip|sie|wrz|paź|paz|lis|gru|STY|LUT|MAR|KWI|MAJ|CZE|LIP|SIE|WRZ|PAŹ|PAZ|LIS|GRU|Sty|Lut|Mar|Kwi|Maj|Cze|Lip|Sie|Wrz|Paź|Paz|Lis|Gru)[^0-9]+([0-9]{1,2}|[0-9]{4})[^0-9]*"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateMonthnameYearPlType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "(sty|lut|mar|kwi|maj|cze|lip|sie|wrz|paź|paz|lis|gru|STY|LUT|MAR|KWI|MAJ|CZE|LIP|SIE|WRZ|PAŹ|PAZ|LIS|GRU|Sty|Lut|Mar|Kwi|Maj|Cze|Lip|Sie|Wrz|Paź|Paz|Lis|Gru)[^0-9]+([0-9]{1,2}|[0-9]{4})[^0-9]*"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateDayMonthnamePtType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9]{1,2}[^0-9]+(jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez|JAN|FEV|MAR|ABR|MAI|JUN|JUL|AGO|SET|OUT|NOV|DEZ|Jan|Fev|Mar|Abr|Mai|Jun|Jul|Ago|Set|Out|Nov|Dez)[^0-9]{0,6}"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateDayMonthnameYearPtType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9]{1,2}[^0-9]+(jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez|JAN|FEV|MAR|ABR|MAI|JUN|JUL|AGO|SET|OUT|NOV|DEZ|Jan|Fev|Mar|Abr|Mai|Jun|Jul|Ago|Set|Out|Nov|Dez)[^0-9]+([0-9]{1,2}|[0-9]{4})"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateMonthnameYearPtType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "(jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez|JAN|FEV|MAR|ABR|MAI|JUN|JUL|AGO|SET|OUT|NOV|DEZ|Jan|Fev|Mar|Abr|Mai|Jun|Jul|Ago|Set|Out|Nov|Dez)[^0-9]+([0-9]{1,2}|[0-9]{4})"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateDayMonthromanType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9]{1,2}[^0-9]+(I|II|III|IV|V|VI|VII|VIII|IX|X|XI|XII)"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateDayMonthromanYearType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9]{1,2}[^0-9]+(I|II|III|IV|V|VI|VII|VIII|IX|X|XI|XII)[^0-9]+([0-9]{1,2}|[0-9]{4})"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateMonthromanYearType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "(I|II|III|IV|V|VI|VII|VIII|IX|X|XI|XII)[^0-9]+([0-9]{1,2}|[0-9]{4})"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateDayMonthnameRoType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9]{1,2}[^0-9]+(ian|feb|mar|apr|mai|iun|iul|aug|sep|oct|noi|nov|dec|IAN|FEB|MAR|APR|MAI|IUN|IUL|AUG|SEP|OCT|NOI|NOV|DEC|Ian|Feb|Mar|Apr|Mai|Iun|Iul|Aug|Sep|Oct|Noi|Nov|Dec)[^0-9]{0,7}"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateDayMonthnameYearRoType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9]{1,2}[^0-9]+(ian|feb|mar|apr|mai|iun|iul|aug|sep|oct|noi|nov|dec|IAN|FEB|MAR|APR|MAI|IUN|IUL|AUG|SEP|OCT|NOI|NOV|DEC|Ian|Feb|Mar|Apr|Mai|Iun|Iul|Aug|Sep|Oct|Noi|Nov|Dec)[^0-9]+([0-9]{1,2}|[0-9]{4})"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateMonthnameYearRoType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "(ian|feb|mar|apr|mai|iun|iul|aug|sep|oct|noi|nov|dec|IAN|FEB|MAR|APR|MAI|IUN|IUL|AUG|SEP|OCT|NOI|NOV|DEC|Ian|Feb|Mar|Apr|Mai|Iun|Iul|Aug|Sep|Oct|Noi|Nov|Dec)[^0-9]+([0-9]{1,2}|[0-9]{4})"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateDayMonthnameSkType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9]{1,2}[^0-9]+(jan|feb|mar|apr|máj|maj|jún|jun|júl|jul|aug|sep|okt|nov|dec|JAN|FEB|MAR|APR|MÁJ|MAJ|JÚN|JUN|JÚL|JUL|AUG|SEP|OKT|NOV|DEC|Jan|Feb|Mar|Apr|Máj|Maj|Jún|Jun|Júl|Jul|Aug|Sep|Okt|Nov|Dec)[^0-9]{0,6}"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateDayMonthnameYearSkType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9]{1,2}[^0-9]+(jan|feb|mar|apr|máj|maj|jún|jun|júl|jul|aug|sep|okt|nov|dec|JAN|FEB|MAR|APR|MÁJ|MAJ|JÚN|JUN|JÚL|JUL|AUG|SEP|OKT|NOV|DEC|Jan|Feb|Mar|Apr|Máj|Maj|Jún|Jun|Júl|Jul|Aug|Sep|Okt|Nov|Dec)[^0-9]+([0-9]{1,2}|[0-9]{4})"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateMonthnameYearSkType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "(jan|feb|mar|apr|máj|maj|jún|jun|júl|jul|aug|sep|okt|nov|dec|JAN|FEB|MAR|APR|MÁJ|MAJ|JÚN|JUN|JÚL|JUL|AUG|SEP|OKT|NOV|DEC|Jan|Feb|Mar|Apr|Máj|Maj|Jún|Jun|Júl|Jul|Aug|Sep|Okt|Nov|Dec)[^0-9]+([0-9]{1,2}|[0-9]{4})"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateDayMonthnameSlType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9]{1,2}[^0-9]+(jan|feb|mar|apr|maj|jun|jul|avg|sep|okt|nov|dec|JAN|FEB|MAR|APR|MAJ|JUN|JUL|AVG|SEP|OKT|NOV|DEC|Jan|Feb|Mar|Apr|Maj|Jun|Jul|Avg|Sep|Okt|Nov|Dec)[^0-9]{0,6}"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateDayMonthnameYearSlType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9]{1,2}[^0-9]+(jan|feb|mar|apr|maj|jun|jul|avg|sep|okt|nov|dec|JAN|FEB|MAR|APR|MAJ|JUN|JUL|AVG|SEP|OKT|NOV|DEC|Jan|Feb|Mar|Apr|Maj|Jun|Jul|Avg|Sep|Okt|Nov|Dec)[^0-9]+([0-9]{1,2}|[0-9]{4})"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateMonthnameYearSlType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "(jan|feb|mar|apr|maj|jun|jul|avg|sep|okt|nov|dec|JAN|FEB|MAR|APR|MAJ|JUN|JUL|AVG|SEP|OKT|NOV|DEC|Jan|Feb|Mar|Apr|Maj|Jun|Jul|Avg|Sep|Okt|Nov|Dec)[^0-9]+([0-9]{1,2}|[0-9]{4})"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateDayMonthnameDaSvType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9]{1,2}[^0-9]+(jan|feb|mar|apr|maj|jun|jul|aug|sep|okt|nov|dec|JAN|FEB|MAR|APR|MAJ|JUN|JUL|AUG|SEP|OKT|NOV|DEC|Jan|Feb|Mar|Apr|Maj|Jun|Jul|Aug|Sep|Okt|Nov|Dec)[^0-9]{0,6}"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateDayMonthnameYearDaSvType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9]{1,2}[^0-9]+(jan|feb|mar|apr|maj|jun|jul|aug|sep|okt|nov|dec|JAN|FEB|MAR|APR|MAJ|JUN|JUL|AUG|SEP|OKT|NOV|DEC|Jan|Feb|Mar|Apr|Maj|Jun|Jul|Aug|Sep|Okt|Nov|Dec)[^0-9]+([0-9]{1,2}|[0-9]{4})"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateMonthnameYearDaSvType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "(jan|feb|mar|apr|maj|jun|jul|aug|sep|okt|nov|dec|JAN|FEB|MAR|APR|MAJ|JUN|JUL|AUG|SEP|OKT|NOV|DEC|Jan|Feb|Mar|Apr|Maj|Jun|Jul|Aug|Sep|Okt|Nov|Dec)[^0-9]+([0-9]{1,2}|[0-9]{4})"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateDayMonthnameEnType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9]{1,2}[^0-9]+(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateDayMonthnameYearEnType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9]{1,2}[^0-9]+(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)[^0-9]+([0-9]{1,2}|[0-9]{4})"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateMonthnameDayEnType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)[^0-9]+[0-9]{1,2}[a-zA-Z]{0,2}"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateMonthnameDayYearEnType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)[^0-9]+[0-9]{1,2}[^0-9]+([0-9]{1,2}|[0-9]{4})"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateMonthnameYearEnType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)[^0-9]+([0-9]{1,2}|[0-9]{4})"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateYearMonthnameEnType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "([0-9]{1,2}|[0-9]{4})[^0-9]+(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateJpnEraYearMonthType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "(明治|明|大正|大|昭和|昭|平成|平|令和|令)[\\s ]*([0-9０-９]{1,2}|元)[\\s ]*(年)[\\s ]*([0-9０-９]{1,2})[\\s ]*(月)"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateJpnEraYearMonthDayType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "(明治|明|大正|大|昭和|昭|平成|平|令和|令)[\\s ]*([0-9０-９]{1,2}|元)[\\s ]*(年)[\\s ]*([0-9０-９]{1,2})[\\s ]*(月)[\\s ]*([0-9０-９]{1,2})[\\s ]*(日)"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateDayMonthType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9]{1,2}[^0-9]+[0-9]{1,2}"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateDayMonthYearType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9०-९]{1,2}[^0-9०-९]+[0-9०-९]{1,2}[^0-9०-९]+([0-9०-९]{1,2}|[0-9०-९]{4})"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateMonthDayType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9]{1,2}[^0-9]+[0-9]{1,2}"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateMonthDayYearType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9]{1,2}[^0-9]+[0-9]{1,2}[^0-9]+([0-9]{1,2}|[0-9]{4})"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateMonthYearType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "[0-9०-९]{1,2}[^0-9०-९]+([0-9०-९]{1,2}|[0-9०-९]{4})"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateYearMonthDayType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "([0-9０-९]{1,2}|[0-9０-९]{4})[^0-9०-९]+[0-9०-९]{1,2}[^0-9०-९]+[0-9०-९]{1,2}[^0-9०-९]*"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateYearMonthType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "([0-9०-९]{1,2}|[0-9०-९]{4})[^0-9०-९]+[0-9०-९]{1,2}[^0-9०-९]*"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateIndDayMonthnameYearHiType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "([0-9]{1,2}|[०-९]{1,2})[^0-9०-९]+((C\\S*ait|चैत्र)|(Vai|वैशाख|बैसाख)|(Jy|ज्येष्ठ)|(dha|ḍha|आषाढ|आषाढ़)|(vana|Śrāvaṇa|श्रावण|सावन)|(Bh\\S+dra|Proṣṭhapada|भाद्रपद|भादो)|(in|आश्विन)|(K\\S+rti|कार्तिक)|(M\\S+rga|Agra|मार्गशीर्ष|अगहन)|(Pau|पौष)|(M\\S+gh|माघ)|(Ph\\S+lg|फाल्गुन))[^0-9०-९]+([0-9]{2}|[0-9]{4}|[०-९]{2}|[०-९]{4})"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateDayMonthnameYearHiType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "([0-9]{1,2}|[०-९]{1,2})[^0-9०-९]+(जनवरी|फरवरी|मार्च|अप्रैल|मई|जून|जुलाई|अगस्त|सितंबर|अक्टूबर|नवंबर|दिसंबर)[^0-9०-९]+([0-9]{2}|[0-9]{4}|[०-९]{2}|[०-९]{4})"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:dateMonthnameYearHiType",
+                "baseType": "xs:string",
+                "patterns": [
+                  "(जनवरी|फरवरी|मार्च|अप्रैल|मई|जून|जुलाई|अगस्त|सितंबर|अक्टूबर|नवंबर|दिसंबर)[^0-9०-९]+([0-9]{2}|[0-9]{4}|[०-९]{2}|[०-९]{4})"
+                ],
+                "whiteSpace": "collapse"
+              },
+              {
+                "name": "xbrltt:fixedEmptyType",
+                "baseType": "xs:string",
+                "whiteSpace": "collapse",
+                "length": 0
+                
+              },
+              {
+                "name": "xbrltt:fixedFalseType",
+                "baseType": "xs:boolean",
+                "whiteSpace": "collapse",
+                "patterns": ["false"]
+                
+              },
+              {
+                "name": "xbrltt:fixedTrueType",
+                "baseType": "xs:boolean",
+                "whiteSpace": "collapse",
+                "patterns": ["true"]
+                
+              },
+              {
+                "name": "xbrltt:fixedZeroType",
+                "baseType": "xs:integer",
+                "enumeration": [0]
+              },
+              {
+                "name": "xbrltt:nonNegativeDecimalType",
+                "baseType": "xs:decimal",
+                "minInclusive": 0
+              },
+              {
+                "name": "xbrltt:numCommaDecimalType",
+                "baseType": "xs:string",
+                "whiteSpace": "collapse",
+                "patterns": ["[\\.  0-9]*(,[  0-9]+)?"]
+              },
+              {
+                "name": "xbrltt:numCommaDecimalAposType",
+                "baseType": "xs:string",
+                "whiteSpace": "collapse",
+                "patterns": ["[\\.'`´’′  0-9]*(,[  0-9]+)?"]
+              },
+              {
+                "name": "xbrltt:numDotDecimalType",
+                "baseType": "xs:string",
+                "whiteSpace": "collapse",
+                "patterns":[ "[,  0-9]*(\\.[  0-9]+)?"]
+                
+              },
+              {
+                "name": "xbrltt:numDotDecimalAposType",
+                "baseType": "xs:string",
+                "whiteSpace": "collapse",
+                "patterns": ["[,'`´’′  0-9]*(\\.[  0-9]+)?"]
+                
+              },
+              {
+                "name": "xbrltt:numUnitDecimalType",
+                "baseType": "xs:string",
+                "whiteSpace": "collapse",
+                "patterns": ["([0-9０-９\\.,，]+)([^0-9０-９\\.,，][^0-9０-９]*)([0-9０-９]{1,2})([^0-9０-９]*)"]
+                
+              },
+              {
+                "name": "xbrltt:numUnitDecimalAposType",
+                "baseType": "xs:string",
+                "whiteSpace": "collapse",
+                "patterns": ["([0-9０-９\\.,，'`´’′＇]+)([^0-9０-９\\.,，'`´’′＇][^0-9０-９]*)([0-9０-９]{1,2})([^0-9０-９]*)"]
+                
+              }
+      ],
+      "labels": [
+        {
+          "relatedName": "xbrltt:dateDayMonthnameBgType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Bulgarian date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30 февруари')."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameYearBgType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Bulgarian date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30 февруари 2008 г.')."
+        },
+        {
+          "relatedName": "xbrltt:dateMonthnameYearBgType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Bulgarian date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameCsType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Czech date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30. února')."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameYearCsType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Czech date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30. února 2008')."
+        },
+        {
+          "relatedName": "xbrltt:dateMonthnameYearCsType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Czech date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameCyType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Welsh date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30ain Chwefror')."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameYearCyType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Welsh date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30ain Chwefror 2008')."
+        },
+        {
+          "relatedName": "xbrltt:dateMonthnameYearCyType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Welsh date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameDeType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "German date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30. Februar')."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameYearDeType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "German date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30. Februar 2008')."
+        },
+        {
+          "relatedName": "xbrltt:dateMonthnameYearDeType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "German date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameElType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Greek date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30 Φεβρουαρίου')."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameYearElType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Greek date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30 Φεβρουαρίου 2008')."
+        },
+        {
+          "relatedName": "xbrltt:dateMonthnameYearElType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Greek date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameEsType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Spanish date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30 de febrero')."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameYearEsType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Spanish date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30 de febrero de 2008')."
+        },
+        {
+          "relatedName": "xbrltt:dateMonthnameYearEsType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Spanish date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameEtType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Estonian date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30. veebruar')."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameYearEtType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Estonian date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30. veebruar 2008')."
+        },
+        {
+          "relatedName": "xbrltt:dateMonthnameYearEtType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Estonian date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameFiType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Finnish date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30. helmikuuta')."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameYearFiType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Finnish date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30. helmikuuta 2008')."
+        },
+        {
+          "relatedName": "xbrltt:dateMonthnameYearFiType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Finnish date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameFrType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "French date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30 février')."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameYearFrType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "French date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30 février 2008')."
+        },
+        {
+          "relatedName": "xbrltt:dateMonthnameYearFrType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "French date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameHrType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Croatian date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30. veljače')."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameYearHrType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Croatian date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30. veljače 2008')."
+        },
+        {
+          "relatedName": "xbrltt:dateMonthnameYearHrType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Croatian date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
+        },
+        {
+          "relatedName": "xbrltt:dateMonthnameDayHuType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Hungarian date in the order 'month day'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts 'február 30')."
+        },
+        {
+          "relatedName": "xbrltt:dateYearMonthnameDayHuType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Hungarian date in the order 'year month day'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '2008. február 30')."
+        },
+        {
+          "relatedName": "xbrltt:dateYearMonthnameHuType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Hungarian date in the order 'year month'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameItType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Italian date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30 febbraio')."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameYearItType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Italian date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30 febbraio 2008')."
+        },
+        {
+          "relatedName": "xbrltt:dateMonthnameYearItType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Italian date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
+        },
+        {
+          "relatedName": "xbrltt:dateMonthnameDayLtType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Lithuanian date in the order 'month day'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts 'Vasaris 30 d')."
+        },
+        {
+          "relatedName": "xbrltt:dateYearMonthnameDayLtType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Lithuanian date in the order 'year month day'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '2008 m. Vasaris 30 d')."
+        },
+        {
+          "relatedName": "xbrltt:dateYearMonthnameLtType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Lithuanian date in the order 'year month'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameLvType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Latvian date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30. februāris')."
+        },
+        {
+          "relatedName": "xbrltt:dateYearDayMonthnameLvType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Latvian date in the order 'year day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '2008. gada 30. februāris')."
+        },
+        {
+          "relatedName": "xbrltt:dateYearMonthnameLvType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Latvian date in the order 'year month'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameNlType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Dutch date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30 februari')."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameYearNlType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Dutch date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30 februari 2008')."
+        },
+        {
+          "relatedName": "xbrltt:dateMonthnameYearNlType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Dutch date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameNoType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Norwegian date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30. februar')."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameYearNoType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Norwegian date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30. februar 2008')."
+        },
+        {
+          "relatedName": "xbrltt:dateMonthnameYearNoType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Norwegian date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnamePlType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Polish date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30. lutego')."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameYearPlType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Polish date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30. lutego 2008 r')."
+        },
+        {
+          "relatedName": "xbrltt:dateMonthnameYearPlType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Polish date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnamePtType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Portuguese date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30 de fevereiro')."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameYearPtType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Portuguese date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30 de fevereiro de 2008')."
+        },
+        {
+          "relatedName": "xbrltt:dateMonthnameYearPtType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Portuguese date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthromanType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Roman date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in Roman numerals (I to XII). Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30 II')."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthromanYearType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Roman date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in Roman numerals (I to XII). Accepts 1, 2, or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30 II 2008')."
+        },
+        {
+          "relatedName": "xbrltt:dateMonthromanYearType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Roman date in the order 'month year'. Accepts months in Roman numerals (I to XII). Accepts 1, 2, or 4 digits for year. Requires a non-numeric separator."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameRoType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Romanian date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30 februarie')."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameYearRoType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Romanian date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30 februarie 2008')."
+        },
+        {
+          "relatedName": "xbrltt:dateMonthnameYearRoType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Romanian date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameSkType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Slovak date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30. februára')."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameYearSkType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Slovak date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30. februára 2008')."
+        },
+        {
+          "relatedName": "xbrltt:dateMonthnameYearSkType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Slovak date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameSlType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Slovenian date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30. februar')."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameYearSlType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Slovenian date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30. februar 2008')."
+        },
+        {
+          "relatedName": "xbrltt:dateMonthnameYearSlType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Slovenian date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameDaSvType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Danish or Swedish date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30. februar')."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameYearDaSvType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Danish or Swedish date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30. februar 2008')."
+        },
+        {
+          "relatedName": "xbrltt:dateMonthnameYearDaSvType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Danish or Swedish date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameEnType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "English date in the order 'day month'. Accepts 1 or 2 digits for day, with optional ordinal suffix. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30th February')."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameYearEnType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "English date in the order 'day month year'. Accepts 1 or 2 digits for day, with optional ordinal suffix. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30th February 2008')."
+        },
+        {
+          "relatedName": "xbrltt:dateMonthnameDayEnType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "English date in the order 'month day'. Accepts 1 or 2 digits for day, with optional ordinal suffix of one or two letters. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts 'February 30th')."
+        },
+        {
+          "relatedName": "xbrltt:dateMonthnameDayYearEnType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "English date in the order 'month day year'. Accepts 1 or 2 digits for day, with optional ordinal suffix. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts 'February 30th, 2008')."
+        },
+        {
+          "relatedName": "xbrltt:dateMonthnameYearEnType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "English date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
+        },
+        {
+          "relatedName": "xbrltt:dateYearMonthnameEnType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "English date in the order 'year month'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
+        },
+        {
+          "relatedName": "xbrltt:dateJpnEraYearMonthType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Japanese date in the order 'era year month' (e.g., '令和元年5月')."
+        },
+        {
+          "relatedName": "xbrltt:dateJpnEraYearMonthDayType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Japanese date in the order 'era year month day' (e.g., '令和元年5月31日')."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Numeric date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts 1 or 2 digits for month. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30 02')."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthYearType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Numeric date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts 1 or 2 digits for month. Accepts 1, 2, or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30-02-2008')."
+        },
+        {
+          "relatedName": "xbrltt:dateMonthDayType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Numeric date in the order 'month day'. Accepts 1 or 2 digits for day. Accepts 1 or 2 digits for month. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '02 30')."
+        },
+        {
+          "relatedName": "xbrltt:dateMonthDayYearType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Numeric date in the order 'month day year'. Accepts 1 or 2 digits for day. Accepts 1 or 2 digits for month. Accepts 1, 2, or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '02/30/2008')."
+        },
+        {
+          "relatedName": "xbrltt:dateMonthYearType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Numeric date in the order 'month year'. Accepts 1 or 2 digits for month. Accepts 1, 2, or 4 digits for year. Requires a non-numeric separator. The schema does not enforce valid month (e.g., it accepts '13 2008')."
+        },
+        {
+          "relatedName": "xbrltt:dateYearMonthDayType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Numeric date in the order 'year month day'. Accepts 1 or 2 digits for day. Accepts 1 or 2 digits for month. Accepts 1, 2, or 4 digits for year. Numeric values may be represented by halfwidth or fullwidth forms. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '2008 2 30')."
+        },
+        {
+          "relatedName": "xbrltt:dateYearMonthType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Numeric date in the order 'year month'. Accepts 1, 2, or 4 digits for year. Accepts 1 or 2 digits for month. Requires a non-numeric separator. The schema does not enforce valid month (e.g., it accepts '2008 13')."
+        },
+        {
+          "relatedName": "xbrltt:dateIndDayMonthnameYearHiType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Hindi date based on the Indian National Calendar in the order 'day month year'. Accepts 1 or 2 digits for day, in Arabic or Devanagari numerals. Accepts Hindi names for Saka months or equivalent Latin transliterations. Accepts 2 or 4 digits for year, in Arabic or Devanagari numerals. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '45 Chaitra 2001')."
+        },
+        {
+          "relatedName": "xbrltt:dateDayMonthnameYearHiType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Hindi date based on the Gregorian Calendar in the order 'day month year'. Accepts 1 or 2 digits for day, in Arabic or Devanagari numerals. Accepts unabbreviated Hindi names for Gregorian Calendar months. Accepts 2 or 4 digits for year, in Arabic or Devanagari numerals. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '45 जनवरी 2001')."
+        },
+        {
+          "relatedName": "xbrltt:dateMonthnameYearHiType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Hindi date based on the Gregorian Calendar in the order 'month year'. Requires unabbreviated Hindi names for Gregorian Calendar months. Accepts 2 or 4 digits for year, in Arabic or Devanagari numerals. Requires a non-numeric separator."
+        },
+        {
+          "relatedName": "xbrltt:fixedEmptyType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "String type with no content."
+        },
+        {
+          "relatedName": "xbrltt:fixedFalseType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Boolean type with the value false."
+        },
+        {
+          "relatedName": "xbrltt:fixedTrueType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Boolean type with the value true."
+        },
+        {
+          "relatedName": "xbrltt:fixedZeroType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "As xs:integer with the value zero."
+        },
+        {
+          "relatedName": "xbrltt:nonNegativeDecimalType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "As xs:decimal but not negative."
+        },
+        {
+          "relatedName": "xbrltt:numCommaDecimalType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Positive numeric values with a comma for the fraction separator. No signs or exponentials accepted. Dot, space, or no-break space allowed as optional digit separators. If there is a fraction separator, then it must be followed by at least one digit."
+        },
+        {
+          "relatedName": "xbrltt:numCommaDecimalAposType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Positive numeric values with a comma for the fraction separator. No signs or exponentials accepted. Dot, space, no-break space, and various apostrophe-like punctuation allowed as optional digit separators. If there is a fraction separator, then it must be followed by at least one digit."
+        },
+        {
+          "relatedName": "xbrltt:numDotDecimalType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Positive numeric values with a dot for the fraction separator. No signs or exponentials accepted. Comma, space, or no-break space allowed as optional digit separators. If there is a fraction separator, then it must be followed by at least one digit."
+        },
+        {
+          "relatedName": "xbrltt:numDotDecimalAposType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Positive numeric values with a dot for the fraction separator. No signs or exponentials accepted. Comma, space, no-break space, and various apostrophe-like punctuation allowed as optional digit separators. If there is a fraction separator, then it must be followed by at least one digit."
+        },
+        {
+          "relatedName": "xbrltt:numUnitDecimalType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Positive numeric values with unit string suffixes. No signs or exponentials accepted. Must have at least one digit before and after the first unit string suffix. The fraction part is limited to two digits and is assumed to be in hundredths. Numeric values may be represented by halfwidth or fullwidth forms. Dot, comma, or fullwidth comma allowed as optional digit separators. Unit string suffix is required after the integer part but optional after the fraction part (e.g., '３，０００円５銭', '3.000 euro 5 cent')."
+        },
+        {
+          "relatedName": "xbrltt:numUnitDecimalAposType",
+          "language": "en",
+          "labelType": "xbrl:documentation",
+          "value": "Positive numeric values with unit string suffixes. No signs or exponentials accepted. Must have at least one digit before and after the first unit string suffix. The fraction part is limited to two digits and is assumed to be in hundredths. Numeric values may be represented by halfwidth or fullwidth forms. Dot, comma, fullwidth comma, and various apostrophe-like characters allowed as optional digit separators. Unit string suffix is required after the integer part but optional after the fraction part (e.g., '３，０００円５銭', '3.000 euro 5 cent')."
+        },
+        {
+          "relatedName": "xbrltt:date-day-month",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Numeric date recurring day and month"
+        },
+        {
+          "relatedName": "xbrltt:date-day-month-year",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Numeric date day month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-bg",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Bulgarian date recurring day and month"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-cs",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Czech date recurring day and month"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-cy",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Welsh date recurring day and month"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-da",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Danish date recurring day and month"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-de",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "German date recurring day and month"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-el",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Greek date recurring day and month"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-en",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "English date recurring day and month"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-es",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Spanish date recurring day and month"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-et",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Estonian date recurring day and month"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-fi",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Finnish date recurring day and month"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-fr",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "French date recurring day and month"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-hr",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Croatian date recurring day and month"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-it",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Italian date recurring day and month"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-lv",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Latvian date recurring day and month"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-nl",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Dutch date recurring day and month"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-no",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Norwegian date recurring day and month"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-pl",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Polish date recurring day and month"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-pt",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Portuguese date recurring day and month"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-ro",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Romanian date recurring day and month"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-sk",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Slovak date recurring day and month"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-sl",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Slovenian date recurring day and month"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-sv",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Swedish date recurring day and month"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-year-bg",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Bulgarian date day month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-year-cs",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Czech date day month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-year-cy",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Welsh date day month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-year-da",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Danish date day month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-year-de",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "German date day month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-year-el",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Greek date day month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-year-en",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "English date day month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-year-es",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Spanish date day month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-year-et",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Estonian date day month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-year-fi",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Finnish date day month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-year-fr",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "French date day month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-year-hi",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Hindi date day month and year, based on Gregorian Calendar"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-year-hr",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Croatian date day month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-year-it",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Italian date day month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-year-nl",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Dutch date day month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-year-no",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Norwegian date day month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-year-pl",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Polish date day month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-year-pt",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Portuguese date day month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-year-ro",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Romanian date day month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-year-sk",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Slovak date day month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-year-sl",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Slovenian date day month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthname-year-sv",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Swedish date day month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthroman",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Roman numeral date recurring day and month"
+        },
+        {
+          "relatedName": "xbrltt:date-day-monthroman-year",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Roman numeral date day month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-ind-day-monthname-year-hi",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Hindi date day month and year based on Indian National Calendar"
+        },
+        {
+          "relatedName": "xbrltt:date-jpn-era-year-month",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Japanese traditional date year and month"
+        },
+        {
+          "relatedName": "xbrltt:date-jpn-era-year-month-day",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Japanese traditional date year month and day"
+        },
+        {
+          "relatedName": "xbrltt:date-month-day",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Numeric date recurring month and day"
+        },
+        {
+          "relatedName": "xbrltt:date-month-day-year",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Numeric date month day and year"
+        },
+        {
+          "relatedName": "xbrltt:date-month-year",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Numeric date month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-monthname-day-en",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "English date recurring month and day"
+        },
+        {
+          "relatedName": "xbrltt:date-monthname-day-hu",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Hungarian date recurring month and day"
+        },
+        {
+          "relatedName": "xbrltt:date-monthname-day-lt",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Lithuanian date recurring month and day"
+        },
+        {
+          "relatedName": "xbrltt:date-monthname-day-year-en",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "English date month day and year"
+        },
+        {
+          "relatedName": "xbrltt:date-monthname-year-bg",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Bulgarian date month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-monthname-year-cs",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Czech date month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-monthname-year-cy",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Welsh date month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-monthname-year-da",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Danish date month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-monthname-year-de",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "German date month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-monthname-year-el",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Greek date month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-monthname-year-en",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "English date month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-monthname-year-es",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Spanish date month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-monthname-year-et",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Estonian date month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-monthname-year-fi",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Finnish date month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-monthname-year-fr",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "French date month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-monthname-year-hi",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Hindi date month and year, based on Gregorian Calendar"
+        },
+        {
+          "relatedName": "xbrltt:date-monthname-year-hr",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Croatian date month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-monthname-year-it",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Italian date month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-monthname-year-nl",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Dutch date month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-monthname-year-no",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Norwegian date month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-monthname-year-pl",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Polish date month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-monthname-year-pt",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Portuguese date month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-monthname-year-ro",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Romanian date month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-monthname-year-sk",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Slovak date month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-monthname-year-sl",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Slovenian date month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-monthname-year-sv",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Swedish date month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-monthroman-year",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Roman numeral date month and year"
+        },
+        {
+          "relatedName": "xbrltt:date-year-day-monthname-lv",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Latvian date year day and month"
+        },
+        {
+          "relatedName": "xbrltt:date-year-month",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Numeric date year and month"
+        },
+        {
+          "relatedName": "xbrltt:date-year-month-day",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Numeric date year month and day"
+        },
+        {
+          "relatedName": "xbrltt:date-year-monthname-day-hu",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Hungarian date year month and day"
+        },
+        {
+          "relatedName": "xbrltt:date-year-monthname-day-lt",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Lithuanian date year month and day"
+        },
+        {
+          "relatedName": "xbrltt:date-year-monthname-en",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "English date year and month"
+        },
+        {
+          "relatedName": "xbrltt:date-year-monthname-hu",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Hungarian date year and month"
+        },
+        {
+          "relatedName": "xbrltt:date-year-monthname-lt",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Lithuanian date year and month"
+        },
+        {
+          "relatedName": "xbrltt:date-year-monthname-lv",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Latvian date year and month"
+        },
+        {
+          "relatedName": "xbrltt:fixed-empty",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Any string"
+        },
+        {
+          "relatedName": "xbrltt:fixed-false",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Any string"
+        },
+        {
+          "relatedName": "xbrltt:fixed-true",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Any string"
+        },
+        {
+          "relatedName": "xbrltt:fixed-zero",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Any string"
+        },
+        {
+          "relatedName": "xbrltt:num-comma-decimal",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Number with comma fraction separator"
+        },
+        {
+          "relatedName": "xbrltt:num-dot-decimal",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Number with dot fraction separator"
+        },
+        {
+          "relatedName": "xbrltt:num-unit-decimal",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Number with unit strings"
+        },
+        {
+          "relatedName": "xbrltt:num-comma-decimal-apos",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Number with comma fraction separator with apostrophes permitted as thousands separator"
+        },
+        {
+          "relatedName": "xbrltt:num-dot-decimal-apos",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Number with dot fraction separator with apostrophes permitted as thousands separator"
+        },
+        {
+          "relatedName": "xbrltt:num-unit-decimal-apos",
+          "language": "en",
+          "labelType": "xbrl:label",
+          "value": "Number with unit strings with apostrophes permitted as thousands separator"
+        }
+      ],
+      "transforms":[
+        {
+          "name": "xbrltt:date-day-month",
+          "inputDataType": "xbrltt:dateDayMonthType",
+          "outputDataType": "xs:gMonthDay"
+        },
+        {
+          "name": "xbrltt:date-day-month-year",
+          "inputDataType": "xbrltt:dateDayMonthYearType",
+          "outputDataType": "xs:date"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-bg",
+          "inputDataType": "xbrltt:dateDayMonthnameBgType",
+          "outputDataType": "xs:gMonthDay"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-cs",
+          "inputDataType": "xbrltt:dateDayMonthnameCsType",
+          "outputDataType": "xs:gMonthDay"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-cy",
+          "inputDataType": "xbrltt:dateDayMonthnameCyType",
+          "outputDataType": "xs:gMonthDay"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-da",
+          "inputDataType": "xbrltt:dateDayMonthnameDaSvType",
+          "outputDataType": "xs:gMonthDay"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-de",
+          "inputDataType": "xbrltt:dateDayMonthnameDeType",
+          "outputDataType": "xs:gMonthDay"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-el",
+          "inputDataType": "xbrltt:dateDayMonthnameElType",
+          "outputDataType": "xs:gMonthDay"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-en",
+          "inputDataType": "xbrltt:dateDayMonthnameEnType",
+          "outputDataType": "xs:gMonthDay"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-es",
+          "inputDataType": "xbrltt:dateDayMonthnameEsType",
+          "outputDataType": "xs:gMonthDay"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-et",
+          "inputDataType": "xbrltt:dateDayMonthnameEtType",
+          "outputDataType": "xs:gMonthDay"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-fi",
+          "inputDataType": "xbrltt:dateDayMonthnameFiType",
+          "outputDataType": "xs:gMonthDay"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-fr",
+          "inputDataType": "xbrltt:dateDayMonthnameFrType",
+          "outputDataType": "xs:gMonthDay"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-hr",
+          "inputDataType": "xbrltt:dateDayMonthnameHrType",
+          "outputDataType": "xs:gMonthDay"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-it",
+          "inputDataType": "xbrltt:dateDayMonthnameItType",
+          "outputDataType": "xs:gMonthDay"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-lv",
+          "inputDataType": "xbrltt:dateDayMonthnameLvType",
+          "outputDataType": "xs:gMonthDay"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-nl",
+          "inputDataType": "xbrltt:dateDayMonthnameNlType",
+          "outputDataType": "xs:gMonthDay"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-no",
+          "inputDataType": "xbrltt:dateDayMonthnameNoType",
+          "outputDataType": "xs:gMonthDay"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-pl",
+          "inputDataType": "xbrltt:dateDayMonthnamePlType",
+          "outputDataType": "xs:gMonthDay"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-pt",
+          "inputDataType": "xbrltt:dateDayMonthnamePtType",
+          "outputDataType": "xs:gMonthDay"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-ro",
+          "inputDataType": "xbrltt:dateDayMonthnameRoType",
+          "outputDataType": "xs:gMonthDay"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-sk",
+          "inputDataType": "xbrltt:dateDayMonthnameSkType",
+          "outputDataType": "xs:gMonthDay"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-sl",
+          "inputDataType": "xbrltt:dateDayMonthnameSlType",
+          "outputDataType": "xs:gMonthDay"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-sv",
+          "inputDataType": "xbrltt:dateDayMonthnameDaSvType",
+          "outputDataType": "xs:gMonthDay"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-year-bg",
+          "inputDataType": "xbrltt:dateDayMonthnameYearBgType",
+          "outputDataType": "xs:date"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-year-cs",
+          "inputDataType": "xbrltt:dateDayMonthnameYearCsType",
+          "outputDataType": "xs:date"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-year-cy",
+          "inputDataType": "xbrltt:dateDayMonthnameYearCyType",
+          "outputDataType": "xs:date"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-year-da",
+          "inputDataType": "xbrltt:dateDayMonthnameYearDaSvType",
+          "outputDataType": "xs:date"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-year-de",
+          "inputDataType": "xbrltt:dateDayMonthnameYearDeType",
+          "outputDataType": "xs:date"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-year-el",
+          "inputDataType": "xbrltt:dateDayMonthnameYearElType",
+          "outputDataType": "xs:date"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-year-en",
+          "inputDataType": "xbrltt:dateDayMonthnameYearEnType",
+          "outputDataType": "xs:date"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-year-es",
+          "inputDataType": "xbrltt:dateDayMonthnameYearEsType",
+          "outputDataType": "xs:date"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-year-et",
+          "inputDataType": "xbrltt:dateDayMonthnameYearEtType",
+          "outputDataType": "xs:date"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-year-fi",
+          "inputDataType": "xbrltt:dateDayMonthnameYearFiType",
+          "outputDataType": "xs:date"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-year-fr",
+          "inputDataType": "xbrltt:dateDayMonthnameYearFrType",
+          "outputDataType": "xs:date"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-year-hi",
+          "inputDataType": "xbrltt:dateDayMonthnameYearHiType",
+          "outputDataType": "xs:date"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-year-hr",
+          "inputDataType": "xbrltt:dateDayMonthnameYearHrType",
+          "outputDataType": "xs:date"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-year-it",
+          "inputDataType": "xbrltt:dateDayMonthnameYearItType",
+          "outputDataType": "xs:date"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-year-nl",
+          "inputDataType": "xbrltt:dateDayMonthnameYearNlType",
+          "outputDataType": "xs:date"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-year-no",
+          "inputDataType": "xbrltt:dateDayMonthnameYearNoType",
+          "outputDataType": "xs:date"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-year-pl",
+          "inputDataType": "xbrltt:dateDayMonthnameYearPlType",
+          "outputDataType": "xs:date"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-year-pt",
+          "inputDataType": "xbrltt:dateDayMonthnameYearPtType",
+          "outputDataType": "xs:date"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-year-ro",
+          "inputDataType": "xbrltt:dateDayMonthnameYearRoType",
+          "outputDataType": "xs:date"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-year-sk",
+          "inputDataType": "xbrltt:dateDayMonthnameYearSkType",
+          "outputDataType": "xs:date"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-year-sl",
+          "inputDataType": "xbrltt:dateDayMonthnameYearSlType",
+          "outputDataType": "xs:date"
+        },
+        {
+          "name": "xbrltt:date-day-monthname-year-sv",
+          "inputDataType": "xbrltt:dateDayMonthnameYearDaSvType",
+          "outputDataType": "xs:date"
+        },
+        {
+          "name": "xbrltt:date-ind-day-monthname-year-hi",
+          "inputDataType": "xbrltt:dateIndDayMonthnameYearHiType",
+          "outputDataType": "xs:date"
+        },
+        {
+          "name": "xbrltt:date-day-monthroman",
+          "inputDataType": "xbrltt:dateDayMonthromanType",
+          "outputDataType": "xs:gMonthDay"
+        },
+        {
+          "name": "xbrltt:date-day-monthroman-year",
+          "inputDataType": "xbrltt:dateDayMonthromanYearType",
+          "outputDataType": "xs:date"
+        },
+        {
+          "name": "xbrltt:date-jpn-era-year-month",
+          "inputDataType": "xbrltt:dateJpnEraYearMonthType",
+          "outputDataType": "xs:gYearMonth"
+        },
+        {
+          "name": "xbrltt:date-jpn-era-year-month-day",
+          "inputDataType": "xbrltt:dateJpnEraYearMonthDayType",
+          "outputDataType": "xs:date"
+        },
+        {
+          "name": "xbrltt:date-month-day",
+          "inputDataType": "xbrltt:dateMonthDayType",
+          "outputDataType": "xs:gMonthDay"
+        },
+        {
+          "name": "xbrltt:date-month-day-year",
+          "inputDataType": "xbrltt:dateMonthDayYearType",
+          "outputDataType": "xs:date"
+        },
+        {
+          "name": "xbrltt:date-month-year",
+          "inputDataType": "xbrltt:dateMonthYearType",
+          "outputDataType": "xs:gYearMonth"
+        },
+        {
+          "name": "xbrltt:date-monthname-day-en",
+          "inputDataType": "xbrltt:dateMonthnameDayEnType",
+          "outputDataType": "xs:gMonthDay"
+        },
+        {
+          "name": "xbrltt:date-monthname-day-hu",
+          "inputDataType": "xbrltt:dateMonthnameDayHuType",
+          "outputDataType": "xs:gMonthDay"
+        },
+        {
+          "name": "xbrltt:date-monthname-day-lt",
+          "inputDataType": "xbrltt:dateMonthnameDayLtType",
+          "outputDataType": "xs:gMonthDay"
+        },
+        {
+          "name": "xbrltt:date-monthname-day-year-en",
+          "inputDataType": "xbrltt:dateMonthnameDayYearEnType",
+          "outputDataType": "xs:date"
+        },
+        {
+          "name": "xbrltt:date-monthname-year-bg",
+          "inputDataType": "xbrltt:dateMonthnameYearBgType",
+          "outputDataType": "xs:gYearMonth"
+        },
+        {
+          "name": "xbrltt:date-monthname-year-cs",
+          "inputDataType": "xbrltt:dateMonthnameYearCsType",
+          "outputDataType": "xs:gYearMonth"
+        },
+        {
+          "name": "xbrltt:date-monthname-year-cy",
+          "inputDataType": "xbrltt:dateMonthnameYearCyType",
+          "outputDataType": "xs:gYearMonth"
+        },
+        {
+          "name": "xbrltt:date-monthname-year-da",
+          "inputDataType": "xbrltt:dateMonthnameYearDaSvType",
+          "outputDataType": "xs:gYearMonth"
+        },
+        {
+          "name": "xbrltt:date-monthname-year-de",
+          "inputDataType": "xbrltt:dateMonthnameYearDeType",
+          "outputDataType": "xs:gYearMonth"
+        },
+        {
+          "name": "xbrltt:date-monthname-year-el",
+          "inputDataType": "xbrltt:dateMonthnameYearElType",
+          "outputDataType": "xs:gYearMonth"
+        },
+        {
+          "name": "xbrltt:date-monthname-year-en",
+          "inputDataType": "xbrltt:dateMonthnameYearEnType",
+          "outputDataType": "xs:gYearMonth"
+        },
+        {
+          "name": "xbrltt:date-monthname-year-es",
+          "inputDataType": "xbrltt:dateMonthnameYearEsType",
+          "outputDataType": "xs:gYearMonth"
+        },
+        {
+          "name": "xbrltt:date-monthname-year-et",
+          "inputDataType": "xbrltt:dateMonthnameYearEtType",
+          "outputDataType": "xs:gYearMonth"
+        },
+        {
+          "name": "xbrltt:date-monthname-year-fi",
+          "inputDataType": "xbrltt:dateMonthnameYearFiType",
+          "outputDataType": "xs:gYearMonth"
+        },
+        {
+          "name": "xbrltt:date-monthname-year-fr",
+          "inputDataType": "xbrltt:dateMonthnameYearFrType",
+          "outputDataType": "xs:gYearMonth"
+        },
+        {
+          "name": "xbrltt:date-monthname-year-hi",
+          "inputDataType": "xbrltt:dateMonthnameYearHiType",
+          "outputDataType": "xs:gYearMonth"
+        },
+        {
+          "name": "xbrltt:date-monthname-year-hr",
+          "inputDataType": "xbrltt:dateMonthnameYearHrType",
+          "outputDataType": "xs:gYearMonth"
+        },
+        {
+          "name": "xbrltt:date-monthname-year-it",
+          "inputDataType": "xbrltt:dateMonthnameYearItType",
+          "outputDataType": "xs:gYearMonth"
+        },
+        {
+          "name": "xbrltt:date-monthname-year-nl",
+          "inputDataType": "xbrltt:dateMonthnameYearNlType",
+          "outputDataType": "xs:gYearMonth"
+        },
+        {
+          "name": "xbrltt:date-monthname-year-no",
+          "inputDataType": "xbrltt:dateMonthnameYearNoType",
+          "outputDataType": "xs:gYearMonth"
+        },
+        {
+          "name": "xbrltt:date-monthname-year-pl",
+          "inputDataType": "xbrltt:dateMonthnameYearPlType",
+          "outputDataType": "xs:gYearMonth"
+        },
+        {
+          "name": "xbrltt:date-monthname-year-pt",
+          "inputDataType": "xbrltt:dateMonthnameYearPtType",
+          "outputDataType": "xs:gYearMonth"
+        },
+        {
+          "name": "xbrltt:date-monthname-year-ro",
+          "inputDataType": "xbrltt:dateMonthnameYearRoType",
+          "outputDataType": "xs:gYearMonth"
+        },
+        {
+          "name": "xbrltt:date-monthname-year-sk",
+          "inputDataType": "xbrltt:dateMonthnameYearSkType",
+          "outputDataType": "xs:gYearMonth"
+        },
+        {
+          "name": "xbrltt:date-monthname-year-sl",
+          "inputDataType": "xbrltt:dateMonthnameYearSlType",
+          "outputDataType": "xs:gYearMonth"
+        },
+        {
+          "name": "xbrltt:date-monthname-year-sv",
+          "inputDataType": "xbrltt:dateMonthnameYearDaSvType",
+          "outputDataType": "xs:gYearMonth"
+        },
+        {
+          "name": "xbrltt:date-monthroman-year",
+          "inputDataType": "xbrltt:dateMonthromanYearType",
+          "outputDataType": "xs:gYearMonth"
+        },
+        {
+          "name": "xbrltt:date-year-day-monthname-lv",
+          "inputDataType": "xbrltt:dateYearDayMonthnameLvType",
+          "outputDataType": "xs:date"
+        },
+        {
+          "name": "xbrltt:date-year-month",
+          "inputDataType": "xbrltt:dateYearMonthType",
+          "outputDataType": "xs:gYearMonth"
+        },
+        {
+          "name": "xbrltt:date-year-month-day",
+          "inputDataType": "xbrltt:dateYearMonthDayType",
+          "outputDataType": "xs:date"
+        },
+        {
+          "name": "xbrltt:date-year-monthname-day-hu",
+          "inputDataType": "xbrltt:dateYearMonthnameDayHuType",
+          "outputDataType": "xs:date"
+        },
+        {
+          "name": "xbrltt:date-year-monthname-day-lt",
+          "inputDataType": "xbrltt:dateYearMonthnameDayLtType",
+          "outputDataType": "xs:date"
+        },
+        {
+          "name": "xbrltt:date-year-monthname-en",
+          "inputDataType": "xbrltt:dateYearMonthnameEnType",
+          "outputDataType": "xs:gYearMonth"
+        },
+        {
+          "name": "xbrltt:date-year-monthname-hu",
+          "inputDataType": "xbrltt:dateYearMonthnameHuType",
+          "outputDataType": "xs:gYearMonth"
+        },
+        {
+          "name": "xbrltt:date-year-monthname-lt",
+          "inputDataType": "xbrltt:dateYearMonthnameLtType",
+          "outputDataType": "xs:gYearMonth"
+        },
+        {
+          "name": "xbrltt:date-year-monthname-lv",
+          "inputDataType": "xbrltt:dateYearMonthnameLvType",
+          "outputDataType": "xs:gYearMonth"
+        },
+        {
+          "name": "xbrltt:fixed-empty",
+          "inputDataType": "xs:string",
+          "outputDataType": "xbrltt:fixedEmptyType"
+        },
+        {
+          "name": "xbrltt:fixed-false",
+          "inputDataType": "xs:string",
+          "outputDataType": "xbrltt:fixedFalseType"
+        },
+        {
+          "name": "xbrltt:fixed-true",
+          "inputDataType": "xs:string",
+          "outputDataType": "xbrltt:fixedTrueType"
+        },
+        {
+          "name": "xbrltt:fixed-zero",
+          "inputDataType": "xs:string",
+          "outputDataType": "xbrltt:fixedZeroType"
+        },
+        {
+          "name": "xbrltt:num-comma-decimal",
+          "inputDataType": "xbrltt:numCommaDecimalType",
+          "outputDataType": "xbrltt:nonNegativeDecimalType"
+        },
+        {
+          "name": "xbrltt:num-dot-decimal",
+          "inputDataType": "xbrltt:numDotDecimalType",
+          "outputDataType": "xbrltt:nonNegativeDecimalType"
+        },
+        {
+          "name": "xbrltt:num-unit-decimal",
+          "inputDataType": "xbrltt:numUnitDecimalType",
+          "outputDataType": "xbrltt:nonNegativeDecimalType"
+        },
+        {
+          "name": "xbrltt:num-comma-decimal-apos",
+          "inputDataType": "xbrltt:numCommaDecimalAposType",
+          "outputDataType": "xbrltt:nonNegativeDecimalType"
+        },
+        {
+          "name": "xbrltt:num-dot-decimal-apos",
+          "inputDataType": "xbrltt:numDotDecimalType",
+          "outputDataType": "xbrltt:nonNegativeAposType"
+        },
+        {
+          "name": "xbrltt:num-unit-decimal-apos",
+          "inputDataType": "xbrltt:numUnitDecimalAposType",
+          "outputDataType": "xbrltt:nonNegativeDecimalType"
+        }
+      ]
+}
+}

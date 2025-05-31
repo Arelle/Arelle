@@ -1,0 +1,3046 @@
+{
+    "$schema": "../oim-taxonomy-schema.json",
+     "documentInfo": {
+        "documentType": "https://xbrl.org/2025/taxonomy",
+        "namespaces": {
+            "xbrl": "https://xbrl.org/2025",
+            "xbrli":"https://xbrl.org/2025/instance",
+            "xs": "http://www.w3.org/2001/XMLSchema",
+            "iso4217": "http://www.xbrl.org/2003/iso421",
+            "utr": "https://xbrl.org/2025/utr"
+            },
+        "documentNamespace":"utr"
+    },
+    "taxonomy": {
+        "resolved" : false,
+        "frameworkName": "utr",
+        "name": "utr:UnitsTaxonomyModule",
+        "version": "2025",
+        "importedTaxonomies": [
+            {
+                "taxonomyName" :"iso4217:iso4217TaxonomyModule"
+            }
+        ],
+        "units": [
+            {
+                "dataType": "xbrli:area",
+                "name": "utr:acre"
+            },
+            {
+                "dataType": "xbrli:area",
+                "name": "utr:sqft"
+            },
+            {
+                "dataType": "xbrli:area",
+                "name": "utr:sqmi"
+            },
+            {
+                "dataType": "xbrli:area",
+                "name": "utr:sqyd"
+            },
+            {
+                "dataType": "xbrli:energy",
+                "name": "utr:Boe"
+            },
+            {
+                "dataType": "xbrli:energy",
+                "name": "utr:Btu"
+            },
+            {
+                "dataType": "xbrli:energy",
+                "name": "utr:ft_lb"
+            },
+            {
+                "dataType": "xbrli:energy",
+                "name": "utr:MBoe"
+            },
+            {
+                "dataType": "xbrli:energy",
+                "name": "utr:Mcfe"
+            },
+            {
+                "dataType": "xbrli:energy",
+                "name": "utr:MMBoe"
+            },
+            {
+                "dataType": "xbrli:energy",
+                "name": "utr:MMBTU"
+            },
+            {
+                "dataType": "xbrli:length",
+                "name": "utr:ft"
+            },
+            {
+                "dataType": "xbrli:length",
+                "name": "utr:in"
+            },
+            {
+                "dataType": "xbrli:length",
+                "name": "utr:mi"
+            },
+            {
+                "dataType": "xbrli:length",
+                "name": "utr:nmi"
+            },
+            {
+                "dataType": "xbrli:length",
+                "name": "utr:yd"
+            },
+            {
+                "dataType": "xbrli:mass",
+                "name": "utr:lb"
+            },
+            {
+                "dataType": "xbrli:mass",
+                "name": "utr:oz"
+            },
+            {
+                "dataType": "xbrli:mass",
+                "name": "utr:ozt"
+            },
+            {
+                "dataType": "xbrli:mass",
+                "name": "utr:T"
+            },
+            {
+                "dataType": "xbrli:power",
+                "name": "utr:hp"
+            },
+            {
+                "dataType": "xbrli:volume",
+                "name": "utr:bbl"
+            },
+            {
+                "dataType": "xbrli:volume",
+                "name": "utr:ft3"
+            },
+            {
+                "dataType": "xbrli:volume",
+                "name": "utr:gal"
+            },
+            {
+                "dataType": "xbrli:volume",
+                "name": "utr:MBbls"
+            },
+            {
+                "dataType": "xbrli:volume",
+                "name": "utr:Mcf"
+            },
+            {
+                "dataType": "xbrli:volume",
+                "name": "utr:MMBbls"
+            },
+            {
+                "dataType": "xbrli:volume",
+                "name": "utr:MMcf"
+            },
+            {
+                "dataType": "xbrli:energy",
+                "name": "utr:Cal"
+            },
+            {
+                "dataType": "xbrli:mass",
+                "name": "utr:t"
+            },
+            {
+                "dataType": "xbrli:memory",
+                "name": "utr:B"
+            },
+            {
+                "dataType": "xbrli:memory",
+                "name": "utr:GB"
+            },
+            {
+                "dataType": "xbrli:memory",
+                "name": "utr:kB"
+            },
+            {
+                "dataType": "xbrli:memory",
+                "name": "utr:MB"
+            },
+            {
+                "dataType": "xbrli:memory",
+                "name": "utr:TB"
+            },
+            {
+                "dataType": "xbrli:area",
+                "name": "utr:ha"
+            },
+            {
+                "dataType": "xbrli:area",
+                "name": "utr:sqkm"
+            },
+            {
+                "dataType": "xbrli:area",
+                "name": "utr:sqm"
+            },
+            {
+                "dataType": "xbrli:electricCurrent",
+                "name": "utr:A"
+            },
+            {
+                "dataType": "xbrli:energy",
+                "name": "utr:J"
+            },
+            {
+                "dataType": "xbrli:energy",
+                "name": "utr:kJ"
+            },
+            {
+                "dataType": "xbrli:energy",
+                "name": "utr:kWh"
+            },
+            {
+                "dataType": "xbrli:energy",
+                "name": "utr:mJ"
+            },
+            {
+                "dataType": "xbrli:energy",
+                "name": "utr:MWh"
+            },
+            {
+                "dataType": "xbrli:voltage",
+                "name": "utr:V"
+            },
+            {
+                "dataType": "xbrli:frequency",
+                "name": "utr:Hz"
+            },
+            {
+                "dataType": "xbrli:length",
+                "name": "utr:cm"
+            },
+            {
+                "dataType": "xbrli:length",
+                "name": "utr:dm"
+            },
+            {
+                "dataType": "xbrli:length",
+                "name": "utr:km"
+            },
+            {
+                "dataType": "xbrli:length",
+                "name": "utr:m"
+            },
+            {
+                "dataType": "xbrli:length",
+                "name": "utr:mm"
+            },
+            {
+                "dataType": "xbrli:mass",
+                "name": "utr:g"
+            },
+            {
+                "dataType": "xbrli:mass",
+                "name": "utr:kg"
+            },
+            {
+                "dataType": "xbrli:power",
+                "name": "utr:GW"
+            },
+            {
+                "dataType": "xbrli:power",
+                "name": "utr:kW"
+            },
+            {
+                "dataType": "xbrli:power",
+                "name": "utr:MW"
+            },
+            {
+                "dataType": "xbrli:power",
+                "name": "utr:TW"
+            },
+            {
+                "dataType": "xbrli:power",
+                "name": "utr:W"
+            },
+            {
+                "dataType": "xbrli:voltage",
+                "name": "utr:kV"
+            },
+            {
+                "dataType": "xbrli:volume",
+                "name": "utr:l"
+            },
+            {
+                "dataType": "xbrli:volume",
+                "name": "utr:m3"
+            },
+            {
+                "dataType": "xbrli:volume",
+                "name": "utr:bu"
+            },
+            {
+                "dataType": "xbrli:volume",
+                "name": "utr:aft"
+            },
+            {
+                "dataType": "xbrli:perShare",
+                "name": "utr:Monetary_per_Share",
+                "dataTypeNumerator": "xbrli:monetary",
+                "dataTypeDenominator": "xbrli:sharesType"
+                
+            },
+            {
+                "dataType": "xbrli:perUnit",
+                "name": "utr:Monetary_per_Decimal",
+                "dataTypeNumerator": "xbrli:monetary",
+                "dataTypeDenominator": "xs:decimal"
+            },
+            {
+                "dataType": "xbrli:pureType",
+                "name": "utr:Monetary_per_Monetary",
+                "dataTypeNumerator": "xbrli:monetary",
+                "dataTypeDenominator": "xbrli:monetary"
+            },
+            {
+                "dataType": "xbrli:pureType",
+                "name": "utr:Rate"
+            },
+            {
+                "dataType": "xbrli:duration",
+                "name": "utr:Y"
+            },
+            {
+                "dataType": "xbrli:duration",
+                "name": "utr:M"
+            },
+            {
+                "dataType": "xbrli:duration",
+                "name": "utr:D"
+            },
+            {
+                "dataType": "xbrli:duration",
+                "name": "utr:H"
+            },
+            {
+                "dataType": "xbrli:duration",
+                "name": "utr:MM"
+            },
+            {
+                "dataType": "xbrli:duration",
+                "name": "utr:S"
+            },
+            {
+                "dataType": "xbrli:flow",
+                "name": "utr:Volume_per_Duration",
+                "dataTypeNumerator": "xbrli:volume",
+                "dataTypeDenominator": "xs:duration"
+            },
+            {
+                "dataType": "xbrli:voltage",
+                "name": "utr:MV"
+            },
+            {
+                "dataType": "xbrli:voltage",
+                "name": "utr:GV"
+            },
+            {
+                "dataType": "xbrli:volume",
+                "name": "utr:Bcf"
+            },
+            {
+                "dataType": "xbrli:volume",
+                "name": "utr:Tcf"
+            },
+            {
+                "dataType": "xbrli:energy",
+                "name": "utr:GWh"
+            },
+            {
+                "dataType": "xbrli:energy",
+                "name": "utr:TWh"
+            },
+            {
+                "dataType": "xbrli:duration",
+                "name": "utr:Q"
+            },
+            {
+                "dataType": "xbrli:duration",
+                "name": "utr:WK"
+            },
+            {
+                "dataType": "xbrli:energy",
+                "name": "utr:MMcfe"
+            },
+            {
+                "dataType": "xbrli:energy",
+                "name": "utr:Bcfe"
+            },
+            {
+                "dataType": "xbrli:energy",
+                "name": "utr:Tcfe"
+            },
+            {
+                "dataType": "xbrli:mass",
+                "name": "utr:kT"
+            },
+            {
+                "dataType": "xbrli:mass",
+                "name": "utr:MT"
+            },
+            {
+                "dataType": "xbrli:mass",
+                "name": "utr:GT"
+            },
+            {
+                "dataType": "xbrli:mass",
+                "name": "utr:kt"
+            },
+            {
+                "dataType": "xbrli:mass",
+                "name": "utr:Mt"
+            },
+            {
+                "dataType": "xbrli:mass",
+                "name": "utr:Gt"
+            },
+            {
+                "dataType": "xbrli:energy",
+                "name": "utr:MWM"
+            },
+            {
+                "dataType": "xbrli:energy",
+                "name": "utr:GWM"
+            },
+            {
+                "dataType": "xbrli:flow",
+                "name": "utr:Energy_per_Duration",
+                "dataTypeNumerator": "xbrli:energy",
+                "dataTypeDenominator": "xs:duration"
+            },
+            {
+                "dataType": "xbrli:temperature",
+                "name": "utr:Celsius"
+            },
+            {
+                "dataType": "xbrli:temperature",
+                "name": "utr:K"
+            },
+            {
+                "dataType": "xbrli:temperature",
+                "name": "utr:F"
+            },
+            {
+                "dataType": "xbrli:pressure",
+                "name": "utr:Pa"
+            },
+            {
+                "dataType": "xbrli:pressure",
+                "name": "utr:Bar"
+            },
+            {
+                "dataType": "xbrli:pressure",
+                "name": "utr:psi"
+            },
+            {
+                "dataType": "xbrli:pressure",
+                "name": "utr:atm"
+            },
+            {
+                "dataType": "xbrli:force",
+                "name": "utr:N"
+            },
+            {
+                "dataType": "xbrli:power",
+                "name": "utr:var"
+            },
+            {
+                "dataType": "xbrli:power",
+                "name": "utr:VA"
+            },
+            {
+                "dataType": "xbrli:energy",
+                "name": "utr:Wh"
+            },
+            {
+                "dataType": "xbrli:energy",
+                "name": "utr:VAh"
+            },
+            {
+                "dataType": "xbrli:electricCharge",
+                "name": "utr:Ah"
+            },
+            {
+                "dataType": "xbrli:electricCharge",
+                "name": "utr:C"
+            },
+            {
+                "dataType": "xbrli:planeAngle",
+                "name": "utr:Degree"
+            },
+            {
+                "dataType": "xbrli:planeAngle",
+                "name": "utr:rad"
+            },
+            {
+                "dataType": "xbrli:energy",
+                "name": "utr:dth"
+            },
+            {
+                "dataType": "xbrli:energy",
+                "name": "utr:MWd"
+            },
+            {
+                "dataType": "xbrli:energy",
+                "name": "utr:GJ"
+            },
+            {
+                "dataType": "xbrli:energy",
+                "name": "utr:MJ"
+            },
+            {
+                "dataType": "xbrli:energy",
+                "name": "utr:TJ"
+            },
+            {
+                "dataType": "xbrli:memory",
+                "name": "utr:PB"
+            },
+            {
+                "dataType": "xbrli:power",
+                "name": "utr:Mvar"
+            },
+            {
+                "dataType": "xbrli:power",
+                "name": "utr:MVA"
+            },
+            {
+                "dataType": "xbrli:ghgEmissions",
+                "name": "utr:tCO2e"
+            },
+            {
+                "dataType": "xbrli:ghgEmissions",
+                "name": "utr:ktCO2e"
+            },
+            {
+                "dataType": "xbrli:ghgEmissions",
+                "name": "utr:MtCO2e"
+            },
+            {
+                "dataType": "xbrli:ghgEmissions",
+                "name": "utr:GtCO2e"
+            },
+            {
+                "dataType": "xbrli:ghgEmissionsPerMonetary",
+                "name": "utr:Emissions_per_Monetary",
+                "dataTypeNumerator": "xbrli:ghgEmissions",
+                "dataTypeDenominator": "xbrli:monetary"
+            },
+            {
+                "dataType": "xbrli:energyPerMonetary",
+                "name": "utr:Energy_per_Monetary",
+                "dataTypeNumerator": "xbrli:energy",
+                "dataTypeDenominator": "xbrli:monetary"
+            },
+            {
+                "dataType": "xbrli:volumePerMonetary",
+                "name": "utr:Volume_per_Monetary",
+                "dataTypeNumerator": "xbrli:volume",
+                "dataTypeDenominator": "xbrli:monetary"
+            }
+        ],
+        "labels": [
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:acre",
+                "value": "Acre"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:acre",
+                "value": "a"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:acre",
+                "value": "Acre"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:sqft",
+                "value": "Square Foot"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:sqft",
+                "value": "ft²"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:sqft",
+                "value": "Square Foot"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:sqmi",
+                "value": "Square Mile"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:sqmi",
+                "value": "mi²"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:sqmi",
+                "value": "Square Miles"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:sqyd",
+                "value": "Square Yard"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:sqyd",
+                "value": "yd²"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:sqyd",
+                "value": "Square Yard"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:Boe",
+                "value": "Barrel of Oil Equivalent"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:Boe",
+                "value": "Boe"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:Boe",
+                "value": "Barrel of Oil Equivalent"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:Btu",
+                "value": "British Thermal Unit"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:Btu",
+                "value": "BTU"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:Btu",
+                "value": "British Thermal Unit"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:ft_lb",
+                "value": "Foot-Pound"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:ft_lb",
+                "value": "ft-lb"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:ft_lb",
+                "value": "Foot-Pound Force"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:MBoe",
+                "value": "Thousand Barrels of Oil Equivalent"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:MBoe",
+                "value": "MBoe"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:MBoe",
+                "value": "Thousand Barrels of Oil Equivalent"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:Mcfe",
+                "value": "Thousand Cubic Foot Equivalent"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:Mcfe",
+                "value": "Mcfe"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:Mcfe",
+                "value": "Thousand Cubic Foot Equivalent"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:MMBoe",
+                "value": "Millions of Barrels of Oil Equivalent"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:MMBoe",
+                "value": "MMBoe"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:MMBoe",
+                "value": "Millions of Barrels of Oil Equivalent"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:MMBTU",
+                "value": "Millions of BTU"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:MMBTU",
+                "value": "MMBTU"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:MMBTU",
+                "value": "Millions of BTU"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:ft",
+                "value": "Foot"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:ft",
+                "value": "ft"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:ft",
+                "value": "Twelve Inches"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:in",
+                "value": "Inch"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:in",
+                "value": "in"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:in",
+                "value": "Inch"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:mi",
+                "value": "Mile"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:mi",
+                "value": "mi"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:mi",
+                "value": "5280 Feet"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:nmi",
+                "value": "Nautical Mile"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:nmi",
+                "value": "nmi"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:nmi",
+                "value": "1.15078 Miles (One Minute of Arc Latitude)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:yd",
+                "value": "Yard"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:yd",
+                "value": "yd"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:yd",
+                "value": "Three Feet"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:lb",
+                "value": "Pound"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:lb",
+                "value": "lb"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:lb",
+                "value": "Pound of Mass, as Used in Commerce (http://en.wikipedia.org/wiki/Pound_(mass)#Use_in_Commerce))"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:oz",
+                "value": "Ounce"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:oz",
+                "value": "oz"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:oz",
+                "value": "US Ounce"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:ozt",
+                "value": "Troy Ounce"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:ozt",
+                "value": "ozt"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:ozt",
+                "value": "Troy Ounce"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:T",
+                "value": "Ton"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:T",
+                "value": "T"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:T",
+                "value": "US Ton"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:hp",
+                "value": "Horsepower"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:hp",
+                "value": "hp"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:hp",
+                "value": "Horsepower (Foot-pound per Second)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:bbl",
+                "value": "Barrel"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:bbl",
+                "value": "bbl"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:bbl",
+                "value": "Barrel (of Oil)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:ft3",
+                "value": "Cubic Foot"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:ft3",
+                "value": "ft³"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:ft3",
+                "value": "Cubic Foot"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:gal",
+                "value": "Gallon"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:gal",
+                "value": "gal"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:gal",
+                "value": "US Gallon"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:MBbls",
+                "value": "Thousand Barrels"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:MBbls",
+                "value": "MBbls"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:MBbls",
+                "value": "Thousands of Barrels (of Oil)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:Mcf",
+                "value": "Thousands Cubic Feet"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:Mcf",
+                "value": "Mcf"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:Mcf",
+                "value": "Thousands of Cubic Feet"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:MMBbls",
+                "value": "Million Barrels"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:MMBbls",
+                "value": "MMBbls"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:MMBbls",
+                "value": "Millions of Barrels (of Oil)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:MMcf",
+                "value": "Millions Cubic Feet"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:MMcf",
+                "value": "MMcf"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:MMcf",
+                "value": "Millions of Cubic Feet"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:Cal",
+                "value": "Calorie"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:Cal",
+                "value": "Cal"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:Cal",
+                "value": "Calorie"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:t",
+                "value": "Tonne"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:t",
+                "value": "t"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:t",
+                "value": "Tonne (Metric Tonne, Metric Ton)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:B",
+                "value": "Byte"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:B",
+                "value": "B"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:B",
+                "value": "8 adjacent bits of Memory per IEEE 1541-2002"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:GB",
+                "value": "Gigabyte"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:GB",
+                "value": "GB"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:GB",
+                "value": "Gigabytes of Memory per IEEE 1541-2002"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:kB",
+                "value": "Kilobyte"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:kB",
+                "value": "kB"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:kB",
+                "value": "Kilobytes of Memory per IEEE 1541-2002"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:MB",
+                "value": "Megabyte"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:MB",
+                "value": "MB"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:MB",
+                "value": "Megabytes of Memory per IEEE 1541-2002"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:TB",
+                "value": "Terabyte"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:TB",
+                "value": "TB"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:TB",
+                "value": "Terabytes of Memory per IEEE 1541-2002"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:ha",
+                "value": "Hectare"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:ha",
+                "value": "ha"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:ha",
+                "value": "Hectare"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:sqkm",
+                "value": "Square km"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:sqkm",
+                "value": "km²"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:sqkm",
+                "value": "Square Kilometer"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:sqm",
+                "value": "Square metre"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:sqm",
+                "value": "m²"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:sqm",
+                "value": "Square Metre"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:A",
+                "value": "Ampere"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:A",
+                "value": "A"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:A",
+                "value": "Ampere"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:J",
+                "value": "Joule"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:J",
+                "value": "J"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:J",
+                "value": "Joule"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:kJ",
+                "value": "Kilojoule"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:kJ",
+                "value": "kJ"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:kJ",
+                "value": "Thousand Joules"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:kWh",
+                "value": "Kilowatt-Hours"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:kWh",
+                "value": "kWh"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:kWh",
+                "value": "Kilowatt-Hours of Energy"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:mJ",
+                "value": "mJ"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:mJ",
+                "value": "mJ"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:mJ",
+                "value": "Millijoules"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:MWh",
+                "value": "Megawatt-Hour"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:MWh",
+                "value": "MWh"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:MWh",
+                "value": "Megawatt-Hour"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:V",
+                "value": "Volt"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:V",
+                "value": "V"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:V",
+                "value": "Electromotive Force"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:Hz",
+                "value": "Hertz"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:Hz",
+                "value": "Hz"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:Hz",
+                "value": "Frequency or Number of Cycles per Second"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:cm",
+                "value": "Centimetre"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:cm",
+                "value": "cm"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:cm",
+                "value": "One-hundreth of Metre"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:dm",
+                "value": "Decimetre"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:dm",
+                "value": "dm"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:dm",
+                "value": "Decimetre"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:km",
+                "value": "Kilometre"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:km",
+                "value": "km"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:km",
+                "value": "Thousand Metres"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:m",
+                "value": "Metre"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:m",
+                "value": "m"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:m",
+                "value": "Metre"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:mm",
+                "value": "Millimetre"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:mm",
+                "value": "mm"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:mm",
+                "value": "One-thousandth of Metre"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:g",
+                "value": "Gram"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:g",
+                "value": "g"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:g",
+                "value": "Gram"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:kg",
+                "value": "Kilogram"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:kg",
+                "value": "kg"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:kg",
+                "value": "Kilogram"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:GW",
+                "value": "Gigawatt"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:GW",
+                "value": "GW"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:GW",
+                "value": "Thousand Million Watts"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:kW",
+                "value": "Kilowatt"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:kW",
+                "value": "kW"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:kW",
+                "value": "Thousand Watts"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:MW",
+                "value": "Megawatt"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:MW",
+                "value": "MW"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:MW",
+                "value": "Million Watts"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:TW",
+                "value": "Terawatt"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:TW",
+                "value": "TW"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:TW",
+                "value": "Million Million Watts"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:W",
+                "value": "Watt"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:W",
+                "value": "W"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:W",
+                "value": "Watt"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:kV",
+                "value": "Kilovolt"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:kV",
+                "value": "kV"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:kV",
+                "value": "Thousand Volts of Electromotive Force"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:l",
+                "value": "Litre"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:l",
+                "value": "l"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:l",
+                "value": "Litre"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:m3",
+                "value": "Cubic Metre"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:m3",
+                "value": "m³"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:m3",
+                "value": "Cubic Metre"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:bu",
+                "value": "Bushel"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:bu",
+                "value": "bu"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:bu",
+                "value": "US Bushel"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:aft",
+                "value": "Acre-Foot"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:aft",
+                "value": "acre ft"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:aft",
+                "value": "Volume of one acre of surface area to a depth of one foot using a US survey foot"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:Monetary_per_Share",
+                "value": "Monetary/share"
+            },
+           
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:Monetary_per_Share",
+                "value": "Monetary Unit / Share"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:Monetary_per_Decimal",
+                "value": "Monetary/Decimal"
+            },
+            
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:Monetary_per_Decimal",
+                "value": "Monetary Unit / Anything"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:Monetary_per_Monetary",
+                "value": "Monetary/Monetary"
+            },
+            
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:Monetary_per_Monetary",
+                "value": "Exchange Rate Expressed as: Monetary Unit / Monetary Unit"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrli:pure",
+                "value": "pure"
+            },
+            
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrli:pure",
+                "value": "Dimensionless (Pure) Number"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:Rate",
+                "value": "Rate"
+            },
+            
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:Rate",
+                "value": "Rate"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrli:shares",
+                "value": "Share"
+            },
+            
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrli:shares",
+                "value": "Unit of Ownership (Stock)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:Y",
+                "value": "Year"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:Y",
+                "value": "yr"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:Y",
+                "value": "Gregorian calendar year of 365 days. Use only as a denominator because durationItemType is not numeric and has no units."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:M",
+                "value": "Month"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:M",
+                "value": "mo"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:M",
+                "value": "Gregorian calendar month of 30.41 days. Use only as a denominator because durationItemType is not numeric and has no units."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:D",
+                "value": "Day"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:D",
+                "value": "d"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:D",
+                "value": "Day of 24 hours. Use only as a denominator because durationItemType is not numeric and has no units."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:H",
+                "value": "Hour"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:H",
+                "value": "h"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:H",
+                "value": "Hour of 60 minutes. Use only as a denominator because durationItemType is not numeric and has no units."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:MM",
+                "value": "Minute"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:MM",
+                "value": "m"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:MM",
+                "value": "Minute of 60 seconds. Use only as a denominator because durationItemType is not numeric and has no units."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:S",
+                "value": "Second"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:S",
+                "value": "s"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:S",
+                "value": "Second. Use only as a denominator because durationItemType is not numeric and has no units."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:Volume_per_Duration",
+                "value": "Volume/Duration"
+            },
+            
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:Volume_per_Duration",
+                "value": "Flow rate, as Volume per Duration"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:MV",
+                "value": "Megavolt"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:MV",
+                "value": "MV"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:MV",
+                "value": "One million volts"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:GV",
+                "value": "Gigavolt"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:GV",
+                "value": "GV"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:GV",
+                "value": "One thousand million volts"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:Bcf",
+                "value": "Billions of cubic feet"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:Bcf",
+                "value": "Bcf"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:Bcf",
+                "value": "One thousand million cubic feet"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:Tcf",
+                "value": "Trillions of cubic feet"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:Tcf",
+                "value": "Tcf"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:Tcf",
+                "value": "One trillion cubic feet"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:GWh",
+                "value": "Gigawatt-Hour"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:GWh",
+                "value": "GWh"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:GWh",
+                "value": "Gigawatt-Hour"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:TWh",
+                "value": "Terawatt-Hour"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:TWh",
+                "value": "TWh"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:TWh",
+                "value": "Terawatt-Hour"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:Q",
+                "value": "Quarter"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:Q",
+                "value": "qtr"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:Q",
+                "value": "Gregorian Calendar Quarter (three months). Use only as a denominator because durationItemType is not numeric and has no units."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:WK",
+                "value": "Week"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:WK",
+                "value": "wk"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:WK",
+                "value": "Gregorian Calendar Week. Use only as a denominator because durationItemType is not numeric and has no units."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:MMcfe",
+                "value": "Million Cubic Foot Equivalent"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:MMcfe",
+                "value": "MMcfe"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:MMcfe",
+                "value": "Million cubic feet of natural gas equivalent"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:Bcfe",
+                "value": "Billion Cubic Foot Equivalent"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:Bcfe",
+                "value": "Bcfe"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:Bcfe",
+                "value": "Thousand million cubic feet of natural gas equivalent"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:Tcfe",
+                "value": "Trillion Cubic Foot Equivalent"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:Tcfe",
+                "value": "Tcfe"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:Tcfe",
+                "value": "Trillion cubic feet of natural gas equivalent"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:kT",
+                "value": "Thousand Tons"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:kT",
+                "value": "kT"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:kT",
+                "value": "One thousand US tons"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:MT",
+                "value": "Million Tons"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:MT",
+                "value": "MT"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:MT",
+                "value": "One million US tons"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:GT",
+                "value": "Billion Tons"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:GT",
+                "value": "GT"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:GT",
+                "value": "One thousand million US tons"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:kt",
+                "value": "Kilotonne"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:kt",
+                "value": "kt"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:kt",
+                "value": "Thousand Tonnes (Metric Tonnes, Metric Tons)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:Mt",
+                "value": "Megatonne"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:Mt",
+                "value": "Mt"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:Mt",
+                "value": "Million Tonnes (Metric Tonnes, Metric Tons)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:Gt",
+                "value": "Gigatonne"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:Gt",
+                "value": "Gt"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:Gt",
+                "value": "Thousand Million Tonnes (Metric Tonnes, Metric Tons)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:MWM",
+                "value": "Megawatt-Month"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:MWM",
+                "value": "MW-M"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:MWM",
+                "value": "Megawatt-Month assuming 730 hours per month"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:GWM",
+                "value": "Gigawatt-Month"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:GWM",
+                "value": "GW-M"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:GWM",
+                "value": "Gigawatt-Month assuming 730 hours per month"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:Energy_per_Duration",
+                "value": "Energy/Duration"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:Energy_per_Duration",
+                "value": "Flow rate, as Energy per Duration"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:Celsius",
+                "value": "Celsius"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:Celsius",
+                "value": "°C"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:Celsius",
+                "value": "A temperature scale based on 0° for the freezing point of water and 100° for the boiling point of water at 1 atm pressure."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:K",
+                "value": "Kelvin"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:K",
+                "value": "K"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:K",
+                "value": "The kelvin is a unit of measure for temperature based upon an absolute scale. It is one of the seven base units in the International System of Units (SI) and is assigned the unit symbol K. The Kelvin scale is an absolute, thermodynamic temperature scale using as its null point absolute zero, the temperature at which all thermal motion ceases in the classical description of thermodynamics. The kelvin is defined as the fraction 1⁄273.16 of the thermodynamic temperature of the triple point of water (exactly 0.01 °C or 32.018 °F). In other words, it is defined such that the triple point of water is exactly 273.16 K."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:F",
+                "value": "Fahrenheit"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:F",
+                "value": "°F"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:F",
+                "value": "Fahrenheit is a unit of measure for temperature defined by two fixed points: the temperature at which water freezes into ice is defined as 32 °F, and the boiling point of water is defined to be 212 °F, a 180 °F separation, as defined at sea level and standard atmospheric pressure."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:Pa",
+                "value": "Pascal"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:Pa",
+                "value": "Pa"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:Pa",
+                "value": "The pascal is the SI derived unit of pressure used to quantify internal pressure, stress, Young's modulus and ultimate tensile strength. It is defined as one newton per square meter."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:Bar",
+                "value": "Bar"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:Bar",
+                "value": "bar"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:Bar",
+                "value": "The bar is a metric unit of pressure, but is not approved as part of the International System of Units (SI). It is defined as exactly equal to 100000 Pa, which is slightly less than the current average atmospheric pressure on Earth at sea level."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:psi",
+                "value": "Pounds Per Square Inch"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:psi",
+                "value": "psi"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:psi",
+                "value": "The pound per square inch is a unit of pressure or of stress based on avoirdupois units. It is the pressure resulting from a force of one pound-force applied to an area of one square inch."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:atm",
+                "value": "Standard Atmosphere"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:atm",
+                "value": "atm"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:atm",
+                "value": "The standard atmosphere is a unit of pressure defined as 101325 Pa (1.01325 bar). It is sometimes used as a reference or standard pressure."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:N",
+                "value": "Newton"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:N",
+                "value": "N"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:N",
+                "value": "The newton is the International System of Units (SI) derived unit of force. One newton is the force needed to accelerate one kilogram of mass at the rate of one metre per second squared in direction of the applied force."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:var",
+                "value": "Volt-ampere reactive"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:var",
+                "value": "var"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:var",
+                "value": "In electric power transmission and distribution, volt-ampere reactive (var) is a unit by which reactive power is expressed in an AC electric power system. Reactive power is the power that is wasted and not used to do work on the load."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:VA",
+                "value": "Volt-ampere"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:VA",
+                "value": "VA"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:VA",
+                "value": "A volt-ampere (VA) is the unit used for the apparent power in an electrical circuit, equal to the product of root-mean-square (RMS) voltage and RMS current. In direct current (DC) circuits, this product is equal to the real power (active power) in watts. Volt-amperes are useful only in the context of alternating current (AC) circuits."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:Wh",
+                "value": "Watt-Hours"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:Wh",
+                "value": "Wh"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:Wh",
+                "value": "Watt-Hours of Energy"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:VAh",
+                "value": "Volt-ampere-hours"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:VAh",
+                "value": "VAh"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:VAh",
+                "value": "Volt-ampere (VA) hours of energy."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:Ah",
+                "value": "Ampere Hours"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:Ah",
+                "value": "Ah"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:Ah",
+                "value": "An ampere hour or amp hour is a unit of electric charge, equal to the charge transferred by a steady current of one ampere flowing for one hour."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:C",
+                "value": "Coulomb"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:C",
+                "value": "C"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:C",
+                "value": "The coulomb is the International System of Units (SI) unit of electric charge. It is the charge transported by a constant current of one ampere in one second."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:Degree",
+                "value": "Degree"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:Degree",
+                "value": "°"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:Degree",
+                "value": "The degree is a measurement of a plane angle, defined so that a full rotation is 360 degrees. In XBRL the degree is reported in a decimal format."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:rad",
+                "value": "Radian"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:rad",
+                "value": "rad"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:rad",
+                "value": "The radian is the standard unit of angular measure. The radian is an SI derived unit."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:dth",
+                "value": "Dekatherm"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:dth",
+                "value": "dth"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:dth",
+                "value": "The dekatherm is a unit of energy used to measure natural gas. One dekatherm is equal to 10 therms or one million British thermal units (Btu)."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:MWd",
+                "value": "Megawatt-Day"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:MWd",
+                "value": "MWd"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:MWd",
+                "value": "Megawatt-Day is used to measure energy generated in one day by a power-plant. Is commonly used to define fuel-burnup. A commonly used measure of fuel burnup is the fission energy release per unit mass of fuel."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:GJ",
+                "value": "Gigajoule"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:GJ",
+                "value": "GJ"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:GJ",
+                "value": "Billion Joules"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:MJ",
+                "value": "Megajoule"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:MJ",
+                "value": "MJ"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:MJ",
+                "value": "Million Joules"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:TJ",
+                "value": "Terajoule"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:TJ",
+                "value": "TJ"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:TJ",
+                "value": "Trillion Joules"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:PB",
+                "value": "Petabyte"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:PB",
+                "value": "PB"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:PB",
+                "value": "Petabytes of Memory per IEEE 1541-2002"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:Mvar",
+                "value": "Million Volt-ampere reactive"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:Mvar",
+                "value": "Mvar"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:Mvar",
+                "value": "In electric power transmission and distribution, Million volt-ampere reactive (Mvar) is a unit by which reactive power is expressed in an AC electric power system. Reactive power is the power that is wasted and not used to do work on the load."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:MVA",
+                "value": "MegaVolt-ampere"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:MVA",
+                "value": "MVA"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:MVA",
+                "value": "A megavolt-ampere (MVA) is the unit used for the apparent power in an electrical circuit, equal to the product of root-mean-square (RMS) voltage and RMS current. In direct current (DC) circuits, this product is equal to the real power (active power) in watts. Volt-amperes are useful only in the context of alternating current (AC) circuits."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:tCO2e",
+                "value": "Metric tonnes of CO2 equivalent"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:tCO2e",
+                "value": "tCO2e"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:tCO2e",
+                "value": "Carbon dioxide equivalent is calculated for emissions other than carbon dioxide according to their global warming potential (GWP). As estimates of GWP may change over time, the UTR defines no fixed conversion rates."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:ktCO2e",
+                "value": "Thousand metric tonnes of CO2 equivalent"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:ktCO2e",
+                "value": "ktCO2e"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:ktCO2e",
+                "value": "Carbon dioxide equivalent is calculated for emissions other than carbon dioxide according to their global warming potential (GWP). As estimates of GWP may change over time, the UTR defines no fixed conversion rates."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:MtCO2e",
+                "value": "Million metric tonnes of CO2 equivalent"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:MtCO2e",
+                "value": "MtCO2e"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:MtCO2e",
+                "value": "Carbon dioxide equivalent is calculated for emissions other than carbon dioxide according to their global warming potential (GWP). As estimates of GWP may change over time, the UTR defines no fixed conversion rates."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:GtCO2e",
+                "value": "Thousand million metric tonnes of CO2 equivalent"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "utr:GtCO2e",
+                "value": "GtCO2e"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:GtCO2e",
+                "value": "Carbon dioxide equivalent is calculated for emissions other than carbon dioxide according to their global warming potential (GWP). As estimates of GWP may change over time, the UTR defines no fixed conversion rates."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:Emissions_per_Monetary",
+                "value": "Emissions/Monetary"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:Emissions_per_Monetary",
+                "value": "CO2 equivalent emissions per monetary unit (Emissions intensity)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:Energy_per_Monetary",
+                "value": "Energy/Monetary"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:Energy_per_Monetary",
+                "value": "Energy consumed per monetary unit (Energy intensity)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "utr:Volume_per_Monetary",
+                "value": "Volume/Monetary"
+            },
+            
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "utr:Volume_per_Monetary",
+                "value": "Volume consumed per monetary unit (e.g. Water intensity)"
+            }
+        ],
+        "propertyTypes": [
+            {
+                "name": "utr:baseStandardIdentifier",
+                "dataType": "xs:string",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:referenceObject"
+                ]
+            },
+            {
+                "name": "utr:dateUnitCreated",
+                "dataType": "xs:date",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:referenceObject"
+                ]
+            }
+        ],
+        "references": [
+            {
+                "name" : "utr:InititalUnitCreation",
+                "relatedNames" : ["utr:acre",
+                                    "utr:acre",
+                                    "utr:sqft",
+                                    "utr:sqmi",
+                                    "utr:sqyd",
+                                    "utr:Boe",
+                                    "utr:Btu",
+                                    "utr:ft_lb",
+                                    "utr:MBoe",
+                                    "utr:Mcfe",
+                                    "utr:MMBoe",
+                                    "utr:MMBTU",
+                                    "utr:ft",
+                                    "utr:in",
+                                    "utr:mi",
+                                    "utr:nmi",
+                                    "utr:yd",
+                                    "utr:lb",
+                                    "utr:oz",
+                                    "utr:ozt",
+                                    "utr:T",
+                                    "utr:hp",
+                                    "utr:bbl",
+                                    "utr:ft3",
+                                    "utr:gal",
+                                    "utr:MBbls",
+                                    "utr:Mcf",
+                                    "utr:MMBbls",
+                                    "utr:MMcf",
+                                    "utr:Cal",
+                                    "utr:t",
+                                    "utr:B",
+                                    "utr:GB",
+                                    "utr:kB",
+                                    "utr:MB",
+                                    "utr:TB",
+                                    "utr:ha",
+                                    "utr:sqkm",
+                                    "utr:sqm",
+                                    "utr:A",
+                                    "utr:J",
+                                    "utr:kJ",
+                                    "utr:kWh",
+                                    "utr:mJ",
+                                    "utr:MWh",
+                                    "utr:V",
+                                    "utr:Hz",
+                                    "utr:cm",
+                                    "utr:dm",
+                                    "utr:km",
+                                    "utr:m",
+                                    "utr:mm",
+                                    "utr:g",
+                                    "utr:kg",
+                                    "utr:GW",
+                                    "utr:kW",
+                                    "utr:MW",
+                                    "utr:TW",
+                                    "utr:W",
+                                    "utr:kV",
+                                    "utr:l",
+                                    "utr:m3",
+                                    "utr:bu",
+                                    "utr:Monetary_per_Share",
+                                    "utr:Monetary_per_Decimal",
+                                    "utr:Monetary_per_Monetary",
+                                    "xbrli:pure",
+                                    "utr:Rate",
+                                    "xbrli:shares",
+                                    "utr:Y",
+                                    "utr:M",
+                                    "utr:D",
+                                    "utr:H",
+                                    "utr:MM",
+                                    "utr:S",
+                                    "utr:Volume_per_Duration"
+                            ],
+                "referenceType" : "utr:unitCreationDate",
+                "properties" : [{"property":"utr:dateUnitCreated", "value":"2012-10-03"}]
+                        
+            },
+            {
+                "name" : "utr:InternationalSystemOfUnitsRef",
+                "relatedNames" : ["utr:ha",
+                                    "utr:sqkm",
+                                    "utr:sqm",
+                                    "utr:A",
+                                    "utr:J",
+                                    "utr:kJ",
+                                    "utr:kWh",
+                                    "utr:mJ",
+                                    "utr:MWh",
+                                    "utr:V",
+                                    "utr:Hz",
+                                    "utr:cm",
+                                    "utr:dm",
+                                    "utr:km",
+                                    "utr:m",
+                                    "utr:mm",
+                                    "utr:g",
+                                    "utr:kg",
+                                    "utr:GW",
+                                    "utr:kW",
+                                    "utr:MW",
+                                    "utr:TW",
+                                    "utr:W",
+                                    "utr:kV",
+                                    "utr:l",
+                                    "utr:m3",
+                                    "utr:S",
+                                    "utr:MV",
+                                    "utr:GV",
+                                    "utr:GWh",
+                                    "utr:TWh",
+                                    "utr:MWM",
+                                    "utr:GWM",
+                                    "utr:Celsius",
+                                    "utr:K",
+                                    "utr:Pa",
+                                    "utr:N",
+                                    "utr:VA",
+                                    "utr:C",
+                                    "utr:rad",
+                                    "utr:GJ",
+                                    "utr:MJ",
+                                    "utr:TJ",
+                                    "utr:MVA" ],
+                "referenceType" : "utr:baseUnitsStandard",
+                "properties" :  [{"property":"utr:baseStandardIdentifier", "value":"si"}]
+
+            },
+            {
+                "name" : "utr:CustomaryUnitsRef",
+                "relatedNames" : ["utr:acre",
+                                    "utr:sqft",
+                                    "utr:sqmi",
+                                    "utr:sqyd",
+                                    "utr:Boe",
+                                    "utr:Btu",
+                                    "utr:ft_lb",
+                                    "utr:MBoe",
+                                    "utr:Mcfe",
+                                    "utr:MMBoe",
+                                    "utr:MMBTU",
+                                    "utr:ft",
+                                    "utr:in",
+                                    "utr:mi",
+                                    "utr:nmi",
+                                    "utr:yd",
+                                    "utr:lb",
+                                    "utr:oz",
+                                    "utr:ozt",
+                                    "utr:T",
+                                    "utr:hp",
+                                    "utr:bbl",
+                                    "utr:ft3",
+                                    "utr:gal",
+                                    "utr:MBbls",
+                                    "utr:Mcf",
+                                    "utr:MMBbls",
+                                    "utr:MMcf",
+                                    "utr:bu",
+                                    "utr:aft",
+                                    "utr:Y",
+                                    "utr:M",
+                                    "utr:D",
+                                    "utr:H",
+                                    "utr:MM",
+                                    "utr:Volume_per_Duration",
+                                    "utr:Bcf",
+                                    "utr:Tcf",
+                                    "utr:Q",
+                                    "utr:WK",
+                                    "utr:MMcfe",
+                                    "utr:Bcfe",
+                                    "utr:Tcfe",
+                                    "utr:kT",
+                                    "utr:MT",
+                                    "utr:GT",
+                                    "utr:Energy_per_Duration",
+                                    "utr:F",
+                                    "utr:Bar",
+                                    "utr:psi",
+                                    "utr:atm",
+                                    "utr:var",
+                                    "utr:Wh",
+                                    "utr:VAh",
+                                    "utr:Ah",
+                                    "utr:Degree",
+                                    "utr:dth",
+                                    "utr:MWd",
+                                    "utr:Mvar",
+                                    "utr:Emissions_per_Monetary",
+                                    "utr:Energy_per_Monetary",
+                                    "utr:Volume_per_Monetary" ],
+                "referenceType" : "xbrl:baseUnitsStandard",
+                "properties" : [{"property":"utr:baseStandardIdentifier", "value":"customary"}]
+                        
+            },
+            {
+                "name" : "utr:SiDerivedUnitsRef",
+                "relatedNames" : ["utr:Cal",
+                                    "utr:t",
+                                    "utr:B",
+                                    "utr:GB",
+                                    "utr:kB",
+                                    "utr:MB",
+                                    "utr:TB",
+                                    "utr:kt",
+                                    "utr:Mt",
+                                    "utr:Gt",
+                                    "utr:PB",
+                                    "utr:tCO2e",
+                                    "utr:ktCO2e",
+                                    "utr:MtCO2e",
+                                    "utr:GtCO2e" ],
+                "referenceType" : "xbrl:baseUnitsStandard",
+                "properties" : [{"property":"utr:baseStandardIdentifier", "value":"Non-SI"}]
+            },
+            {
+                "name" : "utr:XbrlDerivedUnitsRef",
+                "relatedNames" : ["utr:Monetary_per_Share",
+                                    "utr:Monetary_per_Decimal",
+                                    "utr:Monetary_per_Monetary",
+                                    "xbrli:pure",
+                                    "utr:Rate",
+                                    "xbrli:shares" ],
+                "referenceType" : "xbrl:baseUnitsStandard",
+                "properties" : [{"property":"utr:baseStandardIdentifier", "value":"xbrl"}]
+            }
+        ],
+        "referenceTypes": [
+            {
+                "name": "utr:baseUnitsStandard",
+                "allowedObjects": [
+                    "xbrl:unitObject"
+                ],
+                "requiredProperties": [
+                    "utr:baseStandardIdentifier"
+                ]
+            },
+            {
+                "name": "utr:unitCreationDate",
+                "allowedObjects": [
+                    "xbrl:unitObject"
+                ],
+                "requiredProperties": [
+                    "utr:dateUnitCreated"
+                ]
+            }
+        ]
+    }
+}
