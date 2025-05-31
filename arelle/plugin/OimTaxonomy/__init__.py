@@ -437,6 +437,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                                 if optional:
                                     jsonValue = None
                                 else:
+                                    # TBD: set newObj to invalid so it isn't usable (it was already set in collection objects above when being created)
                                     return # skip this nested object entirely
                             elif propType == QNameAt:
                                 jsonValue = QNameAt(jsonValue.prefix, jsonValue.namespaceURI, jsonValue.localName, atSuffix)
@@ -459,12 +460,8 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                     jsonEltsNotInObjClass.append(f"{'/'.join(pathParts + [propName])}={jsonObj.get(propName,'(absent)')}")
             if isinstance(newObj, XbrlReferencableTaxonomyObject):
                 if keyValue in xbrlDts.namedObjects:
-                    if objClass == XbrlImportedTaxonomy and type(xbrlDts.namedObjects[keyValue]) == objClass:
-                        # ensure these are the same imported taxonomy and no other objects have the same name
-                        pass
-                    else:
-                        namedObjectDuplicates[keyValue].add(newObj)
-                        namedObjectDuplicates[keyValue].add(xbrlDts.namedObjects[keyValue])
+                    namedObjectDuplicates[keyValue].add(newObj)
+                    namedObjectDuplicates[keyValue].add(xbrlDts.namedObjects[keyValue])
                 else:
                     xbrlDts.namedObjects[keyValue] = newObj
             elif isinstance(newObj, XbrlTaxonomyTagObject) and relatedNames:
@@ -499,7 +496,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                                 newObj.id = id
                                 createTaxonomyObject(value, oimParentObj, str, objClass, newObj, pathParts + [f"[{id}]"])
                                 ownrProp[id] = newObj
-                            return
+                            return None # facts not returnable
                     elif isinstance(ownrPropType, _UnionGenericAlias) and ownrPropType.__args__[-1] == type(None): # optional nested object
                         keyClass = None
                         objClass = ownrPropType.__args__[0]
@@ -527,8 +524,10 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                             ownrProp.append(newObj)
                     elif isinstance(ownrPropType, _UnionGenericAlias) and ownrPropType.__args__[-1] == type(None): # optional nested object
                         setattr(oimParentObj, pathParts[-1], newObj)
+                    return newObj
+            return None
 
-        createTaxonomyObjects("taxonomy", oimObject["taxonomy"], xbrlDts, ["", "taxonomy"])
+        newTxmy = createTaxonomyObjects("taxonomy", oimObject["taxonomy"], xbrlDts, ["", "taxonomy"])
         if isReport:
             createTaxonomyObjects("facts", oimObject["facts"], xbrlDts, ["", "facts"])
 
@@ -545,6 +544,14 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
             xbrlDts.error("oimte:duplicateObjects",
                   _("Multiple referenceable objects have the same name: %(qname)s"),
                   xbrlObject=dupObjs, qname=qname)
+
+        if newTxmy is not None:
+            for impTxmy in newTxmy.importedTaxonomies:
+                if impTxmy.taxonomyName not in xbrlDts.taxonomies:
+                    # is it present in urlMapping?
+                    url = namespaceUrls.get(impTxmy.taxonomyName.prefix)
+                    if url:
+                        loadOIMTaxonomy(cntlr, error, warning, modelXbrl, url, impTxmy.taxonomyName.localName)
 
         xbrlDts.namespaceDocs[taxonomyName.namespaceURI].append(schemaDoc)
 
@@ -982,7 +989,7 @@ def oimTaxonomyLoaded(cntlr, options, xbrlDts, *args, **kwargs):
     xbrlDts.groupContents = defaultdict(OrderedSet)
     for txmy in xbrlDts.taxonomies.values():
         for grpCnts in txmy.groupContents:
-            for relName in grpCnts.relatedNames:
+            for relName in getattr(grpCnts, "relatedNames", ()): # if object was invalid there are no attributes, e.g. bad QNames
                 xbrlDts.groupContents[grpCnts.groupName].add(relName)
 
 def oimTaxonomyViews(cntlr, xbrlDts):

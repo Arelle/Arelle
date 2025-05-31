@@ -9,9 +9,9 @@ from arelle.PythonUtil import OrderedSet
 from .XbrlDts import XbrlDts
 from .XbrlAbstract import XbrlAbstract
 from .XbrlTypes import XbrlTaxonomyType, QNameKeyType, DefaultTrue, DefaultFalse
-from .XbrlTaxonomyObject import XbrlReferencableTaxonomyObject
+from .XbrlTaxonomyObject import XbrlTaxonomyObject
 
-class XbrlImportedTaxonomy(XbrlReferencableTaxonomyObject):
+class XbrlImportedTaxonomy(XbrlTaxonomyObject):
     taxonomy: XbrlTaxonomyType
     importedTaxonomies: OrderedSet # ordered set of importedTaxonomy objects that can comprise QName of the taxonomy to be imported, an object type or a taxonomy object referenced by its QName.
     abstracts: OrderedSet[XbrlAbstract] # ordered set of abstract objects.
