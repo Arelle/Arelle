@@ -207,3 +207,66 @@ class TestOrderedSet:
 
         with pytest.raises(TypeError):
             os.add({1: 2})
+
+    def test_index_access_basic(self):
+        os = OrderedSet([1, 2, 3, 4, 5])
+
+        assert os[0] == 1
+        assert os[1] == 2
+        assert os[2] == 3
+        assert os[3] == 4
+        assert os[4] == 5
+
+        assert os[-1] == 5
+        assert os[-2] == 4
+        assert os[-3] == 3
+        assert os[-4] == 2
+        assert os[-5] == 1
+
+    def test_index_access_out_of_bounds(self):
+        os = OrderedSet([1, 2, 3])
+
+        with pytest.raises(IndexError):
+            os[3]
+        with pytest.raises(IndexError):
+            os[10]
+
+        with pytest.raises(IndexError):
+            os[-4]
+        with pytest.raises(IndexError):
+            os[-10]
+
+    def test_index_access_empty_set(self):
+        os = OrderedSet()
+
+        with pytest.raises(IndexError):
+            os[0]
+        with pytest.raises(IndexError):
+            os[-1]
+
+    def test_index_access_single_element(self):
+        os = OrderedSet([42])
+
+        assert os[0] == 42
+        assert os[-1] == 42
+
+        with pytest.raises(IndexError):
+            os[1]
+        with pytest.raises(IndexError):
+            os[-2]
+
+    def test_index_access_after_modifications(self):
+        os = OrderedSet([1, 2, 3, 4])
+
+        os.discard(2)
+        assert os[0] == 1
+        assert os[1] == 3
+        assert os[2] == 4
+
+        os.add(5)
+        assert os[3] == 5
+
+        os.pop()
+        assert len(os) == 3
+        with pytest.raises(IndexError):
+            os[3]

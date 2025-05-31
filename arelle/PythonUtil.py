@@ -180,6 +180,19 @@ class OrderedSet(MutableSet[T]):
         if iterable is not None:
             self.update(iterable)
 
+    def __getitem__(self, index: int) -> T:
+        if not isinstance(index, int):
+            raise TypeError("Index must be an integer")
+        if index < 0:
+            index += len(self)
+        if index < 0 or index >= len(self):
+            raise IndexError("Index out of range")
+        end = self.end
+        curr = end[2]
+        for _ in range(index):
+            curr = curr[2]
+        return curr[0]
+
     def __len__(self) -> int:
         return len(self.map)
 
