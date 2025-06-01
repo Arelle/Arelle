@@ -482,5 +482,3 @@ def validateTaxonomy(dts, txmy):
                                   xbrlObject=unitObj, name=unitObj.name, qname=dtQn)
                     usedDataTypes.add(dtQn)
         del usedDataTypes
-
-

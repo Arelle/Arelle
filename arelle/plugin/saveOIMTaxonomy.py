@@ -108,7 +108,7 @@ def saveOIMTaxonomy(dts, jsonFile):
                 name = f"{extensionPrefix}:_{os.path.basename(roleURI)}_"
                 definition = roleType.definition
                 # define network concept (not in XBRL 2.1
-                c = OrderedDict((("name", name), 
+                c = OrderedDict((("name", name),
                                  ("dataType","dtr:networkItemType"),
                                  ("periodType", "duration"),
                                  ("substitutionGroup", "xbrli:item"),
@@ -131,7 +131,7 @@ def saveOIMTaxonomy(dts, jsonFile):
                         ("language", primaryLang),
                         ("labelType", XbrlConst.standardLabel),
                         ("value", definition))))
-                
+
     # cubes by linkrole
     for arcrole, linkrole, arcQN, linkQN in dts.baseSets.keys():
         if arcrole == XbrlConst.all and linkrole is not None and arcQN is None and linkQN is None:
@@ -186,7 +186,7 @@ def saveOIMTaxonomy(dts, jsonFile):
                     ("networkURI", rel.linkrole),
                     ("cubeType", "aggregate"),
                     ("dimensions", dims))) )
-        
+
     # domains
 
     # tree walk recursive function
@@ -241,7 +241,7 @@ def saveOIMTaxonomy(dts, jsonFile):
     try:
         with open(jsonFile, "w") as fh:
             fh.write(json.dumps(oimTxmy, indent=3))
-        
+
         dts.info("info:saveOIMTaxonomy",
             _("Saved OIM Taxonomy file: %(excelFile)s"),
             excelFile=os.path.basename(jsonFile),

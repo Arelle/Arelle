@@ -99,7 +99,6 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
             loadDictErrors.append((msgCode, msgText, kwargs))
 
         def loadDict(keyValuePairs):
-            global loadDict
             _dict = {}
             _valueKeyDict = {}
             for key, value in keyValuePairs:

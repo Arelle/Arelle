@@ -20,4 +20,3 @@ class XbrlGroupContent(XbrlTaxonomyObject):
     taxonomy: XbrlTaxonomyType
     groupName: QName # (required) The QName of the group object.
     relatedNames: OrderedSet[QName] # (required) An ordered set of network object or cube object QNames that are included in the group object. The order of the set determines the order they appear in the group. The set cannot be empty. The set can only include the QNames of network and cube objects.
-
