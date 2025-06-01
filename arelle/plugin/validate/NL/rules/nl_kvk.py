@@ -22,7 +22,7 @@ from arelle.ValidateDuplicateFacts import getHashEquivalentFactGroups, getAspect
 from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
 from ..DisclosureSystems import DISCLOSURE_SYSTEM_NL_INLINE_2024
 from ..PluginValidationDataExtension import (PluginValidationDataExtension, ALLOWABLE_LANGUAGES,
-                                             DISALLOWED_IXT_NAMESPACES, EFFECTIVE_TAXONOMY_URLS,
+                                             DISALLOWED_IXT_NAMESPACES, EFFECTIVE_GAAP_IFRS_TAXONOMY_URLS,
                                              MAX_REPORT_PACKAGE_SIZE_MBS, XBRLI_IDENTIFIER_PATTERN,
                                              XBRLI_IDENTIFIER_SCHEMA)
 
@@ -866,7 +866,8 @@ def rule_nl_kvk_4_1_2_1(
     """
     if val.modelXbrl.modelDocument is not None:
         pluginData.checkFilingDTS(val, val.modelXbrl.modelDocument, [])
-        if not any(e in val.extensionImportedUrls for e in EFFECTIVE_TAXONOMY_URLS):
+        taxonomyUrls = [url for effectiveUrls in EFFECTIVE_GAAP_IFRS_TAXONOMY_URLS.values() for url in effectiveUrls]
+        if not any(e in val.extensionImportedUrls for e in taxonomyUrls):
             yield Validation.error(
                 codes='NL.NL-KVK.4.1.2.1.requiredEntryPointNotImported',
                 msg=_('The extension taxonomy must import the entry point of the taxonomy files prepared by KVK.'),

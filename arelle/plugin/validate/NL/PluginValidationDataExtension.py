@@ -57,9 +57,32 @@ ALLOWABLE_LANGUAGES = frozenset((
     'fr'
 ))
 
-EFFECTIVE_TAXONOMY_URLS = frozenset((
-    'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-nlgaap-ext.xsd',
-    'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-ifrs-ext.xsd',
+EFFECTIVE_GAAP_IFRS_TAXONOMY_URLS = {
+    '2024': [
+        'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-nlgaap-ext.xsd',
+        'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-ifrs-ext.xsd',
+    ]
+}
+
+STANDARD_TAXONOMY_URLS = frozenset((
+    'http://www.nltaxonomie.nl/ifrs/20',
+    'https://www.nltaxonomie.nl/ifrs/20',
+    'http://www.nltaxonomie.nl/',
+    'https://www.nltaxonomie.nl/',
+    'http://www.xbrl.org/taxonomy/int/lei/',
+    'https://www.xbrl.org/taxonomy/int/lei/',
+    'http://www.xbrl.org/20',
+    'https://www.xbrl.org/20',
+    'http://xbrl.org/20',
+    'https://xbrl.org/20',
+    'http://xbrl.ifrs.org/',
+    'https://xbrl.ifrs.org/',
+    'http://www.xbrl.org/dtr/',
+    'https://www.xbrl.org/dtr/',
+    'http://xbrl.org/2020/extensible-enumerations-2.0',
+    'https://xbrl.org/2020/extensible-enumerations-2.0',
+    'http://www.w3.org/1999/xlink',
+    'https://www.w3.org/1999/xlink'
 ))
 
 @dataclass(frozen=True)
@@ -154,10 +177,13 @@ class PluginValidationDataExtension(PluginData):
         for referencedDocument, modelDocumentReference in modelDocument.referencesDocument.items():
             if referencedDocument not in visited and referencedDocument.inDTS:
                 self.checkFilingDTS(val, referencedDocument, visited)
-        if modelDocument.type == ModelDocumentFile.Type.SCHEMA:
-            for doc, docRef in modelDocument.referencesDocument.items():
-                if "import" in docRef.referenceTypes:
-                    val.extensionImportedUrls.add(doc.uri)
+        isExtensionDoc = self.isExtension(val, modelDocument)
+        if isExtensionDoc:
+            if modelDocument.type == ModelDocumentFile.Type.SCHEMA:
+                for doc, docRef in modelDocument.referencesDocument.items():
+                    if "import" in docRef.referenceTypes:
+                        val.extensionImportedUrls.add(doc.uri)
+            val.extensionDocumentNames.add(modelDocument.basename)
 
     @lru_cache(1)
     def checkHiddenElements(self, modelXbrl: ModelXbrl) -> HiddenElementsData:
@@ -371,6 +397,13 @@ class PluginValidationDataExtension(PluginData):
                 if elt.tag in ixTags and elt.get("target"):
                     targetElements.append(elt)
         return targetElements
+
+    def isExtension(self, val: ValidateXbrl, modelObject: ModelObject | ModelDocument | str | None) -> bool:
+        if modelObject is None:
+            return False
+        uri = modelObject if isinstance(modelObject, str) else modelObject.modelDocument.uri
+        return (uri.startswith(val.modelXbrl.uriDir) or
+                not any(uri.startswith(standardTaxonomyURI) for standardTaxonomyURI in STANDARD_TAXONOMY_URLS))
 
     @lru_cache(1)
     def isFilenameValidCharacters(self, filename: str) -> bool:
