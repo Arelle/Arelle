@@ -32,6 +32,7 @@ dependencies = [
     'bottle>=0.13,<0.14',
     'certifi',
     'filelock',
+    'jsonschema==4.*',
     'isodate==0.*',
     'lxml>=4,<6',
     'numpy>=1,<3',
