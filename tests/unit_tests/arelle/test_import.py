@@ -17,6 +17,37 @@ KNOWN_FAILURES = frozenset([
     'arelle.archive.plugin.validate.XFsyntax.xf',
     'arelle.formula.FormulaEvaluator',
 ])
+
+# OIM Taxonomy uses typing features not available in Python 3.9 and earlier.
+# Python 3.9 support will be dropped before this plugin is fully supported.
+if sys.version_info < (3, 10):
+    KNOWN_FAILURES |= frozenset([
+        'arelle.plugin.OimTaxonomy.__init__',
+        'arelle.plugin.OimTaxonomy.ModelValueMore',
+        'arelle.plugin.OimTaxonomy.ValidateDTS',
+        'arelle.plugin.OimTaxonomy.ViewXbrlTxmyObj',
+        'arelle.plugin.OimTaxonomy.XbrlAbstract',
+        'arelle.plugin.OimTaxonomy.XbrlConcept',
+        'arelle.plugin.OimTaxonomy.XbrlConst',
+        'arelle.plugin.OimTaxonomy.XbrlCube',
+        'arelle.plugin.OimTaxonomy.XbrlDimension',
+        'arelle.plugin.OimTaxonomy.XbrlDts',
+        'arelle.plugin.OimTaxonomy.XbrlEntity',
+        'arelle.plugin.OimTaxonomy.XbrlGroup',
+        'arelle.plugin.OimTaxonomy.XbrlImportedTaxonomy',
+        'arelle.plugin.OimTaxonomy.XbrlLabel',
+        'arelle.plugin.OimTaxonomy.XbrlNetwork',
+        'arelle.plugin.OimTaxonomy.XbrlProperty',
+        'arelle.plugin.OimTaxonomy.XbrlReference',
+        'arelle.plugin.OimTaxonomy.XbrlReport',
+        'arelle.plugin.OimTaxonomy.XbrlTableTemplate',
+        'arelle.plugin.OimTaxonomy.XbrlTaxonomy',
+        'arelle.plugin.OimTaxonomy.XbrlTaxonomyObject',
+        'arelle.plugin.OimTaxonomy.XbrlTransform',
+        'arelle.plugin.OimTaxonomy.XbrlTypes',
+        'arelle.plugin.OimTaxonomy.XbrlUnit',
+    ])
+
 # Don't test common third party plugins which may be copied into a developer's workspace.
 IGNORE_MODULE_PREFIXES = (
     'arelle.plugin.EDGAR',
