@@ -19,91 +19,141 @@ manifest file (such as JP FSA) that identifies inline XBRL documents.
 
 ### Command Line Usage
 
-- **Loading Inline XBRL Documents from a Zip File**:
-  ```bash
-  python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file '[{"ixds": [{"file": "filing-documents.zip"}]}]'
-  ```
-  This command loads all inline XBRL documents within a zip file as an Inline XBRL Document Set.
+- **Load from a ZIP file**:
 
-- **Loading Inline XBRL Documents from a Directory**:
+    Simple:
+    ```bash
+    python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file report.zip
+    ```
+
+    Verbose:
+    ```bash
+    python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file '[{"ixds": [{"file": "report.zip"}]}]'
+    ```
+
+- **Load from a directory**:
+
+  Simple:
+  ```bash
+  python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file filing-documents-directory
+  ```
+
+  Verbose:
   ```bash
   python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file '[{"ixds": [{"file": "filing-documents-directory"}]}]'
   ```
-  This command loads all inline XBRL documents within a specified directory.
 
-- **Loading with Default Target Document**:
+- **Load multiple documents**:
+
+  Simple:
+  ```bash
+  python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file 'document-1.html|document-2.html'
+  ```
+
+  Verbose:
   ```bash
   python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file '[{"ixds": [{"file1": "document-1.html", "file2": "document-2.html"}]}]'
   ```
-  Load two inline XBRL documents using the default Target Document.
 
-- **Specifying a Different Target Document**:
-  ```bash
-  python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file '[{"ixds": [{"file1": "document-1.html", "file2": "document-2.html"}], "ixdsTarget": "DKGAAP"}]'
-  ```
-  Load two inline XBRL documents using the `DKGAAP` Target Document.
+- **Specify target document**:
 
-- **Loading Multiple Document Sets**:
-  ```bash
-  python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file '[{"ixds": [{"file": "filing-documents-1.zip"}]}, {"ixds": [{"file": "filing-documents-2.zip"}]}]'
-  ```
-  Load two separate Inline XBRL Document Sets.
+  - **Default target**:
 
-- **Extracting and Saving XML Instance**:
+    Simple:
+    ```bash
+    python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file report.zip --inlineTarget "(default)"
+    ```
+
+    Verbose:
+    ```bash
+    python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file '[{"ixds": [{"file": "report.zip"}], "ixdsTarget": "(default)"}]'
+    ```
+
+  - **Named target (e.g., DKGAAP)**:
+
+    Simple:
+    ```bash
+    python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file report.zip --inlineTarget DKGAAP
+    ```
+
+    Verbose:
+    ```bash
+    python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file '[{"ixds": [{"file": "report.zip"}], "ixdsTarget": "DKGAAP"}]'
+    ```
+
+- **Load multiple IXDS sets**:
+
   ```bash
-  python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file '[{"ixds": [{"file": "filing-documents.zip"}]}] --saveInstance'
+  python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file '[{"ixds": [{"file": "report-1.zip"}]}, {"ixds": [{"file": "report-2.zip"}]}]'
   ```
-  Extract and save the XML Instance of the default Target Document from an Inline XBRL Document Set.
+
+- **Extract XML instance**:
+
+  ```bash
+  python arelleCmdLine.py --plugins inlineXbrlDocumentSet --file reports/report.html --saveInstance
+  ```
 
 ### GUI Usage
 
-- **Loading Inline Documents as an IXDS**:
-  1. Navigate to the `File` menu.
-  2. Select `Open File Inline Doc Set`.
-  3. Command/Control select multiple files to load them as an Inline XBRL Document Set.
+- **Load IXDS documents**:
 
-- **Extracting and Saving XML Instance**:
-  1. Load the Inline XBRL Document Set.
-  2. Navigate to `Tools` in the menu.
-  3. Select `Save target document` to save the XML Instance.
+  1. Go to the File menu.
+  2. Select "Open File Inline Doc Set".
+  3. Ctrl/Cmd-click to select multiple files as an IXDS.
+
+- **Save XML instance**:
+
+  1. Load the IXDS.
+  2. Open the Tools menu.
+  3. Select "Save target document" to export the XML instance.
 
 ## Additional Notes
 
-- Windows users must escape quotes and backslashes within the JSON file parameter structure:
-`.\\arelleCmdLine.exe --plugins inlineXbrlDocumentSet --file "[{""ixds"":[{""file"":""C:\\\\filing-documents.zip""}], ""ixdsTarget"":""DKGAAP""}]" --package "C:\\taxonomy-package.zip"`
-- If a JSON structure is specified in the `--file` option without an `ixdsTarget`, the default target is assumed.
-- To specify a non-default target in the absence of a JSON file argument, use the formula parameter `ixdsTarget`.
-- For EDGAR style encoding of non-ASCII characters, use the `--encodeSavedXmlChars` argument.
-- Extracted XML instance is saved to the same directory as the IXDS with the suffix `_extracted.xbrl`.
+- On Windows, escape quotes and backslashes when using verbose JSON:
+  ```pwsh
+  .\\arelleCmdLine.exe --plugins inlineXbrlDocumentSet --file
+  "[{""ixds"":[{""file"":""C:\\\\report.zip""}], ""ixdsTarget"":""DKGAAP""}]"
+  ```
+- If no "ixdsTarget" is specified in JSON, all targets are loaded.
+- "(default)" matches the default IXDS target (i.e., no target defined in the instance).
+- Use "--encodeSavedXmlChars" to apply EDGAR-style encoding to non-ASCII characters.
+- The extracted XML instance is saved in the same directory with the suffix "_extracted.xbrl".
 """
 from __future__ import annotations
 
+import os
+import zipfile
+from collections import defaultdict
+from optparse import SUPPRESS_HELP
 from typing import BinaryIO
 
-from arelle import FileSource, ModelXbrl, ValidateXbrlDimensions, XbrlConst, ValidateDuplicateFacts
-from arelle.RuntimeOptions import RuntimeOptions
-from arelle.ValidateDuplicateFacts import DeduplicationType
+import regex as re
+from lxml.etree import XML, XMLSyntaxError
 
-DialogURL = None # dynamically imported when first used
-from arelle.CntlrCmdLine import filesourceEntrypointFiles
-from arelle.PrototypeDtsObject import LocPrototype, ArcPrototype
+from arelle import FileSource, ModelXbrl, ValidateDuplicateFacts, ValidateXbrlDimensions, XbrlConst
 from arelle.FileSource import archiveFilenameParts, archiveFilenameSuffixes
+from arelle.ModelDocument import ModelDocument, ModelDocumentReference, Type, create, inlineIxdsDiscover, load
 from arelle.ModelInstanceObject import ModelInlineFootnote
 from arelle.ModelObject import ModelObject
-from arelle.ModelDocument import ModelDocument, ModelDocumentReference, Type, load, create, inlineIxdsDiscover
 from arelle.ModelValue import INVALIDixVALUE, qname
 from arelle.PluginManager import pluginClassMethods
-from arelle.PythonUtil import attrdict
+from arelle.PrototypeDtsObject import ArcPrototype, LocPrototype
+from arelle.PythonUtil import attrdict, isLegacyAbs
+from arelle.RuntimeOptions import RuntimeOptions
 from arelle.UrlUtil import isHttpUrl
+from arelle.utils.EntryPointDetection import filesourceEntrypointFiles
+from arelle.ValidateDuplicateFacts import DeduplicationType
 from arelle.ValidateFilingText import CDATApattern
 from arelle.Version import authorLabel, copyrightLabel
-from arelle.XmlUtil import addChild, copyIxFootnoteHtml, elementFragmentIdentifier, elementChildSequence, xmlnsprefix, setXmlns
-from arelle.XmlValidate import validate as xmlValidate, VALID, NONE
-import os, zipfile
-import regex as re
-from optparse import SUPPRESS_HELP
-from lxml.etree import XML, XMLSyntaxError
-from collections import defaultdict
+from arelle.XmlUtil import (
+    addChild,
+    copyIxFootnoteHtml,
+    elementFragmentIdentifier,
+    setXmlns,
+    xmlnsprefix,
+)
+from arelle.XmlValidate import NONE, VALID
+from arelle.XmlValidate import validate as xmlValidate
 
 DEFAULT_TARGET = "(default)"
 IXDS_SURROGATE = "_IXDS#?#" # surrogate (fake) file name for inline XBRL doc set (IXDS)
@@ -158,7 +208,7 @@ def inlineXbrlDocumentSetLoader(modelXbrl, normalizedUri, filepath, isEntry=Fals
             elif "ixdsTarget" in kwargs: # passed from validate (multio test cases)
                 _target = kwargs["ixdsTarget"]
             else:
-                _target = modelXbrl.modelManager.formulaOptions.parameterValues["ixdsTarget"][1]
+                _target = modelXbrl.modelManager.formulaOptions.parameterValues[qname("ixdsTarget")][1]
             modelXbrl.ixdsTarget = None if _target == DEFAULT_TARGET else _target or None
         except (KeyError, AttributeError, IndexError, TypeError):
             pass # set later in selectTargetDocument plugin method
@@ -255,7 +305,7 @@ def createTargetInstance(
     def addLocallyReferencedFile(elt,filingFiles):
         if elt.tag in ("a", "img"):
             for attrTag, attrValue in elt.items():
-                if attrTag in ("href", "src") and not isHttpUrl(attrValue) and not os.path.isabs(attrValue):
+                if attrTag in ("href", "src") and not isHttpUrl(attrValue) and not isLegacyAbs(attrValue):
                     attrValue = attrValue.partition('#')[0] # remove anchor
                     if attrValue: # ignore anchor references to base document
                         attrValue = os.path.normpath(attrValue) # change url path separators to host separators
@@ -391,7 +441,7 @@ def createTargetInstance(
         arcrole, linkrole, linkqname, arcqname = linkKey
         if (linkrole and linkqname and arcqname and  # fully specified roles
             arcrole != "XBRL-footnotes" and
-            any(lP.modelDocument.type == Type.INLINEXBRL for lP in linkPrototypes)):
+            any(lP.modelDocument.type in (Type.INLINEXBRL, Type.INLINEXBRLDOCUMENTSET) for lP in linkPrototypes)):
             for linkPrototype in linkPrototypes:
                 if linkPrototype not in footnoteLinks[linkrole]:
                     footnoteLinks[linkrole].append(linkPrototype)
@@ -469,9 +519,6 @@ def discoverInlineXbrlDocumentSet(modelDocument, *args, **kwargs):
     return False  # not discoverable by this plug-in
 
 def fileOpenMenuEntender(cntlr, menu, *args, **kwargs):
-    # install DialogURL for GUI menu operation of runOpenWebInlineDocumentSetMenuCommand
-    global DialogURL
-    from arelle import DialogURL
     # Extend menu with an item for the savedts plugin
     menu.insert_command(2, label="Open Web Inline Doc Set",
                         underline=0,
@@ -496,6 +543,7 @@ def runOpenFileInlineDocumentSetMenuCommand(cntlr, runInBackground=False, saveTa
     runOpenInlineDocumentSetMenuCommand(cntlr, filenames, runInBackground, saveTargetFiling)
 
 def runOpenWebInlineDocumentSetMenuCommand(cntlr, runInBackground=False, saveTargetFiling=False):
+    from arelle import DialogURL
     url = DialogURL.askURL(cntlr.parent, buttonSEC=True, buttonRSS=True)
     if url:
         runOpenInlineDocumentSetMenuCommand(cntlr, re.split(r",\s*|\s+", url), runInBackground, saveTargetFiling)
@@ -682,10 +730,29 @@ def commandLineOptionExtender(parser, *args, **kwargs):
                       choices=[a.value for a in ValidateDuplicateFacts.DeduplicationType],
                       dest="deduplicateIxbrlFacts",
                       help=SUPPRESS_HELP)
+    parser.add_option("--inlineTarget",
+                      action="store",
+                      dest="inlineTarget",
+                      help=_("Specify an inline target to load. By default, all targets are loaded. Use '{}' to select the default target.").format(DEFAULT_TARGET),
+                      type="string")
 
 def commandLineFilingStart(cntlr, options, filesource, entrypointFiles, *args, **kwargs):
     global skipExpectedInstanceComparison
     skipExpectedInstanceComparison = getattr(options, "skipExpectedInstanceComparison", False)
+    inlineTarget = getattr(options, "inlineTarget", None)
+    if inlineTarget:
+        if isinstance(entrypointFiles, dict):
+            entrypointFiles = [entrypointFiles]
+        if isinstance(entrypointFiles, list):
+            for i, entry in enumerate(entrypointFiles):
+                entryTarget = entry.get("ixdsTarget")
+                if entryTarget and entryTarget != inlineTarget:
+                    raise RuntimeError(_("Conflicting ixds targets specified: inlineTarget '{}', ixdsTarget '{}'").format(inlineTarget, entryTarget))
+                ixds = entry.get("ixds")
+                if ixds is None:
+                    entry = {"ixds": [entry]}
+                    entrypointFiles[i] = entry
+                entry["ixdsTarget"] = inlineTarget
     if isinstance(entrypointFiles, list):
         # check for any inlineDocumentSet in list
         for entrypointFile in entrypointFiles:
@@ -845,7 +912,7 @@ def discoverIxdsDts(modelXbrl):
 
 class TargetChoiceDialog:
     def __init__(self,parent, choices):
-        from tkinter import Toplevel, Label, Listbox, StringVar
+        from tkinter import Listbox, StringVar, Toplevel
         parentGeometry = re.match(r"(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
         dialogX = int(parentGeometry.group(3))
         dialogY = int(parentGeometry.group(4))

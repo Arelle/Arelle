@@ -10,7 +10,7 @@ from .conformance_suite_configurations.efm_current import config as efm_current
 from .conformance_suite_configurations.xbrl_2_1 import config as xbrl_2_1
 
 
-LINUX = 'ubuntu-22.04'
+LINUX = 'ubuntu-24.04'
 MACOS = 'macos-14'
 WINDOWS = 'windows-2022'
 ALL_PYTHON_VERSIONS = (
@@ -18,8 +18,9 @@ ALL_PYTHON_VERSIONS = (
     '3.10',
     '3.11',
     '3.12',
+    '3.13',
 )
-LATEST_PYTHON_VERSION = '3.12'
+LATEST_PYTHON_VERSION = '3.13'
 # number of cores on the runners
 # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources
 OS_CORES = {
@@ -31,6 +32,7 @@ FAST_CONFIG_NAMES = {
     'esef_xhtml_2021',
     'esef_xhtml_2022',
     'esef_xhtml_2023',
+    'esef_xhtml_2024',
     'xbrl_calculations_1_1',
     'xbrl_dimensions_1_0',
     'xbrl_dtr_2024_01_31',

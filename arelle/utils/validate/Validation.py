@@ -12,7 +12,6 @@ class Level(Enum):
     ERROR = "ERROR"
     WARNING = "WARNING"
 
-
 @dataclass(frozen=True)
 class Validation:
     level: Level

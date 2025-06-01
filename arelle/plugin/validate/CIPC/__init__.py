@@ -12,7 +12,7 @@ Taxonomy packages:
 """
 import os
 import regex as re
-from lxml.etree import _ElementTree, _Comment, _ProcessingInstruction
+from lxml.etree import _ElementTree, _Comment, _ProcessingInstruction, _Entity
 from arelle import ModelDocument, XbrlConst
 from arelle.ModelDtsObject import ModelResource
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFact, ModelInlineFootnote
@@ -26,7 +26,7 @@ cipcBlockedInlineHtmlElements = {
     'object', 'script'}
 
 namePattern = re.compile(r"^(.*) - ((18|19|20)\d{2}-[0-9]+-(06|07|08|09|10|12|20|21|22|23|24|25|26|30|31)) - (20[1-9]\d)$")
-reportingModulePattern = re.compile(r"http://xbrl.cipc.co.za/taxonomy/.*/\w*(ca_fas|full_ifrs|ifrs_for_smes)\w*[_-]20[12][0-9]-[0-9]{2}-[0-9]{2}.xsd")
+reportingModulePattern = re.compile(r"https?://xbrl.cipc.co.za/taxonomy/.*/\w*(ca_fas|full_ifrs|ifrs_for_smes)\w*[_-]20[12][0-9]-[0-9]{2}-[0-9]{2}.xsd")
 
 TRANSFORMATION_REGISTRY_3 = {
     'namespace': 'http://www.xbrl.org/inlineXBRL/transformation/2015-02-26',
@@ -125,7 +125,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                 eltTag = elt.tag
                 if isinstance(elt, ModelObject) and elt.namespaceURI == xhtml:
                     eltTag = elt.localName
-                elif isinstance(elt, (_ElementTree, _Comment, _ProcessingInstruction)):
+                elif isinstance(elt, (_ElementTree, _Comment, _ProcessingInstruction, _Entity)):
                     continue # comment or other non-parsed element
                 else:
                     eltTag = elt.tag

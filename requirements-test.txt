@@ -1,4 +1,4 @@
-boto3==1.35.54
-pytest==8.3.3
+boto3==1.38.23
+pytest==8.3.5
 
 -r requirements.txt

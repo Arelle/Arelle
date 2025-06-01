@@ -11,7 +11,7 @@ from math import isnan
 from typing import Any, cast
 
 import regex as re
-from lxml.etree import EntityBase, _Comment, _ElementTree, _ProcessingInstruction
+from lxml.etree import _Comment, _Element, _ElementTree, _Entity, _ProcessingInstruction
 
 from arelle import LeiUtil, ModelDocument, XbrlConst
 from arelle.ModelDtsObject import ModelConcept
@@ -22,7 +22,9 @@ from arelle.ModelInstanceObject import ModelInlineFootnote
 from arelle.ModelObject import ModelObject
 from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelValue import QName, qname
-from arelle.PythonUtil import strTruncate
+from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
+from arelle.PythonUtil import isLegacyAbs, strTruncate
+from arelle.utils.validate.DetectScriptsInXhtml import containsScriptMarkers
 from arelle.UrlUtil import decodeBase64DataImage, isHttpUrl, scheme
 from arelle.ValidateFilingText import parseImageDataURL
 from arelle.ValidateUtr import ValidateUtr
@@ -60,7 +62,8 @@ from ..Const import (
     untransformableTypes,
 )
 from ..Dimensions import checkFilingDimensions
-from ..Util import etreeIterWithDepth, hasEventHandlerAttributes, isExtension
+from ..Util import isExtension
+
 
 _: TypeGetText  # Handle gettext
 
@@ -185,12 +188,12 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 _baseName, _baseExt = os.path.splitext(doc.basename)
                 if _baseExt not in (".xhtml",".html"):
                     if val.consolidated:
-                        XHTMLExtensionGuidance = "2.6.1"
+                        errorCode = "ESEF.2.6.1.incorrectFileExtension"
                         reportType = _("Inline XBRL document included within a ESEF report package")
                     else:
-                        XHTMLExtensionGuidance = "4.1.1"
+                        errorCode = "ESEF.4.1.1.incorrectFileExtension"
                         reportType = _("Stand-alone XHTML document")
-                    modelXbrl.error(f"ESEF.{XHTMLExtensionGuidance}.incorrectFileExtension",
+                    modelXbrl.error(errorCode,
                                     _("%(reportType)s MUST have a .html or .xhtml extension: %(fileName)s"),
                                     modelObject=doc, fileName=doc.basename, reportType=reportType)
                 docinfo = doc.xmlRootElement.getroottree().docinfo
@@ -272,7 +275,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     elt = cast(Any, uncast_elt)
 
                     eltTag = elt.tag
-                    if isinstance(elt, (_ElementTree, _Comment, _ProcessingInstruction, EntityBase)):
+                    if isinstance(elt, (_Comment, _ElementTree, _Entity, _ProcessingInstruction)):
                         continue # comment or other non-parsed element
                     else:
                         eltTag = elt.tag
@@ -283,10 +286,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                 if xmlLang:
                                     reportXmlLang = xmlLang
                                     firstRootmostXmlLangDepth = depth
-                        if ((eltTag in ("object", "script")) or
-                            (eltTag == "a" and "javascript:" in elt.get("href","")) or
-                            (eltTag == "img" and "javascript:" in elt.get("src","")) or
-                            (hasEventHandlerAttributes(elt))):
+                        if containsScriptMarkers(elt):
                             modelXbrl.error(f"{contentOtherThanXHTMLGuidance}.executableCodePresent",
                                 _("Inline XBRL documents MUST NOT contain executable code: %(element)s"),
                                 modelObject=elt, element=eltTag)
@@ -367,7 +367,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                     modelObject=elt, element=eltTag)
                             elif len(modelXbrl.ixdsHtmlElements) > 1:
                                 _file = elt.get("href")
-                                if not _file or isHttpUrl(_file) or os.path.isabs(_file):
+                                if not _file or isHttpUrl(_file) or isLegacyAbs(_file):
                                     modelXbrl.warning("ESEF.2.5.4.externalCssReportPackage",
                                         _("The CSS file should be physically stored within the report package: %{file}s."),
                                         modelObject=elt, file=_file)
@@ -726,12 +726,12 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 _("The xlink:role attribute of a link:footnote and link:footnoteLink element as well as xlink:arcrole attribute of a link:footnoteArc MUST be defined in the XBRL Specification 2.1."),
                 modelObject=footnoteRoleErrors)
 
-        nonStdFootnoteElts = list()
+        nonStdFootnoteElts: list[_Element] = list()
         for modelLink in modelXbrl.baseSets[("XBRL-footnotes",None,None,None)]:
             for uncast_elt in modelLink.iterchildren():
                 elt = cast(Any, uncast_elt)
 
-                if isinstance(elt, (_ElementTree, _Comment, _ProcessingInstruction)):
+                if isinstance(elt, (_Comment, _ElementTree, _Entity, _ProcessingInstruction)):
                     continue # comment or other non-parsed element
                 if elt.qname not in FOOTNOTE_LINK_CHILDREN:
                     nonStdFootnoteElts.append(elt)
@@ -790,9 +790,25 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                             unreportedLbElts.add(to)
                     elif arcrole in (hc_all, domainMember, dimensionDomain):
                         # all primary items
-                        if fr is not None and not fr.isAbstract and rel.isUsable and fr not in conceptsUsed and isExtension(val, rel) and not fr.type.isDomainItemType:
-                            unreportedLbElts.add(to)
-                        if to is not None and not to.isAbstract and rel.isUsable and to not in conceptsUsed and isExtension(val, rel) and not to.type.isDomainItemType:
+                        if (
+                            fr is not None
+                            and fr.type is not None
+                            and not fr.isAbstract
+                            and rel.isUsable
+                            and fr not in conceptsUsed
+                            and isExtension(val, rel)
+                            and not fr.type.isDomainItemType
+                        ):
+                            unreportedLbElts.add(fr)
+                        if (
+                            to is not None
+                            and to.type is not None
+                            and not to.isAbstract
+                            and rel.isUsable
+                            and to not in conceptsUsed
+                            and isExtension(val, rel)
+                            and not to.type.isDomainItemType
+                        ):
                             unreportedLbElts.add(to)
                     reportedEltsNotInLb.discard(fr)
                     reportedEltsNotInLb.discard(to)

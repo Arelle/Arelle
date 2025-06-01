@@ -15,6 +15,8 @@ if TYPE_CHECKING:
     from optparse import OptionParser
     from tkinter import Menu
 
+    from bottle import Bottle  # type: ignore[import-untyped]
+
     from arelle.Cntlr import Cntlr
     from arelle.CntlrCmdLine import CntlrCmdLine
     from arelle.CntlrWinMain import CntlrWinMain
@@ -25,7 +27,6 @@ if TYPE_CHECKING:
     from arelle.ModelManager import ModelManager
     from arelle.ModelXbrl import ModelXbrl
     from arelle.ValidateXbrl import ValidateXbrl
-    from arelle.webserver.bottle import Bottle
 
 
 class ValidationHook(Enum):
@@ -88,6 +89,33 @@ class PluginHooks(ABC):
 
         :param cntlr: The [Cntlr](#arelle.Cntlr.Cntlr) being initialized.
         :param options: Parsed options object.
+        :param args: Argument capture to ensure new parameters don't break plugin hook.
+        :param kwargs: Argument capture to ensure new named parameters don't break plugin hook.
+        :return: None
+        """
+        raise NotImplementedError
+
+    @staticmethod
+    def cntlrCmdLineXbrlLoaded(
+        cntlr: CntlrCmdLine,
+        options: RuntimeOptions,
+        modelXbrl: ModelXbrl,
+        entrypoint: dict[str, str] | None = None,
+        responseZipStream: BinaryIO | None = None,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        """
+        Plugin hook: `CntlrCmdLine.Xbrl.Loaded`
+
+        This hook is triggered after loading, but prior to validation (if requested) and loading views.
+        It's useful if you need to perform operations with the XBRL model prior to rendering views.
+
+        :param cntlr: The [Cntlr](#arelle.Cntlr.Cntlr) being initialized.
+        :param options: Parsed options object.
+        :param modelXbrl: The loaded [ModelXbrl](#arelle.ModelXbrl.ModelXbrl).
+        :param entrypoint: The entrypoint that was parsed to load the model.
+        :param responseZipStream: The response zip stream if loaded from the webserver and the user requested a zip response.
         :param args: Argument capture to ensure new parameters don't break plugin hook.
         :param kwargs: Argument capture to ensure new named parameters don't break plugin hook.
         :return: None
@@ -164,7 +192,7 @@ class PluginHooks(ABC):
         app.route('/rest/my-run/<file:path>', ("GET", "POST"), my_run)
         ```
 
-        :param app: The [Bottle](#arelle.webserver.bottle.Bottle) server.
+        :param app: The Bottle server.
         :param cntlr: The [controller](#arelle.CntlrCmdLine.CntlrCmdLine) for the server.
         :param host: The webserver host.
         :param port: The webserver port.
@@ -761,5 +789,28 @@ class PluginHooks(ABC):
         :param args: Argument capture to ensure new parameters don't break plugin hook.
         :param kwargs: Argument capture to ensure new named parameters don't break plugin hook.
         :return: None
+        """
+        raise NotImplementedError
+
+    @staticmethod
+    def webCacheTransformUrl(
+            cntlr: CntlrCmdLine,
+            url: str | None,
+            base: str | None,
+            *args: Any,
+            **kwargs: Any,
+    ) -> tuple[str | None, bool]:
+        """
+        Plugin hook: `WebCache.TransformURL`
+
+        This hook is triggered before the web cache maps a URL to a file path.
+        It's useful if you need to map certain URLs to a location other than the web cache.
+
+        :param cntlr: The [Cntlr](#arelle.Cntlr.Cntlr) being initialized.
+        :param url: The URL to transform.
+        :param base: The base URL.
+        :param args: Argument capture to ensure new parameters don't break plugin hook.
+        :param kwargs: Argument capture to ensure new named parameters don't break plugin hook.
+        :return: Tuple of transformed URL or filepath and a boolean indicating if the URL should be returned as the final filename.
         """
         raise NotImplementedError

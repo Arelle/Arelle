@@ -8,7 +8,7 @@ on:
         required: false
         type: string
       python_version:
-        default: '3.12'
+        default: '3.13'
         description: 'Python version to use'
         required: false
         type: string
@@ -36,7 +36,7 @@ on:
         required: false
         type: string
       python_version:
-        default: '3.12'
+        default: '3.13'
         description: 'Python version to use'
         required: true
         type: string
@@ -85,7 +85,7 @@ jobs:
     - shell: cmd
       run: rmdir /s /q xule
     - name: Set up Python ${{ inputs.python_version }}
-      uses: actions/setup-python@v5.3.0
+      uses: actions/setup-python@v5.6.0
       with:
         cache: 'pip'
         check-latest: true
@@ -109,8 +109,6 @@ jobs:
         echo "zip_uploaded_artifact_name=windows zip distribution" >> $env:GITHUB_OUTPUT
     - name: Build exe
       run: ./scripts/buildWinDist.bat
-    - name: Copy Tktable2.11
-      run: xcopy libs\win64\Tktable2.11 ${{ env.BUILD_PATH }}\lib /y
     - name: Delete .git
       shell: cmd
       run: if exist "${{ env.BUILD_PATH }}\.git" rmdir /s /q ${{ env.BUILD_PATH }}\.git
@@ -123,14 +121,14 @@ jobs:
       run: 7z a -tzip ..\..\${{ steps.define-artifact-names.outputs.zip_build_artifact_path }} *
     - name: Upload installer artifact
       id: upload-installer-artifact
-      uses: actions/upload-artifact@v4.4.3
+      uses: actions/upload-artifact@v4.6.2
       with:
         name: ${{ steps.define-artifact-names.outputs.exe_uploaded_artifact_name }}
         if-no-files-found: error
         path: ${{ steps.define-artifact-names.outputs.exe_build_artifact_path }}
     - name: Upload zip artifact
       id: upload-zip-artifact
-      uses: actions/upload-artifact@v4.4.3
+      uses: actions/upload-artifact@v4.6.2
       with:
         name: ${{ steps.define-artifact-names.outputs.zip_uploaded_artifact_name }}
         if-no-files-found: error
@@ -141,7 +139,7 @@ jobs:
         pytest -s --disable-warnings --all-frozen-builds --download-cache --offline --arelle="${{ env.BUILD_PATH }}\arelleCmdLine.exe" tests/integration_tests/scripts/test_scripts.py
     - name: "[Test] Upload test artifacts"
       if: always()
-      uses: actions/upload-artifact@v4.4.3
+      uses: actions/upload-artifact@v4.6.2
       with:
         name: 'windows test logs'
         if-no-files-found: error

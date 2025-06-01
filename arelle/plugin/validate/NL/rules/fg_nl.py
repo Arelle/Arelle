@@ -25,6 +25,7 @@ from ..DisclosureSystems import (
     DISCLOSURE_SYSTEM_NT16,
     DISCLOSURE_SYSTEM_NT17,
     DISCLOSURE_SYSTEM_NT18,
+    DISCLOSURE_SYSTEM_NT19,
 )
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
@@ -47,6 +48,7 @@ INSTANCE_ELEMENT_ORDER = {
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
         DISCLOSURE_SYSTEM_NT18,
+        DISCLOSURE_SYSTEM_NT19,
     ],
 )
 def rule_fg_nl_03(
@@ -98,6 +100,7 @@ def rule_fg_nl_03(
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
         DISCLOSURE_SYSTEM_NT18,
+        DISCLOSURE_SYSTEM_NT19,
     ],
 )
 def rule_fg_nl_04(
@@ -161,6 +164,7 @@ def rule_fg_nl_04(
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
         DISCLOSURE_SYSTEM_NT18,
+        DISCLOSURE_SYSTEM_NT19,
     ],
 )
 def rule_fg_nl_05(
@@ -230,6 +234,7 @@ def rule_fg_nl_05(
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
         DISCLOSURE_SYSTEM_NT18,
+        DISCLOSURE_SYSTEM_NT19,
     ],
 )
 def rule_fg_nl_09(
@@ -256,6 +261,7 @@ def rule_fg_nl_09(
         DISCLOSURE_SYSTEM_NT16,
         DISCLOSURE_SYSTEM_NT17,
         DISCLOSURE_SYSTEM_NT18,
+        DISCLOSURE_SYSTEM_NT19,
     ],
 )
 def rule_fg_nl_11(

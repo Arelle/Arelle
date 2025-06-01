@@ -28,7 +28,10 @@ xmlDeclarationPattern = re.compile(r"(\s+)?(<\?xml[^><\?]*\?>)", re.DOTALL)
 xmlEncodingPattern = re.compile(r"\s*<\?xml\s.*encoding=['\"]([^'\"]*)['\"].*\?>")
 xpointerFragmentIdentifierPattern = re.compile(r"([\w.]+)(\(([^)]*)\))?")
 xmlnsStripPattern = re.compile(r'\s*xmlns(:[\w.-]+)?="[^"]*"')
-nonSpacePattern = re.compile(r"\S+")
+
+_consecutiveSpacePattern = re.compile(r" {2,}")
+_replaceWhitespaceTable = str.maketrans("\t\n\r", " " * 3)
+
 
 class XmlDeclarationLocationException(Exception):
     def __init__(self) -> None:
@@ -199,7 +202,10 @@ def innerText(
     try:
         text = "".join(text for text in innerTextNodes(element, ixExclude, ixEscape, ixContinuation, ixResolveUris))
         if strip:
-            return text.strip(" \t\r\n") # strip follows xml whitespace collapse, only blank, tab and newlines
+            # For legacy reasons, strip=True removes leading/trailing
+            # whitespace even though most callers probably want
+            # collapseWhitespace semantics instead.
+            return text.strip(" \t\r\n")
         return text
     except (AttributeError, TypeError):
         return ""
@@ -297,8 +303,16 @@ def escapedText(text: str) -> str:
                    else c
                    for c in text)
 
+
+def replaceWhitespace(s: str) -> str:
+    # https://www.w3.org/TR/xmlschema-1/#d0e1654
+    return s.translate(_replaceWhitespaceTable)
+
+
 def collapseWhitespace(s: str) -> str:
-    return ' '.join( nonSpacePattern.findall(s) )
+    # https://www.w3.org/TR/xmlschema-1/#d0e1654
+    return " ".join(_consecutiveSpacePattern.split(replaceWhitespace(s))).strip(" ")
+
 
 def parentId(
     element: ModelObject,
@@ -1021,7 +1035,7 @@ def dateunionValue(
 ) -> str:
     if not isinstance(datetimeValue, (datetime.datetime, datetime.date)):
         return "INVALID"
-    tz = tzinfoStr(datetimeValue)  # type: ignore[arg-type]  # ModelValue type hints
+    tz = tzinfoStr(datetimeValue)
     isDate = getattr(
         datetimeValue, 'dateOnly', False) or not hasattr(datetimeValue, 'hour')
     if isDate or (

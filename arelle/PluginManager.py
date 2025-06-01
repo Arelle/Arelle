@@ -15,6 +15,7 @@ from types import ModuleType
 from typing import TYPE_CHECKING, Any, cast
 from arelle.Locale import getLanguageCodes
 import arelle.FileSource
+from arelle.PythonUtil import isLegacyAbs
 from arelle.UrlUtil import isAbsolute
 from pathlib import Path
 from collections import OrderedDict, defaultdict
@@ -105,10 +106,13 @@ def save(cntlr: Cntlr) -> None:
             f.write(jsonStr)
         pluginConfigChanged = False
 
-def close():  # close all loaded methods
-    pluginConfig.clear()
-    modulePluginInfos.clear()
-    pluginMethodsForClasses.clear()
+def close() -> None:  # close all loaded methods
+    if pluginConfig is not None:
+        pluginConfig.clear()
+    if modulePluginInfos is not None:
+        modulePluginInfos.clear()
+    if pluginMethodsForClasses is not None:
+        pluginMethodsForClasses.clear()
     global webCache
     webCache = None
 
@@ -159,7 +163,6 @@ def logPluginTrace(message: str, level: Number) -> None:
     :param message: Message to be logged
     :param level: Log level of message (e.g. logging.INFO)
     """
-    global pluginTraceFileLogger
     if pluginTraceFileLogger:
         pluginTraceFileLogger.log(level, message)
     if level >= logging.ERROR:
@@ -445,7 +448,7 @@ def moduleModuleInfo(
                     mergedImportURLs.append(moduleImport + ".py")
             imports = []
             for _url in mergedImportURLs:
-                if isAbsolute(_url) or os.path.isabs(_url):
+                if isAbsolute(_url) or isLegacyAbs(_url):
                     _importURL = _url # URL is absolute http or local file system
                 else: # check if exists relative to this module's directory
                     _importURL = os.path.join(os.path.dirname(moduleURL), os.path.normpath(_url))
@@ -486,7 +489,7 @@ def _get_name_dir_prefix(
     packageImportPrefix: str
 
     moduleFilename = controller.webCache.getfilename(
-        url=moduleURL, normalize=True, base=pluginBase
+        url=moduleURL, normalize=True, base=pluginBase, allowTransformation=False
     )
 
     if moduleFilename:

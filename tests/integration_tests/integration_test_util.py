@@ -185,7 +185,7 @@ def collect_test_data(
         test_cases.extend(model_document.referencesDocument.keys())
     elif model_document.type in (ModelDocument.Type.TESTCASE, ModelDocument.Type.REGISTRYTESTCASE):
         test_cases.append(model_document)
-    elif model_document.type == ModelDocument.Type.INSTANCE:
+    elif model_document.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
         test_id = get_document_id(model_document)
         expected_failure = isExpectedFailure(test_id, expected_failure_ids, required_locale_by_ids, system_locale)
         model_errors = sorted(cntlr.modelManager.modelXbrl.errors)

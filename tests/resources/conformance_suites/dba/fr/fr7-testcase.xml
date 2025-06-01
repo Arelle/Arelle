@@ -13,7 +13,7 @@
             The date of approval of the annual report is not after the end of the accounting period end date.
         </description>
         <data>
-            <instance readMeFirst="true">fr7-invalid.xbrl</instance>
+            <instance readMeFirst="true">fr7-invalid.xhtml</instance>
         </data>
         <result>
             <error>DBA.FR7</error>

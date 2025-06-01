@@ -192,7 +192,7 @@ class ConformanceSuiteConfig:
     cache_version_id: str | None = None
     capture_warnings: bool = True
     ci_enabled: bool = True
-    expected_additional_testcase_errors: dict[str, frozenset[str]] = field(default_factory=dict)
+    expected_additional_testcase_errors: dict[str, dict[str, int]] = field(default_factory=dict)
     expected_failure_ids: frozenset[str] = frozenset()
     expected_missing_testcases: frozenset[str] = frozenset()
     expected_model_errors: frozenset[str] = frozenset()

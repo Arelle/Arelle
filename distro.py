@@ -89,7 +89,6 @@ options = {
 }
 
 if os.path.exists("arelle/plugin/EDGAR"):
-    includeLibs.append("cherrypy")
     includeLibs.append("dateutil")
     includeLibs.append("dateutil.relativedelta")
     includeLibs.append("matplotlib")
@@ -117,7 +116,6 @@ if sys.platform == LINUX_PLATFORM:
 elif sys.platform == MACOS_PLATFORM:
     guiExecutable = Executable(script="arelleGUI.py", target_name="arelleGUI")
     includeFiles.append(("arelle/scripts-macOS", "scripts"))
-    includeFiles.append(("libs/macos/Tktable2.11", "Tktable2.11"))
     options["bdist_mac"] = {
         "iconfile": "arelle/images/arelle.icns",
         "bundle_name": "Arelle",

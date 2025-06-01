@@ -42,6 +42,7 @@ from arelle.Aspect import Aspect
 from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals, roundValue, rangeValue, ValidateCalcsMode
 from arelle.XmlValidateConst import UNVALIDATED, INVALID, VALID
 from arelle.XmlValidate import validate as xmlValidate
+from arelle.XmlUtil import collapseWhitespace
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from math import isnan, isinf
 from arelle.ModelObject import ModelObject
@@ -424,8 +425,12 @@ class ModelFact(ModelObject):
                         return Locale.format(self.modelXbrl.locale, "{:.{}f}", (num,dec), True)
                 except ValueError:
                     return "(error)"
+            # non-numeric fact at this point
             if len(val) == 0: # zero length string for HMRC fixed fact
                 return "(reported)"
+            if self.xValid >= VALID and isinstance(self.xValue, str):
+                # Prefer the xs:whiteSpace normalized version of strings
+                return self.xValue
             return val
         except Exception as ex:
             return str(ex)  # could be transform value of inline fact
@@ -512,8 +517,8 @@ class ModelFact(ModelObject):
             # parent test can only be done if in same instauce
             if self.modelXbrl == other.modelXbrl and self.parentElement != other.parentElement:
                 return False
-            if not (self.context.isEqualTo(other.context,dimensionalAspectModel=False) and
-                    (not self.isNumeric or self.unit.isEqualTo(other.unit))):
+            if not (self.context is not None and self.context.isEqualTo(other.context,dimensionalAspectModel=False) and
+                    (not self.isNumeric or (self.unit is not None and self.unit.isEqualTo(other.unit)))):
                 return False
         elif self.isTuple:
             if (self == other or
@@ -576,7 +581,7 @@ class ModelFact(ModelObject):
                  ("decimals", self.decimals),
                  ("precision", self.precision),
                  ("xsi:nil", self.xsiNil),
-                 ("value", self.effectiveValue.strip()))
+                 ("value", self.effectiveValue))
                  if self.isItem else () ))
 
     def __repr__(self):
@@ -630,13 +635,21 @@ class ModelInlineValueObject:
     @property
     def rawValue(self):
         ixEscape = self.get("escape") in ("true", "1")
-        return XmlUtil.innerText(
+        raw = XmlUtil.innerText(
             self,
             ixExclude="tuple" if self.elementQname == XbrlConst.qnIXbrl11Tuple else "html",
             ixEscape=ixEscape,
             ixContinuation=(self.elementQname == XbrlConst.qnIXbrl11NonNumeric),
             ixResolveUris=ixEscape,
-            strip=(self.format is not None))  # transforms are whitespace-collapse, otherwise it is preserved.
+            strip = False)
+        if self.format is not None:
+            # Most transforms are whitespace-collapse, so do that now.
+            #
+            # TODO: this collapsing should be moved to the individual
+            # transformation functions in order to support non-collapsing
+            # transformations
+            raw = collapseWhitespace(raw)
+        return raw
 
     @property
     def value(self):
@@ -669,7 +682,10 @@ class ModelInlineValueObject:
                 self._ixValue = v
             else:
                 if self.localName == "nonNumeric":
-                    self._ixValue = v
+                    if self.xValid >= VALID:
+                        self._ixValue = str(self.xValue)
+                    else:
+                        self._ixValue = v
                 elif self.localName == "tuple":
                     self._ixValue = ""
                 elif self.localName == "fraction":
@@ -685,7 +701,7 @@ class ModelInlineValueObject:
                         num = Decimal(v)
                     except (ValueError, InvalidOperation):
                         self.setInvalid()
-                        raise ValueError("Invalid value for {} number: {}".format(self.localName, v))
+                        raise ValueError("Invalid value for {} number: '{}'".format(self.localName, v))
                     try:
                         scale = self.scale
                         if scale is not None:
@@ -701,7 +717,7 @@ class ModelInlineValueObject:
                             self._ixValue = "{:f}".format(num)
                     except (ValueError, InvalidOperation):
                         self.setInvalid()
-                        raise ValueError("Invalid value for {} scale {} for number {}".format(self.localName, scale, v))
+                        raise ValueError("Invalid value for {} scale '{}' for number '{}'".format(self.localName, scale, v))
             return self._ixValue
 
     @property
@@ -778,6 +794,15 @@ class ModelInlineFact(ModelInlineValueObject, ModelFact):
         """(ModelObject) -- parent element (tuple or xbrli:xbrl) of the inline target instance document
             for inline root element, the xbrli:xbrl element is substituted for by the inline root element"""
         return getattr(self, "_ixFactParent") # set by ModelDocument locateFactInTuple for the inline target's root element
+
+    @property
+    def isEscaped(self):
+        """(bool) -- if true, the fact is escaped"""
+        try:
+            return self._isEscaped
+        except AttributeError:
+            self._isEscaped = self.get("escape") in ("true", "1")
+            return self._isEscaped
 
     def ixIter(self, childOnly=False):
         """(ModelObject) -- child elements (tuple facts) of the inline target instance document"""

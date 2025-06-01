@@ -6,7 +6,7 @@ from __future__ import annotations
 import json
 import os
 from collections import defaultdict
-from collections.abc import Collection, Generator
+from collections.abc import Collection
 from typing import Any, Union, cast
 import regex as re
 
@@ -24,12 +24,12 @@ from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.XmlValidateConst import VALID
 from arelle.typing import TypeGetText
-from .Const import esefCorNsPattern, esefNotesStatementConcepts, esefTaxonomyNamespaceURIs, htmlEventHandlerAttributes, svgEventAttributes
+from .Const import esefCorNsPattern, esefNotesStatementConcepts, esefTaxonomyNamespaceURIs, svgEventAttributes
 
 _: TypeGetText
 
 YEAR_GROUP = "year"
-DISCLOSURE_SYSTEM_YEAR_PATTERN = re.compile(rf"esef-(?:unconsolidated-)?(?P<{YEAR_GROUP}>20\d\d)")
+DISCLOSURE_SYSTEM_YEAR_PATTERN = re.compile(rf"esef-(?:unconsolidated-)?(?P<{YEAR_GROUP}>20\d\d)(?:-draft)?")
 
 
 def getDisclosureSystemYear(modelXbrl: ModelXbrl) -> int:
@@ -169,10 +169,6 @@ def isChildOfNotes(
     return False
 
 
-def hasEventHandlerAttributes(elt: Any) -> bool:
-    return _hasEventAttributes(elt, htmlEventHandlerAttributes)
-
-
 def hasSvgEventAttributes(elt: Any) -> bool:
     return _hasEventAttributes(elt, svgEventAttributes)
 
@@ -181,13 +177,3 @@ def _hasEventAttributes(elt: Any, attributes: Collection[str]) -> bool:
     if isinstance(elt, _Element):
         return any(a in attributes for a in elt.keys())
     return False
-
-
-def etreeIterWithDepth(
-    node: ModelObject | _Element,
-    depth: int = 0,
-) -> Generator[tuple[ModelObject | _Element, int], None, None]:
-    yield node, depth
-    for child in node.iterchildren():
-        for n_d in etreeIterWithDepth(child, depth + 1):
-            yield n_d

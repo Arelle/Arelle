@@ -21,7 +21,12 @@ extensions = [
 
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
-autodoc2_packages = ["../../arelle"]
+autodoc2_packages = [
+    {
+        "path": "../../arelle",
+        "exclude_dirs": ["resources"],
+    }
+]
 autodoc2_render_plugin = "myst"
 suppress_warnings = [
     "autodoc2.dup_item", # bottle and tkinter warnings

@@ -44,11 +44,11 @@ def resolveTableStructure(view, viewTblELR):
 
         # find an ELR for this table object
         defnMdlTable = viewTblELR
-        strctMdlTable = StrctMdlTable(defnMdlTable)
+        strctMdlTableSet = StrctMdlTableSet(defnMdlTable)
         for rel in view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD)).fromModelObject(defnMdlTable):
             # find relationships in table's linkrole
             view.defnSubtreeRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableBreakdownTree, XbrlConst.tableBreakdownTreeMMDD), rel.linkrole)
-            return resolveTableAxesStructure(view, strctMdlTable,
+            return resolveTableAxesStructure(view, strctMdlTableSet,
                                              view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD), rel.linkrole))
         # no relationships from table found
         return None
@@ -151,7 +151,6 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
                 view.dataRows += strctMdlBreakdown.leafNodeCount
             elif axis == "z":
                 view.zAxisBreakdowns = len(axisBrkdnRels)
-            break # 2nd and following breakdown nodes resolved by cartesianProductExpander within resolveDefinition
         if not axisBrkdnRels: # no breakdown rels
             strctMdlBreakdown = resolveDefinition(view, strctMdlTable, None, 1, facts, 0, axisBrkdnRels, axis=axis)
             strctMdlBreakdown.setHasOpenNode()
@@ -801,6 +800,11 @@ def addDefaultedDimensionsToLeafNodes(strctMdlNode, coveredDims=None, defaultedD
         coveredDims = coveredDims - set(strctMdlNode.aspectValue(Aspect.OMIT_DIMENSIONS))
     if hasattr(strctMdlNode.defnMdlNode, "deemedDefaultedDims"):
         defaultedDims = defaultedDims | getattr(strctMdlNode.defnMdlNode, "deemedDefaultedDims")
+    if strctMdlNode.rollup == ROLLUP_IMPLIES_DEFAULT_MEMBER:
+        deemedDefaultedDims = defaultedDims - coveredDims
+        if deemedDefaultedDims:
+            strctMdlNode.deemedDefaultedDims = deemedDefaultedDims
+            defaultedDims -= deemedDefaultedDims
     if strctMdlNode.strctMdlChildNodes:
         for childStrctMdlNode in strctMdlNode.strctMdlChildNodes:
             addDefaultedDimensionsToLeafNodes(childStrctMdlNode, coveredDims, defaultedDims)

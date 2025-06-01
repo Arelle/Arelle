@@ -6,6 +6,8 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
+from arelle.PythonUtil import tryRunCommand
+
 
 def getBuildVersion() -> str | None:
     try:
@@ -16,12 +18,7 @@ def getBuildVersion() -> str | None:
 
 
 def getGitHash() -> str | None:
-    import subprocess
-    try:
-        return subprocess.run(['git', 'rev-parse', 'HEAD'], capture_output=True, check=True, text=True).stdout.strip()
-    except (FileNotFoundError, subprocess.SubprocessError):
-        return None
-
+    return tryRunCommand('git', 'rev-parse', 'HEAD')
 
 def getDefaultVersion() -> str:
     return '0.0.0'

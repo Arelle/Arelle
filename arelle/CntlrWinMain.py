@@ -25,7 +25,6 @@ try:
     import syslog
 except ImportError:
     syslog = None
-import tkinter.tix
 import tkinter.filedialog
 import tkinter.messagebox, traceback
 import tkinter.simpledialog
@@ -35,9 +34,11 @@ from arelle import XbrlConst
 from arelle.PluginManager import pluginClassMethods
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateXbrlCalcs import ValidateCalcsMode as CalcsMode
+from arelle.ValidateXbrlDTS import ValidateBaseTaxonomiesMode
 from arelle.Version import copyrightLabel
 from arelle.oim.xml.Save import saveOimReportToXmlInstance
 import logging
+import multiprocessing
 
 import threading, queue
 
@@ -165,6 +166,16 @@ class CntlrWinMain (Cntlr.Cntlr):
         for calcChoiceMenuLabel, calcChoiceEnumValue in CalcsMode.menu().items():
             calcMenu.add_radiobutton(label=calcChoiceMenuLabel, underline=0, var=self.calcChoiceEnumVar, value=calcChoiceEnumValue)
         toolsMenu.add_cascade(label=_("Calc linkbase"), menu=calcMenu, underline=0)
+
+        baseValidateModeMenu = Menu(self.menubar, tearoff=0)
+        baseValidationModeName = self.config.setdefault("baseTaxonomyValidationMode", ValidateBaseTaxonomiesMode.DISCLOSURE_SYSTEM.value)
+        self.modelManager.baseTaxonomyValidationMode = ValidateBaseTaxonomiesMode.fromName(baseValidationModeName)
+        self.baseTaxonomyValidationModeEnumVar = StringVar(self.parent, value=baseValidationModeName)
+        self.baseTaxonomyValidationModeEnumVar.trace("w", self.setBaseTaxonomyValidationModeEnumVar)
+        for modeLabel, modeValue in ValidateBaseTaxonomiesMode.menu().items():
+            baseValidateModeMenu.add_radiobutton(label=modeLabel, underline=0, var=self.baseTaxonomyValidationModeEnumVar, value=modeValue)
+        validateMenu.add_cascade(label=_("Base taxonomy validation"), menu=baseValidateModeMenu, underline=0)
+
         self.modelManager.validateUtr = self.config.setdefault("validateUtr",True)
         self.validateUtr = BooleanVar(value=self.modelManager.validateUtr)
         self.validateUtr.trace("w", self.setValidateUtr)
@@ -306,7 +317,6 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.statusbarTimerId  = self.statusbar.after(5000, self.uiClearStatusTimerEvent)
         self.statusbar.grid(row=2, column=0, columnspan=2, sticky=EW)
 
-        #self.balloon = tkinter.tix.Balloon(windowFrame, statusbar=self.statusbar)
         self.toolbar_images = []
         toolbar = Frame(windowFrame)
         menubarColumn = 0
@@ -458,6 +468,8 @@ class CntlrWinMain (Cntlr.Cntlr):
         if not self.modelManager.disclosureSystem.select(self.config.setdefault("disclosureSystem", None)):
             self.validateDisclosureSystem.set(False)
             self.modelManager.validateDisclosureSystem = False
+            self.config["validateDisclosureSystem"] = False
+            self.config["disclosureSystem"] = None
 
         # load argv overrides for modelManager options
         lastArg = None
@@ -672,7 +684,16 @@ class CntlrWinMain (Cntlr.Cntlr):
                     elif isinstance(view, ViewWinDTS.ViewDTS):
                         ViewFileDTS.viewDTS(modelXbrl, filename)
                     else:
-                        ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, filename, view.tabTitle, view.arcrole, labelrole=view.labelrole, lang=view.lang)
+                        if isinstance(view.arcrole, tuple) and len(view.arcrole) > 0 and view.arcrole[0] == "Calculation":
+                            # "arcrole" is overloaded with special strings that are sometimes used magically to query
+                            # the model and other times just to provide a header value. In the case of Calculation, it's
+                            # only the header used in the GUI view and including it here when going to save will throw
+                            # an exception.
+                            arcrole = XbrlConst.summationItems
+                        else:
+                            arcrole = view.arcrole
+
+                        ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, filename, view.tabTitle, arcrole, labelrole=view.labelrole, lang=view.lang)
                 except (IOError, EnvironmentError) as err:
                     tkinter.messagebox.showwarning(_("arelle - Error"),
                                         _("Failed to save {0}:\n{1}").format(
@@ -823,6 +844,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             return
         url = DialogURL.askURL(self.parent, buttonSEC=True, buttonRSS=True)
         if url:
+            url = PackageManager.mappedUrl(url)
             self.updateFileHistory(url, False)
             for xbrlLoadedMethod in pluginClassMethods("CntlrWinMain.Xbrl.Open"):
                 url = xbrlLoadedMethod(self, url) # runs in GUI thread, allows mapping url, mult return url
@@ -841,6 +863,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             return False
         url = DialogURL.askURL(self.parent, buttonSEC=False, buttonRSS=False)
         if url:
+            url = PackageManager.mappedUrl(url)
             self.fileOpenFile(url, importToDTS=True)
 
 
@@ -907,9 +930,12 @@ class CntlrWinMain (Cntlr.Cntlr):
             for modelXbrl in loadedModels:
                 self.uiThreadQueue.put((self.showLoadedXbrl, [modelXbrl, importToDTS, selectTopView]))
         else:
-            self.addToLog(format_string(self.modelManager.locale,
-                                        _("not successfully %s in %.2f secs"),
-                                        (action, time.time() - startedAt)))
+            self.addToLog(
+                format_string(self.modelManager.locale, _("No XBRL entry points could be %s from provided file in %.2f seconds"),
+                (action, time.time() - startedAt)),
+                messageCode="error",
+                level=logging.ERROR,
+            )
             self.showStatus(_("Loading terminated"), 15000)
 
     def showLoadedXbrl(self, modelXbrl, attach, selectTopView=False, isSupplementalModelXbrl=False):
@@ -977,7 +1003,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 hasView = ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, XbrlConst.parentChild, lang=self.labelLang)
                 if hasView and topView is None: topView = modelXbrl.views[-1]
                 currentAction = "calculation linkbase view"
-                hasView = ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, ("Calculation",(XbrlConst.summationItem, XbrlConst.summationItem11)), lang=self.labelLang)
+                hasView = ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, ("Calculation", XbrlConst.summationItems), lang=self.labelLang)
                 if hasView and topView is None: topView = modelXbrl.views[-1]
                 currentAction = "dimensions relationships view"
                 hasView = ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, "XBRL-dimensions", lang=self.labelLang)
@@ -1091,36 +1117,40 @@ class CntlrWinMain (Cntlr.Cntlr):
             self.fileOpenFile(fileHistory[0])
 
     def validate(self):
-        modelXbrl = self.modelManager.modelXbrl
-        if modelXbrl and modelXbrl.modelDocument:
-            if (modelXbrl.modelManager.validateDisclosureSystem and
-                not modelXbrl.modelManager.disclosureSystem.selection):
-                tkinter.messagebox.showwarning(_("arelle - Warning"),
-                                _("Validation - disclosure system checks is requested but no disclosure system is selected, please select one by validation - select disclosure system."),
-                                parent=self.parent)
-            else:
-                if modelXbrl.modelDocument.type in ModelDocument.Type.TESTCASETYPES:
-                    for pluginXbrlMethod in pluginClassMethods("Testcases.Start"):
-                        pluginXbrlMethod(self, None, modelXbrl)
-                thread = threading.Thread(target=self.backgroundValidate, daemon=True).start()
+        if not self.modelManager.loadedModelXbrls:
+            tkinter.messagebox.showwarning(
+                _("arelle - Warning"),
+                _("No XBRL loaded to validate"),
+                parent=self.parent,
+            )
+            return
+        if self.modelManager.validateDisclosureSystem and not self.modelManager.disclosureSystem.selection:
+            tkinter.messagebox.showwarning(
+                _("arelle - Warning"),
+                _("Validation - disclosure system checks requested but no disclosure system is selected, please select one by validation - select disclosure system."),
+                parent=self.parent,
+            )
+            return
+        threading.Thread(target=self.backgroundValidate, daemon=True).start()
 
     def backgroundValidate(self):
         from arelle import Validate
-        startedAt = time.time()
-        for modelXbrl in [self.modelManager.modelXbrl] + getattr(self.modelManager.modelXbrl, "supplementalModelXbrls", []):
-            priorOutputInstance = modelXbrl.formulaOutputInstance
-            modelXbrl.formulaOutputInstance = None # prevent closing on background thread by validateFormula
-            try:
-                Validate.validate(modelXbrl)
-            except Exception as err:
-                self.addToLog(_("[exception] Validation exception: {0} at {1}").format(
-                               err,
-                               traceback.format_tb(sys.exc_info()[2])))
-            self.addToLog(format_string(self.modelManager.locale,
-                                        _("validated in %.2f secs"),
-                                        time.time() - startedAt))
-            if not modelXbrl.isClosed and (priorOutputInstance or modelXbrl.formulaOutputInstance):
-                self.uiThreadQueue.put((self.showFormulaOutputInstance, [priorOutputInstance, modelXbrl.formulaOutputInstance]))
+        for loadedModelXbrl in self.modelManager.loadedModelXbrls:
+            if loadedModelXbrl.modelDocument:
+                startedAt = time.time()
+                if loadedModelXbrl.modelDocument.type in ModelDocument.Type.TESTCASETYPES:
+                    for pluginXbrlMethod in pluginClassMethods("Testcases.Start"):
+                        pluginXbrlMethod(self, None, loadedModelXbrl)
+                for modelXbrl in [loadedModelXbrl] + getattr(loadedModelXbrl, "supplementalModelXbrls", []):
+                    priorOutputInstance = modelXbrl.formulaOutputInstance
+                    modelXbrl.formulaOutputInstance = None # prevent closing on background thread by validateFormula
+                    try:
+                        Validate.validate(modelXbrl)
+                    except Exception as err:
+                        self.addToLog(_("[exception] Validation exception: {0} at {1}").format(err, traceback.format_tb(sys.exc_info()[2])))
+                    self.addToLog(format_string(self.modelManager.locale, _("validated in %.2f secs: %s"), (time.time() - startedAt, modelXbrl.displayUri)))
+                    if not modelXbrl.isClosed and (priorOutputInstance or modelXbrl.formulaOutputInstance):
+                        self.uiThreadQueue.put((self.showFormulaOutputInstance, [priorOutputInstance, modelXbrl.formulaOutputInstance]))
 
         self.uiThreadQueue.put((self.logSelect, []))
 
@@ -1401,6 +1431,13 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.saveConfig()
         self.setValidateTooltipText()
 
+    def setBaseTaxonomyValidationModeEnumVar(self, *args):
+        modeName = self.baseTaxonomyValidationModeEnumVar.get()
+        self.modelManager.baseTaxonomyValidationMode = ValidateBaseTaxonomiesMode.fromName(modeName)
+        self.config["baseTaxonomyValidationMode"] = modeName
+        self.saveConfig()
+        self.setValidateTooltipText()
+
     def setValidateUtr(self, *args):
         self.modelManager.validateUtr = self.validateUtr.get()
         self.config["validateUtr"] = self.modelManager.validateUtr
@@ -1459,7 +1496,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                               "\n   Tcl/Tk {tcltkVersion} \u00a9 Univ. of Calif., Sun, Scriptics, ActiveState, and others"
                               "\n   PyParsing \u00a9 2003-2013 Paul T. McGuire"
                               "\n   lxml {lxmlVersion} \u00a9 2004 Infrae, ElementTree \u00a9 1999-2004 by Fredrik Lundh"
-                              "{bottleCopyright}"
+                              "\n   Bottle \u00a9 2009-2024 Marcel Hellkamp"
                               "\n   May include installable plug-in modules with author-specific license terms").format(
                                   version=Version.__version__,
                                   wordSize=self.systemWordSize,
@@ -1468,8 +1505,6 @@ class CntlrWinMain (Cntlr.Cntlr):
                                   pythonVersion=f'{sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]}',
                                   tcltkVersion=Tcl().eval('info patchlevel'),
                                   lxmlVersion=f'{etree.LXML_VERSION[0]}.{etree.LXML_VERSION[1]}.{etree.LXML_VERSION[2]}',
-                                  bottleCopyright=_("\n   Bottle \u00a9 2011-2013 Marcel Hellkamp"
-                                                    "\n   CherryPy \u00a9 2002-2013 CherryPy Team") if self.hasWebServer else ""
                           ))
 
 
@@ -1725,7 +1760,8 @@ def main():
                 application.lift()
                 application.call('wm', 'attributes', '.', '-topmost', True)
                 cntlrWinMain.uiThreadQueue.put((application.call, ['wm', 'attributes', '.', '-topmost', False]))
-                os.system('''/usr/bin/osascript -e 'tell app "Finder" to set frontmost of process "Python" to true' ''')
+                processName = "arelleGUI" if getattr(sys, 'frozen', False) else "python"
+                os.system(f'/usr/bin/osascript -e \'tell app "Finder" to set frontmost of process "{processName}" to true\'')
             application.mainloop()
         except Exception: # unable to start Tk or other fatal error
             exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -1748,6 +1784,8 @@ def main():
                 syslog.closelog()
 
 if __name__ == "__main__":
+    if getattr(sys, 'frozen', False):
+        multiprocessing.freeze_support()
     # this is the entry called by MacOS open and MacOS shell scripts
     # check if ARELLE_ARGS are used to emulate command line operation
     if os.getenv("ARELLE_ARGS"):

@@ -34,6 +34,8 @@ builtinAttributes = {
 }
 xml = "http://www.w3.org/XML/1998/namespace"
 xbrli = "http://www.xbrl.org/2003/instance"
+xhtmlBaseIdentifier = "{http://www.w3.org/1999/xhtml}base"
+xmlBaseIdentifier = "{http://www.w3.org/XML/1998/namespace}base"
 eurofilingModelNamespace = "http://www.eurofiling.info/xbrl/ext/model"
 eurofilingModelPrefix = "model"
 qnNsmap = qname("nsmap")  # artificial parent for insertion of xmlns in saving xml documents

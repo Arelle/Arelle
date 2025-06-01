@@ -4,8 +4,6 @@ from tests.integration_tests.validation.conformance_suite_config import Conforma
 config = ConformanceSuiteConfig(
     args=[
         '--validateXmlOim',
-        '--formula', 'run',
-        '--httpsRedirectCache',
     ],
     assets=[
         ConformanceSuiteAssetConfig.conformance_suite(

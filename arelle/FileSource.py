@@ -13,13 +13,14 @@ import struct
 import tarfile
 import zipfile
 import zlib
-from typing import IO, TYPE_CHECKING, Any, cast
+from typing import IO, TYPE_CHECKING, Any, TextIO, cast
 
 import regex as re
 from lxml import etree
 
 import arelle.PluginManager
 from arelle import PackageManager, XmlUtil
+from arelle.PythonUtil import isLegacyAbs
 from arelle.packages.report.DetectReportPackage import isReportPackageExtension
 from arelle.packages.report.ReportPackage import ReportPackage
 from arelle.typing import TypeGetText
@@ -36,7 +37,6 @@ archivePathSeparators = (".zip" + os.sep, ".xbr" + os.sep, ".xbri" + os.sep, ".t
 
 archiveFilenameSuffixes = {".zip", ".xbr", ".xbri", ".tar.gz", ".eis", ".xml", ".xfd", ".frm"}
 
-POST_UPLOADED_ZIP = os.sep + "POSTupload.zip"
 SERVER_WEB_CACHE = os.sep + "_HTTP_CACHE"
 
 TAXONOMY_PACKAGE_FILE_NAMES = ('.taxonomyPackage.xml', 'catalog.xml') # pre-PWD packages
@@ -49,9 +49,11 @@ def openFileSource(
     reloadCache: bool = False,
     base: str | None = None,
     sourceFileSource: FileSource | None = None,
+    sourceZipStreamFileName: str | None = None,
 ) -> FileSource:
     if sourceZipStream:
-        filesource = FileSource(POST_UPLOADED_ZIP, cntlr)
+        sourceZipStreamFileName = os.sep + (sourceZipStreamFileName or "POSTupload.zip")
+        filesource = FileSource(sourceZipStreamFileName, cntlr)
         filesource.openZipStream(sourceZipStream)
         if filename:
             filesource.select(filename)
@@ -167,10 +169,11 @@ class FileSource:
         self.url = str(url)  # allow either string or FileNamedStringIO
         self.baseIsHttp = isHttpUrl(self.url)
         self.cntlr = cntlr
-        self.type = self.url.lower()[-7:]
-        self.isTarGz = self.type == ".tar.gz"
-        if not self.isTarGz:
-            self.type = self.type[3:]
+        self.isTarGz = self.url.lower().endswith(".tar.gz")
+        if self.isTarGz:
+            self.type = ".tar.gz"
+        else:
+            self.type = os.path.splitext(self.url.lower())[1]
         self.isZip = self.type == ".zip" or isReportPackageExtension(self.url)
         self.isZipBackslashed = False # windows style backslashed paths
         self.isEis = self.type == ".eis"
@@ -188,15 +191,22 @@ class FileSource:
         if not self.isZip:
             # Try to detect zip files with unrecognized file extensions.
             try:
-                basefile = self.cntlr.webCache.getfilename(self.url) if self.cntlr is not None else self.url
+                if self.cntlr is not None and hasattr(self.cntlr, "modelManager"):
+                    basefile = self.cntlr.webCache.getfilename( # cache remapping
+                        self.cntlr.modelManager.disclosureSystem.mappedUrl(self.url)) # local remapping
+                else:
+                    basefile = self.url
                 if basefile:
                     with openFileStream(self.cntlr, basefile, 'rb') as fileStream:
                         self.isZip = zipfile.is_zipfile(fileStream)
+            except OSError:
+                # Can't load self.url content. It's not a zip file.
+                # We don't use os.path.isfile because self.url may be an embeded zip file.
+                pass
             except Exception as err:
-                # Log the error, but don't record a validation error.
+                # Log the error at info level (which is sent to the GUI log), but don't record a validation error.
                 # Validation is deferred to the validation classes. Filesource is unaware of the specific errors that should be raised.
                 self.logError(err)
-                pass
 
 
         # for SEC xml files, check if it's an EIS anyway
@@ -207,7 +217,8 @@ class FileSource:
             elif checkIfXmlIsEis:
                 try:
                     assert self.cntlr is not None
-                    _filename = self.cntlr.webCache.getfilename(self.url)
+                    _filename = self.cntlr.webCache.getfilename(
+                        self.cntlr.modelManager.disclosureSystem.mappedUrl(self.url))
                     assert _filename is not None
                     file = open(_filename, errors='replace')
                     l = file.read(256) # may have comments before first element
@@ -228,7 +239,8 @@ class FileSource:
         if self.isValid and not self.isOpen:
             if (self.isZip or self.isTarGz or self.isEis or self.isXfd or self.isRss or self.isInstalledTaxonomyPackage) and self.cntlr:
                 assert isinstance(self.url, str)
-                self.basefile = self.cntlr.webCache.getfilename(self.url, reload=reloadCache)
+                self.basefile = self.cntlr.webCache.getfilename(
+                    self.cntlr.modelManager.disclosureSystem.mappedUrl(self.url), reload=reloadCache)
             else:
                 self.basefile = self.url
             self.baseurl = self.url # url gets changed by selection
@@ -260,8 +272,7 @@ class FileSource:
                     assert isinstance(self.basefile, str)
                     file: io.BufferedReader | io.BytesIO | io.StringIO | None = open(self.basefile, 'rb')
                     assert isinstance(file, (io.BufferedReader, io.BytesIO))
-                    more = True
-                    while more:
+                    while True:
                         l = file.read(8)
                         if len(l) < 8:
                             break
@@ -467,8 +478,11 @@ class FileSource:
 
     def isMappedUrl(self, url: str) -> bool:
         if self.mappedPaths is not None:
-            return any(url.startswith(mapFrom)
-                       for mapFrom in self.mappedPaths)
+            if any(url.startswith(mapFrom)
+                       for mapFrom in self.mappedPaths):
+                return True
+        if self.cntlr and self.cntlr.modelManager.disclosureSystem.isMappedUrl(url):
+            return True
         return False
 
     def mappedUrl(self, url: str) -> str:
@@ -477,6 +491,8 @@ class FileSource:
                 if url.startswith(mapFrom):
                     url = mapTo + url[len(mapFrom):]
                     break
+        if self.cntlr:
+            return self.cntlr.modelManager.disclosureSystem.mappedUrl(url)
         return url
 
     def fileSourceContainingFilepath(self, filepath: str | None) -> FileSource | None:
@@ -516,11 +532,7 @@ class FileSource:
         binary: bool = False,
         stripDeclaration: bool = False,
         encoding: str | None = None,
-    ) -> (
-            tuple[io.BytesIO | IO[Any]]
-            | tuple[FileNamedTextIOWrapper, str | None]
-            | tuple[io.TextIOWrapper, str | None]
-        ):
+    ) -> tuple[io.BytesIO | IO[Any]] | tuple[TextIO, str | None]:
         '''
             for text, return a tuple of (open file handle, encoding)
             for binary, return a tuple of (open file handle, )
@@ -768,7 +780,7 @@ class FileSource:
 
     def basedUrl(self, selection: str) -> str:
         baseurl = getattr(self, "baseurl", None)
-        if not baseurl or isHttpUrl(selection) or os.path.isabs(selection):
+        if not baseurl or isHttpUrl(selection) or isLegacyAbs(selection):
             return selection
         assert isinstance(baseurl, str)
         if self.baseIsHttp or os.sep == '/':
@@ -802,15 +814,15 @@ def openFileStream(
     if PackageManager.isMappedUrl(filepath):  # type: ignore[no-untyped-call]
         filepath = PackageManager.mappedUrl(filepath)  # type: ignore[no-untyped-call]
     elif (
-            isHttpUrl(filepath)
-            and cntlr
+            cntlr
             and hasattr(cntlr, "modelManager")
         ): # may be called early in initialization for PluginManager
-        filepath = cntlr.modelManager.disclosureSystem.mappedUrl(filepath)  # type: ignore[no-untyped-call]
+        filepath = cntlr.modelManager.disclosureSystem.mappedUrl(filepath)
     if archiveFilenameParts(filepath): # file is in an archive
         return openFileSource(filepath, cntlr).file(filepath, binary='b' in mode, encoding=encoding)[0]
     if isHttpUrl(filepath) and cntlr:
-        _cacheFilepath = cntlr.webCache.getfilename(filepath, normalize=True) # normalize is separate step in ModelDocument retrieval, combined here
+        _cacheFilepath = cntlr.webCache.getfilename(
+            cntlr.modelManager.disclosureSystem.mappedUrl(filepath), normalize=True) # normalize is separate step in ModelDocument retrieval, combined here
         if _cacheFilepath is None:
             raise OSError(_("Unable to open file: {0}.").format(filepath))
         filepath = _cacheFilepath
@@ -848,7 +860,7 @@ def openFileStream(
 
 def openXmlFileStream(
     cntlr: Cntlr | None, filepath: str, stripDeclaration: bool = False
-) -> tuple[io.TextIOWrapper, str]:
+) -> tuple[TextIO, str]:
     # returns tuple: (fileStream, encoding)
     openedFileStream = openFileStream(cntlr, filepath, 'rb')
 

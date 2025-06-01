@@ -31,8 +31,10 @@ COL_WIDTHS = {
     "Name": 40, "Namespace": 60, "LocalName": 40, "Documentation": 80
     }
 
-def hasCalcArcrole(arcroles: tuple[str] | str) -> bool:
-    return any(arcrole in XbrlConst.summationItems for arcrole in (arcroles if isinstance(arcroles, (tuple,list)) else (arcroles,)))
+def hasCalcArcrole(arcroles: tuple[str | tuple[str, ...], ...] | str) -> bool:
+    if isinstance(arcroles, (tuple, list)):
+        return any(hasCalcArcrole(arcrole) for arcrole in arcroles)
+    return arcroles in XbrlConst.summationItems
 
 class ViewRelationshipSet(ViewFile.View):
     def __init__(self, modelXbrl, outfile, header, labelrole, lang, cols):
@@ -173,19 +175,27 @@ class ViewRelationshipSet(ViewFile.View):
                 text = concept.localName
                 xmlRowElementName = text
             cols = [text]
-            if arcrole == "XBRL-dimensions" and isRelation:
-                relArcrole = modelObject.arcrole
-                cols.append( os.path.basename( relArcrole ) )
-                if relArcrole in (XbrlConst.all, XbrlConst.notAll):
-                    cols.append( modelObject.contextElement )
-                    cols.append( modelObject.closed )
+            if arcrole == "XBRL-dimensions":
+                if isRelation:
+                    relArcrole = modelObject.arcrole
+                    cols.append( os.path.basename( relArcrole ) )
+                    if relArcrole in (XbrlConst.all, XbrlConst.notAll):
+                        cols.append( modelObject.contextElement )
+                        cols.append( modelObject.closed )
+                    else:
+                        cols.append(None)
+                        cols.append(None)
+                    if relArcrole in (XbrlConst.dimensionDomain, XbrlConst.domainMember):
+                        cols.append( modelObject.usable  )
+                    else:
+                        cols.append(None)
+                    childRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.consecutiveArcrole.get(relArcrole,"XBRL-dimensions"),
+                                                                        modelObject.consecutiveLinkrole)
                 else:
                     cols.append(None)
                     cols.append(None)
-                if relArcrole in (XbrlConst.dimensionDomain, XbrlConst.domainMember):
-                    cols.append( modelObject.usable  )
-                childRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.consecutiveArcrole.get(relArcrole,"XBRL-dimensions"),
-                                                                      modelObject.consecutiveLinkrole)
+                    cols.append(None)
+                    cols.append(None)
             if self.arcrole == XbrlConst.parentChild: # extra columns
                 if isRelation:
                     preferredLabel = modelObject.preferredLabel

@@ -4,7 +4,7 @@ from tests.integration_tests.validation.conformance_suite_config import Conforma
 config = ConformanceSuiteConfig(
     args=[
         '--disclosureSystem', 'esef-unconsolidated-2022',
-        '--formula', 'none',
+        '--baseTaxonomyValidation', 'none',
     ],
     assets=[
         ConformanceSuiteAssetConfig.conformance_suite(

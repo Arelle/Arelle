@@ -13,7 +13,7 @@
             Profit threshold is exceeded, but distribution of results are missing.
         </description>
         <data>
-            <instance readMeFirst="true">fr56-invalid.xbrl</instance>
+            <instance readMeFirst="true">fr56-invalid.xhtml</instance>
         </data>
         <result>
             <error>DBA.FR56</error>

@@ -3,12 +3,13 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 #import xml.sax, xml.sax.handler
-from lxml.etree import XML, DTD, SubElement, _ElementTree, _Comment, _ProcessingInstruction, XMLSyntaxError, XMLParser
+from lxml.etree import XML, DTD, SubElement, _ElementTree, _Comment, _ProcessingInstruction, _Entity, XMLSyntaxError, XMLParser
 from dataclasses import dataclass
 from PIL import Image as pilImage
 import os, io, base64
 import regex as re
 import string
+from arelle.PythonUtil import isLegacyAbs
 from arelle.XbrlConst import ixbrlAll, xhtml
 from arelle.XmlUtil import setXmlns, xmlstring, xmlDeclarationPattern, XmlDeclarationLocationException
 from arelle.ModelObject import ModelObject
@@ -603,7 +604,7 @@ def validateTextBlockFacts(modelXbrl):
                         eltTag = elt.tag
                         if isinstance(elt, ModelObject) and elt.namespaceURI == xhtml:
                             eltTag = elt.localName
-                        elif isinstance(elt, (_ElementTree, _Comment, _ProcessingInstruction)):
+                        elif isinstance(elt, (_ElementTree, _Comment, _ProcessingInstruction, _Entity)):
                             continue # comment or other non-parsed element
                         else:
                             eltTag = elt.tag
@@ -619,7 +620,7 @@ def validateTextBlockFacts(modelXbrl):
                                 if attrTag in efmBlockedInlineHtmlElementAttributes.get(eltTag,()):
                                     modelXbrl.error(("EFM.5.02.05.disallowedAttribute", "FERC.5.02.05.disallowedAttribute"),
                                         _("%(validatedObjectLabel)s has disallowed attribute on element <%(element)s>: %(attribute)s=\"%(value)s\""),
-                                        modelObject=elt, validatedObjectLabel=validatedObjectLabel,
+                                        modelObject=elt, validatedObjectLabel=f1.qname,
                                         element=eltTag, attribute=attrTag, value=attrValue)
                             if ((attrTag == "href" and eltTag == "a") or
                                 (attrTag == "src" and eltTag == "img")):
@@ -729,7 +730,7 @@ def validateHtmlContent(modelXbrl, referenceElt, htmlEltTree, validatedObjectLab
     for elt in htmlEltTree.iter():
         if isinstance(elt, ModelObject) and elt.namespaceURI == xhtml:
             eltTag = elt.localName
-        elif isinstance(elt, (_ElementTree, _Comment, _ProcessingInstruction)):
+        elif isinstance(elt, (_ElementTree, _Comment, _ProcessingInstruction, _Entity)):
             continue # comment or other non-parsed element
         else:
             eltTag = elt.tag
@@ -1007,7 +1008,7 @@ def referencedFiles(modelXbrl, localFilesOnly=True):
                 if (attrTag in ("href", "src") and
                     scheme(attrValue) not in ("data", "javascript") and (
                         not localFilesOnly or
-                        (not isHttpUrl(attrValue) and not os.path.isabs(attrValue)))):
+                        (not isHttpUrl(attrValue) and not isLegacyAbs(attrValue)))):
                     attrValue = attrValue.partition('#')[0].strip() # remove anchor
                     if attrValue not in ("", "."): # ignore anchor references to base document
                         base = docElt.modelDocument.baseForElement(docElt)

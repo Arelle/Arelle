@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcases name="DBA">
+    <testcase uri='tr/tr15-testcase.xml' />
+    <testcase uri='tr/tr16-testcase.xml' />
+    <testcase uri='tr/tr17-testcase.xml' />
+    <testcase uri="tr/valid-testcase.xml" />
+</testcases>

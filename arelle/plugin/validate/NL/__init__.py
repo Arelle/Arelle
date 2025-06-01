@@ -14,9 +14,11 @@ from pathlib import Path
 from typing import Any
 
 from arelle.ModelDocument import LoadingException, ModelDocument
+from arelle.ModelXbrl import ModelXbrl
+from arelle.ValidateXbrl import ValidateXbrl
 from arelle.Version import authorLabel, copyrightLabel
 from .ValidationPluginExtension import ValidationPluginExtension
-from .rules import br_kvk, fg_nl, fr_kvk, fr_nl
+from .rules import br_kvk, fg_nl, fr_kvk, fr_nl, nl_kvk
 
 PLUGIN_NAME = "Validate NL"
 DISCLOSURE_SYSTEM_VALIDATION_TYPE = "NL"
@@ -26,7 +28,7 @@ validationPlugin = ValidationPluginExtension(
     name=PLUGIN_NAME,
     disclosureSystemConfigUrl=Path(__file__).parent / "resources" / "config.xml",
     validationTypes=[DISCLOSURE_SYSTEM_VALIDATION_TYPE],
-    validationRuleModules=[br_kvk, fg_nl, fr_kvk, fr_nl],
+    validationRuleModules=[br_kvk, fg_nl, fr_kvk, fr_nl, nl_kvk],
 )
 
 
@@ -41,6 +43,8 @@ def disclosureSystemConfigURL(*args: Any, **kwargs: Any) -> str:
 def modelXbrlLoadComplete(*args: Any, **kwargs: Any) -> ModelDocument | LoadingException | None:
     return validationPlugin.modelXbrlLoadComplete(*args, **kwargs)
 
+def validateXbrlStart(val: ValidateXbrl, parameters: dict[Any, Any], *args: Any, **kwargs: Any) -> None:
+    val.extensionImportedUrls = set()
 
 def validateXbrlFinally(*args: Any, **kwargs: Any) -> None:
     return validationPlugin.validateXbrlFinally(*args, **kwargs)
@@ -53,8 +57,10 @@ __pluginInfo__ = {
     "license": "Apache-2",
     "author": authorLabel,
     "copyright": copyrightLabel,
+    "import": ("inlineXbrlDocumentSet",),  # import dependent modules
     "DisclosureSystem.Types": disclosureSystemTypes,
     "DisclosureSystem.ConfigURL": disclosureSystemConfigURL,
     "ModelXbrl.LoadComplete": modelXbrlLoadComplete,
+    "Validate.XBRL.Start": validateXbrlStart,
     "Validate.XBRL.Finally": validateXbrlFinally,
 }

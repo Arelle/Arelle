@@ -24,7 +24,7 @@ from arelle.ModelValue import (DATETIME, dateTime, dayTimeDuration, qname,
                                yearMonthDuration)
 from arelle.PluginManager import pluginClassMethods
 from arelle.PrototypeInstanceObject import DimValuePrototype
-from arelle.PythonUtil import attrdict, strTruncate
+from arelle.PythonUtil import attrdict, isLegacyAbs, strTruncate
 from arelle.typing import TypeGetText
 from arelle.ValidateDuplicateFacts import (DuplicateTypeArg,
                                            getDuplicateFactSetsWithType)
@@ -74,6 +74,7 @@ reservedLinkTypeAndGroupAliases = {
 XLINKTYPE = "{http://www.w3.org/1999/xlink}type"
 XLINKLABEL = "{http://www.w3.org/1999/xlink}label"
 XLINKARCROLE = "{http://www.w3.org/1999/xlink}arcrole"
+XLINKROLE = "{http://www.w3.org/1999/xlink}role"
 XLINKFROM = "{http://www.w3.org/1999/xlink}from"
 XLINKTO = "{http://www.w3.org/1999/xlink}to"
 XLINKHREF = "{http://www.w3.org/1999/xlink}href"
@@ -202,7 +203,7 @@ decimalsSuffixPattern = re.compile(r".*[0-9.][\r\n\t ]*d[\r\n\t ]*(0|-?[1-9][0-9
 
 htmlBodyTemplate = "<body xmlns='http://www.w3.org/1999/xhtml'>\n{0}\n</body>\n"
 xhtmlTagPrefix = "{http://www.w3.org/1999/xhtml}"
-DimensionsKeyPattern = re.compile(r"^(concept|entity|period|unit|language|(\w+:\w+))$")
+builtInDimensionKeys = frozenset({"concept", "entity", "period", "unit", "language"})
 
 UNSUPPORTED_DATA_TYPES = XbrlConst.dtrPrefixedContentItemTypes + (
     qname(XbrlConst.xbrli,"fractionItemType"), )
@@ -318,7 +319,7 @@ CsvMemberTypes = {
     "/documentInfo/baseURL": URIType,
     "/documentInfo/documentType": str,
     "/documentInfo/features": dict,
-    "/documentInfo/features/*:*": (int,float,bool,str,type(None)),
+    "/documentInfo/features/*:*": (int,float,bool,str,dict,list,type(None),NoRecursionCheck),
     "/documentInfo/final": dict,
     "/documentInfo/namespaces": dict,
     "/documentInfo/namespaces/*": URIType,
@@ -349,7 +350,7 @@ CsvMemberTypes = {
     "/tableTemplates/*/columns": dict,
     "/tableTemplates/*/decimals": (int,str),
     "/tableTemplates/*/dimensions": dict,
-    "/tableTemplates/*:*": (int,float,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
+    "/tableTemplates/*/*:*": (int,float,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
     "/tableTemplates/*/dimensions/concept": str,
     "/tableTemplates/*/dimensions/entity": str,
     "/tableTemplates/*/dimensions/period": str,
@@ -377,6 +378,7 @@ CsvMemberTypes = {
     "/tableTemplates/*/columns/*/propertiesFrom/": str,
     "/tableTemplates/*/columns/*/propertyGroups": dict,
     "/tableTemplates/*/columns/*/propertyGroups/*": dict,
+    "/tableTemplates/*/columns/*/propertyGroups/*/*:*": (int,float,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
     "/tableTemplates/*/columns/*/propertyGroups/*/decimals": (int,str),
     "/tableTemplates/*/columns/*/propertyGroups/*/dimensions": dict,
     "/tableTemplates/*/columns/*/propertyGroups/*/dimensions/concept": str,
@@ -598,6 +600,19 @@ def csvPeriod(cellValue, startOrEnd=None):
             return isoDuration
     return None
 
+def increaseMaxFieldSize():
+    # https://stackoverflow.com/a/15063941
+    maxInt = sys.maxsize
+
+    while True:
+        # decrease the maxInt value by factor 10
+        # as long as the OverflowError occurs.
+        try:
+            csv.field_size_limit(maxInt)
+            break
+        except OverflowError:
+            maxInt = int(maxInt/10)
+
 def idDeduped(modelXbrl, id):
     for i in range(99999):
         if i == 0:
@@ -719,7 +734,11 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         _dialect = "excel-tab"
                         break
                 _file.seek(0)
-            return csv.reader(_file, _dialect)
+
+            # Must increase the max supported CSV field size before opening the CSV reader.
+            # Otherwise large HTML values will trigger csv.ERROR: field larger than field limit.
+            increaseMaxFieldSize()
+            return csv.reader(_file, _dialect, doublequote=True)
 
         def ldError(msgCode, msgText, **kwargs):
             loadDictErrors.append((msgCode, msgText, kwargs))
@@ -820,7 +839,21 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 filepath = modelXbrl.modelManager.cntlr.webCache.getfilename(mappedUrl) # , reload=reloadCache, checkModifiedTime=kwargs.get("checkModifiedTime",False))
                 if filepath:
                     url = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(filepath)
-            if filepath and filepath.endswith(".csv") or ("metadata" in filepath and filepath.endswith(".json")):
+            if filepath is None:
+                if extendingFile is None:
+                    raise OIMException(
+                        "oime:unresolvableFile",
+                        _("Unable to resolve file %(oimFile)s. A taxonomy package may be required to load this report."),
+                        oimFile=oimFile,
+                    )
+                else:
+                    raise OIMException(
+                        "xbrlce:unresolvableBaseMetadataFile",
+                        _("Unable to resolve extended metadata file %(extendingFile)s, referenced from %(oimFile)s. A taxonomy package may be required to load this report."),
+                        extendingFile=extendingFile,
+                        oimFile=oimFile,
+                    )
+            if filepath.endswith(".csv") or ("metadata" in filepath and filepath.endswith(".json")):
                 errPrefix = "xbrlce"
             else:
                 errPrefix = "xbrlje"
@@ -1187,6 +1220,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             reportDimensions = oimObject.get("dimensions", EMPTY_DICT)
             reportDecimals = oimObject.get("decimals", None)
             reportParameters = oimObject.get("parameters", {}) # fresh empty dict because csv-loaded parameters get added
+            parseMetadataCellValues(reportParameters)
             tableTemplates = oimObject.get("tableTemplates", EMPTY_DICT)
             tables = oimObject.get("tables", EMPTY_DICT)
             footnotes = (oimObject.get("links", {}), )
@@ -1299,8 +1333,8 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         # check table parameters
                         tableParameterReferenceNames = set()
                         def checkParamRef(paramValue, factColName=None, dimName=None):
-                            if isinstance(paramValue, str) and paramValue.startswith("$") and not paramValue.startswith("$$"):
-                                paramName = paramValue[1:].partition("@")[0]
+                            if _isParamRef(paramValue):
+                                paramName = _getParamRefName(paramValue)
                                 tableParameterReferenceNames.add(paramName)
                         unitDims = set()
                         for factColName, colDims in factDimensions.items():
@@ -1523,16 +1557,21 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                     for propFromColName in propFromColNames:
                                         if propFromColName in rowPropGroups:
                                             for prop, val in rowPropGroups[propFromColName].items():
+                                                if ":" in prop:
+                                                    # Extension property
+                                                    continue
                                                 if isinstance(val, dict):
                                                     _valDict = cellPropGroup.setdefault(prop, {})
                                                     for dim, _val in val.items():
                                                         _valDict[dim] = _val
                                                         propGroupDimSource[dim] = propFromColName
-                                                        if _val.startswith("$") and not _val.startswith("$$"):
-                                                            rowPropGrpParamRefs.add(_val.partition("@")[0][1:])
+                                                        if _isParamRef(_val):
+                                                            rowPropGrpParamRefs.add(_getParamRefName(_val))
                                                 else:
                                                     cellPropGroup[prop] = val
                                                     propGroupDimSource[prop] = propFromColName
+                                                    if _isParamRef(val):
+                                                        rowPropGrpParamRefs.add(_getParamRefName(val))
                                     if factDimensions[colName] is None:
                                         if colName in paramRefColNames:
                                             value = _cellValue(row[colNameIndex[colName]])
@@ -1543,8 +1582,14 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                         if not cellPropGroup:
                                             continue # not a fact column
                                     for rowPropGrpParamRef in rowPropGrpParamRefs:
-                                        value = _cellValue(row[colNameIndex[rowPropGrpParamRef]])
-                                        if value is EMPTY_CELL or value is NONE_CELL:
+                                        value = None
+                                        if rowPropGrpParamRef in colNameIndex:
+                                            value = _cellValue(row[colNameIndex[rowPropGrpParamRef]])
+                                        elif rowPropGrpParamRef in tableParameters:
+                                            value = tableParameters.get(rowPropGrpParamRef)
+                                        elif rowPropGrpParamRef in reportParameters:
+                                            value = reportParameters.get(rowPropGrpParamRef)
+                                        if value in (None, EMPTY_CELL, NONE_CELL):
                                             emptyCols.add(rowPropGrpParamRef)
                                     # assemble row and fact Ids
                                     if idColIndex is not None and not rowId:
@@ -1591,6 +1636,8 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                                                      (tableDimensions, "table dimension"),
                                                                      (reportDimensions, "report dimension")):
                                         for dimName, dimValue in inheritedDims.items():
+                                            if dimSource.startswith("propertyGroup"):
+                                                factDimensionPropGrpCol[dimName] = propGroupDimSource[dimName]
                                             if dimName not in colFactDims and dimName not in noValueDimNames:
                                                 dimValue = inheritedDims[dimName]
                                                 dimAttr = None
@@ -1609,8 +1656,10 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                                                 factDimensionSourceCol[dimName] = paramName
                                                         elif paramName in tableParameters:
                                                             dimValue = tableParameters[paramName]
+                                                            factDimensionSourceCol[dimName] = paramName
                                                         elif paramName in reportParameters:
                                                             dimValue = reportParameters[paramName]
+                                                            factDimensionSourceCol[dimName] = paramName
                                                         elif paramName in unreportedFactDimensionColumns:
                                                             dimValue = NONE_CELL
                                                         else:
@@ -1634,15 +1683,16 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                                     noValueDimNames.add(dimName)
                                                 else:
                                                     colFactDims[dimName] = dimValue
-                                                if dimSource.startswith("propertyGroup"):
-                                                    factDimensionPropGrpCol[dimName] = propGroupDimSource[dimName]
                                     if factDecimals.get(colName) is not None:
                                         dimValue = factDecimals[colName]
                                         dimSource = "column decimals"
                                     elif "decimals" in cellPropGroup:
                                         dimValue = cellPropGroup["decimals"]
                                         dimSource = "propertyGroup " + propFromColName
-                                        factDimensionPropGrpCol["decimals"] = propGroupDimSource[dimName]
+                                        if _isParamRef(dimValue):
+                                            factDimensionPropGrpCol["decimals"] = _getParamRefName(dimValue)
+                                        else:
+                                            factDimensionPropGrpCol["decimals"] = dimValue
                                     elif tableDecimals is not None:
                                         dimValue = tableDecimals
                                         dimSource = "table decimals"
@@ -1734,7 +1784,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
         # relativize taxonomyRefs to base where feasible
         txBase = os.path.dirname(documentBase or (modelXbrl.entryLoadingUrl if modelXbrl else ""))
         for i, tUrl in enumerate(taxonomyRefs or ()):
-            if not UrlUtil.isAbsolute(tUrl) and os.path.isabs(tUrl) and not UrlUtil.isAbsolute(txBase) and os.path.isabs(txBase):
+            if not UrlUtil.isAbsolute(tUrl) and isLegacyAbs(tUrl) and not UrlUtil.isAbsolute(txBase) and isLegacyAbs(txBase):
                 taxonomyRefs[i] = os.path.relpath(tUrl, txBase)
         prevErrLen = len(modelXbrl.errors) # track any xbrl validation errors
         xbrliNamespacePrefix = None
@@ -1823,7 +1873,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         error("xbrlce:invalidJSONStructure",
                               _("Invalid value: %(value)s at %(path)s"),
                               modelObject=modelXbrl, value=dimValue, path="/".join(pathSegs+(dimName,)))
-                    elif isinstance(dimValue,str) and dimValue.startswith("$") and not dimValue.startswith("$$"):
+                    elif _isParamRef(dimValue):
                         paramName, _sep, periodSpecifier = dimValue[1:].partition("@")
                         if _sep and periodSpecifier not in ("start", "end"):
                             error("xbrlce:invalidPeriodSpecifier",
@@ -1927,7 +1977,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                     error("oime:unsupportedDimensionDataType",
                                           _("Taxonomy-defined typed dimension value is complex: %(memberQName)s at %(path)s"),
                                           modelObject=modelXbrl, memberQName=dimValue, path="/".join(pathSegs+(dimName,)))
-                if pathSegs[-1] in ("/dimensions", "dimensions") and not DimensionsKeyPattern.match(dimName):
+                if pathSegs[-1] in ("/dimensions", "dimensions") and dimName not in builtInDimensionKeys and not SQNamePattern.match(dimName):
                     error("oimce:invalidSQName",
                           _("Invalid SQName: %(sqname)s"),
                           sourceFileLine=oimFile, sqname=dimName, path="/".join(pathSegs))
@@ -2682,6 +2732,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             footnoteLinkNotes[linkrole].add(noteId)
                             xbrlNote = xbrlNoteTbl[noteId]
                             attrs = {XLINKTYPE: "resource",
+                                     XLINKROLE: XbrlConst.footnote,
                                      XLINKLABEL: footnoteToLabel,
                                      "id": idDeduped(modelXbrl, noteId),
                                      # "oimNoteId": noteId
@@ -2781,7 +2832,21 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     modelObject=modelXbrl, action=currentAction, error=ex,
                     traceback=traceback.format_tb(sys.exc_info()[2]))
 
+    # Reset modified status of model so user is not prompted for changes triggered by this loading operation.
+    _return.isModified = False
     return _return
+
+def _isParamRef(value):
+    if not isinstance(value, str):
+        return False
+    if not value.startswith("$"):
+        return False
+    return not value.startswith("$$")
+
+def _getParamRefName(paramRef):
+    prefixStripped = paramRef.removeprefix("$")
+    periodSpecifierRemoved = prefixStripped.partition("@")[0]
+    return periodSpecifierRemoved
 
 def isOimLoadable(normalizedUri, filepath):
     _ext = os.path.splitext(filepath)[1]

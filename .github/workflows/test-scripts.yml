@@ -29,10 +29,11 @@ jobs:
           - '3.10'
           - '3.11'
           - '3.12'
+          - '3.13'
     steps:
       - uses: actions/checkout@v4.2.2
       - name: Install Python 3
-        uses: actions/setup-python@v5.3.0
+        uses: actions/setup-python@v5.6.0
         with:
           cache: 'pip'
           check-latest: true
@@ -47,7 +48,7 @@ jobs:
           pytest -s --disable-warnings --all --download-cache --offline --arelle="python arelleCmdLine.py" tests/integration_tests/scripts/test_scripts.py
       - name: Upload log artifacts
         if: always()
-        uses: actions/upload-artifact@v4.4.3
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: ${{ matrix.os }}_${{ matrix.python-version }}_logs
           if-no-files-found: error

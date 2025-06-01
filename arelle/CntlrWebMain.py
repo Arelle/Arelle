@@ -15,16 +15,16 @@ import zipfile
 from collections.abc import Iterable
 from copy import deepcopy
 
+from bottle import Bottle, HTTPResponse, request, response, static_file  # type: ignore[import-untyped]
+
 from arelle import Version
 from arelle.CntlrCmdLine import CntlrCmdLine
 from arelle.FileSource import FileNamedStringIO
-from arelle.PluginManager import pluginClassMethods
-from arelle.RuntimeOptions import RuntimeOptions
 from arelle.logging.formatters.LogFormatter import LogFormatter
 from arelle.logging.handlers.LogToBufferHandler import LogToBufferHandler
+from arelle.PluginManager import pluginClassMethods
+from arelle.RuntimeOptions import RuntimeOptions
 from arelle.typing import TypeGetText
-from arelle.webserver.bottle import (Bottle, HTTPResponse, request, response,
-                                     static_file)
 
 _: TypeGetText
 
@@ -41,7 +41,6 @@ POST = 'POST'
 _CNTLR: CntlrCmdLine | None = None
 
 def getCntlr() -> CntlrCmdLine:
-    global _CNTLR
     if _CNTLR is None:
         raise ValueError(_('_CNTLR accessed before it was set.'))
     return _CNTLR
@@ -59,7 +58,6 @@ def getLogHandler() -> LogToBufferHandler:
 _RUNTIME_OPTIONS: RuntimeOptions | None = None
 
 def getRuntimeOptions() -> RuntimeOptions:
-    global _RUNTIME_OPTIONS
     if _RUNTIME_OPTIONS is None:
         raise ValueError(_('_RUNTIME_OPTIONS accessed before it was set.'))
     options = deepcopy(_RUNTIME_OPTIONS)
@@ -138,13 +136,13 @@ def startWebserver(cntlr: CntlrCmdLine, options: RuntimeOptions) -> Bottle | Non
         elif server == "cgi":
             if sys.stdin is None:
                 sys.stdin = open(os.devnull, 'r')
-            app.run(server=server)  # type: ignore[no-untyped-call]
+            app.run(server=server)
             sys.exit(0)
         elif server:
             sys.path.insert(0,os.path.join(os.path.dirname(__file__),"webserver"))
-            app.run(host=host, port=port or 80, server=server)  # type: ignore[no-untyped-call]
+            app.run(host=host, port=port or 80, server=server)
         else:
-            app.run(host=host, port=port or 80)  # type: ignore[no-untyped-call]
+            app.run(host=host, port=port or 80)
     return None
 
 def cgiInterface(cgiAppPath: str) -> str | HTTPResponse:
@@ -265,20 +263,21 @@ def validation(file: str | None = None) -> str | bytes:
     isValidation = 'validation' == requestPathParts[-1] or 'validation' == requestPathParts[-2]
     view = request.query.view
     viewArcrole = request.query.viewArcrole
+    sourceZipStreamFileName = None
+    sourceZipStream = None
     if request.method == 'POST':
         mimeType = request.get_header("Content-Type")
         if mimeType and mimeType.startswith("multipart/form-data"):
-            _upload = request.files.get("upload")
-            if not _upload or not _upload.filename.endswith(".zip"):
-                errors.append(_("POST file upload must be a zip file"))
-                sourceZipStream = None
+            if upload := request.files.get("upload"):
+                sourceZipStreamFileName = upload.filename
+                sourceZipStream = upload.file
             else:
-                sourceZipStream = _upload.file
-        elif mimeType not in ('application/zip', 'application/x-zip', 'application/x-zip-compressed', 'multipart/x-zip'):
-            errors.append(_("POST must provide a zip file, Content-Type '{0}' not recognized as a zip file.").format(mimeType))
-        sourceZipStream = request.body
-    else:
-        sourceZipStream = None
+                errors.append(_("POST 'multipart/form-data' request must include 'upload' part containing the XBRL file to process."))
+        elif mimeType in ('application/zip', 'application/x-zip', 'application/x-zip-compressed', 'multipart/x-zip'):
+            sourceZipStreamFileName = request.get_header("X-File-Name")
+            sourceZipStream = request.body
+        else:
+            errors.append(_("POST request must provide an XBRL zip file to process. Content-Type '{0}' not recognized as a zip file.").format(mimeType))
     if not view and not viewArcrole:
         if requestPathParts[-1] in supportedViews:
             view = requestPathParts[-1]
@@ -350,13 +349,14 @@ def validation(file: str | None = None) -> str | bytes:
         viewFile = FileNamedStringIO(media)
         options.viewArcrole = viewArcrole
         options.viewFile = viewFile
-    return runOptionsAndGetResult(options, media, viewFile, sourceZipStream)
+    return runOptionsAndGetResult(options, media, viewFile, sourceZipStream, sourceZipStreamFileName)
 
 def runOptionsAndGetResult(
         options: RuntimeOptions,
         media: str,
         viewFile: FileNamedStringIO | None,
         sourceZipStream: FileNamedStringIO | None = None,
+        sourceZipStreamFileName: str | None = None,
         ) -> str | bytes:
     """Execute request according to options, for result in media, with *post*ed file in sourceZipStream, if any.
 
@@ -381,7 +381,7 @@ def runOptionsAndGetResult(
     else:
         responseZipStream = None
     cntlr = getCntlr()
-    successful = cntlr.run(options, sourceZipStream, responseZipStream)
+    successful = cntlr.run(options, sourceZipStream, responseZipStream, sourceZipStreamFileName)
     if media == "xml":
         response.content_type = 'text/xml; charset=UTF-8'
     elif media == "csv":

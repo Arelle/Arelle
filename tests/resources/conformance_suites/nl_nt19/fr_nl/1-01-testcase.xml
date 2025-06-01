@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="NL.FR-NL-1.01"
+        description="FR-NL-1.01: A BOM (byte order mark) character MUST NOT be used"
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+  <variation id="invalid-file" name="File with BOM">
+    <description>
+      The instance contains a BOM.
+    </description>
+    <data>
+      <instance readMeFirst="true">1-01-invalid-file.xbrl</instance>
+    </data>
+    <result>
+      <error>NL.FR-NL-1.01</error>
+    </result>
+  </variation>
+  <variation id="invalid-zip" name="Archive with BOM">
+    <description>
+      The archive instance contains a BOM.
+    </description>
+    <data>
+      <instance readMeFirst="true">1-01-invalid-zip.zip/1-01-invalid-file.xbrl</instance>
+    </data>
+    <result>
+      <error>NL.FR-NL-1.01</error>
+    </result>
+  </variation>
+</testcase>

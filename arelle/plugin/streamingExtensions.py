@@ -824,7 +824,7 @@ def streamingOptionsExtender(parser):
 '''
 
 def streamingExtensionsSetup(cntlr, options, *args, **kwargs):
-    global _streamingExtensionsCheck, _streamingExtensionsValidate
+    global _streamingExtensionsValidate
     # streaming only checked in CmdLine/web server mode if requested
     # _streamingExtensionsCheck = getattr(options, 'check_streaming', False)
     _streamingExtensionsValidate = options.validate

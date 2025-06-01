@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xbrl
+        xml:lang="en"
+        xmlns="http://www.xbrl.org/2003/instance"
+        xmlns:mock="http://www.mock.com/mock"
+        xmlns:iso4217="http://www.xbrl.org/2003/iso4217"
+        xmlns:link="http://www.xbrl.org/2003/linkbase"
+        xmlns:xbrldi="http://xbrl.org/2006/xbrldi"
+        xmlns:xbrli="http://www.xbrl.org/2003/instance"
+        xmlns:xlink="http://www.w3.org/1999/xlink">
+  <link:schemaRef
+          xlink:href="../mock-taxonomy.xsd"
+          xlink:type="simple"/>
+  <context id="ctx-1">
+    <entity>
+      <identifier scheme="http://www.kvk.nl/kvk-id">12345678</identifier>
+    </entity>
+    <period>
+      <startDate>2021-01-01</startDate>
+      <endDate>2021-12-31</endDate>
+    </period>
+  </context>
+  <mock:FormattedExplanation contextRef="ctx-1">
+    &lt;div&gt;
+    &lt;table&gt;
+    &lt;tr&gt;
+    &lt;th&gt;A&lt;/th&gt;
+    &lt;td&gt;B&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;/table&gt;
+    &lt;ul&gt;&lt;li&gt;A&lt;/li&gt;&lt;/ul&gt;
+    &lt;ul&gt;&lt;li type=&quot;&#x9;&#xA;&#xD;&#x20;circle&quot;&gt;A&lt;/li&gt;&lt;/ul&gt;
+    &lt;ul&gt;&lt;li type=&quot;square&quot;&gt;A&lt;/li&gt;&lt;/ul&gt;
+    &lt;ol&gt;&lt;li type=&quot;1&quot;&gt;A&lt;/li&gt;&lt;/ol&gt;
+    &lt;ol&gt;&lt;li type=&quot;a&quot;&gt;A&lt;/li&gt;&lt;/ol&gt;
+    &lt;ol&gt;&lt;li type=&quot;A&quot;&gt;A&lt;/li&gt;&lt;/ol&gt;
+    &lt;ol&gt;&lt;li type=&quot;i&quot;&gt;A&lt;/li&gt;&lt;/ol&gt;
+    &lt;ol&gt;&lt;li type=&quot;I&quot;&gt;A&lt;/li&gt;&lt;/ol&gt;
+    &lt;p&gt;A&lt;/p&gt;
+    &lt;u&gt;A&lt;/u&gt;
+    &lt;s&gt;A&lt;/s&gt;
+    &lt;strong&gt;A&lt;/strong&gt;
+    &lt;i&gt;A&lt;/i&gt;
+    &lt;em&gt;A&lt;/em&gt;
+    &lt;small&gt;A&lt;/small&gt;
+    &lt;sub&gt;A&lt;/sub&gt;
+    &lt;sup&gt;A&lt;/sup&gt;
+    &lt;pre&gt;A&lt;/pre&gt;
+    &lt;/div&gt;
+    &lt;br/&gt;
+  </mock:FormattedExplanation>
+  <mock:String contextRef="ctx-1">
+    &lt;div&gt;
+    &lt;table&gt;
+    &lt;tr&gt;
+    &lt;th&gt;A&lt;/th&gt;
+    &lt;td&gt;B&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;/table&gt;
+    &lt;ul&gt;&lt;li&gt;A&lt;/li&gt;&lt;/ul&gt;
+    &lt;ul&gt;&lt;li type=&quot;&#x9;&#xA;&#xD;&#x20;circle&quot;&gt;A&lt;/li&gt;&lt;/ul&gt;
+    &lt;ul&gt;&lt;li type=&quot;square&quot;&gt;A&lt;/li&gt;&lt;/ul&gt;
+    &lt;ol&gt;&lt;li type=&quot;1&quot;&gt;A&lt;/li&gt;&lt;/ol&gt;
+    &lt;ol&gt;&lt;li type=&quot;a&quot;&gt;A&lt;/li&gt;&lt;/ol&gt;
+    &lt;ol&gt;&lt;li type=&quot;A&quot;&gt;A&lt;/li&gt;&lt;/ol&gt;
+    &lt;ol&gt;&lt;li type=&quot;i&quot;&gt;A&lt;/li&gt;&lt;/ol&gt;
+    &lt;ol&gt;&lt;li type=&quot;I&quot;&gt;A&lt;/li&gt;&lt;/ol&gt;
+    &lt;p&gt;A&lt;/p&gt;
+    &lt;u&gt;A&lt;/u&gt;
+    &lt;s&gt;A&lt;/s&gt;
+    &lt;strong&gt;A&lt;/strong&gt;
+    &lt;i&gt;A&lt;/i&gt;
+    &lt;em&gt;A&lt;/em&gt;
+    &lt;small&gt;A&lt;/small&gt;
+    &lt;sub&gt;A&lt;/sub&gt;
+    &lt;sup&gt;A&lt;/sup&gt;
+    &lt;pre&gt;A&lt;/pre&gt;
+    &lt;/div&gt;
+    &lt;br/&gt;
+  </mock:String> <!-- CAUSE: escaped XHTML in invalid item type -->
+  <mock:String contextRef="ctx-1">
+    non-XHTML content
+  </mock:String>
+</xbrl>

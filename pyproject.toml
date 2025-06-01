@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools~=73.0", "wheel~=0.44", "setuptools_scm[toml]~=8.1"]
+requires = ["setuptools>=73,<81", "wheel~=0.44", "setuptools_scm[toml]~=8.1"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -23,11 +23,13 @@ classifiers = [
     'Programming Language :: Python :: 3.10',
     'Programming Language :: Python :: 3.11',
     'Programming Language :: Python :: 3.12',
+    'Programming Language :: Python :: 3.13',
     'Operating System :: OS Independent',
     'Topic :: Text Processing :: Markup :: XML'
 ]
-requires-python = ">=3.9,<3.13"
+requires-python = ">=3.9,<3.14"
 dependencies = [
+    'bottle>=0.13,<0.14',
     'certifi',
     'filelock',
     'isodate==0.*',
@@ -62,7 +64,6 @@ ObjectMaker = [
 ]
 WebServer = [
     'cheroot>=8,<11',
-    'CherryPy==18.*',
     'tornado==6.*',
 ]
 
@@ -103,7 +104,7 @@ markers = [
 [tool.mypy]
 # Warn when a # type: ignore comment does not specify any error codes
 enable_error_code = "ignore-without-code"
-python_version = "3.12"
+python_version = "3.13"
 show_error_codes = true
 strict = true
 # Others are not included in repo, but commonly copied into working directory by devs.
@@ -121,6 +122,7 @@ exclude = '''(?x)(
     | ^arelle/plugin/Xince.py
     | ^arelle/plugin/xodel
     | ^arelle/plugin/xule
+    | ^arelle/resources
 )'''
 
 # --- ignore modules ---
@@ -186,7 +188,6 @@ module = [
     'arelle.ValidateInfoset',
     'arelle.ValidateUtr',
     'arelle.ValidateVersReport',
-    'arelle.ValidateXbrlCalcs',
     'arelle.ValidateXbrlCalcs',
     'arelle.ValidateXbrlDTS',
     'arelle.ValidateXbrlDimensions',
@@ -322,7 +323,6 @@ module = [
     'arelle.plugin.profileFormula',
     'arelle.plugin.saveCHComponentFile',
     'arelle.plugin.saveDTS',
-    'arelle.plugin.saveHtmlEBAtables',
     'arelle.plugin.saveLoadableExcel',
     'arelle.plugin.saveLoadableOIM',
     'arelle.plugin.saveSKOS',
@@ -354,6 +354,7 @@ module = [
     'arelle.plugin.xbrlDB.primaryDocumentFacts',
     'arelle.plugin.xbrlDB.tableFacts',
     'arelle.plugin.xuleSaver',
+    'arelle.utils.EntryPointDetection',
     'arelle.webserver.bottle',
     'tests.*',
 ]

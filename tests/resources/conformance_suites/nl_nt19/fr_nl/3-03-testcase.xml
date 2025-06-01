@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="NL.FR-NL-3.03"
+        description="An XBRL instance document MUST NOT contain unused contexts."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="unused-contexts" name="Instance document MUST NOT contain unused contexts">
+        <description>
+            An XBRL instance document MUST NOT contain unused contexts.
+        </description>
+        <data>
+            <instance readMeFirst="true">3-03-unused-context.xbrl</instance>
+        </data>
+        <result>
+            <error>NL.FR-NL-3.03</error>
+        </result>
+    </variation>
+</testcase>

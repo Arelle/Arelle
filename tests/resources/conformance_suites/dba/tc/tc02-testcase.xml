@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.TC02"
+        description="DBA.TC02: CPR numbers must not be used as values for typed dimensions."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid" name="Invalid">
+        <description>
+            A typed dimension includes a CPR number as a value
+        </description>
+        <data>
+            <instance readMeFirst="true">tc02-invalid.xhtml</instance>
+        </data>
+        <result>
+            <error>DBA.TC02</error>
+        </result>
+    </variation>
+</testcase>

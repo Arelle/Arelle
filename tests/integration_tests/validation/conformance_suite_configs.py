@@ -3,22 +3,28 @@ from __future__ import annotations
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig
 from tests.integration_tests.validation.conformance_suite_configurations.cipc_current import config as cipc_current
 from tests.integration_tests.validation.conformance_suite_configurations.dba_current import config as dba_current
+from tests.integration_tests.validation.conformance_suite_configurations.dba_multi_current import config as dba_multi_current
 from tests.integration_tests.validation.conformance_suite_configurations.efm_current import config as efm_current
 from tests.integration_tests.validation.conformance_suite_configurations.efm_reg_dqc import config as efm_reg_dqc
 from tests.integration_tests.validation.conformance_suite_configurations.efm_reg_pragmatic import config as efm_reg_pragmatic
 from tests.integration_tests.validation.conformance_suite_configurations.esef_ixbrl_2021 import config as esef_ixbrl_2021
 from tests.integration_tests.validation.conformance_suite_configurations.esef_ixbrl_2022 import config as esef_ixbrl_2022
 from tests.integration_tests.validation.conformance_suite_configurations.esef_ixbrl_2023 import config as esef_ixbrl_2023
+from tests.integration_tests.validation.conformance_suite_configurations.esef_ixbrl_2024 import config as esef_ixbrl_2024
 from tests.integration_tests.validation.conformance_suite_configurations.esef_xhtml_2021 import config as esef_xhtml_2021
 from tests.integration_tests.validation.conformance_suite_configurations.esef_xhtml_2022 import config as esef_xhtml_2022
 from tests.integration_tests.validation.conformance_suite_configurations.esef_xhtml_2023 import config as esef_xhtml_2023
+from tests.integration_tests.validation.conformance_suite_configurations.esef_xhtml_2024 import config as esef_xhtml_2024
 from tests.integration_tests.validation.conformance_suite_configurations.hmrc_current import config as hmrc_current
 from tests.integration_tests.validation.conformance_suite_configurations.kvk_nt16 import config as kvk_nt16
 from tests.integration_tests.validation.conformance_suite_configurations.kvk_nt17 import config as kvk_nt17
 from tests.integration_tests.validation.conformance_suite_configurations.kvk_nt18 import config as kvk_nt18
+from tests.integration_tests.validation.conformance_suite_configurations.kvk_nt19 import config as kvk_nt19
 from tests.integration_tests.validation.conformance_suite_configurations.nl_nt16 import config as nl_nt16
 from tests.integration_tests.validation.conformance_suite_configurations.nl_nt17 import config as nl_nt17
 from tests.integration_tests.validation.conformance_suite_configurations.nl_nt18 import config as nl_nt18
+from tests.integration_tests.validation.conformance_suite_configurations.nl_nt19 import config as nl_nt19
+from tests.integration_tests.validation.conformance_suite_configurations.nl_inline_2024 import config as nl_inline_2024
 from tests.integration_tests.validation.conformance_suite_configurations.ros_current import config as ros_current
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_2_1 import config as xbrl_2_1
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_calculations_1_1 import config as xbrl_calculations_1_1
@@ -46,22 +52,28 @@ from tests.integration_tests.validation.conformance_suite_configurations.xbrl_ut
 ALL_CONFORMANCE_SUITE_CONFIGS: tuple[ConformanceSuiteConfig, ...] = (
     cipc_current,
     dba_current,
+    dba_multi_current,
     efm_current,
     efm_reg_dqc,
     efm_reg_pragmatic,
     esef_ixbrl_2021,
     esef_ixbrl_2022,
     esef_ixbrl_2023,
+    esef_ixbrl_2024,
     esef_xhtml_2021,
     esef_xhtml_2022,
     esef_xhtml_2023,
+    esef_xhtml_2024,
     hmrc_current,
     kvk_nt16,
     kvk_nt17,
     kvk_nt18,
+    kvk_nt19,
     nl_nt16,
     nl_nt17,
     nl_nt18,
+    nl_nt19,
+    nl_inline_2024,
     ros_current,
     xbrl_2_1,
     xbrl_calculations_1_1,

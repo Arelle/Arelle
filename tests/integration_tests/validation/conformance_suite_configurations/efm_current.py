@@ -6,7 +6,7 @@ from tests.integration_tests.validation.conformance_suite_config import (
     ConformanceSuiteConfig,
 )
 
-CONFORMANCE_SUITE_ZIP_NAME = 'efm-71-240916.zip'
+CONFORMANCE_SUITE_ZIP_NAME = 'efm-73-250317.zip'
 
 config = ConformanceSuiteConfig(
     additional_plugins_by_prefix=[(f'conf/{t}', frozenset({'EDGAR/render'})) for t in [
@@ -18,7 +18,6 @@ config = ConformanceSuiteConfig(
     ]],
     args=[
         '--disclosureSystem', 'efm-pragmatic',
-        '--formula', 'run',
     ],
     assets=[
         ConformanceSuiteAssetConfig.conformance_suite(
@@ -28,10 +27,14 @@ config = ConformanceSuiteConfig(
             source=AssetSource.S3_PUBLIC,
         )
     ],
-    cache_version_id='7RGPI61UxvM3f44.JpzkU2S3AU5bBVeF',
+    cache_version_id='D6XVsgj8noOk9wzCTX91wqwQFq68d0bi',
     info_url='https://www.sec.gov/structureddata/osdinteractivedatatestsuite',
     name=PurePath(__file__).stem,
-    plugins=frozenset({'EDGAR/validate', 'inlineXbrlDocumentSet'}),
+    plugins=frozenset({
+        'EDGAR/validate',
+        'inlineXbrlDocumentSet',
+        'xule',
+    }),
     shards=40,
     test_case_result_options='match-any',
 )

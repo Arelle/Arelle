@@ -3,7 +3,6 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-import unicodedata
 from collections import defaultdict
 from datetime import datetime
 
@@ -99,7 +98,7 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
         parentChildRelSet = val.modelXbrl.relationshipSet(XbrlConst.parentChild)
         widerNarrowerRelSet = val.modelXbrl.relationshipSet(XbrlConst.widerNarrower)
         generalSpecialRelSet = val.modelXbrl.relationshipSet(XbrlConst.generalSpecial)
-        calcRelSet = val.modelXbrl.relationshipSet(XbrlConst.summationItem)
+        calcRelSet = val.modelXbrl.relationshipSet(XbrlConst.summationItems)
         dimensionDefaults = val.modelXbrl.relationshipSet(dimensionDefault, DefaultDimensionLinkroles)
         labelsRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
         if modelDocument.targetNamespace is not None:
@@ -169,21 +168,19 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
                         narrowerConcept = widerNarrowerRelSet.toModelObject(modelConcept)
 
                         # Transform the qname to str for the later join()
-                        widerTypes = set(str(r.toModelObject.typeQname) for r in widerConcept)
-                        narrowerTypes = set(str(r.fromModelObject.typeQname) for r in narrowerConcept)
+                        widerTypes = set(r.toModelObject.typeQname for r in widerConcept if r.toModelObject is not None)
+                        narrowerTypes = set(r.fromModelObject.typeQname for r in narrowerConcept if r.fromModelObject is not None)
 
-                        if (narrowerTypes and narrowerTypes != {str(modelConcept.typeQname)}) or (widerTypes and widerTypes != {str(modelConcept.typeQname)}):
+                        if (narrowerTypes and narrowerTypes != {modelConcept.typeQname}) or (widerTypes and widerTypes != {modelConcept.typeQname}):
                             widerNarrowerType = "{} {}".format(
-                                "Wider: {}".format(", ".join(widerTypes)) if widerTypes else "",
-                                "Narrower: {}".format(", ".join(narrowerTypes)) if narrowerTypes else ""
+                                "Wider: {}".format(", ".join(t.clarkNotation for t in widerTypes)) if widerTypes else "",
+                                "Narrower: {}".format(", ".join(t.clarkNotation for t in narrowerTypes)) if narrowerTypes else ""
                             )
                             val.modelXbrl.warning("ESEF.1.4.1.differentExtensionDataType",
                                                 _("Issuers should anchor their extension elements to ESEF core taxonomy elements sharing the same data type. Concept: %(qname)s type: %(type)s %(widerNarrowerType)s"),
                                                 modelObject=modelConcept, qname=modelConcept.qname, type=modelConcept.typeQname, widerNarrowerType=widerNarrowerType)
 
                     # check all lang's of standard label
-                    hasLc3Match = False
-                    lc3names = []
                     hasStandardLabel = False
                     hasNonStandardLabel = False
                     if labelsRelationshipSet:
@@ -193,18 +190,6 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
                             if concept is not None and label is not None:
                                 if label.role == XbrlConst.standardLabel:
                                     hasStandardLabel = True
-                                    # allow Joe's Bar, N.A.  to be JoesBarNA -- remove ', allow A. as not article "a"
-                                    lc3name = ''.join(re.sub(r"['.-]", "", lc3wordAdjust(w[0] or w[2] or w[3] or w[4]))
-                                                      for w in re.findall(r"((\w+')+\w+)|(A[.-])|([.-]A(?=\W|$))|(\w+)",
-                                                                          unicodedata.normalize('NFKD', label.textValue)
-                                                                          .encode('ASCII', 'ignore').decode()  # remove diacritics
-                                                                          )
-                                                      # if w[4].lower() not in ("the", "a", "an")
-                                                      )
-                                    lc3names.append(lc3name)
-                                    if (name == lc3name or
-                                        (name and lc3name and lc3name[0].isdigit() and name[1:] == lc3name and (name[0].isalpha() or name[0] == '_'))):
-                                        hasLc3Match = True
                                 else:
                                     hasNonStandardLabel = True
                             if label.role not in standardLabelRoles and not ( #not in LRR

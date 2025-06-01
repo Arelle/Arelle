@@ -68,14 +68,22 @@ class LogHandlerWithXml(logging.Handler):
                                     entityEncode(msg),
                                     refs))
     def recordToJson(self, logRec: logging.LogRecord) -> dict[str, Any]:
-        message = { "text": self.format(logRec) }
-        if logRec.args and isinstance(logRec.args, Mapping):
-            for n, v in logRec.args.items():
-                message[n] = str(v)
+        message = {
+            "text": self.format(logRec),
+            "args": self._buildJsonMessageArgs(logRec),
+        }
         return {"code": getattr(logRec, "messageCode", ""),
                 "level": logRec.levelname.lower(),
                 "refs": getattr(logRec, "refs", []),
                 "message": message}
+
+    def _buildJsonMessageArgs(self, logRec: logging.LogRecord) -> dict[str, Any]:
+        if logRec.args and isinstance(logRec.args, Mapping):
+            return {
+                n: str(v)
+                for n, v in logRec.args.items()
+            }
+        return {}
 
     def recordToHtml(self, logRec: logging.LogRecord) -> str:
         record = ["<tr>"]

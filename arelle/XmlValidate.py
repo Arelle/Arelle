@@ -2,11 +2,12 @@
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
+from dataclasses import dataclass
 import logging, os
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, cast
 from lxml import etree
-from regex import Match, compile as re_compile
+from regex import Match, Pattern, compile as re_compile
 from decimal import Decimal, InvalidOperation
 from fractions import Fraction
 from arelle import UrlUtil, XbrlConst, XmlUtil, XmlValidateConst
@@ -29,6 +30,36 @@ if TYPE_CHECKING:
 
 _: TypeGetText
 
+# patterns to replace \c and \i in names
+iNameChar = "[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
+cNameChar = r"[_\-\.:"   "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]"
+cMinusCNameChar = r"[_\-\."   "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]"
+
+@dataclass(frozen=True)
+class XsdPattern:
+    xsdPattern: str
+    pyPattern: Pattern[str]
+
+    # shim class for python wrapper of xsd pattern
+    @classmethod
+    def compile(cls, p: str) -> XsdPattern:
+        if r"\i" in p or r"\c" in p:
+            p = p.replace(r"[\i-[:]]", iNameChar).replace(r"\i", iNameChar) \
+                 .replace(r"[\c-[:]]", cMinusCNameChar).replace(r"\c", cNameChar)
+        pyPattern = re_compile(p + "$") # must match whole string
+        return cls(p, pyPattern)
+
+    def match(self, string: str) -> Match[str] | None:
+        return self.pyPattern.match(string)
+
+    @property
+    def pattern(self) -> str:
+        return self.xsdPattern
+
+    def __repr__(self) -> str:
+        return self.xsdPattern
+
+
 # support legacy direct imports from this module
 UNVALIDATED      = XmlValidateConst.UNVALIDATED
 UNKNOWN          = XmlValidateConst.UNKNOWN
@@ -44,8 +75,6 @@ modelGroupCompositorTitle: Callable[[Any], str] | None = None
 ModelInlineValueObject: type[Any] | None = None
 ixMsgCode: Callable[..., str] | None = None
 
-normalizeWhitespacePattern = re_compile(r"[\t\n\r]") # replace tab, line feed, return with space (XML Schema Rules, note: does not include NBSP)
-collapseWhitespacePattern = re_compile(r"[ \t\n\r]+") # collapse multiple spaces, tabs, line feeds and returns to single space
 entirelyWhitespacePattern = re_compile(r"^[ \t\n\r]+$") # collapse multiple spaces, tabs, line feeds and returns to single space
 languagePattern = re_compile("[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*$")
 NCNamePattern = re_compile("^[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF]"
@@ -84,15 +113,13 @@ lexicalPatterns = {
 
 # patterns difficult to compile into python
 xmlSchemaPatterns = {
-    r"\c+": NMTOKENPattern,
-    r"\i\c*": namePattern,
-    r"[\i-[:]][\c-[:]]*": NCNamePattern,
-    }
-
-# patterns to replace \c and \i in names
-iNameChar = "[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
-cNameChar = r"[_\-\.:"   "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]"
-cMinusCNameChar = r"[_\-\."   "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]"
+    pattern: XsdPattern(xsdPattern=pattern, pyPattern=pyPattern)
+    for pattern, pyPattern in (
+        (r"\c+", NMTOKENPattern),
+        (r"\i\c*", namePattern),
+        (r"[\i-[:]][\c-[:]]*", NCNamePattern),
+    )
+}
 
 baseXsdTypePatterns = {
                 "Name": namePattern,
@@ -400,9 +427,9 @@ def validateValue(
                 if "whiteSpace" in facets:
                     whitespaceReplace, whitespaceCollapse = {"preserve":(False,False), "replace":(True,False), "collapse":(False,True)}[facets["whiteSpace"]]
             if whitespaceReplace:
-                value = normalizeWhitespacePattern.sub(' ', value) # replace tab, line feed, return with space
+                value = XmlUtil.replaceWhitespace(value)
             elif whitespaceCollapse:
-                value = ' '.join(value.split())
+                value = XmlUtil.collapseWhitespace(value)
             if baseXsdType == "noContent":
                 if len(value) > 0 and not entirelyWhitespacePattern.match(value): # only xml schema pattern whitespaces removed
                     raise ValueError("value content not permitted")
@@ -527,7 +554,7 @@ def validateValue(
                         if value in xmlSchemaPatterns:
                             xValue = xmlSchemaPatterns[value]
                         else:
-                            xValue = XsdPattern().compile(value)
+                            xValue = XsdPattern.compile(value)
                     except Exception as err:
                         raise ValueError(err)
                 elif baseXsdType == "fraction":
@@ -750,7 +777,7 @@ def lxmlSchemaValidate(modelDocument: ModelDocument, extraSchema : str | None = 
                                    file=modelDocument.basename,
                                    level=logging.ERROR)
                     modelDocument.modelXbrl.errors.append(msgCode)
-        except etree.XMLSyntaxError as err:
+        except (etree.XMLSyntaxError, etree.XMLSchemaError) as err:
             msgCode = "lxml.schemaError"
             cntlr.addToLog(_("XML file syntax error %(error)s"),
                            messageArgs={"error": str(err)},
@@ -758,23 +785,3 @@ def lxmlSchemaValidate(modelDocument: ModelDocument, extraSchema : str | None = 
                            file=modelDocument.basename,
                            level=logging.ERROR)
             modelDocument.modelXbrl.errors.append(msgCode)
-
-class XsdPattern():
-    # shim class for python wrapper of xsd pattern
-    def compile(self, p: str) -> XsdPattern:
-        self.xsdPattern = p
-        if r"\i" in p or r"\c" in p:
-            p = p.replace(r"[\i-[:]]", iNameChar).replace(r"\i", iNameChar) \
-                 .replace(r"[\c-[:]]", cMinusCNameChar).replace(r"\c", cNameChar)
-        self.pyPattern = re_compile(p + "$") # must match whole string
-        return self
-
-    def match(self, string: str) -> Match[str] | None:
-        return self.pyPattern.match(string)
-
-    @property
-    def pattern(self) -> str:
-        return self.xsdPattern
-
-    def __repr__(self) -> str:
-        return self.xsdPattern

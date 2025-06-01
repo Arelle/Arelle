@@ -12,7 +12,7 @@ from typing import Any, cast
 
 import regex as re
 import tinycss2.ast  # type: ignore[import-untyped]
-from lxml.etree import EntityBase, _Comment, _ElementTree, _ProcessingInstruction
+from lxml.etree import _Comment, _Element, _ElementTree, _Entity, _ProcessingInstruction
 
 from arelle import LeiUtil, ModelDocument, XbrlConst
 from arelle.ModelDtsObject import ModelConcept
@@ -25,8 +25,11 @@ from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelValue import QName
 from arelle.ModelValue import qname
 from arelle.ModelXbrl import ModelXbrl
-from arelle.PythonUtil import normalizeSpace
+
+from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
+from arelle.PythonUtil import isLegacyAbs, normalizeSpace
 from arelle.PythonUtil import strTruncate
+from arelle.utils.validate.DetectScriptsInXhtml import containsScriptMarkers
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateUtr import ValidateUtr
 from arelle.ValidateXbrl import ValidateXbrl
@@ -40,7 +43,7 @@ from arelle.XbrlConst import (
     notAll as hc_notAll,
     parentChild,
     standardLabel,
-    summationItem,
+    summationItems,
     widerNarrower,
     xhtml,
 )
@@ -64,7 +67,7 @@ from ..Const import (
     untransformableTypes,
 )
 from ..Dimensions import checkFilingDimensions
-from ..Util import checkForMultiLangDuplicates, etreeIterWithDepth, getEsefNotesStatementConcepts, hasEventHandlerAttributes, isExtension, getDisclosureSystemYear
+from ..Util import checkForMultiLangDuplicates, getEsefNotesStatementConcepts, isExtension, getDisclosureSystemYear
 
 _: TypeGetText  # Handle gettext
 
@@ -225,12 +228,12 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 _baseName, _baseExt = os.path.splitext(doc.basename)
                 if _baseExt not in (".xhtml",".html"):
                     if val.consolidated:
-                        XHTMLExtensionGuidance = "2.6.1"
+                        errorCode = "ESEF.2.6.1.incorrectFileExtension"
                         reportType = _("Inline XBRL document included within a ESEF report package")
                     else:
-                        XHTMLExtensionGuidance = "4.1.1"
+                        errorCode = "ESEF.4.1.1.incorrectFileExtension"
                         reportType = _("Stand-alone XHTML document")
-                    modelXbrl.error(f"ESEF.{XHTMLExtensionGuidance}.incorrectFileExtension",
+                    modelXbrl.error(errorCode,
                                     _("%(reportType)s MUST have a .html or .xhtml extension: %(fileName)s"),
                                     modelObject=doc, fileName=doc.basename, reportType=reportType)
                 docinfo = doc.xmlRootElement.getroottree().docinfo
@@ -249,33 +252,34 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                         modelXbrl.error("ESEF.RTS.Annex.III.Par.1.invalidInlineXBRL",
                             _("Invalid inline XBRL namespace: %(namespace)s"),
                             modelObject=doc, namespace=doc.ixNS)
-                    # check location in a taxonomy package
-                    # ixds loading for ESEF expects all xhtml instances to be combined into single IXDS regardless of directory in report zip
-                    docDirPath = re.split(r"[/\\]", doc.uri)
-                    reportCorrectlyPlacedInPackage = reportIsInZipFile = False
-                    for i, dir in enumerate(docDirPath):
-                        if dir.lower().endswith(".zip"):
-                            if reportIsInZipFile: # report package was nested in a zip file
-                                ixdsDocDirs.clear() # ignore containing zip
-                            reportIsInZipFile = True
-                            packageName = dir[:-4] # web service posted zips are always named POSTupload.zip instead of the source file name
-                            if len(docDirPath) >= i + 2 and packageName in (docDirPath[i+1],"POSTupload") and docDirPath[i+2] == "reports":
-                                ixdsDocDirs.add("/".join(docDirPath[i+3:-1]))
-                                reportCorrectlyPlacedInPackage = True
-                            else:
-                                ixdsDocDirs.add("/".join(docDirPath[i+1:len(docDirPath)-1])) # needed for error msg on orphaned instance docs
-                    if not reportIsInZipFile:
-                        modelXbrl.error("ESEF.2.6.1.reportIncorrectlyPlacedInPackage",
-                            _("Inline XBRL document MUST be included within an ESEF report package as defined in "
-                               "http://www.xbrl.org/WGN/report-packages/WGN-2018-08-14/report-packages-WGN-2018-08-14"
-                               ".html: %(fileName)s (Document is not in a zip archive)"),
-                            modelObject=doc, fileName=doc.basename)
-                    elif not reportCorrectlyPlacedInPackage:
-                        modelXbrl.error("ESEF.2.6.1.reportIncorrectlyPlacedInPackage",
-                             _("Inline XBRL document MUST be included within an ESEF report package as defined in "
-                               "http://www.xbrl.org/WGN/report-packages/WGN-2018-08-14/report-packages-WGN-2018-08-14"
-                               ".html: %(fileName)s (Document file not in correct place in package)"),
-                            modelObject=doc, fileName=doc.basename)
+                    if esefDisclosureSystemYear <= 2023:
+                        # check location in a taxonomy package
+                        # ixds loading for ESEF expects all xhtml instances to be combined into single IXDS regardless of directory in report zip
+                        docDirPath = re.split(r"[/\\]", doc.uri)
+                        reportCorrectlyPlacedInPackage = reportIsInZipFile = False
+                        for i, dir in enumerate(docDirPath):
+                            if dir.lower().endswith(".zip"):
+                                if reportIsInZipFile: # report package was nested in a zip file
+                                    ixdsDocDirs.clear() # ignore containing zip
+                                reportIsInZipFile = True
+                                packageName = dir[:-4] # web service posted zips are always named POSTupload.zip instead of the source file name
+                                if len(docDirPath) >= i + 2 and packageName in (docDirPath[i+1],"POSTupload") and docDirPath[i+2] == "reports":
+                                    ixdsDocDirs.add("/".join(docDirPath[i+3:-1]))
+                                    reportCorrectlyPlacedInPackage = True
+                                else:
+                                    ixdsDocDirs.add("/".join(docDirPath[i+1:len(docDirPath)-1])) # needed for error msg on orphaned instance docs
+                        if not reportIsInZipFile:
+                            modelXbrl.error("ESEF.2.6.1.reportIncorrectlyPlacedInPackage",
+                                _("Inline XBRL document MUST be included within an ESEF report package as defined in "
+                                "http://www.xbrl.org/WGN/report-packages/WGN-2018-08-14/report-packages-WGN-2018-08-14"
+                                ".html: %(fileName)s (Document is not in a zip archive)"),
+                                modelObject=doc, fileName=doc.basename)
+                        elif not reportCorrectlyPlacedInPackage:
+                            modelXbrl.error("ESEF.2.6.1.reportIncorrectlyPlacedInPackage",
+                                _("Inline XBRL document MUST be included within an ESEF report package as defined in "
+                                "http://www.xbrl.org/WGN/report-packages/WGN-2018-08-14/report-packages-WGN-2018-08-14"
+                                ".html: %(fileName)s (Document file not in correct place in package)"),
+                                modelObject=doc, fileName=doc.basename)
                 else: # non-consolidated
                     if docTypeMatch:
                         if not docTypeMatch.group(1) or docTypeMatch.group(1).lower() == "html":
@@ -315,7 +319,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     elt = cast(Any, uncast_elt)
 
                     eltTag = elt.tag
-                    if isinstance(elt, (_ElementTree, _Comment, _ProcessingInstruction, EntityBase)):
+                    if isinstance(elt, (_ElementTree, _Comment, _ProcessingInstruction, _Entity)):
                         continue # comment or other non-parsed element
                     else:
                         eltTag = elt.tag
@@ -326,10 +330,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                 if xmlLang:
                                     reportXmlLang = xmlLang
                                     firstRootmostXmlLangDepth = depth
-                        if ((eltTag in ("object", "script")) or
-                            (eltTag == "a" and "javascript:" in elt.get("href", "")) or
-                            (eltTag == "img" and "javascript:" in elt.get("src", "")) or
-                            (hasEventHandlerAttributes(elt))):
+                        if containsScriptMarkers(elt):
                             modelXbrl.error(f"{contentOtherThanXHTMLGuidance}.executableCodePresent",
                                 _("Inline XBRL documents MUST NOT contain executable code: %(element)s"),
                                 modelObject=elt, element=eltTag)
@@ -378,7 +379,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                     modelObject=elt, element=eltTag)
                             elif len(modelXbrl.ixdsHtmlElements) > 1:
                                 _file = elt.get("href")
-                                if not _file or isHttpUrl(_file) or os.path.isabs(_file):
+                                if not _file or isHttpUrl(_file) or isLegacyAbs(_file):
                                     modelXbrl.warning("ESEF.2.5.4.externalCssReportPackage",
                                         _("The CSS file should be physically stored within the report package: %{file}s."),
                                         modelObject=elt, file=_file)
@@ -606,7 +607,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
             for context in contextsWithWrongInstantDate:
                 modelXbrl.error("ESEF.2.1.2.inappropriateInstantDate",
                                 _("Instant date %(actualValue)s in context %(contextID)s shall be replaced by %(expectedValue)s to ensure a better comparability between the facts."),
-                                modelObject=contextsWithWrongInstantDate, actualValue=context.instantDate, expectedValue=context.instantDate - timedelta(days=1), contextID=context.id)
+                                modelObject=context, actualValue=context.instantDate, expectedValue=context.instantDate - timedelta(days=1), contextID=context.id)
 
         # identify unique contexts and units
         mapContext = {}
@@ -663,15 +664,14 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 if esefDisclosureSystemYear >= 2024:
                     if not f.id:
                         factsMissingId.append(f)
-                    escaped = f.get("escape") in ("true", "1")
-                    if escaped != f.concept.type.isTextBlock:
+                    if isinstance(f, ModelInlineFact) and f.concept is not None and f.isEscaped != f.concept.isTextBlock:
                         modelXbrl.error("ESEF.2.2.7.improperApplicationOfEscapeAttribute",
                                           _("Facts with datatype 'dtr-types:textBlockItemType' MUST use the 'escape' attribute set to 'true'. Facts with any other datatype MUST use the 'escape' attribute set to 'false' - fact %(conceptName)s"),
                                           modelObject=f, conceptName=f.concept.qname)
-                    if f.effectiveValue == "0" and f.xValue != 0:
+                    if f.effectiveValue in ["0", "-0"] and f.xValue != 0:
                         modelXbrl.warning("ESEF.2.2.5.roundedValueBelowScaleNotNull",
                                           _("A value that has been rounded and is below the scale should show a value of zero. It has been found to have the value %(value)s - fact %(conceptName)s"),
-                                          modelObject=f, value=f.value, conceptName=f.concept.qname)
+                                          modelObject=f, value=f.value, conceptName=getattr(f.concept, "qname", ""))
                 if f.precision is not None:
                     precisionFacts.add(f)
                 if f.isNumeric and f.concept is not None and getattr(f, "xValid", 0) >= VALID:
@@ -807,12 +807,12 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 _("The xlink:role attribute of a link:footnote and link:footnoteLink element as well as xlink:arcrole attribute of a link:footnoteArc MUST be defined in the XBRL Specification 2.1."),
                 modelObject=footnoteRoleErrors)
 
-        nonStdFootnoteElts = list()
+        nonStdFootnoteElts: list[_Element] = list()
         for modelLink in modelXbrl.baseSets[("XBRL-footnotes",None,None,None)]:
             for uncast_elt in modelLink.iterchildren():
                 elt = cast(Any, uncast_elt)
 
-                if isinstance(elt, (_ElementTree, _Comment, _ProcessingInstruction)):
+                if isinstance(elt, (_Comment, _ElementTree, _Entity, _ProcessingInstruction)):
                     continue # comment or other non-parsed element
                 if elt.qname not in FOOTNOTE_LINK_CHILDREN:
                     nonStdFootnoteElts.append(elt)
@@ -851,10 +851,10 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
 
 
         # unused elements in linkbases
-        unreportedLbElts = set()
+        unreportedLbLocs = set()
         for arcroles, error, checkRoots, lbType in (
                     ((parentChild,), "elements{}UsedForTagging{}AppliedInPresentationLinkbase", True, "presentation"),
-                    ((summationItem,), "elements{}UsedForTagging{}AppliedInCalculationLinkbase", False, "calculation"),
+                    ((summationItems,), "elements{}UsedForTagging{}AppliedInCalculationLinkbase", False, "calculation"),
                     ((hc_all, hc_notAll, dimensionDomain,domainMember), "elements{}UsedForTagging{}AppliedInDefinitionLinkbase", False, "definition")):
             if lbType == "calculation":
                 reportedEltsNotInLb = set(c for c in conceptsUsedByFacts if c.isNumeric)
@@ -864,17 +864,33 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 for rel in modelXbrl.relationshipSet(arcrole).modelRelationships:
                     fr = rel.fromModelObject
                     to = rel.toModelObject
-                    if arcrole in (parentChild, summationItem):
+                    if arcrole in (parentChild, summationItems):
                         if fr is not None and not fr.isAbstract and fr not in conceptsUsed and isExtension(val, rel):
-                            unreportedLbElts.add(fr)
+                            unreportedLbLocs.add(rel.fromLocator)
                         if to is not None and not to.isAbstract and to not in conceptsUsed and isExtension(val, rel):
-                            unreportedLbElts.add(to)
+                            unreportedLbLocs.add(rel.toLocator)
                     elif arcrole in (hc_all, domainMember, dimensionDomain):
                         # all primary items
-                        if fr is not None and not fr.isAbstract and rel.isUsable and fr not in conceptsUsed and isExtension(val, rel) and not fr.type.isDomainItemType:
-                            unreportedLbElts.add(to)
-                        if to is not None and not to.isAbstract and rel.isUsable and to not in conceptsUsed and isExtension(val, rel) and not to.type.isDomainItemType:
-                            unreportedLbElts.add(to)
+                        if (
+                            fr is not None
+                            and fr.type is not None
+                            and not fr.isAbstract
+                            and rel.isUsable
+                            and fr not in conceptsUsed
+                            and isExtension(val, rel)
+                            and not fr.type.isDomainItemType
+                        ):
+                            unreportedLbLocs.add(rel.fromLocator)
+                        if (
+                            to is not None
+                            and to.type is not None
+                            and not to.isAbstract
+                            and rel.isUsable
+                            and to not in conceptsUsed
+                            and isExtension(val, rel)
+                            and not to.type.isDomainItemType
+                        ):
+                            unreportedLbLocs.add(rel.toLocator)
                     reportedEltsNotInLb.discard(fr)
                     reportedEltsNotInLb.discard(to)
 
@@ -889,11 +905,11 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
             if reportedEltsNotInLb and lbType != "calculation":
                 modelXbrl.warning(f"ESEF.3.4.6.UsableConceptsNotIncludedIn{lbType.title()}Link",
                     _("All concepts used by tagged facts SHOULD be in extension taxonomy %(linkbaseType)s relationships: %(elements)s."),
-                    modelObject=reportedEltsNotInLb, elements=", ".join(sorted((str(c.qname) for c in reportedEltsNotInLb))), linkbaseType=lbType)
-        if unreportedLbElts:
+                    modelObject=reportedEltsNotInLb, elements=", ".join(sorted(str(c.qname) for c in reportedEltsNotInLb)), linkbaseType=lbType)
+        if unreportedLbLocs:
             modelXbrl.warning("ESEF.3.4.6.UsableConceptsNotAppliedByTaggedFacts",
                 _("All usable concepts in extension taxonomy relationships SHOULD be applied by tagged facts: %(elements)s."),
-                modelObject=unreportedLbElts, elements=", ".join(sorted((str(c.qname) for c in unreportedLbElts))))
+                modelObject=unreportedLbLocs, elements=", ".join(sorted(str(loc.dereference().qname) for loc in unreportedLbLocs)))
 
         anchoringToAbstractConcept = set()
         for rel in modelXbrl.relationshipSet(widerNarrower).modelRelationships:

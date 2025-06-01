@@ -1,6 +1,7 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
+import bisect
 import fnmatch
 import os, sys, traceback, logging
 import time
@@ -12,6 +13,7 @@ from collections import defaultdict, OrderedDict
 from arelle import (FileSource, ModelXbrl, ModelDocument, ModelVersReport, XbrlConst,
                ValidateXbrl, ValidateVersReport,
                ValidateInfoset, ViewFileRenderedLayout, UrlUtil)
+from arelle.PythonUtil import isLegacyAbs
 from arelle.formula import ValidateFormula
 from arelle.ModelDocument import Type, ModelDocumentReference, load as modelDocumentLoad
 from arelle.ModelDtsObject import ModelResource
@@ -24,6 +26,7 @@ from arelle.PluginManager import pluginClassMethods
 from arelle.packages.report.DetectReportPackage import isReportPackageExtension
 from arelle.packages.report.ReportPackageValidator import ReportPackageValidator
 from arelle.rendering import RenderingEvaluator
+from arelle.utils.EntryPointDetection import filesourceEntrypointFiles
 from arelle.XmlUtil import collapseWhitespace, xmlstring
 
 def validate(modelXbrl):
@@ -143,6 +146,10 @@ class Validate:
         self.modelXbrl.info("info", "RSS Feed", modelDocument=self.modelXbrl)
         from arelle.FileSource import openFileSource
         reloadCache = getattr(self.modelXbrl, "reloadCache", False)
+        if self.modelXbrl.modelManager.formulaOptions.testcaseResultsCaptureWarnings:
+            errorCaptureLevel = logging._checkLevel("WARNING")
+        else:
+            errorCaptureLevel = logging._checkLevel("INCONSISTENCY")# default is INCONSISTENCY
         for rssItem in self.modelXbrl.modelDocument.rssItems:
             if getattr(rssItem, "skipRssItem", False):
                 self.modelXbrl.info("info", _("skipping RSS Item %(accessionNumber)s %(formType)s %(companyName)s %(period)s"),
@@ -152,9 +159,27 @@ class Validate:
                 modelObject=rssItem, accessionNumber=rssItem.accessionNumber, formType=rssItem.formType, companyName=rssItem.companyName, period=rssItem.period)
             modelXbrl = None
             try:
-                modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager,
-                                           openFileSource(rssItem.zippedUrl, self.modelXbrl.modelManager.cntlr, reloadCache=reloadCache),
-                                           _("validating"), rssItem=rssItem)
+                rssItemUrl = rssItem.zippedUrl
+                if self.useFileSource.isArchive and (isLegacyAbs(rssItemUrl) or not rssItemUrl.endswith(".zip")):
+                    modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager,
+                                               openFileSource(rssItemUrl, self.modelXbrl.modelManager.cntlr, reloadCache=reloadCache),
+                                               _("validating"), rssItem=rssItem)
+                else: # need own file source, may need instance discovery
+                    filesource = FileSource.openFileSource(rssItemUrl, self.modelXbrl.modelManager.cntlr)
+                    if filesource and not filesource.selection and filesource.isArchive:
+                        try:
+                            entrypoints = filesourceEntrypointFiles(filesource)
+                            if entrypoints:
+                                # resolve an IXDS in entrypoints
+                                for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ArchiveIxds"):
+                                    pluginXbrlMethod(self, filesource,entrypoints)
+                                filesource.select(entrypoints[0].get("file", None) )
+                        except Exception as err:
+                            self.modelXbrl.error("exception:" + type(err).__name__,
+                                _("RSS item validation exception: %(error)s, entry URL: %(instance)s"),
+                                modelXbrl=self.modelXbrl, instance=rssItemUrl, error=err)
+                            continue # don't try to load this entry URL
+                    modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager, filesource, _("validating"), rssItem=rssItem, errorCaptureLevel=errorCaptureLevel)
                 for pluginXbrlMethod in pluginClassMethods("RssItem.Xbrl.Loaded"):
                     pluginXbrlMethod(modelXbrl, {}, rssItem)
                 if getattr(rssItem, "doNotProcessRSSitem", False) or modelXbrl.modelDocument is None:
@@ -314,7 +339,7 @@ class Validate:
             PackageManager.packageInfo(self.modelXbrl.modelManager.cntlr, readMeFirstUri, reload=True, errors=modelXbrl.errors)
         else: # not a multi-schemaRef versioning report
             readMeFirstUriIsEmbeddedZipFile = False
-            if self.useFileSource.isArchive and not os.path.isabs(readMeFirstUri):
+            if self.useFileSource.isArchive and not isLegacyAbs(readMeFirstUri):
                 if isReportPackageExtension(readMeFirstUri):
                     readMeFirstUriIsEmbeddedZipFile = True
                 else:
@@ -337,7 +362,7 @@ class Validate:
                 newSourceFileSource = False
                 if (
                     self.useFileSource
-                    and not os.path.isabs(readMeFirstUri)
+                    and not isLegacyAbs(readMeFirstUri)
                     and (readMeFirstUriIsEmbeddedZipFile or isReportPackageExtension(readMeFirstUri))
                 ):
                     if self.useFileSource.isArchive:
@@ -370,13 +395,12 @@ class Validate:
                             filesource.loadTaxonomyPackageMappings(errors=preLoadingErrors, expectTaxonomyPackage=expectTaxonomyPackage)
                             filesource.select(None) # must select loadable reports (not the taxonomy package itself)
                         elif not filesource.isReportPackage:
-                            from arelle.CntlrCmdLine import filesourceEntrypointFiles
                             entrypoints = filesourceEntrypointFiles(filesource)
                             if entrypoints:
                                 # resolve an IXDS in entrypoints
                                 for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ArchiveIxds"):
                                     pluginXbrlMethod(self, filesource,entrypoints)
-                                filesource.select(entrypoints[0].get("file", None) )
+                                filesource.select(entrypoints[0].get("file", None))
                     except Exception as err:
                         self.modelXbrl.error("exception:" + type(err).__name__,
                             _("Testcase variation validation exception: %(error)s, entry URL: %(instance)s"),
@@ -384,17 +408,20 @@ class Validate:
                         return [] # don't try to load this entry URL
                 if filesource and filesource.isReportPackage and not _rptPkgIxdsOptions:
                     if not reportPackageErrors:
-                        for report in filesource.reportPackage.reports or []:
-                            assert isinstance(filesource.basefile, str)
-                            modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager,
-                                                        report.primary,
-                                                        _("validating"),
-                                                        useFileSource=filesource,
-                                                        base=filesource.basefile + "/",
-                                                        errorCaptureLevel=errorCaptureLevel,
-                                                        ixdsTarget=modelTestcaseVariation.ixdsTarget,
-                                                        errors=preLoadingErrors)
-                            loadedModels.append(modelXbrl)
+                        assert isinstance(filesource.basefile, str)
+                        if entrypoints := filesourceEntrypointFiles(filesource):
+                            for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ArchiveIxds"):
+                                pluginXbrlMethod(self, filesource, entrypoints)
+                            for entrypoint in entrypoints:
+                                filesource.select(entrypoint.get("file", None))
+                                modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager,
+                                                            filesource,
+                                                            _("validating"),
+                                                            base=filesource.basefile + "/",
+                                                            errorCaptureLevel=errorCaptureLevel,
+                                                            ixdsTarget=modelTestcaseVariation.ixdsTarget,
+                                                            errors=preLoadingErrors)
+                                loadedModels.append(modelXbrl)
                 else:
                     if _rptPkgIxdsOptions and filesource.isTaxonomyPackage:
                         # Legacy ESEF conformance suite logic.
@@ -468,9 +495,17 @@ class Validate:
         # validate schema, linkbase, or instance
         formulaOutputInstance = None
         modelXbrl = inputDTSes[None][0]
-        expectedDataFiles = set(modelXbrl.modelManager.cntlr.webCache.normalizeUrl(uri, baseForElement)
-                                for d in modelTestcaseVariation.dataUris.values() for uri in d
-                                if not UrlUtil.isAbsolute(uri))
+        expectedDataFiles = set()
+        expectedTaxonomyPackages = []
+        for localName, d in modelTestcaseVariation.dataUris.items():
+            for uri in d:
+                if not UrlUtil.isAbsolute(uri):
+                    normalizedUri = self.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(uri, baseForElement)
+                    if localName == "taxonomyPackage":
+                        expectedTaxonomyPackages.append(normalizedUri)
+                    else:
+                        expectedDataFiles.add(normalizedUri)
+        expectedTaxonomyPackages.sort()
         foundDataFiles = set()
         variationBase = os.path.dirname(baseForElement)
         for dtsName, inputDTS in inputDTSes.items():  # input instances are also parameters
@@ -485,16 +520,28 @@ class Validate:
                             if docUrl.replace("-formula.xml", ".xf") in expectedDataFiles:
                                 docUrl = docUrl.replace("-formula.xml", ".xf")
                         foundDataFiles.add(docUrl)
-        if expectedDataFiles - foundDataFiles:
+
+        foundDataFilesInTaxonomyPackages = set()
+        foundTaxonomyPackages = set()
+        for f in foundDataFiles:
+            if i := bisect.bisect(expectedTaxonomyPackages, f):
+                package = expectedTaxonomyPackages[i-1]
+                if f.startswith(package + "/"):
+                    foundDataFilesInTaxonomyPackages.add(f)
+                    foundTaxonomyPackages.add(package)
+
+        expectedNotFound = expectedDataFiles.union(expectedTaxonomyPackages) - foundDataFiles - foundTaxonomyPackages
+        if expectedNotFound:
             modelXbrl.info("arelle:testcaseDataNotUsed",
                 _("Variation %(id)s %(name)s data files not used: %(missingDataFiles)s"),
                 modelObject=modelTestcaseVariation, name=modelTestcaseVariation.name, id=modelTestcaseVariation.id,
-                missingDataFiles=", ".join(sorted(os.path.basename(f) for f in expectedDataFiles - foundDataFiles)))
-        if foundDataFiles - expectedDataFiles:
+                missingDataFiles=", ".join(sorted(os.path.basename(f) for f in expectedNotFound)))
+        foundNotExpected = foundDataFiles - expectedDataFiles - foundDataFilesInTaxonomyPackages
+        if foundNotExpected:
             modelXbrl.info("arelle:testcaseDataUnexpected",
                 _("Variation %(id)s %(name)s files not in variation data: %(unexpectedDataFiles)s"),
                 modelObject=modelTestcaseVariation, name=modelTestcaseVariation.name, id=modelTestcaseVariation.id,
-                unexpectedDataFiles=", ".join(sorted(os.path.basename(f) for f in foundDataFiles - expectedDataFiles)))
+                unexpectedDataFiles=", ".join(sorted(os.path.basename(f) for f in foundNotExpected)))
         if modelXbrl.hasTableRendering or modelTestcaseVariation.resultIsTable:
             try:
                 RenderingEvaluator.init(modelXbrl)
@@ -663,6 +710,7 @@ class Validate:
         testcaseExpectedErrors = self.modelXbrl.modelManager.formulaOptions.testcaseExpectedErrors or {}
         matchAllExpected = testcaseResultOptions == "match-all" or modelTestcaseVariation.match == 'all'
         expectedReportCount = modelTestcaseVariation.expectedReportCount
+        expectedWarnings = modelTestcaseVariation.expectedWarnings if self.modelXbrl.modelManager.formulaOptions.testcaseResultsCaptureWarnings else []
         if expectedReportCount is not None and validateModelCount is not None and expectedReportCount != validateModelCount:
             errors.append("conf:testcaseExpectedReportCountError")
         _blockedMessageCodes = modelTestcaseVariation.blockedMessageCodes # restricts codes examined when provided
@@ -685,6 +733,9 @@ class Validate:
         if userExpectedErrors := testcaseExpectedErrors.get(variationIdPath):
             if expected is None:
                 expected = []
+            if isinstance(expected, str):
+                assert expected in {"valid", "invalid"}, f"unhandled expected value string '{expected}'"
+                expected = []
             expected.extend(userExpectedErrors)
             if expectedCount is not None:
                 expectedCount += len(userExpectedErrors)
@@ -695,27 +746,30 @@ class Validate:
             elif expectedCount is None:
                 expectedCount = 0
         if expected == "valid":
-            if numErrors == 0:
-                status = "pass"
-            else:
-                status = "fail"
+            status = "pass" if numErrors == 0 else "fail"
         elif expected == "invalid":
-            if numErrors == 0:
-                status = "fail"
-            else:
-                status = "pass"
+            status = "fail" if numErrors == 0 else "pass"
         elif expected in (None, []) and numErrors == 0:
             status = "pass"
-        elif isinstance(expected,(QName,str,dict,list)): # string or assertion id counts dict
+        elif isinstance(expected, (QName, str, dict, list)) or expectedWarnings:
             status = "fail"
             _passCount = 0
             if isinstance(expected, list):
-                _expectedList = expected.copy() # need shallow copy
+                _expectedList = expected.copy()
+            elif not expected:
+                _expectedList = []
             else:
                 _expectedList = [expected]
-            if not isinstance(expected, list): expected = [expected]
+            if expectedWarnings:
+                _expectedList.extend(expectedWarnings)
+                if expectedCount is not None:
+                    expectedCount += len(expectedWarnings)
+                else:
+                    expectedCount = len(expectedWarnings)
+            if not isinstance(expected, list):
+                expected = [expected]
             for testErr in _errors:
-                if isinstance(testErr,str) and testErr.startswith("ESEF."): # compared as list of strings to QName localname
+                if isinstance(testErr, str) and testErr.startswith(("ESEF.", "NL.NL-KVK")): # compared as list of strings to QName localname
                     testErr = testErr.rpartition(".")[2]
                 for _exp in _expectedList:
                     _expMatched = False
@@ -728,7 +782,7 @@ class Validate:
                             # XDT xml schema tests expected results
                             (_exp.namespaceURI == XbrlConst.xdtSchemaErrorNS and errPrefix == "xmlSchema")):
                             _expMatched = True
-                    elif type(testErr) == type(_exp):
+                    elif type(testErr) is type(_exp):
                         if isinstance(testErr,dict):
                             if len(testErr) == len(_exp) and all(
                                 k in testErr and counts == testErr[k][:len(counts)]
@@ -742,6 +796,7 @@ class Validate:
                              (_exp == "EFM.6.04.03" and (testErr.startswith("xmlSchema:") or testErr.startswith("utr:") or testErr.startswith("xbrl.") or testErr.startswith("xlink:"))) or
                              (_exp == "EFM.6.05.35" and testErr.startswith("utre:")) or
                              (_exp.startswith("EFM.") and testErr.startswith(_exp)) or
+                             (_exp.startswith("EXG.") and testErr.startswith(_exp)) or
                              (_exp == "vere:invalidDTSIdentifier" and testErr.startswith("xbrl"))
                              ))):
                             _expMatched = True

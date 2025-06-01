@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 
+import logging
 import sys
 import time
 import traceback
@@ -817,7 +818,7 @@ expr <<= orExpr
 # doesn't reset the streamlined setting of the Forward expression instance.
 assert isinstance(expr.expr, ParserElement)
 expr.streamlined = expr.expr.streamlined
-xpathExpr = expr + StringEnd()  # type: ignore[no-untyped-call]
+xpathExpr = expr + StringEnd()
 
 
 # map operator symbols to corresponding arithmetic operations
@@ -898,7 +899,7 @@ isInitialized = False
 
 
 def initializeParser(modelManager: ModelManager) -> bool:
-    global isInitialized, ixtFunctionNamespaces
+    global isInitialized
     if not isInitialized:
         from arelle import FunctionIxt
         ixtFunctionNamespaces.update(FunctionIxt.ixtNamespaceFunctions.keys())
@@ -906,9 +907,14 @@ def initializeParser(modelManager: ModelManager) -> bool:
         modelManager.showStatus(_("initializing formula xpath2 grammar"))
         startedAt = time.time()
         xpathExpr.parse_string("0", parseAll=True)
-        modelManager.addToLog(format_string(modelManager.locale,
-                                    _("Formula xpath2 grammar initialized in %.2f secs"),
-                                    time.time() - startedAt))
+        modelManager.addToLog(
+            format_string(
+                modelManager.locale,
+                _("Formula xpath2 grammar initialized in %.2f secs"),
+                time.time() - startedAt
+            ),
+            level=logging.DEBUG
+        )
         modelManager.showStatus(None)
         isInitialized = True
         return True  # was initialized on this call

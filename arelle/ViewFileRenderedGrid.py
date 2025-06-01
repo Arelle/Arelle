@@ -16,7 +16,7 @@ from arelle.ModelRenderingObject import (StrctMdlBreakdown, StrctMdlStructuralNo
                                          OPEN_ASPECT_ENTRY_SURROGATE, ROLLUP_SPECIFIES_MEMBER, ROLLUP_FOR_DIMENSION_RELATIONSHIP_NODE,
                                          aspectStrctNodes)
 from arelle.rendering.RenderingLayout import layoutTable
-from arelle.rendering.RenderingResolution import resolveTableStructure, RENDER_UNITS_PER_CHAR
+from arelle.rendering.RenderingResolution import RENDER_UNITS_PER_CHAR
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import DEFAULT
 from arelle.ViewFile import HTML, XML
@@ -40,7 +40,7 @@ headerOmittedRollupAspects  = {
     Aspect.UNIT_MEASURES, Aspect.MULTIPLY_BY, Aspect.DIVIDE_BY}
 
 
-def viewRenderedGrid(modelXbrl, outfile, lang=None, viewTblELR=None, sourceView=None, diffToFile=False, cssExtras=""):
+def viewRenderedGrid(modelXbrl, outfile, lang=None, viewTblELR=None, sourceView=None, diffToFile=False, cssExtras="", table=None):
     modelXbrl.modelManager.showStatus(_("saving rendered tagle"))
     view = ViewRenderedGrid(modelXbrl, outfile, lang, cssExtras)
 
@@ -50,7 +50,7 @@ def viewRenderedGrid(modelXbrl, outfile, lang=None, viewTblELR=None, sourceView=
         else:
             lytMdlTblMdl = layoutTable(sourceView)
     else:
-        layoutTable(view)
+        layoutTable(view, table)
         lytMdlTblMdl = view.lytMdlTblMdl
     if view.tblElt is not None: # may be None if there is no table
         view.view(lytMdlTblMdl)

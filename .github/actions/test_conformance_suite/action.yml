@@ -23,8 +23,23 @@ runs:
       with:
         repository: Arelle/EDGAR
         path: arelle/plugin/EDGAR
+    - name: Checkout XULE
+      if: ${{ inputs.name == 'efm_current' }}
+      uses: actions/checkout@v4.2.2
+      with:
+        repository: xbrlus/xule
+        path: tmp
+        ref: ${{ inputs.xule_ref }}
+    - name: Setup XULE
+      if: ${{ inputs.name == 'efm_current' }}
+      shell: bash
+      run: |
+        mv tmp/plugin/validate/* arelle/plugin/validate/
+        rm -rf tmp/plugin/validate
+        mv tmp/plugin/* arelle/plugin/
+        rm -rf tmp
     - name: Install Python 3
-      uses: actions/setup-python@v5.3.0
+      uses: actions/setup-python@v5.6.0
       with:
         cache: 'pip'
         check-latest: true
@@ -57,7 +72,7 @@ runs:
         printf 'artifact-name=%s%s %s %s logs' "${{ inputs.short_name || inputs.name }}" "${{ inputs.shard && format(' {0}', inputs.shard) || '' }}" "${{ runner.os }}" "${{ inputs.python_version }}" >> $GITHUB_OUTPUT
     - name: Upload logs and reports
       if: always()
-      uses: actions/upload-artifact@v4.4.3
+      uses: actions/upload-artifact@v4.6.2
       with:
         name: ${{ steps.build-artifact-name.outputs.artifact-name }}
         if-no-files-found: error

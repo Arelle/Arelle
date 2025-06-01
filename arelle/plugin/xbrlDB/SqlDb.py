@@ -36,7 +36,7 @@ try:
     mysqlProgrammingError = pymysql.ProgrammingError
     mysqlInterfaceError = pymysql.InterfaceError
     mysqlInternalError = pymysql.InternalError
-except ImportError:
+except (ImportError, OSError):
     try :
         import MySQLdb  # LGPL License and used on GAE, Python 2.7 only
         hasMySql = True

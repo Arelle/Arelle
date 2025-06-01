@@ -22,7 +22,6 @@ SETUPTOOLS_SCM_PRETEND_VERSION=${VERSION} python3 distro.py build_exe
 DISTRO_DIR=$(find build -name "exe.linux-*")
 
 cp -p arelle/scripts-unix/* "${DISTRO_DIR}/"
-cp -pR libs/linux/Tktable2.11 "${DISTRO_DIR}/lib/"
 
 SITE_PACKAGES=$(python3 -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')
 

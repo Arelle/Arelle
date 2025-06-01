@@ -15,6 +15,7 @@ from urllib.parse import urljoin
 from lxml import etree
 
 from arelle import Locale
+from arelle.PythonUtil import isLegacyAbs
 from arelle.packages import PackageValidation
 from arelle.packages.PackageType import PackageType
 from arelle.typing import TypeGetText
@@ -129,7 +130,7 @@ def _parsePackageMetadata(
     try:
         metadataFileContent = filesource.file(metadataFile)[0] # URL in zip, plain file in file system or web
         tree = _parseFile(cntlr, parser, metadataFile, metadataFileContent, TP_XSD)
-    except (etree.XMLSyntaxError, etree.DocumentInvalid) as err:
+    except (etree.XMLSyntaxError, etree.DocumentInvalid, etree.XMLSchemaError) as err:
         cntlr.addToLog(_("Taxonomy package file syntax error %(error)s"),
                        messageArgs={"error": str(err)},
                        messageCode="tpe:invalidMetaDataFile",
@@ -314,7 +315,7 @@ def _parseCatalog(
                             replaceValue = os.path.join(base, replaceValue)
                         if replaceValue and not isAbsolute(replaceValue):
                             # neither None nor ''
-                            if not os.path.isabs(replaceValue):
+                            if not isLegacyAbs(replaceValue):
                                 replaceValue = fileBase + replaceValue
                             if not isHttpUrl(replaceValue):
                                 replaceValue = replaceValue.replace("/", os.sep)
@@ -342,7 +343,7 @@ packagesMappings = {}
 _cntlr = None
 
 def init(cntlr: Cntlr, loadPackagesConfig: bool = True) -> None:
-    global packagesJsonFile, packagesConfig, packagesMappings, _cntlr
+    global packagesJsonFile, packagesConfig, _cntlr
     if loadPackagesConfig:
         try:
             packagesJsonFile = cntlr.userAppDir + os.sep + "taxonomyPackages.json"
