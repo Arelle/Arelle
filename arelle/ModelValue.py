@@ -1013,6 +1013,7 @@ TypeXValue = Union[
     gMonthDay,
     gYearMonth,
     gYear,
+    IsoDuration,
     Fraction,
     list[Optional[QName]],
     None,

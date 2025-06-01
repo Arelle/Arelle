@@ -1,0 +1,333 @@
+{
+    "$schema": "../oim-taxonomy-schema.json",
+    "documentInfo": {
+        "documentType": "https://xbrl.org/2025/taxonomy",
+        "namespaces": {
+            "xbrl": "https://xbrl.org/2025",
+            "xbrli":"https://xbrl.org/2025/instance",
+            "xs": "http://www.w3.org/2001/XMLSchema",
+            "ref": "https://xbrl.org/2025/ref"
+            },
+        "documentNamespace":"ref"
+    },
+    "taxonomy": {
+        "resolved" : false,
+        "frameworkName": "ref",
+        "name": "ref:ReferencePropertiesTaxonomyModule",
+        "version": "2025",
+        "propertyTypes": [
+            {
+                "name": "ref:Publisher",
+                "dataType": "xs:string",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:referenceObject"
+                ]
+            },
+            {
+                "name": "ref:Name",
+                "dataType": "xs:string",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:referenceObject"
+                ]
+            },
+            {
+                "name": "ref:Number",
+                "dataType": "xs:string",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:referenceObject"
+                ]
+            },
+            {
+                "name": "ref:IssueDate",
+                "dataType": "xs:string",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:referenceObject"
+                ]
+            },
+            {
+                "name": "ref:Chapter",
+                "dataType": "xs:string",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:referenceObject"
+                ]
+            },
+            {
+                "name": "ref:Article",
+                "dataType": "xs:string",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:referenceObject"
+                ]
+            },
+            {
+                "name": "ref:Note",
+                "dataType": "xs:string",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:referenceObject"
+                ]
+            },
+            {
+                "name": "ref:Section",
+                "dataType": "xs:string",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:referenceObject"
+                ]
+            },
+            {
+                "name": "ref:Subsection",
+                "dataType": "xs:string",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:referenceObject"
+                ]
+            },
+            {
+                "name": "ref:Paragraph",
+                "dataType": "xs:string",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:referenceObject"
+                ]
+            },
+            {
+                "name": "ref:Subparagraph",
+                "dataType": "xs:string",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:referenceObject"
+                ]
+            },
+            {
+                "name": "ref:Clause",
+                "dataType": "xs:string",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:referenceObject"
+                ]
+            },
+            {
+                "name": "ref:Subclause",
+                "dataType": "xs:string",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:referenceObject"
+                ]
+            },
+            {
+                "name": "ref:Appendix",
+                "dataType": "xs:string",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:referenceObject"
+                ]
+            },
+            {
+                "name": "ref:Example",
+                "dataType": "xs:string",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:referenceObject"
+                ]
+            },
+            {
+                "name": "ref:Page",
+                "dataType": "xs:string",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:referenceObject"
+                ]
+            },
+            {
+                "name": "ref:Exhibit",
+                "dataType": "xs:string",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:referenceObject"
+                ]
+            },
+            {
+                "name": "ref:Footnote",
+                "dataType": "xs:string",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:referenceObject"
+                ]
+            },
+            {
+                "name": "ref:Sentence",
+                "dataType": "xs:string",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:referenceObject"
+                ]
+            },
+            {
+                "name": "ref:URI",
+                "dataType": "xs:anyURI",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:referenceObject"
+                ]
+            },
+            {
+                "name": "ref:URIDate",
+                "dataType": "xs:date",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:referenceObject"
+                ]
+            },
+            {
+                "name": "ref:Requirement",
+                "dataType": "xs:string",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:referenceObject"
+                ]
+            },
+            {
+                "name": "ref:Status",
+                "dataType": "xs:string",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:referenceObject"
+                ]
+            }
+        ],
+        "labels": [
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "ref:Publisher",
+                "value": "Publisher of the reference material, such as SEC, FASB, or AICPA."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "ref:Name",
+                "value": "Name refers to the specific publication. For example, 'Statement of Financial Standards', 'Statement of Position' or 'IFRS'. It does not include the number."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "ref:Number",
+                "value": "Number is used to record the actual number of the specific publication. For example, the number for FAS 133 would be 133."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "ref:IssueDate",
+                "value": "The issue date of the specific reference. The format is CCYY-MM-DD."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "ref:Chapter",
+                "value": "For a publication that uses chapters, this part should be used to capture this information. Because chapters are not necessarily numbers, this is a string."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "ref:Article",
+                "value": "Article refers to a statutory article in legal material."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "ref:Note",
+                "value": "Notes can contain reference material; use this element when the note is published as a standalone document. There is a separate element for footnotes within other references."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "ref:Section",
+                "value": "Section is used to capture information typically captured in sections of legislation or reference documents."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "ref:Subsection",
+                "value": "Subsection is a subsection of the section part."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "ref:Paragraph",
+                "value": "Paragraph is used to refer to specific paragraphs in a document."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "ref:Subparagraph",
+                "value": "Subparagraph of a paragraph."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "ref:Clause",
+                "value": "Sub component of a sub paragraph."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "ref:Subclause",
+                "value": "Subcomponent of a clause in a paragraph."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "ref:Appendix",
+                "value": "Refers to the name of an Appendix, which could be a number or text."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "ref:Example",
+                "value": "Example captures examples used in reference documentation; there is a separate element for Exhibits."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "ref:Page",
+                "value": "Page number of the reference material."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "ref:Exhibit",
+                "value": "Exhibit refers to exhibits in reference documentation; examples have a separate element."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "ref:Footnote",
+                "value": "Footnote is used to reference footnotes that appear in reference information."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "ref:Sentence",
+                "value": "In some reference material individual sentences can be referred to, and this element allows them to be referenced."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "ref:URI",
+                "value": "Full URI of the reference such as 'http://www.fasb.org/fas133'."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "ref:URIDate",
+                "value": "Date or DateTime that the URI was valid, in CCYY-MM-DD format."
+            }
+        ]
+    }
+}

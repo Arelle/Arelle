@@ -1,0 +1,1082 @@
+{
+    "$schema": "../oim-taxonomy-schema.json",
+    "documentInfo": {
+        "documentType": "https://xbrl.org/2025/taxonomy",
+        "namespaces": {
+            "xbrl": "https://xbrl.org/2025",
+            "xbrli":"https://xbrl.org/2025/instance",
+            "xs": "http://www.w3.org/2001/XMLSchema" 
+            },
+        "documentNamespace":"xbrl"
+    },
+    "taxonomy": {
+        "resolved" : false,
+        "name": "xbrl:CoreTaxonomyModule",
+        "frameworkName": "Core",
+        "version": "2025",
+        "cubeTypes" :[
+                {
+                    "name": "xbrl:eventCube",
+                    "periodDimension": false,
+                    "entityDimension": false,
+                    "unitDimension": false,
+                    "taxonomyDefinedDimension": true,
+                    "allowedCubeDimensions" : [
+                        {
+                        "dimensionType": "typed",
+                        "dimensionDataType": "xs:dateTime",
+                        "required" : true
+                        }
+                    ],
+                    "requiredCubeRelationships" : [
+                        {
+                        "source":"xs:dateTime",
+                        "relationshipTypeName": "xbrl:concept-refDimension",
+                        "target": "xbrl:period"
+                        }
+                    ]
+                },
+                {
+                    "name": "xbrl:eventDetailsCube",
+                    "periodDimension": false,
+                    "entityDimension": false,
+                    "unitDimension": false,
+                    "taxonomyDefinedDimension": true,
+                    "allowedCubeDimensions" : [
+                        {
+                            "dimensionType": "typed",
+                            "required" : true
+                        }
+                    ],
+                    "requiredCubeRelationships" : [
+                        {
+                            "relationshipTypeName": "xbrl:concept-refDimension"
+                        }
+                    ]
+                },
+                {
+                    "name": "xbrl:journalCube",
+                    "baseCubeType": "xbrl:eventDetailsCube"
+                },
+                {
+                    "name": "xbrl:referenceCube",
+                    "periodDimension": false,
+                    "entityDimension": false,
+                    "unitDimension": false,
+                    "taxonomyDefinedDimension": true,
+                    "allowedCubeDimensions" : [
+                        {
+                            "dimensionType": "typed",
+                            "required" : true
+                        }
+                    ]
+                },
+                {
+                    "name": "xbrl:timeSeriesCube",
+                    "periodDimension": false,
+                    "entityDimension": false,
+                    "unitDimension": false,
+                    "taxonomyDefinedDimension": true,
+                    "allowedCubeDimensions" : [
+                        {
+                            "dimensionType": "typed",
+                            "dimensionDataType": "xs:dateTime",
+                            "required" : true
+                        }
+                    ]
+                },
+                {
+                    "name": "xbrl:positionCube",
+                    "periodDimension": true,
+                    "entityDimension": true,
+                    "unitDimension": true,
+                    "taxonomyDefinedDimension": true,
+                    "allowedCubeDimensions" : [
+                        {
+                            "dimensionType": "typed",
+                            "required" : true
+                        }
+                    ]
+                },
+                {
+                    "name": "xbrl:reportCube",
+                    "periodDimension": true,
+                    "entityDimension": true,
+                    "unitDimension": true,
+                    "taxonomyDefinedDimension": true
+                },
+                {
+                    "name": "xbrl:defaultCube"
+                }
+
+        ],
+        "dimensions": [
+            {
+                "name": "xbrl:concept",
+                "domainRoot": "xbrl:conceptDomain"
+            },
+            {
+                "name": "xbrl:unit",
+                "domainRoot": "xbrl:unitDomain"
+            },
+            {
+                "name": "xbrl:period",
+                "domainDataType": "xbrli:periodType"
+            },
+            {
+                "name": "xbrl:entity",
+                "domainRoot": "xbrl:entityDomain"
+            },
+            {
+                "name": "xbrl:language",
+                "domainRoot": "xbrl:languageDomain"
+            }
+        ],
+        "domainRoots" : [
+            {
+                "name": "xbrl:conceptDomain"
+            },
+            {
+                "name": "xbrl:unitDomain"
+            },
+            {
+                "name": "xbrl:entityDomain"
+            },
+            {
+                "name": "xbrl:languageDomain"
+            }
+        ],
+        "labelTypes": [
+            {
+                "name": "xbrl:label",
+                "uri": "http://www.xbrl.org/2003/role/label"
+            },
+            {
+                "name": "xbrl:terseLabel",
+                "uri": "http://www.xbrl.org/2003/role/terseLabel"
+            },
+            {
+                "name": "xbrl:verboseLabel",
+                "uri": "http://www.xbrl.org/2003/role/verboseLabel"
+            },
+            {
+                "name": "xbrl:positiveLabel",
+                "uri": "http://www.xbrl.org/2003/role/positiveLabel",
+                "allowedObjects": [
+                    "xbrl:conceptObject"
+                ]
+            },
+            {
+                "name": "xbrl:positiveTerseLabel",
+                "uri": "http://www.xbrl.org/2003/role/positiveTerseLabel",
+                "allowedObjects": [
+                    "xbrl:conceptObject"
+                ]
+            },
+            {
+                "name": "xbrl:positiveVerboseLabel",
+                "uri": "http://www.xbrl.org/2003/role/positiveVerboseLabel",
+                "allowedObjects": [
+                    "xbrl:conceptObject"
+                ]
+            },
+            {
+                "name": "xbrl:negativeLabel",
+                "uri": "http://www.xbrl.org/2003/role/negativeLabel",
+                "allowedObjects": [
+                    "xbrl:conceptObject"
+                ]
+            },
+            {
+                "name": "xbrl:negativeTerseLabel",
+                "uri": "http://www.xbrl.org/2003/role/negativeTerseLabel",
+                "allowedObjects": [
+                    "xbrl:conceptObject"
+                ]
+            },
+            {
+                "name": "xbrl:negativeVerboseLabel",
+                "uri": "http://www.xbrl.org/2003/role/negativeVerboseLabel",
+                "allowedObjects": [
+                    "xbrl:conceptObject"
+                ]
+            },
+            {
+                "name": "xbrl:zeroLabel",
+                "uri": "http://www.xbrl.org/2003/role/zeroLabel",
+                "allowedObjects": [
+                    "xbrl:conceptObject"
+                ]
+            },
+            {
+                "name": "xbrl:zeroTerseLabel",
+                "uri": "http://www.xbrl.org/2003/role/zeroTerseLabel",
+                "allowedObjects": [
+                    "xbrl:conceptObject"
+                ]
+            },
+            {
+                "name": "xbrl:zeroVerboseLabel",
+                "uri": "http://www.xbrl.org/2003/role/zeroVerboseLabel",
+                "allowedObjects": [
+                    "xbrl:conceptObject"
+                ]
+            },
+            {
+                "name": "xbrl:totalLabel",
+                "uri": "http://www.xbrl.org/2003/role/totalLabel",
+                "allowedObjects": [
+                    "xbrl:conceptObject"
+                ]
+            },
+            {
+                "name": "xbrl:periodStartLabel",
+                "uri": "http://www.xbrl.org/2003/role/periodStartLabel",
+                "allowedObjects": [
+                    "xbrl:conceptObject"
+                ]
+            },
+            {
+                "name": "xbrl:periodEndLabel",
+                "uri": "http://www.xbrl.org/2003/role/periodEndLabel",
+                "allowedObjects": [
+                    "xbrl:conceptObject"
+                ]
+            },
+            {
+                "name": "xbrl:documentation",
+                "uri": "http://www.xbrl.org/2003/role/documentation"
+            },
+            {
+                "name": "xbrl:definitionGuidance",
+                "uri": "http://www.xbrl.org/2003/role/definitionGuidance"
+            },
+            {
+                "name": "xbrl:disclosureGuidance",
+                "uri": "http://www.xbrl.org/2003/role/disclosureGuidance"
+                
+            },
+            {
+                "name": "xbrl:presentationGuidance",
+                "uri": "http://www.xbrl.org/2003/role/presentationGuidance"
+                
+            },
+            {
+                "name": "xbrl:measurementGuidance",
+                "uri": "http://www.xbrl.org/2003/role/measurementGuidance"
+                
+            },
+            {
+                "name": "xbrl:commentaryGuidance",
+                "uri": "http://www.xbrl.org/2003/role/commentaryGuidance"
+                
+            },
+            {
+                "name": "xbrl:exampleGuidance",
+                "uri": "http://www.xbrl.org/2003/role/exampleGuidance"
+                
+            },
+            {
+                "name": "xbrl:commonPracticeRef",
+                "uri": "http://www.xbrl.org/2009/role/commonPracticeRef"
+            },
+            {
+                "name": "xbrl:deprecatedDateLabel",
+                "uri": "http://www.xbrl.org/2009/role/deprecatedDateLabel"
+            },
+            {
+                "name": "xbrl:deprecatedLabel",
+                "uri": "http://www.xbrl.org/2009/role/deprecatedLabel"
+            },
+            {
+                "name": "xbrl:negated",
+                "uri": "http://xbrl.us/us-gaap/role/label/negated",
+                "allowedObjects": [
+                    "xbrl:conceptObject"
+                ]
+            },
+            {
+                "name": "xbrl:negatedLabel",
+                "uri": "http://www.xbrl.org/2009/role/negatedLabel",
+                "allowedObjects": [
+                    "xbrl:conceptObject"
+                ]
+            },
+            {
+                "name": "xbrl:negatedNetLabel",
+                "uri": "http://www.xbrl.org/2009/role/negatedNetLabel",
+                "allowedObjects": [
+                    "xbrl:conceptObject"
+                ]
+            },
+            {
+                "name": "xbrl:negatedPeriodEnd",
+                "uri": "http://xbrl.us/us-gaap/role/label/negatedPeriodEnd",
+                "allowedObjects": [
+                    "xbrl:conceptObject"
+                ]
+            },
+            {
+                "name": "xbrl:negatedPeriodEndLabel",
+                "uri": "http://www.xbrl.org/2009/role/negatedPeriodEndLabel",
+                "allowedObjects": [
+                    "xbrl:conceptObject"
+                ]
+            },
+            {
+                "name": "xbrl:negatedPeriodStart",
+                "uri": "http://xbrl.us/us-gaap/role/label/negatedPeriodStart",
+                "allowedObjects": [
+                    "xbrl:conceptObject"
+                ]
+            },
+            {
+                "name": "xbrl:negatedPeriodStartLabel",
+                "uri": "http://www.xbrl.org/2009/role/negatedPeriodStartLabel",
+                "allowedObjects": [
+                    "xbrl:conceptObject"
+                ]
+            },
+            {
+                "name": "xbrl:negatedTerseLabel",
+                "uri": "http://www.xbrl.org/2009/role/negatedTerseLabel",
+                "allowedObjects": [
+                    "xbrl:conceptObject"
+                ]
+            },
+            {
+                "name": "xbrl:negatedTotal",
+                "uri": "http://xbrl.us/us-gaap/role/label/negatedTotal",
+                "allowedObjects": [
+                    "xbrl:conceptObject"
+                ]
+            },
+            {
+                "name": "xbrl:negatedTotalLabel",
+                "uri": "http://www.xbrl.org/2009/role/negatedTotalLabel",
+                "allowedObjects": [
+                    "xbrl:conceptObject"
+                ]
+            },
+            {
+                "name": "xbrl:negativePeriodEndLabel",
+                "uri": "http://www.xbrl.org/2009/role/negativePeriodEndTotalLabel",
+                "allowedObjects": [
+                    "xbrl:conceptObject"
+                ]
+            },
+            {
+                "name": "xbrl:negativePeriodEndTotalLabel",
+                "uri": "http://www.xbrl.org/2009/role/negativePeriodEndTotalLabel",
+                "allowedObjects": [
+                    "xbrl:conceptObject"
+                ]
+            },
+            {
+                "name": "xbrl:negativePeriodStartLabel",
+                "uri": "http://www.xbrl.org/2009/role/negativePeriodStartLabel",
+                "allowedObjects": [
+                    "xbrl:conceptObject"
+                ]
+            },
+            {
+                "name": "xbrl:negativePeriodStartTotalLabel",
+                "uri": "http://www.xbrl.org/2009/role/negativePeriodStartTotalLabel",
+                "allowedObjects": [
+                    "xbrl:conceptObject"
+                ]
+            },
+            {
+                "name": "xbrl:netLabel",
+                "uri": "http://www.xbrl.org/2009/role/netLabel",
+                "allowedObjects": [
+                    "xbrl:conceptObject"
+                ]
+            },
+            {
+                "name": "xbrl:positivePeriodEndLabel",
+                "uri": "http://www.xbrl.org/2009/role/positivePeriodEndLabel",
+                "allowedObjects": [
+                    "xbrl:conceptObject"
+                ]
+            },
+            {
+                "name": "xbrl:positivePeriodEndTotalLabel",
+                "uri": "http://www.xbrl.org/2009/role/positivePeriodStartTotalLabel",
+                "allowedObjects": [
+                    "xbrl:conceptObject"
+                ]
+            },
+            {
+                "name": "xbrl:positivePeriodStartLabel",
+                "uri": "http://www.xbrl.org/2009/role/positivePeriodStartLabel",
+                "allowedObjects": [
+                    "xbrl:conceptObject"
+                ]
+            },
+            {
+                "name": "xbrl:positivePeriodStartTotalLabel",
+                "uri": "http://www.xbrl.org/2009/role/positivePeriodStartTotalLabel",
+                "allowedObjects": [
+                    "xbrl:conceptObject"
+                ]
+            },
+            {
+                "name": "xbrl:restatedLabel",
+                "uri": "http://www.xbrl.org/2006/role/restatedLabel",
+                "allowedObjects": [
+                    "xbrl:conceptObject"
+                ]
+            },
+            {
+                "name": "xbrl:symbolLabel",
+                "allowedObjects": [
+                    "xbrl:unitObject"
+                ]
+            }
+        ],
+        "labels" : [
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:label",
+                "value": "Standard label for an object."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:terseLabel",
+                "value": "Short label for an object, often omitting text that should be inferable when the object is reported in the context of other related objects."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:verboseLabel",
+                "value": "Extended label for an object, making sure not to omit text that is required to enable the label to be understood on a stand alone basis."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:positiveLabel",
+                "value": "Label for a concept, when the value being presented is positive. For example, the standard and standard positive labels might be 'profit after tax' and the standard negative labels 'loss after tax', the terse label and terse positive labels might both be 'profit', while the negative terse label might be 'loss'."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:positiveTerseLabel",
+                "value": "Label for a concept, when the value being presented is positive. For example, the standard and standard positive labels might be 'profit after tax' and the standard negative labels 'loss after tax', the terse label and terse positive labels might both be 'profit', while the negative terse label might be 'loss'."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:positiveVerboseLabel",
+                "value": "Label for a concept, when the value being presented is positive. For example, the standard and standard positive labels might be 'profit after tax' and the standard negative labels 'loss after tax', the terse label and terse positive labels might both be 'profit', while the negative terse label might be 'loss'."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:negativeLabel",
+                "value": "Label for a concept, when the value being presented is negative. For example, the standard and standard positive labels might be 'profit after tax' and the standard negative labels 'loss after tax', the terse label and terse positive labels might both be 'profit', while the negative terse label might be 'loss'."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:negativeTerseLabel",
+                "value": "Label for a concept, when the value being presented is negative. For example, the standard and standard positive labels might be 'profit after tax' and the standard negative labels 'loss after tax', the terse label and terse positive labels might both be 'profit', while the negative terse label might be 'loss'."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:negativeVerboseLabel",
+                "value": "Label for a concept, when the value being presented is negative. For example, the standard and standard positive labels might be 'profit after tax' and the standard negative labels 'loss after tax', the terse label and terse positive labels might both be 'profit', while the negative terse label might be 'loss'."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:zeroLabel",
+                "value": "Label for a concept, when the value being presented is  zero."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:zeroTerseLabel",
+                "value": "Label for a concept, when the value being presented is  zero."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:zeroVerboseLabel",
+                "value": "Label for a concept, when the value being presented is  zero."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:totalLabel",
+                "value": "The label for a concept for use in presenting values associated with the concept when it is being reported as the total of a set of other values."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:periodStartLabel",
+                "value": "The label for a concept with periodType='instant' for use in presenting values associated with the concept when it is being reported as a start (end) of period value."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:periodEndLabel",
+                "value": "The label for a concept with periodType='instant' for use in presenting values associated with the object when it is being reported as a start (end) of period value."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:documentation",
+                "value": "Documentation of an object, providing an explanation of its meaning and its appropriate usage and any other documentation deemed necessary."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:definitionGuidance",
+                "value": "A precise definition of an object, providing an explanation of its meaning and its appropriate usage."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:disclosureGuidance",
+                "value": "An explanation of the disclosure requirements relating to the object. Indicates whether the disclosure is mandatory (i.e. prescribed by authoritative literature); recommended (i.e. encouraged by authoritative literature); common practice (i.e. not prescribed by authoritative literature, but disclosure is common); structural completeness (i.e., included to complete the structure of the taxonomy)."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:presentationGuidance",
+                "value": "An explanation of the rules guiding presentation (placement and/or labelling) of this object in the context of other objects in one or more specific types of business reports. For example, 'Net Surplus should be disclosed on the face of the Profit and Loss statement'."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:measurementGuidance",
+                "value": "An explanation of the method(s) required to be used when measuring values associated with this object in business reports."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:commentaryGuidance",
+                "value": "Any other general commentary on the object that assists in determining definition, disclosure, measurement, presentation or usage."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:exampleGuidance",
+                "value": "An example of the type of information intended to be captured by the object."
+            },
+        
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:commonPracticeRef",
+                "value": "Reference to documentation that details common practice."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:deprecatedDateLabel",
+                "value": "Label indicating the date when the concept was deprecated."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:deprecatedLabel",
+                "value": "Label indicating that the concept is deprecated."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:negated",
+                "value": "When this label is the preferred label on a presentation arc whose target is an element having a numeric type, a conforming processor will not only present the fact using the specified label but will also present the its fact values negated."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:negatedLabel",
+                "value": "Label for a concept, when the value being presented should be negated (sign of the value should be 'flipped'). For example, the standard and standard positive labels might be 'profit (loss) after tax' and the negated labels 'loss (profit) after tax'."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:negatedNetLabel",
+                "value": "Label indicating that the net value is negated."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:negatedPeriodEnd",
+                "value": "Indicates that the period end value is negated."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:negatedPeriodEndLabel",
+                "value": "Label for a concept, when the value being presented should be negated (sign of the value should be 'flipped'). For example, the standard and standard positive labels might be 'profit (loss) after tax' and the negated labels 'loss (profit) after tax'."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:negatedPeriodStart",
+                "value": "Indicates that the period start value is negated."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:negatedPeriodStartLabel",
+                "value": "Label for a concept, when the value being presented should be negated (sign of the value should be 'flipped'). For example, the standard and standard positive labels might be 'profit (loss) after tax' and the negated labels 'loss (profit) after tax'."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:negatedTerseLabel",
+                "value": "Short label indicating that the value is negated."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:negatedTotal",
+                "value": "Indicates that the total value is negated."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:negatedTotalLabel",
+                "value": "Label for a concept, when the value being presented should be negated (sign of the value should be 'flipped'). For example, the standard and standard positive labels might be 'profit (loss) after tax' and the negated labels 'loss (profit) after tax'."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:negativePeriodEndLabel",
+                "value": "Label for a concept with periodType='instant' for use in presenting values associated with the concept when it is being reported as a negative period end value."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:negativePeriodEndTotalLabel",
+                "value": "Label for a concept with periodType='instant' for use in presenting values associated with the concept when it is being reported as a negative period end total value."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:negativePeriodStartLabel",
+                "value": "Label for a concept with periodType='instant' for use in presenting values associated with the concept when it is being reported as a negative period start value."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:negativePeriodStartTotalLabel",
+                "value": "Label for a concept, when the value being presented is negative."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:netLabel",
+                "value": "The label for a concept for use in presenting values associated with the concept when it is being reported as the net of a set of other values. Net labels allows for expressing different labels than the one which would be used as total label if the presentation tree represents gross/net calculation instead of traditional calculation roll-up. For example standard label for 'Property, plant and equipment' can have total label 'Total property, plant and equipment' and net label 'Net property, plant and equipment'."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:positivePeriodEndLabel",
+                "value": "Label for a concept, when the value being presented is positive."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:positivePeriodEndTotalLabel",
+                "value": "Label for a concept, when the value being presented is positive."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:positivePeriodStartLabel",
+                "value": "Label for a concept with periodType='instant' for use in presenting values associated with the concept when it is being reported as a positive period start value."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:positivePeriodStartTotalLabel",
+                "value": "Label for a concept, when the value being presented is positive."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:restatedLabel",
+                "value": "At times an entity may restate certain account balances for financial reporting purposes. This may only occur according to specific reporting rules. For example, an entity may restate an equity account balance, say 'Reserves', due to an accounting change or fundamental error under International Financial Reporting Standards (IFRS). A separate label role is provided for such reporting of restated amounts, should they occur. The restated amount within a financial statement might provide a label such as 'Reserves, Restated Balance' to which this label role would be assigned to identify this type of label. Taxonomy creators would use this label role and provide a label which could be used on concepts that could be restated. Typically, these would be used on equity accounts."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:symbolLabel",
+                "value": "Label for a unit, when the unit is represented by a symbol."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:reference",
+                "value": "Standard reference for a Concept"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:definitionRef",
+                "value": "Reference to documentation that details a precise definition of the object."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:disclosureRef",
+                "value": "Reference to documentation that details an explanation of the disclosure requirements relating to the object. Specified categories include: mandatory, recommended"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:mandatoryDisclosureRef",
+                "value": "Reference to documentation that details an explanation of the disclosure requirements relating to the object. Specified categories include: mandatory"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:recommendedDisclosureRef",
+                "value": "Reference to documentation that details an explanation of the disclosure requirements relating to the object. Specified categories include: recommended"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:unspecifiedDisclosureRef",
+                "value": "Reference to documentation that details an explanation of the disclosure requirements relating to the object. Unspecified categories include, but are not limited to: common practice, structural completeness. The latter categories do not reference documentation but are indicated in the link role to indicate why the Concept has been included in the taxonomy."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:presentationRef",
+                "value": "Reference to documentation which details an explanation of the presentation, placement or labelling of this object in the context of other objects in one or more specific types of business reports"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:measurementRef",
+                "value": "Reference concerning the method(s) required to be used when measuring values associated with this object in business reports"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:commentaryRef",
+                "value": "Any other general commentary on the object that assists in determining appropriate usage"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:exampleRef",
+                "value": "Reference to documentation that illustrates by example the application of the object that assists in determining appropriate usage."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:dep-concept-deprecatedConcept",
+                "value": "Deprecated: concept - deprecated concept."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:dep-aggregateConcept-deprecatedPartConcept",
+                "value": "Deprecated: aggreate concept - deprecated part concept."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:dep-dimensionallyQualifiedConcept-deprecatedConcept",
+                "value": "Deprecated: dimensionally qualified concept - deprecated concept."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:dep-mutuallyExclusiveConcept-deprecatedConcept",
+                "value": "Deprecated: mutually exclusive concept - deprecated concept."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:dep-partConcept-deprecatedAggregateConcept",
+                "value": "Deprecated: part concept - deprecated aggregate concept."
+            }
+        ],
+        "propertyTypes": [
+            {
+                "name": "xbrl:balance",
+                "dataType": "xbrli:balanceType",
+                "definitional": true,
+                "allowedObjects": [
+                    "xbrl:conceptObject"
+                ]
+            },
+            {
+                "name": "xbrl:semanticLink",
+                "dataType": "xs:anyURI",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:referenceObject"
+                ]
+            },
+            {
+                "name": "xbrl:weight",
+                "dataType": "xs:decimal",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:relationshipObject"
+                ]
+            },
+            {
+                "name": "xbrl:aggregation",
+                "dataType": "xbrli:aggregationType",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:relationshipObject"
+                ]
+            },
+            {
+                "name": "xbrl:order",
+                "dataType": "xs:decimal",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:relationshipObject"
+                ]
+            },
+            {
+                "name":"xbrl:preferredLabel",
+                "dataType": "xs:QName",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:relationshipObject"
+                ]
+            },
+            {
+                "name":"xbrl:abstractDataType",
+                "dataType": "xs:QName",
+                "definitional": true,
+                "allowedObjects": [
+                    "xbrl:abstractObject"
+                ]
+            }
+        ],
+        "referenceTypes": [
+            {
+                "name": "xbrl:reference",
+                "uri": "http://www.xbrl.org/2003/role/reference"
+            },
+            {
+                "name": "xbrl:definitionRef",
+                "uri": "http://www.xbrl.org/2003/role/definitionRef"
+            },
+            {
+                "name": "xbrl:disclosureRef",
+                "uri": "http://www.xbrl.org/2003/role/disclosureRef"
+            },
+            {
+                "name": "xbrl:mandatoryDisclosureRef",
+                "uri": "http://www.xbrl.org/2003/role/mandatoryDisclosureRef"
+            },
+            {
+                "name": "xbrl:recommendedDisclosureRef",
+                "uri": "http://www.xbrl.org/2003/role/recommendedDisclosureRef"
+            },
+            {
+                "name": "xbrl:unspecifiedDisclosureRef",
+                "uri": "http://www.xbrl.org/2003/role/unspecifiedDisclosureRef"
+            },
+            {
+                "name": "xbrl:presentationRef",
+                "uri": "http://www.xbrl.org/2003/role/presentationRef"
+            },
+            {
+                "name": "xbrl:measurementRef",
+                "uri": "http://www.xbrl.org/2003/role/measurementRef"
+            },
+            {
+                "name": "xbrl:commentaryRef",
+                "uri": "http://www.xbrl.org/2003/role/commentaryRef"
+            },
+            {
+                "name": "xbrl:exampleRef",
+                "uri": "http://www.xbrl.org/2003/role/exampleRef"
+            },
+            {
+                "name":"xbrl:dataTypeRequirement",
+                "allowedObjects": [
+                    "xbrl:dataTypeObject"
+                ]
+            },
+            {
+                "name":"xbrl:specStatus",
+                "allowedObjects": [
+                    "xbrl:dataTypeObject"
+                ]
+            },
+            {
+                "name": "xbrl:semanticRef",
+                "requiredProperties" : [
+                    "xbrl:semanticLink"
+                ]
+            }
+        ],
+        "relationshipTypes": [
+            {
+                "name": "xbrl:parent-child",
+                "uri": "http://www.xbrl.org/2003/arcrole/parent-child",
+                "cycles" : "undirected",
+                "allowedLinkProperties" : ["xbrl:preferredLabel", "xbrl:order"],
+                "sourceObjects" : [
+                    "xbrl:conceptObject", 
+                    "xbrl:memberObject", 
+                    "xbrl:domainObject", 
+                    "xbrl:dimensionObject", 
+                    "xbrl:cubeObject", 
+                    "xbrl:entityObject",  
+                    "xbrl:unitObject",
+                    "xbrl:tableTemplateObject"
+                ],
+                "targetObjects" : [
+                    "xbrl:conceptObject", 
+                    "xbrl:memberObject", 
+                    "xbrl:domainObject", 
+                    "xbrl:dimensionObject", 
+                    "xbrl:cubeObject", 
+                    "xbrl:entityObject",  
+                    "xbrl:unitObject",
+                    "xbrl:tableTemplateObject"
+                ]
+            },
+            {
+                "name": "xbrl:summation-item",
+                "uri": "https://xbrl.org/2023/arcrole/summation-item",
+                "cycles" : "undirected",
+                "allowedLinkProperties" : ["xbrl:weight", "xbrl:order"],
+                "requiredLinkProperties" : ["xbrl:weight"],
+                "sourceObjects" : ["xbrl:conceptObject"],
+                "targetObjects" : ["xbrl:conceptObject"]
+            },
+            {
+                "name": "xbrl:class-subclass",
+                "uri": "http://www.xbrl.org/2003/arcrole/class-subclass",
+                "cycles" : "none",
+                "allowedLinkProperties" : ["xbrl:order"],
+                "sourceObjects" : ["xbrl:conceptObject"],
+                "targetObjects" : ["xbrl:conceptObject"]
+            },
+            {
+                "name": "xbrl:general-special",
+                "uri": "http://www.xbrl.org/2003/arcrole/general-special",
+                "cycles" : "undirected",
+                "allowedLinkProperties" : ["xbrl:order"],
+                "sourceObjects" : ["xbrl:conceptObject"],
+                "targetObjects" : ["xbrl:conceptObject"]
+            },
+            {
+                "name": "xbrl:instant-accrual",
+                "uri": "http://xbrl.org/oim/instant-accrual",
+                "cycles" : "undirected",
+                "sourceObjects" : ["xbrl:conceptObject"],
+                "targetObjects" : ["xbrl:conceptObject"]
+            },
+            {
+                "name": "xbrl:instant-inflow",
+                "uri": "http://xbrl.org/oim/instant-inflow",
+                "cycles" : "undirected",
+                "sourceObjects" : ["xbrl:conceptObject"],
+                "targetObjects" : ["xbrl:conceptObject"]
+            },
+            {
+                "name": "xbrl:instant-outflow",
+                "uri": "http://xbrl.org/oim/instant-outflow",
+                "cycles" : "none",
+                "sourceObjects" : ["xbrl:conceptObject"],
+                "targetObjects" : ["xbrl:conceptObject"]
+            },
+            {
+                "name": "xbrl:instant-contra",
+                "uri": "http://xbrl.org/oim/instant-contra",
+                "cycles" : "undirected",
+                "sourceObjects" : ["xbrl:conceptObject"],
+                "targetObjects" : ["xbrl:conceptObject"]
+            },
+            {
+                "name": "xbrl:property-concept",
+                "uri": "http://xbrl.org/oim/property-concept",
+                "cycles" : "undirected",
+                "allowedLinkProperties" : ["xbrl:propertyObject"],
+                "requiredLinkProperties" : ["xbrl:propertyObject"],
+                "sourceObjects" : ["xbrl:memberObject"],
+                "targetObjects" : ["xbrl:conceptObject"]
+            },
+            {
+                "name": "xbrl:concept-refDimension",
+                "uri": "http://xbrl.org/oim/concept-refDimension",
+                "cycles" : "undirected",
+                "sourceObjects" : ["xbrl:conceptObject"],
+                "targetObjects" : ["xbrl:dimensionObject"]
+            },
+            {
+                "name": "xbrl:concept-aggDimension",
+                "uri": "http://xbrl.org/oim/concept-aggDimension",
+                "cycles" : "undirected",
+                "allowedLinkProperties" : ["xbrl:aggregation"],
+                "requiredLinkProperties" : ["xbrl:aggregation"],
+                "sourceObjects" : ["xbrl:conceptObject"],
+                "targetObjects" : ["xbrl:dimensionObject"]
+            },
+            {
+                "name": "xbrl:unit-factConcept",
+                "uri": "http://xbrl.org/oim/unit-factConcept",
+                "cycles" : "undirected",
+                "sourceObjects" : ["xbrl:unitObject"],
+                "targetObjects" : ["xbrl:conceptObject"]
+            },
+            {
+                "name": "xbrl:unitFact-factConcept",
+                "uri": "http://xbrl.org/oim/unitFact-factConcept",
+                "cycles" : "undirected",
+                "sourceObjects" : ["xbrl:conceptObject"],
+                "targetObjects" : ["xbrl:conceptObject"]
+            },
+            {
+                "name": "xbrl:dep-concept-deprecatedConcept",
+                "uri": "http://www.xbrl.org/2009/arcrole/dep-concept-deprecatedConcept",
+                "cycles" : "undirected",
+                "sourceObjects" : ["xbrl:conceptObject"],
+                "targetObjects" : ["xbrl:conceptObject"]
+            },
+            {
+                "name": "xbrl:dep-aggregateConcept-deprecatedPartConcept",
+                "uri": "http://www.xbrl.org/2009/arcrole/dep-aggregateConcept-deprecatedPartConcept",
+                "cycles" : "undirected",
+                "sourceObjects" : ["xbrl:conceptObject"],
+                "targetObjects" : ["xbrl:conceptObject"]
+            },
+            {
+                "name": "xbrl:dep-dimensionallyQualifiedConcept-deprecatedConcept",
+                "uri": "http://www.xbrl.org/2009/arcrole/dep-dimensionallyQualifiedConcept-deprecatedConcept",
+                "cycles" : "undirected",
+                "sourceObjects" : ["xbrl:conceptObject"],
+                "targetObjects" : ["xbrl:conceptObject"]
+            },
+            {
+                "name": "xbrl:dep-mutuallyExclusiveConcept-deprecatedConcept",
+                "uri": "http://www.xbrl.org/2009/arcrole/dep-mutuallyExclusiveConcept-deprecatedConcept",
+                "cycles" : "undirected",
+                "sourceObjects" : ["xbrl:conceptObject"],
+                "targetObjects" : ["xbrl:conceptObject"]
+            },
+            {
+                "name": "xbrl:dep-partConcept-deprecatedAggregateConcept",
+                "uri": "http://www.xbrl.org/2009/arcrole/dep-partConcept-deprecatedAggregateConcept",
+                "cycles" : "undirected",
+                "sourceObjects" : ["xbrl:conceptObject"],
+                "targetObjects" : ["xbrl:conceptObject"]
+            }
+        ]
+        
+    }
+}

@@ -1,0 +1,4479 @@
+{
+    "$schema": "./oim-schema.json",
+    "documentInfo": {
+        "documentType": "https://xbrl.org/2025/taxonomy",
+        "namespaces": {
+            "xbrl": "https://xbrl.org/2025",
+            "xbrli":"https://xbrl.org/2025/instance",
+            "xs": "http://www.w3.org/2001/XMLSchema",
+            "iso4217": "http://www.xbrl.org/2003/iso4217",
+            "utr": "https://xbrl.org/2025/utr"
+            },
+        "documentNamespace":"iso4217"
+    },
+    "taxonomy": {
+        "resolved" : false,
+        "frameworkName": "iso4217",
+        "name": "iso4217:iso4217TaxonomyModule",
+        "version": "2025",
+        "importedTaxonomies": [
+            {
+                "taxonomyName" :"utr:UnitsTaxonomyModule",
+                "includeObjectTypes": ["xbrl:propertyObject", "xbrl:referenceTypeObject"]
+            }
+        ],
+        "units": [
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:AED"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:AFN"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:ALL"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:AMD"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:ANG"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:AOA"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:ARS"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:AUD"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:AWG"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:AZN"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:BAM"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:BBD"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:BDT"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:BGN"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:BHD"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:BIF"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:BMD"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:BND"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:BOB"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:BOV"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:BRL"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:BSD"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:BTN"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:BWP"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:BYN"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:BYR"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:BZD"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:CAD"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:CDF"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:CHE"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:CHF"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:CHW"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:CLF"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:CLP"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:CNY"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:COP"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:COU"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:CRC"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:CUC"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:CUP"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:CVE"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:CZK"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:DJF"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:DKK"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:DOP"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:DZD"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:EEK"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:EGP"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:ERN"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:ETB"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:EUR"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:FJD"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:FKP"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:GBP"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:GEL"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:GHS"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:GIP"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:GMD"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:GNF"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:GTQ"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:GYD"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:HKD"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:HNL"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:HRK"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:HTG"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:HUF"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:IDR"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:ILS"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:INR"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:IQD"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:IRR"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:ISK"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:JMD"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:JOD"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:JPY"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:KES"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:KGS"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:KHR"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:KMF"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:KPW"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:KRW"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:KWD"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:KYD"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:KZT"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:LAK"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:LBP"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:LKR"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:LRD"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:LSL"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:LTL"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:LVL"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:LYD"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:MAD"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:MDL"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:MGA"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:MKD"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:MMK"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:MNT"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:MOP"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:MRO"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:MRU"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:MUR"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:MVR"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:MWK"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:MXN"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:MXV"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:MYR"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:MZN"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:NAD"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:NGN"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:NIO"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:NOK"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:NPR"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:NZD"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:OMR"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:PAB"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:PEN"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:PGK"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:PHP"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:PKR"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:PLN"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:PYG"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:QAR"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:RON"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:RSD"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:RUB"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:RWF"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:SAR"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:SBD"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:SCR"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:SDG"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:SEK"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:SGD"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:SHP"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:SLL"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:SLE"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:SOS"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:SRD"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:SSP"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:STD"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:STN"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:SVC"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:SYP"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:SZL"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:THB"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:TJS"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:TMT"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:TND"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:TOP"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:TRY"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:TTD"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:TWD"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:TZS"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:UAH"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:UGX"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:USD"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:USN"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:USS"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:UYI"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:UYU"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:UYW"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:UZS"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:VEB"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:VEF"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:VES"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:VED"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:VND"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:VUV"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:WST"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:XAF"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:XAG"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:XAU"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:XBA"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:XBB"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:XBC"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:XBD"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:XCD"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:XDR"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:XFU"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:XOF"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:XPD"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:XPF"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:XPT"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:XSU"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:XUA"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:YER"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:ZAR"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:ZMK"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:ZMW"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:ZWG"
+            },
+            {
+                "dataType": "xbrli:monetary",
+                "name": "iso4217:ZWL"
+            }
+        ],
+        "labels": [
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:AED",
+                "value": "U.A.E. dirham"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:AED",
+                "value": "د.إ"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:AED",
+                "value": "United Arab Emirates dirham"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:AFN",
+                "value": "Afghan afghani"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:AFN",
+                "value": "؋"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:AFN",
+                "value": "Afghan afghani"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:ALL",
+                "value": "Albanian lek"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:ALL",
+                "value": "L"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:ALL",
+                "value": "Albanian lek"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:AMD",
+                "value": "Armenian dram"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:AMD",
+                "value": "֏"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:AMD",
+                "value": "Armenian dram"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:ANG",
+                "value": "Netherlands Antillean guilder"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:ANG",
+                "value": "NAƒ"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:ANG",
+                "value": "Netherlands Antillean guilder"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:AOA",
+                "value": "Angolan kwanza"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:AOA",
+                "value": "Kz"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:AOA",
+                "value": "Angolan kwanza"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:ARS",
+                "value": "Argentine peso"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:ARS",
+                "value": "$"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:ARS",
+                "value": "Argentine peso"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:AUD",
+                "value": "Australian dollar"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:AUD",
+                "value": "$"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:AUD",
+                "value": "Australian dollar"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:AWG",
+                "value": "Aruban florin"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:AWG",
+                "value": "ƒ"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:AWG",
+                "value": "Aruban florin"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:AZN",
+                "value": "Azerbaijani manat"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:AZN",
+                "value": "₼"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:AZN",
+                "value": "Azerbaijani manat"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:BAM",
+                "value": "Bosnia and Herzegovina convertible mark"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:BAM",
+                "value": "KM"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:BAM",
+                "value": "Bosnia and Herzegovina convertible mark"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:BBD",
+                "value": "Barbados dollar"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:BBD",
+                "value": "$"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:BBD",
+                "value": "Barbados dollar"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:BDT",
+                "value": "Bangladeshi taka"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:BDT",
+                "value": "৳"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:BDT",
+                "value": "Bangladeshi taka"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:BGN",
+                "value": "Bulgarian lev"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:BGN",
+                "value": "лв"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:BGN",
+                "value": "Bulgarian lev"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:BHD",
+                "value": "Bahraini dinar"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:BHD",
+                "value": ".د.ب"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:BHD",
+                "value": "Bahraini dinar"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:BIF",
+                "value": "Burundian franc"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:BIF",
+                "value": "FBu"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:BIF",
+                "value": "Burundian franc"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:BMD",
+                "value": "Bermuda Dollar"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:BMD",
+                "value": "$"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:BMD",
+                "value": "Bermudian dollar (customarily known as Bermuda dollar)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:BND",
+                "value": "Brunei dollar"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:BND",
+                "value": "$"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:BND",
+                "value": "Brunei dollar"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:BOB",
+                "value": "Boliviano"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:BOB",
+                "value": "Bs."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:BOB",
+                "value": "Boliviano"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:BOV",
+                "value": "Bolivian Mvdol"
+            },
+            
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:BOV",
+                "value": "Bolivian Mvdol (funds code)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:BRL",
+                "value": "Brazilian real"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:BRL",
+                "value": "R$"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:BRL",
+                "value": "Brazilian real"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:BSD",
+                "value": "Bahamian dollar"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:BSD",
+                "value": "$"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:BSD",
+                "value": "Bahamian dollar"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:BTN",
+                "value": "Bhutanese ngultrum"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:BTN",
+                "value": "Ch."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:BTN",
+                "value": "Bhutanese ngultrum"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:BWP",
+                "value": "Botswana pula"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:BWP",
+                "value": "P"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:BWP",
+                "value": "Botswana pula"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:BYN",
+                "value": "Belarusian ruble"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:BYN",
+                "value": "Br"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:BYN",
+                "value": "Belarusian ruble"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:BYR",
+                "value": "Belarusian ruble"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:BYR",
+                "value": "Br"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:BYR",
+                "value": "Belarusian ruble"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:BZD",
+                "value": "Belize dollar"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:BZD",
+                "value": "$"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:BZD",
+                "value": "Belize dollar"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:CAD",
+                "value": "Canadian dollar"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:CAD",
+                "value": "$"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:CAD",
+                "value": "Canadian dollar"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:CDF",
+                "value": "Congolese franc"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:CDF",
+                "value": "CF"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:CDF",
+                "value": "Congolese franc"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:CHE",
+                "value": "WIR Bank"
+            },
+            
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:CHE",
+                "value": "WIR Bank (complementary currency)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:CHF",
+                "value": "Swiss franc"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:CHF",
+                "value": "SFr"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:CHF",
+                "value": "Swiss franc"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:CHW",
+                "value": "WIR Bank"
+            },
+            
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:CHW",
+                "value": "WIR Bank (complementary currency)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:CLF",
+                "value": "Unidad de Fomento"
+            },
+           
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:CLF",
+                "value": "Unidad de Fomento (funds code)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:CLP",
+                "value": "Chilean peso"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:CLP",
+                "value": "$"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:CLP",
+                "value": "Chilean peso"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:CNY",
+                "value": "Chinese yuan"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:CNY",
+                "value": "¥"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:CNY",
+                "value": "Chinese yuan (renmibi)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:COP",
+                "value": "Colombian peso"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:COP",
+                "value": "$"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:COP",
+                "value": "Colombian peso"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:COU",
+                "value": "Unidad de Valor Real"
+            },
+            
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:COU",
+                "value": "Unidad de Valor Real"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:CRC",
+                "value": "Costa Rican colon"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:CRC",
+                "value": "₡"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:CRC",
+                "value": "Costa Rican colon"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:CUC",
+                "value": "Cuban convertible peso"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:CUC",
+                "value": "CUC$"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:CUC",
+                "value": "Cuban convertible peso"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:CUP",
+                "value": "Cuban peso"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:CUP",
+                "value": "$MN"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:CUP",
+                "value": "Cuban peso"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:CVE",
+                "value": "Cape Verde escudo"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:CVE",
+                "value": "Esc"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:CVE",
+                "value": "Cape Verde escudo"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:CZK",
+                "value": "Czech koruna"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:CZK",
+                "value": "Kč"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:CZK",
+                "value": "Czech koruna"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:DJF",
+                "value": "Djiboutian franc"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:DJF",
+                "value": "Fdj"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:DJF",
+                "value": "Djiboutian franc"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:DKK",
+                "value": "Danish krone"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:DKK",
+                "value": "kr"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:DKK",
+                "value": "Danish krone"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:DOP",
+                "value": "Dominican peso"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:DOP",
+                "value": "$"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:DOP",
+                "value": "Dominican peso"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:DZD",
+                "value": "Algerian dinar"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:DZD",
+                "value": "دج"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:DZD",
+                "value": "Algerian dinar"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:EEK",
+                "value": "Estonian kroon"
+            },
+            
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:EEK",
+                "value": "Estonian kroon"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:EGP",
+                "value": "Egyptian pound"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:EGP",
+                "value": "ج.م."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:EGP",
+                "value": "Egyptian pound"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:ERN",
+                "value": "Eritrean nakfa"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:ERN",
+                "value": "Nfk"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:ERN",
+                "value": "Eritrean nakfa"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:ETB",
+                "value": "Ethiopian birr"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:ETB",
+                "value": "Br"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:ETB",
+                "value": "Ethiopian birr"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:EUR",
+                "value": "Euro"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:EUR",
+                "value": "€"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:EUR",
+                "value": "Euro"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:FJD",
+                "value": "Fiji dollar"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:FJD",
+                "value": "$"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:FJD",
+                "value": "Fiji dollar"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:FKP",
+                "value": "Falkland Islands pound"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:FKP",
+                "value": "£"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:FKP",
+                "value": "Falkland Islands pound"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:GBP",
+                "value": "Pound sterling"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:GBP",
+                "value": "£"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:GBP",
+                "value": "Great Britain Pound sterling"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:GEL",
+                "value": "Georgian lari"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:GEL",
+                "value": "ლ"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:GEL",
+                "value": "Georgian lari"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:GHS",
+                "value": "Ghanaian cedi"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:GHS",
+                "value": "GH₵"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:GHS",
+                "value": "Ghanaian cedi"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:GIP",
+                "value": "Gibraltar pound"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:GIP",
+                "value": "£"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:GIP",
+                "value": "Gibraltar pound"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:GMD",
+                "value": "Gambian dalasi"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:GMD",
+                "value": "D"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:GMD",
+                "value": "Gambian dalasi"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:GNF",
+                "value": "Guinean franc"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:GNF",
+                "value": "FG"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:GNF",
+                "value": "Guinean franc"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:GTQ",
+                "value": "Guatemalan quetzal"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:GTQ",
+                "value": "Q"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:GTQ",
+                "value": "Guatemalan quetzal"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:GYD",
+                "value": "Guyanese dollar"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:GYD",
+                "value": "$"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:GYD",
+                "value": "Guyanese dollar"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:HKD",
+                "value": "Hong Kong dollar"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:HKD",
+                "value": "$"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:HKD",
+                "value": "Hong Kong dollar"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:HNL",
+                "value": "Honduran lempira"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:HNL",
+                "value": "L"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:HNL",
+                "value": "Honduran lempira"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:HRK",
+                "value": "Croatian kuna"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:HRK",
+                "value": "kn"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:HRK",
+                "value": "Croatian kuna"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:HTG",
+                "value": "Haitian gourde"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:HTG",
+                "value": "G"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:HTG",
+                "value": "Haitian gourde"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:HUF",
+                "value": "Hungarian forint"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:HUF",
+                "value": "Ft"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:HUF",
+                "value": "Hungarian forint"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:IDR",
+                "value": "Indonesian rupiah"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:IDR",
+                "value": "Rp"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:IDR",
+                "value": "Indonesian rupiah"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:ILS",
+                "value": "Israeli new sheqel"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:ILS",
+                "value": "₪"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:ILS",
+                "value": "Israeli new sheqel"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:INR",
+                "value": "Indian rupee"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:INR",
+                "value": "₨"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:INR",
+                "value": "Indian rupee"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:IQD",
+                "value": "Iraqi dinar"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:IQD",
+                "value": "د.ع"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:IQD",
+                "value": "Iraqi dinar"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:IRR",
+                "value": "Iranian rial"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:IRR",
+                "value": "﷼"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:IRR",
+                "value": "Iranian rial"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:ISK",
+                "value": "Icelandic króna"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:ISK",
+                "value": "kr"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:ISK",
+                "value": "Icelandic króna"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:JMD",
+                "value": "Jamaican dollar"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:JMD",
+                "value": "$"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:JMD",
+                "value": "Jamaican dollar"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:JOD",
+                "value": "Jordanian dinar"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:JOD",
+                "value": "JD"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:JOD",
+                "value": "Jordanian dinar"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:JPY",
+                "value": "Japanese yen"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:JPY",
+                "value": "¥"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:JPY",
+                "value": "Japanese yen"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:KES",
+                "value": "Kenyan shilling"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:KES",
+                "value": "Ksh"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:KES",
+                "value": "Kenyan shilling"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:KGS",
+                "value": "Kyrgyzstani som"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:KGS",
+                "value": "сом"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:KGS",
+                "value": "Kyrgyzstani som"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:KHR",
+                "value": "Cambodian riel"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:KHR",
+                "value": "៛"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:KHR",
+                "value": "Cambodian riel"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:KMF",
+                "value": "Comoro franc"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:KMF",
+                "value": "₣"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:KMF",
+                "value": "Comoro franc"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:KPW",
+                "value": "North Korean won"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:KPW",
+                "value": "₩"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:KPW",
+                "value": "North Korean won"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:KRW",
+                "value": "South Korean won"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:KRW",
+                "value": "₩"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:KRW",
+                "value": "South Korean won"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:KWD",
+                "value": "Kuwaiti dinar"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:KWD",
+                "value": "د.ك"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:KWD",
+                "value": "Kuwaiti dinar"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:KYD",
+                "value": "Cayman Islands dollar"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:KYD",
+                "value": "$"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:KYD",
+                "value": "Cayman Islands dollar"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:KZT",
+                "value": "Kazakhstani tenge"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:KZT",
+                "value": "₸"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:KZT",
+                "value": "Kazakhstani tenge"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:LAK",
+                "value": "Lao kip"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:LAK",
+                "value": "₭"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:LAK",
+                "value": "Lao kip"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:LBP",
+                "value": "Lebanese pound"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:LBP",
+                "value": "LL"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:LBP",
+                "value": "Lebanese pound"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:LKR",
+                "value": "Sri Lanka rupee"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:LKR",
+                "value": "රු"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:LKR",
+                "value": "Sri Lanka rupee"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:LRD",
+                "value": "Liberian dollar"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:LRD",
+                "value": "$"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:LRD",
+                "value": "Liberian dollar"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:LSL",
+                "value": "Lesotho loti"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:LSL",
+                "value": "M"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:LSL",
+                "value": "Lesotho loti"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:LTL",
+                "value": "Lithuanian litas"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:LTL",
+                "value": "Lt"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:LTL",
+                "value": "Lithuanian litas"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:LVL",
+                "value": "Latvian lats"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:LVL",
+                "value": "Ls"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:LVL",
+                "value": "Latvian lats"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:LYD",
+                "value": "Libyan dinar"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:LYD",
+                "value": "ل.د"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:LYD",
+                "value": "Libyan dinar"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:MAD",
+                "value": "Moroccan dirham"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:MAD",
+                "value": "د.م."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:MAD",
+                "value": "Moroccan dirham"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:MDL",
+                "value": "Moldovan leu"
+            },
+            
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:MDL",
+                "value": "Moldovan leu"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:MGA",
+                "value": "Malagasy ariary"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:MGA",
+                "value": "Ar"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:MGA",
+                "value": "Malagasy ariary"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:MKD",
+                "value": "Macedonian denar"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:MKD",
+                "value": "ден"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:MKD",
+                "value": "Macedonian denar"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:MMK",
+                "value": "Myanma kyat"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:MMK",
+                "value": "K"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:MMK",
+                "value": "Myanma kyat"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:MNT",
+                "value": "Mongolian tugrik"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:MNT",
+                "value": "₮"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:MNT",
+                "value": "Mongolian tugrik"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:MOP",
+                "value": "Macanese pataca"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:MOP",
+                "value": "MOP$"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:MOP",
+                "value": "Macanese pataca"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:MRO",
+                "value": "Mauritanian ouguiya"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:MRO",
+                "value": "UM"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:MRO",
+                "value": "Ouguiya (Mauritania)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:MRU",
+                "value": "Mauritanian ouguiya"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:MRU",
+                "value": "UM"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:MRU",
+                "value": "Ouguiya (Mauritania)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:MUR",
+                "value": "Mauritian rupee"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:MUR",
+                "value": "₨"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:MUR",
+                "value": "Mauritian rupee"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:MVR",
+                "value": "Maldivian rufiyaa"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:MVR",
+                "value": "Rf."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:MVR",
+                "value": "Maldivian rufiyaa"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:MWK",
+                "value": "Malawian kwacha"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:MWK",
+                "value": "MK"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:MWK",
+                "value": "Malawian kwacha"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:MXN",
+                "value": "Mexican peso"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:MXN",
+                "value": "$"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:MXN",
+                "value": "Mexican peso"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:MXV",
+                "value": "Mexican UDI"
+            },
+            
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:MXV",
+                "value": "Mexican Unidad de Inversion (UDI) (funds code)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:MYR",
+                "value": "Malaysian ringgit"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:MYR",
+                "value": "RM"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:MYR",
+                "value": "Malaysian ringgit"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:MZN",
+                "value": "Mozambican metical"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:MZN",
+                "value": "MT"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:MZN",
+                "value": "Mozambican metical"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:NAD",
+                "value": "Namibian dollar"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:NAD",
+                "value": "$"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:NAD",
+                "value": "Namibian dollar"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:NGN",
+                "value": "Nigerian naira"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:NGN",
+                "value": "₦"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:NGN",
+                "value": "Nigerian naira"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:NIO",
+                "value": "Cordoba oro"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:NIO",
+                "value": "C$"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:NIO",
+                "value": "Cordoba oro"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:NOK",
+                "value": "Norwegian krone"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:NOK",
+                "value": "kr"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:NOK",
+                "value": "Norwegian krone"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:NPR",
+                "value": "Nepalese rupee"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:NPR",
+                "value": "₨"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:NPR",
+                "value": "Nepalese rupee"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:NZD",
+                "value": "New Zealand dollar"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:NZD",
+                "value": "$"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:NZD",
+                "value": "New Zealand dollar"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:OMR",
+                "value": "Omani rial"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:OMR",
+                "value": "ر.ع."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:OMR",
+                "value": "Omani rial"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:PAB",
+                "value": "Panamanian balboa"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:PAB",
+                "value": "B/."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:PAB",
+                "value": "Panamanian balboa"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:PEN",
+                "value": "Peruvian nuevo sol"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:PEN",
+                "value": "S/"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:PEN",
+                "value": "Peruvian nuevo sol"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:PGK",
+                "value": "Papua New Guinean kina"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:PGK",
+                "value": "K"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:PGK",
+                "value": "Papua New Guinean kina"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:PHP",
+                "value": "Philippine peso"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:PHP",
+                "value": "₱"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:PHP",
+                "value": "Philippine peso"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:PKR",
+                "value": "Pakistani rupee"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:PKR",
+                "value": "₨"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:PKR",
+                "value": "Pakistani rupee"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:PLN",
+                "value": "Polish złoty"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:PLN",
+                "value": "zł"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:PLN",
+                "value": "Polish złoty"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:PYG",
+                "value": "Paraguayan guaraní"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:PYG",
+                "value": "₲"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:PYG",
+                "value": "Paraguayan guaraní"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:QAR",
+                "value": "Qatari rial"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:QAR",
+                "value": "ر.ق"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:QAR",
+                "value": "Qatari rial"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:RON",
+                "value": "Romanian new leu"
+            },
+            
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:RON",
+                "value": "Romanian new leu"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:RSD",
+                "value": "Serbian dinar"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:RSD",
+                "value": "дин"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:RSD",
+                "value": "Serbian dinar"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:RUB",
+                "value": "Rouble"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:RUB",
+                "value": "₽"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:RUB",
+                "value": "Russian rouble"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:RWF",
+                "value": "Rwandan franc"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:RWF",
+                "value": "FRw"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:RWF",
+                "value": "Rwandan franc"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:SAR",
+                "value": "Riyal"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:SAR",
+                "value": "ر.س"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:SAR",
+                "value": "Saudi riyal"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:SBD",
+                "value": "Solomon Islands dollar"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:SBD",
+                "value": "$"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:SBD",
+                "value": "Solomon Islands dollar"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:SCR",
+                "value": "Seychelles rupee"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:SCR",
+                "value": "SRe"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:SCR",
+                "value": "Seychelles rupee"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:SDG",
+                "value": "Sudanese pound"
+            },
+            
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:SDG",
+                "value": "Sudanese pound"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:SEK",
+                "value": "Swedish krona"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:SEK",
+                "value": "kr"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:SEK",
+                "value": "Swedish krona/kronor"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:SGD",
+                "value": "Singapore dollar"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:SGD",
+                "value": "$"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:SGD",
+                "value": "Singapore dollar"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:SHP",
+                "value": "Saint Helena pound"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:SHP",
+                "value": "£"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:SHP",
+                "value": "Saint Helena pound"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:SLL",
+                "value": "Leone"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:SLL",
+                "value": "Le"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:SLL",
+                "value": "Sierra Leonean leone"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:SLE",
+                "value": "Leone"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:SLE",
+                "value": "Le"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:SLE",
+                "value": "Sierra Leonean leone"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:SOS",
+                "value": "Somali shilling"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:SOS",
+                "value": "Sh.So"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:SOS",
+                "value": "Somali shilling"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:SRD",
+                "value": "Surinamese dollar"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:SRD",
+                "value": "$"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:SRD",
+                "value": "Surinamese dollar"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:SSP",
+                "value": "South Sudanese pound"
+            },
+            
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:SSP",
+                "value": "South Sudanese pound"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:STD",
+                "value": "São Tomé and Príncipe dobra"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:STD",
+                "value": "Db"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:STD",
+                "value": "São Tomé and Príncipe dobra"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:STN",
+                "value": "Dobra"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:STN",
+                "value": "Db"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:STN",
+                "value": "São Tomé and Príncipe dobra"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:SVC",
+                "value": "Salvadoran colón"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:SVC",
+                "value": "₡"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:SVC",
+                "value": "Salvadoran colón"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:SYP",
+                "value": "Syrian pound"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:SYP",
+                "value": "LS"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:SYP",
+                "value": "Syrian pound"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:SZL",
+                "value": "Lilangeni"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:SZL",
+                "value": "E"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:SZL",
+                "value": "Swaziland Lilangeni"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:THB",
+                "value": "Baht"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:THB",
+                "value": "฿"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:THB",
+                "value": "Thai baht"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:TJS",
+                "value": "Tajikistani somoni"
+            },
+            
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:TJS",
+                "value": "Tajikistani somoni"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:TMT",
+                "value": "Turkmenistani manat"
+            },
+            
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:TMT",
+                "value": "Turkmenistani manat"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:TND",
+                "value": "Tunisian dinar"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:TND",
+                "value": "د.ت"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:TND",
+                "value": "Tunisian dinar"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:TOP",
+                "value": "Pa'anga"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:TOP",
+                "value": "T$"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:TOP",
+                "value": "Tongan pa'anga"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:TRY",
+                "value": "Turkish lira"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:TRY",
+                "value": "₺"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:TRY",
+                "value": "Turkish lira"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:TTD",
+                "value": "Trinidad and Tobago dollar"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:TTD",
+                "value": "$"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:TTD",
+                "value": "Trinidad and Tobago dollar"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:TWD",
+                "value": "New Taiwan dollar"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:TWD",
+                "value": "$"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:TWD",
+                "value": "New Taiwan dollar"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:TZS",
+                "value": "Tanzanian shilling"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:TZS",
+                "value": "Tsh"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:TZS",
+                "value": "Tanzanian shilling"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:UAH",
+                "value": "Hryvnia"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:UAH",
+                "value": "₴"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:UAH",
+                "value": "Ukrainian hryvnia"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:UGX",
+                "value": "Ugandan shilling"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:UGX",
+                "value": "USh"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:UGX",
+                "value": "Ugandan shilling"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:USD",
+                "value": "US Dollar"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:USD",
+                "value": "$"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:USD",
+                "value": "United States dollar"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:USN",
+                "value": "Next Day US Dollar"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:USN",
+                "value": "$"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:USN",
+                "value": "United States dollar (next day) (funds code)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:USS",
+                "value": "Same Day US Dollar"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:USS",
+                "value": "$"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:USS",
+                "value": "United States dollar (same day) (funds code)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:UYI",
+                "value": "Uruguay Peso en Unidades Indexadas"
+            },
+            
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:UYI",
+                "value": "Uruguay Peso en Unidades Indexadas (URUIURUI) (funds code)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:UYU",
+                "value": "Uruguayan peso"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:UYU",
+                "value": "$"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:UYU",
+                "value": "Uruguayan peso"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:UYW",
+                "value": "Unidad Previsional"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:UYW",
+                "value": "UP"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:UYW",
+                "value": "Unidad Previsional (Uruguay)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:UZS",
+                "value": "Som"
+            },
+            
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:UZS",
+                "value": "Uzbekistan som"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:VEB",
+                "value": "Venezualan Bolivar"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:VEB",
+                "value": "Bs."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:VEB",
+                "value": "Bolívar (Bolivarian Republic Of Venezuela)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:VEF",
+                "value": "Venezuelan Bolivar Fuerte"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:VEF",
+                "value": "Bs.F"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:VEF",
+                "value": "Bolívar fuerte (Bolivarian Republic Of Venezuela)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:VES",
+                "value": "Bolívar Soberano"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:VES",
+                "value": "Bs.S"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:VES",
+                "value": "Bolívar Soberano (Bolivarian Republic Of Venezuela)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:VED",
+                "value": "Bolívar Soberano"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:VED",
+                "value": "Bs.D"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:VED",
+                "value": "Bolívar Soberano (Bolivarian Republic Of Venezuela)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:VND",
+                "value": "đồng"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:VND",
+                "value": "₫"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:VND",
+                "value": "Vietnamese đồng"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:VUV",
+                "value": "Vanuatu vatu"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:VUV",
+                "value": "VT"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:VUV",
+                "value": "Vanuatu vatu"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:WST",
+                "value": "Samoan tala"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:WST",
+                "value": "WS$"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:WST",
+                "value": "Samoan tala"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:XAF",
+                "value": "CFA Franc BEAC"
+            },
+            
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:XAF",
+                "value": "CFA franc BEAC"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:XAG",
+                "value": "Silver"
+            },
+            
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:XAG",
+                "value": "Silver (one troy ounce)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:XAU",
+                "value": "Gold"
+            },
+            
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:XAU",
+                "value": "Gold (one troy ounce)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:XBA",
+                "value": "EURCO"
+            },
+            
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:XBA",
+                "value": "European Composite Unit (EURCO) (bond market unit)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:XBB",
+                "value": "E.M.U.-6"
+            },
+            
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:XBB",
+                "value": "European Monetary Unit (E.M.U.-6) (bond market unit)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:XBC",
+                "value": "E.U.A.-9"
+            },
+           
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:XBC",
+                "value": "European Unit of Account 9 (E.U.A.-9) (bond market unit)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:XBD",
+                "value": "E.U.A.-17"
+            },
+           
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:XBD",
+                "value": "European Unit of Account 17 (E.U.A.-17) (bond market unit)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:XCD",
+                "value": "East Caribbean dollar"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:XCD",
+                "value": "$"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:XCD",
+                "value": "East Caribbean dollar"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:XDR",
+                "value": "Special Drawing Rights"
+            },
+            
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:XDR",
+                "value": "Special Drawing Rights"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:XFU",
+                "value": "UIC Franc"
+            },
+            
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:XFU",
+                "value": "UIC franc (special settlement currency)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:XOF",
+                "value": "CFA Franc BCEAO"
+            },
+           
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:XOF",
+                "value": "CFA Franc BCEAO"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:XPD",
+                "value": "Palladium"
+            },
+           
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:XPD",
+                "value": "Palladium (one troy ounce)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:XPF",
+                "value": "CFP Franc"
+            },
+            
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:XPF",
+                "value": "CFP franc"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:XPT",
+                "value": "Platinum"
+            },
+            
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:XPT",
+                "value": "Platinum (one troy ounce)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:XSU",
+                "value": "SUCRE"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:XSU",
+                "value": "Sucre"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:XSU",
+                "value": "Unified System for Regional Compensation (SUCRE)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:XUA",
+                "value": "ADB Unit of Account"
+            },
+            
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:XUA",
+                "value": "African Development Bank"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:YER",
+                "value": "Yemeni rial"
+            },
+            
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:YER",
+                "value": "Yemeni rial"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:ZAR",
+                "value": "South African rand"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:ZAR",
+                "value": "R"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:ZAR",
+                "value": "South African rand"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:ZMK",
+                "value": "Zambian kwacha"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:ZMK",
+                "value": "ZK"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:ZMK",
+                "value": "Zambian kwacha"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:ZMW",
+                "value": "Zambian kwacha"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:ZMW",
+                "value": "ZK"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:ZMW",
+                "value": "Zambian kwacha"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:ZWG",
+                "value": "Zimbabwe Gold"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:ZWG",
+                "value": "ZiG"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:ZWG",
+                "value": "Zimbabwe Gold (ZIMBABWE)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "iso4217:ZWL",
+                "value": "Zimbabwe dollar"
+            },
+            {
+                "labelType": "xbrl:symbolLabel",
+                "language": "en",
+                "relatedName": "iso4217:ZWL",
+                "value": "$"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "iso4217:ZWL",
+                "value": "Zimbabwe dollar"
+            }
+        ],
+        "references": [
+            {
+                "name" : "iso4217:ISO4217UnitCreation",
+                "relatedNames" : [  "iso4217:AED",
+                                    "iso4217:AFN",
+                                    "iso4217:ALL",
+                                    "iso4217:AMD",
+                                    "iso4217:ANG",
+                                    "iso4217:AOA",
+                                    "iso4217:ARS",
+                                    "iso4217:AUD",
+                                    "iso4217:AWG",
+                                    "iso4217:AZN",
+                                    "iso4217:BAM",
+                                    "iso4217:BBD",
+                                    "iso4217:BDT",
+                                    "iso4217:BGN",
+                                    "iso4217:BHD",
+                                    "iso4217:BIF",
+                                    "iso4217:BMD",
+                                    "iso4217:BND",
+                                    "iso4217:BOB",
+                                    "iso4217:BOV",
+                                    "iso4217:BRL",
+                                    "iso4217:BSD",
+                                    "iso4217:BTN",
+                                    "iso4217:BWP",
+                                    "iso4217:BYN",
+                                    "iso4217:BYR",
+                                    "iso4217:BZD",
+                                    "iso4217:CAD",
+                                    "iso4217:CDF",
+                                    "iso4217:CHE",
+                                    "iso4217:CHF",
+                                    "iso4217:CHW",
+                                    "iso4217:CLF",
+                                    "iso4217:CLP",
+                                    "iso4217:CNY",
+                                    "iso4217:COP",
+                                    "iso4217:COU",
+                                    "iso4217:CRC",
+                                    "iso4217:CUC",
+                                    "iso4217:CUP",
+                                    "iso4217:CVE",
+                                    "iso4217:CZK",
+                                    "iso4217:DJF",
+                                    "iso4217:DKK",
+                                    "iso4217:DOP",
+                                    "iso4217:DZD",
+                                    "iso4217:EEK",
+                                    "iso4217:EGP",
+                                    "iso4217:ERN",
+                                    "iso4217:ETB",
+                                    "iso4217:EUR",
+                                    "iso4217:FJD",
+                                    "iso4217:FKP",
+                                    "iso4217:GBP",
+                                    "iso4217:GEL",
+                                    "iso4217:GHS",
+                                    "iso4217:GIP",
+                                    "iso4217:GMD",
+                                    "iso4217:GNF",
+                                    "iso4217:GTQ",
+                                    "iso4217:GYD",
+                                    "iso4217:HKD",
+                                    "iso4217:HNL",
+                                    "iso4217:HRK",
+                                    "iso4217:HTG",
+                                    "iso4217:HUF",
+                                    "iso4217:IDR",
+                                    "iso4217:ILS",
+                                    "iso4217:INR",
+                                    "iso4217:IQD",
+                                    "iso4217:IRR",
+                                    "iso4217:ISK",
+                                    "iso4217:JMD",
+                                    "iso4217:JOD",
+                                    "iso4217:JPY",
+                                    "iso4217:KES",
+                                    "iso4217:KGS",
+                                    "iso4217:KHR",
+                                    "iso4217:KMF",
+                                    "iso4217:KPW",
+                                    "iso4217:KRW",
+                                    "iso4217:KWD",
+                                    "iso4217:KYD",
+                                    "iso4217:KZT",
+                                    "iso4217:LAK",
+                                    "iso4217:LBP",
+                                    "iso4217:LKR",
+                                    "iso4217:LRD",
+                                    "iso4217:LSL",
+                                    "iso4217:LTL",
+                                    "iso4217:LVL",
+                                    "iso4217:LYD",
+                                    "iso4217:MAD",
+                                    "iso4217:MDL",
+                                    "iso4217:MGA",
+                                    "iso4217:MKD",
+                                    "iso4217:MMK",
+                                    "iso4217:MNT",
+                                    "iso4217:MOP",
+                                    "iso4217:MRO",
+                                    "iso4217:MRU",
+                                    "iso4217:MUR",
+                                    "iso4217:MVR",
+                                    "iso4217:MWK",
+                                    "iso4217:MXN",
+                                    "iso4217:MXV",
+                                    "iso4217:MYR",
+                                    "iso4217:MZN",
+                                    "iso4217:NAD",
+                                    "iso4217:NGN",
+                                    "iso4217:NIO",
+                                    "iso4217:NOK",
+                                    "iso4217:NPR",
+                                    "iso4217:NZD",
+                                    "iso4217:OMR",
+                                    "iso4217:PAB",
+                                    "iso4217:PEN",
+                                    "iso4217:PGK",
+                                    "iso4217:PHP",
+                                    "iso4217:PKR",
+                                    "iso4217:PLN",
+                                    "iso4217:PYG",
+                                    "iso4217:QAR",
+                                    "iso4217:RON",
+                                    "iso4217:RSD",
+                                    "iso4217:RUB",
+                                    "iso4217:RWF",
+                                    "iso4217:SAR",
+                                    "iso4217:SBD",
+                                    "iso4217:SCR",
+                                    "iso4217:SDG",
+                                    "iso4217:SEK",
+                                    "iso4217:SGD",
+                                    "iso4217:SHP",
+                                    "iso4217:SLL",
+                                    "iso4217:SLE",
+                                    "iso4217:SOS",
+                                    "iso4217:SRD",
+                                    "iso4217:SSP",
+                                    "iso4217:STD",
+                                    "iso4217:STN",
+                                    "iso4217:SVC",
+                                    "iso4217:SYP",
+                                    "iso4217:SZL",
+                                    "iso4217:THB",
+                                    "iso4217:TJS",
+                                    "iso4217:TMT",
+                                    "iso4217:TND",
+                                    "iso4217:TOP",
+                                    "iso4217:TRY",
+                                    "iso4217:TTD",
+                                    "iso4217:TWD",
+                                    "iso4217:TZS",
+                                    "iso4217:UAH",
+                                    "iso4217:UGX",
+                                    "iso4217:USD",
+                                    "iso4217:USN",
+                                    "iso4217:USS",
+                                    "iso4217:UYI",
+                                    "iso4217:UYU",
+                                    "iso4217:UYW",
+                                    "iso4217:UZS",
+                                    "iso4217:VEB",
+                                    "iso4217:VEF",
+                                    "iso4217:VES",
+                                    "iso4217:VED",
+                                    "iso4217:VND",
+                                    "iso4217:VUV",
+                                    "iso4217:WST",
+                                    "iso4217:XAF",
+                                    "iso4217:XAG",
+                                    "iso4217:XAU",
+                                    "iso4217:XBA",
+                                    "iso4217:XBB",
+                                    "iso4217:XBC",
+                                    "iso4217:XBD",
+                                    "iso4217:XCD",
+                                    "iso4217:XDR",
+                                    "iso4217:XFU",
+                                    "iso4217:XOF",
+                                    "iso4217:XPD",
+                                    "iso4217:XPF",
+                                    "iso4217:XPT",
+                                    "iso4217:XSU",
+                                    "iso4217:XUA",
+                                    "iso4217:YER",
+                                    "iso4217:ZAR",
+                                    "iso4217:ZMK",
+                                    "iso4217:ZMW",
+                                    "iso4217:ZWG",
+                                    "iso4217:ZWL"
+                            ],
+                "referenceType" : "utr:unitCreationDate",
+                
+                "properties" : [{"property":"utr:dateUnitCreated", "value":"2012-10-31"}]
+            },
+            {
+                "name" : "iso4217:IsoMonetaryUnitsRef",
+                "relatedNames" : [ "iso4217:AED",
+                                    "iso4217:AFN",
+                                    "iso4217:ALL",
+                                    "iso4217:AMD",
+                                    "iso4217:ANG",
+                                    "iso4217:AOA",
+                                    "iso4217:ARS",
+                                    "iso4217:AUD",
+                                    "iso4217:AWG",
+                                    "iso4217:AZN",
+                                    "iso4217:BAM",
+                                    "iso4217:BBD",
+                                    "iso4217:BDT",
+                                    "iso4217:BGN",
+                                    "iso4217:BHD",
+                                    "iso4217:BIF",
+                                    "iso4217:BMD",
+                                    "iso4217:BND",
+                                    "iso4217:BOB",
+                                    "iso4217:BOV",
+                                    "iso4217:BRL",
+                                    "iso4217:BSD",
+                                    "iso4217:BTN",
+                                    "iso4217:BWP",
+                                    "iso4217:BYN",
+                                    "iso4217:BYR",
+                                    "iso4217:BZD",
+                                    "iso4217:CAD",
+                                    "iso4217:CDF",
+                                    "iso4217:CHE",
+                                    "iso4217:CHF",
+                                    "iso4217:CHW",
+                                    "iso4217:CLF",
+                                    "iso4217:CLP",
+                                    "iso4217:CNY",
+                                    "iso4217:COP",
+                                    "iso4217:COU",
+                                    "iso4217:CRC",
+                                    "iso4217:CUC",
+                                    "iso4217:CUP",
+                                    "iso4217:CVE",
+                                    "iso4217:CZK",
+                                    "iso4217:DJF",
+                                    "iso4217:DKK",
+                                    "iso4217:DOP",
+                                    "iso4217:DZD",
+                                    "iso4217:EEK",
+                                    "iso4217:EGP",
+                                    "iso4217:ERN",
+                                    "iso4217:ETB",
+                                    "iso4217:EUR",
+                                    "iso4217:FJD",
+                                    "iso4217:FKP",
+                                    "iso4217:GBP",
+                                    "iso4217:GEL",
+                                    "iso4217:GHS",
+                                    "iso4217:GIP",
+                                    "iso4217:GMD",
+                                    "iso4217:GNF",
+                                    "iso4217:GTQ",
+                                    "iso4217:GYD",
+                                    "iso4217:HKD",
+                                    "iso4217:HNL",
+                                    "iso4217:HRK",
+                                    "iso4217:HTG",
+                                    "iso4217:HUF",
+                                    "iso4217:IDR",
+                                    "iso4217:ILS",
+                                    "iso4217:INR",
+                                    "iso4217:IQD",
+                                    "iso4217:IRR",
+                                    "iso4217:ISK",
+                                    "iso4217:JMD",
+                                    "iso4217:JOD",
+                                    "iso4217:JPY",
+                                    "iso4217:KES",
+                                    "iso4217:KGS",
+                                    "iso4217:KHR",
+                                    "iso4217:KMF",
+                                    "iso4217:KPW",
+                                    "iso4217:KRW",
+                                    "iso4217:KWD",
+                                    "iso4217:KYD",
+                                    "iso4217:KZT",
+                                    "iso4217:LAK",
+                                    "iso4217:LBP",
+                                    "iso4217:LKR",
+                                    "iso4217:LRD",
+                                    "iso4217:LSL",
+                                    "iso4217:LTL",
+                                    "iso4217:LVL",
+                                    "iso4217:LYD",
+                                    "iso4217:MAD",
+                                    "iso4217:MDL",
+                                    "iso4217:MGA",
+                                    "iso4217:MKD",
+                                    "iso4217:MMK",
+                                    "iso4217:MNT",
+                                    "iso4217:MOP",
+                                    "iso4217:MRO",
+                                    "iso4217:MRU",
+                                    "iso4217:MUR",
+                                    "iso4217:MVR",
+                                    "iso4217:MWK",
+                                    "iso4217:MXN",
+                                    "iso4217:MXV",
+                                    "iso4217:MYR",
+                                    "iso4217:MZN",
+                                    "iso4217:NAD",
+                                    "iso4217:NGN",
+                                    "iso4217:NIO",
+                                    "iso4217:NOK",
+                                    "iso4217:NPR",
+                                    "iso4217:NZD",
+                                    "iso4217:OMR",
+                                    "iso4217:PAB",
+                                    "iso4217:PEN",
+                                    "iso4217:PGK",
+                                    "iso4217:PHP",
+                                    "iso4217:PKR",
+                                    "iso4217:PLN",
+                                    "iso4217:PYG",
+                                    "iso4217:QAR",
+                                    "iso4217:RON",
+                                    "iso4217:RSD",
+                                    "iso4217:RUB",
+                                    "iso4217:RWF",
+                                    "iso4217:SAR",
+                                    "iso4217:SBD",
+                                    "iso4217:SCR",
+                                    "iso4217:SDG",
+                                    "iso4217:SEK",
+                                    "iso4217:SGD",
+                                    "iso4217:SHP",
+                                    "iso4217:SLL",
+                                    "iso4217:SLE",
+                                    "iso4217:SOS",
+                                    "iso4217:SRD",
+                                    "iso4217:SSP",
+                                    "iso4217:STD",
+                                    "iso4217:STN",
+                                    "iso4217:SVC",
+                                    "iso4217:SYP",
+                                    "iso4217:SZL",
+                                    "iso4217:THB",
+                                    "iso4217:TJS",
+                                    "iso4217:TMT",
+                                    "iso4217:TND",
+                                    "iso4217:TOP",
+                                    "iso4217:TRY",
+                                    "iso4217:TTD",
+                                    "iso4217:TWD",
+                                    "iso4217:TZS",
+                                    "iso4217:UAH",
+                                    "iso4217:UGX",
+                                    "iso4217:USD",
+                                    "iso4217:USN",
+                                    "iso4217:USS",
+                                    "iso4217:UYI",
+                                    "iso4217:UYU",
+                                    "iso4217:UYW",
+                                    "iso4217:UZS",
+                                    "iso4217:VEB",
+                                    "iso4217:VEF",
+                                    "iso4217:VES",
+                                    "iso4217:VED",
+                                    "iso4217:VND",
+                                    "iso4217:VUV",
+                                    "iso4217:WST",
+                                    "iso4217:XAF",
+                                    "iso4217:XAG",
+                                    "iso4217:XAU",
+                                    "iso4217:XBA",
+                                    "iso4217:XBB",
+                                    "iso4217:XBC",
+                                    "iso4217:XBD",
+                                    "iso4217:XCD",
+                                    "iso4217:XDR",
+                                    "iso4217:XFU",
+                                    "iso4217:XOF",
+                                    "iso4217:XPD",
+                                    "iso4217:XPF",
+                                    "iso4217:XPT",
+                                    "iso4217:XSU",
+                                    "iso4217:XUA",
+                                    "iso4217:YER",
+                                    "iso4217:ZAR",
+                                    "iso4217:ZMK",
+                                    "iso4217:ZMW",
+                                    "iso4217:ZWG",
+                                    "iso4217:ZWL"
+                ],
+                "referenceType" : "utr:baseUnitsStandard",
+                "properties" : [{"property":"utr:baseStandardIdentifier", "value":"iso4217"}]
+            }
+        ]
+    }
+}

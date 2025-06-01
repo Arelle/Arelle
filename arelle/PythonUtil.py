@@ -6,18 +6,19 @@ do not convert 3 to 2
 '''
 from __future__ import annotations
 
+import fractions
 import os
 import subprocess
 import sys
 from collections import OrderedDict
-from collections.abc import MappingView, MutableSet
+from collections.abc import Iterable, Iterator, Mapping, MappingView, MutableSet, Set
 from decimal import Decimal
-from fractions import Fraction
-from typing import Any
+from types import MappingProxyType
+from typing import Any, Generic, TypeVar
 
 from arelle.typing import OptionalString
 
-STR_NUM_TYPES = (str, int, float, Decimal, Fraction)
+STR_NUM_TYPES = (str, int, float, Decimal, fractions.Fraction)
 
 # python 3 unquote, because py2 unquote doesn't do utf-8 correctly
 def py3unquote(string, encoding='utf-8', errors='replace'):
@@ -163,71 +164,178 @@ class OrderedDefaultDict(OrderedDict):
         self[key] = _missingValue
         return _missingValue
 
-class OrderedSet(MutableSet):
 
-    def __init__(self, iterable=None):
-        self.end = end = []
-        end += [None, end, end]         # sentinel node for doubly linked list
-        self.map = {}                   # key --> [key, prev, next]
+T = TypeVar('T')
+
+class OrderedSet(MutableSet[T]):
+    """
+    OrderedSet implementation copied from Python recipe:
+    https://code.activestate.com/recipes/576694/
+    """
+
+    def __init__(self, iterable: Iterable[T] | None = None) -> None:
+        self.end: list[Any] = []
+        end = self.end
+        end += [None, end, end]            # sentinel node for doubly linked list
+        self.map: dict[T, list[Any]] = {}  # key --> [key, prev, next]
         if iterable is not None:
-            self |= iterable
+            self.update(iterable)
 
-    def __len__(self):
+    def __getitem__(self, index: int) -> T:
+        if not isinstance(index, int):
+            raise TypeError("Index must be an integer")
+        if index < 0:
+            index += len(self)
+        if index < 0 or index >= len(self):
+            raise IndexError("Index out of range")
+        end = self.end
+        curr = end[2]
+        for _ in range(index):
+            curr = curr[2]
+        return curr[0]
+
+    def __len__(self) -> int:
         return len(self.map)
 
-    def __contains__(self, key):
+    def __contains__(self, key: object) -> bool:
         return key in self.map
 
-    def add(self, key):
+    def add(self, key: T) -> None:
         if key not in self.map:
             end = self.end
             curr = end[1]
             curr[2] = end[1] = self.map[key] = [key, curr, end]
 
-    def update(self, other):
+    def update(self, other: Iterable[T]) -> None:
         for key in other:
             self.add(key)
 
-    def discard(self, key):
+    def discard(self, key: T) -> None:
         if key in self.map:
             key, prev, next = self.map.pop(key)
             prev[2] = next
             next[1] = prev
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[T]:
         end = self.end
         curr = end[2]
         while curr is not end:
             yield curr[0]
             curr = curr[2]
 
-    def __reversed__(self):
+    def __reversed__(self) -> Iterator[T]:
         end = self.end
         curr = end[1]
         while curr is not end:
             yield curr[0]
             curr = curr[1]
 
-    def pop(self, last=True):
+    def pop(self, last: bool = True) -> T:
         if not self:
             raise KeyError('set is empty')
         key = self.end[1][0] if last else self.end[2][0]
         self.discard(key)
         return key
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if not self:
-            return '%s()' % (self.__class__.__name__,)
-        return '%s(%r)' % (self.__class__.__name__, list(self))
+            return f'{self.__class__.__name__}()'
+        return f'{self.__class__.__name__}({list(self)!r})'
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, OrderedSet):
             return len(self) == len(other) and list(self) == list(other)
-        return set(self) == set(other)
+        if isinstance(other, Iterable):
+            return set(self) == set(other)
+        return NotImplemented
+
+class FrozenOrderedSet(Set[T]):
+    """
+    Like frozenset vs set, this is the immutable counterpart to OrderedSet.
+    Maintains insertion order and provides set-like operations without mutation.
+    """
+
+    def __init__(self, iterable: Iterable[T] | None = None) -> None:
+        if iterable is None:
+            self._items: tuple[T, ...] = ()
+            self._set: frozenset[T] = frozenset()
+        else:
+            unique_items = dict.fromkeys(iterable)
+            self._items = tuple(unique_items.keys())
+            self._set = frozenset(unique_items.keys())
+        self._hash: int | None = None
+
+    def __getitem__(self, index: int) -> T:
+        return self._items[index]
+
+    def __len__(self) -> int:
+        return len(self._items)
+
+    def __contains__(self, key: object) -> bool:
+        return key in self._set
+
+    def __iter__(self) -> Iterator[T]:
+        return iter(self._items)
+
+    def __reversed__(self) -> Iterator[T]:
+        return reversed(self._items)
+
+    def __repr__(self) -> str:
+        if not self:
+            return f'{self.__class__.__name__}()'
+        return f'{self.__class__.__name__}({self._items!r})'
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, (FrozenOrderedSet, OrderedSet)):
+            return len(self) == len(other) and list(self) == list(other)
+        if isinstance(other, Iterable):
+            return set(self) == set(other)
+        return NotImplemented
+
+    def __hash__(self) -> int:
+        if self._hash is None:
+            self._hash = hash(self._items)
+        return self._hash
+
+KT = TypeVar('KT')
+VT = TypeVar('VT')
+
+
+class FrozenDict(Generic[KT, VT], Mapping[KT, VT]):
+    def __init__(self, data: Mapping[KT, VT] | None = None) -> None:
+        self._dict: Mapping[KT, VT] = MappingProxyType(dict(data) if data is not None else dict())
+        self._hash: int | None = None
+
+    def __getitem__(self, key: KT) -> VT:
+        return self._dict[key]
+
+    def __iter__(self) -> Iterator[KT]:
+        return iter(self._dict)
+
+    def __len__(self) -> int:
+        return len(self._dict)
+
+    def __repr__(self) -> str:
+        if not self:
+            return f'{self.__class__.__name__}()'
+        return f"{self.__class__.__name__}({self._dict})"
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, FrozenDict):
+            return self._dict == other._dict
+        if isinstance(other, Mapping):
+            return self._dict == other
+        return NotImplemented
+
+    def __hash__(self) -> int:
+        if self._hash is None:
+            self._hash = hash(tuple(sorted(self._dict.items())))
+        return self._hash
+
 
 def Fraction(numerator,denominator=None):
     if denominator is None:
-        if isinstance(numerator, (Fraction,str,Decimal)):
+        if isinstance(numerator, (fractions.Fraction,str,Decimal)):
             return Fraction(numerator)
     elif isinstance(numerator, Decimal) and isinstance(denominator, Decimal):
         return Fraction(int(numerator), int(denominator))

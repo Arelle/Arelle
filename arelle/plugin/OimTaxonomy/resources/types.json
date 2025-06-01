@@ -1,0 +1,727 @@
+{
+    "$schema": "../oim-taxonomy-schema.json",
+    "documentInfo": {
+        "documentType": "https://xbrl.org/2025/taxonomy",
+        "namespaces": {
+            "xbrl": "https://xbrl.org/2025",
+            "xbrli":"https://xbrl.org/2025/instance",
+            "xs": "http://www.w3.org/2001/XMLSchema",
+            "ref": "https://xbrl.org/2025/ref"
+            },
+        "documentNamespace":"xbrli"
+    },
+    "taxonomy": {
+        "resolved" : false,
+        "name": "xbrli:TypesTaxonomyModule",
+        "frameworkName": "types",
+        "version": "2025",
+        "dataTypes": [
+            {
+                "name": "xbrli:aggregationType",
+                "baseType": "xs:string",
+                "enumeration": ["sum", "count", "max", "min", "avg", "concat", "median", "first", "last", "stdev"]
+            },
+            {   "name": "xbrli:balanceType",
+                "baseType": "xs:string",
+                "enumeration": ["debit", "credit"]
+            },
+            {   "name": "xbrli:periodType",
+                "baseType": "xs:string",
+                "enumeration": ["instant", "duration", "none"]
+            },
+            {
+                "name": "xbrli:monetary",
+                "baseType": "xs:decimal"
+            },
+            {
+                "name": "xbrli:duration",
+                "baseType": "xs:integer"
+            },
+            {
+                "name": "xbrli:pureType",
+                "baseType": "xs:decimal"
+            },
+            {
+                "name": "xbrli:sharesType",
+                "baseType": "xs:decimal"
+            },
+            {
+                "name": "xbrli:enumeration",
+                "baseType": "xbrli:noLangToken",
+                "patterns" : ["[A-Za-z][-A-Za-z0-9+-.]*:\\S+#[\\i-[:]][\\c-[:]]*"]
+            },
+            {
+                "name": "xbrli:enumerationSet",
+                "baseType": "xbrli:noLangToken",
+                "patterns" : ["([A-Za-z][-A-Za-z0-9+-.]*:\\S+#[\\i-[:]][\\c-[:]]*( [A-Za-z][-A-Za-z0-9+-.]*:\\S+#[\\i-[:]][\\c-[:]]*)*)?"]
+            },
+            {
+                "name" : "xbrli:domain",
+                "baseType" : "xs:string"
+            },
+            {
+                "name" : "xbrli:escaped",
+                "baseType" : "xs:string"
+            },
+            {
+                "name" : "xbrli:xmlNodes",
+                "baseType" : "xbrli:escaped"
+            },
+            {
+                "name" : "xbrli:xml",
+                "baseType" : "xbrli:xmlNodes"
+            },
+            {
+                "name" : "xbrli:textBlock",
+                "baseType" : "xbrli:xmlNodes"
+            },
+            {
+                "name" : "xbrli:percent",
+                "baseType" : "xbrli:pureType"
+            },
+            {
+                "name" : "xbrli:perShare",
+                "baseType" : "xs:decimal"
+            },
+            {
+                "name" : "xbrli:area",
+                "baseType" : "xs:decimal"
+            },
+            {
+                "name" : "xbrli:volume",
+                "baseType" : "xs:decimal"
+            },
+            {
+                "name" : "xbrli:mass",
+                "baseType" : "xs:decimal"
+            },
+            {
+                "name" : "xbrli:weight",
+                "baseType" : "xs:decimal"
+            },
+            {
+                "name" : "xbrli:energy",
+                "baseType" : "xs:decimal"
+            },
+            {
+                "name" : "xbrli:power",
+                "baseType" : "xs:decimal"
+            },
+            {
+                "name" : "xbrli:length",
+                "baseType" : "xs:decimal"
+            },
+            {
+                "name" : "xbrli:memory",
+                "baseType" : "xs:decimal"
+            },
+            {
+                "name" : "xbrli:noDecimalsMonetary",
+                "baseType" : "xbrli:monetary"
+            },
+            {
+                "name" : "xbrli:nonNegativeMonetary",
+                "baseType" : "xbrli:monetary",
+                "minInclusive" : 0
+            },
+            {
+                "name" : "xbrli:nonNegativeNoDecimalsMonetary",
+                "baseType" : "xbrli:monetary",
+                "fractionDigits": 0, 
+                "minInclusive" : 0
+            },
+            {
+                "name" : "xbrli:insolation",
+                "baseType" : "xs:decimal"
+            },
+            {
+                "name" : "xbrli:temperature",
+                "baseType" : "xs:decimal"
+            },
+            {
+                "name" : "xbrli:pressure",
+                "baseType" : "xs:decimal"
+            },
+            {
+                "name" : "xbrli:frequency",
+                "baseType" : "xs:decimal"
+            },
+            {
+                "name" : "xbrli:irradiance",
+                "baseType" : "xs:decimal"
+            },
+            {
+                "name" : "xbrli:speed",
+                "baseType" : "xs:decimal"
+            },
+            {
+                "name" : "xbrli:planeAngle",
+                "baseType" : "xs:decimal"
+            },
+            {
+                "name" : "xbrli:voltage",
+                "baseType" : "xs:decimal"
+            },
+            {
+                "name" : "xbrli:electricCurrent",
+                "baseType" : "xs:decimal"
+            },
+            {
+                "name" : "xbrli:force",
+                "baseType" : "xs:decimal"
+            },
+            {
+                "name" : "xbrli:electricCharge",
+                "baseType" : "xs:decimal"
+            },
+            {
+                "name" : "xbrli:guidance",
+                "baseType" : "xs:string"
+            },
+            {
+                "name" : "xbrli:noLangToken",
+                "baseType" : "xs:token"
+            },
+            {
+                "name" : "xbrli:noLangString",
+                "baseType" : "xs:string"
+            },
+            {
+                "name" : "xbrli:prefixedContent",
+                "baseType" : "xbrli:noLangToken"
+            },
+            {
+                "name" : "xbrli:SQName",
+                "baseType" : "xbrli:prefixedContent",
+                "patterns": ["[^:\\s0-9][^:\\s]*:\\S+"]
+            },
+            {
+                "name" : "xbrli:SQNames",
+                "baseType" : "xbrli:prefixedContent",
+                "patterns": ["([^:\\s0-9][^:\\s]*:\\S+)?(\\s+[^:\\s0-9][^:\\s]*:\\S+)*"]
+            },
+            {
+                "name" : "xbrli:gYearList",
+                "baseType" : "xs:token",
+                "patterns" : ["\\s*(-?[0-9]{4,}(\\s+-?[0-9]{4,})*)?\\s*"]
+            },
+            {
+                "name" : "xbrli:flow",
+                "baseType" : "xs:decimal"
+            },
+            {
+                "name" : "xbrli:massFlow",
+                "baseType" : "xs:decimal"
+            },
+            {
+                "name" : "xbrli:monetaryPerLength",
+                "baseType" : "xs:decimal"
+            },
+            {
+                "name" : "xbrli:monetaryPerArea",
+                "baseType" : "xs:decimal"
+            },
+            {
+                "name" : "xbrli:monetaryPerVolume",
+                "baseType" : "xs:decimal"
+            },
+            {
+                "name" : "xbrli:monetaryPerDuration",
+                "baseType" : "xs:decimal"
+            },
+            {
+                "name" : "xbrli:monetaryPerEnergy",
+                "baseType" : "xs:decimal"
+            },
+            {
+                "name" : "xbrli:monetaryPerMass",
+                "baseType" : "xs:decimal"
+            },
+            {
+                "name" : "xbrli:dateTime",
+                "baseType" : "xs:dateTime",
+                "patterns" : [".*T.*"]
+            },
+            {
+                "name" : "xbrli:ghgEmissions",
+                "baseType" : "xs:decimal"
+            },
+            {
+                "name" : "xbrli:energyPerMonetary",
+                "baseType" : "xs:decimal"
+            },
+            {
+                "name" : "xbrli:ghgEmissionsPerMonetary",
+                "baseType" : "xs:decimal"
+            },
+            {
+                "name" : "xbrli:volumePerMonetary",
+                "baseType" : "xs:decimal"
+            }
+            ,
+            {
+                "name" : "xbrli:perUnit",
+                "baseType" : "xs:decimal"
+            }
+        ],
+        "units": [
+            {
+                "dataType": "xbrli:pureType",
+                "name": "xbrli:pure"
+            },
+            {
+                "dataType": "xbrli:sharesType",
+                "name": "xbrli:shares"
+            }
+        ],
+        "labels": [
+            {
+                "relatedName" : "xbrli:aggregationType",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The aggregation datatype is used to uniquely identify the method of aggregation used to generate a single value from a population."
+            },
+            {
+                "relatedName" : "xbrli:monetary",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The monetary type serves as the datatype for those financial concepts in a taxonomy which denote units in a currency. Instance items with this type must have a unit of measure from the ISO 4217 namespace of currencies."
+            },
+            {
+                "relatedName" : "xbrli:pureType",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "This datatype serves as the type for dimensionless numbers such as percentage change, growth rates, and other ratios where the numerator and denominator have the same units."
+            },
+            {
+                "relatedName" : "xbrli:sharesType",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "This datatype serves as the datatype for share based financial concepts."
+            },
+            {
+                "relatedName" : "xbrli:enumeration",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The enumeration type defines an XBRL item type which takes an XML Name in the format 'namespace-uri#localname' as a value."
+            },
+            {
+                "relatedName" : "xbrli:enumerationSet",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The enumerationSet type is a set equivalent of the enumeration type. Its format is intended to be equivalent to a set of enumeration types."
+            },
+            {
+                "relatedName" : "xbrli:domain",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The domain member item type indicates that an element is a domain member."
+            },
+            {
+                "relatedName" : "xbrli:escaped",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "escaped specializes string. There is no constraint on whether the resulting unescaped content is well-formed or not; this base type exists so that processors know what to do with the content. It is a suitable base type for a data type whose unescaped content must be valid HTML 4.0 (which is not XML)."
+            },
+            {
+                "relatedName" : "xbrli:xmlNodes",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "xmlNodes specializes escaped. The unescaped content MUST be a sequence of XML text and well-formed XML nodes. This content constraint cannot be captured by a finite length regular expression."
+            },
+            {
+                "relatedName" : "xbrli:xml",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "xml specializes xmlNodes. The unescaped content MUST be well-formed XML. This is a suitable base type for elements whose content must conform to a specific XML Schema or DTD. "
+            },
+            {
+                "relatedName" : "xbrli:textBlock",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "textBlock specializes xmlNodes. The unescaped content MUST have mixed content containing a simple string, or a fragment of XHTML or a mixture of both."
+            },
+            {
+                "relatedName" : "xbrli:percent",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The percent item type is used to indicate that the value of the element is intended to be presented as a percentage. This does not contravene Specification section 4.8.2, which requires that percentages not be multiplied by 100."
+            },
+            {
+                "relatedName" : "xbrli:perShare",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The per share item type indicates a monetary amount divided by a number of shares. The per share item type has a Decimal base."
+            },
+            {
+                "relatedName" : "xbrli:area",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The area item type is used to indicate that an element represents an area."
+            },
+            {
+                "relatedName" : "xbrli:volume",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The Volume item type is used to indicate that an element represents a volume and can be used to express the volume of any substance, whether solid, liquid, or gas."
+            },
+            {
+                "relatedName" : "xbrli:mass",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The mass item type represents the mass of an object which can be measured."
+            },
+            {
+                "relatedName" : "xbrli:weight",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The weight item type represents the weight of an object which can be measured."
+            },
+            {
+                "relatedName" : "xbrli:energy",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The energy item type represents a unit of energy."
+            },
+            {
+                "relatedName" : "xbrli:power",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "Measures a rate of energy use or energy production and is equivalent to the use or production of energy during a period of time. I.e. a watt is the equal to one joule of energy per second."
+            },
+            {
+                "relatedName" : "xbrli:length",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The length item type is a measure of distance."
+            },
+            {
+                "relatedName" : "xbrli:memory",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The memory item type is a measure of memory typically used in the IT industry."
+            },
+            {
+                "relatedName" : "xbrli:noDecimalsMonetary",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The NoDecimalsMonetary is a restriction on the xbrli:monetary in that it does not allow cents on the monetary value. Facts using this type MUST have an (inferred) decimals attribute value that is less than or equal to zero, or 'INF'."
+            },
+            {
+                "relatedName" : "xbrli:nonNegativeMonetary",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The nonNegativeMonetary is a restriction on the xbrli:monetary in that it does not allow negative values on the monetary value."
+            },
+            {
+                "relatedName" : "xbrli:nonNegativeNoDecimalsMonetary",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The nonNegativeNoDecimalsMonetary is a restriction on the xbrli:monetary in that it does not allow cents or negative values on the monetary value. Facts using this type MUST have an (inferred) decimals attribute value that is less than or equal to zero, or 'INF'."
+            },
+            {
+                "relatedName" : "xbrli:insolation",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : " The insolation item type is used to represent a measure of energy per area over a period of time. "
+            },
+            {
+                "relatedName" : "xbrli:temperature",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The temperature item type is used to represent a measure of temperature either in absolute terms or as a difference between two temperatures."
+            },
+            {
+                "relatedName" : "xbrli:pressure",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : " The pressure item type is used to represent a measure of the force applied perpendicular to the surface of an object per unit area over which that force is distributed. Units include Pascal, PSI and Bar. "
+            },
+            {
+                "relatedName" : "xbrli:frequency",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : " The frequency item type is used to represent a measure of the number of occurrences of a repeating event per unit time. "
+            },
+            {
+                "relatedName" : "xbrli:irradiance",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : " The irradiance item type is used to represent a measure irradiance (power per unit area)"
+            },
+            {
+                "relatedName" : "xbrli:speed",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : " The speed item type is used to represent a measure of speed (distance travelled by an object per unit time). Units include knots, mach, and metres per second."
+            },
+            {
+                "relatedName" : "xbrli:planeAngle",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The angle item type is used to represent the measurement of an angle. Units include radians, degrees and gradians."
+            },
+            {
+                "relatedName" : "xbrli:voltage",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : " The voltage item type is used to represent a measure of voltage (the difference in electric potential energy between two points per unit electric charge)."
+            },
+            {
+                "relatedName" : "xbrli:electricCurrent",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The electric current item type is used to represent a measure of electric current (the flow of electric charge over a circuit)."
+            },
+            {
+                "relatedName" : "xbrli:force",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The force item type is used to represent a measure of a physical force. Units include newtons. "
+            },
+            {
+                "relatedName" : "xbrli:electricCharge",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : " The electric charge item is used to represent a measure of electric charge (the physical property of matter that causes it to experience a force when placed in an electromagnetic field) "
+            },
+            {
+                "relatedName" : "xbrli:guidance",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The purpose of the guidance item type is to identify 'guidance items' which provide general guidance for users of a taxonomy, particularly preparers of XBRL reports. Guidance items are abstract elements positioned in appropriate locations in the presentation tree, and are intended to help users who view the taxonomy through displays based on the presentation tree. Guidance items provide general guidance which is not limited to the application of a specific tag to an individual item of data."
+            },
+            {
+                "relatedName" : "xbrli:noLangToken",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "noLangToken is a derivation of token and is used to denote values that should not have an associated language. This is typically used for values that are unique identifiers, rather than human-readable strings. Any in-scope xml:lang declaration is ignored for facts using this type."
+            },
+            {
+                "relatedName" : "xbrli:noLangString",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "noLangString is a derivation of string and is used to denote values that should not have an associated language. This is typically used for values that are unique identifiers, rather than human-readable strings. Any in-scope xml:lang declaration is ignored for facts using this type."
+            },
+            {
+                "relatedName" : "xbrli:prefixedContent",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "prefixedContent denotes values that rely for correct interpretation on namespace-prefix bindings in scope at the point of use. All item types that involve prefixed content should derive (directly or indirectly) from QName or prefixedContent Processors MUST raise an error if they encounter a fact with a type that is a subtype of prefixedContent that they do not recognise (unless that subtype is itself derived from a subtype that is recognised) as knowledge of the structure of the prefixed content is required to correctly preserve and present such content."
+            },
+            {
+                "relatedName" : "xbrli:SQName",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "SQName provides a simple type. This can be used to define typed dimensions domains that take SQName values. The prefix used in an SQName MUST correspond to a namespace prefix that is in scope at the point of use."
+            },
+            {
+                "relatedName" : "xbrli:SQNames",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "SQNames provides a simple type. This can be used to define typed dimensions domains that take a collection of SQName values. The prefix used in an SQName MUST correspond to a namespace prefix that is in scope at the point of use."
+            },
+            {
+                "relatedName" : "xbrli:gYearList",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "This datatype allows the reporting of a list of xsd:gYear values as a single value"
+            },
+            {
+                "relatedName" : "xbrli:flow",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The flow item type is used to represent a measure of volumetric flow rate."
+            },
+            {
+                "relatedName" : "xbrli:massFlow",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The mass flow item type is used to represent a measure of mass flow rate."
+            },
+            {
+                "relatedName" : "xbrli:monetaryPerLength",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The monetary per length item type is used to represent a measure of price or cost per unit length"
+            },
+            {
+                "relatedName" : "xbrli:monetaryPerArea",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The monetary per area item type is used to represent a measure of price or cost per unit area"
+            },
+            {
+                "relatedName" : "xbrli:monetaryPerVolume",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The monetary per volume item type is used to represent a measure of price or cost per unit volume"
+            },
+            {
+                "relatedName" : "xbrli:monetaryPerDuration",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The monetary per duration item type is used to represent a measure of price or cost per unit duration"
+            },
+            {
+                "relatedName" : "xbrli:monetaryPerEnergy",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The monetary per energy item type is used to represent a measure of price or cost per unit energy"
+            },
+            {
+                "relatedName" : "xbrli:monetaryPerMass",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The monetary per mass item type is used to represent a measure of price or cost per unit mass"
+            },
+            {
+                "relatedName" : "xbrli:dateTime",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "A subtype of xbrli:dateTime that requires a time component (as xs:dateTime does)."
+            },
+            {
+                "relatedName" : "xbrli:ghgEmissions",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The greenhouse gas emissions item type is used in preference to mass to measure Global Warming Potential, which is often expressed in terms of tonnes of CO2 equivalent."
+            },
+            {
+                "relatedName" : "xbrli:energyPerMonetary",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The energy per monetary item type is used to represent a measure of energy per monetary unit."
+            },
+            {
+                "relatedName" : "xbrli:ghgEmissionsPerMonetary",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The emissions per monetary item type is used to represent a measure of GHG emissions per monetary unit."
+            },
+            {
+                "relatedName" : "xbrli:volumePerMonetary",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The volume per monetary item type is used to represent a measure of volume per monetary unit."
+            }
+        ],
+        "references": [
+            {
+                "name": "xbrli:ITARequirementReference",
+                "relatedNames": [
+                    "xbrli:domain",
+                    "xbrli:escaped",
+                    "xbrli:xmlNodes",
+                    "xbrli:xml",
+                    "xbrli:textBlock",
+                    "xbrli:percent",
+                    "xbrli:perShare",
+                    "xbrli:area",
+                    "xbrli:volume",
+                    "xbrli:mass",
+                    "xbrli:weight",
+                    "xbrli:energy",
+                    "xbrli:power",
+                    "xbrli:length",
+                    "xbrli:memory"
+                ],
+                "referenceType": "xbrl:dataTypeRequirement",
+                "properties": [{"property":"ref:Requirement", "value":"Interoperable Taxonomy Architecture (ITA) initiative requirement for alignment of the EDINET, IFRS and US GAAP taxonomies."}]
+               
+            },
+            {
+                "name": "xbrli:SQNameRequirementReference",
+                "relatedNames": [
+                    "xbrli:SQName"
+                ],
+                "referenceType": "xbrl:dataTypeRequirement",
+                "properties": [{"property":"ref:Requirement", "value":"This data type is required in order to validate and correctly process SQName values. As SQNames rely on the in-scope namespace prefixes, it is important that consuming software can unambiguously identify values that are SQNames."}]
+                
+            },
+            {
+                "name": "xbrli:PrefixedContentRequirementReference",
+                "relatedNames": [
+                    "xbrli:prefixedContent"
+                ],
+                "referenceType": "xbrl:dataTypeRequirement",
+                "properties": [{"property":"ref:Requirement", "value":"This data type acts as a supertype for all custom types that rely on namespace-prefix bindings. It allows processors to 'fail fast' if presented with prefixed content that they do not understand, rather than silently breaking or changing the semantics of such values."}]
+            },
+            {
+                "name": "xbrli:PerUnitReference",
+                "relatedNames": [
+                    "xbrli:monetaryPerLength",
+                    "xbrli:monetaryPerArea",
+                    "xbrli:monetaryPerVolume",
+                    "xbrli:monetaryPerDuration",
+                    "xbrli:monetaryPerEnergy",
+                    "xbrli:monetaryPerMass"
+                ],
+                "referenceType": "xbrl:dataTypeRequirement",
+                "properties": [{"property":"ref:Requirement", "value":"These types are required in order to enable validation and conversion of units (via the Unit Types Registry) for values that are expressed as a price per unit for various physical measures, and reflect industry-specific common practice."}]
+            },
+            {
+                "name": "xbrli:RecStatusReference",
+                "relatedNames": [
+                    "xbrli:domain",
+                    "xbrli:escaped",
+                    "xbrli:xmlNodes",
+                    "xbrli:xml",
+                    "xbrli:textBlock",
+                    "xbrli:percent",
+                    "xbrli:perShare",
+                    "xbrli:area",
+                    "xbrli:volume",
+                    "xbrli:mass",
+                    "xbrli:weight",
+                    "xbrli:energy",
+                    "xbrli:power",
+                    "xbrli:length",
+                    "xbrli:memory",
+                    "xbrli:noDecimalsMonetary",
+                    "xbrli:nonNegativeMonetary",
+                    "xbrli:nonNegativeNoDecimalsMonetary",
+                    "xbrli:insolation",
+                    "xbrli:temperature",
+                    "xbrli:pressure",
+                    "xbrli:frequency",
+                    "xbrli:irradiance",
+                    "xbrli:speed",
+                    "xbrli:planeAngle",
+                    "xbrli:voltage",
+                    "xbrli:electricCurrent",
+                    "xbrli:force",
+                    "xbrli:electricCharge",
+                    "xbrli:guidance",
+                    "xbrli:noLangToken",
+                    "xbrli:noLangString",
+                    "xbrli:prefixedContent",
+                    "xbrli:prefixedContent",
+                    "xbrli:SQName",
+                    "xbrli:SQNames",
+                    "xbrli:gYearList",
+                    "xbrli:flow",
+                    "xbrli:massFlow",
+                    "xbrli:monetaryPerLength",
+                    "xbrli:monetaryPerArea",
+                    "xbrli:monetaryPerVolume",
+                    "xbrli:monetaryPerDuration",
+                    "xbrli:monetaryPerEnergy",
+                    "xbrli:monetaryPerMass",
+                    "xbrli:dateTime",
+                    "xbrli:ghgEmissions",
+                    "xbrli:energyPerMonetary",
+                    "xbrli:ghgEmissionsPerMonetary",
+                    "xbrli:volumePerMonetary",
+                    "xbrli:enumerationSet",
+                    "xbrli:enumeration",
+                    "xbrli:sharesType",
+                    "xbrli:pure",
+                    "xbrli:monetary"
+                ],
+                "referenceType": "xbrl:specStatus",
+                "properties": [{"property":"ref:Status", "value":"REC"}]
+            }
+        ]
+    }
+}
