@@ -17,22 +17,24 @@ class LinkbaseType(Enum):
     REFERENCE = "reference"
 
     @staticmethod
-    def fromRefUri(refUri: str) -> LinkbaseType | None:
+    def fromRefUri(refUri: str | None) -> LinkbaseType | None:
         """
-        Returns the LinkbaseType corresponding to the given reference URI.
+        Returns the LinkbaseType corresponding to the given ref URI.
         If the URI does not match any known linkbase reference type, returns None.
         """
+        if refUri is None:
+            return None
         return LINKBASE_TYPE_BY_REF_URI.get(refUri, None)
 
     def getArcQn(self) -> QName:
         """
-        Returns the qualified name of the link associated with this LinkbaseType.
+        Returns the qname of the arc associated with this LinkbaseType.
         """
         return LINKBASE_ARC_QN[self]
 
     def getLinkQn(self) -> QName:
         """
-        Returns the qualified name of the link associated with this LinkbaseType.
+        Returns the qname of the link associated with this LinkbaseType.
         """
         return LINKBASE_LINK_QN[self]
 
@@ -44,7 +46,7 @@ class LinkbaseType(Enum):
 
     def getRefUri(self) -> str:
         """
-        Returns the URI associated with this LinkbaseType.
+        Returns the ref URI associated with this LinkbaseType.
         """
         return LINKBASE_REF_URIS[self]
 

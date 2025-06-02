@@ -945,6 +945,8 @@ def rule_nl_kvk_4_1_1_1(
                 linkbaseType = linkbaseData.linkbaseType
                 hasArcs = True
                 break
+        if linkbaseType is None:
+            continue
         if hasArcs and linkbaseIsMissing.get(linkbaseType, False):
             linkbaseIsMissing[linkbaseType] = False
     missingFiles = set(linkbaseType.getLowerName() for linkbaseType, isMissing in linkbaseIsMissing.items() if isMissing)
@@ -1041,7 +1043,7 @@ def rule_nl_kvk_4_1_2_2(
     """
     reportingPeriod = pluginData.getReportingPeriod(val.modelXbrl)
     extensionData = pluginData.getExtensionData(val.modelXbrl)
-    matches = extensionData.extensionImportedUrls & TAXONOMY_URLS_BY_YEAR.get(reportingPeriod, set())
+    matches = extensionData.extensionImportedUrls & TAXONOMY_URLS_BY_YEAR.get(reportingPeriod or '', set())
     if not reportingPeriod or not matches:
         yield Validation.error(
             codes='NL.NL-KVK.4.1.2.2.incorrectKvkTaxonomyVersionUsed',

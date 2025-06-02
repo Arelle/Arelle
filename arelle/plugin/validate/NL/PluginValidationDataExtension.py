@@ -336,7 +336,7 @@ class PluginValidationDataExtension(PluginData):
 
     @lru_cache(1)
     def getDocumentsInDts(self, modelXbrl: ModelXbrl) -> dict[ModelDocument, str | None]:
-        modelDocuments = {}
+        modelDocuments: dict[ModelDocument, str | None] = {}
         if modelXbrl.modelDocument is None:
             return modelDocuments
 
