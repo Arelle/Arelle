@@ -1,8 +1,7 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-from typing import Union
-from types import UnionType
+from typing import Union, get_origin
 from collections import defaultdict
 from decimal import Decimal
 from typing import GenericAlias
@@ -28,7 +27,7 @@ def viewXbrlTxmyObj(xbrlDts, objClass, tabWin, header, additionalViews=None):
             initialParentProp = False
             if isinstance(propType, str):
                 continue
-            elif isinstance(propType, UnionType):
+            elif get_origin(propType) is Union:
                 if any(arg.__name__.startswith("Xbrl") for arg in propType.__args__):
                     continue
             elif propType.__name__.startswith("Xbrl"): # skip taxonomy alias type

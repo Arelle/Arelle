@@ -16,8 +16,7 @@ For debugging, saves the xsd objects loaded from the OIM taxonomy if
 
 """
 
-from typing import TYPE_CHECKING, cast, GenericAlias, Union, _UnionGenericAlias
-from types import UnionType
+from typing import TYPE_CHECKING, cast, GenericAlias, Union, _UnionGenericAlias, get_origin
 
 import os, io, json, sys, time, traceback
 import jsonschema
@@ -377,7 +376,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                             eltClass = propType.__args__[0]
                         if isinstance(jsonValue, list):
                             for iObj, listObj in enumerate(jsonValue):
-                                if isinstance(eltClass, str) or eltClass.__name__.startswith("Xbrl"): # nested Xbrl objects
+                                if isinstance(eltClass, str) or getattr(eltClass, "__name__", "").startswith("Xbrl"): # nested Xbrl objects
                                     if isinstance(listObj, dict):
                                         # this handles lists of dict objects.  For dicts of key-value dict objects see above.
                                         createTaxonomyObjects(propName, listObj, newObj, pathParts + [f'{propName}[{iObj}]'])
@@ -401,7 +400,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                                         collectionProp.append(listObj)
                         elif isinstance(jsonValue, dict) and keyClass:
                             for iObj, (valKey, valVal) in enumerate(jsonValue.items()):
-                                if isinstance(_keyClass, UnionType):
+                                if get_origin(_keyClass) is Union:
                                     if QName in _keyClass.__args__ and ":" in valKey:
                                         _valKey = qname(listObj, prefixNamespaces)
                                         if _valKey is None:
@@ -447,7 +446,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                             keyValue = jsonValue # e.g. the QNAme of the new object for parent object collection
                 elif propType in (type(oimParentObj), type(oimParentObj).__name__): # propType may be a TypeAlias which is a string name of class
                     setattr(newObj, propName, oimParentObj)
-                elif ((isinstance(propType, (UnionType,_UnionGenericAlias)) or isinstance(getattr(propType, "__origin__", None), type(Union))) and # Optional[ ] type
+                elif (((get_origin(propType) is Union) or isinstance(get_origin(propType), type(Union))) and # Optional[ ] type
                        propType.__args__[-1] in (type(None), DefaultTrue, DefaultFalse, DefaultZero)):
                           setattr(newObj, propName, {type(None): None, DefaultTrue: True, DefaultFalse: False, DefaultZero:0}[propType.__args__[-1]]) # use first of union for prop value creation
                 else: # absent json element
