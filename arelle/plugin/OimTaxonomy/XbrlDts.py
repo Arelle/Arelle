@@ -2,7 +2,7 @@
 See COPYRIGHT.md for copyright information.
 """
 
-from typing import TYPE_CHECKING, cast, Any, ClassVar
+from typing import TYPE_CHECKING, Optional, Union, cast, Any, ClassVar
 from collections import OrderedDict, defaultdict # OrderedDict is not same as dict, has additional key order features
 import sys, traceback
 from arelle.ModelValue import QName, AnyURI
@@ -58,7 +58,7 @@ class XbrlDts(ModelXbrl): # complete wrapper for ModelXbrl
     def referenceTypes(self):
         return set(obj.referenceType for l in self.tagObjects.values() for obj in l if hasattr(obj, "referenceType"))
 
-    def labelValue(self, name: QName, labelType: QName, lang: str | None = None, fallbackToName: bool = True) -> str | None:
+    def labelValue(self, name: QName, labelType: QName, lang: Optional[str] = None, fallbackToName: bool = True) -> Optional[str]:
         if labelType == XbrlConst.conceptNameLabelRole:
             return str(name)
         if lang is None:
@@ -76,7 +76,7 @@ class XbrlDts(ModelXbrl): # complete wrapper for ModelXbrl
             return str(name)
         return None
 
-    def referenceProperties(self, name: QName, referenceType: QName | None, lang: str | None = None) -> list[XbrlPropertyType]:
+    def referenceProperties(self, name: QName, referenceType: Optional[QName], lang: Optional[str] = None) -> list[XbrlPropertyType]:
         refProperties = defaultdict(list)
         if lang is None:
             lang = self.modelXbrl.modelManager.defaultLang
@@ -90,11 +90,11 @@ class XbrlDts(ModelXbrl): # complete wrapper for ModelXbrl
 
 
     # UI thread viewTaxonomyObject
-    def viewTaxonomyObject(self, objectId: str | int) -> None:
+    def viewTaxonomyObject(self, objectId: Union[str, int]) -> None:
         """Finds taxonomy object, if any, and synchronizes any views displaying it to bring the model object into scrollable view region and highlight it
         :param objectId: string which includes _ordinalNumber, produced by ModelObject.objectId(), or integer object index
         """
-        xbrlObj: XbrlObject | str | int = ""
+        xbrlObj: Union[XbrlObject, str, int] = ""
         try:
             if isinstance(objectId, XbrlObject):
                 xbrlObj = objectId

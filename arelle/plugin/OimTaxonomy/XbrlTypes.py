@@ -2,7 +2,7 @@
 See COPYRIGHT.md for copyright information.
 """
 
-from typing import TypeAlias
+from typing_extensions import TypeAlias
 from arelle.ModelValue import QName
 
 XbrlDtsType: TypeAlias = "XbrlDts"

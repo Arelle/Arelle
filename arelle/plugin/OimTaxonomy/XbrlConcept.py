@@ -2,7 +2,8 @@
 See COPYRIGHT.md for copyright information.
 """
 
-from typing import TYPE_CHECKING, TypeAlias, Optional, Any
+from typing import TYPE_CHECKING, Optional, Any
+from typing_extensions import TypeAlias
 from decimal import Decimal
 
 from arelle.ModelValue import QName
