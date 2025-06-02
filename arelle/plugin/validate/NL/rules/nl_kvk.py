@@ -21,6 +21,7 @@ from arelle.utils.validate.Validation import Validation
 from arelle.ValidateDuplicateFacts import getHashEquivalentFactGroups, getAspectEqualFacts
 from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
 from ..DisclosureSystems import DISCLOSURE_SYSTEM_NL_INLINE_2024
+from ..LinkbaseType import LinkbaseType
 from ..PluginValidationDataExtension import (PluginValidationDataExtension, ALLOWABLE_LANGUAGES,
                                              DISALLOWED_IXT_NAMESPACES, EFFECTIVE_KVK_GAAP_IFRS_ENTRYPOINT_FILES,
                                              MAX_REPORT_PACKAGE_SIZE_MBS, TAXONOMY_URLS_BY_YEAR,
@@ -904,6 +905,94 @@ def rule_nl_kvk_3_7_1_2(
             msg=_("The filing is not valid against the formula linkbase assertions with warning severity.  Address the %(numUnsatisfied)s unresolved formula linkbase validation warnings."),
             modelObject=modelXbrl,
             numUnsatisfied=sumWrnMsgs
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
+def rule_nl_kvk_4_1_1_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.1.1.1: Extension taxonomies MUST consist of at least a schema file and presentation,
+                                                                                   calculation and definition linkbases.
+    A label linkbase is also required if extension elements are present.
+    """
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    linkbaseIsMissing = {
+        LinkbaseType.CALCULATION: True,
+        LinkbaseType.DEFINITION: True,
+        LinkbaseType.LABEL: extensionData.hasExtensionConcepts,
+        LinkbaseType.PRESENTATION: True,
+    }
+    for modelDocument, extensionDocumentData in extensionData.extensionDocuments.items():
+        hasArcs = False
+        linkbaseType = LinkbaseType.fromRefUri(extensionDocumentData.hrefXlinkRole)
+        for linkbaseData in extensionDocumentData.linkbases:
+            if linkbaseType is not None:
+                if linkbaseType == linkbaseData.linkbaseType:
+                    if linkbaseData.hasArcs:
+                        hasArcs = True
+                        break
+            elif linkbaseData.hasArcs:
+                linkbaseType = linkbaseData.linkbaseType
+                hasArcs = True
+                break
+        if hasArcs and linkbaseIsMissing.get(linkbaseType, False):
+            linkbaseIsMissing[linkbaseType] = False
+    missingFiles = set(linkbaseType.getLowerName() for linkbaseType, isMissing in linkbaseIsMissing.items() if isMissing)
+    if len(missingFiles) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.4.1.1.1.extensionTaxonomyWrongFilesStructure',
+            msg=_('The extension taxonomy is missing one or more required components: %(missingFiles)s '
+                  'Review to ensure that the schema file, presentation, calculation, '
+                  'and definition linkbases are included and not empty. '
+                  'A label linkbase is also required if extension elements are present.'),
+            modelObject=val.modelXbrl, missingFiles=", ".join(missingFiles)
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
+def rule_nl_kvk_4_1_1_2(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.1.1.2: Each linkbase type MUST be provided in a separate linkbase file.
+    """
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    errors = []
+    for modelDocument, extensionDocumentData in extensionData.extensionDocuments.items():
+        linkbasesFound = set(
+            linkbase.linkbaseType.getLowerName()
+            for linkbase in extensionDocumentData.linkbases
+            if linkbase.linkbaseType is not None
+        )
+        if len(linkbasesFound) > 1:
+            errors.append((modelDocument, linkbasesFound))
+    for modelDocument, linkbasesFound in errors:
+        yield Validation.error(
+            codes='NL.NL-KVK.4.1.1.2.linkbasesNotSeparateFiles',
+            msg=_('Linkbase types are not stored in separate files. '
+                  'Review linkbase files and ensure they are provided as individual files. '
+                  'Found: %(linkbasesFound)s. in %(basename)s.'),
+            modelObject=modelDocument.xmlRootElement,
+            basename=modelDocument.basename,
+            linkbasesFound=", ".join(sorted(linkbasesFound))
         )
 
 
