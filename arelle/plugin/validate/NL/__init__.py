@@ -48,6 +48,7 @@ def validateFinally(*args: Any, **kwargs: Any) -> None:
 
 def validateXbrlStart(val: ValidateXbrl, parameters: dict[Any, Any], *args: Any, **kwargs: Any) -> None:
     val.extensionImportedUrls = set()
+    val.extensionDocumentNames = set()
 
 def validateXbrlFinally(*args: Any, **kwargs: Any) -> None:
     return validationPlugin.validateXbrlFinally(*args, **kwargs)

@@ -67,6 +67,7 @@ class ValidateXbrl:
     consolidated: bool
     domainMembers: set[ModelConcept]
     DTSreferenceResourceIDs: dict[str, Any]
+    extensionDocumentNames: set[str]
     extensionImportedUrls: set[str]
     genericArcArcroles: set[str]
     hasExtensionCal: bool

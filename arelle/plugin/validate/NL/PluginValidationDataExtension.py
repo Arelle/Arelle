@@ -57,9 +57,40 @@ ALLOWABLE_LANGUAGES = frozenset((
     'fr'
 ))
 
-EFFECTIVE_TAXONOMY_URLS = frozenset((
+EFFECTIVE_KVK_GAAP_IFRS_ENTRYPOINT_FILES = frozenset((
     'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-nlgaap-ext.xsd',
     'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-ifrs-ext.xsd',
+))
+
+TAXONOMY_URLS_BY_YEAR = {
+    '2024': [
+        'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-nlgaap-ext.xsd',
+        'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-ifrs-ext.xsd',
+        'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-other-gaap.xsd',
+    ]
+}
+
+STANDARD_TAXONOMY_URLS = frozenset((
+    'http://www.nltaxonomie.nl/ifrs/20',
+    'https://www.nltaxonomie.nl/ifrs/20',
+    'http://www.nltaxonomie.nl/',
+    'https://www.nltaxonomie.nl/',
+    'http://www.xbrl.org/taxonomy/int/lei/',
+    'https://www.xbrl.org/taxonomy/int/lei/',
+    'http://www.xbrl.org/20',
+    'https://www.xbrl.org/20',
+    'http://www.xbrl.org/lrr/',
+    'https://www.xbrl.org/lrr/',
+    'http://xbrl.org/20',
+    'https://xbrl.org/20',
+    'http://xbrl.ifrs.org/',
+    'https://xbrl.ifrs.org/',
+    'http://www.xbrl.org/dtr/',
+    'https://www.xbrl.org/dtr/',
+    'http://xbrl.org/2020/extensible-enumerations-2.0',
+    'https://xbrl.org/2020/extensible-enumerations-2.0',
+    'http://www.w3.org/1999/xlink',
+    'https://www.w3.org/1999/xlink'
 ))
 
 @dataclass(frozen=True)
@@ -93,6 +124,7 @@ class PluginValidationDataExtension(PluginData):
     documentResubmissionUnsurmountableInaccuraciesQn: QName
     entrypointRoot: str
     entrypoints: set[str]
+    financialReportingPeriodQn: QName
     financialReportingPeriodCurrentStartDateQn: QName
     financialReportingPeriodCurrentEndDateQn: QName
     financialReportingPeriodPreviousStartDateQn: QName
@@ -154,10 +186,15 @@ class PluginValidationDataExtension(PluginData):
         for referencedDocument, modelDocumentReference in modelDocument.referencesDocument.items():
             if referencedDocument not in visited and referencedDocument.inDTS:
                 self.checkFilingDTS(val, referencedDocument, visited)
-        if modelDocument.type == ModelDocumentFile.Type.SCHEMA:
-            for doc, docRef in modelDocument.referencesDocument.items():
-                if "import" in docRef.referenceTypes:
-                    val.extensionImportedUrls.add(doc.uri)
+        isExtensionDoc = self.isExtension(val, modelDocument)
+        if isExtensionDoc:
+            if modelDocument.type == ModelDocumentFile.Type.SCHEMA:
+                for doc, docRef in modelDocument.referencesDocument.items():
+                    if "import" in docRef.referenceTypes:
+                        val.extensionImportedUrls.add(doc.uri)
+                val.extensionDocumentNames.add(modelDocument.basename)
+            if modelDocument.type == ModelDocumentFile.Type.LINKBASE:
+                val.extensionDocumentNames.add(modelDocument.basename)
 
     @lru_cache(1)
     def checkHiddenElements(self, modelXbrl: ModelXbrl) -> HiddenElementsData:
@@ -321,8 +358,20 @@ class PluginValidationDataExtension(PluginData):
         )
 
     @lru_cache(1)
-    def getFilenameParts(self, filename: str) -> dict[str, Any] | None:
-        match = self.getFilenameFormatPattern().match(filename)
+    def getExtensionFilenameFormatPattern(self) -> re.Pattern[str]:
+        return re.compile(
+            r"^(?<base>[^-]*)"
+            r"-(?<year>\d{4})-(?<month>0[1-9]|1[012])-(?<day>0?[1-9]|[12][0-9]|3[01])"
+            r"(?<suffix>[_pre|_cal|_lab|_def]*)"
+            r"(?<lang>-*[^-]*)"
+            r"\.(?<extension>xsd|xml)$",
+            flags=re.ASCII
+        )
+
+
+    @lru_cache(1)
+    def getFilenameParts(self, filename: str, filenamePattern: re.Pattern[str]) -> dict[str, Any] | None:
+        match = filenamePattern.match(filename)
         if match:
             return match.groupdict()
         return None
@@ -345,6 +394,14 @@ class PluginValidationDataExtension(PluginData):
 
     def getTupleElements(self, modelXbrl: ModelXbrl) -> set[tuple[Any]]:
         return self.checkInlineHTMLElements(modelXbrl).tupleElements
+
+    @lru_cache(1)
+    def getReportingPeriod(self, modelXbrl: ModelXbrl) -> str | None:
+        reportingPeriodFacts = modelXbrl.factsByQname.get(self.financialReportingPeriodQn, set())
+        for fact in reportingPeriodFacts:
+            if fact.xValid >= VALID:
+                return cast(str, fact.xValue)
+        return None
 
     @lru_cache(1)
     def getReportXmlLang(self, modelXbrl: ModelXbrl) -> str | None:
@@ -371,6 +428,13 @@ class PluginValidationDataExtension(PluginData):
                 if elt.tag in ixTags and elt.get("target"):
                     targetElements.append(elt)
         return targetElements
+
+    def isExtension(self, val: ValidateXbrl, modelObject: ModelObject | ModelDocument | str | None) -> bool:
+        if modelObject is None:
+            return False
+        uri = modelObject if isinstance(modelObject, str) else modelObject.modelDocument.uri
+        return (uri.startswith(val.modelXbrl.uriDir) or
+                not any(uri.startswith(standardTaxonomyURI) for standardTaxonomyURI in STANDARD_TAXONOMY_URLS))
 
     @lru_cache(1)
     def isFilenameValidCharacters(self, filename: str) -> bool:
