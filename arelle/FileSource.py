@@ -13,7 +13,7 @@ import struct
 import tarfile
 import zipfile
 import zlib
-from typing import IO, TYPE_CHECKING, Any, TextIO, cast
+from typing import IO, TYPE_CHECKING, Any, Optional, TextIO, cast
 
 import regex as re
 from lxml import etree
@@ -452,7 +452,7 @@ class FileSource:
     def reportPackage(self) -> ReportPackage | None:
         try:
             self._reportPackage: ReportPackage | None
-            return self._reportPackage
+            return cast(Optional[ReportPackage], self._reportPackage)
         except AttributeError:
             self._reportPackage = ReportPackage.fromFileSource(self)
             return self._reportPackage

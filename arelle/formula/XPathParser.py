@@ -9,7 +9,7 @@ import time
 import traceback
 from collections.abc import Iterable, Sequence
 from decimal import Decimal
-from typing import Any, TYPE_CHECKING, Union
+from typing import Any, TYPE_CHECKING, Union, cast
 from xml.dom import minidom
 
 from pyparsing import (
@@ -954,7 +954,7 @@ def staticExpressionFunctionContext() -> minidom.Element:
             ' xmlns:fn="http://www.w3.org/2005/xpath-functions"'
             '/>'
         ).documentElement
-    return _staticExpressionFunctionContext
+    return cast(minidom.Element, _staticExpressionFunctionContext)
 
 
 def parse(
