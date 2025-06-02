@@ -848,6 +848,66 @@ def rule_nl_kvk_3_6_3_3(
 
 
 @validation(
+    hook=ValidationHook.FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
+def rule_nl_kvk_3_7_1_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.3.7.1.1: The filing MUST be valid against the formula linkbase assertions with error severity.
+    """
+    modelXbrl = val.modelXbrl
+    sumErrMsgs = 0
+    for e in modelXbrl.errors:
+        if isinstance(e,dict):
+            for id, (numSat, numUnsat, numOkMsgs, numWrnMsgs, numErrMsgs) in e.items():
+                sumErrMsgs += numErrMsgs
+    if sumErrMsgs > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.3.7.1.1.targetXBRLDocumentWithFormulaErrors',
+            msg=_("The filing is not valid against the formula linkbase assertions with error severity.  Address the %(numUnsatisfied)s unresolved formula linkbase validation errors."),
+            modelObject=modelXbrl,
+            numUnsatisfied=sumErrMsgs
+        )
+
+
+@validation(
+    hook=ValidationHook.FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
+def rule_nl_kvk_3_7_1_2(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.3.7.1.2: The filing MUST be valid against the formula linkbase assertions with error warning.
+    """
+    modelXbrl = val.modelXbrl
+    sumWrnMsgs = 0
+    for e in modelXbrl.errors:
+        if isinstance(e,dict):
+            for id, (numSat, numUnsat, numOkMsgs, numWrnMsgs, numErrMsgs) in e.items():
+                sumWrnMsgs += numWrnMsgs
+    if sumWrnMsgs > 0:
+        yield Validation.warning(
+            codes='NL.NL-KVK.3.7.1.2.targetXBRLDocumentWithFormulaWarnings',
+            msg=_("The filing is not valid against the formula linkbase assertions with warning severity.  Address the %(numUnsatisfied)s unresolved formula linkbase validation warnings."),
+            modelObject=modelXbrl,
+            numUnsatisfied=sumWrnMsgs
+        )
+
+
+@validation(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[
         DISCLOSURE_SYSTEM_NL_INLINE_2024
