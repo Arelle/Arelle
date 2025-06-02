@@ -12,7 +12,7 @@ from arelle.XmlValidateConst import VALID
 from collections.abc import Iterable
 from typing import Any, cast, TYPE_CHECKING
 
-from arelle import XmlUtil
+from arelle import XmlUtil, XbrlConst
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
@@ -1170,6 +1170,55 @@ def rule_nl_kvk_4_2_0_2(
             codes='NL.NL-KVK.4.2.0.2.fractionElementUsed',
             modelObject=fractionConcepts,
             msg=_('The extension taxonomy must not define fraction concepts.'))
+
+
+def rule_nl_kvk_4_2_1_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.2.1.1: Extension taxonomy MUST set xbrli:scenario as context element on definition arcs with
+    http://xbrl.org/int/dim/arcrole/all and http://xbrl.org/int/dim/arcrole/notAll arcroles.
+    """
+    errors = []
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    for modelDocument, extensionDocumentData in extensionData.extensionDocuments.items():
+        for arc in extensionDocumentData.iterArcsByType(LinkbaseType.DEFINITION, includeArcroles={XbrlConst.all, XbrlConst.notAll}):
+            if arc.get(XbrlConst.qnXbrldtContextElement.clarkNotation) != "scenario":
+                errors.append(arc)
+    if len(errors) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.4.2.1.1.scenarioNotUsedInExtensionTaxonomy',
+            modelObject=errors,
+            msg=_('The definition linkbase is missing xbrli:scenario in extension taxonomy. '
+                  'Review definition linkbase and update as appropriate.'),
+        )
+
+
+def rule_nl_kvk_4_4_1_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.4.1.1: Arithmetical relationships defined in the calculation linkbase of an extension taxonomy
+    MUST use the https://xbrl.org/2023/arcrole/summation-item arcrole as defined in Calculation 1.1 specification.
+    """
+    errors = []
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    for modelDocument, extensionDocumentData in extensionData.extensionDocuments.items():
+        for arc in extensionDocumentData.iterArcsByType(LinkbaseType.CALCULATION, excludeArcroles={XbrlConst.summationItem11}):
+            errors.append(arc)
+    if len(errors) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.4.4.1.1.incorrectSummationItemArcroleUsed',
+            modelObject=errors,
+            msg=_('Calculation relationships should follow the requirements of the Calculation 1.1 specification. '
+                  'Update to ensure use of summation-item arcrole in the calculation linkbase.'),
+        )
 
 
 @validation(
