@@ -10,11 +10,12 @@ from pathlib import Path
 from typing import Any, TYPE_CHECKING, cast
 
 import regex as re
-from lxml.etree import _Comment, _ElementTree, _Entity, _ProcessingInstruction
+from lxml.etree import _Comment, _ElementTree, _Entity, _ProcessingInstruction, _Element
 
 from arelle.FunctionIxt import ixtNamespaces
 from arelle import ModelDocument as ModelDocumentFile
-from arelle.ModelDocument import ModelDocument
+from arelle.ModelDocument import ModelDocument, Type as ModelDocumentType
+from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelInlineFootnote, ModelUnit, ModelInlineFact
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import QName
@@ -62,6 +63,36 @@ EFFECTIVE_TAXONOMY_URLS = frozenset((
     'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-ifrs-ext.xsd',
 ))
 
+STANDARD_TAXONOMY_URIS = frozenset((
+    "http://www.nltaxonomie.nl/",
+    "https://www.nltaxonomie.nl/",
+    "http://www.xbrl.org/taxonomy/int/lei/",
+    "https://www.xbrl.org/taxonomy/int/lei/",
+    "http://xbrl.org/20",
+    "https://xbrl.org/20",
+    "http://www.xbrl.org/20",
+    "https://www.xbrl.org/20",
+    "http://www.xbrl.org/dtr/",
+    "https://www.xbrl.org/dtr/",
+    "http://www.xbrl.org/lrr/",
+    "https://www.xbrl.org/lrr/",
+    "http://www.xbrl.org/utr/",
+    "https://www.xbrl.org/utr/",
+    "http://xbrl.org/2020/extensible-enumerations-2.0",
+    "https://xbrl.org/2020/extensible-enumerations-2.0",
+    "http://www.w3.org/1999/xlink/",
+    "https://www.w3.org/1999/xlink/"
+))
+
+
+def _isExtensionUri(uri: str, modelXbrl: ModelXbrl) -> bool:
+    if uri.startswith(modelXbrl.uriDir):
+        return True
+    if not any(uri.startswith(taxonomyUri) for taxonomyUri in STANDARD_TAXONOMY_URIS):
+        return True
+    return False
+
+
 @dataclass(frozen=True)
 class ContextData:
     contextsWithImproperContent: list[ModelContext | None]
@@ -69,12 +100,20 @@ class ContextData:
     contextsWithPeriodTimeZone: list[ModelContext | None]
     contextsWithSegments: list[ModelContext | None]
 
+
+@dataclass(frozen=True)
+class ExtensionData:
+    hasExtensionConcepts: bool
+    linkbaseDocuments: dict[ModelDocument, LinkbaseDocumentData]
+
+
 @dataclass(frozen=True)
 class HiddenElementsData:
     cssHiddenFacts: set[ModelInlineFact]
     eligibleForTransformHiddenFacts: set[ModelInlineFact]
     hiddenFactsOutsideHiddenSection: set[ModelInlineFact]
     requiredToDisplayFacts: set[ModelInlineFact]
+
 
 @dataclass(frozen=True)
 class InlineHTMLData:
@@ -84,6 +123,21 @@ class InlineHTMLData:
     tupleElements: set[tuple[Any]]
     factLangFootnotes: dict[ModelInlineFootnote, set[str]]
     fractionElements: set[Any]
+
+
+@dataclass(frozen=True)
+class LinkbaseData:
+    element: _Element
+    hasArcs: bool
+    linkEltName: str | None
+    linkbaseRefType: str | None
+
+
+@dataclass(frozen=True)
+class LinkbaseDocumentData:
+    hrefXlinkRole: str | None
+    linkbases: list[LinkbaseData]
+
 
 @dataclass
 class PluginValidationDataExtension(PluginData):
@@ -348,6 +402,50 @@ class PluginValidationDataExtension(PluginData):
     @lru_cache(1)
     def getIxdsDocBasenames(self, modelXbrl: ModelXbrl) -> set[str]:
         return set(Path(url).name for url in getattr(modelXbrl, "ixdsDocUrls", []))
+
+    def getExtensionConcepts(self, modelXbrl: ModelXbrl) -> list[ModelConcept]:
+        """
+        Returns a list of extension concepts in the DTS.
+        """
+        extensionConcepts = []
+        for concepts in modelXbrl.nameConcepts.values():
+            for concept in concepts:
+                if _isExtensionUri(concept.qname.namespaceURI, modelXbrl):
+                    extensionConcepts.append(concept)
+        return extensionConcepts
+
+    @lru_cache(1)
+    def getExtensionData(self, modelXbrl: ModelXbrl) -> ExtensionData:
+        linkbaseDocuments = {}
+        documentsInDts = self.getDocumentsInDts(modelXbrl)
+        for modelDocument, hrefXlinkRole in documentsInDts.items():
+            if not _isExtensionUri(modelDocument.uri, modelDocument.modelXbrl):
+                # Skip non-extension documents
+                continue
+            if modelDocument.type in (ModelDocumentType.LINKBASE, ModelDocumentType.SCHEMA):
+                linkbaseDocuments[modelDocument] = LinkbaseDocumentData(
+                    hrefXlinkRole=hrefXlinkRole,
+                    linkbases=self.getLinkbaseData(modelDocument),
+                )
+
+        return ExtensionData(
+            hasExtensionConcepts=len(self.getExtensionConcepts(modelXbrl)) > 0,
+            linkbaseDocuments=linkbaseDocuments,
+        )
+
+    def getLinkbaseData(self, modelDocument: ModelDocument) -> list[LinkbaseData]:
+        linkbases = []
+        for linkbaseType in ("label", "presentation", "calculation", "definition", "reference"):
+            for linkElt in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}" + linkbaseType + "Link"):
+                linkEltName = linkbaseType + "Arc"
+                arcs = list(linkElt.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}" + linkEltName))
+                linkbases.append(LinkbaseData(
+                    element=linkElt,
+                    hasArcs=len(arcs) > 0,
+                    linkEltName=linkEltName,
+                    linkbaseRefType=linkbaseType[:3],
+                ))
+        return linkbases
 
     def getNoMatchLangFootnotes(self, modelXbrl: ModelXbrl) -> set[ModelInlineFootnote]:
         return self.checkInlineHTMLElements(modelXbrl).noMatchLangFootnotes
