@@ -14,6 +14,7 @@ from typing import Any, cast, TYPE_CHECKING
 
 from arelle import XmlUtil
 from arelle.ValidateXbrl import ValidateXbrl
+from arelle.plugin.validate.ESEF.Const import linkbaseRefTypes
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
@@ -932,6 +933,92 @@ def rule_nl_kvk_4_1_2_1(
                 msg=_('The extension taxonomy must import the entry point of the taxonomy files prepared by KVK.'),
                 modelObject=val.modelXbrl.modelDocument
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
+def rule_nl_kvk_4_1_1_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.1.1.1: Extension taxonomies MUST consist of at least a schema file and presentation,
+    calculation and definition linkbases.
+    A label linkbase is also required if extension elements are present.
+    """
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    linkbaseIsMissing = {
+        'pre': True,
+        'cal': True,
+        'def': True,
+        'lab': extensionData.hasExtensionConcepts,
+    }
+    for modelDocument, linkbaseDocumentData in extensionData.linkbaseDocuments.items():
+        hasArcs = False
+        linkbaseRefType: str | None = None
+        if linkbaseDocumentData.hrefXlinkRole in linkbaseRefTypes:
+            linkbaseRefType = linkbaseRefTypes[linkbaseDocumentData.hrefXlinkRole]
+        for linkbaseData in linkbaseDocumentData.linkbases:
+            if linkbaseRefType is not None:
+                if linkbaseRefType == linkbaseData.linkbaseRefType:
+                    if linkbaseData.hasArcs:
+                        hasArcs = True
+                        break
+            elif linkbaseData.hasArcs:
+                linkbaseRefType = linkbaseData.linkbaseRefType
+                hasArcs = True
+                break
+        if hasArcs and linkbaseIsMissing.get(linkbaseRefType, False):
+            linkbaseIsMissing[linkbaseRefType] = False
+    missingFiles = set(linkbaseRefType for linkbaseRefType, isMissing in linkbaseIsMissing.items() if isMissing)
+    if len(missingFiles) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.4.1.1.1.extensionTaxonomyWrongFilesStructure',
+            msg=_('The extension taxonomy is missing one or more required components: %(missingFiles)s '
+                  'Review to ensure that the schema file, presentation, calculation, '
+                  'and definition linkbases are included and not empty. '
+                  'A label linkbase is also required if extension elements are present.'),
+            modelObject=val.modelXbrl, missingFiles=", ".join(missingFiles)
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
+def rule_nl_kvk_4_1_1_2(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.1.1.2: Each linkbase type MUST be provided in a separate linkbase file.
+    """
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    errors = []
+    for modelDocument, linkbaseDocumentData in extensionData.linkbaseDocuments.items():
+        linkbasesFound = set(linkbase.linkbaseRefType for linkbase in linkbaseDocumentData.linkbases)
+        if len(linkbasesFound) > 1:
+            errors.append((modelDocument, linkbasesFound))
+    for modelDocument, linkbasesFound in errors:
+        yield Validation.error(
+            codes='NL.NL-KVK.4.1.1.2.linkbasesNotSeparateFiles',
+            msg=_('Linkbase types are not stored in separate files. '
+                  'Review linkbase files and ensure they are provided as individual files. '
+                  'Found: %(linkbasesFound)s. in %(basename)s.'),
+            modelObject=modelDocument.xmlRootElement,
+            basename=modelDocument.basename,
+            linkbasesFound=", ".join(sorted(linkbasesFound))
+        )
 
 
 @validation(
