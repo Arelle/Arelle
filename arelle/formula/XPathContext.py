@@ -351,8 +351,8 @@ class XPathContext:
                         raise XPathException(p, 'err:XPST0017', _('Function named {0} does not have a custom or built-in implementation.').format(op))
                 elif op in VALUE_OPS:
                     # binary arithmetic operations and value comparisons
-                    s1 = self.atomize(p, resultStack.pop()) if len(resultStack) > 0 else []
-                    s2 = self.atomize(p, self.evaluate(p.args, contextItem=contextItem))
+                    s1: Sequence[ContextItem] = self.atomize(p, resultStack.pop()) if len(resultStack) > 0 else []
+                    s2: Sequence[ContextItem] = self.atomize(p, self.evaluate(p.args, contextItem=contextItem))
                     # value comparisons
                     if len(s1) > 1 or len(s2) > 1:
                         raise XPathException(p, 'err:XPTY0004', _("Value operation '{0}' sequence length error").format(op))
@@ -383,35 +383,35 @@ class XPathContext:
                             elif isinstance(op2, Decimal) and isinstance(op1, float):
                                 op2 = float(op2)
                         if op == '+':
-                            result = op1 + op2
+                            result = op1 + op2  # type: ignore[assignment,operator]
                         elif op == '-':
-                            result = op1 - op2
+                            result = op1 - op2  # type: ignore[assignment,operator]
                         elif op == '*':
-                            result = op1 * op2
+                            result = op1 * op2  # type: ignore[assignment,operator]
                         elif op in ('div', 'idiv', "mod"):
                             try:
                                 if op == 'div':
-                                    result = op1 / op2
+                                    result = op1 / op2  # type: ignore[assignment,operator]
                                 elif op == 'idiv':
-                                    result = op1 // op2
+                                    result = op1 // op2  # type: ignore[assignment,operator]
                                 elif op == 'mod':
-                                    result = op1 % op2
+                                    result = op1 % op2  # type: ignore[assignment,operator]
                             except ZeroDivisionError:
                                 raise XPathException(p, 'err:FOAR0001', _('Attempt to divide by zero: {0} {1} {2}.').format(op1, op, op2))
                         elif op == 'ge':
-                            result = op1 >= op2
+                            result = op1 >= op2 # type: ignore[operator]
                         elif op == 'gt':
-                            result = op1 > op2
+                            result = op1 > op2 # type: ignore[operator]
                         elif op == 'le':
-                            result = op1 <= op2
+                            result = op1 <= op2 # type: ignore[operator]
                         elif op == 'lt':
-                            result = op1 < op2
+                            result = op1 < op2 # type: ignore[operator]
                         elif op == 'eq':
                             result = op1 == op2
                         elif op == 'ne':
                             result = op1 != op2
                         elif op == 'to':
-                            result = range(int(op1), int(op2) + 1)
+                            result = range(int(op1), int(op2) + 1)  # type: ignore[arg-type]
                 elif op in GENERALCOMPARISON_OPS:
                     # general comparisons
                     s1 = self.atomize(p, resultStack.pop()) if len(resultStack) > 0 else []
@@ -440,23 +440,23 @@ class XPathContext:
                 elif op in NODECOMPARISON_OPS:
                     # node comparisons
                     s1 = resultStack.pop() if len(resultStack) > 0 else []
-                    s2 = self.evaluate(p.args, contextItem=contextItem)
-                    if len(s1) > 1 or len(s2) > 1 or not self.isNodeSequence(s1) or not self.isNodeSequence(s2[0]):
+                    _s2 = self.evaluate(p.args, contextItem=contextItem)
+                    if len(s1) > 1 or len(_s2) > 1 or not self.isNodeSequence(s1) or not self.isNodeSequence(_s2[0]):
                         raise XPathException(p, 'err:XPTY0004', _('Node comparison sequence error'))
-                    if len(s1) == 0 or len(s2[0]) == 0:
+                    if len(s1) == 0 or len(_s2[0]) == 0:
                         result = []
                     else:
                         n1 = s1[0]
-                        n2 = s2[0][0]
+                        n2 = _s2[0][0]
                         result = False
                         for op1 in s1:
-                            for op2 in s2:
+                            for _op2 in _s2:
                                 if op == 'is':
                                     result = n1 == n2
                                 elif op == '>>':
-                                    result = op1 > op2
+                                    result = op1 > _op2  # type: ignore[operator]
                                 elif op == '<<':
-                                    result = op1 <= op2
+                                    result = op1 <= _op2  # type: ignore[operator]
                             if result:
                                 break
                 elif op in COMBINING_OPS:
@@ -503,7 +503,7 @@ class XPathContext:
                         if op == 'u+':
                             result = op1
                         elif op == 'u-':
-                            result = -op1
+                            result = -op1 # type: ignore[assignment,operator]
                 elif op == 'instance':
                     result = False
                     s1 = self.flattenSequence(resultStack.pop()) if len(resultStack) > 0 else []
@@ -671,7 +671,7 @@ class XPathContext:
                     if hasPrevValue:
                         prevValue = self.inScopeVars[rvQname]
                     for rv in r:
-                        self.inScopeVars[rvQname] = rv  # type: ignore[assignment]
+                        self.inScopeVars[rvQname] = rv
                         self.evaluateRangeVars(op, args[0], args[1:], contextItem, result)
                         if op != 'for' and len(result) > 0:
                             break  # short circuit evaluation

@@ -878,7 +878,7 @@ class ModelXbrl:
     def dimensionsInUse(self) -> set[Any]:
         self._dimensionsInUse: set[Any]
         try:
-            return self._dimensionsInUse
+            return cast(set[Any], self._dimensionsInUse)
         except AttributeError:
             self._dimensionsInUse = set(dim.dimension
                                         for cntx in self.contexts.values()  # use contextsInUse?  slower?

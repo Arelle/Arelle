@@ -1133,7 +1133,7 @@ class ModelContext(ModelObject):
             dimValue = self.modelXbrl.qnameDimensionDefaults.get(dimQname)
         return dimValue
 
-    def dimMemberQname(self, dimQname, includeDefaults=False):
+    def dimMemberQname(self, dimQname: ModelValue.QName, includeDefaults: bool = False) -> ModelValue.QName | None:
         """(QName) -- QName of explicit dimension if reported (or defaulted if includeDefaults is True), else None"""
         dimValue = self.dimValue(dimQname)
         if isinstance(dimValue, (ModelDimensionValue,DimValuePrototype)) and dimValue.isExplicit:
