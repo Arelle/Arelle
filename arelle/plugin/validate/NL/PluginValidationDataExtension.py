@@ -328,6 +328,24 @@ class PluginValidationDataExtension(PluginData):
     def getContextsWithSegments(self, modelXbrl: ModelXbrl) -> list[ModelContext | None]:
         return self.checkContexts(modelXbrl).contextsWithSegments
 
+    @lru_cache(1)
+    def getDocumentsInDts(self, modelXbrl: ModelXbrl) -> dict[ModelDocument, str | None]:
+        modelDocuments = {}
+        if modelXbrl.modelDocument is None:
+            return modelDocuments
+
+        def _getDocumentsInDts(modelDocument: ModelDocument) -> None:
+            for referencedDocument, modelDocumentReference in modelDocument.referencesDocument.items():
+                if referencedDocument in modelDocuments:
+                    continue
+                if referencedDocument.inDTS:
+                    modelDocuments[referencedDocument] = modelDocumentReference.referringXlinkRole
+                    _getDocumentsInDts(referencedDocument)
+
+        modelDocuments[modelXbrl.modelDocument] = None
+        _getDocumentsInDts(modelXbrl.modelDocument)
+        return modelDocuments
+
     def getEligibleForTransformHiddenFacts(self, modelXbrl: ModelXbrl) -> set[ModelInlineFact]:
         return self.checkHiddenElements(modelXbrl).eligibleForTransformHiddenFacts
 
