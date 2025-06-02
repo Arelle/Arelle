@@ -914,34 +914,6 @@ def rule_nl_kvk_3_7_1_2(
         DISCLOSURE_SYSTEM_NL_INLINE_2024
     ],
 )
-def rule_nl_kvk_4_1_2_1(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
-        *args: Any,
-        **kwargs: Any,
-) -> Iterable[Validation]:
-    """
-    NL-KVK.4.1.2.1: Validate that the imported taxonomy matches the KVK-specified entry point.
-        - https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-nlgaap-ext.xsd,
-        - https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-ifrs-ext.xsd.
-    """
-    if val.modelXbrl.modelDocument is not None:
-        importedUrls = pluginData.getImportedUrls(val.modelXbrl)
-        importedTaxonomyUrls = importedUrls & EFFECTIVE_TAXONOMY_URLS
-        if not importedTaxonomyUrls:
-            yield Validation.error(
-                codes='NL.NL-KVK.4.1.2.1.requiredEntryPointNotImported',
-                msg=_('The extension taxonomy must import the entry point of the taxonomy files prepared by KVK.'),
-                modelObject=val.modelXbrl.modelDocument
-            )
-
-
-@validation(
-    hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
-)
 def rule_nl_kvk_4_1_1_1(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
@@ -1020,6 +992,34 @@ def rule_nl_kvk_4_1_1_2(
             basename=modelDocument.basename,
             linkbasesFound=", ".join(sorted(linkbasesFound))
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
+def rule_nl_kvk_4_1_2_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.1.2.1: Validate that the imported taxonomy matches the KVK-specified entry point.
+        - https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-nlgaap-ext.xsd,
+        - https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-ifrs-ext.xsd.
+    """
+    if val.modelXbrl.modelDocument is not None:
+        importedUrls = pluginData.getImportedUrls(val.modelXbrl)
+        importedTaxonomyUrls = importedUrls & EFFECTIVE_TAXONOMY_URLS
+        if not importedTaxonomyUrls:
+            yield Validation.error(
+                codes='NL.NL-KVK.4.1.2.1.requiredEntryPointNotImported',
+                msg=_('The extension taxonomy must import the entry point of the taxonomy files prepared by KVK.'),
+                modelObject=val.modelXbrl.modelDocument
+            )
 
 
 @validation(
