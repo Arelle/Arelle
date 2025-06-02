@@ -924,15 +924,14 @@ def rule_nl_kvk_4_1_2_1(
         - https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-nlgaap-ext.xsd
         - https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-ifrs-ext.xsd
     """
-    if val.modelXbrl.modelDocument is not None:
-        if not val.extensionImportedUrls:
-            pluginData.checkFilingDTS(val, val.modelXbrl.modelDocument, [])
-        if not any(e in val.extensionImportedUrls for e in EFFECTIVE_KVK_GAAP_IFRS_ENTRYPOINT_FILES):
-            yield Validation.error(
-                codes='NL.NL-KVK.4.1.2.1.requiredEntryPointNotImported',
-                msg=_('The extension taxonomy must import the entry point of the taxonomy files prepared by KVK.'),
-                modelObject=val.modelXbrl.modelDocument
-            )
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    matches = extensionData.extensionImportedUrls & EFFECTIVE_KVK_GAAP_IFRS_ENTRYPOINT_FILES
+    if not matches:
+        yield Validation.error(
+            codes='NL.NL-KVK.4.1.2.1.requiredEntryPointNotImported',
+            msg=_('The extension taxonomy must import the entry point of the taxonomy files prepared by KVK.'),
+            modelObject=val.modelXbrl.modelDocument
+        )
 
 
 @validation(
@@ -952,16 +951,15 @@ def rule_nl_kvk_4_1_2_2(
                     the taxonomy files prepared by KVK.
     """
     reportingPeriod = pluginData.getReportingPeriod(val.modelXbrl)
-    if val.modelXbrl.modelDocument is not None:
-        if not val.extensionImportedUrls:
-            pluginData.checkFilingDTS(val, val.modelXbrl.modelDocument, [])
-        if not reportingPeriod or not any(e in val.extensionImportedUrls for e in TAXONOMY_URLS_BY_YEAR.get(reportingPeriod, [])):
-            yield Validation.error(
-                codes='NL.NL-KVK.4.1.2.2.incorrectKvkTaxonomyVersionUsed',
-                msg=_('The extension taxonomy MUST import the applicable version of the taxonomy files prepared by KVK '
-                      'for the reported financial reporting period of %(reportingPeriod)s.'),
-                modelObject=val.modelXbrl.modelDocument
-            )
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    matches = extensionData.extensionImportedUrls & TAXONOMY_URLS_BY_YEAR.get(reportingPeriod, set())
+    if not reportingPeriod or not matches:
+        yield Validation.error(
+            codes='NL.NL-KVK.4.1.2.2.incorrectKvkTaxonomyVersionUsed',
+            msg=_('The extension taxonomy MUST import the applicable version of the taxonomy files prepared by KVK '
+                  'for the reported financial reporting period of %(reportingPeriod)s.'),
+            modelObject=val.modelXbrl.modelDocument
+        )
 
 
 @validation(
@@ -980,9 +978,9 @@ def rule_nl_kvk_4_1_5_1(
     NL-KVK.4.1.5.1: The `{base}` component of the extension document filename SHOULD not exceed twenty characters.
     """
     invalidBasenames = []
-    if val.modelXbrl.modelDocument is not None and not val.extensionDocumentNames:
-        pluginData.checkFilingDTS(val, val.modelXbrl.modelDocument, [])
-    for basename in val.extensionDocumentNames:
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    for extensionDocument in extensionData.extensionDocuments.values():
+        basename = extensionDocument.basename
         filenameParts = pluginData.getFilenameParts(basename, pluginData.getExtensionFilenameFormatPattern())
         if not filenameParts:
             continue  # Filename is not formatted correctly enough to determine {base}
@@ -1014,9 +1012,9 @@ def rule_nl_kvk_4_1_5_2(
     NL-KVK.4.1.5.2: Extension document filename SHOULD match the {base}-{date}_{suffix}-{lang}.{extension} pattern.
     """
     invalidBasenames = []
-    if val.modelXbrl.modelDocument is not None and not val.extensionDocumentNames:
-        pluginData.checkFilingDTS(val, val.modelXbrl.modelDocument, [])
-    for basename in val.extensionDocumentNames:
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    for extensionDocument in extensionData.extensionDocuments.values():
+        basename = extensionDocument.basename
         filenameParts = pluginData.getFilenameParts(basename, pluginData.getExtensionFilenameFormatPattern())
         if not filenameParts:
             invalidBasenames.append(basename)

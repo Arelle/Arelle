@@ -10,11 +10,11 @@ from pathlib import Path
 from typing import Any, TYPE_CHECKING, cast
 
 import regex as re
-from lxml.etree import _Comment, _ElementTree, _Entity, _ProcessingInstruction
+from lxml.etree import _Comment, _ElementTree, _Entity, _ProcessingInstruction, _Element
 
 from arelle.FunctionIxt import ixtNamespaces
-from arelle import ModelDocument as ModelDocumentFile
-from arelle.ModelDocument import ModelDocument
+from arelle.ModelDocument import ModelDocument, Type as ModelDocumentType
+from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelInlineFootnote, ModelUnit, ModelInlineFact
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import QName
@@ -22,10 +22,10 @@ from arelle.ModelXbrl import ModelXbrl
 from arelle.typing import assert_type
 from arelle.utils.PluginData import PluginData
 from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
-from arelle.ValidateXbrl import ValidateXbrl
 from arelle.XbrlConst import ixbrl11, xhtmlBaseIdentifier, xmlBaseIdentifier
 from arelle.XmlValidate import lexicalPatterns
 from arelle.XmlValidateConst import VALID
+from .LinkbaseType import LinkbaseType
 
 XBRLI_IDENTIFIER_PATTERN = re.compile(r"^(?!00)\d{8}$")
 XBRLI_IDENTIFIER_SCHEMA = 'http://www.kvk.nl/kvk-id'
@@ -63,11 +63,11 @@ EFFECTIVE_KVK_GAAP_IFRS_ENTRYPOINT_FILES = frozenset((
 ))
 
 TAXONOMY_URLS_BY_YEAR = {
-    '2024': [
+    '2024': {
         'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-nlgaap-ext.xsd',
         'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-ifrs-ext.xsd',
         'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-other-gaap.xsd',
-    ]
+    }
 }
 
 STANDARD_TAXONOMY_URLS = frozenset((
@@ -93,6 +93,7 @@ STANDARD_TAXONOMY_URLS = frozenset((
     'https://www.w3.org/1999/xlink'
 ))
 
+
 @dataclass(frozen=True)
 class ContextData:
     contextsWithImproperContent: list[ModelContext | None]
@@ -100,12 +101,28 @@ class ContextData:
     contextsWithPeriodTimeZone: list[ModelContext | None]
     contextsWithSegments: list[ModelContext | None]
 
+
+@dataclass(frozen=True)
+class ExtensionData:
+    extensionImportedUrls: frozenset[str]
+    hasExtensionConcepts: bool
+    extensionDocuments: dict[ModelDocument, ExtensionDocumentData]
+
+
+@dataclass(frozen=True)
+class ExtensionDocumentData:
+    basename: str
+    hrefXlinkRole: str | None
+    linkbases: list[LinkbaseData]
+
+
 @dataclass(frozen=True)
 class HiddenElementsData:
     cssHiddenFacts: set[ModelInlineFact]
     eligibleForTransformHiddenFacts: set[ModelInlineFact]
     hiddenFactsOutsideHiddenSection: set[ModelInlineFact]
     requiredToDisplayFacts: set[ModelInlineFact]
+
 
 @dataclass(frozen=True)
 class InlineHTMLData:
@@ -115,6 +132,15 @@ class InlineHTMLData:
     tupleElements: set[tuple[Any]]
     factLangFootnotes: dict[ModelInlineFootnote, set[str]]
     fractionElements: set[Any]
+
+
+@dataclass(frozen=True)
+class LinkbaseData:
+    basename: str
+    element: _Element
+    hasArcs: bool
+    linkbaseType: LinkbaseType | None
+
 
 @dataclass
 class PluginValidationDataExtension(PluginData):
@@ -175,26 +201,6 @@ class PluginValidationDataExtension(PluginData):
             contextsWithPeriodTimeZone=contextsWithPeriodTimeZone,
             contextsWithSegments=contextsWithSegments,
         )
-
-    def checkFilingDTS(
-            self,
-            val: ValidateXbrl,
-            modelDocument: ModelDocument,
-            visited: list[ModelDocument]
-    ) -> None:
-        visited.append(modelDocument)
-        for referencedDocument, modelDocumentReference in modelDocument.referencesDocument.items():
-            if referencedDocument not in visited and referencedDocument.inDTS:
-                self.checkFilingDTS(val, referencedDocument, visited)
-        isExtensionDoc = self.isExtension(val, modelDocument)
-        if isExtensionDoc:
-            if modelDocument.type == ModelDocumentFile.Type.SCHEMA:
-                for doc, docRef in modelDocument.referencesDocument.items():
-                    if "import" in docRef.referenceTypes:
-                        val.extensionImportedUrls.add(doc.uri)
-                val.extensionDocumentNames.add(modelDocument.basename)
-            if modelDocument.type == ModelDocumentFile.Type.LINKBASE:
-                val.extensionDocumentNames.add(modelDocument.basename)
 
     @lru_cache(1)
     def checkHiddenElements(self, modelXbrl: ModelXbrl) -> HiddenElementsData:
@@ -386,7 +392,6 @@ class PluginValidationDataExtension(PluginData):
             flags=re.ASCII
         )
 
-
     @lru_cache(1)
     def getFilenameParts(self, filename: str, filenamePattern: re.Pattern[str]) -> dict[str, Any] | None:
         match = filenamePattern.match(filename)
@@ -397,6 +402,57 @@ class PluginValidationDataExtension(PluginData):
     @lru_cache(1)
     def getIxdsDocBasenames(self, modelXbrl: ModelXbrl) -> set[str]:
         return set(Path(url).name for url in getattr(modelXbrl, "ixdsDocUrls", []))
+
+    def getExtensionConcepts(self, modelXbrl: ModelXbrl) -> list[ModelConcept]:
+        """
+        Returns a list of extension concepts in the DTS.
+        """
+        extensionConcepts = []
+        for concepts in modelXbrl.nameConcepts.values():
+            for concept in concepts:
+                if self.isExtensionUri(concept.qname.namespaceURI, modelXbrl):
+                    extensionConcepts.append(concept)
+        return extensionConcepts
+
+    @lru_cache(1)
+    def getExtensionData(self, modelXbrl: ModelXbrl) -> ExtensionData:
+        extensionDocuments = {}
+        extensionImportedUrls = set()
+        documentsInDts = self.getDocumentsInDts(modelXbrl)
+        for modelDocument, hrefXlinkRole in documentsInDts.items():
+            if not self.isExtensionUri(modelDocument.uri, modelDocument.modelXbrl):
+                # Skip non-extension documents
+                continue
+            if modelDocument.type in (ModelDocumentType.LINKBASE, ModelDocumentType.SCHEMA):
+                extensionDocuments[modelDocument] = ExtensionDocumentData(
+                    basename=modelDocument.basename,
+                    hrefXlinkRole=hrefXlinkRole,
+                    linkbases=self.getLinkbaseData(modelDocument),
+                )
+            if modelDocument.type == ModelDocumentType.SCHEMA:
+                for doc, docRef in modelDocument.referencesDocument.items():
+                    if "import" in docRef.referenceTypes:
+                        extensionImportedUrls.add(doc.uri)
+
+        return ExtensionData(
+            extensionImportedUrls=frozenset(sorted(extensionImportedUrls)),
+            hasExtensionConcepts=len(self.getExtensionConcepts(modelXbrl)) > 0,
+            extensionDocuments=extensionDocuments,
+        )
+
+    def getLinkbaseData(self, modelDocument: ModelDocument) -> list[LinkbaseData]:
+        linkbases = []
+        for linkbaseType in LinkbaseType:
+            for linkElt in modelDocument.xmlRootElement.iterdescendants(tag=linkbaseType.getLinkQn().clarkNotation):
+                arcQn = linkbaseType.getArcQn()
+                arcs = list(linkElt.iterdescendants(tag=arcQn.clarkNotation))
+                linkbases.append(LinkbaseData(
+                    basename=modelDocument.basename,
+                    element=linkElt,
+                    hasArcs=len(arcs) > 0,
+                    linkbaseType=linkbaseType,
+                ))
+        return linkbases
 
     def getNoMatchLangFootnotes(self, modelXbrl: ModelXbrl) -> set[ModelInlineFootnote]:
         return self.checkInlineHTMLElements(modelXbrl).noMatchLangFootnotes
@@ -447,12 +503,12 @@ class PluginValidationDataExtension(PluginData):
                     targetElements.append(elt)
         return targetElements
 
-    def isExtension(self, val: ValidateXbrl, modelObject: ModelObject | ModelDocument | str | None) -> bool:
-        if modelObject is None:
-            return False
-        uri = modelObject if isinstance(modelObject, str) else modelObject.modelDocument.uri
-        return (uri.startswith(val.modelXbrl.uriDir) or
-                not any(uri.startswith(standardTaxonomyURI) for standardTaxonomyURI in STANDARD_TAXONOMY_URLS))
+    def isExtensionUri(self, uri: str, modelXbrl: ModelXbrl) -> bool:
+        if uri.startswith(modelXbrl.uriDir):
+            return True
+        if not any(uri.startswith(taxonomyUri) for taxonomyUri in STANDARD_TAXONOMY_URLS):
+            return True
+        return False
 
     @lru_cache(1)
     def isFilenameValidCharacters(self, filename: str) -> bool:
