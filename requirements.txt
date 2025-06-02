@@ -6,6 +6,7 @@ lxml==5.4.0
 OpenPyXL==3.1.5
 pyparsing==3.2.3
 regex==2024.11.6
+typing-extensions==4.13.2
 isodate==0.7.2
 aniso8601==10.0.1
 bottle==0.13.3
