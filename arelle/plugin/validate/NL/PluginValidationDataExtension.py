@@ -23,7 +23,6 @@ from arelle.ModelXbrl import ModelXbrl
 from arelle.typing import assert_type
 from arelle.utils.PluginData import PluginData
 from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
-from arelle.ValidateXbrl import ValidateXbrl
 from arelle.XbrlConst import ixbrl11, xhtmlBaseIdentifier, xmlBaseIdentifier
 from arelle.XmlValidate import lexicalPatterns
 from arelle.XmlValidateConst import VALID
@@ -198,21 +197,6 @@ class PluginValidationDataExtension(PluginData):
             contextsWithSegments=contextsWithSegments,
         )
 
-    def checkFilingDTS(
-            self,
-            val: ValidateXbrl,
-            modelDocument: ModelDocument,
-            visited: list[ModelDocument]
-    ) -> None:
-        visited.append(modelDocument)
-        for referencedDocument, modelDocumentReference in modelDocument.referencesDocument.items():
-            if referencedDocument not in visited and referencedDocument.inDTS:
-                self.checkFilingDTS(val, referencedDocument, visited)
-        if modelDocument.type == ModelDocumentFile.Type.SCHEMA:
-            for doc, docRef in modelDocument.referencesDocument.items():
-                if "import" in docRef.referenceTypes:
-                    val.extensionImportedUrls.add(doc.uri)
-
     @lru_cache(1)
     def checkHiddenElements(self, modelXbrl: ModelXbrl) -> HiddenElementsData:
         cssHiddenFacts = set()
@@ -374,6 +358,24 @@ class PluginValidationDataExtension(PluginData):
 
     def getHiddenFactsOutsideHiddenSection(self, modelXbrl: ModelXbrl) -> set[ModelInlineFact]:
         return self.checkHiddenElements(modelXbrl).hiddenFactsOutsideHiddenSection
+
+    def getImportedUrls(
+            self,
+            modelXbrl: ModelXbrl,
+    ) -> frozenset[str]:
+        importedUrls = set()
+        documentsInDts = self.getDocumentsInDts(modelXbrl)
+        for modelDocument in documentsInDts:
+            if modelDocument.type != ModelDocumentFile.Type.SCHEMA:
+                continue
+            if modelDocument.uri.startswith('https://www.deconformancebv.nl/') and modelDocument.uri.endswith('xsd'):
+                pass
+            for doc, docRef in modelDocument.referencesDocument.items():
+                if "import" in docRef.referenceTypes:
+                    if doc.uri.startswith('https://www.nltaxonomie.nl'):
+                        pass
+                    importedUrls.add(doc.uri)
+        return frozenset(importedUrls)
 
     @lru_cache(1)
     def getFilenameAllowedCharactersPattern(self) -> re.Pattern[str]:

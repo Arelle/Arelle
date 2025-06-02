@@ -926,8 +926,9 @@ def rule_nl_kvk_4_1_2_1(
         - https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-ifrs-ext.xsd.
     """
     if val.modelXbrl.modelDocument is not None:
-        pluginData.checkFilingDTS(val, val.modelXbrl.modelDocument, [])
-        if not any(e in val.extensionImportedUrls for e in EFFECTIVE_TAXONOMY_URLS):
+        importedUrls = pluginData.getImportedUrls(val.modelXbrl)
+        importedTaxonomyUrls = importedUrls & EFFECTIVE_TAXONOMY_URLS
+        if not importedTaxonomyUrls:
             yield Validation.error(
                 codes='NL.NL-KVK.4.1.2.1.requiredEntryPointNotImported',
                 msg=_('The extension taxonomy must import the entry point of the taxonomy files prepared by KVK.'),
