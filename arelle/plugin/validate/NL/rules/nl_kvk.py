@@ -22,9 +22,9 @@ from arelle.ValidateDuplicateFacts import getHashEquivalentFactGroups, getAspect
 from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
 from ..DisclosureSystems import DISCLOSURE_SYSTEM_NL_INLINE_2024
 from ..PluginValidationDataExtension import (PluginValidationDataExtension, ALLOWABLE_LANGUAGES,
-                                             DISALLOWED_IXT_NAMESPACES, EFFECTIVE_GAAP_IFRS_TAXONOMY_URLS,
-                                             MAX_REPORT_PACKAGE_SIZE_MBS, XBRLI_IDENTIFIER_PATTERN,
-                                             XBRLI_IDENTIFIER_SCHEMA)
+                                             DISALLOWED_IXT_NAMESPACES, EFFECTIVE_KVK_GAAP_IFRS_ENTRYPOINT_FILES,
+                                             MAX_REPORT_PACKAGE_SIZE_MBS, TAXONOMY_URLS_BY_YEAR,
+                                             XBRLI_IDENTIFIER_PATTERN, XBRLI_IDENTIFIER_SCHEMA)
 
 if TYPE_CHECKING:
     from arelle.ModelXbrl import ModelXbrl
@@ -861,16 +861,44 @@ def rule_nl_kvk_4_1_2_1(
 ) -> Iterable[Validation]:
     """
     NL-KVK.4.1.2.1: Validate that the imported taxonomy matches the KVK-specified entry point.
-        - https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-nlgaap-ext.xsd,
-        - https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-ifrs-ext.xsd.
+        - https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-nlgaap-ext.xsd
+        - https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-ifrs-ext.xsd
     """
     if val.modelXbrl.modelDocument is not None:
-        pluginData.checkFilingDTS(val, val.modelXbrl.modelDocument, [])
-        taxonomyUrls = [url for effectiveUrls in EFFECTIVE_GAAP_IFRS_TAXONOMY_URLS.values() for url in effectiveUrls]
-        if not any(e in val.extensionImportedUrls for e in taxonomyUrls):
+        if not val.extensionImportedUrls:
+            pluginData.checkFilingDTS(val, val.modelXbrl.modelDocument, [])
+        if not any(e in val.extensionImportedUrls for e in EFFECTIVE_KVK_GAAP_IFRS_ENTRYPOINT_FILES):
             yield Validation.error(
                 codes='NL.NL-KVK.4.1.2.1.requiredEntryPointNotImported',
                 msg=_('The extension taxonomy must import the entry point of the taxonomy files prepared by KVK.'),
+                modelObject=val.modelXbrl.modelDocument
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
+def rule_nl_kvk_4_1_2_2(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.1.2.2: The legal entity’s extension taxonomy MUST import the applicable version of
+                    the taxonomy files prepared by KVK.
+    """
+    reportingPeriod = pluginData.getReportingPeriod(val.modelXbrl)
+    if val.modelXbrl.modelDocument is not None:
+        if not val.extensionImportedUrls:
+            pluginData.checkFilingDTS(val, val.modelXbrl.modelDocument, [])
+        if not any(e in val.extensionImportedUrls for e in TAXONOMY_URLS_BY_YEAR.get(reportingPeriod, [])):
+            yield Validation.error(
+                codes='NL.NL-KVK.4.1.2.2.incorrectKvkTaxonomyVersionUsed',
+                msg=_('The extension taxonomy MUST import the applicable version of the taxonomy files prepared by KVK.'),
                 modelObject=val.modelXbrl.modelDocument
             )
 

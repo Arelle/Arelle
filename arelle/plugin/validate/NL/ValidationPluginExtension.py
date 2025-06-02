@@ -186,6 +186,7 @@ class ValidationPluginExtension(ValidationPlugin):
             documentResubmissionUnsurmountableInaccuraciesQn=qname(f'{{{kvkINamespace}}}DocumentResubmissionDueToUnsurmountableInaccuracies'),
             entrypointRoot=entrypointRoot,
             entrypoints=entrypoints,
+            financialReportingPeriodQn=qname(f'{{{jenvNamespace}}}FinancialReportingPeriod'),
             financialReportingPeriodCurrentStartDateQn=qname(f'{{{jenvNamespace}}}FinancialReportingPeriodCurrentStartDate'),
             financialReportingPeriodCurrentEndDateQn=qname(f'{{{jenvNamespace}}}FinancialReportingPeriodCurrentEndDate'),
             financialReportingPeriodPreviousStartDateQn=qname(f'{{{jenvNamespace}}}FinancialReportingPeriodPreviousStartDate'),

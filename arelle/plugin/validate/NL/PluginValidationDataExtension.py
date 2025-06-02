@@ -57,10 +57,16 @@ ALLOWABLE_LANGUAGES = frozenset((
     'fr'
 ))
 
-EFFECTIVE_GAAP_IFRS_TAXONOMY_URLS = {
+EFFECTIVE_KVK_GAAP_IFRS_ENTRYPOINT_FILES = frozenset((
+    'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-nlgaap-ext.xsd',
+    'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-ifrs-ext.xsd',
+))
+
+TAXONOMY_URLS_BY_YEAR = {
     '2024': [
         'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-nlgaap-ext.xsd',
         'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-ifrs-ext.xsd',
+        'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-other-gaap.xsd',
     ]
 }
 
@@ -116,6 +122,7 @@ class PluginValidationDataExtension(PluginData):
     documentResubmissionUnsurmountableInaccuraciesQn: QName
     entrypointRoot: str
     entrypoints: set[str]
+    financialReportingPeriodQn: QName
     financialReportingPeriodCurrentStartDateQn: QName
     financialReportingPeriodCurrentEndDateQn: QName
     financialReportingPeriodPreviousStartDateQn: QName
@@ -371,6 +378,13 @@ class PluginValidationDataExtension(PluginData):
 
     def getTupleElements(self, modelXbrl: ModelXbrl) -> set[tuple[Any]]:
         return self.checkInlineHTMLElements(modelXbrl).tupleElements
+
+    @lru_cache(1)
+    def getReportingPeriod(self, modelXbrl: ModelXbrl) -> str:
+        reportingPeriodFacts = modelXbrl.factsByQname.get(self.financialReportingPeriodQn, set())
+        for fact in reportingPeriodFacts:
+            if fact.xValid >= VALID:
+                return fact.xValue
 
     @lru_cache(1)
     def getReportXmlLang(self, modelXbrl: ModelXbrl) -> str | None:
