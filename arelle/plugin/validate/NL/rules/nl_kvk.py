@@ -929,7 +929,7 @@ def rule_nl_kvk_4_1_1_1(
     linkbaseIsMissing = {
         LinkbaseType.CALCULATION: True,
         LinkbaseType.DEFINITION: True,
-        LinkbaseType.LABEL: extensionData.hasExtensionConcepts,
+        LinkbaseType.LABEL: len(extensionData.extensionConcepts) > 0,
         LinkbaseType.PRESENTATION: True,
     }
     for modelDocument, extensionDocumentData in extensionData.extensionDocuments.items():
@@ -1118,6 +1118,58 @@ def rule_nl_kvk_4_1_5_2(
                   '{extension} must be one of the following: html, htm, xhtml. '
                   'Review formatting and update as appropriate. '
                   'Invalid filenames: %(invalidBasenames)s'))
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
+def rule_nl_kvk_4_2_0_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.2.0.1: Tuples MUST NOT be defined in extension taxonomy.
+    """
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    tupleConcepts = [
+        concept for concept in extensionData.extensionConcepts if concept.isTuple
+    ]
+    if len(tupleConcepts) > 0:
+        yield Validation.warning(
+            codes='NL.NL-KVK.4.2.0.1.tupleElementUsed',
+            modelObject=tupleConcepts,
+            msg=_('The extension taxonomy must not define tuple concepts.'))
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
+def rule_nl_kvk_4_2_0_2(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.2.0.2: Items with xbrli:fractionItemType data type MUST NOT be defined in extension taxonomy
+    """
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    fractionConcepts = [
+        concept for concept in extensionData.extensionConcepts if concept.isFraction
+    ]
+    if len(fractionConcepts) > 0:
+        yield Validation.warning(
+            codes='NL.NL-KVK.4.2.0.2.fractionElementUsed',
+            modelObject=fractionConcepts,
+            msg=_('The extension taxonomy must not define fraction concepts.'))
 
 
 @validation(

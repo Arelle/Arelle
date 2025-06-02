@@ -104,9 +104,9 @@ class ContextData:
 
 @dataclass(frozen=True)
 class ExtensionData:
-    extensionImportedUrls: frozenset[str]
-    hasExtensionConcepts: bool
+    extensionConcepts: list[ModelConcept]
     extensionDocuments: dict[ModelDocument, ExtensionDocumentData]
+    extensionImportedUrls: frozenset[str]
 
 
 @dataclass(frozen=True)
@@ -433,11 +433,10 @@ class PluginValidationDataExtension(PluginData):
                 for doc, docRef in modelDocument.referencesDocument.items():
                     if "import" in docRef.referenceTypes:
                         extensionImportedUrls.add(doc.uri)
-
         return ExtensionData(
-            extensionImportedUrls=frozenset(sorted(extensionImportedUrls)),
-            hasExtensionConcepts=len(self.getExtensionConcepts(modelXbrl)) > 0,
+            extensionConcepts=self.getExtensionConcepts(modelXbrl),
             extensionDocuments=extensionDocuments,
+            extensionImportedUrls=frozenset(sorted(extensionImportedUrls)),
         )
 
     def getLinkbaseData(self, modelDocument: ModelDocument) -> list[LinkbaseData]:
