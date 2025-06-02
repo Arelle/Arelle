@@ -96,7 +96,6 @@ config = ConformanceSuiteConfig(
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-1-1_1/index.xml:TC7_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-1-1_2/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-1-1_2/index.xml:TC3_invalid',
-        # 'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-1-2_2/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-2-0_1/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-2-0_2/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-2-1_1/index.xml:TC2_invalid', # Expects scenarioNotUsedInExtensionTaxonomy and segmentUsed errors.  scenarioNotUsedInExtensionTaxonomy not yet implemented.

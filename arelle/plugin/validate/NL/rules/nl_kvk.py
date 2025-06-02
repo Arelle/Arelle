@@ -770,7 +770,7 @@ def rule_nl_kvk_3_6_3_1(
     """
     invalidBasenames = []
     for basename in pluginData.getIxdsDocBasenames(val.modelXbrl):
-        filenameParts = pluginData.getFilenameParts(basename)
+        filenameParts = pluginData.getFilenameParts(basename, pluginData.getFilenameFormatPattern())
         if not filenameParts:
             continue  # Filename is not formatted correctly enough to determine {base}
         if len(filenameParts.get('base', '')) > 20:
@@ -803,7 +803,7 @@ def rule_nl_kvk_3_6_3_2(
     """
     invalidBasenames = []
     for basename in pluginData.getIxdsDocBasenames(val.modelXbrl):
-        filenameParts = pluginData.getFilenameParts(basename)
+        filenameParts = pluginData.getFilenameParts(basename, pluginData.getFilenameFormatPattern())
         if not filenameParts:
             invalidBasenames.append(basename)
     if len(invalidBasenames) > 0:
@@ -895,12 +895,80 @@ def rule_nl_kvk_4_1_2_2(
     if val.modelXbrl.modelDocument is not None:
         if not val.extensionImportedUrls:
             pluginData.checkFilingDTS(val, val.modelXbrl.modelDocument, [])
-        if not any(e in val.extensionImportedUrls for e in TAXONOMY_URLS_BY_YEAR.get(reportingPeriod, [])):
+        if not reportingPeriod or not any(e in val.extensionImportedUrls for e in TAXONOMY_URLS_BY_YEAR.get(reportingPeriod, [])):
             yield Validation.error(
                 codes='NL.NL-KVK.4.1.2.2.incorrectKvkTaxonomyVersionUsed',
-                msg=_('The extension taxonomy MUST import the applicable version of the taxonomy files prepared by KVK.'),
+                msg=_('The extension taxonomy MUST import the applicable version of the taxonomy files prepared by KVK '
+                      'for the reported financial reporting period of %(reportingPeriod)s.'),
                 modelObject=val.modelXbrl.modelDocument
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
+def rule_nl_kvk_4_1_5_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.1.5.1: The `{base}` component of the extension document filename SHOULD not exceed twenty characters.
+    """
+    invalidBasenames = []
+    if val.modelXbrl.modelDocument is not None and not val.extensionDocumentNames:
+        pluginData.checkFilingDTS(val, val.modelXbrl.modelDocument, [])
+    for basename in val.extensionDocumentNames:
+        filenameParts = pluginData.getFilenameParts(basename, pluginData.getExtensionFilenameFormatPattern())
+        if not filenameParts:
+            continue  # Filename is not formatted correctly enough to determine {base}
+        if len(filenameParts.get('base', '')) > 20:
+            invalidBasenames.append(basename)
+    if len(invalidBasenames) > 0:
+        yield Validation.warning(
+            codes='NL.NL-KVK.4.1.5.1.baseComponentInNameOfTaxonomyFileExceedsTwentyCharacters',
+            invalidBasenames=', '.join(invalidBasenames),
+            msg=_('The {base} component of the extension document filename is greater than twenty characters. '
+                  'The {base} component can either be the KVK number or the legal entity\'s name. '
+                  'If the legal entity\'s name has been utilized, review to shorten the name to twenty characters or less. '
+                  'Invalid filenames: %(invalidBasenames)s'))
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
+def rule_nl_kvk_4_1_5_2(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.1.5.2: Extension document filename SHOULD match the {base}-{date}_{suffix}-{lang}.{extension} pattern.
+    """
+    invalidBasenames = []
+    if val.modelXbrl.modelDocument is not None and not val.extensionDocumentNames:
+        pluginData.checkFilingDTS(val, val.modelXbrl.modelDocument, [])
+    for basename in val.extensionDocumentNames:
+        filenameParts = pluginData.getFilenameParts(basename, pluginData.getExtensionFilenameFormatPattern())
+        if not filenameParts:
+            invalidBasenames.append(basename)
+    if len(invalidBasenames) > 0:
+        yield Validation.warning(
+            codes='NL.NL-KVK.4.1.5.2.extensionTaxonomyDocumentNameDoesNotFollowNamingConvention',
+            invalidBasenames=', '.join(invalidBasenames),
+            msg=_('The extension document filename does not match the naming convention outlined by the KVK. '
+                  'It is recommended to be in the {base}-{date}_{suffix}-{lang}.{extension} format. '
+                  '{extension} must be one of the following: html, htm, xhtml. '
+                  'Review formatting and update as appropriate. '
+                  'Invalid filenames: %(invalidBasenames)s'))
 
 
 @validation(

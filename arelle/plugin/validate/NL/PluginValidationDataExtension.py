@@ -79,6 +79,8 @@ STANDARD_TAXONOMY_URLS = frozenset((
     'https://www.xbrl.org/taxonomy/int/lei/',
     'http://www.xbrl.org/20',
     'https://www.xbrl.org/20',
+    'http://www.xbrl.org/lrr/',
+    'https://www.xbrl.org/lrr/',
     'http://xbrl.org/20',
     'https://xbrl.org/20',
     'http://xbrl.ifrs.org/',
@@ -190,7 +192,9 @@ class PluginValidationDataExtension(PluginData):
                 for doc, docRef in modelDocument.referencesDocument.items():
                     if "import" in docRef.referenceTypes:
                         val.extensionImportedUrls.add(doc.uri)
-            val.extensionDocumentNames.add(modelDocument.basename)
+                val.extensionDocumentNames.add(modelDocument.basename)
+            if modelDocument.type == ModelDocumentFile.Type.LINKBASE:
+                val.extensionDocumentNames.add(modelDocument.basename)
 
     @lru_cache(1)
     def checkHiddenElements(self, modelXbrl: ModelXbrl) -> HiddenElementsData:
@@ -354,8 +358,20 @@ class PluginValidationDataExtension(PluginData):
         )
 
     @lru_cache(1)
-    def getFilenameParts(self, filename: str) -> dict[str, Any] | None:
-        match = self.getFilenameFormatPattern().match(filename)
+    def getExtensionFilenameFormatPattern(self) -> re.Pattern[str]:
+        return re.compile(
+            r"^(?<base>[^-]*)"
+            r"-(?<year>\d{4})-(?<month>0[1-9]|1[012])-(?<day>0?[1-9]|[12][0-9]|3[01])"
+            r"(?<suffix>[_pre|_cal|_lab|_def]*)"
+            r"(?<lang>-*[^-]*)"
+            r"\.(?<extension>xsd|xml)$",
+            flags=re.ASCII
+        )
+
+
+    @lru_cache(1)
+    def getFilenameParts(self, filename: str, filenamePattern: re.Pattern[str]) -> dict[str, Any] | None:
+        match = filenamePattern.match(filename)
         if match:
             return match.groupdict()
         return None
@@ -380,11 +396,12 @@ class PluginValidationDataExtension(PluginData):
         return self.checkInlineHTMLElements(modelXbrl).tupleElements
 
     @lru_cache(1)
-    def getReportingPeriod(self, modelXbrl: ModelXbrl) -> str:
+    def getReportingPeriod(self, modelXbrl: ModelXbrl) -> str | None:
         reportingPeriodFacts = modelXbrl.factsByQname.get(self.financialReportingPeriodQn, set())
         for fact in reportingPeriodFacts:
             if fact.xValid >= VALID:
-                return fact.xValue
+                return cast(str, fact.xValue)
+        return None
 
     @lru_cache(1)
     def getReportXmlLang(self, modelXbrl: ModelXbrl) -> str | None:
