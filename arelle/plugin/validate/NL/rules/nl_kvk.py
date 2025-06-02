@@ -1172,6 +1172,12 @@ def rule_nl_kvk_4_2_0_2(
             msg=_('The extension taxonomy must not define fraction concepts.'))
 
 
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
 def rule_nl_kvk_4_2_1_1(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
@@ -1197,6 +1203,12 @@ def rule_nl_kvk_4_2_1_1(
         )
 
 
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
 def rule_nl_kvk_4_4_1_1(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
@@ -1218,6 +1230,95 @@ def rule_nl_kvk_4_4_1_1(
             modelObject=errors,
             msg=_('Calculation relationships should follow the requirements of the Calculation 1.1 specification. '
                   'Update to ensure use of summation-item arcrole in the calculation linkbase.'),
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
+def rule_nl_kvk_4_4_2_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.4.2.1: Extension taxonomies MUST NOT define definition arcs
+    with http://xbrl.org/int/dim/arcrole/notAll arcrole.
+    """
+    errors = []
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    for modelDocument, extensionDocumentData in extensionData.extensionDocuments.items():
+        for arc in extensionDocumentData.iterArcsByType(LinkbaseType.DEFINITION, includeArcroles={XbrlConst.notAll}):
+            errors.append(arc)
+    if len(errors) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.4.4.2.1.notAllArcroleUsedInDefinitionLinkbase',
+            modelObject=errors,
+            msg=_('Incorrect hypercube settings are found.  Ensure that positive hypercubes are in use.'),
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
+def rule_nl_kvk_4_4_2_2(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.4.2.2: Hypercubes appearing as target of definition arc with
+    http://xbrl.org/int/dim/arcrole/all arcrole MUST have xbrldt:closed attribute set to “true”.
+    """
+    errors = []
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    for modelDocument, extensionDocumentData in extensionData.extensionDocuments.items():
+        for arc in extensionDocumentData.iterArcsByType(LinkbaseType.DEFINITION, includeArcroles={XbrlConst.all}):
+            if arc.get(XbrlConst.qnXbrldtClosed.clarkNotation, "false") != "true":
+                errors.append(arc)
+    if len(errors) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.4.4.2.2.openPositiveHypercubeInDefinitionLinkbase',
+            modelObject=errors,
+            msg=_('Incorrect hypercube settings are found.  Ensure that positive hypercubes are closed.'),
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
+def rule_nl_kvk_4_4_2_3(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.4.2.3: Hypercubes appearing as target of definition arc with
+    http://xbrl.org/int/dim/arcrole/notAll arcrole MUST have xbrldt:closed attribute set to “false”.
+    """
+    errors = []
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    for modelDocument, extensionDocumentData in extensionData.extensionDocuments.items():
+        for arc in extensionDocumentData.iterArcsByType(LinkbaseType.DEFINITION, includeArcroles={XbrlConst.notAll}):
+            if arc.get(XbrlConst.qnXbrldtClosed.clarkNotation, "true") != "false":
+                errors.append(arc)
+    if len(errors) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.4.4.2.3.closedNegativeHypercubeInDefinitionLinkbase',
+            modelObject=errors,
+            msg=_('Incorrect hypercube settings are found.  Ensure that negative hypercubes are not closed.'),
         )
 
 
