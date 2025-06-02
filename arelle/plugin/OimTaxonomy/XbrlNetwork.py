@@ -37,9 +37,9 @@ class XbrlRelationship(XbrlTaxonomyObject):
         return ("relationship", f"{str(self.source)}\u2192{self.target}", tuple(nestedProperties))
 
 class XbrlRelationshipSet:
-    _relationshipsFrom: dict[QName, list[XbrlRelationship]] | None
-    _relationshipsTo: dict[QName, list[XbrlRelationship]] | None
-    _roots: OrderedSet[QName] | None
+    _relationshipsFrom: Optional[dict[QName, list[XbrlRelationship]]]
+    _relationshipsTo: Optional[dict[QName, list[XbrlRelationship]]]
+    _roots: Optional[OrderedSet[QName]]
 
     def __init__(self):
         self._relationshipsFrom = self._relationshipsTo = self._roots = None

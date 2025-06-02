@@ -2,7 +2,7 @@
 See COPYRIGHT.md for copyright information.
 """
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Union
 from decimal import Decimal
 
 from arelle.ModelValue import QName
@@ -20,8 +20,8 @@ class XbrlTableTemplate(XbrlReferencableTaxonomyObject):
 
 class XbrlAxisDimensions(XbrlTaxonomyObject):
     dimensionName: QName # (required) The QName of a dimension defined by the cubeName property.
-    showTotal: bool | DefaultFalse # (optional) Indicates if the total of the dimension is shown in the axis. This is the value associated with the dimension absent. If no value is provided the default is false. The concept dimension defaults to false and cannot be set to true.
-    showAncestorColumns: bool | DefaultFalse # (optional) Define members on an explicit dimension that are not leaf values that are included on the axis. If not provided only leaf members on the axis will show.
+    showTotal: Union[bool, DefaultFalse] # (optional) Indicates if the total of the dimension is shown in the axis. This is the value associated with the dimension absent. If no value is provided the default is false. The concept dimension defaults to false and cannot be set to true.
+    showAncestorColumns: Union[bool, DefaultFalse] # (optional) Define members on an explicit dimension that are not leaf values that are included on the axis. If not provided only leaf members on the axis will show.
     totalLocation: Optional[str] # (optional) Indicates if the total is at the start or at the end when shown on the axis. The default value is end. The totalLocation attribute can only have a value of start or end.
     periodAlign: OrderedSet[str] # (optional) the period align attribute can only be used with the period dimension. This attribute is used to align time values of facts in a dimension rather than being created as seperate columns or rows. The values @start and @end are used to indicate if instant values are aligned with duration values. These values are used to support roll-forwards in a datatgrid and will align duration values and instant values with the same start and end dates.
 

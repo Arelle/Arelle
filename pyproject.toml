@@ -41,6 +41,7 @@ dependencies = [
     'pyparsing==3.*',
     'python-dateutil==2.*',
     'regex',
+    'typing-extensions==4.*',
 ]
 
 [project.optional-dependencies]
