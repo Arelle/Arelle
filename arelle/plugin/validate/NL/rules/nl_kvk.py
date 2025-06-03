@@ -533,7 +533,7 @@ def rule_nl_kvk_3_4_1_3 (
     if len(facts) > 0:
         yield Validation.error(
             codes='NL.NL-KVK.3.4.1.3.transformableElementIncludedInHiddenSection',
-            msg=_('The ix:hidden section should not include elements that are eligible for transformation'
+            msg=_('The ix:hidden section should not include elements that are eligible for transformation '
                   'according to the latest recommended Transformation Rules Registry.'),
             modelObject=facts
         )
