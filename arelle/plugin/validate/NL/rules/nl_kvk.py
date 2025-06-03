@@ -70,7 +70,7 @@ def rule_nl_kvk_3_1_1_1(
         if not XBRLI_IDENTIFIER_PATTERN.match(entityId[1]):
             yield Validation.error(
                 codes='NL.NL-KVK-RTS_Annex_IV_Par_2_G3-1-1_1.invalidIdentifierFormat',
-                msg=_('xbrli:identifier content to match KVK number format that must consist of 8 consecutive digits.'
+                msg=_('xbrli:identifier content to match KVK number format that must consist of 8 consecutive digits. '
                       'Additionally the first two digits must not be "00".'),
                 modelObject = val.modelXbrl
             )
@@ -95,7 +95,7 @@ def rule_nl_kvk_3_1_1_2(
         if XBRLI_IDENTIFIER_SCHEMA != entityId[0]:
             yield Validation.error(
                 codes='NL.NL-KVK-RTS_Annex_IV_Par_2_G3-1-1_2.invalidIdentifier',
-                msg=_('The scheme attribute of the xbrli:identifier does not match the required content.'
+                msg=_('The scheme attribute of the xbrli:identifier does not match the required content. '
                       'This should be "http://www.kvk.nl/kvk-id".'),
                 modelObject = val.modelXbrl
             )
@@ -368,7 +368,7 @@ def rule_nl_kvk_3_2_7_1 (
     if len(improperlyEscapedFacts) >0:
         yield Validation.error(
             codes='NL.NL-KVK.3.2.7.1.improperApplicationOfEscapeAttribute',
-            msg=_('Ensure that any block-tagged facts of type textBlockItemType are assigned @escape="true",'
+            msg=_('Ensure that any block-tagged facts of type textBlockItemType are assigned @escape="true", '
                   'while other data types (e.g., xbrli:stringItemType) are assigned @escape="false".'),
             modelObject = improperlyEscapedFacts
         )

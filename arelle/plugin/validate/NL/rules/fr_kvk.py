@@ -120,7 +120,7 @@ def rule_fr_kvk_2_02(
         if fact.xmlLang and fact.xmlLang != lang:
             yield Validation.error(
                 codes='NL.FR-KVK-2.02',
-                msg=_('The attribute \'xml:lang\' can be reported on different elements within an XBRL instance document.'
+                msg=_('The attribute \'xml:lang\' can be reported on different elements within an XBRL instance document. '
                       'The attribute \'xml:lang\' must always contain the same value within an XBRL instance document. '
                       'It is not allowed to report different values here. Document language: %(documentLang)s  Element language: %(additionalLang)s'),
                 modelObject=fact,
