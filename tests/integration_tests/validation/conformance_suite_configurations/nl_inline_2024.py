@@ -21,6 +21,7 @@ config = ConformanceSuiteConfig(
     expected_additional_testcase_errors={f"conformance-suite-2024-sbr-domein-handelsregister/tests/{s}": val for s, val in {
         'G3-5-3_1/index.xml:TC2_invalid': {
             'arelle:ixdsTargetNotDefined': 1,
+            'extensionTaxonomyWrongFilesStructure': 1,
             # This test is looking at the usage of the target attribute and does not import the correct taxonomy urls
             'requiredEntryPointNotImported': 1,
             'incorrectKvkTaxonomyVersionUsed': 1,
@@ -43,12 +44,14 @@ config = ConformanceSuiteConfig(
             'requiredEntryPointNotImported': 1,
         },
         'G5-1-3_1/index.xml:TC1_valid': {
+            'extensionTaxonomyWrongFilesStructure': 1,
             # This test is looking at the import of the Other GAAP entry point and thus does not import
             # the standard GAAP or IFRS
             'requiredEntryPointNotImported': 1,
             'incorrectKvkTaxonomyVersionUsed': 1,
         },
         'G5-1-3_2/index.xml:TC1_valid': {
+            'extensionTaxonomyWrongFilesStructure': 1,
             # This test is looking at the import of the Other GAAP entry point and thus does not import
             # the standard GAAP or IFRS
             'requiredEntryPointNotImported': 1,
@@ -92,13 +95,6 @@ config = ConformanceSuiteConfig(
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-5-1_5/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-5-1_5/index.xml:TC3_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-6-2_1/index.xml:TC2_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-1-1_1/index.xml:TC3_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-1-1_1/index.xml:TC4_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-1-1_1/index.xml:TC5_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-1-1_1/index.xml:TC6_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-1-1_1/index.xml:TC7_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-1-1_2/index.xml:TC2_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-1-1_2/index.xml:TC3_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-2-0_1/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-2-0_2/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-2-1_1/index.xml:TC2_invalid', # Expects scenarioNotUsedInExtensionTaxonomy and segmentUsed errors.  scenarioNotUsedInExtensionTaxonomy not yet implemented.
@@ -136,7 +132,6 @@ config = ConformanceSuiteConfig(
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_4_3/index.xml:TC5_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_5/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_5/index.xml:TC3_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_6/index.xml:TC3_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_6/index.xml:TC4_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_8_G4-4-5/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_8_G4-4-5/index.xml:TC3_invalid',

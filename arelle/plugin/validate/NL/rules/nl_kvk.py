@@ -21,6 +21,7 @@ from arelle.utils.validate.Validation import Validation
 from arelle.ValidateDuplicateFacts import getHashEquivalentFactGroups, getAspectEqualFacts
 from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
 from ..DisclosureSystems import DISCLOSURE_SYSTEM_NL_INLINE_2024
+from ..LinkbaseType import LinkbaseType
 from ..PluginValidationDataExtension import (PluginValidationDataExtension, ALLOWABLE_LANGUAGES,
                                              DISALLOWED_IXT_NAMESPACES, EFFECTIVE_KVK_GAAP_IFRS_ENTRYPOINT_FILES,
                                              MAX_REPORT_PACKAGE_SIZE_MBS, TAXONOMY_URLS_BY_YEAR,
@@ -913,6 +914,96 @@ def rule_nl_kvk_3_7_1_2(
         DISCLOSURE_SYSTEM_NL_INLINE_2024
     ],
 )
+def rule_nl_kvk_4_1_1_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.1.1.1: Extension taxonomies MUST consist of at least a schema file and presentation,
+                                                                                   calculation and definition linkbases.
+    A label linkbase is also required if extension elements are present.
+    """
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    linkbaseIsMissing = {
+        LinkbaseType.CALCULATION: True,
+        LinkbaseType.DEFINITION: True,
+        LinkbaseType.LABEL: extensionData.hasExtensionConcepts,
+        LinkbaseType.PRESENTATION: True,
+    }
+    for modelDocument, extensionDocumentData in extensionData.extensionDocuments.items():
+        hasArcs = False
+        linkbaseType = LinkbaseType.fromRefUri(extensionDocumentData.hrefXlinkRole)
+        for linkbaseData in extensionDocumentData.linkbases:
+            if linkbaseType is not None:
+                if linkbaseType == linkbaseData.linkbaseType:
+                    if linkbaseData.hasArcs:
+                        hasArcs = True
+                        break
+            elif linkbaseData.hasArcs:
+                linkbaseType = linkbaseData.linkbaseType
+                hasArcs = True
+                break
+        if linkbaseType is None:
+            continue
+        if hasArcs and linkbaseIsMissing.get(linkbaseType, False):
+            linkbaseIsMissing[linkbaseType] = False
+    missingFiles = set(linkbaseType.getLowerName() for linkbaseType, isMissing in linkbaseIsMissing.items() if isMissing)
+    if len(missingFiles) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.4.1.1.1.extensionTaxonomyWrongFilesStructure',
+            msg=_('The extension taxonomy is missing one or more required components: %(missingFiles)s '
+                  'Review to ensure that the schema file, presentation, calculation, '
+                  'and definition linkbases are included and not empty. '
+                  'A label linkbase is also required if extension elements are present.'),
+            modelObject=val.modelXbrl, missingFiles=", ".join(missingFiles)
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
+def rule_nl_kvk_4_1_1_2(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.1.1.2: Each linkbase type MUST be provided in a separate linkbase file.
+    """
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    errors = []
+    for modelDocument, extensionDocumentData in extensionData.extensionDocuments.items():
+        linkbasesFound = set(
+            linkbase.linkbaseType.getLowerName()
+            for linkbase in extensionDocumentData.linkbases
+            if linkbase.linkbaseType is not None
+        )
+        if len(linkbasesFound) > 1:
+            errors.append((modelDocument, linkbasesFound))
+    for modelDocument, linkbasesFound in errors:
+        yield Validation.error(
+            codes='NL.NL-KVK.4.1.1.2.linkbasesNotSeparateFiles',
+            msg=_('Linkbase types are not stored in separate files. '
+                  'Review linkbase files and ensure they are provided as individual files. '
+                  'Found: %(linkbasesFound)s. in %(basename)s.'),
+            modelObject=modelDocument.xmlRootElement,
+            basename=modelDocument.basename,
+            linkbasesFound=", ".join(sorted(linkbasesFound))
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
 def rule_nl_kvk_4_1_2_1(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
@@ -924,15 +1015,14 @@ def rule_nl_kvk_4_1_2_1(
         - https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-nlgaap-ext.xsd
         - https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-ifrs-ext.xsd
     """
-    if val.modelXbrl.modelDocument is not None:
-        if not val.extensionImportedUrls:
-            pluginData.checkFilingDTS(val, val.modelXbrl.modelDocument, [])
-        if not any(e in val.extensionImportedUrls for e in EFFECTIVE_KVK_GAAP_IFRS_ENTRYPOINT_FILES):
-            yield Validation.error(
-                codes='NL.NL-KVK.4.1.2.1.requiredEntryPointNotImported',
-                msg=_('The extension taxonomy must import the entry point of the taxonomy files prepared by KVK.'),
-                modelObject=val.modelXbrl.modelDocument
-            )
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    matches = extensionData.extensionImportedUrls & EFFECTIVE_KVK_GAAP_IFRS_ENTRYPOINT_FILES
+    if not matches:
+        yield Validation.error(
+            codes='NL.NL-KVK.4.1.2.1.requiredEntryPointNotImported',
+            msg=_('The extension taxonomy must import the entry point of the taxonomy files prepared by KVK.'),
+            modelObject=val.modelXbrl.modelDocument
+        )
 
 
 @validation(
@@ -952,16 +1042,15 @@ def rule_nl_kvk_4_1_2_2(
                     the taxonomy files prepared by KVK.
     """
     reportingPeriod = pluginData.getReportingPeriod(val.modelXbrl)
-    if val.modelXbrl.modelDocument is not None:
-        if not val.extensionImportedUrls:
-            pluginData.checkFilingDTS(val, val.modelXbrl.modelDocument, [])
-        if not reportingPeriod or not any(e in val.extensionImportedUrls for e in TAXONOMY_URLS_BY_YEAR.get(reportingPeriod, [])):
-            yield Validation.error(
-                codes='NL.NL-KVK.4.1.2.2.incorrectKvkTaxonomyVersionUsed',
-                msg=_('The extension taxonomy MUST import the applicable version of the taxonomy files prepared by KVK '
-                      'for the reported financial reporting period of %(reportingPeriod)s.'),
-                modelObject=val.modelXbrl.modelDocument
-            )
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    matches = extensionData.extensionImportedUrls & TAXONOMY_URLS_BY_YEAR.get(reportingPeriod or '', set())
+    if not reportingPeriod or not matches:
+        yield Validation.error(
+            codes='NL.NL-KVK.4.1.2.2.incorrectKvkTaxonomyVersionUsed',
+            msg=_('The extension taxonomy MUST import the applicable version of the taxonomy files prepared by KVK '
+                  'for the reported financial reporting period of %(reportingPeriod)s.'),
+            modelObject=val.modelXbrl.modelDocument
+        )
 
 
 @validation(
@@ -980,9 +1069,9 @@ def rule_nl_kvk_4_1_5_1(
     NL-KVK.4.1.5.1: The `{base}` component of the extension document filename SHOULD not exceed twenty characters.
     """
     invalidBasenames = []
-    if val.modelXbrl.modelDocument is not None and not val.extensionDocumentNames:
-        pluginData.checkFilingDTS(val, val.modelXbrl.modelDocument, [])
-    for basename in val.extensionDocumentNames:
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    for extensionDocument in extensionData.extensionDocuments.values():
+        basename = extensionDocument.basename
         filenameParts = pluginData.getFilenameParts(basename, pluginData.getExtensionFilenameFormatPattern())
         if not filenameParts:
             continue  # Filename is not formatted correctly enough to determine {base}
@@ -1014,9 +1103,9 @@ def rule_nl_kvk_4_1_5_2(
     NL-KVK.4.1.5.2: Extension document filename SHOULD match the {base}-{date}_{suffix}-{lang}.{extension} pattern.
     """
     invalidBasenames = []
-    if val.modelXbrl.modelDocument is not None and not val.extensionDocumentNames:
-        pluginData.checkFilingDTS(val, val.modelXbrl.modelDocument, [])
-    for basename in val.extensionDocumentNames:
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    for extensionDocument in extensionData.extensionDocuments.values():
+        basename = extensionDocument.basename
         filenameParts = pluginData.getFilenameParts(basename, pluginData.getExtensionFilenameFormatPattern())
         if not filenameParts:
             invalidBasenames.append(basename)
