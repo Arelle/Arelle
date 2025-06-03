@@ -20,10 +20,12 @@ from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from arelle.ValidateDuplicateFacts import getHashEquivalentFactGroups, getAspectEqualFacts
 from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
-from ..DisclosureSystems import DISCLOSURE_SYSTEM_NL_INLINE_2024
+from ..DisclosureSystems import (ALL_NL_INLINE_DISCLOSURE_SYSTEMS, NL_INLNE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+                                 NL_INLNE_GAAP_OTHER_DISCLOSURE_SYSTEMS)
 from ..LinkbaseType import LinkbaseType
 from ..PluginValidationDataExtension import (PluginValidationDataExtension, ALLOWABLE_LANGUAGES,
                                              DISALLOWED_IXT_NAMESPACES, EFFECTIVE_KVK_GAAP_IFRS_ENTRYPOINT_FILES,
+                                             EFFECTIVE_KVK_GAAP_OTHER_ENTRYPOINT_FILES,
                                              MAX_REPORT_PACKAGE_SIZE_MBS, TAXONOMY_URLS_BY_YEAR,
                                              XBRLI_IDENTIFIER_PATTERN, XBRLI_IDENTIFIER_SCHEMA)
 
@@ -45,9 +47,7 @@ def _getReportingPeriodDateValue(modelXbrl: ModelXbrl, qname: QName) -> date | N
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_3_1_1_1(
     pluginData: PluginValidationDataExtension,
@@ -73,9 +73,7 @@ def rule_nl_kvk_3_1_1_1(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_3_1_1_2(
         pluginData: PluginValidationDataExtension,
@@ -100,9 +98,7 @@ def rule_nl_kvk_3_1_1_2(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_3_1_2_1(
         pluginData: PluginValidationDataExtension,
@@ -124,9 +120,7 @@ def rule_nl_kvk_3_1_2_1(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_3_1_2_2(
         pluginData: PluginValidationDataExtension,
@@ -148,9 +142,7 @@ def rule_nl_kvk_3_1_2_2(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_3_1_3_1 (
         pluginData: PluginValidationDataExtension,
@@ -172,9 +164,7 @@ def rule_nl_kvk_3_1_3_1 (
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_3_1_3_2 (
         pluginData: PluginValidationDataExtension,
@@ -196,9 +186,7 @@ def rule_nl_kvk_3_1_3_2 (
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_3_1_4_1 (
         pluginData: PluginValidationDataExtension,
@@ -221,9 +209,7 @@ def rule_nl_kvk_3_1_4_1 (
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_3_1_4_2 (
         pluginData: PluginValidationDataExtension,
@@ -250,9 +236,7 @@ def rule_nl_kvk_3_1_4_2 (
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_3_2_1_1 (
         pluginData: PluginValidationDataExtension,
@@ -277,9 +261,7 @@ def rule_nl_kvk_3_2_1_1 (
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_3_2_3_1 (
         pluginData: PluginValidationDataExtension,
@@ -305,9 +287,7 @@ def rule_nl_kvk_3_2_3_1 (
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_3_2_4_1 (
         pluginData: PluginValidationDataExtension,
@@ -335,9 +315,7 @@ def rule_nl_kvk_3_2_4_1 (
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_3_2_4_2 (
         pluginData: PluginValidationDataExtension,
@@ -365,9 +343,7 @@ def rule_nl_kvk_3_2_4_2 (
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_3_2_7_1 (
         pluginData: PluginValidationDataExtension,
@@ -394,9 +370,7 @@ def rule_nl_kvk_3_2_7_1 (
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_3_3_1_1 (
         pluginData: PluginValidationDataExtension,
@@ -417,9 +391,7 @@ def rule_nl_kvk_3_3_1_1 (
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_3_3_1_2 (
         pluginData: PluginValidationDataExtension,
@@ -441,9 +413,7 @@ def rule_nl_kvk_3_3_1_2 (
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_3_3_1_3 (
         pluginData: PluginValidationDataExtension,
@@ -467,9 +437,7 @@ def rule_nl_kvk_3_3_1_3 (
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_3_4_1_1 (
         pluginData: PluginValidationDataExtension,
@@ -491,9 +459,7 @@ def rule_nl_kvk_3_4_1_1 (
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_3_4_1_2 (
         pluginData: PluginValidationDataExtension,
@@ -515,9 +481,7 @@ def rule_nl_kvk_3_4_1_2 (
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_3_4_1_3 (
         pluginData: PluginValidationDataExtension,
@@ -541,9 +505,7 @@ def rule_nl_kvk_3_4_1_3 (
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_3_4_1_4 (
         pluginData: PluginValidationDataExtension,
@@ -565,9 +527,7 @@ def rule_nl_kvk_3_4_1_4 (
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_3_4_1_5 (
         pluginData: PluginValidationDataExtension,
@@ -589,9 +549,7 @@ def rule_nl_kvk_3_4_1_5 (
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_3_4_2_1 (
         pluginData: PluginValidationDataExtension,
@@ -613,9 +571,7 @@ def rule_nl_kvk_3_4_2_1 (
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_3_5_2_1(
         pluginData: PluginValidationDataExtension,
@@ -644,9 +600,7 @@ def rule_nl_kvk_3_5_2_1(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_3_5_2_2(
         pluginData: PluginValidationDataExtension,
@@ -675,9 +629,7 @@ def rule_nl_kvk_3_5_2_2(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_3_5_2_3(
         pluginData: PluginValidationDataExtension,
@@ -706,9 +658,7 @@ def rule_nl_kvk_3_5_2_3(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_3_5_3_1(
         pluginData: PluginValidationDataExtension,
@@ -730,9 +680,7 @@ def rule_nl_kvk_3_5_3_1(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_3_5_4_1 (
         pluginData: PluginValidationDataExtension,
@@ -755,9 +703,7 @@ def rule_nl_kvk_3_5_4_1 (
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_3_6_3_1(
         pluginData: PluginValidationDataExtension,
@@ -788,9 +734,7 @@ def rule_nl_kvk_3_6_3_1(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_3_6_3_2(
         pluginData: PluginValidationDataExtension,
@@ -820,9 +764,7 @@ def rule_nl_kvk_3_6_3_2(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_3_6_3_3(
         pluginData: PluginValidationDataExtension,
@@ -850,9 +792,7 @@ def rule_nl_kvk_3_6_3_3(
 
 @validation(
     hook=ValidationHook.FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_3_7_1_1(
         pluginData: PluginValidationDataExtension,
@@ -880,9 +820,7 @@ def rule_nl_kvk_3_7_1_1(
 
 @validation(
     hook=ValidationHook.FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_3_7_1_2(
         pluginData: PluginValidationDataExtension,
@@ -910,9 +848,7 @@ def rule_nl_kvk_3_7_1_2(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=NL_INLNE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_4_1_1_1(
         pluginData: PluginValidationDataExtension,
@@ -963,9 +899,7 @@ def rule_nl_kvk_4_1_1_1(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=NL_INLNE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_4_1_1_2(
         pluginData: PluginValidationDataExtension,
@@ -1000,9 +934,7 @@ def rule_nl_kvk_4_1_1_2(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=NL_INLNE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_4_1_2_1(
         pluginData: PluginValidationDataExtension,
@@ -1027,9 +959,7 @@ def rule_nl_kvk_4_1_2_1(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=NL_INLNE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_4_1_2_2(
         pluginData: PluginValidationDataExtension,
@@ -1055,9 +985,7 @@ def rule_nl_kvk_4_1_2_2(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=NL_INLNE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_4_1_5_1(
         pluginData: PluginValidationDataExtension,
@@ -1089,9 +1017,7 @@ def rule_nl_kvk_4_1_5_1(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=NL_INLNE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_4_1_5_2(
         pluginData: PluginValidationDataExtension,
@@ -1122,9 +1048,7 @@ def rule_nl_kvk_4_1_5_2(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_6_1_1_1(
         pluginData: PluginValidationDataExtension,
