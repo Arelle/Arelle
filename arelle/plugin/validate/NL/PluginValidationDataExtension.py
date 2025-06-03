@@ -119,8 +119,8 @@ class ExtensionDocumentData:
     def iterArcsByType(
             self,
             linkbaseType: LinkbaseType,
-            includeArcroles: set[QName] | None = None,
-            excludeArcroles: set[QName] | None = None,
+            includeArcroles: set[str] | None = None,
+            excludeArcroles: set[str] | None = None,
     ) -> Iterable[_Element]:
         """
         Returns a list of LinkbaseData objects for the specified LinkbaseType.
