@@ -1140,7 +1140,7 @@ def rule_nl_kvk_4_2_0_1(
         concept for concept in extensionData.extensionConcepts if concept.isTuple
     ]
     if len(tupleConcepts) > 0:
-        yield Validation.warning(
+        yield Validation.error(
             codes='NL.NL-KVK.4.2.0.1.tupleElementUsed',
             modelObject=tupleConcepts,
             msg=_('The extension taxonomy must not define tuple concepts.'))
@@ -1166,7 +1166,7 @@ def rule_nl_kvk_4_2_0_2(
         concept for concept in extensionData.extensionConcepts if concept.isFraction
     ]
     if len(fractionConcepts) > 0:
-        yield Validation.warning(
+        yield Validation.error(
             codes='NL.NL-KVK.4.2.0.2.fractionElementUsed',
             modelObject=fractionConcepts,
             msg=_('The extension taxonomy must not define fraction concepts.'))
