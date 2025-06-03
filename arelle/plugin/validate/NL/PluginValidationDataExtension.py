@@ -244,7 +244,7 @@ class PluginValidationDataExtension(PluginData):
         presentedHiddenEltIds = defaultdict(list)
         requiredToDisplayFacts = set()
         for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
-            ixNStag = getattr(ixdsHtmlRootElt.modelDocument, "ixNStag", ixbrl11)
+            ixNStag = str(getattr(ixdsHtmlRootElt.modelDocument, "ixNStag", ixbrl11))
             for ixHiddenElt in ixdsHtmlRootElt.iterdescendants(tag=ixNStag + "hidden"):
                 for tag in (ixNStag + "nonNumeric", ixNStag+"nonFraction"):
                     for ixElt in ixHiddenElt.iterdescendants(tag=tag):
@@ -293,7 +293,7 @@ class PluginValidationDataExtension(PluginData):
         tupleElements = set()
         orphanedFootnotes = set()
         for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
-            ixNStag = getattr(ixdsHtmlRootElt.modelDocument, "ixNStag", ixbrl11)
+            ixNStag = str(getattr(ixdsHtmlRootElt.modelDocument, "ixNStag", ixbrl11))
             ixTupleTag = ixNStag + "tuple"
             ixFractionTag = ixNStag + "fraction"
             for elts in modelXbrl.ixdsEltById.values():   # type: ignore[attr-defined]
@@ -527,7 +527,7 @@ class PluginValidationDataExtension(PluginData):
     def getTargetElements(self, modelXbrl: ModelXbrl) -> list[Any]:
         targetElements = []
         for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
-            ixNStag = getattr(ixdsHtmlRootElt.modelDocument, "ixNStag", ixbrl11)
+            ixNStag = str(getattr(ixdsHtmlRootElt.modelDocument, "ixNStag", ixbrl11))
             ixTags = set(ixNStag + ln for ln in ("nonNumeric", "nonFraction", "references", "relationship"))
             for elt, depth in etreeIterWithDepth(ixdsHtmlRootElt):
                 if elt.tag in ixTags and elt.get("target"):
