@@ -976,6 +976,7 @@ def rule_nl_kvk_4_1_2_2(
     matches = extensionData.extensionImportedUrls & TAXONOMY_URLS_BY_YEAR.get(reportingPeriod or '', set())
     if not reportingPeriod or not matches:
         yield Validation.error(
+            reportingPeriod=reportingPeriod,
             codes='NL.NL-KVK.4.1.2.2.incorrectKvkTaxonomyVersionUsed',
             msg=_('The extension taxonomy MUST import the applicable version of the taxonomy files prepared by KVK '
                   'for the reported financial reporting period of %(reportingPeriod)s.'),
@@ -1044,6 +1045,57 @@ def rule_nl_kvk_4_1_5_2(
                   '{extension} must be one of the following: html, htm, xhtml. '
                   'Review formatting and update as appropriate. '
                   'Invalid filenames: %(invalidBasenames)s'))
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=NL_INLNE_GAAP_OTHER_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_5_1_3_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.5.1.3.1: Validate that the imported taxonomy matches the KVK-specified entry point.
+        - https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-other-gaap.xsd
+    """
+    uris = {doc[0].uri for doc in val.modelXbrl.namespaceDocs.values()}
+    matches = uris & EFFECTIVE_KVK_GAAP_OTHER_ENTRYPOINT_FILES
+    if not matches:
+        yield Validation.error(
+            codes='NL.NL-KVK.5.1.3.1.requiredEntryPointOtherGaapNotReferenced',
+            msg=_('The extension taxonomy must import the entry point of the taxonomy files prepared by KVK.'),
+            modelObject=val.modelXbrl.modelDocument
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=NL_INLNE_GAAP_OTHER_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_5_1_3_2(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.5.1.3.2: The legal entity’s extension taxonomy MUST import the applicable version of
+                    the taxonomy files prepared by KVK.
+    """
+    reportingPeriod = pluginData.getReportingPeriod(val.modelXbrl)
+    uris = {doc[0].uri for doc in val.modelXbrl.namespaceDocs.values()}
+    matches = uris & TAXONOMY_URLS_BY_YEAR.get(reportingPeriod or '', set())
+    if not reportingPeriod or not matches:
+        yield Validation.error(
+            reportingPeriod=reportingPeriod,
+            codes='NL.NL-KVK.5.1.3.2.incorrectVersionEntryPointOtherGaapReferenced',
+            msg=_('The extension taxonomy MUST import the applicable version of the taxonomy files prepared by KVK '
+                  'for the reported financial reporting period of %(reportingPeriod)s.'),
+            modelObject=val.modelXbrl.modelDocument
+        )
 
 
 @validation(
