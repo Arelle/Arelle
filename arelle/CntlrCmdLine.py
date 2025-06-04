@@ -537,6 +537,14 @@ def parseArgs(args):
         runtimeOptions = RuntimeOptions(pluginOptions=pluginOptions, **baseOptions)
     except RuntimeOptionsException as e:
         parser.error(f"{e}, please try\n python CntlrCmdLine.py --help")
+    if (
+        runtimeOptions.entrypointFile is None and
+        not runtimeOptions.proxy and
+        not runtimeOptions.plugins and
+        not pluginOptions and
+        not runtimeOptions.webserver
+    ):
+        parser.error("No entrypoint specified, please try\n python CntlrCmdLine.py --help")
     return runtimeOptions, arellePluginModules
 
 

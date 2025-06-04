@@ -1,10 +1,7 @@
 """
 See COPYRIGHT.md for copyright information.
 
-The Arelle Python Beta API (located in `arelle.api` module) is an in-progress API module.
-A roadmap for this API is in development.
-
-Users of this API should expect changes in future releases.
+The `arelle.api` module is the supported method for integrating Arelle into other Python applications.
 """
 from __future__ import annotations
 
@@ -12,7 +9,7 @@ import logging
 from types import TracebackType
 from typing import Any, BinaryIO
 
-from arelle import PluginManager, PackageManager
+from arelle import PackageManager, PluginManager
 from arelle.CntlrCmdLine import CntlrCmdLine, createCntlrAndPreloadPlugins
 from arelle.ModelXbrl import ModelXbrl
 from arelle.RuntimeOptions import RuntimeOptions
@@ -81,6 +78,7 @@ class Session:
         responseZipStream: BinaryIO | None = None,
         logHandler: logging.Handler | None = None,
         logFilters: list[logging.Filter] | None = None,
+        sourceZipStreamFileName: str | None = None,
     ) -> bool:
         """
         Perform a run using the given options.
@@ -88,8 +86,11 @@ class Session:
         :param sourceZipStream: Optional stream to read source data from.
         :param responseZipStream: Options stream to write response data to.
         :param logHandler: Optional log handler to use for logging.
+        :param sourceZipStreamFileName: Optional file name to use for the passed zip stream.
         :return: True if the run was successful, False otherwise.
         """
+        if sourceZipStreamFileName is not None and sourceZipStream is None:
+            raise ValueError("sourceZipStreamFileName may only be provided if sourceZipStream is not None.")
         PackageManager.reset()
         PluginManager.reset()
         if self._cntlr is None:
@@ -143,4 +144,5 @@ class Session:
                 options,
                 sourceZipStream=sourceZipStream,
                 responseZipStream=responseZipStream,
+                sourceZipStreamFileName=sourceZipStreamFileName,
             )

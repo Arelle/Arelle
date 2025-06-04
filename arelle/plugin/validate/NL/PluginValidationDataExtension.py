@@ -7,11 +7,12 @@ from collections import defaultdict
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, TYPE_CHECKING, cast
+from typing import Any, TYPE_CHECKING, cast, Iterable
 
 import regex as re
 from lxml.etree import _Comment, _ElementTree, _Entity, _ProcessingInstruction, _Element
 
+from arelle import XbrlConst
 from arelle.FunctionIxt import ixtNamespaces
 from arelle.ModelDocument import ModelDocument, Type as ModelDocumentType
 from arelle.ModelDtsObject import ModelConcept
@@ -108,9 +109,9 @@ class ContextData:
 
 @dataclass(frozen=True)
 class ExtensionData:
-    extensionImportedUrls: frozenset[str]
-    hasExtensionConcepts: bool
+    extensionConcepts: list[ModelConcept]
     extensionDocuments: dict[ModelDocument, ExtensionDocumentData]
+    extensionImportedUrls: frozenset[str]
 
 
 @dataclass(frozen=True)
@@ -118,6 +119,33 @@ class ExtensionDocumentData:
     basename: str
     hrefXlinkRole: str | None
     linkbases: list[LinkbaseData]
+
+    def iterArcsByType(
+            self,
+            linkbaseType: LinkbaseType,
+            includeArcroles: set[str] | None = None,
+            excludeArcroles: set[str] | None = None,
+    ) -> Iterable[_Element]:
+        """
+        Returns a list of LinkbaseData objects for the specified LinkbaseType.
+        """
+        for linkbase in self.iterLinkbasesByType(linkbaseType):
+            for arc in linkbase.arcs:
+                if includeArcroles is not None:
+                    if arc.get(XbrlConst.qnXlinkArcRole.clarkNotation) not in includeArcroles:
+                        continue
+                if excludeArcroles is not None:
+                    if arc.get(XbrlConst.qnXlinkArcRole.clarkNotation) in excludeArcroles:
+                        continue
+                yield arc
+
+    def iterLinkbasesByType(self, linkbaseType: LinkbaseType) -> Iterable[LinkbaseData]:
+        """
+        Returns a list of LinkbaseData objects for the specified LinkbaseType.
+        """
+        for linkbase in self.linkbases:
+            if linkbase.linkbaseType == linkbaseType:
+                yield linkbase
 
 
 @dataclass(frozen=True)
@@ -140,10 +168,14 @@ class InlineHTMLData:
 
 @dataclass(frozen=True)
 class LinkbaseData:
+    arcs: list[_Element]
     basename: str
     element: _Element
-    hasArcs: bool
     linkbaseType: LinkbaseType | None
+
+    @property
+    def hasArcs(self) -> bool:
+        return len(self.arcs) > 0
 
 
 @dataclass
@@ -216,7 +248,7 @@ class PluginValidationDataExtension(PluginData):
         presentedHiddenEltIds = defaultdict(list)
         requiredToDisplayFacts = set()
         for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
-            ixNStag = getattr(ixdsHtmlRootElt.modelDocument, "ixNStag", ixbrl11)
+            ixNStag = str(getattr(ixdsHtmlRootElt.modelDocument, "ixNStag", ixbrl11))
             for ixHiddenElt in ixdsHtmlRootElt.iterdescendants(tag=ixNStag + "hidden"):
                 for tag in (ixNStag + "nonNumeric", ixNStag+"nonFraction"):
                     for ixElt in ixHiddenElt.iterdescendants(tag=tag):
@@ -265,7 +297,7 @@ class PluginValidationDataExtension(PluginData):
         tupleElements = set()
         orphanedFootnotes = set()
         for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
-            ixNStag = getattr(ixdsHtmlRootElt.modelDocument, "ixNStag", ixbrl11)
+            ixNStag = str(getattr(ixdsHtmlRootElt.modelDocument, "ixNStag", ixbrl11))
             ixTupleTag = ixNStag + "tuple"
             ixFractionTag = ixNStag + "fraction"
             for elts in modelXbrl.ixdsEltById.values():   # type: ignore[attr-defined]
@@ -437,11 +469,10 @@ class PluginValidationDataExtension(PluginData):
                 for doc, docRef in modelDocument.referencesDocument.items():
                     if "import" in docRef.referenceTypes:
                         extensionImportedUrls.add(doc.uri)
-
         return ExtensionData(
-            extensionImportedUrls=frozenset(sorted(extensionImportedUrls)),
-            hasExtensionConcepts=len(self.getExtensionConcepts(modelXbrl)) > 0,
+            extensionConcepts=self.getExtensionConcepts(modelXbrl),
             extensionDocuments=extensionDocuments,
+            extensionImportedUrls=frozenset(sorted(extensionImportedUrls)),
         )
 
     def getLinkbaseData(self, modelDocument: ModelDocument) -> list[LinkbaseData]:
@@ -451,9 +482,9 @@ class PluginValidationDataExtension(PluginData):
                 arcQn = linkbaseType.getArcQn()
                 arcs = list(linkElt.iterdescendants(tag=arcQn.clarkNotation))
                 linkbases.append(LinkbaseData(
+                    arcs=arcs,
                     basename=modelDocument.basename,
                     element=linkElt,
-                    hasArcs=len(arcs) > 0,
                     linkbaseType=linkbaseType,
                 ))
         return linkbases
@@ -500,7 +531,7 @@ class PluginValidationDataExtension(PluginData):
     def getTargetElements(self, modelXbrl: ModelXbrl) -> list[Any]:
         targetElements = []
         for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
-            ixNStag = getattr(ixdsHtmlRootElt.modelDocument, "ixNStag", ixbrl11)
+            ixNStag = str(getattr(ixdsHtmlRootElt.modelDocument, "ixNStag", ixbrl11))
             ixTags = set(ixNStag + ln for ln in ("nonNumeric", "nonFraction", "references", "relationship"))
             for elt, depth in etreeIterWithDepth(ixdsHtmlRootElt):
                 if elt.tag in ixTags and elt.get("target"):
