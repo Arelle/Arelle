@@ -1,10 +1,7 @@
 """
 See COPYRIGHT.md for copyright information.
 
-The Arelle Python Beta API (located in `arelle.api` module) is an in-progress API module.
-A roadmap for this API is in development.
-
-Users of this API should expect changes in future releases.
+The `arelle.api` module is the supported method for integrating Arelle into other Python applications.
 """
 from __future__ import annotations
 
@@ -12,7 +9,7 @@ import logging
 from types import TracebackType
 from typing import Any, BinaryIO
 
-from arelle import PluginManager, PackageManager
+from arelle import PackageManager, PluginManager
 from arelle.CntlrCmdLine import CntlrCmdLine, createCntlrAndPreloadPlugins
 from arelle.ModelXbrl import ModelXbrl
 from arelle.RuntimeOptions import RuntimeOptions
