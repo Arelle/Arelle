@@ -1049,6 +1049,194 @@ def rule_nl_kvk_4_1_5_2(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=NL_INLNE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_4_2_0_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.2.0.1: Tuples MUST NOT be defined in extension taxonomy.
+    """
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    tupleConcepts = [
+        concept for concept in extensionData.extensionConcepts if concept.isTuple
+    ]
+    if len(tupleConcepts) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.4.2.0.1.tupleElementUsed',
+            modelObject=tupleConcepts,
+            msg=_('The extension taxonomy must not define tuple concepts.'))
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=NL_INLNE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_4_2_0_2(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.2.0.2: Items with xbrli:fractionItemType data type MUST NOT be defined in extension taxonomy
+    """
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    fractionConcepts = [
+        concept for concept in extensionData.extensionConcepts if concept.isFraction
+    ]
+    if len(fractionConcepts) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.4.2.0.2.fractionElementUsed',
+            modelObject=fractionConcepts,
+            msg=_('The extension taxonomy must not define fraction concepts.'))
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=NL_INLNE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_4_2_1_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.2.1.1: Extension taxonomy MUST set xbrli:scenario as context element on definition arcs with
+    http://xbrl.org/int/dim/arcrole/all and http://xbrl.org/int/dim/arcrole/notAll arcroles.
+    """
+    errors = []
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    for modelDocument, extensionDocumentData in extensionData.extensionDocuments.items():
+        for arc in extensionDocumentData.iterArcsByType(LinkbaseType.DEFINITION, includeArcroles={XbrlConst.all, XbrlConst.notAll}):
+            if arc.get(XbrlConst.qnXbrldtContextElement.clarkNotation) != "scenario":
+                errors.append(arc)
+    if len(errors) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.4.2.1.1.scenarioNotUsedInExtensionTaxonomy',
+            modelObject=errors,
+            msg=_('The definition linkbase is missing xbrli:scenario in extension taxonomy. '
+                  'Review definition linkbase and update as appropriate.'),
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=NL_INLNE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_4_4_1_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.4.1.1: Arithmetical relationships defined in the calculation linkbase of an extension taxonomy
+    MUST use the https://xbrl.org/2023/arcrole/summation-item arcrole as defined in Calculation 1.1 specification.
+    """
+    errors = []
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    for modelDocument, extensionDocumentData in extensionData.extensionDocuments.items():
+        for arc in extensionDocumentData.iterArcsByType(LinkbaseType.CALCULATION, excludeArcroles={XbrlConst.summationItem11}):
+            errors.append(arc)
+    if len(errors) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.4.4.1.1.incorrectSummationItemArcroleUsed',
+            modelObject=errors,
+            msg=_('Calculation relationships should follow the requirements of the Calculation 1.1 specification. '
+                  'Update to ensure use of summation-item arcrole in the calculation linkbase.'),
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=NL_INLNE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_4_4_2_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.4.2.1: Extension taxonomies MUST NOT define definition arcs
+    with http://xbrl.org/int/dim/arcrole/notAll arcrole.
+    """
+    errors = []
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    for modelDocument, extensionDocumentData in extensionData.extensionDocuments.items():
+        for arc in extensionDocumentData.iterArcsByType(LinkbaseType.DEFINITION, includeArcroles={XbrlConst.notAll}):
+            errors.append(arc)
+    if len(errors) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.4.4.2.1.notAllArcroleUsedInDefinitionLinkbase',
+            modelObject=errors,
+            msg=_('Incorrect hypercube settings are found.  Ensure that positive hypercubes are in use.'),
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=NL_INLNE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_4_4_2_2(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.4.2.2: Hypercubes appearing as target of definition arc with
+    http://xbrl.org/int/dim/arcrole/all arcrole MUST have xbrldt:closed attribute set to “true”.
+    """
+    errors = []
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    for modelDocument, extensionDocumentData in extensionData.extensionDocuments.items():
+        for arc in extensionDocumentData.iterArcsByType(LinkbaseType.DEFINITION, includeArcroles={XbrlConst.all}):
+            if arc.get(XbrlConst.qnXbrldtClosed.clarkNotation, "false") != "true":
+                errors.append(arc)
+    if len(errors) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.4.4.2.2.openPositiveHypercubeInDefinitionLinkbase',
+            modelObject=errors,
+            msg=_('Incorrect hypercube settings are found.  Ensure that positive hypercubes are closed.'),
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=NL_INLNE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_4_4_2_3(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.4.2.3: Hypercubes appearing as target of definition arc with
+    http://xbrl.org/int/dim/arcrole/notAll arcrole MUST have xbrldt:closed attribute set to “false”.
+    """
+    errors = []
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    for modelDocument, extensionDocumentData in extensionData.extensionDocuments.items():
+        for arc in extensionDocumentData.iterArcsByType(LinkbaseType.DEFINITION, includeArcroles={XbrlConst.notAll}):
+            if arc.get(XbrlConst.qnXbrldtClosed.clarkNotation, "true") != "false":
+                errors.append(arc)
+    if len(errors) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.4.4.2.3.closedNegativeHypercubeInDefinitionLinkbase',
+            modelObject=errors,
+            msg=_('Incorrect hypercube settings are found.  Ensure that negative hypercubes are not closed.'),
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=NL_INLNE_GAAP_OTHER_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_5_1_3_1(
@@ -1101,208 +1289,6 @@ def rule_nl_kvk_5_1_3_2(
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
-)
-def rule_nl_kvk_4_2_0_1(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
-        *args: Any,
-        **kwargs: Any,
-) -> Iterable[Validation]:
-    """
-    NL-KVK.4.2.0.1: Tuples MUST NOT be defined in extension taxonomy.
-    """
-    extensionData = pluginData.getExtensionData(val.modelXbrl)
-    tupleConcepts = [
-        concept for concept in extensionData.extensionConcepts if concept.isTuple
-    ]
-    if len(tupleConcepts) > 0:
-        yield Validation.error(
-            codes='NL.NL-KVK.4.2.0.1.tupleElementUsed',
-            modelObject=tupleConcepts,
-            msg=_('The extension taxonomy must not define tuple concepts.'))
-
-
-@validation(
-    hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
-)
-def rule_nl_kvk_4_2_0_2(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
-        *args: Any,
-        **kwargs: Any,
-) -> Iterable[Validation]:
-    """
-    NL-KVK.4.2.0.2: Items with xbrli:fractionItemType data type MUST NOT be defined in extension taxonomy
-    """
-    extensionData = pluginData.getExtensionData(val.modelXbrl)
-    fractionConcepts = [
-        concept for concept in extensionData.extensionConcepts if concept.isFraction
-    ]
-    if len(fractionConcepts) > 0:
-        yield Validation.error(
-            codes='NL.NL-KVK.4.2.0.2.fractionElementUsed',
-            modelObject=fractionConcepts,
-            msg=_('The extension taxonomy must not define fraction concepts.'))
-
-
-@validation(
-    hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
-)
-def rule_nl_kvk_4_2_1_1(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
-        *args: Any,
-        **kwargs: Any,
-) -> Iterable[Validation]:
-    """
-    NL-KVK.4.2.1.1: Extension taxonomy MUST set xbrli:scenario as context element on definition arcs with
-    http://xbrl.org/int/dim/arcrole/all and http://xbrl.org/int/dim/arcrole/notAll arcroles.
-    """
-    errors = []
-    extensionData = pluginData.getExtensionData(val.modelXbrl)
-    for modelDocument, extensionDocumentData in extensionData.extensionDocuments.items():
-        for arc in extensionDocumentData.iterArcsByType(LinkbaseType.DEFINITION, includeArcroles={XbrlConst.all, XbrlConst.notAll}):
-            if arc.get(XbrlConst.qnXbrldtContextElement.clarkNotation) != "scenario":
-                errors.append(arc)
-    if len(errors) > 0:
-        yield Validation.error(
-            codes='NL.NL-KVK.4.2.1.1.scenarioNotUsedInExtensionTaxonomy',
-            modelObject=errors,
-            msg=_('The definition linkbase is missing xbrli:scenario in extension taxonomy. '
-                  'Review definition linkbase and update as appropriate.'),
-        )
-
-
-@validation(
-    hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
-)
-def rule_nl_kvk_4_4_1_1(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
-        *args: Any,
-        **kwargs: Any,
-) -> Iterable[Validation]:
-    """
-    NL-KVK.4.4.1.1: Arithmetical relationships defined in the calculation linkbase of an extension taxonomy
-    MUST use the https://xbrl.org/2023/arcrole/summation-item arcrole as defined in Calculation 1.1 specification.
-    """
-    errors = []
-    extensionData = pluginData.getExtensionData(val.modelXbrl)
-    for modelDocument, extensionDocumentData in extensionData.extensionDocuments.items():
-        for arc in extensionDocumentData.iterArcsByType(LinkbaseType.CALCULATION, excludeArcroles={XbrlConst.summationItem11}):
-            errors.append(arc)
-    if len(errors) > 0:
-        yield Validation.error(
-            codes='NL.NL-KVK.4.4.1.1.incorrectSummationItemArcroleUsed',
-            modelObject=errors,
-            msg=_('Calculation relationships should follow the requirements of the Calculation 1.1 specification. '
-                  'Update to ensure use of summation-item arcrole in the calculation linkbase.'),
-        )
-
-
-@validation(
-    hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
-)
-def rule_nl_kvk_4_4_2_1(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
-        *args: Any,
-        **kwargs: Any,
-) -> Iterable[Validation]:
-    """
-    NL-KVK.4.4.2.1: Extension taxonomies MUST NOT define definition arcs
-    with http://xbrl.org/int/dim/arcrole/notAll arcrole.
-    """
-    errors = []
-    extensionData = pluginData.getExtensionData(val.modelXbrl)
-    for modelDocument, extensionDocumentData in extensionData.extensionDocuments.items():
-        for arc in extensionDocumentData.iterArcsByType(LinkbaseType.DEFINITION, includeArcroles={XbrlConst.notAll}):
-            errors.append(arc)
-    if len(errors) > 0:
-        yield Validation.error(
-            codes='NL.NL-KVK.4.4.2.1.notAllArcroleUsedInDefinitionLinkbase',
-            modelObject=errors,
-            msg=_('Incorrect hypercube settings are found.  Ensure that positive hypercubes are in use.'),
-        )
-
-
-@validation(
-    hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
-)
-def rule_nl_kvk_4_4_2_2(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
-        *args: Any,
-        **kwargs: Any,
-) -> Iterable[Validation]:
-    """
-    NL-KVK.4.4.2.2: Hypercubes appearing as target of definition arc with
-    http://xbrl.org/int/dim/arcrole/all arcrole MUST have xbrldt:closed attribute set to “true”.
-    """
-    errors = []
-    extensionData = pluginData.getExtensionData(val.modelXbrl)
-    for modelDocument, extensionDocumentData in extensionData.extensionDocuments.items():
-        for arc in extensionDocumentData.iterArcsByType(LinkbaseType.DEFINITION, includeArcroles={XbrlConst.all}):
-            if arc.get(XbrlConst.qnXbrldtClosed.clarkNotation, "false") != "true":
-                errors.append(arc)
-    if len(errors) > 0:
-        yield Validation.error(
-            codes='NL.NL-KVK.4.4.2.2.openPositiveHypercubeInDefinitionLinkbase',
-            modelObject=errors,
-            msg=_('Incorrect hypercube settings are found.  Ensure that positive hypercubes are closed.'),
-        )
-
-
-@validation(
-    hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
-)
-def rule_nl_kvk_4_4_2_3(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
-        *args: Any,
-        **kwargs: Any,
-) -> Iterable[Validation]:
-    """
-    NL-KVK.4.4.2.3: Hypercubes appearing as target of definition arc with
-    http://xbrl.org/int/dim/arcrole/notAll arcrole MUST have xbrldt:closed attribute set to “false”.
-    """
-    errors = []
-    extensionData = pluginData.getExtensionData(val.modelXbrl)
-    for modelDocument, extensionDocumentData in extensionData.extensionDocuments.items():
-        for arc in extensionDocumentData.iterArcsByType(LinkbaseType.DEFINITION, includeArcroles={XbrlConst.notAll}):
-            if arc.get(XbrlConst.qnXbrldtClosed.clarkNotation, "true") != "false":
-                errors.append(arc)
-    if len(errors) > 0:
-        yield Validation.error(
-            codes='NL.NL-KVK.4.4.2.3.closedNegativeHypercubeInDefinitionLinkbase',
-            modelObject=errors,
-            msg=_('Incorrect hypercube settings are found.  Ensure that negative hypercubes are not closed.'),
-        )
-
-
-@validation(
-    hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NL_INLINE_2024
-    ],
 )
 def rule_nl_kvk_6_1_1_1(
         pluginData: PluginValidationDataExtension,
