@@ -28,6 +28,7 @@ from arelle.XmlValidate import lexicalPatterns
 from arelle.XmlValidateConst import VALID
 from .LinkbaseType import LinkbaseType
 
+DEFAULT_MEMBER_ROLE_URI = 'https://www.nltaxonomie.nl/kvk/role/axis-defaults'
 XBRLI_IDENTIFIER_PATTERN = re.compile(r"^(?!00)\d{8}$")
 XBRLI_IDENTIFIER_SCHEMA = 'http://www.kvk.nl/kvk-id'
 MAX_REPORT_PACKAGE_SIZE_MBS = 100
