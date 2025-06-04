@@ -32,19 +32,6 @@ def test_incorrect_arguments_with_webserver():
         )
 
 
-@patch('arelle.RuntimeOptions.hasWebServer')
-def test_incorrect_arguments(mockwebserver):
-    with pytest.raises(RuntimeOptionsException, match="Incorrect arguments"):
-        mockwebserver.return_value = False
-        RuntimeOptions(
-            entrypointFile=None,
-            proxy=None,
-            plugins=None,
-            pluginOptions=None,
-            webserver=None,
-        )
-
-
 def test_set_runtime_options():
     runtimeOptions = RuntimeOptions(
         abortOnMajorError=True,
