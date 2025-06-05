@@ -26,7 +26,8 @@ from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
 from ..DisclosureSystems import DISCLOSURE_SYSTEM_NL_INLINE_2024
 from ..LinkbaseType import LinkbaseType
 from ..PluginValidationDataExtension import (PluginValidationDataExtension, ALLOWABLE_LANGUAGES,
-                                             DISALLOWED_IXT_NAMESPACES, EFFECTIVE_KVK_GAAP_IFRS_ENTRYPOINT_FILES,
+                                             DEFAULT_MEMBER_ROLE_URI, DISALLOWED_IXT_NAMESPACES,
+                                             EFFECTIVE_KVK_GAAP_IFRS_ENTRYPOINT_FILES,
                                              MAX_REPORT_PACKAGE_SIZE_MBS, TAXONOMY_URLS_BY_YEAR,
                                              XBRLI_IDENTIFIER_PATTERN, XBRLI_IDENTIFIER_SCHEMA, ExtensionDocumentData)
 
@@ -1371,6 +1372,33 @@ def rule_nl_kvk_4_4_3_1(
                     modelObject=arc
                 )
 
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[
+        DISCLOSURE_SYSTEM_NL_INLINE_2024
+    ],
+)
+def rule_nl_kvk_4_4_3_2(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.4.3.2: Each dimension in an extension taxonomy MUST be assigned to a default member in the ELR with role URI https://www.nltaxonomie.nl/kvk/role/axis-defaults.
+    """
+    dimensionDefaults =val.modelXbrl.relationshipSet(XbrlConst.dimensionDefault, DEFAULT_MEMBER_ROLE_URI)
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    for modelConcept in extensionData.extensionConcepts:
+        if modelConcept.isExplicitDimension and not dimensionDefaults.fromModelObject(modelConcept):
+            yield Validation.error(
+                codes='NL.NL-KVK.4.4.2.3.extensionTaxonomyDimensionNotAssignedDefaultMemberInDedicatedPlaceholder',
+                modelObject=modelConcept,
+                msg=_('Axis is missing a default member or the default member does not match the taxonomy defaults. '
+                      'Update to set default member based on taxonomy defaults.'
+                      ),
+            )
 
 
 @validation(
