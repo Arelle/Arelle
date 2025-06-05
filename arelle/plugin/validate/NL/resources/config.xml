@@ -5,7 +5,12 @@
     <!-- see arelle/config/disclosuresystems.xml for full comments -->
     <DisclosureSystem
             names="NL-INLINE-2024|nl-inline-2024|kvk-inline-2024-preview"
-            description="Checks for NL INLINE 2024"
+            description="Checks for NL INLINE 2024. For use with NL GAAP and NL IFRS"
+            validationType="NL"
+    />
+    <DisclosureSystem
+            names="NL-INLINE-2024-GAAP-OTHER|nl-inline-2024-gaap-other|kvk-inline-2024-gaap-other-preview"
+            description="Checks for NL INLINE 2024. For use with other GAAP."
             validationType="NL"
     />
     <DisclosureSystem

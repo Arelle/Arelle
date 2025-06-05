@@ -64,6 +64,10 @@ EFFECTIVE_KVK_GAAP_IFRS_ENTRYPOINT_FILES = frozenset((
     'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-ifrs-ext.xsd',
 ))
 
+EFFECTIVE_KVK_GAAP_OTHER_ENTRYPOINT_FILES = frozenset((
+    'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-other-gaap.xsd',
+))
+
 TAXONOMY_URLS_BY_YEAR = {
     '2024': {
         'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-nlgaap-ext.xsd',

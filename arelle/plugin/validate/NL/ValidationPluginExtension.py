@@ -10,7 +10,9 @@ from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.validate.ValidationPlugin import ValidationPlugin
-from .DisclosureSystems import DISCLOSURE_SYSTEM_NT16, DISCLOSURE_SYSTEM_NT17, DISCLOSURE_SYSTEM_NT18, DISCLOSURE_SYSTEM_NT19, DISCLOSURE_SYSTEM_NL_INLINE_2024
+from .DisclosureSystems import (DISCLOSURE_SYSTEM_NT16, DISCLOSURE_SYSTEM_NT17, DISCLOSURE_SYSTEM_NT18,
+                                DISCLOSURE_SYSTEM_NT19, DISCLOSURE_SYSTEM_NL_INLINE_2024,
+                                DISCLOSURE_SYSTEM_NL_INLINE_2024_GAAP_OTHER)
 from .PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
@@ -174,6 +176,13 @@ class ValidationPluginExtension(ValidationPlugin):
             entrypoints = {entrypointRoot + e for e in [
                 'kvk-annual-report-ifrs-ext.xsd',
                 'kvk-annual-report-nlgaap-ext.xsd',
+            ]}
+        elif disclosureSystem == DISCLOSURE_SYSTEM_NL_INLINE_2024_GAAP_OTHER:
+            jenvNamespace = 'https://www.nltaxonomie.nl/bw2-titel9/2024-12-31/bw2-titel9-cor'
+            kvkINamespace = None
+            nlTypesNamespace = None
+            entrypointRoot = 'http://www.nltaxonomie.nl/kvk/2024-12-31/'
+            entrypoints = {entrypointRoot + e for e in [
                 'kvk-annual-report-other-gaap.xsd',
             ]}
         else:

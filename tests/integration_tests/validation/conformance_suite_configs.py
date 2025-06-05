@@ -25,6 +25,7 @@ from tests.integration_tests.validation.conformance_suite_configurations.nl_nt17
 from tests.integration_tests.validation.conformance_suite_configurations.nl_nt18 import config as nl_nt18
 from tests.integration_tests.validation.conformance_suite_configurations.nl_nt19 import config as nl_nt19
 from tests.integration_tests.validation.conformance_suite_configurations.nl_inline_2024 import config as nl_inline_2024
+from tests.integration_tests.validation.conformance_suite_configurations.nl_inline_2024_gaap_other import config as nl_inline_2024_gaap_other
 from tests.integration_tests.validation.conformance_suite_configurations.ros_current import config as ros_current
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_2_1 import config as xbrl_2_1
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_calculations_1_1 import config as xbrl_calculations_1_1
@@ -74,6 +75,7 @@ ALL_CONFORMANCE_SUITE_CONFIGS: tuple[ConformanceSuiteConfig, ...] = (
     nl_nt18,
     nl_nt19,
     nl_inline_2024,
+    nl_inline_2024_gaap_other,
     ros_current,
     xbrl_2_1,
     xbrl_calculations_1_1,
