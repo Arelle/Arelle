@@ -49,8 +49,6 @@ permissions: {}
 
 jobs:
   build-windows:
-    env:
-      BUILD_PATH: build\exe.win-amd64-${{ inputs.python_version }}
     runs-on: windows-2022
     outputs:
       exe_artifact_versioned_name: ${{ steps.define-artifact-names.outputs.exe_artifact_versioned_name }}
@@ -59,6 +57,12 @@ jobs:
       zip_uploaded_artifact_name: ${{ steps.define-artifact-names.outputs.zip_uploaded_artifact_name }}
 
     steps:
+    - name: Set Python version variables
+      run: |
+        $version = "${{ inputs.python_version }}"
+        $majorMinor = ($version -split '\.')[0..1] -join '.'
+        echo "PYTHON_MAJOR_MINOR=$majorMinor" >> $env:GITHUB_ENV
+        echo "BUILD_PATH=build\exe.win-amd64-$majorMinor" >> $env:GITHUB_ENV
     - name: Checkout arelle
       uses: actions/checkout@v4.2.2
       with:
