@@ -6,13 +6,16 @@ from __future__ import annotations
 from datetime import date
 import zipfile
 
+from arelle.ModelDtsObject import ModelLink
 from arelle.ModelInstanceObject import ModelInlineFact
+from arelle.ModelObject import ModelObject
+from arelle.PrototypeDtsObject import PrototypeObject
 from arelle.ValidateDuplicateFacts import getDuplicateFactSets
 from arelle.XmlValidateConst import VALID
 from collections.abc import Iterable
 from typing import Any, cast, TYPE_CHECKING
 
-from arelle import XmlUtil, XbrlConst
+from arelle import XmlUtil, XbrlConst, ModelDocument
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
@@ -24,10 +27,11 @@ from ..DisclosureSystems import (ALL_NL_INLINE_DISCLOSURE_SYSTEMS, NL_INLNE_GAAP
                                  NL_INLNE_GAAP_OTHER_DISCLOSURE_SYSTEMS)
 from ..LinkbaseType import LinkbaseType
 from ..PluginValidationDataExtension import (PluginValidationDataExtension, ALLOWABLE_LANGUAGES,
-                                             DISALLOWED_IXT_NAMESPACES, EFFECTIVE_KVK_GAAP_IFRS_ENTRYPOINT_FILES,
+                                             DEFAULT_MEMBER_ROLE_URI, DISALLOWED_IXT_NAMESPACES,
+                                             EFFECTIVE_KVK_GAAP_IFRS_ENTRYPOINT_FILES,
                                              EFFECTIVE_KVK_GAAP_OTHER_ENTRYPOINT_FILES,
                                              MAX_REPORT_PACKAGE_SIZE_MBS, TAXONOMY_URLS_BY_YEAR,
-                                             XBRLI_IDENTIFIER_PATTERN, XBRLI_IDENTIFIER_SCHEMA)
+                                             XBRLI_IDENTIFIER_PATTERN, XBRLI_IDENTIFIER_SCHEMA, ExtensionDocumentData)
 
 if TYPE_CHECKING:
     from arelle.ModelXbrl import ModelXbrl
@@ -1233,6 +1237,77 @@ def rule_nl_kvk_4_4_2_3(
             modelObject=errors,
             msg=_('Incorrect hypercube settings are found.  Ensure that negative hypercubes are not closed.'),
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=NL_INLNE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_4_4_3_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.4.3.1: The extension taxonomy MUST not modify (prohibit and/or override) default members assigned to dimensions by the KVK taxonomy
+    """
+    for modelLink in cast(list[ModelLink], val.modelXbrl.baseSets[XbrlConst.dimensionDefault, None, None, None]):
+        if not pluginData.isExtensionUri(modelLink.modelDocument.uri, val.modelXbrl):
+            continue
+        for linkChild in modelLink:
+            if (
+                    isinstance(linkChild,(ModelObject,PrototypeObject))
+                    and linkChild.get(XbrlConst.qnXlinkType.clarkNotation) == "arc"
+                    and linkChild.get(XbrlConst.qnXlinkArcRole.clarkNotation) == XbrlConst.dimensionDefault
+            ):
+                fromLabel = linkChild.get(XbrlConst.qnXlinkFrom.clarkNotation)
+                for fromResource in modelLink.labeledResources[fromLabel]:
+                    if not pluginData.isExtensionUri(fromResource.modelDocument.uri, val.modelXbrl):
+                        yield Validation.error(
+                            codes='NL.NL-KVK.4.4.3.1.extensionTaxonomyOverridesDefaultMembers',
+                             msg=_('A default member does not match the default member settings of the taxonomy. '
+                                   'Update the default member to taxonomy defaults.'
+                                   ),
+                            modelObject=linkChild
+                        )
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    for modelDocument, extensionDocumentData in extensionData.extensionDocuments.items():
+        for arc in extensionDocumentData.iterArcsByType(LinkbaseType.DEFINITION, includeArcroles={XbrlConst.dimensionDefault}):
+            if arc.get("use") == "prohibited":
+                yield Validation.error(
+                    codes='NL.NL-KVK.4.4.3.1.extensionTaxonomyOverridesDefaultMembers',
+                    msg=_('A default member is forbidden in the extension taxonomy. '
+                          'Update the default member to taxonomy defaults.'
+                          ),
+                    modelObject=arc
+                )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=NL_INLNE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_4_4_3_2(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.4.3.2: Each dimension in an extension taxonomy MUST be assigned to a default member in the ELR with role URI https://www.nltaxonomie.nl/kvk/role/axis-defaults.
+    """
+    dimensionDefaults =val.modelXbrl.relationshipSet(XbrlConst.dimensionDefault, DEFAULT_MEMBER_ROLE_URI)
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    for modelConcept in extensionData.extensionConcepts:
+        if modelConcept.isExplicitDimension and not dimensionDefaults.fromModelObject(modelConcept):
+            yield Validation.error(
+                codes='NL.NL-KVK.4.4.2.3.extensionTaxonomyDimensionNotAssignedDefaultMemberInDedicatedPlaceholder',
+                modelObject=modelConcept,
+                msg=_('Axis is missing a default member or the default member does not match the taxonomy defaults. '
+                      'Update to set default member based on taxonomy defaults.'
+                      ),
+            )
 
 
 @validation(
