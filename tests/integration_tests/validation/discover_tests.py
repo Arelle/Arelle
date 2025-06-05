@@ -18,9 +18,9 @@ ALL_PYTHON_VERSIONS = (
     '3.10',
     '3.11',
     '3.12',
-    '3.13',
+    '3.13.3',
 )
-LATEST_PYTHON_VERSION = '3.13'
+LATEST_PYTHON_VERSION = '3.13.3'
 # number of cores on the runners
 # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources
 OS_CORES = {
