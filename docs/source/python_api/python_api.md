@@ -2,6 +2,21 @@
 
 The `arelle.api` module is the supported method for integrating Arelle into other Python applications.
 
+:::{warning}
+Arelle uses shared global state (PackageManager, PluginManager) which is NOT thread-safe.
+Only ONE Session can run at a time across the entire process.
+
+Safe usage:
+
+- Use one Session at a time per process
+- Use a process pool instead of thread pool for parallelism
+
+Unsafe usage:
+
+- Running multiple Sessions concurrently in any threads
+- Threading.Thread with Session.run()
+:::
+
 ## Session
 
 The Arelle Python API provides `Session` to run Arelle and access output.
