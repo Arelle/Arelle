@@ -23,8 +23,8 @@ from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from arelle.ValidateDuplicateFacts import getHashEquivalentFactGroups, getAspectEqualFacts
 from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
-from ..DisclosureSystems import (ALL_NL_INLINE_DISCLOSURE_SYSTEMS, NL_INLNE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
-                                 NL_INLNE_GAAP_OTHER_DISCLOSURE_SYSTEMS)
+from ..DisclosureSystems import (ALL_NL_INLINE_DISCLOSURE_SYSTEMS, NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+                                 NL_INLINE_GAAP_OTHER_DISCLOSURE_SYSTEMS)
 from ..LinkbaseType import LinkbaseType
 from ..PluginValidationDataExtension import (PluginValidationDataExtension, ALLOWABLE_LANGUAGES,
                                              DEFAULT_MEMBER_ROLE_URI, DISALLOWED_IXT_NAMESPACES,
@@ -852,7 +852,7 @@ def rule_nl_kvk_3_7_1_2(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=NL_INLNE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+    disclosureSystems=NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_4_1_1_1(
         pluginData: PluginValidationDataExtension,
@@ -903,7 +903,7 @@ def rule_nl_kvk_4_1_1_1(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=NL_INLNE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+    disclosureSystems=NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_4_1_1_2(
         pluginData: PluginValidationDataExtension,
@@ -938,7 +938,7 @@ def rule_nl_kvk_4_1_1_2(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=NL_INLNE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+    disclosureSystems=NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_4_1_2_1(
         pluginData: PluginValidationDataExtension,
@@ -963,7 +963,7 @@ def rule_nl_kvk_4_1_2_1(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=NL_INLNE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+    disclosureSystems=NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_4_1_2_2(
         pluginData: PluginValidationDataExtension,
@@ -980,17 +980,17 @@ def rule_nl_kvk_4_1_2_2(
     matches = extensionData.extensionImportedUrls & TAXONOMY_URLS_BY_YEAR.get(reportingPeriod or '', set())
     if not reportingPeriod or not matches:
         yield Validation.error(
-            reportingPeriod=reportingPeriod,
             codes='NL.NL-KVK.4.1.2.2.incorrectKvkTaxonomyVersionUsed',
             msg=_('The extension taxonomy MUST import the applicable version of the taxonomy files prepared by KVK '
-                  'for the reported financial reporting period of %(reportingPeriod)s.'),
+                  'for the reported financial reporting period. Verify the taxonomy version and make sure '
+                  'that FinancialReportingPeriod are tagged correctly.'),
             modelObject=val.modelXbrl.modelDocument
         )
 
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=NL_INLNE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+    disclosureSystems=NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_4_1_5_1(
         pluginData: PluginValidationDataExtension,
@@ -1022,7 +1022,7 @@ def rule_nl_kvk_4_1_5_1(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=NL_INLNE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+    disclosureSystems=NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_4_1_5_2(
         pluginData: PluginValidationDataExtension,
@@ -1053,7 +1053,7 @@ def rule_nl_kvk_4_1_5_2(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=NL_INLNE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+    disclosureSystems=NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_4_2_0_1(
         pluginData: PluginValidationDataExtension,
@@ -1077,7 +1077,7 @@ def rule_nl_kvk_4_2_0_1(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=NL_INLNE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+    disclosureSystems=NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_4_2_0_2(
         pluginData: PluginValidationDataExtension,
@@ -1101,7 +1101,7 @@ def rule_nl_kvk_4_2_0_2(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=NL_INLNE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+    disclosureSystems=NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_4_2_1_1(
         pluginData: PluginValidationDataExtension,
@@ -1130,7 +1130,7 @@ def rule_nl_kvk_4_2_1_1(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=NL_INLNE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+    disclosureSystems=NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_4_4_1_1(
         pluginData: PluginValidationDataExtension,
@@ -1158,7 +1158,7 @@ def rule_nl_kvk_4_4_1_1(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=NL_INLNE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+    disclosureSystems=NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_4_4_2_1(
         pluginData: PluginValidationDataExtension,
@@ -1185,7 +1185,7 @@ def rule_nl_kvk_4_4_2_1(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=NL_INLNE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+    disclosureSystems=NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_4_4_2_2(
         pluginData: PluginValidationDataExtension,
@@ -1213,7 +1213,7 @@ def rule_nl_kvk_4_4_2_2(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=NL_INLNE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+    disclosureSystems=NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_4_4_2_3(
         pluginData: PluginValidationDataExtension,
@@ -1241,7 +1241,7 @@ def rule_nl_kvk_4_4_2_3(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=NL_INLNE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+    disclosureSystems=NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_4_4_3_1(
         pluginData: PluginValidationDataExtension,
@@ -1286,7 +1286,7 @@ def rule_nl_kvk_4_4_3_1(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=NL_INLNE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+    disclosureSystems=NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_4_4_3_2(
         pluginData: PluginValidationDataExtension,
@@ -1312,7 +1312,7 @@ def rule_nl_kvk_4_4_3_2(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=NL_INLNE_GAAP_OTHER_DISCLOSURE_SYSTEMS,
+    disclosureSystems=NL_INLINE_GAAP_OTHER_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_5_1_3_1(
         pluginData: PluginValidationDataExtension,
@@ -1336,7 +1336,7 @@ def rule_nl_kvk_5_1_3_1(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=NL_INLNE_GAAP_OTHER_DISCLOSURE_SYSTEMS,
+    disclosureSystems=NL_INLINE_GAAP_OTHER_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_5_1_3_2(
         pluginData: PluginValidationDataExtension,
@@ -1345,7 +1345,7 @@ def rule_nl_kvk_5_1_3_2(
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    NL-KVK.5.1.3.2: The legal entity’s extension taxonomy MUST import the applicable version of
+    NL-KVK.5.1.3.2: The legal entity’s report MUST import the applicable version of
                     the taxonomy files prepared by KVK.
     """
     reportingPeriod = pluginData.getReportingPeriod(val.modelXbrl)
@@ -1353,10 +1353,10 @@ def rule_nl_kvk_5_1_3_2(
     matches = uris & TAXONOMY_URLS_BY_YEAR.get(reportingPeriod or '', set())
     if not reportingPeriod or not matches:
         yield Validation.error(
-            reportingPeriod=reportingPeriod,
             codes='NL.NL-KVK.5.1.3.2.incorrectVersionEntryPointOtherGaapReferenced',
-            msg=_('The extension taxonomy MUST import the applicable version of the taxonomy files prepared by KVK '
-                  'for the reported financial reporting period of %(reportingPeriod)s.'),
+            msg=_('The report MUST import the applicable version of the taxonomy files prepared by KVK '
+                  'for the reported financial reporting period. Verify the taxonomy version and make sure '
+                  'that FinancialReportingPeriod are tagged correctly.'),
             modelObject=val.modelXbrl.modelDocument
         )
 

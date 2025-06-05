@@ -10,7 +10,7 @@
     />
     <DisclosureSystem
             names="NL-INLINE-2024-GAAP-OTHER|nl-inline-2024-gaap-other|kvk-inline-2024-gaap-other-preview"
-            description="Checks for NL INLINE 2024. For use with NL GAAP Other"
+            description="Checks for NL INLINE 2024. For use with other GAAP."
             validationType="NL"
     />
     <DisclosureSystem
