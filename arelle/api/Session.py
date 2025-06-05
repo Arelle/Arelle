@@ -6,6 +6,7 @@ The `arelle.api` module is the supported method for integrating Arelle into othe
 from __future__ import annotations
 
 import logging
+import threading
 from types import TracebackType
 from typing import Any, BinaryIO
 
@@ -14,10 +15,35 @@ from arelle.CntlrCmdLine import CntlrCmdLine, createCntlrAndPreloadPlugins
 from arelle.ModelXbrl import ModelXbrl
 from arelle.RuntimeOptions import RuntimeOptions
 
+_session_lock = threading.Lock()
+
 
 class Session:
+    """
+    CRITICAL THREAD SAFETY WARNING:
+
+    Arelle uses shared global state (PackageManager, PluginManager) which is NOT thread-safe.
+    Only ONE Session can run at a time across the entire process.
+
+    Safe usage:
+    - Use one Session at a time per process
+    - Use a process pool instead of thread pool for parallelism
+
+    Unsafe usage:
+    - Running multiple Sessions concurrently in any threads
+    - Threading.Thread with Session.run()
+    """
+
     def __init__(self) -> None:
         self._cntlr: CntlrCmdLine | None = None
+        self._thread_id = threading.get_ident()
+
+    def _check_thread(self) -> None:
+        """Ensure session is only used from the thread that created it."""
+        if threading.get_ident() != self._thread_id:
+            raise RuntimeError(
+                "Session objects cannot be shared between threads. Create a new Session instance in each thread."
+            )
 
     def __enter__(self) -> Any:
         return self
@@ -31,9 +57,11 @@ class Session:
         self.close()
 
     def close(self) -> None:
-        if self._cntlr is not None:
-            self._cntlr.close()
-        PluginManager.close()
+        with _session_lock:
+            self._check_thread()
+            if self._cntlr is not None:
+                self._cntlr.close()
+            PluginManager.close()
 
     def get_log_messages(self) -> list[dict[str, Any]]:
         """
@@ -89,60 +117,62 @@ class Session:
         :param sourceZipStreamFileName: Optional file name to use for the passed zip stream.
         :return: True if the run was successful, False otherwise.
         """
-        if sourceZipStreamFileName is not None and sourceZipStream is None:
-            raise ValueError("sourceZipStreamFileName may only be provided if sourceZipStream is not None.")
-        PackageManager.reset()
-        PluginManager.reset()
-        if self._cntlr is None:
-            # Certain options must be passed into the controller constructor to have the intended effect
-            self._cntlr = createCntlrAndPreloadPlugins(
-                uiLang=options.uiLang,
-                disablePersistentConfig=options.disablePersistentConfig,
-                arellePluginModules={},
-            )
-        else:
-            # Certain options passed into the controller constructor need to be updated
-            if self._cntlr.uiLang != options.uiLang:
-                self._cntlr.setUiLanguage(options.uiLang)
-            self._cntlr.disablePersistentConfig = options.disablePersistentConfig or False
-        logRefObjectProperties = True
-        if options.logRefObjectProperties is not None:
-            logRefObjectProperties = options.logRefObjectProperties
-        if options.webserver:
-            assert sourceZipStream is None, "Source streaming is not supported with webserver"
-            assert responseZipStream is None, "Response streaming is not supported with webserver"
-            if not self._cntlr.logger:
-                self._cntlr.startLogging(
-                    logFileName='logToBuffer',
-                    logFilters=logFilters,
-                    logHandler=logHandler,
-                    logTextMaxLength=options.logTextMaxLength,
-                    logRefObjectProperties=logRefObjectProperties,
-                    logPropagate=options.logPropagate,
+        with _session_lock:
+            self._check_thread()
+            if sourceZipStreamFileName is not None and sourceZipStream is None:
+                raise ValueError("sourceZipStreamFileName may only be provided if sourceZipStream is not None.")
+            PackageManager.reset()
+            PluginManager.reset()
+            if self._cntlr is None:
+                # Certain options must be passed into the controller constructor to have the intended effect
+                self._cntlr = createCntlrAndPreloadPlugins(
+                    uiLang=options.uiLang,
+                    disablePersistentConfig=options.disablePersistentConfig,
+                    arellePluginModules={},
                 )
-                self._cntlr.postLoggingInit()
-            from arelle import CntlrWebMain
-            CntlrWebMain.startWebserver(self._cntlr, options)
-            return True
-        else:
-            if not self._cntlr.logger:
-                self._cntlr.startLogging(
-                    logFileName=(options.logFile or "logToPrint"),
-                    logFileMode=options.logFileMode,
-                    logFormat=(options.logFormat or "[%(messageCode)s] %(message)s - %(file)s"),
-                    logLevel=(options.logLevel or "DEBUG"),
-                    logFilters=logFilters,
-                    logHandler=logHandler,
-                    logToBuffer=options.logFile == 'logToBuffer',
-                    logTextMaxLength=options.logTextMaxLength,  # e.g., used by EDGAR/render to require buffered logging
-                    logRefObjectProperties=logRefObjectProperties,
-                    logXmlMaxAttributeLength=options.logXmlMaxAttributeLength,
-                    logPropagate=options.logPropagate,
+            else:
+                # Certain options passed into the controller constructor need to be updated
+                if self._cntlr.uiLang != options.uiLang:
+                    self._cntlr.setUiLanguage(options.uiLang)
+                self._cntlr.disablePersistentConfig = options.disablePersistentConfig or False
+            logRefObjectProperties = True
+            if options.logRefObjectProperties is not None:
+                logRefObjectProperties = options.logRefObjectProperties
+            if options.webserver:
+                assert sourceZipStream is None, "Source streaming is not supported with webserver"
+                assert responseZipStream is None, "Response streaming is not supported with webserver"
+                if not self._cntlr.logger:
+                    self._cntlr.startLogging(
+                        logFileName='logToBuffer',
+                        logFilters=logFilters,
+                        logHandler=logHandler,
+                        logTextMaxLength=options.logTextMaxLength,
+                        logRefObjectProperties=logRefObjectProperties,
+                        logPropagate=options.logPropagate,
+                    )
+                    self._cntlr.postLoggingInit()
+                from arelle import CntlrWebMain
+                CntlrWebMain.startWebserver(self._cntlr, options)
+                return True
+            else:
+                if not self._cntlr.logger:
+                    self._cntlr.startLogging(
+                        logFileName=(options.logFile or "logToPrint"),
+                        logFileMode=options.logFileMode,
+                        logFormat=(options.logFormat or "[%(messageCode)s] %(message)s - %(file)s"),
+                        logLevel=(options.logLevel or "DEBUG"),
+                        logFilters=logFilters,
+                        logHandler=logHandler,
+                        logToBuffer=options.logFile == 'logToBuffer',
+                        logTextMaxLength=options.logTextMaxLength,  # e.g., used by EDGAR/render to require buffered logging
+                        logRefObjectProperties=logRefObjectProperties,
+                        logXmlMaxAttributeLength=options.logXmlMaxAttributeLength,
+                        logPropagate=options.logPropagate,
+                    )
+                    self._cntlr.postLoggingInit()  # Cntlr options after logging is started
+                return self._cntlr.run(
+                    options,
+                    sourceZipStream=sourceZipStream,
+                    responseZipStream=responseZipStream,
+                    sourceZipStreamFileName=sourceZipStreamFileName,
                 )
-                self._cntlr.postLoggingInit()  # Cntlr options after logging is started
-            return self._cntlr.run(
-                options,
-                sourceZipStream=sourceZipStream,
-                responseZipStream=responseZipStream,
-                sourceZipStreamFileName=sourceZipStreamFileName,
-            )
