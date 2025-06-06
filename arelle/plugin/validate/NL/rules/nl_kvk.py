@@ -31,7 +31,8 @@ from ..PluginValidationDataExtension import (PluginValidationDataExtension, ALLO
                                              EFFECTIVE_KVK_GAAP_IFRS_ENTRYPOINT_FILES,
                                              EFFECTIVE_KVK_GAAP_OTHER_ENTRYPOINT_FILES,
                                              MAX_REPORT_PACKAGE_SIZE_MBS, TAXONOMY_URLS_BY_YEAR,
-                                             XBRLI_IDENTIFIER_PATTERN, XBRLI_IDENTIFIER_SCHEMA, ExtensionDocumentData)
+                                             XBRLI_IDENTIFIER_PATTERN, XBRLI_IDENTIFIER_SCHEMA,
+                                             QN_DOMAIN_ITEM_TYPES)
 
 if TYPE_CHECKING:
     from arelle.ModelXbrl import ModelXbrl
@@ -1126,6 +1127,33 @@ def rule_nl_kvk_4_2_1_1(
             msg=_('The definition linkbase is missing xbrli:scenario in extension taxonomy. '
                   'Review definition linkbase and update as appropriate.'),
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_4_2_2_2(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.2.2.2: Domain members MUST have domainItemType data type as defined in https://www.xbrl.org/dtr/type/2022-03-31/types.xsd.
+    """
+    domainMembersWrongType = []
+    domainMembers = pluginData.getDomainMembers(val.modelXbrl)
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    for concept in extensionData.extensionConcepts:
+        if concept.isDomainMember and concept in domainMembers and concept.typeQname not in QN_DOMAIN_ITEM_TYPES:
+            domainMembersWrongType.append(concept)
+    if len(domainMembersWrongType) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.4.2.2.2.domainMemberWrongDataType',
+            modelObject=domainMembersWrongType,
+            msg=_('Domain members must have domainItemType data type as defined in "https://www.xbrl.org/dtr/type/2022-03-31/types.xsd".'
+                  'Update to follow appropriate Data Type Registry.  '))
 
 
 @validation(
