@@ -1160,6 +1160,31 @@ def rule_nl_kvk_4_2_2_2(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
 )
+def rule_nl_kvk_4_2_3_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.2.3.1: Extension taxonomy MUST NOT define typed dimensions.
+    """
+    typedDims = []
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    for concept in extensionData.extensionConcepts:
+        if concept.isTypedDimension:
+            typedDims.append(concept)
+    if len(typedDims) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.4.3.2.1.typedDimensionDefinitionInExtensionTaxonomy',
+            modelObject=typedDims,
+            msg=_('Typed dimensions are not allowed in the extension taxonomy.  Update to remove the typed dimension.'))
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+)
 def rule_nl_kvk_4_4_1_1(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
