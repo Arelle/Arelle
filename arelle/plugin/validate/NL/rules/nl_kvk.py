@@ -1438,3 +1438,56 @@ def rule_nl_kvk_6_1_1_1(
                 msg=_('The size of the report package must not exceed %(maxSize)s MBs, size is %(size)s MBs.'),
                 modelObject=val.modelXbrl, maxSize=MAX_REPORT_PACKAGE_SIZE_MBS, size=int(_size/1000000)
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_RTS_Annex_IV_Par_4_2(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.RTS_Annex_IV_Par_4_2: Extension elements must be equipped with an appropriate balance attribute.
+    """
+    errors = []
+    for concept in pluginData.getExtensionConcepts(val.modelXbrl):
+        if concept.isMonetary and concept.balance is None:
+            errors.append(concept)
+    if len(errors) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.RTS_Annex_IV_Par_4_2.monetaryConceptWithoutBalance',
+            msg=_('Extension elements must have an appropriate balance attribute.'),
+            modelObject=errors
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_RTS_Annex_IV_Par_6(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.RTS_Annex_IV_Par_6: Each NL-GAAP or IFRS financial statements structure MUST be equipped with
+                               a calculation linkbase
+    """
+    hasCalcLinkbase = False
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    for modelDoc, extensionDoc in extensionData.extensionDocuments.items():
+        for linkbase in extensionDoc.linkbases:
+            if linkbase.linkbaseType == LinkbaseType.CALCULATION:
+                hasCalcLinkbase = True
+    if not hasCalcLinkbase:
+        yield Validation.error(
+            codes='NL.NL-KVK.RTS_Annex_IV_Par_6.extensionTaxonomyWrongFilesStructure',
+            msg=_('The filing package must include a calculation linkbase.'),
+            modelObject=val.modelXbrl.modelDocument
+        )

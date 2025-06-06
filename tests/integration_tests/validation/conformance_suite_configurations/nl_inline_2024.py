@@ -24,7 +24,7 @@ config = ConformanceSuiteConfig(
         },
         'G3-5-3_1/index.xml:TC2_invalid': {
             'arelle:ixdsTargetNotDefined': 1,
-            'extensionTaxonomyWrongFilesStructure': 1,
+            'extensionTaxonomyWrongFilesStructure': 2,
             # This test is looking at the usage of the target attribute and does not import the correct taxonomy urls
             'requiredEntryPointNotImported': 1,
             'incorrectKvkTaxonomyVersionUsed': 1,
@@ -37,6 +37,9 @@ config = ConformanceSuiteConfig(
         'G3-7-1_1/index.xml:TC2_invalid': {
             'message:valueKvKIdentifier': 13,
             'nonIdenticalIdentifier': 1,
+        },
+        'G4-1-1_1/index.xml:TC4_invalid': {
+            'extensionTaxonomyWrongFilesStructure': 1,
         },
         'G4-1-2_1/index.xml:TC2_valid': {
             'undefinedLanguageForTextFact': 1,
@@ -69,6 +72,14 @@ config = ConformanceSuiteConfig(
             'undefinedLanguageForTextFact': 1,
             'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 5,
         },
+        'RTS_Annex_IV_Par_6/index.xml:TC3_invalid': {
+            'extensionTaxonomyWrongFilesStructure': 1,
+        },
+        'RTS_Annex_IV_Par_6/index.xml:TC4_invalid': {
+            'undefinedLanguageForTextFact': 1,
+            'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 5,
+            'extensionTaxonomyWrongFilesStructure': 1,
+        }
     }.items()},
     expected_failure_ids=frozenset([
         # Conformance Suite Errors
@@ -110,13 +121,11 @@ config = ConformanceSuiteConfig(
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_12_G3-2-4_1/index.xml:TC4_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_14_G3-5-1_1/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_4_1/index.xml:TC2_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_4_2/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_4_3/index.xml:TC3_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_4_3/index.xml:TC4_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_4_3/index.xml:TC5_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_5/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_5/index.xml:TC3_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_6/index.xml:TC4_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_8_G4-4-5/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_8_G4-4-5/index.xml:TC3_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_9_Par_10/index.xml:TC3_invalid',
