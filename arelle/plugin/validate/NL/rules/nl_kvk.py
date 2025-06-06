@@ -1410,3 +1410,31 @@ def rule_nl_kvk_RTS_Annex_IV_Par_4_2(
             msg=_('Extension elements must have an appropriate balance attribute.'),
             modelObject=errors
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_RTS_Annex_IV_Par_6(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.RTS_Annex_IV_Par_6: Each NL-GAAP or IFRS financial statements structure MUST be equipped with
+                               a calculation linkbase
+    """
+    hasCalcLinkbase = False
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    for modelDoc, extensionDoc in extensionData.extensionDocuments.items():
+        for linkbase in extensionDoc.linkbases:
+            if linkbase.linkbaseType == LinkbaseType.CALCULATION:
+                hasCalcLinkbase = True
+    if not hasCalcLinkbase:
+        yield Validation.error(
+            codes='NL.NL-KVK.RTS_Annex_IV_Par_6.extensionTaxonomyWrongFilesStructure',
+            msg=_('The filing package must include a calculation linkbase.'),
+            modelObject=val.modelXbrl.modelDocument
+        )
