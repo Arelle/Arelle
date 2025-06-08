@@ -1,5 +1,5 @@
 {
-    "$schema": "./oim-schema.json",
+    "$schema": "../oim-taxonomy-schema.json",
     "documentInfo": {
         "documentType": "https://xbrl.org/2025/taxonomy",
         "namespaces": {
@@ -19,7 +19,7 @@
         "importedTaxonomies": [
             {
                 "taxonomyName" :"utr:UnitsTaxonomyModule",
-                "includeObjectTypes": ["xbrl:propertyObject", "xbrl:referenceTypeObject"]
+                "importObjectTypes": ["xbrl:propertyObject", "xbrl:referenceTypeObject"]
             }
         ],
         "units": [
