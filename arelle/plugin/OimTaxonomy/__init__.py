@@ -53,7 +53,7 @@ from .ValidateDTS import validateDTS
 from .ModelValueMore import SQName, QNameAt
 from .ViewXbrlTxmyObj import viewXbrlTxmyObj
 from .XbrlConst import xbrl, oimTaxonomyDocTypePattern, oimTaxonomyDocTypes, qnXbrlLabelObj, xbrlTaxonomyObjects
-
+from .ParseSelectionWhereClause import parseSelectionWhereClause
 
 from arelle.oim.Load import (DUPJSONKEY, DUPJSONVALUE, EMPTY_DICT, EMPTY_LIST, UrlInvalidPattern,
                              OIMException, NotOIMException)
@@ -376,6 +376,10 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                         if isinstance(jsonValue, list):
                             for iObj, listObj in enumerate(jsonValue):
                                 if isinstance(eltClass, str) or getattr(eltClass, "__name__", "").startswith("Xbrl"): # nested Xbrl objects
+                                    if propName == "selections" and isinstance(listObj, str):
+                                        print(f"b4 selection {listObj}")
+                                        listObj = parseSelectionWhereClause(listObj) # parse unstructured selection
+                                        print(f"after selection {listObj}")
                                     if isinstance(listObj, dict):
                                         # this handles lists of dict objects.  For dicts of key-value dict objects see above.
                                         createTaxonomyObjects(propName, listObj, newObj, pathParts + [f'{propName}[{iObj}]'])
@@ -384,6 +388,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                                               _("Object expected but non-object found: %(listObj)s, jsonObj: %(path)s"),
                                               sourceFileLine=href, listObj=listObj, path=f"{'/'.join(pathParts + [f'{propName}[{iObj}]'])}")
                                 elif isinstance(listObj, dict) and get_origin(eltClass) is Union and getattr(eltClass.__args__[0], "__name__", "").startswith("Xbrl"): # nested Xbrl objects such as selector
+                                    print(f"union propName {propName}")
                                     createTaxonomyObjects(propName, listObj, newObj, pathParts + [f'{propName}[{iObj}]'])
                                 else: # collection contains ordinary values
                                     if eltClass in (QName, QNameKeyType, SQName, SQNameKeyType):
@@ -551,7 +556,6 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
 
         if newTxmy is not None:
             for impTxmy in newTxmy.importedTaxonomies:
-                impTxmy.compileSelectStatements()
                 if impTxmy.taxonomyName not in xbrlDts.taxonomies:
                     # is it present in urlMapping?
                     url = namespaceUrls.get(impTxmy.taxonomyName.prefix)
