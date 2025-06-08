@@ -250,18 +250,42 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                 numZtbls = 1
             self.zTbl = 0
             # get number of y header columns
-            self.numYHdrCols = 0
+            numZHdrs = numYHdrCols = numXHdrRows = 0
+            dataRows = dataCols = 0
+            lytMdlZHdrs = self.lytMdlTable.lytMdlAxisHeaders("z")
+            if lytMdlZHdrs is not None:
+                for lytMdlZGrp in lytMdlZHdrs.lytMdlGroups:
+                    for lytMdlZHdr in lytMdlZGrp.lytMdlHeaders:
+                        dataRow = 0
+                        for lytMdlZCell in lytMdlZHdr.lytMdlCells:
+                            dataRow += 1
+                        if dataRow > numZHdrs:
+                            numZHdrs = dataRow
             for lytMdlYGrp in self.lytMdlTable.lytMdlAxisHeaders("y").lytMdlGroups:
                 for lytMdlYHdr in lytMdlYGrp.lytMdlHeaders:
-                    self.numYHdrCols +=  lytMdlYHdr.maxNumLabels
-            self.numXHdrRows = 0
+                    numYHdrCols +=  lytMdlYHdr.maxNumLabels
+                    dataRow = 0
+                    if all(lytMdlCell.isOpenAspectEntrySurrogate for lytMdlCell in lytMdlYHdr.lytMdlCells):
+                        continue # skip header with only open aspect entry surrogate
+                    for lytMdlYCell in lytMdlYHdr.lytMdlCells:
+                        dataRow += lytMdlYCell.span
+                    if dataRow > dataRows:
+                        dataRows = dataRow
             for lytMdlXGrp in self.lytMdlTable.lytMdlAxisHeaders("x").lytMdlGroups:
                 for lytMdlXHdr in lytMdlXGrp.lytMdlHeaders:
-                    self.numXHdrRows += lytMdlXHdr.maxNumLabels
-
-        dataFirstRow = self.colHdrTopRow + self.numXHdrRows
-        if TRACE_TK: print(f"resizeTable rows {self.dataFirstRow+self.dataRows} cols {self.numYHdrCols+self.dataCols} titleRows {self.dataFirstRow} titleColumns {self.numYHdrCols})")
-        self.table.resizeTable(dataFirstRow+self.dataRows, self.numYHdrCols+self.dataCols, titleRows=dataFirstRow, titleColumns=self.numYHdrCols)
+                    numXHdrRows += lytMdlXHdr.maxNumLabels
+                    dataCol = 0
+                    if all(lytMdlCell.isOpenAspectEntrySurrogate for lytMdlCell in lytMdlXHdr.lytMdlCells):
+                        continue # skip header with only open aspect entry surrogate
+                    for lytMdlCell in lytMdlXHdr.lytMdlCells:
+                        if lytMdlCell.isOpenAspectEntrySurrogate:
+                            continue # strip all open aspect entry surrogates from layout model file
+                        dataCol += lytMdlCell.span
+                    if dataCol > dataCols:
+                        dataCols = dataCol
+        dataFirstRow = numZHdrs + numXHdrRows
+        if TRACE_TK: print(f"resizeTable rows {dataFirstRow+dataRows} cols {numYHdrCols+dataCols} titleRows {dataFirstRow} titleColumns {numYHdrCols})")
+        self.table.resizeTable(dataFirstRow+dataRows, numYHdrCols+dataCols, titleRows=dataFirstRow, titleColumns=numYHdrCols)
 
         try:
             # review row header wrap widths and limit to 2/3 of the frame width (all are screen units)
@@ -288,12 +312,12 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             self.aspectEntryObjectIdsNode.clear()
             self.aspectEntryObjectIdsCell.clear()
             self.factPrototypeAspectEntryObjectIds.clear()
-            if TRACE_TK: print(f"tbl hdr x {0} y {0} cols {self.numYHdrCols-1} rows {dataFirstRow - 1} value {lytMdlTableSet.label}")
+            if TRACE_TK: print(f"tbl hdr x {0} y {0} cols {numYHdrCols-1} rows {dataFirstRow - 1} value {lytMdlTableSet.label}")
             self.table.initHeaderCellValue(lytMdlTableSet.label,
-                                           0, 0, self.numYHdrCols-1, dataFirstRow - 1,
+                                           0, 0, numYHdrCols-1, dataFirstRow - 1,
                                            XbrlTable.TG_TOP_LEFT_JUSTIFIED)
-            self.zAxis(clearZchoices, self.numXHdrRows)
-            self.xAxis(self.numYHdrCols, self.colHdrTopRow)
+            self.zAxis(clearZchoices, numXHdrRows)
+            self.xAxis(numYHdrCols, self.colHdrTopRow)
             self.yAxis(0, dataFirstRow)
             for fp in self.factPrototypes: # dereference prior facts
                 if fp is not None:
@@ -301,12 +325,12 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             self.factPrototypes = []
 
             startedAt2 = time.time()
-            self.bodyCells(self.numYHdrCols, dataFirstRow)
-            #print("bodyCells {:.2f}secs ".format(time.time() - startedAt2) + self.roledefinition)
-
-            self.table.clearModificationStatus()
-            self.table.disableUnusedCells()
-            self.table.resizeTableCells()
+            if self.bodyCells(numYHdrCols, dataFirstRow):
+                # has body cells
+                #print("bodyCells {:.2f}secs ".format(time.time() - startedAt2) + self.roledefinition)
+                self.table.clearModificationStatus()
+                self.table.disableUnusedCells()
+                self.table.resizeTableCells()
 
             # data cells
             #print("body cells done")
@@ -324,16 +348,17 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             return
         # create combo box cells for multiple choice elements
         for iZ, (aspect, aspectChoices) in enumerate(self.zAspectChoices.items()):
-            values = [a for a in aspectChoices.keys()]
+            values = [a for a in aspectChoices.keys() if a and a != OPEN_ASPECT_ENTRY_SURROGATE]
             if TRACE_TK: print(f"zAxis comboBox x {self.dataFirstCol} y {iZ} values {values} value {self.zHdrElts[self.zTbl][aspect]} colspan {colSpan}")
-            combobox = self.table.initHeaderCombobox(self.dataFirstCol,
-                                                     iZ,
-                                                     values=values,
-                                                     value=self.zHdrElts[self.zTbl][aspect],
-                                                     colspan=colSpan,
-                                                     #selectindex=self.zBreakdownLeafNbr[breakdownRow],
-                                                     comboboxselected=self.onZComboBoxSelected)
-            combobox.zAspect = aspect
+            if values:
+                combobox = self.table.initHeaderCombobox(self.dataFirstCol,
+                                                         iZ,
+                                                         values=values,
+                                                         value=self.zHdrElts[self.zTbl][aspect],
+                                                         colspan=colSpan,
+                                                         #selectindex=self.zBreakdownLeafNbr[breakdownRow],
+                                                         comboboxselected=self.onZComboBoxSelected)
+                combobox.zAspect = aspect
 
     def onZComboBoxSelected(self, event):
         combobox = event.widget
@@ -433,6 +458,8 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
 
     def bodyCells(self, leftCol, topRow):
         lytMdlZBodyCell = self.lytMdlTable.lytMdlBodyChildren[0] # examples only show one z cell despite number of tables
+        if not lytMdlZBodyCell.lytMdlBodyChildren:
+            return False # no body cells
         lytMdlYBodyCell = lytMdlZBodyCell.lytMdlBodyChildren[self.zTbl]
         yRowNum = topRow
         for lytMdlXBodyCell in lytMdlYBodyCell.lytMdlBodyChildren:
@@ -572,7 +599,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                                      objectId=objectId,
                                                      backgroundColourTag=self.getbackgroundColor(fp))
                 yRowNum += 1
-
+        return True # has body cells
 
     def onClick(self, event):
         try:

@@ -177,9 +177,10 @@ class ViewRenderedGrid(ViewFile.View):
                                         for zHdrLblRow in zHdrElts[zTbl].values():
                                             zHdrRowElt = etree.SubElement(zHdrTblElt, "{http://www.w3.org/1999/xhtml}tr")
                                             for lbl in zHdrLblRow:
-                                                etree.SubElement(zHdrRowElt, "{http://www.w3.org/1999/xhtml}th",
-                                                                 attrib={"class":"tableHdr","style":"max-width:100em;font-size:8pt;text-align:left;border-top:none;border-left:none;border-right:none;border-bottom:none;"}
-                                                                 ).text = lbl
+                                                lblElt = etree.SubElement(zHdrRowElt, "{http://www.w3.org/1999/xhtml}th",
+                                                                     attrib={"class":"tableHdr","style":"max-width:100em;font-size:8pt;text-align:left;border-top:none;border-left:none;border-right:none;border-bottom:none;"})
+                                                if lbl != OPEN_ASPECT_ENTRY_SURROGATE:
+                                                    lblElt.text = lbl
                                     else:
                                         zHdrElt.text = '\u00a0'
                                     firstColHdr = False
