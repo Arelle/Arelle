@@ -23,7 +23,9 @@
           "urlMapping": {
             "type": "object",
             "additionalProperties": {
-              "type": "string"
+              "type": "array",
+              "items": { "type": "string" },
+              "minItems": 1
             }
           }
         },
@@ -48,22 +50,52 @@
                     "type": "object",
                     "properties": {
                       "taxonomyName": { "$ref": "#/definitions/QName" },
-                      "includeObjects": {
+                      "selections": {
+                        "type": "array",
+                        "items": { "$ref": "#/definitions/selectorObject" }
+                      },
+                      "importObjects": {
                         "type": "array",
                         "items": { "$ref": "#/definitions/QName" }
                       },
-                      "includeObjectTypes": {
+                      "importObjectTypes": {
                         "type": "array",
                         "items": { "$ref": "#/definitions/QName" }
                       },
                       "excludeLabels": {
                         "type": "boolean"
-                      },
-                      "followImport": {
-                        "type": "boolean"
                       }
                     },
                     "required": ["taxonomyName"],
+                    "additionalProperties": false
+                  }
+                },
+                "exportProfiles": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": { "$ref": "#/definitions/QName" },
+                      "taxonomyType": {
+                          "type": "string"
+                        },
+                      "selections": {
+                        "type": "array",
+                        "items": { "$ref": "#/definitions/selectorObject" }
+                      },
+                      "exportObjects": {
+                        "type": "array",
+                        "items": { "$ref": "#/definitions/QName" }
+                      },
+                      "exportObjectTypes": {
+                        "type": "array",
+                        "items": { "$ref": "#/definitions/QName" }
+                      },
+                      "excludeLabels": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": ["name"],
                     "additionalProperties": false
                   }
                 },
@@ -273,13 +305,6 @@
                               "order": {
                                 "type": "number"
                               },
-                              "weight": {
-                                "type": "number"
-                              },
-                              "preferredlabel": { "$ref": "#/definitions/QName" },
-                              "usable": {
-                                "type": "boolean"
-                              },
                              "properties": {
                                 "type": "array",
                                 "items": { "$ref": "#/definitions/propertyObject" },
@@ -346,13 +371,6 @@
                               "target": { "$ref": "#/definitions/QName" },
                               "order": {
                                 "type": "number"
-                              },
-                              "weight": {
-                                "type": "number"
-                              },
-                              "preferredLabel": { "$ref": "#/definitions/QName" },
-                              "useable": {
-                                "type": "boolean"
                               },
                               "properties": {
                                   "type": "array",
@@ -725,7 +743,7 @@
                             "properties": {
                               "dataTypeNumerator": { "$ref": "#/definitions/QName" },
                               "dataTypeDenominator": { "$ref": "#/definitions/QName" },
-                              "dataTypeMutiplier": { "$ref": "#/definitions/QName" }
+                              "dataTypeMultiplier": { "$ref": "#/definitions/QName" }
                             },
                             "additionalProperties": false
                           }
@@ -898,6 +916,53 @@
           "pattern": "^[A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z0-9_.-]+$",
           "description": "QName that uniquely identifies the object."
       },
+      "selectorObject":{
+        "oneOf": [
+              {
+                "description": "Simple string selector (e.g., 'concepts where periodType = \"instant\"')",
+                "type": "string"
+              },
+            {
+              "description": "Structured selector object",
+              "type": "object",
+              "properties": {
+                "objectType": {
+                  "type": "string",
+                  "description": "The type of object to select (e.g., 'concept', 'member', 'label')."
+                },
+                "where": {
+                  "type": "array",
+                  "description": "Array of filter conditions.",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "property": {
+                        "type": "string",
+                        "description": "Property name to filter on (e.g., 'periodType', 'balance', 'language')."
+                      },
+                      "operator": {
+                        "type": "string",
+                        "enum": ["=", "!=", "in", "not in", "contains", "not contains", ">", "<", ">=", "<="],
+                        "description": "Comparison operator."
+                      },
+                      "value": {
+                        "description": "Value to compare against. Can be string, number, boolean, or array.",
+                        "oneOf": [
+                          { "type": "string" },
+                          { "type": "number" },
+                          { "type": "boolean" },
+                          { "type": "array", "items": { "type": "string" } }
+                        ]
+                      }
+                    },
+                    "required": ["property", "operator", "value"]
+                  }
+                }
+              },
+              "required": ["objectType", "where"]
+            }
+          ]
+        },
       "dateResolutionObject": {
           "type": "object",
           "description": "Gregorian date that recurs (dateResolution object).",

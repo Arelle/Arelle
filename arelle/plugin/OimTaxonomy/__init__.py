@@ -38,7 +38,6 @@ from .XbrlCube import (XbrlCube, XbrlCubeDimension, XbrlPeriodConstraint, XbrlDa
                        XbrlCubeType, XbrlAllowedCubeDimension, XbrlRequiredCubeRelationship)
 from .XbrlEntity import XbrlEntity
 from .XbrlGroup import XbrlGroup, XbrlGroupContent
-from .XbrlImportedTaxonomy import XbrlImportedTaxonomy
 from .XbrlLabel import XbrlLabel, XbrlLabelType
 from .XbrlNetwork import XbrlNetwork, XbrlRelationship, XbrlRelationshipType
 from .XbrlProperty import XbrlProperty, XbrlPropertyType
@@ -395,7 +394,10 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                                         if propName == "relatedNames":
                                             relatedNames.append(listObj)
                                     if propClass in (set, OrderedSet):
-                                        collectionProp.add(listObj)
+                                        try:
+                                            collectionProp.add(listObj)
+                                        except TypeError as ex:
+                                            print("trace")
                                     else:
                                         collectionProp.append(listObj)
                         elif isinstance(jsonValue, dict) and keyClass:

@@ -29,6 +29,9 @@
                 "baseType": "xs:string",
                 "enumeration": ["instant", "duration", "none"]
             },
+            {   "name": "xbrli:dimensionPeriodType",
+                "baseType": "xs:string"
+            },
             {
                 "name": "xbrli:monetary",
                 "baseType": "xs:decimal"

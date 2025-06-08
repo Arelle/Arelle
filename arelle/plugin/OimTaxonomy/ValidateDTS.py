@@ -16,7 +16,7 @@ from .XbrlCube import (XbrlCube, XbrlCubeType, baseCubeTypes, XbrlCubeDimension,
 from .XbrlDimension import XbrlDimension, XbrlDomain, XbrlDomainRoot, XbrlMember
 from .XbrlEntity import XbrlEntity
 from .XbrlGroup import XbrlGroup, XbrlGroupContent
-from .XbrlImportedTaxonomy import XbrlImportedTaxonomy
+from .XbrlImportTaxonomy import XbrlImportTaxonomy
 from .XbrlLabel import XbrlLabel
 from .XbrlNetwork import XbrlNetwork, XbrlRelationship, XbrlRelationshipType
 from .XbrlProperty import XbrlPropertyType
@@ -86,16 +86,16 @@ def validateTaxonomy(dts, txmy):
     assertObjectType(txmy, XbrlTaxonomy)
 
     for impTxmyObj in txmy.importedTaxonomies:
-        assertObjectType(impTxmyObj, XbrlImportedTaxonomy)
-        for qnObjType in impTxmyObj.includeObjectTypes:
+        assertObjectType(impTxmyObj, XbrlImportTaxonomy)
+        for qnObjType in impTxmyObj.importObjectTypes:
             if qnObjType in xbrlObjectTypes:
                 if xbrlObjectTypes[qnObjType] == XbrlLabel:
                     dts.error("oimte:invalidObjectType",
-                              _("The includeObjectTypes property MUST not include the label object."),
+                              _("The importObjectTypes property MUST not include the label object."),
                               xbrlObject=qnObjType)
             else:
                 dts.error("oimte:invalidObjectType",
-                          _("The includeObjectTypes property MUST specify valid OIM object types, %(qname)s is not valid."),
+                          _("The importObjectTypes property MUST specify valid OIM object types, %(qname)s is not valid."),
                           xbrlObject=qnObjType, qname=qnObjType)
 
     # Concept Objects
