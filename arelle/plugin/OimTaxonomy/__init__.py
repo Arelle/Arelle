@@ -383,6 +383,8 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                                         error("xbrlte:invalidObjectType",
                                               _("Object expected but non-object found: %(listObj)s, jsonObj: %(path)s"),
                                               sourceFileLine=href, listObj=listObj, path=f"{'/'.join(pathParts + [f'{propName}[{iObj}]'])}")
+                                elif isinstance(listObj, dict) and get_origin(eltClass) is Union and getattr(eltClass.__args__[0], "__name__", "").startswith("Xbrl"): # nested Xbrl objects such as selector
+                                    createTaxonomyObjects(propName, listObj, newObj, pathParts + [f'{propName}[{iObj}]'])
                                 else: # collection contains ordinary values
                                     if eltClass in (QName, QNameKeyType, SQName, SQNameKeyType):
                                         listObj = qname(listObj, prefixNamespaces)
@@ -502,6 +504,8 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                         objClass = ownrPropType.__args__[0]
                     else: # parent      is just an object field, not a  collection
                         objClass = ownrPropType # e.g just a Concept but no owning collection
+                    if get_origin(objClass) is Union: # union of structured class or string such as select
+                        objClass = objClass.__args__[0]
                     if objClass == XbrlTaxonomyType:
                         objClass = XbrlTaxonomy
                     if issubclass(objClass, XbrlObject):
@@ -547,6 +551,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
 
         if newTxmy is not None:
             for impTxmy in newTxmy.importedTaxonomies:
+                impTxmy.compileSelectStatements()
                 if impTxmy.taxonomyName not in xbrlDts.taxonomies:
                     # is it present in urlMapping?
                     url = namespaceUrls.get(impTxmy.taxonomyName.prefix)
