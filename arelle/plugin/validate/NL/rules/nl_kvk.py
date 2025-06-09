@@ -6,7 +6,7 @@ from __future__ import annotations
 from datetime import date
 import zipfile
 
-from arelle.ModelDtsObject import ModelLink
+from arelle.ModelDtsObject import ModelLink, ModelResource
 from arelle.ModelInstanceObject import ModelInlineFact
 from arelle.ModelObject import ModelObject
 from arelle.PrototypeDtsObject import PrototypeObject
@@ -1361,6 +1361,41 @@ def rule_nl_kvk_4_4_3_2(
                       'Update to set default member based on taxonomy defaults.'
                       ),
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_4_4_5_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.4.5.1: Custom labels roles SHOULD NOT be used.
+    """
+    warnings = []
+    labelsRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
+    if not labelsRelationshipSet:
+        return
+    for labelRels in labelsRelationshipSet.fromModelObjects().values():
+        for labelRel in labelRels:
+            label = cast(ModelResource, labelRel.toModelObject)
+            if label.role in XbrlConst.standardLabelRoles:
+                continue
+            roleType = val.modelXbrl.roleTypes.get(label.role)
+            if roleType is not None and \
+                    roleType[0].modelDocument.uri.startswith("http://www.xbrl.org/lrr"):
+                continue
+            warnings.append(label)
+    if len(warnings) > 0:
+        yield Validation.warning(
+            codes='NL.NL-KVK.4.4.5.1.taxonomyElementLabelCustomRole',
+            modelObject=warnings,
+            msg=_('A custom label role has been used.  Update to label role to non-custom.'),
+        )
 
 
 @validation(
