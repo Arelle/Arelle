@@ -53,10 +53,10 @@ def checkLei(lei: str) -> LEIValidationResult:
     if not _leiLexicalPattern.match(lei):
         return LEIValidationResult.INVALID_LEXICAL
 
-    result = LEI_VALID
+    result = LEIValidationResult.INVALID_CHECKSUM
 
-    if not int(lei.translate(_leiToDigitTable)) % 97 == 1:
-        result = LEIValidationResult.INVALID_CHECKSUM
+    if int(lei.translate(_leiToDigitTable)) % 97 == 1:
+        result = LEIValidationResult.VALID
 
     if (
         LEIValidationResult.INVALID_CHECKSUM == result
