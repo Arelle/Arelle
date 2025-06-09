@@ -77,23 +77,11 @@ def checkLei(lei: str) -> int:
 
 
 if __name__ == "__main__":
-    # test cases
-    for lei, name in (
-        ("001GPB6A9XPE8XJICC14", "Fidelity Advisor Series I"),
-        ("004L5FPTUREIWK9T2N63", "Hutchin Hill Capital, LP"),
-        ("00EHHQ2ZHDCFXJCPCL46", "Vanguard Russell 1000 Growth Index Trust"),
-        ("00GBW0Z2GYIER7DHDS71", "Aristeia Capital, L.L.C."),
-        ("1S619D6B3ZQIH6MS6B47", "Barclays Vie SA"),
-        ("21380014JAZAUFJRHC43", "BRE/OPERA HOLDINGS"),
-        ("21380016W7GAG26FIJ74", "SOCIETE FRANCAISE ET SUISSE"),
-        ("21380058ERUIT9H53T71", "TOTAN ICAP CO., LTD"),
-        ("213800A9GT65GAES2V60", "BARCLAYS SECURITIES JAPAN LIMITED"),
-        ("213800DELL1MWFDHVN53", "PIRELLI JAPAN"),
-        ("213800A9GT65GAES2V60", "BARCLAYS SECURITIES JAPAN LIMITED"),
-        ("214800A9GT65GAES2V60", "Error 1"),
-        ("213800A9GT65GAE%2V60", "Error 2"),
-        ("213800A9GT65GAES2V62", "Error 3"),
-        ("1234", "Error 4"),
-        ("\n5299003M8JKHEFX58Y02", "Error 4"),
-    ):
-        print("LEI {} result {} name {}".format(lei, LEI_RESULTS[checkLei(lei)], name))
+    import sys
+
+    leis = sys.argv[1:]
+    if not leis:
+        raise SystemExit("Specify the LEI(s) you want to check as arguments.")
+
+    for arg in sys.argv[1:]:
+        print(f"{arg:20s}: {LEI_RESULTS[checkLei(arg)]}")
