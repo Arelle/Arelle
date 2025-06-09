@@ -20,6 +20,7 @@ _: TypeGetText
 _tuple = tuple  # type: ignore[type-arg]
 
 xsd = "http://www.w3.org/2001/XMLSchema"
+qnXsdComplexType = qname("{http://www.w3.org/2001/XMLSchema}xsd:complexType")
 qnXsdSchema = qname("{http://www.w3.org/2001/XMLSchema}xsd:schema")
 qnXsdAppinfo = qname("{http://www.w3.org/2001/XMLSchema}xsd:appinfo")
 qnXsdDefaultType = qname("{http://www.w3.org/2001/XMLSchema}xsd:anyType")

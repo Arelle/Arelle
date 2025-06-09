@@ -7,7 +7,7 @@ from collections import defaultdict
 from datetime import date
 import zipfile
 
-from arelle.ModelDtsObject import ModelLink, ModelResource
+from arelle.ModelDtsObject import ModelLink, ModelResource, ModelType
 from arelle.ModelInstanceObject import ModelInlineFact
 from arelle.ModelObject import ModelObject
 from arelle.PrototypeDtsObject import PrototypeObject
@@ -1554,6 +1554,39 @@ def rule_nl_kvk_6_1_1_1(
                 msg=_('The size of the report package must not exceed %(maxSize)s MBs, size is %(size)s MBs.'),
                 modelObject=val.modelXbrl, maxSize=MAX_REPORT_PACKAGE_SIZE_MBS, size=int(_size/1000000)
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_RTS_Annex_IV_Par_11_G4_2_2_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.RTS_Annex_IV_Par_11_G4-2-2_1: Extension taxonomy MUST NOT define a custom type if a matching
+    type is defined by the XBRL 2.1 specification or in the XBRL Data Types Registry.
+    Similar to ESEF.RTS.Annex.IV.Par.11.customDataTypeDuplicatingXbrlOrDtrEntry
+    """
+    errors = []
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    for modelDocument, extensionDocumentData in extensionData.extensionDocuments.items():
+        for modelType in modelDocument.xmlRootElement.iterdescendants(tag=XbrlConst.qnXsdComplexType.clarkNotation):
+            if isinstance(modelType, ModelType) and \
+                    modelType.typeDerivedFrom is not None and \
+                    modelType.typeDerivedFrom.qname.namespaceURI == XbrlConst.xbrli and \
+                    not modelType.particlesList:
+                errors.append(modelType)
+    if len(errors) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.RTS_Annex_IV_Par_11_G4-2-2_1.customTypeAlreadyDefinedByXbrl',
+            msg=_('A custom data type is being used that matches a standard data type from the XBRL Data Type Registry. '
+                  'Update to remove duplicate data types and leverage the standard where appropriate.'),
+            modelObject=errors
+        )
 
 
 @validation(
