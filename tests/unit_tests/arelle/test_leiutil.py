@@ -1,10 +1,15 @@
+import random
+import string
+import time
+
 import pytest
+
 from arelle.LeiUtil import (
-    checkLei,
     LEI_INVALID_CHECKSUM,
-    LEI_VALID,
     LEI_INVALID_LEXICAL,
     LEI_RESULTS,
+    LEI_VALID,
+    checkLei,
 )
 
 LEI_TESTS = [
@@ -24,14 +29,55 @@ LEI_TESTS = [
     ("213800A9GT65GAES2V62", LEI_INVALID_CHECKSUM, "Error 3"),
     ("1234", LEI_INVALID_LEXICAL, "Error 4"),
     ("\n5299003M8JKHEFX58Y02", LEI_INVALID_LEXICAL, "Error 5"),
-    ("029200720E3M3A4D6D01", LEI_VALID, "UNITY BANK PLC # first entry of _validLeiDespiteChecksumFailPattern"),
-    ("029200720E3M3A4D6D00", LEI_INVALID_CHECKSUM, "Looks like UNITY BANK PLC except for last digit"),
+    (
+        "029200720E3M3A4D6D01",
+        LEI_VALID,
+        "UNITY BANK PLC # first entry of _validLeiDespiteChecksumFailPattern",
+    ),
+    (
+        "029200720E3M3A4D6D00",
+        LEI_INVALID_CHECKSUM,
+        "Looks like UNITY BANK PLC except for last digit",
+    ),
 ]
 
 
 @pytest.mark.parametrize("arg,expected,description", LEI_TESTS)
-def test_tokenize(arg, expected, description):
+def test_checkLei(arg, expected, description):
     result = checkLei(arg)
     assert result == expected, (
         f"Got {LEI_RESULTS[result]!r}, wanted {LEI_RESULTS[expected]!r}; description {description}"
+    )
+
+
+def test_performance_checkLei():
+    NANO_IN_SEC = 1_000_000_000
+    MIN_TIME = 1 * NANO_IN_SEC
+    MAX_TIME = 4 * NANO_IN_SEC
+    NUM_LEIS = 10**5
+
+    num_letter_population = string.ascii_uppercase + string.digits
+    random_leis = [
+        "".join(
+            random.choices(num_letter_population, k=random.randint(17, 19))
+            + random.choices(string.digits, k=2)
+        )
+        for _ in range(NUM_LEIS)
+    ]
+    # Mix in valid LEIs
+    leis = [
+        lei
+        for lei, valid, _ in LEI_TESTS
+        for _ in range(NUM_LEIS)
+        if valid == LEI_VALID
+    ] + random_leis
+    random.shuffle(leis)
+    leis = leis[:NUM_LEIS]
+
+    start = time.perf_counter_ns()
+    for lei in leis:
+        checkLei(lei)
+    taken = time.perf_counter_ns() - start
+    assert MIN_TIME < taken < MAX_TIME, (
+        f"Processed {len(leis):,} LEIs in {taken:,.0f} nanoseconds. Rate = {int(10**9 / (taken / len(leis))):,} per second."
     )
