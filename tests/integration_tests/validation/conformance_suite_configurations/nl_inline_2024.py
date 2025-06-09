@@ -106,8 +106,6 @@ config = ConformanceSuiteConfig(
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-3-1_1/index.xml:TC4_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-3-2_1/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-4-2_4/index.xml:TC2_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-4-5_2/index.xml:TC2_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-4-5_2/index.xml:TC3_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G5-1-3_1/index.xml:TC1_valid',  # Must be run with different disclosure system for GAAP Other
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G5-1-3_1/index.xml:TC2_invalid',  # Must be run with different disclosure system for GAAP Other
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G5-1-3_2/index.xml:TC1_valid',  # Must be run with different disclosure system for GAAP Other
