@@ -164,7 +164,7 @@ def checkSVGContent(
         svgDoc = cast(ModelDocument.ModelDocument, ModelDocument.load(modelXbrl, baseURI, referringElement=imgElts[0]))
         elt = svgDoc.xmlRootElement
     else:
-        _parser, _ignored, _ignored = parser(modelXbrl, baseURI)
+        _parser, _, _ = parser(modelXbrl, baseURI)
         elt = XML(data, parser=_parser)
     checkSVGContentElt(elt, baseURI, modelXbrl, imgElts, guidance, val)
 
