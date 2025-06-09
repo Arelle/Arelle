@@ -49,6 +49,7 @@ config = ConformanceSuiteConfig(
             'incorrectSummationItemArcroleUsed': 1,  # Also fails 4.4.1.1
             # Test imports https://www.nltaxonomie.nl/kvk/2024-03-31/kvk-annual-report-nlgaap-ext.xsd which is the draft taxonomy and not the final
             'requiredEntryPointNotImported': 1,
+            'UsableConceptsNotAppliedByTaggedFacts': 1,  # Also fails 4.4.6.1
         },
         'G4-4-2_1/index.xml:TC2_invalid': {
             'closedNegativeHypercubeInDefinitionLinkbase': 1,  # Also fails 4.4.2.3
