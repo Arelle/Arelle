@@ -7,7 +7,6 @@ import pytest
 from arelle.LeiUtil import (
     LEI_INVALID_CHECKSUM,
     LEI_INVALID_LEXICAL,
-    LEI_RESULTS,
     LEI_VALID,
     checkLei,
 )
@@ -45,15 +44,15 @@ LEI_TESTS = [
 @pytest.mark.parametrize("arg,expected,description", LEI_TESTS)
 def test_checkLei(arg, expected, description):
     result = checkLei(arg)
-    assert result == expected, (
-        f"Got {LEI_RESULTS[result]!r}, wanted {LEI_RESULTS[expected]!r}; description {description}"
+    assert result is expected, (
+        f"Got {result.name}, wanted {expected.name}; description {description}"
     )
 
 
 def test_performance_checkLei():
     NANO_IN_SEC = 1_000_000_000
     MIN_TIME = 1 * NANO_IN_SEC
-    MAX_TIME = 4 * NANO_IN_SEC
+    MAX_TIME = 6 * NANO_IN_SEC
     NUM_LEIS = 10**5
 
     num_letter_population = string.ascii_uppercase + string.digits

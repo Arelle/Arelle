@@ -5,13 +5,24 @@ Implementation of ISO 17442:2012(E) Appendix A
 
 """
 
+from enum import Enum, auto, property
+
 import regex as re
 
-LEI_VALID = 0
-LEI_INVALID_LEXICAL = 1
-LEI_INVALID_CHECKSUM = 2
 
-LEI_RESULTS = ("valid", "invalid lexical", "invalid checksum")
+class LEIValidationResult(Enum):
+    VALID = auto()
+    INVALID_LEXICAL = auto()
+    INVALID_CHECKSUM = auto()
+
+    @property
+    def description(self) -> str:
+        return self.name.lower().replace("_", " ")
+
+
+LEI_VALID = LEIValidationResult.VALID
+LEI_INVALID_LEXICAL = LEIValidationResult.INVALID_LEXICAL
+LEI_INVALID_CHECKSUM = LEIValidationResult.INVALID_CHECKSUM
 
 leiLexicalPattern = re.compile(r"^[0-9A-Z]{18}[0-9]{2}$")
 
@@ -20,11 +31,11 @@ _validLeiDespiteChecksumFailPattern = re.compile(
 )
 
 
-def checkLei(lei: str) -> int:
+def checkLei(lei: str) -> LEIValidationResult:
     if _validLeiDespiteChecksumFailPattern.match(lei):
-        return LEI_VALID
+        return LEIValidationResult.VALID
     if not leiLexicalPattern.match(lei):
-        return LEI_INVALID_LEXICAL
+        return LEIValidationResult.INVALID_LEXICAL
     if (
         not int(
             "".join(
@@ -72,8 +83,8 @@ def checkLei(lei: str) -> int:
         % 97
         == 1
     ):
-        return LEI_INVALID_CHECKSUM
-    return LEI_VALID
+        return LEIValidationResult.INVALID_CHECKSUM
+    return LEIValidationResult.VALID
 
 
 if __name__ == "__main__":
@@ -84,4 +95,4 @@ if __name__ == "__main__":
         raise SystemExit("Specify the LEI(s) you want to check as arguments.")
 
     for arg in sys.argv[1:]:
-        print(f"{arg:20s}: {LEI_RESULTS[checkLei(arg)]}")
+        print(f"{arg:20s} : {checkLei(arg).description}")
