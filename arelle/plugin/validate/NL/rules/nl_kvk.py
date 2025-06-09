@@ -1411,6 +1411,7 @@ def rule_nl_kvk_4_4_5_2(
 ) -> Iterable[Validation]:
     """
     NL-KVK.4.4.5.2: Extension taxonomy elements SHOULD be assigned with at most one label for any combination of role and language.
+    Additionally, extension taxonomies shall not override or replace standard labels of elements referenced in the KVK taxonomy.
     """
     labelsRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
     extensionData = pluginData.getExtensionData(val.modelXbrl)
@@ -1441,10 +1442,11 @@ def rule_nl_kvk_4_4_5_2(
                     labels_files = ['"%s": %s' % (l.text, l.modelDocument.basename) for l in labels]
                     yield Validation.error(
                         codes='NL.NL-KVK.4.4.5.2.taxonomyElementDuplicateLabels',
-                        msg=_("Issuer extension taxonomy with core taxonomy element: %(concept)s is "
-                              "assigned multiple labels using standard label role: %(labels)s"),
+                        msg=_("An extension taxonomy defines a standard label for a concept "
+                              "already labeled by the base taxonomy. Language: %(lang)s, "
+                              "Role: %(labelRole)s, Concept: %(concept)s, Labels: %(labels)s"),
                         modelObject=[concept]+labels, concept=concept.qname, lang=lang,
-                        labelrole=labelRole, labels=", ".join(labels_files),
+                        labelRole=labelRole, labels=", ".join(labels_files),
                     )
 
 
