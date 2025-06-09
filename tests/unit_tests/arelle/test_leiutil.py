@@ -50,9 +50,9 @@ def test_checkLei(arg, expected, description):
 
 
 def test_performance_checkLei():
-    NANO_IN_SEC = 1_000_000_000
-    MIN_TIME = 1 * NANO_IN_SEC
-    MAX_TIME = 6 * NANO_IN_SEC
+    NANOSECONDS_IN_MILLISECOND = 1_000_000
+    MIN_TIME = 50 * NANOSECONDS_IN_MILLISECOND
+    MAX_TIME = 500 * NANOSECONDS_IN_MILLISECOND
     NUM_LEIS = 10**5
 
     num_letter_population = string.ascii_uppercase + string.digits
