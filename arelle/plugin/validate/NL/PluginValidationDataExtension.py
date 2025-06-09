@@ -475,6 +475,7 @@ class PluginValidationDataExtension(PluginData):
     def getIxdsDocBasenames(self, modelXbrl: ModelXbrl) -> set[str]:
         return set(Path(url).name for url in getattr(modelXbrl, "ixdsDocUrls", []))
 
+    @lru_cache(1)
     def getExtensionConcepts(self, modelXbrl: ModelXbrl) -> list[ModelConcept]:
         """
         Returns a list of extension concepts in the DTS.
