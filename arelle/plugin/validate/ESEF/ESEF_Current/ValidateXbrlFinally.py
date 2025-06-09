@@ -60,7 +60,6 @@ from ..Const import (
     docTypeXhtmlPattern,
     esefMandatoryElementNames2020,
     esefPrimaryStatementPlaceholderNames,
-    esefStatementsOfMonetaryDeclarationNames,
     mandatory,
     styleCssHiddenPattern,
     styleIxHiddenPattern,
@@ -133,7 +132,6 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
         esefNotesConcepts = getEsefNotesStatementConcepts(val.modelXbrl)
 
     esefPrimaryStatementPlaceholders = set(qname(_ifrsNs, n) for n in esefPrimaryStatementPlaceholderNames)
-    esefStatementsOfMonetaryDeclaration = set(qname(_ifrsNs, n) for n in esefStatementsOfMonetaryDeclarationNames)
     esefMandatoryElements2020 = set(qname(_ifrsNs, n) for n in esefMandatoryElementNames2020)
 
     if modelDocument.type == ModelDocument.Type.INSTANCE and not val.unconsolidated:
@@ -302,7 +300,6 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
             presentedHiddenEltIds = defaultdict(list)
             eligibleForTransformHiddenFacts = []
             requiredToDisplayFacts = []
-            requiredToDisplayFactIds: dict[Any, Any] = {}
             firstIxdsDoc = True
             contentOtherThanXHTMLGuidance = 'ESEF.2.5.1' if val.consolidated else 'ESEF.4.1.3'  # Different reference for iXBRL and stand-alone XHTML
             # ModelDocument.load has None as a return type. For typing reasons, we need to guard against that here.
@@ -538,7 +535,6 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
         contextsWithPeriodTimeZone: list[ModelContext] = []
         contextsWithWrongInstantDate: list[ModelContext] = []
         contextIdentifiers = defaultdict(list)
-        nonStandardTypedDimensions: dict[Any, Any] = defaultdict(set)
         for context in modelXbrl.contexts.values():
             for uncast_elt in context.iterdescendants("{http://www.xbrl.org/2003/instance}startDate",
                                                "{http://www.xbrl.org/2003/instance}endDate",
@@ -650,14 +646,11 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
         textFactsByConceptContext = defaultdict(list)
         footnotesRelationshipSet = modelXbrl.relationshipSet(XbrlConst.factFootnote, XbrlConst.defaultLinkRole)
         noLangFacts = []
-        textFactsMissingReportLang: list[Any] = []
         conceptsUsed = set()
         langsUsedByTextFacts = set()
 
-        hasNoFacts = True
         factsMissingId = []
         for qn, facts in modelXbrl.factsByQname.items():
-            hasNoFacts = False
             if qn in mandatory:
                 reportedMandatory.add(qn)
             for f in facts:
