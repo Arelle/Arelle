@@ -39,14 +39,13 @@ _validLeiDespiteChecksumFailSet = frozenset(
 
 
 def checkLei(lei: str) -> LEIValidationResult:
-    if lei in _validLeiDespiteChecksumFailSet:
-        return LEIValidationResult.VALID
-
     if len(lei) != _requiredLEILength:
         return LEIValidationResult.INVALID_LEXICAL
 
     if not _leiLexicalPattern.match(lei):
         return LEIValidationResult.INVALID_LEXICAL
+
+    result = LEI_VALID
 
     if (
         not int(
@@ -95,8 +94,12 @@ def checkLei(lei: str) -> LEIValidationResult:
         % 97
         == 1
     ):
-        return LEIValidationResult.INVALID_CHECKSUM
-    return LEIValidationResult.VALID
+        result = LEIValidationResult.INVALID_CHECKSUM
+
+    if LEIValidationResult.INVALID_CHECKSUM == result and lei in _validLeiDespiteChecksumFailSet:
+        result = LEIValidationResult.VALID
+
+    return result
 
 
 if __name__ == "__main__":
