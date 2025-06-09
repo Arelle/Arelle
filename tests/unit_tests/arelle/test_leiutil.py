@@ -24,6 +24,8 @@ LEI_TESTS = [
     ("213800A9GT65GAES2V62", LEI_INVALID_CHECKSUM, "Error 3"),
     ("1234", LEI_INVALID_LEXICAL, "Error 4"),
     ("\n5299003M8JKHEFX58Y02", LEI_INVALID_LEXICAL, "Error 5"),
+    ("029200720E3M3A4D6D01", LEI_VALID, "UNITY BANK PLC # first entry of _validLeiDespiteChecksumFailPattern"),
+    ("029200720E3M3A4D6D00", LEI_INVALID_CHECKSUM, "Looks like UNITY BANK PLC except for last digit"),
 ]
 
 
