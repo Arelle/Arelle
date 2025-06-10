@@ -1395,7 +1395,7 @@ def rule_nl_kvk_4_4_3_2(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
+    disclosureSystems=NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_4_4_5_1(
         pluginData: PluginValidationDataExtension,
@@ -1477,6 +1477,43 @@ def rule_nl_kvk_4_4_5_2(
                         modelObject=[concept]+labels, concept=concept.qname, lang=lang,
                         labelRole=labelRole, labels=", ".join(labels_files),
                     )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_4_4_6_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.4.6.1: All usable concepts in extension taxonomy relationships SHOULD be applied by tagged facts.
+    """
+    conceptsUsed = {f.concept for f in val.modelXbrl.facts}
+    unreportedLbLocs = set()
+    for arcrole in (XbrlConst.parentChild, XbrlConst.summationItems, XbrlConst.all, XbrlConst.dimensionDomain, XbrlConst.domainMember):
+        for rel in val.modelXbrl.relationshipSet(arcrole).modelRelationships:
+            for object in (rel.fromModelObject, rel.toModelObject):
+                if (object is None or
+                        object.isAbstract or
+                        object in conceptsUsed or
+                        not pluginData.isExtensionUri(rel.modelDocument.uri, val.modelXbrl)):
+                    continue
+                if arcrole in (XbrlConst.parentChild, XbrlConst.summationItems):
+                    unreportedLbLocs.add(rel.fromLocator)
+                elif object.type is not None and rel.isUsable and not object.type.isDomainItemType:
+                    unreportedLbLocs.add(rel.fromLocator)
+    if len(unreportedLbLocs) > 0:
+        yield Validation.warning(
+            # Subtitle is capitalized inconsistently here because is tmatches the conformance suite. This may change in the future.
+            codes='NL.NL-KVK.4.4.6.1.UsableConceptsNotAppliedByTaggedFacts',
+            modelObject=unreportedLbLocs,
+            msg=_('Axis is missing a default member or the default member does not match the taxonomy defaults. '
+                  'Update to set default member based on taxonomy defaults.')
+        )
 
 
 @validation(
