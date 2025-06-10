@@ -118,8 +118,9 @@ class ContextData:
 
 @dataclass(frozen=True)
 class DimensionalData:
-    domainMembers: set[ModelConcept]
+    domainMembers: frozenset[ModelConcept]
     elrPrimaryItems: dict[str, set[ModelConcept]]
+    primaryItems: frozenset[ModelConcept]
 
 
 @dataclass(frozen=True)
@@ -415,6 +416,7 @@ class PluginValidationDataExtension(PluginData):
         elrPrimaryItems = defaultdict(set)
         hcPrimaryItems: set[ModelConcept] = set()
         hcMembers: set[Any] = set()
+        primaryItems: set[ModelConcept] = set()
         for hasHypercubeArcrole in (XbrlConst.all, XbrlConst.notAll):
             hasHypercubeRelationships = modelXbrl.relationshipSet(hasHypercubeArcrole).fromModelObjects()
             for hasHcRels in hasHypercubeRelationships.values():
@@ -425,6 +427,7 @@ class PluginValidationDataExtension(PluginData):
                     for domMbrRel in modelXbrl.relationshipSet(XbrlConst.domainMember).fromModelObject(sourceConcept):
                         if domMbrRel.consecutiveLinkrole == hasHcRel.linkrole: # only those related to this hc
                             self.addDomMbrs(modelXbrl, domMbrRel.toModelObject, domMbrRel.consecutiveLinkrole, hcPrimaryItems)
+                    primaryItems.update(hcPrimaryItems)
                     hc = hasHcRel.toModelObject
                     for hcDimRel in modelXbrl.relationshipSet(XbrlConst.hypercubeDimension, hasHcRel.consecutiveLinkrole).fromModelObject(hc):
                         dim = hcDimRel.toModelObject
@@ -442,8 +445,9 @@ class PluginValidationDataExtension(PluginData):
                     hcPrimaryItems.clear()
                     hcMembers.clear()
         return DimensionalData(
-            domainMembers=domainMembers,
+            domainMembers=frozenset(domainMembers),
             elrPrimaryItems=elrPrimaryItems,
+            primaryItems=frozenset(primaryItems),
         )
 
     def getEligibleForTransformHiddenFacts(self, modelXbrl: ModelXbrl) -> set[ModelInlineFact]:
