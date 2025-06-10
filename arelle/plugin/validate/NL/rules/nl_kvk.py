@@ -3,10 +3,11 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
+from collections import defaultdict
 from datetime import date
 import zipfile
 
-from arelle.ModelDtsObject import ModelLink
+from arelle.ModelDtsObject import ModelLink, ModelResource
 from arelle.ModelInstanceObject import ModelInlineFact
 from arelle.ModelObject import ModelObject
 from arelle.PrototypeDtsObject import PrototypeObject
@@ -1361,6 +1362,92 @@ def rule_nl_kvk_4_4_3_2(
                       'Update to set default member based on taxonomy defaults.'
                       ),
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_4_4_5_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.4.5.1: Custom labels roles SHOULD NOT be used.
+    """
+    warnings = []
+    labelsRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
+    if not labelsRelationshipSet:
+        return
+    for labelRels in labelsRelationshipSet.fromModelObjects().values():
+        for labelRel in labelRels:
+            label = cast(ModelResource, labelRel.toModelObject)
+            if label.role in XbrlConst.standardLabelRoles:
+                continue
+            roleType = val.modelXbrl.roleTypes.get(label.role)
+            if roleType is not None and \
+                    roleType[0].modelDocument.uri.startswith("http://www.xbrl.org/lrr"):
+                continue
+            warnings.append(label)
+    if len(warnings) > 0:
+        yield Validation.warning(
+            codes='NL.NL-KVK.4.4.5.1.taxonomyElementLabelCustomRole',
+            modelObject=warnings,
+            msg=_('A custom label role has been used.  Update to label role to non-custom.'),
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_4_4_5_2(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.4.5.2: Extension taxonomy elements SHOULD be assigned with at most one label for any combination of role and language.
+    Additionally, extension taxonomies shall not override or replace standard labels of elements referenced in the KVK taxonomy.
+    """
+    labelsRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    extensionConcepts = extensionData.extensionConcepts
+    for concept in val.modelXbrl.qnameConcepts.values():
+        conceptLangRoleLabels = defaultdict(list)
+        labelRels = labelsRelationshipSet.fromModelObject(concept)
+        for labelRel in labelRels:
+            label = cast(ModelResource, labelRel.toModelObject)
+            conceptLangRoleLabels[(label.xmlLang, label.role)].append(labelRel.toModelObject)
+        for (lang, labelRole), labels in conceptLangRoleLabels.items():
+            if concept in extensionConcepts and len(labels) > 1:
+                yield Validation.error(
+                    codes='NL.NL-KVK.4.4.5.2.taxonomyElementDuplicateLabels',
+                    msg=_('A concept was found with more than one label role for related language. '
+                          'Update to only one combination. Language: %(lang)s, Role: %(labelRole)s, Concept: %(concept)s.'),
+                    modelObject=[concept]+labels, concept=concept.qname, lang=lang, labelRole=labelRole,
+                )
+            elif labelRole == XbrlConst.standardLabel:
+                hasCoreLabel = False
+                hasExtensionLabel = False
+                for label in labels:
+                    if pluginData.isExtensionUri(label.modelDocument.uri, val.modelXbrl):
+                        hasExtensionLabel = True
+                    else:
+                        hasCoreLabel = True
+                if hasCoreLabel and hasExtensionLabel:
+                    labels_files = ['"%s": %s' % (l.text, l.modelDocument.basename) for l in labels]
+                    yield Validation.error(
+                        codes='NL.NL-KVK.4.4.5.2.taxonomyElementDuplicateLabels',
+                        msg=_("An extension taxonomy defines a standard label for a concept "
+                              "already labeled by the base taxonomy. Language: %(lang)s, "
+                              "Role: %(labelRole)s, Concept: %(concept)s, Labels: %(labels)s"),
+                        modelObject=[concept]+labels, concept=concept.qname, lang=lang,
+                        labelRole=labelRole, labels=", ".join(labels_files),
+                    )
 
 
 @validation(
