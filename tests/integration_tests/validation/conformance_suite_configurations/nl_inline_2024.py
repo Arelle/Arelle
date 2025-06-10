@@ -52,6 +52,7 @@ config = ConformanceSuiteConfig(
             'extensionTaxonomyLineItemNotLinkedToAnyHypercube': 11,
         },
         'G4-1-2_2/index.xml:TC2_invalid': {
+            'anchoringRelationshipsForConceptsDefinedInElrContainingDimensionalRelationships': 1,  # Also fails 4.3.2.1
             'incorrectSummationItemArcroleUsed': 1,  # Also fails 4.4.1.1
             # Test imports https://www.nltaxonomie.nl/kvk/2024-03-31/kvk-annual-report-nlgaap-ext.xsd which is the draft taxonomy and not the final
             'requiredEntryPointNotImported': 1,
@@ -109,10 +110,6 @@ config = ConformanceSuiteConfig(
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-5-1_5/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-5-1_5/index.xml:TC3_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G3-6-2_1/index.xml:TC2_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-3-1_1/index.xml:TC2_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-3-1_1/index.xml:TC3_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-3-1_1/index.xml:TC4_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/G4-3-2_1/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G5-1-3_1/index.xml:TC1_valid',  # Must be run with different disclosure system for GAAP Other
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G5-1-3_1/index.xml:TC2_invalid',  # Must be run with different disclosure system for GAAP Other
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G5-1-3_2/index.xml:TC1_valid',  # Must be run with different disclosure system for GAAP Other
