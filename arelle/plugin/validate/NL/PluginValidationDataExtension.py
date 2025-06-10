@@ -68,6 +68,10 @@ EFFECTIVE_KVK_GAAP_OTHER_ENTRYPOINT_FILES = frozenset((
     'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-other-gaap.xsd',
 ))
 
+NON_DIMENSIONALIZED_LINE_ITEM_LINKROLES = frozenset((
+    'https://www.nltaxonomie.nl/kvk/role/lineitems-nondimensional-usage',
+))
+
 TAXONOMY_URLS_BY_YEAR = {
     '2024': {
         'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-nlgaap-ext.xsd',
@@ -110,6 +114,12 @@ class ContextData:
     contextsWithPeriodTime: list[ModelContext | None]
     contextsWithPeriodTimeZone: list[ModelContext | None]
     contextsWithSegments: list[ModelContext | None]
+
+
+@dataclass(frozen=True)
+class DimensionalData:
+    domainMembers: set[ModelConcept]
+    elrPrimaryItems: dict[str, set[ModelConcept]]
 
 
 @dataclass(frozen=True)
@@ -399,8 +409,10 @@ class PluginValidationDataExtension(PluginData):
         _getDocumentsInDts(modelXbrl.modelDocument)
         return modelDocuments
 
-    def getDomainMembers(self, modelXbrl: ModelXbrl) -> set[ModelConcept]:
+    @lru_cache(1)
+    def getDimensionalData(self, modelXbrl: ModelXbrl) -> DimensionalData:
         domainMembers = set()  # concepts which are dimension domain members
+        elrPrimaryItems = defaultdict(set)
         hcPrimaryItems: set[ModelConcept] = set()
         hcMembers: set[Any] = set()
         for hasHypercubeArcrole in (XbrlConst.all, XbrlConst.notAll):
@@ -422,7 +434,17 @@ class PluginValidationDataExtension(PluginData):
                                 if isinstance(dom, ModelConcept):
                                     self.addDomMbrs(modelXbrl, dom, dimDomRel.consecutiveLinkrole, hcMembers)
                     domainMembers.update(hcMembers)
-        return domainMembers
+                    if hasHcRel.linkrole in NON_DIMENSIONALIZED_LINE_ITEM_LINKROLES or hcMembers:
+                        for hcPrimaryItem in hcPrimaryItems:
+                            if not hcPrimaryItem.isAbstract:
+                                elrPrimaryItems[hasHcRel.linkrole].add(hcPrimaryItem)
+                                elrPrimaryItems["*"].add(hcPrimaryItem) # members of any ELR
+                    hcPrimaryItems.clear()
+                    hcMembers.clear()
+        return DimensionalData(
+            domainMembers=domainMembers,
+            elrPrimaryItems=elrPrimaryItems,
+        )
 
     def getEligibleForTransformHiddenFacts(self, modelXbrl: ModelXbrl) -> set[ModelInlineFact]:
         return self.checkHiddenElements(modelXbrl).eligibleForTransformHiddenFacts
