@@ -120,8 +120,6 @@ config = ConformanceSuiteConfig(
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_II_Par_1_RTS_Annex_IV_par_7/index.xml:TC4_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_III_Par_1/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_III_Par_1/index.xml:TC3_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_11_G4-2-2_1/index.xml:TC2_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_11_G4-2-2_1/index.xml:TC3_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_12_G3-2-4_1/index.xml:TC4_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_14_G3-5-1_1/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_4_1/index.xml:TC2_invalid',
