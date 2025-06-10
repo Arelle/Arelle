@@ -31,8 +31,8 @@ from ..PluginValidationDataExtension import (PluginValidationDataExtension, ALLO
                                              DEFAULT_MEMBER_ROLE_URI, DISALLOWED_IXT_NAMESPACES,
                                              EFFECTIVE_KVK_GAAP_IFRS_ENTRYPOINT_FILES,
                                              EFFECTIVE_KVK_GAAP_OTHER_ENTRYPOINT_FILES,
-                                             MAX_REPORT_PACKAGE_SIZE_MBS, TAXONOMY_URLS_BY_YEAR,
-                                             XBRLI_IDENTIFIER_PATTERN, XBRLI_IDENTIFIER_SCHEMA,
+                                             MAX_REPORT_PACKAGE_SIZE_MBS, NON_DIMENSIONALIZED_LINE_ITEM_LINKROLES,
+                                             TAXONOMY_URLS_BY_YEAR, XBRLI_IDENTIFIER_PATTERN, XBRLI_IDENTIFIER_SCHEMA,
                                              QN_DOMAIN_ITEM_TYPES)
 
 if TYPE_CHECKING:
@@ -1144,7 +1144,7 @@ def rule_nl_kvk_4_2_2_2(
     NL-KVK.4.2.2.2: Domain members MUST have domainItemType data type as defined in https://www.xbrl.org/dtr/type/2022-03-31/types.xsd.
     """
     domainMembersWrongType = []
-    domainMembers = pluginData.getDomainMembers(val.modelXbrl)
+    domainMembers = pluginData.getDimensionalData(val.modelXbrl).domainMembers
     extensionData = pluginData.getExtensionData(val.modelXbrl)
     for concept in extensionData.extensionConcepts:
         if concept.isDomainMember and concept in domainMembers and concept.typeQname not in QN_DOMAIN_ITEM_TYPES:
@@ -1292,6 +1292,35 @@ def rule_nl_kvk_4_4_2_3(
             msg=_('Incorrect hypercube settings are found.  Ensure that negative hypercubes are not closed.'),
         )
 
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_4_4_2_4(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.4.2.4: Line items that do not require any dimensional information to tag data MUST be linked to the hypercube in the dedicated
+    extended link role
+    """
+    elrPrimaryItems = pluginData.getDimensionalData(val.modelXbrl).elrPrimaryItems
+    errors = set(concept
+        for qn, facts in val.modelXbrl.factsByQname.items()
+        if any(not f.context.qnameDims for f in facts if f.context is not None)
+        for concept in (val.modelXbrl.qnameConcepts.get(qn),)
+        if concept is not None and
+        not any(concept in elrPrimaryItems.get(lr, set()) for lr in NON_DIMENSIONALIZED_LINE_ITEM_LINKROLES) and
+        concept not in elrPrimaryItems.get("*", set()))
+    for error in errors:
+        yield Validation.error(
+            codes='NL.NL-KVK.4.4.2.4.extensionTaxonomyLineItemNotLinkedToAnyHypercube',
+            modelObject=error,
+            msg=_('A non-dimensional concept was not associated to a hypercube.  Update relationship so concept is linked to a hypercube.'),
+        )
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
