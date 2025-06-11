@@ -7,7 +7,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, TYPE_CHECKING, cast, Iterable
+from typing import Any, cast, Iterable
 
 import regex as re
 from lxml.etree import _Comment, _ElementTree, _Entity, _ProcessingInstruction, _Element
@@ -106,6 +106,11 @@ STANDARD_TAXONOMY_URLS = frozenset((
 QN_DOMAIN_ITEM_TYPES = frozenset((
     qname("{http://www.xbrl.org/dtr/type/2022-03-31}nonnum:domainItemType"),
 ))
+
+SUPPORTED_IMAGE_TYPES_BY_IS_FILE = {
+    True: ('gif', 'jpg', 'jpeg', 'png'),
+    False: ('gif', 'jpeg', 'png'),
+}
 
 
 @dataclass(frozen=True)

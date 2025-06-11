@@ -437,7 +437,7 @@ def rule_fr48(
     if len(foundFacts) > 0:
         yield Validation.warning(
             codes="DBA.FR48",
-            msg=_("Annual reports with a start date of 1/1 2016 or later must not use the fields:"
+            msg=_("Annual reports with a start date of 1/1 2016 or later must not use the fields: "
                   "'Extraordinary profit before tax', 'Extraordinary income', 'Extraordinary costs'."),
             modelObject=foundFacts
     )
@@ -729,7 +729,7 @@ def rule_fr57(
         for pair in equalityErrorPairs:
             yield Validation.error(
                 codes="DBA.FR57.Equality",
-                msg=_("The total of Assets (fsa:Assets) must be equal to the total of Liabilities and Equity (fsa:LiabilitiesAndEquity)."
+                msg=_("The total of Assets (fsa:Assets) must be equal to the total of Liabilities and Equity (fsa:LiabilitiesAndEquity). "
                       "Assets: %(Assets)s  Liabilities and Equity: %(LiabilitiesAndEquity)s"),
                 Assets=pair[0].effectiveValue,
                 LiabilitiesAndEquity=pair[1].effectiveValue,
@@ -745,7 +745,7 @@ def rule_fr57(
         for fact in negativeLiabilitiesAndEquityFacts:
             yield Validation.error(
                 codes="DBA.FR57.NegativeLiabilitiesAndEquity",
-                msg=_("Liabilities and Equity (fsa:LiabilitiesAndEquity) must not be negative."
+                msg=_("Liabilities and Equity (fsa:LiabilitiesAndEquity) must not be negative. "
                       "Liabilities and Equity was tagged with the value: %(factValue)s"),
                 factValue = fact.effectiveValue,
                 modelObject=fact
@@ -753,7 +753,7 @@ def rule_fr57(
     if not len(liabilitiesAndEquityErrors) == 0:
         yield Validation.error(
             codes="DBA.FR57.LiabilitiesAndEquity",
-            msg=_("Liabilities and equity (fsa:LiabilitiesAndEquity) in the balance sheet must be filled in."
+            msg=_("Liabilities and equity (fsa:LiabilitiesAndEquity) in the balance sheet must be filled in. "
                   "There is a problem with the reporting period ending: %(periods)s"),
             periods = ", ".join([cast(datetime.datetime, dt).strftime("%Y-%m-%d") for dt in liabilitiesAndEquityErrors])
         )
@@ -761,7 +761,7 @@ def rule_fr57(
         for profitLossError in profitLossErrors:
             yield Validation.error(
                 codes="DBA.FR57.ProfitLoss",
-                msg=_("The profit for the year (fsa:ProfitLoss) in the income statement must be filled in."
+                msg=_("The profit for the year (fsa:ProfitLoss) in the income statement must be filled in. "
                       "There is a problem with the reporting periods starting %(start)s and ending: %(end)s"),
                 start = profitLossError[0],
                 end = profitLossError[1]
@@ -995,7 +995,7 @@ def rule_fr73(
                 return
         yield Validation.warning(
             codes='DBA.FR73',
-            msg=_("When the field ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsExtendedReview is completed"
+            msg=_("When the field ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsExtendedReview is completed "
                   "one or more of the sub-items below must be indicated: "
                   "ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyTheCriminalCodeAndFiscalTaxAndSubsidyLegislationExtendedReview "
                   "ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyTheCompaniesActOrEquivalentLegislationThatTheCompanyIsSubjectToExtendedReview "
@@ -1036,7 +1036,7 @@ def rule_fr74(
             if not cast(decimal.Decimal, liabilityFact.xValue) - cast(decimal.Decimal, equityFact.xValue) >= cast(decimal.Decimal, provisionFact.xValue) - ROUNDING_MARGIN:
                 yield Validation.error(
                     codes="DBA.FR74a",
-                    msg=_("Provisions (fsa:Provisions) must be less than or equal to the balance sheet total (fsa:LiabilitiesAndEquity) minus equity (fsa:Equity)."
+                    msg=_("Provisions (fsa:Provisions) must be less than or equal to the balance sheet total (fsa:LiabilitiesAndEquity) minus equity (fsa:Equity). "
                           "LiabilitiesAndEquity: %(liabilities)s, Equity: %(equity)s, Provisions: %(provisions)s"),
                     equity=equityFact.effectiveValue,
                     liabilities=liabilityFact.effectiveValue,
@@ -1047,7 +1047,7 @@ def rule_fr74(
             if not cast(decimal.Decimal, liabilityFact.xValue) - cast(decimal.Decimal, equityFact.xValue) >= cast(decimal.Decimal, liabilityOtherFact.xValue) - ROUNDING_MARGIN:
                 yield Validation.error(
                     codes="DBA.FR74b",
-                    msg=_("Liabilities (fsa:LiabilitiesOtherThanProvisions) must be less than or equal to total assets (fsa:LiabilitiesAndEquity) minus equity (fsa:Equity)."
+                    msg=_("Liabilities (fsa:LiabilitiesOtherThanProvisions) must be less than or equal to total assets (fsa:LiabilitiesAndEquity) minus equity (fsa:Equity). "
                           "LiabilitiesAndEquity: %(liabilities)s, Equity: %(equity)s, LiabilitiesOtherThanProvisions: %(liabilityOther)s"),
                     equity=equityFact.effectiveValue,
                     liabilityOther=liabilityOtherFact.effectiveValue,
@@ -1124,7 +1124,7 @@ def rule_fr77(
             if not cast(decimal.Decimal, liabilityFact.xValue) - cast(decimal.Decimal, equityFact.xValue) >= cast(decimal.Decimal, longLiabilityFact.xValue) - ROUNDING_MARGIN:
                 yield Validation.error(
                     codes="DBA.FR77a",
-                    msg=_("Long-term liabilities (fsa:LongtermLiabilitiesOtherThanProvisions) must be less than or equal to the balance sheet total (fsa:LiabilitiesAndEquity) minus equity (fsa:Equity)."
+                    msg=_("Long-term liabilities (fsa:LongtermLiabilitiesOtherThanProvisions) must be less than or equal to the balance sheet total (fsa:LiabilitiesAndEquity) minus equity (fsa:Equity). "
                           "LiabilitiesAndEquity: %(liabilities)s, Equity: %(equity)s, LongtermLiabilitiesOtherThanProvisions: %(longLiabilities)s"),
                     equity=equityFact.effectiveValue,
                     liabilities=liabilityFact.effectiveValue,
@@ -1135,7 +1135,7 @@ def rule_fr77(
             if not cast(decimal.Decimal, liabilityFact.xValue) - cast(decimal.Decimal, equityFact.xValue) >= cast(decimal.Decimal, shortLiabilityFact.xValue) - ROUNDING_MARGIN:
                 yield Validation.error(
                     codes="DBA.FR77b",
-                    msg=_("Short-term liabilities (fsa:ShorttermLiabilitiesOtherThanProvisions) must be less than or equal to the balance sheet total (fsa:LiabilitiesAndEquity) minus equity (fsa:Equity)."
+                    msg=_("Short-term liabilities (fsa:ShorttermLiabilitiesOtherThanProvisions) must be less than or equal to the balance sheet total (fsa:LiabilitiesAndEquity) minus equity (fsa:Equity). "
                           "LiabilitiesAndEquity: %(liabilities)s, Equity: %(equity)s, ShorttermLiabilitiesOtherThanProvisions: %(shortLiabilities)s"),
                     equity=equityFact.effectiveValue,
                     liabilities=liabilityFact.effectiveValue,

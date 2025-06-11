@@ -41,7 +41,7 @@ def rule_th01(
                     else:
                         yield Validation.error(
                             codes="DBA.TH01",
-                            msg=_("The 'link:schemaRef' must contain '{}'."
+                            msg=_("The 'link:schemaRef' must contain '{}'. "
                                   "The 'link:schemaRef' as reported is {}.").format(pluginData.schemaRefUri, href),
                             modelObject=doc,
                         )
