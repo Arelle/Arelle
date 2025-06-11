@@ -1177,9 +1177,77 @@ def rule_nl_kvk_4_2_3_1(
             typedDims.append(concept)
     if len(typedDims) > 0:
         yield Validation.error(
-            codes='NL.NL-KVK.4.3.2.1.typedDimensionDefinitionInExtensionTaxonomy',
+            codes='NL.NL-KVK.4.2.3.1.typedDimensionDefinitionInExtensionTaxonomy',
             modelObject=typedDims,
             msg=_('Typed dimensions are not allowed in the extension taxonomy.  Update to remove the typed dimension.'))
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_4_3_1_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.3.1.1: Anchoring relationships for elements other than concepts MUST not
+    use ‘http://www.esma.europa.eu/xbrl/esef/arcrole/wider-narrower’ arcrole
+    """
+    anchorData = pluginData.getAnchorData(val.modelXbrl)
+    if len(anchorData.extLineItemsWronglyAnchored) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.4.3.1.1.unexpectedAnchoringRelationshipsDefinedUsingWiderNarrowerArcrole',
+            modelObject=anchorData.extLineItemsWronglyAnchored,
+            msg=_('A custom element that is not a line item concept is using the wider-narrower arcrole. '
+                  'Only line item concepts should use this arcrole. '
+                  'Update the extension to no longer include this arcole.')
+        )
+    for anchor in anchorData.anchorsWithDomainItem:
+        yield Validation.error(
+            codes="NL.NL-KVK.4.3.1.1.unexpectedAnchoringRelationshipsDefinedUsingWiderNarrowerArcrole",
+            msg=_("Anchoring relationships MUST be from and to concepts, from %(qname1)s to %(qname2)s"),
+            modelObject=(anchor, anchor.fromModelObject, anchor.toModelObject),
+            qname1=anchor.fromModelObject.qname,
+            qname2=anchor.toModelObject.qname
+        )
+    for anchor in anchorData.anchorsWithDimensionItem:
+        yield Validation.error(
+            codes="NL.NL-KVK.4.3.1.1.unexpectedAnchoringRelationshipsDefinedUsingWiderNarrowerArcrole",
+            msg=_("Anchoring relationships MUST be from and to concepts, from %(qname1)s to %(qname2)s"),
+            modelObject=(anchor, anchor.fromModelObject, anchor.toModelObject),
+            qname1=anchor.fromModelObject.qname,
+            qname2=anchor.toModelObject.qname
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_4_3_2_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.3.2.1: Anchoring relationships for concepts MUST be defined in a dedicated
+    extended link role (or roles if needed to properly represent the relationships),
+    e.g. http://{default pattern for roles}/Anchoring.
+    """
+    anchorData = pluginData.getAnchorData(val.modelXbrl)
+    for elr, rels in anchorData.anchorsInDimensionalElrs.items():
+        yield Validation.error(
+            codes="NL.NL-KVK.4.3.2.1.anchoringRelationshipsForConceptsDefinedInElrContainingDimensionalRelationships",
+            msg=_("Anchoring relationships for concepts MUST be defined in a dedicated extended link role "
+                  "(or roles if needed to properly represent the relationships), e.g. "
+                  "http://{issuer default pattern for roles}/Anchoring. %(anchoringDimensionalELR)s"),
+            modelObject=rels,
+            anchoringDimensionalELR=elr
+        )
 
 
 @validation(

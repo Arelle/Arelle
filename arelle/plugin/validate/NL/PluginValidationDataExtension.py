@@ -15,7 +15,7 @@ from lxml.etree import _Comment, _ElementTree, _Entity, _ProcessingInstruction, 
 from arelle import XbrlConst
 from arelle.FunctionIxt import ixtNamespaces
 from arelle.ModelDocument import ModelDocument, Type as ModelDocumentType
-from arelle.ModelDtsObject import ModelConcept
+from arelle.ModelDtsObject import ModelConcept, ModelRelationship
 from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelInlineFootnote, ModelUnit, ModelInlineFact
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import QName, qname
@@ -109,6 +109,16 @@ QN_DOMAIN_ITEM_TYPES = frozenset((
 
 
 @dataclass(frozen=True)
+class AnchorData:
+    anchorsInDimensionalElrs: dict[str, frozenset[ModelRelationship]]
+    anchorsNotInBase: frozenset[ModelRelationship]
+    anchorsWithDimensionItem: frozenset[ModelRelationship]
+    anchorsWithDomainItem: frozenset[ModelRelationship]
+    extLineItemsNotAnchored: frozenset[ModelConcept]
+    extLineItemsWronglyAnchored: frozenset[ModelConcept]
+
+
+@dataclass(frozen=True)
 class ContextData:
     contextsWithImproperContent: list[ModelContext | None]
     contextsWithPeriodTime: list[ModelContext | None]
@@ -118,8 +128,9 @@ class ContextData:
 
 @dataclass(frozen=True)
 class DimensionalData:
-    domainMembers: set[ModelConcept]
+    domainMembers: frozenset[ModelConcept]
     elrPrimaryItems: dict[str, set[ModelConcept]]
+    primaryItems: frozenset[ModelConcept]
 
 
 @dataclass(frozen=True)
@@ -376,6 +387,70 @@ class PluginValidationDataExtension(PluginData):
                 factLangs.add(fact.xmlLang)
         return factLangs
 
+    @lru_cache(1)
+    def getAnchorData(self, modelXbrl: ModelXbrl) -> AnchorData:
+        extLineItemsNotAnchored = set()
+        extLineItemsWronglyAnchored = set()
+        widerNarrowerRelSet = modelXbrl.relationshipSet(XbrlConst.widerNarrower)
+        generalSpecialRelSet = modelXbrl.relationshipSet(XbrlConst.generalSpecial)
+        calcRelSet = modelXbrl.relationshipSet(XbrlConst.summationItems)
+        dimensionalData = self.getDimensionalData(modelXbrl)
+        primaryItems = dimensionalData.primaryItems
+        domainMembers = dimensionalData.domainMembers
+        extensionData = self.getExtensionData(modelXbrl)
+        for concept in extensionData.extensionConcepts:
+            extLineItem = False
+            if concept.isPrimaryItem and \
+                    not concept.isAbstract and \
+                    concept in primaryItems and \
+                    not widerNarrowerRelSet.contains(concept) and \
+                    not calcRelSet.fromModelObject(concept):
+                extLineItem = True
+            elif concept.isAbstract and \
+                    concept not in domainMembers and \
+                    concept.type is not None and \
+                    not concept.type.isDomainItemType and \
+                    not concept.isHypercubeItem and \
+                    not concept.isDimensionItem and \
+                    not widerNarrowerRelSet.contains(concept):
+                extLineItem = True
+            if extLineItem:
+                if not generalSpecialRelSet.contains(concept):
+                    extLineItemsNotAnchored.add(concept)
+                else:
+                    extLineItemsWronglyAnchored.add(concept)
+        elrsContainingDimensionalRelationships = set(
+            ELR
+            for arcrole, ELR, linkqname, arcqname in modelXbrl.baseSets.keys()
+            if arcrole == "XBRL-dimensions" and ELR is not None)
+        anchorsNotInBase = set()
+        anchorsWithDomainItem = set()
+        anchorsWithDimensionItem = set()
+        anchorsInDimensionalElrs = defaultdict(set)
+        for anchoringRel in widerNarrowerRelSet.modelRelationships:
+            elr = anchoringRel.linkrole
+            fromObj = anchoringRel.fromModelObject
+            toObj = anchoringRel.toModelObject
+            if fromObj is not None and toObj is not None and fromObj.type is not None and toObj.type is not None:
+                if not ((not self.isExtensionUri(fromObj.modelDocument.uri, modelXbrl)) ^ (not self.isExtensionUri(toObj.modelDocument.uri, modelXbrl))):
+                    anchorsNotInBase.add(anchoringRel)
+                if fromObj.type.isDomainItemType or toObj.type.isDomainItemType:
+                    anchorsWithDomainItem.add(anchoringRel)
+                elif fromObj.isDimensionItem or toObj.isDimensionItem:
+                    anchorsWithDimensionItem.add(anchoringRel)
+                else:
+                    if elr in elrsContainingDimensionalRelationships:
+                        anchorsInDimensionalElrs[elr].add(anchoringRel)
+        return AnchorData(
+            anchorsInDimensionalElrs={x: frozenset(y) for x, y in anchorsInDimensionalElrs.items()},
+            anchorsNotInBase=frozenset(anchorsNotInBase),
+            anchorsWithDimensionItem=frozenset(anchorsWithDimensionItem),
+            anchorsWithDomainItem=frozenset(anchorsWithDomainItem),
+            extLineItemsNotAnchored=frozenset(extLineItemsNotAnchored),
+            extLineItemsWronglyAnchored=frozenset(extLineItemsWronglyAnchored),
+        )
+
+
     def getBaseElements(self, modelXbrl: ModelXbrl) -> set[Any | None]:
         return self.checkInlineHTMLElements(modelXbrl).baseElements
 
@@ -415,6 +490,7 @@ class PluginValidationDataExtension(PluginData):
         elrPrimaryItems = defaultdict(set)
         hcPrimaryItems: set[ModelConcept] = set()
         hcMembers: set[Any] = set()
+        primaryItems: set[ModelConcept] = set()
         for hasHypercubeArcrole in (XbrlConst.all, XbrlConst.notAll):
             hasHypercubeRelationships = modelXbrl.relationshipSet(hasHypercubeArcrole).fromModelObjects()
             for hasHcRels in hasHypercubeRelationships.values():
@@ -425,6 +501,7 @@ class PluginValidationDataExtension(PluginData):
                     for domMbrRel in modelXbrl.relationshipSet(XbrlConst.domainMember).fromModelObject(sourceConcept):
                         if domMbrRel.consecutiveLinkrole == hasHcRel.linkrole: # only those related to this hc
                             self.addDomMbrs(modelXbrl, domMbrRel.toModelObject, domMbrRel.consecutiveLinkrole, hcPrimaryItems)
+                    primaryItems.update(hcPrimaryItems)
                     hc = hasHcRel.toModelObject
                     for hcDimRel in modelXbrl.relationshipSet(XbrlConst.hypercubeDimension, hasHcRel.consecutiveLinkrole).fromModelObject(hc):
                         dim = hcDimRel.toModelObject
@@ -442,8 +519,9 @@ class PluginValidationDataExtension(PluginData):
                     hcPrimaryItems.clear()
                     hcMembers.clear()
         return DimensionalData(
-            domainMembers=domainMembers,
+            domainMembers=frozenset(domainMembers),
             elrPrimaryItems=elrPrimaryItems,
+            primaryItems=frozenset(primaryItems),
         )
 
     def getEligibleForTransformHiddenFacts(self, modelXbrl: ModelXbrl) -> set[ModelInlineFact]:

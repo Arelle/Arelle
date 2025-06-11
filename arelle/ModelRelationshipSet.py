@@ -218,6 +218,9 @@ class ModelRelationshipSet:
     def __bool__(self):  # some modelRelationships exist
         return len(self.modelRelationships) > 0
 
+    def contains(self, modelObject: ModelObject) -> bool:
+        return bool(self.fromModelObject(modelObject) or self.toModelObject(modelObject))
+
     @property
     def linkRoleUris(self):
         # order by document appearance of linkrole, required for Table Linkbase testcase 3220 v03
