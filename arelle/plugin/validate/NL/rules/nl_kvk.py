@@ -378,6 +378,28 @@ def rule_nl_kvk_3_2_7_1 (
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
+def rule_nl_kvk_3_2_8_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.3.2.8.1: Include unique @id attribute for each tagged fact
+    """
+    errors = {fact for fact in val.modelXbrl.facts if not fact.id}
+    if len(errors) > 0:
+        yield Validation.warning(
+            codes='NL.NL-KVK.3.2.8.1',
+            msg=_('All facts should include an id attribute'),
+            modelObject=errors
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
+)
 def rule_nl_kvk_3_3_1_1 (
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
