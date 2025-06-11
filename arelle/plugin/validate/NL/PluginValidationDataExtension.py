@@ -17,6 +17,7 @@ from arelle.FunctionIxt import ixtNamespaces
 from arelle.ModelDocument import ModelDocument, Type as ModelDocumentType
 from arelle.ModelDtsObject import ModelConcept, ModelRelationship
 from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelInlineFootnote, ModelUnit, ModelInlineFact
+from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import QName, qname
 from arelle.ModelXbrl import ModelXbrl
@@ -269,6 +270,23 @@ class PluginValidationDataExtension(PluginData):
             contextsWithPeriodTimeZone=contextsWithPeriodTimeZone,
             contextsWithSegments=contextsWithSegments,
         )
+
+    def checkLabels(self, issues: set[ModelConcept| None], modelXbrl: ModelXbrl, parent: ModelConcept, relSet: ModelRelationshipSet, labelrole: str | None, visited: set[ModelConcept]) -> set[ModelConcept| None]:
+        visited.add(parent)
+        conceptRels = defaultdict(list) # counts for concepts without preferred label role
+        for rel in relSet.fromModelObject(parent):
+            child = rel.toModelObject
+            if child is not None:
+                labelrole = rel.preferredLabel
+                if not labelrole:
+                    conceptRels[child].append(rel)
+                if child not in visited:
+                    self.checkLabels(issues, modelXbrl, child, relSet, labelrole, visited)
+        for concept, rels in conceptRels.items():
+            if len(rels) > 1:
+                issues.add(concept)
+        visited.remove(parent)
+        return issues
 
     @lru_cache(1)
     def checkHiddenElements(self, modelXbrl: ModelXbrl) -> HiddenElementsData:
