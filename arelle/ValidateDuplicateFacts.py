@@ -162,7 +162,7 @@ class DuplicateFactSet:
         decimalValues: dict[float | int, TypeXValue] = {}
         for fact in self.facts:
             value = fact.xValue
-            if isnan(cast(SupportsFloat, value)):
+            if _isNanOrNone(value):
                 # NaN values are not comparable, can't be equal/consistent.
                 return False
             decimals = self.getDecimals(fact)
@@ -224,7 +224,7 @@ class DuplicateFactSet:
             groupLower = decimalsMap[decimalLower]
             for factA in groupLower:
                 lowerA, upperA = self.getRange(factA)
-                if isnan(cast(SupportsFloat, factA.xValue)):
+                if _isNanOrNone(factA.xValue):
                     continue
                 remove = False
                 # Iterate through each higher decimals group
@@ -232,7 +232,7 @@ class DuplicateFactSet:
                     groupHigher = decimalsMap[decimalHigher]
                     for factB in groupHigher:
                         lowerB, upperB = self.getRange(factB)
-                        if isnan(cast(SupportsFloat, factB.xValue)):
+                        if _isNanOrNone(factB.xValue):
                             continue
                         if lowerB <= upperA and upperB >= lowerA:
                             remove = True
@@ -340,6 +340,12 @@ DUPLICATE_TYPE_ARG_MAP = {
     DuplicateTypeArg.COMPLETE: DuplicateType.COMPLETE,
     DuplicateTypeArg.ALL: DuplicateType.INCONSISTENT | DuplicateType.CONSISTENT,
 }
+
+
+def _isNanOrNone(value: TypeXValue) -> bool:
+    if value is None:
+        return True
+    return isnan(cast(SupportsFloat, value))
 
 
 def doesSetHaveDuplicateType(
@@ -504,15 +510,15 @@ def getFactValueEqualityKey(fact: ModelFact) -> TypeFactValueEqualityKey:
     :param fact:
     :return: A key to be used for fact-value-equality comparison.
     """
-    if fact.isNil:
-        return FactValueEqualityType.DEFAULT, (None,)
     xValue = fact.xValue
+    if xValue is None or fact.isNil:
+        return FactValueEqualityType.DEFAULT, (None,)
     if fact.isNumeric:
-        if isnan(cast(SupportsFloat, xValue)):
+        if _isNanOrNone(xValue):
             return FactValueEqualityType.DEFAULT, (float("nan"),)
     if fact.concept.isLanguage:
         return FactValueEqualityType.LANGUAGE, (
-            cast(str, xValue).lower() if xValue is not None else None,
+            cast(str, xValue).lower(),
         )
     if isinstance(xValue, DateTime):  # with/without time makes values unequal
         return FactValueEqualityType.DATETIME, (xValue, xValue.dateOnly)
