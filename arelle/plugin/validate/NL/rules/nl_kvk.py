@@ -1566,6 +1566,33 @@ def rule_nl_kvk_4_4_3_2(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
 )
+def rule_nl_kvk_4_4_4_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.4.5.1: Custom labels roles SHOULD NOT be used.
+    """
+    warnings = set()
+    for ELR in val.modelXbrl.relationshipSet(XbrlConst.parentChild).linkRoleUris:
+        relSet = val.modelXbrl.relationshipSet(XbrlConst.parentChild, ELR)
+        for rootConcept in relSet.rootConcepts:
+            warnings = pluginData.checkLabels(set(), val.modelXbrl , rootConcept, relSet, None, set())
+        if len(warnings) > 0:
+            yield Validation.warning(
+                codes='NL.NL-KVK.4.4.4.1.missingPreferredLabelRole',
+                modelObject=warnings,
+                msg=_('Multiple concepts exist in the presentation with the same label role. '
+                      'Review presentation if duplicate concepts should exist or separate preferred label roles should be set.'),
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+)
 def rule_nl_kvk_4_4_5_1(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
