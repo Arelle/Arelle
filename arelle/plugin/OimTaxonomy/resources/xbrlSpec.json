@@ -121,7 +121,7 @@
             },
             {
                 "name": "xbrl:period",
-                "domainDataType": "xbrli:periodType"
+                "domainDataType": "xbrli:dimensionPeriodType"
             },
             {
                 "name": "xbrl:entity",
@@ -824,6 +824,14 @@
             {
                 "name": "xbrl:weight",
                 "dataType": "xs:decimal",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:relationshipObject"
+                ]
+            },
+            {
+                "name": "xbrl:usable",
+                "dataType": "xs:boolean",
                 "definitional": false,
                 "allowedObjects": [
                     "xbrl:relationshipObject"

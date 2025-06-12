@@ -10,13 +10,13 @@ from arelle.ModelValue import QName
 from arelle.PythonUtil import OrderedSet
 from arelle.XbrlConst import xsd
 from .XbrlProperty import XbrlProperty
-from .XbrlTypes import XbrlTaxonomyType, QNameKeyType
-from .XbrlTaxonomyObject import XbrlTaxonomyObject, XbrlReferencableTaxonomyObject
+from .XbrlTypes import XbrlTaxonomyModuleType, QNameKeyType
+from .XbrlObject import XbrlTaxonomyObject, XbrlReferencableTaxonomyObject
 
 XbrlUnitTypeType: TypeAlias = "XbrlUnitType"
 
 class XbrlConcept(XbrlReferencableTaxonomyObject):
-    taxonomy: XbrlTaxonomyType
+    taxonomy: XbrlTaxonomyModuleType
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the concept object.
     dataType: QName # (required) Indicates the dataType of the concept. These are provided as a QName based on the datatypes specified in the XBRL 2.1 specification and any custom datatype defined in the taxonomy.
     periodType: str # (required) Indicates the period type of the concept. The property values can be either instant or duration. If the concept can be an atemporal value it must be defined as a duration. (i.e. the value does not change with the passage of time)
@@ -25,7 +25,7 @@ class XbrlConcept(XbrlReferencableTaxonomyObject):
     properties: OrderedSet[XbrlProperty] # (optional) ordered set of property objects used to specify additional properties associated with the concept using the property object. Only immutable properties as defined in the propertyType object can be added to a concept.
 
 class XbrlDataType(XbrlReferencableTaxonomyObject):
-    taxonomy: XbrlTaxonomyType
+    taxonomy: XbrlTaxonomyModuleType
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the datatype object.
     baseType: QName # (required) The base type is a QName that uniquely identifies the base datatype the datatype is based on.
     enumeration: OrderedSet[Any] # (optional) Defines an ordered set of enumerated values of the datatype if applicable

@@ -13,13 +13,13 @@ from .XbrlCube import XbrlCube, XbrlPeriodConstraint
 from .XbrlDimension import XbrlDomain
 from .XbrlGroup import XbrlGroup
 from .XbrlNetwork import XbrlNetwork
-from .XbrlTaxonomyObject import EMPTY_DICT, XbrlTaxonomyObject
+from .XbrlObject import EMPTY_DICT, XbrlTaxonomyObject
 from .XbrlConst import qnStdLabel
 
 
-def viewXbrlTxmyObj(xbrlDts, objClass, tabWin, header, additionalViews=None):
-    xbrlDts.modelManager.showStatus(_("viewing concepts"))
-    view = ViewXbrlTxmyObj(xbrlDts, objClass, tabWin, header)
+def viewXbrlTaxonomyObject(xbrlTxmyMdl, objClass, tabWin, header, additionalViews=None):
+    xbrlTxmyMdl.modelManager.showStatus(_("viewing concepts"))
+    view = ViewXbrlTxmyObj(xbrlTxmyMdl, objClass, tabWin, header)
     view.propNameTypes = []
     initialParentObjProp = True
     for propName, propType in getattr(objClass, "__annotations__", {}).items():
@@ -80,14 +80,14 @@ def viewXbrlTxmyObj(xbrlDts, objClass, tabWin, header, additionalViews=None):
     view.menuAddLabelRoles(usedLabelroles=
         (("1Name",XbrlConst.conceptNameLabelRole),
          ("2Standard Label", qnStdLabel)) +
-        tuple((f"3{t}", t) for t in sorted(xbrlDts.labelTypes) if t != qnStdLabel))
+        tuple((f"3{t}", t) for t in sorted(xbrlTxmyMdl.labelTypes) if t != qnStdLabel))
     view.menuAddNameStyle()
-    view.menuAddViews(addClose=False, additionalViews=additionalViews, additionalViewMethod=viewXbrlTxmyObj)
+    view.menuAddViews(addClose=False, additionalViews=additionalViews, additionalViewMethod=viewXbrlTaxonomyObject)
 
 class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
-    def __init__(self, xbrlDts, objClass, tabWin, header):
-        super(ViewXbrlTxmyObj, self).__init__(xbrlDts, tabWin, header, True, None)
-        self.xbrlDts = xbrlDts
+    def __init__(self, xbrlTxmyMdl, objClass, tabWin, header):
+        super(ViewXbrlTxmyObj, self).__init__(xbrlTxmyMdl, tabWin, header, True, None)
+        self.xbrlTxmyMdl = xbrlTxmyMdl
         self.objClass = objClass
 
     def view(self):
@@ -104,13 +104,13 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
             (XbrlConst.xbrli, XbrlConst.link, XbrlConst.xlink, XbrlConst.xl,
              XbrlConst.xbrldt,
              XbrlConst.xhtml))
-        for obj in self.xbrlDts.filterNamedObjects(self.objClass, role, lang): # this is a yield generator
+        for obj in self.xbrlTxmyMdl.filterNamedObjects(self.objClass, role, lang): # this is a yield generator
             propName = self.propNameTypes[0][0]
             node = self.treeView.insert("", "end",
-                                        f"_{self.id}_{obj.dtsObjectIndex}",
-                                        text=str(self.xbrlDts.labelValue(obj.getProperty(propName, self.labelrole), self.labelrole, self.lang)),
+                                        f"_{self.id}_{obj.xbrlMdlObjIndex}",
+                                        text=str(self.xbrlTxmyMdl.labelValue(obj.getProperty(propName, self.labelrole), self.labelrole, self.lang)),
                                         tags=("odd" if nodeNum & 1 else "even",))
-            self.tag_has[f"_{obj.dtsObjectIndex}"].append(node)
+            self.tag_has[f"_{obj.xbrlMdlObjIndex}"].append(node)
             self.id += 1
             nodeNum += 1
             for propName, _propType in self.propNameTypes[1:]:
@@ -125,10 +125,10 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
     def viewProps(self, parentNode, nodeNum, obj):
         propView = obj.propertyView
         node = self.treeView.insert(parentNode, "end",
-                                    f"_{self.id}_{obj.dtsObjectIndex}",
+                                    f"_{self.id}_{obj.xbrlMdlObjIndex}",
                                     text=propView[0][1],
                                     tags=("odd" if nodeNum & 1 else "even",))
-        self.tag_has[f"_{obj.dtsObjectIndex}"].append(node)
+        self.tag_has[f"_{obj.xbrlMdlObjIndex}"].append(node)
         nodeNum += 1
         self.id += 1
         for i, propViewEntry in enumerate(propView[1:]):
@@ -153,8 +153,8 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
 
     def viewGroupContent(self, parentNode, nodeNum, obj):
         # related content for the Group object are under tagged content
-        for relatedObjQn in self.xbrlDts.groupContents.get(obj.name, ()):
-            relatedObj = self.xbrlDts.namedObjects.get(relatedObjQn)
+        for relatedObjQn in self.xbrlTxmyMdl.groupContents.get(obj.name, ()):
+            relatedObj = self.xbrlTxmyMdl.namedObjects.get(relatedObjQn)
             if relatedObj is not None:
                 node = self.viewProps(parentNode, nodeNum, relatedObj)
                 nodeNum += 1
@@ -169,7 +169,7 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
             nodeNum += 1
             domName = getattr(cubeDim, "domainName", None)
             if domName:
-                domObj = self.xbrlDts.namedObjects.get(domName)
+                domObj = self.xbrlTxmyMdl.namedObjects.get(domName)
                 if domObj is not None:
                     domNode = self.viewProps(node, nodeNum, domObj)
                     nodeNum += 1
@@ -177,10 +177,10 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
 
     def viewRoots(self, parentNode, nodeNum, obj):
         for qn in obj.relationshipRoots:
-            rootObj = self.xbrlDts.namedObjects.get(qn)
+            rootObj = self.xbrlTxmyMdl.namedObjects.get(qn)
             if rootObj is not None:
                 node = self.treeView.insert(parentNode, "end",
-                                            f"_{self.id}_{rootObj.dtsObjectIndex}",
+                                            f"_{self.id}_{rootObj.xbrlMdlObjIndex}",
                                             text=str(rootObj.getProperty("label", self.labelrole, self.lang, "")),
                                             tags=("odd" if nodeNum & 1 else "even",))
                 self.id += 1
@@ -190,14 +190,14 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
 
     def viewRelationships(self, parentNode, nodeNum, obj, relObj, visited):
         target = relObj.target
-        qnObj = self.xbrlDts.namedObjects.get(target)
+        qnObj = self.xbrlTxmyMdl.namedObjects.get(target)
         if qnObj is not None:
             loop = target in visited
-            txt = self.xbrlDts.labelValue(relObj.target, self.labelrole, self.lang)
+            txt = self.xbrlTxmyMdl.labelValue(relObj.target, self.labelrole, self.lang)
             if loop:
                 txt = "(loop) " + txt
             node = self.treeView.insert(parentNode, "end",
-                                        f"_{self.id}_{qnObj.dtsObjectIndex}",
+                                        f"_{self.id}_{qnObj.xbrlMdlObjIndex}",
                                         text=txt,
                                         tags=("odd" if nodeNum & 1 else "even",))
             self.id += 1
@@ -220,14 +220,14 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
             #self.modelXbrl.viewModelObject(self.nodeToObjectId[self.treeView.selection()[0]])
             selection = self.treeView.selection()
             if selection is not None and len(selection)>0:
-                self.xbrlDts.viewTaxonomyObject(selection[0])
+                self.xbrlTxmyMdl.viewTaxonomyObject(selection[0])
             self.blockViewModelObject -= 1
 
     def viewModelObject(self, txmyObj):
         if self.blockViewModelObject == 0:
             self.blockViewModelObject += 1
             try:
-                items = self.tag_has.get(f"_{txmyObj.dtsObjectIndex}")
+                items = self.tag_has.get(f"_{txmyObj.xbrlMdlObjIndex}")
                 if items:
                     for item in items:
                         if self.treeView.exists(item):
