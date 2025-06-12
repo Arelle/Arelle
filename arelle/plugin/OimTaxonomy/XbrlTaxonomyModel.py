@@ -12,13 +12,13 @@ from arelle.PythonUtil import OrderedSet
 from .XbrlConcept import XbrlConcept, XbrlDataType
 from .XbrlGroup import XbrlGroupContent
 from .XbrlReport import addReportProperties, XbrlFact, XbrlReportObject
-from .XbrlTypes import XbrlTaxonomyType, QNameKeyType, XbrlLabelType, XbrlPropertyType
-from .XbrlTaxonomyObject import XbrlObject, XbrlReferencableTaxonomyObject, XbrlTaxonomyTagObject
+from .XbrlTypes import XbrlTaxonomyModuleType, QNameKeyType, XbrlLabelType, XbrlPropertyType
+from .XbrlObject import XbrlObject, XbrlReferencableTaxonomyObject, XbrlTaxonomyTagObject
 
-def castToDts(modelXbrl, isReport=False):
-    if not isinstance(modelXbrl, XbrlDts) and isinstance(modelXbrl, ModelXbrl):
-        modelXbrl.__class__ = XbrlDts
-        modelXbrl.taxonomies: OrderedDict[QNameKeyType, XbrlTaxonomyType] = OrderedDict()
+def castToXbrlTaxonomyModel(modelXbrl, isReport=False):
+    if not isinstance(modelXbrl, XbrlTaxonomyModel) and isinstance(modelXbrl, ModelXbrl):
+        modelXbrl.__class__ = XbrlTaxonomyModel
+        modelXbrl.taxonomies: OrderedDict[QNameKeyType, XbrlTaxonomyModelType] = OrderedDict()
         modelXbrl.dtsObjectIndex = 0
         modelXbrl.xbrlObjects: list[XbrlObject] = []
         modelXbrl.namedObjects: OrderedDict[QNameKeyType, XbrlReferencableTaxonomyObject] = OrderedDict() # not visible metadata
@@ -28,8 +28,8 @@ def castToDts(modelXbrl, isReport=False):
     return modelXbrl
 
 
-class XbrlDts(ModelXbrl): # complete wrapper for ModelXbrl
-    taxonomies: OrderedDict[QNameKeyType, XbrlTaxonomyType]
+class XbrlTaxonomyModel(ModelXbrl): # complete wrapper for ModelXbrl
+    taxonomies: OrderedDict[QNameKeyType, XbrlTaxonomyModuleType]
     xbrlObjects: list[XbrlObject] # not visible metadata
     # objects only present for XbrlReports
     linkTypes: dict[str, AnyURI]
@@ -37,7 +37,7 @@ class XbrlDts(ModelXbrl): # complete wrapper for ModelXbrl
     facts: dict[str, XbrlFact]
 
     def __init__(self, isReport:bool = False, *args: Any, **kwargs: Any) -> None:
-        super(XbrlDts, self).__init__(*args, **kwargs)
+        super(XbrlTaxonomyModel, self).__init__(*args, **kwargs)
         self.dtsObjectIndex = 0
         self.xbrlObjects: list[XbrlObject] = []
         self.namedObjects: OrderedDict[QNameKeyType, XbrlReferencableTaxonomyObject] = OrderedDict() # not visible metadata
@@ -136,7 +136,7 @@ class XbrlDts(ModelXbrl): # complete wrapper for ModelXbrl
             modelObject = kwargs["modelObject"]
             if hasattr(modelObject, "entryLoadingUrl"):
                 kwargs["sourceFileLine"] = modelObject.entryLoadingUrl
-        super(XbrlDts, self).error(*args, **kwargs)
+        super(XbrlTaxonomyModel, self).error(*args, **kwargs)
 
     def warning(self, *args, **kwargs):
         if "xbrlObject" in kwargs:
@@ -145,8 +145,8 @@ class XbrlDts(ModelXbrl): # complete wrapper for ModelXbrl
                 kwargs["sourceFileLines"] = [a.entryLoadingUrl for a in argValue]
             else:
                 kwargs["sourceFileLine"] = argValue.entryLoadingUrl
-        super(XbrlDts, self).warning(*args, **kwargs)
+        super(XbrlTaxonomyModel, self).warning(*args, **kwargs)
 
 
-def create(*args: Any, **kwargs: Any) -> XbrlDts:
-    return cast(XbrlDts, modelXbrlCreate(*args, **kwargs))
+def create(*args: Any, **kwargs: Any) -> XbrlTaxonomyModel:
+    return cast(XbrlTaxonomyModel, modelXbrlCreate(*args, **kwargs))

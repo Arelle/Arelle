@@ -8,11 +8,11 @@ from arelle.ModelValue import QName, AnyURI
 from arelle.PythonUtil import OrderedSet
 from .ModelValueMore import SQName
 from .XbrlProperty import XbrlProperty
-from .XbrlTypes import XbrlTaxonomyType, QNameKeyType
-from .XbrlTaxonomyObject import XbrlTaxonomyObject, XbrlReferencableTaxonomyObject, XbrlTaxonomyTagObject
+from .XbrlTypes import XbrlTaxonomyModuleType, QNameKeyType
+from .XbrlObject import XbrlTaxonomyObject, XbrlReferencableTaxonomyObject, XbrlTaxonomyTagObject
 
 class XbrlLabel(XbrlTaxonomyTagObject):
-    taxonomy: XbrlTaxonomyType
+    taxonomy: XbrlTaxonomyModuleType
     relatedName: QName # (required) Defines a QName that the label is associated with.
     labelType: QName # (required) A QName representing the label type of the label. This can be a taxonomy defined label type or a standard XBRL label type defined in specification.
     language: str # (required) Defines the language of the label using a valid BCP 47 [BCP47] language code.
@@ -24,7 +24,7 @@ class XbrlLabel(XbrlTaxonomyTagObject):
         return self.labelType
 
 class XbrlLabelType(XbrlReferencableTaxonomyObject):
-    taxonomy: XbrlTaxonomyType
+    taxonomy: XbrlTaxonomyModuleType
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the label type object.
     uri: Optional[AnyURI] # (optional) A uri used to identify the label type of label objects for backward compatability with XBRL 2.1 taxonomies.
     dataType: Optional[AnyURI] # (optional) Indicates the dataType of the label object value property. This allows the value of the label to be constrained if required.
