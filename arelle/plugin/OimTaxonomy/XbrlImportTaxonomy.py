@@ -6,10 +6,9 @@ from typing import TYPE_CHECKING, Union, Any
 
 from arelle.ModelValue import QName, AnyURI
 from arelle.PythonUtil import OrderedSet
-from .XbrlDts import XbrlDts
 from .XbrlAbstract import XbrlAbstract
-from .XbrlTypes import XbrlTaxonomyType, QNameKeyType, DefaultTrue, DefaultFalse
-from .XbrlTaxonomyObject import XbrlObject, XbrlTaxonomyObject
+from .XbrlTypes import XbrlTaxonomyModuleType, QNameKeyType, DefaultTrue, DefaultFalse
+from .XbrlObject import XbrlObject, XbrlTaxonomyObject
 
 class XbrlFilterCondition(XbrlObject):
     property: QName # (required) The name of the property to be used for filtering the objects. This is either a names object property or a QName property that identifies the property, such as periodType, xbrl:balance, etc.

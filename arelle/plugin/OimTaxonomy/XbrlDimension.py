@@ -8,11 +8,11 @@ from arelle.ModelValue import QName
 from arelle.PythonUtil import OrderedSet
 from .XbrlNetwork import XbrlRelationship, XbrlRelationshipSet
 from .XbrlProperty import XbrlProperty
-from .XbrlTypes import XbrlTaxonomyType, QNameKeyType
-from .XbrlTaxonomyObject import XbrlReferencableTaxonomyObject
+from .XbrlTypes import XbrlTaxonomyModuleType, QNameKeyType
+from .XbrlObject import XbrlReferencableTaxonomyObject
 
 class XbrlDimension(XbrlReferencableTaxonomyObject):
-    taxonomy: XbrlTaxonomyType
+    taxonomy: XbrlTaxonomyModuleType
     name: QNameKeyType # (required) Optional[The]QName Optional[of]the Optional[dimension]object.
     domainDataType: Optional[QName] #  (required Optional[for]typed dimension) Optional[The]QName Optional[of]the Optional[datatype]for Optional[a]typed dimension.
     domainRoot: Optional[QName] # (required for explicit dimension) The QName of of the domain root object for the dimension.
@@ -20,7 +20,7 @@ class XbrlDimension(XbrlReferencableTaxonomyObject):
     properties: OrderedSet[XbrlProperty] # (optional) Optional[an]ordered Optional[set]of Optional[property]objects Optional[used]to Optional[specify]additional Optional[properties]associated Optional[with]the Optional[dimension]using Optional[the]property object. Optional[Only]immutable Optional[properties]as Optional[defined]in Optional[the]propertyType Optional[object]can Optional[be]added Optional[to]a dimension.
 
 class XbrlDomain(XbrlReferencableTaxonomyObject, XbrlRelationshipSet):
-    taxonomy: XbrlTaxonomyType
+    taxonomy: XbrlTaxonomyModuleType
     name: Optional[QNameKeyType] # (required Optional[if]no extendedTargetName) Optional[The]name Optional[is]a Optional[QName]that Optional[uniquely]identifies Optional[the]domain object. Optional[The]QName Optional[is]used Optional[to]reference Optional[the]domain Optional[from]extensible Optional[enumeration]concepts Optional[and]dimensions Optional[that]use Optional[the]domain.
     root: Optional[QName] # (required if no extendedTargetName) The QName that uniquely identifies the root of the domain object. This must be a domain root object.
     relationships: OrderedSet[XbrlRelationship] # (optional) Optional[This]is Optional[an]ordered Optional[set]of Optional[relationship]objects Optional[that]associate Optional[concepts]with Optional[the]domain. Optional[A]list Optional[of]relationships Optional[can]be Optional[organized]into Optional[a]domain hierarchy.
@@ -28,11 +28,11 @@ class XbrlDomain(XbrlReferencableTaxonomyObject, XbrlRelationshipSet):
     properties: OrderedSet[XbrlProperty] # (optional) Optional[an]ordered Optional[set]of Optional[property]objects Optional[used]to Optional[specify]additional Optional[properties]associated Optional[with]the Optional[domain]using Optional[the]property object. Optional[Only]immutable Optional[properties]as Optional[defined]in Optional[the]propertyType Optional[object]can Optional[be]added Optional[to]a domain.
 
 class XbrlDomainRoot(XbrlReferencableTaxonomyObject):
-    taxonomy: XbrlTaxonomyType
+    taxonomy: XbrlTaxonomyModuleType
     name: QNameKeyType # (required) The QName that uniquely identifies the domain root object.
     properties: OrderedSet[XbrlProperty] # (optional) an ordered set of property objects used to specify additional properties associated with the domain root object using the property object.
 
 class XbrlMember(XbrlReferencableTaxonomyObject):
-    taxonomy: XbrlTaxonomyType
+    taxonomy: XbrlTaxonomyModuleType
     name: QNameKeyType # (required) Optional[The]name Optional[is]a Optional[QName]that Optional[uniquely]identifies Optional[the]member object.
     properties: OrderedSet[XbrlProperty] # (optional) Optional[an]ordered Optional[set]of Optional[property]objects Optional[used]to Optional[specify]additional Optional[properties]associated Optional[with]the Optional[member]object Optional[using]the Optional[property]object. Optional[Only]immutable Optional[properties]as Optional[defined]in Optional[the]propertyType Optional[object]can Optional[be]added Optional[to]a member.

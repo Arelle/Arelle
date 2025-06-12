@@ -10,11 +10,11 @@ EMPTY_DICT = {}
 
 class XbrlObject:
 
-    def __init__(self, dtsObjectIndex=0, **kwargs):
-        self.dtsObjectIndex = dtsObjectIndex
+    def __init__(self, xbrlMdlObjIndex=0, **kwargs):
+        self.xbrlMdlObjIndex = xbrlMdlObjIndex
 
     @property
-    def xbrlDts(self):
+    def xbrlTxmyMdl(self):
         return None
 
     @property
@@ -52,10 +52,10 @@ class XbrlObject:
                         continue
                     if propName in ("name", "groupName") and val and issubclass(objClass, XbrlReferencableTaxonomyObject):
                         # insert label first if any
-                        label = self.xbrlDts.labelValue(val, qnStdLabel, fallbackToName=False)
+                        label = self.xbrlTxmyMdl.labelValue(val, qnStdLabel, fallbackToName=False)
                         if label:
                             propVals.append( ("label", label) )
-                        referenceProperties = self.xbrlDts.referenceProperties(val, None)
+                        referenceProperties = self.xbrlTxmyMdl.referenceProperties(val, None)
                 elif propName == "dimensions" and isinstance(val, dict):
                     for propKey, propVal in val.items():
                         propVals.append( (str(propKey), str(propVal) ) )
@@ -103,7 +103,7 @@ class XbrlObject:
         # print object generic string based on class declaration
         objClass = type(self)
         objName = objClass.__name__[0].lower() + objClass.__name__[1:]
-        propVals = [f"{self.dtsObjectIndex}"]
+        propVals = [f"{self.xbrlMdlObjIndex}"]
         initialParentObjProp = True
         for propName, propType in getattr(objClass, "__annotations__", EMPTY_DICT).items():
             if initialParentObjProp:
@@ -129,14 +129,14 @@ class XbrlReferencableTaxonomyObject(XbrlTaxonomyObject):
         super(XbrlReferencableTaxonomyObject, self).__init__(*args, **kwargs)
 
     @property
-    def xbrlDts(self):
+    def xbrlTxmyMdl(self):
         if hasattr(self, "taxonomy"):
-            return self.taxonomy.dts
+            return self.taxonomy.txmyMdl
         return None
 
     def getProperty(self, propertyName, propertyType=None, language=None, defaultValue=None):
         if propertyName == "label" and hasattr(self, "name"):
-            return self.xbrlDts.labelValue(self.name, propertyType or qnStdLabel, language)
+            return self.xbrlTxmyMdl.labelValue(self.name, propertyType or qnStdLabel, language)
         return getattr(self, propertyName, defaultValue)
 
 class XbrlTaxonomyTagObject(XbrlTaxonomyObject):
@@ -145,9 +145,9 @@ class XbrlTaxonomyTagObject(XbrlTaxonomyObject):
         super(XbrlTaxonomyTagObject, self).__init__(*args, **kwargs)
 
     @property
-    def xbrlDts(self):
+    def xbrlTxmyMdl(self):
         if hasattr(self, "taxonomy"):
-            return self.taxonomy.dts
+            return self.taxonomy.txmyMdl
         return None
 
     def getProperty(self, propertyName, propertyType=None, language=None, defaultValue=None):
