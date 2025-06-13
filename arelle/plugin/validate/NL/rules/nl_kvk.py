@@ -19,7 +19,7 @@ from arelle.PrototypeDtsObject import PrototypeObject
 from arelle.ValidateDuplicateFacts import getDuplicateFactSets
 from arelle.XmlValidateConst import VALID
 
-from arelle import XbrlConst, XmlUtil
+from arelle import ModelDocument, XbrlConst, XmlUtil
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
@@ -1872,4 +1872,31 @@ def rule_nl_kvk_RTS_Annex_IV_Par_6(
             codes='NL.NL-KVK.RTS_Annex_IV_Par_6.extensionTaxonomyWrongFilesStructure',
             msg=_('The filing package must include a calculation linkbase.'),
             modelObject=val.modelXbrl.modelDocument
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_RTS_Annex_IV_Par_14_G3_5_1_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.RTS_Annex_IV_Par_14_G3-5-1_1: No executable code included in the inline XBRL document
+    """
+    executableCode = []
+    for doc in val.modelXbrl.urlDocs.values():
+        if doc.type == ModelDocument.Type.INLINEXBRL:
+            for elt in doc.targetXbrlRootElement.iter():
+                if containsScriptMarkers(elt) is not None:
+                    executableCode.append(elt)
+    if len(executableCode) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.RTS_Annex_IV_Par_14_G3-5-1_1.inlineXbrlDocumentContainsExternalReferences',
+            msg=_('Executable code is not allowed in the inline XBRL document.'),
+            modelObject=executableCode
         )
