@@ -1,15 +1,15 @@
 # core modules
-certifi==2025.4.26
+certifi==2025.6.15
 filelock==3.18.0
 jsonschema==4.24.0
 lxml==5.4.0
 OpenPyXL==3.1.5
 pyparsing==3.2.3
 regex==2024.11.6
-typing-extensions==4.13.2
+typing-extensions==4.14.0
 isodate==0.7.2
 aniso8601==10.0.1
-bottle==0.13.3
+bottle==0.13.4
 Cheroot==10.0.1
 python-dateutil==2.9.0.post0
 pycountry==24.6.1
@@ -19,7 +19,7 @@ NumPy==2.0.2 ; python_version <= "3.9"
 NumPy==2.2.4 ; python_version > "3.9"
 Matplotlib==3.9.4 ; python_version <= "3.9"
 Matplotlib==3.10.1 ; python_version > "3.9"
-holidays==0.73
+holidays==0.74
 pytz==2025.2
 Tornado==6.5.1
 # security plugin
@@ -31,7 +31,7 @@ PyMySQL==1.1.1
 pyodbc==5.2.0
 RDFLib==7.1.4
 # other
-graphviz==0.20.3
+graphviz==0.21
 Pillow==11.2.1
 pywin32==310 ; sys_platform == "win32"
 tinycss2==1.4.0
