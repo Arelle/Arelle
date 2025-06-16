@@ -1824,7 +1824,48 @@ def rule_nl_kvk_RTS_Annex_IV_Par_11_G4_2_2_1(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_RTS_Annex_IV_Par_4_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.RTS_Annex_IV_Par_4_1: Extension elements must not duplicate the existing
+    elements from the core taxonomy and be identifiable.
+    """
+    for name, concepts in val.modelXbrl.nameConcepts.items():
+        if len(concepts) < 2:
+            continue
+        coreConcepts = []
+        extensionConcepts = []
+        for concept in concepts:
+            if pluginData.isExtensionUri(concept.modelDocument.uri, val.modelXbrl):
+                extensionConcepts.append(concept)
+            else:
+                coreConcepts.append(concept)
+        if len(coreConcepts) == 0:
+            continue
+        coreConcept = coreConcepts[0]
+        for extensionConcept in extensionConcepts:
+            if extensionConcept.balance != coreConcept.balance:
+                continue
+            if extensionConcept.periodType != coreConcept.periodType:
+                continue
+            yield Validation.error(
+                codes='NL.NL-KVK.RTS_Annex_IV_Par_4_1.extensionElementDuplicatesCoreElement',
+                msg=_('An extension element was found that is a duplicate to a core element (%(qname)s). '
+                      'Review use of element and update to core or revise extension element.'),
+                modelObject=(coreConcept, extensionConcept),
+                qname=coreConcept.qname,
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_RTS_Annex_IV_Par_4_2(
         pluginData: PluginValidationDataExtension,
