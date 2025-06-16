@@ -67,7 +67,8 @@ class XbrlObject:
                         if isinstance(val, (set,list)) and propValueClass.__name__.startswith("Xbrl"):
                             continue
                         propVal = [propName, f"({len(val)})"]
-                        nestedPropvals = [o.propertyView for o in val]
+                        vals = val.values() if isinstance(val, dict) else val
+                        nestedPropvals = [o.propertyView for o in vals]
                         if isinstance(nestedPropvals, (list, tuple)):
                             l = len(nestedPropvals)
                             if l == 1:

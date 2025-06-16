@@ -42,7 +42,7 @@ from .XbrlLabel import XbrlLabel, XbrlLabelType
 from .XbrlNetwork import XbrlNetwork, XbrlRelationship, XbrlRelationshipType
 from .XbrlProperty import XbrlProperty, XbrlPropertyType
 from .XbrlReference import XbrlReference, XbrlReferenceType
-from .XbrlReport import XbrlFact
+from .XbrlReport import XbrlReport, XbrlFact
 from .XbrlTransform import XbrlTransform
 from .XbrlUnit import XbrlUnit
 from .XbrlTaxonomyModel import XbrlTaxonomyModel, castToXbrlTaxonomyModel
@@ -495,15 +495,6 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                         if ownrProp is None: # the parent object's dict or OrderedSet doesn't exist yet
                             ownrProp = ownrPropClass()
                             setattr(oimParentObj, propName, ownrProp) # fresh new dict or OrderedSet
-                        if False and objClass == XbrlFact and isinstance(jsonObj, dict): # this is a JSON key-value dict going into a dict, for lists of dicts see below
-                            print(f"trace facts {jsonObj}")
-                            for id, value in jsonObj.items():
-                                newObj = objClass(dtsObjectIndex=len(xbrlTxmyMdl.xbrlObjects))
-                                xbrlTxmyMdl.xbrlObjects.append(newObj)
-                                newObj.id = id
-                                createTaxonomyObject(value, oimParentObj, str, objClass, newObj, pathParts + [f"[{id}]"])
-                                ownrProp[id] = newObj
-                            return None # facts not returnable
                     elif isinstance(ownrPropType, _UnionGenericAlias) and ownrPropType.__args__[-1] == type(None): # optional nested object
                         keyClass = None
                         objClass = ownrPropType.__args__[0]
@@ -514,7 +505,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                     if objClass == XbrlTaxonomyModuleType:
                         objClass = XbrlTaxonomyModule
                     if issubclass(objClass, XbrlObject):
-                        newObj = objClass(dtsObjectIndex=len(xbrlTxmyMdl.xbrlObjects)) # e.g. this is the new Concept
+                        newObj = objClass(xbrlMdlObjIndex=len(xbrlTxmyMdl.xbrlObjects)) # e.g. this is the new Concept
                         xbrlTxmyMdl.xbrlObjects.append(newObj)
                         classCountProp = f"_{objClass.__name__}Count"
                         classIndex = getattr(oimParentObj, classCountProp, 0)
@@ -1007,8 +998,8 @@ def oimTaxonomyViews(cntlr, xbrlTxmyMdl):
     oimTaxonomyLoaded(cntlr, None, xbrlTxmyMdl)
     if isinstance(xbrlTxmyMdl, XbrlTaxonomyModel):
         initialViews = []
-        if getattr(xbrlTxmyMdl, "facts", ()): # has instance facts
-            initialViews.append( (XbrlFact, cntlr.tabWinTopRt, "Report Facts") )
+        if getattr(xbrlTxmyMdl, "reports", ()): # has instance facts
+            initialViews.append( (XbrlReport, cntlr.tabWinTopRt, "Reports") )
         initialViews.extend(((XbrlConcept, cntlr.tabWinBtm, "XBRL Concepts"),
                              (XbrlGroup, cntlr.tabWinTopRt, "XBRL Groups"),
                              (XbrlNetwork, cntlr.tabWinTopRt, "XBRL Networks"),
