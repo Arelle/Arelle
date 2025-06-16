@@ -61,6 +61,18 @@ class XbrlDataType(XbrlReferencableTaxonomyObject):
             if value is not None and not(isinstance(value, (set,list,OrderedSet)) and not value):
                 facets[facet] = value
         return facets
+    
+    def isOimTextFactType(self):
+        """(str) -- True if type meets OIM requirements to be a text fact"""
+        if self.modelDocument.targetNamespace.startswith(XbrlConst.dtrTypesStartsWith):
+            return self.name not in XbrlConst.dtrNoLangItemTypeNames and self.baseXsdType in XbrlConst.xsdStringTypeNames
+        if self.modelDocument.targetNamespace == XbrlConst.xbrli:
+            return self.baseXsdType not in XbrlConst.xsdNoLangTypeNames and self.baseXsdType in XbrlConst.xsdStringTypeNames
+        qnameDerivedFrom = self.qnameDerivedFrom
+        if not isinstance(qnameDerivedFrom, ModelValue.QName): # textblock not a union type
+            return False
+        typeDerivedFrom = self.xbrlTxmyMdl.namedObjects.get(baseType)
+        return typeDerivedFrom.isOimTextFactType if typeDerivedFrom is not None else False
 
 class XbrlUnitType(XbrlTaxonomyObject):
     dataTypeNumerator: Optional[XbrlDataType] # (optional) Defines the numerator datatype of of the datatype
