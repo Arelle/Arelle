@@ -12,6 +12,11 @@ on:
         description: 'Arelle/EDGAR branch, tag or SHA to checkout (blank for default)'
         required: false
         type: string
+      macos_version:
+        default: '15'
+        description: 'MacOS version to use (15, 14, 13, latest, etc.)'
+        required: false
+        type: string
       python_version:
         default: '3.13.3'
         description: 'Python version to use'
@@ -49,6 +54,11 @@ on:
         description: 'Arelle/EDGAR branch, tag or SHA to checkout (blank for default)'
         required: false
         type: string
+      macos_version:
+        default: '15'
+        description: 'MacOS version to use (15, 14, 13, latest, etc.)'
+        required: true
+        type: string
       python_version:
         default: '3.13.3'
         description: 'Python version to use'
@@ -74,7 +84,7 @@ permissions: {}
 jobs:
   build-macos:
     environment: release
-    runs-on: macos-15
+    runs-on: macos-${{ inputs.macos_version }}
     outputs:
       artifact_versioned_name: ${{ steps.define-artifact-names.outputs.artifact_versioned_name }}
       uploaded_artifact_name: ${{ steps.define-artifact-names.outputs.uploaded_artifact_name }}
