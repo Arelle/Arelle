@@ -13,6 +13,7 @@ from .XbrlCube import XbrlCube, XbrlPeriodConstraint
 from .XbrlDimension import XbrlDomain
 from .XbrlGroup import XbrlGroup
 from .XbrlNetwork import XbrlNetwork
+from .XbrlReport import XbrlReport
 from .XbrlObject import EMPTY_DICT, XbrlTaxonomyObject
 from .XbrlConst import qnStdLabel
 
@@ -121,6 +122,8 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
                 self.viewDims(node, nodeNum, obj)
             elif isinstance(obj, (XbrlNetwork, XbrlDomain)):
                 self.viewRoots(node, nodeNum, obj)
+            elif isinstance(obj, XbrlReport):
+                self.viewFacts(node, nodeNum, obj)
 
     def viewProps(self, parentNode, nodeNum, obj):
         propView = obj.propertyView
@@ -187,6 +190,11 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
                 nodeNum += 1
                 for relObj in obj.relationshipsFrom.get(qn, ()):
                     self.viewRelationships(node, nodeNum, obj, relObj, set())
+
+    def viewFacts(self, parentNode, nodeNum, obj):
+        for fact in obj.facts.values():
+            node = self.viewProps(parentNode, nodeNum, fact)
+            nodeNum += 1
 
     def viewRelationships(self, parentNode, nodeNum, obj, relObj, visited):
         target = relObj.target
