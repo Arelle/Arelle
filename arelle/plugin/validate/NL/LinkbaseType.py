@@ -32,6 +32,12 @@ class LinkbaseType(Enum):
         """
         return LINKBASE_ARC_QN[self]
 
+    def getArcroles(self) -> frozenset[str]:
+        """
+        Returns the standard arcrole URIs associated with this LinkbaseType.
+        """
+        return LINKBASE_ARCROLES[self]
+
     def getLinkQn(self) -> QName:
         """
         Returns the qname of the link associated with this LinkbaseType.
@@ -57,6 +63,17 @@ LINKBASE_ARC_QN = {
     LinkbaseType.LABEL: XbrlConst.qnLinkLabelArc,
     LinkbaseType.PRESENTATION: XbrlConst.qnLinkPresentationArc,
     LinkbaseType.REFERENCE: XbrlConst.qnLinkReferenceArc,
+}
+
+LINKBASE_ARCROLES = {
+    LinkbaseType.CALCULATION: frozenset({
+        XbrlConst.summationItem,
+        XbrlConst.summationItem11,
+    }),
+    LinkbaseType.DEFINITION: XbrlConst.standardDefinitionArcroles,
+    LinkbaseType.LABEL: frozenset({XbrlConst.conceptLabel}),
+    LinkbaseType.PRESENTATION: frozenset({XbrlConst.parentChild}),
+    LinkbaseType.REFERENCE: frozenset({XbrlConst.conceptReference}),
 }
 
 LINKBASE_LINK_QN = {

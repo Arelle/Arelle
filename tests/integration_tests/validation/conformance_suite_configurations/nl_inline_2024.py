@@ -24,6 +24,7 @@ config = ConformanceSuiteConfig(
         },
         'G3-1-3_2/index.xml:TC2_invalid': {
             'extensionTaxonomyLineItemNotLinkedToAnyHypercube': 1,
+            'usableConceptsNotIncludedInDefinitionLink': 1,
         },
         'G3-5-1_5/index.xml:TC2_invalid': {
             # This is the expected error, but we return two of them, slightly different.
@@ -48,6 +49,12 @@ config = ConformanceSuiteConfig(
         'G4-1-1_1/index.xml:TC4_invalid': {
             'extensionTaxonomyWrongFilesStructure': 1,
         },
+        'G4-1-1_1/index.xml:TC5_invalid': {
+            'usableConceptsNotIncludedInPresentationLink': 1,
+        },
+        'G4-1-1_1/index.xml:TC7_invalid': {
+            'usableConceptsNotIncludedInPresentationLink': 1,
+        },
         'G4-1-2_1/index.xml:TC2_valid': {
             'undefinedLanguageForTextFact': 1,
             'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 5,
@@ -63,8 +70,14 @@ config = ConformanceSuiteConfig(
             'UsableConceptsNotAppliedByTaggedFacts': 1,  # Also fails 4.4.6.1
             'extensionTaxonomyLineItemNotLinkedToAnyHypercube': 10,
         },
+        'G4-2-3_1/index.xml:TC2_invalid': {
+            'extensionTaxonomyLineItemNotLinkedToAnyHypercube': 1,
+        },
         'G4-4-2_1/index.xml:TC2_invalid': {
             'closedNegativeHypercubeInDefinitionLinkbase': 1,  # Also fails 4.4.2.3
+        },
+        'G4-4-2_4/index.xml:TC2_invalid': {
+            'usableConceptsNotIncludedInDefinitionLink': 1,
         },
         'RTS_Annex_II_Par_1_RTS_Annex_IV_par_7/index.xml:TC2_valid': {
             'undefinedLanguageForTextFact': 1,
@@ -119,8 +132,6 @@ config = ConformanceSuiteConfig(
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_4_3/index.xml:TC3_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_4_3/index.xml:TC4_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_4_3/index.xml:TC5_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_5/index.xml:TC2_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_5/index.xml:TC3_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_8_G4-4-5/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_8_G4-4-5/index.xml:TC3_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_9_Par_10/index.xml:TC3_invalid',
