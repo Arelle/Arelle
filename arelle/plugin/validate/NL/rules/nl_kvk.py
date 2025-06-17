@@ -1918,7 +1918,7 @@ def rule_nl_kvk_RTS_Annex_IV_Par_5(
                 if isinstance(toRel.toModelObject, ModelConcept):
                     concepts.add(toRel.toModelObject)
 
-    conceptsInDefinition = set()
+    conceptsInDefinition: set[ModelConcept] = set()
     getConceptsInLinkbase(LinkbaseType.DEFINITION.getArcroles(), conceptsInDefinition)
     conceptsMissingFromDefinition = taggedExtensionConcepts - conceptsInDefinition
     if len(conceptsMissingFromDefinition) > 0:
@@ -1929,7 +1929,7 @@ def rule_nl_kvk_RTS_Annex_IV_Par_5(
             modelObject=conceptsMissingFromDefinition
         )
 
-    conceptsInPresentation = set()
+    conceptsInPresentation: set[ModelConcept] = set()
     getConceptsInLinkbase(LinkbaseType.PRESENTATION.getArcroles(), conceptsInPresentation)
     conceptsMissingFromPresentation = taggedExtensionConcepts - conceptsInPresentation
     if len(conceptsMissingFromPresentation) > 0:
