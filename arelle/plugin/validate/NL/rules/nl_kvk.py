@@ -12,7 +12,7 @@ import zipfile
 
 from lxml.etree import Element
 
-from arelle.ModelDtsObject import ModelLink, ModelResource, ModelType
+from arelle.ModelDtsObject import ModelConcept, ModelLink, ModelResource, ModelType
 from arelle.ModelInstanceObject import ModelInlineFact
 from arelle.ModelObject import ModelObject
 from arelle.PrototypeDtsObject import PrototypeObject
@@ -1890,6 +1890,54 @@ def rule_nl_kvk_RTS_Annex_IV_Par_4_2(
             codes='NL.NL-KVK.RTS_Annex_IV_Par_4_2.monetaryConceptWithoutBalance',
             msg=_('Extension elements must have an appropriate balance attribute.'),
             modelObject=errors
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_RTS_Annex_IV_Par_5(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.RTS_Annex_IV_Par_5: Each extension taxonomy element used in tagging
+    must be included in at least one presentation and definition linkbase hierarchy.
+    """
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    taggedExtensionConcepts = set(extensionData.extensionConcepts) & set(fact.concept for fact in val.modelXbrl.facts)
+
+    def getConceptsInLinkbase(arcroles: frozenset[str], concepts: set[ModelConcept]) -> None:
+        for fromModelObject, toRels in val.modelXbrl.relationshipSet(tuple(arcroles)).fromModelObjects().items():
+            if isinstance(fromModelObject, ModelConcept):
+                concepts.add(fromModelObject)
+            for toRel in toRels:
+                if isinstance(toRel.toModelObject, ModelConcept):
+                    concepts.add(toRel.toModelObject)
+
+    conceptsInDefinition = set()
+    getConceptsInLinkbase(LinkbaseType.DEFINITION.getArcroles(), conceptsInDefinition)
+    conceptsMissingFromDefinition = taggedExtensionConcepts - conceptsInDefinition
+    if len(conceptsMissingFromDefinition) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.RTS_Annex_IV_Par_5.usableConceptsNotIncludedInDefinitionLink',
+            msg=_('Extension elements are missing from definition linkbase. '
+                  'Review use of extension elements.'),
+            modelObject=conceptsMissingFromDefinition
+        )
+
+    conceptsInPresentation = set()
+    getConceptsInLinkbase(LinkbaseType.PRESENTATION.getArcroles(), conceptsInPresentation)
+    conceptsMissingFromPresentation = taggedExtensionConcepts - conceptsInPresentation
+    if len(conceptsMissingFromPresentation) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.RTS_Annex_IV_Par_5.usableConceptsNotIncludedInPresentationLink',
+            msg=_('Extension elements are missing from presentation linkbase. '
+                  'Review use of extension elements.'),
+            modelObject=conceptsMissingFromPresentation
         )
 
 
