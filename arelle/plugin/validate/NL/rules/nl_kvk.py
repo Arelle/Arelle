@@ -2011,6 +2011,30 @@ def rule_nl_kvk_RTS_Annex_IV_Par_8_G4_4_5(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_RTS_Annex_IV_Par_9_Par_10(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.RTS_Annex_IV_Par_9_par_10: Legal entities MUST ensure that the
+    extension taxonomy elements are linked to one or more core taxonomy elements.
+    """
+    anchorData = pluginData.getAnchorData(val.modelXbrl)
+    if len(anchorData.extLineItemsNotAnchored) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.RTS_Annex_IV_Par_9_Par_10.extensionConceptsNotAnchored',
+            msg=_('Extension concept found without an anchor. '
+                  'Extension concepts, excluding subtotals, are required to be anchored.'),
+            modelObject=anchorData.extLineItemsNotAnchored,
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_RTS_Art_3(
