@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
+import re
 from collections import defaultdict
 from collections.abc import Iterable
 from datetime import date
@@ -53,6 +54,8 @@ if TYPE_CHECKING:
     from arelle.ModelValue import QName
 
 _: TypeGetText
+
+DOCTYPE_XHTML_PATTERN = re.compile(r"^<!(?:DOCTYPE\s+)\s*html(?:PUBLIC\s+)?(?:.*-//W3C//DTD\s+(X?HTML)\s)?.*>$", re.IGNORECASE)
 
 
 def _getReportingPeriodDateValue(modelXbrl: ModelXbrl, qname: QName) -> date | None:
@@ -1914,3 +1917,38 @@ def rule_nl_kvk_RTS_Annex_IV_Par_6(
             msg=_('The filing package must include a calculation linkbase.'),
             modelObject=val.modelXbrl.modelDocument
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_RTS_Art_3(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.RTS_Art_3: Legal entities shall file their annual reports in XHTML format
+    """
+    for modelDocument in val.modelXbrl.urlDocs.values():
+        docinfo = modelDocument.xmlRootElement.getroottree().docinfo
+        docTypeMatch = DOCTYPE_XHTML_PATTERN.match(docinfo.doctype)
+        if not docTypeMatch:
+            continue
+        if not docTypeMatch.group(1) or docTypeMatch.group(1).lower() == "html":
+            yield Validation.error(
+                codes='NL.NL-KVK.RTS_Art_3.htmlDoctype',
+                msg=_('Doctype SHALL NOT specify html: %(doctype)s'),
+                modelObject=val.modelXbrl.modelDocument,
+                doctype=docinfo.doctype,
+            )
+        else:
+            yield Validation.warning(
+                codes='NL.NL-KVK.RTS_Art_3.xhtmlDoctype',
+                msg=_('Doctype implies xhtml DTD validation but '
+                      'inline 1.1 requires schema validation: %(doctype)s'),
+                modelObject=val.modelXbrl.modelDocument,
+                doctype=docinfo.doctype,
+            )
