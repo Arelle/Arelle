@@ -63,6 +63,9 @@ config = ConformanceSuiteConfig(
             'UsableConceptsNotAppliedByTaggedFacts': 1,  # Also fails 4.4.6.1
             'extensionTaxonomyLineItemNotLinkedToAnyHypercube': 10,
         },
+        'G4-2-3_1/index.xml:TC2_invalid': {
+            'extensionTaxonomyLineItemNotLinkedToAnyHypercube': 1,
+        },
         'G4-4-2_1/index.xml:TC2_invalid': {
             'closedNegativeHypercubeInDefinitionLinkbase': 1,  # Also fails 4.4.2.3
         },

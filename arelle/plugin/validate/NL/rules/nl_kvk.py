@@ -1477,13 +1477,18 @@ def rule_nl_kvk_4_4_2_4(
     extended link role
     """
     elrPrimaryItems = pluginData.getDimensionalData(val.modelXbrl).elrPrimaryItems
-    errors = set(concept
-        for qn, facts in val.modelXbrl.factsByQname.items()
-        if any(not f.context.qnameDims for f in facts if f.context is not None)
-        for concept in (val.modelXbrl.qnameConcepts.get(qn),)
-        if concept is not None and
-        not any(concept in elrPrimaryItems.get(lr, set()) for lr in NON_DIMENSIONALIZED_LINE_ITEM_LINKROLES) and
-        concept not in elrPrimaryItems.get("*", set()))
+    errors = set()
+    for concept in val.modelXbrl.qnameConcepts.values():
+        if concept.qname not in val.modelXbrl.factsByQname:
+            continue
+        if any(
+                concept in elrPrimaryItems.get(lr, set())
+                for lr in NON_DIMENSIONALIZED_LINE_ITEM_LINKROLES
+        ):
+            continue
+        if concept in elrPrimaryItems.get("*", set()):
+            continue
+        errors.add(concept)
     for error in errors:
         yield Validation.error(
             codes='NL.NL-KVK.4.4.2.4.extensionTaxonomyLineItemNotLinkedToAnyHypercube',
