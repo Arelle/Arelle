@@ -105,7 +105,20 @@ config = ConformanceSuiteConfig(
             'undefinedLanguageForTextFact': 1,
             'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 5,
             'extensionTaxonomyWrongFilesStructure': 1,
-        }
+        },
+        'RTS_Art_6_a/index.xml:TC2_invalid': {
+            'UsableConceptsNotAppliedByTaggedFacts': 1,
+            'incorrectKvkTaxonomyVersionUsed': 1,
+            'message:existsAtLeastOnce_ChamberOfCommerceRegistrationNumber': 1,
+            'message:existsAtLeastOnce_FinancialReportingPeriod': 1,
+            'message:existsAtLeastOnce_FinancialReportingPeriodEndDate': 1,
+            'message:existsAtLeastOnce_LegalEntityLegalForm': 1,
+            'message:existsAtLeastOnce_LegalEntityName': 1,
+            'message:existsAtLeastOnce_LegalEntityRegisteredOffice': 1,
+            'message:existsOnlyOnce_AuditorsReportFinancialStatementsPresent': 1,
+            'message:existsOnlyOnce_DocumentAdoptionStatus': 1,
+            'message:existsOnlyOnce_FinancialStatementsConsolidated': 1,
+        },
     }.items()},
     expected_failure_ids=frozenset([
         # Conformance Suite Errors
@@ -135,7 +148,6 @@ config = ConformanceSuiteConfig(
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_8_G4-4-5/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_8_G4-4-5/index.xml:TC3_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_9_Par_10/index.xml:TC3_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Art_6_a/index.xml:TC2_invalid',
     ]),
     info_url='https://www.sbr-nl.nl/sbr-domeinen/handelsregister/uitbreiding-elektronische-deponering-handelsregister',
     name=PurePath(__file__).stem,
