@@ -832,6 +832,24 @@ def isNumericRole(role: str) -> bool:
     }
 
 
+standardDimensionArcroles = frozenset({
+    all,
+    notAll,
+    hypercubeDimension,
+    dimensionDomain,
+    domainMember,
+    dimensionDefault,
+})
+
+
+standardDefinitionArcroles = frozenset(standardDimensionArcroles | {
+    essenceAlias,
+    generalSpecial,
+    requiresElement,
+    similarTuples,
+})
+
+
 def isStandardArcrole(role: str) -> bool:
     return role in {
         "http://www.w3.org/1999/xlink/properties/linkbase",
