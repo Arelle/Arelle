@@ -1974,6 +1974,43 @@ def rule_nl_kvk_RTS_Annex_IV_Par_6(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_RTS_Annex_IV_Par_8_G4_4_5(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.RTS_Annex_IV_Par_8_G4-4-5: Labels and references of the core
+    taxonomy elements in extension taxonomies of issuer shall not be replaced.
+    """
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    for modelDocument, extensionDoc in extensionData.extensionDocuments.items():
+        for linkbase in extensionDoc.linkbases:
+            if linkbase.prohibitingLabelElements and \
+                    linkbase.prohibitedBaseConcepts:
+                if linkbase.linkbaseType == LinkbaseType.LABEL:
+                    yield Validation.error(
+                        codes='NL.NL-KVK.RTS_Annex_IV_Par_8_G4-4-5.coreTaxonomyLabelModification',
+                        msg=_('Standard concept has a modified label from what was defined in the taxonomy. '
+                              'Labels from the taxonomy should not be modified.'),
+                        modelObject=modelDocument
+                    )
+                else:
+                    # Assumed to be a reference linkbase.
+                    # If anything else, we should probably fire an error anyway.
+                    yield Validation.error(
+                        codes='NL.NL-KVK.RTS_Annex_IV_Par_8_G4-4-5.coreTaxonomyReferenceModification',
+                        msg=_('Standard concept has a modified reference from what was defined in the taxonomy. '
+                              'References from the taxonomy should not be modified.'),
+                        modelObject=modelDocument
+                    )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_RTS_Art_3(
