@@ -126,7 +126,7 @@ jobs:
         id: define-artifact-names
         run: |
           echo "artifact_versioned_name=arelle-macos-${{ inputs.python_architecture }}-${{ env.BUILD_VERSION }}.dmg" >> $GITHUB_OUTPUT
-          echo "uploaded_artifact_name=macos distribution" >> $GITHUB_OUTPUT
+          echo "uploaded_artifact_name=macos ${{ inputs.python_architecture }} distribution" >> $GITHUB_OUTPUT
           echo "DMG_BUILD_ARTIFACT_PATH=dist_dmg/arelle-macos-${{ inputs.python_architecture }}-${{ env.BUILD_VERSION }}.dmg" >> $GITHUB_ENV
       - name: Install certificate
         if: ${{ inputs.codesign_and_notarize }}
