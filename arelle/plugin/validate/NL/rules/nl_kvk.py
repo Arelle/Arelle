@@ -20,7 +20,7 @@ from arelle.PrototypeDtsObject import PrototypeObject
 from arelle.ValidateDuplicateFacts import getDuplicateFactSets
 from arelle.XmlValidateConst import VALID
 
-from arelle import XbrlConst, XmlUtil
+from arelle import XbrlConst, XmlUtil, ModelDocument
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
@@ -2041,4 +2041,34 @@ def rule_nl_kvk_RTS_Art_3(
                       'inline 1.1 requires schema validation: %(doctype)s'),
                 modelObject=val.modelXbrl.modelDocument,
                 doctype=docinfo.doctype,
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_RTS_Art_6_a(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.RTS_Art_6_a: Legal entities shall embed markups in the annual reports
+    in XHTML format using the Inline XBRL specifications
+    """
+    for modelDocument in val.modelXbrl.urlDocs.values():
+        if modelDocument.type != ModelDocument.Type.INLINEXBRL:
+            continue
+        factElements = list(modelDocument.xmlRootElement.iterdescendants(
+            modelDocument.ixNStag + "nonNumeric",
+            modelDocument.ixNStag + "nonFraction",
+            modelDocument.ixNStag + "fraction"
+        ))
+        if len(factElements) == 0:
+            yield Validation.error(
+                codes='NL.NL-KVK.RTS_Art_6_a.noInlineXbrlTags',
+                msg=_('Annual report is using xhtml extension, but there are no inline mark up tags identified.'),
+                modelObject=modelDocument,
             )
