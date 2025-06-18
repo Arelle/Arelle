@@ -42,11 +42,11 @@ jobs:
   publish-macos-x64:
     permissions:
       contents: write
-    needs: build-macos
+    needs: build-macos-x64
     uses: ./.github/workflows/publish-frozen-build.yml
     with:
-      github_artifact: ${{ needs.build-macos.outputs.uploaded_artifact_name }}
-      build_name: ${{ needs.build-macos.outputs.artifact_versioned_name }}
+      github_artifact: ${{ needs.build-macos-x64.outputs.uploaded_artifact_name }}
+      build_name: ${{ needs.build-macos-x64.outputs.artifact_versioned_name }}
       build_alias: arelle-macos-x64.dmg
     secrets: inherit
 
@@ -59,11 +59,11 @@ jobs:
   publish-macos-arm64:
     permissions:
       contents: write
-    needs: build-macos
+    needs: build-macos-arm64
     uses: ./.github/workflows/publish-frozen-build.yml
     with:
-      github_artifact: ${{ needs.build-macos.outputs.uploaded_artifact_name }}
-      build_name: ${{ needs.build-macos.outputs.artifact_versioned_name }}
+      github_artifact: ${{ needs.build-macos-arm64.outputs.uploaded_artifact_name }}
+      build_name: ${{ needs.build-macos-arm64.outputs.artifact_versioned_name }}
       build_alias: arelle-macos-arm64.dmg
     secrets: inherit
 
