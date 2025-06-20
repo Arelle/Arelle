@@ -236,7 +236,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4.6.2
         with:
-          name: 'macos test logs'
+          name: 'macos ${{ inputs.python_architecture }} test logs'
           if-no-files-found: error
           include-hidden-files: true
           path: '.test/**/*.logfile.xml'
