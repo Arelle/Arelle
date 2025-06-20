@@ -46,12 +46,16 @@ def validateValue(txmyMdl, obj, value, dataTypeQn, pathElt):
             return
         dataTypeLn = dataTypeObj.xsBaseType(txmyMdl)
         facets = dataTypeObj.xsFacets()
+    elif isinstance(dataTypeQn, XbrlDataType):
+        dataTypeLn = dataTypeQn.xsBaseType(txmyMdl)
+        facets = dataTypeQn.xsFacets()
     else: # string data type
         dataTypeLn = dataTypeQn
         facets = EMPTY_DICT
     prototypeElt = attrdict(elementQname=dataTypeQn,
                             entryLoadingUrl=obj.entryLoadingUrl + pathElt)
     validateXmlValue(txmyMdl, prototypeElt, None, dataTypeLn, value, False, False, facets)
+    return (prototypeElt.xValid, prototypeElt.xValue)
 
 
 

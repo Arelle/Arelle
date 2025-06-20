@@ -38,6 +38,9 @@ objectsWithProperties = {
     qname(xbrl, "xbrl:relationshipObject"),
     }
 
+unsupportedTypedDimensionDataTypes = set(
+    qname(xsd, n) for n in ("ENTITY", "ENTITIES", "ID", "IDREF", "IDREFS", "NMTOKEN", "NMTOKENS", "NOTATION"))
+
 xbrlTaxonomyObjects = {
     "documentInfo": {
         "documentType": oimTaxonomyDocTypes[0],
