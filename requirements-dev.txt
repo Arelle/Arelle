@@ -3,7 +3,7 @@ flake8-noqa==1.4.0
 
 mypy==1.16.0
 
-boto3-stubs==1.38.27
+boto3-stubs==1.38.36
 lxml-stubs==0.5.1
 types-PyMySQL==1.1.0.20250516
 types-openpyxl==3.1.5.20250602
@@ -13,6 +13,6 @@ types-regex==2024.11.6.20250403
 types-simplejson==3.20.0.20250326
 types-ujson==5.10.0.20250326
 types-waitress==3.0.1.20241117
-typing-extensions==4.13.2
+typing-extensions==4.14.0
 
 -r requirements-test.txt
