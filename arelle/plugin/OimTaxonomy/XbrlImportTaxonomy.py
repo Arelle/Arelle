@@ -13,7 +13,7 @@ from .XbrlObject import XbrlObject, XbrlTaxonomyObject
 class XbrlFilterCondition(XbrlObject):
     property: QName # (required) The name of the property to be used for filtering the objects. This is either a names object property or a QName property that identifies the property, such as periodType, xbrl:balance, etc.
     operator: str # (required) The operator to be used for filtering the objects. The operator can be one of the following values: =, !=, in, not in, contains, not contains, >, <, >=, <=. The operator is used to compare the property value with the specified value.
-    value: Any # (required) The value to be used for filtering the objects. The value can be a string, number, or boolean, depending on the property type. The value is compared with the property value using the specified operator.    
+    value: Any # (required) The value to be used for filtering the objects. The value can be a string, number, or boolean, depending on the property type. The value is compared with the property value using the specified operator.
 
 class XbrlStructuredSelectStatement(XbrlObject):
     objectType: QName # (required) The type of the object to be selected. This is a QName that identifies the object type, such as xbrl:conceptObject, xbrl:dimensionObject, etc.
@@ -22,7 +22,7 @@ class XbrlStructuredSelectStatement(XbrlObject):
 class XbrlExportProfile(XbrlTaxonomyObject):
     name: QName # (required) The name of the export profile.
     taxonomyType: str # (required) The type of the taxonomy that the export profile is associated with. This is typically a string that identifies the taxonomy framework, such as "US-GAAP" or "IFRS".
-    selections: set[XbrlStructuredSelectStatement] # (optional) Specifies a set of string select statements PW needs to reference a definition or structured select objects that define the objects to be included in the export profile. Each select statement is a string or structured select objects that specify the objects to be selected from the taxonomy model. The select statements can include object names, types, and properties. e.g., xbrl:conceptObject where periodType = "instant". 
+    selections: set[XbrlStructuredSelectStatement] # (optional) Specifies a set of string select statements PW needs to reference a definition or structured select objects that define the objects to be included in the export profile. Each select statement is a string or structured select objects that specify the objects to be selected from the taxonomy model. The select statements can include object names, types, and properties. e.g., xbrl:conceptObject where periodType = "instant".
     exportObjects: set[QName] # (optional) Specifies a set of object QNames that define the objects to be included in the export profile. The exportObjects property allows for the selection of specific objects from the taxonomy model to be included in the export profile.
     exportObjectTypes: set[QName] # (optional) Specifies a set of object type QNames that define the types of objects to be included in the export profile. The exportObjectTypes property allows for the selection of specific object types from the taxonomy model to be included in the export profile.
     excludeLabels: Union[bool, DefaultFalse] # (optional) If set to true, any labels attached to the objects comprising the taxonomy model deriving from the taxonomyName property will be excluded from the taxonomy model. The default value is false.

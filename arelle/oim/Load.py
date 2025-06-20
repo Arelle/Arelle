@@ -181,13 +181,13 @@ SQNamePattern = re.compile(
      r"[_\-\."
      "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*:"
     r"\S+")
-UnitPrefixedQNameSubstitutionChar = "\x07" # replaces PrefixedQName in unit pattern
+UnitPrefixedQNameSubstitutionChar = r"\x07" # replaces PrefixedQName in unit pattern
 UnitPattern = re.compile(
     # QNames are replaced by \x07 in these expressions
     # numerator only (no parentheses)
-    "(^\x07$)|(^\x07([*]\x07)+$)|"
+    r"(^\x07$)|(^\x07([*]\x07)+$)|"
     # numerator and optional denominator, with parentheses if more than one term in either
-    "(^((\x07)|([(]\x07([*]\x07)+[)]))([/]((\x07)|([(]\x07([*]\x07)+[)])))?$)"
+    r"(^((\x07)|([(]\x07([*]\x07)+[)]))([/]((\x07)|([(]\x07([*]\x07)+[)])))?$)"
     )
 UrlInvalidPattern = re.compile(
     r"^[ \t\n\r]+[^ \t\n\r]*|.*[^ \t\n\r][ \t\n\r]+$|" # leading or trailing whitespace

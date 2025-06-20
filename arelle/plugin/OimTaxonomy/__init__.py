@@ -410,7 +410,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                             for iObj, (valKey, valVal) in enumerate(jsonValue.items()):
                                 if get_origin(_keyClass) is Union:
                                     if QName in _keyClass.__args__ and ":" in valKey:
-                                        _valKey = qname(listObj, prefixNamespaces)
+                                        _valKey = qname(valKey, prefixNamespaces)
                                         if _valKey is None:
                                             error("xbrlte:invalidQName",
                                                   _("QName is invalid: %(qname)s, jsonObj: %(path)s"),
@@ -528,8 +528,10 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
             return None
 
         newTxmy = createTaxonomyObjects("taxonomy", oimObject["taxonomy"], xbrlTxmyMdl, ["", "taxonomy"])
+        newTxmy._prefixNamespaces = prefixNamespaces
         if isReport:
-            createTaxonomyObjects("report", oimObject["report"], xbrlTxmyMdl, ["", "report"])
+            newReport = createTaxonomyObjects("report", oimObject["report"], xbrlTxmyMdl, ["", "report"])
+            newReport._prefixNamespaces = prefixNamespaces
 
         if jsonEltsNotInObjClass:
             error("arelle:undeclaredOimTaxonomyJsonElements",
@@ -941,8 +943,8 @@ def oimTaxonomyValidator(val, parameters):
         return
     try:
         validateTaxonomyModel(val.modelXbrl)
-        if getattr(val.modelXbrl, "facts", ()):
-            validateReport(val.modelXbrl)
+        for reportQn, reportObj in val.modelXbrl.reports.items():
+            validateReport(reportQn, reportObj, val.modelXbrl)
     except Exception as ex:
         val.modelXbrl.error("arelleOIMloader:error",
                 "Error while validating, error %(errorType)s %(error)s\n traceback %(traceback)s",

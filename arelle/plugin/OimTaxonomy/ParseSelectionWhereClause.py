@@ -27,8 +27,8 @@ def conditionParseAction(str, unk, wheres):
     return wheres
 
 condition = Group(
-    ncName("property") + 
-    operator("operator") + 
+    ncName("property") +
+    operator("operator") +
     (listValue | nonListValue)("value")
 ).setParseAction(conditionParseAction)
 
@@ -38,7 +38,7 @@ selWhereParser = qName("objectType") + Suppress("where") + delimitedList(conditi
 def parseSelectionWhereClause(selWhereClause):
     try:
         parsed = selWhereParser.parseString(selWhereClause, parseAll=True)
-        
+
         # Build the result structure
         return {
                 "objectType": parsed.objectType,
@@ -55,10 +55,9 @@ def parseSelectionWhereClause(selWhereClause):
                 ]
             }
 
-    
     except Exception as e:
         return f"Parsing failed: {str(e)}"
-    
+
 if __name__ == "__main__":
     # test cases
     test_cases = [
@@ -69,7 +68,7 @@ if __name__ == "__main__":
         'xbrl:concept where label contains "profit"',
         'xbrl:element where documentation not contains "deprecated"'
     ]
-    
+
     for test in test_cases:
         print(f"Input: {test}")
         print(f"Output: {parseSelectionWhereClause(test)}")
