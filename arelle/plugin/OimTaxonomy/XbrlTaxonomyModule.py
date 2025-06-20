@@ -8,8 +8,7 @@ from collections import OrderedDict
 from arelle.ModelValue import qname, QName, AnyURI
 from arelle.PythonUtil import OrderedSet
 from .ModelValueMore import SQName
-from .XbrlDts import XbrlDts
-from .XbrlImportedTaxonomy import XbrlImportedTaxonomy
+from .XbrlImportTaxonomy import XbrlImportTaxonomy
 from .XbrlProperty import XbrlProperty
 from .XbrlAbstract import XbrlAbstract
 from .XbrlConcept import XbrlConcept, XbrlDataType, XbrlUnitType
@@ -21,19 +20,20 @@ from .XbrlLabel import XbrlLabel, XbrlLabelType
 from .XbrlNetwork import XbrlNetwork, XbrlRelationship, XbrlRelationshipType
 from .XbrlProperty import XbrlProperty, XbrlPropertyType
 from .XbrlReference import XbrlReference, XbrlReferenceType
+from .XbrlTaxonomyModel import XbrlTaxonomyModel
 from .XbrlTransform import XbrlTransform
 from .XbrlUnit import XbrlUnit
-from .XbrlTypes import QNameKeyType, XbrlTaxonomyType
-from .XbrlTaxonomyObject import XbrlTaxonomyObject
+from .XbrlTypes import QNameKeyType
+from .XbrlObject import XbrlTaxonomyObject
 from .XbrlTableTemplate import XbrlTableTemplate, XbrlDataTable
 
-class XbrlTaxonomy(XbrlTaxonomyObject):
-    dts: XbrlDts
+class XbrlTaxonomyModule(XbrlTaxonomyObject):
+    txmyMdl: XbrlTaxonomyModel
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the taxonomy object.
     frameworkName: Optional[str] # (optional) The framework name of the taxonomy such as "US-GAAP" that indicates the taxonomy broad taxonomy family. The framework name stays consistent between regular taxonomy releases of the same taxonomy domain.
     version: Optional[str] # (optional) Used to identify the version of the taxonomy such as the year of release.
     resolved: bool # (required) Used to indicate if the taxonomy is in a resolved form. Allowable values are true or false. True indicates that the taxonomy is a complete model including all objects post dts processing that has resolved all importedTaxonomy objects, extendTargetName attributes and domain filters. False indicates that the taxonomy is pre dts processing and is not in resolved form.
-    importedTaxonomies: OrderedSet[XbrlImportedTaxonomy] # ordered set of importedTaxonomy objects that can comprise QName of the taxonomy to be imported, an object type or a taxonomy object referenced by its QName.
+    importedTaxonomies: OrderedSet[XbrlImportTaxonomy] # ordered set of importTaxonomy objects that can comprise QName of the taxonomy to be imported, an object type or a taxonomy object referenced by its QName.
     abstracts: OrderedSet[XbrlAbstract] # ordered set of abstract objects.
     concepts: OrderedSet[XbrlConcept] # ordered set of concept objects.
     cubes: OrderedSet[XbrlCube] # ordered set of cube objects.
@@ -60,8 +60,8 @@ class XbrlTaxonomy(XbrlTaxonomyObject):
     properties: OrderedSet[XbrlProperty] # ordered set of property objects used to specify additional properties associated with the taxonomy. Only immutable properties as defined in the propertyType object can be added to a taxonom
 
 xbrlObjectTypes = {
-        qname("{https://xbrl.org/2025}xbrl:taxonomyObject"): XbrlTaxonomy,
-        qname("{https://xbrl.org/2025}xbrl:importTaxonomyObject"): XbrlImportedTaxonomy,
+        qname("{https://xbrl.org/2025}xbrl:taxonomyObject"): XbrlTaxonomyModule,
+        qname("{https://xbrl.org/2025}xbrl:importTaxonomyObject"): XbrlImportTaxonomy,
         qname("{https://xbrl.org/2025}xbrl:conceptObject"): XbrlConcept,
         qname("{https://xbrl.org/2025}xbrl:abstractObject"): XbrlAbstract,
         qname("{https://xbrl.org/2025}xbrl:cubeObject"): XbrlCube,
