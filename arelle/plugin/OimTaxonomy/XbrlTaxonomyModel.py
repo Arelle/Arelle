@@ -131,7 +131,7 @@ class XbrlTaxonomyModel(ModelXbrl): # complete wrapper for ModelXbrl
         if "xbrlObject" in kwargs:
             argValue = kwargs["xbrlObject"]
             if isinstance(argValue, (tuple,list,set,OrderedSet)):
-                kwargs["sourceFileLines"] = [a.entryLoadingUrl for a in argValue]
+                kwargs["sourceFileLines"] = [a.entryLoadingUrl for a in argValue if a is not None]
             else:
                 kwargs["sourceFileLine"] = argValue.entryLoadingUrl
         elif "modelObject" in kwargs:
@@ -144,7 +144,7 @@ class XbrlTaxonomyModel(ModelXbrl): # complete wrapper for ModelXbrl
         if "xbrlObject" in kwargs:
             argValue = kwargs["xbrlObject"]
             if isinstance(argValue, (tuple,list)):
-                kwargs["sourceFileLines"] = [a.entryLoadingUrl for a in argValue]
+                kwargs["sourceFileLines"] = [a.entryLoadingUrl for a in argValue if a is not None]
             else:
                 kwargs["sourceFileLine"] = argValue.entryLoadingUrl
         super(XbrlTaxonomyModel, self).warning(*args, **kwargs)

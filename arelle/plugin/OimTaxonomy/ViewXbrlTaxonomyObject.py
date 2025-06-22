@@ -179,6 +179,8 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
                     self.viewRoots(domNode, nodeNum, domObj)
 
     def viewRoots(self, parentNode, nodeNum, obj):
+        if not isinstance(obj, XbrlDomain):
+            return
         for qn in obj.relationshipRoots:
             rootObj = self.xbrlTxmyMdl.namedObjects.get(qn)
             if rootObj is not None:

@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Optional, Union
 from arelle.ModelValue import qname, QName, DateTime, YearMonthDayTimeDuration
 from arelle.PythonUtil import OrderedSet
 from .XbrlConst import xbrl
+from .XbrlDimension import XbrlDomain
 from .XbrlProperty import XbrlProperty
 from .XbrlTypes import XbrlTaxonomyModuleType, QNameKeyType, DefaultTrue, DefaultFalse
 from .ModelValueMore import QNameAt, SQName
@@ -34,6 +35,19 @@ class XbrlCubeDimension(XbrlTaxonomyObject):
     domainSort: Optional[str] # (optional if typed dimension) A string value that indicates the sort order of the typed dimension. The values can be either asc or desc. The values are case insensitive. This indicates if the cube is viewed the order of the values shown on the typed dimension. This cannot be used on an explicit dimension.
     allowDomainFacts: Union[bool, DefaultFalse] # (optional    ) A boolean value that indicates if facts not identified with the dimension are included in the cube. For typed and explicit dimensions the value defaults to false. A value of true for a typed or explicit dimension will include facts that don't use the dimension in the cube. For the period core dimension, forever facts or facts with no period dimension are included when this value is set to true. For units, this is a unit with no units such as a string or date. For the entity core dimension, it is fact values with no entity. This property cannot be used on the concept core dimension.
     periodConstraints: set[XbrlPeriodConstraint] # (optional only for period core dimension) Defines an ordered set of periodConstraint objects to restrict fact values in a cube to fact values with a specified period.
+    
+    def allowedMembers(self, txmyMdl):
+        try:
+            return self._allowedMembers
+        except AttributeError:
+            self._allowedMembers = mem = OrderedSet()
+            domObj = txmyMdl.namedObjects.get(getattr(self, "domainName", None))
+            if isinstance(domObj, XbrlDomain):
+                if self.allowDomainFacts:
+                    mem.add(domObj.root)
+                for relObj in domObj.relationships:
+                    mem.add(relObj.target)
+            return self._allowedMembers
 
 class XbrlCube(XbrlReferencableTaxonomyObject):
     taxonomy: XbrlTaxonomyModuleType
