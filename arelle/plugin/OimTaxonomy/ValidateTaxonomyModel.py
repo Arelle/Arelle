@@ -4,10 +4,11 @@ See COPYRIGHT.md for copyright information.
 
 import regex as re
 from collections import defaultdict
-from arelle.ModelValue import QName
-from arelle.XmlValidate import languagePattern, validateValue as validateXmlValue
+from arelle.ModelValue import QName, timeInterval
+from arelle.XmlValidate import languagePattern, validateValue as validateXmlValue,\
+    INVALID, VALID
 from arelle.PythonUtil import attrdict
-from arelle.oim.Load import EMPTY_DICT, periodForms
+from arelle.oim.Load import EMPTY_DICT, csvPeriod
 from .XbrlAbstract import XbrlAbstract
 from .XbrlConcept import XbrlConcept, XbrlDataType
 from .XbrlCube import (XbrlCube, XbrlCubeType, baseCubeTypes, XbrlCubeDimension,
@@ -168,6 +169,10 @@ def validateTaxonomy(txmyMdl, txmy):
                 txmyMdl.error("oimte:invalidCubeDimensionProperty",
                           _("Cube %(name)s domainSort property MUST be asc or desc, not %(domainSort)s."),
                           xbrlObject=cubeObj, name=name, domainSort=cubeDimObj.domainSort)
+            if cubeDimObj.domainName and not isinstance(txmyMdl.namedObjects.get(cubeDimObj.domainName), XbrlDomain):
+                txmyMdl.error("oimte:invalidCubeDimensionDomainName",
+                          _("Cube %(name)s domainName property MUST identify a domain object: %(domainName)s."),
+                          xbrlObject=cubeObj, name=name, domainName=cubeDimObj.domainName)
             if cubeDimObj.periodConstraints and dimName != periodCoreDim:
                 txmyMdl.error("oimte:invalidDimensionConstraint",
                           _("Cube %(name)s periodConstraints property MUST only be used where the dimensionName property has a QName value of xbrl:period, not %(qname)s."),
@@ -184,6 +189,10 @@ def validateTaxonomy(txmyMdl, txmy):
                         txmyMdl.error("oimte:invalidRelationshipTarget",
                                   _("Cube %(name)s conceptConstraints domain relationships must be to concepts, target: %(target)s."),
                                   xbrlObject=(cubeObj,cubeDimObj,relObj), name=name, qname=dimName, target=relObj.target)
+                if cubeDimObj.allowDomainFacts:
+                    txmyMdl.error("oimte:invalidConceptDimensionConstraint",
+                              _("Cube %(name)s conceptConstraints property MUST NOT specify allowDomainFacts."),
+                              xbrlObject=(cubeObj,cubeDimObj), name=name)
             if dimName == entityCoreDim and isinstance(txmyMdl.namedObjects.get(cubeDimObj.domainName), XbrlDomain):
                 for relObj in txmyMdl.namedObjects[cubeDimObj.domainName].relationships:
                     if not isinstance(txmyMdl.namedObjects.get(relObj.source,None), XbrlEntity) and relObj.source != entityDomainRoot:
@@ -213,20 +222,26 @@ def validateTaxonomy(txmyMdl, txmy):
                                   xbrlObject=(cubeObj,cubeDimObj,dimObj), name=name, qname=dimName)
                 else: # explicit dim
                     domObj = txmyMdl.namedObjects.get(cubeDimObj.domainName)
-                    if domObj:
+                    if isinstance(domObj, XbrlDomain):
                         for relObj in domObj.relationships:
                             if not isinstance(txmyMdl.namedObjects.get(getattr(relObj, "target", None),None), XbrlMember):
                                 txmyMdl.error("oimte:invalidRelationshipTarget",
                                           _("Cube %(name)s explicit dimension domain relationships must be to members."),
                                           xbrlObject=(cubeObj,dimObj,relObj), name=name, qname=dimName)
-            if cubeDimObj.domainName and dimName in (periodCoreDim, languageCoreDim):
-                txmyMdl.error("oimte:invalidCubeDimensionProperty",
-                          _("Cube %(name)s domainName property MUST NOT be used where the dimensionName property has a QName value %(qname)s."),
-                          xbrlObject=cubeObj, name=name, qname=dimName)
-
+            if cubeDimObj.domainName:
+                if dimName in (periodCoreDim, languageCoreDim):
+                    txmyMdl.error("oimte:invalidCubeDimensionProperty",
+                              _("Cube %(name)s domainName property MUST NOT be used where the dimensionName property has a QName value %(qname)s."),
+                              xbrlObject=cubeObj, name=name, qname=dimName)
+                else:
+                    domObj = txmyMdl.namedObjects.get(cubeDimObj.domainName)
+                    if not isinstance(domObj, XbrlDomain):
+                        txmyMdl.error("oimte:invalidDimensionDomain",
+                                  _("Cube %(name)s dimension %(qname)s domain %(domainName)s MUST be a domain object in the taxonomy."),
+                                  xbrlObject=(cubeObj,cubeDimObj,domObj), name=name, qname=dimName, domainName=cubeDimObj.domainName)
             if dimName == periodCoreDim:
                 for iPerConst, perConstObj in enumerate(cubeDimObj.periodConstraints):
-                    if perConstObj.periodType not in ("instant", "duration"):
+                    if perConstObj.periodType not in ("instant", "duration", "none"):
                         txmyMdl.error("oimte:invalidPeriodRepresentation",
                                   _("Cube %(name)s period constraint periodType property MUST be \"instant\" or \"duration\"."),
                                   xbrlObject=(cubeObj,cubeDimObj), name=name)
@@ -235,16 +250,23 @@ def validateTaxonomy(txmyMdl, txmy):
                             txmyMdl.error("oimte:invalidPeriodRepresentation",
                                       _("Cube %(name)s period constraint timeSpan property MUST NOT be used with both the endDate and startDate properties."),
                                       xbrlObject=(cubeObj,cubeDimObj), name=name)
-                        validateValue(txmyMdl, cubeObj, perConstObj.timeSpan, "duration" ,f"/cubeDimensions[{iCubeDim}]/periodConstraints[{iPerConst}]/timeSpan")
+                        perConstObj._timeSpanValid, perConstObj._timeSpanValue = validateValue(txmyMdl, cubeObj, perConstObj.timeSpan, "duration" ,f"/cubeDimensions[{iCubeDim}]/periodConstraints[{iPerConst}]/timeSpan")
                     if perConstObj.periodFormat:
                         if perConstObj.timeSpan or perConstObj.endDate or perConstObj.startDate:
                             txmyMdl.error("oimte:invalidPeriodRepresentation",
                                       _("Cube %(name)s period constraint periodFormat property MUST NOT be used with the timeSpan, endDate or startDate properties."),
                                       xbrlObject=(cubeObj,cubeDimObj), name=name)
-                        if not any(perFormMatch.match(perConstObj.periodFormat) for _perType, perFormMatch in periodForms):
+                        perStr, _sep, perAttr = perConstObj.periodFormat.partition("@")
+                        isoPer = csvPeriod(perStr, perAttr)
+                        if isoPer is None or isoPer == "referenceTargetNotDuration":
                             txmyMdl.error("oimte:invalidPeriodRepresentation",
                                       _("Cube %(name)s periodConstraint[%(perConstNbr)s] periodFormat property, %(periodFormat)s, MUST be a valid period format per xbrl-csv specification."),
                                       xbrlObject=(cubeObj,cubeDimObj), name=name, perConstNbr=iPerConst, periodFormat=perConstObj.periodFormat)
+                            perConstObj._periodFormatValid = INVALID
+                            perConstObj._periodFormatValue = None
+                        else:
+                            perConstObj._periodFormatValid = VALID
+                            perConstObj._periodFormatValue = timeInterval(isoPer)
                     if perConstObj.periodType != "instant" and perConstObj.periodFormat and perCnstrtFmtStartEndPattern.match(perConstObj.periodFormat):
                         txmyMdl.error("oimte:invalidPeriodRepresentation",
                                   _("Cube %(name)s period constraint periodFormat the suffix of @start or @end MUST only be used with periodType of instant."),
@@ -273,9 +295,10 @@ def validateTaxonomy(txmyMdl, txmy):
                                     txmyMdl.error("oimte:invalidPeriodRepresentation",
                                               _("Cube %(name)s period constraint concept %(qname)s timeShift MUST be used with only one of the properties name, or context."),
                                               xbrlObject=(cubeObj,cubeDimObj), name=name, qname=dtResObj.context)
-                                validateValue(txmyMdl, cubeObj, dtResObj.timeShift, "duration" ,f"/cubeDimensions[{iCubeDim}]/periodConstraints[{iPerConst}]/{dtResProp}/timeShift")
+                                dtResObj._timeShiftValid, dtResObj._timeShiftValue = validateValue(txmyMdl, cubeObj, dtResObj.timeShift, "duration" ,f"/cubeDimensions[{iCubeDim}]/periodConstraints[{iPerConst}]/{dtResProp}/timeShift")
                             if dtResObj.value:
-                                validateValue(txmyMdl, cubeObj, dtResObj.value, "XBRLI_DATEUNION", f"/cubeDimensions[{iCubeDim}]/periodConstraints[{iPerConst}]/{dtResProp}/value")
+                                dtResObj._valueValid, dtResObj._valueValue = validateValue(txmyMdl, cubeObj, dtResObj.value, "XBRLI_DATEUNION", f"/cubeDimensions[{iCubeDim}]/periodConstraints[{iPerConst}]/{dtResProp}/value")
+                                
             else:
                 if cubeDimObj.periodConstraints:
                     txmyMdl.error("oimte:invalidDimensionConstraint",
@@ -324,15 +347,21 @@ def validateTaxonomy(txmyMdl, txmy):
     # Domain Objects
     for domObj in txmy.domains:
         assertObjectType(domObj, XbrlDomain)
+        extendTargetObj = None
         if domObj.extendTargetName:
+            extendTargetObj = txmyMdl.namedObjects.get(domObj.extendTargetName)
             if domObj.name:
                 txmyMdl.error("oimte:invalidObjectProperty",
                           _("The domain %(name)s MUST have only a name or an extendTargetName, not both."),
                           xbrlObject=domObj, name=domObj.name)
-            elif not isinstance(txmyMdl.namedObjects.get(domObj.extendTargetName), XbrlDomain):
+            elif not isinstance(extendTargetObj, XbrlDomain):
                 txmyMdl.error("oimte:missingTargetObject",
                           _("The domain %(name)s MUST be a valid domain object in the txmyMdl"),
                           xbrlObject=domObj, name=domObj.name or domObj.extendTargetName)
+            elif getattr(domObj, "_extendResolved", False):
+                extendTargetObj = None # don't extend, already been extended
+            else:
+                domObj._extendResolved = True
         elif not domObj.name:
             txmyMdl.error("oimte:missingRequiredProperty",
                       _("The domain object MUST have either a name or an extendTargetName, not neither."),
@@ -348,6 +377,9 @@ def validateTaxonomy(txmyMdl, txmy):
                 txmyMdl.error("oimte:invalidFactMember",
                           _("The domain %(name)s relationship target %(qname)s MUST NOT be a domain or domainRoot object."),
                           xbrlObject=domObj, name=domObj.name, qname=relObj.target)
+            elif extendTargetObj is not None:
+                extendTargetObj.relationships.add(relObj)
+                
         validateProperties(txmyMdl, oimFile, txmy, domObj)
 
 
@@ -393,15 +425,21 @@ def validateTaxonomy(txmyMdl, txmy):
     # Network Objects
     for ntwkObj in txmy.networks:
         assertObjectType(ntwkObj, XbrlNetwork)
+        extendTargetObj = None
         if ntwkObj.extendTargetName:
+            extendTargetObj = txmyMdl.namedObjects.get(ntwkObj.extendTargetName)
             if ntwkObj.name:
                 txmyMdl.error("oimte:invalidObjectProperty",
                           _("The network %(name)s MUST have only a name or an extendTargetName, not both."),
                           xbrlObject=ntwkObj, name=ntwkObj.name)
-            elif not isinstance(txmyMdl.namedObjects.get(ntwkObj.extendTargetName), XbrlNetwork):
+            elif not isinstance(extendTargetObj, XbrlNetwork):
                 txmyMdl.error("oimte:missingTargetObject",
                           _("The network extendTargetName %(name)s MUST be a valid network object in the txmyMdl"),
                           xbrlObject=ntwkObj, name=ntwkObj.name or ntwkObj.extendTargetName)
+            elif getattr(ntwkObj, "_extendResolved", False):
+                extendTargetObj = None # don't extend, already been extended
+            else:
+                ntwkObj._extendResolved = True
         elif not ntwkObj.name:
             txmyMdl.error("oimte:missingRequiredProperty",
                       _("The network object MUST have either a name or an extendTargetName, not neither."),
@@ -418,6 +456,8 @@ def validateTaxonomy(txmyMdl, txmy):
                 txmyMdl.error("oimte:missingTargetObject",
                           _("The network %(name)s relationship[%(nbr)s] source, %(source)s, and target, %(target)s, MUST be objects in the txmyMdl."),
                           xbrlObject=domObj, name=ntwkObj.name, nbr=i, source=relObj.source, target=relObj.target)
+            elif extendTargetObj is not None:
+                extendTargetObj.relationships.add(relObj)
             validateProperties(txmyMdl, oimFile, txmy, relObj)
         validateProperties(txmyMdl, oimFile, txmy, ntwkObj)
 

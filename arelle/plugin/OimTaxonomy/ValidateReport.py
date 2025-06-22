@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 '''
 
 from isodate import isodatetime
+import regex as re
 from arelle.oim.Load import (PeriodPattern, UnitPrefixedQNameSubstitutionChar, UnitPattern,
                              PrefixedQName, OIMException)
 from arelle.ModelValue import QName, qname, timeInterval
@@ -12,6 +13,9 @@ from .XbrlConst import unsupportedTypedDimensionDataTypes
 from .XbrlConcept import XbrlConcept, XbrlDataType
 from .XbrlDimension import XbrlDimension, XbrlMember
 from .ValidateTaxonomyModel import validateValue
+from .ValidateCubes import validateCubes
+
+dimPropPattern = re.compile(r"^_[A-Za-z0-9]+$")
 
 def validateFact(fact, reportQn, reportObj, txmyMdl):
     def error(code, msg, **kwargs):
@@ -56,7 +60,7 @@ def validateFact(fact, reportQn, reportObj, txmyMdl):
                               _("Invalid period for %(periodType)s fact %(id)s period %(period)s."),
                               periodType=cObj.periodType, period=per)
                 return # skip creating fact because context would be bad
-            per = fact.dimensions["period"] = timeInterval(per)
+            per = fact.dimensions["_periodValue"] = timeInterval(per)
     elif cObj.periodType != "duration":
         error("oime:missingPeriodDimension",
                        _("Missing period for %(periodType)s fact %(id)s."),
@@ -103,7 +107,7 @@ def validateFact(fact, reportQn, reportObj, txmyMdl):
     updateDimVals = {} # compiled values
     for dimName, dimVal in fact.dimensions.items():
         if not isinstance(dimName, QName):
-            if dimName not in {"concept", "entity", "period", "unit", "language"}:
+            if dimName not in {"concept", "entity", "period", "unit", "language"} and not dimPropPattern.match(dimName):
                 error("oime:unknownDimension",
                               _("Fact %(id)s taxonomy-defined dimension QName not be resolved with available DTS: %(qname)s."),
                               qname=dimName)
@@ -155,6 +159,10 @@ def validateFact(fact, reportQn, reportObj, txmyMdl):
         fact.dimensions[dimName] = dimVal
 
     # find cubes which fact is valid for
+    fact._cubes = validateCubes(fact, txmyMdl)
+    if not fact._cubes:
+        error("xbrlce:invalidDimensionValue",
+              _("Fact %(id)s is not dimensionally valid in any cube."))
 
 
 def validateReport(reportQn, reportObj, txmyMdl):

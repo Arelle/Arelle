@@ -1004,6 +1004,14 @@ class TimeInterval:
         self.start = start
         self.end = end
 
+    @property
+    def isInstant(self):
+        return self.start is None
+
+    @property
+    def isDuration(self):
+        return self.start is not None
+
     def __repr__(self):
         if self.start:
             return f"{self.start}/{self.end}"
