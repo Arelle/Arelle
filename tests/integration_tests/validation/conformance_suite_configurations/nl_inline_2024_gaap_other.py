@@ -19,8 +19,18 @@ config = ConformanceSuiteConfig(
         *NL_PACKAGES['NL-INLINE-2024'],
     ],
     expected_additional_testcase_errors={f"conformance-suite-2024-sbr-domein-handelsregister/tests/{s}": val for s, val in {
+        'G5-1-3_1/index.xml:TC1_valid': {
+            'noInlineXbrlTags': 1,
+        },
+        'G5-1-3_1/index.xml:TC2_invalid': {
+            'noInlineXbrlTags': 1,
+        },
+        'G5-1-3_2/index.xml:TC1_valid': {
+            'noInlineXbrlTags': 1,
+        },
         'G5-1-3_2/index.xml:TC2_invalid': {
             'documentNameDoesNotFollowNamingConvention': 1,
+            'noInlineXbrlTags': 1,
             'requiredEntryPointOtherGaapNotReferenced': 1,
         },
     }.items()},

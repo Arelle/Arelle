@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
+import re
 from collections import defaultdict
 from collections.abc import Iterable
 from datetime import date
@@ -12,14 +13,14 @@ import zipfile
 
 from lxml.etree import Element
 
-from arelle.ModelDtsObject import ModelLink, ModelResource, ModelType
+from arelle.ModelDtsObject import ModelConcept, ModelLink, ModelResource, ModelType
 from arelle.ModelInstanceObject import ModelInlineFact
 from arelle.ModelObject import ModelObject
 from arelle.PrototypeDtsObject import PrototypeObject
 from arelle.ValidateDuplicateFacts import getDuplicateFactSets
 from arelle.XmlValidateConst import VALID
 
-from arelle import XbrlConst, XmlUtil
+from arelle import XbrlConst, XmlUtil, ModelDocument
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
@@ -53,6 +54,8 @@ if TYPE_CHECKING:
     from arelle.ModelValue import QName
 
 _: TypeGetText
+
+DOCTYPE_XHTML_PATTERN = re.compile(r"^<!(?:DOCTYPE\s+)\s*html(?:PUBLIC\s+)?(?:.*-//W3C//DTD\s+(X?HTML)\s)?.*>$", re.IGNORECASE)
 
 
 def _getReportingPeriodDateValue(modelXbrl: ModelXbrl, qname: QName) -> date | None:
@@ -1477,13 +1480,18 @@ def rule_nl_kvk_4_4_2_4(
     extended link role
     """
     elrPrimaryItems = pluginData.getDimensionalData(val.modelXbrl).elrPrimaryItems
-    errors = set(concept
-        for qn, facts in val.modelXbrl.factsByQname.items()
-        if any(not f.context.qnameDims for f in facts if f.context is not None)
-        for concept in (val.modelXbrl.qnameConcepts.get(qn),)
-        if concept is not None and
-        not any(concept in elrPrimaryItems.get(lr, set()) for lr in NON_DIMENSIONALIZED_LINE_ITEM_LINKROLES) and
-        concept not in elrPrimaryItems.get("*", set()))
+    errors = set()
+    for concept in val.modelXbrl.qnameConcepts.values():
+        if concept.qname not in val.modelXbrl.factsByQname:
+            continue
+        if any(
+                concept in elrPrimaryItems.get(lr, set())
+                for lr in NON_DIMENSIONALIZED_LINE_ITEM_LINKROLES
+        ):
+            continue
+        if concept in elrPrimaryItems.get("*", set()):
+            continue
+        errors.add(concept)
     for error in errors:
         yield Validation.error(
             codes='NL.NL-KVK.4.4.2.4.extensionTaxonomyLineItemNotLinkedToAnyHypercube',
@@ -1824,7 +1832,48 @@ def rule_nl_kvk_RTS_Annex_IV_Par_11_G4_2_2_1(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_RTS_Annex_IV_Par_4_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.RTS_Annex_IV_Par_4_1: Extension elements must not duplicate the existing
+    elements from the core taxonomy and be identifiable.
+    """
+    for name, concepts in val.modelXbrl.nameConcepts.items():
+        if len(concepts) < 2:
+            continue
+        coreConcepts = []
+        extensionConcepts = []
+        for concept in concepts:
+            if pluginData.isExtensionUri(concept.modelDocument.uri, val.modelXbrl):
+                extensionConcepts.append(concept)
+            else:
+                coreConcepts.append(concept)
+        if len(coreConcepts) == 0:
+            continue
+        coreConcept = coreConcepts[0]
+        for extensionConcept in extensionConcepts:
+            if extensionConcept.balance != coreConcept.balance:
+                continue
+            if extensionConcept.periodType != coreConcept.periodType:
+                continue
+            yield Validation.error(
+                codes='NL.NL-KVK.RTS_Annex_IV_Par_4_1.extensionElementDuplicatesCoreElement',
+                msg=_('An extension element was found that is a duplicate to a core element (%(qname)s). '
+                      'Review use of element and update to core or revise extension element.'),
+                modelObject=(coreConcept, extensionConcept),
+                qname=coreConcept.qname,
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_RTS_Annex_IV_Par_4_2(
         pluginData: PluginValidationDataExtension,
@@ -1844,6 +1893,54 @@ def rule_nl_kvk_RTS_Annex_IV_Par_4_2(
             codes='NL.NL-KVK.RTS_Annex_IV_Par_4_2.monetaryConceptWithoutBalance',
             msg=_('Extension elements must have an appropriate balance attribute.'),
             modelObject=errors
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_RTS_Annex_IV_Par_5(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.RTS_Annex_IV_Par_5: Each extension taxonomy element used in tagging
+    must be included in at least one presentation and definition linkbase hierarchy.
+    """
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    taggedExtensionConcepts = set(extensionData.extensionConcepts) & set(fact.concept for fact in val.modelXbrl.facts)
+
+    def getConceptsInLinkbase(arcroles: frozenset[str], concepts: set[ModelConcept]) -> None:
+        for fromModelObject, toRels in val.modelXbrl.relationshipSet(tuple(arcroles)).fromModelObjects().items():
+            if isinstance(fromModelObject, ModelConcept):
+                concepts.add(fromModelObject)
+            for toRel in toRels:
+                if isinstance(toRel.toModelObject, ModelConcept):
+                    concepts.add(toRel.toModelObject)
+
+    conceptsInDefinition: set[ModelConcept] = set()
+    getConceptsInLinkbase(LinkbaseType.DEFINITION.getArcroles(), conceptsInDefinition)
+    conceptsMissingFromDefinition = taggedExtensionConcepts - conceptsInDefinition
+    if len(conceptsMissingFromDefinition) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.RTS_Annex_IV_Par_5.usableConceptsNotIncludedInDefinitionLink',
+            msg=_('Extension elements are missing from definition linkbase. '
+                  'Review use of extension elements.'),
+            modelObject=conceptsMissingFromDefinition
+        )
+
+    conceptsInPresentation: set[ModelConcept] = set()
+    getConceptsInLinkbase(LinkbaseType.PRESENTATION.getArcroles(), conceptsInPresentation)
+    conceptsMissingFromPresentation = taggedExtensionConcepts - conceptsInPresentation
+    if len(conceptsMissingFromPresentation) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.RTS_Annex_IV_Par_5.usableConceptsNotIncludedInPresentationLink',
+            msg=_('Extension elements are missing from presentation linkbase. '
+                  'Review use of extension elements.'),
+            modelObject=conceptsMissingFromPresentation
         )
 
 
@@ -1873,3 +1970,129 @@ def rule_nl_kvk_RTS_Annex_IV_Par_6(
             msg=_('The filing package must include a calculation linkbase.'),
             modelObject=val.modelXbrl.modelDocument
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_RTS_Annex_IV_Par_8_G4_4_5(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.RTS_Annex_IV_Par_8_G4-4-5: Labels and references of the core
+    taxonomy elements in extension taxonomies of issuer shall not be replaced.
+    """
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    for modelDocument, extensionDoc in extensionData.extensionDocuments.items():
+        for linkbase in extensionDoc.linkbases:
+            if linkbase.prohibitingLabelElements and \
+                    linkbase.prohibitedBaseConcepts:
+                if linkbase.linkbaseType == LinkbaseType.LABEL:
+                    yield Validation.error(
+                        codes='NL.NL-KVK.RTS_Annex_IV_Par_8_G4-4-5.coreTaxonomyLabelModification',
+                        msg=_('Standard concept has a modified label from what was defined in the taxonomy. '
+                              'Labels from the taxonomy should not be modified.'),
+                        modelObject=modelDocument
+                    )
+                else:
+                    # Assumed to be a reference linkbase.
+                    # If anything else, we should probably fire an error anyway.
+                    yield Validation.error(
+                        codes='NL.NL-KVK.RTS_Annex_IV_Par_8_G4-4-5.coreTaxonomyReferenceModification',
+                        msg=_('Standard concept has a modified reference from what was defined in the taxonomy. '
+                              'References from the taxonomy should not be modified.'),
+                        modelObject=modelDocument
+                    )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_RTS_Annex_IV_Par_9_Par_10(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.RTS_Annex_IV_Par_9_par_10: Legal entities MUST ensure that the
+    extension taxonomy elements are linked to one or more core taxonomy elements.
+    """
+    anchorData = pluginData.getAnchorData(val.modelXbrl)
+    if len(anchorData.extLineItemsNotAnchored) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.RTS_Annex_IV_Par_9_Par_10.extensionConceptsNotAnchored',
+            msg=_('Extension concept found without an anchor. '
+                  'Extension concepts, excluding subtotals, are required to be anchored.'),
+            modelObject=anchorData.extLineItemsNotAnchored,
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_RTS_Art_3(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.RTS_Art_3: Legal entities shall file their annual reports in XHTML format
+    """
+    for modelDocument in val.modelXbrl.urlDocs.values():
+        docinfo = modelDocument.xmlRootElement.getroottree().docinfo
+        docTypeMatch = DOCTYPE_XHTML_PATTERN.match(docinfo.doctype)
+        if not docTypeMatch:
+            continue
+        if not docTypeMatch.group(1) or docTypeMatch.group(1).lower() == "html":
+            yield Validation.error(
+                codes='NL.NL-KVK.RTS_Art_3.htmlDoctype',
+                msg=_('Doctype SHALL NOT specify html: %(doctype)s'),
+                modelObject=val.modelXbrl.modelDocument,
+                doctype=docinfo.doctype,
+            )
+        else:
+            yield Validation.warning(
+                codes='NL.NL-KVK.RTS_Art_3.xhtmlDoctype',
+                msg=_('Doctype implies xhtml DTD validation but '
+                      'inline 1.1 requires schema validation: %(doctype)s'),
+                modelObject=val.modelXbrl.modelDocument,
+                doctype=docinfo.doctype,
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_RTS_Art_6_a(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.RTS_Art_6_a: Legal entities shall embed markups in the annual reports
+    in XHTML format using the Inline XBRL specifications
+    """
+    for modelDocument in val.modelXbrl.urlDocs.values():
+        if modelDocument.type != ModelDocument.Type.INLINEXBRL:
+            continue
+        factElements = list(modelDocument.xmlRootElement.iterdescendants(
+            modelDocument.ixNStag + "nonNumeric",
+            modelDocument.ixNStag + "nonFraction",
+            modelDocument.ixNStag + "fraction"
+        ))
+        if len(factElements) == 0:
+            yield Validation.error(
+                codes='NL.NL-KVK.RTS_Art_6_a.noInlineXbrlTags',
+                msg=_('Annual report is using xhtml extension, but there are no inline mark up tags identified.'),
+                modelObject=modelDocument,
+            )

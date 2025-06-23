@@ -204,6 +204,8 @@ class LinkbaseData:
     basename: str
     element: _Element
     linkbaseType: LinkbaseType | None
+    prohibitedBaseConcepts: list[ModelConcept]
+    prohibitingLabelElements: list[_Element]
 
     @property
     def hasArcs(self) -> bool:
@@ -641,11 +643,36 @@ class PluginValidationDataExtension(PluginData):
             for linkElt in modelDocument.xmlRootElement.iterdescendants(tag=linkbaseType.getLinkQn().clarkNotation):
                 arcQn = linkbaseType.getArcQn()
                 arcs = list(linkElt.iterdescendants(tag=arcQn.clarkNotation))
+                prohibitingLabelElements = []
+                prohibitedBaseConcepts = []
+                if linkbaseType in (LinkbaseType.LABEL, LinkbaseType.REFERENCE):
+                    prohibitedArcFroms = defaultdict(list)
+                    prohibitedArcTos = defaultdict(list)
+                    for arcElt in linkElt.iterchildren(
+                            LinkbaseType.LABEL.getArcQn().clarkNotation,
+                            LinkbaseType.REFERENCE.getArcQn().clarkNotation,
+                    ):
+                        if arcElt.get("use") == "prohibited":
+                            prohibitedArcFroms[arcElt.get(XbrlConst.qnXlinkFrom.clarkNotation)].append(arcElt)
+                            prohibitedArcTos[arcElt.get(XbrlConst.qnXlinkTo.clarkNotation)].append(arcElt)
+                    for locElt in linkElt.iterchildren(XbrlConst.qnLinkLoc.clarkNotation):
+                        if self.isExtensionUri(locElt.get(XbrlConst.qnXlinkHref.clarkNotation), modelDocument.modelXbrl):
+                            continue
+                        prohibitingArcs = prohibitedArcTos.get(locElt.get(XbrlConst.qnXlinkLabel.clarkNotation))
+                        if prohibitingArcs:
+                            prohibitingLabelElements.extend(prohibitingArcs)
+                        prohibitingArcs = prohibitedArcFroms.get(locElt.get(XbrlConst.qnXlinkLabel.clarkNotation))
+                        if prohibitingArcs:
+                            prohibitingLabelElements.extend(prohibitingArcs)
+                            prohibitedBaseConcepts.append(locElt.dereference())
+
                 linkbases.append(LinkbaseData(
                     arcs=arcs,
                     basename=modelDocument.basename,
                     element=linkElt,
                     linkbaseType=linkbaseType,
+                    prohibitedBaseConcepts=prohibitedBaseConcepts,
+                    prohibitingLabelElements=prohibitingLabelElements,
                 ))
         return linkbases
 

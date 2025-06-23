@@ -112,6 +112,9 @@ qnXbrldiTypedMember = qname("{http://xbrl.org/2006/xbrldi}xbrldi:typedMember")
 xlink = "http://www.w3.org/1999/xlink"
 qnXlinkArcRole = qname("{http://www.w3.org/1999/xlink}xlink:arcrole")
 qnXlinkFrom = qname("{http://www.w3.org/1999/xlink}xlink:from")
+qnXlinkHref = qname("{http://www.w3.org/1999/xlink}xlink:href")
+qnXlinkLabel = qname("{http://www.w3.org/1999/xlink}xlink:label")
+qnXlinkTo = qname("{http://www.w3.org/1999/xlink}xlink:to")
 qnXlinkType = qname("{http://www.w3.org/1999/xlink}xlink:type")
 xl = "http://www.xbrl.org/2003/XLink"
 qnXlExtended = qname("{http://www.xbrl.org/2003/XLink}xl:extended")
@@ -830,6 +833,24 @@ def isNumericRole(role: str) -> bool:
         "http://www.xbrl.org/2009/role/negatedNetLabel",
         "http://www.xbrl.org/2009/role/negatedTerseLabel",
     }
+
+
+standardDimensionArcroles = frozenset({
+    all,
+    notAll,
+    hypercubeDimension,
+    dimensionDomain,
+    domainMember,
+    dimensionDefault,
+})
+
+
+standardDefinitionArcroles = frozenset(standardDimensionArcroles | {
+    essenceAlias,
+    generalSpecial,
+    requiresElement,
+    similarTuples,
+})
 
 
 def isStandardArcrole(role: str) -> bool:

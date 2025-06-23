@@ -33,18 +33,38 @@ jobs:
       build_alias: arelle-ubuntu.tgz
     secrets: inherit
 
-  build-macos:
+  build-macos-x64:
     uses: ./.github/workflows/build-macos.yml
+    with:
+      macos_version: 13
+      python_architecture: x64
     secrets: inherit
-  publish-macos:
+  publish-macos-x64:
     permissions:
       contents: write
-    needs: build-macos
+    needs: build-macos-x64
     uses: ./.github/workflows/publish-frozen-build.yml
     with:
-      github_artifact: ${{ needs.build-macos.outputs.uploaded_artifact_name }}
-      build_name: ${{ needs.build-macos.outputs.artifact_versioned_name }}
-      build_alias: arelle-macos.dmg
+      github_artifact: ${{ needs.build-macos-x64.outputs.uploaded_artifact_name }}
+      build_name: ${{ needs.build-macos-x64.outputs.artifact_versioned_name }}
+      build_alias: arelle-macos-x64.dmg
+    secrets: inherit
+
+  build-macos-arm64:
+    uses: ./.github/workflows/build-macos.yml
+    with:
+      macos_version: 15
+      python_architecture: arm64
+    secrets: inherit
+  publish-macos-arm64:
+    permissions:
+      contents: write
+    needs: build-macos-arm64
+    uses: ./.github/workflows/publish-frozen-build.yml
+    with:
+      github_artifact: ${{ needs.build-macos-arm64.outputs.uploaded_artifact_name }}
+      build_name: ${{ needs.build-macos-arm64.outputs.artifact_versioned_name }}
+      build_alias: arelle-macos-arm64.dmg
     secrets: inherit
 
   build-windows:

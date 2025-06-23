@@ -24,6 +24,7 @@ config = ConformanceSuiteConfig(
         },
         'G3-1-3_2/index.xml:TC2_invalid': {
             'extensionTaxonomyLineItemNotLinkedToAnyHypercube': 1,
+            'usableConceptsNotIncludedInDefinitionLink': 1,
         },
         'G3-5-1_5/index.xml:TC2_invalid': {
             # This is the expected error, but we return two of them, slightly different.
@@ -48,6 +49,12 @@ config = ConformanceSuiteConfig(
         'G4-1-1_1/index.xml:TC4_invalid': {
             'extensionTaxonomyWrongFilesStructure': 1,
         },
+        'G4-1-1_1/index.xml:TC5_invalid': {
+            'usableConceptsNotIncludedInPresentationLink': 1,
+        },
+        'G4-1-1_1/index.xml:TC7_invalid': {
+            'usableConceptsNotIncludedInPresentationLink': 1,
+        },
         'G4-1-2_1/index.xml:TC2_valid': {
             'undefinedLanguageForTextFact': 1,
             'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 5,
@@ -63,8 +70,14 @@ config = ConformanceSuiteConfig(
             'UsableConceptsNotAppliedByTaggedFacts': 1,  # Also fails 4.4.6.1
             'extensionTaxonomyLineItemNotLinkedToAnyHypercube': 10,
         },
+        'G4-2-3_1/index.xml:TC2_invalid': {
+            'extensionTaxonomyLineItemNotLinkedToAnyHypercube': 1,
+        },
         'G4-4-2_1/index.xml:TC2_invalid': {
             'closedNegativeHypercubeInDefinitionLinkbase': 1,  # Also fails 4.4.2.3
+        },
+        'G4-4-2_4/index.xml:TC2_invalid': {
+            'usableConceptsNotIncludedInDefinitionLink': 1,
         },
         'RTS_Annex_II_Par_1_RTS_Annex_IV_par_7/index.xml:TC2_valid': {
             'undefinedLanguageForTextFact': 1,
@@ -92,7 +105,20 @@ config = ConformanceSuiteConfig(
             'undefinedLanguageForTextFact': 1,
             'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 5,
             'extensionTaxonomyWrongFilesStructure': 1,
-        }
+        },
+        'RTS_Art_6_a/index.xml:TC2_invalid': {
+            'UsableConceptsNotAppliedByTaggedFacts': 1,
+            'incorrectKvkTaxonomyVersionUsed': 1,
+            'message:existsAtLeastOnce_ChamberOfCommerceRegistrationNumber': 1,
+            'message:existsAtLeastOnce_FinancialReportingPeriod': 1,
+            'message:existsAtLeastOnce_FinancialReportingPeriodEndDate': 1,
+            'message:existsAtLeastOnce_LegalEntityLegalForm': 1,
+            'message:existsAtLeastOnce_LegalEntityName': 1,
+            'message:existsAtLeastOnce_LegalEntityRegisteredOffice': 1,
+            'message:existsOnlyOnce_AuditorsReportFinancialStatementsPresent': 1,
+            'message:existsOnlyOnce_DocumentAdoptionStatus': 1,
+            'message:existsOnlyOnce_FinancialStatementsConsolidated': 1,
+        },
     }.items()},
     expected_failure_ids=frozenset([
         # Conformance Suite Errors
@@ -116,17 +142,9 @@ config = ConformanceSuiteConfig(
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_III_Par_1/index.xml:TC3_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_12_G3-2-4_1/index.xml:TC4_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_14_G3-5-1_1/index.xml:TC2_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_4_1/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_4_3/index.xml:TC3_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_4_3/index.xml:TC4_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_4_3/index.xml:TC5_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_5/index.xml:TC2_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_5/index.xml:TC3_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_8_G4-4-5/index.xml:TC2_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_8_G4-4-5/index.xml:TC3_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_9_Par_10/index.xml:TC3_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Art_3/index.xml:TC4_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Art_6_a/index.xml:TC2_invalid',
     ]),
     info_url='https://www.sbr-nl.nl/sbr-domeinen/handelsregister/uitbreiding-elektronische-deponering-handelsregister',
     name=PurePath(__file__).stem,

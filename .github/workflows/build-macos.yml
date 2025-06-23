@@ -12,9 +12,19 @@ on:
         description: 'Arelle/EDGAR branch, tag or SHA to checkout (blank for default)'
         required: false
         type: string
+      macos_version:
+        default: '15'
+        description: 'MacOS version to use (15, 14, 13, latest, etc.)'
+        required: false
+        type: string
       python_version:
         default: '3.13.3'
         description: 'Python version to use'
+        required: false
+        type: string
+      python_architecture:
+        default: 'arm64'
+        description: 'Python architecture to use (x64, arm64)'
         required: false
         type: string
       xule_ref:
@@ -44,9 +54,19 @@ on:
         description: 'Arelle/EDGAR branch, tag or SHA to checkout (blank for default)'
         required: false
         type: string
+      macos_version:
+        default: '15'
+        description: 'MacOS version to use (15, 14, 13, latest, etc.)'
+        required: true
+        type: string
       python_version:
         default: '3.13.3'
         description: 'Python version to use'
+        required: true
+        type: string
+      python_architecture:
+        default: 'arm64'
+        description: 'Python architecture to use (x64, arm64)'
         required: true
         type: string
       xule_ref:
@@ -64,8 +84,7 @@ permissions: {}
 jobs:
   build-macos:
     environment: release
-    # Intel runner produces universal binary
-    runs-on: macos-13
+    runs-on: macos-${{ inputs.macos_version }}
     outputs:
       artifact_versioned_name: ${{ steps.define-artifact-names.outputs.artifact_versioned_name }}
       uploaded_artifact_name: ${{ steps.define-artifact-names.outputs.uploaded_artifact_name }}
@@ -81,6 +100,7 @@ jobs:
           cache: 'pip'
           check-latest: true
           python-version: ${{ inputs.python_version }}
+          architecture: ${{ inputs.python_architecture }}
       - run: |
           python -m pip install --upgrade pip setuptools wheel
           pip install -r requirements-build.txt
@@ -105,9 +125,9 @@ jobs:
       - name: Define artifact names
         id: define-artifact-names
         run: |
-          echo "artifact_versioned_name=arelle-macos-${{ env.BUILD_VERSION }}.dmg" >> $GITHUB_OUTPUT
-          echo "uploaded_artifact_name=macos distribution" >> $GITHUB_OUTPUT
-          echo "DMG_BUILD_ARTIFACT_PATH=dist_dmg/arelle-macos-${{ env.BUILD_VERSION }}.dmg" >> $GITHUB_ENV
+          echo "artifact_versioned_name=arelle-macos-${{ inputs.python_architecture }}-${{ env.BUILD_VERSION }}.dmg" >> $GITHUB_OUTPUT
+          echo "uploaded_artifact_name=macos ${{ inputs.python_architecture }} distribution" >> $GITHUB_OUTPUT
+          echo "DMG_BUILD_ARTIFACT_PATH=dist_dmg/arelle-macos-${{ inputs.python_architecture }}-${{ env.BUILD_VERSION }}.dmg" >> $GITHUB_ENV
       - name: Install certificate
         if: ${{ inputs.codesign_and_notarize }}
         env:
@@ -216,7 +236,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4.6.2
         with:
-          name: 'macos test logs'
+          name: 'macos ${{ inputs.python_architecture }} test logs'
           if-no-files-found: error
           include-hidden-files: true
           path: '.test/**/*.logfile.xml'
