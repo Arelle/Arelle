@@ -125,7 +125,7 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
             elif isinstance(obj, XbrlReport):
                 self.viewFacts(node, nodeNum, obj)
 
-    def viewProps(self, parentNode, nodeNum, obj):
+    def viewProps(self, parentNode, nodeNum, obj, nestedObjs=True):
         propView = obj.propertyView
         node = self.treeView.insert(parentNode, "end",
                                     f"_{self.id}_{obj.xbrlMdlObjIndex}",
@@ -141,17 +141,18 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
                 print(f"propViewEntry problem {propViewEntry} class {type(obj).__name__}")
             self.treeView.set(node, self.colNames[i], propViewEntry[1])
         # process nested objects
-        for propName, propType in getattr(type(obj), "__annotations__", EMPTY_DICT).items():
-            childObj = getattr(obj, propName, None)
-            if isinstance(getattr(propType, "__origin__", None), type(Union)): # Optional[ ] type
-                if isinstance(propType.__args__[0], XbrlTaxonomyObject): # e.g. dateResolution object
-                    childObj = getattr(obj, propName, None)
-                    if childObj is not None:
-                        self.viewProps(node, nodeNum, childObj)
-            elif getattr(propType, "__origin__", None) in (set, OrderedSet) and issubclass(propType.__args__[0], XbrlTaxonomyObject):
-                if childObj is not None and len(childObj) > 0 and propName != "relationships":
-                    for childObjObj in childObj:
-                        self.viewProps(node, nodeNum, childObjObj)
+        if nestedObjs:
+            for propName, propType in getattr(type(obj), "__annotations__", EMPTY_DICT).items():
+                childObj = getattr(obj, propName, None)
+                if isinstance(getattr(propType, "__origin__", None), type(Union)): # Optional[ ] type
+                    if isinstance(propType.__args__[0], XbrlTaxonomyObject): # e.g. dateResolution object
+                        childObj = getattr(obj, propName, None)
+                        if childObj is not None:
+                            self.viewProps(node, nodeNum, childObj)
+                elif getattr(propType, "__origin__", None) in (set, OrderedSet) and issubclass(propType.__args__[0], XbrlTaxonomyObject):
+                    if childObj is not None and len(childObj) > 0 and propName != "relationships":
+                        for childObjObj in childObj:
+                            self.viewProps(node, nodeNum, childObjObj)
         return node
 
     def viewGroupContent(self, parentNode, nodeNum, obj):
@@ -159,7 +160,7 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
         for relatedObjQn in self.xbrlTxmyMdl.groupContents.get(obj.name, ()):
             relatedObj = self.xbrlTxmyMdl.namedObjects.get(relatedObjQn)
             if relatedObj is not None:
-                node = self.viewProps(parentNode, nodeNum, relatedObj)
+                node = self.viewProps(parentNode, nodeNum, relatedObj, nestedObjs=False)
                 nodeNum += 1
                 if isinstance(relatedObj, XbrlCube):
                     self.viewDims(node, nodeNum, relatedObj)
@@ -179,7 +180,7 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
                     self.viewRoots(domNode, nodeNum, domObj)
 
     def viewRoots(self, parentNode, nodeNum, obj):
-        if not isinstance(obj, XbrlDomain):
+        if not isinstance(obj, (XbrlDomain, XbrlNetwork)):
             return
         for qn in obj.relationshipRoots:
             rootObj = self.xbrlTxmyMdl.namedObjects.get(qn)
