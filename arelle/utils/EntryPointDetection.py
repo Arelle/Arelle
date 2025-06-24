@@ -9,6 +9,12 @@ from arelle import (
 def filesourceEntrypointFiles(filesource, entrypointFiles=None, inlineOnly=False):
     if entrypointFiles is None:
         entrypointFiles = []
+    for pluginXbrlMethod in PluginManager.pluginClassMethods("FileSource.EntrypointFiles"):
+        resultEntrypointFiles = pluginXbrlMethod(filesource, inlineOnly)
+        if resultEntrypointFiles is not None:
+            del entrypointFiles[:]  # clear list
+            entrypointFiles.extend(resultEntrypointFiles)
+            return entrypointFiles
     if filesource.isArchive:
         if filesource.isTaxonomyPackage:  # if archive is also a taxonomy package, activate mappings
             filesource.loadTaxonomyPackageMappings()
