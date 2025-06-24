@@ -401,7 +401,16 @@ class Validate:
                                 # resolve an IXDS in entrypoints
                                 for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ArchiveIxds"):
                                     pluginXbrlMethod(self, filesource,entrypoints)
-                                filesource.select(entrypoints[0].get("file", None))
+                                for entrypoint in entrypoints:
+                                    filesource.select(entrypoint.get("file", None))
+                                    modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager,
+                                                               filesource,
+                                                               _("validating"),
+                                                               base=filesource.basefile + "/",
+                                                               errorCaptureLevel=errorCaptureLevel,
+                                                               ixdsTarget=modelTestcaseVariation.ixdsTarget,
+                                                               errors=preLoadingErrors)
+                                    loadedModels.append(modelXbrl)
                     except Exception as err:
                         self.modelXbrl.error("exception:" + type(err).__name__,
                             _("Testcase variation validation exception: %(error)s, entry URL: %(instance)s"),
