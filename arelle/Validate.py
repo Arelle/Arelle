@@ -730,7 +730,11 @@ class Validate:
                 indexPath = indexPath[len(baseZipFile) + 1:]
             indexPath = indexPath.replace("\\", "/")
         variationIdPath = f'{indexPath}:{modelTestcaseVariation.id}'
-        if userExpectedErrors := testcaseExpectedErrors.get(variationIdPath):
+        userExpectedErrors = []
+        for userPattern, userErrors in testcaseExpectedErrors.items():
+            if fnmatch.fnmatch(variationIdPath, userPattern):
+                userExpectedErrors.extend(userErrors)
+        if userExpectedErrors:
             if expected is None:
                 expected = []
             if isinstance(expected, str):
