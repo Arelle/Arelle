@@ -338,9 +338,10 @@ class Validate:
             loadedModels.append(modelXbrl)
             PackageManager.packageInfo(self.modelXbrl.modelManager.cntlr, readMeFirstUri, reload=True, errors=modelXbrl.errors)
         else: # not a multi-schemaRef versioning report
+            readMeFirstUriIsArchive = isReportPackageExtension(readMeFirstUri)
             readMeFirstUriIsEmbeddedZipFile = False
             if self.useFileSource.isArchive and not isLegacyAbs(readMeFirstUri):
-                if isReportPackageExtension(readMeFirstUri):
+                if readMeFirstUriIsArchive:
                     readMeFirstUriIsEmbeddedZipFile = True
                 else:
                     normalizedReadMeFirstUri = self.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(readMeFirstUri, baseForElement)
@@ -348,7 +349,7 @@ class Validate:
                     if archivePath:
                         with self.useFileSource.fs.open(archivePath[1]) as embeddedFile:
                             readMeFirstUriIsEmbeddedZipFile = zipfile.is_zipfile(embeddedFile)
-            if not readMeFirstUriIsEmbeddedZipFile:
+            if not readMeFirstUriIsArchive:
                 modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager,
                                             readMeFirstUri,
                                             _("validating"),
@@ -427,15 +428,16 @@ class Validate:
                         # Legacy ESEF conformance suite logic.
                         for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ReportPackageIxds"):
                                 filesource.select(pluginXbrlMethod(filesource, **_rptPkgIxdsOptions))
-                    modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager,
-                                                filesource,
-                                                _("validating"),
-                                                base=baseForElement,
-                                                errorCaptureLevel=errorCaptureLevel,
-                                                ixdsTarget=modelTestcaseVariation.ixdsTarget,
-                                                isLoadable=modelTestcaseVariation.variationDiscoversDTS or filesource.url,
-                                                errors=preLoadingErrors)
-                    loadedModels.append(modelXbrl)
+                    if len(loadedModels) == 0:
+                        modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager,
+                                                    filesource,
+                                                    _("validating"),
+                                                    base=baseForElement,
+                                                    errorCaptureLevel=errorCaptureLevel,
+                                                    ixdsTarget=modelTestcaseVariation.ixdsTarget,
+                                                    isLoadable=modelTestcaseVariation.variationDiscoversDTS or filesource.url,
+                                                    errors=preLoadingErrors)
+                        loadedModels.append(modelXbrl)
 
         for model in loadedModels:
             modelXbrl.isTestcaseVariation = True
