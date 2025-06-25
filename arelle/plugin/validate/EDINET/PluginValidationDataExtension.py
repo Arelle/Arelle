@@ -31,15 +31,15 @@ class PluginValidationDataExtension(PluginData):
         manifestPaths = set()
         if modelXbrl.fileSource.filesDir is not None:
             # For archives, retrieve paths from the file source.
-            base = Path(modelXbrl.fileSource.basefile)
+            base = Path(str(modelXbrl.fileSource.basefile))
             for file in modelXbrl.fileSource.filesDir:
                 path = base / file
                 if manifestDir in path.parents:
                     manifestPaths.add(path)
         else:
             # For directories, glob paths from manifest directory.
-            for file in manifestDir.rglob("*"):
-                manifestPaths.add(file)
+            for path in (Path(file) for file in manifestDir.rglob("*")):
+                manifestPaths.add(path)
         manifestRelPaths = set()
         for path in manifestPaths:
             relPath = path.relative_to(manifestDir)

@@ -5,16 +5,15 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
+import zipfile
 from collections import defaultdict
-from io import IOBase
 from pathlib import Path
-from typing import Any, Iterable
-from zipfile import ZipExtFile
+from typing import Any
 
 from lxml import etree
 from lxml.etree import _Element
 
-from arelle.ModelDocument import LoadingException, ModelDocument, load
+from arelle.FileSource import FileSource
 from arelle.Version import authorLabel, copyrightLabel
 from .ValidationPluginExtension import ValidationPluginExtension
 from .rules import upload
@@ -41,18 +40,18 @@ def disclosureSystemConfigURL(*args: Any, **kwargs: Any) -> str:
     return validationPlugin.disclosureSystemConfigURL
 
 
-def _parseManifestDoc(xmlRootElement: _Element, base: Path) -> dict[str, list[str]]:
+def _parseManifestDoc(xmlRootElement: _Element, base: Path) -> dict[str, list[Path]]:
     sets = defaultdict(list)
     for instanceElt in xmlRootElement.iter(tag="{http://disclosure.edinet-fsa.go.jp/2013/manifest}instance"):
-        instanceId = instanceElt.attrib["id"]
+        instanceId = str(instanceElt.attrib["id"])
         for ixbrlElt in instanceElt.iter(tag="{http://disclosure.edinet-fsa.go.jp/2013/manifest}ixbrl"):
-            uri = ixbrlElt.text.strip()
+            uri = ixbrlElt.text.strip() if ixbrlElt.text is not None else None
             if uri:
                 sets[instanceId].append(base / uri)
     return sets
 
 
-def fileSourceEntrypointFiles(filesource, inlineOnly, *args, **kwargs):
+def fileSourceEntrypointFiles(filesource: FileSource, inlineOnly: bool, *args: Any, **kwargs: Any) -> list[dict[str, Any]] | None:
     manifests = {}
     if filesource.isArchive:
         if filesource.isTaxonomyPackage:
@@ -62,11 +61,13 @@ def fileSourceEntrypointFiles(filesource, inlineOnly, *args, **kwargs):
         for _archiveFile in (filesource.dir or ()):
             if not Path(_archiveFile).stem.startswith('manifest'):
                 continue
+            assert isinstance(filesource.fs, zipfile.ZipFile), \
+                "The EDINET plugin only supports archives in .zip format."
             with filesource.fs.open(_archiveFile) as manifestDoc:
                 base = Path(_archiveFile).parent
                 xmlRootElement = etree.fromstring(manifestDoc.read())
                 manifests.update(_parseManifestDoc(xmlRootElement, base))
-    elif (dirpath := Path(filesource.url)).is_dir():
+    elif (dirpath := Path(str(filesource.url))).is_dir():
         for file in dirpath.rglob("*"):
             if not file.is_file():
                 continue
@@ -89,7 +90,7 @@ def fileSourceEntrypointFiles(filesource, inlineOnly, *args, **kwargs):
     return entrypointFiles
 
 
-def modelXbrlLoadComplete(*args: Any, **kwargs: Any) -> ModelDocument | LoadingException | None:
+def modelXbrlLoadComplete(*args: Any, **kwargs: Any) -> None:
     return validationPlugin.modelXbrlLoadComplete(*args, **kwargs)
 
 

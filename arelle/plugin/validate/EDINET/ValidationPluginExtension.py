@@ -27,4 +27,3 @@ class ValidationPluginExtension(ValidationPlugin):
 
     def modelXbrlLoadComplete(self, *args: Any, **kwargs: Any) -> None:
         return None
-
