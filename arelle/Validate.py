@@ -348,7 +348,7 @@ class Validate:
                     archivePath = FileSource.archiveFilenameParts(normalizedReadMeFirstUri)
                     if archivePath:
                         with self.useFileSource.fs.open(archivePath[1]) as embeddedFile:
-                            readMeFirstUriIsEmbeddedZipFile = zipfile.is_zipfile(embeddedFile)
+                            readMeFirstUriIsArchive = readMeFirstUriIsEmbeddedZipFile = zipfile.is_zipfile(embeddedFile)
             if not readMeFirstUriIsArchive:
                 modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager,
                                             readMeFirstUri,
