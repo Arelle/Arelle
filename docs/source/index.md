@@ -10,8 +10,7 @@ esef
 user_guides/user_guides
 plugins/plugins
 python_api/python_api
-contributing
-build_docs
+contributor_guides/contributor_guides
 license
 apidocs/index
 genindex

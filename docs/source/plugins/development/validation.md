@@ -59,4 +59,4 @@ need a rule to run before another you can either implement them with different h
 [plugin-data]: #arelle.utils.PluginData.PluginData
 [example-plugin]: https://github.com/Arelle/Arelle/tree/master/arelle/examples/plugin/validate/XYZ
 [validations-directory]: https://github.com/Arelle/Arelle/tree/master/arelle/plugin/validate
-[contributing-code]: project:../../contributing.md#contributing-code
+[contributing-code]: project:../../contributor_guides/contributing.md#contributing-code

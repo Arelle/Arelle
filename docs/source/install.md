@@ -56,7 +56,7 @@ See the contributing documentation for [setting up your environment][setting-up-
 if you're comfortable setting up your own Python environment and would like to run
 Arelle from source.
 
-[setting-up-your-environment]: project:contributing.md#setting-up-your-environment
+[setting-up-your-environment]: project:contributor_guides/contributing.md#setting-up-your-environment
 
 ## Python Package
 
