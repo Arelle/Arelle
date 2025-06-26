@@ -7,10 +7,11 @@ from typing import TYPE_CHECKING, Optional, Union
 from arelle.ModelValue import qname, QName, DateTime, YearMonthDayTimeDuration
 from arelle.PythonUtil import OrderedSet
 from .XbrlConst import xbrl
+from .XbrlDimension import XbrlDomain
 from .XbrlProperty import XbrlProperty
-from .XbrlTypes import XbrlTaxonomyType, QNameKeyType, DefaultTrue, DefaultFalse
+from .XbrlTypes import XbrlTaxonomyModuleType, QNameKeyType, DefaultTrue, DefaultFalse
 from .ModelValueMore import QNameAt, SQName
-from .XbrlTaxonomyObject import XbrlTaxonomyObject, XbrlReferencableTaxonomyObject
+from .XbrlObject import XbrlTaxonomyObject, XbrlReferencableTaxonomyObject
 
 class XbrlDateResolution(XbrlTaxonomyObject):
     conceptName: Optional[QName] # (optional) Identifies the QName of a concept object that has a date fact value. The values of the concept object resolves to a set of dates. If no value exists in the report then the property is ignored, and no date constraint is enforced on the cube.
@@ -34,9 +35,22 @@ class XbrlCubeDimension(XbrlTaxonomyObject):
     domainSort: Optional[str] # (optional if typed dimension) A string value that indicates the sort order of the typed dimension. The values can be either asc or desc. The values are case insensitive. This indicates if the cube is viewed the order of the values shown on the typed dimension. This cannot be used on an explicit dimension.
     allowDomainFacts: Union[bool, DefaultFalse] # (optional    ) A boolean value that indicates if facts not identified with the dimension are included in the cube. For typed and explicit dimensions the value defaults to false. A value of true for a typed or explicit dimension will include facts that don't use the dimension in the cube. For the period core dimension, forever facts or facts with no period dimension are included when this value is set to true. For units, this is a unit with no units such as a string or date. For the entity core dimension, it is fact values with no entity. This property cannot be used on the concept core dimension.
     periodConstraints: set[XbrlPeriodConstraint] # (optional only for period core dimension) Defines an ordered set of periodConstraint objects to restrict fact values in a cube to fact values with a specified period.
+    
+    def allowedMembers(self, txmyMdl):
+        try:
+            return self._allowedMembers
+        except AttributeError:
+            self._allowedMembers = mem = OrderedSet()
+            domObj = txmyMdl.namedObjects.get(getattr(self, "domainName", None))
+            if isinstance(domObj, XbrlDomain):
+                if self.allowDomainFacts:
+                    mem.add(domObj.root)
+                for relObj in domObj.relationships:
+                    mem.add(relObj.target)
+            return self._allowedMembers
 
 class XbrlCube(XbrlReferencableTaxonomyObject):
-    taxonomy: XbrlTaxonomyType
+    taxonomy: XbrlTaxonomyModuleType
     name: QNameKeyType # (required) The name property is a QName that uniquely identifies the cube object.
     cubeType: Optional[QName] # (optional) The cubeType property identifies the type of data cube being represented. This must match a defined cubeType object or specification defined cube types of xbrl:eventCube, xbrl:positionCube, xbrl:referenceCube, xbrl:reportCube, xbrl:journalCube, xbrl:eventDetailsCube, xbrl:timeSeriesCube and xbrl:defaultCube. If no QName is provided the default is xbrl:reportCube.
     cubeDimensions: OrderedSet[XbrlCubeDimension] # (required) An ordered set of cubeDimension objects that identify the dimensions and associated domains used on the cube.
@@ -57,7 +71,7 @@ class XbrlRequiredCubeRelationship(XbrlTaxonomyObject):
     target: Optional[QName] # (optional) The QName of the target object type in the relationship.
 
 class XbrlCubeType(XbrlReferencableTaxonomyObject):
-    taxonomy: XbrlTaxonomyType
+    taxonomy: XbrlTaxonomyModuleType
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the cube type object.
     baseCubeType: Union[bool, DefaultTrue] # (optional) Base cube type that the cube object is based on. Uses the QName of a cubeType object. The property only allows restriction rather than expansion of the baseCubeTape.
     periodDimension: Union[bool, DefaultTrue] # (optional) boolean to indicate if the period core dimension is included in the cube. Defaults to true.
