@@ -16,9 +16,6 @@ config = ConformanceSuiteConfig(
         '626-rendering-syntax',
         '902-sdr/efm/62421-sdr-multiple',
     ]],
-    args=[
-        '--disclosureSystem', 'efm-pragmatic',
-    ],
     assets=[
         ConformanceSuiteAssetConfig.conformance_suite(
             Path(CONFORMANCE_SUITE_ZIP_NAME),
@@ -28,6 +25,7 @@ config = ConformanceSuiteConfig(
         )
     ],
     cache_version_id='UoUBsvJEii2aAKHl1EgjP1PTM6M2teSm',
+    disclosure_system='efm-pragmatic',
     expected_failure_ids=frozenset(f'conf/{s}' for s in [
         # Expected to pass with release of EFM 25.3 conformance suite.
         '605-instance-syntax/605-08-no-unused-contexts/605-08-no-unused-contexts-testcase.xml:_002ng'

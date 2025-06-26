@@ -2,6 +2,9 @@ from pathlib import PurePath, Path
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig, AssetSource
 
 config = ConformanceSuiteConfig(
+    args=[
+        '--infoset',
+    ],
     assets=[
         ConformanceSuiteAssetConfig.conformance_suite(
             Path('XBRL-XDT-CONF-2025-09-09.zip'),
@@ -9,9 +12,6 @@ config = ConformanceSuiteConfig(
             public_download_url='https://www.xbrl.org/2009/xdt-conf-cr4-2009-10-06.zip',
             source=AssetSource.S3_PUBLIC,
         ),
-    ],
-    args=[
-        '--infoset',
     ],
     expected_failure_ids=frozenset(f"XBRL-XDT-CONF-2025-09-09/{s}" for s in [
         # The value of the xbrldt:targetRole attribute is valid
@@ -29,5 +29,8 @@ config = ConformanceSuiteConfig(
     ]),
     info_url='https://specifications.xbrl.org/work-product-index-group-dimensions-dimensions.html',
     name=PurePath(__file__).stem,
+    runtime_options={
+        'infosetValidate': True,
+    },
     test_case_result_options='match-any',
 )

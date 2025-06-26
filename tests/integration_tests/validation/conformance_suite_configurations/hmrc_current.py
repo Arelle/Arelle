@@ -2,10 +2,6 @@ from pathlib import PurePath, Path
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig
 
 config = ConformanceSuiteConfig(
-    args=[
-        '--disclosureSystem', 'hmrc',
-        '--baseTaxonomyValidation', 'none',
-    ],
     assets=[
         ConformanceSuiteAssetConfig.local_conformance_suite(
             Path('HMRC'),
@@ -28,6 +24,8 @@ config = ConformanceSuiteConfig(
             public_download_url='https://www.frc.org.uk/documents/3421/Charities_2023_Taxonomies_2023.zip'
         ),
     ],
+    base_taxonomy_validation='none',
+    disclosure_system='hmrc',
     info_url='https://www.gov.uk/government/organisations/hm-revenue-customs',
     name=PurePath(__file__).stem,
     plugins=frozenset({'validate/UK'}),
