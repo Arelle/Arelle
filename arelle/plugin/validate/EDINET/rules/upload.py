@@ -4,6 +4,7 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 import re
+import zipfile
 from collections.abc import Iterable
 from typing import Any
 
@@ -85,4 +86,32 @@ def rule_EC0124E(
                   "No empty folders. "
                   "Please store the file in the appropriate folder or delete the folder and upload again."),
             emptyDirectory=emptyDirectory,
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC0183E(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC0183E: The compressed file size exceeds 55MB.
+    """
+    if val.modelXbrl.fileSource is None:
+        return
+    if not isinstance(val.modelXbrl.fileSource.fs, zipfile.ZipFile):
+        return
+    zipFile = val.modelXbrl.fileSource.fs
+    zipFile.fp.seek(0, 2)  # Move to the end of the file
+    size = zipFile.fp.tell()
+    if size > 55 * 1024 * 1024:
+        yield Validation.error(
+            codes='EDINET.EC0183E',
+            msg=_("The compressed file size exceeds 55MB. "
+                  "Please compress the file to a size of 55MB or less and upload it again."),
         )
