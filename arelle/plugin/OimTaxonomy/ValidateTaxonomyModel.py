@@ -25,7 +25,7 @@ from .XbrlReference import XbrlReference
 from .XbrlTableTemplate import XbrlTableTemplate
 from .XbrlTaxonomyModule import XbrlTaxonomyModule, xbrlObjectTypes, xbrlObjectQNames
 from .XbrlUnit import XbrlUnit
-from .XbrlConst import qnXsQName, qnXsDateTime, qnXsDuration, objectsWithProperties
+from .XbrlConst import qnXsQName, qnXsDate, qnXsDateTime, qnXsDuration, objectsWithProperties
 
 perCnstrtFmtStartEndPattern = re.compile(r".*@(start|end)")
 
@@ -107,7 +107,7 @@ def validateTaxonomy(txmyMdl, txmy):
     for cncpt in txmy.concepts:
         assertObjectType(cncpt, XbrlConcept)
         perType = cncpt.periodType
-        if perType not in ("instant", "duration"):
+        if perType not in ("instant", "duration", "none"):
             txmyMdl.error("oime:invalidPropertyValue",
                       _("Concept %(name)s has invalid period type %(perType)s"),
                       xbrlObject=cncpt, name=cncpt.name, perType=perType)
@@ -280,9 +280,9 @@ def validateTaxonomy(txmyMdl, txmy):
                         if dtResObj is not None:
                             if dtResObj.conceptName:
                                 cncpt = txmyMdl.namedObjects.get(dtResObj.conceptName)
-                                if not cncpt or not isinstance(txmyMdl.namedObjects.get(cncpt.dataType), XbrlDataType) or txmyMdl.namedObjects[cncpt.dataType].baseType != qnXsDateTime:
+                                if not cncpt or not isinstance(txmyMdl.namedObjects.get(cncpt.dataType), XbrlDataType) or txmyMdl.namedObjects[cncpt.dataType].baseType not in (qnXsDate, qnXsDateTime):
                                     txmyMdl.error("oimte:invalidPeriodRepresentation",
-                                              _("Cube %(name)s period constraint concept %(qname)s base type MUST be a date."),
+                                              _("Cube %(name)s period constraint concept %(qname)s base type MUST be a date or dateTime."),
                                               xbrlObject=(cubeObj,cubeDimObj), name=name, qname=dtResObj.conceptName)
                             if dtResObj.context:
                                 cncpt = txmyMdl.namedObjects.get(dtResObj.context)
