@@ -54,3 +54,35 @@ def rule_EC0121E(
                 basename=path.name,
                 file=str(path)
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC0124E(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC0124E: There are no empty directories.
+
+    See note on EC0121E.
+    """
+    manifestDirectoryPaths = pluginData.getManifestDirectoryPaths(val.modelXbrl)
+    emptyDirectories = []
+    for path in manifestDirectoryPaths:
+        if path.suffix:
+            continue
+        if not any(path in p.parents for p in manifestDirectoryPaths):
+            emptyDirectories.append(str(path))
+    for emptyDirectory in emptyDirectories:
+        yield Validation.error(
+            codes='EDINET.EC0124E',
+            msg=_("There is no file directly under '%(emptyDirectory)s'. "
+                  "No empty folders. "
+                  "Please store the file in the appropriate folder or delete the folder and upload again."),
+            emptyDirectory=emptyDirectory,
+        )

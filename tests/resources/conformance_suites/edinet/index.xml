@@ -1,5 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <testcases name="EDINET">
     <testcase uri='EC0121E/index.xml' />
+    <testcase uri='EC0124E/index.xml' />
     <testcase uri='valid/index.xml' />
 </testcases>

@@ -17,7 +17,7 @@ config = ConformanceSuiteConfig(
         'valid/index.xml:valid01': {
             'EDINET.EC0121E': 48,
         },
-        'valid/index.xml:valid02': {
+        'EC0124E/index.xml:invalid01': {
             'EDINET.EC0121E': 48,
         },
     }.items()},
