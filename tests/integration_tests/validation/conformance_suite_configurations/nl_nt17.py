@@ -4,10 +4,6 @@ from tests.integration_tests.validation.assets import NL_PACKAGES
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig
 
 config = ConformanceSuiteConfig(
-    args=[
-        '--disclosureSystem', 'NT17',
-        '--baseTaxonomyValidation', 'none',
-    ],
     assets=[
         ConformanceSuiteAssetConfig.local_conformance_suite(
             Path('nl_nt17'),
@@ -15,6 +11,8 @@ config = ConformanceSuiteConfig(
         ),
         *NL_PACKAGES['NT17'],
     ],
+    base_taxonomy_validation='none',
+    disclosure_system='NT17',
     info_url='https://sbr-nl.nl/sites/default/files/bestanden/taxonomie/SBR%20Filing%20Rules%20NT17%20-%2020220301__.pdf',
     name=PurePath(__file__).stem,
     plugins=frozenset({'validate/NL'}),

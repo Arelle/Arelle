@@ -513,6 +513,9 @@ class Cntlr:
             PackageManager.save(self)
         if saveConfig:
             self.saveConfig()
+        if self.modelManager is not None:
+            for modelXbrl in self.modelManager.loadedModelXbrls:
+                self.modelManager.close(modelXbrl)
         if self.logger is not None:
             try:
                 self.logHandler.close()

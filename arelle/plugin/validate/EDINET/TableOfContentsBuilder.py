@@ -101,7 +101,7 @@ DEEPEST_LEVEL = max(TOC_NUMBER_SETS.keys())
 class TableOfContentsBuilder:
     _currentDocument: ModelDocument | None
     _currentLevel: int
-    _documents: list[ModelDocument]
+    _documents: set[ModelDocument]
     _floatingLevel: int | None
     _levelLabels: dict[int, set[str]]
     _levelPositions: dict[int, int]
@@ -117,7 +117,7 @@ class TableOfContentsBuilder:
         self._levelLabels = defaultdict(set)
         self._levelPositions = defaultdict(int)
         self._levelSequences = {}
-        self._documents = []
+        self._documents = set()
         self._tocEntryCount = 0
         self._tocSequence = []
         self._validations = []
@@ -413,7 +413,7 @@ class TableOfContentsBuilder:
             )
 
     def addDocument(self, modelDocument: ModelDocument) -> None:
-        self._documents.append(modelDocument)
+        self._documents.add(modelDocument)
 
     def validate(self) -> Iterable[Validation]:
         self._build()

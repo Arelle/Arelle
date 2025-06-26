@@ -49,4 +49,7 @@ config = ConformanceSuiteConfig(
     membership_url="https://www.xbrl.org/join",
     name=PurePath(__file__).stem,
     plugins=frozenset(["inlineXbrlDocumentSet"]),
+    runtime_options={
+        'reportPackage': True,
+    },
 )
