@@ -319,9 +319,15 @@ class ModelTestcaseVariation(ModelObject):
         errorElements = XmlUtil.descendants(self, None, "error")
         resultElement = XmlUtil.descendant(self, None, "result")
         if isinstance(errorElements,list) and len(errorElements) > 0:
-            return [ModelValue.qname(e, e.stringValue) if not e.get("nonStandardErrorCodes")
-                    else e.stringValue
-                    for e in errorElements]
+            errorCodes = []
+            for errorElement in errorElements:
+                if errorElement.get("nonStandardErrorCodes"):
+                    errorCode = errorElement.stringValue
+                else:
+                    errorCode = ModelValue.qname(errorElement, errorElement.stringValue)
+                num = int(errorElement.attr("num") or 1)
+                errorCodes.extend([errorCode] * num)
+            return errorCodes
         #else:
         #    errorElement = errorElements[1]
         #    if errorElement is not None and not errorElement.get("nonStandardErrorCodes"):
