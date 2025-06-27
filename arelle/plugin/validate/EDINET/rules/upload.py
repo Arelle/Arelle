@@ -4,7 +4,6 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 import re
-import zipfile
 from collections.abc import Iterable
 from typing import Any
 
@@ -41,8 +40,10 @@ def rule_EC0121E(
     with multiple document sets, but can still cause duplicates when a single manifest
     file has multiple document sets, as is often the case with AuditDoc manifests.
     """
-    manifestDirectoryPaths = pluginData.getManifestDirectoryPaths(val.modelXbrl)
-    for path in manifestDirectoryPaths:
+    if not pluginData.shouldValidateUpload(val):
+        return
+    uploadFilepaths = pluginData.getUploadFilepaths(val.modelXbrl)
+    for path in uploadFilepaths:
         if len(str(path.name)) > 31 or not FILENAME_STEM_PATTERN.match(path.stem):
             yield Validation.error(
                 codes='EDINET.EC0121E',
@@ -72,12 +73,14 @@ def rule_EC0124E(
 
     See note on EC0121E.
     """
-    manifestDirectoryPaths = pluginData.getManifestDirectoryPaths(val.modelXbrl)
+    if not pluginData.shouldValidateUpload(val):
+        return
+    uploadFilepaths = pluginData.getUploadFilepaths(val.modelXbrl)
     emptyDirectories = []
-    for path in manifestDirectoryPaths:
+    for path in uploadFilepaths:
         if path.suffix:
             continue
-        if not any(path in p.parents for p in manifestDirectoryPaths):
+        if not any(path in p.parents for p in uploadFilepaths):
             emptyDirectories.append(str(path))
     for emptyDirectory in emptyDirectories:
         yield Validation.error(
@@ -86,6 +89,39 @@ def rule_EC0124E(
                   "No empty folders. "
                   "Please store the file in the appropriate folder or delete the folder and upload again."),
             emptyDirectory=emptyDirectory,
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC0132E(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC0132E: Store the manifest file directly under the relevant folder.
+    """
+    if not pluginData.shouldValidateUpload(val):
+        return
+    uploadFilepaths = pluginData.getUploadFilepaths(val.modelXbrl)
+    docFolders = ("PublicDoc", "PrivateDoc", "AuditDoc")
+    for filepath in uploadFilepaths:
+        if filepath.name not in docFolders:
+            continue
+        expectedManifestName = f'manifest_{filepath.name}.xml'
+        expectedManifestPath = filepath / expectedManifestName
+        if expectedManifestPath in uploadFilepaths:
+            continue
+        yield Validation.error(
+            codes='EDINET.EC0132E',
+            msg=_("'%(expectedManifestName)s' does not exist in '%(expectedManifestFolder)s'. "
+                  "Please store the manifest file (or cover file) directly under the relevant folder and upload it again. "),
+            expectedManifestName=expectedManifestName,
+            expectedManifestFolder=str(filepath),
         )
 
 
@@ -102,9 +138,7 @@ def rule_EC0183E(
     """
     EDINET.EC0183E: The compressed file size exceeds 55MB.
     """
-    if val.modelXbrl.fileSource is None:
-        return
-    if not isinstance(val.modelXbrl.fileSource.fs, zipfile.ZipFile):
+    if not pluginData.shouldValidateUpload(val):
         return
     zipFile = val.modelXbrl.fileSource.fs
     zipFile.fp.seek(0, 2)  # Move to the end of the file
