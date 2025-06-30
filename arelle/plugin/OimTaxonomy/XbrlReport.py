@@ -24,7 +24,7 @@ class XbrlReport(XbrlReportObject):
     linkTypes: OrderedDict[str, AnyURI] = OrderedDict()
     linkGroups: OrderedDict[str, AnyURI] = OrderedDict()
     facts: OrderedDict[str, XbrlFact] = OrderedDict()
-    
+
     @property
     def factsByName(self):
         try:
@@ -34,4 +34,4 @@ class XbrlReport(XbrlReportObject):
             for fact in self.facts:
                 fbn[fact.name].add(fact)
             return self._factsByName
-        
+
