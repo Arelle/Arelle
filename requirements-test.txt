@@ -1,4 +1,4 @@
-boto3==1.38.41
+boto3==1.38.46
 pytest==8.4.1
 
 -r requirements.txt
