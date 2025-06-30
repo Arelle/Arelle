@@ -27,6 +27,13 @@ try:
     import ssl
 except ImportError:
     ssl = None
+
+try:
+    import truststore
+except ImportError:
+    # truststore requires Python > 3.9
+    truststore = None
+
 from arelle.FileSource import SERVER_WEB_CACHE, archiveFilenameParts
 from arelle.PluginManager import pluginClassMethods
 from arelle.UrlUtil import isHttpUrl
@@ -267,12 +274,10 @@ class WebCache:
             self.http_auth_handler = proxyhandlers.HTTPBasicAuthHandler()
             proxyHandlers = [self.proxy_handler, self.proxy_auth_handler, self.http_auth_handler]
         if ssl:
-            # Attempts to load the default CA certificates from the OS.
-            context = ssl.create_default_context()
+            # Attempt to load the default CA certificates from the OS using truststore if available, else fallback to OpenSSL's default context.
+            context = truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT) if truststore else ssl.create_default_context()
             # Include certifi certificates (Mozilla’s carefully curated
-            # collection) for systems with outdated certs and for platforms
-            # that we're unable to load certs from (macOS and some Linux
-            # distros.)
+            # collection) for systems with outdated certs.
             context.load_verify_locations(cafile=certifi.where())
             if self.noCertificateCheck:  # this is required in some Akamai environments, such as sec.gov
                 context.check_hostname = False
