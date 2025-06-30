@@ -53,7 +53,7 @@ jobs:
   build-macos-arm64:
     uses: ./.github/workflows/build-macos.yml
     with:
-      macos_version: 15
+      macos_version: 14
       python_architecture: arm64
     secrets: inherit
   publish-macos-arm64:

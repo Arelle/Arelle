@@ -13,7 +13,7 @@ on:
         required: false
         type: string
       macos_version:
-        default: '15'
+        default: '14'
         description: 'MacOS version to use (15, 14, 13, latest, etc.)'
         required: false
         type: string
@@ -55,7 +55,7 @@ on:
         required: false
         type: string
       macos_version:
-        default: '15'
+        default: '14'
         description: 'MacOS version to use (15, 14, 13, latest, etc.)'
         required: true
         type: string
