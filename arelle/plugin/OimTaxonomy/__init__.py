@@ -425,6 +425,14 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                                 else:
                                     continue
                                 collectionProp[_valKey] = valVal
+                    elif isinstance(propType, _UnionGenericAlias) and isinstance(propType.__args__[0], GenericAlias) and propType.__args__[-1] == type(None) and isinstance(jsonValue,list): # optional embdded list of objects like allowedCubeDimensions
+                        eltClass = propType.__args__[0].__args__[0]
+                        for iObj, listObj in enumerate(jsonValue):
+                            if iObj == 0: # create collection only if any objects for collection
+                                propClass = propType.__args__[0].__origin__ # collection type such as OrderedSet, dict
+                                collectionProp = propClass()
+                                setattr(newObj, propName, collectionProp) # fresh new dict or OrderedSet (even if no contents for it)
+                            createTaxonomyObjects(propName, listObj, newObj, pathParts + [f'{propName}[{iObj}]'])
                     elif isinstance(propType, _UnionGenericAlias) and propType.__args__[-1] == type(None) and isinstance(jsonValue,dict): # optional embdded object
                         createTaxonomyObjects(propName, jsonValue, newObj, pathParts + [propName]) # object property
                     else:
@@ -492,9 +500,9 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                         elif len(ownrPropType.__args__) == 1: # set such as OrderedSet or list
                             keyClass = None
                             objClass = ownrPropType.__args__[0]
-                        if ownrProp is None: # the parent object's dict or OrderedSet doesn't exist yet
-                            ownrProp = ownrPropClass()
-                            setattr(oimParentObj, propName, ownrProp) # fresh new dict or OrderedSet
+                    elif isinstance(ownrPropType, _UnionGenericAlias) and isinstance(ownrPropType.__args__[0], GenericAlias) and ownrPropType.__args__[-1] == type(None): # optional embdded list of objects like allowedCubeDimensions
+                        keyClass = None
+                        objClass = ownrPropType.__args__[0].__args__[0]
                     elif isinstance(ownrPropType, _UnionGenericAlias) and ownrPropType.__args__[-1] == type(None): # optional nested object
                         keyClass = None
                         objClass = ownrPropType.__args__[0]
@@ -523,7 +531,10 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                         else:
                             ownrProp.append(newObj)
                     elif isinstance(ownrPropType, _UnionGenericAlias) and ownrPropType.__args__[-1] == type(None): # optional nested object
-                        setattr(oimParentObj, pathParts[-1], newObj)
+                        if isinstance(ownrProp, (set, OrderedSet)):
+                            ownrProp.add(newObj)
+                        else:
+                            setattr(oimParentObj, pathParts[-1], newObj)
                     return newObj
             return None
 

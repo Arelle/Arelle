@@ -21,11 +21,15 @@ class XbrlDimension(XbrlReferencableTaxonomyObject):
 
     @property
     def isExplicitDimension(self):
-        return getattr(self, "domainRoot", None) is not None
+        return self.domainRoot is not None
 
     @property
     def isTypedDimension(self):
-        return getattr(self, "domainDataType", None) is not None
+        return self.domainDataType is not None
+
+    @property
+    def dimensionType(self):
+        return ("explicit","typed")[self.domainDataType is not None]
 
 class XbrlDomain(XbrlReferencableTaxonomyObject, XbrlRelationshipSet):
     taxonomy: XbrlTaxonomyModuleType

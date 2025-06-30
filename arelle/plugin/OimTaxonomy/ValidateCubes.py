@@ -77,4 +77,4 @@ def validateCubes(fact, txmyMdl):
         if hasDims:
             usableCubes.append(cubeObj)
     return usableCubes
-        
+
