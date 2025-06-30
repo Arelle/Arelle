@@ -4,8 +4,9 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 import re
+import zipfile
 from collections.abc import Iterable
-from typing import Any
+from typing import Any, cast, IO
 
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
@@ -140,10 +141,11 @@ def rule_EC0183E(
     """
     if not pluginData.shouldValidateUpload(val):
         return
-    zipFile = val.modelXbrl.fileSource.fs
-    zipFile.fp.seek(0, 2)  # Move to the end of the file
-    size = zipFile.fp.tell()
-    if size > 55 * 1024 * 1024:
+    zipFile = cast(zipfile.ZipFile, val.modelXbrl.fileSource.fs)
+    file = cast(IO[Any], zipFile.fp)
+    file.seek(0, 2)  # Move to the end of the file
+    size = file.tell()
+    if size > 55 * 1000 * 1000:  # Interpretting MB as megabytes (1,000,000 bytes)
         yield Validation.error(
             codes='EDINET.EC0183E',
             msg=_("The compressed file size exceeds 55MB. "
