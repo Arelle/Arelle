@@ -41,6 +41,7 @@ dependencies = [
     'pyparsing==3.*',
     'python-dateutil==2.*',
     'regex',
+    'truststore==0.*; python_version>"3.9"',
     'typing-extensions==4.*',
 ]
 
