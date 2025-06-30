@@ -18,6 +18,7 @@ from arelle.ModelInstanceObject import ModelInlineFact
 from arelle.ModelObject import ModelObject
 from arelle.PrototypeDtsObject import PrototypeObject
 from arelle.ValidateDuplicateFacts import getDuplicateFactSets
+from arelle.XbrlConst import standardLabel
 from arelle.XmlValidateConst import VALID
 
 from arelle import XbrlConst, XmlUtil, ModelDocument
@@ -1893,6 +1894,57 @@ def rule_nl_kvk_RTS_Annex_IV_Par_4_2(
             codes='NL.NL-KVK.RTS_Annex_IV_Par_4_2.monetaryConceptWithoutBalance',
             msg=_('Extension elements must have an appropriate balance attribute.'),
             modelObject=errors
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_RTS_Annex_IV_Par_4_3(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.RTS_Annex_IV_Par_4_3: Extension elements must be provided with a standard label in the language corresponding to the language of the annual report.
+    """
+    extensionData = pluginData.getExtensionData(val.modelXbrl)
+    extensionConcepts = extensionData.extensionConcepts
+    labelsRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
+    missingLabels =  []
+    missingReportingLabels = []
+    noStandardLabels = []
+    for concept in extensionConcepts:
+        if not concept.label(standardLabel,lang=pluginData.getReportXmlLang(val.modelXbrl),fallbackToQname=False):
+            labelRels = labelsRelationshipSet.fromModelObject(concept)
+            if len(labelRels) == 0:
+                missingLabels.append(concept)
+            for labelRel in labelRels:
+                label = cast(ModelResource, labelRel.toModelObject)
+                if  label.role == XbrlConst.standardLabel:
+                    missingReportingLabels.append(concept)
+                else:
+                    noStandardLabels.append(label)
+    message = 'Extension element is missing a standard label or is missing a label in the language of the report. Review to ensure a standard label is defined with at least the language of the report.'
+    if len(missingLabels) > 0:
+        yield Validation.warning(
+            codes='NL.NL-KVK.RTS_Annex_IV_Par_4_3.extensionConceptNoLabel',
+            msg=_(message),
+            modelObject=missingLabels,
+            )
+    if len(missingReportingLabels) > 0:
+            yield Validation.warning(
+                codes='NL.NL-KVK.RTS_Annex_IV_Par_4_3.missingLabelForRoleInReportLanguage',
+                msg=_(message),
+                modelObject=missingReportingLabels,
+            )
+    if len(noStandardLabels) > 0:
+        yield Validation.warning(
+            codes='NL.NL-KVK.RTS_Annex_IV_Par_4_3.extensionConceptNoStandardLabel',
+            msg=_(message),
+            modelObject=noStandardLabels,
         )
 
 

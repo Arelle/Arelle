@@ -30,6 +30,9 @@ config = ConformanceSuiteConfig(
             # This is the expected error, but we return two of them, slightly different.
             'imageFormatNotSupported': 1,
         },
+        'G3-5-2_3/index.xml:TC2_invalid': {
+            'missingLabelForRoleInReportLanguage': 1,
+        },
         'G3-5-3_1/index.xml:TC2_invalid': {
             'arelle:ixdsTargetNotDefined': 1,
             'extensionTaxonomyWrongFilesStructure': 2,
@@ -45,6 +48,9 @@ config = ConformanceSuiteConfig(
         'G3-7-1_1/index.xml:TC2_invalid': {
             'message:valueKvKIdentifier': 13,
             'nonIdenticalIdentifier': 1,
+        },
+        'G4-1-1_1/index.xml:TC3_invalid': {
+            'extensionConceptNoLabel': 1,
         },
         'G4-1-1_1/index.xml:TC4_invalid': {
             'extensionTaxonomyWrongFilesStructure': 1,
@@ -70,8 +76,12 @@ config = ConformanceSuiteConfig(
             'UsableConceptsNotAppliedByTaggedFacts': 1,  # Also fails 4.4.6.1
             'extensionTaxonomyLineItemNotLinkedToAnyHypercube': 10,
         },
+        'G4-2-0_1/index.xml:TC2_invalid': {
+            'extensionConceptNoLabel': 1,
+        },
         'G4-2-3_1/index.xml:TC2_invalid': {
             'extensionTaxonomyLineItemNotLinkedToAnyHypercube': 1,
+            'extensionConceptNoLabel': 1,
         },
         'G4-4-2_1/index.xml:TC2_invalid': {
             'closedNegativeHypercubeInDefinitionLinkbase': 1,  # Also fails 4.4.2.3
@@ -93,6 +103,9 @@ config = ConformanceSuiteConfig(
         'RTS_Annex_IV_Par_2_G3-1-1_2/index.xml:TC2_invalid': {
             'message:lei-identifier-format': 105,
             'message:valueKvKIdentifierScheme': 105,
+        },
+        'RTS_Annex_IV_Par_4_3/index.xml:TC4_invalid': {
+            'extensionTaxonomyWrongFilesStructure': 1,
         },
         'RTS_Annex_IV_Par_6/index.xml:TC2_valid': {
             'undefinedLanguageForTextFact': 1,
@@ -142,9 +155,6 @@ config = ConformanceSuiteConfig(
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_III_Par_1/index.xml:TC3_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_12_G3-2-4_1/index.xml:TC4_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_14_G3-5-1_1/index.xml:TC2_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_4_3/index.xml:TC3_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_4_3/index.xml:TC4_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_4_3/index.xml:TC5_invalid',
     ]),
     info_url='https://www.sbr-nl.nl/sbr-domeinen/handelsregister/uitbreiding-elektronische-deponering-handelsregister',
     name=PurePath(__file__).stem,
