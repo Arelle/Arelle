@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DisclosureSystems
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="../../../../config/disclosuresystems.xsd">
+    <!-- see arelle/config/disclosuresystems.xml for full comments -->
+    <DisclosureSystem
+            names="EDINET|edinet"
+            description="Checks for EDINET."
+            validationType="EDINET"
+            exclusiveTypesPattern="EFM|GFM|FERC|HMRC|SBR.NL|EBA|EIOPA|ESEF"
+    />
+</DisclosureSystems>

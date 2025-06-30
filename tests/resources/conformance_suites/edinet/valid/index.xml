@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="EDINET.valid"
+        description="EDINET.valid: These variations are valid EDINET filings. They are not expected to produce any errors."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="valid01" name="valid01">
+        <description>
+            A valid filing package.
+        </description>
+        <data>
+            <instance readMeFirst="true">valid01.zip</instance>
+        </data>
+        <result expected="valid"/>
+    </variation>
+</testcase>

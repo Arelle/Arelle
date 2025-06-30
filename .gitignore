@@ -47,6 +47,7 @@ obj/
 tests/resources/conformance_suites/*
 !tests/resources/conformance_suites/cipc/
 !tests/resources/conformance_suites/dba/
+!tests/resources/conformance_suites/edinet/
 !tests/resources/conformance_suites/hmrc/
 !tests/resources/conformance_suites/nl_*/
 !tests/resources/conformance_suites/ros/
