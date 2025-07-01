@@ -97,6 +97,43 @@ def rule_EC0124E(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_EC0129E(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC0129E: Limit the number of subfolders to 3 or less from the XBRL directory.
+    """
+    startingDirectory = 'XBRL'
+    if not pluginData.shouldValidateUpload(val):
+        return
+    uploadFilepaths = pluginData.getUploadFilepaths(val.modelXbrl)
+    for path in uploadFilepaths:
+        parents = [parent.name for parent in path.parents]
+        if startingDirectory in parents:
+            parents = parents[:parents.index(startingDirectory)]
+        else:
+            # TODO: Do we validate ammendment subfolders too? These aren't placed beneath the XBRL directory.
+            continue
+        depth = len(parents)
+        if depth > 3:
+            yield Validation.error(
+                codes='EDINET.EC0129E',
+                msg=_("The subordinate directories of %(path)s go up to the level %(depth)s (directories: %(parents)s). "
+                      "Please limit the number of subfolders to 3 or less and upload again."),
+                path=str(path),
+                depth=depth,
+                parents=', '.join(f"'{parent}'" for parent in reversed(parents)),
+                file=str(path)
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_EC0132E(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
