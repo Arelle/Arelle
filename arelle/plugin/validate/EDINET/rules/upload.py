@@ -35,16 +35,18 @@ def rule_EC0121E(
     EDINET.EC0121E: There is a directory or file that contains more than 31 characters
     or uses characters other than those allowed (alphanumeric characters, '-' and '_').
 
-    Implementation note: getManifestDirectoryPaths results in this validation only
-    considering files that are beneath the same directory as the manifest file that
-    the given DTS originated from. This prevents duplicate errors for packages
-    with multiple document sets, but can still cause duplicates when a single manifest
-    file has multiple document sets, as is often the case with AuditDoc manifests.
+    Note: Sample instances from EDINET almost always violate this rule based on our
+    current interpretation. The exception being files placed outside the XBRL directory,
+    i.e. ammendment documents. For now, we will only check ammendment documents, directory
+    names, or other files in unexpected locations.
     """
     if not pluginData.shouldValidateUpload(val):
         return
-    uploadFilepaths = pluginData.getUploadFilepaths(val.modelXbrl)
-    for path in uploadFilepaths:
+    uploadContents = pluginData.getUploadContents(val.modelXbrl)
+    paths = set(uploadContents.directories | uploadContents.unknownPaths)
+    for ammendmentPaths in uploadContents.ammendmentPaths.values():
+        paths.update(ammendmentPaths)
+    for path in paths:
         if len(str(path.name)) > 31 or not FILENAME_STEM_PATTERN.match(path.stem):
             yield Validation.error(
                 codes='EDINET.EC0121E',
@@ -71,8 +73,6 @@ def rule_EC0124E(
 ) -> Iterable[Validation]:
     """
     EDINET.EC0124E: There are no empty directories.
-
-    See note on EC0121E.
     """
     if not pluginData.shouldValidateUpload(val):
         return
