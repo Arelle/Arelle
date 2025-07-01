@@ -188,11 +188,6 @@ def validateTaxonomy(txmyMdl, txmy):
                           xbrlObject=cubeObj, name=name, qname=ntwrkQn)
             else:
                  ntwks.add(ntwk)
-        cubeType = txmyMdl.namedObjects.get(cubeObj.cubeType)
-        if not isinstance(cubeType, XbrlCubeType):
-            txmyMdl.error("oimte:invalidPropertyValue",
-                      _("The cube %(name)s  cubeType %(qname)s must be a valid cube type."),
-                      xbrlObject=cubeObj, name=name, qname=cubeType)
         dimQnCounts = {}
         for allowedCubeDimObj in cubeObj.cubeDimensions:
             dimQn = allowedCubeDimObj.dimensionName
@@ -206,7 +201,12 @@ def validateTaxonomy(txmyMdl, txmy):
                       _("The cubeDimensions of cube %(name)s duplicate these dimension object(s): %(dimensions)s"),
                       xbrlObject=cubeObj, name=name, dimensions=", ".join(str(qn) for qn, ct in dimQnCounts.items() if ct > 1))
         # check cube dims against cube type
-        if cubeType:
+        cubeType = txmyMdl.namedObjects.get(cubeObj.cubeType)
+        if not isinstance(cubeType, XbrlCubeType):
+            txmyMdl.error("oimte:invalidPropertyValue",
+                      _("The cube %(name)s  cubeType %(qname)s must be a valid cube type."),
+                      xbrlObject=cubeObj, name=name, qname=cubeType)
+        else:
             if cubeType.basemostCubeType == defaultCubeType and conceptCoreDim not in dimQnCounts.keys():
                 txmyMdl.error("oimte:cubeDimensionMissing",
                           _("The cubeDimensions of cube %(name)s, type %(cubeType)s, must have a concept core dimension"),
@@ -402,7 +402,7 @@ def validateTaxonomy(txmyMdl, txmy):
                         if dtResObj is not None:
                             if dtResObj.conceptName:
                                 cncpt = txmyMdl.namedObjects.get(dtResObj.conceptName)
-                                if not cncpt or not isinstance(txmyMdl.namedObjects.get(cncpt.dataType), XbrlDataType) or txmyMdl.namedObjects[cncpt.dataType].baseType not in (qnXsDate, qnXsDateTime):
+                                if not isinstance(cncpt, XbrlConcept) or not isinstance(txmyMdl.namedObjects.get(cncpt.dataType), XbrlDataType) or txmyMdl.namedObjects[cncpt.dataType].baseType not in (qnXsDate, qnXsDateTime):
                                     txmyMdl.error("oimte:invalidPeriodRepresentation",
                                               _("Cube %(name)s period constraint concept %(qname)s base type MUST be a date or dateTime."),
                                               xbrlObject=(cubeObj,cubeDimObj), name=name, qname=dtResObj.conceptName)
