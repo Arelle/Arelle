@@ -134,6 +134,54 @@ def rule_EC0129E(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_EC0130E(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC0130E: File extensions must match the file extensions allowed in Figure 2-1-3 and Figure 2-1-5.
+    """
+    if not pluginData.shouldValidateUpload(val):
+        return
+    uploadContents = pluginData.getUploadContents(val.modelXbrl)
+    checks = []
+    for formType, ammendmentPaths in uploadContents.ammendmentPaths.items():
+        for ammendmentPath in ammendmentPaths:
+            isSubdirectory = ammendmentPath.parent.name != formType.value
+            checks.append((ammendmentPath, True, formType, isSubdirectory))
+    for formType, formPaths in uploadContents.forms.items():
+        for ammendmentPath in formPaths:
+            isSubdirectory = ammendmentPath.parent.name != formType.value
+            checks.append((ammendmentPath, False, formType, isSubdirectory))
+    for path, isAmmendment, formType, isSubdirectory in checks:
+        ext = path.suffix
+        if len(ext) == 0:
+            continue
+        validExtensions = formType.getValidExtensions(isAmmendment, isSubdirectory)
+        if validExtensions is None:
+            continue
+        if ext not in validExtensions:
+            yield Validation.error(
+                codes='EDINET.EC0130E',
+                msg=_("The file extension '%(ext)s' is not valid at '%(path)s'. "
+                      "Valid extensions at this location are: %(validExtensions)s. "
+                      "Please change the file extension to a configurable extension and upload it again. "
+                      "For information on configurable file extensions, please refer to 'Table 2-1-3 Storable File Formats (1)' "
+                      "in the 'Document File Specifications' and 'Table 2-1-5 Storable File Formats (2)' in the "
+                      "'Document File Specifications'."),
+                ext=ext,
+                path=str(path),
+                validExtensions=', '.join(f"'{e}'" for e in validExtensions),
+                file=str(path)
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_EC0132E(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
