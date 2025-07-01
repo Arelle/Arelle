@@ -14,7 +14,8 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
-from ..PluginValidationDataExtension import PluginValidationDataExtension, FormType, HTML_EXTENSIONS
+from ..FormType import FormType, HTML_EXTENSIONS
+from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
 
