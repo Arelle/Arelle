@@ -7,7 +7,7 @@ import zipfile
 from collections import defaultdict
 from dataclasses import dataclass
 from enum import Enum
-from functools import lru_cache
+from functools import lru_cache, cached_property
 from pathlib import Path
 
 from arelle.ModelXbrl import ModelXbrl
@@ -33,14 +33,27 @@ class FormType(Enum):
         except ValueError:
             return None
 
-    def getExtensionCategory(self) -> ExtensionCategory | None:
+    @cached_property
+    def extensionCategory(self) -> ExtensionCategory | None:
         return FORM_TYPE_EXTENSION_CATEGORIES.get(self, None)
 
+    @cached_property
+    def manifestName(self) -> str:
+        return f'manifest_{self.value}.xml'
+
+    @cached_property
+    def manifestPath(self) -> Path:
+        return self.xbrlDirectory / self.manifestName
+
+    @cached_property
+    def xbrlDirectory(self) -> Path:
+        return Path('XBRL') / str(self.value)
+
+    @lru_cache(1)
     def getValidExtensions(self, isAmmendment: bool, isSubdirectory: bool) -> frozenset[str] | None:
-        extensionCategory = self.getExtensionCategory()
-        if extensionCategory is None:
+        if self.extensionCategory is None:
             return None
-        return extensionCategory.getValidExtensions(isAmmendment, isSubdirectory)
+        return self.extensionCategory.getValidExtensions(isAmmendment, isSubdirectory)
 
 
 @dataclass(frozen=True)

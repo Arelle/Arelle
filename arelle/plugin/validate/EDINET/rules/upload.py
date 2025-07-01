@@ -14,7 +14,7 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
-from ..PluginValidationDataExtension import PluginValidationDataExtension
+from ..PluginValidationDataExtension import PluginValidationDataExtension, FormType
 
 _: TypeGetText
 
@@ -108,21 +108,18 @@ def rule_EC0132E(
     """
     if not pluginData.shouldValidateUpload(val):
         return
-    uploadFilepaths = pluginData.getUploadFilepaths(val.modelXbrl)
-    docFolders = ("PublicDoc", "PrivateDoc", "AuditDoc")
-    for filepath in uploadFilepaths:
-        if filepath.name not in docFolders:
+    uploadContents = pluginData.getUploadContents(val.modelXbrl)
+    for formType in (FormType.AUDIT_DOC, FormType.PRIVATE_DOC, FormType.PUBLIC_DOC):
+        if formType not in uploadContents.forms:
             continue
-        expectedManifestName = f'manifest_{filepath.name}.xml'
-        expectedManifestPath = filepath / expectedManifestName
-        if expectedManifestPath in uploadFilepaths:
+        if formType.manifestPath in uploadContents.forms.get(formType, []):
             continue
         yield Validation.error(
             codes='EDINET.EC0132E',
-            msg=_("'%(expectedManifestName)s' does not exist in '%(expectedManifestFolder)s'. "
+            msg=_("'%(expectedManifestName)s' does not exist in '%(expectedManifestDirectory)s'. "
                   "Please store the manifest file (or cover file) directly under the relevant folder and upload it again. "),
-            expectedManifestName=expectedManifestName,
-            expectedManifestFolder=str(filepath),
+            expectedManifestName=formType.manifestPath.name,
+            expectedManifestDirectory=str(formType.manifestPath.parent),
         )
 
 
