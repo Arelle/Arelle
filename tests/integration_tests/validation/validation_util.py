@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import difflib
+import fnmatch
 import json
 import multiprocessing
 import os.path
@@ -331,7 +332,14 @@ def get_conformance_suite_test_results_with_shards(
         additional_plugins = shard.plugins
         all_test_paths = {path for test_shard in test_shards for path in test_shard.paths}
 
-        unrecognized_additional_error_ids = {_id.rsplit(':', 1)[0] for _id in config.expected_additional_testcase_errors.keys()} - all_test_paths
+        unrecognized_additional_error_ids = {
+            pattern
+            for pattern in {
+                _id.rsplit(':', 1)[0]
+                for _id in config.expected_additional_testcase_errors.keys()
+            }
+            if not any(fnmatch.fnmatch(test_path, pattern) for test_path in all_test_paths)
+        }
         assert not unrecognized_additional_error_ids, f'Unrecognized expected additional error IDs: {unrecognized_additional_error_ids}'
         expected_additional_testcase_errors = {}
         for expected_id, errors in config.expected_additional_testcase_errors.items():

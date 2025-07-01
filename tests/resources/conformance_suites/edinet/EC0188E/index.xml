@@ -3,21 +3,21 @@
 <testcase
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns="http://xbrl.org/2005/conformance"
-        name="EDINET.EC0132E"
-        description="EDINET.EC0132E: Store the manifest file directly under the relevant folder."
+        name="EDINET.EC0188E"
+        description="EDINET.EC0188E: There is an html file directly under PublicDoc or PrivateDoc whose first 7 characters are not numbers."
         outpath=''
         owner="support@arelle.org"
         xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
     <variation id="invalid01" name="invalid01">
         <description>
-            Manifest incorrectly named 'manifest.xml'.
-            <!--valid09.zip with 'manifest_PublicDoc.xml' renamed.-->
+            HTML file with invalid filename exists directly beneath PublicDoc.
+            <!--valid09.zip with 'invalid.html' added under 'XBRL/PublicDoc'.-->
         </description>
         <data>
             <instance readMeFirst="true">invalid01.zip</instance>
         </data>
         <result>
-            <error>EDINET.EC0132E</error>
+            <error>EDINET.EC0188E</error>
         </result>
     </variation>
 </testcase>

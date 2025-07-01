@@ -3,21 +3,21 @@
 <testcase
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns="http://xbrl.org/2005/conformance"
-        name="EDINET.EC0132E"
-        description="EDINET.EC0132E: Store the manifest file directly under the relevant folder."
+        name="EDINET.EC0129E"
+        description="EDINET.EC0129E: Limit the number of subfolders to 3 or less from the XBRL directory."
         outpath=''
         owner="support@arelle.org"
         xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
     <variation id="invalid01" name="invalid01">
         <description>
-            Manifest incorrectly named 'manifest.xml'.
-            <!--valid09.zip with 'manifest_PublicDoc.xml' renamed.-->
+            There are is a file nested 4 directories beneath XBRL directory.
+            <!--valid09.zip with 'XBRL/PublicDoc/images/a/b/c.gif' added.-->
         </description>
         <data>
             <instance readMeFirst="true">invalid01.zip</instance>
         </data>
         <result>
-            <error>EDINET.EC0132E</error>
+            <error>EDINET.EC0129E</error>
         </result>
     </variation>
 </testcase>

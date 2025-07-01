@@ -14,7 +14,7 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
-from ..PluginValidationDataExtension import PluginValidationDataExtension
+from ..PluginValidationDataExtension import PluginValidationDataExtension, FormType, HTML_EXTENSIONS
 
 _: TypeGetText
 
@@ -35,16 +35,18 @@ def rule_EC0121E(
     EDINET.EC0121E: There is a directory or file that contains more than 31 characters
     or uses characters other than those allowed (alphanumeric characters, '-' and '_').
 
-    Implementation note: getManifestDirectoryPaths results in this validation only
-    considering files that are beneath the same directory as the manifest file that
-    the given DTS originated from. This prevents duplicate errors for packages
-    with multiple document sets, but can still cause duplicates when a single manifest
-    file has multiple document sets, as is often the case with AuditDoc manifests.
+    Note: Sample instances from EDINET almost always violate this rule based on our
+    current interpretation. The exception being files placed outside the XBRL directory,
+    i.e. amendment documents. For now, we will only check amendment documents, directory
+    names, or other files in unexpected locations.
     """
     if not pluginData.shouldValidateUpload(val):
         return
-    uploadFilepaths = pluginData.getUploadFilepaths(val.modelXbrl)
-    for path in uploadFilepaths:
+    uploadContents = pluginData.getUploadContents(val.modelXbrl)
+    paths = set(uploadContents.directories | uploadContents.unknownPaths)
+    for amendmentPaths in uploadContents.amendmentPaths.values():
+        paths.update(amendmentPaths)
+    for path in paths:
         if len(str(path.name)) > 31 or not FILENAME_STEM_PATTERN.match(path.stem):
             yield Validation.error(
                 codes='EDINET.EC0121E',
@@ -71,8 +73,6 @@ def rule_EC0124E(
 ) -> Iterable[Validation]:
     """
     EDINET.EC0124E: There are no empty directories.
-
-    See note on EC0121E.
     """
     if not pluginData.shouldValidateUpload(val):
         return
@@ -97,6 +97,91 @@ def rule_EC0124E(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_EC0129E(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC0129E: Limit the number of subfolders to 3 or less from the XBRL directory.
+    """
+    startingDirectory = 'XBRL'
+    if not pluginData.shouldValidateUpload(val):
+        return
+    uploadFilepaths = pluginData.getUploadFilepaths(val.modelXbrl)
+    for path in uploadFilepaths:
+        parents = [parent.name for parent in path.parents]
+        if startingDirectory in parents:
+            parents = parents[:parents.index(startingDirectory)]
+        else:
+            # TODO: Do we validate amendment subfolders too? These aren't placed beneath the XBRL directory.
+            continue
+        depth = len(parents)
+        if depth > 3:
+            yield Validation.error(
+                codes='EDINET.EC0129E',
+                msg=_("The subordinate directories of %(path)s go up to the level %(depth)s (directories: %(parents)s). "
+                      "Please limit the number of subfolders to 3 or less and upload again."),
+                path=str(path),
+                depth=depth,
+                parents=', '.join(f"'{parent}'" for parent in reversed(parents)),
+                file=str(path)
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC0130E(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC0130E: File extensions must match the file extensions allowed in Figure 2-1-3 and Figure 2-1-5.
+    """
+    if not pluginData.shouldValidateUpload(val):
+        return
+    uploadContents = pluginData.getUploadContents(val.modelXbrl)
+    checks = []
+    for formType, amendmentPaths in uploadContents.amendmentPaths.items():
+        for amendmentPath in amendmentPaths:
+            isSubdirectory = amendmentPath.parent.name != formType.value
+            checks.append((amendmentPath, True, formType, isSubdirectory))
+    for formType, formPaths in uploadContents.forms.items():
+        for amendmentPath in formPaths:
+            isSubdirectory = amendmentPath.parent.name != formType.value
+            checks.append((amendmentPath, False, formType, isSubdirectory))
+    for path, isAmendment, formType, isSubdirectory in checks:
+        ext = path.suffix
+        if len(ext) == 0:
+            continue
+        validExtensions = formType.getValidExtensions(isAmendment, isSubdirectory)
+        if validExtensions is None:
+            continue
+        if ext not in validExtensions:
+            yield Validation.error(
+                codes='EDINET.EC0130E',
+                msg=_("The file extension '%(ext)s' is not valid at '%(path)s'. "
+                      "Valid extensions at this location are: %(validExtensions)s. "
+                      "Please change the file extension to a configurable extension and upload it again. "
+                      "For information on configurable file extensions, please refer to 'Table 2-1-3 Storable File Formats (1)' "
+                      "in the 'Document File Specifications' and 'Table 2-1-5 Storable File Formats (2)' in the "
+                      "'Document File Specifications'."),
+                ext=ext,
+                path=str(path),
+                validExtensions=', '.join(f"'{e}'" for e in validExtensions),
+                file=str(path)
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_EC0132E(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
@@ -108,21 +193,18 @@ def rule_EC0132E(
     """
     if not pluginData.shouldValidateUpload(val):
         return
-    uploadFilepaths = pluginData.getUploadFilepaths(val.modelXbrl)
-    docFolders = ("PublicDoc", "PrivateDoc", "AuditDoc")
-    for filepath in uploadFilepaths:
-        if filepath.name not in docFolders:
+    uploadContents = pluginData.getUploadContents(val.modelXbrl)
+    for formType in (FormType.AUDIT_DOC, FormType.PRIVATE_DOC, FormType.PUBLIC_DOC):
+        if formType not in uploadContents.forms:
             continue
-        expectedManifestName = f'manifest_{filepath.name}.xml'
-        expectedManifestPath = filepath / expectedManifestName
-        if expectedManifestPath in uploadFilepaths:
+        if formType.manifestPath in uploadContents.forms.get(formType, []):
             continue
         yield Validation.error(
             codes='EDINET.EC0132E',
-            msg=_("'%(expectedManifestName)s' does not exist in '%(expectedManifestFolder)s'. "
+            msg=_("'%(expectedManifestName)s' does not exist in '%(expectedManifestDirectory)s'. "
                   "Please store the manifest file (or cover file) directly under the relevant folder and upload it again. "),
-            expectedManifestName=expectedManifestName,
-            expectedManifestFolder=str(filepath),
+            expectedManifestName=formType.manifestPath.name,
+            expectedManifestDirectory=str(formType.manifestPath.parent),
         )
 
 
@@ -151,3 +233,37 @@ def rule_EC0183E(
             msg=_("The compressed file size exceeds 55MB. "
                   "Please compress the file to a size of 55MB or less and upload it again."),
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC0188E(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC0188E: There is an HTML file directly under PublicDoc or PrivateDoc whose first 7 characters are not numbers.
+    """
+    if not pluginData.shouldValidateUpload(val):
+        return
+    pattern = re.compile(r'^\d{7}')
+    uploadFilepaths = pluginData.getUploadFilepaths(val.modelXbrl)
+    docFolders = frozenset({"PublicDoc", "PrivateDoc"})
+    for path in uploadFilepaths:
+        if path.suffix not in HTML_EXTENSIONS:
+            continue
+        if path.parent.name not in docFolders:
+            continue
+        if pattern.match(path.name) is None:
+            yield Validation.error(
+                codes='EDINET.EC0188E',
+                msg=_("There is an html file directly under PublicDoc or PrivateDoc whose first 7 characters are not numbers: '%(path)s'."
+                      "Please change the first 7 characters of the file name of the file directly under the folder to numbers "
+                      "and upload it again."),
+                path=str(path),
+                file=str(path),
+            )
