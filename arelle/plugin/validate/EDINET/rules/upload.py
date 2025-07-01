@@ -141,11 +141,10 @@ def rule_EC0183E(
     """
     if not pluginData.shouldValidateUpload(val):
         return
-    zipFile = cast(zipfile.ZipFile, val.modelXbrl.fileSource.fs)
-    file = cast(IO[Any], zipFile.fp)
-    file.seek(0, 2)  # Move to the end of the file
-    size = file.tell()
-    if size > 55 * 1000 * 1000:  # Interpretting MB as megabytes (1,000,000 bytes)
+    size = val.modelXbrl.fileSource.getBytesSize()
+    if size is None:
+        return  # File size is not available, cannot validate
+    if size > 55_000_000:  # Interpretting MB as megabytes (1,000,000 bytes)
         yield Validation.error(
             codes='EDINET.EC0183E',
             msg=_("The compressed file size exceeds 55MB. "
