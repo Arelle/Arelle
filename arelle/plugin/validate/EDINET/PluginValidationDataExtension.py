@@ -60,6 +60,21 @@ class PluginValidationDataExtension(PluginData):
             return False  # Not a zipfile
         return True
 
+    def getUploadFileSizes(self, modelXbrl: ModelXbrl) -> dict[Path, int]:
+        """
+        Get the sizes of files in the upload directory.
+        :param modelXbrl: The ModelXbrl instance to get file sizes for.
+        :return: A dictionary mapping file paths to their sizes.
+        """
+        if not self.isUpload(modelXbrl):
+            return {}
+        assert isinstance(modelXbrl.fileSource.fs, zipfile.ZipFile)
+        return {
+            Path(i.filename): i.file_size
+            for i in modelXbrl.fileSource.fs.infolist()
+            if not i.is_dir()
+        }
+
     @lru_cache(1)
     def getUploadContents(self, modelXbrl: ModelXbrl) -> UploadContents:
         uploadFilepaths = self.getUploadFilepaths(modelXbrl)
@@ -96,16 +111,23 @@ class PluginValidationDataExtension(PluginData):
 
     @lru_cache(1)
     def getUploadFilepaths(self, modelXbrl: ModelXbrl) -> list[Path]:
+        if not self.isUpload(modelXbrl):
+            return []
+        paths = set()
+        assert isinstance(modelXbrl.fileSource.fs, zipfile.ZipFile)
+        for name in modelXbrl.fileSource.fs.namelist():
+            path = Path(name)
+            paths.add(path)
+            paths.update(path.parents)
+        return sorted(paths)
+
+    @lru_cache(1)
+    def isUpload(self, modelXbrl: ModelXbrl) -> bool:
         if not modelXbrl.fileSource.fs or \
                 not isinstance(modelXbrl.fileSource.fs, zipfile.ZipFile):
             modelXbrl.warning(
                 codes="EDINET.uploadNotValidated",
                 msg=_("The target file is not a zip file, so upload validation could not be performed.")
             )
-            return []
-        paths = set()
-        for name in modelXbrl.fileSource.fs.namelist():
-            path = Path(name)
-            paths.add(path)
-            paths.update(path.parents)
-        return sorted(paths)
+            return False
+        return True
