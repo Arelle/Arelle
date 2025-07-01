@@ -4,7 +4,9 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 import zipfile
+from collections import defaultdict
 from dataclasses import dataclass
+from enum import Enum
 from functools import lru_cache
 from pathlib import Path
 
@@ -14,6 +16,97 @@ from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
 
 _: TypeGetText
+
+
+class FormType(Enum):
+    ATTACH_DOC = "AttachDoc"
+    AUDIT_DOC = "AuditDoc"
+    ENGLISH_DOC = "EnglishDoc"
+    PRIVATE_ATTACH = "PrivateAttach"
+    PRIVATE_DOC = "PrivateDoc"
+    PUBLIC_DOC = "PublicDoc"
+
+    @classmethod
+    def parse(cls, value: str) -> FormType | None:
+        try:
+            return cls(value)
+        except ValueError:
+            return None
+
+    def getExtensionCategory(self) -> ExtensionCategory | None:
+        return FORM_TYPE_EXTENSION_CATEGORIES.get(self, None)
+
+    def getValidExtensions(self, isAmmendment: bool, isSubdirectory: bool) -> frozenset[str] | None:
+        extensionCategory = self.getExtensionCategory()
+        if extensionCategory is None:
+            return None
+        return extensionCategory.getValidExtensions(isAmmendment, isSubdirectory)
+
+
+@dataclass(frozen=True)
+class UploadContents:
+    ammendmentPaths: dict[FormType, frozenset[Path]]
+    directories: frozenset[Path]
+    forms: dict[FormType, frozenset[Path]]
+    unknownPaths: frozenset[Path]
+
+
+class ExtensionCategory(Enum):
+    ATTACH = 'ATTACH'
+    DOC = 'DOC'
+    ENGLISH_DOC = 'ENGLISH_DOC'
+
+    def getValidExtensions(self, isAmmendment: bool, isSubdirectory: bool) -> frozenset[str] | None:
+        ammendmentMap = VALID_EXTENSIONS[isAmmendment]
+        categoryMap = ammendmentMap.get(self, None)
+        if categoryMap is None:
+            return None
+        return categoryMap.get(isSubdirectory, None)
+
+
+FORM_TYPE_EXTENSION_CATEGORIES = {
+    FormType.ATTACH_DOC: ExtensionCategory.ATTACH,
+    FormType.AUDIT_DOC: ExtensionCategory.DOC,
+    FormType.ENGLISH_DOC: ExtensionCategory.ENGLISH_DOC,
+    FormType.PRIVATE_ATTACH: ExtensionCategory.ATTACH,
+    FormType.PRIVATE_DOC: ExtensionCategory.DOC,
+    FormType.PUBLIC_DOC: ExtensionCategory.DOC,
+}
+HTML_EXTENSIONS = frozenset({'.htm', '.html', '.xhtml'})
+IMAGE_EXTENSIONS = frozenset({'.jpeg', '.jpg', '.gif', '.png'})
+ASSET_EXTENSIONS = frozenset(HTML_EXTENSIONS | IMAGE_EXTENSIONS)
+XBRL_EXTENSIONS = frozenset(HTML_EXTENSIONS | {'.xml', '.xsd'})
+ATTACH_EXTENSIONS = frozenset(HTML_EXTENSIONS | {'.pdf', })
+ENGLISH_DOC_EXTENSIONS = frozenset(ASSET_EXTENSIONS | frozenset({'.pdf', '.xml', '.txt'}))
+
+
+# Is Ammendment -> Category -> Is Subdirectory
+VALID_EXTENSIONS = {
+    False: {
+        ExtensionCategory.ATTACH: {
+            False: ATTACH_EXTENSIONS,
+            True: ASSET_EXTENSIONS,
+        },
+        ExtensionCategory.DOC: {
+            False: XBRL_EXTENSIONS,
+            True: ASSET_EXTENSIONS
+        },
+    },
+    True: {
+        ExtensionCategory.ATTACH: {
+            False: ATTACH_EXTENSIONS,
+            True: ASSET_EXTENSIONS,
+        },
+        ExtensionCategory.DOC: {
+            False: HTML_EXTENSIONS,
+            True: ASSET_EXTENSIONS,
+        },
+        ExtensionCategory.ENGLISH_DOC: {
+            False: ENGLISH_DOC_EXTENSIONS,
+            True: ENGLISH_DOC_EXTENSIONS,
+        },
+    },
+}
 
 
 @dataclass
@@ -49,6 +142,40 @@ class PluginValidationDataExtension(PluginData):
         if not isinstance(modelXbrl.fileSource.fs, zipfile.ZipFile):
             return False  # Not a zipfile
         return True
+
+    @lru_cache(1)
+    def getUploadContents(self, modelXbrl: ModelXbrl) -> UploadContents:
+        uploadFilepaths = self.getUploadFilepaths(modelXbrl)
+        ammendmentPaths = defaultdict(list)
+        unknownPaths = []
+        directories = []
+        forms = defaultdict(list)
+        for path in uploadFilepaths:
+            parents = list(reversed([p.name for p in path.parents if len(p.name) > 0]))
+            if len(parents) == 0:
+                continue
+            if parents[0] == 'XBRL':
+                if len(parents) > 1:
+                    formName = parents[1]
+                    formType = FormType.parse(formName)
+                    if formType is not None:
+                        forms[formType].append(path)
+                        continue
+            formName = parents[0]
+            formType = FormType.parse(formName)
+            if formType is not None:
+                ammendmentPaths[formType].append(path)
+                continue
+            if len(path.suffix) == 0:
+                directories.append(path)
+                continue
+            unknownPaths.append(path)
+        return UploadContents(
+            ammendmentPaths={k: frozenset(v) for k, v in ammendmentPaths.items() if len(v) > 0},
+            directories=frozenset(directories),
+            forms={k: frozenset(v) for k, v in forms.items() if len(v) > 0},
+            unknownPaths=frozenset(unknownPaths)
+        )
 
     @lru_cache(1)
     def getUploadFilepaths(self, modelXbrl: ModelXbrl) -> list[Path]:
