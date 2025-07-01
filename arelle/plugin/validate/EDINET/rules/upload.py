@@ -14,7 +14,7 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
-from ..PluginValidationDataExtension import PluginValidationDataExtension, FormType
+from ..PluginValidationDataExtension import PluginValidationDataExtension, FormType, HTML_EXTENSIONS
 
 _: TypeGetText
 
@@ -233,3 +233,37 @@ def rule_EC0183E(
             msg=_("The compressed file size exceeds 55MB. "
                   "Please compress the file to a size of 55MB or less and upload it again."),
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC0188E(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC0188E: There is an HTML file directly under PublicDoc or PrivateDoc whose first 7 characters are not numbers.
+    """
+    if not pluginData.shouldValidateUpload(val):
+        return
+    pattern = re.compile(r'^\d{7}')
+    uploadFilepaths = pluginData.getUploadFilepaths(val.modelXbrl)
+    docFolders = frozenset({"PublicDoc", "PrivateDoc"})
+    for path in uploadFilepaths:
+        if path.suffix not in HTML_EXTENSIONS:
+            continue
+        if path.parent.name not in docFolders:
+            continue
+        if pattern.match(path.name) is None:
+            yield Validation.error(
+                codes='EDINET.EC0188E',
+                msg=_("There is an html file directly under PublicDoc or PrivateDoc whose first 7 characters are not numbers: '%(path)s'."
+                      "Please change the first 7 characters of the file name of the file directly under the folder to numbers "
+                      "and upload it again."),
+                path=str(path),
+                file=str(path),
+            )

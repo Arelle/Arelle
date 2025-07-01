@@ -5,5 +5,6 @@
     <testcase uri="EC0129E/index.xml" />
     <testcase uri="EC0130E/index.xml" />
     <testcase uri="EC0132E/index.xml" />
+    <testcase uri="EC0188E/index.xml" />
     <testcase uri="valid/index.xml" />
 </testcases>
