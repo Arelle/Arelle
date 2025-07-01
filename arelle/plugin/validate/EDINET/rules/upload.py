@@ -37,15 +37,15 @@ def rule_EC0121E(
 
     Note: Sample instances from EDINET almost always violate this rule based on our
     current interpretation. The exception being files placed outside the XBRL directory,
-    i.e. ammendment documents. For now, we will only check ammendment documents, directory
+    i.e. amendment documents. For now, we will only check amendment documents, directory
     names, or other files in unexpected locations.
     """
     if not pluginData.shouldValidateUpload(val):
         return
     uploadContents = pluginData.getUploadContents(val.modelXbrl)
     paths = set(uploadContents.directories | uploadContents.unknownPaths)
-    for ammendmentPaths in uploadContents.ammendmentPaths.values():
-        paths.update(ammendmentPaths)
+    for amendmentPaths in uploadContents.amendmentPaths.values():
+        paths.update(amendmentPaths)
     for path in paths:
         if len(str(path.name)) > 31 or not FILENAME_STEM_PATTERN.match(path.stem):
             yield Validation.error(
@@ -115,7 +115,7 @@ def rule_EC0129E(
         if startingDirectory in parents:
             parents = parents[:parents.index(startingDirectory)]
         else:
-            # TODO: Do we validate ammendment subfolders too? These aren't placed beneath the XBRL directory.
+            # TODO: Do we validate amendment subfolders too? These aren't placed beneath the XBRL directory.
             continue
         depth = len(parents)
         if depth > 3:
@@ -147,19 +147,19 @@ def rule_EC0130E(
         return
     uploadContents = pluginData.getUploadContents(val.modelXbrl)
     checks = []
-    for formType, ammendmentPaths in uploadContents.ammendmentPaths.items():
-        for ammendmentPath in ammendmentPaths:
-            isSubdirectory = ammendmentPath.parent.name != formType.value
-            checks.append((ammendmentPath, True, formType, isSubdirectory))
+    for formType, amendmentPaths in uploadContents.amendmentPaths.items():
+        for amendmentPath in amendmentPaths:
+            isSubdirectory = amendmentPath.parent.name != formType.value
+            checks.append((amendmentPath, True, formType, isSubdirectory))
     for formType, formPaths in uploadContents.forms.items():
-        for ammendmentPath in formPaths:
-            isSubdirectory = ammendmentPath.parent.name != formType.value
-            checks.append((ammendmentPath, False, formType, isSubdirectory))
-    for path, isAmmendment, formType, isSubdirectory in checks:
+        for amendmentPath in formPaths:
+            isSubdirectory = amendmentPath.parent.name != formType.value
+            checks.append((amendmentPath, False, formType, isSubdirectory))
+    for path, isAmendment, formType, isSubdirectory in checks:
         ext = path.suffix
         if len(ext) == 0:
             continue
-        validExtensions = formType.getValidExtensions(isAmmendment, isSubdirectory)
+        validExtensions = formType.getValidExtensions(isAmendment, isSubdirectory)
         if validExtensions is None:
             continue
         if ext not in validExtensions:

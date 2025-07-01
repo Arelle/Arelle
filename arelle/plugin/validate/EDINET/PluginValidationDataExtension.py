@@ -50,15 +50,15 @@ class FormType(Enum):
         return Path('XBRL') / str(self.value)
 
     @lru_cache(1)
-    def getValidExtensions(self, isAmmendment: bool, isSubdirectory: bool) -> frozenset[str] | None:
+    def getValidExtensions(self, isAmendment: bool, isSubdirectory: bool) -> frozenset[str] | None:
         if self.extensionCategory is None:
             return None
-        return self.extensionCategory.getValidExtensions(isAmmendment, isSubdirectory)
+        return self.extensionCategory.getValidExtensions(isAmendment, isSubdirectory)
 
 
 @dataclass(frozen=True)
 class UploadContents:
-    ammendmentPaths: dict[FormType, frozenset[Path]]
+    amendmentPaths: dict[FormType, frozenset[Path]]
     directories: frozenset[Path]
     forms: dict[FormType, frozenset[Path]]
     unknownPaths: frozenset[Path]
@@ -69,9 +69,9 @@ class ExtensionCategory(Enum):
     DOC = 'DOC'
     ENGLISH_DOC = 'ENGLISH_DOC'
 
-    def getValidExtensions(self, isAmmendment: bool, isSubdirectory: bool) -> frozenset[str] | None:
-        ammendmentMap = VALID_EXTENSIONS[isAmmendment]
-        categoryMap = ammendmentMap.get(self, None)
+    def getValidExtensions(self, isAmendment: bool, isSubdirectory: bool) -> frozenset[str] | None:
+        amendmentMap = VALID_EXTENSIONS[isAmendment]
+        categoryMap = amendmentMap.get(self, None)
         if categoryMap is None:
             return None
         return categoryMap.get(isSubdirectory, None)
@@ -93,7 +93,7 @@ ATTACH_EXTENSIONS = frozenset(HTML_EXTENSIONS | {'.pdf', })
 ENGLISH_DOC_EXTENSIONS = frozenset(ASSET_EXTENSIONS | frozenset({'.pdf', '.xml', '.txt'}))
 
 
-# Is Ammendment -> Category -> Is Subdirectory
+# Is Amendment -> Category -> Is Subdirectory
 VALID_EXTENSIONS = {
     False: {
         ExtensionCategory.ATTACH: {
@@ -159,7 +159,7 @@ class PluginValidationDataExtension(PluginData):
     @lru_cache(1)
     def getUploadContents(self, modelXbrl: ModelXbrl) -> UploadContents:
         uploadFilepaths = self.getUploadFilepaths(modelXbrl)
-        ammendmentPaths = defaultdict(list)
+        amendmentPaths = defaultdict(list)
         unknownPaths = []
         directories = []
         forms = defaultdict(list)
@@ -177,14 +177,14 @@ class PluginValidationDataExtension(PluginData):
             formName = parents[0]
             formType = FormType.parse(formName)
             if formType is not None:
-                ammendmentPaths[formType].append(path)
+                amendmentPaths[formType].append(path)
                 continue
             if len(path.suffix) == 0:
                 directories.append(path)
                 continue
             unknownPaths.append(path)
         return UploadContents(
-            ammendmentPaths={k: frozenset(v) for k, v in ammendmentPaths.items() if len(v) > 0},
+            amendmentPaths={k: frozenset(v) for k, v in amendmentPaths.items() if len(v) > 0},
             directories=frozenset(directories),
             forms={k: frozenset(v) for k, v in forms.items() if len(v) > 0},
             unknownPaths=frozenset(unknownPaths)
