@@ -6,8 +6,10 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
+import requests
+
 from tests.integration_tests.integration_test_util import get_s3_uri
-from tests.integration_tests.scripts.script_util import parse_args, validate_log_file, assert_result, prepare_logfile, run_arelle_webserver, validate_log_xml
+from tests.integration_tests.scripts.script_util import parse_args, assert_result, prepare_logfile, run_arelle_webserver, validate_log_xml
 from tests.integration_tests.validation.assets import ESEF_PACKAGES
 from tests.integration_tests.validation.download_assets import download_assets
 
@@ -48,8 +50,7 @@ contents = ''
 port = 8100
 log_xml_bytes = None
 with run_arelle_webserver(arelle_command, port) as proc:
-    target_url = urllib.parse.quote_plus(str(report_zip_path))
-    url = f"http://localhost:{port}/rest/xbrl/{report_zip_path}/validation/xbrl?media=xml"
+    url = f"http://localhost:{port}/rest/xbrl/validation?media=xml"
     url += "&plugins=validate/ESEF"
     url += "&disclosureSystemName=esef"
     url += f"&internetConnectivity={'false' if arelle_offline else 'true'}"
@@ -57,7 +58,11 @@ with run_arelle_webserver(arelle_command, port) as proc:
     url += f"&packages=" + '|'.join(urllib.parse.quote_plus(str(p)) for p in package_paths)
     url += f"&parameters=authority=SE"
     print(f"Validating: {url}")
-    contents = urllib.request.urlopen(url).read()
+    with open(report_zip_path, "rb") as f:
+        files = {"upload": f}
+        response = requests.post(url, files=files)
+    response.raise_for_status()
+    contents = response.content
     with open(arelle_log_file, 'x') as file:
         log_xml_bytes = contents
         file.write(log_xml_bytes.decode())
