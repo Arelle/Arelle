@@ -61,6 +61,7 @@ def validateImageAndLog(
     elts: _Element | list[_Element],
     evaluatedMsg: str,
     params: ImageValidationParameters,
+    cssSelectors: str | None = None,
 ) -> None:
     for validation in validateImage(
         baseUrl=baseUrl,
@@ -71,7 +72,13 @@ def validateImageAndLog(
         evaluatedMsg=evaluatedMsg,
         params=params,
     ):
-        modelXbrl.log(level=validation.level.name, codes=validation.codes, msg=validation.msg, **validation.args)
+        if cssSelectorsArg := validation.args.get("cssSelectors"):
+            raise ValueError(_("The 'cssSelectors' argument is reserved to record the CSS selector. It should not be present in the validation arguments: {}").format(cssSelectorsArg))
+
+        args = validation.args.copy()
+        if cssSelectors:
+            args["cssSelectors"] = cssSelectors
+        modelXbrl.log(level=validation.level.name, codes=validation.codes, msg=validation.msg, **args)
 
 # check image contents against mime/file ext and for Steganography
 def validateImage(
