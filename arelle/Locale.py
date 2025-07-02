@@ -238,9 +238,11 @@ def getLocale() -> str | None:
         systemLocale = tryRunCommand("pwsh", "-Command", "Get-Culture | Select -ExpandProperty IetfLanguageTag")
     if pythonCompatibleLocale := findCompatibleLocale(systemLocale):
         _locale = pythonCompatibleLocale
-    elif sys.version_info < (3, 12):
+    elif sys.version_info < (3, 12) or (3, 13, 3) <= sys.version_info[:3] <= (3, 13, 4):
         # Using locale.setlocale(...) because getlocale() in Python versions prior to 3.12 incorrectly aliased C.UTF-8 to en_US.UTF-8.
         # https://github.com/python/cpython/issues/74940
+        # Similar bug was reintroduced in Python 3.13.3 and fixed in 3.13.5.
+        # https://github.com/python/cpython/pull/135347
         _locale = locale.setlocale(locale.LC_CTYPE).partition(POSIX_LOCALE_ENCODING_SEPARATOR)[0]
     else:
         _locale = locale.getlocale()[0]
