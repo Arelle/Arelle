@@ -5,7 +5,9 @@ from __future__ import annotations
 
 import re
 import zipfile
+from collections import defaultdict
 from collections.abc import Iterable
+from pathlib import Path
 from typing import Any, cast, IO
 
 from arelle.ValidateXbrl import ValidateXbrl
@@ -14,9 +16,22 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
-from ..PluginValidationDataExtension import PluginValidationDataExtension, FormType, HTML_EXTENSIONS
+from ..FormType import FormType, HTML_EXTENSIONS
+from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
+
+FILE_COUNT_LIMITS = {
+    Path("AttachDoc"): 990,
+    Path("AuditDoc"): 990,
+    Path("PrivateDoc"): 9_990,
+    Path("PublicDoc"): 9_990,
+    Path("XBRL") / "AttachDoc": 990,
+    Path("XBRL") / "AuditDoc": 990,
+    Path("XBRL") / "PrivateDoc": 9_990,
+    Path("XBRL") / "PublicDoc": 9_990,
+    Path("XBRL"): 99_990,
+}
 
 FILENAME_STEM_PATTERN = re.compile(r'[a-zA-Z0-9_-]*')
 
@@ -266,4 +281,41 @@ def rule_EC0188E(
                       "and upload it again."),
                 path=str(path),
                 file=str(path),
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC0198E(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC0198E: The number of files in the total submission and directories can not exceed the upper limit.
+    """
+    if not pluginData.shouldValidateUpload(val):
+        return
+    fileCounts: dict[Path, int] = defaultdict(int)
+    uploadFilepaths = pluginData.getUploadFilepaths(val.modelXbrl)
+    for path in uploadFilepaths:
+        if len(path.suffix) == 0:
+            continue
+        for directory in FILE_COUNT_LIMITS.keys():
+            if directory in path.parents:
+                fileCounts[directory] += 1
+                break
+    for directory, limit in FILE_COUNT_LIMITS.items():
+        actual = fileCounts[directory]
+        if actual > limit:
+            yield Validation.error(
+                codes='EDINET.EC0198E',
+                msg=_("The number of files in %(directory)s exceeds the upper limit (%(actual)s > %(limit)s). "
+                      "Please reduce the number of files in the folder to below the maximum and try uploading again."),
+                directory=str(directory),
+                actual="{:,}".format(actual),
+                limit="{:,}".format(limit),
             )
