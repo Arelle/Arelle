@@ -73,8 +73,11 @@ if "[info] Activation of plug-in Validate ESMA ESEF successful" not in contents.
 print("Checking log XML for errors...")
 errors += validate_log_xml(log_xml_bytes, expected_results={
     'error': {
-        re.compile(r'.*\[ESEF\.2\.2\.1.precisionAttributeUsed] .*'): 1
+        re.compile(r'.*\[ESEF\.2\.2\.1\.precisionAttributeUsed] .*'): 1
     },
+    'info': {
+        re.compile(r'.*\[arelle\.ESEF\.reportPackageSize] The exact report package zipped .*'): 1
+    }
 })
 
 assert_result(errors)
