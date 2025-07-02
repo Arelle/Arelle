@@ -325,6 +325,35 @@ def rule_EC0198E(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_EC0237E(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC0237E: The directory or file path to the lowest level exceeds the maximum value (259 characters).
+    """
+    if not pluginData.shouldValidateUpload(val):
+        return
+    uploadFilepaths = pluginData.getUploadFilepaths(val.modelXbrl)
+    for path in uploadFilepaths:
+        if len(str(path)) <= 259:
+            continue
+        yield Validation.error(
+            codes='EDINET.EC0237E',
+            msg=_("The directory or file path ('%(path)s') to the lowest level exceeds the maximum value (259 characters). "
+                  "Please shorten the absolute path of the folder (or file) "
+                  "to 259 characters or less and try uploading again."),
+            path=str(path),
+            file=str(path),
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_EC0206E(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,

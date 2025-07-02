@@ -8,6 +8,7 @@
     <testcase uri="EC0188E/index.xml" />
     <testcase uri="EC0198E/index.xml" />
     <testcase uri="EC0206E/index.xml" />
+    <testcase uri="EC0237E/index.xml" />
     <testcase uri="EC1016E/index.xml" />
     <testcase uri="valid/index.xml" />
 </testcases>
