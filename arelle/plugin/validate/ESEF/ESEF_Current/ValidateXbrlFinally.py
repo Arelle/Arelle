@@ -1112,18 +1112,27 @@ def validateCssUrl(cssContent:str, normalizedUri:str, modelXbrl: ModelXbrl, val:
                             _("Fonts SHOULD be included in the XHTML document as a base64 encoded string: %(file)s."),
                             modelObject=elt, file=css_rule.value)
         if isinstance(css_element, tinycss2.ast.QualifiedRule):
-            validateCssUrlContent(css_element.content, normalizedUri, modelXbrl, val, elt, params)
+            cssSelectors = tinycss2.serialize(css_element.prelude).strip()
+            validateCssUrlContent(css_element.content, normalizedUri, modelXbrl, val, elt, params, cssSelectors)
 
 
-def validateCssUrlContent(cssRules: list[Any], normalizedUri:str, modelXbrl: ModelXbrl, val: ValidateXbrl, elt: ModelObject, params: ImageValidationParameters) -> None:
+def validateCssUrlContent(
+        cssRules: list[Any],
+        normalizedUri:str,
+        modelXbrl: ModelXbrl,
+        val: ValidateXbrl,
+        elt: ModelObject,
+        params: ImageValidationParameters,
+        cssSelectors: str | None = None,
+) -> None:
     for css_rule in cssRules:
         if isinstance(css_rule, tinycss2.ast.FunctionBlock):
             if css_rule.lower_name == "url":
                 if len(css_rule.arguments):
                     css_rule_url = css_rule.arguments[0].value  # url or base64
                     evaluatedMsg = _('On line {line}').format(line=1) #css_element.source_line)
-                    validateImageAndLog(normalizedUri, css_rule_url, modelXbrl, val, elt, evaluatedMsg, params)
+                    validateImageAndLog(normalizedUri, css_rule_url, modelXbrl, val, elt, evaluatedMsg, params, cssSelectors)
         elif isinstance(css_rule, tinycss2.ast.URLToken):
             value = css_rule.value
             evaluatedMsg = _('On line {line}').format(line=1) #css_element.source_line)
-            validateImageAndLog(normalizedUri, value, modelXbrl, val, elt, evaluatedMsg, params)
+            validateImageAndLog(normalizedUri, value, modelXbrl, val, elt, evaluatedMsg, params, cssSelectors)
