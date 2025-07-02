@@ -319,3 +319,31 @@ def rule_EC0198E(
                 actual="{:,}".format(actual),
                 limit="{:,}".format(limit),
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC0206E(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC0206E: Empty files are not permitted.
+    """
+    if not pluginData.shouldValidateUpload(val):
+        return
+    for path, size in pluginData.getUploadFileSizes(val.modelXbrl).items():
+        if size > 0:
+            continue
+        yield Validation.error(
+            codes='EDINET.EC0206E',
+            msg=_("An empty file exists. "
+                  "File name: '%(path)s'. "
+                  "Please delete the empty file and upload again."),
+            path=str(path),
+            file=str(path),
+        )
