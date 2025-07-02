@@ -16,7 +16,7 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
-from ..FormType import FormType, HTML_EXTENSIONS
+from ..FormType import FormType, HTML_EXTENSIONS, IMAGE_EXTENSIONS
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
@@ -344,6 +344,36 @@ def rule_EC0206E(
             msg=_("An empty file exists. "
                   "File name: '%(path)s'. "
                   "Please delete the empty file and upload again."),
+            path=str(path),
+            file=str(path),
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC1016E(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC1016E: The image file is over 300KB.
+    """
+    if not pluginData.shouldValidateUpload(val):
+        return
+    for path, size in pluginData.getUploadFileSizes(val.modelXbrl).items():
+        if path.suffix not in IMAGE_EXTENSIONS:
+            continue
+        if size <= 300_000:  # Interpretting KB as kilobytes (1,000 bytes)
+            continue
+        yield Validation.error(
+            codes='EDINET.EC1016E',
+            msg=_("The image file is over 300KB. "
+                  "File name: '%(path)s'. "
+                  "Please create an image file with a size of 300KB or less."),
             path=str(path),
             file=str(path),
         )
