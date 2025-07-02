@@ -16,7 +16,7 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
-from ..FormType import FormType, HTML_EXTENSIONS
+from ..FormType import FormType, HTML_EXTENSIONS, IMAGE_EXTENSIONS
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
@@ -318,4 +318,138 @@ def rule_EC0198E(
                 directory=str(directory),
                 actual="{:,}".format(actual),
                 limit="{:,}".format(limit),
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC0237E(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC0237E: The directory or file path to the lowest level exceeds the maximum value (259 characters).
+    """
+    if not pluginData.shouldValidateUpload(val):
+        return
+    uploadFilepaths = pluginData.getUploadFilepaths(val.modelXbrl)
+    for path in uploadFilepaths:
+        if len(str(path)) <= 259:
+            continue
+        yield Validation.error(
+            codes='EDINET.EC0237E',
+            msg=_("The directory or file path ('%(path)s') to the lowest level exceeds the maximum value (259 characters). "
+                  "Please shorten the absolute path of the folder (or file) "
+                  "to 259 characters or less and try uploading again."),
+            path=str(path),
+            file=str(path),
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC0206E(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC0206E: Empty files are not permitted.
+    """
+    if not pluginData.shouldValidateUpload(val):
+        return
+    for path, size in pluginData.getUploadFileSizes(val.modelXbrl).items():
+        if size > 0:
+            continue
+        yield Validation.error(
+            codes='EDINET.EC0206E',
+            msg=_("An empty file exists. "
+                  "File name: '%(path)s'. "
+                  "Please delete the empty file and upload again."),
+            path=str(path),
+            file=str(path),
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC1016E(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC1016E: The image file is over 300KB.
+    """
+    if not pluginData.shouldValidateUpload(val):
+        return
+    for path, size in pluginData.getUploadFileSizes(val.modelXbrl).items():
+        if path.suffix not in IMAGE_EXTENSIONS:
+            continue
+        if size <= 300_000:  # Interpretting KB as kilobytes (1,000 bytes)
+            continue
+        yield Validation.error(
+            codes='EDINET.EC1016E',
+            msg=_("The image file is over 300KB. "
+                  "File name: '%(path)s'. "
+                  "Please create an image file with a size of 300KB or less."),
+            path=str(path),
+            file=str(path),
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC1020E(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC1020E: When writing a DOCTYPE declaration, do not define it multiple times.
+    Also, please modify the relevant file so that there is only one html tag, one head tag, and one body tag each.
+
+    Note: Some violations of this rule (such as multiple DOCTYPE declarations) prevent Arelle from parsing
+    the XML at all, and thus an XML schema error will be triggered rather than this validation error.
+    """
+    if not pluginData.shouldValidateUpload(val):
+        return
+    checkNames = frozenset({'body', 'head', 'html'})
+    for modelDocument in val.modelXbrl.urlDocs.values():
+        path = Path(modelDocument.uri)
+        if path.suffix not in HTML_EXTENSIONS:
+            continue
+        rootElt = modelDocument.xmlRootElement
+        eltCounts = {
+            rootElt.qname.localName: 1
+        }
+        for elt in rootElt.iterdescendants():
+            name = elt.qname.localName
+            if name not in checkNames:
+                continue
+            eltCounts[name] = eltCounts.get(name, 0) + 1
+            pass
+        if any(count > 1 for count in eltCounts.values()):
+            yield Validation.error(
+                codes='EDINET.EC1020E',
+                msg=_("The HTML syntax is incorrect. "
+                      "File name: '%(path)s'. "
+                      "When writing a DOCTYPE declaration, do not define it multiple times. "
+                      "Also, please modify the relevant file so that there is only one html tag, "
+                      "one head tag, and one body tag each."),
+                path=str(path),
+                file=str(path),
             )
