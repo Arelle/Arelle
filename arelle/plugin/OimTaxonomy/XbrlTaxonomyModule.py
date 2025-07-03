@@ -20,6 +20,7 @@ from .XbrlLabel import XbrlLabel, XbrlLabelType
 from .XbrlNetwork import XbrlNetwork, XbrlRelationship, XbrlRelationshipType
 from .XbrlProperty import XbrlProperty, XbrlPropertyType
 from .XbrlReference import XbrlReference, XbrlReferenceType
+from .XbrlReport import XbrlFact
 from .XbrlTaxonomyModel import XbrlTaxonomyModel
 from .XbrlTransform import XbrlTransform
 from .XbrlUnit import XbrlUnit
@@ -43,17 +44,18 @@ class XbrlTaxonomyModule(XbrlTaxonomyObject):
     domains: OrderedSet[XbrlDomain] # (optional) ordered set of domain objects.
     domainRoots: OrderedSet[XbrlDomainRoot] # (optional) ordered set of domain root objects.
     entities: OrderedSet[XbrlEntity] # (optional) ordered set of entity objects.
-    groups: OrderedSet[XbrlGroup] #  ordered set of group objects.
+    facts: OrderedSet[XbrlFact] #  (optional) ordered set of fact objects.
+    groups: OrderedSet[XbrlGroup] #  (optional) ordered set of group objects.
     groupContents: OrderedSet[XbrlGroupContent] # ordered set of groupContent objects that link a group QName to a list of network or cube objects.
-    labels: OrderedSet[XbrlLabel] # ordered set of label objects.
-    members: OrderedSet[XbrlMember] #  ordered set of member objects.
-    networks: OrderedSet[XbrlNetwork] # ordered set of network objects.
-    propertyTypes: OrderedSet[XbrlPropertyType] # ordered set of propertyType objects.
-    references: OrderedSet[XbrlReference] # ordered set of reference objects.
-    labelTypes: OrderedSet[XbrlLabelType] # rdered set of labelType objects.
-    referenceTypes: OrderedSet[XbrlReferenceType] # ordered set of referenceType objects.
-    relationshipTypes: OrderedSet[XbrlRelationshipType] # ordered set of relationshipType objects.
-    tableTemplates: OrderedSet[XbrlTableTemplate] # ordered set of tableTemplate objects.
+    labels: OrderedSet[XbrlLabel] # (optional) ordered set of label objects.
+    members: OrderedSet[XbrlMember] #  (optional) ordered set of member objects.
+    networks: OrderedSet[XbrlNetwork] # (optional) ordered set of network objects.
+    propertyTypes: OrderedSet[XbrlPropertyType] # (optional) ordered set of propertyType objects.
+    references: OrderedSet[XbrlReference] # (optional) ordered set of reference objects.
+    labelTypes: OrderedSet[XbrlLabelType] # (optional)  ordered set of labelType objects.
+    referenceTypes: OrderedSet[XbrlReferenceType] # (optional) ordered set of referenceType objects.
+    relationshipTypes: OrderedSet[XbrlRelationshipType] # (optional) ordered set of relationshipType objects.
+    tableTemplates: OrderedSet[XbrlTableTemplate] # (optional) ordered set of tableTemplate objects.
     dataTables: OrderedSet[XbrlDataTable] # (optional) ordered set of dataTable objects.
     transforms: OrderedSet[XbrlTransform] # (optional) an ordered set of transform objects.
     units: OrderedSet[XbrlUnit] # ordered set of unit objects.
@@ -71,6 +73,7 @@ xbrlObjectTypes = {
         qname("{https://xbrl.org/2025}xbrl:dimensionObject"): XbrlDimension,
         qname("{https://xbrl.org/2025}xbrl:domainObject"): XbrlDomain,
         qname("{https://xbrl.org/2025}xbrl:entityObject"): XbrlEntity,
+        qname("{https://xbrl.org/2025}xbrl:fact"): XbrlFact,
         qname("{https://xbrl.org/2025}xbrl:groupObject"): XbrlGroup,
         qname("{https://xbrl.org/2025}xbrl:groupContentObject"): XbrlGroupContent,
         qname("{https://xbrl.org/2025}xbrl:networkObject"): XbrlNetwork,

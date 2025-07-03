@@ -37,6 +37,7 @@ class XbrlTaxonomyModel(ModelXbrl): # complete wrapper for ModelXbrl
     reports: OrderedDict[QNameKeyType, XbrlReport] = OrderedDict()
 
     def __init__(self, isReport:bool = False, *args: Any, **kwargs: Any) -> None:
+        global XbrlTaxonomyModule
         super(XbrlTaxonomyModel, self).__init__(*args, **kwargs)
         self.dtsObjectIndex = 0
         self.xbrlObjects: list[XbrlObject] = []
@@ -108,7 +109,8 @@ class XbrlTaxonomyModel(ModelXbrl): # complete wrapper for ModelXbrl
 
     # dts-wide object accumulator properties
     def filterNamedObjects(self, _class, _type=None, _lang=None):
-        if issubclass(_class, XbrlReferencableTaxonomyObject):
+        if (issubclass(_class, XbrlReferencableTaxonomyObject) or # taxpmp,u-pwmed referemcab;e pbkect
+            (issubclass(_class, XbrlFact) and isinstance(self, XbrlTaxonomyModel))):  # taxonomy-owned fact
             for obj in self.namedObjects.values():
                 if isinstance(obj, _class):
                     yield obj
@@ -119,7 +121,7 @@ class XbrlTaxonomyModel(ModelXbrl): # complete wrapper for ModelXbrl
                         (not _type or _type == obj._type) and
                         (not _lang or not obj.language or _lang.startswith(obj.language) or obj.language.startswith(lang))):
                         yield obj
-        elif issubclass(_class, XbrlReportObject):
+        elif issubclass(_class, XbrlReportObject) and isinstance(self, XbrlReport): # report facts
             if issubclass(_class, XbrlReport):
                 objs = self.reports.values()
             else:

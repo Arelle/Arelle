@@ -27,9 +27,13 @@
               "items": { "type": "string" },
               "minItems": 1
             }
+          },
+          "description": {
+            "type": "string"
           }
         },
-        "required": ["documentType", "namespaces"]
+        "required": ["documentType", "namespaces"],
+        "additionalProperties": false
       },
       "taxonomy": {
             "type": "object",
@@ -316,6 +320,10 @@
                           }
                         },
                         "extendTargetName": { "$ref": "#/definitions/QName" },
+                        "completeDomain" :{
+                          "type": "boolean",
+                          "description": "Indicates if all relationships in the domain are required to be defined."
+                        },
                         "properties": {
                           "type": "array",
                             "items": { "$ref": "#/definitions/propertyObject"},
@@ -561,6 +569,30 @@
                       ],
                       
                       "additionalProperties": false
+                  }
+                },
+                "facts": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": { "$ref": "#/definitions/SQName" },
+                      "value": { "type": "string" },
+                      "decimals": { "type": "number" },
+                      "factDimensions": {
+                        "type": "object",
+                        "description": "Object mapping dimension QNames to their values for this fact.",
+                        "additionalProperties": {
+                          "oneOf": [
+                            { "type": "string" },
+                            { "type": "number" },
+                            { "type": "null" }
+                          ]
+                        }
+                      }
+                    },
+                    "required": ["name", "value", "factDimensions"],
+                    "additionalProperties": false
                   }
                 },
                 "labelTypes": {
