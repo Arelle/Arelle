@@ -472,7 +472,8 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
             if unexpectedJsonProps:
                 for propName in unexpectedJsonProps:
                     jsonEltsNotInObjClass.append(f"{'/'.join(pathParts + [propName])}={jsonObj.get(propName,'(absent)')}")
-            if isinstance(newObj, XbrlReferencableTaxonomyObject):
+            if (isinstance(newObj, XbrlReferencableTaxonomyObject) or # most referencable taxonomy objects
+                (isinstance(newObj, XbrlFact) and isinstance(oimParentObj, XbrlTaxonomyModule))): # taxonomy-owned fact
                 if keyValue in xbrlTxmyMdl.namedObjects:
                     namedObjectDuplicates[keyValue].add(newObj)
                     namedObjectDuplicates[keyValue].add(xbrlTxmyMdl.namedObjects[keyValue])
@@ -1018,6 +1019,8 @@ def oimTaxonomyViews(cntlr, xbrlTxmyMdl):
                              (XbrlNetwork, cntlr.tabWinTopRt, "XBRL Networks"),
                              (XbrlCube, cntlr.tabWinTopRt, "XBRL Cubes")
                             ))
+        if any(xbrlTxmyMdl.filterNamedObjects(XbrlFact)):
+            initialViews.append( (XbrlFact, cntlr.tabWinTopRt, "Taxonomy Facts") )
         initialViews = tuple(initialViews)
         additionalViews = ((XbrlAbstract, cntlr.tabWinBtm, "XBRL Abstracts"),
                            (XbrlCubeType, cntlr.tabWinBtm, "XBRL Cube Types"),
