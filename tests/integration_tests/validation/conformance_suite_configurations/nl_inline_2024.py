@@ -26,6 +26,27 @@ config = ConformanceSuiteConfig(
             'extensionTaxonomyLineItemNotLinkedToAnyHypercube': 1,
             'usableConceptsNotIncludedInDefinitionLink': 1,
         },
+        'G3-2-7_1/index.xml:TC1_valid': {
+            'missingRelevantPlaceholder': 1,
+        },
+        'G3-2-7_1/index.xml:TC2_valid': {
+            'missingRelevantPlaceholder': 1,
+        },
+        'G3-2-7_1/index.xml:TC3_valid': {
+            'missingRelevantPlaceholder': 1,
+        },
+        'G3-2-7_1/index.xml:TC4_invalid': {
+            'missingRelevantPlaceholder': 1,
+        },
+        'G3-2-7_1/index.xml:TC5_invalid': {
+            'missingRelevantPlaceholder': 1,
+        },
+        'G3-2-7_1/index.xml:TC6_invalid': {
+            'missingRelevantPlaceholder': 1,
+        },
+        'G3-2-7_1/index.xml:TC7_invalid': {
+            'missingRelevantPlaceholder': 1,
+        },
         'G3-5-1_5/index.xml:TC2_invalid': {
             # This is the expected error, but we return two of them, slightly different.
             'imageFormatNotSupported': 1,
@@ -73,6 +94,7 @@ config = ConformanceSuiteConfig(
             'incorrectSummationItemArcroleUsed': 1,  # Also fails 4.4.1.1
             # Test imports https://www.nltaxonomie.nl/kvk/2024-03-31/kvk-annual-report-nlgaap-ext.xsd which is the draft taxonomy and not the final
             'requiredEntryPointNotImported': 1,
+            'missingRelevantPlaceholder': 1,
             'UsableConceptsNotAppliedByTaggedFacts': 1,  # Also fails 4.4.6.1
             'extensionTaxonomyLineItemNotLinkedToAnyHypercube': 10,
         },
@@ -82,6 +104,7 @@ config = ConformanceSuiteConfig(
         'G4-2-3_1/index.xml:TC2_invalid': {
             'extensionTaxonomyLineItemNotLinkedToAnyHypercube': 1,
             'extensionConceptNoLabel': 1,
+            'missingRelevantPlaceholder': 1,
         },
         'G4-4-2_1/index.xml:TC2_invalid': {
             'closedNegativeHypercubeInDefinitionLinkbase': 1,  # Also fails 4.4.2.3
@@ -90,6 +113,10 @@ config = ConformanceSuiteConfig(
             'usableConceptsNotIncludedInDefinitionLink': 1,
         },
         'RTS_Annex_II_Par_1_RTS_Annex_IV_par_7/index.xml:TC2_valid': {
+            'undefinedLanguageForTextFact': 1,
+            'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 5,
+        },
+        'RTS_Annex_II_Par_1_RTS_Annex_IV_par_7/index.xml:TC4_invalid': {
             'undefinedLanguageForTextFact': 1,
             'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 5,
         },
@@ -150,7 +177,6 @@ config = ConformanceSuiteConfig(
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G5-1-3_2/index.xml:TC1_valid',  # Must be run with different disclosure system for GAAP Other
         'conformance-suite-2024-sbr-domein-handelsregister/tests/G5-1-3_2/index.xml:TC2_invalid',  # Must be run with different disclosure system for GAAP Other
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_II_Par_1/index.xml:TC3_invalid',
-        'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_II_Par_1_RTS_Annex_IV_par_7/index.xml:TC4_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_III_Par_1/index.xml:TC2_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_III_Par_1/index.xml:TC3_invalid',
         'conformance-suite-2024-sbr-domein-handelsregister/tests/RTS_Annex_IV_Par_12_G3-2-4_1/index.xml:TC4_invalid',

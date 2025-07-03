@@ -226,6 +226,9 @@ class PluginValidationDataExtension(PluginData):
     financialReportingPeriodPreviousStartDateQn: QName
     financialReportingPeriodPreviousEndDateQn: QName
     formattedExplanationItemTypeQn: QName
+    ifrsIdentifier: str
+    permissibleGAAPRootAbstracts: frozenset[QName]
+    permissibleIFRSRootAbstracts: frozenset[QName]
     textFormattingSchemaPath: str
     textFormattingWrapper: str
 
