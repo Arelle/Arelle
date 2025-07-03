@@ -131,3 +131,6 @@ class PluginValidationDataExtension(PluginData):
             )
             return False
         return True
+
+    def isStandardTaxonomyUrl(self, uri: str, modelXbrl: ModelXbrl) -> bool:
+        return modelXbrl.modelManager.disclosureSystem.hrefValidForDisclosureSystem(uri)
