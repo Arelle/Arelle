@@ -454,7 +454,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                         _("Image scope must be base-64 encoded string (starting with data:image/*;base64), *=gif, jpeg or png.  src disallowed: %(src)s."),
                         modelObject=elt, src=attrValue[:128])
         for elt in rootElt.iterdescendants(tag="{http://www.w3.org/1999/xhtml}style"):
-            _validateScriptElement(elt, modelXbrl)
+            _validateStyleElement(elt, modelXbrl)
         for elt in rootElt.xpath("//xhtml:*[@style]", namespaces={"xhtml": "http://www.w3.org/1999/xhtml"}):
             _validateStyleAttribute(elt, modelXbrl)
 
@@ -468,7 +468,7 @@ def validateXbrlFinally(val, *args, **kwargs):
     modelXbrl.modelManager.showStatus(None)
 
 
-def _validateScriptElement(elt, modelXbrl):
+def _validateStyleElement(elt, modelXbrl):
     cssElements = tinycss2.parse_stylesheet(elt.text)
     for css_element in cssElements:
         if isinstance(css_element, tinycss2.ast.QualifiedRule):
@@ -479,9 +479,10 @@ def _validateScriptElement(elt, modelXbrl):
                 elif _isExternalImageUrl(cssProperty, elem):
                         modelXbrl.error(
                             "HMRC.SG.3.8",
-                            _("Style element has disallowed image reference: %(styleImage)s."),
+                            _("Style element has disallowed image reference: %(cssSelectors)s, %(styleImage)s."),
                             modelObject=elt,
-                            styleImage=elem.arguments[0].value
+                            cssSelectors=tinycss2.serialize(css_element.prelude).strip(),
+                            styleImage=elem.arguments[0].value,
                         )
                         return
         elif isinstance(css_element, tinycss2.ast.ParseError):

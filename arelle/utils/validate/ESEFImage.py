@@ -5,22 +5,22 @@ from __future__ import annotations
 
 import binascii
 import os
-
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import cast, Iterable
+from typing import Any, cast
 from urllib.parse import unquote
 
-from lxml.etree import XML, XMLSyntaxError
-from lxml.etree import _Element
+import tinycss2  # type: ignore[import-untyped]
+from lxml.etree import XML, XMLSyntaxError, _Element
 
 from arelle import ModelDocument
 from arelle.ModelObjectFactory import parser
 from arelle.ModelXbrl import ModelXbrl
+from arelle.typing import TypeGetText
 from arelle.UrlUtil import decodeBase64DataImage, scheme
+from arelle.utils.validate.Validation import Validation
 from arelle.ValidateFilingText import parseImageDataURL, validateGraphicHeaderType
 from arelle.ValidateXbrl import ValidateXbrl
-from arelle.typing import TypeGetText
-from arelle.utils.validate.Validation import Validation
 
 _: TypeGetText  # Handle gettext
 
@@ -61,7 +61,9 @@ def validateImageAndLog(
     elts: _Element | list[_Element],
     evaluatedMsg: str,
     params: ImageValidationParameters,
+    prelude: list[Any] | None = None,
 ) -> None:
+    cssSelectors = None
     for validation in validateImage(
         baseUrl=baseUrl,
         image=image,
@@ -71,7 +73,14 @@ def validateImageAndLog(
         evaluatedMsg=evaluatedMsg,
         params=params,
     ):
-        modelXbrl.log(level=validation.level.name, codes=validation.codes, msg=validation.msg, **validation.args)
+        if cssSelectorsArg := validation.args.get("cssSelectors"):
+            raise ValueError(_("The 'cssSelectors' argument is reserved to record the CSS selector. It should not be present in the validation arguments: {}").format(cssSelectorsArg))
+        if prelude and cssSelectors is None:
+            cssSelectors = tinycss2.serialize(prelude).strip()
+        args = validation.args.copy()
+        if cssSelectors:
+            args["cssSelectors"] = cssSelectors
+        modelXbrl.log(level=validation.level.name, codes=validation.codes, msg=validation.msg, **args)
 
 # check image contents against mime/file ext and for Steganography
 def validateImage(
