@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from typing import Any, cast
 from urllib.parse import unquote
 
-import tinycss2
+import tinycss2  # type: ignore[import-untyped]
 from lxml.etree import XML, XMLSyntaxError, _Element
 
 from arelle import ModelDocument
