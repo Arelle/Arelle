@@ -99,7 +99,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
             except Exception:
                 pass
             if _size is None:
-                _size = sum(zi.compress_size for zi in modelXbrl.fileSource.fs.infolist())
+                _size = modelXbrl.fileSource.getBytesSizeEstimate()
                 _sizeExact = False
         modelXbrl.info("arelle.ESEF.reportPackageSize",
                        _("The %(estimated)s report package %(reportPackageMeasurement)s size is %(size)s bytes."),

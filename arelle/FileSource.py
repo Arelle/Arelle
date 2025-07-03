@@ -670,6 +670,15 @@ class FileSource:
             return stream.tell()  # Report the current position, which is the size of the file
         return None
 
+    def getBytesSizeEstimate(self) -> int | None:
+        """
+        Get an estimated size of the zip file in bytes.
+        :return: Estimated size of the zip file in bytes, or None if not applicable.
+        """
+        if not isinstance(self.fs, zipfile.ZipFile):
+            return None
+        return sum(zi.compress_size for zi in self.fs.infolist())
+
     def exists(self, filepath: str) -> bool:
         archiveFileSource = self.fileSourceContainingFilepath(filepath)
         if archiveFileSource is not None:
