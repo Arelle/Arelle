@@ -106,7 +106,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                        estimated=_("exact") if _sizeExact else _("estimated"),
                        reportPackageMeasurement=_(val.authParam["reportPackageMeasurement"]) or _("zipped"),
                        size=_size)
-        if _size > maxMB * 1048576:
+        if _size is not None and _size > maxMB * 1048576:
             modelXbrl.error("arelle.ESEF.maximumReportPackageSize",
                             _("The authority %(authority)s requires a report package size under %(maxSize)s MB, size is %(size)s."),
                             modelObject=modelXbrl, authority=val.authority, maxSize=reportPackageMaxMB, size=_size)
