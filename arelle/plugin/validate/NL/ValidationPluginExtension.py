@@ -22,9 +22,11 @@ class ValidationPluginExtension(ValidationPlugin):
     def newPluginData(self, validateXbrl: ValidateXbrl) -> PluginValidationDataExtension:
         disclosureSystem = validateXbrl.disclosureSystem.name
         if disclosureSystem == DISCLOSURE_SYSTEM_NT16:
+            ifrsNamespace = None
             jenvNamespace = 'http://www.nltaxonomie.nl/nt16/jenv/20211208/dictionary/jenv-bw2-data'
             kvkINamespace = 'http://www.nltaxonomie.nl/nt16/kvk/20211208/dictionary/kvk-data'
             nlTypesNamespace = 'http://www.nltaxonomie.nl/nt16/sbr/20210301/dictionary/nl-types'
+            rjNamespace = None
             entrypointRoot = 'http://www.nltaxonomie.nl/nt16/kvk/20211208/entrypoints/'
             entrypoints = {entrypointRoot + e for e in [
                 'kvk-rpt-jaarverantwoording-2021-ifrs-full.xsd',
@@ -58,9 +60,11 @@ class ValidationPluginExtension(ValidationPlugin):
                 'kvk-rpt-jaarverantwoording-2021-nlgaap-zorginstellingen.xsd',
             ]}
         elif disclosureSystem == DISCLOSURE_SYSTEM_NT17:
+            ifrsNamespace = None
             jenvNamespace = 'http://www.nltaxonomie.nl/nt17/jenv/20221214/dictionary/jenv-bw2-data'
             kvkINamespace = 'http://www.nltaxonomie.nl/nt17/kvk/20221214/dictionary/kvk-data'
             nlTypesNamespace = 'http://www.nltaxonomie.nl/nt17/sbr/20220301/dictionary/nl-types'
+            rjNamespace = None
             entrypointRoot = 'http://www.nltaxonomie.nl/nt17/kvk/20221214/entrypoints/'
             entrypoints = {entrypointRoot + e for e in [
                 'kvk-rpt-jaarverantwoording-2022-ifrs-full.xsd',
@@ -95,9 +99,11 @@ class ValidationPluginExtension(ValidationPlugin):
                 'kvk-rpt-jaarverantwoording-2022-nlgaap-zorginstellingen.xsd',
             ]}
         elif disclosureSystem == DISCLOSURE_SYSTEM_NT18:
+            ifrsNamespace = None
             jenvNamespace = 'http://www.nltaxonomie.nl/nt18/jenv/20231213/dictionary/jenv-bw2-data'
             kvkINamespace = 'http://www.nltaxonomie.nl/nt18/kvk/20231213/dictionary/kvk-data'
             nlTypesNamespace = 'http://www.nltaxonomie.nl/nt18/sbr/20230301/dictionary/nl-types'
+            rjNamespace = None
             entrypointRoot = 'http://www.nltaxonomie.nl/nt18/kvk/20231213/entrypoints/'
             entrypoints = {entrypointRoot + e for e in [
                 'kvk-rpt-jaarverantwoording-2023-ifrs-full.xsd',
@@ -132,9 +138,11 @@ class ValidationPluginExtension(ValidationPlugin):
                 'kvk-rpt-jaarverantwoording-2023-nlgaap-zorginstellingen.xsd',
             ]}
         elif disclosureSystem == DISCLOSURE_SYSTEM_NT19:
+            ifrsNamespace = None
             jenvNamespace = 'http://www.nltaxonomie.nl/nt19/jenv/20241211/dictionary/jenv-bw2-data'
             kvkINamespace = 'http://www.nltaxonomie.nl/nt19/kvk/20241211/dictionary/kvk-data'
             nlTypesNamespace = 'http://www.nltaxonomie.nl/nt19/sbr/20240301/dictionary/nl-types'
+            rjNamespace = None
             entrypointRoot = 'http://www.nltaxonomie.nl/nt19/kvk/20241211/entrypoints/'
             entrypoints = {entrypointRoot + e for e in [
                 'kvk-rpt-jaarverantwoording-2024-ifrs-full.xsd',
@@ -169,18 +177,22 @@ class ValidationPluginExtension(ValidationPlugin):
                 'kvk-rpt-jaarverantwoording-2024-nlgaap-zorginstellingen.xsd',
             ]}
         elif disclosureSystem == DISCLOSURE_SYSTEM_NL_INLINE_2024:
+            ifrsNamespace = 'https://xbrl.ifrs.org/taxonomy/2024-03-27/ifrs-full'
             jenvNamespace = 'https://www.nltaxonomie.nl/bw2-titel9/2024-12-31/bw2-titel9-cor'
-            kvkINamespace = None
+            kvkINamespace = 'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-cor'
             nlTypesNamespace = None
+            rjNamespace = 'https://www.nltaxonomie.nl/rj/2024-12-31/rj-cor'
             entrypointRoot = 'http://www.nltaxonomie.nl/kvk/2024-12-31/'
             entrypoints = {entrypointRoot + e for e in [
                 'kvk-annual-report-ifrs-ext.xsd',
                 'kvk-annual-report-nlgaap-ext.xsd',
             ]}
         elif disclosureSystem == DISCLOSURE_SYSTEM_NL_INLINE_2024_GAAP_OTHER:
+            ifrsNamespace = 'https://xbrl.ifrs.org/taxonomy/2024-03-27/ifrs-full'
             jenvNamespace = 'https://www.nltaxonomie.nl/bw2-titel9/2024-12-31/bw2-titel9-cor'
-            kvkINamespace = None
+            kvkINamespace = 'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-cor'
             nlTypesNamespace = None
+            rjNamespace =  'https://www.nltaxonomie.nl/rj/2024-12-31/rj-cor'
             entrypointRoot = 'http://www.nltaxonomie.nl/kvk/2024-12-31/'
             entrypoints = {entrypointRoot + e for e in [
                 'kvk-annual-report-other-gaap.xsd',
@@ -201,6 +213,23 @@ class ValidationPluginExtension(ValidationPlugin):
             financialReportingPeriodPreviousStartDateQn=qname(f'{{{jenvNamespace}}}FinancialReportingPeriodPreviousStartDate'),
             financialReportingPeriodPreviousEndDateQn=qname(f'{{{jenvNamespace}}}FinancialReportingPeriodPreviousEndDate'),
             formattedExplanationItemTypeQn=qname(f'{{{nlTypesNamespace}}}formattedExplanationItemType'),
+            ifrsIdentifier = 'https://xbrl.ifrs.org',
+            permissibleGAAPRootAbstracts=frozenset([
+                qname(f'{{{jenvNamespace}}}BalanceSheetTitle'),
+                qname(f'{{{jenvNamespace}}}IncomeStatementTitle'),
+                qname(f'{{{jenvNamespace}}}StatementOfComprehensiveIncomeTitle'),
+                qname(f'{{{jenvNamespace}}}EquityStatementOfChangesTitle'),
+                qname(f'{{{kvkINamespace}}}AnnualReportFilingInformationTitle'),
+                qname(f'{{{rjNamespace}}}StatementOfCashFlowsTitle'),
+            ]),
+            permissibleIFRSRootAbstracts=frozenset([
+                qname(f'{{{ifrsNamespace}}}StatementOfFinancialPositionAbstract'),
+                qname(f'{{{ifrsNamespace}}}IncomeStatementAbstract'),
+                qname(f'{{{ifrsNamespace}}}StatementOfComprehensiveIncomeAbstract'),
+                qname(f'{{{ifrsNamespace}}}StatementOfCashFlowsAbstract'),
+                qname(f'{{{ifrsNamespace}}}StatementOfChangesInEquityAbstract'),
+                qname(f'{{{kvkINamespace}}}AnnualReportFilingInformationTitle'),
+            ]),
             textFormattingSchemaPath='sbr-text-formatting.xsd',
             textFormattingWrapper='<formattedText xmlns="http://www.nltaxonomie.nl/2017/xbrl/sbr-text-formatting">{}</formattedText>',
         )

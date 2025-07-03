@@ -18,7 +18,7 @@ from arelle.ModelInstanceObject import ModelInlineFact
 from arelle.ModelObject import ModelObject
 from arelle.PrototypeDtsObject import PrototypeObject
 from arelle.ValidateDuplicateFacts import getDuplicateFactSets
-from arelle.XbrlConst import standardLabel
+from arelle.XbrlConst import parentChild, standardLabel
 from arelle.XmlValidateConst import VALID
 
 from arelle import XbrlConst, XmlUtil, ModelDocument
@@ -1796,6 +1796,41 @@ def rule_nl_kvk_6_1_1_1(
                 msg=_('The size of the report package must not exceed %(maxSize)s MBs, size is %(size)s MBs.'),
                 modelObject=val.modelXbrl, maxSize=MAX_REPORT_PACKAGE_SIZE_MBS, size=int(_size/1000000)
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_RTS_Annex_II_Par_1_RTS_Annex_IV_par_7(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.RTS_Annex_II_Par_1_RTS_Annex_IV_par_7: Legal entities should mark all amounts in a designated currency included in a. the balance sheet, income statement, cash flow statement,
+    statement of comprehensive income and statement of changes in equity of the (consolidated) financial statements based on NL-GAAP; or b. the statement of financial position,
+    the income statement (separately or as part of the statement of comprehensive income), the statement of comprehensive income, the statement of changes in equity and
+    the statement of cash flows of the (consolidated) financial statements based on IFRS.
+    """
+    warnings = []
+    permissibleAbstracts = pluginData.permissibleGAAPRootAbstracts
+    ifrsMatch = any(k.startswith(pluginData.ifrsIdentifier) for k in val.modelXbrl.namespaceDocs.keys())
+    if ifrsMatch:
+        permissibleAbstracts = pluginData.permissibleIFRSRootAbstracts
+    for ELR in val.modelXbrl.relationshipSet(parentChild).linkRoleUris:
+        relSet = val.modelXbrl.relationshipSet(parentChild, ELR)
+        for rootConcept in relSet.rootConcepts:
+            if relSet.fromModelObject(rootConcept):
+                if not rootConcept.qname in permissibleAbstracts:
+                    warnings.append(rootConcept)
+    if len(warnings) > 0:
+        yield Validation.warning(
+            codes='NL.NL-KVK.RTS_Annex_II_Par_1_RTS_Annex_IV_par_7.missingRelevantPlaceholder',
+            msg=_('A root abstract is being used that is not one of the starting abstracts defined by the regulator.  Review abstracts in use and update to defined abstracts.'),
+            modelObject=warnings
+        )
 
 
 @validation(
