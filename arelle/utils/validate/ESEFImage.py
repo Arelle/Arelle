@@ -5,23 +5,22 @@ from __future__ import annotations
 
 import binascii
 import os
-
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Any, cast, Iterable
+from typing import Any, cast
 from urllib.parse import unquote
 
 import tinycss2
-from lxml.etree import XML, XMLSyntaxError
-from lxml.etree import _Element
+from lxml.etree import XML, XMLSyntaxError, _Element
 
 from arelle import ModelDocument
 from arelle.ModelObjectFactory import parser
 from arelle.ModelXbrl import ModelXbrl
+from arelle.typing import TypeGetText
 from arelle.UrlUtil import decodeBase64DataImage, scheme
+from arelle.utils.validate.Validation import Validation
 from arelle.ValidateFilingText import parseImageDataURL, validateGraphicHeaderType
 from arelle.ValidateXbrl import ValidateXbrl
-from arelle.typing import TypeGetText
-from arelle.utils.validate.Validation import Validation
 
 _: TypeGetText  # Handle gettext
 
