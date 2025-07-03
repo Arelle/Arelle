@@ -88,6 +88,7 @@ arelleGUI = "arelle.CntlrWinMain:main"
 platforms = ["any"]
 
 [tool.setuptools.packages.find]
+include = ["arelle*"]
 namespaces = false
 
 [tool.setuptools_scm]
