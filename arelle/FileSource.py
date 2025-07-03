@@ -662,8 +662,10 @@ class FileSource:
         """
         if isinstance(self.basefile, str) and os.path.isfile(self.basefile):
             return os.path.getsize(self.basefile)
-        if isinstance(self.fs, zipfile.ZipFile) and self.fs.fp is not None:
-            stream = cast(IO[Any], self.fs.fp)
+        # ZipFile.fp is a private field, but is currently the simplest way for us to
+        # access the internal stream
+        if isinstance(self.fs, zipfile.ZipFile) and (fp := getattr(self.fs, 'fp')) is not None:
+            stream = cast(IO[Any], fp)
             stream.seek(0, 2)  # Move to the end of the file
             return stream.tell()  # Report the current position, which is the size of the file
         return None
