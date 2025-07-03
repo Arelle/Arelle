@@ -1,12 +1,12 @@
 [build-system]
-requires = ["setuptools>=73,<81", "wheel~=0.44", "setuptools_scm[toml]~=8.1"]
+requires = ["setuptools>=73,<81", "wheel~=0.45", "setuptools_scm[toml]~=8.3"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "arelle-release"
 dynamic = ['version']
 readme = "README.md"
-license = {text = "Apache-2.0"}
+license = "Apache-2.0"
 description = "An open source XBRL platform."
 authors = [
     {name = "arelle.org", email = "support@arelle.org"}
@@ -16,7 +16,6 @@ classifiers = [
     'Development Status :: 5 - Production/Stable',
     'Intended Audience :: End Users/Desktop',
     'Intended Audience :: Developers',
-    'License :: OSI Approved :: Apache Software License',
     'Natural Language :: English',
     'Programming Language :: Python :: 3',
     'Programming Language :: Python :: 3.9',
@@ -89,7 +88,7 @@ arelleGUI = "arelle.CntlrWinMain:main"
 platforms = ["any"]
 
 [tool.setuptools.packages.find]
-namespaces = false
+include = ["arelle*"]
 
 [tool.setuptools_scm]
 tag_regex = "^(?:[\\w-]+-?)?(?P<version>[vV]?\\d+(?:\\.\\d+){0,2}[^\\+]*)(?:\\+.*)?$"
