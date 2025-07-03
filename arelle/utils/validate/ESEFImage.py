@@ -7,9 +7,10 @@ import binascii
 import os
 
 from dataclasses import dataclass
-from typing import cast, Iterable
+from typing import Any, cast, Iterable
 from urllib.parse import unquote
 
+import tinycss2
 from lxml.etree import XML, XMLSyntaxError
 from lxml.etree import _Element
 
@@ -61,8 +62,9 @@ def validateImageAndLog(
     elts: _Element | list[_Element],
     evaluatedMsg: str,
     params: ImageValidationParameters,
-    cssSelectors: str | None = None,
+    prelude: list[Any] | None = None,
 ) -> None:
+    cssSelectors = None
     for validation in validateImage(
         baseUrl=baseUrl,
         image=image,
@@ -74,7 +76,8 @@ def validateImageAndLog(
     ):
         if cssSelectorsArg := validation.args.get("cssSelectors"):
             raise ValueError(_("The 'cssSelectors' argument is reserved to record the CSS selector. It should not be present in the validation arguments: {}").format(cssSelectorsArg))
-
+        if prelude and cssSelectors is None:
+            cssSelectors = tinycss2.serialize(prelude).strip()
         args = validation.args.copy()
         if cssSelectors:
             args["cssSelectors"] = cssSelectors

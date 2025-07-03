@@ -1112,8 +1112,7 @@ def validateCssUrl(cssContent:str, normalizedUri:str, modelXbrl: ModelXbrl, val:
                             _("Fonts SHOULD be included in the XHTML document as a base64 encoded string: %(file)s."),
                             modelObject=elt, file=css_rule.value)
         if isinstance(css_element, tinycss2.ast.QualifiedRule):
-            cssSelectors = tinycss2.serialize(css_element.prelude).strip()
-            validateCssUrlContent(css_element.content, normalizedUri, modelXbrl, val, elt, params, cssSelectors)
+            validateCssUrlContent(css_element.content, normalizedUri, modelXbrl, val, elt, params, css_element.prelude)
 
 
 def validateCssUrlContent(
@@ -1123,7 +1122,7 @@ def validateCssUrlContent(
         val: ValidateXbrl,
         elt: ModelObject,
         params: ImageValidationParameters,
-        cssSelectors: str | None = None,
+        prelude: list[Any] | None = None,
 ) -> None:
     for css_rule in cssRules:
         if isinstance(css_rule, tinycss2.ast.FunctionBlock):
@@ -1131,8 +1130,8 @@ def validateCssUrlContent(
                 if len(css_rule.arguments):
                     css_rule_url = css_rule.arguments[0].value  # url or base64
                     evaluatedMsg = _('On line {line}').format(line=1) #css_element.source_line)
-                    validateImageAndLog(normalizedUri, css_rule_url, modelXbrl, val, elt, evaluatedMsg, params, cssSelectors)
+                    validateImageAndLog(normalizedUri, css_rule_url, modelXbrl, val, elt, evaluatedMsg, params, prelude)
         elif isinstance(css_rule, tinycss2.ast.URLToken):
             value = css_rule.value
             evaluatedMsg = _('On line {line}').format(line=1) #css_element.source_line)
-            validateImageAndLog(normalizedUri, value, modelXbrl, val, elt, evaluatedMsg, params, cssSelectors)
+            validateImageAndLog(normalizedUri, value, modelXbrl, val, elt, evaluatedMsg, params, prelude)
