@@ -4,6 +4,7 @@ from tests.integration_tests.validation.conformance_suite_config import Conforma
 
 config = ConformanceSuiteConfig(
     args=[
+        '--baseTaxonomyValidation', 'none',
         '--disclosureSystem', 'EDINET',
     ],
     assets=[
