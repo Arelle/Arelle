@@ -55,6 +55,7 @@ options = RuntimeOptions(
     logFile=str(arelle_log_file),
     logFormat="[%(messageCode)s] %(message)s - %(file)s",
     packages=package_paths,
+    parameters="authority=SE",
     plugins='validate/ESEF',
     validate=True,
 )

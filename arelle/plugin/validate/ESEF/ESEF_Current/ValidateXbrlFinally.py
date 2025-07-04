@@ -93,12 +93,25 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
         assert isinstance(modelXbrl.fileSource.fs, zipfile.ZipFile)
 
         maxMB = float(reportPackageMaxMB)
+        _size: int | None = None
+        _sizeExact = True
         if val.authParam["reportPackageMeasurement"] == "unzipped":
             _size = sum(zi.file_size for zi in modelXbrl.fileSource.fs.infolist())
+            _sizeExact = False
         else:
-            _size = sum(zi.compress_size for zi in modelXbrl.fileSource.fs.infolist())
-            # not usable because zip may be posted or streamed: _size = os.path.getsize(modelXbrl.fileSource.basefile)
-        if _size > maxMB * 1048576:
+            try:
+                _size = modelXbrl.fileSource.getBytesSize()
+            except Exception:
+                pass
+            if _size is None:
+                _size = modelXbrl.fileSource.getBytesSizeEstimate()
+                _sizeExact = False
+        modelXbrl.info("arelle.ESEF.reportPackageSize",
+                       _("The %(estimated)s report package %(reportPackageMeasurement)s size is %(size)s bytes."),
+                       estimated=_("exact") if _sizeExact else _("estimated"),
+                       reportPackageMeasurement=_(val.authParam["reportPackageMeasurement"]) or _("zipped"),
+                       size=_size)
+        if _size is not None and _size > maxMB * 1048576:
             modelXbrl.error("arelle.ESEF.maximumReportPackageSize",
                             _("The authority %(authority)s requires a report package size under %(maxSize)s MB, size is %(size)s."),
                             modelObject=modelXbrl, authority=val.authority, maxSize=reportPackageMaxMB, size=_size)
