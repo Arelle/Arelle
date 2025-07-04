@@ -634,7 +634,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
         super().__init__(hasGui=False, uiLang=uiLang, disable_persistent_config=disable_persistent_config, logFileName=logFileName)
         self.preloadedPlugins =  {}
 
-    def run(self, options: RuntimeOptions, sourceZipStream=None, responseZipStream=None, sourceZipStreamFileName=None) -> bool:
+    def run(self, options: RuntimeOptions, sourceZipStream=None, responseZipStream=None) -> bool:
         """Process command line arguments or web service request, such as to load and validate an XBRL document, or start web server.
 
         When a web server has been requested, this method may be called multiple times, once for each web service (REST) request that requires processing.
@@ -998,7 +998,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         _entryPoints.append({"file":f})
         filesource = None # file source for all instances if not None
         if sourceZipStream:
-            filesource = FileSource.openFileSource(None, self, sourceZipStream=sourceZipStream, sourceZipStreamFileName=sourceZipStreamFileName)
+            filesource = FileSource.openFileSource(None, self, sourceZipStream)
         elif len(_entryPoints) == 1 and "file" in _entryPoints[0]: # check if an archive and need to discover entry points (and not IXDS)
             entryPath = PackageManager.mappedUrl(_entryPoints[0]["file"])
             filesource = FileSource.openFileSource(entryPath, self, checkIfXmlIsEis=_checkIfXmlIsEis)
