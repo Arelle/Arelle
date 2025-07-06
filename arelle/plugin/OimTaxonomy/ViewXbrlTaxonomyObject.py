@@ -1,7 +1,7 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-from typing import ForwardRef, Union, get_origin
+from typing import ForwardRef, Union, get_origin, _AnnotatedAlias
 from collections import defaultdict
 from decimal import Decimal
 from typing import GenericAlias
@@ -29,7 +29,7 @@ def viewXbrlTaxonomyObject(xbrlTxmyMdl, objClass, tabWin, header, additionalView
             if isinstance(propType, str):
                 continue
             elif get_origin(propType) is Union:
-                if any((arg.__forward_arg__.startswith("Xbrl") if isinstance(arg,ForwardRef) else arg.__name__.startswith("Xbrl")) 
+                if any((arg.__forward_arg__.startswith("Xbrl") if isinstance(arg,ForwardRef) else arg.__name__.startswith("Xbrl"))
                        for arg in propType.__args__):
                     continue
             elif propType.__name__.startswith("Xbrl"): # skip taxonomy alias type

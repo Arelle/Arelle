@@ -68,6 +68,7 @@ SAVE_OIM_SCHEMA_FORULA_PARAMETER = qname("saveOIMschemafile", noPrefixIsNoNamesp
 jsonschemaValidator = None
 
 EMPTY_SET = set()
+EMPTY_DICT = {}
 
 def jsonGet(tbl, key, default=None):
     if isinstance(tbl, dict):
@@ -362,6 +363,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                     setattr(newObj, propName, collectionProp) # fresh new dict or OrderedSet (even if no contents for it)
                 else:
                     propClass = propType
+                propertyMap = getattr(propClass, "_propertyMap", EMPTY_DICT).get(propClass, EMPTY_DICT)
                 if propName in jsonObj:
                     unexpectedJsonProps.remove(propName)
                     if propName == "labels" and excludeLabels:
@@ -467,6 +469,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                           setattr(newObj, propName, {type(None): None, DefaultTrue: True, DefaultFalse: False, DefaultZero:0}[propType.__args__[-1]]) # use first of union for prop value creation
                 else: # absent json element
                     if not propClass in (dict, set, OrderedSet, OrderedDict):
+
                         jsonEltsReqdButMissing.append(f"{'/'.join(pathParts + [propName])}")
                         setattr(newObj, propName, None) # not defaultable but set to None anyway
             if unexpectedJsonProps:
