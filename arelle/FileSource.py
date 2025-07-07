@@ -655,6 +655,30 @@ class FileSource:
         else:
             return openXmlFileStream(self.cntlr, filepath, stripDeclaration)
 
+    def getBytesSize(self) -> int | None:
+        """
+        Get the size of the zip file in bytes.
+        :return: Size of the zip file in bytes, or None if not applicable.
+        """
+        if isinstance(self.basefile, str) and os.path.isfile(self.basefile):
+            return os.path.getsize(self.basefile)
+        # ZipFile.fp is a private field, but is currently the simplest way for us to
+        # access the internal stream
+        if isinstance(self.fs, zipfile.ZipFile) and (fp := getattr(self.fs, 'fp')) is not None:
+            stream = cast(IO[Any], fp)
+            stream.seek(0, 2)  # Move to the end of the file
+            return stream.tell()  # Report the current position, which is the size of the file
+        return None
+
+    def getBytesSizeEstimate(self) -> int | None:
+        """
+        Get an estimated size of the zip file in bytes.
+        :return: Estimated size of the zip file in bytes, or None if not applicable.
+        """
+        if not isinstance(self.fs, zipfile.ZipFile):
+            return None
+        return sum(zi.compress_size for zi in self.fs.infolist())
+
     def exists(self, filepath: str) -> bool:
         archiveFileSource = self.fileSourceContainingFilepath(filepath)
         if archiveFileSource is not None:

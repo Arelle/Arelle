@@ -174,7 +174,7 @@ def validate_log_tree(
 
 
 def validate_log_xml(
-        xml: str,
+        xml: str | bytes,
         expected_results: dict[str, dict[regex.Pattern[str], int]] | None = None,
 ) -> list[str]:
     tree = etree.fromstring(xml)
