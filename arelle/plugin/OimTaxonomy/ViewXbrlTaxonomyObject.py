@@ -13,7 +13,7 @@ from .XbrlCube import XbrlCube, XbrlPeriodConstraint
 from .XbrlDimension import XbrlDomain
 from .XbrlGroup import XbrlGroup
 from .XbrlNetwork import XbrlNetwork
-from .XbrlReport import XbrlReport
+from .XbrlReport import XbrlReport, XbrlFact
 from .XbrlObject import EMPTY_DICT, XbrlTaxonomyObject
 from .XbrlConst import qnStdLabel
 
@@ -107,6 +107,10 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
              XbrlConst.xbrldt,
              XbrlConst.xhtml))
         for obj in self.xbrlTxmyMdl.filterNamedObjects(self.objClass, role, lang): # this is a yield generator
+            if isinstance(obj, XbrlFact):
+                self.viewProps("", nodeNum, obj, False)
+                nodeNum += 1
+                continue
             propName = self.propNameTypes[0][0]
             node = self.treeView.insert("", "end",
                                         f"_{self.id}_{obj.xbrlMdlObjIndex}",
@@ -144,8 +148,6 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
         # process nested objects
         if nestedObjs:
             for propName, propType in obj.propertyNameTypes():
-                if isinstance(propType, _GenericAlias) and propType.__origin__ == ClassVar:
-                    continue
                 childObj = getattr(obj, propName, None)
                 if isinstance(getattr(propType, "__origin__", None), type(Union)): # Optional[ ] type
                     if isinstance(propType.__args__[0], XbrlTaxonomyObject): # e.g. dateResolution object
