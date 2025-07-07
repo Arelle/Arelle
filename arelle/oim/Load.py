@@ -1532,7 +1532,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                             hasRowError = True
                                         elif propGrpColValue in propGrpObjects:
                                             rowPropGroups[propGrpName] = propGrpObjects[propGrpColValue]
-                                        else:
+                                        elif propGrpColValue is not EMPTY_CELL:
                                             error("xbrlce:unknownPropertyGroup",
                                                   _("Table %(table)s unknown property group row %(row)s column %(column)s group %(propertyGroup)s, url: %(url)s"),
                                                   table=tableId, row=rowIndex+1, column=rowIdColName, url=tableUrl, propertyGroup=propGrpName)
