@@ -1,7 +1,7 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-from typing import ForwardRef, Union, get_origin, _AnnotatedAlias
+from typing import ForwardRef, Union, get_origin, _AnnotatedAlias, _GenericAlias, ClassVar
 from collections import defaultdict
 from decimal import Decimal
 from typing import GenericAlias
@@ -23,7 +23,7 @@ def viewXbrlTaxonomyObject(xbrlTxmyMdl, objClass, tabWin, header, additionalView
     view = ViewXbrlTxmyObj(xbrlTxmyMdl, objClass, tabWin, header)
     view.propNameTypes = []
     initialParentObjProp = True
-    for propName, propType in getattr(objClass, "__annotations__", {}).items():
+    for propName, propType in objClass.propertyNameTypes():
         if initialParentObjProp:
             initialParentProp = False
             if isinstance(propType, str):
@@ -34,7 +34,7 @@ def viewXbrlTaxonomyObject(xbrlTxmyMdl, objClass, tabWin, header, additionalView
                     continue
             elif propType.__name__.startswith("Xbrl"): # skip taxonomy alias type
                 continue
-        if not isinstance(propType, GenericAlias): # set, dict, etc
+        if not isinstance(propType, GenericAlias) or propName == "factDimensions": # set, dict, etc
             view.propNameTypes.append((propName, propType))
     # add label col if first col is name for Concepts pane
     if view.propNameTypes and view.propNameTypes[0][0] == "name":
@@ -143,7 +143,9 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
             self.treeView.set(node, self.colNames[i], propViewEntry[1])
         # process nested objects
         if nestedObjs:
-            for propName, propType in getattr(type(obj), "__annotations__", EMPTY_DICT).items():
+            for propName, propType in obj.propertyNameTypes():
+                if isinstance(propType, _GenericAlias) and propType.__origin__ == ClassVar:
+                    continue
                 childObj = getattr(obj, propName, None)
                 if isinstance(getattr(propType, "__origin__", None), type(Union)): # Optional[ ] type
                     if isinstance(propType.__args__[0], XbrlTaxonomyObject): # e.g. dateResolution object
