@@ -16,7 +16,7 @@ For debugging, saves the xsd objects loaded from the OIM taxonomy if
 
 """
 
-from typing import TYPE_CHECKING, cast, GenericAlias, Union, _UnionGenericAlias, get_origin
+from typing import TYPE_CHECKING, cast, GenericAlias, Union, _GenericAlias, _UnionGenericAlias, get_origin, ClassVar, ForwardRef
 
 import os, io, json, sys, time, traceback
 import jsonschema
@@ -355,20 +355,25 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
         def createTaxonomyObject(jsonObj, oimParentObj, keyClass, objClass, newObj, pathParts):
             keyValue = None
             relatedNames = [] # to tag an object with labels or references
+            oimParentTypes = (type(oimParentObj), type(oimParentObj).__name__) # allow actual type or TypeAlias type
             unexpectedJsonProps = set(jsonObj.keys())
-            for propName, propType in getattr(objClass, "__annotations__", EMPTY_DICT).items():
+            propertyMap = getattr(objClass, "_propertyMap", EMPTY_DICT).get(type(oimParentObj), EMPTY_DICT)
+            for propName, propType in objClass.propertyNameTypes():
                 if isinstance(propType, GenericAlias):
                     propClass = propType.__origin__ # collection type such as OrderedSet, dict
                     collectionProp = propClass()
                     setattr(newObj, propName, collectionProp) # fresh new dict or OrderedSet (even if no contents for it)
                 else:
                     propClass = propType
-                propertyMap = getattr(propClass, "_propertyMap", EMPTY_DICT).get(propClass, EMPTY_DICT)
-                if propName in jsonObj:
-                    unexpectedJsonProps.remove(propName)
+                if propertyMap.get(propName) in jsonObj:
+                    jsonKey = propertyMap[propName]  # use mapped name instead
+                else:
+                    jsonKey = propName
+                if jsonKey in jsonObj:
+                    unexpectedJsonProps.remove(jsonKey)
                     if propName == "labels" and excludeLabels:
                         continue
-                    jsonValue = jsonObj[propName]
+                    jsonValue = jsonObj[jsonKey]
                     if isinstance(propType, GenericAlias):
                         if len(propType.__args__) == 2: # dict
                             _keyClass = propType.__args__[0] # class of key such as QNameKey
@@ -408,20 +413,15 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                                             print("trace")
                                     else:
                                         collectionProp.append(listObj)
-                        elif isinstance(jsonValue, dict) and keyClass:
+                        elif isinstance(jsonValue, dict) and _keyClass:
                             for iObj, (valKey, valVal) in enumerate(jsonValue.items()):
-                                if get_origin(_keyClass) is Union:
-                                    if QName in _keyClass.__args__ and ":" in valKey:
-                                        _valKey = qname(valKey, prefixNamespaces)
-                                        if _valKey is None:
-                                            error("xbrlte:invalidQName",
-                                                  _("QName is invalid: %(qname)s, jsonObj: %(path)s"),
-                                                  sourceFileLine=href, qname=_valKey, path=f"{'/'.join(pathParts + [f'{propName}[{iObj}]'])}")
-                                            continue # skip this property
-                                    elif str in _keyClass.__args__:
-                                        _valKey = valKey
-                                    else:
-                                        continue
+                                if issubclass(_keyClass,QName):
+                                    _valKey = qname(valKey, prefixNamespaces)
+                                    if _valKey is None:
+                                        error("xbrlte:invalidQName",
+                                              _("QName is invalid: %(qname)s, jsonObj: %(path)s"),
+                                              sourceFileLine=href, qname=_valKey, path=f"{'/'.join(pathParts + [f'{propName}[{iObj}]'])}")
+                                        continue # skip this property
                                 elif isinstance(_keyClass, str):
                                     _valKey = valKey
                                 else:
@@ -462,7 +462,8 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                         setattr(newObj, propName, jsonValue)
                         if (keyClass and keyClass == propType) or (not keyClass and propType in (QNameKeyType, SQNameKeyType)):
                             keyValue = jsonValue # e.g. the QNAme of the new object for parent object collection
-                elif propType in (type(oimParentObj), type(oimParentObj).__name__): # propType may be a TypeAlias which is a string name of class
+                elif (propType in oimParentTypes or # propType may be a TypeAlias which is a string name of class
+                      (isinstance(propType, _UnionGenericAlias) and any(t.__forward_arg__ in oimParentTypes for t in propType.__args__ if isinstance(t,ForwardRef)))): # Union of TypeAliases are ForwardArgs
                     setattr(newObj, propName, oimParentObj)
                 elif (((get_origin(propType) is Union) or isinstance(get_origin(propType), type(Union))) and # Optional[ ] type
                        propType.__args__[-1] in (type(None), DefaultTrue, DefaultFalse, DefaultZero)):

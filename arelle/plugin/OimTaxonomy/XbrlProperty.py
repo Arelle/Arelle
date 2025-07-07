@@ -6,10 +6,10 @@ from typing import TYPE_CHECKING, Any, Optional, Union
 
 from arelle.ModelValue import QName
 from arelle.PythonUtil import OrderedSet
-from .XbrlObject import XbrlReferencableTaxonomyObject
+from .XbrlObject import XbrlModelClass, XbrlReferencableTaxonomyObject
 from .XbrlTypes import XbrlTaxonomyModuleType, QNameKeyType, DefaultFalse
 
-class XbrlProperty:
+class XbrlProperty(XbrlModelClass):
     property: QName # (required) The name is a QName that uniquely identifies the property type object.
     value: Any # (required) The value of the property, that must be consistent with the datatype of the property.
 

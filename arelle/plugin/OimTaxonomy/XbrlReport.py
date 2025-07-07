@@ -25,7 +25,7 @@ class XbrlReport(XbrlReportObject):
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the abstract object.
     linkTypes: OrderedDict[str, AnyURI] = OrderedDict()
     linkGroups: OrderedDict[str, AnyURI] = OrderedDict()
-    facts: OrderedDict[str, XbrlFact] = OrderedDict()
+    facts: OrderedDict[QNameKeyType, XbrlFact] = OrderedDict()
 
     @property
     def factsByName(self):
@@ -39,6 +39,6 @@ class XbrlReport(XbrlReportObject):
 
 XbrlFact._propertyMap[XbrlReport] = {
     # mapping for OIM report facts parented by XbrlReport object
-    "id": "name", # id maps to name
-    "dimensions": "factDimensions" # dimensions maps to factDimensions
+    "name": "id", # name may be id in source input
+    "factDimensions": "dimensions" # factDimensions may be dimensions in source input
 }

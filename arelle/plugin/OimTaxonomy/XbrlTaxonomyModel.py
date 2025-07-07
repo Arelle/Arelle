@@ -121,7 +121,7 @@ class XbrlTaxonomyModel(ModelXbrl): # complete wrapper for ModelXbrl
                         (not _type or _type == obj._type) and
                         (not _lang or not obj.language or _lang.startswith(obj.language) or obj.language.startswith(lang))):
                         yield obj
-        elif issubclass(_class, XbrlReportObject) and isinstance(self, XbrlReport): # report facts
+        elif issubclass(_class, XbrlReportObject) and isinstance(self, (XbrlTaxonomyModel, XbrlReport)): # report facts
             if issubclass(_class, XbrlReport):
                 objs = self.reports.values()
             else:

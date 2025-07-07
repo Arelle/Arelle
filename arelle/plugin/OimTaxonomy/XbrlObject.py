@@ -1,15 +1,21 @@
 """
 See COPYRIGHT.md for copyright information.
 """
-from typing import GenericAlias, _UnionGenericAlias, Any
+from typing import GenericAlias, _UnionGenericAlias, Any, _GenericAlias, ClassVar, ForwardRef
 import os
 from .XbrlConst import qnStdLabel
 XbrlTaxonomyObject = None # class forward reference
 
 EMPTY_DICT = {}
 
-class XbrlObject:
+class XbrlModelClass:
+    @classmethod
+    def propertyNameTypes(cls):
+        for propName, propType in getattr(cls, "__annotations__", EMPTY_DICT).items():
+            if not isinstance(propType, _GenericAlias) or propType.__origin__ != ClassVar:
+                yield propName, propType
 
+class XbrlObject(XbrlModelClass):
     def __init__(self, xbrlMdlObjIndex=0, **kwargs):
         self.xbrlMdlObjIndex = xbrlMdlObjIndex
 
@@ -38,10 +44,12 @@ class XbrlObject:
         propVals = []
         initialParentObjProp = True
         referenceProperties = None
-        for propName, propType in getattr(objClass, "__annotations__", EMPTY_DICT).items():
+        for propName, propType in self.propertyNameTypes():
             if initialParentObjProp:
                 initialParentObjProp = False
-                if isinstance(propType, str) or propType.__name__.startswith("Xbrl"): # skip taxonomy alias type
+                if (isinstance(propType, str) or propType.__name__.startswith("Xbrl") or # skip taxonomy alias type
+                    (isinstance(propType, _UnionGenericAlias) and
+                     any((isinstance(t.__forward_arg__, str) or t.__forward_arg__.__name__.startswith("Xbrl")) for t in propType.__args__ if isinstance(t,ForwardRef)))): # Union of TypeAliases are ForwardArgs
                     continue
             if hasattr(self, propName):
                 val = getattr(self, propName)
@@ -56,7 +64,7 @@ class XbrlObject:
                         if label:
                             propVals.append( ("label", label) )
                         referenceProperties = self.xbrlTxmyMdl.referenceProperties(val, None)
-                elif propName == "dimensions" and isinstance(val, dict):
+                elif propName == "factDimensions" and isinstance(val, dict):
                     for propKey, propVal in val.items():
                         propVals.append( (str(propKey), str(propVal) ) )
                     continue
@@ -107,6 +115,8 @@ class XbrlObject:
         propVals = [f"{self.xbrlMdlObjIndex}"]
         initialParentObjProp = True
         for propName, propType in getattr(objClass, "__annotations__", EMPTY_DICT).items():
+            if isinstance(propType, _GenericAlias) and propType.__origin__ == ClassVar:
+                continue
             if initialParentObjProp:
                 initialParentProp = False
                 if isinstance(propType, str) or getattr(propType, "__name__", "").startswith("Xbrl"): # skip taxonomy alias type
