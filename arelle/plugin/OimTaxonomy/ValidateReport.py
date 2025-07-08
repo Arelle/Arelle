@@ -23,9 +23,9 @@ def validateFact(fact, reportQn, reportObj, txmyMdl):
          txmyMdl.error(code, msg, xbrlObject=fact, id=getattr(fact,"id"), **kwargs)
     initialValidation = not hasattr(fact, "_valid")
     name = fact.name
-    cQn = fact.dimensions.get("concept")
+    cQn = fact.factDimensions.get("concept")
     if isinstance(cQn, str) and ":" in cQn:
-        cQn = fact.dimensions["concept"] = qname(cQn, reportObj._prefixNamespaces)
+        cQn = fact.factDimensions["concept"] = qname(cQn, reportObj._prefixNamespaces)
     cObj = txmyMdl.namedObjects.get(cQn)
     if cObj is None or not isinstance(cObj, XbrlConcept):
         error("oime:missingConceptDimension", _("The concept core dimension MUST be present on fact: %(id)s and must be a taxonomy concept."))
@@ -106,7 +106,7 @@ def validateFact(fact, reportQn, reportObj, txmyMdl):
                           _("The unit core dimension MUST NOT be present on non-numeric facts: %(concept)s, unit %(unit)s."),
                           concept=cQn, unit=uStr)
     updateDimVals = {} # compiled values
-    for dimName, dimVal in fact.dimensions.items():
+    for dimName, dimVal in fact.factDimensions.items():
         if not isinstance(dimName, QName):
             if dimName not in {"concept", "entity", "period", "unit", "language"} and not dimPropPattern.match(dimName):
                 error("oime:unknownDimension",
@@ -170,20 +170,20 @@ def validateTable(table, reportQn, reportObj, txmyMdl):
     # ensure template exists
     url = table.url
     if not txmyMdl.fileSource.exists(url) and not table.optional:
-        error("xbrlce:missingRequiredCSVFile",
+        txmyMdl.error("xbrlce:missingRequiredCSVFile",
               _("The url %(url)s MUST be an existing file for non-optional table %(table)s."),
               table=table.name, url=table.url)
 
     tmplObj = txmyMdl.namedObjects.get(table.template)
-    if tmplObj is None or not isinstance(cObj, XbrlTableTemplate):
-        error("xbrlce:unknownTableTemplate",
+    if tmplObj is None or not isinstance(tmplObj, XbrlTableTemplate):
+        txmyMdl.error("xbrlce:unknownTableTemplate",
               _("The table %(table) template, %(name)s MUST be the identifier of a table template present in the OIM Taxonomy Model."),
               table=table.name, name=table.template)
 
 
 def validateReport(reportQn, reportObj, txmyMdl):
     for table in reportObj.tables.values():
-        validateReport(table, reportQn, reportObj, txmyMdl)
+        validateTable(table, reportQn, reportObj, txmyMdl)
     for fact in reportObj.facts.values():
         validateFact(fact, reportQn, reportObj, txmyMdl)
 

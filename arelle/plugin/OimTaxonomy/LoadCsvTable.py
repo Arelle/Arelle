@@ -9,6 +9,7 @@ from arelle.oim.Load import (parseMetadataCellValues, csvCellValue, _isParamRef,
                              IdentifierPattern, RowIdentifierPattern)
 from arelle.ModelValue import qname
 from .XbrlConcept import XbrlConcept
+from .XbrlCube import coreDimensionsByLocalname
 from .XbrlDimension import XbrlDimension
 from .XbrlReport import XbrlFact
 from .XbrlTableTemplate import XbrlTableTemplate
@@ -422,7 +423,6 @@ def csvTableFacts(table, txmyMdl, error, warning, reportUrl): # yields facts in 
                             valIsQname = True
                     elif dim in ("concept", "period", "entity"):
                         dimensionsUsed.add(dim)
-                        dim = qname(dim, prefixNamespaces)
                     if valIsQname:
                         val = qname(val, prefixNamespaces)
                         if val is None:
@@ -432,10 +432,11 @@ def csvTableFacts(table, txmyMdl, error, warning, reportUrl): # yields facts in 
                             continue
                         if dim == "concept":
                             cObj = txmyMdl.namedObjects.get(val)
-                    factObj.factDimensions[dim] = val
+                    factObj.factDimensions[coreDimensionsByLocalname.get(dim,dim)] = val
                 if isinstance(cObj, XbrlConcept):
                     if "language" in fact["dimensions"] and cObj.isOimTextFactType(txmyMdl):
                         dimensionsUsed.add("language")
+
                     if cObj.isNumeric(txmyMdl):
                         factObj.decimals = fact.get("decimals")
 

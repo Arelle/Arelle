@@ -126,6 +126,7 @@ unitCoreDim = qname(xbrl, "xbrl:unit")
 languageCoreDim = qname(xbrl, "xbrl:language")
 
 coreDimensions = {periodCoreDim, conceptCoreDim, entityCoreDim, unitCoreDim, languageCoreDim}
+coreDimensionsByLocalname = dict((d.localName, d) for d in coreDimensions)
 
 conceptDomainRoot = qname(xbrl, "xbrl:conceptDomain")
 entityDomainRoot = qname(xbrl, "xbrl:entityDomain")
