@@ -35,7 +35,8 @@ from arelle import ModelDocument, UrlUtil, XmlValidate
 from .XbrlAbstract import XbrlAbstract
 from .XbrlConcept import XbrlConcept, XbrlDataType, XbrlUnitType
 from .XbrlCube import (XbrlCube, XbrlCubeDimension, XbrlPeriodConstraint, XbrlDateResolution,
-                       XbrlCubeType, XbrlAllowedCubeDimension, XbrlRequiredCubeRelationship)
+                       XbrlCubeType, XbrlAllowedCubeDimension, XbrlRequiredCubeRelationship,
+                       coreDimensionsByLocalname)
 from .XbrlDimension import XbrlDimension
 from .XbrlEntity import XbrlEntity
 from .XbrlGroup import XbrlGroup, XbrlGroupContent
@@ -56,7 +57,7 @@ from .ModelValueMore import SQName, QNameAt
 from .ViewXbrlTaxonomyObject import viewXbrlTaxonomyObject
 from .XbrlConst import xbrl, oimTaxonomyDocTypePattern, oimTaxonomyDocTypes, qnXbrlLabelObj, xbrlTaxonomyObjects
 from .ParseSelectionWhereClause import parseSelectionWhereClause
-from .LoadCsvTable import csvTableFacts
+from .LoadCsvTable import csvTableRowFacts
 
 from arelle.oim.Load import (DUPJSONKEY, DUPJSONVALUE, EMPTY_DICT, EMPTY_LIST, UrlInvalidPattern,
                              OIMException, NotOIMException)
@@ -418,6 +419,8 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                         elif isinstance(jsonValue, dict) and _keyClass:
                             for iObj, (valKey, valVal) in enumerate(jsonValue.items()):
                                 if issubclass(_keyClass,QName):
+                                    if jsonKey == "dimensions" and objClass == XbrlFact:
+                                        valKey = coreDimensionsByLocalname.get(valKey, valKey) # unprefixed core dimension localNames
                                     _valKey = qname(valKey, prefixNamespaces)
                                     if _valKey is None:
                                         error("xbrlte:invalidQName",
@@ -1018,7 +1021,7 @@ def oimTaxonomyLoaded(cntlr, options, xbrlTxmyMdl, *args, **kwargs):
     # load CSV tables
     for reportQn, reportObj in xbrlTxmyMdl.reports.items():
         for table in reportObj.tables.values():
-            for table, rowIndex, rowFacts in csvTableFacts(table, xbrlTxmyMdl, xbrlTxmyMdl.error, xbrlTxmyMdl.warning, reportObj._url):
+            for rowIndex, rowFacts in csvTableRowFacts(table, xbrlTxmyMdl, xbrlTxmyMdl.error, xbrlTxmyMdl.warning, reportObj._url):
                 for fact in rowFacts:
                     reportObj.facts[fact.name] = fact
 
