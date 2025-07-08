@@ -1532,7 +1532,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                             hasRowError = True
                                         elif propGrpColValue in propGrpObjects:
                                             rowPropGroups[propGrpName] = propGrpObjects[propGrpColValue]
-                                        else:
+                                        elif propGrpColValue is not EMPTY_CELL:
                                             error("xbrlce:unknownPropertyGroup",
                                                   _("Table %(table)s unknown property group row %(row)s column %(column)s group %(propertyGroup)s, url: %(url)s"),
                                                   table=tableId, row=rowIndex+1, column=rowIdColName, url=tableUrl, propertyGroup=propGrpName)
@@ -1573,12 +1573,11 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                                     if _isParamRef(val):
                                                         rowPropGrpParamRefs.add(_getParamRefName(val))
                                     if factDimensions[colName] is None:
-                                        if colName in paramRefColNames:
-                                            value = _cellValue(row[colNameIndex[colName]])
-                                            if value:
-                                                paramColsWithValue.add(colName)
-                                            elif value is EMPTY_CELL or value is NONE_CELL:
-                                                emptyCols.add(colName)
+                                        value = _cellValue(row[colNameIndex[colName]])
+                                        if value is EMPTY_CELL or value is NONE_CELL:
+                                            emptyCols.add(colName)
+                                        elif colName in paramRefColNames:
+                                            paramColsWithValue.add(colName)
                                         if not cellPropGroup:
                                             continue # not a fact column
                                     for rowPropGrpParamRef in rowPropGrpParamRefs:
