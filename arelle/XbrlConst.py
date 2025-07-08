@@ -21,17 +21,21 @@ _tuple = tuple  # type: ignore[type-arg]
 
 xsd = "http://www.w3.org/2001/XMLSchema"
 qnXsdComplexType = qname("{http://www.w3.org/2001/XMLSchema}xsd:complexType")
+qnXsdImport = qname("{http://www.w3.org/2001/XMLSchema}xsd:import")
 qnXsdSchema = qname("{http://www.w3.org/2001/XMLSchema}xsd:schema")
 qnXsdAppinfo = qname("{http://www.w3.org/2001/XMLSchema}xsd:appinfo")
 qnXsdDefaultType = qname("{http://www.w3.org/2001/XMLSchema}xsd:anyType")
 xsi = "http://www.w3.org/2001/XMLSchema-instance"
 qnXsiNil = qname(xsi, "xsi:nil")  # need default prefix in qname
+qnXsiType = qname(xsi, "xsi:type")
+qnXsiSchemaLocation = qname(xsi, "xsi:schemaLocation")
+qnXsiNoNamespaceSchemaLocation = qname(xsi, "xsi:noNamespaceSchemaLocation")
 qnXmlLang = qname("{http://www.w3.org/XML/1998/namespace}xml:lang")
 builtinAttributes = {
     qnXsiNil,
-    qname(xsi, "xsi:type"),
-    qname(xsi, "xsi:schemaLocation"),
-    qname(xsi, "xsi:noNamespaceSchemaLocation"),
+    qnXsiType,
+    qnXsiSchemaLocation,
+    qnXsiNoNamespaceSchemaLocation,
 }
 xml = "http://www.w3.org/XML/1998/namespace"
 xbrli = "http://www.xbrl.org/2003/instance"
