@@ -1573,12 +1573,11 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                                     if _isParamRef(val):
                                                         rowPropGrpParamRefs.add(_getParamRefName(val))
                                     if factDimensions[colName] is None:
-                                        if colName in paramRefColNames:
-                                            value = _cellValue(row[colNameIndex[colName]])
-                                            if value:
-                                                paramColsWithValue.add(colName)
-                                            elif value is EMPTY_CELL or value is NONE_CELL:
-                                                emptyCols.add(colName)
+                                        value = _cellValue(row[colNameIndex[colName]])
+                                        if value is EMPTY_CELL or value is NONE_CELL:
+                                            emptyCols.add(colName)
+                                        elif colName in paramRefColNames:
+                                            paramColsWithValue.add(colName)
                                         if not cellPropGroup:
                                             continue # not a fact column
                                     for rowPropGrpParamRef in rowPropGrpParamRefs:
