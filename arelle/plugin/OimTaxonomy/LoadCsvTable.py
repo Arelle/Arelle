@@ -1,5 +1,8 @@
 '''
 See COPYRIGHT.md for copyright information.
+
+Processes TableObject and yields rows of facts
+
 '''
 import os
 from collections import defaultdict
@@ -18,7 +21,7 @@ from .XbrlTableTemplate import XbrlTableTemplate
 columnProperties = {"comment", "decimals", "dimensions", "propertyGroups", "parameterURL", "propertiesFrom"}
 
 
-def csvTableFacts(table, txmyMdl, error, warning, reportUrl): # yields facts in table
+def csvTableRowFacts(table, txmyMdl, error, warning, reportUrl): # yields facts by row in table
     prefixNamespaces = table.report._prefixNamespaces
     url = txmyMdl.modelManager.cntlr.webCache.normalizeUrl(table.url, reportUrl)
     if not txmyMdl.fileSource.exists(url):
@@ -449,7 +452,7 @@ def csvTableFacts(table, txmyMdl, error, warning, reportUrl): # yields facts in 
                     if dimName in factDimensionPropGrpCol:
                         paramColsUsed.add(factDimensionPropGrpCol[dimName])
 
-            yield table, rowIndex, rowFactObjs
+            yield rowIndex, rowFactObjs
 
             unmappedParamCols = (paramColsWithValue | rowPropGrpParamRefs | reportedDimensionsColumns) - paramColsUsed - emptyCols
             if unmappedParamCols:
