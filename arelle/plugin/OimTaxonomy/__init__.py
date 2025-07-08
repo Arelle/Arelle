@@ -36,6 +36,7 @@ from .XbrlAbstract import XbrlAbstract
 from .XbrlConcept import XbrlConcept, XbrlDataType, XbrlUnitType
 from .XbrlCube import (XbrlCube, XbrlCubeDimension, XbrlPeriodConstraint, XbrlDateResolution,
                        XbrlCubeType, XbrlAllowedCubeDimension, XbrlRequiredCubeRelationship)
+from .XbrlDimension import XbrlDimension
 from .XbrlEntity import XbrlEntity
 from .XbrlGroup import XbrlGroup, XbrlGroupContent
 from .XbrlLabel import XbrlLabel, XbrlLabelType
@@ -55,6 +56,7 @@ from .ModelValueMore import SQName, QNameAt
 from .ViewXbrlTaxonomyObject import viewXbrlTaxonomyObject
 from .XbrlConst import xbrl, oimTaxonomyDocTypePattern, oimTaxonomyDocTypes, qnXbrlLabelObj, xbrlTaxonomyObjects
 from .ParseSelectionWhereClause import parseSelectionWhereClause
+from .LoadCsvTable import csvTableFacts
 
 from arelle.oim.Load import (DUPJSONKEY, DUPJSONVALUE, EMPTY_DICT, EMPTY_LIST, UrlInvalidPattern,
                              OIMException, NotOIMException)
@@ -548,6 +550,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
         if isReport:
             newReport = createTaxonomyObjects("report", oimObject["report"], xbrlTxmyMdl, ["", "report"])
             newReport._prefixNamespaces = prefixNamespaces
+            newReport._url = oimFile
 
         if jsonEltsNotInObjClass:
             error("arelle:undeclaredOimTaxonomyJsonElements",
@@ -1011,6 +1014,15 @@ def oimTaxonomyLoaded(cntlr, options, xbrlTxmyMdl, *args, **kwargs):
         for grpCnts in txmy.groupContents:
             for relName in getattr(grpCnts, "relatedNames", ()): # if object was invalid there are no attributes, e.g. bad QNames
                 xbrlTxmyMdl.groupContents[grpCnts.groupName].add(relName)
+
+    # load CSV tables
+    for reportQn, reportObj in xbrlTxmyMdl.reports.items():
+        for table in reportObj.tables.values():
+            for table, rowIndex, rowFacts in csvTableFacts(table, xbrlTxmyMdl, xbrlTxmyMdl.error, xbrlTxmyMdl.warning, reportObj._url):
+                for fact in rowFacts:
+                    reportObj.facts[fact.name] = fact
+
+
 
 def oimTaxonomyViews(cntlr, xbrlTxmyMdl):
     oimTaxonomyLoaded(cntlr, None, xbrlTxmyMdl)

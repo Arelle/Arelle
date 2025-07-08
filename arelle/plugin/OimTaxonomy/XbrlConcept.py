@@ -25,6 +25,15 @@ class XbrlConcept(XbrlReferencableTaxonomyObject):
     nillable: Optional[bool] # (optional) Used to specify if the concept can have a nill value. The default value is true.
     properties: OrderedSet[XbrlProperty] # (optional) ordered set of property objects used to specify additional properties associated with the concept using the property object. Only immutable properties as defined in the propertyType object can be added to a concept.
 
+    def isNumeric(self, txmyMdl):
+        dtObj = txmyMdl.namedObjects.get(self.dataType)
+        return isinstance(dtObj, XbrlDataType) and dtObj.isNumeric(txmyMdl)
+
+    def isOimTextFactType(self, txmyMdl):
+        dtObj = txmyMdl.namedObjects.get(self.dataType)
+        return isinstance(dtObj, XbrlDataType) and dtObj.isOimTextFactType(txmyMdl)
+
+
 class XbrlDataType(XbrlReferencableTaxonomyObject):
     taxonomy: XbrlTaxonomyModuleType
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the datatype object.
