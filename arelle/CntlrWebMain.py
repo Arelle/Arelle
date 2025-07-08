@@ -19,7 +19,7 @@ from bottle import Bottle, HTTPResponse, request, response, static_file  # type:
 
 from arelle import Version
 from arelle.CntlrCmdLine import CntlrCmdLine
-from arelle.FileSource import FileNamedStringIO
+from arelle.FileSource import FileNamedBytesIO, FileNamedStringIO
 from arelle.logging.formatters.LogFormatter import LogFormatter
 from arelle.logging.handlers.LogToBufferHandler import LogToBufferHandler
 from arelle.PluginManager import pluginClassMethods
@@ -263,19 +263,16 @@ def validation(file: str | None = None) -> str | bytes:
     isValidation = 'validation' == requestPathParts[-1] or 'validation' == requestPathParts[-2]
     view = request.query.view
     viewArcrole = request.query.viewArcrole
-    sourceZipStreamFileName = None
     sourceZipStream = None
     if request.method == 'POST':
         mimeType = request.get_header("Content-Type")
         if mimeType and mimeType.startswith("multipart/form-data"):
             if upload := request.files.get("upload"):
-                sourceZipStreamFileName = upload.filename
-                sourceZipStream = upload.file
+                sourceZipStream = FileNamedBytesIO(upload.filename, upload.file.read())
             else:
                 errors.append(_("POST 'multipart/form-data' request must include 'upload' part containing the XBRL file to process."))
         elif mimeType in ('application/zip', 'application/x-zip', 'application/x-zip-compressed', 'multipart/x-zip'):
-            sourceZipStreamFileName = request.get_header("X-File-Name")
-            sourceZipStream = request.body
+            sourceZipStream = FileNamedBytesIO(request.get_header("X-File-Name"), request.body.read())
         else:
             errors.append(_("POST request must provide an XBRL zip file to process. Content-Type '{0}' not recognized as a zip file.").format(mimeType))
     if not view and not viewArcrole:
@@ -349,14 +346,13 @@ def validation(file: str | None = None) -> str | bytes:
         viewFile = FileNamedStringIO(media)
         options.viewArcrole = viewArcrole
         options.viewFile = viewFile
-    return runOptionsAndGetResult(options, media, viewFile, sourceZipStream, sourceZipStreamFileName)
+    return runOptionsAndGetResult(options, media, viewFile, sourceZipStream)
 
 def runOptionsAndGetResult(
         options: RuntimeOptions,
         media: str,
         viewFile: FileNamedStringIO | None,
-        sourceZipStream: FileNamedStringIO | None = None,
-        sourceZipStreamFileName: str | None = None,
+        sourceZipStream: FileNamedBytesIO | None = None,
         ) -> str | bytes:
     """Execute request according to options, for result in media, with *post*ed file in sourceZipStream, if any.
 
@@ -381,7 +377,7 @@ def runOptionsAndGetResult(
     else:
         responseZipStream = None
     cntlr = getCntlr()
-    successful = cntlr.run(options, sourceZipStream, responseZipStream, sourceZipStreamFileName)
+    successful = cntlr.run(options, sourceZipStream, responseZipStream)
     if media == "xml":
         response.content_type = 'text/xml; charset=UTF-8'
     elif media == "csv":

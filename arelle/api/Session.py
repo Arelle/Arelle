@@ -12,6 +12,7 @@ from typing import Any, BinaryIO
 
 from arelle import PackageManager, PluginManager
 from arelle.CntlrCmdLine import CntlrCmdLine, createCntlrAndPreloadPlugins
+from arelle.FileSource import FileNamedBytesIO
 from arelle.ModelXbrl import ModelXbrl
 from arelle.RuntimeOptions import RuntimeOptions
 
@@ -102,11 +103,10 @@ class Session:
     def run(
         self,
         options: RuntimeOptions,
-        sourceZipStream: BinaryIO | None = None,
+        sourceZipStream: BinaryIO | FileNamedBytesIO | None = None,
         responseZipStream: BinaryIO | None = None,
         logHandler: logging.Handler | None = None,
         logFilters: list[logging.Filter] | None = None,
-        sourceZipStreamFileName: str | None = None,
     ) -> bool:
         """
         Perform a run using the given options.
@@ -114,13 +114,10 @@ class Session:
         :param sourceZipStream: Optional stream to read source data from.
         :param responseZipStream: Options stream to write response data to.
         :param logHandler: Optional log handler to use for logging.
-        :param sourceZipStreamFileName: Optional file name to use for the passed zip stream.
         :return: True if the run was successful, False otherwise.
         """
         with _session_lock:
             self._check_thread()
-            if sourceZipStreamFileName is not None and sourceZipStream is None:
-                raise ValueError("sourceZipStreamFileName may only be provided if sourceZipStream is not None.")
             PackageManager.reset()
             PluginManager.reset()
             if self._cntlr is None:
@@ -174,5 +171,4 @@ class Session:
                     options,
                     sourceZipStream=sourceZipStream,
                     responseZipStream=responseZipStream,
-                    sourceZipStreamFileName=sourceZipStreamFileName,
                 )

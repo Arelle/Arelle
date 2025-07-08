@@ -13,7 +13,7 @@ import struct
 import tarfile
 import zipfile
 import zlib
-from typing import IO, TYPE_CHECKING, Any, Optional, TextIO, cast
+from typing import IO, TYPE_CHECKING, Any, BinaryIO, Optional, TextIO, cast
 
 import regex as re
 from lxml import etree
@@ -44,15 +44,17 @@ TAXONOMY_PACKAGE_FILE_NAMES = ('.taxonomyPackage.xml', 'catalog.xml') # pre-PWD 
 def openFileSource(
     filename: str | None,
     cntlr: Cntlr | None = None,
-    sourceZipStream: str | None = None,
+    sourceZipStream: BinaryIO | FileNamedBytesIO | None = None,
     checkIfXmlIsEis: bool = False,
     reloadCache: bool = False,
     base: str | None = None,
     sourceFileSource: FileSource | None = None,
-    sourceZipStreamFileName: str | None = None,
 ) -> FileSource:
     if sourceZipStream:
-        sourceZipStreamFileName = os.sep + (sourceZipStreamFileName or "POSTupload.zip")
+        if isinstance(sourceZipStream, FileNamedBytesIO) and sourceZipStream.fileName:
+            sourceZipStreamFileName = os.sep + sourceZipStream.fileName
+        else:
+            sourceZipStreamFileName = os.sep + "POSTupload.zip"
         filesource = FileSource(sourceZipStreamFileName, cntlr)
         filesource.openZipStream(sourceZipStream)
         if filename:
@@ -390,7 +392,7 @@ class FileSource:
                 assert self.taxonomyPackage is not None
                 self.mappedPaths = cast('dict[str, str]', self.taxonomyPackage.get("remappings"))
 
-    def openZipStream(self, sourceZipStream: str) -> None:
+    def openZipStream(self, sourceZipStream: BinaryIO) -> None:
         if not self.isOpen:
             assert isinstance(self.url, str)
             self.basefile = self.url
