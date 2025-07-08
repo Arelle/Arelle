@@ -16,7 +16,7 @@ from lxml.etree import _Element
 from arelle.FileSource import FileSource
 from arelle.Version import authorLabel, copyrightLabel
 from .ValidationPluginExtension import ValidationPluginExtension
-from .rules import gfm, upload
+from .rules import frta, gfm, upload
 
 PLUGIN_NAME = "Validate EDINET"
 DISCLOSURE_SYSTEM_VALIDATION_TYPE = "EDINET"
@@ -27,6 +27,7 @@ validationPlugin = ValidationPluginExtension(
     disclosureSystemConfigUrl=Path(__file__).parent / "resources" / "config.xml",
     validationTypes=[DISCLOSURE_SYSTEM_VALIDATION_TYPE],
     validationRuleModules=[
+        frta,
         gfm,
         upload,
     ],
