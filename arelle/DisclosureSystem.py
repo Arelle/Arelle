@@ -438,7 +438,7 @@ class DisclosureSystem:
             return href in self.standardTaxonomiesDict
         return True # no standard taxonomies to test
 
-    def hrefValidForDisclosureSystem(self, href):
+    def hrefValidForDisclosureSystem(self, href) -> bool:
         if self.validTaxonomiesUrl:
             return href in self.validTaxonomiesDict
         elif self.standardTaxonomiesUrl: # fallback to standard taxonomies dict
