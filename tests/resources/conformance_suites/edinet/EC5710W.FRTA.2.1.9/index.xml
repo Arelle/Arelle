@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="EDINET.EC5710W.FRTA.2.1.9"
+        description="EDINET.EC5710W.FRTA.2.1.9: All documentation of a concept must be contained in XBRL linkbases."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid01" name="invalid01">
+        <description>
+            Extension taxonomy has xsd:documentation element.
+            <!--valid09.zip with xsd:documentation element added to extension taxonomy.-->
+        </description>
+        <data>
+            <instance readMeFirst="true">invalid01.zip</instance>
+        </data>
+        <result>
+            <error>EDINET.EC5710W.FRTA.2.1.9</error>
+        </result>
+    </variation>
+</testcase>

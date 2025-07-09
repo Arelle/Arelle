@@ -12,5 +12,6 @@
     <testcase uri="EC1016E/index.xml" />
     <testcase uri="EC1020E/index.xml" />
     <testcase uri="EC5700W.GFM.1.1.3/index.xml" />
+    <testcase uri="EC5710W.FRTA.2.1.9/index.xml" />
     <testcase uri="valid/index.xml" />
 </testcases>
