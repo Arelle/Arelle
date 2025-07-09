@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 '''
 
 from .XbrlCube import XbrlCube, conceptCoreDim, periodCoreDim, entityCoreDim, unitCoreDim
+from .XbrlDimension import XbrlDimension
 from arelle.XmlValidateConst import VALID, INVALID
 
 coreToFactDim = {conceptCoreDim: "concept", entityCoreDim: "entity", unitCoreDim: "unit"}
@@ -16,12 +17,12 @@ def validateCubes(fact, txmyMdl):
             dimName = cubeDimObj.dimensionName
             if dimName in coreToFactDim:
                 mems = cubeDimObj.allowedMembers(txmyMdl)
-                if mems and fact.dimensions.get(coreToFactDim[dimName]) not in mems:
+                if mems and fact.factDimensions.get(unitCoreDim) not in mems:
                     hasDims = False # skip this cube
                     break
             elif dimName == periodCoreDim:
-                factPerVal = fact.dimensions.get("_periodValue")
-                if timeInterval is None and not cubeDimObj.allowDomainFacts:
+                factPerVal = fact.factDimensions.get("_periodValue")
+                if factPerVal is None and not cubeDimObj.allowDomainFacts:
                     continue # skip forever/missing period and not allowDomainFacts
                 hasAnyPerMatch = True
                 for perConstObj in cubeDimObj.periodConstraints:
@@ -66,12 +67,14 @@ def validateCubes(fact, txmyMdl):
                 if not hasAnyPerMatch:
                     hasDims = False # skip this cube
                     break
-            elif dimName not in fact.dimensions:
+            elif dimName not in fact.factDimensions:
                 if not cubeDimObj.allowDomainFacts:
                     hasDims = False # skip this cube
                     break
             else: # taxonomy defined dim
-                if fact.dimensions.get(dimName) not in cubeDimObj.allowedMembers(txmyMdl):
+                dimObj = txmyMdl.namedObjects.get(dimName)
+                if (isinstance(dimObj, XbrlDimension) and dimObj.isExplicitDimension and
+                    fact.factDimensions.get(dimName) not in cubeDimObj.allowedMembers(txmyMdl)):
                     hasDims = False # skip this cube
                     break
         if hasDims:
