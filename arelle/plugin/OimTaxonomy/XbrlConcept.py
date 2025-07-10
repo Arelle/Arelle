@@ -8,15 +8,16 @@ from decimal import Decimal
 
 from arelle.ModelValue import QName
 from arelle.PythonUtil import OrderedSet
-from arelle.XbrlConst import xsd
+from arelle.XbrlConst import xsd, isNumericXsdType
 from .XbrlProperty import XbrlProperty
-from .XbrlTypes import XbrlTaxonomyType, QNameKeyType
-from .XbrlTaxonomyObject import XbrlTaxonomyObject, XbrlReferencableTaxonomyObject
+from .XbrlTypes import XbrlTaxonomyModuleType, QNameKeyType
+from .XbrlObject import XbrlTaxonomyObject, XbrlReferencableTaxonomyObject
+from arelle.FunctionFn import true
 
 XbrlUnitTypeType: TypeAlias = "XbrlUnitType"
 
 class XbrlConcept(XbrlReferencableTaxonomyObject):
-    taxonomy: XbrlTaxonomyType
+    taxonomy: XbrlTaxonomyModuleType
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the concept object.
     dataType: QName # (required) Indicates the dataType of the concept. These are provided as a QName based on the datatypes specified in the XBRL 2.1 specification and any custom datatype defined in the taxonomy.
     periodType: str # (required) Indicates the period type of the concept. The property values can be either instant or duration. If the concept can be an atemporal value it must be defined as a duration. (i.e. the value does not change with the passage of time)
@@ -24,8 +25,17 @@ class XbrlConcept(XbrlReferencableTaxonomyObject):
     nillable: Optional[bool] # (optional) Used to specify if the concept can have a nill value. The default value is true.
     properties: OrderedSet[XbrlProperty] # (optional) ordered set of property objects used to specify additional properties associated with the concept using the property object. Only immutable properties as defined in the propertyType object can be added to a concept.
 
+    def isNumeric(self, txmyMdl):
+        dtObj = txmyMdl.namedObjects.get(self.dataType)
+        return isinstance(dtObj, XbrlDataType) and dtObj.isNumeric(txmyMdl)
+
+    def isOimTextFactType(self, txmyMdl):
+        dtObj = txmyMdl.namedObjects.get(self.dataType)
+        return isinstance(dtObj, XbrlDataType) and dtObj.isOimTextFactType(txmyMdl)
+
+
 class XbrlDataType(XbrlReferencableTaxonomyObject):
-    taxonomy: XbrlTaxonomyType
+    taxonomy: XbrlTaxonomyModuleType
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the datatype object.
     baseType: QName # (required) The base type is a QName that uniquely identifies the base datatype the datatype is based on.
     enumeration: OrderedSet[Any] # (optional) Defines an ordered set of enumerated values of the datatype if applicable
@@ -42,17 +52,42 @@ class XbrlDataType(XbrlReferencableTaxonomyObject):
     patterns: set[str] # (optional) Defines a string as a single regex expressions. At least one of the regex patterns must match. (Uses XML regex)
     unitTypes: OrderedSet[XbrlUnitTypeType] # unitType comprising a dataType expressed as a value of the datatype. For example xbrli:flow has unit datatypes of xbrli:volume and xbrli:time
 
-    def xsBaseType(self, dts, visitedTypes=None): # find base types thru dataType hierarchy
+    def xsBaseType(self, txmyMdl, visitedTypes=None): # find base types thru dataType hierarchy
+        try:
+            return self._xsBaseType
+        except AttributeError:
+            if not visitedTypes: visitedTypes = set() # might be a loop
+            if self.baseType.namespaceURI == xsd:
+                self._xsBaseType = self.baseType.localName
+                return self._xsBaseType
+            elif self not in visitedTypes:
+                visitedTypes.add(self)
+                baseTypeObj = txmyMdl.namedObjects.get(self.baseType)
+                if isinstance(baseTypeObj, XbrlDataType):
+                    self._xsBaseType = baseTypeObj.xsBaseType(txmyMdl, visitedTypes)
+                    return self._xsBaseType
+                visitedTypes.remove(self)
+            self._xsBaseType = None
+            return None
+
+    def isNumeric(self, txmyMdl):
+        return isNumericXsdType(self.xsBaseType(txmyMdl))
+
+    def instanceOfType(self, qnTypes, txmyMdl, visitedTypes=None):
+        if isinstance(qnTypes, (tuple,list,set)):
+            if self.name in qnTypes:
+                return True
+        elif self.name == qnTypes:
+            return True
         if not visitedTypes: visitedTypes = set() # might be a loop
-        if self.baseType.namespaceURI == xsd:
-            return self.baseType.localName
-        elif self not in visitedTypes:
+        if self not in visitedTypes:
             visitedTypes.add(self)
-            baseTypeObj = dts.namedObjects.get(self.baseType)
+            baseTypeObj = txmyMdl.namedObjects.get(self.baseType)
             if isinstance(baseTypeObj, XbrlDataType):
-                return baseTypeObj.xsBaseType(dts, visitedTypes)
+                if baseTypeObj.instanceOfType(qnTypes, txmyMdl, visitedTypes):
+                    return True
             visitedTypes.remove(self)
-        return None
+        return False
 
     def xsFacets(self):
         facets = {}
@@ -61,6 +96,18 @@ class XbrlDataType(XbrlReferencableTaxonomyObject):
             if value is not None and not(isinstance(value, (set,list,OrderedSet)) and not value):
                 facets[facet] = value
         return facets
+
+    def isOimTextFactType(self):
+        """(str) -- True if type meets OIM requirements to be a text fact"""
+        if self.modelDocument.targetNamespace.startswith(XbrlConst.dtrTypesStartsWith):
+            return self.name not in XbrlConst.dtrNoLangItemTypeNames and self.baseXsdType in XbrlConst.xsdStringTypeNames
+        if self.modelDocument.targetNamespace == XbrlConst.xbrli:
+            return self.baseXsdType not in XbrlConst.xsdNoLangTypeNames and self.baseXsdType in XbrlConst.xsdStringTypeNames
+        qnameDerivedFrom = self.qnameDerivedFrom
+        if not isinstance(qnameDerivedFrom, ModelValue.QName): # textblock not a union type
+            return False
+        typeDerivedFrom = self.xbrlTxmyMdl.namedObjects.get(baseType)
+        return typeDerivedFrom.isOimTextFactType if typeDerivedFrom is not None else False
 
 class XbrlUnitType(XbrlTaxonomyObject):
     dataTypeNumerator: Optional[XbrlDataType] # (optional) Defines the numerator datatype of of the datatype
