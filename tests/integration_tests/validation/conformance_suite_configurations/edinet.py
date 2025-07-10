@@ -25,6 +25,12 @@ config = ConformanceSuiteConfig(
         # (e.g. PublicDoc + AuditDoc) you'll need to add expected additional testcases here
         # for the duplicate errors.
         # TODO: Prevent duplicate runs in testcase context.
+        "EC5806E/index.xml:invalid01": {
+            # The duplicated instance needed to trigger the duplicated "preferredFilename"
+            # error also causes the validation to fire an additional time in the conformance
+            # suite context.
+            "EDINET.EC5806E": 1,
+        }
     }.items()},
     expected_failure_ids=frozenset([]),
     info_url='https://disclosure2.edinet-fsa.go.jp/weee0020.aspx',
