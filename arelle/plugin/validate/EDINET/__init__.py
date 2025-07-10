@@ -14,12 +14,21 @@ from lxml import etree
 from lxml.etree import _Element
 
 from arelle.FileSource import FileSource
+from arelle.ModelXbrl import ModelXbrl
 from arelle.Version import authorLabel, copyrightLabel
 from .ValidationPluginExtension import ValidationPluginExtension
-from .rules import frta, gfm, upload
+from .rules import edinet, frta, gfm, upload
 
 PLUGIN_NAME = "Validate EDINET"
 DISCLOSURE_SYSTEM_VALIDATION_TYPE = "EDINET"
+RELEVELER_MAP: dict[str, dict[str, tuple[str, str | None]]] = {
+    "ERROR": {
+        # Silence, duplicated by EDINET.EC5002E
+        "xbrl.4.8.2:sharesFactUnit-notSharesMeasure": ("ERROR", None),
+        # Silence, duplicated by EDINET.EC5002E
+        "xbrl.4.8.2:sharesFactUnit-notSingleMeasure": ("ERROR", None),
+    },
+}
 
 
 validationPlugin = ValidationPluginExtension(
@@ -27,6 +36,7 @@ validationPlugin = ValidationPluginExtension(
     disclosureSystemConfigUrl=Path(__file__).parent / "resources" / "config.xml",
     validationTypes=[DISCLOSURE_SYSTEM_VALIDATION_TYPE],
     validationRuleModules=[
+        edinet,
         frta,
         gfm,
         upload,
@@ -92,6 +102,12 @@ def fileSourceEntrypointFiles(filesource: FileSource, inlineOnly: bool, *args: A
     return entrypointFiles
 
 
+def loggingSeverityReleveler(modelXbrl: ModelXbrl, level: str, messageCode: str, args: Any, **kwargs: Any) -> tuple[str | None, str | None]:
+    if level in RELEVELER_MAP:
+        return RELEVELER_MAP[level].get(messageCode, (level, messageCode))
+    return level, messageCode
+
+
 def modelXbrlLoadComplete(*args: Any, **kwargs: Any) -> None:
     return validationPlugin.modelXbrlLoadComplete(*args, **kwargs)
 
@@ -115,6 +131,7 @@ __pluginInfo__ = {
     "DisclosureSystem.Types": disclosureSystemTypes,
     "DisclosureSystem.ConfigURL": disclosureSystemConfigURL,
     "FileSource.EntrypointFiles": fileSourceEntrypointFiles,
+    "Logging.Severity.Releveler": loggingSeverityReleveler,
     "ModelXbrl.LoadComplete": modelXbrlLoadComplete,
     "Validate.XBRL.Finally": validateXbrlFinally,
     "ValidateFormula.Finished": validateFinally,
