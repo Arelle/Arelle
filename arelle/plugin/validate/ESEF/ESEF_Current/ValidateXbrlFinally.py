@@ -1109,6 +1109,21 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                         _("Extension elements must not duplicate the existing elements from the core taxonomy and be identifiable %(qname)s."),
                         modelObject=(c,_i), qname=c.qname)
 
+        extensionTaxonomyDirectoryPrefix = val.authParam["reportPackageExtensionTaxonomyDirectoryPrefix"]
+        if extensionTaxonomyDirectoryPrefix is not None and val.modelXbrl.fileSource.dir is not None:
+            for filepath in val.modelXbrl.fileSource.dir:
+                filepath_parts = filepath.split('/')
+                if filepath_parts[1] in ['META-INF', 'reports']:
+                    continue
+                if not filepath_parts[1].startswith(extensionTaxonomyDirectoryPrefix):
+                    modelXbrl.error(
+                        'arelle.ESEF.reportPackageExtensionTaxonomyDirectoryPrefix',
+                        _('The XBRL linkbase files must live within the report package under a directory that starts '
+                          'with `{}`').format(extensionTaxonomyDirectoryPrefix),
+                        modelObject=val.modelXbrl
+                    )
+                    break
+
     modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
     modelXbrl.modelManager.showStatus(None)
 

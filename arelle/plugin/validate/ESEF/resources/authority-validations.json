@@ -42,6 +42,7 @@
         ],
         "comment": "default parameters where not specified by authority",
         "reportPackageMaxMB": null,
+        "reportPackageExtensionTaxonomyDirectoryPrefix": null,
         "identiferScheme": "http://standards.iso.org/iso/17442",
         "ixTargetUsage": "warning",
         "extensionAbstractContexts": "warning",
@@ -171,6 +172,7 @@
     },
     "DBA": {
         "name": "Danish Business Authority",
+        "reportPackageExtensionTaxonomyDirectoryPrefix": "xbrl.",
         "reportPackageMaxMB": "2000",
         "reportPackageMeasurement": "unzipped",
         "ixTargetUsage": "allowed",
