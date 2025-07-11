@@ -341,11 +341,6 @@ def get_conformance_suite_test_results_with_shards(
             if not any(fnmatch.fnmatch(test_path, pattern) for test_path in all_test_paths)
         }
         assert not unrecognized_additional_error_ids, f'Unrecognized expected additional error IDs: {unrecognized_additional_error_ids}'
-        expected_additional_testcase_errors = {}
-        for expected_id, errors in config.expected_additional_testcase_errors.items():
-            test_path, test_id = expected_id.rsplit(':', 1)
-            if test_id in test_paths.get(test_path, []):
-                expected_additional_testcase_errors[expected_id] = errors
 
         unrecognized_expected_failure_ids = {_id.rsplit(':', 1)[0] for _id in config.expected_failure_ids} - all_test_paths
         assert not unrecognized_expected_failure_ids, f'Unrecognized expected failure IDs: {unrecognized_expected_failure_ids}'
@@ -365,7 +360,7 @@ def get_conformance_suite_test_results_with_shards(
         args = get_conformance_suite_arguments(
             config=config, filename=filename, additional_plugins=additional_plugins,
             build_cache=build_cache, offline=offline, log_to_file=log_to_file, shard=shard_id,
-            expected_additional_testcase_errors=expected_additional_testcase_errors,
+            expected_additional_testcase_errors=config.expected_additional_testcase_errors,
             expected_failure_ids=frozenset(expected_failure_ids), testcase_filters=testcase_filters,
         )
         tasks.append(args)

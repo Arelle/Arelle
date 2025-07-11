@@ -4,11 +4,10 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 import re
-import zipfile
 from collections import defaultdict
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, cast, IO
+from typing import Any
 
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
@@ -17,6 +16,7 @@ from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
 from ..FormType import FormType, HTML_EXTENSIONS, IMAGE_EXTENSIONS
+from ..Manifest import parseManifests
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
@@ -451,4 +451,74 @@ def rule_EC1020E(
                       "one head tag, and one body tag each."),
                 path=str(path),
                 file=str(path),
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_manifest_preferredFilename(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5804E: The preferredFilename attribute must be set on the instance
+    element in the manifest file.
+
+    EDINET.EC5805E: The instance file extension is not ".xbrl". File name: xxx
+    Please change the extension of the instance name set in the preferredFilename
+    attribute value of the instance element in the manifest file to ".xbrl".
+
+    EDINET.EC5806E: The same instance file name is set multiple times. File name: xxx
+    The preferredFilename attribute value of the instance element in the manifest
+    file must be unique within the same file.
+    """
+    if not pluginData.shouldValidateUpload(val):
+        return
+    manifests = parseManifests(val.modelXbrl.fileSource)
+    for manifest in manifests:
+        preferredFilenames = set()
+        duplicateFilenames = set()
+        for instance in manifest.instances:
+            if len(instance.preferredFilename) == 0:
+                yield Validation.error(
+                    codes='EDINET.EC5804E',
+                    msg=_("The instance file name is not set. "
+                          "Set the instance name as the preferredFilename attribute value "
+                          "of the instance element in the manifest file. (manifest: '%(manifest)s', id: %(id)s)"),
+                    manifest=str(manifest.path),
+                    id=instance.id,
+                )
+                continue
+            preferredFilename = Path(instance.preferredFilename)
+            if preferredFilename.suffix != '.xbrl':
+                yield Validation.error(
+                    codes='EDINET.EC5805E',
+                    msg=_("The instance file extension is not '.xbrl'. "
+                          "File name: '%(preferredFilename)s'. "
+                          "Please change the extension of the instance name set in the "
+                          "preferredFilename attribute value of the instance element in "
+                          "the manifest file to '.xbrl'. (manifest: '%(manifest)s', id: %(id)s)"),
+                    preferredFilename=instance.preferredFilename,
+                    manifest=str(manifest.path),
+                    id=instance.id,
+                )
+                continue
+            if instance.preferredFilename in preferredFilenames:
+                duplicateFilenames.add(instance.preferredFilename)
+                continue
+            preferredFilenames.add(instance.preferredFilename)
+        for duplicateFilename in duplicateFilenames:
+            yield Validation.error(
+                codes='EDINET.EC5806E',
+                msg=_("The same instance file name is set multiple times. "
+                      "File name: '%(preferredFilename)s'. "
+                      "The preferredFilename attribute value of the instance "
+                      "element in the manifest file must be unique within the "
+                      "same file. (manifest: '%(manifest)s')"),
+                manifest=str(manifest.path),
+                preferredFilename=duplicateFilename,
             )

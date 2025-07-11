@@ -125,6 +125,7 @@ exclude = '''(?x)(
     | ^arelle/plugin/xodel
     | ^arelle/plugin/xule
     | ^arelle/resources
+    | ^tests/resources
 )'''
 
 # --- ignore modules ---
