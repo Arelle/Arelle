@@ -14,7 +14,7 @@ from lxml.etree import _Element
 from arelle import XbrlConst
 from arelle.FileSource import FileSource
 from arelle.ModelValue import QName, qname
-from arelle.plugin.validate.EDINET import Constants
+from . import Constants
 
 
 @dataclass(frozen=True)
