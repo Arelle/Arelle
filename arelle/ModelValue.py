@@ -39,7 +39,7 @@ def qname(value: ModelObject | str | QName | Any | None, name: str | ModelObject
 
 def qname(
     value: ModelObject | str | QName | Any | None,
-    name: str | QName | ModelObject | dict[str, str] | None = None,
+    name: str | QName | ModelObject | dict[str, str] | dict[str | None, str] | None = None,
     noPrefixIsNoNamespace: bool = False,
     castException: Exception | None = None,
     prefixException: Exception | None = None,
