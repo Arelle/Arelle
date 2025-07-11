@@ -66,6 +66,7 @@ def qname(
     elif not isinstance(value, str):
         if castException: raise castException
         return None
+    namespaceDict: dict[str | None, str] | None
     if value and value[0] == '{': # clark notation (with optional prefix)
         namespaceURI,sep,prefixedLocalName = value[1:].rpartition('}')
         prefix: str | None
@@ -85,7 +86,7 @@ def qname(
     else:
         if isinstance(name, dict):
             namespaceURI = None
-            namespaceDict = name # note that default prefix must be None, not '', in dict
+            namespaceDict = cast(dict[str | None, str], name)  # note that default prefix must be None, not '', in dict
         elif name is not None:
             if name:  # len > 0
                 namespaceURI = value
