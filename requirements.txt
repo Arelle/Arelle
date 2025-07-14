@@ -34,5 +34,5 @@ RDFLib==7.1.4
 # other
 graphviz==0.21
 Pillow==11.3.0
-pywin32==310 ; sys_platform == "win32"
+pywin32==311 ; sys_platform == "win32"
 tinycss2==1.4.0
