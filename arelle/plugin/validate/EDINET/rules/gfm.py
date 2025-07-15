@@ -6,6 +6,8 @@ from __future__ import annotations
 from typing import Any, cast, Iterable
 
 from arelle import XbrlConst, XmlUtil
+from arelle.ModelObject import ModelObject
+from arelle.PrototypeDtsObject import LocPrototype, ArcPrototype
 from arelle.UrlUtil import isHttpUrl, splitDecodeFragment
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.XbrlConst import xhtmlBaseIdentifier, xmlBaseIdentifier
@@ -133,5 +135,40 @@ def rule_gfm_1_2_16(
         yield Validation.warning(
             codes='EDINET.EC5700W.GFM.1.2.16',
             msg=_("Use the decimals attribute instead of the precision attribute."),
+            modelObject=errors,
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_2_22(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.2.22] In your taxonomy, do not expand the
+    xlink:arcrole attribute of the link:footnoteArc element. Modify the value
+    of the xlink:arcrole attribute to "http://www.xbrl.org/2003/arcrole/fact-footnote".
+    """
+    errors = []
+    for elt in pluginData.getFootnoteLinkElements(val.modelXbrl):
+        for child in elt:
+            if not isinstance(child, (ModelObject, LocPrototype, ArcPrototype)):
+                continue
+            xlinkType = child.get(XbrlConst.qnXlinkType.clarkNotation)
+            if xlinkType == "arc":
+                arcrole = child.get(XbrlConst.qnXlinkArcRole.clarkNotation)
+                if arcrole != XbrlConst.factFootnote:
+                    errors.append(child)
+    if len(errors) > 0:
+        yield Validation.warning(
+            codes='EDINET.EC5700W.GFM.1.2.22',
+            msg=_("In your taxonomy, do not expand the xlink:arcrole attribute of the "
+                  "link:footnoteArc element. Modify the value of the xlink:arcrole attribute "
+                  "to 'http://www.xbrl.org/2003/arcrole/fact-footnote'."),
             modelObject=errors,
         )
