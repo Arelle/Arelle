@@ -3,15 +3,18 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-import regex
 from typing import Any, cast, Iterable
+
+import regex
 
 from arelle import XbrlConst, XmlUtil
 from arelle.ModelObject import ModelObject
 from arelle.PrototypeDtsObject import LocPrototype, ArcPrototype
 from arelle.UrlUtil import isHttpUrl, splitDecodeFragment
 from arelle.ValidateXbrl import ValidateXbrl
+from arelle.ValidateXbrlCalcs import insignificantDigits
 from arelle.XbrlConst import xhtmlBaseIdentifier, xmlBaseIdentifier
+from arelle.XmlValidate import VALID
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
@@ -206,5 +209,47 @@ def rule_gfm_1_2_25(
             codes='EDINET.EC5700W.GFM.1.2.25',
             msg=_("Set the date in the period element in the following "
                   "format: YYYY-MM-DD."),
+            modelObject=errors,
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_2_26(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.2.26] The decimals attribute value must not
+    cause non-zero digits in the fact value to be changed to zero.
+    """
+    errors = []
+    for fact in val.modelXbrl.facts:
+        if (
+                fact.context is None or
+                fact.concept is None or
+                fact.concept.type is None or
+                getattr(fact,"xValid", 0) < VALID or
+                fact.isNil or
+                not fact.isNumeric or
+                not fact.decimals or
+                fact.decimals == "INF"
+        ):
+            continue
+        try:
+            insignificance = insignificantDigits(fact.xValue, decimals=fact.decimals)
+            if insignificance is not None:
+                errors.append(fact)
+        except (ValueError,TypeError):
+            errors.append(fact)
+    if len(errors) > 0:
+        yield Validation.warning(
+            codes='EDINET.EC5700W.GFM.1.2.26',
+            msg=_("Change the digits for which precision is not guaranteed to "
+                  "be zero, or modify the decimals attribute."),
             modelObject=errors,
         )
