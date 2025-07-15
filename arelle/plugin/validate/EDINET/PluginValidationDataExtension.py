@@ -64,9 +64,12 @@ class PluginValidationDataExtension(PluginData):
         return True
 
     @lru_cache(1)
-    def getFootnoteLinkElements(self, modelXbrl: ModelXbrl) -> list[ModelObject]:
+    def getFootnoteLinkElements(self, modelXbrl: ModelXbrl) -> list[ModelObject | LinkPrototype]:
         # TODO: Consolidate with similar implementations in EDGAR and FERC
-        if modelXbrl.modelDocument.type in (ModelDocumentType.INLINEXBRL, ModelDocumentType.INLINEXBRLDOCUMENTSET):
+        doc = modelXbrl.modelDocument
+        if doc is None:
+            return []
+        if doc.type in (ModelDocumentType.INLINEXBRL, ModelDocumentType.INLINEXBRLDOCUMENTSET):
             elts = (linkPrototype
                             for linkKey, links in modelXbrl.baseSets.items()
                             for linkPrototype in links
@@ -74,7 +77,7 @@ class PluginValidationDataExtension(PluginData):
                             and linkKey[1] and linkKey[2] and linkKey[3]  # fully specified roles
                             and linkKey[0] != "XBRL-footnotes")
         else:
-            rootElt = modelXbrl.modelDocument.xmlDocument.getroot()
+            rootElt = doc.xmlDocument.getroot()
             elts = rootElt.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}footnoteLink")
         return [
             elt
