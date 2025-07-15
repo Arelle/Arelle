@@ -26,6 +26,21 @@ from ..PluginValidationDataExtension import PluginValidationDataExtension
 _: TypeGetText
 
 GFM_CONTEXT_DATE_PATTERN = regex.compile(r"^[12][0-9]{3}-[01][0-9]-[0-3][0-9]$")
+GFM_RECOMMENDED_NAMESPACE_PREFIXES = {
+    XbrlConst.xbrli: ("xbrli",),
+    XbrlConst.xsi: ("xsi",),
+    XbrlConst.xsd: ("xs", "xsd",),
+    XbrlConst.link: ("link",),
+    XbrlConst.xl: ("xl",),
+    XbrlConst.xlink: ("xlink",),
+    XbrlConst.ref2004: ("ref",),
+    XbrlConst.ref2006: ("ref",),
+    XbrlConst.xbrldt: ("xbrldt",),
+    XbrlConst.xbrldi: ("xbrldi",),
+    XbrlConst.ixbrl: ("ix",),
+    XbrlConst.ixt: ("ixt",),
+    XbrlConst.xhtml: ("xhtml",),
+}
 
 
 @validation(
@@ -291,3 +306,37 @@ def rule_gfm_1_2_27(
             msg=_("Delete unused units from the instance."),
             modelObject=list(unusedUnits)
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_2_28(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.2.28] The prefix declaration for the namespace is incorrect.
+    """
+    for doc in val.modelXbrl.urlDocs.values():
+        rootElt = doc.xmlRootElement
+        for prefix, namespace in rootElt.nsmap.items():
+            if prefix is None:
+                continue
+            if namespace not in GFM_RECOMMENDED_NAMESPACE_PREFIXES:
+                continue
+            if prefix in GFM_RECOMMENDED_NAMESPACE_PREFIXES[namespace]:
+                continue
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.1.2.28',
+                msg=_("The prefix declaration '%(prefix)s' for the namespace '%(namespace)s' "
+                      "is incorrect. "
+                      "Correct the prefix (%(prefixes)s)."),
+                prefix=prefix,
+                namespace=namespace,
+                prefixes=", ".join(GFM_RECOMMENDED_NAMESPACE_PREFIXES[namespace]),
+                modelObject=rootElt
+            )

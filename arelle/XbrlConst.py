@@ -38,6 +38,8 @@ builtinAttributes = {
     qnXsiSchemaLocation,
     qnXsiNoNamespaceSchemaLocation,
 }
+ref2004 = "http://www.xbrl.org/2004/ref"
+ref2006 = "http://www.xbrl.org/2006/ref"
 xml = "http://www.w3.org/XML/1998/namespace"
 xbrli = "http://www.xbrl.org/2003/instance"
 xhtmlBaseIdentifier = "{http://www.w3.org/1999/xhtml}base"
@@ -138,6 +140,7 @@ ixbrl11 = "http://www.xbrl.org/2013/inlineXBRL"
 ixbrlAll = {ixbrl, ixbrl11}
 ixbrlTags = ("{http://www.xbrl.org/2013/inlineXBRL}*", "{http://www.xbrl.org/2008/inlineXBRL}*")
 ixbrlTagPattern = re.compile("[{]http://www.xbrl.org/(2008|2013)/inlineXBRL[}]")
+ixt = "http://www.xbrl.org/inlineXBRL/transformation/2010-04-20"
 qnIXbrlResources = qname("{http://www.xbrl.org/2008/inlineXBRL}resources")
 qnIXbrlTuple = qname("{http://www.xbrl.org/2008/inlineXBRL}tuple")
 qnIXbrlNonNumeric = qname("{http://www.xbrl.org/2008/inlineXBRL}nonNumeric")
