@@ -4,15 +4,17 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 from collections.abc import Iterable
-from typing import Any
+from typing import Any, cast
 
 from arelle import XbrlConst, XmlUtil
 from arelle.UrlUtil import isHttpUrl, splitDecodeFragment
 from arelle.ValidateXbrl import ValidateXbrl
+from arelle.XbrlConst import xhtmlBaseIdentifier, xmlBaseIdentifier, ixbrl11
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
+from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
@@ -73,4 +75,34 @@ def rule_gfm_1_1_3(
                   "xpointer. The URI '%(uri)s' is not valid."),
             uri=uri,
             modelObject=elt,
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_1_7(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.1.7] Attribute xml:base must not appear in any filing document.
+    This check has been updated to check for the xhtml:base attribute in order to account for iXBRL filings.
+    """
+    baseElements = []
+    for rootElt in (val.modelXbrl.ixdsHtmlElements):
+            for uncast_elt, depth in etreeIterWithDepth(rootElt):
+                elt = cast(Any, uncast_elt)
+                if elt.get(xmlBaseIdentifier) is not None:
+                    baseElements.append(elt)
+                if elt.tag == xhtmlBaseIdentifier:
+                    baseElements.append(elt)
+    if len(baseElements) > 0:
+        yield Validation.warning(
+            codes='EDINET.EC5700W.GFM.1.1.7',
+            msg=_("Attribute xml:base must not appear in any filing document."),
+            modelObject=baseElements,
         )
