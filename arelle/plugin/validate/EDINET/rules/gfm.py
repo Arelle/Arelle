@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
+import regex
 from typing import Any, cast, Iterable
 
 from arelle import XbrlConst, XmlUtil
@@ -20,6 +21,8 @@ from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
+
+GFM_CONTEXT_DATE_PATTERN = regex.compile(r"^[12][0-9]{3}-[01][0-9]-[0-3][0-9]$")
 
 
 @validation(
@@ -170,5 +173,38 @@ def rule_gfm_1_2_22(
             msg=_("In your taxonomy, do not expand the xlink:arcrole attribute of the "
                   "link:footnoteArc element. Modify the value of the xlink:arcrole attribute "
                   "to 'http://www.xbrl.org/2003/arcrole/fact-footnote'."),
+            modelObject=errors,
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_2_25(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.2.25] Set the date in the period element in the
+    following format: YYYY-MM-DD.
+    """
+    errors = []
+    for context in val.modelXbrl.contexts.values():
+        for elt in context.iterdescendants(
+            XbrlConst.qnXbrliStartDate.clarkNotation,
+            XbrlConst.qnXbrliEndDate.clarkNotation,
+            XbrlConst.qnXbrliInstant.clarkNotation
+        ):
+            dateText = XmlUtil.text(elt)
+            if not GFM_CONTEXT_DATE_PATTERN.match(dateText):
+                errors.append(elt)
+    if len(errors) > 0:
+        yield Validation.warning(
+            codes='EDINET.EC5700W.GFM.1.2.25',
+            msg=_("Set the date in the period element in the following "
+                  "format: YYYY-MM-DD."),
             modelObject=errors,
         )
