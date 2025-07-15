@@ -268,3 +268,26 @@ def rule_gfm_1_2_26(
                   "decimals attribute."),
             modelObject=errors,
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_2_27(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.2.27] An instance must not contain unused units.
+    """
+    # TODO: Consolidate validations involving unused units
+    unusedUnits = set(val.modelXbrl.units.values()) - {fact.unit for fact in val.modelXbrl.facts if fact.unit is not None}
+    if len(unusedUnits) > 0:
+        yield Validation.warning(
+            codes='EDINET.EC5700W.GFM.1.2.27',
+            msg=_("Delete unused units from the instance."),
+            modelObject=list(unusedUnits)
+        )
