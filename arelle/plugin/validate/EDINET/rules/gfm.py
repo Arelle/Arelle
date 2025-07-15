@@ -3,13 +3,12 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-from collections.abc import Iterable
-from typing import Any, cast
+from typing import Any, cast, Iterable
 
 from arelle import XbrlConst, XmlUtil
 from arelle.UrlUtil import isHttpUrl, splitDecodeFragment
 from arelle.ValidateXbrl import ValidateXbrl
-from arelle.XbrlConst import xhtmlBaseIdentifier, xmlBaseIdentifier, ixbrl11
+from arelle.XbrlConst import xhtmlBaseIdentifier, xmlBaseIdentifier
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
@@ -66,7 +65,7 @@ def rule_gfm_1_1_3(
                 continue  # Valid external URL
             if not any(scheme == "element" for scheme, __ in XmlUtil.xpointerSchemes(hrefId)):
                 continue  # Valid shorthand xpointer
-        yield Validation.error(
+        yield Validation.warning(
             codes='EDINET.EC5700W.GFM.1.1.3',
             msg=_("The URI content of the xlink:href attribute, the xsi:schemaLocation "
                   "attribute and the schemaLocation attribute must be relative and "
@@ -93,7 +92,7 @@ def rule_gfm_1_1_7(
     This check has been updated to check for the xhtml:base attribute in order to account for iXBRL filings.
     """
     baseElements = []
-    for rootElt in (val.modelXbrl.ixdsHtmlElements):
+    for rootElt in val.modelXbrl.ixdsHtmlElements:
             for uncast_elt, depth in etreeIterWithDepth(rootElt):
                 elt = cast(Any, uncast_elt)
                 if elt.get(xmlBaseIdentifier) is not None:
@@ -105,4 +104,34 @@ def rule_gfm_1_1_7(
             codes='EDINET.EC5700W.GFM.1.1.7',
             msg=_("Attribute xml:base must not appear in any filing document."),
             modelObject=baseElements,
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_2_16(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.2.16] Use the decimals attribute instead of the precision attribute.
+    """
+    errors = []
+    for fact in val.modelXbrl.facts:
+        concept = fact.concept
+        if concept is None:
+            continue
+        if not concept.isNumeric:
+            continue
+        if fact.precision is not None:
+            errors.append(fact)
+    if len(errors) > 0:
+        yield Validation.warning(
+            codes='EDINET.EC5700W.GFM.1.2.16',
+            msg=_("Use the decimals attribute instead of the precision attribute."),
+            modelObject=errors,
         )
