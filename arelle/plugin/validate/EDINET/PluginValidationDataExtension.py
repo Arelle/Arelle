@@ -9,7 +9,10 @@ from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 
+from arelle.ModelDocument import Type as ModelDocumentType
+from arelle.ModelObject import ModelObject
 from arelle.ModelXbrl import ModelXbrl
+from arelle.PrototypeDtsObject import LinkPrototype
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
@@ -59,6 +62,29 @@ class PluginValidationDataExtension(PluginData):
         if not isinstance(modelXbrl.fileSource.fs, zipfile.ZipFile):
             return False  # Not a zipfile
         return True
+
+    @lru_cache(1)
+    def getFootnoteLinkElements(self, modelXbrl: ModelXbrl) -> list[ModelObject | LinkPrototype]:
+        # TODO: Consolidate with similar implementations in EDGAR and FERC
+        doc = modelXbrl.modelDocument
+        if doc is None:
+            return []
+        if doc.type in (ModelDocumentType.INLINEXBRL, ModelDocumentType.INLINEXBRLDOCUMENTSET):
+            elts = (linkPrototype
+                            for linkKey, links in modelXbrl.baseSets.items()
+                            for linkPrototype in links
+                            if linkPrototype.modelDocument.type in (ModelDocumentType.INLINEXBRL, ModelDocumentType.INLINEXBRLDOCUMENTSET)
+                            and linkKey[1] and linkKey[2] and linkKey[3]  # fully specified roles
+                            and linkKey[0] != "XBRL-footnotes")
+        else:
+            rootElt = doc.xmlDocument.getroot()
+            elts = rootElt.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}footnoteLink")
+        return [
+            elt
+            for elt in elts
+            if isinstance(elt, (ModelObject, LinkPrototype))
+        ]
+
 
     def getUploadFileSizes(self, modelXbrl: ModelXbrl) -> dict[Path, int]:
         """

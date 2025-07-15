@@ -3,13 +3,15 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-from collections.abc import Iterable
-from typing import Any, cast
+import regex
+from typing import Any, cast, Iterable
 
 from arelle import XbrlConst, XmlUtil
+from arelle.ModelObject import ModelObject
+from arelle.PrototypeDtsObject import LocPrototype, ArcPrototype
 from arelle.UrlUtil import isHttpUrl, splitDecodeFragment
 from arelle.ValidateXbrl import ValidateXbrl
-from arelle.XbrlConst import xhtmlBaseIdentifier, xmlBaseIdentifier, ixbrl11
+from arelle.XbrlConst import xhtmlBaseIdentifier, xmlBaseIdentifier
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
@@ -19,6 +21,8 @@ from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
+
+GFM_CONTEXT_DATE_PATTERN = regex.compile(r"^[12][0-9]{3}-[01][0-9]-[0-3][0-9]$")
 
 
 @validation(
@@ -66,7 +70,7 @@ def rule_gfm_1_1_3(
                 continue  # Valid external URL
             if not any(scheme == "element" for scheme, __ in XmlUtil.xpointerSchemes(hrefId)):
                 continue  # Valid shorthand xpointer
-        yield Validation.error(
+        yield Validation.warning(
             codes='EDINET.EC5700W.GFM.1.1.3',
             msg=_("The URI content of the xlink:href attribute, the xsi:schemaLocation "
                   "attribute and the schemaLocation attribute must be relative and "
@@ -93,7 +97,7 @@ def rule_gfm_1_1_7(
     This check has been updated to check for the xhtml:base attribute in order to account for iXBRL filings.
     """
     baseElements = []
-    for rootElt in (val.modelXbrl.ixdsHtmlElements):
+    for rootElt in val.modelXbrl.ixdsHtmlElements:
             for uncast_elt, depth in etreeIterWithDepth(rootElt):
                 elt = cast(Any, uncast_elt)
                 if elt.get(xmlBaseIdentifier) is not None:
@@ -105,4 +109,102 @@ def rule_gfm_1_1_7(
             codes='EDINET.EC5700W.GFM.1.1.7',
             msg=_("Attribute xml:base must not appear in any filing document."),
             modelObject=baseElements,
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_2_16(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.2.16] Use the decimals attribute instead of the precision attribute.
+    """
+    errors = []
+    for fact in val.modelXbrl.facts:
+        concept = fact.concept
+        if concept is None:
+            continue
+        if not concept.isNumeric:
+            continue
+        if fact.precision is not None:
+            errors.append(fact)
+    if len(errors) > 0:
+        yield Validation.warning(
+            codes='EDINET.EC5700W.GFM.1.2.16',
+            msg=_("Use the decimals attribute instead of the precision attribute."),
+            modelObject=errors,
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_2_22(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.2.22] In your taxonomy, do not expand the
+    xlink:arcrole attribute of the link:footnoteArc element. Modify the value
+    of the xlink:arcrole attribute to "http://www.xbrl.org/2003/arcrole/fact-footnote".
+    """
+    errors = []
+    for elt in pluginData.getFootnoteLinkElements(val.modelXbrl):
+        for child in elt:
+            if not isinstance(child, (ModelObject, LocPrototype, ArcPrototype)):
+                continue
+            xlinkType = child.get(XbrlConst.qnXlinkType.clarkNotation)
+            if xlinkType == "arc":
+                arcrole = child.get(XbrlConst.qnXlinkArcRole.clarkNotation)
+                if arcrole != XbrlConst.factFootnote:
+                    errors.append(child)
+    if len(errors) > 0:
+        yield Validation.warning(
+            codes='EDINET.EC5700W.GFM.1.2.22',
+            msg=_("In your taxonomy, do not expand the xlink:arcrole attribute of the "
+                  "link:footnoteArc element. Modify the value of the xlink:arcrole attribute "
+                  "to 'http://www.xbrl.org/2003/arcrole/fact-footnote'."),
+            modelObject=errors,
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_2_25(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.2.25] Set the date in the period element in the
+    following format: YYYY-MM-DD.
+    """
+    errors = []
+    for context in val.modelXbrl.contexts.values():
+        for elt in context.iterdescendants(
+            XbrlConst.qnXbrliStartDate.clarkNotation,
+            XbrlConst.qnXbrliEndDate.clarkNotation,
+            XbrlConst.qnXbrliInstant.clarkNotation
+        ):
+            dateText = XmlUtil.text(elt)
+            if not GFM_CONTEXT_DATE_PATTERN.match(dateText):
+                errors.append(elt)
+    if len(errors) > 0:
+        yield Validation.warning(
+            codes='EDINET.EC5700W.GFM.1.2.25',
+            msg=_("Set the date in the period element in the following "
+                  "format: YYYY-MM-DD."),
+            modelObject=errors,
         )
