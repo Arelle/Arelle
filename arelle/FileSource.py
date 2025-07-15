@@ -119,7 +119,8 @@ class FileNamedStringIO(io.StringIO):  # provide string IO in memory but behave 
         self.fileName = fileName
 
     def close(self) -> None:
-        del self.fileName
+        if hasattr(self, 'fileName'):
+            del self.fileName
         super().close()
 
     def __str__(self) -> str:
@@ -139,7 +140,8 @@ class FileNamedBytesIO(io.BytesIO):  # provide Bytes IO in memory but behave as 
         self.fileName = fileName
 
     def close(self) -> None:
-        del self.fileName
+        if hasattr(self, 'fileName'):
+            del self.fileName
         super().close()
 
     def __str__(self) -> str:
