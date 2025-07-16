@@ -3,15 +3,18 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-import regex
 from typing import Any, cast, Iterable
+
+import regex
 
 from arelle import XbrlConst, XmlUtil
 from arelle.ModelObject import ModelObject
 from arelle.PrototypeDtsObject import LocPrototype, ArcPrototype
 from arelle.UrlUtil import isHttpUrl, splitDecodeFragment
 from arelle.ValidateXbrl import ValidateXbrl
+from arelle.ValidateXbrlCalcs import insignificantDigits
 from arelle.XbrlConst import xhtmlBaseIdentifier, xmlBaseIdentifier
+from arelle.XmlValidate import VALID
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
@@ -95,6 +98,8 @@ def rule_gfm_1_1_7(
     """
     EDINET.EC5700W: [GFM 1.1.7] Attribute xml:base must not appear in any filing document.
     This check has been updated to check for the xhtml:base attribute in order to account for iXBRL filings.
+
+    Original GFM text: Attribute xml:base must not appear in any filing document.
     """
     baseElements = []
     for rootElt in val.modelXbrl.ixdsHtmlElements:
@@ -124,6 +129,8 @@ def rule_gfm_1_2_16(
 ) -> Iterable[Validation]:
     """
     EDINET.EC5700W: [GFM 1.2.16] Use the decimals attribute instead of the precision attribute.
+
+    Original GFM text: The xbrli:xbrl element must not have any facts with the precision attribute.
     """
     errors = []
     for fact in val.modelXbrl.facts:
@@ -156,6 +163,9 @@ def rule_gfm_1_2_22(
     EDINET.EC5700W: [GFM 1.2.22] In your taxonomy, do not expand the
     xlink:arcrole attribute of the link:footnoteArc element. Modify the value
     of the xlink:arcrole attribute to "http://www.xbrl.org/2003/arcrole/fact-footnote".
+
+    Original GFM text: The xlink:arcrole attribute of a link:footnoteArc element must
+    be defined in the XBRL Specification 2.1 or declared in a standard taxonomy schema.
     """
     errors = []
     for elt in pluginData.getFootnoteLinkElements(val.modelXbrl):
@@ -170,9 +180,8 @@ def rule_gfm_1_2_22(
     if len(errors) > 0:
         yield Validation.warning(
             codes='EDINET.EC5700W.GFM.1.2.22',
-            msg=_("In your taxonomy, do not expand the xlink:arcrole attribute of the "
-                  "link:footnoteArc element. Modify the value of the xlink:arcrole attribute "
-                  "to 'http://www.xbrl.org/2003/arcrole/fact-footnote'."),
+            msg=_("Do not use extension arcroles for the link:footnoteArc element. "
+                  "Use the standard 'http://www.xbrl.org/2003/arcrole/fact-footnote' arcrole instead."),
             modelObject=errors,
         )
 
@@ -190,6 +199,9 @@ def rule_gfm_1_2_25(
     """
     EDINET.EC5700W: [GFM 1.2.25] Set the date in the period element in the
     following format: YYYY-MM-DD.
+
+    Original GFM text: Dates in period element of the context must comply with
+    yyyy-mm-dd format. No time is allowed in the value for dates.
     """
     errors = []
     for context in val.modelXbrl.contexts.values():
@@ -206,5 +218,53 @@ def rule_gfm_1_2_25(
             codes='EDINET.EC5700W.GFM.1.2.25',
             msg=_("Set the date in the period element in the following "
                   "format: YYYY-MM-DD."),
+            modelObject=errors,
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_2_26(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.2.26] The decimals attribute value must not cause truncation of
+    non-zero digits in the fact value. Update the fact value to match the precision of
+    the decimals attribute, or update the decimals attribute.
+
+    Original GFM text: The decimals attribute value must not cause non-zero digits in
+    the fact value to be changed to zero.
+    """
+    errors = []
+    for fact in val.modelXbrl.facts:
+        if (
+                fact.context is None or
+                fact.concept is None or
+                fact.concept.type is None or
+                getattr(fact,"xValid", 0) < VALID or
+                fact.isNil or
+                not fact.isNumeric or
+                not fact.decimals or
+                fact.decimals == "INF"
+        ):
+            continue
+        try:
+            insignificance = insignificantDigits(fact.xValue, decimals=fact.decimals)
+            if insignificance is not None:
+                errors.append(fact)
+        except (ValueError,TypeError):
+            errors.append(fact)
+    if len(errors) > 0:
+        yield Validation.warning(
+            codes='EDINET.EC5700W.GFM.1.2.26',
+            msg=_("The decimals attribute value must not cause truncation of "
+                  "non-zero digits in the fact value. Update the fact value to "
+                  "match the precision of the decimals attribute, or update the"
+                  "decimals attribute."),
             modelObject=errors,
         )
