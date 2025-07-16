@@ -6,6 +6,7 @@ config = ConformanceSuiteConfig(
     args=[
         '--baseTaxonomyValidation', 'none',
         '--disclosureSystem', 'EDINET',
+        '--testcaseResultsCaptureWarnings',
     ],
     assets=[
         ConformanceSuiteAssetConfig.local_conformance_suite(
