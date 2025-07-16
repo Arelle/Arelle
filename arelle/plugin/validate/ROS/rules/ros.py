@@ -296,67 +296,21 @@ def rule_main(
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
-def rule_ros6(
+def rule_ros20(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    ROS: Rule 6: ProfitLossOnOrdinaryActivitiesBeforeTax OR ProfitLossBeforeTax must exist in the document and be non-nil.
-    """
-    non_nil_profit_loss_fact_exists = any(
-        not fact.isNil for fact in val.modelXbrl.factsByLocalName.get(IE_PROFIT_LOSS, set())
-    )
-    non_nil_profit_loss_ordinary_fact_exists = any(
-        not fact.isNil for fact in val.modelXbrl.factsByLocalName.get(IE_PROFIT_LOSS_ORDINARY, set())
-    )
-    if not non_nil_profit_loss_fact_exists and not non_nil_profit_loss_ordinary_fact_exists:
-        yield Validation.error(
-            codes='ROS.6',
-            msg=_("Profit or Loss Before Tax (uk gaap:ProfitLossOnOrdinaryActivitiesBeforeTax) is missing."),
-            modelObject=val.modelXbrl
-        )
-
-
-@validation(
-        hook=ValidationHook.XBRL_FINALLY,
-    )
-def rule_ros18(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
-        *args: Any,
-        **kwargs: Any,
-) -> Iterable[Validation]:
-    """
-    ROS: Rule 18: DPLTurnoverRevenue cannot be a negative value.
-    """
-    return errorOnNegativeFact(
-            val.modelXbrl,
-            conceptLn=TURNOVER_REVENUE,
-            code='ROS.18',
-            message=_("Turnover / Revenue cannot be a negative value.")
-        )
-
-
-@validation(
-    hook=ValidationHook.XBRL_FINALLY,
-)
-def rule_ros19(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
-        *args: Any,
-        **kwargs: Any,
-) -> Iterable[Validation]:
-    """
-    ROS: Rule 19:PrincipalCurrencyUsedInBusinessReport must exist and its value must match the unit
+    ROS: Rule 20:PrincipalCurrencyUsedInBusinessReport must exist and its value must match the unit
     used for the majority of monetary facts.
     """
     principal_currency_facts = val.modelXbrl.factsByLocalName.get(PRINCIPAL_CURRENCY, set())
     principal_currency_values = set(fact.text for fact in principal_currency_facts)
     if len(principal_currency_values) != 1:
         yield Validation.error(
-            "ROS.19",
+            "ROS.20",
             _("'PrincipalCurrencyUsedInBusinessReport' must exist and have a single value.  Values found: %(principal_currency_values)s."),
             modelObject=principal_currency_facts,
             principal_currency_values=principal_currency_values,
@@ -370,7 +324,7 @@ def rule_ros19(
         for unit, count in unit_counts.items():
             if count > principal_currency_value_count:
                 yield Validation.warning(
-                    "ROS.19",
+                    "ROS.20",
                     _("'PrincipalCurrencyUsedInBusinessReport' has a value of %(principal_currency_value)s, "
                       "which must match the functional(majority) unit of the financial statement."),
                     modelObject=principal_currency_facts,
