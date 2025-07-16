@@ -340,3 +340,28 @@ def rule_gfm_1_2_28(
                 prefixes=", ".join(GFM_RECOMMENDED_NAMESPACE_PREFIXES[namespace]),
                 modelObject=rootElt
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_2_30(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.2.30] A context must not contain the xbrli:forever element.
+    """
+    errors = []
+    for context in val.modelXbrl.contexts.values():
+        for elt in context.iterdescendants(XbrlConst.qnXbrliForever.clarkNotation):
+            errors.append(elt)
+    if len(errors) > 0:
+        yield Validation.warning(
+            codes='EDINET.EC5700W.GFM.1.2.30',
+            msg=_("A context must not contain the xbrli:forever element."),
+            modelObject=errors
+        )
