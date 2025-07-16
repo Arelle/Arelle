@@ -346,8 +346,17 @@
     "UKFRC-2023": {
         "name": "United Kingdom Multiple Targets",
         "authorityName": "FRC",
+        "comment": "This is a deprecated authority that will be removed. Use UKFRC instead.",
+        "reference": "https://media.frc.org.uk/documents/XBRL_Tagging_Guide_-_FRC_Taxonomies_2024_On9jOuS.pdf",
+        "reportPackageMaxMB": "150",
+        "reportPackageMeasurement": "zipped",
+        "ixTargetUsage": "allowed"
+    },
+    "UKFRC": {
+        "name": "United Kingdom Multiple Targets",
+        "authorityName": "FRC",
         "comment": "Pertains to multi target UKSEF Guidance",
-        "comment2": "See UKFRC for reports prior to 2023 which did not use separate targets for FRC and ESEF",
+        "comment2": "See UKFRC-2022 for reports prior to 2023 which did not use separate targets for FRC and ESEF",
         "reference": "https://media.frc.org.uk/documents/XBRL_Tagging_Guide_-_FRC_Taxonomies_2024_On9jOuS.pdf",
         "reportPackageMaxMB": "150",
         "reportPackageMeasurement": "zipped",
