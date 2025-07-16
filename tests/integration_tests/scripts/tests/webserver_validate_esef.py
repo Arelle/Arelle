@@ -55,8 +55,8 @@ with run_arelle_webserver(arelle_command, port) as proc:
     url += "&disclosureSystemName=esef"
     url += f"&internetConnectivity={'false' if arelle_offline else 'true'}"
     url += f"&logFile={urllib.parse.quote_plus(str(arelle_log_file))}"
-    url += f"&packages=" + '|'.join(urllib.parse.quote_plus(str(p)) for p in package_paths)
-    url += f"&parameters=authority=SE"
+    url += "&packages=" + '|'.join(urllib.parse.quote_plus(str(p)) for p in package_paths)
+    url += "&parameters=authority=SE"
     print(f"Validating: {url}")
     with open(report_zip_path, "rb") as f:
         files = {"upload": f}
