@@ -121,3 +121,31 @@ def rule_frta_2_1_11(
                     lang=lang,
                     modelObject=concepts,
                 )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_frta_3_1_10(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5710W: [FRTA.3.1.10] Role types defined in the extension taxonomy must have a definition.
+    """
+    errors = []
+    for uri, roleTypes in val.modelXbrl.roleTypes.items():
+        for roleType in roleTypes:
+            if pluginData.isStandardTaxonomyUrl(roleType.document.uri, val.modelXbrl):
+                continue
+            if not roleType.definition:
+                errors.append(roleType)
+    if len(errors) > 0:
+        yield Validation.warning(
+            codes='EDINET.EC5710W.FRTA.3.1.10',
+            msg=_("Role types defined in the extension taxonomy must have a definition."),
+            modelObject=errors,
+        )
