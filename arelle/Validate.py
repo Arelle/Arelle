@@ -764,7 +764,7 @@ class Validate:
             status = "pass" if numErrors == 0 else "fail"
         elif expected == "invalid":
             status = "fail" if numErrors == 0 else "pass"
-        elif expected in (None, []) and numErrors == 0:
+        elif expected in (None, []) and numErrors == 0 and not expectedWarnings:
             status = "pass"
         elif isinstance(expected, (QName, str, dict, list)) or expectedWarnings:
             status = "fail"

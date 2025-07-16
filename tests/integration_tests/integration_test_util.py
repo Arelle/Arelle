@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import json
 import locale
 import os.path
 import re
 import urllib.parse
-from collections import Counter
+from collections import Counter, defaultdict
 from pathlib import PurePath
 from typing import TYPE_CHECKING, cast
 
@@ -126,13 +127,22 @@ def get_test_data(
                         marks.append(pytest.mark.xfail())
                     elif mv.status == 'skip':
                         continue  # don't report variations skipped due to shards
+                    expected_results = defaultdict(lambda: defaultdict(int))
+                    if isinstance(mv.expected, str):
+                        expected_results = mv.expected
+                    else:
+                        for error in mv.expected or []:
+                            expected_results["ERROR"][str(error)] += 1
+                        if mv.modelXbrl.modelManager.formulaOptions.testcaseResultsCaptureWarnings:
+                            for warning in mv.expectedWarnings or []:
+                                expected_results["WARNING"][str(warning)] += 1
                     # Arelle adds message code frequencies to the end, but conformance suites usually don't.
                     # Skip assertion results dictionaries.
                     actual = [re.sub(r' \(\d+\)$', '', code) for code in mv.actual if not isinstance(code, dict)]
                     param = pytest.param(
                         {
                             'status': mv.status,
-                            'expected': mv.expected,
+                            'expected': json.dumps(expected_results),
                             'actual': actual,
                             'duration': mv.duration,
                         },
