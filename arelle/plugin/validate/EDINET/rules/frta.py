@@ -41,7 +41,7 @@ def rule_frta_2_1_9(
         for elt in rootElt.iterdescendants(XbrlConst.qnXsdDocumentation.clarkNotation):
             errors.append(elt)
     if len(errors) > 0:
-        yield Validation.error(
+        yield Validation.warning(
             codes='EDINET.EC5710W.FRTA.2.1.9',
             msg=_("All documentation of a concept must be contained in XBRL linkbases. "
                   "Taxonomy element declarations should not use the XML Schema documentation element."),
