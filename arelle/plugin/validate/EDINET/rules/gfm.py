@@ -121,6 +121,28 @@ def rule_gfm_1_1_7(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_gfm_1_2_3(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.2.3] All xbrli:identifier elements in an instance must have identical content.
+    """
+    entityIdentifierValues = val.modelXbrl.entityIdentifiersInDocument()
+    if len(entityIdentifierValues) >1:
+        yield Validation.warning(
+            codes='EDINET.EC5700W.GFM.1.2.3',
+            msg=_('All identifier elements must be identical.'),
+                modelObject = val.modelXbrl
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_gfm_1_2_16(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,

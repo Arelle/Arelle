@@ -422,6 +422,9 @@ class ModelXbrl:
         else:
             return self.fileSource.url
 
+    def entityIdentifiersInDocument(self) -> set[tuple[str, str]]:
+        return {context.entityIdentifier for context in self.contexts.values()}
+
     def relationshipSet(self, arcrole: tuple[str, ...] | str, linkrole: tuple[str, ...] | str | None = None, linkqname: QName | None = None, arcqname: QName | None = None, includeProhibits: bool = False) -> ModelRelationshipSetClass:
         """Returns a relationship set matching specified parameters (only arcrole is required).
 
