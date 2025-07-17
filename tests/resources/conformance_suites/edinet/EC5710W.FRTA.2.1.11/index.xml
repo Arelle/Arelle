@@ -11,7 +11,7 @@
     <variation id="valid01" name="valid01">
         <description>
             Extension taxonomy defines two concepts with the same standard label, but all concepts have a verbose label.
-            <!--valid06.zip with one label's standard label overwritten with that of another.-->
+            <!--valid06.zip with one concept's standard label overwritten with that of another.-->
         </description>
         <data>
             <instance readMeFirst="true">valid01.zip</instance>
@@ -21,7 +21,7 @@
     <variation id="invalid01" name="invalid01">
         <description>
             Extension taxonomy defines two concepts with the same standard label, and not all concepts have a verbose label.
-            <!--valid06.zip with one label's standard label overwritten with that of another, plus a verbose label removed.-->
+            <!--valid06.zip with one concept's standard label overwritten with that of another, plus a verbose label removed.-->
         </description>
         <data>
             <instance readMeFirst="true">invalid01.zip</instance>
