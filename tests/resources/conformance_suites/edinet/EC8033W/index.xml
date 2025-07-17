@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="EDINET.EC8033W"
+        description="EDINET.EC8033W: The startDate element of the current year context should be set to a date that is earlier than the endDate element of the prior year context."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid01" name="invalid01">
+        <description>
+            A prior year context end date is later than a current year context start date.
+            <!--valid22.zip with a prior year context end date adjusted.-->
+        </description>
+        <data>
+            <instance readMeFirst="true">invalid01.zip</instance>
+        </data>
+        <result>
+            <warning num="2">EDINET.EC8033W</warning>
+        </result>
+    </variation>
+</testcase>
