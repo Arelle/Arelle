@@ -395,9 +395,6 @@ class PluginValidationDataExtension(PluginData):
             tupleElements=tupleElements,
         )
 
-    @lru_cache(1)
-    def entityIdentifiersInDocument(self, modelXbrl: ModelXbrl) -> set[tuple[str, str]]:
-        return {context.entityIdentifier for context in modelXbrl.contexts.values()}
 
     @lru_cache(1)
     def factsByDocument(self, modelXbrl: ModelXbrl) -> dict[str, list[ModelFact]]:

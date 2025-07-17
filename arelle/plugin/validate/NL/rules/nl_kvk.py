@@ -82,7 +82,7 @@ def rule_nl_kvk_3_1_1_1(
     NL-KVK.3.1.1.1: xbrli:identifier content to match KVK number format that must consist of 8 consecutive digits;
     first two digits must not be '00'.
     """
-    entityIdentifierValues = pluginData.entityIdentifiersInDocument(val.modelXbrl)
+    entityIdentifierValues = val.modelXbrl.entityIdentifiersInDocument()
     for entityId in entityIdentifierValues:
         if not XBRLI_IDENTIFIER_PATTERN.match(entityId[1]):
             yield Validation.error(
@@ -107,7 +107,7 @@ def rule_nl_kvk_3_1_1_2(
     """
     NL-KVK.3.1.1.2: Scheme attribute of xbrli:identifier must be http://www.kvk.nl/kvk-id.
     """
-    entityIdentifierValues = pluginData.entityIdentifiersInDocument(val.modelXbrl)
+    entityIdentifierValues = val.modelXbrl.entityIdentifiersInDocument()
     for entityId in entityIdentifierValues:
         if XBRLI_IDENTIFIER_SCHEMA != entityId[0]:
             yield Validation.error(
@@ -220,7 +220,7 @@ def rule_nl_kvk_3_1_4_1 (
     """
      NL-KVK.3.1.4.1: All entity identifiers and schemes must have identical content.
     """
-    entityIdentifierValues = pluginData.entityIdentifiersInDocument(val.modelXbrl)
+    entityIdentifierValues = val.modelXbrl.entityIdentifiersInDocument()
     if len(entityIdentifierValues) >1:
         yield Validation.error(
             codes='NL.NL-KVK-RTS_Annex_IV_Par_1_G3-1-4_1.multipleIdentifiers',
