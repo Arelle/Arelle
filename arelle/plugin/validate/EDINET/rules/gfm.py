@@ -13,7 +13,7 @@ from arelle.PrototypeDtsObject import LocPrototype, ArcPrototype
 from arelle.UrlUtil import isHttpUrl, splitDecodeFragment
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.ValidateXbrlCalcs import insignificantDigits
-from arelle.XbrlConst import xhtmlBaseIdentifier, xmlBaseIdentifier
+from arelle.XbrlConst import qnXbrlScenario, qnXbrldiExplicitMember, xhtmlBaseIdentifier, xmlBaseIdentifier
 from arelle.XmlValidate import VALID
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
@@ -178,6 +178,38 @@ def rule_gfm_1_2_4(
             codes='EDINET.EC5700W.GFM.1.2.4',
             msg=_('Set the scenario element in the context. Do not set the segment element.'),
             modelObject = contextsWithSegments
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_2_5(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.2.5] If an xbrli:scenario element appears in a context, then its children
+    must be one or more xbrldi:explicitMember elements.
+    """
+    allContexts = val.modelXbrl.contextsByDocument()
+    contextsWithDisallowedScenarioChildren =[]
+    for contexts in allContexts.values():
+        for context in contexts:
+            for elt in context.iterdescendants(qnXbrlScenario.clarkNotation):
+                if isinstance(elt, ModelObject):
+                    if any(isinstance(child, ModelObject) and child.tag != qnXbrldiExplicitMember.clarkNotation
+                           for child in elt.iterchildren()):
+                        contextsWithDisallowedScenarioChildren.append(context)
+    if len(contextsWithDisallowedScenarioChildren) > 0:
+        yield Validation.warning(
+            codes='EDINET.EC5700W.GFM.1.2.5',
+            msg=_('Please delete all child elements other than the xbrldi:explicitMember '
+                  'element from the segment element or scenario element.'),
+            modelObject = contextsWithDisallowedScenarioChildren
         )
 
 
