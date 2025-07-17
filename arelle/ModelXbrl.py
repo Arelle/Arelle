@@ -422,6 +422,13 @@ class ModelXbrl:
         else:
             return self.fileSource.url
 
+    def contextsByDocument(self) -> dict[str, list[ModelContext]]:
+        contextsByDocument = defaultdict(list)
+        for context in self.contexts.values():
+            contextsByDocument[context.modelDocument.filepath].append(context)
+        contextsByDocument.default_factory = None
+        return contextsByDocument
+
     def entityIdentifiersInDocument(self) -> set[tuple[str, str]]:
         return {context.entityIdentifier for context in self.contexts.values()}
 

@@ -242,17 +242,10 @@ class PluginValidationDataExtension(PluginData):
             for domMbrRel in modelXbrl.relationshipSet(XbrlConst.domainMember, ELR).fromModelObject(sourceDomMbr):
                 self.addDomMbrs(modelXbrl, domMbrRel.toModelObject, domMbrRel.consecutiveLinkrole, membersSet)
 
-    @lru_cache(1)
-    def contextsByDocument(self, modelXbrl: ModelXbrl) -> dict[str, list[ModelContext]]:
-        contextsByDocument = defaultdict(list)
-        for context in modelXbrl.contexts.values():
-            contextsByDocument[context.modelDocument.filepath].append(context)
-        contextsByDocument.default_factory = None
-        return contextsByDocument
 
     @lru_cache(1)
     def checkContexts(self, modelXbrl: ModelXbrl) -> ContextData:
-        allContexts = self.contextsByDocument(modelXbrl)
+        allContexts = modelXbrl.contextsByDocument()
         contextsWithImproperContent: list[ModelContext | None] = []
         contextsWithPeriodTime: list[ModelContext | None] = []
         contextsWithPeriodTimeZone: list[ModelContext | None] = []

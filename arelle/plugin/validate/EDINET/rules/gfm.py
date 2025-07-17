@@ -158,6 +158,34 @@ def rule_gfm_1_2_3(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_gfm_1_2_4(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.2.4] Segment must not be used in the context.
+    """
+    allContexts = val.modelXbrl.contextsByDocument()
+    contextsWithSegments =[]
+    for contexts in allContexts.values():
+        for context in contexts:
+            if context.hasSegment:
+                contextsWithSegments.append(context)
+    if len(contextsWithSegments) > 0:
+        yield Validation.warning(
+            codes='EDINET.EC5700W.GFM.1.2.4',
+            msg=_('Set the scenario element in the context. Do not set the segment element.'),
+            modelObject = contextsWithSegments
+        )
+
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_gfm_1_2_16(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,

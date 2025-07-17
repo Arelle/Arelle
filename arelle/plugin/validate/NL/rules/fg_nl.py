@@ -179,7 +179,7 @@ def rule_fg_nl_05(
     modelXbrl = val.modelXbrl
     factsByDocument = pluginData.factsByDocument(modelXbrl)
     unitsByDocument = pluginData.unitsByDocument(modelXbrl)
-    contextsByDocument = pluginData.contextsByDocument(modelXbrl)
+    contextsByDocument = modelXbrl.contextsByDocument()
 
     for doc in modelXbrl.urlDocs.values():
         if doc.type != ModelDocument.Type.INSTANCE:
