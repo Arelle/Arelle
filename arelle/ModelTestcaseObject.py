@@ -363,7 +363,11 @@ class ModelTestcaseVariation(ModelObject):
     def expectedWarnings(self):
         warningElements = XmlUtil.descendants(self, None, "warning")
         if isinstance(warningElements, list) and len(warningElements) > 0:
-            return [w.stringValue for w in warningElements]
+            warningCodes = []
+            for warningElement in warningElements:
+                num = int(warningElement.attr("num") or 1)
+                warningCodes.extend([warningElement.stringValue] * num)
+            return warningCodes
         return None
 
     @property
