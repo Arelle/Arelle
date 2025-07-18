@@ -10,6 +10,7 @@ from .PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
 
+EQUITY = 'Equity'
 IE_PROFIT_LOSS = 'ProfitLossBeforeTax'
 IE_PROFIT_LOSS_ORDINARY = 'ProfitLossOnOrdinaryActivitiesBeforeTax'
 PRINCIPAL_CURRENCY = 'PrincipalCurrencyUsedInBusinessReport'

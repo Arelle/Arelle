@@ -25,8 +25,7 @@ from arelle.utils.validate.Validation import Validation
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
 from arelle.XbrlConst import qnXbrliMonetaryItemType, qnXbrliXbrl, xhtml
 from arelle.XmlValidateConst import VALID
-from . import errorOnNegativeFact
-from ..ValidationPluginExtension import IE_PROFIT_LOSS_ORDINARY, IE_PROFIT_LOSS, PRINCIPAL_CURRENCY, TURNOVER_REVENUE
+from ..ValidationPluginExtension import EQUITY, PRINCIPAL_CURRENCY, TURNOVER_REVENUE
 from ..PluginValidationDataExtension import MANDATORY_ELEMENTS,  SCHEMA_PATTERNS, TR_NAMESPACES, PluginValidationDataExtension
 
 
@@ -291,6 +290,42 @@ def rule_main(
         del factForConceptContextUnitHash, aspectEqualFacts
     modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
     modelXbrl.modelManager.showStatus(None)
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_ros19(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    ROS: Rule 19: DPLTurnoverRevenue should be tested to be less than or equal to 10x the absolute value of Equity
+    """
+    equity_facts = val.modelXbrl.factsByLocalName.get(EQUITY, set())
+    largest_equity_fact = None
+    for e_fact in equity_facts:
+        if e_fact.xValid >= VALID:
+            if largest_equity_fact is None or abs(int(e_fact.value)) > abs(int(largest_equity_fact.value)):
+                largest_equity_fact = e_fact
+
+    turnover_facts = val.modelXbrl.factsByLocalName.get(TURNOVER_REVENUE, set())
+    largest_turnover_fact = None
+    for t_fact in turnover_facts:
+        if t_fact.xValid >= VALID:
+            if largest_turnover_fact is None or int(t_fact.value) > int(largest_turnover_fact.value):
+                largest_turnover_fact = t_fact
+
+    if (largest_equity_fact is not None and
+            largest_turnover_fact is not None and
+            int(largest_turnover_fact.value) > (10 * abs(int(largest_equity_fact.value)))):
+        yield Validation.error(
+            "ROS.19",
+            _("Turnover / Revenue (DPLTurnoverRevenue) may exceed the maximum expected value. Please review the submission and, if correct, test your submission with Revenue Online's iXBRL test facility."),
+            modelObject=[largest_equity_fact, largest_turnover_fact],
+        )
 
 
 @validation(
