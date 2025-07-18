@@ -25,8 +25,7 @@ from arelle.utils.validate.Validation import Validation
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
 from arelle.XbrlConst import qnXbrliMonetaryItemType, qnXbrliXbrl, xhtml
 from arelle.XmlValidateConst import VALID
-from . import errorOnNegativeFact
-from ..ValidationPluginExtension import IE_PROFIT_LOSS_ORDINARY, IE_PROFIT_LOSS, PRINCIPAL_CURRENCY, TURNOVER_REVENUE
+from ..ValidationPluginExtension import EQUITY, PRINCIPAL_CURRENCY, TURNOVER_REVENUE
 from ..PluginValidationDataExtension import MANDATORY_ELEMENTS,  SCHEMA_PATTERNS, TR_NAMESPACES, PluginValidationDataExtension
 
 
@@ -291,6 +290,29 @@ def rule_main(
         del factForConceptContextUnitHash, aspectEqualFacts
     modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
     modelXbrl.modelManager.showStatus(None)
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+)
+def rule_ros19(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    ROS: Rule 19: DPLTurnoverRevenue should be tested to be less than or equal to 10x the absolute value of Equity
+    """
+    equity_fact = next(iter(val.modelXbrl.factsByLocalName.get(EQUITY, set())))
+    turnover_fact = next(iter(val.modelXbrl.factsByLocalName.get(TURNOVER_REVENUE, set())))
+    if equity_fact.xValid >= VALID and turnover_fact.xValid >= VALID:
+        if int(turnover_fact.value) > (10 * abs(int(equity_fact.value))):
+            yield Validation.error(
+                "ROS.19",
+                _("Turnover / Revenue (DPLTurnoverRevenue) may exceed the maximum expected value. Please review the submission and, if correct, test your submission with Revenue Online's iXBRL test facility."),
+                modelObject=[equity_fact, turnover_fact],
+            )
 
 
 @validation(
