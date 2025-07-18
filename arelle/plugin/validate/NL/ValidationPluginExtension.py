@@ -192,44 +192,45 @@ class ValidationPluginExtension(ValidationPlugin):
             jenvNamespace = 'https://www.nltaxonomie.nl/bw2-titel9/2024-12-31/bw2-titel9-cor'
             kvkINamespace = 'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-cor'
             nlTypesNamespace = None
-            rjNamespace =  'https://www.nltaxonomie.nl/rj/2024-12-31/rj-cor'
+            rjNamespace = 'https://www.nltaxonomie.nl/rj/2024-12-31/rj-cor'
             entrypointRoot = 'http://www.nltaxonomie.nl/kvk/2024-12-31/'
             entrypoints = {entrypointRoot + e for e in [
                 'kvk-annual-report-other-gaap.xsd',
             ]}
         else:
             raise ValueError(f'Invalid NL disclosure system: {disclosureSystem}')
+        permissibleMandatoryFactsRootAbstracts=frozenset([
+            qname(kvkINamespace, 'AnnualReportFilingInformationTitle'),
+        ]) if kvkINamespace else frozenset()
         return PluginValidationDataExtension(
             self.name,
-            chamberOfCommerceRegistrationNumberQn=qname(f'{{{jenvNamespace}}}ChamberOfCommerceRegistrationNumber'),
-            documentAdoptionDateQn=qname(f'{{{jenvNamespace}}}DocumentAdoptionDate'),
-            documentAdoptionStatusQn=qname(f'{{{jenvNamespace}}}DocumentAdoptionStatus'),
-            documentResubmissionUnsurmountableInaccuraciesQn=qname(f'{{{kvkINamespace}}}DocumentResubmissionDueToUnsurmountableInaccuracies'),
+            chamberOfCommerceRegistrationNumberQn=qname(jenvNamespace, 'ChamberOfCommerceRegistrationNumber'),
+            documentAdoptionDateQn=qname(jenvNamespace, 'DocumentAdoptionDate'),
+            documentAdoptionStatusQn=qname(jenvNamespace, 'DocumentAdoptionStatus'),
+            documentResubmissionUnsurmountableInaccuraciesQn=qname(kvkINamespace, 'DocumentResubmissionDueToUnsurmountableInaccuracies'),
             entrypointRoot=entrypointRoot,
             entrypoints=entrypoints,
-            financialReportingPeriodQn=qname(f'{{{jenvNamespace}}}FinancialReportingPeriod'),
-            financialReportingPeriodCurrentStartDateQn=qname(f'{{{jenvNamespace}}}FinancialReportingPeriodCurrentStartDate'),
-            financialReportingPeriodCurrentEndDateQn=qname(f'{{{jenvNamespace}}}FinancialReportingPeriodCurrentEndDate'),
-            financialReportingPeriodPreviousStartDateQn=qname(f'{{{jenvNamespace}}}FinancialReportingPeriodPreviousStartDate'),
-            financialReportingPeriodPreviousEndDateQn=qname(f'{{{jenvNamespace}}}FinancialReportingPeriodPreviousEndDate'),
-            formattedExplanationItemTypeQn=qname(f'{{{nlTypesNamespace}}}formattedExplanationItemType'),
+            financialReportingPeriodQn=qname(jenvNamespace, 'FinancialReportingPeriod'),
+            financialReportingPeriodCurrentStartDateQn=qname(jenvNamespace, 'FinancialReportingPeriodCurrentStartDate'),
+            financialReportingPeriodCurrentEndDateQn=qname(jenvNamespace, 'FinancialReportingPeriodCurrentEndDate'),
+            financialReportingPeriodPreviousStartDateQn=qname(jenvNamespace, 'FinancialReportingPeriodPreviousStartDate'),
+            financialReportingPeriodPreviousEndDateQn=qname(jenvNamespace, 'FinancialReportingPeriodPreviousEndDate'),
+            formattedExplanationItemTypeQn=qname(nlTypesNamespace, 'formattedExplanationItemType') if nlTypesNamespace else None,
             ifrsIdentifier = 'https://xbrl.ifrs.org',
-            permissibleGAAPRootAbstracts=frozenset([
-                qname(f'{{{jenvNamespace}}}BalanceSheetTitle'),
-                qname(f'{{{jenvNamespace}}}IncomeStatementTitle'),
-                qname(f'{{{jenvNamespace}}}StatementOfComprehensiveIncomeTitle'),
-                qname(f'{{{jenvNamespace}}}EquityStatementOfChangesTitle'),
-                qname(f'{{{kvkINamespace}}}AnnualReportFilingInformationTitle'),
-                qname(f'{{{rjNamespace}}}StatementOfCashFlowsTitle'),
-            ]),
-            permissibleIFRSRootAbstracts=frozenset([
-                qname(f'{{{ifrsNamespace}}}StatementOfFinancialPositionAbstract'),
-                qname(f'{{{ifrsNamespace}}}IncomeStatementAbstract'),
-                qname(f'{{{ifrsNamespace}}}StatementOfComprehensiveIncomeAbstract'),
-                qname(f'{{{ifrsNamespace}}}StatementOfCashFlowsAbstract'),
-                qname(f'{{{ifrsNamespace}}}StatementOfChangesInEquityAbstract'),
-                qname(f'{{{kvkINamespace}}}AnnualReportFilingInformationTitle'),
-            ]),
+            permissibleGAAPRootAbstracts=permissibleMandatoryFactsRootAbstracts | frozenset([
+                qname(jenvNamespace, 'BalanceSheetTitle'),
+                qname(jenvNamespace, 'IncomeStatementTitle'),
+                qname(jenvNamespace, 'StatementOfComprehensiveIncomeTitle'),
+                qname(jenvNamespace, 'EquityStatementOfChangesTitle'),
+                qname(rjNamespace, 'CashFlowStatementTitle'),
+            ]) if jenvNamespace and rjNamespace else frozenset(),
+            permissibleIFRSRootAbstracts=permissibleMandatoryFactsRootAbstracts | frozenset([
+                qname(ifrsNamespace, 'StatementOfFinancialPositionAbstract'),
+                qname(ifrsNamespace, 'IncomeStatementAbstract'),
+                qname(ifrsNamespace, 'StatementOfComprehensiveIncomeAbstract'),
+                qname(ifrsNamespace, 'StatementOfCashFlowsAbstract'),
+                qname(ifrsNamespace, 'StatementOfChangesInEquityAbstract'),
+            ]) if ifrsNamespace else frozenset(),
             textFormattingSchemaPath='sbr-text-formatting.xsd',
             textFormattingWrapper='<formattedText xmlns="http://www.nltaxonomie.nl/2017/xbrl/sbr-text-formatting">{}</formattedText>',
         )
