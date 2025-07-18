@@ -9,8 +9,6 @@ from collections.abc import Iterable
 from datetime import date
 from typing import Any, cast, TYPE_CHECKING
 
-import zipfile
-
 from lxml.etree import Element
 
 from arelle.ModelDtsObject import ModelConcept, ModelLink, ModelResource, ModelType
@@ -1821,7 +1819,7 @@ def rule_nl_kvk_RTS_Annex_II_Par_1_RTS_Annex_IV_par_7(
         relSet = val.modelXbrl.relationshipSet(parentChild, ELR)
         for rootConcept in relSet.rootConcepts:
             if relSet.fromModelObject(rootConcept):
-                if not rootConcept.qname in permissibleAbstracts:
+                if rootConcept.qname not in permissibleAbstracts:
                     warnings.append(rootConcept)
     if len(warnings) > 0:
         yield Validation.warning(
