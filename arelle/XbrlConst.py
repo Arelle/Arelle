@@ -47,6 +47,7 @@ xmlBaseIdentifier = "{http://www.w3.org/XML/1998/namespace}base"
 eurofilingModelNamespace = "http://www.eurofiling.info/xbrl/ext/model"
 eurofilingModelPrefix = "model"
 qnNsmap = qname("nsmap")  # artificial parent for insertion of xmlns in saving xml documents
+qnXbrlScenario = qname("{http://www.xbrl.org/2003/instance}scenario")
 qnXbrliXbrl = qname("{http://www.xbrl.org/2003/instance}xbrli:xbrl")
 qnPrototypeXbrliXbrl = qname(
     "{http://arelle.org/prototype/xbrli}xbrl"
