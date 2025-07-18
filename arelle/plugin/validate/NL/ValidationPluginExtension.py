@@ -199,6 +199,9 @@ class ValidationPluginExtension(ValidationPlugin):
             ]}
         else:
             raise ValueError(f'Invalid NL disclosure system: {disclosureSystem}')
+        permissibleMandatoryFactsRootAbstracts=frozenset([
+            qname(kvkINamespace, 'AnnualReportFilingInformationTitle'),
+        ]) if kvkINamespace else frozenset()
         return PluginValidationDataExtension(
             self.name,
             chamberOfCommerceRegistrationNumberQn=qname(jenvNamespace, 'ChamberOfCommerceRegistrationNumber'),
@@ -214,22 +217,20 @@ class ValidationPluginExtension(ValidationPlugin):
             financialReportingPeriodPreviousEndDateQn=qname(jenvNamespace, 'FinancialReportingPeriodPreviousEndDate'),
             formattedExplanationItemTypeQn=qname(nlTypesNamespace, 'formattedExplanationItemType') if nlTypesNamespace else None,
             ifrsIdentifier = 'https://xbrl.ifrs.org',
-            permissibleGAAPRootAbstracts=frozenset([
+            permissibleGAAPRootAbstracts=permissibleMandatoryFactsRootAbstracts | frozenset([
                 qname(jenvNamespace, 'BalanceSheetTitle'),
                 qname(jenvNamespace, 'IncomeStatementTitle'),
                 qname(jenvNamespace, 'StatementOfComprehensiveIncomeTitle'),
                 qname(jenvNamespace, 'EquityStatementOfChangesTitle'),
-                qname(kvkINamespace, 'AnnualReportFilingInformationTitle'),
                 qname(rjNamespace, 'CashFlowStatementTitle'),
-            ]) if kvkINamespace and jenvNamespace and rjNamespace else frozenset(),
-            permissibleIFRSRootAbstracts=frozenset([
+            ]) if jenvNamespace and rjNamespace else frozenset(),
+            permissibleIFRSRootAbstracts=permissibleMandatoryFactsRootAbstracts | frozenset([
                 qname(ifrsNamespace, 'StatementOfFinancialPositionAbstract'),
                 qname(ifrsNamespace, 'IncomeStatementAbstract'),
                 qname(ifrsNamespace, 'StatementOfComprehensiveIncomeAbstract'),
                 qname(ifrsNamespace, 'StatementOfCashFlowsAbstract'),
                 qname(ifrsNamespace, 'StatementOfChangesInEquityAbstract'),
-                qname(kvkINamespace, 'AnnualReportFilingInformationTitle'),
-            ]) if kvkINamespace and ifrsNamespace else frozenset(),
+            ]) if ifrsNamespace else frozenset(),
             textFormattingSchemaPath='sbr-text-formatting.xsd',
             textFormattingWrapper='<formattedText xmlns="http://www.nltaxonomie.nl/2017/xbrl/sbr-text-formatting">{}</formattedText>',
         )
