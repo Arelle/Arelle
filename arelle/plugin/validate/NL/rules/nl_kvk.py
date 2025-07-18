@@ -1818,9 +1818,9 @@ def rule_nl_kvk_RTS_Annex_II_Par_1_RTS_Annex_IV_par_7(
     for ELR in val.modelXbrl.relationshipSet(parentChild).linkRoleUris:
         relSet = val.modelXbrl.relationshipSet(parentChild, ELR)
         for rootConcept in relSet.rootConcepts:
-            if relSet.fromModelObject(rootConcept):
+            if rels := relSet.fromModelObject(rootConcept):
                 if rootConcept.qname not in permissibleAbstracts:
-                    warnings.append(rootConcept)
+                    warnings.append(rels[0])
     if len(warnings) > 0:
         yield Validation.warning(
             codes='NL.NL-KVK.RTS_Annex_II_Par_1_RTS_Annex_IV_par_7.missingRelevantPlaceholder',
