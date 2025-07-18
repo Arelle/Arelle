@@ -220,7 +220,7 @@ class ValidationPluginExtension(ValidationPlugin):
                 qname(f'{{{jenvNamespace}}}StatementOfComprehensiveIncomeTitle'),
                 qname(f'{{{jenvNamespace}}}EquityStatementOfChangesTitle'),
                 qname(f'{{{kvkINamespace}}}AnnualReportFilingInformationTitle'),
-                qname(f'{{{rjNamespace}}}StatementOfCashFlowsTitle'),
+                qname(f'{{{rjNamespace}}}CashFlowStatementTitle'),
             ]),
             permissibleIFRSRootAbstracts=frozenset([
                 qname(f'{{{ifrsNamespace}}}StatementOfFinancialPositionAbstract'),
