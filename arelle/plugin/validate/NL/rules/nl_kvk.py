@@ -1580,7 +1580,7 @@ def rule_nl_kvk_4_4_4_1(
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    NL-KVK.4.4.5.1: Custom labels roles SHOULD NOT be used.
+    NL-KVK.4.4.4.1: Duplicated line items in the presentation tree of extension taxonomy SHOULD use preferred labels on presentation links.
     """
     warnings = set()
     for ELR in val.modelXbrl.relationshipSet(XbrlConst.parentChild).linkRoleUris:
