@@ -15,7 +15,7 @@ from lxml import etree
 from arelle import ModelDocument, XbrlConst, XmlUtil
 from arelle.FileSource import openXmlFileStream
 from arelle.ModelObject import ModelObject, ModelComment
-from arelle.ModelValue import qname
+from arelle.ModelValue import QName, qname
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
@@ -771,6 +771,7 @@ def rule_fr_nl_5_11(
     parser = etree.XMLParser(schema=schema)
 
     invalidTypeFacts = []
+    assert isinstance(pluginData.formattedExplanationItemTypeQn, QName)
     typeQname = pluginData.formattedExplanationItemTypeQn
     for fact in val.modelXbrl.facts:
         validType = fact.concept.instanceOfType(typeQname)

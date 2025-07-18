@@ -212,7 +212,7 @@ class ValidationPluginExtension(ValidationPlugin):
             financialReportingPeriodCurrentEndDateQn=qname(f'{{{jenvNamespace}}}FinancialReportingPeriodCurrentEndDate'),
             financialReportingPeriodPreviousStartDateQn=qname(f'{{{jenvNamespace}}}FinancialReportingPeriodPreviousStartDate'),
             financialReportingPeriodPreviousEndDateQn=qname(f'{{{jenvNamespace}}}FinancialReportingPeriodPreviousEndDate'),
-            formattedExplanationItemTypeQn=qname(f'{{{nlTypesNamespace}}}formattedExplanationItemType'),
+            formattedExplanationItemTypeQn=qname(f'{{{nlTypesNamespace}}}formattedExplanationItemType') if nlTypesNamespace else None,
             ifrsIdentifier = 'https://xbrl.ifrs.org',
             permissibleGAAPRootAbstracts=frozenset([
                 qname(f'{{{jenvNamespace}}}BalanceSheetTitle'),
@@ -221,7 +221,7 @@ class ValidationPluginExtension(ValidationPlugin):
                 qname(f'{{{jenvNamespace}}}EquityStatementOfChangesTitle'),
                 qname(f'{{{kvkINamespace}}}AnnualReportFilingInformationTitle'),
                 qname(f'{{{rjNamespace}}}CashFlowStatementTitle'),
-            ]),
+            ]) if kvkINamespace and jenvNamespace and rjNamespace else frozenset(),
             permissibleIFRSRootAbstracts=frozenset([
                 qname(f'{{{ifrsNamespace}}}StatementOfFinancialPositionAbstract'),
                 qname(f'{{{ifrsNamespace}}}IncomeStatementAbstract'),
@@ -229,7 +229,7 @@ class ValidationPluginExtension(ValidationPlugin):
                 qname(f'{{{ifrsNamespace}}}StatementOfCashFlowsAbstract'),
                 qname(f'{{{ifrsNamespace}}}StatementOfChangesInEquityAbstract'),
                 qname(f'{{{kvkINamespace}}}AnnualReportFilingInformationTitle'),
-            ]),
+            ]) if kvkINamespace and ifrsNamespace else frozenset(),
             textFormattingSchemaPath='sbr-text-formatting.xsd',
             textFormattingWrapper='<formattedText xmlns="http://www.nltaxonomie.nl/2017/xbrl/sbr-text-formatting">{}</formattedText>',
         )
