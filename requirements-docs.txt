@@ -1,4 +1,4 @@
-furo==2024.8.6
+furo==2025.7.19
 myst-parser==3.0.1 ; python_version <= "3.9"
 myst-parser==4.0.1 ; python_version > "3.9"
 sphinx==7.4.7 ; python_version <= "3.9"

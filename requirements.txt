@@ -2,7 +2,7 @@
 certifi==2025.7.14
 truststore==0.10.1 ; python_version > "3.9"
 filelock==3.18.0
-jsonschema==4.24.0
+jsonschema==4.25.0
 lxml==5.4.0
 OpenPyXL==3.1.5
 pyparsing==3.2.3
@@ -27,7 +27,7 @@ Tornado==6.5.1
 PyCryptodome==3.23.0
 # xbrlDB plugin
 cx_Oracle==8.3.0
-pg8000==1.31.2
+pg8000==1.31.4
 PyMySQL==1.1.1
 pyodbc==5.2.0
 RDFLib==7.1.4
