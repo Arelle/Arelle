@@ -28,6 +28,7 @@ from .XbrlTableTemplate import XbrlTableTemplate
 from .XbrlTaxonomyModule import XbrlTaxonomyModule, xbrlObjectTypes, xbrlObjectQNames
 from .XbrlUnit import XbrlUnit
 from .XbrlConst import qnXsQName, qnXsDate, qnXsDateTime, qnXsDuration, objectsWithProperties
+validateFact = None
 from arelle.FunctionFn import true
 
 perCnstrtFmtStartEndPattern = re.compile(r".*@(start|end)")
@@ -308,7 +309,7 @@ def validateTaxonomy(txmyMdl, txmy):
                                   _("Cube %(name)s conceptConstraints domain relationships must be to concepts, target: %(target)s."),
                                   xbrlObject=(cubeObj,cubeDimObj,relObj), name=name, qname=dimName, target=relObj.target)
                 if cubeDimObj.allowDomainFacts:
-                    txmyMdl.error("oimte:invalidConceptDimensionConstraint",
+                    txmyMdl.error("oimte:invalidCubeDimensionProperty",
                               _("Cube %(name)s conceptConstraints property MUST NOT specify allowDomainFacts."),
                               xbrlObject=(cubeObj,cubeDimObj), name=name)
             if dimName == entityCoreDim and isinstance(txmyMdl.namedObjects.get(cubeDimObj.domainName), XbrlDomain):
@@ -339,7 +340,7 @@ def validateTaxonomy(txmyMdl, txmy):
                                   _("Cube %(name)s typed dimension %(qname)s must not specify a domain root."),
                                   xbrlObject=(cubeObj,cubeDimObj,dimObj), name=name, qname=dimName)
                     if cubeDimObj.domainName:
-                        txmyMdl.error("oimte:typedDimHasDomain",
+                        txmyMdl.error("oimte:invalidCubeDimensionProperty",
                                   _("Cube %(name)s typed dimension %(qname)s must not specify a domain %(domain)s."),
                                   xbrlObject=(cubeObj,cubeDimObj,dimObj), name=name, qname=dimName, domain=cubeDimObj.domainName)
                 else: # explicit dim
@@ -648,3 +649,11 @@ def validateTaxonomy(txmyMdl, txmy):
                                   xbrlObject=unitObj, name=unitObj.name, qname=dtQn)
                     usedDataTypes.add(dtQn)
         del usedDataTypes
+
+    # Facts in taxonomy
+    if txmy.facts:
+        global validateFact
+        if validateFact is None:
+            from .ValidateReport import validateFact
+        for fact in txmy.facts:
+            validateFact(fact, txmy.name, txmy, txmyMdl)
