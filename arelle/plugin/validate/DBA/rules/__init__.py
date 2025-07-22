@@ -266,7 +266,7 @@ def getFactsGroupedByContextId(modelXbrl: ModelXbrl, *conceptQns: QName) -> dict
     return dict(sorted(groupedFacts.items()))
 
 
-def groupFactsByContextHash(facts: set[ModelFact] ) -> dict[str, list[ModelFact]]:
+def groupFactsByContextHash(facts: set[ModelFact]) -> dict[str, list[ModelFact]]:
     """
     Groups facts by their contextDimAwareHash.
     :return: A dictionary of contextDimAwareHashes to list of facts.
