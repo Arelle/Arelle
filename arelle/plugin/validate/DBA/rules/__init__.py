@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import datetime
 import itertools
+from collections import defaultdict
 from collections.abc import Callable, Iterable
 from typing import Optional, cast
 
@@ -271,12 +272,10 @@ def groupFactsByContextHash(facts: set[ModelFact]) -> dict[int, list[ModelFact]]
     Groups facts by their contextDimAwareHash.
     :return: A dictionary of contextDimAwareHashes to list of facts.
     """
-    groupedFacts: dict[int, list[ModelFact]] = {}
+    groupedFacts: dict[int, list[ModelFact]] = defaultdict(list)
     for fact in facts:
         if fact.xValid >= VALID:
             contextHash = fact.context.contextDimAwareHash
-            if contextHash not in groupedFacts:
-                groupedFacts[contextHash] = []
             groupedFacts[contextHash].append(fact)
     return dict(sorted(groupedFacts.items()))
 
