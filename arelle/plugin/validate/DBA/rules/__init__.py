@@ -272,12 +272,13 @@ def groupFactsByContextHash(facts: set[ModelFact]) -> dict[int, list[ModelFact]]
     Groups facts by their contextDimAwareHash.
     :return: A dictionary of contextDimAwareHashes to list of facts.
     """
-    groupedFacts: dict[int, list[ModelFact]] = defaultdict(list)
+    groupedFacts: defaultdict[int, list[ModelFact]] = defaultdict(list)
     for fact in facts:
         if fact.xValid >= VALID:
             contextHash = fact.context.contextDimAwareHash
             groupedFacts[contextHash].append(fact)
-    return dict(sorted(groupedFacts.items()))
+    groupedFacts.default_factory = None
+    return groupedFacts
 
 
 def lookup_namespaced_facts(modelXbrl: ModelXbrl, namespaceURI: str) -> set[ModelFact]:
