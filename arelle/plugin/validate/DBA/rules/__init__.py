@@ -15,6 +15,7 @@ from arelle.ModelValue import QName
 from arelle.ModelXbrl import ModelXbrl
 from arelle.typing import TypeGetText
 from arelle.UrlUtil import scheme
+from arelle.utils.Contexts import ContextHashKey
 from arelle.utils.validate.Validation import Validation
 from arelle.ValidateFilingText import parseImageDataURL
 from arelle.ValidateXbrl import ValidateXbrl
@@ -267,15 +268,15 @@ def getFactsGroupedByContextId(modelXbrl: ModelXbrl, *conceptQns: QName) -> dict
     return dict(sorted(groupedFacts.items()))
 
 
-def groupFactsByContextHash(facts: set[ModelFact]) -> dict[int, list[ModelFact]]:
+def groupFactsByContextHash(facts: set[ModelFact]) -> dict[ContextHashKey, list[ModelFact]]:
     """
-    Groups facts by their contextDimAwareHash.
-    :return: A dictionary of contextDimAwareHashes to list of facts.
+    Groups facts by their context hash key.
+    :return: A dictionary of context hash keys to list of facts.
     """
-    groupedFacts: defaultdict[int, list[ModelFact]] = defaultdict(list)
+    groupedFacts: defaultdict[ContextHashKey, list[ModelFact]] = defaultdict(list)
     for fact in facts:
         if fact.xValid >= VALID:
-            contextHash = fact.context.contextDimAwareHash
+            contextHash = ContextHashKey(fact.context, dimensionalAspectModel=True)
             groupedFacts[contextHash].append(fact)
     groupedFacts.default_factory = None
     return groupedFacts
