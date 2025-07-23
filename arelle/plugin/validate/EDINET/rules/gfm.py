@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
+from datetime import timedelta
 from typing import Any, cast, Iterable
 
 import regex
@@ -236,6 +237,34 @@ def rule_gfm_1_2_8(
             modelObject = context
         )
 
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_2_9(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.2.9] The same date must not appear as the content of both an xbrli:startDate and
+    an xbrli:endDate in an instance.
+    """
+    invalidDurationContexts = []
+    for contexts in val.modelXbrl.contextsByDocument().values():
+        for context in contexts:
+            if not context.isInstantPeriod:
+                if context.endDatetime and context.startDatetime and context.startDatetime == context.endDatetime - timedelta(days=1):
+                    invalidDurationContexts.append(context)
+    if len(invalidDurationContexts) > 0:
+        for context in invalidDurationContexts:
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.1.2.9',
+                msg=_("Set the context's startDate and endDate elements to different dates."),
+                modelObject=context
+            )
 
 
 @validation(
