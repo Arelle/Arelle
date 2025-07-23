@@ -133,6 +133,7 @@ def validateXbrlFinally(val, *args, **kwargs):
     for c in modelXbrl.contexts.values():
         if XmlUtil.hasChild(c, xbrli, "segment"):
             segContexts.add(c)
+        contextIDs.add(c.id)
         h = c.contextDimAwareHash
         if h in uniqueContextHashes:
             if c.isEqualTo(uniqueContextHashes[h]):
@@ -142,7 +143,6 @@ def validateXbrlFinally(val, *args, **kwargs):
                     modelObject=(c, uniqueContextHashes[h]), context=c.id, context2=uniqueContextHashes[h].id)
         else:
             uniqueContextHashes[h] = c
-        contextIDs.add(c.id)
 
     if segContexts:
         modelXbrl.error("FERC.6.05.04",
