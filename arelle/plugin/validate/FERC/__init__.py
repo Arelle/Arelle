@@ -35,7 +35,7 @@ from arelle.XbrlConst import xbrli, xhtml
 from arelle.XmlValidateConst import VALID
 from arelle.utils.Contexts import getDuplicateContextGroups
 
-def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
+def disclosureSystemTypes(disclosureSystem, *args, **kwargs):
     # return ((disclosure system name, variable name), ...)
     return (("FERC", "FERCplugin"),) # FERC disclosure system
 
@@ -227,7 +227,7 @@ __pluginInfo__ = {
     'copyright': copyrightLabel,
     'import': ('inlineXbrlDocumentSet', ), # import dependent modules
     # classes of mount points (required)
-    'DisclosureSystem.Types': dislosureSystemTypes,
+    'DisclosureSystem.Types': disclosureSystemTypes,
     'DisclosureSystem.ConfigURL': disclosureSystemConfigURL,
     'Validate.XBRL.Start': validateXbrlStart,
     'Validate.XBRL.Finally': validateXbrlFinally,

@@ -130,7 +130,7 @@ ALLOWED_IMG_MIME_TYPES = (
 )
 
 
-def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
+def disclosureSystemTypes(disclosureSystem, *args, **kwargs):
     # return ((disclosure system name, variable name), ...)
     return (("HMRC", "UKplugin"),)
 
@@ -550,7 +550,7 @@ __pluginInfo__ = {
     'author': authorLabel,
     'copyright': copyrightLabel,
     # classes of mount points (required)
-    'DisclosureSystem.Types': dislosureSystemTypes,
+    'DisclosureSystem.Types': disclosureSystemTypes,
     'DisclosureSystem.ConfigURL': disclosureSystemConfigURL,
 
     'Validate.XBRL.Start': validateXbrlStart,

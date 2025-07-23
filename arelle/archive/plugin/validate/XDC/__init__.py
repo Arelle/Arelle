@@ -5,7 +5,7 @@ import os
 from arelle import ModelDocument, XbrlConst
 from arelle.Version import authorLabel, copyrightLabel
 
-def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
+def disclosureSystemTypes(disclosureSystem, *args, **kwargs):
     # return ((disclosure system name, variable name), ...)
     return (("XDC", "XDCplugin"),)
 
@@ -69,7 +69,7 @@ __pluginInfo__ = {
     'author': authorLabel,
     'copyright': copyrightLabel,
     # classes of mount points (required)
-    'DisclosureSystem.Types': dislosureSystemTypes,
+    'DisclosureSystem.Types': disclosureSystemTypes,
     'DisclosureSystem.ConfigURL': disclosureSystemConfigURL,
 
     'Validate.XBRL.Start': validateXbrlStart,

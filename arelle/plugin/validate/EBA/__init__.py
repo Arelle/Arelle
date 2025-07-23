@@ -58,7 +58,7 @@ CANONICAL_PREFIXES = {
     "http://www.xbrl.org/2003/instance": "xbrli",
     "http://www.w3.org/1999/xlink": "xlink"}
 
-def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
+def disclosureSystemTypes(disclosureSystem, *args, **kwargs):
     # return ((disclosure system name, variable name), ...)
     return (("EBA", "EBA"),
             ("EIOPA", "EIOPA"))
@@ -745,7 +745,7 @@ __pluginInfo__ = {
     'author': authorLabel,
     'copyright': copyrightLabel,
     # classes of mount points (required)
-    'DisclosureSystem.Types': dislosureSystemTypes,
+    'DisclosureSystem.Types': disclosureSystemTypes,
     'DisclosureSystem.ConfigURL': disclosureSystemConfigURL,
     'Validate.XBRL.Start': validateSetup,
     'Validate.XBRL.Finally': validateNonStreamingFinish,
