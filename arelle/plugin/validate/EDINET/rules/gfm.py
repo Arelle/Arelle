@@ -213,6 +213,30 @@ def rule_gfm_1_2_5(
         )
 
 
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_2_8(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.2.8] Every xbrli:context element must appear in at least one
+    contextRef attribute in the same instance.
+    """
+    unused_contexts = list(set(val.modelXbrl.contexts.values()) - set(val.modelXbrl.contextsInUse))
+    unused_contexts.sort(key=lambda x: x.id)
+    for context in unused_contexts:
+        yield Validation.warning(
+            codes='EDINET.EC5700W.GFM.1.2.8',
+            msg=_('If you are not using a context, delete it if it is not needed.'),
+            modelObject = context
+        )
+
+
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
