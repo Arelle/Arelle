@@ -17,7 +17,7 @@ from arelle.ValidateUtr import ValidateUtr
 from arelle.Version import authorLabel, copyrightLabel
 from arelle.XbrlConst import qnEnumerationItemTypes
 from arelle.ModelInstanceObject import ModelFact
-from arelle.utils.Contexts import getDuplicateContextPairs
+from arelle.utils.Contexts import getDuplicateContextGroups
 import regex as re
 from lxml import etree
 from collections import defaultdict
@@ -486,11 +486,11 @@ def validateFacts(val, factsToCheck):
     del unitHashes
 
     if not getattr(modelXbrl, "isStreamingMode", False):
-        for context1, context2 in getDuplicateContextPairs(modelXbrl):
+        for contexts in getDuplicateContextGroups(modelXbrl):
             modelXbrl.log("WARNING" if val.isEIOPAfullVersion else "ERROR",
                 "EIOPA.S.2.7.b",
                 _("Duplicate contexts MUST NOT be reported, contexts %(cntx1)s and %(cntx2)s are equivalent.'"),
-                modelObject=(context1, context2), cntx1=context1.id, cntx2=context2.id)
+                modelObject=contexts, cntx1=contexts[0].id, cntx2=contexts[1].id)
     for cntx in modelXbrl.contexts.values():
         for _dim in cntx.qnameDims.values():
             _dimQn = _dim.dimensionQname

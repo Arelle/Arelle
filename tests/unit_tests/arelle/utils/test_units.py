@@ -5,7 +5,7 @@ from arelle.ModelXbrl import ModelXbrl
 from arelle.utils.Units import (
     partitionUnits,
     partitionModelXbrlUnits,
-    getDuplicateUnitPairs,
+    getDuplicateUnitGroups,
 )
 
 def test_notEqualDifferentHash():
@@ -47,5 +47,5 @@ def test_detectAlternatingDuplicate():
     assert partitions1 == [(u1a, u1b), (u2,)]
     partitions2 = list(partitionModelXbrlUnits(modelXbrl).values())
     assert partitions2 == partitions1
-    duplicates = getDuplicateUnitPairs(modelXbrl)
-    assert duplicates == [(u1b, u1a)]
+    duplicates = getDuplicateUnitGroups(modelXbrl)
+    assert duplicates == [(u1a, u1b)]

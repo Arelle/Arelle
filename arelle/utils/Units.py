@@ -2,10 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from arelle.utils.Equivalence import (
-    partitionIntoEquivalenceClasses,
-    getDuplicateItemPairs,
-)
+from arelle.utils.Equivalence import partitionIntoEquivalenceClasses
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -35,5 +32,5 @@ def partitionUnits(units: Iterable[ModelUnit]) -> dict[UnitHashKey, tuple[ModelU
 def partitionModelXbrlUnits(modelXbrl: ModelXbrl) -> dict[UnitHashKey, tuple[ModelUnit, ...]]:
     return partitionUnits(modelXbrl.units.values())
 
-def getDuplicateUnitPairs(modelXbrl: ModelXbrl) -> list[tuple[ModelUnit, ModelUnit]]:
-    return getDuplicateItemPairs(modelXbrl, partitionModelXbrlUnits)
+def getDuplicateUnitGroups(modelXbrl: ModelXbrl) -> list[tuple[ModelUnit, ...]]:
+    return [partition for partition in partitionModelXbrlUnits(modelXbrl).values() if len(partition) > 1]

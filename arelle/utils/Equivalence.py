@@ -20,10 +20,3 @@ def partitionIntoEquivalenceClasses(items: Iterable[T], key: Callable[[T], K]) -
     for item in items:
         d[key(item)].append(item)
     return {k: tuple(v) for k, v in d.items()}
-
-def getDuplicateItemPairs(modelXbrl: ModelXbrl, partition: Callable[[ModelXbrl], dict[Any, tuple[T, ...]]]) -> list[tuple[T, T]]:
-    return [
-        (context, exemplar)
-        for exemplar, *contexts in partition(modelXbrl).values()
-        for context in contexts
-    ]

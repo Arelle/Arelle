@@ -2,10 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from arelle.utils.Equivalence import (
-    partitionIntoEquivalenceClasses,
-    getDuplicateItemPairs,
-)
+from arelle.utils.Equivalence import partitionIntoEquivalenceClasses
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -37,5 +34,5 @@ def partitionContexts(contexts: Iterable[ModelContext], dimensionalAspectModel: 
 def partitionModelXbrlContexts(modelXbrl: ModelXbrl) -> dict[ContextHashKey, tuple[ModelContext, ...]]:
     return partitionContexts(modelXbrl.contexts.values(), dimensionalAspectModel=modelXbrl.hasXDT)
 
-def getDuplicateContextPairs(modelXbrl: ModelXbrl) -> list[tuple[ModelContext, ModelContext]]:
-    return getDuplicateItemPairs(modelXbrl, partitionModelXbrlContexts)
+def getDuplicateContextGroups(modelXbrl: ModelXbrl) -> list[tuple[ModelContext, ...]]:
+    return [partition for partition in partitionModelXbrlContexts(modelXbrl).values() if len(partition) > 1]

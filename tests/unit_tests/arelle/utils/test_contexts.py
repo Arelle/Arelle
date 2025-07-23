@@ -5,7 +5,7 @@ from arelle.ModelXbrl import ModelXbrl
 from arelle.utils.Contexts import (
     partitionContexts,
     partitionModelXbrlContexts,
-    getDuplicateContextPairs,
+    getDuplicateContextGroups,
 )
 
 def test_notEqualDifferentHash():
@@ -74,5 +74,5 @@ def test_detectAlternatingDuplicate():
     assert partitions1 == [(c1a, c1b), (c2,)]
     partitions2 = list(partitionModelXbrlContexts(modelXbrl).values())
     assert partitions2 == partitions1
-    duplicates = getDuplicateContextPairs(modelXbrl)
-    assert duplicates == [(c1b, c1a)]
+    duplicates = getDuplicateContextGroups(modelXbrl)
+    assert duplicates == [(c1a, c1b)]
