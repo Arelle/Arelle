@@ -406,7 +406,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                                             error("xbrlte:invalidQName",
                                                   _("QName is invalid: %(qname)s, jsonObj: %(path)s"),
                                                   sourceFileLine=href, qname=jsonObj[propName], path=f"{'/'.join(pathParts + [f'{propName}[{iObj}]'])}")
-                                            continue # skip this property
+                                            # must have None value for validation to work
                                         if propName == "relatedNames":
                                             relatedNames.append(listObj)
                                     if propClass in (set, OrderedSet):
@@ -426,7 +426,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                                         error("xbrlte:invalidQName",
                                               _("QName is invalid: %(qname)s, jsonObj: %(path)s"),
                                               sourceFileLine=href, qname=_valKey, path=f"{'/'.join(pathParts + [f'{propName}[{iObj}]'])}")
-                                        continue # skip this property
+                                        # must have None value for validation to work
                                 elif isinstance(_keyClass, str):
                                     _valKey = valKey
                                 else:

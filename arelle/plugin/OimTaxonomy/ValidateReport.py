@@ -35,7 +35,7 @@ def validateFact(fact, reportQn, reportObj, txmyMdl):
     if cDataType is None or not isinstance(cDataType, XbrlDataType):
         # presume this error would have been reported on validating loaded taxonomy model
         return
-    _valid, _value = validateValue(txmyMdl, fact, fact.value, cDataType, f"/value")
+    _valid, _value = validateValue(txmyMdl, reportObj, fact, fact.value, cDataType, f"/value")
     fact._valid = _valid
     fact._value = _value
     if not name:
@@ -152,7 +152,7 @@ def validateFact(fact, reportQn, reportObj, txmyMdl):
                 #                  _("Numeric typed dimension must have canonical %(type)s value \"%(value)s\": %(concept)s."),
                 #                  xbrlObject=obj, type=dimConcept.typedDomainElement.baseXsdType, concept=dimConcept, value=dimVal)
                 if initialValidation:
-                    _valid, _value = validateValue(txmyMdl, dimObj, dimVal, domDataTypeObj, f"/value")
+                    _valid, _value = validateValue(txmyMdl, reportObj, dimObj, dimVal, domDataTypeObj, f"/value")
                     if _valid < VALID and fact._valid >= VALID:
                         fact._valid = _valid # invalidate dimensionally invalid fact
                     if _valid >= VALID:
@@ -163,7 +163,7 @@ def validateFact(fact, reportQn, reportObj, txmyMdl):
     # find cubes which fact is valid for
     fact._cubes = validateCubes(fact, txmyMdl)
     if not fact._cubes:
-        error("xbrlce:invalidDimensionValue",
+        error("oimte:noFactSpaceForFact",
               _("Fact %(name)s is not dimensionally valid in any cube."))
 
 def validateTable(table, reportQn, reportObj, txmyMdl):
