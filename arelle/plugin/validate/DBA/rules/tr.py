@@ -42,8 +42,10 @@ def rule_tr01(
         gsd_facts = lookup_namespaced_facts(val.modelXbrl, NAMESPACE_GSD)
         facts_in_error = []
         for fact in gsd_facts:
-            if (fact.context.entityIdentifier != cvr_fact.context.entityIdentifier or
-                    fact.context.periodHash != cvr_fact.context.periodHash):
+            if not (
+                fact.context.isEntityIdentifierEqualTo(cvr_fact.context) and
+                fact.context.isPeriodEqualTo(cvr_fact.context)
+            ):
                 facts_in_error.append(fact)
         if len(facts_in_error) > 0:
             yield Validation.error(
