@@ -24,6 +24,8 @@ from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelValue import QName, qname
 from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
 from arelle.PythonUtil import isLegacyAbs, strTruncate
+from arelle.utils.Contexts import partitionModelXbrlContexts
+from arelle.utils.Units import partitionModelXbrlUnits
 from arelle.utils.validate.DetectScriptsInXhtml import containsScriptMarkers
 from arelle.UrlUtil import decodeBase64DataImage, isHttpUrl, scheme
 from arelle.ValidateFilingText import parseImageDataURL
@@ -564,27 +566,17 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
         # identify unique contexts and units
         mapContext = {}
         mapUnit = {}
-        uniqueContextHashes: dict[Any, Any] = {}
-        for context in modelXbrl.contexts.values():
-            h = context.contextDimAwareHash
-            if h in uniqueContextHashes:
-                if context.isEqualTo(uniqueContextHashes[h]):
-                    mapContext[context] = uniqueContextHashes[h]
-            else:
-                uniqueContextHashes[h] = context
-        del uniqueContextHashes
-        uniqueUnitHashes: dict[Any, Any] = {}
+        for exemplar_context, *contexts in partitionModelXbrlContexts(modelXbrl).values():
+            for context in contexts:
+                mapContext[context] = exemplar_context
         utrValidator = ValidateUtr(modelXbrl)
         utrUnitIds = set(u.unitId
                          for unitItemType in utrValidator.utrItemTypeEntries.values()
                          for u in unitItemType.values())
+        for exemplar_unit, *units in partitionModelXbrlUnits(modelXbrl).values():
+            for unit in units:
+                mapUnit[unit] = exemplar_unit
         for unit in modelXbrl.units.values():
-            h = unit.hash
-            if h in uniqueUnitHashes:
-                if unit.isEqualTo(uniqueUnitHashes[h]):
-                    mapUnit[unit] = uniqueUnitHashes[h]
-            else:
-                uniqueUnitHashes[h] = unit
             # check if any custom measure is in UTR
             for measureTerm in unit.measures:
                 for measure in measureTerm:
@@ -594,7 +586,6 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                             modelXbrl.warning("ESEF.RTS.III.1.G1-7-1.customUnitInUtr",
                                 _("Custom measure SHOULD NOT duplicate a UnitID of UTR: %(measure)s"),
                                 modelObject=unit, measure=measure)
-        del uniqueUnitHashes
 
         reportedMandatory: set[QName] = set()
         precisionFacts = set()
