@@ -19,6 +19,8 @@ from arelle.ModelInstanceObject import ModelInlineFact, ModelUnit
 from arelle.ModelValue import qname
 from arelle.ModelXbrl import ModelXbrl
 from arelle.PythonUtil import strTruncate
+from arelle.utils.Contexts import partitionModelXbrlContexts
+from arelle.utils.Units import partitionModelXbrlUnits
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
@@ -166,7 +168,6 @@ def rule_main(
         schemeEntityIds = set()
         mapContext = {} # identify unique contexts and units
         mapUnit = {}
-        uniqueContextHashes: dict[str, str] = {}
         hasCRO = False
         unsupportedSchemeContexts = []
         mismatchIdentifierContexts = []
@@ -179,13 +180,10 @@ def rule_main(
                 mismatchIdentifierContexts.append(context)
             if scheme == "http://www.cro.ie/":
                 hasCRO = True
-            h = context.contextDimAwareHash
-            if h in uniqueContextHashes:
-                if context.isEqualTo(uniqueContextHashes[h]):
-                    mapContext[context] = uniqueContextHashes[h]
-            else:
-                uniqueContextHashes[h] = context
-        del uniqueContextHashes
+        for exemplar_context, *contexts in partitionModelXbrlContexts(modelXbrl).values():
+            for context in contexts:
+                mapContext[context] = exemplar_context
+
         if len(schemeEntityIds) > 1:
             modelXbrl.error("ROS:differentContextEntityIdentifiers",
                             _("Context entity identifier not all the same: %(schemeEntityIds)s."),
@@ -201,15 +199,9 @@ def rule_main(
                             modelObject=mismatchIdentifierContexts,
                             identifiers=", ".join(sorted(set(c.entityIdentifier[1] for c in mismatchIdentifierContexts))))
 
-        uniqueUnitHashes: dict[str, ModelUnit] = {}
-        for unit in modelXbrl.units.values():
-            h = unit.hash
-            if h in uniqueUnitHashes:
-                if unit.isEqualTo(uniqueUnitHashes[h]):
-                    mapUnit[unit] = uniqueUnitHashes[h]
-            else:
-                uniqueUnitHashes[h] = unit
-        del uniqueUnitHashes
+        for exemplar_unit, *units in partitionModelXbrlUnits(modelXbrl).values():
+            for unit in units:
+                mapUnit[unit] = exemplar_unit
 
         if hasCRO and "ie-common" in nsMap:
             mandatory.add(qname("ie-common:CompaniesRegistrationOfficeNumber", nsMap))  # type-ignore[arg-type]

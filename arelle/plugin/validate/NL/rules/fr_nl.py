@@ -18,6 +18,7 @@ from arelle.ModelObject import ModelObject, ModelComment
 from arelle.ModelValue import QName, qname
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
+from arelle.utils.Contexts import partitionModelXbrlContexts
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
@@ -579,10 +580,7 @@ def rule_fr_nl_3_04(
     """
     FR-NL-3.04: An XBRL instance document MUST NOT contain duplicate 'xbrli:context' elements
     """
-    duplicates = defaultdict(list)
-    for context in val.modelXbrl.contexts.values():
-        duplicates[context.contextDimAwareHash].append(context)
-    for duplicate_contexts in duplicates.values():
+    for duplicate_contexts in partitionModelXbrlContexts(val.modelXbrl).values():
         if len(duplicate_contexts) > 1:
             yield Validation.error(
                 codes='NL.FR-NL-3.04',

@@ -12,6 +12,8 @@ from arelle import Locale, XbrlConst, XbrlUtil
 from arelle.ModelObject import ObjectPropertyViewWrapper
 from arelle.PythonUtil import flattenSequence, strTruncate
 from arelle.XmlValidateConst import UNVALIDATED, VALID
+from arelle.utils.Contexts import partitionModelXbrlContexts
+from arelle.utils.Units import partitionModelXbrlUnits
 
 if TYPE_CHECKING:
     from _decimal import Decimal
@@ -147,27 +149,15 @@ class ValidateXbrlCalcs:
 
         # identify equal contexts
         modelXbrl.profileActivity()
-        uniqueContextHashes = {}
-        for context in modelXbrl.contexts.values():
-            h = context.contextDimAwareHash
-            if h in uniqueContextHashes:
-                if context.isEqualTo(uniqueContextHashes[h]):
-                    self.mapContext[context] = uniqueContextHashes[h]
-            else:
-                uniqueContextHashes[h] = context
-        del uniqueContextHashes
+        for exemplar_context, *contexts in partitionModelXbrlContexts(modelXbrl).values():
+            for context in contexts:
+                self.mapContext[context] = exemplar_context
         modelXbrl.profileActivity("... identify equal contexts", minTimeToShow=1.0)
 
         # identify equal units
-        uniqueUnitHashes = {}
-        for unit in modelXbrl.units.values():
-            h = unit.hash
-            if h in uniqueUnitHashes:
-                if unit.isEqualTo(uniqueUnitHashes[h]):
-                    self.mapUnit[unit] = uniqueUnitHashes[h]
-            else:
-                uniqueUnitHashes[h] = unit
-        del uniqueUnitHashes
+        for exemplar_unit, *units in partitionModelXbrlUnits(modelXbrl).values():
+            for unit in units:
+                self.mapUnit[unit] = exemplar_unit
         modelXbrl.profileActivity("... identify equal units", minTimeToShow=1.0)
 
         # identify concepts participating in essence-alias relationships

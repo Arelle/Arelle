@@ -602,9 +602,9 @@ def rule_fr57(
     DBA.FR57.Equality(Error):
     Assets (fsa:Assets) must equal Liabilities (fsa:LiabilitiesAndEquity)
     """
-    currenStartDateFacts =  getFactsWithDimension(val,pluginData.reportingPeriodStartDateQn, pluginData.consolidatedSoloDimensionQn, [pluginData.consolidatedMemberQn, pluginData.soloMemberQn])
+    currentStartDateFacts = getFactsWithDimension(val, pluginData.reportingPeriodStartDateQn, pluginData.consolidatedSoloDimensionQn, [pluginData.consolidatedMemberQn, pluginData.soloMemberQn])
     currentEndDateFacts = getFactsWithDimension(val, pluginData.reportingPeriodEndDateQn, pluginData.consolidatedSoloDimensionQn, [pluginData.consolidatedMemberQn, pluginData.soloMemberQn])
-    currentGroupedFacts = groupFactsByContextHash(currenStartDateFacts.union(currentEndDateFacts))
+    currentGroupedFacts = groupFactsByContextHash(currentStartDateFacts.union(currentEndDateFacts))
     precedingEndDateFacts = getFactsWithDimension(val, pluginData.precedingReportingPeriodEndDateQn, pluginData.consolidatedSoloDimensionQn, [pluginData.consolidatedMemberQn, pluginData.soloMemberQn])
     precedingStartDateFacts = getFactsWithDimension(val, pluginData.precedingReportingPeriodStartDateQn, pluginData.consolidatedSoloDimensionQn, [pluginData.consolidatedMemberQn, pluginData.soloMemberQn])
     precedingGroupedFacts = groupFactsByContextHash(precedingEndDateFacts.union(precedingStartDateFacts))
@@ -635,7 +635,7 @@ def rule_fr57(
         equityFacts = getFactsWithoutDimension(val, pluginData.equityQn)
         profitLossFacts = getFactsWithoutDimension(val, pluginData.profitLossQn)
         liabilitiesAndEquityFacts = getFactsWithoutDimension(val, pluginData.liabilitiesAndEquityQn)
-        for context, facts in currentGroupedFacts.items():
+        for facts in currentGroupedFacts.values():
             if len(facts) == 2:
                 for fact in facts:
                     if fact.qname == pluginData.reportingPeriodStartDateQn:

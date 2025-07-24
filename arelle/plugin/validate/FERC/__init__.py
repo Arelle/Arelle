@@ -33,6 +33,7 @@ from arelle.PrototypeDtsObject import LinkPrototype, LocPrototype, ArcPrototype
 from arelle.Version import authorLabel, copyrightLabel
 from arelle.XbrlConst import xbrli, xhtml
 from arelle.XmlValidateConst import VALID
+from arelle.utils.Contexts import getDuplicateContextGroups
 
 def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
     # return ((disclosure system name, variable name), ...)
@@ -121,7 +122,6 @@ def validateXbrlFinally(val, *args, **kwargs):
 
     #6.5.4 scenario
     segContexts = set()
-    uniqueContextHashes = {}
     contextIDs = set()
     precisionFacts = set()
     formType = None
@@ -133,16 +133,12 @@ def validateXbrlFinally(val, *args, **kwargs):
     for c in modelXbrl.contexts.values():
         if XmlUtil.hasChild(c, xbrli, "segment"):
             segContexts.add(c)
-        h = c.contextDimAwareHash
-        if h in uniqueContextHashes:
-            if c.isEqualTo(uniqueContextHashes[h]):
-                modelXbrl.error("FERC.6.05.07",
-                    _("The instance document contained more than one context equivalent to %(context)s (%(context2)s).  "
-                      "Please remove duplicate contexts from the instance."),
-                    modelObject=(c, uniqueContextHashes[h]), context=c.id, context2=uniqueContextHashes[h].id)
-        else:
-            uniqueContextHashes[h] = c
         contextIDs.add(c.id)
+    for contexts in getDuplicateContextGroups(modelXbrl):
+        modelXbrl.error("FERC.6.05.07",
+            _("The instance document contained more than one context equivalent to %(context)s (%(context2)s).  "
+                "Please remove duplicate contexts from the instance."),
+            modelObject=contexts, context=contexts[0].id, context2=contexts[1].id)
 
     if segContexts:
         modelXbrl.error("FERC.6.05.04",

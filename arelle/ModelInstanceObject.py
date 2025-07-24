@@ -1266,7 +1266,7 @@ class ModelContext(ModelObject):
 
     def isEntityIdentifierEqualTo(self, cntx2):
         """(bool) -- True if entityIdentifier values are equal (scheme and text value)"""
-        return self.entityIdentifierHash == cntx2.entityIdentifierHash
+        return self.entityIdentifier == cntx2.entityIdentifier
 
     def isEqualTo(self, cntx2, dimensionalAspectModel=None) -> bool:
         if dimensionalAspectModel is None: dimensionalAspectModel = self.modelXbrl.hasXDT
