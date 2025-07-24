@@ -275,25 +275,6 @@
                 "name": "utr:aft"
             },
             {
-                "dataType": "xbrli:perShare",
-                "name": "utr:Monetary_per_Share",
-                "dataTypeNumerator": "xbrli:monetary",
-                "dataTypeDenominator": "xbrli:sharesType"
-                
-            },
-            {
-                "dataType": "xbrli:perUnit",
-                "name": "utr:Monetary_per_Decimal",
-                "dataTypeNumerator": "xbrli:monetary",
-                "dataTypeDenominator": "xs:decimal"
-            },
-            {
-                "dataType": "xbrli:pureType",
-                "name": "utr:Monetary_per_Monetary",
-                "dataTypeNumerator": "xbrli:monetary",
-                "dataTypeDenominator": "xbrli:monetary"
-            },
-            {
                 "dataType": "xbrli:pureType",
                 "name": "utr:Rate"
             },
@@ -320,12 +301,6 @@
             {
                 "dataType": "xbrli:duration",
                 "name": "utr:S"
-            },
-            {
-                "dataType": "xbrli:flow",
-                "name": "utr:Volume_per_Duration",
-                "dataTypeNumerator": "xbrli:volume",
-                "dataTypeDenominator": "xs:duration"
             },
             {
                 "dataType": "xbrli:voltage",
@@ -402,12 +377,6 @@
             {
                 "dataType": "xbrli:energy",
                 "name": "utr:GWM"
-            },
-            {
-                "dataType": "xbrli:flow",
-                "name": "utr:Energy_per_Duration",
-                "dataTypeNumerator": "xbrli:energy",
-                "dataTypeDenominator": "xs:duration"
             },
             {
                 "dataType": "xbrli:temperature",
@@ -520,24 +489,6 @@
             {
                 "dataType": "xbrli:ghgEmissions",
                 "name": "utr:GtCO2e"
-            },
-            {
-                "dataType": "xbrli:ghgEmissionsPerMonetary",
-                "name": "utr:Emissions_per_Monetary",
-                "dataTypeNumerator": "xbrli:ghgEmissions",
-                "dataTypeDenominator": "xbrli:monetary"
-            },
-            {
-                "dataType": "xbrli:energyPerMonetary",
-                "name": "utr:Energy_per_Monetary",
-                "dataTypeNumerator": "xbrli:energy",
-                "dataTypeDenominator": "xbrli:monetary"
-            },
-            {
-                "dataType": "xbrli:volumePerMonetary",
-                "name": "utr:Volume_per_Monetary",
-                "dataTypeNumerator": "xbrli:volume",
-                "dataTypeDenominator": "xbrli:monetary"
             }
         ],
         "labels": [
@@ -1678,45 +1629,6 @@
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "utr:Monetary_per_Share",
-                "value": "Monetary/share"
-            },
-           
-            {
-                "labelType": "xbrl:documentation",
-                "language": "en",
-                "relatedName": "utr:Monetary_per_Share",
-                "value": "Monetary Unit / Share"
-            },
-            {
-                "labelType": "xbrl:label",
-                "language": "en",
-                "relatedName": "utr:Monetary_per_Decimal",
-                "value": "Monetary/Decimal"
-            },
-            
-            {
-                "labelType": "xbrl:documentation",
-                "language": "en",
-                "relatedName": "utr:Monetary_per_Decimal",
-                "value": "Monetary Unit / Anything"
-            },
-            {
-                "labelType": "xbrl:label",
-                "language": "en",
-                "relatedName": "utr:Monetary_per_Monetary",
-                "value": "Monetary/Monetary"
-            },
-            
-            {
-                "labelType": "xbrl:documentation",
-                "language": "en",
-                "relatedName": "utr:Monetary_per_Monetary",
-                "value": "Exchange Rate Expressed as: Monetary Unit / Monetary Unit"
-            },
-            {
-                "labelType": "xbrl:label",
-                "language": "en",
                 "relatedName": "xbrli:pure",
                 "value": "pure"
             },
@@ -1860,19 +1772,6 @@
                 "language": "en",
                 "relatedName": "utr:S",
                 "value": "Second. Use only as a denominator because durationItemType is not numeric and has no units."
-            },
-            {
-                "labelType": "xbrl:label",
-                "language": "en",
-                "relatedName": "utr:Volume_per_Duration",
-                "value": "Volume/Duration"
-            },
-            
-            {
-                "labelType": "xbrl:documentation",
-                "language": "en",
-                "relatedName": "utr:Volume_per_Duration",
-                "value": "Flow rate, as Volume per Duration"
             },
             {
                 "labelType": "xbrl:label",
@@ -2215,18 +2114,6 @@
                 "language": "en",
                 "relatedName": "utr:GWM",
                 "value": "Gigawatt-Month assuming 730 hours per month"
-            },
-            {
-                "labelType": "xbrl:label",
-                "language": "en",
-                "relatedName": "utr:Energy_per_Duration",
-                "value": "Energy/Duration"
-            },
-            {
-                "labelType": "xbrl:documentation",
-                "language": "en",
-                "relatedName": "utr:Energy_per_Duration",
-                "value": "Flow rate, as Energy per Duration"
             },
             {
                 "labelType": "xbrl:label",
@@ -2731,43 +2618,6 @@
                 "language": "en",
                 "relatedName": "utr:GtCO2e",
                 "value": "Carbon dioxide equivalent is calculated for emissions other than carbon dioxide according to their global warming potential (GWP). As estimates of GWP may change over time, the UTR defines no fixed conversion rates."
-            },
-            {
-                "labelType": "xbrl:label",
-                "language": "en",
-                "relatedName": "utr:Emissions_per_Monetary",
-                "value": "Emissions/Monetary"
-            },
-            {
-                "labelType": "xbrl:documentation",
-                "language": "en",
-                "relatedName": "utr:Emissions_per_Monetary",
-                "value": "CO2 equivalent emissions per monetary unit (Emissions intensity)"
-            },
-            {
-                "labelType": "xbrl:label",
-                "language": "en",
-                "relatedName": "utr:Energy_per_Monetary",
-                "value": "Energy/Monetary"
-            },
-            {
-                "labelType": "xbrl:documentation",
-                "language": "en",
-                "relatedName": "utr:Energy_per_Monetary",
-                "value": "Energy consumed per monetary unit (Energy intensity)"
-            },
-            {
-                "labelType": "xbrl:label",
-                "language": "en",
-                "relatedName": "utr:Volume_per_Monetary",
-                "value": "Volume/Monetary"
-            },
-            
-            {
-                "labelType": "xbrl:documentation",
-                "language": "en",
-                "relatedName": "utr:Volume_per_Monetary",
-                "value": "Volume consumed per monetary unit (e.g. Water intensity)"
             }
         ],
         "propertyTypes": [
@@ -2792,7 +2642,6 @@
             {
                 "name" : "utr:InititalUnitCreation",
                 "relatedNames" : ["utr:acre",
-                                    "utr:acre",
                                     "utr:sqft",
                                     "utr:sqmi",
                                     "utr:sqyd",
@@ -2854,9 +2703,6 @@
                                     "utr:l",
                                     "utr:m3",
                                     "utr:bu",
-                                    "utr:Monetary_per_Share",
-                                    "utr:Monetary_per_Decimal",
-                                    "utr:Monetary_per_Monetary",
                                     "xbrli:pure",
                                     "utr:Rate",
                                     "xbrli:shares",
@@ -2865,8 +2711,7 @@
                                     "utr:D",
                                     "utr:H",
                                     "utr:MM",
-                                    "utr:S",
-                                    "utr:Volume_per_Duration"
+                                    "utr:S"
                             ],
                 "referenceType" : "utr:unitCreationDate",
                 "properties" : [{"property":"utr:dateUnitCreated", "value":"2012-10-03"}]
@@ -2959,7 +2804,6 @@
                                     "utr:D",
                                     "utr:H",
                                     "utr:MM",
-                                    "utr:Volume_per_Duration",
                                     "utr:Bcf",
                                     "utr:Tcf",
                                     "utr:Q",
@@ -2970,7 +2814,6 @@
                                     "utr:kT",
                                     "utr:MT",
                                     "utr:GT",
-                                    "utr:Energy_per_Duration",
                                     "utr:F",
                                     "utr:Bar",
                                     "utr:psi",
@@ -2982,10 +2825,7 @@
                                     "utr:Degree",
                                     "utr:dth",
                                     "utr:MWd",
-                                    "utr:Mvar",
-                                    "utr:Emissions_per_Monetary",
-                                    "utr:Energy_per_Monetary",
-                                    "utr:Volume_per_Monetary" ],
+                                    "utr:Mvar" ],
                 "referenceType" : "xbrl:baseUnitsStandard",
                 "properties" : [{"property":"utr:baseStandardIdentifier", "value":"customary"}]
                         
@@ -3012,10 +2852,7 @@
             },
             {
                 "name" : "utr:XbrlDerivedUnitsRef",
-                "relatedNames" : ["utr:Monetary_per_Share",
-                                    "utr:Monetary_per_Decimal",
-                                    "utr:Monetary_per_Monetary",
-                                    "xbrli:pure",
+                "relatedNames" : ["xbrli:pure",
                                     "utr:Rate",
                                     "xbrli:shares" ],
                 "referenceType" : "xbrl:baseUnitsStandard",

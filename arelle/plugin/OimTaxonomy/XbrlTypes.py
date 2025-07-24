@@ -10,6 +10,8 @@ XbrlPropertyType: TypeAlias = "XbrlProperty"
 XbrlTaxonomyModelType: TypeAlias = "XbrlTaxonomyModel"
 XbrlTaxonomyModuleType: TypeAlias = "XbrlTaxonomyModule"
 XbrlReportType: TypeAlias = "XbrlReport"
+XbrlUnitTypeType: TypeAlias = "XbrlUnitType"
+
 class QNameKeyType(QName): # a QName which is also the primary key for parent collection object
     pass
 class SQNameKeyType(QName): # an SQName which is also the primary key for parent collection object

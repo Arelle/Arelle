@@ -143,7 +143,11 @@
             },
             {
                 "name" : "xbrli:pressure",
-                "baseType" : "xs:decimal"
+                "baseType" : "xs:decimal",
+                "unitType" : {
+                "dataTypeNumerator": "xbrli:mass",
+                "dataTypeDenominator": "xbrli:area"
+                }
             },
             {
                 "name" : "xbrli:frequency",
@@ -155,7 +159,11 @@
             },
             {
                 "name" : "xbrli:speed",
-                "baseType" : "xs:decimal"
+                "baseType" : "xs:decimal",
+                "unitType" : {
+                "dataTypeNumerator": "xbrli:length",
+                "dataTypeDenominator": "xbrli:duration"
+                }
             },
             {
                 "name" : "xbrli:planeAngle",
@@ -210,7 +218,11 @@
             },
             {
                 "name" : "xbrli:flow",
-                "baseType" : "xs:decimal"
+                "baseType" : "xs:decimal",
+                "unitType" : {
+                "dataTypeNumerator": "xbrli:volume",
+                "dataTypeDenominator": "xbrli:duration"
+                }
             },
             {
                 "name" : "xbrli:massFlow",
@@ -218,27 +230,75 @@
             },
             {
                 "name" : "xbrli:monetaryPerLength",
-                "baseType" : "xs:decimal"
+                "baseType" : "xs:decimal",
+                "unitType" : {
+                "dataTypeNumerator": "xbrli:monetary",
+                "dataTypeDenominator": "xbrli:length"
+                }
+            },
+            {
+                "name": "xbrli:Monetary_per_Monetary",
+                "baseType": "xs:decimal",
+                "unitType" : {
+                "dataTypeNumerator": "xbrli:monetary",
+                "dataTypeDenominator": "xbrli:monetary"
+                }
             },
             {
                 "name" : "xbrli:monetaryPerArea",
-                "baseType" : "xs:decimal"
+                "baseType" : "xs:decimal",
+                "unitType" : {
+                "dataTypeNumerator": "xbrli:monetary",
+                "dataTypeDenominator": "xbrli:area"
+                }
+            },
+            {
+                "name" : "xbrli:monetaryPerDecimal",
+                "baseType" : "xs:decimal",
+                "unitType" : {
+                "dataTypeNumerator": "xbrli:monetary",
+                "dataTypeDenominator": "xs:decimal"
+                }
             },
             {
                 "name" : "xbrli:monetaryPerVolume",
-                "baseType" : "xs:decimal"
+                "baseType" : "xs:decimal",
+                "unitType" : {
+                "dataTypeNumerator": "xbrli:monetary",
+                "dataTypeDenominator": "xbrli:volume"
+                }
             },
             {
                 "name" : "xbrli:monetaryPerDuration",
-                "baseType" : "xs:decimal"
+                "baseType" : "xs:decimal",
+                "unitType" : {
+                "dataTypeNumerator": "xbrli:monetary",
+                "dataTypeDenominator": "xbrli:duration"
+                }
             },
             {
                 "name" : "xbrli:monetaryPerEnergy",
-                "baseType" : "xs:decimal"
+                "baseType" : "xs:decimal",
+                "unitType" : {
+                "dataTypeNumerator": "xbrli:monetary",
+                "dataTypeDenominator": "xbrli:energy"
+                }
             },
             {
                 "name" : "xbrli:monetaryPerMass",
-                "baseType" : "xs:decimal"
+                "baseType" : "xs:decimal",
+                "unitType" : {
+                "dataTypeNumerator": "xbrli:monetary",
+                "dataTypeDenominator": "xbrli:mass"
+                }
+            },
+            {
+                "name": "xbrli:MonetaryPerShare",
+                "baseType": "xbrli:perShare",
+                "unitType" : {
+                "dataTypeNumerator": "xbrli:monetary",
+                "dataTypeDenominator": "xbrli:sharesType"  
+                }
             },
             {
                 "name" : "xbrli:dateTime",
@@ -251,15 +311,27 @@
             },
             {
                 "name" : "xbrli:energyPerMonetary",
-                "baseType" : "xs:decimal"
+                "baseType" : "xs:decimal",
+                "unitType" : {
+                "dataTypeNumerator": "xbrli:energy",
+                "dataTypeDenominator": "xbrli:monetary"
+                }
             },
             {
                 "name" : "xbrli:ghgEmissionsPerMonetary",
-                "baseType" : "xs:decimal"
+                "baseType" : "xs:decimal",
+                "unitType" : {
+                "dataTypeNumerator": "xbrli:ghgEmissions",
+                "dataTypeDenominator": "xbrli:monetary"
+                }
             },
             {
                 "name" : "xbrli:volumePerMonetary",
-                "baseType" : "xs:decimal"
+                "baseType" : "xs:decimal",
+                "unitType" : {
+                "dataTypeNumerator": "xbrli:volume",
+                "dataTypeDenominator": "xbrli:monetary"
+                }
             }
             ,
             {
@@ -593,6 +665,12 @@
             {
                 "relatedName" : "xbrli:energyPerMonetary",
                 "language" : "en",
+                "labelType" : "xbrl:label",
+                "value" : "Energy/Monetary"
+            },
+            {
+                "relatedName" : "xbrli:energyPerMonetary",
+                "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The energy per monetary item type is used to represent a measure of energy per monetary unit."
             },
@@ -607,6 +685,37 @@
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The volume per monetary item type is used to represent a measure of volume per monetary unit."
+            },
+            {
+                "relatedName" : "xbrli:volumePerMonetary",
+                "language" : "en",
+                "labelType" : "xbrl:label",
+                "value" : "Volume/Monetary"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrli:Monetary_per_Monetary",
+                "value": "Monetary/Monetary"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrli:Monetary_per_Monetary",
+                "value": "Exchange Rate Expressed as: Monetary Unit / Monetary Unit"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrli:MonetaryPerShare",
+                "value": "Monetary/share"
+            },
+           
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrli:MonetaryPerShare",
+                "value": "Monetary Unit / Share"
             }
         ],
         "references": [
@@ -658,7 +767,9 @@
                     "xbrli:monetaryPerVolume",
                     "xbrli:monetaryPerDuration",
                     "xbrli:monetaryPerEnergy",
-                    "xbrli:monetaryPerMass"
+                    "xbrli:monetaryPerMass",
+                    "xbrli:Monetary_per_Monetary",
+                    "xbrli:MonetaryPerShare"
                 ],
                 "referenceType": "xbrl:dataTypeRequirement",
                 "properties": [{"property":"ref:Requirement", "value":"These types are required in order to enable validation and conversion of units (via the Unit Types Registry) for values that are expressed as a price per unit for various physical measures, and reflect industry-specific common practice."}]
@@ -698,7 +809,6 @@
                     "xbrli:guidance",
                     "xbrli:noLangToken",
                     "xbrli:noLangString",
-                    "xbrli:prefixedContent",
                     "xbrli:prefixedContent",
                     "xbrli:SQName",
                     "xbrli:SQNames",

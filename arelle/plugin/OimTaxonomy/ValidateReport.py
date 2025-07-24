@@ -5,7 +5,7 @@ See COPYRIGHT.md for copyright information.
 from isodate import isodatetime
 import regex as re
 from arelle.oim.Load import (PeriodPattern, UnitPrefixedQNameSubstitutionChar, UnitPattern,
-                             PrefixedQName, OIMException)
+                             PrefixedQName)
 from arelle.ModelValue import QName, qname, timeInterval
 from arelle import XbrlConst
 from arelle.XmlValidateConst import VALID, INVALID
@@ -79,29 +79,7 @@ def validateFact(fact, reportQn, reportObj, txmyMdl):
                       _("Unit string representation is lexically invalid, %(unit)s, fact id %(name)s"),
                       unit=uStr)
             else:
-                _mul, _sep, _div = uStr.partition('/')
-                if _mul.startswith('('):
-                    _mul = _mul[1:-1]
-                _muls = [u for u in _mul.split('*') if u]
-                if _div.startswith('('):
-                    _div = _div[1:-1]
-                _divs = [u for u in _div.split('*') if u]
-                if _muls != sorted(_muls) or _divs != sorted(_divs):
-                    error("oimce:invalidUnitStringRepresentation",
-                          _("Unit string representation measures are not in alphabetical order, %(unit)s, fact id %(name)s"),
-                          unit=uStr)
-                try:
-                    mulQns = tuple(qname(u, reportObj._prefixNamespaces, prefixException=OIMException("oimce:unboundPrefix",
-                                                                              _("Unit prefix is not declared: %(unit)s"),
-                                                                              unit=u))
-                                   for u in _muls)
-                    divQns = tuple(qname(u, reportObj._prefixNamespaces, prefixException=OIMException("oimce:unboundPrefix",
-                                                                              _("Unit prefix is not declared: %(unit)s"),
-                                                                              unit=u))
-                                   for u in _divs)
-                    fact.factDimensions[unitCoreDim] = (mulQns,divQns)
-                except OIMException as ex:
-                    error(ex.code, ex.message, modelObject=fact, **ex.msgArgs)
+                fact.factDimensions[unitCoreDim] = parseUnitString(uStr, fact, reportObj, txmyMdl)
         else:
             error("oime:misplacedUnitDimension",
                           _("The unit core dimension MUST NOT be present on non-numeric facts: %(concept)s, unit %(unit)s."),
