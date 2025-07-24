@@ -108,13 +108,13 @@ class XbrlCubeType(XbrlReferencableTaxonomyObject):
             return baseCubeType.basemostCubeType
         return self.name
 
-eventCubeType = qname(xbrl, "xbrl:eventCube"),
-positionCubeType = qname(xbrl, "xbrl:positi.nCube"),
-referenceCubeType = qname(xbrl, "xbrl:referenceCube"),
-reportCubeType = qname(xbrl, "xbrl:reportCube"),
-journalCubeType = qname(xbrl, "xbrl:journalCube"),
-eventDetailsCubeType = qname(xbrl, "xbrl:eventDetailsCube"),
-timeSeriesCubeType = qname(xbrl, "xbrl:timeSeriesCube"),
+eventCubeType = qname(xbrl, "xbrl:eventCube")
+positionCubeType = qname(xbrl, "xbrl:positi.nCube")
+referenceCubeType = qname(xbrl, "xbrl:referenceCube")
+reportCubeType = qname(xbrl, "xbrl:reportCube")
+journalCubeType = qname(xbrl, "xbrl:journalCube")
+eventDetailsCubeType = qname(xbrl, "xbrl:eventDetailsCube")
+timeSeriesCubeType = qname(xbrl, "xbrl:timeSeriesCube")
 defaultCubeType = qname(xbrl, "xbrl:defaultCube")
 baseCubeTypes = {eventCubeType, positionCubeType, referenceCubeType, reportCubeType, journalCubeType,
                  eventDetailsCubeType, timeSeriesCubeType, defaultCubeType}

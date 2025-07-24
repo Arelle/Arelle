@@ -50,7 +50,8 @@ from .XbrlUnit import XbrlUnit
 from .XbrlTaxonomyModel import XbrlTaxonomyModel, castToXbrlTaxonomyModel
 from .XbrlTaxonomyModule import XbrlTaxonomyModule
 from .XbrlObject import XbrlObject, XbrlReferencableTaxonomyObject, XbrlTaxonomyTagObject
-from .XbrlTypes import XbrlTaxonomyModuleType, QNameKeyType, SQNameKeyType, DefaultTrue, DefaultFalse, DefaultZero
+from .XbrlTypes import (XbrlTaxonomyModelType, XbrlTaxonomyModuleType, XbrlReportType, XbrlUnitTypeType, 
+                        QNameKeyType, SQNameKeyType, DefaultTrue, DefaultFalse, DefaultZero)
 from .ValidateTaxonomyModel import validateTaxonomyModel
 from .ValidateReport import validateReport
 from .ModelValueMore import SQName, QNameAt
@@ -69,6 +70,15 @@ saveOIMTaxonomySchemaFiles = False
 SAVE_OIM_SCHEMA_CMDLINE_PARAMETER = "--saveOIMschemafile"
 SAVE_OIM_SCHEMA_FORULA_PARAMETER = qname("saveOIMschemafile", noPrefixIsNoNamespace=True)
 jsonschemaValidator = None
+
+xbrlTypeAliasClass = {
+    XbrlLabelType: XbrlLabel,
+    XbrlPropertyType: XbrlProperty,
+    XbrlTaxonomyModelType: XbrlTaxonomyModel,
+    XbrlTaxonomyModuleType: XbrlTaxonomyModule,
+    XbrlReportType: XbrlTaxonomyModule,
+    XbrlUnitTypeType: XbrlUnitType
+    }
 
 EMPTY_SET = set()
 EMPTY_DICT = {}
@@ -522,6 +532,8 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                         objClass = objClass.__args__[0]
                     if objClass == XbrlTaxonomyModuleType:
                         objClass = XbrlTaxonomyModule
+                    if isinstance(objClass,ForwardRef) and objClass.__forward_arg__ in xbrlTypeAliasClass:
+                        objClass = xbrlTypeAliasClass[objClass.__forward_arg__]
                     if issubclass(objClass, XbrlObject):
                         newObj = objClass(xbrlMdlObjIndex=len(xbrlTxmyMdl.xbrlObjects)) # e.g. this is the new Concept
                         xbrlTxmyMdl.xbrlObjects.append(newObj)

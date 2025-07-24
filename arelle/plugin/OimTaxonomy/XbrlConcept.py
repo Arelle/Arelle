@@ -10,11 +10,9 @@ from arelle.ModelValue import QName
 from arelle.PythonUtil import OrderedSet
 from arelle.XbrlConst import xsd, isNumericXsdType
 from .XbrlProperty import XbrlProperty
-from .XbrlTypes import XbrlTaxonomyModuleType, QNameKeyType
+from .XbrlTypes import XbrlTaxonomyModuleType, XbrlUnitTypeType, QNameKeyType
 from .XbrlObject import XbrlTaxonomyObject, XbrlReferencableTaxonomyObject
 from arelle.FunctionFn import true
-
-XbrlUnitTypeType: TypeAlias = "XbrlUnitType"
 
 class XbrlConcept(XbrlReferencableTaxonomyObject):
     taxonomy: XbrlTaxonomyModuleType
@@ -50,7 +48,7 @@ class XbrlDataType(XbrlReferencableTaxonomyObject):
     maxLength: Optional[int] # (optional) Defines an int used to define maximum length of a string value.
     whiteSpace: Optional[str] # (optional) Defines a string one of preserve, replace or collapse.
     patterns: set[str] # (optional) Defines a string as a single regex expressions. At least one of the regex patterns must match. (Uses XML regex)
-    unitTypes: OrderedSet[XbrlUnitTypeType] # unitType comprising a dataType expressed as a value of the datatype. For example xbrli:flow has unit datatypes of xbrli:volume and xbrli:time
+    unitType: Optional[XbrlUnitTypeType] # (optional) Defines a unitType object For example xbrli:flow has unit datatypes of xbrli:volume and xbrli:time
 
     def xsBaseType(self, txmyMdl, visitedTypes=None): # find base types thru dataType hierarchy
         try:
@@ -110,6 +108,6 @@ class XbrlDataType(XbrlReferencableTaxonomyObject):
         return typeDerivedFrom.isOimTextFactType if typeDerivedFrom is not None else False
 
 class XbrlUnitType(XbrlTaxonomyObject):
-    dataTypeNumerator: Optional[XbrlDataType] # (optional) Defines the numerator datatype of of the datatype
-    dataTypeDenominator: Optional[XbrlDataType] # (optional) Defines the denominator datatype used by a unit used to define a value of the datatype
-    dataTypeMutiplier: Optional[XbrlDataType] # (optional) Defines a mutiplier datatype used by a unit used to define a value of the datatype
+    dataTypeNumerator: Optional[QName] # (optional) Defines the numerator datatype of of the datatype
+    dataTypeDenominator: Optional[QName] # (optional) Defines the denominator datatype used by a unit used to define a value of the datatype
+    dataTypeMutiplier: Optional[QName] # (optional) Defines a mutiplier datatype used by a unit used to define a value of the datatype

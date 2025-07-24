@@ -9,6 +9,7 @@ from arelle.PythonUtil import OrderedSet
 from .XbrlTypes import XbrlTaxonomyModelType,XbrlTaxonomyModuleType, XbrlReportType, QNameKeyType, DefaultFalse
 from .XbrlObject import XbrlObject, XbrlReportObject
 from .XbrlProperty import XbrlProperty
+from .XbrlUnit import  parseUnitString
 
 
 class XbrlFact(XbrlReportObject):

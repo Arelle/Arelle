@@ -24,7 +24,7 @@
                     "allowedCubeDimensions" : [
                         {
                         "dimensionType": "typed",
-                        "dimensionDataType": "xs:dateTime",
+                        "dimensionDataType": "xs:token",
                         "required" : true
                         }
                     ],
@@ -82,7 +82,7 @@
                             "dimensionType": "typed",
                             "dimensionDataType": "xs:dateTime",
                             "required" : true
-                        }
+                        }   
                     ]
                 },
                 {
