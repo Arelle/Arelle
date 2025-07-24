@@ -17,6 +17,7 @@ from arelle.ValidateXbrlCalcs import insignificantDigits
 from arelle.XbrlConst import qnXbrlScenario, qnXbrldiExplicitMember, xhtmlBaseIdentifier, xmlBaseIdentifier
 from arelle.XmlValidate import VALID
 from arelle.typing import TypeGetText
+from arelle.utils.Contexts import getDuplicateContextGroups
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
@@ -211,6 +212,27 @@ def rule_gfm_1_2_5(
             msg=_('Please delete all child elements other than the xbrldi:explicitMember '
                   'element from the segment element or scenario element.'),
             modelObject = contextsWithDisallowedScenarioChildren
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_2_7(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.2.7] An instance must not contain duplicate xbrli:context elements.
+    """
+    for contexts in getDuplicateContextGroups(val.modelXbrl):
+        yield Validation.warning(
+            codes='EDINET.EC5700W.GFM.1.2.7',
+            msg=_('Duplicate context. Remove the duplicate.'),
+            modelObject = contexts
         )
 
 
