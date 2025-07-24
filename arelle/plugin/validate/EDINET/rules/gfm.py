@@ -18,6 +18,7 @@ from arelle.XbrlConst import qnXbrlScenario, qnXbrldiExplicitMember, xhtmlBaseId
 from arelle.XmlValidate import VALID
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
+from arelle.utils.Units import getDuplicateUnitGroups
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
@@ -265,6 +266,27 @@ def rule_gfm_1_2_9(
                 msg=_("Set the context's startDate and endDate elements to different dates."),
                 modelObject=context
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_2_10(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.2.10] Element xbrli:xbrl must not have duplicate child xbrli:unit elements.
+    """
+    for duplicateUnits in getDuplicateUnitGroups(val.modelXbrl):
+        yield Validation.warning(
+            codes='EDINET.EC5700W.GFM.1.2.10',
+            msg=_('The unit element contains duplicate content. Please remove the duplicates.'),
+            modelObject = duplicateUnits
+        )
 
 
 @validation(
