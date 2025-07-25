@@ -868,6 +868,14 @@
                 "allowedObjects": [
                     "xbrl:abstractObject"
                 ]
+            },
+            {
+                "name": "xbrl:reportAttribute",
+                "dataType": "xbrli:reportAttributeType",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:conceptObject"
+                ]
             }
         ],
         "referenceTypes": [

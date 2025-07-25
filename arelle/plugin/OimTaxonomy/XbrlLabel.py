@@ -4,8 +4,9 @@ See COPYRIGHT.md for copyright information.
 
 from typing import TYPE_CHECKING, Optional
 
-from arelle.ModelValue import QName, AnyURI
+from arelle.ModelValue import qname, QName, AnyURI
 from arelle.PythonUtil import OrderedSet
+from .XbrlConst import xbrl
 from .ModelValueMore import SQName
 from .XbrlProperty import XbrlProperty
 from .XbrlTypes import XbrlTaxonomyModuleType, QNameKeyType
@@ -29,3 +30,5 @@ class XbrlLabelType(XbrlReferencableTaxonomyObject):
     uri: Optional[AnyURI] # (optional) A uri used to identify the label type of label objects for backward compatability with XBRL 2.1 taxonomies.
     dataType: Optional[AnyURI] # (optional) Indicates the dataType of the label object value property. This allows the value of the label to be constrained if required.
     allowedObjects: OrderedSet[QName] # (optional) Defines an ordered set of object types that can use the labelType.
+
+preferredLabel = qname(xbrl, "xbrl:preferredLabel")

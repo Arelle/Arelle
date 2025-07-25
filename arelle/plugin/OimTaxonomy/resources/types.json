@@ -337,6 +337,11 @@
             {
                 "name" : "xbrli:perUnit",
                 "baseType" : "xs:decimal"
+            },
+            {
+                "name" :"xbrli:reportAttributeType",
+                "baseType" : "xs:string",
+                "enumeration": ["reportDate", "reportFilingDate", "reportName", "reportingEntity", "reportingPeriod", "reportIdentifier"]
             }
         ],
         "units": [

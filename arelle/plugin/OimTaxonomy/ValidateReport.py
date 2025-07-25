@@ -14,6 +14,7 @@ from .XbrlConcept import XbrlConcept, XbrlDataType
 from .XbrlCube import conceptCoreDim, languageCoreDim, periodCoreDim, unitCoreDim, coreDimensions
 from .XbrlDimension import XbrlDimension, XbrlMember
 from .XbrlTableTemplate import XbrlTableTemplate
+from .XbrlUnit import parseUnitString
 from .ValidateTaxonomyModel import validateValue
 from .ValidateCubes import validateCubes
 
