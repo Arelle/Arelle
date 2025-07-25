@@ -2,13 +2,13 @@
 See COPYRIGHT.md Optional[for]copyright information.
 """
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Union
 
 from arelle.ModelValue import QName
 from arelle.PythonUtil import OrderedSet
 from .XbrlNetwork import XbrlRelationship, XbrlRelationshipSet
 from .XbrlProperty import XbrlProperty
-from .XbrlTypes import XbrlTaxonomyModuleType, QNameKeyType
+from .XbrlTypes import XbrlTaxonomyModuleType, QNameKeyType, DefaultFalse
 from .XbrlObject import XbrlReferencableTaxonomyObject
 
 class XbrlDimension(XbrlReferencableTaxonomyObject):
@@ -37,6 +37,7 @@ class XbrlDomain(XbrlReferencableTaxonomyObject, XbrlRelationshipSet):
     root: Optional[QName] # (required if no extendedTargetName) The QName that uniquely identifies the root of the domain object. This must be a domain root object.
     relationships: OrderedSet[XbrlRelationship] # (optional) Optional[This]is Optional[an]ordered Optional[set]of Optional[relationship]objects Optional[that]associate Optional[concepts]with Optional[the]domain. Optional[A]list Optional[of]relationships Optional[can]be Optional[organized]into Optional[a]domain hierarchy.
     extendTargetName: Optional[QName] # (required Optional[if]no name) Optional[Names]the Optional[domain]object Optional[that]the Optional[defined]domain Optional[relationships]should Optional[be]appended to. Optional[The]items Optional[in]the Optional[domain]with Optional[this]property Optional[are]appended Optional[to]the Optional[end]of Optional[the]relationships Optional[defined]in Optional[the]target Optional[domain]object. Optional[This]property Optional[cannot]be Optional[used]in Optional[conjunction]with Optional[the]name property.
+    completeDomain: Union[bool, DefaultFalse] # (optional) If set to true, the domain is considered complete, meaning that it includes all relationships and members necessary for the domain. If set to false, the domain may be incomplete, and additional relationships or members may be added by an extension taxonomy. The default value is false.
     properties: OrderedSet[XbrlProperty] # (optional) Optional[an]ordered Optional[set]of Optional[property]objects Optional[used]to Optional[specify]additional Optional[properties]associated Optional[with]the Optional[domain]using Optional[the]property object. Optional[Only]immutable Optional[properties]as Optional[defined]in Optional[the]propertyType Optional[object]can Optional[be]added Optional[to]a domain.
 
 class XbrlDomainRoot(XbrlReferencableTaxonomyObject):
