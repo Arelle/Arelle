@@ -24,7 +24,7 @@
                     "allowedCubeDimensions" : [
                         {
                         "dimensionType": "typed",
-                        "dimensionDataType": "xs:dateTime",
+                        "dimensionDataType": "xs:token",
                         "required" : true
                         }
                     ],
@@ -82,7 +82,7 @@
                             "dimensionType": "typed",
                             "dimensionDataType": "xs:dateTime",
                             "required" : true
-                        }
+                        }   
                     ]
                 },
                 {
@@ -121,7 +121,7 @@
             },
             {
                 "name": "xbrl:period",
-                "domainDataType": "xbrli:periodType"
+                "domainDataType": "xbrli:dimensionPeriodType"
             },
             {
                 "name": "xbrl:entity",
@@ -830,6 +830,14 @@
                 ]
             },
             {
+                "name": "xbrl:usable",
+                "dataType": "xs:boolean",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:relationshipObject"
+                ]
+            },
+            {
                 "name": "xbrl:aggregation",
                 "dataType": "xbrli:aggregationType",
                 "definitional": false,
@@ -859,6 +867,14 @@
                 "definitional": true,
                 "allowedObjects": [
                     "xbrl:abstractObject"
+                ]
+            },
+            {
+                "name": "xbrl:reportAttribute",
+                "dataType": "xbrli:reportAttributeType",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:conceptObject"
                 ]
             }
         ],
