@@ -946,6 +946,7 @@
                 "allowedLinkProperties" : ["xbrl:preferredLabel", "xbrl:order"],
                 "sourceObjects" : [
                     "xbrl:conceptObject", 
+                    "xbrl:abstractObject",
                     "xbrl:memberObject", 
                     "xbrl:domainObject", 
                     "xbrl:dimensionObject", 
@@ -956,6 +957,7 @@
                 ],
                 "targetObjects" : [
                     "xbrl:conceptObject", 
+                    "xbrl:abstractObject",
                     "xbrl:memberObject", 
                     "xbrl:domainObject", 
                     "xbrl:dimensionObject", 

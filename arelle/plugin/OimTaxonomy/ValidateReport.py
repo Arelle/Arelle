@@ -64,7 +64,7 @@ def validateFact(fact, reportQn, reportObj, txmyMdl):
                               name=name, periodType=cObj.periodType, period=per)
                 return # skip creating fact because context would be bad
             per = fact.factDimensions["_periodValue"] = timeInterval(per)
-    elif cObj.periodType != "duration":
+    elif cObj.periodType != "none":
         error("oime:missingPeriodDimension",
                        _("Missing period for %(periodType)s fact %(name)s."),
                        periodType=cObj.periodType)

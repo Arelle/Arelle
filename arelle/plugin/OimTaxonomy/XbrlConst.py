@@ -22,6 +22,8 @@ qnXsQName = qname(xsd, "xs:QName")
 
 qnXbrlLabelObj = qname(xbrl, "xbrl:labelObject")
 
+qnErrorQname = qname(None, "InvalidQName")
+
 objectsWithProperties = {
     qname(xbrl, "xbrl:taxonomyObject"),
     qname(xbrl, "xbrl:conceptObject"),

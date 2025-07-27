@@ -34,6 +34,7 @@ from arelle import ModelDocument, UrlUtil, XmlValidate
 
 from .XbrlAbstract import XbrlAbstract
 from .XbrlConcept import XbrlConcept, XbrlDataType, XbrlUnitType
+from .XbrlConst import qnErrorQname
 from .XbrlCube import (XbrlCube, XbrlCubeDimension, XbrlPeriodConstraint, XbrlDateResolution,
                        XbrlCubeType, XbrlAllowedCubeDimension, XbrlRequiredCubeRelationship,
                        coreDimensionsByLocalname)
@@ -468,8 +469,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                                 if optional:
                                     jsonValue = None
                                 else:
-                                    # TBD: set newObj to invalid so it isn't usable (it was already set in collection objects above when being created)
-                                    return # skip this nested object entirely
+                                    jsonValue = qnErrorQname # allow processing to proceed with marker bad qname
                             elif propType == QNameAt:
                                 jsonValue = QNameAt(jsonValue.prefix, jsonValue.namespaceURI, jsonValue.localName, atSuffix)
                             if propName == "relatedName":
