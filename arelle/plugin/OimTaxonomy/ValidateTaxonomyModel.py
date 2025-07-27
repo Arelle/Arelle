@@ -81,9 +81,16 @@ def validateProperties(txmyMdl, oimFile, txmy, obj):
         propTypeQn = propObj.property
         propTypeObj = txmyMdl.namedObjects.get(propTypeQn)
         if not isinstance(propTypeObj, XbrlPropertyType):
+            # identify parent object
+            if hasattr(obj, "name"):
+                parentName = obj.name
+            elif hasattr(obj, "source") and hasattr(obj, "target"): # relationship
+                parentName = f"{obj.source}\u2192{obj.target}"
+            else:
+                parentName = ""
             txmyMdl.error("oimte:missingQNameReference",
                       _("%(parentObjName)s %(parentName)s property %(name)s has undefined dataType %(dataType)s"),
-                      file=oimFile, parentObjName=objType(obj), parentName=getattr(obj,"name","(n/a)"),
+                      file=oimFile, parentObjName=objType(obj), parentName=parentName,
                       name=propTypeQn, dataType=propTypeQn)
         else: # have property type object
             if propTypeObj.allowedObjects:
@@ -523,7 +530,7 @@ def validateTaxonomy(txmyMdl, txmy):
                       xbrlObject=domObj)
 
         if not domObj.extendTargetName and not isinstance(txmyMdl.namedObjects.get(domObj.root), XbrlDomainRoot):
-            txmyMdl.error("oimte:missingTargetObject",
+            txmyMdl.error("oimte:missingQNameReference",
                       _("The domain %(name)s root %(qname)s MUST be a valid domainRoot object in the taxonomy model"),
                       xbrlObject=domObj, name=domObj.name, qname=domObj.root)
         domRelCts = {}
@@ -532,29 +539,31 @@ def validateTaxonomy(txmyMdl, txmy):
             if i == 0:
                 domRootSourceInRel = False
             assertObjectType(relObj, XbrlRelationship)
-            if  relObj.source not in txmyMdl.namedObjects or relObj.target not in txmyMdl.namedObjects:
+            src = getattr(relObj, "source", None)
+            tgt = getattr(relObj, "target", None)
+            if src not in txmyMdl.namedObjects or tgt not in txmyMdl.namedObjects:
                 txmyMdl.error("oimte:missingQNameReference",
                           _("The domain %(name)s relationship[%(nbr)s] source, %(source)s, and target, %(target)s, MUST be objects in the taxonomy model."),
-                          xbrlObject=relObj, name=domObj.name, nbr=i, source=relObj.source, target=relObj.target)
+                          xbrlObject=relObj, name=domObj.name, nbr=i, source=src, target=tgt)
             else:
                 if domObj.root == conceptDomainRoot and (
                     not isinstance(txmyMdl.namedObjects[relObj.target], XbrlConcept) or not isinstance(txmyMdl.namedObjects[relObj.target], XbrlConcept)):
                     txmyMdl.error("oimte:invalidObjectType",
                               _("The domain %(name)s relationship[%(nbr)s] source, %(source)s, and target, %(target)s, MUST be concept objects in the taxonomy model."),
                               xbrlObject=relObj, name=domObj.name, nbr=i, source=relObj.source, target=relObj.target)
-            if isinstance(txmyMdl.namedObjects.get(relObj.target), (XbrlDomain, XbrlDomainRoot)):
+            if isinstance(txmyMdl.namedObjects.get(tgt), (XbrlDomain, XbrlDomainRoot)):
                 txmyMdl.error("oimte:invalidObjectType",
                           _("The domain %(name)s relationship target %(qname)s MUST NOT be a domain or domainRoot object."),
-                          xbrlObject=domObj, name=domObj.name, qname=relObj.target)
+                          xbrlObject=domObj, name=domObj.name, qname=tgt)
             elif extendTargetObj is not None:
                 extendTargetObj.relationships.add(relObj)
-            if relObj.target == domObj.root:
+            if tgt == domObj.root:
                 txmyMdl.error("oimte:invalidDomainRoot",
                           _("The domain %(name)s relationship target %(qname)s MUST NOT be the domain root object."),
-                          xbrlObject=domObj, name=domObj.name, qname=relObj.target)
-            if domObj.root == relObj.source:
+                          xbrlObject=domObj, name=domObj.name, qname=tgt)
+            if domObj.root == src:
                 domRootSourceInRel = True
-            relKey = (relObj.source, relObj.target)
+            relKey = (src, tgt)
             domRelCts[relKey] = domRelCts.get(relKey, 0) + 1
         if any(ct > 1 for relKey, ct in domRelCts.items()):
             txmyMdl.error("oimte:duplicateObjects",
@@ -604,15 +613,19 @@ def validateTaxonomy(txmyMdl, txmy):
                       _("Label %(relatedName)s has invalid language %(lang)s"),
                       xbrlObject=labelObj, relatedName=relatedName, lang=lang)
         if relatedName not in txmyMdl.namedObjects:
-            txmyMdl.error("oime:unresolvedRelatedName",
+            txmyMdl.error("oimte:unresolvedRelatedName",
                       _("Label has invalid related object %(relatedName)s"),
                       xbrlObject=labelObj, relatedName=relatedName)
+        if not isinstance(txmyMdl.namedObjects.get(labelObj.labelType), XbrlLabelType):
+            txmyMdl.error("oimte:missingQNameReference",
+                      _("Label has invalid labelType %(labelType)s"),
+                      xbrlObject=labelObj, labelType=labelObj.labelType)
         validateProperties(txmyMdl, oimFile, txmy, labelObj)
         lblKey = (relatedName, labelObj.labelType, lang)
         labelsCt[lblKey].append(labelObj)
     for lblKey, lblObjs in labelsCt.items():
         if len(lblObjs) > 1:
-            txmyMdl.error("oimte:duplicateObjects",
+            txmyMdl.error("oimte:duplicateLabelObject",
                       _("The labels are duplicated for relatedName %(name)s type %(type)s language %(language)s"),
                       xbrlObject=lblObjs, name=lblKey[0], type=lblKey[1], language=lblKey[2])
 
@@ -655,7 +668,7 @@ def validateTaxonomy(txmyMdl, txmy):
         rootsCt = {}
         for rootQn in ntwkObj.roots:
             if rootQn not in txmyMdl.namedObjects:
-                txmyMdl.error("oimte:missingTargetObject",
+                txmyMdl.error("oimte:missingQNameReference",
                           _("The network %(name)s root %(qname)s MUST be a valid object in the taxonomy model"),
                           xbrlObject=ntwkObj, name=ntwkObj.name, qname=rootQn)
             rootsCt[rootQn] = rootsCt.get(rootQn, 0) + 1
@@ -686,7 +699,7 @@ def validateTaxonomy(txmyMdl, txmy):
                     if relTypeObj.targetObjects and xbrlObjectQNames.get(type(txmyMdl.namedObjects[relObj.target])) not in relTypeObj.targetObjects:
                         txmyMdl.error("oimte:invalidObjectType",
                                   _("The network %(name)s relationship[%(nbr)s] target, %(target)s MUST be an object type allowed for the relationship type %(relationshipType)s."),
-                                  xbrlObject=relObj, name=ntwkObj.name, nbr=i, source=relObj.taraget, relationshipType=ntwkObj.relationshipTypeName)
+                                  xbrlObject=relObj, name=ntwkObj.name, nbr=i, target=relObj.target, relationshipType=ntwkObj.relationshipTypeName)
             validateProperties(txmyMdl, oimFile, txmy, relObj)
             for propObj in relObj.properties:
                 if propObj.property == preferredLabel and getattr(propObj, "_xValid", INVALID) >= VALID:
@@ -702,10 +715,13 @@ def validateTaxonomy(txmyMdl, txmy):
                       xbrlObject=ntwkObj, name=ntwkObj.name,
                       names=", ".join(f"{relKey[0]}\u2192{relKey[1]}" for relKey, ct in relsCt.items() if ct > 1))
         ntwkObj._roots = sources - targets
-        if ntwkObj.roots != ntwkObj._roots:
-            txmyMdl.error("oimte:invalidNetworkRoot",
-                      _("The network %(name)s network object roots property does not match actual relationship roots: %(roots)s"),
-                      xbrlObject=ntwkObj, name=ntwkObj.name, roots=", ".join(str(r) for r in ntwkObj._roots))        
+        if ntwkObj.roots:
+            if ntwkObj.roots != ntwkObj._roots:
+                txmyMdl.error("oimte:invalidNetworkRoot",
+                          _("The network %(name)s network object roots property does not match actual relationship roots: %(roots)s"),
+                          xbrlObject=ntwkObj, name=ntwkObj.name, roots=", ".join(str(r) for r in ntwkObj._roots))
+        else:
+            ntwkObj.roots = ntwkObj._roots # not specified so use actual roots
         validateProperties(txmyMdl, oimFile, txmy, ntwkObj)
 
     # PropertyType Objects
@@ -729,6 +745,12 @@ def validateTaxonomy(txmyMdl, txmy):
     # RelationshipType Objects
     for relTpObj in txmy.relationshipTypes:
         assertObjectType(relTpObj, XbrlRelationshipType)
+        for prop in ("allowedLinkProperties", "requiredLinkProperties"):
+            for propTypeQn in getattr(relTpObj, prop):
+                if not isinstance(txmyMdl.namedObjects.get(propTypeQn), XbrlPropertyType):
+                    txmyMdl.error("oimte:missingQNameReference",
+                              _("The relationshipType %(name)s %(property)s has an invalid propertyType reference %(propType)s"),
+                              xbrlObject=propTpObj, name=relTpObj.name, property=prop, propType=propTypeQn)
 
     # Reference Objects
     refsWithInvalidLang = defaultdict(list)
@@ -746,7 +768,7 @@ def validateTaxonomy(txmyMdl, txmy):
                 refInvalidNames.append(relName)
         validateProperties(txmyMdl, oimFile, txmy, refObj)
     if refsWithInvalidRelName:
-        txmyMdl.warning("oime:unresolvedRelatedNameWarning",
+        txmyMdl.warning("oimte:unresolvedRelatedNameWarning",
                   _("References have invalid related object names %(relNames)s"),
                   xbrlObject=refsWithInvalidRelName, name=name, relNames=", ".join(str(qn) for qn in refInvalidNames))
     for lang, refObjs in refsWithInvalidLang:
@@ -758,7 +780,7 @@ def validateTaxonomy(txmyMdl, txmy):
     # Unit Objects
     for unitObj in txmy.units:
         assertObjectType(unitObj, XbrlUnit)
-        dtQn = unitObj.dataType
+        dtQn = getattr(unitObj, "dataType", None)
         if dtQn:
             if not isinstance(txmyMdl.namedObjects.get(dtQn), XbrlDataType):
                 txmyMdl.error("oimte:unknownDataType",
