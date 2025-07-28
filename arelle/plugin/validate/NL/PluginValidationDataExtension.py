@@ -424,14 +424,6 @@ class PluginValidationDataExtension(PluginData):
                     not widerNarrowerRelSet.contains(concept) and \
                     not calcRelSet.fromModelObject(concept):
                 extLineItem = True
-            elif concept.isAbstract and \
-                    concept not in domainMembers and \
-                    concept.type is not None and \
-                    not concept.type.isDomainItemType and \
-                    not concept.isHypercubeItem and \
-                    not concept.isDimensionItem and \
-                    not widerNarrowerRelSet.contains(concept):
-                extLineItem = True
             if extLineItem:
                 if not generalSpecialRelSet.contains(concept):
                     extLineItemsNotAnchored.add(concept)
