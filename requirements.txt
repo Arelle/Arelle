@@ -20,7 +20,7 @@ NumPy==2.0.2 ; python_version <= "3.9"
 NumPy==2.2.4 ; python_version > "3.9"
 Matplotlib==3.9.4 ; python_version <= "3.9"
 Matplotlib==3.10.1 ; python_version > "3.9"
-holidays==0.76
+holidays==0.77
 pytz==2025.2
 Tornado==6.5.1
 # security plugin
