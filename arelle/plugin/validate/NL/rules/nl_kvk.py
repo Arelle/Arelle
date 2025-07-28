@@ -1711,11 +1711,11 @@ def rule_nl_kvk_4_4_6_1(
                     unreportedLbLocs.add(rel.fromLocator)
     if len(unreportedLbLocs) > 0:
         yield Validation.warning(
-            # Subtitle is capitalized inconsistently here because is tmatches the conformance suite. This may change in the future.
+            # Subtitle is capitalized inconsistently here because it matches the conformance suite. This may change in the future.
             codes='NL.NL-KVK.4.4.6.1.UsableConceptsNotAppliedByTaggedFacts',
             modelObject=unreportedLbLocs,
-            msg=_('Axis is missing a default member or the default member does not match the taxonomy defaults. '
-                  'Update to set default member based on taxonomy defaults.')
+            msg=_('Concept was found but not reported on any facts. '
+                  'Remove any unused concepts or ensure concept is applied to applicable facts.'),
         )
 
 
