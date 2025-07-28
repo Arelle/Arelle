@@ -414,17 +414,13 @@ class PluginValidationDataExtension(PluginData):
         calcRelSet = modelXbrl.relationshipSet(XbrlConst.summationItems)
         dimensionalData = self.getDimensionalData(modelXbrl)
         primaryItems = dimensionalData.primaryItems
-        domainMembers = dimensionalData.domainMembers
         extensionData = self.getExtensionData(modelXbrl)
         for concept in extensionData.extensionConcepts:
-            extLineItem = False
             if concept.isPrimaryItem and \
                     not concept.isAbstract and \
                     concept in primaryItems and \
                     not widerNarrowerRelSet.contains(concept) and \
                     not calcRelSet.fromModelObject(concept):
-                extLineItem = True
-            if extLineItem:
                 if not generalSpecialRelSet.contains(concept):
                     extLineItemsNotAnchored.add(concept)
                 else:
