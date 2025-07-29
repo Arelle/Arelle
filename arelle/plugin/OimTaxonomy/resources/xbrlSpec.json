@@ -144,6 +144,9 @@
             },
             {
                 "name": "xbrl:languageDomain"
+            },
+            {
+                "name": "xbrl:traitDomain"
             }
         ],
         "labelTypes": [
@@ -877,6 +880,15 @@
                     "xbrl:conceptObject"
                 ]
             }
+            ,
+            {
+                "name": "xbrl:traitLinkType",
+                "dataType": "xs:QName",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:relationshipObject"
+                ]
+            }
         ],
         "referenceTypes": [
             {
@@ -948,7 +960,8 @@
                     "xbrl:conceptObject", 
                     "xbrl:abstractObject",
                     "xbrl:memberObject", 
-                    "xbrl:domainObject", 
+                    "xbrl:domainObject",
+                    "xbrl:domainRootObject", 
                     "xbrl:dimensionObject", 
                     "xbrl:cubeObject", 
                     "xbrl:entityObject",  
@@ -959,7 +972,8 @@
                     "xbrl:conceptObject", 
                     "xbrl:abstractObject",
                     "xbrl:memberObject", 
-                    "xbrl:domainObject", 
+                    "xbrl:domainObject",
+                    "xbrl:domainRootObject",
                     "xbrl:dimensionObject", 
                     "xbrl:cubeObject", 
                     "xbrl:entityObject",  
@@ -1021,13 +1035,28 @@
                 "targetObjects" : ["xbrl:conceptObject"]
             },
             {
-                "name": "xbrl:property-concept",
-                "uri": "http://xbrl.org/oim/property-concept",
+                "name": "xbrl:propertyValue-object",
+                "uri": "http://xbrl.org/oim/propertyValue-object",
                 "cycles" : "undirected",
-                "allowedLinkProperties" : ["xbrl:propertyObject"],
-                "requiredLinkProperties" : ["xbrl:propertyObject"],
+                "allowedLinkProperties" : ["xbrl:traitLinkType"],
+                "requiredLinkProperties" : ["xbrl:traitLinkType"],
                 "sourceObjects" : ["xbrl:memberObject"],
-                "targetObjects" : ["xbrl:conceptObject"]
+                "targetObjects" : [
+                            "xbrl:taxonomyObject",
+                            "xbrl:conceptObject",
+                            "xbrl:abstractObject",
+                            "xbrl:memberObject",
+                            "xbrl:dimensionObject",
+                            "xbrl:entityObject",
+                            "xbrl:networkObject",
+                            "xbrl:groupObject",
+                            "xbrl:cubeObject",
+                            "xbrl:domainObject",
+                            "xbrl:domainRootObject",
+                            "xbrl:relationshipObject",
+                            "xbrl:labelObject",
+                            "xbrl:referenceObject"
+                        ]
             },
             {
                 "name": "xbrl:concept-refDimension",
