@@ -6,6 +6,7 @@
     <DisclosureSystem
             names="EDINET|edinet"
             description="Checks for EDINET."
+            defaultXmlLang="ja"
             blockDisallowedReferences="true"
             validationType="EDINET"
             validTaxonomiesUrl="edinet-taxonomies.xml"

@@ -3,13 +3,16 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
+from collections import defaultdict
 from datetime import timedelta
 from typing import Any, cast, Iterable
 
 import regex
 
 from arelle import XbrlConst, XmlUtil
+from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelObject import ModelObject
+from arelle.ModelValue import QName
 from arelle.PrototypeDtsObject import LocPrototype, ArcPrototype
 from arelle.UrlUtil import isHttpUrl, splitDecodeFragment
 from arelle.ValidateXbrl import ValidateXbrl
@@ -287,6 +290,42 @@ def rule_gfm_1_2_10(
             msg=_('The unit element contains duplicate content. Please remove the duplicates.'),
             modelObject = duplicateUnits
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_2_13(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.2.13] An instance having a fact with non-nil content and the xml:lang
+    attribute of value different than the default language must also contain a fact using the same element
+    and all other attributes with an xml:lang attribute that represents the default language.
+    """
+    defaultLang = cast(str, val.disclosureSystem.defaultXmlLang)
+    languageFacts: dict[str,dict[QName, set[ModelFact]]] = defaultdict(lambda: defaultdict(set))
+    for fact in val.modelXbrl.facts:
+        if fact.xValid >= VALID and fact.xmlLang is not None and not fact.isNil:
+            languageFacts[fact.xmlLang][fact.qname].add(fact)
+    for language, qnames in languageFacts.items():
+        if language != defaultLang:
+            for qname, facts in qnames.items():
+                matchingQnames = languageFacts[defaultLang][qname]
+                for fact in facts:
+                    if not any(fact.context.isEqualTo(mq.context) for mq in matchingQnames):
+                        yield Validation.warning(
+                            codes='EDINET.EC5700W.GFM.1.2.13',
+                            msg=_('There is an element whose xml:lang attribute is in a language other than Japanese, '
+                                  'but there is no element whose xml:lang attribute is in Japanese. Delete the non-Japanese element, '
+                                  'or set an element whose xml:lang attribute is in Japanese.'),
+                            modelObject = fact
+                        )
+
 
 
 @validation(
