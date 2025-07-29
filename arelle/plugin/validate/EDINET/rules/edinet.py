@@ -3,9 +3,11 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-import itertools
-from collections.abc import Iterable
-from typing import Any
+from collections import defaultdict
+from decimal import Decimal
+from typing import Any, Iterable, cast
+
+import regex
 
 from arelle import XbrlConst
 from arelle.ValidateXbrl import ValidateXbrl
@@ -84,6 +86,13 @@ def rule_EC8033W(
            and context.endDatetime is not None
            and context.isStartEndPeriod
     ]
+    latestPriorYearContext = None
+    for priorYearContext in priorYearContexts:
+        if latestPriorYearContext is None or \
+                priorYearContext.endDatetime > latestPriorYearContext.endDatetime:
+            latestPriorYearContext = priorYearContext
+    if latestPriorYearContext is None:
+        return
     currentYearContexts = [
         context
         for contextId, context in val.modelXbrl.contexts.items()
@@ -91,17 +100,72 @@ def rule_EC8033W(
            and context.startDatetime is not None
            and context.isStartEndPeriod
     ]
-    for priorYearContext, currentYearContext in itertools.product(priorYearContexts, currentYearContexts):
-        if priorYearContext.endDatetime > currentYearContext.startDatetime:
+    earliestCurrentYearContext = None
+    for currentYearContext in currentYearContexts:
+        if earliestCurrentYearContext is None or \
+                currentYearContext.endDatetime > earliestCurrentYearContext.startDatetime:
+            earliestCurrentYearContext = currentYearContext
+    if earliestCurrentYearContext is None:
+        return
+    if latestPriorYearContext.endDatetime > earliestCurrentYearContext.startDatetime:
+        yield Validation.warning(
+            codes='EDINET.EC8033W',
+            msg=_("The startDate element of the current year context (id=%(currentYearContextId)s) is "
+                  "set to a date that is earlier than the endDate element of the prior year context "
+                  "(id=%(priorYearContextId)s). Please check the corresponding context ID "
+                  "%(currentYearContextId)s and %(priorYearContextId)s. Set the startDate element of "
+                  "context ID %(currentYearContextId)s to a date that is later than or equal to the "
+                  "endDate element of context ID %(priorYearContextId)s."),
+            currentYearContextId=earliestCurrentYearContext.id,
+            priorYearContextId=latestPriorYearContext.id,
+            modelObject=priorYearContexts + currentYearContexts,
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8062W(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8062W: The sum of all liabilities and equity must equal the sum of all assets.
+    """
+    deduplicatedFacts = pluginData.getDeduplicatedFacts(val.modelXbrl)
+    contextIdPattern = regex.compile(r'^(Prior[1-9]Year|CurrentYear|Prior[1-9]Interim|Interim)(Duration|Instant)$')
+
+    factsByContextId = defaultdict(list)
+    for fact in deduplicatedFacts:
+        if fact.qname not in (pluginData.assetsIfrsQn, pluginData.liabilitiesAndEquityIfrsQn):
+            continue
+        if fact.contextID is None or not contextIdPattern.match(fact.contextID):
+            continue
+        factsByContextId[fact.contextID].append(fact)
+
+    for facts in factsByContextId.values():
+        assetSum = Decimal(0)
+        liabilitiesAndEquitySum = Decimal(0)
+        for fact in facts:
+            if isinstance(fact.xValue, float):
+                value = Decimal(fact.xValue)
+            else:
+                value = cast(Decimal, fact.xValue)
+            if fact.qname == pluginData.assetsIfrsQn:
+                assetSum += value
+            elif fact.qname == pluginData.liabilitiesAndEquityIfrsQn:
+                liabilitiesAndEquitySum += value
+        if assetSum != liabilitiesAndEquitySum:
             yield Validation.warning(
-                codes='EDINET.EC8033W',
-                msg=_("The startDate element of the current year context (id=%(currentYearContextId)s) is "
-                      "set to a date that is earlier than the endDate element of the prior year context "
-                      "(id=%(priorYearContextId)s). Please check the corresponding context ID "
-                      "%(currentYearContextId)s and %(priorYearContextId)s. Set the startDate element of "
-                      "context ID %(currentYearContextId)s to a date that is later than or equal to the "
-                      "endDate element of context ID %(priorYearContextId)s."),
-                currentYearContextId=currentYearContext.id,
-                priorYearContextId=priorYearContext.id,
-                modelObject=(priorYearContext, currentYearContext),
+                codes='EDINET.EC8062W',
+                msg=_("The consolidated statement of financial position is not reconciled. "
+                      "The sum of all liabilities and equity must equal the sum of all assets. "
+                      "Please correct the debit (%(liabilitiesAndEquitySum)s) and credit (%(assetSum)s) "
+                      "values so that they match."),
+                liabilitiesAndEquitySum=f"{liabilitiesAndEquitySum:,}",
+                assetSum=f"{assetSum:,}",
+                modelObject=facts,
             )

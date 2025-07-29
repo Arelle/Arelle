@@ -3,21 +3,21 @@
 <testcase
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns="http://xbrl.org/2005/conformance"
-        name="EDINET.EC8033W"
-        description="EDINET.EC8033W: The startDate element of the current year context should be set to a date that is earlier than the endDate element of the prior year context."
+        name="EDINET.EC8062W"
+        description="EDINET.EC8062W: The sum of all liabilities and equity must equal the sum of all assets."
         outpath=''
         owner="support@arelle.org"
         xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
     <variation id="invalid01" name="invalid01">
         <description>
-            A prior year context end date is later than a current year context start date.
-            <!--valid22.zip with a prior year context end date adjusted.-->
+            Credits and debits in the current year context are not equal.
+            <!--valid03.zip with asset values adjusted.-->
         </description>
         <data>
             <instance readMeFirst="true">invalid01.zip</instance>
         </data>
         <result>
-            <warning>EDINET.EC8033W</warning>
+            <warning>EDINET.EC8062W</warning>
         </result>
     </variation>
 </testcase>
