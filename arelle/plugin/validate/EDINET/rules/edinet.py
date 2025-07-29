@@ -140,13 +140,13 @@ def rule_EC8062W(
 
     factsByContextId = defaultdict(list)
     for fact in deduplicatedFacts:
-        if fact.concept.qname not in (pluginData.assetsIfrsQn, pluginData.liabilitiesAndEquityIfrsQn):
+        if fact.qname not in (pluginData.assetsIfrsQn, pluginData.liabilitiesAndEquityIfrsQn):
             continue
-        if not contextIdPattern.match(fact.contextID):
+        if fact.contextID is None or not contextIdPattern.match(fact.contextID):
             continue
         factsByContextId[fact.contextID].append(fact)
 
-    for contextId, facts in factsByContextId.items():
+    for facts in factsByContextId.values():
         assetSum = Decimal(0)
         liabilitiesAndEquitySum = Decimal(0)
         for fact in facts:
