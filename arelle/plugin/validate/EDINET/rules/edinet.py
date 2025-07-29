@@ -86,6 +86,13 @@ def rule_EC8033W(
            and context.endDatetime is not None
            and context.isStartEndPeriod
     ]
+    latestPriorYearContext = None
+    for priorYearContext in priorYearContexts:
+        if latestPriorYearContext is None or \
+                priorYearContext.endDatetime > latestPriorYearContext.endDatetime:
+            latestPriorYearContext = priorYearContext
+    if latestPriorYearContext is None:
+        return
     currentYearContexts = [
         context
         for contextId, context in val.modelXbrl.contexts.items()
@@ -93,20 +100,26 @@ def rule_EC8033W(
            and context.startDatetime is not None
            and context.isStartEndPeriod
     ]
-    for priorYearContext, currentYearContext in itertools.product(priorYearContexts, currentYearContexts):
-        if priorYearContext.endDatetime > currentYearContext.startDatetime:
-            yield Validation.warning(
-                codes='EDINET.EC8033W',
-                msg=_("The startDate element of the current year context (id=%(currentYearContextId)s) is "
-                      "set to a date that is earlier than the endDate element of the prior year context "
-                      "(id=%(priorYearContextId)s). Please check the corresponding context ID "
-                      "%(currentYearContextId)s and %(priorYearContextId)s. Set the startDate element of "
-                      "context ID %(currentYearContextId)s to a date that is later than or equal to the "
-                      "endDate element of context ID %(priorYearContextId)s."),
-                currentYearContextId=currentYearContext.id,
-                priorYearContextId=priorYearContext.id,
-                modelObject=(priorYearContext, currentYearContext),
-            )
+    earliestCurrentYearContext = None
+    for currentYearContext in currentYearContexts:
+        if earliestCurrentYearContext is None or \
+                currentYearContext.endDatetime > earliestCurrentYearContext.startDatetime:
+            earliestCurrentYearContext = currentYearContext
+    if earliestCurrentYearContext is None:
+        return
+    if latestPriorYearContext.endDatetime > earliestCurrentYearContext.startDatetime:
+        yield Validation.warning(
+            codes='EDINET.EC8033W',
+            msg=_("The startDate element of the current year context (id=%(currentYearContextId)s) is "
+                  "set to a date that is earlier than the endDate element of the prior year context "
+                  "(id=%(priorYearContextId)s). Please check the corresponding context ID "
+                  "%(currentYearContextId)s and %(priorYearContextId)s. Set the startDate element of "
+                  "context ID %(currentYearContextId)s to a date that is later than or equal to the "
+                  "endDate element of context ID %(priorYearContextId)s."),
+            currentYearContextId=earliestCurrentYearContext.id,
+            priorYearContextId=latestPriorYearContext.id,
+            modelObject=priorYearContexts + currentYearContexts,
+        )
 
 
 @validation(
