@@ -404,7 +404,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                                         # this handles lists of dict objects.  For dicts of key-value dict objects see above.
                                         createTaxonomyObjects(propName, listObj, newObj, pathParts + [f'{propName}[{iObj}]'])
                                     else:
-                                        error("xbrlte:invalidObjectType",
+                                        error("oimte:invalidObjectType",
                                               _("Object expected but non-object found: %(listObj)s, jsonObj: %(path)s"),
                                               sourceFileLine=href, listObj=listObj, path=f"{'/'.join(pathParts + [f'{propName}[{iObj}]'])}")
                                 elif isinstance(listObj, dict) and get_origin(eltClass) is Union and getattr(eltClass.__args__[0], "__name__", "").startswith("Xbrl"): # nested Xbrl objects such as selector
@@ -414,7 +414,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                                     if eltClass in (QName, QNameKeyType, SQName, SQNameKeyType):
                                         listObj = qname(listObj, prefixNamespaces)
                                         if listObj is None:
-                                            error("xbrlte:invalidQName",
+                                            error("oimte:invalidQName",
                                                   _("QName is invalid: %(qname)s, jsonObj: %(path)s"),
                                                   sourceFileLine=href, qname=jsonObj[propName], path=f"{'/'.join(pathParts + [f'{propName}[{iObj}]'])}")
                                             # must have None value for validation to work
@@ -422,7 +422,12 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                                             relatedNames.append(listObj)
                                     if propClass in (set, OrderedSet):
                                         try:
-                                            collectionProp.add(listObj)
+                                            if listObj not in collectionProp:
+                                                collectionProp.add(listObj)
+                                            else:
+                                                error("oimte:duplicateObjects",
+                                                      _("Duplicate set member: %(listObj)s, jsonObj: %(path)s"),
+                                                      sourceFileLine=href, listObj=listObj, path=f"{'/'.join(pathParts + [f'{propName}[{iObj}]'])}")
                                         except TypeError as ex:
                                             print("trace")
                                     else:
@@ -434,7 +439,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                                         valKey = coreDimensionsByLocalname.get(valKey, valKey) # unprefixed core dimension localNames
                                     _valKey = qname(valKey, prefixNamespaces)
                                     if _valKey is None:
-                                        error("xbrlte:invalidQName",
+                                        error("oimte:invalidQName",
                                               _("QName is invalid: %(qname)s, jsonObj: %(path)s"),
                                               sourceFileLine=href, qname=_valKey, path=f"{'/'.join(pathParts + [f'{propName}[{iObj}]'])}")
                                         # must have None value for validation to work
@@ -463,7 +468,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                         if propType in (QName, QNameKeyType, SQName, SQNameKeyType, QNameAt):
                             jsonValue = qname(jsonValue, prefixNamespaces)
                             if jsonValue is None:
-                                error("xbrlte:invalidQName",
+                                error("oimte:invalidQName",
                                       _("QName is invalid: %(qname)s, jsonObj: %(path)s"),
                                       sourceFileLine=href, qname=jsonObj[propName], path=f"{'/'.join(pathParts + [propName])}")
                                 if optional:
