@@ -3,9 +3,11 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-import itertools
-from collections.abc import Iterable
-from typing import Any
+from collections import defaultdict
+from decimal import Decimal
+from typing import Any, Iterable, cast
+
+import regex
 
 from arelle import XbrlConst
 from arelle.ValidateXbrl import ValidateXbrl
@@ -104,4 +106,53 @@ def rule_EC8033W(
                 currentYearContextId=currentYearContext.id,
                 priorYearContextId=priorYearContext.id,
                 modelObject=(priorYearContext, currentYearContext),
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8062W(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8062W: The sum of all liabilities and equity must equal the sum of all assets.
+    """
+    deduplicatedFacts = pluginData.getDeduplicatedFacts(val.modelXbrl)
+    contextIdPattern = regex.compile(r'^(Prior[1-9]Year|CurrentYear|Prior[1-9]Interim|Interim)(Duration|Instant)$')
+
+    factsByContextId = defaultdict(list)
+    for fact in deduplicatedFacts:
+        if fact.concept.qname not in (pluginData.assetsIfrsQn, pluginData.liabilitiesAndEquityIfrsQn):
+            continue
+        if not contextIdPattern.match(fact.contextID):
+            continue
+        factsByContextId[fact.contextID].append(fact)
+
+    for contextId, facts in factsByContextId.items():
+        assetSum = Decimal(0)
+        liabilitiesAndEquitySum = Decimal(0)
+        for fact in facts:
+            if isinstance(fact.xValue, float):
+                value = Decimal(fact.xValue)
+            else:
+                value = cast(Decimal, fact.xValue)
+            if fact.qname == pluginData.assetsIfrsQn:
+                assetSum += value
+            elif fact.qname == pluginData.liabilitiesAndEquityIfrsQn:
+                liabilitiesAndEquitySum += value
+        if assetSum != liabilitiesAndEquitySum:
+            yield Validation.warning(
+                codes='EDINET.EC8062W',
+                msg=_("The consolidated statement of financial position is not reconciled. "
+                      "The sum of all liabilities and equity must equal the sum of all assets. "
+                      "Please correct the debit (%(liabilitiesAndEquitySum)s) and credit (%(assetSum)s) "
+                      "values so that they match."),
+                liabilitiesAndEquitySum=f"{liabilitiesAndEquitySum:,}",
+                assetSum=f"{assetSum:,}",
+                modelObject=facts,
             )

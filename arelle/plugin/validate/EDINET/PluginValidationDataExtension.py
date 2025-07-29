@@ -10,9 +10,12 @@ from functools import lru_cache
 from pathlib import Path
 
 from arelle.ModelDocument import Type as ModelDocumentType
+from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelObject import ModelObject
+from arelle.ModelValue import QName, qname
 from arelle.ModelXbrl import ModelXbrl
 from arelle.PrototypeDtsObject import LinkPrototype
+from arelle.ValidateDuplicateFacts import getDeduplicatedFacts, DeduplicationType
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
@@ -31,7 +34,16 @@ class UploadContents:
 
 @dataclass
 class PluginValidationDataExtension(PluginData):
+    assetsIfrsQn: QName
+    liabilitiesAndEquityIfrsQn: QName
+
     _primaryModelXbrl: ModelXbrl | None = None
+
+    def __init__(self, name: str):
+        super().__init__(name)
+        jpigpNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jpigp/2024-11-01/jpigp_cor"
+        self.assetsIfrsQn = qname(jpigpNamespace, 'AssetsIFRS')
+        self.liabilitiesAndEquityIfrsQn = qname(jpigpNamespace, "LiabilitiesAndEquityIFRS")
 
     # Identity hash for caching.
     def __hash__(self) -> int:
@@ -62,6 +74,10 @@ class PluginValidationDataExtension(PluginData):
         if not isinstance(modelXbrl.fileSource.fs, zipfile.ZipFile):
             return False  # Not a zipfile
         return True
+
+    @lru_cache(1)
+    def getDeduplicatedFacts(self, modelXbrl: ModelXbrl) -> list[ModelFact]:
+        return getDeduplicatedFacts(modelXbrl, DeduplicationType.CONSISTENT_PAIRS)
 
     @lru_cache(1)
     def getFootnoteLinkElements(self, modelXbrl: ModelXbrl) -> list[ModelObject | LinkPrototype]:
