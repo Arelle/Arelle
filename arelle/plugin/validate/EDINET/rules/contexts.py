@@ -147,3 +147,40 @@ def rule_EC8033W(
             priorYearContextId=latestPriorYearContext.id,
             modelObject=priorYearContexts + currentYearContexts,
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8054W(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8054W: For any context with ID containing "NonConsolidatedMember",
+    the scenario element within must be set to "NonConsolidatedMember".
+    """
+    for context in val.modelXbrl.contexts.values():
+        if pluginData.nonConsolidatedMemberQn.localName not in context.id:
+            continue
+        memberQnames = set()
+        for scenarioElt in context.iterdescendants(XbrlConst.qnXbrlScenario.clarkNotation):
+            for memberElt in scenarioElt.iterdescendants(
+                    XbrlConst.qnXbrldiExplicitMember.clarkNotation,
+                    XbrlConst.qnXbrldiTypedMember.clarkNotation
+            ):
+                memberQnames.add(memberElt.xValue)
+        if pluginData.nonConsolidatedMemberQn not in memberQnames:
+            yield Validation.warning(
+                codes='EDINET.EC8054W',
+                msg=_("For the context ID (%(contextId)s), \"NonConsolidatedMember\" "
+                      "is not set in the scenario element. Please correct the relevant "
+                      "context ID and scenario element. For naming rules for context IDs, "
+                      "refer to \"5-4-1 Naming Rules for Context IDs\" in the \"Guidelines "
+                      "for Creating Report Instances.\""),
+                contextId=context.id,
+                modelObject=context,
+            )
