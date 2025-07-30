@@ -988,7 +988,15 @@
                 "allowedLinkProperties" : ["xbrl:weight", "xbrl:order"],
                 "requiredLinkProperties" : ["xbrl:weight"],
                 "sourceObjects" : ["xbrl:conceptObject"],
-                "targetObjects" : ["xbrl:conceptObject"]
+                "targetObjects" : ["xbrl:conceptObject"],
+                "constraints": [
+                                  {
+                                      "constraint": "relationship.source.xbrli:datatype == relationship.target.xbrli:datatype AND relationship.source.property.xbrli:balance != relationship.target.property.xbrli:balance AND relationship.source.xbrli:periodType == relationship.target.xbrli:periodType AND relationship.property.weight == -1"
+                                  },
+                                  {
+                                      "constraint": "relationship.source.xbrli:datatype == relationship.target.xbrli:datatype  AND relationship.source.property.xbrli:balance  == relationship.target.property.xbrli:balance AND relationship.source.xbrli:periodType == relationship.target.xbrli:periodType AND relationship.property.weight == 1"
+                                  }         
+                              ]
             },
             {
                 "name": "xbrl:class-subclass",
@@ -996,7 +1004,12 @@
                 "cycles" : "none",
                 "allowedLinkProperties" : ["xbrl:order"],
                 "sourceObjects" : ["xbrl:conceptObject"],
-                "targetObjects" : ["xbrl:conceptObject"]
+                "targetObjects" : ["xbrl:conceptObject"],
+                "constraints": [
+                          {
+                              "constraint": "relationship.source.xbrli:datatype == relationship.target.xbrli:datatype AND relationship.source.properties <= relationship.target.properties AND relationship.source.xbrli:periodType == relationship.target.xbrli:periodType"
+                          }         
+                        ]
             },
             {
                 "name": "xbrl:general-special",
@@ -1018,14 +1031,24 @@
                 "uri": "http://xbrl.org/oim/instant-inflow",
                 "cycles" : "undirected",
                 "sourceObjects" : ["xbrl:conceptObject"],
-                "targetObjects" : ["xbrl:conceptObject"]
+                "targetObjects" : ["xbrl:conceptObject"],
+                "constraints": [
+                          {
+                              "constraint": "relationship.source.xbrli:datatype == relationship.target.xbrli:datatype AND relationship.source.property.xbrl:balance == relationship.target.property.xbrl:balance AND relationship.source.xbrli:periodType == instant AND relationship.target.xbrli:periodType == duration"
+                          }         
+                        ]
             },
             {
                 "name": "xbrl:instant-outflow",
                 "uri": "http://xbrl.org/oim/instant-outflow",
                 "cycles" : "none",
                 "sourceObjects" : ["xbrl:conceptObject"],
-                "targetObjects" : ["xbrl:conceptObject"]
+                "targetObjects" : ["xbrl:conceptObject"],
+                 "constraints": [
+                          {
+                              "constraint": "relationship.source.xbrli:datatype == relationship.target.xbrli:datatype AND relationship.source.property.xbrl:balance != relationship.target.property.xbrl:balance AND relationship.source.xbrli:periodType == instant AND relationship.target.xbrli:periodType == duration"
+                          }         
+                        ]
             },
             {
                 "name": "xbrl:instant-contra",

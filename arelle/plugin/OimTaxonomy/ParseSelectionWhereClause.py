@@ -15,7 +15,7 @@ qName = Combine(ncName + colon + ncName)  # e.g., xbrl:conceptObject
 # Define operators with proper precedence (multi-word operators first)
 inOperator = (Keyword("not in") | Keyword("in")).setParseAction(lambda t: t[0])
 containsOperator = (Keyword("not contains") | Keyword("contains")).setParseAction(lambda t: t[0])
-comparisonOperator = oneOf("= != > < >= <=")
+comparisonOperator = oneOf("== != > < >= <=")
 operator = MatchFirst([inOperator, containsOperator, comparisonOperator])
 
 # Special handling for "in" and "not in" values which should be lists

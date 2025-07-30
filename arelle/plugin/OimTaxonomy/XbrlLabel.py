@@ -29,6 +29,6 @@ class XbrlLabelType(XbrlReferencableTaxonomyObject):
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the label type object.
     uri: Optional[AnyURI] # (optional) A uri used to identify the label type of label objects for backward compatability with XBRL 2.1 taxonomies.
     dataType: QName # (required) Specifies the datatype of the value. The value MUST be a QName referencing either: - a built-in XML Schema simple type, - a datatype defined in this specification, - or a custom datatype defined in the taxonomy model.
-    allowedObjects: OrderedSet[QName] # (optional) Defines an ordered set of object types that can use the labelType.
+    allowedObjects: Optional[OrderedSet[QName]] # (optional) Defines an ordered set of object types that can use the labelType.  None means absent from input, empty set means [] on input which raises an error.
 
 preferredLabel = qname(xbrl, "xbrl:preferredLabel")
