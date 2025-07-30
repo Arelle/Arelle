@@ -165,7 +165,11 @@ def validateTaxonomy(txmyMdl, txmy):
                       _("The cubeType %(name)s, must not specify allowedCubeDimensions overriding base cue allowedCubeDimensions"),
                       xbrlObject=cubeType, name=name)
         if allowedCubeDims is not None:
-            if not cubeType.effectivePropVal("taxonomyDefinedDimension", txmyMdl):
+            if not allowedCubeDims:
+                txmyMdl.error("oimte:invalidEmptySet",
+                          _("The cube %(name)s, type %(cubeType)s, allowedCubeDimensions must not be empty"),
+                          xbrlObject=cubeType, name=name, cubeType=cubeType.name)
+            elif not cubeType.effectivePropVal("taxonomyDefinedDimension", txmyMdl):
                 txmyMdl.error("oimte:cubeTypeAllowedDimensionsConflict",
                           _("The cube %(name)s, type %(cubeType)s, must not specify allowedCubeDimensions if the cube does not permit taxonomyDefinedDimensions"),
                           xbrlObject=cubeType, name=name, cubeType=cubeType.name)
@@ -507,7 +511,7 @@ def validateTaxonomy(txmyMdl, txmy):
                 txmyMdl.error("oimte:missingQNameReference",
                           _("The dimension domainRoot object QName %(name)s MUST be a valid domainRoot object in the taxonomy model"),
                           xbrlObject=dimObj, name=dimObj.domainRoot)
-            if dimObj.domainRoot in (conceptDomainRoot, unitDomainRoot, languageDomainRoot):
+            if dimObj.name.namespaceURI != xbrl and dimObj.domainRoot in (conceptDomainRoot, unitDomainRoot, languageDomainRoot):
                 txmyMdl.error("oimte:invalidDomainRoot",
                           _("The dimension domainRoot object QName MUST not be %(name)s."),
                           xbrlObject=dimObj, name=dimObj.domainRoot)
@@ -553,13 +557,17 @@ def validateTaxonomy(txmyMdl, txmy):
                           _("The domain %(name)s relationship[%(nbr)s] source, %(source)s, and target, %(target)s, MUST be objects in the taxonomy model."),
                           xbrlObject=relObj, name=domObj.name, nbr=i, source=src, target=tgt)
             else:
-                if domRt == conceptDomainRoot and (
-                    not isinstance(txmyMdl.namedObjects[relObj.target], XbrlConcept) or not isinstance(txmyMdl.namedObjects[relObj.target], XbrlConcept)):
-                    txmyMdl.error("oimte:invalidObjectType",
-                              _("The domain %(name)s relationship[%(nbr)s] source, %(source)s, and target, %(target)s, MUST be concept objects in the taxonomy model."),
-                              xbrlObject=relObj, name=domObj.name, nbr=i, source=relObj.source, target=relObj.target)
+                if domRt == conceptDomainRoot:
+                    if not isinstance(txmyMdl.namedObjects[relObj.source], XbrlConcept):
+                        txmyMdl.error("oimte:invalidObjectType",
+                                  _("The domain %(name)s relationship[%(nbr)s] source, %(source)s MUST be a concept object in the taxonomy model."),
+                                  xbrlObject=relObj, name=domObj.name, nbr=i, source=relObj.source)
+                    if not isinstance(txmyMdl.namedObjects[relObj.target], XbrlConcept):
+                        txmyMdl.error("oimte:invalidDomainTarget",
+                                  _("The domain %(name)s relationship[%(nbr)s] target, %(target)s, MUST be a concept object in the taxonomy model."),
+                                  xbrlObject=relObj, name=domObj.name, nbr=i, target=relObj.target)
                 if domRt == entityDomainRoot:
-                    if relObj.target != domRt and not isinstance(txmyMdl.namedObjects[relObj.target], XbrlEntity):
+                    if relObj.source != domRt and not isinstance(txmyMdl.namedObjects[relObj.source], XbrlEntity):
                         txmyMdl.error("oimte:invalidDomainSource",
                                   _("The domain %(name)s relationship[%(nbr)s] source, %(source)s, MUST be the entity root or an entity object in the taxonomy model."),
                                   xbrlObject=relObj, name=domObj.name, nbr=i, source=relObj.source)
@@ -568,12 +576,12 @@ def validateTaxonomy(txmyMdl, txmy):
                                   _("The domain %(name)s relationship[%(nbr)s] target, %(target)s, MUST be an entity object in the taxonomy model."),
                                   xbrlObject=relObj, name=domObj.name, nbr=i, target=relObj.target)
                 if domRt == unitDomainRoot:
-                    if relObj.target != domRt and not isinstance(txmyMdl.namedObjects[relObj.target], XbrlUnit):
+                    if relObj.source != domRt and not isinstance(txmyMdl.namedObjects[relObj.source], XbrlUnit):
                         txmyMdl.error("oimte:invalidDomainSource",
                                   _("The domain %(name)s relationship[%(nbr)s] source, %(source)s, MUST be the unit root or an unit object in the taxonomy model."),
                                   xbrlObject=relObj, name=domObj.name, nbr=i, source=relObj.source)
                     if not isinstance(txmyMdl.namedObjects[relObj.target], XbrlUnit):
-                        txmyMdl.error("oimte:invalidDomainTarget",
+                        txmyMdl.error("oimte:domainIncludesNonUnitTarget",
                                   _("The domain %(name)s relationship[%(nbr)s] target, %(target)s, MUST be a unit object in the taxonomy model."),
                                   xbrlObject=relObj, name=domObj.name, nbr=i, target=relObj.target)
                 elif isinstance(txmyMdl.namedObjects[relObj.source], XbrlUnit) or isinstance(txmyMdl.namedObjects[relObj.target], XbrlUnit):
@@ -642,12 +650,20 @@ def validateTaxonomy(txmyMdl, txmy):
             txmyMdl.error("oime:invalidLanguage",
                       _("Label %(relatedName)s has invalid language %(lang)s"),
                       xbrlObject=lblObj, relatedName=relatedName, lang=lang)
+        relatedObj = None
         if relatedName not in txmyMdl.namedObjects:
             txmyMdl.error("oimte:unresolvedRelatedName",
                       _("Label has invalid related object %(relatedName)s"),
                       xbrlObject=lblObj, relatedName=relatedName)
+        else:
+            relatedObj = txmyMdl.namedObjects.get(relatedName)
         lblTpObj = txmyMdl.namedObjects.get(lblObj.labelType)
         if isinstance(lblTpObj, XbrlLabelType):
+            if lblTpObj.allowedObjects and relatedObj is not None and not any(
+                type(relatedObj) == xbrlObjectTypes[allowedObj] for allowedObj in lblTpObj.allowedObjects):
+                txmyMdl.error("oimte:invalidAllowedObject",
+                          _("Label has disallowed related object %(relatedName)s"),
+                          xbrlObject=lblObj, relatedName=relatedName)                
             lblObj._xValid, lblObj._xValue = validateValue(txmyMdl, txmy, lblObj, lblObj.value, lblTpObj.dataType, "", "oimte:invalidPropertyValue")
         else:
             txmyMdl.error("oimte:missingQNameReference",
@@ -764,7 +780,7 @@ def validateTaxonomy(txmyMdl, txmy):
         assertObjectType(propTpObj, XbrlPropertyType)
         dataTypeObj = txmyMdl.namedObjects.get(propTpObj.dataType)
         if not isinstance(dataTypeObj, XbrlDataType):
-            txmyMdl.error("oimte:invalidDataTypeObject",
+            txmyMdl.error("oimte:invalidObjectType",
                       _("The propertyType %(name)s dataType %(qname)s MUST be a valid dataType object in the taxonomy model"),
                       xbrlObject=propTpObj, name=propTpObj.name, qname=propTpObj.dataType)
         elif propTpObj.enumerationDomain and txmyMdl.namedObjects[dataTypeObj.baseType] != qnXsQName:
@@ -858,21 +874,23 @@ def validateTaxonomy(txmyMdl, txmy):
             txmyMdl.error("oimte:invalidDataTypeObject",
                       _("The labelType %(name)s dataType %(qname)s MUST be a valid dataType object in the taxonomy model"),
                       xbrlObject=lblObj, name=lblObj.name, qname=lblObj.dataType)
-        if not lblObj.allowedObjects:
-            txmyMdl.error("oimte:invalidEmptySet",
-                      _("The labelType %(name)s allowedObjects MUST not be empty."),
-                      xbrlObject=lblObj, name=lblObj.name)
-        else:
-            for allowedObj in lblObj.allowedObjects:
-                if allowedObj not in xbrlObjectTypes:
-                    txmyMdl.error("oimte:invalidAllowedObject",
-                              _("The labelType %(name)s allowedObject %(allowedObject)s MUST be a taxonomy model object."),
-                              xbrlObject=lblObj, name=lblObj.name, allowedObject=allowedObj)
+        if lblObj.allowedObjects is not None:
+            if not lblObj.allowedObjects:
+                txmyMdl.error("oimte:invalidEmptySet",
+                          _("The labelType %(name)s allowedObjects MUST not be empty."),
+                          xbrlObject=lblObj, name=lblObj.name)
+            else:
+                for allowedObj in lblObj.allowedObjects:
+                    if allowedObj not in xbrlObjectTypes:
+                        txmyMdl.error("oimte:invalidAllowedObject",
+                                  _("The labelType %(name)s allowedObject %(allowedObject)s MUST be a taxonomy model object."),
+                                  xbrlObject=lblObj, name=lblObj.name, allowedObject=allowedObj)
         
 
     # Unit Objects
     for unitObj in txmy.units:
         assertObjectType(unitObj, XbrlUnit)
+        name = unitObj.name
         dtQn = getattr(unitObj, "dataType", None)
         if dtQn:
             if not isinstance(txmyMdl.namedObjects.get(dtQn), XbrlDataType):
@@ -880,6 +898,11 @@ def validateTaxonomy(txmyMdl, txmy):
                           _("The unit %(name)s dataType %(qname)s MUST be a dataType object."),
                           xbrlObject=unitObj, name=unitObj.name, qname=dtQn)
         unitObj._unitsMeasures = [parseUnitString(uStr, unitObj, txmy, txmyMdl) for uStr in unitObj.stringRepresentations]
+        for uMeas in unitObj._unitsMeasures:
+            if any(m == name for md in uMeas for m in md):
+                txmyMdl.error("oimte:invalidPropertyValue",
+                          _("The unit %(name)s must not contain itself as a measure."),
+                          xbrlObject=unitObj, name=unitObj.name)
 
     # Facts in taxonomy
     if txmy.facts:

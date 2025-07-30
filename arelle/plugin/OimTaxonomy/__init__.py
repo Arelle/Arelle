@@ -228,7 +228,11 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                 for p in err.absolute_path:
                     path.append(f"[{p}]" if isinstance(p,int) else f"/{p}")
                 msg = err.message
-                error("jsonschema:oimTaxonomyError",
+                if err.absolute_path[-1] == "allowedAsLinkProperty" and " is not of type " in msg:
+                    errCode = "oimte:invalidPropertyValue"
+                else:
+                    errCode = "jsonschema:oimTaxonomyError",
+                error(errCode,
                       _("Error: %(error)s, jsonObj: %(path)s"),
                       sourceFileLine=href, error=msg, path="".join(path))
         except (jsonschema.exceptions.SchemaError, jsonschema.exceptions._RefResolutionError, jsonschema.exceptions.UndefinedTypeCheck) as ex:
@@ -388,8 +392,16 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                     if propName == "labels" and excludeLabels:
                         continue
                     jsonValue = jsonObj[jsonKey]
-                    if isinstance(propType, GenericAlias):
-                        if len(propType.__args__) == 2: # dict
+                    if isinstance(propType, GenericAlias) or (isinstance(propType, _UnionGenericAlias) and isinstance(propType.__args__[0], GenericAlias) and propType.__args__[0].__origin__ == OrderedSet):
+                        # for Optional OrderedSets where the jsonValue exists, handle as propType, _keyClass and eltClass
+                        if isinstance(propType.__args__[0], GenericAlias) and len(propType.__args__[0].__args__) == 1 and propType.__args__[0].__origin__ == OrderedSet:
+                            # handle as non-optional OrderedSet
+                            propClass = propType.__args__[0].__origin__ # collection type such as OrderedSet
+                            collectionProp = propClass()
+                            setattr(newObj, propName, collectionProp) # fresh new dict or OrderedSet (even if no contents for it)
+                            _keyClass = None
+                            eltClass = propType.__args__[0].__args__[0]
+                        elif len(propType.__args__) == 2: # dict
                             _keyClass = propType.__args__[0] # class of key such as QNameKey
                             eltClass = propType.__args__[1] # class of collection elements such as XbrlConcept
                         elif len(propType.__args__) == 1: # set such as OrderedSet or list
@@ -426,15 +438,15 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                                                 collectionProp.add(listObj)
                                             else:
                                                 error("oimte:duplicateObjects",
-                                                      _("Duplicate set member: %(listObj)s, jsonObj: %(path)s"),
+                                                      _("Object expected but non-object found: %(listObj)s, jsonObj: %(path)s"),
                                                       sourceFileLine=href, listObj=listObj, path=f"{'/'.join(pathParts + [f'{propName}[{iObj}]'])}")
                                         except TypeError as ex:
-                                            print("trace")
+                                            print("exception adding collection property")
                                     else:
                                         collectionProp.append(listObj)
-                        elif isinstance(jsonValue, dict) and _keyClass:
+                        elif isinstance(jsonValue, dict) and _keyClass is not None:
                             for iObj, (valKey, valVal) in enumerate(jsonValue.items()):
-                                if issubclass(_keyClass,QName):
+                                if isinstance(_keyClass, type) and issubclass(_keyClass,QName):
                                     if jsonKey == "dimensions" and objClass == XbrlFact:
                                         valKey = coreDimensionsByLocalname.get(valKey, valKey) # unprefixed core dimension localNames
                                     _valKey = qname(valKey, prefixNamespaces)
@@ -468,7 +480,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                         if propType in (QName, QNameKeyType, SQName, SQNameKeyType, QNameAt):
                             jsonValue = qname(jsonValue, prefixNamespaces)
                             if jsonValue is None:
-                                error("oimte:invalidQName",
+                                error("xbrlte:invalidQName",
                                       _("QName is invalid: %(qname)s, jsonObj: %(path)s"),
                                       sourceFileLine=href, qname=jsonObj[propName], path=f"{'/'.join(pathParts + [propName])}")
                                 if optional:

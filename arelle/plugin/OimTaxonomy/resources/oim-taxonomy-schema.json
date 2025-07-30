@@ -578,6 +578,18 @@
                         "type": "array",
                         "items": { "$ref": "#/definitions/QName" },
                         "uniqueItems": true
+                      },
+                      "constraints": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "constraint": { "$ref": "#/definitions/relationshipConstraint" }
+                          },
+                          "required": ["constraint"],
+                          "additionalProperties": false
+                        },
+                        "description": "An array of constraint objects, each with a 'constraint' property containing a constraint expression string."
                       }
                     },
                     "required": ["name", "cycles"],
@@ -1064,6 +1076,11 @@
           "type": "string",
           "pattern": "^[A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z_][A-Za-z0-9_.-]*$",
           "description": "QName that uniquely identifies the object."
+      },
+      "relationshipConstraint" :{
+            "type": "string",
+            "pattern": "^relationship\\.(source|target|property|properties)(?:\\.[A-Za-z_][A-Za-z0-9_]*(?::[A-Za-z_][A-Za-z0-9_]*)?)*\\s*(==|!=|>=|<=|>|<)\\s*[^=<>!()]+(?:\\s*(AND|OR|NOT)\\s*relationship\\.(source|target|property|properties)(?:\\.[A-Za-z_][A-Za-z0-9_]*(?::[A-Za-z_][A-Za-z0-9_]*)?)*\\s*(==|!=|>=|<=|>|<)\\s*[^=<>!()]+)*$",
+            "description": "A constraint expression string as defined in the specification (oim-taxonomy.md), expressing boolean logic over properties of the source, target, and relationship."
       },
       "SQName": {
           "type": "string",
