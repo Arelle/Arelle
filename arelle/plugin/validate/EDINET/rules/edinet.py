@@ -9,7 +9,8 @@ from typing import Any, Iterable, cast
 
 import regex
 
-from arelle import XbrlConst
+from arelle import XbrlConst, ValidateDuplicateFacts
+from arelle.ValidateDuplicateFacts import DuplicateType
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
@@ -61,6 +62,41 @@ def rule_EC5002E(
                   "Please check the units and enter the correct information."),
             qname=fact.qname.clarkNotation,
             modelObject=fact,
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8024E(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8024E: Instance values of the same element, context, and unit may not
+    have different values or different decimals attributes.
+    Correct the element with the relevant context ID. For elements in an inline XBRL file that have
+    duplicate elements, context IDs, and unit IDs, set the same values for the value and
+    decimals attribute.
+    """
+    duplicateFactSets = ValidateDuplicateFacts.getDuplicateFactSetsWithType(val.modelXbrl.facts, DuplicateType.INCOMPLETE)
+    for duplicateFactSet in duplicateFactSets:
+        fact = duplicateFactSet.facts[0]
+        yield Validation.error(
+            codes='EDINET.EC8024E',
+            msg=_("Instance values of the same element, context, and unit may not "
+                  "have different values or different decimals attributes. <element=%(concept)s> "
+                  "<contextID=%(context)s> <unit=%(unit)s>. Correct the element with the relevant "
+                  "context ID. For elements in an inline XBRL file that have duplicate "
+                  "elements, context IDs, and unit IDs, set the same values for the value and "
+                  "decimals attribute."),
+            concept=fact.qname,
+            context=fact.contextID,
+            unit=fact.unitID,
+            modelObject=duplicateFactSet.facts,
         )
 
 

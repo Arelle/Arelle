@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="EDINET.EC8024E"
+        description="EDINET.EC8024E: Instance values of the same element, context, and unit may not have different values or different decimals attributes."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid01" name="invalid01">
+        <description>
+            Fact with same concept, context, and unit has different decimals value.
+            <!--valid03.zip with duplicate AssetsIFRS fact value adjusted.-->
+        </description>
+        <data>
+            <instance readMeFirst="true">invalid01.zip</instance>
+        </data>
+        <result>
+            <error>EDINET.EC8024E</error>
+        </result>
+    </variation>
+</testcase>
