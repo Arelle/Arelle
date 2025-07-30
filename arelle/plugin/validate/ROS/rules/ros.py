@@ -4,10 +4,11 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 import os
-from typing import Any
+from typing import Any, cast
 
 from collections import Counter
 from collections.abc import Iterable
+from decimal import Decimal
 
 from arelle.typing import TypeGetText
 from arelle.ValidateXbrl import ValidateXbrl
@@ -296,23 +297,25 @@ def rule_ros19(
     """
     ROS: Rule 19: DPLTurnoverRevenue should be tested to be less than or equal to 10x the absolute value of Equity
     """
+    def convertToDecimal(value):
+        return Decimal(value) if isinstance(value, float) else cast(Decimal, value)
     equity_facts = val.modelXbrl.factsByLocalName.get(EQUITY, set())
     largest_equity_fact = None
     for e_fact in equity_facts:
         if e_fact.xValid >= VALID:
-            if largest_equity_fact is None or abs(int(e_fact.value)) > abs(int(largest_equity_fact.value)):
+            if largest_equity_fact is None or abs(convertToDecimal(e_fact.xValue)) > abs(convertToDecimal(largest_equity_fact.xValue)):
                 largest_equity_fact = e_fact
 
     turnover_facts = val.modelXbrl.factsByLocalName.get(TURNOVER_REVENUE, set())
     largest_turnover_fact = None
     for t_fact in turnover_facts:
         if t_fact.xValid >= VALID:
-            if largest_turnover_fact is None or int(t_fact.value) > int(largest_turnover_fact.value):
+            if largest_turnover_fact is None or convertToDecimal(t_fact.xValue) > convertToDecimal(largest_turnover_fact.xValue):
                 largest_turnover_fact = t_fact
 
     if (largest_equity_fact is not None and
             largest_turnover_fact is not None and
-            int(largest_turnover_fact.value) > (10 * abs(int(largest_equity_fact.value)))):
+            convertToDecimal(largest_turnover_fact.xValue)) > (10 * abs(convertToDecimal(largest_equity_fact.xValue))):
         yield Validation.error(
             "ROS.19",
             _("Turnover / Revenue (DPLTurnoverRevenue) may exceed the maximum expected value. Please review the submission and, if correct, test your submission with Revenue Online's iXBRL test facility."),
