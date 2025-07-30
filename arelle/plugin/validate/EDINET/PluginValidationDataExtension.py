@@ -37,6 +37,8 @@ class PluginValidationDataExtension(PluginData):
     assetsIfrsQn: QName
     liabilitiesAndEquityIfrsQn: QName
 
+    contextIdPattern: str
+
     _primaryModelXbrl: ModelXbrl | None = None
 
     def __init__(self, name: str):
@@ -44,6 +46,8 @@ class PluginValidationDataExtension(PluginData):
         jpigpNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jpigp/2024-11-01/jpigp_cor"
         self.assetsIfrsQn = qname(jpigpNamespace, 'AssetsIFRS')
         self.liabilitiesAndEquityIfrsQn = qname(jpigpNamespace, "LiabilitiesAndEquityIFRS")
+
+        self.contextIdPattern = r'(Prior[1-9]Year|CurrentYear|Prior[1-9]Interim|Interim)(Duration|Instant)'
 
     # Identity hash for caching.
     def __hash__(self) -> int:
