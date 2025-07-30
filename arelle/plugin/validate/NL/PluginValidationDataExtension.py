@@ -14,6 +14,7 @@ from lxml.etree import _Comment, _ElementTree, _Entity, _ProcessingInstruction, 
 
 from arelle import XbrlConst
 from arelle.FunctionIxt import ixtNamespaces
+from arelle.LinkbaseType import LinkbaseType
 from arelle.ModelDocument import ModelDocument, Type as ModelDocumentType
 from arelle.ModelDtsObject import ModelConcept, ModelRelationship
 from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelInlineFootnote, ModelUnit, ModelInlineFact
@@ -27,7 +28,6 @@ from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
 from arelle.XbrlConst import ixbrl11, xhtmlBaseIdentifier, xmlBaseIdentifier
 from arelle.XmlValidate import lexicalPatterns
 from arelle.XmlValidateConst import VALID
-from .LinkbaseType import LinkbaseType
 
 DEFAULT_MEMBER_ROLE_URI = 'https://www.nltaxonomie.nl/kvk/role/axis-defaults'
 XBRLI_IDENTIFIER_PATTERN = re.compile(r"^(?!00)\d{8}$")
