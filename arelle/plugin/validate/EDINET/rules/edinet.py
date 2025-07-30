@@ -114,13 +114,12 @@ def rule_EC8062W(
     EDINET.EC8062W: The sum of all liabilities and equity must equal the sum of all assets.
     """
     deduplicatedFacts = pluginData.getDeduplicatedFacts(val.modelXbrl)
-    contextIdPattern = regex.compile(rf'^{pluginData.contextIdPattern}$')
 
     factsByContextId = defaultdict(list)
     for fact in deduplicatedFacts:
         if fact.qname not in (pluginData.assetsIfrsQn, pluginData.liabilitiesAndEquityIfrsQn):
             continue
-        if fact.contextID is None or not contextIdPattern.match(fact.contextID):
+        if fact.contextID is None or not pluginData.contextIdPattern.fullmatch(fact.contextID):
             continue
         factsByContextId[fact.contextID].append(fact)
 

@@ -21,7 +21,7 @@ from ..PluginValidationDataExtension import PluginValidationDataExtension
 _: TypeGetText
 
 
-# Per "Framework Design of EDINET  Taxonomy", ELR definitions contain a 6-digit
+# Per "Framework Design of EDINET Taxonomy", ELR definitions contain a 6-digit
 # can be used to categorize the ELR.
 FINANCIAL_STATEMENT_ELR_PREFIXES = (
     '3', # Codes starting with 3 indicate "Japanese GAAP Financial Statement"
@@ -70,14 +70,13 @@ def rule_EC8013W(
     financialStatementConcepts.update(labelsRelationshipSet.fromModelObjects().keys())
     financialStatementConcepts.update(labelsRelationshipSet.toModelObjects().keys())
 
-    pattern = regex.compile(rf'^{pluginData.contextIdPattern}')
     invalidContextIdMap = defaultdict(list)
     for fact in val.modelXbrl.facts:
         if fact.concept not in financialStatementConcepts:
             continue
         if fact.contextID is None:
             continue
-        if not pattern.match(fact.contextID):
+        if not pluginData.contextIdPattern.match(fact.contextID):
             invalidContextIdMap[fact.contextID].append(fact)
     for contextId, facts in invalidContextIdMap.items():
         yield Validation.warning(
