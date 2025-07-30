@@ -3,8 +3,13 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
+from collections import defaultdict
 from typing import Any, Iterable
 
+import regex
+
+from arelle import XbrlConst
+from arelle.ModelDtsObject import ModelConcept
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
@@ -14,6 +19,77 @@ from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
+
+
+# Per "Framework Design of EDINET  Taxonomy", ELR definitions contain a 6-digit
+# can be used to categorize the ELR.
+FINANCIAL_STATEMENT_ELR_PREFIXES = (
+    '3', # Codes starting with 3 indicate "Japanese GAAP Financial Statement"
+    '5', # Codes starting with 5 indicate "IFRS Financial Statement"
+)
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8013W(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8013W: The context ID of the element associated with the financial statement
+    extended link role begins with one of the following strings:
+    Prior?YearDuration
+    CurrentYearDuration
+    Prior?YearInstant
+    CurrentYearInstant
+    InterimDuration
+    InterimInstant
+    Prior?InterimDuration
+    Prior?InterimInstant
+    Where ? is a digit from 1 to 9.
+    """
+    financialStatementRoleTypes = set()
+    for roleUri, roleTypes in val.modelXbrl.roleTypes.items():
+        for roleType in roleTypes:
+            definition = roleType.definition
+            roleTypeCode = roleType.definition.split(' ')[0] if definition else None
+            if roleTypeCode is None:
+                continue
+            if any(roleTypeCode.startswith(prefix) for prefix in FINANCIAL_STATEMENT_ELR_PREFIXES):
+                financialStatementRoleTypes.add(roleType)
+
+    financialStatementConcepts: set[ModelConcept] = set()
+    labelsRelationshipSet = val.modelXbrl.relationshipSet(
+        XbrlConst.parentChild,
+        tuple(roleType.roleURI for roleType in financialStatementRoleTypes)
+    )
+    financialStatementConcepts.update(labelsRelationshipSet.fromModelObjects().keys())
+    financialStatementConcepts.update(labelsRelationshipSet.toModelObjects().keys())
+
+    pattern = regex.compile(rf'^{pluginData.contextIdPattern}')
+    invalidContextIdMap = defaultdict(list)
+    for fact in val.modelXbrl.facts:
+        if fact.concept not in financialStatementConcepts:
+            continue
+        if fact.contextID is None:
+            continue
+        if not pattern.match(fact.contextID):
+            invalidContextIdMap[fact.contextID].append(fact)
+    for contextId, facts in invalidContextIdMap.items():
+        yield Validation.warning(
+            codes='EDINET.EC8013W',
+            msg=_("The context ID (id=%(contextId)s) for the element related to the extended link role "
+                  "in Financial Statement is not per convention. Please set the context ID of the element "
+                  "related to the extended link role of financial statements according to the rules. For "
+                  "the financial statements, please refer to \"3-4-2 Setting the Context\" in the "
+                  "\"Validation Guidelines\"."),
+            contextId=contextId,
+            modelObject=facts,
+        )
 
 
 @validation(
