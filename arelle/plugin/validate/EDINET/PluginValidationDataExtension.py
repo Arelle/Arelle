@@ -39,7 +39,7 @@ class PluginValidationDataExtension(PluginData):
     assetsIfrsQn: QName
     liabilitiesAndEquityIfrsQn: QName
 
-    contextIdPattern: str
+    contextIdPattern: regex.Pattern[str]
 
     _primaryModelXbrl: ModelXbrl | None = None
 
