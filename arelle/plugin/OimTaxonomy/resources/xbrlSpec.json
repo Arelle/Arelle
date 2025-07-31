@@ -989,6 +989,15 @@
                 ]
             },
             {
+                "name":"xbrl:baseUnitsStandard",
+                "allowedObjects": [
+                    "xbrl:unitObject"
+                ],
+                "requiredProperties": [
+                    "utr:baseStandardIdentifier"
+                ]
+            },
+            {
                 "name":"xbrl:specStatus",
                 "allowedObjects": [
                     "xbrl:dataTypeObject"

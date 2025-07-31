@@ -230,8 +230,10 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                 msg = err.message
                 if err.absolute_path[-1] == "allowedAsLinkProperty" and " is not of type " in msg:
                     errCode = "oimte:invalidPropertyValue"
+                elif err.absolute_path[-1] == "language" and " does not match " in msg:
+                    errCode = "oimte:invalidLanguage"
                 else:
-                    errCode = "jsonschema:invalidJSONStructure",
+                    errCode = "oimte:invalidJSONStructure",
                 error(errCode,
                       _("Error: %(error)s, jsonObj: %(path)s"),
                       sourceFileLine=href, error=msg, path="".join(path))

@@ -88,14 +88,20 @@ def validateProperties(txmyMdl, oimFile, txmy, obj):
                 parentName = f"{obj.source}\u2192{obj.target}"
             else:
                 parentName = ""
-            txmyMdl.error("oimte:missingQNameReference",
-                      _("%(parentObjName)s %(parentName)s property %(name)s has undefined dataType %(dataType)s"),
-                      file=oimFile, parentObjName=objType(obj), parentName=parentName,
-                      name=propTypeQn, dataType=propTypeQn)
+            if propTypeObj is None:
+                txmyMdl.error("oimte:missingQNameReference",
+                          _("%(parentObjName)s %(parentName)s property %(name)s has undefined dataType %(dataType)s"),
+                          file=oimFile, parentObjName=objType(obj), parentName=parentName,
+                          name=propTypeQn, dataType=propTypeQn)
+            else:
+                txmyMdl.error("invalidObjectType",
+                          _("%(parentObjName)s %(parentName)s property %(name)s has invalid property type object %(dataType)s"),
+                          file=oimFile, parentObjName=objType(obj), parentName=parentName,
+                          name=propTypeQn, dataType=propTypeQn)
         else: # have property type object
             if propTypeObj.allowedObjects:
                 if xbrlObjectQNames.get(type(obj)) not in propTypeObj.allowedObjects:
-                    txmyMdl.error("oimte:invalidObjectProperty",
+                    txmyMdl.error("oime:disallowedObjectProperty",
                               _("%(parentObjName)s %(parentName)s property %(name)s not an allowed property type for the object."),
                               file=oimFile, parentObjName=objType(obj), parentName=getattr(obj,"name","(n/a)"),
                               name=propTypeQn)
@@ -226,10 +232,14 @@ def validateTaxonomy(txmyMdl, txmy):
                         txmyMdl.error("oimte:missingDimensionTypeProperty",
                                   _("The cube type %(name)s, allowedCubeDimension[%(i)s], dimensionType is required if dimensionName is not defined."),
                                   xbrlObject=cubeType, name=name, i=i, dimType=_dimType)
+                    if _dimType == "explicit" and _typedDimType:
+                        txmyMdl.error("oimte:invalidDimensionDataTypeProperty",
+                                  _("The cube type %(name)s, allowedCubeDimension[%(i)s], dimensionType MUST NOT be defined if the dimensionType is explicit."),
+                                  xbrlObject=cubeType, name=name, i=i, dimType=_dimType)
         for i, reqdRelshp in enumerate(getattr(cubeType, "requiredCubeRelationships", ())):
             relType = getattr(reqdRelshp, "relationshipTypeName", None)
             if not isinstance(txmyMdl.namedObjects.get(relType), XbrlRelationshipType):
-                txmyMdl.error("oimte:cubeTypeRequiredRelationshipType",
+                txmyMdl.error("oimte:invalidRelationshipTypeName",
                           _("The cube type %(name)s, requiredCubeRelationship[%(i)s] relationshipTypeName %(relTypeName)s does not resolve to a relationshipType object."),
                           xbrlObject=cubeType, name=name, i=i, relTypeName=relType)
             for prop in ("source", "sourceObject", "sourceDatatype", "target", "targetObject", "targetDatatype"):
@@ -581,8 +591,8 @@ def validateTaxonomy(txmyMdl, txmy):
                       _("The domain object MUST have either a name or an extendTargetName, not neither."),
                       xbrlObject=domObj)
 
-        if not domObj.extendTargetName and not isinstance(txmyMdl.namedObjects.get(domObj.root), XbrlDomainRoot):
-            txmyMdl.error("oimte:missingQNameReference",
+        if not isinstance(txmyMdl.namedObjects.get(domObj.root), XbrlDomainRoot):
+            txmyMdl.error("oimte:unknownDomainRoot",
                       _("The domain %(name)s root %(qname)s MUST be a valid domainRoot object in the taxonomy model"),
                       xbrlObject=domObj, name=domObj.name, qname=domObj.root)
         domRelCts = {}
@@ -687,11 +697,6 @@ def validateTaxonomy(txmyMdl, txmy):
     for lblObj in txmy.labels:
         assertObjectType(lblObj, XbrlLabel)
         relatedName = lblObj.relatedName
-        lang = lblObj.language
-        if not languagePattern.match(lang):
-            txmyMdl.error("oime:invalidLanguage",
-                      _("Label %(relatedName)s has invalid language %(lang)s"),
-                      xbrlObject=lblObj, relatedName=relatedName, lang=lang)
         relatedObj = None
         if relatedName not in txmyMdl.namedObjects:
             txmyMdl.error("oimte:unresolvedRelatedName",
@@ -712,7 +717,7 @@ def validateTaxonomy(txmyMdl, txmy):
                       _("Label has invalid labelType %(labelType)s"),
                       xbrlObject=lblObj, labelType=lblObj.labelType)
         validateProperties(txmyMdl, oimFile, txmy, lblObj)
-        lblKey = (relatedName, lblObj.labelType, lang)
+        lblKey = (relatedName, lblObj.labelType, lblObj.language)
         labelsCt[lblKey].append(lblObj)
     for lblKey, lblObjs in labelsCt.items():
         if len(lblObjs) > 1:
@@ -851,7 +856,6 @@ def validateTaxonomy(txmyMdl, txmy):
                       xbrlObject=propTpObj, name=relTpObj.name, property=prop, propTypes=", ".join(str(q) for q in reqdNotAllowed))
 
     # Reference Objects
-    refsWithInvalidLang = defaultdict(list)
     refsWithInvalidRelName = []
     refInvalidNames = []
     refsDup = defaultdict(list)
@@ -861,8 +865,6 @@ def validateTaxonomy(txmyMdl, txmy):
         lang = refObj.language
         refTp = refObj.referenceType
         extName = refObj.extendTargetName
-        if lang is not None and not languagePattern.match(lang):
-            refsWithInvalidLang[lang].append(refObj)
         for relName in refObj.relatedNames:
             if relName not in txmyMdl.namedObjects:
                 refsWithInvalidRelName.append(refObj)
@@ -896,16 +898,12 @@ def validateTaxonomy(txmyMdl, txmy):
         txmyMdl.warning("oimte:unresolvedRelatedNameWarning",
                   _("References have invalid related object names %(relNames)s"),
                   xbrlObject=refsWithInvalidRelName, name=name, relNames=", ".join(str(qn) for qn in refInvalidNames))
-    for lang, refObjs in refsWithInvalidLang:
-        txmyMdl.warning("oime:invalidLanguageWarning",
-                  _("Reference object(s) have invalid language %(lang)s"),
-                  xbrlObject=refObjs, lang=lang)
     for name, refsDups in refsDup.items():
         if len(refsDups) > 1:
             txmyMdl.error("oimte:duplicateObjects",
                           _("The referenceType %(name)s is duplicated."),
                           xbrlObject=refsDups, name=name)
-    del refsWithInvalidLang, refsWithInvalidRelName, refInvalidNames, refsDup # dereference
+    del refsWithInvalidRelName, refInvalidNames, refsDup # dereference
 
     # Label Objects
     lblTpCt = {}
