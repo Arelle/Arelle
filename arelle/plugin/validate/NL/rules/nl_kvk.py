@@ -11,6 +11,7 @@ from typing import Any, cast, TYPE_CHECKING
 
 from lxml.etree import Element
 
+from arelle.LinkbaseType import LinkbaseType
 from arelle.ModelDtsObject import ModelConcept, ModelLink, ModelResource, ModelType
 from arelle.ModelInstanceObject import ModelInlineFact
 from arelle.ModelObject import ModelObject
@@ -31,7 +32,6 @@ from arelle.ValidateDuplicateFacts import getHashEquivalentFactGroups, getAspect
 from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
 from ..DisclosureSystems import (ALL_NL_INLINE_DISCLOSURE_SYSTEMS, NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
                                  NL_INLINE_GAAP_OTHER_DISCLOSURE_SYSTEMS)
-from ..LinkbaseType import LinkbaseType
 from ..PluginValidationDataExtension import (
     PluginValidationDataExtension,
     ALLOWABLE_LANGUAGES,

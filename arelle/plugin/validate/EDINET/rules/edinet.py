@@ -7,9 +7,8 @@ from collections import defaultdict
 from decimal import Decimal
 from typing import Any, Iterable, cast
 
-import regex
-
 from arelle import XbrlConst, ValidateDuplicateFacts
+from arelle.LinkbaseType import LinkbaseType
 from arelle.ValidateDuplicateFacts import DuplicateType
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.XmlValidateConst import VALID
@@ -72,7 +71,7 @@ def rule_EC5002E(
     errorFacts = []
     for fact in val.modelXbrl.facts:
         concept = fact.concept
-        if not concept.isShares:
+        if concept is None or not concept.isShares:
             continue
         unit = fact.unit
         measures = unit.measures
@@ -127,6 +126,56 @@ def rule_EC8024E(
             unit=fact.unitID,
             modelObject=duplicateFactSet.facts,
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8027W(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8027W: For presentation links and definition links, there must be
+    only one root element.
+    File name: xxx <Extended link role = yyy>
+    Please correct the extended link role of the relevant file. Please set only one
+    root element of the extended link role in the presentation link and definition link.
+    """
+    linkbaseTypes = (LinkbaseType.PRESENTATION, LinkbaseType.DEFINITION)
+    roleTypes = [
+        roleType
+        for roleTypes in val.modelXbrl.roleTypes.values()
+        for roleType in roleTypes
+    ]
+    for roleType in roleTypes:
+        for linkbaseType in linkbaseTypes:
+            if linkbaseType.getLinkQn() not in roleType.usedOns:
+                continue
+            arcroles = linkbaseType.getArcroles()
+            relSet = val.modelXbrl.relationshipSet(tuple(arcroles), roleType.roleURI)
+            relSetFrom = relSet.loadModelRelationshipsFrom()
+            rootConcepts = relSet.rootConcepts
+            if len(rootConcepts) < 2:
+                continue
+            rels = [
+                rel
+                for rootConcept in rootConcepts
+                for rel in relSetFrom[rootConcept]
+            ]
+            yield Validation.warning(
+                codes='EDINET.EC8027W',
+                msg=_("For presentation links and definition links, there must be only one root element. "
+                      "File name: %(filename)s <Extended link role = %(roleUri)s> "
+                      "Please correct the extended link role of the relevant file. Please set only one "
+                      "root element of the extended link role in the presentation link and definition link."),
+                filename=rels[0].modelDocument.basename,
+                roleUri=roleType.roleURI,
+                modelObject=rels,
+            )
 
 
 @validation(
