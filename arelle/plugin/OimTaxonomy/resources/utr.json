@@ -2861,15 +2861,6 @@
         ],
         "referenceTypes": [
             {
-                "name": "utr:baseUnitsStandard",
-                "allowedObjects": [
-                    "xbrl:unitObject"
-                ],
-                "requiredProperties": [
-                    "utr:baseStandardIdentifier"
-                ]
-            },
-            {
                 "name": "utr:unitCreationDate",
                 "allowedObjects": [
                     "xbrl:unitObject"
