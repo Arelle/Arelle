@@ -315,7 +315,7 @@ def rule_ros19(
 
     if (largest_equity_fact is not None and
             largest_turnover_fact is not None and
-            convertToDecimal(largest_turnover_fact.xValue)) > (10 * abs(convertToDecimal(largest_equity_fact.xValue))):
+            convertToDecimal(largest_turnover_fact.xValue) > (10 * abs(convertToDecimal(largest_equity_fact.xValue)))):
         yield Validation.error(
             "ROS.19",
             _("Turnover / Revenue (DPLTurnoverRevenue) may exceed the maximum expected value. Please review the submission and, if correct, test your submission with Revenue Online's iXBRL test facility."),
