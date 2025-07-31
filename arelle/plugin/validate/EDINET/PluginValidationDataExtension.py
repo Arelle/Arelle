@@ -9,6 +9,8 @@ from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 
+import regex
+
 from arelle.ModelDocument import Type as ModelDocumentType
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelObject import ModelObject
@@ -37,6 +39,8 @@ class PluginValidationDataExtension(PluginData):
     assetsIfrsQn: QName
     liabilitiesAndEquityIfrsQn: QName
 
+    contextIdPattern: regex.Pattern[str]
+
     _primaryModelXbrl: ModelXbrl | None = None
 
     def __init__(self, name: str):
@@ -44,6 +48,8 @@ class PluginValidationDataExtension(PluginData):
         jpigpNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jpigp/2024-11-01/jpigp_cor"
         self.assetsIfrsQn = qname(jpigpNamespace, 'AssetsIFRS')
         self.liabilitiesAndEquityIfrsQn = qname(jpigpNamespace, "LiabilitiesAndEquityIFRS")
+
+        self.contextIdPattern = regex.compile(r'(Prior[1-9]Year|CurrentYear|Prior[1-9]Interim|Interim)(Duration|Instant)')
 
     # Identity hash for caching.
     def __hash__(self) -> int:
