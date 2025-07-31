@@ -38,7 +38,10 @@ class UploadContents:
 @dataclass
 class PluginValidationDataExtension(PluginData):
     assetsIfrsQn: QName
-    filingDateCoverPageQn: QName
+    documentTypeDeiQn: QName
+    jpcrpEsrFilingDateCoverPageQn: QName
+    jpcrpFilingDateCoverPageQn: QName
+    jpspsFilingDateCoverPageQn: QName
     liabilitiesAndEquityIfrsQn: QName
     nonConsolidatedMemberQn: QName
 
@@ -48,12 +51,12 @@ class PluginValidationDataExtension(PluginData):
 
     def __init__(self, name: str):
         super().__init__(name)
-        jpdeiNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpdei/2013-08-31/jpdei_cor'
-        jpspsNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpsps/2024-11-01/jpsps_cor'
         jpcrpEsrNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jpcrp-esr/2024-11-01/jpcrp-esr_cor"
         jpcrpNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpcrp/2024-11-01/jpcrp_cor'
+        jpdeiNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpdei/2013-08-31/jpdei_cor'
         jpigpNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jpigp/2024-11-01/jpigp_cor"
         jppfsNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jppfs/2024-11-01/jppfs_cor"
+        jpspsNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpsps/2024-11-01/jpsps_cor'
         self.assetsIfrsQn = qname(jpigpNamespace, 'AssetsIFRS')
         self.documentTypeDeiQn = qname(jpdeiNamespace, 'DocumentTypeDEI')
         self.jpcrpEsrFilingDateCoverPageQn = qname(jpcrpEsrNamespace, 'FilingDateCoverPage')
