@@ -11,6 +11,7 @@ import regex
 
 from arelle import XbrlConst
 from arelle.ValidateXbrl import ValidateXbrl
+from arelle.XmlValidateConst import VALID
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
@@ -19,6 +20,34 @@ from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC1057E(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC1057E: The submission date on the cover page has not been filled in.
+    Ensure that there is a nonnil value disclosed for FilingDateCoverPage
+    Note: This rule is only applicable to the public documents.
+    """
+    dei = pluginData.getDocumentTypes(val.modelXbrl)
+    if len(dei) > 0:
+        jpcrpEsrFacts = val.modelXbrl.factsByQname.get(pluginData.jpcrpEsrFilingDateCoverPageQn, set())
+        jpcrpFacts = val.modelXbrl.factsByQname.get(pluginData.jpcrpFilingDateCoverPageQn, set())
+        jpspsFacts = val.modelXbrl.factsByQname.get(pluginData.jpspsFilingDateCoverPageQn, set())
+        requiredFacts = jpcrpFacts.union(jpspsFacts, jpcrpEsrFacts)
+        if not any(fact.xValid >= VALID and not fact.isNil for fact in requiredFacts):
+            yield Validation.error(
+                codes='EDINET.EC1057E',
+                msg=_("The [Submission Date] on the cover page has not been filled in."),
+            )
 
 
 @validation(

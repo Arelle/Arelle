@@ -17,6 +17,7 @@ from arelle.ModelXbrl import ModelXbrl
 from arelle.PrototypeDtsObject import LinkPrototype
 from arelle.ValidateDuplicateFacts import getDeduplicatedFacts, DeduplicationType
 from arelle.ValidateXbrl import ValidateXbrl
+from arelle.XmlValidate import VALID
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
 from .FormType import FormType
@@ -35,14 +36,23 @@ class UploadContents:
 @dataclass
 class PluginValidationDataExtension(PluginData):
     assetsIfrsQn: QName
+    filingDateCoverPageQn: QName
     liabilitiesAndEquityIfrsQn: QName
 
     _primaryModelXbrl: ModelXbrl | None = None
 
     def __init__(self, name: str):
         super().__init__(name)
+        jpdeiNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpdei/2013-08-31/jpdei_cor'
+        jpspsNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpsps/2024-11-01/jpsps_cor'
+        jpcrpEsrNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jpcrp-esr/2024-11-01/jpcrp-esr_cor"
+        jpcrpNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpcrp/2024-11-01/jpcrp_cor'
         jpigpNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jpigp/2024-11-01/jpigp_cor"
         self.assetsIfrsQn = qname(jpigpNamespace, 'AssetsIFRS')
+        self.documentTypeDeiQn = qname(jpdeiNamespace, 'DocumentTypeDEI')
+        self.jpcrpEsrFilingDateCoverPageQn = qname(jpcrpEsrNamespace, 'FilingDateCoverPage')
+        self.jpcrpFilingDateCoverPageQn = qname(jpcrpNamespace, 'FilingDateCoverPage')
+        self.jpspsFilingDateCoverPageQn = qname(jpspsNamespace, 'FilingDateCoverPage')
         self.liabilitiesAndEquityIfrsQn = qname(jpigpNamespace, "LiabilitiesAndEquityIFRS")
 
     # Identity hash for caching.
@@ -78,6 +88,15 @@ class PluginValidationDataExtension(PluginData):
     @lru_cache(1)
     def getDeduplicatedFacts(self, modelXbrl: ModelXbrl) -> list[ModelFact]:
         return getDeduplicatedFacts(modelXbrl, DeduplicationType.CONSISTENT_PAIRS)
+
+    @lru_cache(1)
+    def getDocumentTypes(self, modelXbrl: ModelXbrl) -> set[str]:
+        documentFacts = modelXbrl.factsByQname.get(self.documentTypeDeiQn, set())
+        documentTypes = set()
+        for fact in documentFacts:
+            if fact.xValid >= VALID:
+                documentTypes.add(fact.textValue)
+        return documentTypes
 
     @lru_cache(1)
     def getFootnoteLinkElements(self, modelXbrl: ModelXbrl) -> list[ModelObject | LinkPrototype]:
