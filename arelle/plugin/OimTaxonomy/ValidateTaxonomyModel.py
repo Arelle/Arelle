@@ -158,14 +158,34 @@ def validateTaxonomy(txmyMdl, txmy):
     for cubeType in txmy.cubeTypes:
         assertObjectType(cubeType, XbrlCubeType)
         name = cubeType.name
+        if cubeType.baseCubeType is not None:
+            if cubeType.baseCubeType not in txmyMdl.namedObjects:
+                txmyMdl.error("oimte:oimte:missingQNameReference",
+                          _("The cube type %(name)s, specifies base cube type %(base)s which is not defined."),
+                          xbrlObject=cubeType, name=name, base=cubeType.baseCubeType)
+            else:
+                baseCubeType = txmyMdl.namedObjects.get(cubeType.baseCubeType)
+                if isinstance(baseCubeType, XbrlCubeType):
+                    if cubeType.periodDimension or cubeType.entityDimension or cubeType.unitDimension or cubeType.taxonomyDefinedDimension:
+                        txmyMdl.error("oimte:dimensionsInconsistentWithBaseCube",
+                                  _("The cube type %(name)s, specifies base cube type %(base)s and periodDimension, entityDimension, unitDimension and taxonomyDefinedDimension MUST be false if defined."),
+                                  xbrlObject=cubeType, name=name, base=cubeType.baseCubeType)
+                else:
+                    txmyMdl.error("oimte:invalidBaseCubeTypeReference",
+                              _("The cube type %(name)s, specifies base cube type %(base)s which is not a cube type object."),
+                              xbrlObject=cubeType, name=name, base=cubeType.baseCubeType)
         allowedCubeDims = cubeType.effectivePropVal("allowedCubeDimensions", txmyMdl) # gets inherited property
         _derivedAlwdDims = cubeType.allowedCubeDimensions # gets this cubeType property
         if _derivedAlwdDims and _derivedAlwdDims != allowedCubeDims:
-            txmyMdl.error("oimte:cubeTypeAllowedDimensionsConflict",
+            txmyMdl.error("oimte:dimensionsInconsistentWithBaseCube",
                       _("The cubeType %(name)s, must not specify allowedCubeDimensions overriding base cue allowedCubeDimensions"),
                       xbrlObject=cubeType, name=name)
         if allowedCubeDims is not None:
-            if not allowedCubeDims:
+            if not cubeType.taxonomyDefinedDimension:
+                txmyMdl.error("oimte:inconsistentTaxonomyDefinedDimensionProperty",
+                          _("The cube %(name)s, type %(cubeType)s, allowedCubeDimensions MUST only be specified when taxonomyDefinedDimension is true."),
+                          xbrlObject=cubeType, name=name, cubeType=cubeType.name)
+            elif not allowedCubeDims:
                 txmyMdl.error("oimte:invalidEmptySet",
                           _("The cube %(name)s, type %(cubeType)s, allowedCubeDimensions must not be empty"),
                           xbrlObject=cubeType, name=name, cubeType=cubeType.name)
@@ -177,28 +197,50 @@ def validateTaxonomy(txmyMdl, txmy):
                 _dimName = allwdDim.dimensionName
                 _dimType = allwdDim.dimensionType
                 _typedDimType = allwdDim.dimensionDataType
-                if not _dimName and not _dimType and not_typedDimType:
-                    txmyMdl.error("oimte:cubeTypeAllowedDimensionProperties",
-                              _("The cube type %(name)s, allowedCubeDimension[%(i)s] object must specify one of dimensionName, dimensionType or dimensionDataType."),
+                if _dimName in coreDimensions:
+                    txmyMdl.error("oimte:coreDimensionDefinedAsAllowedCubeDimension",
+                              _("The cube type %(name)s, allowedCubeDimension[%(i)s] object MUST NOT include a dimensionName property that is xbrl:concept, xbrl:entity, xbrl:unit, xbrl:period or xbrl:language."),
                               xbrlObject=cubeType, name=name, i=i, dimName=_dimName)
-                if _dimName and not isinstance(txmyMdl.namedObjects.get(_dimName), XbrlDimension):
-                    txmyMdl.error("oimte:cubeTypeAllowedDimensionName",
-                              _("The cube type %(name)s, allowedCubeDimension[%(i)s] dimensionName %(dimName)s does not resolve to a dimension object."),
-                              xbrlObject=cubeType, name=name, i=i, dimName=_dimName)
-                if _dimType not in (None, "typed", "explicit"):
-                    txmyMdl.error("oimte:cubeTypeAllowedDimensionType",
-                              _("The cube type %(name)s, allowedCubeDimension[%(i)s] dimensionType %(dimType)s is invalid."),
-                              xbrlObject=cubeType, name=name, i=i, dimType=_dimType)
-                if _typedDimType and not isinstance(txmyMdl.namedObjects.get(_typedDimType), XbrlDataType):
-                    txmyMdl.error("oimte:cubeTypeAllowedDimensionDataType",
-                              _("The cube type %(name)s, allowedCubeDimension dimensionDataType %(typedDimType)s does not resolve to a dataType object."),
-                              xbrlObject=cubeType, name=name, i=i, typedDimType=_typedDimType)
+                else:
+                    if not _dimName and not _dimType and not _typedDimType:
+                        txmyMdl.error("oimte:cubeTypeAllowedDimensionProperties",
+                                  _("The cube type %(name)s, allowedCubeDimension[%(i)s] object must specify one of dimensionName, dimensionType or dimensionDataType."),
+                                  xbrlObject=cubeType, name=name, i=i, dimName=_dimName)
+                    if _dimName and not isinstance(txmyMdl.namedObjects.get(_dimName), XbrlDimension):
+                        txmyMdl.error("oimte:invalidTaxonomyDefinedDimension",
+                                  _("The cube type %(name)s, allowedCubeDimension[%(i)s] dimensionName %(dimName)s does not resolve to a dimension object."),
+                                  xbrlObject=cubeType, name=name, i=i, dimName=_dimName)
+                    if _dimType not in (None, "typed", "explicit"):
+                        txmyMdl.error("oimte:cubeTypeAllowedDimensionType",
+                                  _("The cube type %(name)s, allowedCubeDimension[%(i)s] dimensionType %(dimType)s is invalid."),
+                                  xbrlObject=cubeType, name=name, i=i, dimType=_dimType)
+                    if _typedDimType and not isinstance(txmyMdl.namedObjects.get(_typedDimType), XbrlDataType):
+                        txmyMdl.error("oimte:cubeTypeAllowedDimensionDataType",
+                                  _("The cube type %(name)s, allowedCubeDimension[%(i)s], dimensionDataType %(typedDimType)s does not resolve to a dataType object."),
+                                  xbrlObject=cubeType, name=name, i=i)
+                    if not _dimName and (not _dimType or not _typedDimType):
+                        txmyMdl.error("oimte:missingDimensionTypeProperty",
+                                  _("The cube type %(name)s, allowedCubeDimension[%(i)s], dimensionName is required if dimensionType or dimensionDataType is not defined."),
+                                  xbrlObject=cubeType, name=name, i=i)
+                    elif not _dimName and not _dimType:
+                        txmyMdl.error("oimte:missingDimensionTypeProperty",
+                                  _("The cube type %(name)s, allowedCubeDimension[%(i)s], dimensionType is required if dimensionName is not defined."),
+                                  xbrlObject=cubeType, name=name, i=i, dimType=_dimType)
         for i, reqdRelshp in enumerate(getattr(cubeType, "requiredCubeRelationships", ())):
             relType = getattr(reqdRelshp, "relationshipTypeName", None)
             if not isinstance(txmyMdl.namedObjects.get(relType), XbrlRelationshipType):
                 txmyMdl.error("oimte:cubeTypeRequiredRelationshipType",
                           _("The cube type %(name)s, requiredCubeRelationship[%(i)s] relationshipTypeName %(relTypeName)s does not resolve to a relationshipType object."),
                           xbrlObject=cubeType, name=name, i=i, relTypeName=relType)
+            for prop in ("source", "sourceObject", "sourceDatatype", "target", "targetObject", "targetDatatype"):
+                compObj = prop.endswith("Object")
+                propVal = getattr(reqdRelshp, prop, None)
+                if propVal is not None and (
+                    (compObj ^ (propVal in xbrlObjectTypes)) or 
+                    (not compObj and propVal not in txmyMdl.namedObjects)): # note that tag objects aren't referencable by name
+                    txmyMdl.error("oimte:invalidSourceOrTargetObjectType" if compObj else "oimte:invalidSourceOrTargetType",
+                              _("The cube type %(name)s, requiredCubeRelationship[%(i)s] %(property)s, %(value)s, does not resolve to a %(non)staxonomy component object."),
+                              xbrlObject=cubeType, name=name, i=i, property=prop, value=propVal, non=("" if compObj else "non "))
 
     # Cube Objects
     for cubeObj in txmy.cubes:
