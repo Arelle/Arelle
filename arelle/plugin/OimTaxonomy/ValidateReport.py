@@ -14,7 +14,7 @@ from .XbrlConcept import XbrlConcept, XbrlDataType
 from .XbrlCube import conceptCoreDim, languageCoreDim, periodCoreDim, unitCoreDim, coreDimensions
 from .XbrlDimension import XbrlDimension, XbrlMember
 from .XbrlTableTemplate import XbrlTableTemplate
-from .XbrlUnit import parseUnitString
+from .XbrlUnit import parseUnitString, XbrlUnit
 from .ValidateTaxonomyModel import validateValue
 from .ValidateCubes import validateCubes
 
@@ -92,50 +92,63 @@ def validateFact(fact, reportQn, reportObj, txmyMdl):
                 error("oime:unknownDimension",
                               _("Fact %(name)s taxonomy-defined dimension QName not be resolved with available DTS: %(qname)s."),
                               qname=dimName)
-        if isinstance(dimName, QName) and dimName not in coreDimensions:
+        if isinstance(dimName, QName):
             dimObj = txmyMdl.namedObjects.get(dimName)
-            if not isinstance(dimObj, XbrlDimension):
-                error("oime:unknownDimension",
-                              _("Fact %(name)s taxonomy-defined dimension QName not be resolved with available DTS: %(qname)s."),
-                              qname=dimName)
-                return
-            if dimObj.isExplicitDimension:
-                if initialValidation and isinstance(dimVal, str) and ":" in dimVal:
-                    memQn = fact.factDimensions[dimName] = qname(dimVal, reportObj._prefixNamespaces)
-                    if memQn:
-                        updateDimVals[dimName] = memQn
-                else: # already compiled into QName
-                    memQn = dimVal
-                if memQn is None:
-                    error("oime:invalidDimensionValue",
-                                  _("Fact %(name)s taxonomy-defined explicit dimension value is invalid: %(memberQName)s."),
-                                  memberQName=memQn)
-                    return
-                memObj = txmyMdl.namedObjects.get(memQn)
-                if not isinstance(memObj, XbrlMember):
-                    error("oime:invalidDimensionValue",
-                                  _("Fact %(name)s taxonomy-defined explicit dimension value must not be the default member: %(memberQName)s."),
-                                  memberQName=memQn)
-                    return
-            elif dimObj.isTypedDimension:
-                domDataTypeObj = txmyMdl.namedObjects.get(dimObj.domainDataType)
-                if domDataTypeObj is None or domDataTypeObj.xsBaseType in unsupportedTypedDimensionDataTypes or (
-                   domDataTypeObj.instanceOfType(XbrlConst.dtrPrefixedContentTypes, txmyMdl) and not dimObj.domainDataType.instanceOfType(XbrlConst.dtrSQNameNamesTypes, txmyMdl)):
-                    error("oime:unsupportedDimensionDataType",
-                                  _("Fact %(name)s taxonomy-defined typed dimension value is not supported: %(memberQName)s."),
-                                  memberQName=dimVal)
-                    return
-                #if (canonicalValuesFeature and dimVal is not None and
-                #    not CanonicalXmlTypePattern.get(domDataTypeObj.xsBaseType, NoCanonicalPattern).match(dimVal)):
-                #    txmyMdl.error("xbrlje:nonCanonicalValue",
-                #                  _("Numeric typed dimension must have canonical %(type)s value \"%(value)s\": %(concept)s."),
-                #                  xbrlObject=obj, type=dimConcept.typedDomainElement.baseXsdType, concept=dimConcept, value=dimVal)
-                if initialValidation:
-                    _valid, _value = validateValue(txmyMdl, reportObj, dimObj, dimVal, domDataTypeObj, f"/value", "oime:invalidDimensionValue")
-                    if _valid < VALID and fact._valid >= VALID:
-                        fact._valid = _valid # invalidate dimensionally invalid fact
-                    if _valid >= VALID:
-                        updateDimVals[dimName] = _value
+            if dimName not in coreDimensions:
+                if not isinstance(dimObj, XbrlDimension):
+                    error("oime:unknownDimension",
+                                  _("Fact %(name)s taxonomy-defined dimension QName not be resolved to a dimension object with available DTS: %(qname)s."),
+                                  qname=dimName)
+                elif dimObj.isExplicitDimension:
+                    if initialValidation and isinstance(dimVal, str) and ":" in dimVal:
+                        memQn = fact.factDimensions[dimName] = qname(dimVal, reportObj._prefixNamespaces)
+                        if memQn:
+                            updateDimVals[dimName] = memQn
+                    else: # already compiled into QName
+                        memQn = dimVal
+                    if memQn is None:
+                        error("oime:invalidDimensionValue",
+                                      _("Fact %(name)s taxonomy-defined explicit dimension value is invalid: %(memberQName)s."),
+                                      memberQName=memQn)
+                        return
+                    memObj = txmyMdl.namedObjects.get(memQn)
+                    if not isinstance(memObj, XbrlMember):
+                        error("oime:invalidDimensionValue",
+                                      _("Fact %(name)s taxonomy-defined explicit dimension value must not be the default member: %(memberQName)s."),
+                                      memberQName=memQn)
+                        return
+                elif dimObj.isTypedDimension:
+                    domDataTypeObj = txmyMdl.namedObjects.get(dimObj.domainDataType)
+                    if domDataTypeObj is None or domDataTypeObj.xsBaseType in unsupportedTypedDimensionDataTypes or (
+                       domDataTypeObj.instanceOfType(XbrlConst.dtrPrefixedContentTypes, txmyMdl) and not dimObj.domainDataType.instanceOfType(XbrlConst.dtrSQNameNamesTypes, txmyMdl)):
+                        error("oime:unsupportedDimensionDataType",
+                                      _("Fact %(name)s taxonomy-defined typed dimension value is not supported: %(memberQName)s."),
+                                      memberQName=dimVal)
+                        return
+                    #if (canonicalValuesFeature and dimVal is not None and
+                    #    not CanonicalXmlTypePattern.get(domDataTypeObj.xsBaseType, NoCanonicalPattern).match(dimVal)):
+                    #    txmyMdl.error("xbrlje:nonCanonicalValue",
+                    #                  _("Numeric typed dimension must have canonical %(type)s value \"%(value)s\": %(concept)s."),
+                    #                  xbrlObject=obj, type=dimConcept.typedDomainElement.baseXsdType, concept=dimConcept, value=dimVal)
+                    if initialValidation:
+                        _valid, _value = validateValue(txmyMdl, reportObj, dimObj, dimVal, domDataTypeObj, f"/value", "oime:invalidDimensionValue")
+                        if _valid < VALID and fact._valid >= VALID:
+                            fact._valid = _valid # invalidate dimensionally invalid fact
+                        if _valid >= VALID:
+                            updateDimVals[dimName] = _value
+            elif dimName == unitCoreDim:
+                for unitNumDenom in dimVal:
+                    for unitQn in unitNumDenom:
+                        unitObj = txmyMdl.namedObjects.get(unitQn)
+                        if not isinstance(unitObj, XbrlUnit):
+                            error("oime:unknownDimension",
+                                          _("Fact %(name)s unit dimension QName not be resolved to an xbrl Unit object with available DTS: %(qname)s."),
+                                          qname=dimName)
+                        elif not cDataType.instanceOfType(unitObj.dataType, txmyMdl): 
+                            error("oimte:invalidPropertyValue",
+                                          _("Fact %(name)s unit dimension data type %(unitDataType)s does not correspond to concept data type %(factDataType)s."),
+                                          unitDataType=unitObj.dataType, factDataType=cObj.dataType)
+            
     for dimName, dimVal in updateDimVals.items():
         fact.factDimensions[dimName] = dimVal
 

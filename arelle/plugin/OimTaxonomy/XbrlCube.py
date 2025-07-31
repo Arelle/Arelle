@@ -68,8 +68,12 @@ class XbrlAllowedCubeDimension(XbrlTaxonomyObject):
 
 class XbrlRequiredCubeRelationship(XbrlTaxonomyObject):
     relationshipTypeName: QName # (required) The relationship type QName of a relationship. This requires that at lease one of these relationship types exist on the cube.
-    source: Optional[QName] # (optional) The QName of the source object type in the relationship.
-    target: Optional[QName] # (optional) The QName of the target object type in the relationship.
+    source: Optional[QName] # (optional) The QName of the source object in the relationship, such as a concept QName.
+    sourceObject: Optional[QName] # (optional) The QName of the source object type in the relationship, such as xbrl:conceptObject. If the property is not defined then the relationship can be used with any source object type.
+    sourceDataType: Optional[QName] # (optional) The QName of the source object datype type in the relationship, such as xs:dateTime.
+    target: Optional[QName] # (optional) The QName of the target object type in the relationship, such as a dimension QName of xbrl:period.
+    targetObject: Optional[QName] # (optional) The QName of the target object type in the relationship, such as xbrl:dimensionObject. If the property is not defined then the relationship can be used with any source object type.
+    targetDataType: Optional[QName] # (optional) The QName of the target object datype type in the relationship, such as xs:dateTime.
 
 cubeTypePropertyDefaultValue = {
     "baseCubeType": None,
@@ -85,10 +89,10 @@ class XbrlCubeType(XbrlReferencableTaxonomyObject):
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the cube type object.
     # Optional properties may be inherited so they don't default until checking inheritance chain
     baseCubeType: Optional[QName] # (optional) Base cube type that the cube object is based on. Uses the QName of a cubeType object. The property only allows restriction rather than expansion of the baseCubeTape.
-    periodDimension: Optional[bool] # (optional) boolean to indicate if the period core dimension is included in the cube. Defaults to true.
-    entityDimension: Optional[bool] # (optional) boolean to indicate if the entity core dimension is included in the cube. Defaults to true.
-    unitDimension: Optional[bool] # (optional) boolean to indicate if the unit core dimension is included in the cube. Defaults to true.
-    taxonomyDefinedDimension: Optional[bool] # (optional) boolean to indicate if taxonomy defined dimensions are included in the cube. Defaults to true.
+    periodDimension: Union[bool, DefaultTrue] # (optional) boolean to indicate if the period core dimension is included in the cube. Defaults to true.
+    entityDimension: Union[bool, DefaultTrue] # (optional) boolean to indicate if the entity core dimension is included in the cube. Defaults to true.
+    unitDimension: Union[bool, DefaultTrue] # (optional) boolean to indicate if the unit core dimension is included in the cube. Defaults to true.
+    taxonomyDefinedDimension: Union[bool, DefaultTrue] # (optional) boolean to indicate if taxonomy defined dimensions are included in the cube. Defaults to true.
     allowedCubeDimensions: Optional[OrderedSet[XbrlAllowedCubeDimension]] # (optional) An ordered set of allowedCubeDimension objects that are permitted to be used on the cube. If the property is not defined then any dimensions can be associated with the cube.
     requiredCubeRelationships: OrderedSet[XbrlRequiredCubeRelationship] # (optional) An ordered set of requiredCubeRelationship objects that at a minimum must be associated with the cube.
 

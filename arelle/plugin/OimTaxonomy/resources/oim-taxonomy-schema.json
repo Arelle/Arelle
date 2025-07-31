@@ -606,6 +606,7 @@
                       "labelType": { "$ref": "#/definitions/QName" },
                       "language": {
                         "type": "string",
+                        "pattern": "^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$",
                         "description": "Language code (BCP 47)."
                       },
                       "value": {
@@ -640,6 +641,7 @@
                         "referenceType": { "$ref": "#/definitions/QName" },
                         "language": {
                           "type": "string",
+                          "pattern": "^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$",
                           "description": "Language code (BCP 47)."
                         },
                         "properties": {
@@ -717,7 +719,7 @@
                           "uniqueItems": true
                         }
                       },
-                      "required": ["name"],
+                      "required": ["name","dataType"],
                       "additionalProperties": false
                   },
                     "uniqueItems": true
@@ -795,7 +797,46 @@
                                 "description": "True if the defined dimension is required on the cube. Defaults to false."
                               }
                             },
-                            "additionalProperties": false
+                            "additionalProperties": false,
+                            "allOf": [
+                              
+                              {
+                                "if": {
+                                  "properties": { "dimensionType": { "const": "explicit" } },
+                                  "required": ["dimensionType"]
+                                },
+                                "then": {
+                                  "not": { "required": ["dimensionDataType"] }
+                                }
+                              },
+                              
+                              {
+                                "if": {
+                                  "required": ["dimensionName"]
+                                },
+                                "then": {
+                                  "not": { "anyOf": [ { "required": ["dimensionType"] }, { "required": ["dimensionDataType"] } ] }
+                                }
+                              },
+                              
+                              {
+                                "if": {
+                                  "properties": { "dimensionType": { "const": "typed" } },
+                                  "required": ["dimensionType"]
+                                },
+                                "then": {
+                                  "required": ["dimensionDataType"]
+                                }
+                              },
+                              {
+                                "if": {
+                                  "required": ["dimensionDataType"]
+                                },
+                                "then": {
+                                  "required": ["dimensionType"]
+                                }
+                              }
+                            ]
                           }
                         },
                         "requiredCubeRelationships": {
@@ -804,9 +845,13 @@
                           "items": {
                             "type": "object",
                             "properties": {
-                              "relationshipTypeName": { "$ref": "#/definitions/QName" },
-                              "source": { "$ref": "#/definitions/QName" },
-                              "target": { "$ref": "#/definitions/QName" }
+                              "relationshipTypeName": { "$ref": "#/definitions/QName"},
+                              "source": { "$ref": "#/definitions/QName"},
+                              "sourceDataType": { "$ref": "#/definitions/QName"},
+                              "sourceObject": { "$ref": "#/definitions/QName"},
+                              "target": { "$ref": "#/definitions/QName"},
+                              "targetDataType": { "$ref": "#/definitions/QName"},
+                              "targetObject": { "$ref": "#/definitions/QName"}
                             },
                             "required": ["relationshipTypeName"],
                             "additionalProperties": false
@@ -1020,6 +1065,7 @@
           },
           "language": {
             "type": "string",
+            "pattern": "^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$",
             "description": "Defines the language of the axisLabels using a valid BCP 47 [BCP47] language code."
           },
           "presentationNetwork": {
