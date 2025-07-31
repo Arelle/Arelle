@@ -38,6 +38,7 @@ class UploadContents:
 class PluginValidationDataExtension(PluginData):
     assetsIfrsQn: QName
     liabilitiesAndEquityIfrsQn: QName
+    nonConsolidatedMemberQn: QName
 
     contextIdPattern: regex.Pattern[str]
 
@@ -46,8 +47,10 @@ class PluginValidationDataExtension(PluginData):
     def __init__(self, name: str):
         super().__init__(name)
         jpigpNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jpigp/2024-11-01/jpigp_cor"
+        jppfsNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jppfs/2024-11-01/jppfs_cor"
         self.assetsIfrsQn = qname(jpigpNamespace, 'AssetsIFRS')
         self.liabilitiesAndEquityIfrsQn = qname(jpigpNamespace, "LiabilitiesAndEquityIFRS")
+        self.nonConsolidatedMemberQn = qname(jppfsNamespace, "NonConsolidatedMember")
 
         self.contextIdPattern = regex.compile(r'(Prior[1-9]Year|CurrentYear|Prior[1-9]Interim|Interim)(Duration|Instant)')
 

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="EDINET.EC8054W"
+        description="EDINET.EC8054W: For any context with ID containing 'NonConsolidatedMember', the scenario element within must be set to 'NonConsolidatedMember'."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid01" name="invalid01">
+        <description>
+            A 'NonConsolidatedMember' context does not have a scenario element set to 'NonConsolidatedMember'.
+            <!--valid05.zip with a NonConsolidatedMember context duplicated and scenario set to ConsolidatedMember-->
+        </description>
+        <data>
+            <instance readMeFirst="true">invalid01.zip</instance>
+        </data>
+        <result>
+            <warning>EDINET.EC8054W</warning>
+            <warning>EDINET.EC5700W.GFM.1.2.8</warning>
+        </result>
+    </variation>
+</testcase>
