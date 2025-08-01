@@ -5,7 +5,8 @@
         "namespaces": {
             "xbrl": "https://xbrl.org/2025",
             "xbrli":"https://xbrl.org/2025/instance",
-            "xs": "http://www.w3.org/2001/XMLSchema" 
+            "xs": "http://www.w3.org/2001/XMLSchema",
+            "utr": "https://xbrl.org/2025/utr"
             },
         "documentNamespace":"xbrl"
     },

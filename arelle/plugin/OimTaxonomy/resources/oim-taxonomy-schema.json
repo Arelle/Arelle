@@ -1139,45 +1139,45 @@
                 "description": "Simple string selector (e.g., 'concepts where periodType = \"instant\"')",
                 "type": "string"
               },
-            {
-              "description": "Structured selector object",
-              "type": "object",
-              "properties": {
-                "objectType": {
-                  "type": "string",
-                  "description": "The type of object to select (e.g., 'concept', 'member', 'label')."
-                },
-                "where": {
-                  "type": "array",
-                  "description": "Array of filter conditions.",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "property": {
-                        "type": "string",
-                        "description": "Property name to filter on (e.g., 'periodType', 'balance', 'language')."
+              {
+                "description": "Structured selector object",
+                "type": "object",
+                "properties": {
+                  "objectType": {
+                    "type": "string",
+                    "description": "The type of object to select (e.g., 'concept', 'member', 'label')."
+                  },
+                  "where": {
+                    "type": "array",
+                    "description": "Array of filter conditions.",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "property": {
+                          "type": "string",
+                          "description": "Property name to filter on (e.g., 'periodType', 'balance', 'language')."
+                        },
+                        "operator": {
+                          "type": "string",
+                          "enum": ["==", "!=", "in", "not in", "contains", "not contains", ">", "<", ">=", "<="],
+                          "description": "Comparison operator."
+                        },
+                        "value": {
+                          "description": "Value to compare against. Can be string, number, boolean, or array.",
+                          "oneOf": [
+                            { "type": "string" },
+                            { "type": "number" },
+                            { "type": "boolean" },
+                            { "type": "array", "items": { "type": "string" } }
+                          ]
+                        }
                       },
-                      "operator": {
-                        "type": "string",
-                        "enum": ["=", "!=", "in", "not in", "contains", "not contains", ">", "<", ">=", "<="],
-                        "description": "Comparison operator."
-                      },
-                      "value": {
-                        "description": "Value to compare against. Can be string, number, boolean, or array.",
-                        "oneOf": [
-                          { "type": "string" },
-                          { "type": "number" },
-                          { "type": "boolean" },
-                          { "type": "array", "items": { "type": "string" } }
-                        ]
-                      }
-                    },
-                    "required": ["property", "operator", "value"]
+                      "required": ["property", "operator", "value"]
+                    }
                   }
-                }
-              },
-              "required": ["objectType", "where"]
-            }
+                },
+                "required": ["objectType", "where"]
+              }
           ]
         },
       "dateResolutionObject": {
