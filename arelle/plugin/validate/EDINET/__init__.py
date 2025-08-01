@@ -42,6 +42,8 @@ validationPlugin = ValidationPluginExtension(
     ],
 )
 
+manifestsByFileSource: dict[FileSource, list[Manifest]] = {}
+
 
 def disclosureSystemTypes(*args: Any, **kwargs: Any) -> tuple[tuple[str, str], ...]:
     return validationPlugin.disclosureSystemTypes
@@ -63,6 +65,7 @@ def fileSourceEntrypointFiles(filesource: FileSource, inlineOnly: bool, *args: A
                 filesource.select(str(ixbrlFile))
                 entrypoints.append({"file": filesource.url})
             entrypointFiles.append({'ixds': entrypoints})
+    manifestsByFileSource[filesource] = manifests
     return entrypointFiles
 
 
@@ -72,7 +75,15 @@ def loggingSeverityReleveler(modelXbrl: ModelXbrl, level: str, messageCode: str,
     return level, messageCode
 
 
-def modelXbrlLoadComplete(*args: Any, **kwargs: Any) -> None:
+def modelXbrlLoadComplete(modelXbrl: ModelXbrl, *args: Any, **kwargs: Any) -> None:
+    modelManifest = None
+    for manifest in manifestsByFileSource.get(modelXbrl.fileSource, []):
+        manifestDir = str(manifest.path.parent)
+        doc = modelXbrl.modelDocument
+        if doc is not None and doc.filepathdir.endswith(manifestDir):
+            modelManifest = manifest
+            break
+    setattr(modelXbrl, 'manifest', modelManifest)
     return validationPlugin.modelXbrlLoadComplete(*args, **kwargs)
 
 

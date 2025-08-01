@@ -27,12 +27,14 @@ class Manifest:
 
 @dataclass(frozen=True)
 class ManifestTocItem:
+    element: _Element
     extrole: str
     childItems: list[ManifestTocItem]
     itemIn: str
     parent: QName | None
     ref: str
     start: QName | None
+    end: QName | None
 
 
 @dataclass(frozen=True)
@@ -51,12 +53,14 @@ def _parseManifestTocItems(parentElt: _Element, parentQName: QName | None) -> li
             childParentQName = qname(insertElt.attrib.get("parent"), insertElt.nsmap) if insertElt.attrib.get("parent") else None
             childTocItems.extend(_parseManifestTocItems(insertElt, childParentQName))
         tocItems.append(ManifestTocItem(
+            element=itemElt,
             extrole=itemElt.attrib.get("extrole", ""),
             childItems=childTocItems,
             parent=parentQName,
             itemIn=itemElt.attrib.get("in", ""),
             ref=itemElt.attrib.get("ref", ""),
             start=qname(itemElt.attrib.get("start"), itemElt.nsmap) if itemElt.attrib.get("start") else None,
+            end=qname(itemElt.attrib.get("end"), itemElt.nsmap) if itemElt.attrib.get("end") else None,
         ))
     return tocItems
 
