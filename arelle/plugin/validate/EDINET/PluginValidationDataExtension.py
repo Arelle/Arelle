@@ -23,6 +23,7 @@ from arelle.XmlValidate import VALID
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
 from .FormType import FormType
+from .Manifest import Manifest
 
 _: TypeGetText
 
@@ -132,6 +133,9 @@ class PluginValidationDataExtension(PluginData):
             if isinstance(elt, (ModelObject, LinkPrototype))
         ]
 
+    @lru_cache(1)
+    def getManifest(self, modelXbrl: ModelXbrl) -> Manifest | None:
+        return getattr(modelXbrl, 'manifest', None)
 
     def getUploadFileSizes(self, modelXbrl: ModelXbrl) -> dict[Path, int]:
         """
