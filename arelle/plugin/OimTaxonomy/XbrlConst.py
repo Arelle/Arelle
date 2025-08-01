@@ -22,6 +22,8 @@ qnXsQName = qname(xsd, "xs:QName")
 
 qnXbrlLabelObj = qname(xbrl, "xbrl:labelObject")
 
+qnErrorQname = qname(None, "InvalidQName")
+
 objectsWithProperties = {
     qname(xbrl, "xbrl:taxonomyObject"),
     qname(xbrl, "xbrl:conceptObject"),
@@ -37,6 +39,9 @@ objectsWithProperties = {
     qname(xbrl, "xbrl:referenceObject"),
     qname(xbrl, "xbrl:relationshipObject"),
     }
+
+unsupportedTypedDimensionDataTypes = set(
+    qname(xsd, n) for n in ("ENTITY", "ENTITIES", "ID", "IDREF", "IDREFS", "NMTOKEN", "NMTOKENS", "NOTATION"))
 
 xbrlTaxonomyObjects = {
     "documentInfo": {
