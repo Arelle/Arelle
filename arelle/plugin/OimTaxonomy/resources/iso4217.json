@@ -4471,7 +4471,7 @@
                                     "iso4217:ZWG",
                                     "iso4217:ZWL"
                 ],
-                "referenceType" : "utr:baseUnitsStandard",
+                "referenceType" : "xbrl:baseUnitsStandard",
                 "properties" : [{"property":"utr:baseStandardIdentifier", "value":"iso4217"}]
             }
         ]

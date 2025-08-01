@@ -89,14 +89,14 @@ class XbrlCubeType(XbrlReferencableTaxonomyObject):
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the cube type object.
     # Optional properties may be inherited so they don't default until checking inheritance chain
     baseCubeType: Optional[QName] # (optional) Base cube type that the cube object is based on. Uses the QName of a cubeType object. The property only allows restriction rather than expansion of the baseCubeTape.
-    periodDimension: Union[bool, DefaultTrue] # (optional) boolean to indicate if the period core dimension is included in the cube. Defaults to true.
-    entityDimension: Union[bool, DefaultTrue] # (optional) boolean to indicate if the entity core dimension is included in the cube. Defaults to true.
-    unitDimension: Union[bool, DefaultTrue] # (optional) boolean to indicate if the unit core dimension is included in the cube. Defaults to true.
-    taxonomyDefinedDimension: Union[bool, DefaultTrue] # (optional) boolean to indicate if taxonomy defined dimensions are included in the cube. Defaults to true.
+    periodDimension: Optional[bool] # (optional) boolean to indicate if the period core dimension is included in the cube. Defaults to true if no baseCubeType.
+    entityDimension: Optional[bool] # (optional) boolean to indicate if the entity core dimension is included in the cube. Defaults to true if no baseCubeType.
+    unitDimension: Optional[bool] # (optional) boolean to indicate if the unit core dimension is included in the cube. Defaults to true if no baseCubeType.
+    taxonomyDefinedDimension: Optional[bool] # (optional) boolean to indicate if taxonomy defined dimensions are included in the cube. Defaults to true if no baseCubeType.
     allowedCubeDimensions: Optional[OrderedSet[XbrlAllowedCubeDimension]] # (optional) An ordered set of allowedCubeDimension objects that are permitted to be used on the cube. If the property is not defined then any dimensions can be associated with the cube.
     requiredCubeRelationships: OrderedSet[XbrlRequiredCubeRelationship] # (optional) An ordered set of requiredCubeRelationship objects that at a minimum must be associated with the cube.
 
-    def effectivePropVal(self, propName, txmyMdl): # property effective value considering inheritance and default value
+    def effectivePropVal(self, propName, txmyMdl): # property effective value considering inheritance and default value if not on basemost cube type
         val = getattr(self, propName, None)
         if val is not None:
             return val

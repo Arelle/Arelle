@@ -2763,7 +2763,7 @@
                                     "utr:MJ",
                                     "utr:TJ",
                                     "utr:MVA" ],
-                "referenceType" : "utr:baseUnitsStandard",
+                "referenceType" : "xbrl:baseUnitsStandard",
                 "properties" :  [{"property":"utr:baseStandardIdentifier", "value":"si"}]
 
             },
