@@ -15,7 +15,7 @@ from arelle.Version import authorLabel, copyrightLabel
 from . import Constants
 from .Manifest import Manifest, ManifestInstance, parseManifests
 from .ValidationPluginExtension import ValidationPluginExtension
-from .rules import contexts, edinet, frta, gfm, upload
+from .rules import contexts, edinet, frta, gfm, manifests, upload
 
 PLUGIN_NAME = "Validate EDINET"
 DISCLOSURE_SYSTEM_VALIDATION_TYPE = "EDINET"
@@ -38,6 +38,7 @@ validationPlugin = ValidationPluginExtension(
         edinet,
         frta,
         gfm,
+        manifests,
         upload,
     ],
 )
