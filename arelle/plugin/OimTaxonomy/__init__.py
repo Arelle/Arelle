@@ -232,6 +232,8 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                     errCode = "oimte:invalidPropertyValue"
                 elif err.absolute_path[-1] == "language" and " does not match " in msg:
                     errCode = "oimte:invalidLanguage"
+                elif err.absolute_path[-2] == "dimensions" and " valid under each of {'required': ['domainRoot']}, {'required': ['domainDataType']}" in msg:
+                    errCode = "oimte:invalidDimensionObject"
                 else:
                     errCode = "oimte:invalidJSONStructure",
                 error(errCode,
@@ -332,15 +334,14 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
             if qnXbrlLabelObj in getattr(impTxmyObj, "includeObjectTypes",()):
                 impTxmyObj.includeObjectTypes.delete(qnXbrlLabelObj)
                 xbrlTxmyMdl.error("oimte:invalidObjectType",
-                              _("/taxonomy/importedTaxonomies[%(iImpTxmy)s] must not have a label object in the includeObjectTypes property"),
+                              _("/taxonomy/importedTaxonomies[%(index)s] must not have a label object in the includeObjectTypes property"),
                               sourceFileLine=href, index=iImpTxmy)
             impTxmyName = qname(impTxmyObj.get("taxonomyName"), prefixNamespaces)
             if impTxmyName:
                 ns = impTxmyName.namespaceURI
                 # if already imported ignore it (for now)
                 if ns not in xbrlTxmyMdl.namespaceDocs and followImport:
-                    url = namespaceUrls.get(ns)
-                    if url:
+                    for url in namespaceUrls.get(ns, ()):
                         load(xbrlTxmyMdl, url, base=oimFile, isDiscovered=schemaDoc.inDTS, isIncluded=kwargs.get("isIncluded"), namespace=ns,
                              includeObjects=(qname(qn, prefixNamespaces) for qn in impTxmyObj.get("includeObjects",())) or None,
                              includeObjectTypes=(qname(qn, prefixNamespaces) for qn in impTxmyObj.get("includeObjectTypes",())) or None,
@@ -348,7 +349,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                              followImport=impTxmyObj.get("followImport",True))
             else:
                 xbrlTxmyMdl.error("oime:missingQNameProperty",
-                              _("/taxonomy/importedTaxonomies[%(iImpTxmy)s] must have a taxonomyName (QName) property"),
+                              _("/taxonomy/importedTaxonomies[%(index)s] must have a taxonomyName (QName) property"),
                               sourceFileLine=href, index=iImpTxmy)
         def singular(name):
             if name.endswith("ies"):
@@ -602,10 +603,9 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
 
         if newTxmy is not None:
             for impTxmy in newTxmy.importedTaxonomies:
-                if impTxmy.taxonomyName not in xbrlTxmyMdl.taxonomies:
+                if impTxmy.taxonomyName and impTxmy.taxonomyName not in xbrlTxmyMdl.taxonomies:
                     # is it present in urlMapping?
-                    url = namespaceUrls.get(impTxmy.taxonomyName.prefix)
-                    if url:
+                    for url in namespaceUrls.get(impTxmy.taxonomyName.prefix, ()):
                         loadOIMTaxonomy(cntlr, error, warning, modelXbrl, url, impTxmy.taxonomyName.localName)
 
         xbrlTxmyMdl.namespaceDocs[taxonomyName.namespaceURI].append(schemaDoc)
@@ -1013,11 +1013,14 @@ def isOimTaxonomyLoadable(modelXbrl, mappedUri, normalizedUri, filepath, **kwarg
     lastFilePathIsOIM = False
     _ext = os.path.splitext(filepath)[1]
     if _ext == ".json":
-        with io.open(filepath, 'rt', encoding='utf-8') as f:
-            _fileStart = f.read(4096)
-        if _fileStart and oimTaxonomyDocTypePattern.match(_fileStart):
-            lastFilePathIsOIM = True
-            lastFilePath = filepath
+        try:
+            with io.open(filepath, 'rt', encoding='utf-8') as f:
+                _fileStart = f.read(4096)
+            if _fileStart and oimTaxonomyDocTypePattern.match(_fileStart):
+                lastFilePathIsOIM = True
+                lastFilePath = filepath
+        except IOError:
+            pass # nothing to open
     return lastFilePathIsOIM
 
 def oimTaxonomyLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
