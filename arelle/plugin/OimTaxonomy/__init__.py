@@ -57,7 +57,7 @@ from .ValidateTaxonomyModel import validateTaxonomyModel
 from .ValidateReport import validateReport
 from .ModelValueMore import SQName, QNameAt
 from .ViewXbrlTaxonomyObject import viewXbrlTaxonomyObject
-from .XbrlConst import xbrl, oimTaxonomyDocTypePattern, oimTaxonomyDocTypes, qnXbrlLabelObj, xbrlTaxonomyObjects
+from .XbrlConst import xbrl, oimTaxonomyDocTypePattern, oimTaxonomyDocTypes, xbrlTaxonomyObjects
 from .ParseSelectionWhereClause import parseSelectionWhereClause
 from .LoadCsvTable import csvTableRowFacts
 
@@ -83,6 +83,7 @@ xbrlTypeAliasClass = {
 
 EMPTY_SET = set()
 EMPTY_DICT = {}
+UNSPECIFIABLE_STR = '\uDBFE' # impossible unicode character
 
 def jsonGet(tbl, key, default=None):
     if isinstance(tbl, dict):
@@ -330,11 +331,12 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                       _("The extension property QName prefix was not defined in namespaces: %(extensionProperty)s."),
                       sourceFileLine=href, extensionProperty=extPropertyPath)
 
+        xbrlLabelObjQn = f"{namespacePrefixes[xbrl]}:labelObject" if xbrl in namespacePrefixes else UNSPECIFIABLE_STR # QNames are source, not resolved here
         for iImpTxmy, impTxmyObj in enumerate(taxonomyObj.get("importedTaxonomies", EMPTY_LIST)):
-            if qnXbrlLabelObj in getattr(impTxmyObj, "includeObjectTypes",()):
-                impTxmyObj.includeObjectTypes.delete(qnXbrlLabelObj)
-                xbrlTxmyMdl.error("oimte:invalidObjectType",
-                              _("/taxonomy/importedTaxonomies[%(index)s] must not have a label object in the includeObjectTypes property"),
+            if xbrlLabelObjQn in impTxmyObj.get("importObjectTypes", EMPTY_LIST):
+                impTxmyObj["importObjectTypes"].remove(xbrlLabelObjQn)
+                xbrlTxmyMdl.error("oimte:invalidIncludedObjectType",
+                              _("/taxonomy/importedTaxonomies[%(index)s] must not have a label object in the importObjectTypes property"),
                               sourceFileLine=href, index=iImpTxmy)
             impTxmyName = qname(impTxmyObj.get("taxonomyName"), prefixNamespaces)
             if impTxmyName:
