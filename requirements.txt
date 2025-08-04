@@ -1,12 +1,12 @@
 # core modules
-certifi==2025.7.14
+certifi==2025.8.3
 truststore==0.10.1 ; python_version > "3.9"
 filelock==3.18.0
 jsonschema==4.25.0
 lxml==5.4.0
 OpenPyXL==3.1.5
 pyparsing==3.2.3
-regex==2024.11.6
+regex==2025.7.34
 typing-extensions==4.14.1
 isodate==0.7.2
 aniso8601==10.0.1
