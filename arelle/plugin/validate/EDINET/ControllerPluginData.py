@@ -6,18 +6,19 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from arelle.Cntlr import Cntlr
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
 
 if TYPE_CHECKING:
     from .ManifestInstance import ManifestInstance
 
-
 _: TypeGetText
+
 
 @dataclass
 class ControllerPluginData(PluginData):
-    _manifestInstancesById: dict[str, ManifestInstance] | None
+    _manifestInstancesById: dict[str, ManifestInstance]
 
     def __init__(self, name: str):
         super().__init__(name)
@@ -38,7 +39,7 @@ class ControllerPluginData(PluginData):
         """
         return list(self._manifestInstancesById.values())
 
-    def matchManifestInstance(self, ixdsDocUrls: list[str]) -> tuple[ManifestInstance] | None:
+    def matchManifestInstance(self, ixdsDocUrls: list[str]) -> ManifestInstance | None:
         """
         Match a manifest instance based on the provided ixdsDocUrls.
         A one-to-one mapping must exist between the model's IXDS document URLs and the manifest instance's IXBRL files.
@@ -68,3 +69,12 @@ class ControllerPluginData(PluginData):
             matchedInstance = instance
             break
         return matchedInstance
+
+    @staticmethod
+    def get(cntlr: Cntlr, name: str) -> ControllerPluginData:
+        controllerPluginData = cntlr.getPluginData(name)
+        if controllerPluginData is None:
+            controllerPluginData = ControllerPluginData(name)
+            cntlr.setPluginData(controllerPluginData)
+        assert isinstance(controllerPluginData, ControllerPluginData), "Expected ControllerPluginData instance."
+        return controllerPluginData

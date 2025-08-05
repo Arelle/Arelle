@@ -5,9 +5,8 @@ from __future__ import annotations
 
 import re
 from collections import defaultdict
-from collections.abc import Iterable
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterable
 
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
@@ -16,7 +15,6 @@ from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
 from ..FormType import FormType, HTML_EXTENSIONS, IMAGE_EXTENSIONS
-from ..Manifest import parseManifests
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
@@ -478,40 +476,40 @@ def rule_manifest_preferredFilename(
     """
     if not pluginData.shouldValidateUpload(val):
         return
-    manifests = parseManifests(val.modelXbrl.fileSource)
-    for manifest in manifests:
-        preferredFilenames = set()
-        duplicateFilenames = set()
-        for instance in manifest.instances:
-            if len(instance.preferredFilename) == 0:
-                yield Validation.error(
-                    codes='EDINET.EC5804E',
-                    msg=_("The instance file name is not set. "
-                          "Set the instance name as the preferredFilename attribute value "
-                          "of the instance element in the manifest file. (manifest: '%(manifest)s', id: %(id)s)"),
-                    manifest=str(manifest.path),
-                    id=instance.id,
-                )
-                continue
-            preferredFilename = Path(instance.preferredFilename)
-            if preferredFilename.suffix != '.xbrl':
-                yield Validation.error(
-                    codes='EDINET.EC5805E',
-                    msg=_("The instance file extension is not '.xbrl'. "
-                          "File name: '%(preferredFilename)s'. "
-                          "Please change the extension of the instance name set in the "
-                          "preferredFilename attribute value of the instance element in "
-                          "the manifest file to '.xbrl'. (manifest: '%(manifest)s', id: %(id)s)"),
-                    preferredFilename=instance.preferredFilename,
-                    manifest=str(manifest.path),
-                    id=instance.id,
-                )
-                continue
-            if instance.preferredFilename in preferredFilenames:
-                duplicateFilenames.add(instance.preferredFilename)
-                continue
-            preferredFilenames.add(instance.preferredFilename)
-        for duplicateFilename in duplicateFilenames:
+    instances = pluginData.getManifestInstances(val.modelXbrl)
+    preferredFilenames: dict[Path, set[str]] = defaultdict(set)
+    duplicateFilenames = defaultdict(set)
+    for instance in instances:
+        if len(instance.preferredFilename) == 0:
+            yield Validation.error(
+                codes='EDINET.EC5804E',
+                msg=_("The instance file name is not set. "
+                      "Set the instance name as the preferredFilename attribute value "
+                      "of the instance element in the manifest file. (manifest: '%(manifest)s', id: %(id)s)"),
+                manifest=str(instance.path),
+                id=instance.id,
+            )
+            continue
+        preferredFilename = Path(instance.preferredFilename)
+        if preferredFilename.suffix != '.xbrl':
+            yield Validation.error(
+                codes='EDINET.EC5805E',
+                msg=_("The instance file extension is not '.xbrl'. "
+                      "File name: '%(preferredFilename)s'. "
+                      "Please change the extension of the instance name set in the "
+                      "preferredFilename attribute value of the instance element in "
+                      "the manifest file to '.xbrl'. (manifest: '%(manifest)s', id: %(id)s)"),
+                preferredFilename=instance.preferredFilename,
+                manifest=str(instance.path),
+                id=instance.id,
+            )
+            continue
+        if instance.preferredFilename in preferredFilenames[instance.path]:
+            duplicateFilenames[instance.path].add(instance.preferredFilename)
+            continue
+        preferredFilenames[instance.path].add(instance.preferredFilename)
+    for path, filenames in duplicateFilenames.items():
+        for filename in filenames:
             yield Validation.error(
                 codes='EDINET.EC5806E',
                 msg=_("The same instance file name is set multiple times. "
@@ -519,6 +517,6 @@ def rule_manifest_preferredFilename(
                       "The preferredFilename attribute value of the instance "
                       "element in the manifest file must be unique within the "
                       "same file. (manifest: '%(manifest)s')"),
-                manifest=str(manifest.path),
-                preferredFilename=duplicateFilename,
+                manifest=str(path),
+                preferredFilename=filename,
             )

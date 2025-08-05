@@ -22,8 +22,10 @@ from arelle.ValidateXbrl import ValidateXbrl
 from arelle.XmlValidate import VALID
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
-from .FormType import FormType
 from .Constants import CORPORATE_FORMS
+from .ControllerPluginData import ControllerPluginData
+from .FormType import FormType
+from .ManifestInstance import ManifestInstance
 
 _: TypeGetText
 
@@ -142,6 +144,15 @@ class PluginValidationDataExtension(PluginData):
             if isinstance(elt, (ModelObject, LinkPrototype))
         ]
 
+    @lru_cache(1)
+    def getManifestInstance(self, modelXbrl: ModelXbrl) -> ManifestInstance | None:
+        controllerPluginData = ControllerPluginData.get(modelXbrl.modelManager.cntlr, self.name)
+        return controllerPluginData.matchManifestInstance(modelXbrl.ixdsDocUrls)
+
+    @lru_cache(1)
+    def getManifestInstances(self, modelXbrl: ModelXbrl) -> list[ManifestInstance]:
+        controllerPluginData = ControllerPluginData.get(modelXbrl.modelManager.cntlr, self.name)
+        return controllerPluginData.getManifestInstances()
 
     def getUploadFileSizes(self, modelXbrl: ModelXbrl) -> dict[Path, int]:
         """

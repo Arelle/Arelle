@@ -298,6 +298,7 @@ class Validate:
             self._testcaseValidateInputDTS(testcase, modelTestcaseVariation, errorCaptureLevel, parameters, inputDTSes, baseForElement, resultIsXbrlInstance)
         # update ui thread via modelManager (running in background here)
         self.modelXbrl.modelManager.viewModelObject(self.modelXbrl, modelTestcaseVariation.objectId())
+        self.modelXbrl.modelManager.cntlr._clearPluginData()
         modelTestcaseVariation.duration = time.perf_counter() - startTime
 
     def _testcaseLoadReadMeFirstUri(self, testcase, modelTestcaseVariation, index, readMeFirstUri, resultIsVersioningReport, resultIsTaxonomyPackage, inputDTSes, errorCaptureLevel, baseForElement, parameters):
