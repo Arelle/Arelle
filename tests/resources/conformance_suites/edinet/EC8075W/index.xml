@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="EDINET.EC8075W"
+        description="EDINET.EC8075W: The percentage of female executives has not been tagged in detail. Ensure that there is a nonnil value disclosed for jpcrp_cor:RatioOfFemaleDirectorsAndOtherOfficers."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid01" name="invalid01">
+        <description>
+            RatioOfFemaleDirectorsAndOtherOfficers is not tagged.
+        </description>
+        <data>
+            <instance readMeFirst="true">invalid01.zip</instance>
+        </data>
+        <result>
+            <warning>EDINET.EC8075W</warning>
+        </result>
+    </variation>
+</testcase>

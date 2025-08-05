@@ -23,6 +23,7 @@ from arelle.XmlValidate import VALID
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
 from .FormType import FormType
+from .Constants import CORPORATE_FORMS
 
 _: TypeGetText
 
@@ -44,6 +45,7 @@ class PluginValidationDataExtension(PluginData):
     jpspsFilingDateCoverPageQn: QName
     liabilitiesAndEquityIfrsQn: QName
     nonConsolidatedMemberQn: QName
+    ratioOfFemaleDirectorsAndOtherOfficersQn: QName
 
     contextIdPattern: regex.Pattern[str]
 
@@ -64,12 +66,20 @@ class PluginValidationDataExtension(PluginData):
         self.jpspsFilingDateCoverPageQn = qname(jpspsNamespace, 'FilingDateCoverPage')
         self.liabilitiesAndEquityIfrsQn = qname(jpigpNamespace, "LiabilitiesAndEquityIFRS")
         self.nonConsolidatedMemberQn = qname(jppfsNamespace, "NonConsolidatedMember")
+        self.ratioOfFemaleDirectorsAndOtherOfficersQn = qname(jpcrpNamespace, "RatioOfFemaleDirectorsAndOtherOfficers")
 
         self.contextIdPattern = regex.compile(r'(Prior[1-9]Year|CurrentYear|Prior[1-9]Interim|Interim)(Duration|Instant)')
 
     # Identity hash for caching.
     def __hash__(self) -> int:
         return id(self)
+
+    @lru_cache(1)
+    def isCorporateForm(self, modelXbrl: ModelXbrl) -> bool:
+        documentTypes = self.getDocumentTypes(modelXbrl)
+        if any(documentType == form.value for form in CORPORATE_FORMS for documentType in documentTypes):
+            return True
+        return False
 
     @lru_cache(1)
     def shouldValidateUpload(self, val: ValidateXbrl) -> bool:
@@ -193,6 +203,12 @@ class PluginValidationDataExtension(PluginData):
             paths.add(path)
             paths.update(path.parents)
         return sorted(paths)
+
+    def hasRequiredValidFact(self, modelXbrl: ModelXbrl, qname: QName) -> bool:
+        requiredFacts = modelXbrl.factsByQname.get(qname, set())
+        if not len([fact for fact in requiredFacts if fact is not None and fact.xValid >= VALID and not fact.isNil]):
+            return False
+        return True
 
     @lru_cache(1)
     def isUpload(self, modelXbrl: ModelXbrl) -> bool:
