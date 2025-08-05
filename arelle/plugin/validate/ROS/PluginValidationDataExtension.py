@@ -13,12 +13,18 @@ TAXONOMY_REFERENCES = [
     "https://xbrl.frc.org.uk/ireland/FRS-101/2019-01-01/ie-FRS-101-2019-01-01.xsd",
     "https://xbrl.frc.org.uk/ireland/FRS-101/2022-01-01/ie-FRS-101-2022-01-01.xsd",
     "https://xbrl.frc.org.uk/ireland/FRS-101/2023-01-01/ie-FRS-101-2023-01-01.xsd",
+    "https://xbrl.frc.org.uk/ireland/FRS-101/2025-01-01/ie-FRS-101-2025-01-01.xsd",
+
     "https://xbrl.frc.org.uk/ireland/FRS-102/2019-01-01/ie-FRS-102-2019-01-01.xsd",
     "https://xbrl.frc.org.uk/ireland/FRS-102/2022-01-01/ie-FRS-102-2022-01-01.xsd",
     "https://xbrl.frc.org.uk/ireland/FRS-102/2023-01-01/ie-FRS-102-2023-01-01.xsd",
+    "https://xbrl.frc.org.uk/ireland/FRS-102/2025-01-01/ie-FRS-102-2025-01-01.xsd",
+
     "https://xbrl.frc.org.uk/ireland/IFRS/2019-01-01/ie-IFRS-2019-01-01.xsd",
     "https://xbrl.frc.org.uk/ireland/IFRS/2022-01-01/ie-IFRS-2022-01-01.xsd",
     "https://xbrl.frc.org.uk/ireland/IFRS/2023-01-01/ie-IFRS-2023-01-01.xsd",
+    "https://xbrl.frc.org.uk/ireland/IFRS/2025-01-01/ie-IFRS-2025-01-01.xsd",
+
     "https://raw.githubusercontent.com/revenue-ie/dpl/master/schemas/ct/combined/2017-09-01/IE-FRS-101-IE-DPL-2017-09-01.xsd",
     "https://raw.githubusercontent.com/revenue-ie/dpl/master/schemas/ct/combined/2017-09-01/IE-FRS-102-IE-DPL-2017-09-01.xsd",
     "https://raw.githubusercontent.com/revenue-ie/dpl/master/schemas/ct/combined/2017-09-01/IE-EU-IFRS-IE-DPL-2017-09-01.xsd",
