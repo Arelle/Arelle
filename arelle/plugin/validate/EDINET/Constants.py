@@ -10,12 +10,11 @@ class DeiFormType(Enum):
     FORM_2_7 = '第二号の七様式'
     FORM_3 = '第三号様式'
 
-CORPORATE_FORMS ={
+CORPORATE_FORMS =frozenset([
     DeiFormType.FORM_2_4,
     DeiFormType.FORM_2_7,
     DeiFormType.FORM_3,
-}
-
+])
 qnEdinetManifestInsert = qname("{http://disclosure.edinet-fsa.go.jp/2013/manifest}insert")
 qnEdinetManifestInstance = qname("{http://disclosure.edinet-fsa.go.jp/2013/manifest}instance")
 qnEdinetManifestItem = qname("{http://disclosure.edinet-fsa.go.jp/2013/manifest}item")

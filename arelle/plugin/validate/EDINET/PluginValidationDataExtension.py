@@ -204,11 +204,9 @@ class PluginValidationDataExtension(PluginData):
             paths.update(path.parents)
         return sorted(paths)
 
-    def hasRequiredValidFact(self, modelXbrl: ModelXbrl, qname: QName) -> bool:
+    def hasValidNonNilFact(self, modelXbrl: ModelXbrl, qname: QName) -> bool:
         requiredFacts = modelXbrl.factsByQname.get(qname, set())
-        if not len([fact for fact in requiredFacts if fact is not None and fact.xValid >= VALID and not fact.isNil]):
-            return False
-        return True
+        return any(fact.xValid >= VALID and not fact.isNil for fact in requiredFacts)
 
     @lru_cache(1)
     def isUpload(self, modelXbrl: ModelXbrl) -> bool:
