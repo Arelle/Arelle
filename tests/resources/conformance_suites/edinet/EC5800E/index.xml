@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="EDINET.EC5800E"
+        description="EDINET.EC5800E: General processing errors."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid01" name="invalid01">
+        <description>
+            Manifest table of contents item references non-existent ELR.
+            <!--valid09.zip with manifest TOC item referencing non-existent ELR-->
+        </description>
+        <data>
+            <instance readMeFirst="true">invalid01.zip</instance>
+        </data>
+        <result>
+            <error>EDINET.EC5800E.FATAL_ERROR_TOC_TREE_NOT_DEFINED</error>
+        </result>
+    </variation>
+    <variation id="invalid02" name="invalid02">
+        <description>
+            Manifest table of contents item references concept that doesn't exist within ELR presentation.
+            <!--valid09.zip with manifest TOC item referencing concept that does not exist within ELR presentation-->
+        </description>
+        <data>
+            <instance readMeFirst="true">invalid02.zip</instance>
+        </data>
+        <result>
+            <error>EDINET.EC5800E.ERROR_ELEMENT_NOT_DEFINED_IN_EXTENDED_LINK_ROLE</error>
+        </result>
+    </variation>
+    <variation id="invalid03" name="invalid03">
+        <description>
+            Manifest table of contents item "end" concept that is not a descendant of the "start" concept.
+            <!--valid09.zip with manifest TOC item that has invalid start/end concepts-->
+        </description>
+        <data>
+            <instance readMeFirst="true">invalid03.zip</instance>
+        </data>
+        <result>
+            <error>EDINET.EC5800E.ERROR_ENDING_ELEMENT_NOT_DEFINED_UNDER_STARTING_ELEMENT</error>
+        </result>
+    </variation>
+</testcase>
