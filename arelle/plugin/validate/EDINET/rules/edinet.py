@@ -38,9 +38,9 @@ def rule_EC1057E(
     """
     dei = pluginData.getDocumentTypes(val.modelXbrl)
     if len(dei) > 0:
-        if not (pluginData.hasRequiredValidFact(val.modelXbrl, pluginData.jpcrpEsrFilingDateCoverPageQn)
-                or pluginData.hasRequiredValidFact(val.modelXbrl, pluginData.jpcrpFilingDateCoverPageQn)
-                or pluginData.hasRequiredValidFact(val.modelXbrl, pluginData.jpspsFilingDateCoverPageQn)):
+        if not (pluginData.hasValidNonNilFact(val.modelXbrl, pluginData.jpcrpEsrFilingDateCoverPageQn)
+                or pluginData.hasValidNonNilFact(val.modelXbrl, pluginData.jpcrpFilingDateCoverPageQn)
+                or pluginData.hasValidNonNilFact(val.modelXbrl, pluginData.jpspsFilingDateCoverPageQn)):
             yield Validation.error(
                 codes='EDINET.EC1057E',
                 msg=_("The [Submission Date] on the cover page has not been filled in."),
@@ -238,7 +238,7 @@ def rule_EC8075W(
     a nonnil value disclosed for jpcrp_cor:RatioOfFemaleDirectorsAndOtherOfficers.
     """
     if pluginData.isCorporateForm(val.modelXbrl):
-        if not pluginData.hasRequiredValidFact(val.modelXbrl, pluginData.ratioOfFemaleDirectorsAndOtherOfficersQn):
+        if not pluginData.hasValidNonNilFact(val.modelXbrl, pluginData.ratioOfFemaleDirectorsAndOtherOfficersQn):
             yield Validation.warning(
                 codes='EDINET.EC8075W',
                 msg=_("The percentage of female executives has not been tagged in detail."),
