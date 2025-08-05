@@ -24,7 +24,7 @@ from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
 from .Constants import CORPORATE_FORMS
 from .ControllerPluginData import ControllerPluginData
-from .FormType import FormType
+from .InstanceType import InstanceType
 from .ManifestInstance import ManifestInstance
 
 _: TypeGetText
@@ -32,9 +32,9 @@ _: TypeGetText
 
 @dataclass(frozen=True)
 class UploadContents:
-    amendmentPaths: dict[FormType, frozenset[Path]]
+    amendmentPaths: dict[InstanceType, frozenset[Path]]
     directories: frozenset[Path]
-    forms: dict[FormType, frozenset[Path]]
+    instances: dict[InstanceType, frozenset[Path]]
     unknownPaths: frozenset[Path]
 
 
@@ -183,14 +183,14 @@ class PluginValidationDataExtension(PluginData):
             if parents[0] == 'XBRL':
                 if len(parents) > 1:
                     formName = parents[1]
-                    formType = FormType.parse(formName)
-                    if formType is not None:
-                        forms[formType].append(path)
+                    instanceType = InstanceType.parse(formName)
+                    if instanceType is not None:
+                        forms[instanceType].append(path)
                         continue
             formName = parents[0]
-            formType = FormType.parse(formName)
-            if formType is not None:
-                amendmentPaths[formType].append(path)
+            instanceType = InstanceType.parse(formName)
+            if instanceType is not None:
+                amendmentPaths[instanceType].append(path)
                 continue
             if len(path.suffix) == 0:
                 directories.append(path)
@@ -199,7 +199,7 @@ class PluginValidationDataExtension(PluginData):
         return UploadContents(
             amendmentPaths={k: frozenset(v) for k, v in amendmentPaths.items() if len(v) > 0},
             directories=frozenset(directories),
-            forms={k: frozenset(v) for k, v in forms.items() if len(v) > 0},
+            instances={k: frozenset(v) for k, v in forms.items() if len(v) > 0},
             unknownPaths=frozenset(unknownPaths)
         )
 

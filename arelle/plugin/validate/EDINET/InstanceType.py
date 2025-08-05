@@ -8,7 +8,7 @@ from functools import cached_property, lru_cache
 from pathlib import Path
 
 
-class FormType(Enum):
+class InstanceType(Enum):
     ATTACH_DOC = "AttachDoc"
     AUDIT_DOC = "AuditDoc"
     ENGLISH_DOC = "EnglishDoc"
@@ -17,7 +17,7 @@ class FormType(Enum):
     PUBLIC_DOC = "PublicDoc"
 
     @classmethod
-    def parse(cls, value: str) -> FormType | None:
+    def parse(cls, value: str) -> InstanceType | None:
         try:
             return cls(value)
         except ValueError:
@@ -60,12 +60,12 @@ class ExtensionCategory(Enum):
 
 
 FORM_TYPE_EXTENSION_CATEGORIES = {
-    FormType.ATTACH_DOC: ExtensionCategory.ATTACH,
-    FormType.AUDIT_DOC: ExtensionCategory.DOC,
-    FormType.ENGLISH_DOC: ExtensionCategory.ENGLISH_DOC,
-    FormType.PRIVATE_ATTACH: ExtensionCategory.ATTACH,
-    FormType.PRIVATE_DOC: ExtensionCategory.DOC,
-    FormType.PUBLIC_DOC: ExtensionCategory.DOC,
+    InstanceType.ATTACH_DOC: ExtensionCategory.ATTACH,
+    InstanceType.AUDIT_DOC: ExtensionCategory.DOC,
+    InstanceType.ENGLISH_DOC: ExtensionCategory.ENGLISH_DOC,
+    InstanceType.PRIVATE_ATTACH: ExtensionCategory.ATTACH,
+    InstanceType.PRIVATE_DOC: ExtensionCategory.DOC,
+    InstanceType.PUBLIC_DOC: ExtensionCategory.DOC,
 }
 
 

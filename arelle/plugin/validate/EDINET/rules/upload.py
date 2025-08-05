@@ -14,7 +14,7 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
-from ..FormType import FormType, HTML_EXTENSIONS, IMAGE_EXTENSIONS
+from ..InstanceType import InstanceType, HTML_EXTENSIONS, IMAGE_EXTENSIONS
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
@@ -160,19 +160,19 @@ def rule_EC0130E(
         return
     uploadContents = pluginData.getUploadContents(val.modelXbrl)
     checks = []
-    for formType, amendmentPaths in uploadContents.amendmentPaths.items():
+    for instanceType, amendmentPaths in uploadContents.amendmentPaths.items():
         for amendmentPath in amendmentPaths:
-            isSubdirectory = amendmentPath.parent.name != formType.value
-            checks.append((amendmentPath, True, formType, isSubdirectory))
-    for formType, formPaths in uploadContents.forms.items():
+            isSubdirectory = amendmentPath.parent.name != instanceType.value
+            checks.append((amendmentPath, True, instanceType, isSubdirectory))
+    for instanceType, formPaths in uploadContents.instances.items():
         for amendmentPath in formPaths:
-            isSubdirectory = amendmentPath.parent.name != formType.value
-            checks.append((amendmentPath, False, formType, isSubdirectory))
-    for path, isAmendment, formType, isSubdirectory in checks:
+            isSubdirectory = amendmentPath.parent.name != instanceType.value
+            checks.append((amendmentPath, False, instanceType, isSubdirectory))
+    for path, isAmendment, instanceType, isSubdirectory in checks:
         ext = path.suffix
         if len(ext) == 0:
             continue
-        validExtensions = formType.getValidExtensions(isAmendment, isSubdirectory)
+        validExtensions = instanceType.getValidExtensions(isAmendment, isSubdirectory)
         if validExtensions is None:
             continue
         if ext not in validExtensions:
@@ -207,17 +207,17 @@ def rule_EC0132E(
     if not pluginData.shouldValidateUpload(val):
         return
     uploadContents = pluginData.getUploadContents(val.modelXbrl)
-    for formType in (FormType.AUDIT_DOC, FormType.PRIVATE_DOC, FormType.PUBLIC_DOC):
-        if formType not in uploadContents.forms:
+    for instanceType in (InstanceType.AUDIT_DOC, InstanceType.PRIVATE_DOC, InstanceType.PUBLIC_DOC):
+        if instanceType not in uploadContents.instances:
             continue
-        if formType.manifestPath in uploadContents.forms.get(formType, []):
+        if instanceType.manifestPath in uploadContents.instances.get(instanceType, []):
             continue
         yield Validation.error(
             codes='EDINET.EC0132E',
             msg=_("'%(expectedManifestName)s' does not exist in '%(expectedManifestDirectory)s'. "
                   "Please store the manifest file (or cover file) directly under the relevant folder and upload it again. "),
-            expectedManifestName=formType.manifestPath.name,
-            expectedManifestDirectory=str(formType.manifestPath.parent),
+            expectedManifestName=instanceType.manifestPath.name,
+            expectedManifestDirectory=str(instanceType.manifestPath.parent),
         )
 
 
