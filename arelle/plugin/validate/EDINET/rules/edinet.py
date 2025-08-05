@@ -11,7 +11,6 @@ from arelle import XbrlConst, ValidateDuplicateFacts
 from arelle.LinkbaseType import LinkbaseType
 from arelle.ValidateDuplicateFacts import DuplicateType
 from arelle.ValidateXbrl import ValidateXbrl
-from arelle.XmlValidateConst import VALID
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
@@ -39,11 +38,9 @@ def rule_EC1057E(
     """
     dei = pluginData.getDocumentTypes(val.modelXbrl)
     if len(dei) > 0:
-        jpcrpEsrFacts = val.modelXbrl.factsByQname.get(pluginData.jpcrpEsrFilingDateCoverPageQn, set())
-        jpcrpFacts = val.modelXbrl.factsByQname.get(pluginData.jpcrpFilingDateCoverPageQn, set())
-        jpspsFacts = val.modelXbrl.factsByQname.get(pluginData.jpspsFilingDateCoverPageQn, set())
-        requiredFacts = jpcrpFacts.union(jpspsFacts, jpcrpEsrFacts)
-        if not any(fact.xValid >= VALID and not fact.isNil for fact in requiredFacts):
+        if not (pluginData.hasRequiredValidFact(val.modelXbrl, pluginData.jpcrpEsrFilingDateCoverPageQn)
+                or pluginData.hasRequiredValidFact(val.modelXbrl, pluginData.jpcrpFilingDateCoverPageQn)
+                or pluginData.hasRequiredValidFact(val.modelXbrl, pluginData.jpspsFilingDateCoverPageQn)):
             yield Validation.error(
                 codes='EDINET.EC1057E',
                 msg=_("The [Submission Date] on the cover page has not been filled in."),
@@ -224,3 +221,25 @@ def rule_EC8062W(
                 assetSum=f"{assetSum:,}",
                 modelObject=facts,
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8075W(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8075W: The percentage of female executives has not been tagged in detail. Ensure that there is
+    a nonnil value disclosed for jpcrp_cor:RatioOfFemaleDirectorsAndOtherOfficers.
+    """
+    if pluginData.isCorporateForm(val.modelXbrl):
+        if not pluginData.hasRequiredValidFact(val.modelXbrl, pluginData.ratioOfFemaleDirectorsAndOtherOfficersQn):
+            yield Validation.warning(
+                codes='EDINET.EC8075W',
+                msg=_("The percentage of female executives has not been tagged in detail."),
+                )

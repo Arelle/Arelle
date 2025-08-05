@@ -42,6 +42,7 @@
     <testcase uri="EC8033W/index.xml" />
     <testcase uri="EC8054W/index.xml" />
     <testcase uri="EC8062W/index.xml" />
+    <testcase uri="EC8075W/index.xml" />
     <testcase uri="FRTA.2.1.10/index.xml" />
     <testcase uri="valid/index.xml" />
 </testcases>
