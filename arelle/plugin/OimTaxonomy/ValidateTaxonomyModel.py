@@ -11,7 +11,7 @@ from arelle.PythonUtil import attrdict, OrderedSet
 from arelle.oim.Load import EMPTY_DICT, csvPeriod
 from .XbrlAbstract import XbrlAbstract
 from .XbrlConcept import XbrlConcept, XbrlDataType, XbrlUnitType
-from .XbrlConst import xbrl
+from .XbrlConst import xbrl, qnXbrlReferenceObj
 from .XbrlCube import (XbrlCube, XbrlCubeType, baseCubeTypes, XbrlCubeDimension,
                        periodCoreDim, conceptCoreDim, entityCoreDim, unitCoreDim, languageCoreDim, coreDimensions,
                     conceptDomainRoot, entityDomainRoot, unitDomainRoot, languageDomainRoot,
@@ -25,7 +25,7 @@ from .XbrlNetwork import XbrlNetwork, XbrlRelationship, XbrlRelationshipType
 from .XbrlProperty import XbrlPropertyType
 from .XbrlReference import XbrlReference, XbrlReferenceType
 from .XbrlTableTemplate import XbrlTableTemplate
-from .XbrlTaxonomyModule import XbrlTaxonomyModule, xbrlObjectTypes, xbrlObjectQNames
+from .XbrlTaxonomyModule import XbrlTaxonomyModule, xbrlObjectTypes, referencableObjectTypes, xbrlObjectQNames
 from .XbrlUnit import XbrlUnit, parseUnitString
 from .XbrlConst import qnXsQName, qnXsDate, qnXsDateTime, qnXsDuration, objectsWithProperties
 from numpy._core._simd import targets
@@ -871,11 +871,11 @@ def validateTaxonomy(txmyMdl, txmy):
     for relTpObj in txmy.relationshipTypes:
         assertObjectType(relTpObj, XbrlRelationshipType)
         for prop in ("allowedLinkProperties", "requiredLinkProperties"):
-            for propTypeQn in getattr(relTpObj, prop):
-                if not isinstance(txmyMdl.namedObjects.get(propTypeQn), XbrlPropertyType):
+            for propTpQn in getattr(relTpObj, prop):
+                if not isinstance(txmyMdl.namedObjects.get(propTpQn), XbrlPropertyType):
                     txmyMdl.error("oimte:missingQNameReference",
                               _("The relationshipType %(name)s %(property)s has an invalid propertyType reference %(propType)s"),
-                              xbrlObject=propTpObj, name=relTpObj.name, property=prop, propType=propTypeQn)
+                              xbrlObject=propTpObj, name=relTpObj.name, property=prop, propType=propTpQn)
         reqdNotAllowed = relTpObj.requiredLinkProperties - relTpObj.allowedLinkProperties
         if reqdNotAllowed:
             txmyMdl.error("oimte:invalidPropertyValue",
@@ -932,7 +932,7 @@ def validateTaxonomy(txmyMdl, txmy):
                           xbrlObject=refsDups, name=name)
     del refsWithInvalidRelName, refInvalidNames, refsDup # dereference
 
-    # Label Objects
+    # LabelType Objects
     lblTpCt = {}
     for lblObj in txmy.labelTypes:
         assertObjectType(lblObj, XbrlLabelType)
@@ -952,7 +952,28 @@ def validateTaxonomy(txmyMdl, txmy):
                         txmyMdl.error("oimte:invalidAllowedObject",
                                   _("The labelType %(name)s allowedObject %(allowedObject)s MUST be a taxonomy model object."),
                                   xbrlObject=lblObj, name=lblObj.name, allowedObject=allowedObj)
-        
+
+    # ReferenceType Objects
+    refTpCt = {}
+    for refObj in txmy.referenceTypes:
+        assertObjectType(refObj, XbrlReferenceType)
+        for allowedObj in refObj.allowedObjects:
+            if allowedObj not in referencableObjectTypes:
+                txmyMdl.error("oimte:invalidObjectType",
+                          _("The referenceType %(name)s allowedObject %(allowedObject)s MUST be a referenceable taxonomy model object."),
+                          xbrlObject=refObj, name=refObj.name, allowedObject=allowedObj)
+        for prop, msgCode in (("orderedProperties","oimte:invalidOrderedProperty"), 
+                              ("requiredProperties","oimte:invalidRequiredProperty")):
+            for propTpQn in getattr(refObj, prop):
+                propTpObj = txmyMdl.namedObjects.get(propTpQn)
+                if not isinstance(propTpObj, XbrlPropertyType):
+                    txmyMdl.error("oimte:missingQNameReference",
+                              _("The referenceType %(name)s %(property)s has an unresolvable propertyType reference %(propType)s"),
+                              xbrlObject=refObj, name=refObj.name, property=prop, propType=propTpQn)
+                elif propTpObj.allowedObjects and qnXbrlReferenceObj not in propTpObj.allowedObjects:
+                    txmyMdl.error(msgCode,
+                              _("The relationshipType %(name)s %(property)s has a propertyType not usable on reference objects %(propType)s"),
+                              xbrlObject=refObj, name=refObj.name, property=prop, propType=propTpQn)
 
     # Unit Objects
     for unitObj in txmy.units:
@@ -976,6 +997,18 @@ def validateTaxonomy(txmyMdl, txmy):
                         txmyMdl.error("oimte:missingQNameReference",
                                   _("The unit %(name)s measure %(measure)s must exist in the taxonomy model."),
                                   xbrlObject=unitObj, name=unitObj.name, measure=m)
+    # export Profiles
+    for expProfObj in txmy.exportProfiles:
+        for expObjQn in expProfObj.exportObjects:
+            if expObjQn not in xmyMdl.namedObjects:
+                txmyMdl.error("oimte:missingQNameReference",
+                          _("The exportObject %(name)s exportObjet %(qname)s must exist in the taxonomy model."),
+                          xbrlObject=expProfObj, name=expProfObj.name, qname=expObjQn)
+        for expObjTpQn in expProfObj.exportObjectTypes:
+            if expObjQn not in xbrlObjectTypes:
+                txmyMdl.error("oimte:xbrlObjectTypes",
+                          _("The exportObject %(name)s exportObjet %(qname)s must identify an object type."),
+                          xbrlObject=expProfObj, name=expProfObj.name, qname=expObjQn)
 
     # Facts in taxonomy
     if txmy.facts:
