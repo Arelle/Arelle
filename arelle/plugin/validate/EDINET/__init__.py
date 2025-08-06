@@ -5,17 +5,14 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-from arelle.FileSource import FileSource
 from arelle.ModelXbrl import ModelXbrl
 from arelle.Version import authorLabel, copyrightLabel
 from . import Constants
-from .Manifest import Manifest, ManifestInstance, parseManifests
 from .ValidationPluginExtension import ValidationPluginExtension
-from .rules import contexts, edinet, frta, gfm, upload
+from .rules import contexts, edinet, frta, gfm, manifests, upload
 
 PLUGIN_NAME = "Validate EDINET"
 DISCLOSURE_SYSTEM_VALIDATION_TYPE = "EDINET"
@@ -38,6 +35,7 @@ validationPlugin = ValidationPluginExtension(
         edinet,
         frta,
         gfm,
+        manifests,
         upload,
     ],
 )
@@ -51,29 +49,14 @@ def disclosureSystemConfigURL(*args: Any, **kwargs: Any) -> str:
     return validationPlugin.disclosureSystemConfigURL
 
 
-def fileSourceEntrypointFiles(filesource: FileSource, inlineOnly: bool, *args: Any, **kwargs: Any) -> list[dict[str, Any]] | None:
-    manifests = parseManifests(filesource)
-    if len(manifests) == 0:
-        return None
-    entrypointFiles = []
-    for manifest in manifests:
-        for instance in manifest.instances:
-            entrypoints = []
-            for ixbrlFile in instance.ixbrlFiles:
-                filesource.select(str(ixbrlFile))
-                entrypoints.append({"file": filesource.url})
-            entrypointFiles.append({'ixds': entrypoints})
-    return entrypointFiles
+def fileSourceEntrypointFiles(*args: Any, **kwargs: Any) -> list[dict[str, Any]] | None:
+    return validationPlugin.fileSourceEntrypointFiles(*args, **kwargs)
 
 
 def loggingSeverityReleveler(modelXbrl: ModelXbrl, level: str, messageCode: str, args: Any, **kwargs: Any) -> tuple[str | None, str | None]:
     if level in RELEVELER_MAP:
         return RELEVELER_MAP[level].get(messageCode, (level, messageCode))
     return level, messageCode
-
-
-def modelXbrlLoadComplete(*args: Any, **kwargs: Any) -> None:
-    return validationPlugin.modelXbrlLoadComplete(*args, **kwargs)
 
 
 def validateFinally(*args: Any, **kwargs: Any) -> None:
@@ -96,7 +79,6 @@ __pluginInfo__ = {
     "DisclosureSystem.ConfigURL": disclosureSystemConfigURL,
     "FileSource.EntrypointFiles": fileSourceEntrypointFiles,
     "Logging.Severity.Releveler": loggingSeverityReleveler,
-    "ModelXbrl.LoadComplete": modelXbrlLoadComplete,
     "Validate.XBRL.Finally": validateXbrlFinally,
     "ValidateFormula.Finished": validateFinally,
 }

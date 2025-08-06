@@ -22,17 +22,19 @@ from arelle.ValidateXbrl import ValidateXbrl
 from arelle.XmlValidate import VALID
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
-from .FormType import FormType
 from .Constants import CORPORATE_FORMS
+from .ControllerPluginData import ControllerPluginData
+from .InstanceType import InstanceType
+from .ManifestInstance import ManifestInstance
 
 _: TypeGetText
 
 
 @dataclass(frozen=True)
 class UploadContents:
-    amendmentPaths: dict[FormType, frozenset[Path]]
+    amendmentPaths: dict[InstanceType, frozenset[Path]]
     directories: frozenset[Path]
-    forms: dict[FormType, frozenset[Path]]
+    instances: dict[InstanceType, frozenset[Path]]
     unknownPaths: frozenset[Path]
 
 
@@ -142,6 +144,15 @@ class PluginValidationDataExtension(PluginData):
             if isinstance(elt, (ModelObject, LinkPrototype))
         ]
 
+    @lru_cache(1)
+    def getManifestInstance(self, modelXbrl: ModelXbrl) -> ManifestInstance | None:
+        controllerPluginData = ControllerPluginData.get(modelXbrl.modelManager.cntlr, self.name)
+        return controllerPluginData.matchManifestInstance(modelXbrl.ixdsDocUrls)
+
+    @lru_cache(1)
+    def getManifestInstances(self, modelXbrl: ModelXbrl) -> list[ManifestInstance]:
+        controllerPluginData = ControllerPluginData.get(modelXbrl.modelManager.cntlr, self.name)
+        return controllerPluginData.getManifestInstances()
 
     def getUploadFileSizes(self, modelXbrl: ModelXbrl) -> dict[Path, int]:
         """
@@ -172,14 +183,14 @@ class PluginValidationDataExtension(PluginData):
             if parents[0] == 'XBRL':
                 if len(parents) > 1:
                     formName = parents[1]
-                    formType = FormType.parse(formName)
-                    if formType is not None:
-                        forms[formType].append(path)
+                    instanceType = InstanceType.parse(formName)
+                    if instanceType is not None:
+                        forms[instanceType].append(path)
                         continue
             formName = parents[0]
-            formType = FormType.parse(formName)
-            if formType is not None:
-                amendmentPaths[formType].append(path)
+            instanceType = InstanceType.parse(formName)
+            if instanceType is not None:
+                amendmentPaths[instanceType].append(path)
                 continue
             if len(path.suffix) == 0:
                 directories.append(path)
@@ -188,7 +199,7 @@ class PluginValidationDataExtension(PluginData):
         return UploadContents(
             amendmentPaths={k: frozenset(v) for k, v in amendmentPaths.items() if len(v) > 0},
             directories=frozenset(directories),
-            forms={k: frozenset(v) for k, v in forms.items() if len(v) > 0},
+            instances={k: frozenset(v) for k, v in forms.items() if len(v) > 0},
             unknownPaths=frozenset(unknownPaths)
         )
 

@@ -4,6 +4,7 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 import zipfile
+from collections import defaultdict
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
@@ -18,29 +19,26 @@ from . import Constants
 
 
 @dataclass(frozen=True)
-class Manifest:
-    instances: list[ManifestInstance]
+class ManifestInstance:
+    id: str
+    ixbrlFiles: list[Path]
     path: Path
+    preferredFilename: str
     titlesByLang: dict[str, str]
     tocItems: list[ManifestTocItem]
+    type: str
 
 
 @dataclass(frozen=True)
 class ManifestTocItem:
+    element: _Element
     extrole: str
     childItems: list[ManifestTocItem]
     itemIn: str
     parent: QName | None
     ref: str
     start: QName | None
-
-
-@dataclass(frozen=True)
-class ManifestInstance:
-    id: str
-    ixbrlFiles: list[Path]
-    preferredFilename: str
-    type: str
+    end: QName | None
 
 
 def _parseManifestTocItems(parentElt: _Element, parentQName: QName | None) -> list[ManifestTocItem]:
@@ -51,17 +49,19 @@ def _parseManifestTocItems(parentElt: _Element, parentQName: QName | None) -> li
             childParentQName = qname(insertElt.attrib.get("parent"), insertElt.nsmap) if insertElt.attrib.get("parent") else None
             childTocItems.extend(_parseManifestTocItems(insertElt, childParentQName))
         tocItems.append(ManifestTocItem(
+            element=itemElt,
             extrole=itemElt.attrib.get("extrole", ""),
             childItems=childTocItems,
             parent=parentQName,
             itemIn=itemElt.attrib.get("in", ""),
             ref=itemElt.attrib.get("ref", ""),
             start=qname(itemElt.attrib.get("start"), itemElt.nsmap) if itemElt.attrib.get("start") else None,
+            end=qname(itemElt.attrib.get("end"), itemElt.nsmap) if itemElt.attrib.get("end") else None,
         ))
     return tocItems
 
 
-def _parseManifestDoc(xmlRootElement: _Element, path: Path) -> Manifest:
+def _parseManifestDoc(xmlRootElement: _Element, path: Path) -> list[ManifestInstance]:
     instances = []
     titlesByLang = {}
     base = path.parent
@@ -71,6 +71,9 @@ def _parseManifestDoc(xmlRootElement: _Element, path: Path) -> Manifest:
         lang = titleElt.attrib.get(XbrlConst.qnXmlLang.clarkNotation, "")
         titlesByLang[lang] = titleElt.text.strip() if titleElt.text else ""
     tocItems = _parseManifestTocItems(tocElts[0], None)
+    tocItemsByRef = defaultdict(list)
+    for tocItem in tocItems:
+        tocItemsByRef[tocItem.ref].append(tocItem)
     listElts = list(xmlRootElement.iterchildren(tag=Constants.qnEdinetManifestList.clarkNotation))
     assert len(listElts) == 1, 'There should be exactly one list element in the manifest.'
     for instanceElt in listElts[0].iterchildren(tag=Constants.qnEdinetManifestInstance.clarkNotation):
@@ -85,25 +88,23 @@ def _parseManifestDoc(xmlRootElement: _Element, path: Path) -> Manifest:
         instances.append(ManifestInstance(
             id=instanceId,
             ixbrlFiles=ixbrlFiles,
+            path=path,
             preferredFilename=preferredFilename,
+            titlesByLang=titlesByLang,
+            tocItems=tocItemsByRef.get(instanceId, []),
             type=instanceType,
         ))
-    return Manifest(
-        instances=instances,
-        path=path,
-        titlesByLang=titlesByLang,
-        tocItems=tocItems,
-    )
+    return instances
 
 
 @lru_cache(1)
-def parseManifests(filesource: FileSource) -> list[Manifest]:
-    manifests: list[Manifest] = []
+def parseManifests(filesource: FileSource) -> list[ManifestInstance]:
+    instances: list[ManifestInstance] = []
     if filesource.isArchive:
         if filesource.isTaxonomyPackage:
-            return manifests
+            return instances
         if filesource.reportPackage is not None:
-            return manifests
+            return instances
         for _archiveFile in (filesource.dir or ()):
             if not Path(_archiveFile).stem.startswith('manifest'):
                 continue
@@ -111,7 +112,7 @@ def parseManifests(filesource: FileSource) -> list[Manifest]:
                 "The EDINET plugin only supports archives in .zip format."
             with filesource.fs.open(_archiveFile) as manifestDoc:
                 xmlRootElement = etree.fromstring(manifestDoc.read())
-                manifests.append(_parseManifestDoc(xmlRootElement, Path(_archiveFile)))
+                instances.extend(_parseManifestDoc(xmlRootElement, Path(_archiveFile)))
     elif (dirpath := Path(str(filesource.url))).is_dir():
         for file in dirpath.rglob("*"):
             if not file.is_file():
@@ -120,5 +121,5 @@ def parseManifests(filesource: FileSource) -> list[Manifest]:
                 continue
             with open(file, 'rb') as manifestDoc:
                 xmlRootElement = etree.fromstring(manifestDoc.read())
-                manifests.append(_parseManifestDoc(xmlRootElement, file))
-    return manifests
+                instances.extend(_parseManifestDoc(xmlRootElement, file))
+    return instances

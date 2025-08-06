@@ -154,7 +154,7 @@ def rule_EC8027W(
                 continue
             arcroles = linkbaseType.getArcroles()
             relSet = val.modelXbrl.relationshipSet(tuple(arcroles), roleType.roleURI)
-            relSetFrom = relSet.loadModelRelationshipsFrom()
+            relSetFrom = relSet.fromModelObjects()
             rootConcepts = relSet.rootConcepts
             if len(rootConcepts) < 2:
                 continue
