@@ -250,30 +250,35 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                 numZtbls = 1
             self.zTbl = 0
             # get number of y header columns
-            numZHdrs = numYHdrCols = numXHdrRows = 0
-            dataRows = dataCols = 0
+            self.numZHdrs = self.numYHdrCols = self.numXHdrRows = 0
+            self.dataRows = self.dataRows = 0
             lytMdlZHdrs = self.lytMdlTable.lytMdlAxisHeaders("z")
             if lytMdlZHdrs is not None:
+                '''
                 for lytMdlZGrp in lytMdlZHdrs.lytMdlGroups:
                     for lytMdlZHdr in lytMdlZGrp.lytMdlHeaders:
                         dataRow = 0
                         for lytMdlZCell in lytMdlZHdr.lytMdlCells:
                             dataRow += 1
-                        if dataRow > numZHdrs:
-                            numZHdrs = dataRow
+                        if dataRow > self.numZHdrs:
+                            self.numZHdrs = dataRow
+                '''
+                dataRow = len(lytMdlZHdrs.lytMdlGroups)
+                if dataRow > self.numZHdrs:
+                    self.numZHdrs = dataRow
             for lytMdlYGrp in self.lytMdlTable.lytMdlAxisHeaders("y").lytMdlGroups:
                 for lytMdlYHdr in lytMdlYGrp.lytMdlHeaders:
-                    numYHdrCols +=  lytMdlYHdr.maxNumLabels
+                    self.numYHdrCols +=  lytMdlYHdr.maxNumLabels
                     dataRow = 0
                     if all(lytMdlCell.isOpenAspectEntrySurrogate for lytMdlCell in lytMdlYHdr.lytMdlCells):
                         continue # skip header with only open aspect entry surrogate
                     for lytMdlYCell in lytMdlYHdr.lytMdlCells:
                         dataRow += lytMdlYCell.span
-                    if dataRow > dataRows:
-                        dataRows = dataRow
+                    if dataRow > self.dataRows:
+                        self.dataRows = dataRow
             for lytMdlXGrp in self.lytMdlTable.lytMdlAxisHeaders("x").lytMdlGroups:
                 for lytMdlXHdr in lytMdlXGrp.lytMdlHeaders:
-                    numXHdrRows += lytMdlXHdr.maxNumLabels
+                    self.numXHdrRows += lytMdlXHdr.maxNumLabels
                     dataCol = 0
                     if all(lytMdlCell.isOpenAspectEntrySurrogate for lytMdlCell in lytMdlXHdr.lytMdlCells):
                         continue # skip header with only open aspect entry surrogate
@@ -281,11 +286,11 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                         if lytMdlCell.isOpenAspectEntrySurrogate:
                             continue # strip all open aspect entry surrogates from layout model file
                         dataCol += lytMdlCell.span
-                    if dataCol > dataCols:
-                        dataCols = dataCol
-        dataFirstRow = numZHdrs + numXHdrRows
-        if TRACE_TK: print(f"resizeTable rows {dataFirstRow+dataRows} cols {numYHdrCols+dataCols} titleRows {dataFirstRow} titleColumns {numYHdrCols})")
-        self.table.resizeTable(dataFirstRow+dataRows, numYHdrCols+dataCols, titleRows=dataFirstRow, titleColumns=numYHdrCols)
+                    if dataCol > self.dataRows:
+                        self.dataRows = dataCol
+        self.dataFirstRow = self.numZHdrs + self.numXHdrRows
+        if TRACE_TK: print(f"resizeTable rows {self.dataFirstRow+self.dataRows} cols {self.numYHdrCols+self.dataRows} titleRows {self.dataFirstRow} titleColumns {self.numYHdrCols})")
+        self.table.resizeTable(self.dataFirstRow+self.dataRows, self.numYHdrCols+self.dataRows, titleRows=self.dataFirstRow, titleColumns=self.numYHdrCols)
 
         try:
             # review row header wrap widths and limit to 2/3 of the frame width (all are screen units)
@@ -312,20 +317,20 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             self.aspectEntryObjectIdsNode.clear()
             self.aspectEntryObjectIdsCell.clear()
             self.factPrototypeAspectEntryObjectIds.clear()
-            if TRACE_TK: print(f"tbl hdr x {0} y {0} cols {numYHdrCols-1} rows {dataFirstRow - 1} value {lytMdlTableSet.label}")
+            if TRACE_TK: print(f"tbl hdr x {0} y {0} cols {self.numYHdrCols-1} rows {self.dataFirstRow - 1} value {lytMdlTableSet.label}")
             self.table.initHeaderCellValue(lytMdlTableSet.label,
-                                           0, 0, numYHdrCols-1, dataFirstRow - 1,
+                                           0, 0, self.numYHdrCols-1, self.dataFirstRow - 1,
                                            XbrlTable.TG_TOP_LEFT_JUSTIFIED)
-            self.zAxis(clearZchoices, numXHdrRows)
-            self.xAxis(numYHdrCols, self.colHdrTopRow)
-            self.yAxis(0, dataFirstRow)
+            self.zAxis(clearZchoices, self.numXHdrRows)
+            self.xAxis(self.numYHdrCols, self.colHdrTopRow)
+            self.yAxis(0, self.dataFirstRow)
             for fp in self.factPrototypes: # dereference prior facts
                 if fp is not None:
                     fp.clear()
             self.factPrototypes = []
 
             startedAt2 = time.time()
-            if self.bodyCells(numYHdrCols, dataFirstRow):
+            if self.bodyCells(self.numYHdrCols, self.dataFirstRow):
                 # has body cells
                 #print("bodyCells {:.2f}secs ".format(time.time() - startedAt2) + self.roledefinition)
                 self.table.clearModificationStatus()
