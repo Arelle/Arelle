@@ -44,4 +44,16 @@
             <error>EDINET.EC5800E.ERROR_ENDING_ELEMENT_NOT_DEFINED_UNDER_STARTING_ELEMENT</error>
         </result>
     </variation>
+    <variation id="invalid04" name="invalid04">
+        <description>
+            Manifest XML is invalid.
+            <!--valid09.zip with manifest XML made invalid.-->
+        </description>
+        <data>
+            <instance readMeFirst="true">invalid04.zip</instance>
+        </data>
+        <result>
+            <error>EDINET.EC5800E.FATAL_ERROR_INVALID_MANIFEST</error>
+        </result>
+    </variation>
 </testcase>
