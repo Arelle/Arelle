@@ -3,19 +3,22 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
+import logging
 import os
 from collections import defaultdict
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Union, cast
 
-from arelle import UrlUtil, ModelObject, XmlUtil, ModelValue
+from arelle import UrlUtil, XmlUtil, ModelValue
+from arelle.FileSource import FileSource
 from arelle.Locale import format_string
-from arelle.ModelObject import ObjectPropertyViewWrapper
+from arelle.ModelObject import ModelObject, ObjectPropertyViewWrapper
 from arelle.PluginManager import pluginClassMethods
 from arelle.PythonUtil import flattenSequence
 
 if TYPE_CHECKING:
     from arelle.ModelManager import ModelManager
+    from arelle.ModelXbrl import ModelXbrl
     from arelle.typing import EmptyTuple
 
 LoggableValue = Union[str, dict[Any, Any], list[Any], set[Any], tuple[Any, ...]]
@@ -34,7 +37,6 @@ class ErrorManager:
         self._errorCaptureLevel = errorCaptureLevel
         self._errors = []
         self._logCount = {}
-        self._logHasRelevelerPlugin: bool = any(True for m in pluginClassMethods("Logging.Severity.Releveler"))
         self._logRefFileRelUris = defaultdict(dict)
         self._modelManager = modelManager
 
@@ -46,14 +48,14 @@ class ErrorManager:
     def logCount(self) -> dict[str, int]:
         return self._logCount
 
-    def effectiveMessageCode(self, messageCodes: tuple[Any] | str) -> str | None:
+    def _effectiveMessageCode(self, messageCodes: tuple[Any] | str) -> str | None:
         """
         If codes includes EFM, GFM, HMRC, or SBR-coded error then the code chosen (if a sequence)
         corresponds to whether EFM, GFM, HMRC, or SBR validation is in effect.
         """
         effectiveMessageCode = None
-        _validationType = self.modelManager.disclosureSystem.validationType
-        _exclusiveTypesPattern = self.modelManager.disclosureSystem.exclusiveTypesPattern
+        _validationType = self._modelManager.disclosureSystem.validationType
+        _exclusiveTypesPattern = self._modelManager.disclosureSystem.exclusiveTypesPattern
 
         for argCode in messageCodes if isinstance(messageCodes,tuple) else (messageCodes,):
             if (isinstance(argCode, ModelValue.QName) or
@@ -67,11 +69,7 @@ class ErrorManager:
         self._errors.clear()
         self._logCount.clear()
 
-    # isLoggingEffectiveFor( messageCodes= messageCode= level= )
-    def isLoggingEffectiveFor(self, **kwargs: Any) -> bool:  # args can be messageCode(s) and level
-        logger = self.logger
-        if logger is None:
-            return False
+    def isLoggingEffectiveFor(self, logger: logging.Logger, **kwargs: Any) -> bool:  # args can be messageCode(s) and level
         assert hasattr(logger, 'messageCodeFilter'), 'messageCodeFilter not set on controller logger.'
         assert hasattr(logger, 'messageLevelFilter'), 'messageLevelFilter not set on controller logger.'
         if "messageCodes" in kwargs or "messageCode" in kwargs:
@@ -79,7 +77,7 @@ class ErrorManager:
                 messageCodes = kwargs["messageCodes"]
             else:
                 messageCodes = kwargs["messageCode"]
-            messageCode = self.effectiveMessageCode(messageCodes)
+            messageCode = self._effectiveMessageCode(messageCodes)
             codeEffective = (messageCode and
                              (not logger.messageCodeFilter or logger.messageCodeFilter.match(messageCode)))
         else:
@@ -90,38 +88,65 @@ class ErrorManager:
             levelEffective = True
         return bool(codeEffective and levelEffective)
 
-    def log(self, level: str, codes: Any, msg: str, **args: Any) -> None:
+    def log(
+            self,
+            logger: logging.Logger,
+            level: str,
+            codes: Any,
+            msg: str,
+            sourceModelXbrl: ModelXbrl | None = None,
+            fileSource: FileSource | None = None,
+            entryLoadingUrl: str | None = None,
+            logRefObjectProperties: bool = False,
+            **args: Any
+    ) -> None:
         """Same as error(), but level passed in as argument
         """
-        logger = self.logger
-        if logger is None:
-            return
         assert hasattr(logger, 'messageCodeFilter'), 'messageCodeFilter not set on controller logger.'
+        messageCodeFilter = getattr(logger, 'messageCodeFilter')
         assert hasattr(logger, 'messageLevelFilter'), 'messageLevelFilter not set on controller logger.'
+        messageLevelFilter = getattr(logger, 'messageLevelFilter')
         # determine logCode
-        messageCode = self.effectiveMessageCode(codes)
+        messageCode = self._effectiveMessageCode(codes)
         if messageCode == "asrtNoLog":
-            self.errors.append(args["assertionResults"])
+            self._errors.append(args["assertionResults"])
             return
-        if self.logHasRelevelerPlugin:
+        if sourceModelXbrl is not None and any(True for m in pluginClassMethods("Logging.Severity.Releveler")):
             for pluginXbrlMethod in pluginClassMethods("Logging.Severity.Releveler"):
-                level, messageCode = pluginXbrlMethod(self, level, messageCode, args) # args must be passed as dict because it may contain modelXbrl or messageCode key value
+                level, messageCode = pluginXbrlMethod(sourceModelXbrl, level, messageCode, args) # args must be passed as dict because it may contain modelXbrl or messageCode key value
         if (messageCode and
-                (not logger.messageCodeFilter or logger.messageCodeFilter.match(messageCode)) and
-                (not logger.messageLevelFilter or logger.messageLevelFilter.match(level.lower()))):
+                (not messageCodeFilter or messageCodeFilter.match(messageCode)) and
+                (not messageLevelFilter or messageLevelFilter.match(level.lower()))):
             # note that plugin Logging.Message.Parameters may rewrite messageCode which now occurs after filtering on messageCode
-            messageCode, logArgs, extras = self.logArguments(messageCode, msg, args)
+            messageCode, logArgs, extras = self._logArguments(
+                messageCode,
+                msg,
+                args,
+                sourceModelXbrl=sourceModelXbrl,
+                fileSource=fileSource,
+                entryLoadingUrl=entryLoadingUrl,
+                logRefObjectProperties=logRefObjectProperties,
+            )
             numericLevel = logging._checkLevel(level)  #type: ignore[attr-defined]
-            self.logCount[numericLevel] = self.logCount.get(numericLevel, 0) + 1
-            if numericLevel >= self.errorCaptureLevel:
+            self._logCount[numericLevel] = self._logCount.get(numericLevel, 0) + 1
+            if numericLevel >= self._errorCaptureLevel:
                 try: # if there's a numeric errorCount arg, extend messages codes by count
-                    self.errors.extend([messageCode] * int(logArgs[1]["errorCount"]))
+                    self._errors.extend([messageCode] * int(logArgs[1]["errorCount"]))
                 except (IndexError, KeyError, ValueError): # no msgArgs, no errorCount, or not int
-                    self.errors.append(messageCode) # assume one error occurence
+                    self._errors.append(messageCode) # assume one error occurence
             """@messageCatalog=[]"""
             logger.log(numericLevel, *logArgs, exc_info=args.get("exc_info"), extra=extras)
 
-    def logArguments(self, messageCode: str, msg: str, codedArgs: dict[str, str]) -> Any:
+    def _logArguments(
+            self,
+            messageCode: str,
+            msg: str,
+            codedArgs: dict[str, str],
+            sourceModelXbrl: ModelXbrl | None = None,
+            fileSource: FileSource | None = None,
+            entryLoadingUrl: str | None = None,
+            logRefObjectProperties: bool = False,
+    ) -> Any:
         # Prepares arguments for logger function as per info() below.
 
         def propValues(properties: Any) -> Any:
@@ -132,16 +157,20 @@ class ErrorManager:
         fmtArgs: dict[str, LoggableValue] = {}
         extras: dict[str, Any] = {"messageCode":messageCode}
         modelObjectArgs: tuple[Any, ...] | list[Any] = ()
+        sourceModelDocument = None
+        if sourceModelXbrl is not None:
+            sourceModelDocument = sourceModelXbrl.modelDocument
 
         for argName, argValue in codedArgs.items():
             if argName in ("modelObject", "modelXbrl", "modelDocument"):
-                try:
-                    entryUrl = self.modelDocument.uri  # type: ignore[union-attr]
-                except AttributeError:
-                    try:
-                        entryUrl = self.entryLoadingUrl
-                    except AttributeError:
-                        entryUrl = self.fileSource.url
+                if sourceModelDocument is not None:
+                    entryUrl = sourceModelDocument.uri
+                else:
+                    if entryLoadingUrl is not None:
+                        entryUrl = entryLoadingUrl
+                    else:
+                        assert fileSource is not None, 'Expected FileSource to be available for fallback entry URL.'
+                        entryUrl = fileSource.url
                 refs: list[dict[str, Any]] = []
                 modelObjectArgs_complex = argValue if isinstance(argValue, (tuple,list,set)) else (argValue,)
                 modelObjectArgs = flattenSequence(modelObjectArgs_complex)
@@ -157,17 +186,17 @@ class ErrorManager:
                                     objectUrl = arg.displayUri
                                 except AttributeError:
                                     try:
-                                        objectUrl = self.modelDocument.displayUri  # type: ignore[union-attr]
+                                        objectUrl = sourceModelDocument.displayUri  # type: ignore[union-attr]
                                     except AttributeError:
-                                        objectUrl = getattr(self, "entryLoadingUrl", "")
+                                        objectUrl = entryLoadingUrl or ""
                         try:
                             if objectUrl.endswith("/_IXDS"):
                                 file = objectUrl[:-6] # inline document set or report package
-                            elif objectUrl in self.logRefFileRelUris.get(entryUrl, EMPTY_TUPLE):
-                                file = self.logRefFileRelUris[entryUrl][objectUrl]
+                            elif objectUrl in self._logRefFileRelUris.get(entryUrl, EMPTY_TUPLE):
+                                file = self._logRefFileRelUris[entryUrl][objectUrl]
                             else:
                                 file = UrlUtil.relativeUri(entryUrl, objectUrl)
-                                self.logRefFileRelUris[entryUrl][objectUrl] = file
+                                self._logRefFileRelUris[entryUrl][objectUrl] = file
                         except:
                             file = ""
                         ref: dict[str, Any] = {}
@@ -178,12 +207,12 @@ class ErrorManager:
                             ref["href"] = file + "#" + cast(str, XmlUtil.elementFragmentIdentifier(_arg))
                             ref["sourceLine"] = _arg.sourceline
                             ref["objectId"] = _arg.objectId()
-                            if self.logRefObjectProperties:
+                            if logRefObjectProperties:
                                 try:
                                     ref["properties"] = propValues(arg.propertyView)
                                 except AttributeError:
                                     pass # is a default properties entry appropriate or needed?
-                            if self.logRefHasPluginProperties:
+                            if any(True for m in pluginClassMethods("Logging.Ref.Properties")):
                                 refProperties: Any = ref.get("properties", {})
                                 for pluginXbrlMethod in pluginClassMethods("Logging.Ref.Properties"):
                                     pluginXbrlMethod(arg, refProperties, codedArgs)
@@ -195,7 +224,7 @@ class ErrorManager:
                                 ref["sourceLine"] = arg.sourceline
                             except AttributeError:
                                 pass # arg may not have sourceline, ignore if so
-                        if self.logRefHasPluginAttrs:
+                        if any(True for m in pluginClassMethods("Logging.Ref.Attributes")):
                             refAttributes: dict[str, str] = {}
                             for pluginXbrlMethod in pluginClassMethods("Logging.Ref.Attributes"):
                                 pluginXbrlMethod(arg, refAttributes, codedArgs)
@@ -232,15 +261,15 @@ class ErrorManager:
                 if isinstance(argValue, int):    # must be sortable with int's in logger
                     extras["sourceLine"] = argValue
             elif argName not in ("exc_info", "messageCodes"):
-                fmtArgs[argName] = self.loggableValue(argValue) # dereference anything not loggable
+                fmtArgs[argName] = self._loggableValue(argValue) # dereference anything not loggable
 
         if "refs" not in extras:
-            try:
-                file = os.path.basename(cast('ModelDocumentClass', self.modelDocument).displayUri)
-            except AttributeError:
-                try:
-                    file = os.path.basename(self.entryLoadingUrl)
-                except:
+            if sourceModelDocument is not None:
+                file = sourceModelDocument.displayUri
+            else:
+                if entryLoadingUrl is not None:
+                    file = os.path.basename(entryLoadingUrl)
+                else:
                     file = ""
             extras["refs"] = [{"href": file}]
         for pluginXbrlMethod in pluginClassMethods("Logging.Message.Parameters"):
@@ -250,23 +279,23 @@ class ErrorManager:
                 (msg, fmtArgs) if fmtArgs else (msg,),
                 extras)
 
-    def loggableValue(self, argValue: Any) -> LoggableValue:  # must be dereferenced and not related to object lifetimes
+    def _loggableValue(self, argValue: Any) -> LoggableValue:  # must be dereferenced and not related to object lifetimes
         if argValue is None:
             return "(none)"
         if isinstance(argValue, bool):
             return str(argValue).lower()  # show lower case true/false xml values
         if isinstance(argValue, int):
             # need locale-dependent formatting
-            return format_string(self.modelManager.locale, '%i', argValue)
+            return format_string(self._modelManager.locale, '%i', argValue)
         if isinstance(argValue, (float, Decimal)):
             # need locale-dependent formatting
-            return format_string(self.modelManager.locale, '%f', argValue)
+            return format_string(self._modelManager.locale, '%f', argValue)
         if isinstance(argValue, tuple):
-            return tuple(self.loggableValue(x) for x in argValue)
+            return tuple(self._loggableValue(x) for x in argValue)
         if isinstance(argValue, list):
-            return [self.loggableValue(x) for x in argValue]
+            return [self._loggableValue(x) for x in argValue]
         if isinstance(argValue, set):
-            return {self.loggableValue(x) for x in argValue}
+            return {self._loggableValue(x) for x in argValue}
         if isinstance(argValue, dict):
-            return dict((self.loggableValue(k), self.loggableValue(v)) for k, v in argValue.items())
+            return dict((self._loggableValue(k), self._loggableValue(v)) for k, v in argValue.items())
         return str(argValue)
