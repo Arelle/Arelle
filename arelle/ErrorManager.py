@@ -8,7 +8,7 @@ from collections import defaultdict
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Union, cast
 
-from arelle import UrlUtil, ModelObject, XmlUtil
+from arelle import UrlUtil, ModelObject, XmlUtil, ModelValue
 from arelle.Locale import format_string
 from arelle.ModelObject import ObjectPropertyViewWrapper
 from arelle.PluginManager import pluginClassMethods
@@ -45,6 +45,23 @@ class ErrorManager:
     @property
     def logCount(self) -> dict[str, int]:
         return self._logCount
+
+    def effectiveMessageCode(self, messageCodes: tuple[Any] | str) -> str | None:
+        """
+        If codes includes EFM, GFM, HMRC, or SBR-coded error then the code chosen (if a sequence)
+        corresponds to whether EFM, GFM, HMRC, or SBR validation is in effect.
+        """
+        effectiveMessageCode = None
+        _validationType = self.modelManager.disclosureSystem.validationType
+        _exclusiveTypesPattern = self.modelManager.disclosureSystem.exclusiveTypesPattern
+
+        for argCode in messageCodes if isinstance(messageCodes,tuple) else (messageCodes,):
+            if (isinstance(argCode, ModelValue.QName) or
+                    (_validationType and argCode and argCode.startswith(_validationType)) or
+                    (not _exclusiveTypesPattern or _exclusiveTypesPattern.match(argCode or "") == None)):
+                effectiveMessageCode = argCode
+                break
+        return effectiveMessageCode
 
     def clear(self) -> None:
         self._errors.clear()

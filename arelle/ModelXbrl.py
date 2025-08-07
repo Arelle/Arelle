@@ -1009,23 +1009,6 @@ class ModelXbrl:
                             modelObject,
                             err, traceback.format_tb(sys.exc_info()[2])))
 
-    def effectiveMessageCode(self, messageCodes: tuple[Any] | str) -> str | None:
-        """
-        If codes includes EFM, GFM, HMRC, or SBR-coded error then the code chosen (if a sequence)
-        corresponds to whether EFM, GFM, HMRC, or SBR validation is in effect.
-        """
-        effectiveMessageCode = None
-        _validationType = self.modelManager.disclosureSystem.validationType
-        _exclusiveTypesPattern = self.modelManager.disclosureSystem.exclusiveTypesPattern
-
-        for argCode in messageCodes if isinstance(messageCodes,tuple) else (messageCodes,):
-            if (isinstance(argCode, ModelValue.QName) or
-                (_validationType and argCode and argCode.startswith(_validationType)) or
-                (not _exclusiveTypesPattern or _exclusiveTypesPattern.match(argCode or "") == None)):
-                effectiveMessageCode = argCode
-                break
-        return effectiveMessageCode
-
     # isLoggingEffectiveFor( messageCodes= messageCode= level= )
     def isLoggingEffectiveFor(self, **kwargs: Any) -> bool:  # args can be messageCode(s) and level
         logger = self.logger
