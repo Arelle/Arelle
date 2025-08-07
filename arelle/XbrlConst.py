@@ -40,6 +40,7 @@ builtinAttributes = {
 }
 ref2004 = "http://www.xbrl.org/2004/ref"
 ref2006 = "http://www.xbrl.org/2006/ref"
+svg = "http://www.w3.org/2000/svg"
 xml = "http://www.w3.org/XML/1998/namespace"
 xbrli = "http://www.xbrl.org/2003/instance"
 xhtmlBaseIdentifier = "{http://www.w3.org/1999/xhtml}base"
