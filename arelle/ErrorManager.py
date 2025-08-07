@@ -67,6 +67,29 @@ class ErrorManager:
         self._errors.clear()
         self._logCount.clear()
 
+    # isLoggingEffectiveFor( messageCodes= messageCode= level= )
+    def isLoggingEffectiveFor(self, **kwargs: Any) -> bool:  # args can be messageCode(s) and level
+        logger = self.logger
+        if logger is None:
+            return False
+        assert hasattr(logger, 'messageCodeFilter'), 'messageCodeFilter not set on controller logger.'
+        assert hasattr(logger, 'messageLevelFilter'), 'messageLevelFilter not set on controller logger.'
+        if "messageCodes" in kwargs or "messageCode" in kwargs:
+            if "messageCodes" in kwargs:
+                messageCodes = kwargs["messageCodes"]
+            else:
+                messageCodes = kwargs["messageCode"]
+            messageCode = self.effectiveMessageCode(messageCodes)
+            codeEffective = (messageCode and
+                             (not logger.messageCodeFilter or logger.messageCodeFilter.match(messageCode)))
+        else:
+            codeEffective = True
+        if "level" in kwargs and logger.messageLevelFilter:
+            levelEffective = logger.messageLevelFilter.match(kwargs["level"].lower())
+        else:
+            levelEffective = True
+        return bool(codeEffective and levelEffective)
+
     def log(self, level: str, codes: Any, msg: str, **args: Any) -> None:
         """Same as error(), but level passed in as argument
         """
