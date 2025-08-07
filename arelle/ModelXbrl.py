@@ -1049,27 +1049,6 @@ class ModelXbrl:
             levelEffective = True
         return bool(codeEffective and levelEffective)
 
-    def loggableValue(self, argValue: Any) -> LoggableValue:  # must be dereferenced and not related to object lifetimes
-        if argValue is None:
-            return "(none)"
-        if isinstance(argValue, bool):
-            return str(argValue).lower()  # show lower case true/false xml values
-        if isinstance(argValue, int):
-            # need locale-dependent formatting
-            return format_string(self.modelManager.locale, '%i', argValue)
-        if isinstance(argValue, (float, Decimal)):
-            # need locale-dependent formatting
-            return format_string(self.modelManager.locale, '%f', argValue)
-        if isinstance(argValue, tuple):
-            return tuple(self.loggableValue(x) for x in argValue)
-        if isinstance(argValue, list):
-            return [self.loggableValue(x) for x in argValue]
-        if isinstance(argValue, set):
-            return {self.loggableValue(x) for x in argValue}
-        if isinstance(argValue, dict):
-            return dict((self.loggableValue(k), self.loggableValue(v)) for k, v in argValue.items())
-        return str(argValue)
-
     def debug(self, codes: str | tuple[str, ...], msg: str, **args: Any) -> None:
         """Same as error(), but as info
         """

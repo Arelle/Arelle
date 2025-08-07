@@ -5,9 +5,11 @@ from __future__ import annotations
 
 import os
 from collections import defaultdict
+from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Union, cast
 
 from arelle import UrlUtil, ModelObject, XmlUtil
+from arelle.Locale import format_string
 from arelle.ModelObject import ObjectPropertyViewWrapper
 from arelle.PluginManager import pluginClassMethods
 from arelle.PythonUtil import flattenSequence
@@ -177,3 +179,23 @@ class ErrorManager:
                 (msg, fmtArgs) if fmtArgs else (msg,),
                 extras)
 
+    def loggableValue(self, argValue: Any) -> LoggableValue:  # must be dereferenced and not related to object lifetimes
+        if argValue is None:
+            return "(none)"
+        if isinstance(argValue, bool):
+            return str(argValue).lower()  # show lower case true/false xml values
+        if isinstance(argValue, int):
+            # need locale-dependent formatting
+            return format_string(self.modelManager.locale, '%i', argValue)
+        if isinstance(argValue, (float, Decimal)):
+            # need locale-dependent formatting
+            return format_string(self.modelManager.locale, '%f', argValue)
+        if isinstance(argValue, tuple):
+            return tuple(self.loggableValue(x) for x in argValue)
+        if isinstance(argValue, list):
+            return [self.loggableValue(x) for x in argValue]
+        if isinstance(argValue, set):
+            return {self.loggableValue(x) for x in argValue}
+        if isinstance(argValue, dict):
+            return dict((self.loggableValue(k), self.loggableValue(v)) for k, v in argValue.items())
+        return str(argValue)
