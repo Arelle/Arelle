@@ -67,6 +67,37 @@ class ErrorManager:
         self._errors.clear()
         self._logCount.clear()
 
+    def log(self, level: str, codes: Any, msg: str, **args: Any) -> None:
+        """Same as error(), but level passed in as argument
+        """
+        logger = self.logger
+        if logger is None:
+            return
+        assert hasattr(logger, 'messageCodeFilter'), 'messageCodeFilter not set on controller logger.'
+        assert hasattr(logger, 'messageLevelFilter'), 'messageLevelFilter not set on controller logger.'
+        # determine logCode
+        messageCode = self.effectiveMessageCode(codes)
+        if messageCode == "asrtNoLog":
+            self.errors.append(args["assertionResults"])
+            return
+        if self.logHasRelevelerPlugin:
+            for pluginXbrlMethod in pluginClassMethods("Logging.Severity.Releveler"):
+                level, messageCode = pluginXbrlMethod(self, level, messageCode, args) # args must be passed as dict because it may contain modelXbrl or messageCode key value
+        if (messageCode and
+                (not logger.messageCodeFilter or logger.messageCodeFilter.match(messageCode)) and
+                (not logger.messageLevelFilter or logger.messageLevelFilter.match(level.lower()))):
+            # note that plugin Logging.Message.Parameters may rewrite messageCode which now occurs after filtering on messageCode
+            messageCode, logArgs, extras = self.logArguments(messageCode, msg, args)
+            numericLevel = logging._checkLevel(level)  #type: ignore[attr-defined]
+            self.logCount[numericLevel] = self.logCount.get(numericLevel, 0) + 1
+            if numericLevel >= self.errorCaptureLevel:
+                try: # if there's a numeric errorCount arg, extend messages codes by count
+                    self.errors.extend([messageCode] * int(logArgs[1]["errorCount"]))
+                except (IndexError, KeyError, ValueError): # no msgArgs, no errorCount, or not int
+                    self.errors.append(messageCode) # assume one error occurence
+            """@messageCatalog=[]"""
+            logger.log(numericLevel, *logArgs, exc_info=args.get("exc_info"), extra=extras)
+
     def logArguments(self, messageCode: str, msg: str, codedArgs: dict[str, str]) -> Any:
         # Prepares arguments for logger function as per info() below.
 
