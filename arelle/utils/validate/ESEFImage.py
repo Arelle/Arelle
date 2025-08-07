@@ -257,22 +257,22 @@ def checkSVGContentElt(
 ) -> Iterable[Validation]:
     guidance = params.contentOtherThanXHTMLGuidance
     rootElement = True
-    for elt in elt.iter():
+    for childElt in elt.iter():
         if rootElement:
-            if elt.tag != "{http://www.w3.org/2000/svg}svg":
+            if childElt.tag != "{http://www.w3.org/2000/svg}svg":
                 yield Validation.error((f"{guidance}.imageFileCannotBeLoaded", "NL.NL-KVK.3.5.1.imageFileCannotBeLoaded"),
                                        _("Image SVG has root element which is not svg"),
                                        modelObject=imgElts)
             rootElement = False
         # Comments, processing instructions, and maybe other special constructs don't have string tags.
-        if not isinstance(elt.tag, str):
+        if not isinstance(childElt.tag, str):
             continue
-        eltTag = elt.tag.rpartition("}")[2] # strip namespace
+        eltTag = childElt.tag.rpartition("}")[2] # strip namespace
         if eltTag == "image":
-            imgElts = [*imgElts, elt]
-            yield from validateImage(baseUrl, getHref(elt), modelXbrl, val, imgElts, "", params)
+            imgElts = [*imgElts, childElt]
+            yield from validateImage(baseUrl, getHref(childElt), modelXbrl, val, imgElts, "", params)
         if eltTag in ("object", "script", "audio", "foreignObject", "iframe", "image", "use", "video"):
-            href = elt.get("href","")
+            href = childElt.get("href","")
             if eltTag in ("object", "script") or "javascript:" in href:
                 yield Validation.error((f"{guidance}.executableCodePresent", "NL.NL-KVK.3.5.1.1.executableCodePresent"),
                                        _("Inline XBRL images MUST NOT contain executable code: %(element)s"),
