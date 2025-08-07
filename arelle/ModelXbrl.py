@@ -1181,3 +1181,7 @@ class ModelXbrl:
     @property
     def errors(self) -> list[str | None]:
         return self.errorManager.errors
+
+    @property
+    def logCount(self) -> dict[str, int]:
+        return self.errorManager.logCount
