@@ -3,23 +3,25 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 
-import os, sys, traceback, uuid
-import regex as re
-from collections import defaultdict
-from collections.abc import Iterable
-from typing import TYPE_CHECKING, Any, TypeVar, Union, cast, Optional
 import logging
-from decimal import Decimal
+import os
+import sys
+import traceback
+import uuid
+from collections import defaultdict
+from typing import TYPE_CHECKING, Any, TypeVar, Union, cast, Optional
+
+import regex as re
+from collections.abc import Iterable
 
 import arelle
-from arelle import FileSource, ModelRelationshipSet, UrlUtil, XmlUtil, ModelValue, XbrlConst, XmlValidate
-from arelle.FileSource import FileNamedStringIO
-from arelle.ModelObject import ModelObject, ObjectPropertyViewWrapper
-from arelle.ModelValue import dateUnionEqual
+from arelle import FileSource, ModelRelationshipSet, XmlUtil, ModelValue, XbrlConst, XmlValidate
+from arelle.ErrorManager import ErrorManager
 from arelle.Locale import format_string
+from arelle.ModelObject import ModelObject
+from arelle.ModelValue import dateUnionEqual
 from arelle.PluginManager import pluginClassMethods
 from arelle.PrototypeInstanceObject import FactPrototype, DimValuePrototype
-from arelle.PythonUtil import flattenSequence
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateXbrlDimensions import isFactDimensionallyValid
 from arelle.XbrlConst import standardLabel
@@ -37,7 +39,7 @@ if TYPE_CHECKING:
     from arelle.ModelRelationshipSet import ModelRelationshipSet as ModelRelationshipSetClass
     from arelle.ModelValue import QName
     from arelle.PrototypeDtsObject import LinkPrototype
-    from arelle.typing import EmptyTuple, TypeGetText, LocaleDict
+    from arelle.typing import TypeGetText, LocaleDict
     from arelle.ValidateUtr import UtrEntry
 
     _: TypeGetText  # Handle gettext
@@ -55,8 +57,7 @@ DEFAULTorNONDEFAULT = sys.intern("default-or-non-default")
 _NOT_FOUND = object()
 
 
-
-def load(modelManager: ModelManager, url: str | FileSourceClass, nextaction: str | None = None, base: str | None = None, useFileSource: FileSourceClass | None = None, errorCaptureLevel: str | None = None, **kwargs: Any) -> ModelXbrl:
+def load(modelManager: ModelManager, url: str | FileSourceClass, nextaction: str | None = None, base: str | None = None, useFileSource: FileSourceClass | None = None, errorCaptureLevel: int | None = None, **kwargs: Any) -> ModelXbrl:
     """Each loaded instance, DTS, testcase, testsuite, versioning report, or RSS feed, is represented by an
     instance of a ModelXbrl object. The ModelXbrl object has a collection of ModelDocument objects, each
     representing an XML document (for now, with SQL whenever its time comes). One of the modelDocuments of
@@ -109,7 +110,7 @@ def load(modelManager: ModelManager, url: str | FileSourceClass, nextaction: str
 
 def create(
         modelManager: ModelManager, newDocumentType: int | None = None, url: str | None = None, schemaRefs: str|None = None, createModelDocument: bool = True, isEntry: bool = False,
-        errorCaptureLevel: str | None = None, initialXml: str | None = None, initialComment: str | None = None, base: str | None = None, discover: bool = True, xbrliNamespacePrefix: str | None = None
+        errorCaptureLevel: int | None = None, initialXml: str | None = None, initialComment: str | None = None, base: str | None = None, discover: bool = True, xbrliNamespacePrefix: str | None = None
 ) -> ModelXbrl:
     modelXbrl = ModelXbrl(modelManager, errorCaptureLevel=errorCaptureLevel)
     modelXbrl.locale = modelManager.locale
@@ -308,19 +309,18 @@ class ModelXbrl:
     _startedTimeStat: float
     _qnameUtrUnits: dict[QName, UtrEntry]
 
-    def __init__(self,  modelManager: ModelManager, errorCaptureLevel: str | None = None) -> None:
+    def __init__(self,  modelManager: ModelManager, errorCaptureLevel: int | None = None) -> None:
         self.modelManager = modelManager
         self.skipDTS: bool = modelManager.skipDTS
         self.init(errorCaptureLevel=errorCaptureLevel)
 
-    def init(self, keepViews: bool = False, errorCaptureLevel: str | None = None) -> None:
+    def init(self, keepViews: bool = False, errorCaptureLevel: int | None = None) -> None:
         self.uuid: str = uuid.uuid1().urn
         self.namespaceDocs: defaultdict[str, list[ModelDocumentClass]] = defaultdict(list)
         self.urlDocs: dict[str, ModelDocumentClass] = {}
         self.urlUnloadableDocs: dict[bool, str] = {}  # if entry is True, entry is blocked and unloadable, False means loadable but warned
-        self.errorCaptureLevel: str = (errorCaptureLevel or logging._checkLevel("INCONSISTENCY"))  # type: ignore[attr-defined]
-        self.errors: list[str | None] = []
-        self.logCount: dict[str, int] = {}
+        self.errorCaptureLevel: int = (errorCaptureLevel or logging._checkLevel("INCONSISTENCY"))  # type: ignore[attr-defined]
+        self.errorManager = ErrorManager(self.modelManager, self.errorCaptureLevel)
         self.arcroleTypes: defaultdict[str, list[ModelRoleType]] = defaultdict(list)
         self.roleTypes: defaultdict[str, list[ModelRoleType]] = defaultdict(list)
         self.qnameConcepts: dict[QName, ModelConcept] = {}  # indexed by qname of element
@@ -359,8 +359,6 @@ class ModelXbrl:
         self.logRefObjectProperties: bool = getattr(self.logger, "logRefObjectProperties", False)
         self.logRefHasPluginAttrs: bool = any(True for m in pluginClassMethods("Logging.Ref.Attributes"))
         self.logRefHasPluginProperties: bool = any(True for m in pluginClassMethods("Logging.Ref.Properties"))
-        self.logHasRelevelerPlugin: bool = any(True for m in pluginClassMethods("Logging.Severity.Releveler"))
-        self.logRefFileRelUris: defaultdict[Any, dict[str, str]] = defaultdict(dict)
         self.profileStats: dict[str, tuple[int, float, float | int]] = {}
         self.schemaDocsToValidate: set[ModelDocumentClass] = set()
         self.modelXbrl = self  # for consistency in addressing modelXbrl
@@ -1009,6 +1007,13 @@ class ModelXbrl:
                             modelObject,
                             err, traceback.format_tb(sys.exc_info()[2])))
 
+    # isLoggingEffectiveFor( messageCodes= messageCode= level= )
+    def isLoggingEffectiveFor(self, **kwargs: Any) -> bool:  # args can be messageCode(s) and level
+        logger = self.logger
+        if logger is None:
+            return False
+        return self.errorManager.isLoggingEffectiveFor(logger, **kwargs)
+
     def debug(self, codes: str | tuple[str, ...], msg: str, **args: Any) -> None:
         """Same as error(), but as info
         """
@@ -1026,6 +1031,28 @@ class ModelXbrl:
         """
         """@messageCatalog=[]"""
         self.log('WARNING', codes, msg, **args)
+
+    def log(self, level: str, codes: Any, msg: str, **args: Any) -> None:
+        """Same as error(), but level passed in as argument
+        """
+        if self.logger is None:
+            return
+        entryLoadingUrl = None
+        try:
+            entryLoadingUrl = self.entryLoadingUrl
+        except AttributeError:
+            pass
+        self.errorManager.log(
+            self.logger,
+            level,
+            codes,
+            msg,
+            sourceModelXbrl=self,
+            fileSource=self.fileSource,
+            entryLoadingUrl=entryLoadingUrl,
+            logRefObjectProperties=self.logRefObjectProperties,
+            **args
+        )
 
     def error(self, codes: str | tuple[str, ...], msg: str, **args: Any) -> None:
         """Logs a message as info, by code, logging-system message text (using %(name)s named arguments
@@ -1150,3 +1177,7 @@ class ModelXbrl:
                         qnameUtrUnits[unitQName] = unit
             self._qnameUtrUnits = qnameUtrUnits
             return self._qnameUtrUnits
+
+    @property
+    def errors(self) -> list[str | None]:
+        return self.errorManager.errors
