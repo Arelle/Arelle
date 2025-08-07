@@ -24,6 +24,8 @@ import regex as re
 
 from arelle import Locale, ModelManager, PackageManager, PluginManager, XbrlConst
 from arelle.BetaFeatures import BETA_FEATURES_AND_DESCRIPTIONS
+from arelle.ErrorManager import ErrorManager
+from arelle.FileSource import FileSource
 from arelle.SystemInfo import PlatformOS, getSystemWordSize, hasFileSystem, hasWebServer, isCGI, isGAE
 from arelle.WebCache import WebCache
 from arelle.logging.formatters.LogFormatter import LogFormatter, logRefsFileLines  # noqa: F401 - for reimport
@@ -123,6 +125,7 @@ class Cntlr:
     """
     __version__ = "1.6.0"
     betaFeatures: dict[str, bool]
+    errorManager: ErrorManager
     hasWin32gui: bool
     hasGui: bool
     hasFileSystem: bool
@@ -291,6 +294,24 @@ class Cntlr:
         PackageManager.init(self, loadPackagesConfig=hasGui)
 
         self.startLogging(logFileName, logFileMode, logFileEncoding, logFormat)
+        self.errorManager = ErrorManager(self.modelManager, logging._checkLevel("INCONSISTENCY")) # type: ignore[attr-defined]
+
+    def error(self, codes: Any, msg: str, level: str = "ERROR", fileSource: FileSource | None = None, **args: Any) -> None:
+        if self.logger is None:
+            return
+        self.errorManager.log(
+            self.logger,
+            level,
+            codes,
+            msg,
+            fileSource=fileSource,
+            logRefObjectProperties=getattr(self.logger, "logRefObjectProperties", False),
+            **args
+        )
+
+    @property
+    def errors(self) -> list[str | None]:
+        return self.errorManager.errors
 
     @property
     def uiLangDir(self) -> str:
@@ -662,3 +683,7 @@ class Cntlr:
 
     def _clearPluginData(self) -> None:
         self.__pluginData.clear()
+
+    def testcaseVariationReset(self) -> None:
+        self._clearPluginData()
+        self.errorManager.clear()
