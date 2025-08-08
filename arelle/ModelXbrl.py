@@ -3,23 +3,25 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 
-import os, sys, traceback, uuid
-import regex as re
-from collections import defaultdict
-from collections.abc import Iterable
-from typing import TYPE_CHECKING, Any, TypeVar, Union, cast, Optional
 import logging
-from decimal import Decimal
+import os
+import sys
+import traceback
+import uuid
+from collections import defaultdict
+from typing import TYPE_CHECKING, Any, TypeVar, Union, cast, Optional
+
+import regex as re
+from collections.abc import Iterable
 
 import arelle
-from arelle import FileSource, ModelRelationshipSet, UrlUtil, XmlUtil, ModelValue, XbrlConst, XmlValidate
-from arelle.FileSource import FileNamedStringIO
-from arelle.ModelObject import ModelObject, ObjectPropertyViewWrapper
-from arelle.ModelValue import dateUnionEqual
+from arelle import FileSource, ModelRelationshipSet, XmlUtil, ModelValue, XbrlConst, XmlValidate
+from arelle.ErrorManager import ErrorManager
 from arelle.Locale import format_string
+from arelle.ModelObject import ModelObject
+from arelle.ModelValue import dateUnionEqual
 from arelle.PluginManager import pluginClassMethods
 from arelle.PrototypeInstanceObject import FactPrototype, DimValuePrototype
-from arelle.PythonUtil import flattenSequence
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateXbrlDimensions import isFactDimensionallyValid
 from arelle.XbrlConst import standardLabel
@@ -37,7 +39,7 @@ if TYPE_CHECKING:
     from arelle.ModelRelationshipSet import ModelRelationshipSet as ModelRelationshipSetClass
     from arelle.ModelValue import QName
     from arelle.PrototypeDtsObject import LinkPrototype
-    from arelle.typing import EmptyTuple, TypeGetText, LocaleDict
+    from arelle.typing import TypeGetText, LocaleDict
     from arelle.ValidateUtr import UtrEntry
 
     _: TypeGetText  # Handle gettext
@@ -52,13 +54,10 @@ AUTO_LOCATE_ELEMENT = '771407c0-1d0c-11e1-be5e-028037ec0200' # singleton meaning
 DEFAULT = sys.intern("default")
 NONDEFAULT = sys.intern("non-default")
 DEFAULTorNONDEFAULT = sys.intern("default-or-non-default")
-EMPTY_TUPLE: EmptyTuple = ()
 _NOT_FOUND = object()
 
-LoggableValue = Union[str, dict[Any, Any], list[Any], set[Any], tuple[Any, ...]]
 
-
-def load(modelManager: ModelManager, url: str | FileSourceClass, nextaction: str | None = None, base: str | None = None, useFileSource: FileSourceClass | None = None, errorCaptureLevel: str | None = None, **kwargs: Any) -> ModelXbrl:
+def load(modelManager: ModelManager, url: str | FileSourceClass, nextaction: str | None = None, base: str | None = None, useFileSource: FileSourceClass | None = None, errorCaptureLevel: int | None = None, **kwargs: Any) -> ModelXbrl:
     """Each loaded instance, DTS, testcase, testsuite, versioning report, or RSS feed, is represented by an
     instance of a ModelXbrl object. The ModelXbrl object has a collection of ModelDocument objects, each
     representing an XML document (for now, with SQL whenever its time comes). One of the modelDocuments of
@@ -111,7 +110,7 @@ def load(modelManager: ModelManager, url: str | FileSourceClass, nextaction: str
 
 def create(
         modelManager: ModelManager, newDocumentType: int | None = None, url: str | None = None, schemaRefs: str|None = None, createModelDocument: bool = True, isEntry: bool = False,
-        errorCaptureLevel: str | None = None, initialXml: str | None = None, initialComment: str | None = None, base: str | None = None, discover: bool = True, xbrliNamespacePrefix: str | None = None
+        errorCaptureLevel: int | None = None, initialXml: str | None = None, initialComment: str | None = None, base: str | None = None, discover: bool = True, xbrliNamespacePrefix: str | None = None
 ) -> ModelXbrl:
     modelXbrl = ModelXbrl(modelManager, errorCaptureLevel=errorCaptureLevel)
     modelXbrl.locale = modelManager.locale
@@ -310,19 +309,18 @@ class ModelXbrl:
     _startedTimeStat: float
     _qnameUtrUnits: dict[QName, UtrEntry]
 
-    def __init__(self,  modelManager: ModelManager, errorCaptureLevel: str | None = None) -> None:
+    def __init__(self,  modelManager: ModelManager, errorCaptureLevel: int | None = None) -> None:
         self.modelManager = modelManager
         self.skipDTS: bool = modelManager.skipDTS
         self.init(errorCaptureLevel=errorCaptureLevel)
 
-    def init(self, keepViews: bool = False, errorCaptureLevel: str | None = None) -> None:
+    def init(self, keepViews: bool = False, errorCaptureLevel: int | None = None) -> None:
         self.uuid: str = uuid.uuid1().urn
         self.namespaceDocs: defaultdict[str, list[ModelDocumentClass]] = defaultdict(list)
         self.urlDocs: dict[str, ModelDocumentClass] = {}
         self.urlUnloadableDocs: dict[bool, str] = {}  # if entry is True, entry is blocked and unloadable, False means loadable but warned
-        self.errorCaptureLevel: str = (errorCaptureLevel or logging._checkLevel("INCONSISTENCY"))  # type: ignore[attr-defined]
-        self.errors: list[str | None] = []
-        self.logCount: dict[str, int] = {}
+        self.errorCaptureLevel: int = (errorCaptureLevel or logging._checkLevel("INCONSISTENCY"))  # type: ignore[attr-defined]
+        self.errorManager = ErrorManager(self.modelManager, self.errorCaptureLevel)
         self.arcroleTypes: defaultdict[str, list[ModelRoleType]] = defaultdict(list)
         self.roleTypes: defaultdict[str, list[ModelRoleType]] = defaultdict(list)
         self.qnameConcepts: dict[QName, ModelConcept] = {}  # indexed by qname of element
@@ -361,8 +359,6 @@ class ModelXbrl:
         self.logRefObjectProperties: bool = getattr(self.logger, "logRefObjectProperties", False)
         self.logRefHasPluginAttrs: bool = any(True for m in pluginClassMethods("Logging.Ref.Attributes"))
         self.logRefHasPluginProperties: bool = any(True for m in pluginClassMethods("Logging.Ref.Properties"))
-        self.logHasRelevelerPlugin: bool = any(True for m in pluginClassMethods("Logging.Severity.Releveler"))
-        self.logRefFileRelUris: defaultdict[Any, dict[str, str]] = defaultdict(dict)
         self.profileStats: dict[str, tuple[int, float, float | int]] = {}
         self.schemaDocsToValidate: set[ModelDocumentClass] = set()
         self.modelXbrl = self  # for consistency in addressing modelXbrl
@@ -1011,195 +1007,12 @@ class ModelXbrl:
                             modelObject,
                             err, traceback.format_tb(sys.exc_info()[2])))
 
-    def effectiveMessageCode(self, messageCodes: tuple[Any] | str) -> str | None:
-        """
-        If codes includes EFM, GFM, HMRC, or SBR-coded error then the code chosen (if a sequence)
-        corresponds to whether EFM, GFM, HMRC, or SBR validation is in effect.
-        """
-        effectiveMessageCode = None
-        _validationType = self.modelManager.disclosureSystem.validationType
-        _exclusiveTypesPattern = self.modelManager.disclosureSystem.exclusiveTypesPattern
-
-        for argCode in messageCodes if isinstance(messageCodes,tuple) else (messageCodes,):
-            if (isinstance(argCode, ModelValue.QName) or
-                (_validationType and argCode and argCode.startswith(_validationType)) or
-                (not _exclusiveTypesPattern or _exclusiveTypesPattern.match(argCode or "") == None)):
-                effectiveMessageCode = argCode
-                break
-        return effectiveMessageCode
-
     # isLoggingEffectiveFor( messageCodes= messageCode= level= )
     def isLoggingEffectiveFor(self, **kwargs: Any) -> bool:  # args can be messageCode(s) and level
         logger = self.logger
         if logger is None:
             return False
-        assert hasattr(logger, 'messageCodeFilter'), 'messageCodeFilter not set on controller logger.'
-        assert hasattr(logger, 'messageLevelFilter'), 'messageLevelFilter not set on controller logger.'
-        if "messageCodes" in kwargs or "messageCode" in kwargs:
-            if "messageCodes" in kwargs:
-                messageCodes = kwargs["messageCodes"]
-            else:
-                messageCodes = kwargs["messageCode"]
-            messageCode = self.effectiveMessageCode(messageCodes)
-            codeEffective = (messageCode and
-                             (not logger.messageCodeFilter or logger.messageCodeFilter.match(messageCode)))
-        else:
-            codeEffective = True
-        if "level" in kwargs and logger.messageLevelFilter:
-            levelEffective = logger.messageLevelFilter.match(kwargs["level"].lower())
-        else:
-            levelEffective = True
-        return bool(codeEffective and levelEffective)
-
-    def logArguments(self, messageCode: str, msg: str, codedArgs: dict[str, str]) -> Any:
-        # Prepares arguments for logger function as per info() below.
-
-        def propValues(properties: Any) -> Any:
-            # deref objects in properties
-            return [(p[0], str(p[1])) if len(p) == 2 else (p[0], str(p[1]), propValues(p[2]))
-                    for p in properties if 2 <= len(p) <= 3]
-        # determine message and extra arguments
-        fmtArgs: dict[str, LoggableValue] = {}
-        extras: dict[str, Any] = {"messageCode":messageCode}
-        modelObjectArgs: tuple[Any, ...] | list[Any] = ()
-
-        for argName, argValue in codedArgs.items():
-            if argName in ("modelObject", "modelXbrl", "modelDocument"):
-                try:
-                    entryUrl = self.modelDocument.uri  # type: ignore[union-attr]
-                except AttributeError:
-                    try:
-                        entryUrl = self.entryLoadingUrl
-                    except AttributeError:
-                        entryUrl = self.fileSource.url
-                refs: list[dict[str, Any]] = []
-                modelObjectArgs_complex = argValue if isinstance(argValue, (tuple,list,set)) else (argValue,)
-                modelObjectArgs = flattenSequence(modelObjectArgs_complex)
-                for arg in modelObjectArgs:
-                    if arg is not None:
-                        if isinstance(arg, str):
-                            objectUrl = arg
-                        else:
-                            try:
-                                objectUrl = arg.modelDocument.displayUri
-                            except AttributeError:
-                                try:
-                                    objectUrl = arg.displayUri
-                                except AttributeError:
-                                    try:
-                                        objectUrl = self.modelDocument.displayUri  # type: ignore[union-attr]
-                                    except AttributeError:
-                                        objectUrl = getattr(self, "entryLoadingUrl", "")
-                        try:
-                            if objectUrl.endswith("/_IXDS"):
-                                file = objectUrl[:-6] # inline document set or report package
-                            elif objectUrl in self.logRefFileRelUris.get(entryUrl, EMPTY_TUPLE):
-                                file = self.logRefFileRelUris[entryUrl][objectUrl]
-                            else:
-                                file = UrlUtil.relativeUri(entryUrl, objectUrl)
-                                self.logRefFileRelUris[entryUrl][objectUrl] = file
-                        except:
-                            file = ""
-                        ref: dict[str, Any] = {}
-                        if isinstance(arg,(ModelObject, ObjectPropertyViewWrapper)):
-                            _arg:ModelObject = arg.modelObject if isinstance(arg, ObjectPropertyViewWrapper) else arg
-                            if len(modelObjectArgs) > 1 and getattr(arg,"tag",None) == "instance":
-                                continue # skip IXDS top level element
-                            ref["href"] = file + "#" + cast(str, XmlUtil.elementFragmentIdentifier(_arg))
-                            ref["sourceLine"] = _arg.sourceline
-                            ref["objectId"] = _arg.objectId()
-                            if self.logRefObjectProperties:
-                                try:
-                                    ref["properties"] = propValues(arg.propertyView)
-                                except AttributeError:
-                                    pass # is a default properties entry appropriate or needed?
-                            if self.logRefHasPluginProperties:
-                                refProperties: Any = ref.get("properties", {})
-                                for pluginXbrlMethod in pluginClassMethods("Logging.Ref.Properties"):
-                                    pluginXbrlMethod(arg, refProperties, codedArgs)
-                                if refProperties:
-                                    ref["properties"] = refProperties
-                        else:
-                            ref["href"] = file
-                            try:
-                                ref["sourceLine"] = arg.sourceline
-                            except AttributeError:
-                                pass # arg may not have sourceline, ignore if so
-                        if self.logRefHasPluginAttrs:
-                            refAttributes: dict[str, str] = {}
-                            for pluginXbrlMethod in pluginClassMethods("Logging.Ref.Attributes"):
-                                pluginXbrlMethod(arg, refAttributes, codedArgs)
-                            if refAttributes:
-                                ref["customAttributes"] = refAttributes
-                        refs.append(ref)
-                extras["refs"] = refs
-            elif argName == "sourceFileLine":
-                # sourceFileLines is pairs of file and line numbers, e.g., ((file,line),(file2,line2),...)
-                ref = {}
-                if isinstance(argValue, (tuple,list)):
-                    ref["href"] = str(argValue[0])
-                    if len(argValue) > 1 and argValue[1]:
-                        ref["sourceLine"] = str(argValue[1])
-                else:
-                    ref["href"] = str(argValue)
-                extras["refs"] = [ref]
-            elif argName == "sourceFileLines":
-                # sourceFileLines is tuple/list of pairs of file and line numbers, e.g., ((file,line),(file2,line2),...)
-                sf_refs: list[dict[str, str]] = []
-                argvalues: tuple[Any, ...] | list[Any] = argValue if isinstance(argValue, (tuple, list)) else (argValue,)
-                for arg in argvalues:
-                    ref = {}
-                    if isinstance(arg, (tuple, list)):
-                        arg_: tuple[Any, ...] | list[Any] = arg
-                        ref["href"] = str(arg_[0])
-                        if len(arg_) > 1 and arg_[1]:
-                            ref["sourceLine"] = str(arg_[1])
-                    else:
-                        ref["href"] = str(arg)
-                    sf_refs.append(ref)
-                extras["refs"] = sf_refs
-            elif argName == "sourceLine":
-                if isinstance(argValue, int):    # must be sortable with int's in logger
-                    extras["sourceLine"] = argValue
-            elif argName not in ("exc_info", "messageCodes"):
-                fmtArgs[argName] = self.loggableValue(argValue) # dereference anything not loggable
-
-        if "refs" not in extras:
-            try:
-                file = os.path.basename(cast('ModelDocumentClass', self.modelDocument).displayUri)
-            except AttributeError:
-                try:
-                    file = os.path.basename(self.entryLoadingUrl)
-                except:
-                    file = ""
-            extras["refs"] = [{"href": file}]
-        for pluginXbrlMethod in pluginClassMethods("Logging.Message.Parameters"):
-            # plug in can rewrite msg string or return msg if not altering msg
-            msg = pluginXbrlMethod(messageCode, msg, modelObjectArgs, fmtArgs) or msg
-        return (messageCode,
-                (msg, fmtArgs) if fmtArgs else (msg,),
-                extras)
-
-    def loggableValue(self, argValue: Any) -> LoggableValue:  # must be dereferenced and not related to object lifetimes
-        if argValue is None:
-            return "(none)"
-        if isinstance(argValue, bool):
-            return str(argValue).lower()  # show lower case true/false xml values
-        if isinstance(argValue, int):
-            # need locale-dependent formatting
-            return format_string(self.modelManager.locale, '%i', argValue)
-        if isinstance(argValue, (float, Decimal)):
-            # need locale-dependent formatting
-            return format_string(self.modelManager.locale, '%f', argValue)
-        if isinstance(argValue, tuple):
-            return tuple(self.loggableValue(x) for x in argValue)
-        if isinstance(argValue, list):
-            return [self.loggableValue(x) for x in argValue]
-        if isinstance(argValue, set):
-            return {self.loggableValue(x) for x in argValue}
-        if isinstance(argValue, dict):
-            return dict((self.loggableValue(k), self.loggableValue(v)) for k, v in argValue.items())
-        return str(argValue)
+        return self.errorManager.isLoggingEffectiveFor(logger, **kwargs)
 
     def debug(self, codes: str | tuple[str, ...], msg: str, **args: Any) -> None:
         """Same as error(), but as info
@@ -1222,33 +1035,24 @@ class ModelXbrl:
     def log(self, level: str, codes: Any, msg: str, **args: Any) -> None:
         """Same as error(), but level passed in as argument
         """
-        logger = self.logger
-        if logger is None:
+        if self.logger is None:
             return
-        assert hasattr(logger, 'messageCodeFilter'), 'messageCodeFilter not set on controller logger.'
-        assert hasattr(logger, 'messageLevelFilter'), 'messageLevelFilter not set on controller logger.'
-        # determine logCode
-        messageCode = self.effectiveMessageCode(codes)
-        if messageCode == "asrtNoLog":
-            self.errors.append(args["assertionResults"])
-            return
-        if self.logHasRelevelerPlugin:
-            for pluginXbrlMethod in pluginClassMethods("Logging.Severity.Releveler"):
-                level, messageCode = pluginXbrlMethod(self, level, messageCode, args) # args must be passed as dict because it may contain modelXbrl or messageCode key value
-        if (messageCode and
-              (not logger.messageCodeFilter or logger.messageCodeFilter.match(messageCode)) and
-              (not logger.messageLevelFilter or logger.messageLevelFilter.match(level.lower()))):
-            # note that plugin Logging.Message.Parameters may rewrite messageCode which now occurs after filtering on messageCode
-            messageCode, logArgs, extras = self.logArguments(messageCode, msg, args)
-            numericLevel = logging._checkLevel(level)  #type: ignore[attr-defined]
-            self.logCount[numericLevel] = self.logCount.get(numericLevel, 0) + 1
-            if numericLevel >= self.errorCaptureLevel:
-                try: # if there's a numeric errorCount arg, extend messages codes by count
-                    self.errors.extend([messageCode] * int(logArgs[1]["errorCount"]))
-                except (IndexError, KeyError, ValueError): # no msgArgs, no errorCount, or not int
-                    self.errors.append(messageCode) # assume one error occurence
-            """@messageCatalog=[]"""
-            logger.log(numericLevel, *logArgs, exc_info=args.get("exc_info"), extra=extras)
+        entryLoadingUrl = None
+        try:
+            entryLoadingUrl = self.entryLoadingUrl
+        except AttributeError:
+            pass
+        self.errorManager.log(
+            self.logger,
+            level,
+            codes,
+            msg,
+            sourceModelXbrl=self,
+            fileSource=self.fileSource,
+            entryLoadingUrl=entryLoadingUrl,
+            logRefObjectProperties=self.logRefObjectProperties,
+            **args
+        )
 
     def error(self, codes: str | tuple[str, ...], msg: str, **args: Any) -> None:
         """Logs a message as info, by code, logging-system message text (using %(name)s named arguments
@@ -1373,3 +1177,11 @@ class ModelXbrl:
                         qnameUtrUnits[unitQName] = unit
             self._qnameUtrUnits = qnameUtrUnits
             return self._qnameUtrUnits
+
+    @property
+    def errors(self) -> list[str | None]:
+        return self.errorManager.errors
+
+    @property
+    def logCount(self) -> dict[str, int]:
+        return self.errorManager.logCount
