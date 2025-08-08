@@ -125,7 +125,7 @@ class Cntlr:
     """
     __version__ = "1.6.0"
     betaFeatures: dict[str, bool]
-    errorManager: ErrorManager
+    errorManager: ErrorManager | None
     hasWin32gui: bool
     hasGui: bool
     hasFileSystem: bool
@@ -167,6 +167,7 @@ class Cntlr:
             b: betaFeatures.get(b, False)
             for b in BETA_FEATURES_AND_DESCRIPTIONS.keys()
         }
+        self.errorManager = None
         self.hasWin32gui = False
         self.hasGui = hasGui
         self.hasFileSystem = hasFileSystem() # no file system on Google App Engine servers
@@ -297,7 +298,13 @@ class Cntlr:
         self.errorManager = ErrorManager(self.modelManager, logging._checkLevel("INCONSISTENCY")) # type: ignore[attr-defined]
 
     def error(self, codes: Any, msg: str, level: str = "ERROR", fileSource: FileSource | None = None, **args: Any) -> None:
-        if self.logger is None:
+        if self.logger is None or self.errorManager is None:
+            self.addToLog(
+                message=msg,
+                messageCode=str(codes),
+                messageArgs=args,
+                level=level
+            )
             return
         self.errorManager.log(
             self.logger,
@@ -311,6 +318,8 @@ class Cntlr:
 
     @property
     def errors(self) -> list[str | None]:
+        if self.errorManager is None:
+            return []
         return self.errorManager.errors
 
     @property
@@ -686,4 +695,5 @@ class Cntlr:
 
     def testcaseVariationReset(self) -> None:
         self._clearPluginData()
-        self.errorManager.clear()
+        if self.errorManager is not None:
+            self.errorManager.clear()
