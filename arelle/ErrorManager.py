@@ -9,7 +9,7 @@ from collections import defaultdict
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Union, cast
 
-from arelle import UrlUtil, XmlUtil, ModelValue
+from arelle import UrlUtil, XmlUtil, ModelValue, XbrlConst
 from arelle.FileSource import FileSource
 from arelle.Locale import format_string
 from arelle.ModelObject import ModelObject, ObjectPropertyViewWrapper
@@ -204,7 +204,12 @@ class ErrorManager:
                             _arg:ModelObject = arg.modelObject if isinstance(arg, ObjectPropertyViewWrapper) else arg
                             if len(modelObjectArgs) > 1 and getattr(arg,"tag",None) == "instance":
                                 continue # skip IXDS top level element
-                            ref["href"] = file + "#" + cast(str, XmlUtil.elementFragmentIdentifier(_arg))
+                            fragmentIdentifier = cast(str, XmlUtil.elementFragmentIdentifier(_arg))
+                            if not hasattr(_arg, 'modelDocument') and _arg.namespaceURI == XbrlConst.svg:
+                                # This is an embedded SVG document without its own file.
+                                ref["href"] = "#" + fragmentIdentifier
+                            else:
+                                ref["href"] = file + "#" + fragmentIdentifier
                             ref["sourceLine"] = _arg.sourceline
                             ref["objectId"] = _arg.objectId()
                             if logRefObjectProperties:
