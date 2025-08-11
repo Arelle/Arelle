@@ -33,7 +33,7 @@ jobs:
 
     steps:
       - name: Download artifact
-        uses: actions/download-artifact@v4.3.0
+        uses: actions/download-artifact@v5.0.0
         with:
           name: ${{ inputs.github_artifact }}
 
@@ -44,7 +44,7 @@ jobs:
           files: ${{ inputs.build_name }}
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4.2.1
+        uses: aws-actions/configure-aws-credentials@v4.3.1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY_SECRET }}

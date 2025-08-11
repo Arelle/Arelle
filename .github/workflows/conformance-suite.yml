@@ -36,12 +36,12 @@ jobs:
     runs-on: ${{ inputs.os }}
     environment: ${{ inputs.environment }}
     steps:
-      - uses: actions/checkout@v4.2.2
+      - uses: actions/checkout@v4.3.0
         with:
           persist-credentials: false
       - name: Configure AWS Credentials
         if: ${{ inputs.environment == 'integration-tests' }}
-        uses: aws-actions/configure-aws-credentials@v4.2.1
+        uses: aws-actions/configure-aws-credentials@v4.3.1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
