@@ -38,7 +38,11 @@ class ValidationPluginExtension(ValidationPlugin):
         return entrypointFiles
 
     def newPluginData(self, cntlr: Cntlr, validateXbrl: ValidateXbrl | None) -> PluginData:
-        disclosureSystem = validateXbrl.disclosureSystem.name
+        if validateXbrl is None:
+            return ControllerPluginData.get(cntlr, self.name)
+        disclosureSystem = DISCLOSURE_SYSTEM_EDINET
+        if validateXbrl is not None:
+            disclosureSystem = str(validateXbrl.disclosureSystem.name)
         if disclosureSystem == DISCLOSURE_SYSTEM_EDINET:
             pass
         else:

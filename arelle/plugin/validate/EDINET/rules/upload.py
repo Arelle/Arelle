@@ -6,8 +6,10 @@ from __future__ import annotations
 import re
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any, Iterable, TYPE_CHECKING
 
+from arelle.Cntlr import Cntlr
+from arelle.FileSource import FileSource
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
@@ -16,6 +18,9 @@ from arelle.utils.validate.Validation import Validation
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
 from ..InstanceType import InstanceType, HTML_EXTENSIONS, IMAGE_EXTENSIONS
 from ..PluginValidationDataExtension import PluginValidationDataExtension
+
+if TYPE_CHECKING:
+    from ..ControllerPluginData import ControllerPluginData
 
 _: TypeGetText
 
@@ -35,12 +40,13 @@ FILENAME_STEM_PATTERN = re.compile(r'[a-zA-Z0-9_-]*')
 
 
 @validation(
-    hook=ValidationHook.XBRL_FINALLY,
+    hook=ValidationHook.FILESOURCE,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
 def rule_EC0121E(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
         *args: Any,
         **kwargs: Any,
 ) -> Iterable[Validation]:
@@ -53,9 +59,7 @@ def rule_EC0121E(
     i.e. amendment documents. For now, we will only check amendment documents, directory
     names, or other files in unexpected locations.
     """
-    if not pluginData.shouldValidateUpload(val):
-        return
-    uploadContents = pluginData.getUploadContents(val.modelXbrl)
+    uploadContents = pluginData.getUploadContents(fileSource)
     paths = set(uploadContents.directories | uploadContents.unknownPaths)
     for amendmentPaths in uploadContents.amendmentPaths.values():
         paths.update(amendmentPaths)
@@ -75,21 +79,20 @@ def rule_EC0121E(
 
 
 @validation(
-    hook=ValidationHook.XBRL_FINALLY,
+    hook=ValidationHook.FILESOURCE,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
 def rule_EC0124E(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
         *args: Any,
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
     EDINET.EC0124E: There are no empty directories.
     """
-    if not pluginData.shouldValidateUpload(val):
-        return
-    uploadFilepaths = pluginData.getUploadFilepaths(val.modelXbrl)
+    uploadFilepaths = pluginData.getUploadFilepaths(fileSource)
     emptyDirectories = []
     for path in uploadFilepaths:
         if path.suffix:
@@ -107,12 +110,13 @@ def rule_EC0124E(
 
 
 @validation(
-    hook=ValidationHook.XBRL_FINALLY,
+    hook=ValidationHook.FILESOURCE,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
 def rule_EC0129E(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
         *args: Any,
         **kwargs: Any,
 ) -> Iterable[Validation]:
@@ -120,9 +124,7 @@ def rule_EC0129E(
     EDINET.EC0129E: Limit the number of subfolders to 3 or less from the XBRL directory.
     """
     startingDirectory = 'XBRL'
-    if not pluginData.shouldValidateUpload(val):
-        return
-    uploadFilepaths = pluginData.getUploadFilepaths(val.modelXbrl)
+    uploadFilepaths = pluginData.getUploadFilepaths(fileSource)
     for path in uploadFilepaths:
         parents = [parent.name for parent in path.parents]
         if startingDirectory in parents:
@@ -144,21 +146,20 @@ def rule_EC0129E(
 
 
 @validation(
-    hook=ValidationHook.XBRL_FINALLY,
+    hook=ValidationHook.FILESOURCE,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
 def rule_EC0130E(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
         *args: Any,
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
     EDINET.EC0130E: File extensions must match the file extensions allowed in Figure 2-1-3 and Figure 2-1-5.
     """
-    if not pluginData.shouldValidateUpload(val):
-        return
-    uploadContents = pluginData.getUploadContents(val.modelXbrl)
+    uploadContents = pluginData.getUploadContents(fileSource)
     checks = []
     for instanceType, amendmentPaths in uploadContents.amendmentPaths.items():
         for amendmentPath in amendmentPaths:
@@ -192,21 +193,20 @@ def rule_EC0130E(
 
 
 @validation(
-    hook=ValidationHook.XBRL_FINALLY,
+    hook=ValidationHook.FILESOURCE,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
 def rule_EC0132E(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
         *args: Any,
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
     EDINET.EC0132E: Store the manifest file directly under the relevant folder.
     """
-    if not pluginData.shouldValidateUpload(val):
-        return
-    uploadContents = pluginData.getUploadContents(val.modelXbrl)
+    uploadContents = pluginData.getUploadContents(fileSource)
     for instanceType in (InstanceType.AUDIT_DOC, InstanceType.PRIVATE_DOC, InstanceType.PUBLIC_DOC):
         if instanceType not in uploadContents.instances:
             continue
@@ -222,21 +222,20 @@ def rule_EC0132E(
 
 
 @validation(
-    hook=ValidationHook.XBRL_FINALLY,
+    hook=ValidationHook.FILESOURCE,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
 def rule_EC0183E(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
         *args: Any,
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
     EDINET.EC0183E: The compressed file size exceeds 55MB.
     """
-    if not pluginData.shouldValidateUpload(val):
-        return
-    size = val.modelXbrl.fileSource.getBytesSize()
+    size = fileSource.getBytesSize()
     if size is None:
         return  # File size is not available, cannot validate
     if size > 55_000_000:  # Interpretting MB as megabytes (1,000,000 bytes)
@@ -248,22 +247,21 @@ def rule_EC0183E(
 
 
 @validation(
-    hook=ValidationHook.XBRL_FINALLY,
+    hook=ValidationHook.FILESOURCE,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
 def rule_EC0188E(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
         *args: Any,
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
     EDINET.EC0188E: There is an HTML file directly under PublicDoc or PrivateDoc whose first 7 characters are not numbers.
     """
-    if not pluginData.shouldValidateUpload(val):
-        return
     pattern = re.compile(r'^\d{7}')
-    uploadFilepaths = pluginData.getUploadFilepaths(val.modelXbrl)
+    uploadFilepaths = pluginData.getUploadFilepaths(fileSource)
     docFolders = frozenset({"PublicDoc", "PrivateDoc"})
     for path in uploadFilepaths:
         if path.suffix not in HTML_EXTENSIONS:
@@ -282,22 +280,21 @@ def rule_EC0188E(
 
 
 @validation(
-    hook=ValidationHook.XBRL_FINALLY,
+    hook=ValidationHook.FILESOURCE,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
 def rule_EC0198E(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
         *args: Any,
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
     EDINET.EC0198E: The number of files in the total submission and directories can not exceed the upper limit.
     """
-    if not pluginData.shouldValidateUpload(val):
-        return
     fileCounts: dict[Path, int] = defaultdict(int)
-    uploadFilepaths = pluginData.getUploadFilepaths(val.modelXbrl)
+    uploadFilepaths = pluginData.getUploadFilepaths(fileSource)
     for path in uploadFilepaths:
         if len(path.suffix) == 0:
             continue
@@ -319,21 +316,20 @@ def rule_EC0198E(
 
 
 @validation(
-    hook=ValidationHook.XBRL_FINALLY,
+    hook=ValidationHook.FILESOURCE,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
 def rule_EC0237E(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
         *args: Any,
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
     EDINET.EC0237E: The directory or file path to the lowest level exceeds the maximum value (259 characters).
     """
-    if not pluginData.shouldValidateUpload(val):
-        return
-    uploadFilepaths = pluginData.getUploadFilepaths(val.modelXbrl)
+    uploadFilepaths = pluginData.getUploadFilepaths(fileSource)
     for path in uploadFilepaths:
         if len(str(path)) <= 259:
             continue
@@ -348,21 +344,20 @@ def rule_EC0237E(
 
 
 @validation(
-    hook=ValidationHook.XBRL_FINALLY,
+    hook=ValidationHook.FILESOURCE,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
 def rule_EC0206E(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
         *args: Any,
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
     EDINET.EC0206E: Empty files are not permitted.
     """
-    if not pluginData.shouldValidateUpload(val):
-        return
-    for path, size in pluginData.getUploadFileSizes(val.modelXbrl).items():
+    for path, size in pluginData.getUploadFileSizes(fileSource).items():
         if size > 0:
             continue
         yield Validation.error(
@@ -376,21 +371,20 @@ def rule_EC0206E(
 
 
 @validation(
-    hook=ValidationHook.XBRL_FINALLY,
+    hook=ValidationHook.FILESOURCE,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
 def rule_EC1016E(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
         *args: Any,
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
     EDINET.EC1016E: The image file is over 300KB.
     """
-    if not pluginData.shouldValidateUpload(val):
-        return
-    for path, size in pluginData.getUploadFileSizes(val.modelXbrl).items():
+    for path, size in pluginData.getUploadFileSizes(fileSource).items():
         if path.suffix not in IMAGE_EXTENSIONS:
             continue
         if size <= 300_000:  # Interpretting KB as kilobytes (1,000 bytes)
@@ -422,8 +416,6 @@ def rule_EC1020E(
     Note: Some violations of this rule (such as multiple DOCTYPE declarations) prevent Arelle from parsing
     the XML at all, and thus an XML schema error will be triggered rather than this validation error.
     """
-    if not pluginData.shouldValidateUpload(val):
-        return
     checkNames = frozenset({'body', 'head', 'html'})
     for modelDocument in val.modelXbrl.urlDocs.values():
         path = Path(modelDocument.uri)
@@ -453,12 +445,13 @@ def rule_EC1020E(
 
 
 @validation(
-    hook=ValidationHook.XBRL_FINALLY,
+    hook=ValidationHook.FILESOURCE,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
 def rule_manifest_preferredFilename(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
         *args: Any,
         **kwargs: Any,
 ) -> Iterable[Validation]:
@@ -474,9 +467,7 @@ def rule_manifest_preferredFilename(
     The preferredFilename attribute value of the instance element in the manifest
     file must be unique within the same file.
     """
-    if not pluginData.shouldValidateUpload(val):
-        return
-    instances = pluginData.getManifestInstances(val.modelXbrl)
+    instances = pluginData.getManifestInstances()
     preferredFilenames: dict[Path, set[str]] = defaultdict(set)
     duplicateFilenames = defaultdict(set)
     for instance in instances:
