@@ -19,13 +19,13 @@ runs:
   steps:
     - name: Checkout EDGAR
       if: ${{ inputs.name == 'efm_current' }}
-      uses: actions/checkout@v4.2.2
+      uses: actions/checkout@v4.3.0
       with:
         repository: Arelle/EDGAR
         path: arelle/plugin/EDGAR
     - name: Checkout XULE
       if: ${{ inputs.name == 'efm_current' }}
-      uses: actions/checkout@v4.2.2
+      uses: actions/checkout@v4.3.0
       with:
         repository: xbrlus/xule
         path: tmp
