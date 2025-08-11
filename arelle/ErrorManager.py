@@ -13,7 +13,7 @@ from arelle import UrlUtil, XmlUtil, ModelValue, XbrlConst
 from arelle.FileSource import FileSource
 from arelle.Locale import format_string
 from arelle.ModelObject import ModelObject, ObjectPropertyViewWrapper
-from arelle.PluginManager import pluginClassMethods
+from arelle.PluginManager import hasPluginWithHook, pluginClassMethods
 from arelle.PythonUtil import flattenSequence
 
 if TYPE_CHECKING:
@@ -26,10 +26,10 @@ EMPTY_TUPLE: EmptyTuple = ()
 
 
 class ErrorManager:
+    logHasRelevelerPlugin: bool | None
     _errorCaptureLevel: int
     _errors: list[str | None]
     _logCount: dict[str, int] = {}
-    _logHasRelevelerPlugin: bool
     _logRefFileRelUris: defaultdict[Any, dict[str, str]]
     _modelManager: ModelManager
 
@@ -39,6 +39,7 @@ class ErrorManager:
         self._logCount = {}
         self._logRefFileRelUris = defaultdict(dict)
         self._modelManager = modelManager
+        self.logHasRelevelerPlugin = None
 
     @property
     def errors(self) -> list[str | None]:
@@ -111,7 +112,9 @@ class ErrorManager:
         if messageCode == "asrtNoLog":
             self._errors.append(args["assertionResults"])
             return
-        if sourceModelXbrl is not None and any(True for m in pluginClassMethods("Logging.Severity.Releveler")):
+        if self.logHasRelevelerPlugin is None:
+            self.logHasRelevelerPlugin = hasPluginWithHook("Logging.Severity.Releveler")
+        if sourceModelXbrl is not None and self.logHasRelevelerPlugin:
             for pluginXbrlMethod in pluginClassMethods("Logging.Severity.Releveler"):
                 level, messageCode = pluginXbrlMethod(sourceModelXbrl, level, messageCode, args) # args must be passed as dict because it may contain modelXbrl or messageCode key value
         if (messageCode and
@@ -157,10 +160,7 @@ class ErrorManager:
         fmtArgs: dict[str, LoggableValue] = {}
         extras: dict[str, Any] = {"messageCode":messageCode}
         modelObjectArgs: tuple[Any, ...] | list[Any] = ()
-        sourceModelDocument = None
-        if sourceModelXbrl is not None:
-            sourceModelDocument = sourceModelXbrl.modelDocument
-
+        sourceModelDocument = getattr(sourceModelXbrl, "modelDocument", None)
         for argName, argValue in codedArgs.items():
             if argName in ("modelObject", "modelXbrl", "modelDocument"):
                 if sourceModelDocument is not None:
