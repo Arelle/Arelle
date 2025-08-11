@@ -160,10 +160,7 @@ class ErrorManager:
         fmtArgs: dict[str, LoggableValue] = {}
         extras: dict[str, Any] = {"messageCode":messageCode}
         modelObjectArgs: tuple[Any, ...] | list[Any] = ()
-        sourceModelDocument = None
-        if sourceModelXbrl is not None:
-            sourceModelDocument = sourceModelXbrl.modelDocument
-
+        sourceModelDocument = getattr(sourceModelXbrl, "modelDocument", None)
         for argName, argValue in codedArgs.items():
             if argName in ("modelObject", "modelXbrl", "modelDocument"):
                 if sourceModelDocument is not None:
