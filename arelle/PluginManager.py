@@ -602,6 +602,10 @@ def loadModule(moduleInfo: dict[str, Any], packagePrefix: str="") -> None:
             logPluginTrace(_msg, logging.ERROR)
 
 
+def hasPluginWithHook(name: str) -> bool:
+    return next(pluginClassMethods(name), None) is not None
+
+
 def pluginClassMethods(className: str) -> Iterator[Callable[..., Any]]:
     if pluginConfig:
         try:
