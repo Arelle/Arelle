@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from arelle.Cntlr import Cntlr
 from arelle.ModelDocument import LoadingException, ModelDocument
 from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateXbrl import ValidateXbrl
@@ -16,7 +17,7 @@ _: TypeGetText
 
 
 class ValidationPluginExtension(ValidationPlugin):
-    def newPluginData(self, validateXbrl: ValidateXbrl) -> PluginValidationDataExtension:
+    def newPluginData(self, cntlr: Cntlr, validateXbrl: ValidateXbrl | None) -> PluginValidationDataExtension:
         return PluginValidationDataExtension(self.name)
 
     def modelDocumentPullLoader(
