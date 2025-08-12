@@ -620,7 +620,11 @@ class ParserForDynamicPlugins:
 
 
 def _pluginHasCliOptions(moduleInfo):
-    return "CntlrCmdLine.Options" in moduleInfo["classMethods"]
+    if "CntlrCmdLine.Options" in moduleInfo["classMethods"]:
+        return True
+    if imports := moduleInfo.get("imports"):
+        return any(_pluginHasCliOptions(importedModule) for importedModule in imports)
+    return False
 
 
 class CntlrCmdLine(Cntlr.Cntlr):

@@ -60,8 +60,10 @@ options = RuntimeOptions(
     validate=True,
 )
 with Session() as session:
+    assert not hasattr(options, "saveTargetInstance"), "validate/ESEF plugin dependency inlineXbrlDocumentSet CLI args should not be loaded yet."
     session.run(options)
     log_xml = session.get_logs('xml')
+    assert hasattr(options, "saveTargetInstance"), "validate/ESEF plugin dependency inlineXbrlDocumentSet CLI args were not loaded."
 # include end
 
 print("Checking log XML for errors...")
