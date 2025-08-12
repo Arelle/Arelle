@@ -5,9 +5,11 @@ from __future__ import annotations
 
 from typing import Any
 
+from arelle.Cntlr import Cntlr
 from arelle.FileSource import FileSource
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
+from arelle.utils.PluginData import PluginData
 from arelle.utils.validate.ValidationPlugin import ValidationPlugin
 from .ControllerPluginData import ControllerPluginData
 from .DisclosureSystems import DISCLOSURE_SYSTEM_EDINET
@@ -35,8 +37,12 @@ class ValidationPluginExtension(ValidationPlugin):
             entrypointFiles.append({'ixds': entrypoints, 'id': instance.id})
         return entrypointFiles
 
-    def newPluginData(self, validateXbrl: ValidateXbrl) -> PluginValidationDataExtension:
-        disclosureSystem = validateXbrl.disclosureSystem.name
+    def newPluginData(self, cntlr: Cntlr, validateXbrl: ValidateXbrl | None) -> PluginData:
+        if validateXbrl is None:
+            return ControllerPluginData.get(cntlr, self.name)
+        disclosureSystem = DISCLOSURE_SYSTEM_EDINET
+        if validateXbrl is not None:
+            disclosureSystem = str(validateXbrl.disclosureSystem.name)
         if disclosureSystem == DISCLOSURE_SYSTEM_EDINET:
             pass
         else:

@@ -4,6 +4,7 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 from typing import Any
 
+from arelle.Cntlr import Cntlr
 from arelle.ModelDocument import LoadingException, ModelDocument
 from arelle.ModelValue import qname
 from arelle.ModelXbrl import ModelXbrl
@@ -19,7 +20,8 @@ _: TypeGetText
 
 
 class ValidationPluginExtension(ValidationPlugin):
-    def newPluginData(self, validateXbrl: ValidateXbrl) -> PluginValidationDataExtension:
+    def newPluginData(self, cntlr: Cntlr, validateXbrl: ValidateXbrl | None) -> PluginValidationDataExtension:
+        assert validateXbrl is not None
         disclosureSystem = validateXbrl.disclosureSystem.name
         if disclosureSystem == DISCLOSURE_SYSTEM_NT16:
             ifrsNamespace = None

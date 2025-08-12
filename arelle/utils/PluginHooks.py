@@ -34,6 +34,7 @@ class ValidationHook(Enum):
     These hooks are called at different stages of validation, but all provide a common interface (ValidateXbrl is the first param).
     """
 
+    FILESOURCE = "Validate.FileSource"
     XBRL_START = "Validate.XBRL.Start"
     XBRL_FINALLY = "Validate.XBRL.Finally"
     XBRL_DTS_DOCUMENT = "Validate.XBRL.DTS.document"
@@ -562,6 +563,37 @@ class PluginHooks(ABC):
         [ModelDocument](#arelle.ModelDocument.ModelDocument) loading is complete.
 
         :param modelXbrl: The constructed [ModelXbrl](#arelle.ModelXbrl.ModelXbrl).
+        :param args: Argument capture to ensure new parameters don't break plugin hook.
+        :param kwargs: Argument capture to ensure new named parameters don't break plugin hook.
+        :return: None
+        """
+        raise NotImplementedError
+
+    @staticmethod
+    def validateFileSource(
+            cntlr: Cntlr,
+            fileSource: FileSource,
+            entrypoints: list[dict[str, Any]] | None = None,
+            *args: Any,
+            **kwargs: Any,
+    ) -> None:
+        """
+        Plugin hook: `Validate.FileSource`
+
+        Hook for executing validation rules applicable to entrypoint files.
+
+        Example:
+        ```python
+        size = fileSource.getBytesSize()
+        if size is None:
+            return
+        if size > 100_000_000:
+            yield Validation.error(codes="0.0.0", msg="File size exceeds 100MB.")
+        ```
+
+        :param cntlr: The [Cntlr](#arelle.Cntlr.Cntlr) instance.
+        :param fileSource: The [FileSource](#arelle.FileSource.FileSource) involved in loading the entrypoint files.
+        :param entrypoints: A list of entrypoint configurations.
         :param args: Argument capture to ensure new parameters don't break plugin hook.
         :param kwargs: Argument capture to ensure new named parameters don't break plugin hook.
         :return: None

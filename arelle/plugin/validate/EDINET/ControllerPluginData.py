@@ -3,12 +3,20 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
+import zipfile
+from collections import defaultdict
 from dataclasses import dataclass
+from functools import lru_cache
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from arelle.Cntlr import Cntlr
+from arelle.FileSource import FileSource
+from arelle.ModelXbrl import ModelXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
+from .InstanceType import InstanceType
+from .UploadContents import UploadContents
 
 if TYPE_CHECKING:
     from .ManifestInstance import ManifestInstance
@@ -38,6 +46,82 @@ class ControllerPluginData(PluginData):
         Retrieve all loaded manifest instances.
         """
         return list(self._manifestInstancesById.values())
+
+    @lru_cache(1)
+    def getUploadContents(self, fileSource: FileSource) -> UploadContents:
+        uploadFilepaths = self.getUploadFilepaths(fileSource)
+        amendmentPaths = defaultdict(list)
+        unknownPaths = []
+        directories = []
+        forms = defaultdict(list)
+        for path in uploadFilepaths:
+            parents = list(reversed([p.name for p in path.parents if len(p.name) > 0]))
+            if len(parents) == 0:
+                continue
+            if parents[0] == 'XBRL':
+                if len(parents) > 1:
+                    formName = parents[1]
+                    instanceType = InstanceType.parse(formName)
+                    if instanceType is not None:
+                        forms[instanceType].append(path)
+                        continue
+            formName = parents[0]
+            instanceType = InstanceType.parse(formName)
+            if instanceType is not None:
+                amendmentPaths[instanceType].append(path)
+                continue
+            if len(path.suffix) == 0:
+                directories.append(path)
+                continue
+            unknownPaths.append(path)
+        return UploadContents(
+            amendmentPaths={k: frozenset(v) for k, v in amendmentPaths.items() if len(v) > 0},
+            directories=frozenset(directories),
+            instances={k: frozenset(v) for k, v in forms.items() if len(v) > 0},
+            unknownPaths=frozenset(unknownPaths)
+        )
+
+    @lru_cache(1)
+    def getUploadFilepaths(self, fileSource: FileSource) -> list[Path]:
+        if not self.isUpload(fileSource):
+            return []
+        paths = set()
+        assert isinstance(fileSource.fs, zipfile.ZipFile)
+        for name in fileSource.fs.namelist():
+            path = Path(name)
+            paths.add(path)
+            paths.update(path.parents)
+        return sorted(paths)
+
+    @lru_cache(1)
+    def getUploadFileSizes(self, fileSource: FileSource) -> dict[Path, int]:
+        """
+        Get the sizes of files in the upload directory.
+        :param fileSource: The FileSource instance to get file sizes for.
+        :return: A dictionary mapping file paths to their sizes.
+        """
+        if not self.isUpload(fileSource):
+            return {}
+        assert isinstance(fileSource.fs, zipfile.ZipFile)
+        return {
+            Path(i.filename): i.file_size
+            for i in fileSource.fs.infolist()
+            if not i.is_dir()
+        }
+
+    @lru_cache(1)
+    def isUpload(self, fileSource: FileSource) -> bool:
+        fileSource.open()  # Make sure file source is open
+        if (fileSource.fs is None or
+                not isinstance(fileSource.fs, zipfile.ZipFile)):
+            if fileSource.cntlr is not None:
+                fileSource.cntlr.error(
+                    level="WARNING",
+                    codes="EDINET.uploadNotValidated",
+                    msg=_("The target file is not a zip file, so upload validation could not be performed.")
+                )
+            return False
+        return True
 
     def matchManifestInstance(self, ixdsDocUrls: list[str]) -> ManifestInstance | None:
         """

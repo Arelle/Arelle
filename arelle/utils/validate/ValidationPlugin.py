@@ -8,17 +8,19 @@ from pathlib import Path
 from types import ModuleType
 from typing import Any
 
+from arelle.Cntlr import Cntlr
 from arelle.DisclosureSystem import DisclosureSystem
+from arelle.FileSource import FileSource
 from arelle.ModelDocument import LoadingException, ModelDocument
 from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateXbrl import ValidateXbrl
+from arelle.utils.PluginData import PluginData
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import (
     ValidationAttributes,
     ValidationFunction,
     getValidationAttributes,
 )
-from arelle.utils.PluginData import PluginData
 
 
 class ValidationPlugin:
@@ -55,7 +57,7 @@ class ValidationPlugin:
             ValidationHook, dict[ValidationFunction, set[str]]
         ] = {}
 
-    def newPluginData(self, validateXbrl: ValidateXbrl) -> PluginData:
+    def newPluginData(self, cntlr: Cntlr, validateXbrl: ValidateXbrl | None) -> PluginData:
         """
         Returns a dataclass intended to be overriden by plugins to facilitate caching and passing data between rule functions.
         The default implementation doesn't provide any fields other than the plugin name.
@@ -99,6 +101,28 @@ class ValidationPlugin:
     ) -> ModelDocument | LoadingException | None:
         raise NotImplementedError
 
+    def validateFileSource(
+        self,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        entrypoints: list[dict[str, Any]] | None = None,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        """
+        Executes validation functions in the rules module that was provided to the constructor of this class.
+        Each function decorated with [@validation](#arelle.utils.validate.Decorator.validation) will be run if:
+        1. the decorator was used with the xbrl start hook: `@validation(hook=ValidationHook.FILESOURCE)`
+
+        :param cntlr: The [Cntlr](#arelle.Cntlr.Cntlr) instance.
+        :param fileSource: The [FileSource](#arelle.FileSource.FileSource) involved in loading the entrypoint files.
+        :param entrypoints: A list of entrypoint configurations.
+        :param args: Argument capture to ensure new parameters don't break plugin hook.
+        :param kwargs: Argument capture to ensure new named parameters don't break plugin hook.
+        :return: None
+        """
+        self._executeCntlrValidations(ValidationHook.FILESOURCE, cntlr, fileSource, entrypoints, *args, **kwargs)
+
     def validateXbrlStart(
         self,
         val: ValidateXbrl,
@@ -118,7 +142,7 @@ class ValidationPlugin:
         :param kwargs: Argument capture to ensure new named parameters don't break plugin hook.
         :return: None
         """
-        self._executeValidations(ValidationHook.XBRL_START, val, parameters, *args, **kwargs)
+        self._executeModelValidations(ValidationHook.XBRL_START, val, parameters, *args, **kwargs)
 
     def validateXbrlFinally(
         self,
@@ -137,7 +161,7 @@ class ValidationPlugin:
         :param kwargs: Argument capture to ensure new named parameters don't break plugin hook.
         :return: None
         """
-        self._executeValidations(ValidationHook.XBRL_FINALLY, val, *args, **kwargs)
+        self._executeModelValidations(ValidationHook.XBRL_FINALLY, val, *args, **kwargs)
 
     def validateXbrlDtsDocument(
         self,
@@ -158,7 +182,7 @@ class ValidationPlugin:
         :param kwargs: Argument capture to ensure new named parameters don't break plugin hook.
         :return: None
         """
-        self._executeValidations(ValidationHook.XBRL_DTS_DOCUMENT, val, modelDocument, isFilingDocument, *args, **kwargs)
+        self._executeModelValidations(ValidationHook.XBRL_DTS_DOCUMENT, val, modelDocument, isFilingDocument, *args, **kwargs)
 
     def validateFinally(
         self,
@@ -177,9 +201,28 @@ class ValidationPlugin:
         :param kwargs: Argument capture to ensure new named parameters don't break plugin hook.
         :return: None
         """
-        self._executeValidations(ValidationHook.FINALLY, val, *args, **kwargs)
+        self._executeModelValidations(ValidationHook.FINALLY, val, *args, **kwargs)
 
-    def _executeValidations(
+    def _executeCntlrValidations(
+            self,
+            pluginHook: ValidationHook,
+            cntlr: Cntlr,
+            fileSource: FileSource | None = None,
+            entrypoints: list[dict[str, Any]] | None = None,
+            *args: Any,
+            **kwargs: Any,
+    ) -> None:
+        pluginData = self.newPluginData(
+            cntlr=cntlr,
+            validateXbrl=None
+        )
+        for rule in self._getValidations(cntlr.modelManager.disclosureSystem, pluginHook):
+            validations = rule(pluginData, cntlr, fileSource, entrypoints, *args, **kwargs)
+            if validations is not None:
+                for val in validations:
+                    cntlr.error(level=val.level.name, codes=val.codes, msg=val.msg, **val.args)
+
+    def _executeModelValidations(
         self,
         pluginHook: ValidationHook,
         validateXbrl: ValidateXbrl,
@@ -189,7 +232,10 @@ class ValidationPlugin:
         if self.disclosureSystemFromPluginSelected(validateXbrl):
             pluginData = validateXbrl.getPluginData(self.name)
             if pluginData is None:
-                pluginData = self.newPluginData(validateXbrl)
+                pluginData = self.newPluginData(
+                    cntlr=validateXbrl.modelXbrl.modelManager.cntlr,
+                    validateXbrl=validateXbrl
+                )
                 validateXbrl.setPluginData(pluginData)
             for rule in self._getValidations(validateXbrl.disclosureSystem, pluginHook):
                 validations = rule(pluginData, validateXbrl, *args, **kwargs)

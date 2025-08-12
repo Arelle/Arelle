@@ -16,27 +16,9 @@ config = ConformanceSuiteConfig(
     ],
     cache_version_id='cs2wODrDheJqDIm1kEU4Qwk8jwd7DfQu',
     expected_additional_testcase_errors={f"*{s}": val for s, val in {
-        # Duplicate errors: Running EDINET validations in a testcase context
-        # prevents us from detecting when two models are being validated
-        # from the same variation, so `shouldValidateUpload` always returns `True`.
-        # This leads to any rule that validates at the package level (rather than the
-        # instance level) firing once for each instance. Normal validation runs
-        # do not have this issue. We can expect this to be resolved at some point.
-        # Until then, if you construct a test case zip from a valid package that has multiple instances
-        # (e.g. PublicDoc + AuditDoc) you'll need to add expected additional testcases here
-        # for the duplicate errors.
-        # TODO: Prevent duplicate runs in testcase context.
-
         # EDINET.EC8027W: Some of our "valid" documents define presentation and/or definition
         # links with multiple root elements. Keeping these out of the conformance suite
         # until we are more confident in our interpretation of the EDINET rule.
-
-        "EC5806E/index.xml:invalid01": {
-            # The duplicated instance needed to trigger the duplicated "preferredFilename"
-            # error also causes the validation to fire an additional time in the conformance
-            # suite context.
-            "EDINET.EC5806E": 1,
-        },
         "EC8024E/index.xml:invalid01": {
             "EDINET.EC8027W": 1,
         },
