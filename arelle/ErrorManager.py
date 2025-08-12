@@ -204,12 +204,19 @@ class ErrorManager:
                             _arg:ModelObject = arg.modelObject if isinstance(arg, ObjectPropertyViewWrapper) else arg
                             if len(modelObjectArgs) > 1 and getattr(arg,"tag",None) == "instance":
                                 continue # skip IXDS top level element
-                            fragmentIdentifier = cast(str, XmlUtil.elementFragmentIdentifier(_arg))
-                            if not hasattr(_arg, 'modelDocument') and _arg.namespaceURI == XbrlConst.svg:
+                            fragmentIdentifier = "#" + cast(str, XmlUtil.elementFragmentIdentifier(_arg))
+                            if not hasattr(_arg, 'modelDocument') and _arg.namespaceURI == XbrlConst.svg and len(refs) > 0:
                                 # This is an embedded SVG document without its own file.
-                                ref["href"] = "#" + fragmentIdentifier
+                                # Set the href to the containing document element that defined the encoded SVG.
+                                # and define a nestedHrefs attribute with the fragment identifier.
+                                priorRef = refs[-1]
+                                ref["href"] = priorRef["href"]
+                                priorNestedHrefs = priorRef.get("customAttributes", {}).get("nestedHrefs", [])
+                                ref["customAttributes"] = {
+                                    "nestedHrefs": [*priorNestedHrefs, fragmentIdentifier]
+                                }
                             else:
-                                ref["href"] = file + "#" + fragmentIdentifier
+                                ref["href"] = file + fragmentIdentifier
                             ref["sourceLine"] = _arg.sourceline
                             ref["objectId"] = _arg.objectId()
                             if logRefObjectProperties:
