@@ -68,6 +68,11 @@ LINKBASE = 2
 VERSIONINGREPORT = 3
 RSSFEED = 4
 
+LINK_LOCALNAME_TO_MODEL_CLASS = {
+    'roleType': ModelRoleType,
+    'arcroleType': ModelRoleType,
+}
+
 
 class KnownNamespacesModelObjectClassLookup(etree.CustomElementClassLookup):
     def __init__(self, modelXbrl: ModelXbrl, fallback: etree.ElementClassLookup | None = None) -> None:
@@ -106,8 +111,8 @@ class KnownNamespacesModelObjectClassLookup(etree.CustomElementClassLookup):
             elif ns == XbrlConst.link:
                 if self.type is None:
                     self.type = LINKBASE
-                if ln == "roleType" or ln == "arcroleType":
-                    return ModelRoleType
+                if modelObjectClass := LINK_LOCALNAME_TO_MODEL_CLASS.get(ln):
+                    return modelObjectClass
             elif ns == "http://edgar/2009/conformance":
                 # don't force loading of test schema
                 if ln == "variation":
