@@ -105,6 +105,7 @@ class ValidationPlugin:
         self,
         cntlr: Cntlr,
         fileSource: FileSource,
+        entrypoints: list[dict[str, Any]] | None = None,
         *args: Any,
         **kwargs: Any,
     ) -> None:
@@ -115,11 +116,12 @@ class ValidationPlugin:
 
         :param cntlr: The [Cntlr](#arelle.Cntlr.Cntlr) instance.
         :param fileSource: The [FileSource](#arelle.FileSource.FileSource) involved in loading the entrypoint files.
+        :param entrypoints: A list of entrypoint configurations.
         :param args: Argument capture to ensure new parameters don't break plugin hook.
         :param kwargs: Argument capture to ensure new named parameters don't break plugin hook.
         :return: None
         """
-        self._executeCntlrValidations(ValidationHook.FILESOURCE, cntlr, fileSource, *args, **kwargs)
+        self._executeCntlrValidations(ValidationHook.FILESOURCE, cntlr, fileSource, entrypoints, *args, **kwargs)
 
     def validateXbrlStart(
         self,
@@ -206,6 +208,7 @@ class ValidationPlugin:
             pluginHook: ValidationHook,
             cntlr: Cntlr,
             fileSource: FileSource | None = None,
+            entrypoints: list[dict[str, Any]] | None = None,
             *args: Any,
             **kwargs: Any,
     ) -> None:
@@ -214,7 +217,7 @@ class ValidationPlugin:
             validateXbrl=None
         )
         for rule in self._getValidations(cntlr.modelManager.disclosureSystem, pluginHook):
-            validations = rule(pluginData, cntlr, fileSource, *args, **kwargs)
+            validations = rule(pluginData, cntlr, fileSource, entrypoints, *args, **kwargs)
             if validations is not None:
                 for val in validations:
                     cntlr.error(level=val.level.name, codes=val.codes, msg=val.msg, **val.args)
