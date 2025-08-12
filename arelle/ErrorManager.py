@@ -215,9 +215,11 @@ class ErrorManager:
                                 ref["customAttributes"] = {
                                     "nestedHrefs": [*priorNestedHrefs, fragmentIdentifier]
                                 }
+                                if priorArgSourceline := priorRef.get("sourceLine"):
+                                    ref["sourceLine"] = priorArgSourceline
                             else:
                                 ref["href"] = file + fragmentIdentifier
-                            ref["sourceLine"] = _arg.sourceline
+                                ref["sourceLine"] = _arg.sourceline
                             ref["objectId"] = _arg.objectId()
                             if logRefObjectProperties:
                                 try:
