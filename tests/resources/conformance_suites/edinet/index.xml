@@ -42,7 +42,10 @@
     <testcase uri="EC8027W/index.xml" />
     <testcase uri="EC8033W/index.xml" />
     <testcase uri="EC8054W/index.xml" />
+    <testcase uri="EC8057W/index.xml" />
+    <testcase uri="EC8058W/index.xml" />
     <testcase uri="EC8062W/index.xml" />
+    <!-- <testcase uri="EC8064W/index.xml" /> TODO: Relevant sample filings not provided, not found in EDINET index, not trivial to create. -->
     <testcase uri="EC8075W/index.xml" />
     <testcase uri="FRTA.2.1.10/index.xml" />
     <testcase uri="valid/index.xml" />

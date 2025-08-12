@@ -3,15 +3,18 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-import zipfile
+from collections import defaultdict
 from dataclasses import dataclass
+from decimal import Decimal
 from functools import lru_cache
-from pathlib import Path
+from typing import cast, Hashable, Callable
 
 import regex
 
+from arelle.LinkbaseType import LinkbaseType
 from arelle.ModelDocument import Type as ModelDocumentType
-from arelle.ModelInstanceObject import ModelFact
+from arelle.ModelDtsObject import ModelConcept
+from arelle.ModelInstanceObject import ModelFact, ModelUnit, ModelContext
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import QName, qname
 from arelle.ModelXbrl import ModelXbrl
@@ -23,18 +26,22 @@ from arelle.utils.PluginData import PluginData
 from .Constants import CORPORATE_FORMS
 from .ControllerPluginData import ControllerPluginData
 from .ManifestInstance import ManifestInstance
+from .Statement import Statement, STATEMENTS, BalanceSheet, StatementInstance, StatementType
 
 _: TypeGetText
+
+
+_DEBIT_QNAME_PATTERN = regex.compile('.*(Liability|Liabilities|Equity)')
 
 
 @dataclass
 class PluginValidationDataExtension(PluginData):
     assetsIfrsQn: QName
+    consolidatedOrNonConsolidatedAxisQn: QName
     documentTypeDeiQn: QName
     jpcrpEsrFilingDateCoverPageQn: QName
     jpcrpFilingDateCoverPageQn: QName
     jpspsFilingDateCoverPageQn: QName
-    liabilitiesAndEquityIfrsQn: QName
     nonConsolidatedMemberQn: QName
     ratioOfFemaleDirectorsAndOtherOfficersQn: QName
 
@@ -51,11 +58,11 @@ class PluginValidationDataExtension(PluginData):
         jppfsNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jppfs/2024-11-01/jppfs_cor"
         jpspsNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpsps/2024-11-01/jpsps_cor'
         self.assetsIfrsQn = qname(jpigpNamespace, 'AssetsIFRS')
+        self.consolidatedOrNonConsolidatedAxisQn = qname(jppfsNamespace, 'ConsolidatedOrNonConsolidatedAxis')
         self.documentTypeDeiQn = qname(jpdeiNamespace, 'DocumentTypeDEI')
         self.jpcrpEsrFilingDateCoverPageQn = qname(jpcrpEsrNamespace, 'FilingDateCoverPage')
         self.jpcrpFilingDateCoverPageQn = qname(jpcrpNamespace, 'FilingDateCoverPage')
         self.jpspsFilingDateCoverPageQn = qname(jpspsNamespace, 'FilingDateCoverPage')
-        self.liabilitiesAndEquityIfrsQn = qname(jpigpNamespace, "LiabilitiesAndEquityIFRS")
         self.nonConsolidatedMemberQn = qname(jppfsNamespace, "NonConsolidatedMember")
         self.ratioOfFemaleDirectorsAndOtherOfficersQn = qname(jpcrpNamespace, "RatioOfFemaleDirectorsAndOtherOfficers")
 
@@ -66,11 +73,108 @@ class PluginValidationDataExtension(PluginData):
         return id(self)
 
     @lru_cache(1)
+    def _contextMatchesStatement(self, modelXbrl: ModelXbrl, contextId: str, statement: Statement) -> bool:
+        """
+        :return: Whether the context's facts are applicable to the given statement.
+        """
+        if 'Interim' in contextId:
+            # valid06.zip suggests "interim"" contexts are not considered for balance sheets.
+            return False
+        context = modelXbrl.contexts[contextId]
+        if not all(dimQn == self.consolidatedOrNonConsolidatedAxisQn for dimQn in context.qnameDims):
+            return False
+        memberValue = context.dimMemberQname(self.consolidatedOrNonConsolidatedAxisQn, includeDefaults=True)
+        contextIsConsolidated = memberValue != self.nonConsolidatedMemberQn
+        return bool(statement.isConsolidated == contextIsConsolidated)
+
+    def _isDebitConcept(self, concept: ModelConcept) -> bool:
+        """
+        :return: Whether the given concept is a debit concept.
+        """
+        return bool(_DEBIT_QNAME_PATTERN.match(concept.qname.localName))
+
+    @lru_cache(1)
     def isCorporateForm(self, modelXbrl: ModelXbrl) -> bool:
         documentTypes = self.getDocumentTypes(modelXbrl)
         if any(documentType == form.value for form in CORPORATE_FORMS for documentType in documentTypes):
             return True
         return False
+
+
+    def getBalanceSheets(self, modelXbrl: ModelXbrl, statement: Statement) -> list[BalanceSheet]:
+        """
+        :return: Balance sheet data for each context/unit pairing the given statement.
+        """
+        balanceSheets: list[BalanceSheet] = []
+        if statement.roleUri not in modelXbrl.roleTypes:
+            return balanceSheets
+        if statement.statementType not in (
+                StatementType.BALANCE_SHEET,
+                StatementType.STATEMENT_OF_FINANCIAL_POSITION
+        ):
+            return balanceSheets
+
+        relSet = modelXbrl.relationshipSet(
+            tuple(LinkbaseType.CALCULATION.getArcroles()),
+            linkrole=statement.roleUri
+        )
+        rootConcepts = relSet.rootConcepts
+        if len(rootConcepts) == 0:
+            return balanceSheets
+
+        # GFM 1.2.7 and 1.2.10 asserts no duplicate contexts and units, respectively,
+        # so context and unit IDs can be used as a key.
+        factsByContextIdAndUnitId = self.getFactsByContextAndUnit(
+            modelXbrl,
+            lambda _context: _context.id,
+            lambda _unit: _unit.id,
+            tuple(concept.qname for concept in rootConcepts)
+        )
+
+        for (contextId, unitId), facts in factsByContextIdAndUnitId.items():
+            if not self._contextMatchesStatement(modelXbrl, contextId, statement):
+                continue
+            assetSum = Decimal(0)
+            liabilitiesAndEquitySum = Decimal(0)
+            for fact in facts:
+                if isinstance(fact.xValue, float):
+                    value = Decimal(fact.xValue)
+                else:
+                    value = cast(Decimal, fact.xValue)
+                if self._isDebitConcept(fact.concept):
+                    liabilitiesAndEquitySum += value
+                else:
+                    assetSum += value
+            balanceSheets.append(
+                BalanceSheet(
+                    assetsTotal=assetSum,
+                    contextId=str(contextId),
+                    facts=facts,
+                    liabilitiesAndEquityTotal=liabilitiesAndEquitySum,
+                    unitId=str(unitId),
+                )
+            )
+        return balanceSheets
+
+    @lru_cache(1)
+    def getStatementInstance(self, modelXbrl: ModelXbrl, statement: Statement) -> StatementInstance | None:
+        if statement.roleUri not in modelXbrl.roleTypes:
+            return None
+        return StatementInstance(
+            balanceSheets=self.getBalanceSheets(modelXbrl, statement),
+            statement=statement,
+        )
+
+    @lru_cache(1)
+    def getStatementInstances(self, modelXbrl: ModelXbrl) -> list[StatementInstance]:
+        return [
+            statement
+            for statement in (
+                self.getStatementInstance(modelXbrl, statement)
+                for statement in STATEMENTS
+            )
+            if statement is not None
+        ]
 
     @lru_cache(1)
     def getDeduplicatedFacts(self, modelXbrl: ModelXbrl) -> list[ModelFact]:
@@ -84,6 +188,24 @@ class PluginValidationDataExtension(PluginData):
             if fact.xValid >= VALID:
                 documentTypes.add(fact.textValue)
         return documentTypes
+
+    def getFactsByContextAndUnit(
+            self, modelXbrl: ModelXbrl,
+            getContextKey: Callable[[ModelContext], Hashable],
+            getUnitKey: Callable[[ModelUnit], Hashable],
+            qnames: tuple[QName, ...] | None = None,
+    ) -> dict[tuple[Hashable, Hashable], list[ModelFact]]:
+        deduplicatedFacts = self.getDeduplicatedFacts(modelXbrl)
+        getFactsByContextAndUnit = defaultdict(list)
+        for fact in deduplicatedFacts:
+            if qnames is not None and fact.qname not in qnames:
+                continue
+            if fact.context is None or fact.unit is None:
+                continue
+            contextKey = getContextKey(fact.context)
+            unitKey = getUnitKey(fact.unit)
+            getFactsByContextAndUnit[(contextKey, unitKey)].append(fact)
+        return dict(getFactsByContextAndUnit)
 
     @lru_cache(1)
     def getFootnoteLinkElements(self, modelXbrl: ModelXbrl) -> list[ModelObject | LinkPrototype]:
