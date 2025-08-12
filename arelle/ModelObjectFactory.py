@@ -69,8 +69,19 @@ VERSIONINGREPORT = 3
 RSSFEED = 4
 
 LINK_LOCALNAME_TO_MODEL_CLASS = {
+    'loc': ModelLocator,
+    'label': ModelResource,
+    'reference': ModelResource,
     'roleType': ModelRoleType,
     'arcroleType': ModelRoleType,
+} | {
+    q.localName: ModelObject
+    for q in [
+        XbrlConst.qnLinkCalculationArc,
+        XbrlConst.qnLinkDefinitionArc,
+        XbrlConst.qnLinkPresentationArc,
+        XbrlConst.qnLinkReferenceArc,
+    ]
 }
 
 
