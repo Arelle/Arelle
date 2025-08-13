@@ -739,7 +739,22 @@ def commandLineOptionExtender(parser, *args, **kwargs):
 def commandLineFilingStart(cntlr, options, filesource, entrypointFiles, *args, **kwargs):
     global skipExpectedInstanceComparison
     skipExpectedInstanceComparison = getattr(options, "skipExpectedInstanceComparison", False)
-    inlineTarget = getattr(options, "inlineTarget", None)
+    filingStart(
+        cntlr,
+        entrypointFiles,
+        getattr(options, "inlineTarget", None),
+    )
+
+def guiFilingStart(cntlr, filesource, entrypointFiles, *args, **kwargs):
+    global skipExpectedInstanceComparison
+    skipExpectedInstanceComparison = False
+    filingStart(
+        cntlr,
+        entrypointFiles,
+        inlineTarget=None
+    )
+
+def filingStart(cntlr, entrypointFiles, inlineTarget):
     if inlineTarget:
         if isinstance(entrypointFiles, dict):
             entrypointFiles = [entrypointFiles]
@@ -1018,6 +1033,7 @@ __pluginInfo__ = {
     'InlineDocumentSet.Discovery': inlineDocsetDiscovery,
     'InlineDocumentSet.Url.Separator': inlineDocsetUrlSeparator,
     'InlineDocumentSet.CreateTargetInstance': createTargetInstance,
+    'CntlrWinMain.Filing.Start': guiFilingStart,
     'CntlrWinMain.Menu.File.Open': fileOpenMenuEntender,
     'CntlrWinMain.Menu.Tools': saveTargetDocumentMenuEntender,
     'CntlrCmdLine.Options': commandLineOptionExtender,
