@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from functools import lru_cache
 from operator import attrgetter
-from typing import cast, Hashable, Callable
+from typing import Callable, Hashable, Iterable, cast
 
 import regex
 
@@ -37,6 +37,7 @@ _DEBIT_QNAME_PATTERN = regex.compile('.*(Liability|Liabilities|Equity)')
 
 @dataclass
 class PluginValidationDataExtension(PluginData):
+    accountingStandardsDeiQn: QName
     assetsIfrsQn: QName
     consolidatedOrNonConsolidatedAxisQn: QName
     documentTypeDeiQn: QName
@@ -58,6 +59,7 @@ class PluginValidationDataExtension(PluginData):
         jpigpNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jpigp/2024-11-01/jpigp_cor"
         jppfsNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jppfs/2024-11-01/jppfs_cor"
         jpspsNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpsps/2024-11-01/jpsps_cor'
+        self.accountingStandardsDeiQn = qname(jpdeiNamespace, 'AccountingStandardsDEI')
         self.assetsIfrsQn = qname(jpigpNamespace, 'AssetsIFRS')
         self.consolidatedOrNonConsolidatedAxisQn = qname(jppfsNamespace, 'ConsolidatedOrNonConsolidatedAxis')
         self.documentTypeDeiQn = qname(jpdeiNamespace, 'DocumentTypeDEI')
@@ -233,8 +235,14 @@ class PluginValidationDataExtension(PluginData):
         return controllerPluginData.matchManifestInstance(modelXbrl.ixdsDocUrls)
 
     def hasValidNonNilFact(self, modelXbrl: ModelXbrl, qname: QName) -> bool:
-        requiredFacts = modelXbrl.factsByQname.get(qname, set())
-        return any(fact.xValid >= VALID and not fact.isNil for fact in requiredFacts)
+        return any(fact is not None for fact in self.iterValidNonNilFacts(modelXbrl, qname))
 
     def isStandardTaxonomyUrl(self, uri: str, modelXbrl: ModelXbrl) -> bool:
         return modelXbrl.modelManager.disclosureSystem.hrefValidForDisclosureSystem(uri)
+
+    def iterValidNonNilFacts(self, modelXbrl: ModelXbrl, qname: QName) -> Iterable[ModelFact]:
+        facts = modelXbrl.factsByQname.get(qname, set())
+        for fact in facts:
+            if fact.xValid < VALID or fact.isNil:
+                continue
+            yield fact

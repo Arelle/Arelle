@@ -5,6 +5,11 @@ from enum import Enum
 
 from arelle.ModelValue import qname
 
+class AccountingStandard(Enum):
+    IFRS = 'IFRS'
+    JAPAN_GAAP = 'Japan GAAP'
+    US_GAAP = 'US GAAP'
+
 class FormType(Enum):
     FORM_2_4 = '第二号の四様式'
     FORM_2_7 = '第二号の七様式'
