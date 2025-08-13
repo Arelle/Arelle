@@ -248,7 +248,7 @@ def inlineXbrlDocumentSetLoader(modelXbrl, normalizedUri, filepath, isEntry=Fals
         for url in modelXbrl.ixdsDocUrls:
             xml.append("<instance>{}</instance>\n".format(url))
         xml.append("</instances>\n")
-        ixdocset = create(modelXbrl, Type.INLINEXBRLDOCUMENTSET, docsetUrl, isEntry=True, initialXml="".join(xml))
+        ixdocset = create(modelXbrl, Type.INLINEXBRLDOCUMENTSET, docsetUrl, isEntry=True, initialXml="".join(xml), entrypoint=kwargs.get('entrypoint'))
         ixdocset.type = Type.INLINEXBRLDOCUMENTSET
         ixdocset.targetDocumentPreferredFilename = None # possibly no inline docs in this doc set
         for i, elt in enumerate(ixdocset.xmlRootElement.iter(tag="instance")):
