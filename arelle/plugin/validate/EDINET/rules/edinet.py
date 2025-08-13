@@ -13,6 +13,7 @@ from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
+from ..Constants import AccountingStandard
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 from ..Statement import StatementType
@@ -143,6 +144,35 @@ def rule_EC5002E(
                   "Please check the units and enter the correct information."),
             qname=fact.qname.clarkNotation,
             modelObject=fact,
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC5613W(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5613W: Please set the DEI "Accounting Standard" value to one
+    of the following: "Japan GAAP", "US GAAP", "IFRS".
+    """
+    validAccountingStandards = {s.value for s in AccountingStandard}
+    errorFacts = [
+        fact for fact in pluginData.iterValidNonNilFacts(val.modelXbrl, pluginData.accountingStandardsDeiQn)
+        if fact.xValue not in validAccountingStandards
+    ]
+    if len(errorFacts) > 0:
+        yield Validation.warning(
+            codes='EDINET.EC5613W',
+            msg=_("Please set the DEI \"Accounting Standard\" value to one "
+                  "of the following: %(values)s."),
+            values=', '.join(f'"{s.value}"' for s in AccountingStandard),
+            modelObject=errorFacts,
         )
 
 
