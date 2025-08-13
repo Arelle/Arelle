@@ -42,6 +42,42 @@ class ValidationHook(Enum):
 
 
 class PluginHooks(ABC):
+
+    @staticmethod
+    def cntlrCmdLineFilingStart(
+            cntlr: CntlrCmdLine,
+            options: RuntimeOptions,
+            filesource: FileSource | None,
+            entrypoints: list[dict[str, Any]] | None = None,
+            sourceZipStream: BinaryIO | None = None,
+            responseZipStream: BinaryIO | None = None,
+            *args: Any,
+            **kwargs: Any,
+    ) -> None:
+        """
+        Plugin hook: `CntlrCmdLine.Filing.Start`
+
+        This hook is triggered after entrypoints have been discovered and parsed, but before
+        models have been loaded.
+
+        Example:
+        ```python
+        timeAtStart = time.time()
+        myOptionEnabled = options.myOption
+        ```
+
+        :param cntlr: The [CntlrCmdLine](#arelle.CntlrCmdLine.CntlrCmdLine) that is currently running.
+        :param options: Parsed options object.
+        :param filesource: FileSource, if available.
+        :param entrypoints: A list of entrypoint configurations.
+        :param sourceZipStream: The source zip stream if the model was loaded from a zip that was POSTed to the webserver.
+        :param responseZipStream: The response zip stream if loaded from the webserver and the user requested a zip response.
+        :param args: Argument capture to ensure new parameters don't break plugin hook.
+        :param kwargs: Argument capture to ensure new named parameters don't break plugin hook.
+        :return: None
+        """
+        raise NotImplementedError
+
     @staticmethod
     def cntlrCmdLineOptions(
         parser: OptionParser,
@@ -215,6 +251,34 @@ class PluginHooks(ABC):
             # Normal routes will be combined with plugin routes and app started.
             return None
             ```
+        """
+        raise NotImplementedError
+
+    @staticmethod
+    def cntlrWinMainFilingStart(
+            cntlr: CntlrWinMain,
+            filesource: FileSource | None,
+            entrypoints: list[dict[str, Any]] | None = None,
+            *args: Any,
+            **kwargs: Any,
+    ) -> None:
+        """
+        Plugin hook: `CntlrWinMain.Filing.Start`
+
+        This hook is triggered after entrypoints have been discovered and parsed, but before
+        models have been loaded.
+
+        Example:
+        ```python
+        timeAtStart = time.time()
+        ```
+
+        :param cntlr: The [CntlrWinMain](#arelle.CntlrWinMain.CntlrWinMain) that is currently running.
+        :param filesource: FileSource, if available.
+        :param entrypoints: A list of entrypoint configurations.
+        :param args: Argument capture to ensure new parameters don't break plugin hook.
+        :param kwargs: Argument capture to ensure new named parameters don't break plugin hook.
+        :return: None
         """
         raise NotImplementedError
 
