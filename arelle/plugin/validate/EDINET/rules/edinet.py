@@ -161,11 +161,11 @@ def rule_EC5613W(
     EDINET.EC5613W: Please set the DEI "Accounting Standard" value to one
     of the following: "Japan GAAP", "US GAAP", "IFRS".
     """
-    errorFacts = []
-    for fact in pluginData.iterValidNonNilFacts(val.modelXbrl, pluginData.accountingStandardsDeiQn):
-        accountingStandard = next((s for s in AccountingStandard if s.value == fact.xValue), None)
-        if accountingStandard is None:
-            errorFacts.append(fact)
+    validAccountingStandards = {s.value for s in AccountingStandard}
+    errorFacts = [
+        fact for fact in pluginData.iterValidNonNilFacts(val.modelXbrl, pluginData.accountingStandardsDeiQn)
+        if fact.xValue not in validAccountingStandards
+    ]
     if len(errorFacts) > 0:
         yield Validation.warning(
             codes='EDINET.EC5613W',
