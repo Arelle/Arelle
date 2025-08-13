@@ -7,6 +7,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from decimal import Decimal
 from functools import lru_cache
+from operator import attrgetter
 from typing import cast, Hashable, Callable
 
 import regex
@@ -126,8 +127,8 @@ class PluginValidationDataExtension(PluginData):
         # so context and unit IDs can be used as a key.
         factsByContextIdAndUnitId = self.getFactsByContextAndUnit(
             modelXbrl,
-            lambda _context: _context.id,
-            lambda _unit: _unit.id,
+            attrgetter("id"),
+            attrgetter("id"),
             tuple(concept.qname for concept in rootConcepts)
         )
 
@@ -168,12 +169,9 @@ class PluginValidationDataExtension(PluginData):
     @lru_cache(1)
     def getStatementInstances(self, modelXbrl: ModelXbrl) -> list[StatementInstance]:
         return [
-            statement
-            for statement in (
-                self.getStatementInstance(modelXbrl, statement)
-                for statement in STATEMENTS
-            )
-            if statement is not None
+            statementInstance
+            for statement in STATEMENTS
+            if (statementInstance := self.getStatementInstance(modelXbrl, statement)) is not None
         ]
 
     @lru_cache(1)
