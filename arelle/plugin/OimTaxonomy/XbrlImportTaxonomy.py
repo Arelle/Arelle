@@ -28,6 +28,7 @@ class XbrlExportProfile(XbrlTaxonomyObject):
     excludeLabels: Union[bool, DefaultFalse] # (optional) If set to true, any labels attached to the objects comprising the taxonomy model deriving from the taxonomyName property will be excluded from the taxonomy model. The default value is false.
 
 class XbrlImportTaxonomy(XbrlTaxonomyObject):
+    taxonomy: XbrlTaxonomyModuleType
     taxonomyName: QNameKeyType # (required) The QName of the taxonomy to import. When importing XBRL 2.1 taxonomies, the QName comprising the namespace of the taxonomy to import and a local name of taxonomy is defined (e.g., ifrs:Taxonomy).
     profiles: set[XbrlExportProfile] # (optional only if selections, importObjects or importObjectTypes are not used) A set of exportProfile objects defined in the taxonomy being imported. Only objects defined in this set will be included in the taxonomy model. If this property is not present, all objects in the taxonomy identified by the taxonomyName property location will be included in the taxonomy model.
     selections: set[XbrlStructuredSelectStatement]  # (optional) Specifies a set of string select statements or structured select objects that define the objects to be included in the import. Each select statement is a string that specifies the objects to be selected from the taxonomy model. The select statements can include object names, types, and properties. e.g., xbrl:conceptObject where periodType = "instant".

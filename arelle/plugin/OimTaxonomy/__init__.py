@@ -28,7 +28,7 @@ from arelle.ModelValue import qname, QName
 from arelle.PythonUtil import SEQUENCE_TYPES, OrderedSet
 from arelle.Version import authorLabel, copyrightLabel
 from arelle.XmlUtil import setXmlns
-from arelle import ModelDocument, UrlUtil, XmlValidate
+from arelle import ModelDocument, PackageManager, UrlUtil, XmlValidate
 
 # XbrlObject modules contain nested XbrlOBjects and their type objects
 
@@ -55,6 +55,7 @@ from .XbrlTypes import (XbrlTaxonomyModelType, XbrlTaxonomyModuleType, XbrlRepor
                         QNameKeyType, SQNameKeyType, DefaultTrue, DefaultFalse, DefaultZero)
 from .ValidateTaxonomyModel import validateTaxonomyModel
 from .ValidateReport import validateReport
+from .SelectImportedObjects import selectImportedObjects
 from .ModelValueMore import SQName, QNameAt
 from .ViewXbrlTaxonomyObject import viewXbrlTaxonomyObject
 from .XbrlConst import xbrl, oimTaxonomyDocTypePattern, oimTaxonomyDocTypes, xbrlTaxonomyObjects
@@ -103,10 +104,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
         startingErrorCount = len(modelXbrl.errors) if modelXbrl else 0
         startedAt = time.time()
         documentType = None # set by loadDict
-        includeObjects = kwargs.get("includeObjects")
-        includeObjectTypes = kwargs.get("includeObjectTypes")
-        excludeLabels = kwargs.get("excludeLabels", False)
-        followImport = kwargs.get("followImport", True)
+        importingTxmyObj = kwargs.get("importingTxmyObj")
 
         currentAction = "loading and parsing OIM Taxonomy file"
         loadDictErrors = []
@@ -219,6 +217,10 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
             raise OIMException("{}:invalidJSON".format(errPrefix),
                     "JSON error while %(action)s, %(file)s, error %(error)s",
                     file=oimFile, action=currentAction, error=ex)
+        except FileNotFoundError as ex:
+            raise OIMException("{}:noFile".format(errPrefix),
+                    "File IO error while %(action)s, %(file)s, error %(error)s",
+                    file=oimFile, action=currentAction, error=ex)
         # schema validation
         if jsonschemaValidator is None:
             with io.open(OIMT_SCHEMA, mode="rt") as fh:
@@ -316,7 +318,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
             schemaDoc.targetNamespace = prefixNamespaces.get(documentInfo["documentNamespace"])
         if "urlMapping" in documentInfo:
             for prefix, url in documentInfo["urlMapping"].items():
-                namespaceUrls[prefixNamespaces.get(prefix)] = url
+                namespaceUrls[prefix] = url
         taxonomyName = qname(taxonomyObj.get("name"), prefixNamespaces)
         if not taxonomyName:
             xbrlTxmyMdl.error("oime:missingQNameProperty",
@@ -331,28 +333,6 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                       _("The extension property QName prefix was not defined in namespaces: %(extensionProperty)s."),
                       sourceFileLine=href, extensionProperty=extPropertyPath)
 
-        xbrlLabelObjQn = f"{namespacePrefixes[xbrl]}:labelObject" if xbrl in namespacePrefixes else UNSPECIFIABLE_STR # QNames are source, not resolved here
-        for iImpTxmy, impTxmyObj in enumerate(taxonomyObj.get("importedTaxonomies", EMPTY_LIST)):
-            if xbrlLabelObjQn in impTxmyObj.get("importObjectTypes", EMPTY_LIST):
-                impTxmyObj["importObjectTypes"].remove(xbrlLabelObjQn)
-                xbrlTxmyMdl.error("oimte:invalidIncludedObjectType",
-                              _("/taxonomy/importedTaxonomies[%(index)s] must not have a label object in the importObjectTypes property"),
-                              sourceFileLine=href, index=iImpTxmy)
-            impTxmyName = qname(impTxmyObj.get("taxonomyName"), prefixNamespaces)
-            if impTxmyName:
-                ns = impTxmyName.namespaceURI
-                # if already imported ignore it (for now)
-                if ns not in xbrlTxmyMdl.namespaceDocs and followImport:
-                    for url in namespaceUrls.get(ns, ()):
-                        load(xbrlTxmyMdl, url, base=oimFile, isDiscovered=schemaDoc.inDTS, isIncluded=kwargs.get("isIncluded"), namespace=ns,
-                             includeObjects=(qname(qn, prefixNamespaces) for qn in impTxmyObj.get("includeObjects",())) or None,
-                             includeObjectTypes=(qname(qn, prefixNamespaces) for qn in impTxmyObj.get("includeObjectTypes",())) or None,
-                             excludeLabels=impTxmyObj.get("excludeLabels",False),
-                             followImport=impTxmyObj.get("followImport",True))
-            else:
-                xbrlTxmyMdl.error("oime:missingQNameProperty",
-                              _("/taxonomy/importedTaxonomies[%(index)s] must have a taxonomyName (QName) property"),
-                              sourceFileLine=href, index=iImpTxmy)
         def singular(name):
             if name.endswith("ies"):
                 return name[:-3] + "y"
@@ -394,8 +374,6 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                     jsonKey = propName
                 if jsonKey in jsonObj:
                     unexpectedJsonProps.remove(jsonKey)
-                    if propName == "labels" and excludeLabels:
-                        continue
                     jsonValue = jsonObj[jsonKey]
                     if isinstance(propType, GenericAlias) or (isinstance(propType, _UnionGenericAlias) and isinstance(propType.__args__[0], GenericAlias) and propType.__args__[0].__origin__ == OrderedSet):
                         # for Optional OrderedSets where the jsonValue exists, handle as propType, _keyClass and eltClass
@@ -588,6 +566,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
             newReport = createTaxonomyObjects("report", oimObject["report"], xbrlTxmyMdl, ["", "report"])
             newReport._prefixNamespaces = prefixNamespaces
             newReport._url = oimFile
+        newTxmy._lastMdlObjIndex = len(xbrlTxmyMdl.xbrlObjects) - 1
 
         if jsonEltsNotInObjClass:
             error("arelle:undeclaredOimTaxonomyJsonElements",
@@ -603,12 +582,23 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                   _("Multiple referenceable objects have the same name: %(qname)s"),
                   xbrlObject=dupObjs, qname=qname)
 
+        # remove imported objects not wanted
+
         if newTxmy is not None:
-            for impTxmy in newTxmy.importedTaxonomies:
-                if impTxmy.taxonomyName and impTxmy.taxonomyName not in xbrlTxmyMdl.taxonomies:
+            for impTxObj in newTxmy.importedTaxonomies:
+                if impTxObj.taxonomyName and impTxObj.taxonomyName not in xbrlTxmyMdl.taxonomies:
                     # is it present in urlMapping?
-                    for url in namespaceUrls.get(impTxmy.taxonomyName.prefix, ()):
-                        loadOIMTaxonomy(cntlr, error, warning, modelXbrl, url, impTxmy.taxonomyName.localName)
+                    for url in namespaceUrls.get(impTxObj.taxonomyName.prefix, ()):
+                        normalizedUri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(url, mappedUri)
+                        if modelXbrl.fileSource.isMappedUrl(normalizedUri):
+                            mappedUrl = modelXbrl.fileSource.mappedUrl(normalizedUri)
+                        elif PackageManager.isMappedUrl(normalizedUri):
+                            mappedUrl = PackageManager.mappedUrl(normalizedUri)
+                        else:
+                            mappedUrl = modelXbrl.modelManager.disclosureSystem.mappedUrl(normalizedUri)
+                        loadOIMTaxonomy(cntlr, error, warning, modelXbrl, mappedUrl, url,
+                                        importingTxmyObj=impTxObj)
+                        selectImportedObjects(xbrlTxmyMdl, newTxmy, impTxObj)
 
         xbrlTxmyMdl.namespaceDocs[taxonomyName.namespaceURI].append(schemaDoc)
 
