@@ -243,6 +243,5 @@ class PluginValidationDataExtension(PluginData):
     def iterValidNonNilFacts(self, modelXbrl: ModelXbrl, qname: QName) -> Iterable[ModelFact]:
         facts = modelXbrl.factsByQname.get(qname, set())
         for fact in facts:
-            if fact.xValid < VALID or fact.isNil:
-                continue
-            yield fact
+            if fact.xValid >= VALID and not fact.isNil:
+                yield fact
