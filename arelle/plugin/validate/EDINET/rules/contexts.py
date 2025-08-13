@@ -6,8 +6,6 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Any, Iterable
 
-import regex
-
 from arelle import XbrlConst
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ValidateXbrl import ValidateXbrl
@@ -166,14 +164,11 @@ def rule_EC8054W(
     for context in val.modelXbrl.contexts.values():
         if pluginData.nonConsolidatedMemberQn.localName not in context.id:
             continue
-        memberQnames = set()
-        for scenarioElt in context.iterdescendants(XbrlConst.qnXbrlScenario.clarkNotation):
-            for memberElt in scenarioElt.iterdescendants(
-                    XbrlConst.qnXbrldiExplicitMember.clarkNotation,
-                    XbrlConst.qnXbrldiTypedMember.clarkNotation
-            ):
-                memberQnames.add(memberElt.xValue)
-        if pluginData.nonConsolidatedMemberQn not in memberQnames:
+        member = context.dimMemberQname(
+            pluginData.consolidatedOrNonConsolidatedAxisQn,
+            includeDefaults=True
+        )
+        if member != pluginData.nonConsolidatedMemberQn:
             yield Validation.warning(
                 codes='EDINET.EC8054W',
                 msg=_("For the context ID (%(contextId)s), \"NonConsolidatedMember\" "

@@ -3,9 +3,7 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-from collections import defaultdict
-from decimal import Decimal
-from typing import Any, Iterable, cast
+from typing import Any, Iterable
 
 from arelle import XbrlConst, ValidateDuplicateFacts
 from arelle.LinkbaseType import LinkbaseType
@@ -17,8 +15,66 @@ from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
 from ..PluginValidationDataExtension import PluginValidationDataExtension
+from ..Statement import StatementType
 
 _: TypeGetText
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_balances(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8057W: On the consolidated balance sheet, the sum of all liabilities and
+    equity must equal the sum of all assets.
+    EDINET.EC8058W: On the nonconsolidated balance sheet, the sum of all liabilities and
+    equity must equal the sum of all assets.
+    EDINET.EC8062W: On the consolidated statement of financial position, the sum of all liabilities and
+    equity must equal the sum of all assets.
+    EDINET.EC8064W: On the nonconsolidated statement of financial position, the sum of all liabilities and
+    equity must equal the sum of all assets.
+    """
+    for statementInstance in pluginData.getStatementInstances(val.modelXbrl):
+        statement = statementInstance.statement
+        for balanceSheet in statementInstance.balanceSheets:
+            if balanceSheet.assetsTotal == balanceSheet.liabilitiesAndEquityTotal:
+                continue
+            code = None
+            if statement.statementType == StatementType.BALANCE_SHEET:
+                if statement.isConsolidated:
+                    code = "EDINET.EC8057W"
+                else:
+                    code = "EDINET.EC8058W"
+            elif statement.statementType == StatementType.STATEMENT_OF_FINANCIAL_POSITION:
+                if statement.isConsolidated:
+                    code = "EDINET.EC8062W"
+                else:
+                    code = "EDINET.EC8064W"
+            assert code is not None, "Unknown balance sheet encountered."
+            yield Validation.warning(
+                codes=code,
+                msg=_("The %(consolidated)s %(balanceSheet)s is not balanced. "
+                      "The sum of all liabilities and equity must equal the sum of all assets. "
+                      "Please correct the debit (%(liabilitiesAndEquitySum)s) and credit (%(assetSum)s) "
+                      "values so that they match "
+                      "<roleUri=%(roleUri)s> <contextID=%(contextId)s> <unitID=%(unitId)s>."),
+                consolidated=_("consolidated") if statement.isConsolidated
+                else _("nonconsolidated"),
+                balanceSheet=_("balance sheet") if statement.statementType == StatementType.BALANCE_SHEET
+                else _("statement of financial position"),
+                liabilitiesAndEquitySum=f"{balanceSheet.liabilitiesAndEquityTotal:,}",
+                assetSum=f"{balanceSheet.assetsTotal:,}",
+                roleUri=statement.roleUri,
+                contextId=balanceSheet.contextId,
+                unitId=balanceSheet.unitId,
+                modelObject=balanceSheet.facts,
+            )
 
 
 @validation(
@@ -172,54 +228,6 @@ def rule_EC8027W(
                 filename=rels[0].modelDocument.basename,
                 roleUri=roleType.roleURI,
                 modelObject=rels,
-            )
-
-
-@validation(
-    hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
-)
-def rule_EC8062W(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
-        *args: Any,
-        **kwargs: Any,
-) -> Iterable[Validation]:
-    """
-    EDINET.EC8062W: The sum of all liabilities and equity must equal the sum of all assets.
-    """
-    deduplicatedFacts = pluginData.getDeduplicatedFacts(val.modelXbrl)
-
-    factsByContextId = defaultdict(list)
-    for fact in deduplicatedFacts:
-        if fact.qname not in (pluginData.assetsIfrsQn, pluginData.liabilitiesAndEquityIfrsQn):
-            continue
-        if fact.contextID is None or not pluginData.contextIdPattern.fullmatch(fact.contextID):
-            continue
-        factsByContextId[fact.contextID].append(fact)
-
-    for facts in factsByContextId.values():
-        assetSum = Decimal(0)
-        liabilitiesAndEquitySum = Decimal(0)
-        for fact in facts:
-            if isinstance(fact.xValue, float):
-                value = Decimal(fact.xValue)
-            else:
-                value = cast(Decimal, fact.xValue)
-            if fact.qname == pluginData.assetsIfrsQn:
-                assetSum += value
-            elif fact.qname == pluginData.liabilitiesAndEquityIfrsQn:
-                liabilitiesAndEquitySum += value
-        if assetSum != liabilitiesAndEquitySum:
-            yield Validation.warning(
-                codes='EDINET.EC8062W',
-                msg=_("The consolidated statement of financial position is not reconciled. "
-                      "The sum of all liabilities and equity must equal the sum of all assets. "
-                      "Please correct the debit (%(liabilitiesAndEquitySum)s) and credit (%(assetSum)s) "
-                      "values so that they match."),
-                liabilitiesAndEquitySum=f"{liabilitiesAndEquitySum:,}",
-                assetSum=f"{assetSum:,}",
-                modelObject=facts,
             )
 
 

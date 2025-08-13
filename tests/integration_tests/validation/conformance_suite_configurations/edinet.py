@@ -22,6 +22,9 @@ config = ConformanceSuiteConfig(
         "EC8024E/index.xml:invalid01": {
             "EDINET.EC8027W": 1,
         },
+        "EC8058W/index.xml:invalid01": {
+            "EDINET.EC8027W": 1,
+        },
         "EC8062W/index.xml:invalid01": {
             "EDINET.EC8027W": 1,
         },
