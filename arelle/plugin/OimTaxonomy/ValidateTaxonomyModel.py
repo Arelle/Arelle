@@ -11,7 +11,7 @@ from arelle.PythonUtil import attrdict, OrderedSet
 from arelle.oim.Load import EMPTY_DICT, csvPeriod
 from .XbrlAbstract import XbrlAbstract
 from .XbrlConcept import XbrlConcept, XbrlDataType, XbrlUnitType
-from .XbrlConst import xbrl, qnXbrlReferenceObj
+from .XbrlConst import xbrl, qnXbrlReferenceObj, qnXbrlLabelObj
 from .XbrlCube import (XbrlCube, XbrlCubeType, baseCubeTypes, XbrlCubeDimension,
                        periodCoreDim, conceptCoreDim, entityCoreDim, unitCoreDim, languageCoreDim, coreDimensions,
                     conceptDomainRoot, entityDomainRoot, unitDomainRoot, languageDomainRoot,
@@ -19,7 +19,7 @@ from .XbrlCube import (XbrlCube, XbrlCubeType, baseCubeTypes, XbrlCubeDimension,
 from .XbrlDimension import XbrlDimension, XbrlDomain, XbrlDomainRoot, XbrlMember
 from .XbrlEntity import XbrlEntity
 from .XbrlGroup import XbrlGroup, XbrlGroupContent
-from .XbrlImportTaxonomy import XbrlImportTaxonomy
+from .XbrlImportTaxonomy import XbrlImportTaxonomy, XbrlExportProfile
 from .XbrlLabel import XbrlLabel, XbrlLabelType, preferredLabel
 from .XbrlNetwork import XbrlNetwork, XbrlRelationship, XbrlRelationshipType
 from .XbrlProperty import XbrlPropertyType
@@ -28,9 +28,7 @@ from .XbrlTableTemplate import XbrlTableTemplate
 from .XbrlTaxonomyModule import XbrlTaxonomyModule, xbrlObjectTypes, referencableObjectTypes, xbrlObjectQNames
 from .XbrlUnit import XbrlUnit, parseUnitString
 from .XbrlConst import qnXsQName, qnXsDate, qnXsDateTime, qnXsDuration, objectsWithProperties
-from numpy._core._simd import targets
 validateFact = None
-from arelle.FunctionFn import true
 
 perCnstrtFmtStartEndPattern = re.compile(r".*@(start|end)")
 
@@ -134,11 +132,31 @@ def validateTaxonomy(txmyMdl, txmy):
                 if xbrlObjectTypes[qnObjType] == XbrlLabel:
                     txmyMdl.error("oimte:invalidObjectType",
                               _("The importObjectTypes property MUST not include the label object."),
-                              xbrlObject=qnObjType)
+                              xbrlObject=impTxmyObj)
             else:
                 txmyMdl.error("oimte:invalidObjectType",
                           _("The importObjectTypes property MUST specify valid OIM object types, %(qname)s is not valid."),
-                          xbrlObject=qnObjType, qname=qnObjType)
+                          xbrlObject=impTxmyObj, qname=qnObjType)
+
+    expPrflCt = defaultdict(list)
+    for expPrflObj in txmy.exportProfiles:
+        assertObjectType(expPrflObj, XbrlExportProfile)
+        for expObjQn in expPrflObj.exportObjects:
+            if expObjQn not in txmyMdl.namedObjects:
+                txmyMdl.error("exp:ExportProfileInvalidExportObject",
+                          _("The exportObjectTypes %(name)s exportObject %(qname)s must identify an taxonomy object."),
+                          xbrlObject=impTxObj, name=name, qname=expObjQn)
+        for qnObjType in expPrflObj.exportObjectTypes:
+            if qnObjType not in xbrlObjectTypes:
+                txmyMdl.error("oimte:invalidExportObject",
+                          _("The exportObjectTypes property MUST specify valid OIM object types, %(qname)s is not valid."),
+                          xbrlObject=expPrflObj, qname=qnObjType)
+        expPrflCt[expPrflObj.name].append(expPrflObj)
+    for expPrfName, objs in expPrflCt.items():
+        if len(objs) > 1:
+            txmyMdl.error("oimte:duplicateObjects",
+                      _("These exportProfiles are duplicated: %(name)s"),
+                      xbrlObject=objs, name=expPrfName)
 
     # Concept Objects
     for cncpt in txmy.concepts:
@@ -451,6 +469,10 @@ def validateTaxonomy(txmyMdl, txmy):
                                 txmyMdl.error("oimte:invalidRelationshipTarget",
                                           _("Cube %(name)s explicit dimension domain relationships must be to members."),
                                           xbrlObject=(cubeObj,dimObj,relObj), name=name, qname=dimName)
+                        if dimObj.domainRoot and domObj.root and dimObj.domainRoot != domObj.root:
+                            txmyMdl.error("oimte:invalidPropertyValue",
+                                      _("Cube %(name)s explicit dimension domain root %(domRoot)s does not match dimension domainRoot %(dimRoot)s."),
+                                      xbrlObject=(cubeObj,dimObj,relObj), name=name, qname=dimName, domRoot=domObj.root, dimRoot=dimObj.domainRoot)
             if not isTyped: # explicit dimension
                 if dimName in (periodCoreDim, languageCoreDim):
                     txmyMdl.error("oimte:invalidCubeDimensionProperty",
@@ -857,7 +879,7 @@ def validateTaxonomy(txmyMdl, txmy):
             txmyMdl.error("oimte:missingQNameReference",
                       _("The propertyType %(name)s dataType %(qname)s MUST be a valid dataType object in the taxonomy model"),
                       xbrlObject=propTpObj, name=propTpObj.name, qname=propTpObj.dataType)
-        elif propTpObj.enumerationDomain and txmyMdl.namedObjects[dataTypeObj.baseType] != qnXsQName:
+        elif propTpObj.enumerationDomain and dataTypeObj.baseType != qnXsQName:
             txmyMdl.error("oimte:missingQNameReference",
                       _("The propertyType %(name)s dataType %(qname)s MUST be a valid dataType object in the taxonomy model"),
                       xbrlObject=propTpObj, name=propTpObj.name, qname=propTpObj.dataType)
@@ -997,18 +1019,6 @@ def validateTaxonomy(txmyMdl, txmy):
                         txmyMdl.error("oimte:missingQNameReference",
                                   _("The unit %(name)s measure %(measure)s must exist in the taxonomy model."),
                                   xbrlObject=unitObj, name=unitObj.name, measure=m)
-    # export Profiles
-    for expProfObj in txmy.exportProfiles:
-        for expObjQn in expProfObj.exportObjects:
-            if expObjQn not in xmyMdl.namedObjects:
-                txmyMdl.error("oimte:missingQNameReference",
-                          _("The exportObject %(name)s exportObjet %(qname)s must exist in the taxonomy model."),
-                          xbrlObject=expProfObj, name=expProfObj.name, qname=expObjQn)
-        for expObjTpQn in expProfObj.exportObjectTypes:
-            if expObjQn not in xbrlObjectTypes:
-                txmyMdl.error("oimte:xbrlObjectTypes",
-                          _("The exportObject %(name)s exportObjet %(qname)s must identify an object type."),
-                          xbrlObject=expProfObj, name=expProfObj.name, qname=expObjQn)
 
     # Facts in taxonomy
     if txmy.facts:
@@ -1017,3 +1027,4 @@ def validateTaxonomy(txmyMdl, txmy):
             from .ValidateReport import validateFact
         for fact in txmy.facts:
             validateFact(fact, txmy.name, txmy, txmyMdl)
+

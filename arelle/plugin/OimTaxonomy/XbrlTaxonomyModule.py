@@ -64,7 +64,6 @@ class XbrlTaxonomyModule(XbrlTaxonomyObject):
 
 referencableObjectTypes = {
         qname("{https://xbrl.org/2025}xbrl:taxonomyObject"): XbrlTaxonomyModule,
-        qname("{https://xbrl.org/2025}xbrl:importTaxonomyObject"): XbrlImportTaxonomy,
         qname("{https://xbrl.org/2025}xbrl:exportProfileObject"): XbrlExportProfile,
         qname("{https://xbrl.org/2025}xbrl:conceptObject"): XbrlConcept,
         qname("{https://xbrl.org/2025}xbrl:abstractObject"): XbrlAbstract,
@@ -93,6 +92,7 @@ referencableObjectTypes = {
         qname("{https://xbrl.org/2025}xbrl:axisObject"): XbrlAxis,
     }
 nonReferencableObjectTypes = {
+        qname("{https://xbrl.org/2025}xbrl:importTaxonomyObject"): XbrlImportTaxonomy,
         qname("{https://xbrl.org/2025}xbrl:cubeDimensionObject"): XbrlCubeDimension,
         qname("{https://xbrl.org/2025}xbrl:periodConstraintObject"): XbrlPeriodConstraint,
         qname("{https://xbrl.org/2025}xbrl:dateResolutionObject"): XbrlDateResolution,
