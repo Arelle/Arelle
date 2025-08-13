@@ -1,9 +1,62 @@
+"""
+See COPYRIGHT.md for copyright information.
+"""
+from __future__ import annotations
+
+import json
+import logging
 import os
+from typing import Any, TYPE_CHECKING
 
 from arelle import (
     ModelDocument,
-    PluginManager,
+    PluginManager, FileSource, PackageManager,
 )
+from arelle.UrlUtil import isHttpUrl
+from arelle.typing import TypeGetText
+
+_: TypeGetText
+
+if TYPE_CHECKING:
+    from arelle.Cntlr import Cntlr
+
+
+def parseEntrypointFileInput(cntlr: Cntlr, entrypointFile: str | None, sourceZipStream=None) -> tuple[FileSource, list[dict[str, Any]], bool]:
+    # entrypointFile may be absent (if input is a POSTED zip or file name ending in .zip)
+    #    or may be a | separated set of file names
+    _entryPoints = []
+    _checkIfXmlIsEis = cntlr.modelManager.disclosureSystem and cntlr.modelManager.disclosureSystem.validationType == "EFM"
+    if entrypointFile:
+        _f = entrypointFile
+        try: # may be a json list
+            _entryPoints = json.loads(_f)
+            _checkIfXmlIsEis = False # json entry objects never specify an xml EIS archive
+        except ValueError as e:
+            # is it malformed json?
+            if _f.startswith("[{") or _f.endswith("]}") or '"file:"' in _f:
+                cntlr.addToLog(_("File name parameter appears to be malformed JSON: {}\n{}").format(e, _f),
+                              messageCode="FileNameFormatError",
+                              level=logging.ERROR)
+                success = False
+            else: # try as file names separated by '|'
+                for f in (_f or '').split('|'):
+                    if not sourceZipStream and not isHttpUrl(f) and not os.path.isabs(f):
+                        f = os.path.normpath(os.path.join(os.getcwd(), f)) # make absolute normed path
+                    _entryPoints.append({"file":f})
+    filesource = None # file source for all instances if not None
+    if sourceZipStream:
+        filesource = FileSource.openFileSource(None, cntlr, sourceZipStream)
+    elif len(_entryPoints) == 1 and "file" in _entryPoints[0]: # check if an archive and need to discover entry points (and not IXDS)
+        entryPath = PackageManager.mappedUrl(_entryPoints[0]["file"])
+        filesource = FileSource.openFileSource(entryPath, cntlr, checkIfXmlIsEis=_checkIfXmlIsEis)
+    _entrypointFiles = _entryPoints
+    if filesource and not filesource.selection and not (sourceZipStream and len(_entrypointFiles) > 0):
+        try:
+            filesourceEntrypointFiles(filesource, _entrypointFiles)
+        except Exception as err:
+            cntlr.addToLog(str(err), messageCode="error", level=logging.ERROR)
+            return filesource, _entrypointFiles, False
+    return filesource, _entrypointFiles, True
 
 
 def filesourceEntrypointFiles(filesource, entrypointFiles=None, inlineOnly=False):
