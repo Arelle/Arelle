@@ -11,5 +11,4 @@ config = ConformanceSuiteConfig(
     info_url='https://specifications.xbrl.org/work-product-index-inline-xbrl-transformation-registry-3.html',
     membership_url='https://www.xbrl.org/join',
     name=PurePath(__file__).stem,
-    network_or_cache_required=False,
 )

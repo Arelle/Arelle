@@ -48,6 +48,5 @@ config = ConformanceSuiteConfig(
     info_url="https://specifications.xbrl.org/work-product-index-taxonomy-packages-report-packages-1.0.html",
     membership_url="https://www.xbrl.org/join",
     name=PurePath(__file__).stem,
-    network_or_cache_required=False,
     plugins=frozenset(["inlineXbrlDocumentSet"]),
 )

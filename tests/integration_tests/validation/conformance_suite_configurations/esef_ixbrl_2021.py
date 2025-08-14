@@ -22,7 +22,6 @@ config = ConformanceSuiteConfig(
     ],
     info_url='https://www.esma.europa.eu/document/conformance-suite-2021',
     name=PurePath(__file__).stem,
-    network_or_cache_required=False,
     plugins=frozenset({'validate/ESEF'}),
     shards=8,
     test_case_result_options='match-any',

@@ -24,7 +24,6 @@ config = ConformanceSuiteConfig(
     ],
     info_url='https://www.sbr-nl.nl/sites/default/files/bestanden/taxonomie/SBR%20Filing%20Rules%20NT17%20-%2020220301__.pdf',
     name=PurePath(__file__).stem,
-    network_or_cache_required=False,
     plugins=frozenset({'validate/NL'}),
     shards=8,
 )

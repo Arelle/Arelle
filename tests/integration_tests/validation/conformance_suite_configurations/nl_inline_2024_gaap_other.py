@@ -247,7 +247,6 @@ config = ConformanceSuiteConfig(
     ]),
     info_url='https://www.sbr-nl.nl/sbr-domeinen/handelsregister/uitbreiding-elektronische-deponering-handelsregister',
     name=PurePath(__file__).stem,
-    network_or_cache_required=False,
     plugins=frozenset({'validate/NL'}),
     shards=8,
     test_case_result_options='match-all',

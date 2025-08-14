@@ -12,5 +12,4 @@ config = ConformanceSuiteConfig(
     ],
     info_url='https://specifications.xbrl.org/work-product-index-extensible-enumerations-extensible-enumerations-1.0.html',
     name=PurePath(__file__).stem,
-    network_or_cache_required=False,
 )

@@ -11,5 +11,4 @@ config = ConformanceSuiteConfig(
     info_url='https://gitlab.xbrl.org/base-spec/data-type-registry/-/tree/1.11.0-REC+registry+2024-01-31/conf',
     membership_url='https://www.xbrl.org/join',
     name=PurePath(__file__).stem,
-    network_or_cache_required=False,
 )

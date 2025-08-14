@@ -24,7 +24,6 @@ config = ConformanceSuiteConfig(
     capture_warnings=False,
     info_url='https://specifications.xbrl.org/work-product-index-inline-xbrl-inline-xbrl-1.1.html',
     name=PurePath(__file__).stem,
-    network_or_cache_required=False,
     plugins=frozenset({'inlineXbrlDocumentSet', '../../tests/plugin/testcaseIxExpectedHtmlFixup.py'}),
     shards=4,
 )
