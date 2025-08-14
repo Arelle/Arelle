@@ -16,7 +16,6 @@ config = ConformanceSuiteConfig(
     cache_version_id='gqg_wyX4Tx52sj4WljjDswZLJqH0zvaU',
     info_url='https://erhvervsstyrelsen.dk/vejledning-teknisk-vejledning-og-dokumentation-regnskab-20-taksonomier-aktuelle',
     name=PurePath(__file__).stem,
-    network_or_cache_required=False,
     plugins=frozenset({'validate/DBA'}),
     shards=4,
 )
