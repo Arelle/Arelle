@@ -1579,11 +1579,6 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
     modelXbrl.targetRoleRefs = {} # roleRefs used by selected target
     modelXbrl.targetArcroleRefs = {}  # arcroleRefs used by selected target
     modelXbrl.targetRelationships = set() # relationship elements used by selected target
-    assignUnusedContextsUnits = (not setTargetModelXbrl and not ixdsTarget and
-                                 not getattr(modelXbrl, "supplementalModelXbrls", ()) and (
-                                    not getattr(modelXbrl, "targetIXDSesToLoad", ()) or
-                                    set(e.modelDocument for e in modelXbrl.ixdsHtmlElements) ==
-                                    set(x.modelDocument for e in getattr(modelXbrl, "targetIXDSesToLoad", ()) for x in e[1])))
     hasResources = hasHeader = False
     for htmlElement in modelXbrl.ixdsHtmlElements:
         mdlDoc = htmlElement.modelDocument
@@ -1734,8 +1729,6 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
 
     contextRefs = factTargetContextRefs[ixdsTarget]
     unitRefs = factTargetUnitRefs[ixdsTarget]
-    allContextRefs = set.union(*factTargetContextRefs.values())
-    allUnitRefs = set.union(*factTargetUnitRefs.values())
 
     # discovery of contexts, units and roles which are used by target document
     for htmlElement in modelXbrl.ixdsHtmlElements:
@@ -1744,12 +1737,12 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
 
         for inlineElement in htmlElement.iterdescendants(tag=ixNStag + "resources"):
             for elt in inlineElement.iterchildren("{http://www.xbrl.org/2003/instance}context"):
-                id = elt.get("id")
-                if id in contextRefs or (assignUnusedContextsUnits and id not in allContextRefs):
+                contextId = elt.get("id")
+                if contextId in contextRefs:
                     modelIxdsDocument.contextDiscover(elt, setTargetModelXbrl)
             for elt in inlineElement.iterchildren("{http://www.xbrl.org/2003/instance}unit"):
-                id = elt.get("id")
-                if id in unitRefs or (assignUnusedContextsUnits and id not in allUnitRefs):
+                unitId = elt.get("id")
+                if unitId in unitRefs:
                     modelIxdsDocument.unitDiscover(elt, setTargetModelXbrl)
             for refElement in inlineElement.iterchildren("{http://www.xbrl.org/2003/linkbase}roleRef"):
                 r = refElement.get("roleURI")
