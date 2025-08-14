@@ -1579,7 +1579,6 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
     modelXbrl.targetRoleRefs = {} # roleRefs used by selected target
     modelXbrl.targetArcroleRefs = {}  # arcroleRefs used by selected target
     modelXbrl.targetRelationships = set() # relationship elements used by selected target
-    targetModelXbrl = modelXbrl if setTargetModelXbrl else None # modelXbrl of target for contexts/units in multi-target/multi-instance situation
     assignUnusedContextsUnits = (not setTargetModelXbrl and not ixdsTarget and
                                  not getattr(modelXbrl, "supplementalModelXbrls", ()) and (
                                     not getattr(modelXbrl, "targetIXDSesToLoad", ()) or
