@@ -721,19 +721,19 @@ class ValidateUK:
 
     @cached_property
     def accountStatus(self) -> str | None:
-        return next(self._getDimensionValues(CONCEPT_ACCOUNTS_STATUS, CONCEPT_ACCOUNTS_STATUS_DIMENSION), None)
+        return next(iter(self._getDimensionValues(CONCEPT_ACCOUNTS_STATUS, CONCEPT_ACCOUNTS_STATUS_DIMENSION)), None)
 
     @cached_property
     def accountsType(self) -> str | None:
-        return next(self._getDimensionValues(CONCEPT_ACCOUNTS_TYPE_FULL_OR_ABBREVIATED, CONCEPT_ACCOUNTS_TYPE_DIMENSION), None)
+        return next(iter(self._getDimensionValues(CONCEPT_ACCOUNTS_TYPE_FULL_OR_ABBREVIATED, CONCEPT_ACCOUNTS_TYPE_DIMENSION)), None)
 
     @cached_property
     def accountingStandardsApplied(self) -> str | None:
-        return next(self._getDimensionValues(CONCEPT_ACCOUNTING_STANDARDS_APPLIED, CONCEPT_ACCOUNTING_STANDARDS_DIMENSION), None)
+        return next(iter(self._getDimensionValues(CONCEPT_ACCOUNTING_STANDARDS_APPLIED, CONCEPT_ACCOUNTING_STANDARDS_DIMENSION)), None)
 
     @cached_property
     def applicableLegislation(self) -> str | None:
-        return next(self._getDimensionValues(CONCEPT_APPLICABLE_LEGISLATION, CONCEPT_APPLICABLE_LEGISLATION_DIMENSION), None)
+        return next(iter(self._getDimensionValues(CONCEPT_APPLICABLE_LEGISLATION, CONCEPT_APPLICABLE_LEGISLATION_DIMENSION)), None)
 
     @cached_property
     def isEntityDormant(self) -> bool:
@@ -744,11 +744,11 @@ class ValidateUK:
 
     @cached_property
     def legalFormEntity(self) -> str | None:
-        return next(self._getDimensionValues(CONCEPT_LEGAL_FORM_ENTIY, CONCEPT_LEGAL_FORM_ENTIY_DIMENSION), None)
+        return next(iter(self._getDimensionValues(CONCEPT_LEGAL_FORM_ENTIY, CONCEPT_LEGAL_FORM_ENTIY_DIMENSION)), None)
 
     @cached_property
     def scopeAccounts(self) -> str | None:
-        return next(self._getDimensionValues(CONCEPT_SCOPE_ACCOUNTS, CONCEPT_SCOPE_ACCOUNTS_DIMENSION), None)
+        return next(iter(self._getDimensionValues(CONCEPT_SCOPE_ACCOUNTS, CONCEPT_SCOPE_ACCOUNTS_DIMENSION)), None)
 
     def _getDimensionValues(self, conceptLocalName: str, dimensionLocalName: str) -> Iterable[str]:
         facts = self._getFacts(conceptLocalName)
