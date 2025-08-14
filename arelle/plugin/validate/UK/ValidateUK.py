@@ -7,12 +7,13 @@ from dataclasses import dataclass
 from dataclasses import field
 from enum import Enum
 from functools import cached_property
-from typing import Any, cast
+from typing import Any, cast, Iterable
 
 import regex as re
 
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelXbrl import ModelXbrl
+from arelle.XmlValidateConst import VALID
 
 # Error codes
 CH_AUDIT = 'Char.Audit'
@@ -430,10 +431,11 @@ class ValidateUK:
     _codeResultMap: dict[str, CodeResult] = field(default_factory=dict)
 
     def _checkValidFact(self, fact: ModelFact ) -> bool:
-        if fact is not None:
-            if not fact.isNil:
-                return True
-        return False
+        return (
+            fact is not None and
+            not fact.isNil and
+            fact.context is not None
+        )
 
     def _errorOnMissingFact(self, conceptLocalName: str) -> None:
         """
@@ -628,16 +630,12 @@ class ValidateUK:
         elif code == CH_CHAR_FUND:
             concept = CONCEPT_CHARITY_FUNDS
         trading = False
-        for fact in self._getFacts(CONCEPT_ENTITY_TRADING_STATUS):
-            if fact is None or fact.context is None:
-                continue
-            for qname, value in fact.context.qnameDims.items():
-                if qname.localName == CONCEPT_ENTITY_TRADING_STATUS_DIMENSION:
-                    if value.xValue.localName in {
-                        NotTrading.CONCEPT_ENTITY_NO_LONGER_TRADING.value,
-                        NotTrading.CONCEPT_ENTITY_HAS_NEVER_TRADED.value,
-                    }:
-                        trading = True
+        for value in self._getDimensionValues(CONCEPT_ENTITY_TRADING_STATUS, CONCEPT_ENTITY_TRADING_STATUS_DIMENSION):
+            if value in {
+                NotTrading.CONCEPT_ENTITY_NO_LONGER_TRADING.value,
+                NotTrading.CONCEPT_ENTITY_HAS_NEVER_TRADED.value,
+            }:
+                trading = True
         if not self._getAndCheckValidFacts([concept]) and not trading:
             return CodeResult(
                 conceptLocalName=concept,
@@ -686,13 +684,11 @@ class ValidateUK:
         """
         Determines if the language is set to Welsh, otherwise defaults to English.
         """
-        for fact in self._getFacts(CONCEPT_REPORT_PRINCIPAL_LANGUAGE):
-            if fact is None or fact.context is None:
-                continue
-            for qname, value in fact.context.qnameDims.items():
-                if qname.localName == CONCEPT_LANGUAGES_DIMENSION:
-                    if value.xValue.localName == CONCEPT_WELSH:
-                        return HmrcLang.WELSH
+        if any(
+            lang == CONCEPT_WELSH
+            for lang in self._getDimensionValues(CONCEPT_REPORT_PRINCIPAL_LANGUAGE, CONCEPT_LANGUAGES_DIMENSION)
+        ):
+            return HmrcLang.WELSH
         return HmrcLang.ENGLISH
 
     def _yieldErrorOrWarning(self, code: str, result: CodeResult) -> None:
@@ -725,47 +721,19 @@ class ValidateUK:
 
     @cached_property
     def accountStatus(self) -> str | None:
-        facts = self._getFacts(CONCEPT_ACCOUNTS_STATUS)
-        for fact in facts:
-            if not self._checkValidFact(fact):
-                continue
-            for qname, value in fact.context.qnameDims.items():
-                if qname.localName == CONCEPT_ACCOUNTS_STATUS_DIMENSION:
-                    return cast(str, value.xValue.localName)
-        return None
+        return next(self._getDimensionValues(CONCEPT_ACCOUNTS_STATUS, CONCEPT_ACCOUNTS_STATUS_DIMENSION), None)
 
     @cached_property
     def accountsType(self) -> str | None:
-        facts = self._getFacts(CONCEPT_ACCOUNTS_TYPE_FULL_OR_ABBREVIATED)
-        for fact in facts:
-            if not self._checkValidFact(fact):
-                continue
-            for qname, value in fact.context.qnameDims.items():
-                if qname.localName == CONCEPT_ACCOUNTS_TYPE_DIMENSION:
-                    return cast(str, value.xValue.localName)
-        return None
+        return next(self._getDimensionValues(CONCEPT_ACCOUNTS_TYPE_FULL_OR_ABBREVIATED, CONCEPT_ACCOUNTS_TYPE_DIMENSION), None)
 
     @cached_property
     def accountingStandardsApplied(self) -> str | None:
-        facts = self._getFacts(CONCEPT_ACCOUNTING_STANDARDS_APPLIED)
-        for fact in facts:
-            if not self._checkValidFact(fact):
-                continue
-            for qname, value in fact.context.qnameDims.items():
-                if qname.localName == CONCEPT_ACCOUNTING_STANDARDS_DIMENSION:
-                    return cast(str, value.xValue.localName)
-        return None
+        return next(self._getDimensionValues(CONCEPT_ACCOUNTING_STANDARDS_APPLIED, CONCEPT_ACCOUNTING_STANDARDS_DIMENSION), None)
 
     @cached_property
     def applicableLegislation(self) -> str | None:
-        facts = self._getFacts(CONCEPT_APPLICABLE_LEGISLATION)
-        for fact in facts:
-            if not self._checkValidFact(fact):
-                continue
-            for qname, value in fact.context.qnameDims.items():
-                if qname.localName == CONCEPT_APPLICABLE_LEGISLATION_DIMENSION:
-                    return cast(str, value.xValue.localName)
-        return None
+        return next(self._getDimensionValues(CONCEPT_APPLICABLE_LEGISLATION, CONCEPT_APPLICABLE_LEGISLATION_DIMENSION), None)
 
     @cached_property
     def isEntityDormant(self) -> bool:
@@ -776,25 +744,22 @@ class ValidateUK:
 
     @cached_property
     def legalFormEntity(self) -> str | None:
-        facts = self._getFacts(CONCEPT_LEGAL_FORM_ENTIY)
-        for fact in facts:
-            if not self._checkValidFact(fact):
-                continue
-            for qname, value in fact.context.qnameDims.items():
-                if qname.localName == CONCEPT_LEGAL_FORM_ENTIY_DIMENSION:
-                    return cast(str, value.xValue.localName)
-        return None
+        return next(self._getDimensionValues(CONCEPT_LEGAL_FORM_ENTIY, CONCEPT_LEGAL_FORM_ENTIY_DIMENSION), None)
 
     @cached_property
     def scopeAccounts(self) -> str | None:
-        facts = self._getFacts(CONCEPT_SCOPE_ACCOUNTS)
+        return next(self._getDimensionValues(CONCEPT_SCOPE_ACCOUNTS, CONCEPT_SCOPE_ACCOUNTS_DIMENSION), None)
+
+    def _getDimensionValues(self, conceptLocalName: str, dimensionLocalName: str) -> Iterable[str]:
+        facts = self._getFacts(conceptLocalName)
         for fact in facts:
             if not self._checkValidFact(fact):
                 continue
             for qname, value in fact.context.qnameDims.items():
-                if qname.localName == CONCEPT_SCOPE_ACCOUNTS_DIMENSION:
-                    return cast(str, value.xValue.localName)
-        return None
+                if value.xValid < VALID:
+                    continue
+                if qname.localName == dimensionLocalName:
+                    yield cast(str, value.xValue.localName)
 
     def validate(self) -> None:
         """
