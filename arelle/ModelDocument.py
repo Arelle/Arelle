@@ -1605,8 +1605,12 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
         for modelInlineFact in htmlElement.iterdescendants(ixNStag + "nonNumeric", ixNStag + "nonFraction", ixNStag + "fraction"):
             if isinstance(modelInlineFact,ModelObject):
                 _target = modelInlineFact.get("target")
-                factTargetContextRefs[_target].add(modelInlineFact.get("contextRef"))
-                factTargetUnitRefs[_target].add(modelInlineFact.get("unitRef"))
+                contextRef = modelInlineFact.get("contextRef")
+                if contextRef is not None:
+                    factTargetContextRefs[_target].add(contextRef.strip())
+                unitRef = modelInlineFact.get("unitRef")
+                if unitRef is not None:
+                    factTargetUnitRefs[_target].add(unitRef.strip())
                 if modelInlineFact.id:
                     factsByFactID[modelInlineFact.id] = modelInlineFact
         for elt in htmlElement.iterdescendants(tag=ixNStag + "continuation"):
