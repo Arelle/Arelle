@@ -24,7 +24,7 @@ from arelle.ValidateDuplicateFacts import getDeduplicatedFacts, DeduplicationTyp
 from arelle.XmlValidate import VALID
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
-from .Constants import CORPORATE_FORMS
+from .Constants import CORPORATE_FORMS, STOCK_REPORT_FORMS
 from .ControllerPluginData import ControllerPluginData
 from .ManifestInstance import ManifestInstance
 from .Statement import Statement, STATEMENTS, BalanceSheet, StatementInstance, StatementType
@@ -54,7 +54,7 @@ class PluginValidationDataExtension(PluginData):
     def __init__(self, name: str):
         super().__init__(name)
         jpcrpEsrNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jpcrp-esr/2024-11-01/jpcrp-esr_cor"
-        jpcrpNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpcrp/2024-11-01/jpcrp_cor'
+        self.jpcrpNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpcrp/2024-11-01/jpcrp_cor'
         jpdeiNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpdei/2013-08-31/jpdei_cor'
         jpigpNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jpigp/2024-11-01/jpigp_cor"
         jppfsNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jppfs/2024-11-01/jppfs_cor"
@@ -63,11 +63,12 @@ class PluginValidationDataExtension(PluginData):
         self.assetsIfrsQn = qname(jpigpNamespace, 'AssetsIFRS')
         self.consolidatedOrNonConsolidatedAxisQn = qname(jppfsNamespace, 'ConsolidatedOrNonConsolidatedAxis')
         self.documentTypeDeiQn = qname(jpdeiNamespace, 'DocumentTypeDEI')
+        self.issuedSharesTotalNumberOfSharesEtcQn = qname(self.jpcrpNamespace, 'IssuedSharesTotalNumberOfSharesEtcTextBlock')
         self.jpcrpEsrFilingDateCoverPageQn = qname(jpcrpEsrNamespace, 'FilingDateCoverPage')
-        self.jpcrpFilingDateCoverPageQn = qname(jpcrpNamespace, 'FilingDateCoverPage')
+        self.jpcrpFilingDateCoverPageQn = qname(self.jpcrpNamespace, 'FilingDateCoverPage')
         self.jpspsFilingDateCoverPageQn = qname(jpspsNamespace, 'FilingDateCoverPage')
         self.nonConsolidatedMemberQn = qname(jppfsNamespace, "NonConsolidatedMember")
-        self.ratioOfFemaleDirectorsAndOtherOfficersQn = qname(jpcrpNamespace, "RatioOfFemaleDirectorsAndOtherOfficers")
+        self.ratioOfFemaleDirectorsAndOtherOfficersQn = qname(self.jpcrpNamespace, "RatioOfFemaleDirectorsAndOtherOfficers")
 
         self.contextIdPattern = regex.compile(r'(Prior[1-9]Year|CurrentYear|Prior[1-9]Interim|Interim)(Duration|Instant)')
 
@@ -103,6 +104,18 @@ class PluginValidationDataExtension(PluginData):
             return True
         return False
 
+    @lru_cache(1)
+    def isCorporateReport(self, modelXbrl: ModelXbrl) -> bool:
+        if self.jpcrpNamespace in modelXbrl.namespaceDocs.keys():
+            return True
+        return False
+
+    @lru_cache(1)
+    def isStockFrom(self, modelXbrl: ModelXbrl) -> bool:
+        documentTypes = self.getDocumentTypes(modelXbrl)
+        if any(documentType == form.value for form in STOCK_REPORT_FORMS for documentType in documentTypes):
+            return True
+        return False
 
     def getBalanceSheets(self, modelXbrl: ModelXbrl, statement: Statement) -> list[BalanceSheet]:
         """
