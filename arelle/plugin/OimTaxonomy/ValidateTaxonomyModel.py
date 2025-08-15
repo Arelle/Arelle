@@ -125,18 +125,22 @@ def validateTaxonomy(txmyMdl, txmy):
     # Taxonomy object
     assertObjectType(txmy, XbrlTaxonomyModule)
 
-    for impTxmyObj in txmy.importedTaxonomies:
-        assertObjectType(impTxmyObj, XbrlImportTaxonomy)
-        for qnObjType in impTxmyObj.importObjectTypes:
+    for impTxObj in txmy.importedTaxonomies:
+        assertObjectType(impTxObj, XbrlImportTaxonomy)
+        for qnObjType in impTxObj.importObjectTypes:
             if qnObjType in xbrlObjectTypes:
                 if xbrlObjectTypes[qnObjType] == XbrlLabel:
                     txmyMdl.error("oimte:invalidObjectType",
                               _("The importObjectTypes property MUST not include the label object."),
-                              xbrlObject=impTxmyObj)
+                              xbrlObject=impTxObj)
             else:
                 txmyMdl.error("oimte:invalidObjectType",
                           _("The importObjectTypes property MUST specify valid OIM object types, %(qname)s is not valid."),
-                          xbrlObject=impTxmyObj, qname=qnObjType)
+                          xbrlObject=impTxObj, qname=qnObjType)
+        if impTxObj.profiles and (impTxObj.selections or impTxObj.importObjects or impTxObj.importObjectTypes):
+            txmyMdl.error("oimte:invalidImportTaxonomy",
+                      _("The importTaxonomy %(taxonomyName)s profiles must only be used without selectons, importObjects or importObjectTypes."),
+                      xbrlObject=impTxObj, taxonomyName=impTxObj.taxonomyName)
 
     expPrflCt = defaultdict(list)
     for expPrflObj in txmy.exportProfiles:

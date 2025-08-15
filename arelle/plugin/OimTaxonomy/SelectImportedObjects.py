@@ -50,7 +50,33 @@ def selectImportedObjects(txmyMdl, newTxmy, impTxObj):
     hasExcl = False # has anything excluding
     exclLbls = impTxObj.excludeLabels
     name = impTxObj.taxonomyName
-    if impTxObj.importObjects:
+    if impTxObj.profiles:
+        selections = set()
+        importObjects = set()
+        importObjectTypes = set()
+        excludeLabels = False
+        impExpProfiles = set(expProf.name for expProf in newTxmy.exportProfiles)
+        if not (impTxObj.selections or impTxObj.importObjects or impTxObj.importObjectTypes):
+            txmyMdl.error("oimte:invalidImportTaxonomy",
+                      _("The importTaxonomy %(name)s profiles must only be used without selectons, importObjects or importObjectTypes."),
+                      xbrlObject=impTxObj, name=name, qname=impObjQn)
+        elif any (impTxObj.profiles - impExpProfiles):
+            txmyMdl.error("oimte:invalidProfileFramework",
+                      _("The importTaxonomy %(name)s profile %(profiles)s is(Are) not present in the imported taxonomy."),
+                      xbrlObject=impTxObj, name=name, profiles=(str(p) for p in (impTxObj.profiles - impExpProfile)))
+        else:
+            for expProf in newTxmy.exportProfiles:
+                if expProf.name in impTxObj.selections:
+                    selections |= expProf.selections
+                    importObjects |= expProf.importObjects
+                    importObjectTypes |= expProf.importObjectTypes
+                    excludeLabels |= expProf.excludeLabels
+    else:
+        importObjects = impTxObj.importObjects
+        importObjectTypes = impTxObj.importObjectTypes
+        selections = impTxObj.selections
+        excludeLabels = impTxObj.excludeLabels
+    if importObjects:
         hasSel = True
         for impObjQn in impTxObj.importObjects:
             obj = txmyMdl.namedObjects.get(impObjQn)
@@ -64,12 +90,12 @@ def selectImportedObjects(txmyMdl, newTxmy, impTxObj):
                 txmyMdl.error("oimte:unknownIncludedObject",
                           _("The importTaxonomy %(name)s importObject %(qname)s must identify an taxonomy object."),
                           xbrlObject=impTxObj, name=name, qname=impObjQn)
-    for impObjTp in impTxObj.importObjectTypes:
+    for impObjTp in importObjectTypes:
         if impObjTp not in xbrlObjectTypes.keys() - {qnXbrlLabelObj}:
             txmyMdl.error("oimte:invalidImportedObjectType",
                       _("The importTaxonomy %(name)s importObjectType %(qname)s must identify a referencable taxonomy component object, excluding labelObject."),
                       xbrlObject=impTxObj, name=name, qname=impObjTp)
-    if impTxObj.importObjectTypes:
+    if importObjectTypes:
         hasSel = True
         for obj in txmyMdl.namedObjects.values():
             if i0 <= obj.xbrlMdlObjIndex <= iL: # applies to this taxonomy import
@@ -81,7 +107,7 @@ def selectImportedObjects(txmyMdl, newTxmy, impTxObj):
                     if xbrlObjectQNames[type(obj)] in impTxObj.importObjectTypes:
                         selObjs[obj.xbrlMdlObjIndex - i0] = True
     hasSelError = False
-    for iSel, selObj in enumerate(impTxObj.selections):
+    for iSel, selObj in enumerate(selections):
         if selObj.objectType not in xbrlObjectTypes.keys() - {qnXbrlLabelObj}:
             txmyMdl.error("oimte:invalidSelectionObjectTypee",
                       _("The importTaxonomy %(name)s selection[%(nbr)s] must identify a referencable taxonomy component object, excluding labelObject: %(qname)s."),
@@ -98,7 +124,7 @@ def selectImportedObjects(txmyMdl, newTxmy, impTxObj):
                         txmyMdl.error("oimte:invalidSelectorOperator",
                                   _("The importTaxonomy %(name)s selection[%(selNbr)s]/where[%(whNbr)s] property %(qname)s does not exist for object %(objType)s."),
                                   xbrlObject=impTxObj, name=name, selNbr=iSel, whNbr=iWh, qname=whereObj.property, objType=selObj.objectType)
-    if impTxObj.selections and not hasSelError:
+    if selections and not hasSelError:
         hasSel = True
         for obj in txmyMdl.namedObjects.values():
             if i0 <= obj.xbrlMdlObjIndex <= iL: # applies to this taxonomy import
