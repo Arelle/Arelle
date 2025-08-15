@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from arelle.Cntlr import Cntlr
 
 
-def parseEntrypointFileInput(cntlr: Cntlr, entrypointFile: str | None, sourceZipStream=None) -> tuple[FileSource, list[dict[str, Any]], bool]:
+def parseEntrypointFileInput(cntlr: Cntlr, entrypointFile: str | None, sourceZipStream=None, autoSelect=True) -> tuple[FileSource, list[dict[str, Any]], bool]:
     # entrypointFile may be absent (if input is a POSTED zip or file name ending in .zip)
     #    or may be a | separated set of file names
     _entryPoints = []
@@ -52,14 +52,14 @@ def parseEntrypointFileInput(cntlr: Cntlr, entrypointFile: str | None, sourceZip
     _entrypointFiles = _entryPoints
     if filesource and not filesource.selection and not (sourceZipStream and len(_entrypointFiles) > 0):
         try:
-            filesourceEntrypointFiles(filesource, _entrypointFiles)
+            filesourceEntrypointFiles(filesource, _entrypointFiles, autoSelect=autoSelect)
         except Exception as err:
             cntlr.addToLog(str(err), messageCode="error", level=logging.ERROR)
             return filesource, _entrypointFiles, False
     return filesource, _entrypointFiles, True
 
 
-def filesourceEntrypointFiles(filesource, entrypointFiles=None, inlineOnly=False):
+def filesourceEntrypointFiles(filesource, entrypointFiles=None, inlineOnly=False, autoSelect=True):
     if entrypointFiles is None:
         entrypointFiles = []
     for pluginXbrlMethod in PluginManager.pluginClassMethods("FileSource.EntrypointFiles"):
@@ -87,7 +87,7 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=None, inlineOnly=False
                     entrypointFiles.extend(reportEntries)
                 elif not inlineOnly:
                     entrypointFiles.append({"file": report.fullPathPrimary})
-        else:
+        elif autoSelect:
             # attempt to find inline XBRL files before instance files, .xhtml before probing others (ESMA)
             urlsByType = {}
             for _archiveFile in (filesource.dir or ()): # .dir might be none if IOerror
