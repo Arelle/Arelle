@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from arelle.Cntlr import Cntlr
@@ -26,6 +27,15 @@ class ValidationPluginExtension(ValidationPlugin):
         if len(instances) == 0:
             return None
         assert filesource.cntlr is not None
+        filesource.cntlr.addToLog(
+            _("EDINET manifest(s) detected (%(manifests)s). Loading %(count)s instances (%(instances)s)."),
+            messageCode="info",
+            messageArgs={
+                "manifests": ', '.join(instance.type for instance in instances),
+                "count": len(instances),
+                "instances": ', '.join(instance.id for instance in instances),
+            }, level=logging.INFO
+        )
         pluginData = ControllerPluginData.get(filesource.cntlr, self.name)
         entrypointFiles = []
         for instance in instances:
