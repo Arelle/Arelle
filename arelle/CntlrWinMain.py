@@ -5,6 +5,8 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 
+import darkdetect
+
 from arelle import ValidateDuplicateFacts
 import os, sys, subprocess, pickle, time, locale, fnmatch, platform, webbrowser
 import regex as re
@@ -101,15 +103,9 @@ class CntlrWinMain (Cntlr.Cntlr):
         if self.isMSW:
             icon = imgpath + "arelle.ico"
             parent.iconbitmap(icon, default=icon)
-            #image = PhotoImage(file=path + "arelle32.gif")
-            #label = Label(None, image=image)
-            #parent.iconwindow(label)
         else:
             self.iconImage = PhotoImage(file=imgpath + "arelle-mac-icon-4.gif") # must keep reference during life of window
             parent.tk.call('wm', 'iconphoto', parent._w, self.iconImage)
-            #parent.iconbitmap("@" + imgpath + "arelle.xbm")
-            # try with gif file
-            #parent.iconbitmap(path + "arelle.gif")
 
         self.menubar = Menu(self.parent)
         self.parent["menu"] = self.menubar
@@ -321,22 +317,20 @@ class CntlrWinMain (Cntlr.Cntlr):
         toolbar = Frame(windowFrame)
         menubarColumn = 0
         self.validateTooltipText = StringVar()
+        iconDir = "dark" if darkdetect.isDark() else "light"
         for image, command, toolTip, statusMsg in (
-                #("images/toolbarNewFile.gif", self.fileNew),
-                ("toolbarOpenFile.gif", self.fileOpen, _("Open local file"), _("Open by choosing a local XBRL file, testcase, or archive file")),
-                ("toolbarOpenWeb.gif", self.webOpen, _("Open web file"), _("Enter an http:// URL of an XBRL file or testcase")),
-                ("toolbarReopen.gif", self.fileReopen, _("Reopen"), _("Reopen last opened XBRL file or testcase(s)")),
-                ("toolbarSaveFile.gif", self.fileSaveExistingFile, _("Save file"), _("Saves currently selected local XBRL file")),
-                ("toolbarClose.gif", self.fileClose, _("Close"), _("Closes currently selected instance/DTS or testcase(s)")),
+                ("folder.png", self.fileOpen, _("Open local file"), _("Open by choosing a local XBRL file, testcase, or archive file")),
+                ("cloud-download.png", self.webOpen, _("Open web file"), _("Enter an http:// URL of an XBRL file or testcase")),
+                ("refresh-double.png", self.fileReopen, _("Reopen"), _("Reopen last opened XBRL file or testcase(s)")),
+                ("floppy-disk-arrow-out.png", self.fileSaveExistingFile, _("Save file"), _("Saves currently selected local XBRL file")),
+                ("xmark-square.png", self.fileClose, _("Close"), _("Closes currently selected instance/DTS or testcase(s)")),
                 (None,None,None,None),
-                ("toolbarFindMenu.gif", self.find, _("Find"), _("Find dialog for scope and method of searching")),
+                ("search.png", self.find, _("Find"), _("Find dialog for scope and method of searching")),
                 (None,None,None,None),
-                ("toolbarValidate.gif", self.validate, self.validateTooltipText, _("Validate currently selected DTS or testcase(s)")),
-                ("toolbarCompare.gif", self.compareDTSes, _("Compare DTSes"), _("compare two DTSes")),
+                ("clipboard-check.png", self.validate, self.validateTooltipText, _("Validate currently selected DTS or testcase(s)")),
+                ("transition-right.png", self.compareDTSes, _("Compare DTSes"), _("compare two DTSes")),
                 (None,None,None,None),
-                ("toolbarLogClear.gif", self.logClear, _("Messages Log | Clear"), _("Clears the messages log")),
-                #(Combobox(toolbar, textvariable=self.findVar, values=self.findValues,
-                #          ), self.logClear, _("Find options"), _("Select of find options")),
+                ("erase.png", self.logClear, _("Messages Log | Clear"), _("Clears the messages log")),
                 ):
             if command is None:
                 tbControl = Separator(toolbar, orient=VERTICAL)
@@ -345,7 +339,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 tbControl = image
                 tbControl.grid(row=0, column=menubarColumn)
             else:
-                image = os.path.join(self.imagesDir, image)
+                image = os.path.join(self.imagesDir, iconDir, image)
                 try:
                     image = PhotoImage(file=image)
                     self.toolbar_images.append(image)

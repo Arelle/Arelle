@@ -1,5 +1,6 @@
 # core modules
 certifi==2025.8.3
+darkdetect==0.8.0
 truststore==0.10.1 ; python_version > "3.9"
 filelock==3.18.0
 jsonschema==4.25.0
