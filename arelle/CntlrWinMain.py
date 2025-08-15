@@ -394,7 +394,7 @@ class CntlrWinMain (Cntlr.Cntlr):
 
         windowFrame.columnconfigure(0, weight=999)
         windowFrame.columnconfigure(1, weight=1)
-        windowFrame.rowconfigure(0, weight=1)
+        windowFrame.rowconfigure(0, weight=1, minsize=40)
         windowFrame.rowconfigure(1, weight=999)
         windowFrame.rowconfigure(2, weight=1)
         paneWinTopBtm.columnconfigure(0, weight=1)
