@@ -55,7 +55,9 @@ DB = [
     'rdflib>=5,<8',
 ]
 EFM = [
+    'aniso8601==10.*',
     'holidays==0.*',
+    'Matplotlib==3.*',
     'pytz',
 ]
 ESEF = [
