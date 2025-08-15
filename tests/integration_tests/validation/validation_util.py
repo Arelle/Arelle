@@ -276,7 +276,7 @@ def get_conformance_suite_arguments(config: ConformanceSuiteConfig, filename: st
             '--csvTestReport', f'conf-{config.name}{shard_str}-report.csv',
             '--logFile', f'conf-{config.name}{shard_str}-log.txt',
         ])
-    if offline or not config.network_or_cache_required:
+    if offline or config.runs_without_network:
         args.extend(['--internetConnectivity', 'offline'])
     for pattern in testcase_filters:
         args.extend(['--testcaseFilter', pattern])

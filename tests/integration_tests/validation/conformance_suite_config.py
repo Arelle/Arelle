@@ -230,8 +230,8 @@ class ConformanceSuiteConfig:
             f'Testcase IDs in both expected failures and expected additional errors: {sorted(overlapping_expected_failure_testcase_ids)}'
 
     @property
-    def network_or_cache_required(self) -> bool:
-        return self.cache_version_id is not None or len(self.package_paths) > 0
+    def runs_without_network(self) -> bool:
+        return self.cache_version_id is None and len(self.package_paths) == 0
 
     @cached_property
     def entry_point_asset(self) -> ConformanceSuiteAssetConfig:
