@@ -145,16 +145,33 @@ def validateTaxonomy(txmyMdl, txmy):
     expPrflCt = defaultdict(list)
     for expPrflObj in txmy.exportProfiles:
         assertObjectType(expPrflObj, XbrlExportProfile)
+        name = expPrflObj.name
         for expObjQn in expPrflObj.exportObjects:
             if expObjQn not in txmyMdl.namedObjects:
-                txmyMdl.error("exp:ExportProfileInvalidExportObject",
-                          _("The exportObjectTypes %(name)s exportObject %(qname)s must identify an taxonomy object."),
-                          xbrlObject=impTxObj, name=name, qname=expObjQn)
+                txmyMdl.error("oimte:invalidExportObject",
+                          _("The exportProfile %(name)s exportObject %(qname)s must identify an taxonomy object."),
+                          xbrlObject=expPrflObj, name=name, qname=expObjQn)
         for qnObjType in expPrflObj.exportObjectTypes:
             if qnObjType not in xbrlObjectTypes:
-                txmyMdl.error("oimte:invalidExportObject",
-                          _("The exportObjectTypes property MUST specify valid OIM object types, %(qname)s is not valid."),
-                          xbrlObject=expPrflObj, qname=qnObjType)
+                txmyMdl.error("oimte:invalidExportObjectType",
+                          _("The exportProfile %(name)s objectType property MUST specify valid OIM object types, %(qname)s is not valid."),
+                          xbrlObject=expPrflObj, name=name, qname=qnObjType)
+        for iSel, selObj in enumerate(expPrflObj.selections):
+            if selObj.objectType not in xbrlObjectTypes.keys() - {qnXbrlLabelObj}:
+                txmyMdl.error("oimte:invalidSelectionObjectType",
+                          _("The exportProfile %(name)s selection[%(nbr)s] must identify a referencable taxonomy component object, excluding labelObject: %(qname)s."),
+                          xbrlObject=expPrflObj, name=name, nbr=iSel, qname=selObj.objectType)
+            for iWh, whereObj in enumerate(selObj.where):
+                if whereObj.property is None or whereObj.operator is None or whereObj.value is None:
+                    txmyMdl.error("oimte:invalidSelection",
+                              _("The exportProfile %(name)s selection[%(nbr)s] is incomplete."),
+                              xbrlObject=expPrflObj, name=name, nbr=iSel)
+                else:
+                    if whereObj.property.namespaceURI is None: # object property
+                        if whereObj.property.localName not in getattr(xbrlObjectTypes[selObj.objectType], "__annotations__", EMPTY_DICT):
+                            txmyMdl.error("oimte:invalidSelectorOperator",
+                                      _("The exportProfile %(name)s selection[%(selNbr)s]/where[%(whNbr)s] property %(qname)s does not exist for object %(objType)s."),
+                                      xbrlObject=expPrflObj, name=name, selNbr=iSel, whNbr=iWh, qname=whereObj.property, objType=selObj.objectType)
         expPrflCt[expPrflObj.name].append(expPrflObj)
     for expPrfName, objs in expPrflCt.items():
         if len(objs) > 1:
