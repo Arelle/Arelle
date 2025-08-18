@@ -6,20 +6,28 @@ e.g., User-Agent: Sample Company Name AdminContact@<sample company domain>.com
 
 '''
 from __future__ import annotations
+
+import calendar
 import contextlib
-
-
-from filelock import FileLock, Timeout
+import io
+import json
+import logging
+import os
+import posixpath
+import shutil
+import sys
+import time
+import zlib
+from http.client import IncompleteRead
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
-import os, posixpath, sys, time, calendar, io, json, logging, shutil, zlib
-import regex as re
-from urllib.parse import quote, unquote
-from urllib.error import URLError, HTTPError, ContentTooShortError
-from http.client import IncompleteRead
 from urllib import request as proxyhandlers
+from urllib.error import ContentTooShortError, HTTPError, URLError
+from urllib.parse import quote, unquote, urlsplit, urlunsplit
 
 import certifi
+import regex as re
+from filelock import FileLock, Timeout
 
 from arelle.PythonUtil import isLegacyAbs
 
@@ -567,14 +575,16 @@ class WebCache:
         :param url:
         :return: `url` with scheme-specific-part quoted except for parameter separators
         """
-        urlScheme, schemeSep, urlSchemeSpecificPart = url.partition("://")
-        urlPath, querySep, query = urlSchemeSpecificPart.partition("?")
-        # RFC 3986: https://www.ietf.org/rfc/rfc3986.txt
-        querySafeChars = ';/?'
-        pathSafeChars = querySafeChars + ':@&=+$,'
-        quotedUrlPath = quote(urlPath, safe=pathSafeChars)
-        quotedQuery = quote(query, safe=querySafeChars)
-        return urlScheme + schemeSep + quotedUrlPath + querySep + quotedQuery
+        parts = urlsplit(url)
+
+        # RFC 3986 safe characters: https://www.ietf.org/rfc/rfc3986.txt
+        pathSafe = "/:@!$&'()*+,;="       # path allows sub-delims, ":" and "@"
+        querySafe = "&=:/?@!$'()*+,;[]"   # query allows pchar + "/" + "?"
+
+        quotedPath = quote(parts.path, safe=pathSafe)
+        quotedQuery = quote(parts.query, safe=querySafe)
+
+        return urlunsplit((parts.scheme, parts.netloc, quotedPath, quotedQuery, parts.fragment))
 
     @staticmethod
     def _getFileTimestamp(path: str) -> float:
