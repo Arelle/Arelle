@@ -2,7 +2,7 @@
 certifi==2025.8.3
 truststore==0.10.1 ; python_version > "3.9"
 filelock==3.19.1
-jsonschema==4.25.0
+jsonschema==4.25.1
 lxml==5.4.0
 OpenPyXL==3.1.5
 pyparsing==3.2.3
@@ -20,7 +20,7 @@ NumPy==2.0.2 ; python_version <= "3.9"
 NumPy==2.2.4 ; python_version > "3.9"
 Matplotlib==3.9.4 ; python_version <= "3.9"
 Matplotlib==3.10.1 ; python_version > "3.9"
-holidays==0.78
+holidays==0.79
 pytz==2025.2
 Tornado==6.5.2
 # security plugin
