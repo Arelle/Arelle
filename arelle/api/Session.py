@@ -8,7 +8,7 @@ from __future__ import annotations
 import logging
 import threading
 from types import TracebackType
-from typing import Any, BinaryIO
+from typing import Any, BinaryIO, TypeVar
 
 from arelle import PackageManager, PluginManager
 from arelle.CntlrCmdLine import CntlrCmdLine, createCntlrAndPreloadPlugins
@@ -17,6 +17,9 @@ from arelle.ModelXbrl import ModelXbrl
 from arelle.RuntimeOptions import RuntimeOptions
 
 _session_lock = threading.Lock()
+
+# typing.Self can be used once Python 3.10 support is dropped.
+Self = TypeVar("Self", bound="Session")
 
 
 class Session:
@@ -46,7 +49,7 @@ class Session:
                 "Session objects cannot be shared between threads. Create a new Session instance in each thread."
             )
 
-    def __enter__(self) -> Any:
+    def __enter__(self: Self) -> Self:
         return self
 
     def __exit__(
