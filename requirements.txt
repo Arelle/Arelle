@@ -9,19 +9,13 @@ pyparsing==3.2.3
 regex==2025.7.34
 typing-extensions==4.14.1
 isodate==0.7.2
-aniso8601==10.0.1
 bottle==0.13.4
 Cheroot==10.0.1
 python-dateutil==2.9.0.post0
 pycountry==24.6.1
 # plugins
-# EDGAR plugins
 NumPy==2.0.2 ; python_version <= "3.9"
 NumPy==2.2.4 ; python_version > "3.9"
-Matplotlib==3.9.4 ; python_version <= "3.9"
-Matplotlib==3.10.1 ; python_version > "3.9"
-holidays==0.79
-pytz==2025.2
 Tornado==6.5.2
 # security plugin
 PyCryptodome==3.23.0
