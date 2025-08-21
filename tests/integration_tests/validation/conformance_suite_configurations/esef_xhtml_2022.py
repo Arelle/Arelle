@@ -16,7 +16,6 @@ config = ConformanceSuiteConfig(
     ],
     info_url='https://www.esma.europa.eu/document/esef-conformance-suite-2022',
     name=PurePath(__file__).stem,
-    network_or_cache_required=False,
     plugins=frozenset({'validate/ESEF'}),
     test_case_result_options='match-any',
 )

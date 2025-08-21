@@ -104,7 +104,7 @@ def main() -> None:
     private = False
     for config in CI_CONFORMANCE_SUITE_CONFIGS:
         if config.name in FAST_CONFIG_NAMES:
-            assert not config.network_or_cache_required
+            assert config.runs_without_network
             assert config.shards == 1
             config_names_seen.add(config.name)
             private |= config.has_private_asset

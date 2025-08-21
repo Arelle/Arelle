@@ -33,7 +33,6 @@ configs = [
         expected_model_errors=frozenset(expected_model_errors),
         info_url='https://specifications.xbrl.org/work-product-index-registries-units-registry-1.0.html',
         name=PurePath(__file__).stem,
-        network_or_cache_required=False,
     )
     for malformed_utr_file, expected_model_errors in MALFORMED_UTR_FILES.items()
 ]

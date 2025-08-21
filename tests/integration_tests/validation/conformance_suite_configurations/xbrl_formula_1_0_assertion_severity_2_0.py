@@ -10,6 +10,5 @@ config = ConformanceSuiteConfig(
     ],
     info_url='https://specifications.xbrl.org/release-history-formula-1.0-formula-conf.html',
     name=PurePath(__file__).stem,
-    network_or_cache_required=False,
     test_case_result_options='match-any',
 )
