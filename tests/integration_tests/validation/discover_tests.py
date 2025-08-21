@@ -79,7 +79,7 @@ def main() -> None:
     for os in [LINUX, MACOS, WINDOWS]:
         output.append(generate_config_entry(
             name=','.join(sorted(config_names_seen)),
-            short_name='miscellaneous suites',
+            short_name='fast suites',
             os=os,
             private=private,
             python_version=LATEST_PYTHON_VERSION,
