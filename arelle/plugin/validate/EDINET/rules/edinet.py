@@ -281,3 +281,25 @@ def rule_EC8075W(
                 codes='EDINET.EC8075W',
                 msg=_("The percentage of female executives has not been tagged in detail."),
                 )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8076W(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8076W: "Issued Shares, Total Number of Shares, etc. [Text Block]" (IssuedSharesTotalNumberOfSharesEtcTextBlock) is not tagged.
+    Applies to forms 3 and 4.
+    """
+    if pluginData.isStockForm(val.modelXbrl) and pluginData.isCorporateReport(val.modelXbrl):
+        if not pluginData.hasValidNonNilFact(val.modelXbrl, pluginData.issuedSharesTotalNumberOfSharesEtcQn):
+            yield Validation.warning(
+                codes='EDINET.EC8076W',
+                msg=_('"Issued Shares, Total Number of Shares, etc. [Text Block]" (IssuedSharesTotalNumberOfSharesEtcTextBlock) is not tagged.'),
+            )
