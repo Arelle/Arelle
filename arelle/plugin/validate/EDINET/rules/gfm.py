@@ -258,6 +258,7 @@ def rule_gfm_1_2_8(
     contextRef attribute in the same instance.
     """
     unusedContexts = list(set(val.modelXbrl.contexts.values()) - set(val.modelXbrl.contextsInUse))
+    unusedContexts.extend(val.modelXbrl.ixdsUnmappedContexts.values())
     unusedContexts.sort(key=lambda x: x.id if x.id is not None else "")
     for context in unusedContexts:
         yield Validation.warning(
@@ -560,6 +561,7 @@ def rule_gfm_1_2_27(
     """
     # TODO: Consolidate validations involving unused units
     unusedUnits = list(set(val.modelXbrl.units.values()) - set(val.modelXbrl.unitsInUse))
+    unusedUnits.extend(val.modelXbrl.ixdsUnmappedUnits.values())
     unusedUnits.sort(key=lambda x: x.hash)
     if len(unusedUnits) > 0:
         yield Validation.warning(
