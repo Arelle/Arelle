@@ -55,14 +55,10 @@ for entryPoint in entryPoints:
     includeFiles.append((pluginDirectory, os.path.join('plugin', os.path.basename(pluginDirectory))))
 
 includeLibs = [
-    "aniso8601",
     "dateutil",
     "dateutil.relativedelta",
     "graphviz",
     "gzip",
-    "holidays",
-    "holidays.countries",
-    "holidays.financial",
     "isodate",
     "lxml._elementpath",
     "lxml.etree",
@@ -93,6 +89,10 @@ options = {
 }
 
 if os.path.exists("arelle/plugin/EDGAR"):
+    includeLibs.append("aniso8601")
+    includeLibs.append("holidays")
+    includeLibs.append("holidays.countries")
+    includeLibs.append("holidays.financial")
     includeLibs.append("matplotlib")
     includeLibs.append("matplotlib.pyplot")
     includeLibs.append("pytz")
