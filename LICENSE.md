@@ -73,6 +73,9 @@ tornado: Copyright 2009 Facebook
 Bottle: © Copyright 2009-2022, Marcel Hellkamp
 [License](https://bottlepy.org/docs/dev/)
 
+iconoir: Copyright (c) 2021 Luca Burgio
+[License](https://github.com/iconoir-icons/iconoir/blob/main/LICENSE)
+
 TkTable: Copyright 1997-2002, Jeffrey Hobbs
 [License](https://github.com/nbro/tktable/blob/master/LICENSE.md)
 
