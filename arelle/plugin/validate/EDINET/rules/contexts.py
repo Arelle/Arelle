@@ -162,7 +162,7 @@ def rule_EC8054W(
     the scenario element within must be set to "NonConsolidatedMember".
     """
     for context in val.modelXbrl.contexts.values():
-        if pluginData.nonConsolidatedMemberQn.localName not in context.id:
+        if context.id is None or pluginData.nonConsolidatedMemberQn.localName not in context.id:
             continue
         member = context.dimMemberQname(
             pluginData.consolidatedOrNonConsolidatedAxisQn,

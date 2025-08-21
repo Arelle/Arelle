@@ -335,7 +335,7 @@ class ModelXbrl:
         self.facts: list[ModelFact] = []
         self.factsInInstance: set[ModelFact] = set()
         self.undefinedFacts: list[ModelFact] = []  # elements presumed to be facts but not defined
-        self.contexts: dict[str, ModelDocumentClass.xmlRootElement] = {}
+        self.contexts: dict[str, ModelContext] = {}
         self.units: dict[str, ModelUnit] = {}
         self.modelObjects: list[ModelObject] = []
         self.qnameParameters: dict[QName, Any] = {}
@@ -604,7 +604,7 @@ class ModelXbrl:
                         for cOCCs,mOCCs in ((c.nonDimValues(segAspect),segOCCs),
                                             (c.nonDimValues(scenAspect),scenOCCs)))
                 ):
-                    return cast('ModelContext', c)
+                    return c
         return None
 
     def createContext(

@@ -265,7 +265,7 @@ class PluginValidationDataExtension(PluginData):
                             contextsWithPeriodTimeZone.append(context)
                 if context.hasSegment:
                     contextsWithSegments.append(context)
-                if context.nonDimValues("scenario"):  # type: ignore[no-untyped-call]
+                if context.nonDimValues("scenario"):
                     contextsWithImproperContent.append(context)
         return ContextData(
             contextsWithImproperContent=contextsWithImproperContent,

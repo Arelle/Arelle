@@ -258,7 +258,7 @@ def rule_gfm_1_2_8(
     contextRef attribute in the same instance.
     """
     unused_contexts = list(set(val.modelXbrl.contexts.values()) - set(val.modelXbrl.contextsInUse))
-    unused_contexts.sort(key=lambda x: x.id)
+    unused_contexts.sort(key=lambda x: x.id if x.id is not None else "")
     for context in unused_contexts:
         yield Validation.warning(
             codes='EDINET.EC5700W.GFM.1.2.8',
@@ -484,6 +484,7 @@ def rule_gfm_1_2_25(
             XbrlConst.qnXbrliEndDate.clarkNotation,
             XbrlConst.qnXbrliInstant.clarkNotation
         ):
+            elt = cast(ModelObject, elt)
             dateText = XmlUtil.text(elt)
             if not GFM_CONTEXT_DATE_PATTERN.match(dateText):
                 errors.append(elt)

@@ -553,7 +553,7 @@ def rule_fr_nl_3_03(
     FR-NL-3.03: An XBRL instance document MUST NOT contain unused contexts
     """
     unused_contexts = list(set(val.modelXbrl.contexts.values()) - set(val.modelXbrl.contextsInUse))
-    unused_contexts.sort(key=lambda x: x.id)
+    unused_contexts.sort(key=lambda x: x.id if x.id is not None else "")
     for context in unused_contexts:
         yield Validation.error(
             codes='NL.FR-NL-3.03',

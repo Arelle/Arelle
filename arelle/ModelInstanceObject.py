@@ -1159,7 +1159,7 @@ class ModelContext(ModelObject):
             self._dimsHash = hash( frozenset(self.qnameDims.values()) )
             return self._dimsHash
 
-    def nonDimValues(self, contextElement):
+    def nonDimValues(self, contextElement: str | int) -> list[ModelObject]:
         """([ModelObject]) -- ContextElement is either string or Aspect code for segment or scenario, returns nonXDT ModelObject children of context element.
 
         :param contextElement: one of 'segment', 'scenario', Aspect.NON_XDT_SEGMENT, Aspect.NON_XDT_SCENARIO, Aspect.COMPLETE_SEGMENT, Aspect.COMPLETE_SCENARIO

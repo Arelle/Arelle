@@ -529,11 +529,11 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
         if contextsWithDisallowedOCEs:
             modelXbrl.error("ESEF.2.1.3.segmentUsed",
                 _("xbrli:segment container MUST NOT be used in contexts: %(contextIds)s"),
-                modelObject=contextsWithDisallowedOCEs, contextIds=", ".join(c.id for c in contextsWithDisallowedOCEs))
+                modelObject=contextsWithDisallowedOCEs, contextIds=", ".join(c.id for c in contextsWithDisallowedOCEs if c.id is not None))
         if contextsWithDisallowedOCEcontent:
             modelXbrl.error("ESEF.2.1.3.scenarioContainsNonDimensionalContent",
                 _("xbrli:scenario in contexts MUST NOT contain any other content than defined in XBRL Dimensions specification: %(contextIds)s"),
-                modelObject=contextsWithDisallowedOCEcontent, contextIds=", ".join(c.id for c in contextsWithDisallowedOCEcontent))
+                modelObject=contextsWithDisallowedOCEcontent, contextIds=", ".join(c.id for c in contextsWithDisallowedOCEcontent if c.id is not None))
         if len(contextIdentifiers) > 1:
             modelXbrl.error("ESEF.2.1.4.multipleIdentifiers",
                 _("All entity identifiers in contexts MUST have identical content: %(contextIds)s"),
