@@ -31,8 +31,8 @@ dependencies = [
     'bottle>=0.13,<0.14',
     'certifi',
     'filelock',
-    'jsonschema>=4,<5',
     'isodate>=0,<1',
+    'jsonschema>=4,<5',
     'lxml>=4,<6',
     'numpy>=1,<3',
     'openpyxl>=3,<4',
@@ -57,7 +57,7 @@ DB = [
 EFM = [
     'aniso8601>=10,<11',
     'holidays>=0,<1',
-    'Matplotlib>=3,<4',
+    'matplotlib>=3,<4',
     'pytz',
 ]
 ESEF = [

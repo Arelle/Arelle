@@ -1,32 +1,32 @@
 # core modules
+bottle==0.13.4
 certifi==2025.8.3
-truststore==0.10.1 ; python_version > "3.9"
+cheroot==10.0.1
 filelock==3.19.1
+isodate==0.7.2
 jsonschema==4.25.1
 lxml==5.4.0
-OpenPyXL==3.1.5
-pyparsing==3.2.3
-regex==2025.7.34
-typing-extensions==4.14.1
-isodate==0.7.2
-bottle==0.13.4
-Cheroot==10.0.1
-python-dateutil==2.9.0.post0
+numpy==2.0.2 ; python_version <= "3.9"
+numpy==2.2.4 ; python_version > "3.9"
+openpyxl==3.1.5
 pycountry==24.6.1
+pyparsing==3.2.3
+python-dateutil==2.9.0.post0
+regex==2025.7.34
+tornado==6.5.2
+truststore==0.10.1 ; python_version > "3.9"
+typing-extensions==4.14.1
 # plugins
-NumPy==2.0.2 ; python_version <= "3.9"
-NumPy==2.2.4 ; python_version > "3.9"
-Tornado==6.5.2
 # security plugin
-PyCryptodome==3.23.0
+pycryptodome==3.23.0
 # xbrlDB plugin
 cx_Oracle==8.3.0
 pg8000==1.31.4
 PyMySQL==1.1.1
 pyodbc==5.2.0
-RDFLib==7.1.4
+rdflib==7.1.4
 # other
 graphviz==0.21
-Pillow==11.3.0
+pillow==11.3.0
 pywin32==311 ; sys_platform == "win32"
 tinycss2==1.4.0
