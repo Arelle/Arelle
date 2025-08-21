@@ -160,7 +160,7 @@ else:
 setup(
     executables=[guiExecutable, cliExecutable],
     options=options,
-    setup_requires=["setuptools_scm~=8.3"],
+    setup_requires=["setuptools_scm>=8.3,<9"],
     use_scm_version={
         "tag_regex": r"^(?:[\w-]+-?)?(?P<version>[vV]?\d+(?:\.\d+){0,2}[^\+]*)(?:\+.*)?$",
         "write_to": os.path.normcase("arelle/_version.py"),
