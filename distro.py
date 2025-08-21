@@ -88,8 +88,10 @@ options = {
     }
 }
 
-if os.path.exists("arelle/plugin/EDGAR"):
+if os.path.exists("arelle/plugin/EDGAR") or os.path.exists("arelle/plugin/xule"):
     includeLibs.append("aniso8601")
+
+if os.path.exists("arelle/plugin/EDGAR"):
     includeLibs.append("holidays")
     includeLibs.append("holidays.countries")
     includeLibs.append("holidays.financial")
