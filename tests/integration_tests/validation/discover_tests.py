@@ -8,11 +8,9 @@ from .conformance_suite_config import ConformanceSuiteConfig
 from .conformance_suite_configs import CI_CONFORMANCE_SUITE_CONFIGS
 from .conformance_suite_configurations.efm_current import config as efm_current
 from .conformance_suite_configurations.xbrl_2_1 import config as xbrl_2_1
+from .github import LINUX, MACOS, OS_CORES, WINDOWS
 
 
-LINUX = 'ubuntu-24.04'
-MACOS = 'macos-15'
-WINDOWS = 'windows-2022'
 ALL_PYTHON_VERSIONS = (
     '3.9',
     '3.10',
@@ -21,13 +19,6 @@ ALL_PYTHON_VERSIONS = (
     '3.13.7',
 )
 LATEST_PYTHON_VERSION = '3.13.7'
-# number of cores on the runners
-# https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources
-OS_CORES = {
-    LINUX: 4,
-    MACOS: 3,
-    WINDOWS: 4,
-}
 
 
 class Entry(TypedDict, total=False):
