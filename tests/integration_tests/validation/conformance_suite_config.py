@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import itertools
-import os
 import re
 from dataclasses import dataclass, field
 from enum import Enum
 from functools import cached_property
 from pathlib import Path
 from typing import Literal
+
+from tests.integration_tests.validation.github import OS_CORES
 
 
 CONFORMANCE_SUITE_PATH_PREFIX = 'tests/resources/conformance_suites'
@@ -228,6 +229,10 @@ class ConformanceSuiteConfig:
         overlapping_expected_failure_testcase_ids = self.expected_failure_ids.intersection(self.expected_additional_testcase_errors.keys())
         assert not overlapping_expected_failure_testcase_ids, \
             f'Testcase IDs in both expected failures and expected additional errors: {sorted(overlapping_expected_failure_testcase_ids)}'
+        if self.shards > 1:
+            ci_core_counts = set(OS_CORES.values())
+            assert any(self.shards % core_count == 0 for core_count in ci_core_counts), \
+                f'Shards setting not optimized for CI CPU cores: {self.shards}'
 
     @property
     def runs_without_network(self) -> bool:
