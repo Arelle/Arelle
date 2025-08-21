@@ -1,0 +1,10 @@
+{
+    "main/ros19-testcase.xml:invalid": 0.9927733181936438,
+    "main/ros20-testcase.xml:invalid-mismatch": 1.0047859591781914,
+    "main/ros20-testcase.xml:invalid-missing": 1.0011246068008766,
+    "main/ros20-testcase.xml:invalid-two": 0.9944620232772963,
+    "main/valid-testcase.xml:Valid_101": 1.0022058818905768,
+    "main/valid-testcase.xml:Valid_ifrs": 1.004648210659415,
+    "<mean>": 5.664300472166967,
+    "<stdev>": 0.02927254794829428
+}

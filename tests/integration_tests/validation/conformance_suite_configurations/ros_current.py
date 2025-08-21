@@ -16,4 +16,5 @@ config = ConformanceSuiteConfig(
     info_url='https://www.revenue.ie/en/companies-and-charities/corporation-tax-for-companies/submitting-financial-statements/index.aspx',
     name=PurePath(__file__).stem,
     plugins=frozenset({'validate/ROS'}),
+    shards=4,
 )
