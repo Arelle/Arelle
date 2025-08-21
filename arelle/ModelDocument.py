@@ -1732,7 +1732,9 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
                     targetRoleUris[_target].add(footnoteRole)
 
     contextRefs = factTargetContextRefs[ixdsTarget]
+    contextRefsForAllTargets = {ref for refs in factTargetContextRefs.values() for ref in refs}
     unitRefs = factTargetUnitRefs[ixdsTarget]
+    unitRefsForAllTargets = {ref for refs in factTargetUnitRefs.values() for ref in refs}
 
     # discovery of contexts, units and roles which are used by target document
     for htmlElement in modelXbrl.ixdsHtmlElements:
@@ -1744,10 +1746,14 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
                 contextId = elt.get("id")
                 if contextId in contextRefs:
                     modelIxdsDocument.contextDiscover(elt, setTargetModelXbrl)
+                elif contextId not in contextRefsForAllTargets:
+                    modelXbrl.ixdsUnmappedContexts[contextId] = elt
             for elt in inlineElement.iterchildren("{http://www.xbrl.org/2003/instance}unit"):
                 unitId = elt.get("id")
                 if unitId in unitRefs:
                     modelIxdsDocument.unitDiscover(elt, setTargetModelXbrl)
+                elif unitId not in unitRefsForAllTargets:
+                    modelXbrl.ixdsUnmappedUnits[unitId] = elt
             for refElement in inlineElement.iterchildren("{http://www.xbrl.org/2003/linkbase}roleRef"):
                 r = refElement.get("roleURI")
                 if r in targetRoleUris[ixdsTarget]:
