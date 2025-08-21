@@ -55,12 +55,10 @@ for entryPoint in entryPoints:
     includeFiles.append((pluginDirectory, os.path.join('plugin', os.path.basename(pluginDirectory))))
 
 includeLibs = [
-    "aniso8601",
+    "dateutil",
+    "dateutil.relativedelta",
     "graphviz",
     "gzip",
-    "holidays",
-    "holidays.countries",
-    "holidays.financial",
     "isodate",
     "lxml._elementpath",
     "lxml.etree",
@@ -74,10 +72,12 @@ includeLibs = [
     "PIL",
     "pycountry",
     "pymysql",
-    "regex",
+    "pyparsing",
     "rdflib",
+    "regex",
     "sqlite3",
     "tinycss2",
+    "tornado",
     "zlib",
 ]
 options = {
@@ -88,15 +88,16 @@ options = {
     }
 }
 
+if os.path.exists("arelle/plugin/EDGAR") or os.path.exists("arelle/plugin/xule"):
+    includeLibs.append("aniso8601")
+
 if os.path.exists("arelle/plugin/EDGAR"):
-    includeLibs.append("dateutil")
-    includeLibs.append("dateutil.relativedelta")
+    includeLibs.append("holidays")
+    includeLibs.append("holidays.countries")
+    includeLibs.append("holidays.financial")
     includeLibs.append("matplotlib")
     includeLibs.append("matplotlib.pyplot")
-    includeLibs.append("pyparsing")
     includeLibs.append("pytz")
-    includeLibs.append("six")
-    includeLibs.append("tornado")
 
 if sys.platform == LINUX_PLATFORM:
     guiExecutable = Executable(script="arelleGUI.py", target_name="arelleGUI")
@@ -159,7 +160,7 @@ else:
 setup(
     executables=[guiExecutable, cliExecutable],
     options=options,
-    setup_requires=["setuptools_scm~=8.3"],
+    setup_requires=["setuptools_scm>=8.3,<9"],
     use_scm_version={
         "tag_regex": r"^(?:[\w-]+-?)?(?P<version>[vV]?\d+(?:\.\d+){0,2}[^\+]*)(?:\+.*)?$",
         "write_to": os.path.normcase("arelle/_version.py"),
