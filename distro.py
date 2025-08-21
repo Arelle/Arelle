@@ -96,7 +96,6 @@ if os.path.exists("arelle/plugin/EDGAR"):
     includeLibs.append("matplotlib")
     includeLibs.append("matplotlib.pyplot")
     includeLibs.append("pytz")
-    includeLibs.append("six")
 
 if sys.platform == LINUX_PLATFORM:
     guiExecutable = Executable(script="arelleGUI.py", target_name="arelleGUI")
