@@ -56,6 +56,8 @@ for entryPoint in entryPoints:
 
 includeLibs = [
     "aniso8601",
+    "dateutil",
+    "dateutil.relativedelta",
     "graphviz",
     "gzip",
     "holidays",
@@ -74,10 +76,12 @@ includeLibs = [
     "PIL",
     "pycountry",
     "pymysql",
-    "regex",
+    "pyparsing",
     "rdflib",
+    "regex",
     "sqlite3",
     "tinycss2",
+    "tornado",
     "zlib",
 ]
 options = {
@@ -89,14 +93,10 @@ options = {
 }
 
 if os.path.exists("arelle/plugin/EDGAR"):
-    includeLibs.append("dateutil")
-    includeLibs.append("dateutil.relativedelta")
     includeLibs.append("matplotlib")
     includeLibs.append("matplotlib.pyplot")
-    includeLibs.append("pyparsing")
     includeLibs.append("pytz")
     includeLibs.append("six")
-    includeLibs.append("tornado")
 
 if sys.platform == LINUX_PLATFORM:
     guiExecutable = Executable(script="arelleGUI.py", target_name="arelleGUI")
