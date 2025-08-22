@@ -30,7 +30,7 @@ from arelle.utils.validate.Validation import Validation
 from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
 from ..PluginValidationDataExtension import PluginValidationDataExtension
-from ..Constants import xhtmlDtdExtension
+
 
 _: TypeGetText
 
@@ -368,28 +368,15 @@ def rule_gfm_1_2_14(
     (a format that conforms to XML grammar, such as all start and end tags being paired, and the end tag of a nested tag not coming after the end tag of its parent tag, etc.).
     Please modify it so that it is well-formed.
     """
-    CDATApattern = regex.compile(r"<!\[CDATA\[(.+)\]\]")
-    dtd = DTD(os.path.join(val.modelXbrl.modelManager.cntlr.configDir, xhtmlDtdExtension))
-    htmlBodyTemplate = "<body><div>\n{0}\n</div></body>\n"
-    namedEntityPattern = regex.compile("&[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
-                                    r"[_\-\.:"
-                                    "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*;")
-    XMLpattern = regex.compile(r".*(<|&lt;|&#x3C;|&#60;)[A-Za-z_]+[A-Za-z0-9_:]*[^>]*(/>|>|&gt;|/&gt;).*", regex.DOTALL)
-
-    for fact in val.modelXbrl.facts:
-        concept = fact.concept
-        if not fact.isNil and concept is not None and concept.isTextBlock and XMLpattern.match(fact.value):
-            for xmlText in [fact.value] + CDATApattern.findall(fact.value):
-                xmlBodyWithoutEntities = htmlBodyTemplate.format(namedEntityPattern.sub("", xmlText).replace('&','&amp;'))
-                textblockXml = XML(xmlBodyWithoutEntities)
-                if not dtd.validate(textblockXml):
-                    yield Validation.warning(
-                        codes='EDINET.EC5700W.GFM.1.2.14',
-                        msg=_('The content of an element with a data type of nonnum:textBlockItemType is not well-formed XML (a format that conforms to XML grammar, '
-                              'such as all start and end tags being in pairs, and the end tag of a nested tag not coming after the end tag of its parent tag). '
-                              'Correct the content so that it is well-formed.'),
-                        modelObject = fact
-                    )
+    problematicFacts = pluginData.getProblematicTextBlocks(val.modelXbrl)
+    if len(problematicFacts) > 0:
+        yield Validation.warning(
+            codes='EDINET.EC5700W.GFM.1.2.14',
+            msg=_('The content of an element with a data type of nonnum:textBlockItemType is not well-formed XML (a format that conforms to XML grammar, '
+                  'such as all start and end tags being in pairs, and the end tag of a nested tag not coming after the end tag of its parent tag). '
+                  'Correct the content so that it is well-formed.'),
+            modelObject = problematicFacts
+        )
 
 
 @validation(
