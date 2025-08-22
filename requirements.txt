@@ -5,7 +5,7 @@ cheroot==10.0.1
 filelock==3.19.1
 isodate==0.7.2
 jsonschema==4.25.1
-lxml==5.4.0
+lxml==6.0.1
 numpy==2.0.2 ; python_version <= "3.9"
 numpy==2.2.4 ; python_version > "3.9"
 openpyxl==3.1.5
