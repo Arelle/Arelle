@@ -12,7 +12,7 @@ from collections import defaultdict
 from typing import TYPE_CHECKING, Any, TypeVar, Union, cast, Optional
 
 import regex as re
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
 
 import arelle
 from arelle import FileSource, ModelRelationshipSet, XmlUtil, ModelValue, XbrlConst, XmlValidate
@@ -335,8 +335,12 @@ class ModelXbrl:
         self.facts: list[ModelFact] = []
         self.factsInInstance: set[ModelFact] = set()
         self.undefinedFacts: list[ModelFact] = []  # elements presumed to be facts but not defined
-        self.contexts: dict[str, ModelDocumentClass.xmlRootElement] = {}
+        self.contexts: dict[str, ModelContext] = {}
+        self.ixdsUnmappedContexts: dict[str, ModelContext] = {}
+        self._contextsInUseMarked = False
         self.units: dict[str, ModelUnit] = {}
+        self.ixdsUnmappedUnits: dict[str, ModelUnit] = {}
+        self._unitsInUseMarked = False
         self.modelObjects: list[ModelObject] = []
         self.qnameParameters: dict[QName, Any] = {}
         self.modelVariableSets: set[ModelVariableSet] = set()
@@ -604,7 +608,7 @@ class ModelXbrl:
                         for cOCCs,mOCCs in ((c.nonDimValues(segAspect),segOCCs),
                                             (c.nonDimValues(scenAspect),scenOCCs)))
                 ):
-                    return cast('ModelContext', c)
+                    return c
         return None
 
     def createContext(
@@ -868,17 +872,24 @@ class ModelXbrl:
             return fbdq[memQname]
 
     @property
-    def contextsInUse(self) -> Any:
-        try:
-            if self._contextsInUseMarked:
-                return (cntx for cntx in self.contexts.values() if getattr(cntx, "_inUse", False))
-        except AttributeError:
+    def contextsInUse(self) -> Iterator[ModelContext]:
+        if not self._contextsInUseMarked:
             for fact in self.factsInInstance:
                 cntx = fact.context
                 if cntx is not None:
                     cntx._inUse = True
-            self._contextsInUseMarked: bool = True
-            return self.contextsInUse
+            self._contextsInUseMarked = True
+        return (cntx for cntx in self.contexts.values() if getattr(cntx, "_inUse", False))
+
+    @property
+    def unitsInUse(self) -> Iterator[ModelUnit]:
+        if not self._unitsInUseMarked:
+            for fact in self.factsInInstance:
+                unit = fact.unit
+                if unit is not None:
+                    unit._inUse = True
+            self._unitsInUseMarked = True
+        return (unit for unit in self.units.values() if getattr(unit, "_inUse", False))
 
     @property
     def dimensionsInUse(self) -> set[Any]:

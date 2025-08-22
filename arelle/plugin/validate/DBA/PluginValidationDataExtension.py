@@ -146,7 +146,6 @@ class PluginValidationDataExtension(PluginData):
             return self._reportingPeriodContexts
         contexts = []
         for context in modelXbrl.contexts.values():
-            context = cast(ModelContext, context)
             if context.isInstantPeriod or context.isForeverPeriod:
                 continue  # Reporting period contexts can't be instant/forever contexts
             if len(context.qnameDims) > 0:

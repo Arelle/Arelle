@@ -552,9 +552,9 @@ def rule_fr_nl_3_03(
     """
     FR-NL-3.03: An XBRL instance document MUST NOT contain unused contexts
     """
-    unused_contexts = list(set(val.modelXbrl.contexts.values()) - set(val.modelXbrl.contextsInUse))
-    unused_contexts.sort(key=lambda x: x.id)
-    for context in unused_contexts:
+    unusedContexts = list(set(val.modelXbrl.contexts.values()) - set(val.modelXbrl.contextsInUse))
+    unusedContexts.sort(key=lambda x: x.id if x.id is not None else "")
+    for context in unusedContexts:
         yield Validation.error(
             codes='NL.FR-NL-3.03',
             msg=_('Unused context must not exist in XBRL instance document'),
@@ -637,10 +637,9 @@ def rule_fr_nl_4_02(
     """
     FR-NL-4.02: An XBRL instance document MUST NOT contain unused 'xbrli:unit' elements
     """
-    unused_units_set = set(val.modelXbrl.units.values()) - {fact.unit for fact in val.modelXbrl.facts if fact.unit is not None}
-    unused_units = list(unused_units_set)
-    unused_units.sort(key=lambda x: x.hash)
-    for unit in unused_units:
+    unusedUnits = list(set(val.modelXbrl.units.values()) - set(val.modelXbrl.unitsInUse))
+    unusedUnits.sort(key=lambda x: x.hash)
+    for unit in unusedUnits:
         yield Validation.error(
             codes='NL.FR-NL-4.02',
             msg=_('Unused unit must not exist in the XBRL instance document'),

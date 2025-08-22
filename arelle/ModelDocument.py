@@ -1579,12 +1579,6 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
     modelXbrl.targetRoleRefs = {} # roleRefs used by selected target
     modelXbrl.targetArcroleRefs = {}  # arcroleRefs used by selected target
     modelXbrl.targetRelationships = set() # relationship elements used by selected target
-    targetModelXbrl = modelXbrl if setTargetModelXbrl else None # modelXbrl of target for contexts/units in multi-target/multi-instance situation
-    assignUnusedContextsUnits = (not setTargetModelXbrl and not ixdsTarget and
-                                 not getattr(modelXbrl, "supplementalModelXbrls", ()) and (
-                                    not getattr(modelXbrl, "targetIXDSesToLoad", ()) or
-                                    set(e.modelDocument for e in modelXbrl.ixdsHtmlElements) ==
-                                    set(x.modelDocument for e in getattr(modelXbrl, "targetIXDSesToLoad", ()) for x in e[1])))
     hasResources = hasHeader = False
     for htmlElement in modelXbrl.ixdsHtmlElements:
         mdlDoc = htmlElement.modelDocument
@@ -1611,8 +1605,12 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
         for modelInlineFact in htmlElement.iterdescendants(ixNStag + "nonNumeric", ixNStag + "nonFraction", ixNStag + "fraction"):
             if isinstance(modelInlineFact,ModelObject):
                 _target = modelInlineFact.get("target")
-                factTargetContextRefs[_target].add(modelInlineFact.get("contextRef"))
-                factTargetUnitRefs[_target].add(modelInlineFact.get("unitRef"))
+                contextRef = modelInlineFact.get("contextRef")
+                if contextRef is not None:
+                    factTargetContextRefs[_target].add(contextRef.strip())
+                unitRef = modelInlineFact.get("unitRef")
+                if unitRef is not None:
+                    factTargetUnitRefs[_target].add(unitRef.strip())
                 if modelInlineFact.id:
                     factsByFactID[modelInlineFact.id] = modelInlineFact
         for elt in htmlElement.iterdescendants(tag=ixNStag + "continuation"):
@@ -1734,9 +1732,9 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
                     targetRoleUris[_target].add(footnoteRole)
 
     contextRefs = factTargetContextRefs[ixdsTarget]
+    contextRefsForAllTargets = {ref for refs in factTargetContextRefs.values() for ref in refs}
     unitRefs = factTargetUnitRefs[ixdsTarget]
-    allContextRefs = set.union(*factTargetContextRefs.values())
-    allUnitRefs = set.union(*factTargetUnitRefs.values())
+    unitRefsForAllTargets = {ref for refs in factTargetUnitRefs.values() for ref in refs}
 
     # discovery of contexts, units and roles which are used by target document
     for htmlElement in modelXbrl.ixdsHtmlElements:
@@ -1745,13 +1743,17 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
 
         for inlineElement in htmlElement.iterdescendants(tag=ixNStag + "resources"):
             for elt in inlineElement.iterchildren("{http://www.xbrl.org/2003/instance}context"):
-                id = elt.get("id")
-                if id in contextRefs or (assignUnusedContextsUnits and id not in allContextRefs):
+                contextId = elt.get("id")
+                if contextId in contextRefs:
                     modelIxdsDocument.contextDiscover(elt, setTargetModelXbrl)
+                elif contextId not in contextRefsForAllTargets:
+                    modelXbrl.ixdsUnmappedContexts[contextId] = elt
             for elt in inlineElement.iterchildren("{http://www.xbrl.org/2003/instance}unit"):
-                id = elt.get("id")
-                if id in unitRefs or (assignUnusedContextsUnits and id not in allUnitRefs):
+                unitId = elt.get("id")
+                if unitId in unitRefs:
                     modelIxdsDocument.unitDiscover(elt, setTargetModelXbrl)
+                elif unitId not in unitRefsForAllTargets:
+                    modelXbrl.ixdsUnmappedUnits[unitId] = elt
             for refElement in inlineElement.iterchildren("{http://www.xbrl.org/2003/linkbase}roleRef"):
                 r = refElement.get("roleURI")
                 if r in targetRoleUris[ixdsTarget]:
