@@ -32,9 +32,6 @@ updates:
           - "*"
     ignore:
       - dependency-name: "cx_Freeze"
-      - dependency-name: "lxml"
-        versions:
-          - ">=6.0.0"
   - package-ecosystem: nuget
     directories:
       - /tests/integration_tests/ui_tests/ArelleGUITest
