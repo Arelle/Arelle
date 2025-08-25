@@ -57,8 +57,7 @@ from arelle.RuntimeOptions import RuntimeOptions, RuntimeOptionsException
 from arelle.SocketUtils import INTERNET_CONNECTIVITY, OFFLINE
 from arelle.SystemInfo import PlatformOS, getSystemInfo, getSystemWordSize, hasWebServer, isCGI, isGAE
 from arelle.typing import TypeGetText
-from arelle.UrlUtil import isHttpUrl
-from arelle.utils.EntryPointDetection import filesourceEntrypointFiles, parseEntrypointFileInput
+from arelle.utils.EntryPointDetection import parseEntrypointFileInput
 from arelle.ValidateXbrlDTS import ValidateBaseTaxonomiesMode
 from arelle.WebCache import proxyTuple
 
@@ -978,10 +977,12 @@ class CntlrCmdLine(Cntlr.Cntlr):
             if not (options.entrypointFile or sourceZipStream):
                 return True # success
 
-        success = True
-        filesource, _entrypointFiles, success = parseEntrypointFileInput(self, options.entrypointFile, sourceZipStream)
-        if not success:
+        entrypointParseResult = parseEntrypointFileInput(self, options.entrypointFile, sourceZipStream)
+        if not entrypointParseResult.success:
             return False
+        filesource = entrypointParseResult.filesource
+        _entrypointFiles = entrypointParseResult.entrypointFiles
+        success = True
 
         for pluginXbrlMethod in PluginManager.pluginClassMethods("CntlrCmdLine.Filing.Start"):
             pluginXbrlMethod(self, options, filesource, _entrypointFiles, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)

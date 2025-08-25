@@ -819,9 +819,11 @@ class CntlrWinMain (Cntlr.Cntlr):
         if filename:
             for xbrlLoadedMethod in pluginClassMethods("CntlrWinMain.Xbrl.Open"):
                 filename = xbrlLoadedMethod(self, filename) # runs in GUI thread, allows mapping filename, mult return filename
-            filesource, entrypointFiles, success = parseEntrypointFileInput(self, filename, autoSelect=False)
-            if not success:
+            entrypointParseResult = parseEntrypointFileInput(self, filename, fallbackSelect=False)
+            if not entrypointParseResult.success or entrypointParseResult.filesource is None:
                 return
+            filesource = entrypointParseResult.filesource
+            entrypointFiles = entrypointParseResult.entrypointFiles
             # check for archive files
             if filesource.isArchive:
                 if not filesource.selection and not filesource.isReportPackage: # or filesource.isRss:
@@ -852,9 +854,11 @@ class CntlrWinMain (Cntlr.Cntlr):
             self.updateFileHistory(url, False)
             for xbrlLoadedMethod in pluginClassMethods("CntlrWinMain.Xbrl.Open"):
                 url = xbrlLoadedMethod(self, url) # runs in GUI thread, allows mapping url, mult return url
-            filesource, entrypointFiles, success = parseEntrypointFileInput(self, url, autoSelect=False)
-            if not success:
+            entrypointParseResult = parseEntrypointFileInput(self, url, fallbackSelect=False)
+            if not entrypointParseResult.success or entrypointParseResult.filesource is None:
                 return
+            filesource = entrypointParseResult.filesource
+            entrypointFiles = entrypointParseResult.entrypointFiles
             if filesource.isArchive:
                 if not filesource.isReportPackage and not filesource.selection: # or filesource.isRss:
                     from arelle import DialogOpenArchive
