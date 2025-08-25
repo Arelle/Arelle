@@ -24,6 +24,16 @@ if TYPE_CHECKING:
 
 _: TypeGetText
 
+ALLOWED_ROOT_FOLDERS = {
+    "AttachDoc",
+    "AuditDoc",
+    "PrivateAttach",
+    "PrivateDoc",
+    "PublicAttach",
+    "PublicDoc",
+    "XBRL",
+}
+
 FILE_COUNT_LIMITS = {
     Path("AttachDoc"): 990,
     Path("AuditDoc"): 990,
@@ -37,6 +47,48 @@ FILE_COUNT_LIMITS = {
 }
 
 FILENAME_STEM_PATTERN = re.compile(r'[a-zA-Z0-9_-]*')
+
+
+@validation(
+    hook=ValidationHook.FILESOURCE,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC0100E(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC0100E: An illegal directory is found directly under the transferred directory.
+    Only the following root folders are allowed:
+        AttachDoc
+        AuditDoc*
+        PrivateAttach
+        PrivateDoc*
+        PublicAttach
+        PublicDoc*
+        XBRL
+    * Only when reporting corrections
+
+    NOTE: since we do not have access to the submission type, we can't determine if the submission is a correction or not.
+    For this implementation, we will allow all directories that may be valid for at least one submission type.
+    This allows for a false-negative outcome when a non-correction submission has a correction-only root directory.
+    """
+    uploadContents = pluginData.getUploadContents(fileSource)
+    for rootPath in uploadContents.rootPaths:
+        if rootPath.name in ALLOWED_ROOT_FOLDERS:
+            continue
+        yield Validation.error(
+            codes='EDINET.EC0100E',
+            msg=_("An illegal directory is found directly under the transferred directory. "
+                  "Directory name or file name: '%(rootDirectory)s'. "
+                  "Delete all folders except the following folders that exist directly "
+                  "under the root folder, and then upload again: %(allowedDirectories)s."),
+            rootDirectory=rootPath.name,
+            allowedDirectories=', '.join(f"'{d}'" for d in ALLOWED_ROOT_FOLDERS)
+        )
 
 
 @validation(

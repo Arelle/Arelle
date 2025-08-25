@@ -53,8 +53,11 @@ class ControllerPluginData(PluginData):
         amendmentPaths = defaultdict(list)
         unknownPaths = []
         directories = []
+        rootPaths = []
         forms = defaultdict(list)
         for path in uploadFilepaths:
+            if len(path.parts) == 1:
+                rootPaths.append(path)
             parents = list(reversed([p.name for p in path.parents if len(p.name) > 0]))
             if len(parents) == 0:
                 continue
@@ -78,6 +81,7 @@ class ControllerPluginData(PluginData):
             amendmentPaths={k: frozenset(v) for k, v in amendmentPaths.items() if len(v) > 0},
             directories=frozenset(directories),
             instances={k: frozenset(v) for k, v in forms.items() if len(v) > 0},
+            rootPaths=frozenset(rootPaths),
             unknownPaths=frozenset(unknownPaths)
         )
 
