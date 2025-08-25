@@ -15,14 +15,14 @@ python-dateutil==2.9.0.post0
 regex==2025.7.34
 tornado==6.5.2
 truststore==0.10.1 ; python_version > "3.9"
-typing-extensions==4.14.1
+typing-extensions==4.15.0
 # plugins
 # security plugin
 pycryptodome==3.23.0
 # xbrlDB plugin
 cx_Oracle==8.3.0
 pg8000==1.31.4
-PyMySQL==1.1.1
+PyMySQL==1.1.2
 pyodbc==5.2.0
 rdflib==7.1.4
 # other
