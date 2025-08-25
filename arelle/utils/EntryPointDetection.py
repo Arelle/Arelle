@@ -28,7 +28,8 @@ class EntrypointParseResult:
     entrypointFiles: list[dict[str, Any]]
     filesource: FileSource | None
 
-def parseEntrypointFileInput(cntlr: Cntlr, entrypointFile: str | None, sourceZipStream=None, autoSelect=True) -> EntrypointParseResult:
+
+def parseEntrypointFileInput(cntlr: Cntlr, entrypointFile: str | None, sourceZipStream=None, fallbackSelect=True) -> EntrypointParseResult:
     # entrypointFile may be absent (if input is a POSTED zip or file name ending in .zip)
     #    or may be a | separated set of file names
     _entryPoints = []
@@ -59,14 +60,14 @@ def parseEntrypointFileInput(cntlr: Cntlr, entrypointFile: str | None, sourceZip
     _entrypointFiles = _entryPoints
     if filesource and not filesource.selection and not (sourceZipStream and len(_entrypointFiles) > 0):
         try:
-            filesourceEntrypointFiles(filesource, _entrypointFiles, autoSelect=autoSelect)
+            filesourceEntrypointFiles(filesource, _entrypointFiles, fallbackSelect=fallbackSelect)
         except Exception as err:
             cntlr.addToLog(str(err), messageCode="error", level=logging.ERROR)
             return EntrypointParseResult(success=False, entrypointFiles=_entrypointFiles, filesource=filesource)
     return EntrypointParseResult(success=True, entrypointFiles=_entrypointFiles, filesource=filesource)
 
 
-def filesourceEntrypointFiles(filesource, entrypointFiles=None, inlineOnly=False, autoSelect=True):
+def filesourceEntrypointFiles(filesource, entrypointFiles=None, inlineOnly=False, fallbackSelect=True):
     if entrypointFiles is None:
         entrypointFiles = []
     for pluginXbrlMethod in PluginManager.pluginClassMethods("FileSource.EntrypointFiles"):
@@ -94,7 +95,7 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=None, inlineOnly=False
                     entrypointFiles.extend(reportEntries)
                 elif not inlineOnly:
                     entrypointFiles.append({"file": report.fullPathPrimary})
-        elif autoSelect:
+        elif fallbackSelect:
             # attempt to find inline XBRL files before instance files, .xhtml before probing others (ESMA)
             urlsByType = {}
             for _archiveFile in (filesource.dir or ()): # .dir might be none if IOerror
