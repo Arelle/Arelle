@@ -45,7 +45,6 @@ def parseEntrypointFileInput(cntlr: Cntlr, entrypointFile: str | None, sourceZip
                 cntlr.addToLog(_("File name parameter appears to be malformed JSON: {}\n{}").format(e, _f),
                               messageCode="FileNameFormatError",
                               level=logging.ERROR)
-                success = False
             else: # try as file names separated by '|'
                 for f in (_f or '').split('|'):
                     if not sourceZipStream and not isHttpUrl(f) and not os.path.isabs(f):
