@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+from dataclasses import dataclass
 from typing import Any, TYPE_CHECKING
 
 from arelle import (
@@ -21,7 +22,13 @@ if TYPE_CHECKING:
     from arelle.Cntlr import Cntlr
 
 
-def parseEntrypointFileInput(cntlr: Cntlr, entrypointFile: str | None, sourceZipStream=None, autoSelect=True) -> tuple[FileSource, list[dict[str, Any]], bool]:
+@dataclass(frozen=True)
+class EntrypointParseResult:
+    success: bool
+    entrypointFiles: list[dict[str, Any]]
+    filesource: FileSource | None
+
+def parseEntrypointFileInput(cntlr: Cntlr, entrypointFile: str | None, sourceZipStream=None, autoSelect=True) -> EntrypointParseResult:
     # entrypointFile may be absent (if input is a POSTED zip or file name ending in .zip)
     #    or may be a | separated set of file names
     _entryPoints = []
@@ -55,8 +62,8 @@ def parseEntrypointFileInput(cntlr: Cntlr, entrypointFile: str | None, sourceZip
             filesourceEntrypointFiles(filesource, _entrypointFiles, autoSelect=autoSelect)
         except Exception as err:
             cntlr.addToLog(str(err), messageCode="error", level=logging.ERROR)
-            return filesource, _entrypointFiles, False
-    return filesource, _entrypointFiles, True
+            return EntrypointParseResult(success=False, entrypointFiles=_entrypointFiles, filesource=filesource)
+    return EntrypointParseResult(success=True, entrypointFiles=_entrypointFiles, filesource=filesource)
 
 
 def filesourceEntrypointFiles(filesource, entrypointFiles=None, inlineOnly=False, autoSelect=True):
