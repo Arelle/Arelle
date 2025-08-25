@@ -826,7 +826,11 @@ class CntlrWinMain (Cntlr.Cntlr):
             entrypointFiles = entrypointParseResult.entrypointFiles
             # check for archive files
             if filesource.isArchive:
-                if not filesource.selection and not filesource.isReportPackage: # or filesource.isRss:
+                if (
+                    len(entrypointFiles) == 0 and
+                    not filesource.selection and
+                    not filesource.isReportPackage
+                ):
                     from arelle import DialogOpenArchive
                     filename = DialogOpenArchive.askArchiveFile(self, filesource)
                     if filename is not None:
