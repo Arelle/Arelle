@@ -22,7 +22,7 @@ pycryptodome==3.23.0
 # xbrlDB plugin
 cx_Oracle==8.3.0
 pg8000==1.31.4
-PyMySQL==1.1.1
+PyMySQL==1.1.2
 pyodbc==5.2.0
 rdflib==7.1.4
 # other
