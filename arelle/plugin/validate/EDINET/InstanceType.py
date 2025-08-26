@@ -11,7 +11,6 @@ from pathlib import Path
 class InstanceType(Enum):
     ATTACH_DOC = "AttachDoc"
     AUDIT_DOC = "AuditDoc"
-    ENGLISH_DOC = "EnglishDoc"
     PRIVATE_ATTACH = "PrivateAttach"
     PRIVATE_DOC = "PrivateDoc"
     PUBLIC_DOC = "PublicDoc"
@@ -49,7 +48,6 @@ class InstanceType(Enum):
 class ExtensionCategory(Enum):
     ATTACH = 'ATTACH'
     DOC = 'DOC'
-    ENGLISH_DOC = 'ENGLISH_DOC'
 
     def getValidExtensions(self, isAmendment: bool, isSubdirectory: bool) -> frozenset[str] | None:
         amendmentMap = VALID_EXTENSIONS[isAmendment]
@@ -62,7 +60,6 @@ class ExtensionCategory(Enum):
 FORM_TYPE_EXTENSION_CATEGORIES = {
     InstanceType.ATTACH_DOC: ExtensionCategory.ATTACH,
     InstanceType.AUDIT_DOC: ExtensionCategory.DOC,
-    InstanceType.ENGLISH_DOC: ExtensionCategory.ENGLISH_DOC,
     InstanceType.PRIVATE_ATTACH: ExtensionCategory.ATTACH,
     InstanceType.PRIVATE_DOC: ExtensionCategory.DOC,
     InstanceType.PUBLIC_DOC: ExtensionCategory.DOC,
@@ -74,7 +71,6 @@ IMAGE_EXTENSIONS = frozenset({'.jpeg', '.jpg', '.gif', '.png'})
 ASSET_EXTENSIONS = frozenset(HTML_EXTENSIONS | IMAGE_EXTENSIONS)
 XBRL_EXTENSIONS = frozenset(HTML_EXTENSIONS | {'.xml', '.xsd'})
 ATTACH_EXTENSIONS = frozenset(HTML_EXTENSIONS | {'.pdf', })
-ENGLISH_DOC_EXTENSIONS = frozenset(ASSET_EXTENSIONS | frozenset({'.pdf', '.xml', '.txt'}))
 
 # Is Amendment -> Category -> Is Subdirectory
 VALID_EXTENSIONS = {
@@ -96,10 +92,6 @@ VALID_EXTENSIONS = {
         ExtensionCategory.DOC: {
             False: HTML_EXTENSIONS,
             True: ASSET_EXTENSIONS,
-        },
-        ExtensionCategory.ENGLISH_DOC: {
-            False: ENGLISH_DOC_EXTENSIONS,
-            True: ENGLISH_DOC_EXTENSIONS,
         },
     },
 }

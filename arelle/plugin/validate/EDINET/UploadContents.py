@@ -14,4 +14,5 @@ class UploadContents:
     amendmentPaths: dict[InstanceType, frozenset[Path]]
     directories: frozenset[Path]
     instances: dict[InstanceType, frozenset[Path]]
+    rootPaths: frozenset[Path]
     unknownPaths: frozenset[Path]
