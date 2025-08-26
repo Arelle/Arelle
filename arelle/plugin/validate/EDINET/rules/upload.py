@@ -345,6 +345,34 @@ def rule_EC0188E(
     hook=ValidationHook.FILESOURCE,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_EC0192E(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC0192E: The cover file for PrivateDoc cannot be set because it uses a
+    PublicDoc cover file. Please delete the cover file from PrivateDoc and upload
+    it again.
+    """
+    uploadContents = pluginData.getUploadContents(fileSource)
+    for coverPagePath in uploadContents.coverPagePaths:
+        if len(coverPagePath.parts) != 2 or coverPagePath.parts[0] != InstanceType.PRIVATE_DOC.value:
+            continue
+        yield Validation.error(
+            codes='EDINET.EC0192E',
+            msg=_("The cover file for PrivateDoc ('%(file)s') cannot be set because it uses a PublicDoc cover file. "
+                  "Please delete the cover file from PrivateDoc and upload it again."),
+            file=str(coverPagePath),
+        )
+
+
+@validation(
+    hook=ValidationHook.FILESOURCE,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_EC0198E(
         pluginData: ControllerPluginData,
         cntlr: Cntlr,

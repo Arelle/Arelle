@@ -12,9 +12,9 @@ from typing import TYPE_CHECKING
 
 from arelle.Cntlr import Cntlr
 from arelle.FileSource import FileSource
-from arelle.ModelXbrl import ModelXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
+from . import Constants
 from .InstanceType import InstanceType
 from .UploadContents import UploadContents
 
@@ -51,6 +51,7 @@ class ControllerPluginData(PluginData):
     def getUploadContents(self, fileSource: FileSource) -> UploadContents:
         uploadFilepaths = self.getUploadFilepaths(fileSource)
         amendmentPaths = defaultdict(list)
+        coverPagePaths = []
         unknownPaths = []
         directories = []
         rootPaths = []
@@ -61,6 +62,8 @@ class ControllerPluginData(PluginData):
             parents = list(reversed([p.name for p in path.parents if len(p.name) > 0]))
             if len(parents) == 0:
                 continue
+            if path.stem.startswith(Constants.COVER_PAGE_FILENAME_PREFIX):
+                coverPagePaths.append(path)
             if parents[0] == 'XBRL':
                 if len(parents) > 1:
                     formName = parents[1]
@@ -79,6 +82,7 @@ class ControllerPluginData(PluginData):
             unknownPaths.append(path)
         return UploadContents(
             amendmentPaths={k: frozenset(v) for k, v in amendmentPaths.items() if len(v) > 0},
+            coverPagePaths=frozenset(coverPagePaths),
             directories=frozenset(directories),
             instances={k: frozenset(v) for k, v in forms.items() if len(v) > 0},
             rootPaths=frozenset(rootPaths),
