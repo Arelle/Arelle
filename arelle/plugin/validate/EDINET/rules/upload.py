@@ -82,7 +82,7 @@ def rule_EC0121E(
     hook=ValidationHook.FILESOURCE,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
-def rule_EC0124E(
+def rule_EC0124E_EC0187E(
         pluginData: ControllerPluginData,
         cntlr: Cntlr,
         fileSource: FileSource,
@@ -90,7 +90,8 @@ def rule_EC0124E(
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    EDINET.EC0124E: There are no empty directories.
+    EDINET.EC0124E: There are no empty root directories.
+    EDINET.EC0187E: There are no empty subdirectories.
     """
     uploadFilepaths = pluginData.getUploadFilepaths(fileSource)
     emptyDirectories = []
@@ -98,15 +99,24 @@ def rule_EC0124E(
         if path.suffix:
             continue
         if not any(path in p.parents for p in uploadFilepaths):
-            emptyDirectories.append(str(path))
+            emptyDirectories.append(path)
     for emptyDirectory in emptyDirectories:
-        yield Validation.error(
-            codes='EDINET.EC0124E',
-            msg=_("There is no file directly under '%(emptyDirectory)s'. "
-                  "No empty folders. "
-                  "Please store the file in the appropriate folder or delete the folder and upload again."),
-            emptyDirectory=emptyDirectory,
-        )
+        if len(emptyDirectory.parts) <= 1:
+            yield Validation.error(
+                codes='EDINET.EC0124E',
+                msg=_("There is no file directly under '%(emptyDirectory)s'. "
+                      "No empty root folders. "
+                      "Please store the file in the appropriate folder or delete the folder and upload again."),
+                emptyDirectory=str(emptyDirectory),
+            )
+        else:
+            yield Validation.error(
+                codes='EDINET.EC0187E',
+                msg=_("'%(parentDirectory)s' contains a subordinate directory ('%(emptyDirectory)s') with no files. "
+                      "Please store the file in the corresponding subfolder or delete the subfolder and upload again."),
+                parentDirectory=str(emptyDirectory.parent),
+                emptyDirectory=str(emptyDirectory),
+            )
 
 
 @validation(
