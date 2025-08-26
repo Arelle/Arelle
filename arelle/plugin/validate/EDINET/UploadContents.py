@@ -17,3 +17,14 @@ class UploadContents:
     instances: dict[InstanceType, frozenset[Path]]
     rootPaths: frozenset[Path]
     unknownPaths: frozenset[Path]
+    uploadPaths: dict[Path, UploadPathInfo]
+
+
+@dataclass(frozen=True)
+class UploadPathInfo:
+    instanceType: InstanceType | None
+    isAttachment: bool
+    isCorrection: bool
+    isDirectory: bool
+    isRoot: bool
+    isSubdirectory: bool

@@ -16,7 +16,7 @@ from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
 from . import Constants
 from .InstanceType import InstanceType
-from .UploadContents import UploadContents
+from .UploadContents import UploadContents, UploadPathInfo
 
 if TYPE_CHECKING:
     from .ManifestInstance import ManifestInstance
@@ -80,13 +80,41 @@ class ControllerPluginData(PluginData):
                 directories.append(path)
                 continue
             unknownPaths.append(path)
+
+        uploadPaths = {}
+        for path in uploadFilepaths:
+            parents = list(reversed([p.name for p in path.parents if len(p.name) > 0]))
+            if len(parents) == 0:
+                continue
+            instanceType = None
+            isCorrection = parents[0] != 'XBRL'
+            isDirectory = len(path.suffix) == 0
+            isInSubdirectory = False
+            if not isCorrection:
+                if len(parents) > 1:
+                    formName = parents[1]
+                    isInSubdirectory = len(parents) > 2
+                    instanceType = InstanceType.parse(formName)
+            if instanceType is None:
+                formName = parents[0]
+                isInSubdirectory = len(parents) > 1
+                instanceType = InstanceType.parse(formName)
+            uploadPaths[path] = UploadPathInfo(
+                instanceType=instanceType,
+                isAttachment=instanceType is not None and instanceType.isAttachment,
+                isCorrection=isCorrection,
+                isDirectory=len(path.suffix) == 0,
+                isRoot=len(path.parts) == 1,
+                isSubdirectory=isInSubdirectory or (isDirectory and instanceType is not None)
+            )
         return UploadContents(
             amendmentPaths={k: frozenset(v) for k, v in amendmentPaths.items() if len(v) > 0},
             coverPagePaths=frozenset(coverPagePaths),
             directories=frozenset(directories),
             instances={k: frozenset(v) for k, v in forms.items() if len(v) > 0},
             rootPaths=frozenset(rootPaths),
-            unknownPaths=frozenset(unknownPaths)
+            unknownPaths=frozenset(unknownPaths),
+            uploadPaths=uploadPaths
         )
 
     @lru_cache(1)

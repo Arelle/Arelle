@@ -95,45 +95,6 @@ def rule_EC0100E(
     hook=ValidationHook.FILESOURCE,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
-def rule_EC0121E(
-        pluginData: ControllerPluginData,
-        cntlr: Cntlr,
-        fileSource: FileSource,
-        *args: Any,
-        **kwargs: Any,
-) -> Iterable[Validation]:
-    """
-    EDINET.EC0121E: There is a directory or file that contains more than 31 characters
-    or uses characters other than those allowed (alphanumeric characters, '-' and '_').
-
-    Note: Sample instances from EDINET almost always violate this rule based on our
-    current interpretation. The exception being files placed outside the XBRL directory,
-    i.e. amendment documents. For now, we will only check amendment documents, directory
-    names, or other files in unexpected locations.
-    """
-    uploadContents = pluginData.getUploadContents(fileSource)
-    paths = set(uploadContents.directories | uploadContents.unknownPaths)
-    for amendmentPaths in uploadContents.amendmentPaths.values():
-        paths.update(amendmentPaths)
-    for path in paths:
-        if len(str(path.name)) > 31 or not FILENAME_STEM_PATTERN.match(path.stem):
-            yield Validation.error(
-                codes='EDINET.EC0121E',
-                msg=_("There is a directory or file in '%(directory)s' that contains more than 31 characters "
-                      "or uses characters other than those allowed (alphanumeric characters, '-' and '_'). "
-                      "Directory or file name: '%(basename)s'. "
-                      "Please change the file name (or folder name) to within 31 characters and to usable "
-                      "characters, and upload again."),
-                directory=str(path.parent),
-                basename=path.name,
-                file=str(path)
-            )
-
-
-@validation(
-    hook=ValidationHook.FILESOURCE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
-)
 def rule_EC0124E_EC0187E(
         pluginData: ControllerPluginData,
         cntlr: Cntlr,
@@ -531,6 +492,61 @@ def rule_EC1020E(
                       "one head tag, and one body tag each."),
                 path=str(path),
                 file=str(path),
+            )
+
+
+@validation(
+    hook=ValidationHook.FILESOURCE,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_filenames(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC0121E: There is a directory or file that contains
+    more than 31 characters or uses characters other than those allowed (alphanumeric characters,
+    '-' and '_').
+    Note: Applies to everything EXCEPT files directly beneath non-correction report folders.
+
+    EDINET.EC0200E: There is a file that uses characters other
+    than those allowed (alphanumeric characters, '-' and '_').
+    Note: Applies ONLY to files directly beneath non-correction report folders.
+    """
+    for path, pathInfo in pluginData.getUploadContents(fileSource).uploadPaths.items():
+        isReportFile = (
+            not pathInfo.isAttachment and
+            not pathInfo.isCorrection and
+            not pathInfo.isDirectory and
+            not pathInfo.isSubdirectory
+        )
+        charactersAreValid = FILENAME_STEM_PATTERN.fullmatch(path.stem)
+        lengthIsValid = isReportFile or (len(path.name) <= 31)
+        if charactersAreValid and lengthIsValid:
+            continue
+        if isReportFile:
+            yield Validation.error(
+                codes='EDINET.EC0200E',
+                msg=_("There is a file inside the XBRL directory that uses characters "
+                      "other than those allowed (alphanumeric characters, '-' and '_'). "
+                      "File: '%(path)s'. "
+                      "Please change the filename to usable characters, and upload again."),
+                path=str(path)
+            )
+        else:
+            yield Validation.error(
+                codes='EDINET.EC0121E',
+                msg=_("There is a directory or file in '%(directory)s' that contains more "
+                      "than 31 characters or uses characters other than those allowed "
+                      "(alphanumeric characters, '-' and '_'). "
+                      "Directory or filename: '%(basename)s'. "
+                      "Please change the file name (or folder name) to within 31 characters and to usable "
+                      "characters, and upload again."),
+                directory=str(path.parent),
+                basename=path.name,
             )
 
 

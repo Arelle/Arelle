@@ -27,6 +27,10 @@ class InstanceType(Enum):
         return FORM_TYPE_EXTENSION_CATEGORIES.get(self, None)
 
     @cached_property
+    def isAttachment(self) -> bool:
+        return "Attach" in self.value
+
+    @cached_property
     def manifestName(self) -> str:
         return f'manifest_{self.value}.xml'
 

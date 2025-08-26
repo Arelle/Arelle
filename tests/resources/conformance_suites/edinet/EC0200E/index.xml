@@ -3,22 +3,21 @@
 <testcase
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns="http://xbrl.org/2005/conformance"
-        name="EDINET.EC0237E"
-        description="EDINET.EC0237E: The directory or file path to the lowest level exceeds the maximum value (259 characters)."
+        name="EDINET.EC0200E"
+        description="EDINET.EC0200E: Report document filenames should not use characters other than those allowed (alphanumeric characters, '-' and '_')."
         outpath=''
         owner="support@arelle.org"
         xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
     <variation id="invalid01" name="invalid01">
         <description>
-            A file's path exceeds the maximum length of 259 characters.
-            <!--valid09.zip with long-named image file added to `XBRL/PublicDoc/images`.-->
+            Report document filename contains disallowed character.
+            <!--valid09.zip with file duplicated and renamed with invalid space character.-->
         </description>
         <data>
             <instance readMeFirst="true">invalid01.zip</instance>
         </data>
         <result>
-            <error>EDINET.EC0121E</error> <!-- Also exceeds 31 character filename limit. -->
-            <error>EDINET.EC0237E</error>
+            <error num="1">EDINET.EC0200E</error>
         </result>
     </variation>
 </testcase>
