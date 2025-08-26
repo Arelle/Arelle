@@ -16,7 +16,7 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
-from ..InstanceType import InstanceType, HTML_EXTENSIONS, IMAGE_EXTENSIONS
+from ..ReportFolderType import ReportFolderType, HTML_EXTENSIONS, IMAGE_EXTENSIONS
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 if TYPE_CHECKING:
@@ -183,9 +183,9 @@ def rule_EC0130E(
     """
     uploadContents = pluginData.getUploadContents(fileSource)
     for path, pathInfo in uploadContents.uploadPaths.items():
-        if pathInfo.instanceType is None or pathInfo.isDirectory:
+        if pathInfo.reportFolderType is None or pathInfo.isDirectory:
             continue
-        validExtensions = pathInfo.instanceType.getValidExtensions(pathInfo.isCorrection, pathInfo.isSubdirectory)
+        validExtensions = pathInfo.reportFolderType.getValidExtensions(pathInfo.isCorrection, pathInfo.isSubdirectory)
         if validExtensions is None:
             continue
         ext = path.suffix
@@ -220,18 +220,17 @@ def rule_EC0132E(
     EDINET.EC0132E: Store the manifest file directly under the relevant folder.
     """
     uploadContents = pluginData.getUploadContents(fileSource)
-    for instanceType in (InstanceType.AUDIT_DOC, InstanceType.PRIVATE_DOC, InstanceType.PUBLIC_DOC):
-        if instanceType not in uploadContents.instances:
+    for reportFolderType, paths in uploadContents.reports.items():
+        if reportFolderType.isAttachment:
             continue
-        if instanceType.manifestPath in uploadContents.instances.get(instanceType, []):
-            continue
-        yield Validation.error(
-            codes='EDINET.EC0132E',
-            msg=_("'%(expectedManifestName)s' does not exist in '%(expectedManifestDirectory)s'. "
-                  "Please store the manifest file (or cover file) directly under the relevant folder and upload it again. "),
-            expectedManifestName=instanceType.manifestPath.name,
-            expectedManifestDirectory=str(instanceType.manifestPath.parent),
-        )
+        if reportFolderType.manifestPath not in paths:
+            yield Validation.error(
+                codes='EDINET.EC0132E',
+                msg=_("'%(expectedManifestName)s' does not exist in '%(expectedManifestDirectory)s'. "
+                      "Please store the manifest file (or cover file) directly under the relevant folder and upload it again. "),
+                expectedManifestName=reportFolderType.manifestPath.name,
+                expectedManifestDirectory=str(reportFolderType.manifestPath.parent),
+            )
 
 
 @validation(
@@ -313,7 +312,7 @@ def rule_EC0192E(
         if not pathInfo.isCoverPage:
             continue
         # Only applies to PrivateDoc correction reports
-        if pathInfo.isCorrection and pathInfo.instanceType == InstanceType.PRIVATE_DOC:
+        if pathInfo.isCorrection and pathInfo.reportFolderType == ReportFolderType.PRIVATE_DOC:
             yield Validation.error(
                 codes='EDINET.EC0192E',
                 msg=_("The cover file for PrivateDoc ('%(file)s') cannot be set because it uses a PublicDoc cover file. "
