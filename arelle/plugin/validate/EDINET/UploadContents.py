@@ -11,12 +11,7 @@ from .InstanceType import InstanceType
 
 @dataclass(frozen=True)
 class UploadContents:
-    amendmentPaths: dict[InstanceType, frozenset[Path]]
-    coverPagePaths: frozenset[Path]
-    directories: frozenset[Path]
     instances: dict[InstanceType, frozenset[Path]]
-    rootPaths: frozenset[Path]
-    unknownPaths: frozenset[Path]
     uploadPaths: dict[Path, UploadPathInfo]
 
 
@@ -25,6 +20,7 @@ class UploadPathInfo:
     instanceType: InstanceType | None
     isAttachment: bool
     isCorrection: bool
+    isCoverPage: bool
     isDirectory: bool
     isRoot: bool
     isSubdirectory: bool

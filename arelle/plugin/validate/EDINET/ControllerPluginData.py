@@ -50,70 +50,40 @@ class ControllerPluginData(PluginData):
     @lru_cache(1)
     def getUploadContents(self, fileSource: FileSource) -> UploadContents:
         uploadFilepaths = self.getUploadFilepaths(fileSource)
-        amendmentPaths = defaultdict(list)
-        coverPagePaths = []
-        unknownPaths = []
-        directories = []
-        rootPaths = []
-        forms = defaultdict(list)
-        for path in uploadFilepaths:
-            if len(path.parts) == 1:
-                rootPaths.append(path)
-            parents = list(reversed([p.name for p in path.parents if len(p.name) > 0]))
-            if len(parents) == 0:
-                continue
-            if path.stem.startswith(Constants.COVER_PAGE_FILENAME_PREFIX):
-                coverPagePaths.append(path)
-            if parents[0] == 'XBRL':
-                if len(parents) > 1:
-                    formName = parents[1]
-                    instanceType = InstanceType.parse(formName)
-                    if instanceType is not None:
-                        forms[instanceType].append(path)
-                        continue
-            formName = parents[0]
-            instanceType = InstanceType.parse(formName)
-            if instanceType is not None:
-                amendmentPaths[instanceType].append(path)
-                continue
-            if len(path.suffix) == 0:
-                directories.append(path)
-                continue
-            unknownPaths.append(path)
-
+        instances = defaultdict(list)
         uploadPaths = {}
         for path in uploadFilepaths:
-            parents = list(reversed([p.name for p in path.parents if len(p.name) > 0]))
-            if len(parents) == 0:
+            if len(path.parts) == 0:
                 continue
+            parents = list(reversed([p.name for p in path.parents if len(p.name) > 0]))
             instanceType = None
-            isCorrection = parents[0] != 'XBRL'
+            isCorrection = True
             isDirectory = len(path.suffix) == 0
             isInSubdirectory = False
-            if not isCorrection:
-                if len(parents) > 1:
-                    formName = parents[1]
-                    isInSubdirectory = len(parents) > 2
+            if len(parents) > 0:
+                isCorrection = parents[0] != 'XBRL'
+                if not isCorrection:
+                    if len(parents) > 1:
+                        formName = parents[1]
+                        isInSubdirectory = len(parents) > 2
+                        instanceType = InstanceType.parse(formName)
+                if instanceType is None:
+                    formName = parents[0]
+                    isInSubdirectory = len(parents) > 1
                     instanceType = InstanceType.parse(formName)
-            if instanceType is None:
-                formName = parents[0]
-                isInSubdirectory = len(parents) > 1
-                instanceType = InstanceType.parse(formName)
+                if instanceType is not None and not isCorrection:
+                    instances[instanceType].append(path)
             uploadPaths[path] = UploadPathInfo(
                 instanceType=instanceType,
                 isAttachment=instanceType is not None and instanceType.isAttachment,
                 isCorrection=isCorrection,
+                isCoverPage=not isDirectory and path.stem.startswith(Constants.COVER_PAGE_FILENAME_PREFIX),
                 isDirectory=len(path.suffix) == 0,
                 isRoot=len(path.parts) == 1,
                 isSubdirectory=isInSubdirectory or (isDirectory and instanceType is not None)
             )
         return UploadContents(
-            amendmentPaths={k: frozenset(v) for k, v in amendmentPaths.items() if len(v) > 0},
-            coverPagePaths=frozenset(coverPagePaths),
-            directories=frozenset(directories),
-            instances={k: frozenset(v) for k, v in forms.items() if len(v) > 0},
-            rootPaths=frozenset(rootPaths),
-            unknownPaths=frozenset(unknownPaths),
+            instances={k: frozenset(v) for k, v in instances.items() if len(v) > 0},
             uploadPaths=uploadPaths
         )
 

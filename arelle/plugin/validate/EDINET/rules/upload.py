@@ -77,18 +77,17 @@ def rule_EC0100E(
     This allows for a false-negative outcome when a non-correction submission has a correction-only root directory.
     """
     uploadContents = pluginData.getUploadContents(fileSource)
-    for rootPath in uploadContents.rootPaths:
-        if rootPath.name in ALLOWED_ROOT_FOLDERS:
-            continue
-        yield Validation.error(
-            codes='EDINET.EC0100E',
-            msg=_("An illegal directory is found directly under the transferred directory. "
-                  "Directory name or file name: '%(rootDirectory)s'. "
-                  "Delete all folders except the following folders that exist directly "
-                  "under the root folder, and then upload again: %(allowedDirectories)s."),
-            rootDirectory=rootPath.name,
-            allowedDirectories=', '.join(f"'{d}'" for d in ALLOWED_ROOT_FOLDERS)
-        )
+    for path, pathInfo in uploadContents.uploadPaths.items():
+        if pathInfo.isRoot and path.name not in ALLOWED_ROOT_FOLDERS:
+            yield Validation.error(
+                codes='EDINET.EC0100E',
+                msg=_("An illegal directory is found directly under the transferred directory. "
+                      "Directory name or file name: '%(rootDirectory)s'. "
+                      "Delete all folders except the following folders that exist directly "
+                      "under the root folder, and then upload again: %(allowedDirectories)s."),
+                rootDirectory=path.name,
+                allowedDirectories=', '.join(f"'{d}'" for d in ALLOWED_ROOT_FOLDERS)
+            )
 
 
 @validation(
@@ -183,22 +182,13 @@ def rule_EC0130E(
     EDINET.EC0130E: File extensions must match the file extensions allowed in Figure 2-1-3 and Figure 2-1-5.
     """
     uploadContents = pluginData.getUploadContents(fileSource)
-    checks = []
-    for instanceType, amendmentPaths in uploadContents.amendmentPaths.items():
-        for amendmentPath in amendmentPaths:
-            isSubdirectory = amendmentPath.parent.name != instanceType.value
-            checks.append((amendmentPath, True, instanceType, isSubdirectory))
-    for instanceType, formPaths in uploadContents.instances.items():
-        for amendmentPath in formPaths:
-            isSubdirectory = amendmentPath.parent.name != instanceType.value
-            checks.append((amendmentPath, False, instanceType, isSubdirectory))
-    for path, isAmendment, instanceType, isSubdirectory in checks:
-        ext = path.suffix
-        if len(ext) == 0:
+    for path, pathInfo in uploadContents.uploadPaths.items():
+        if pathInfo.instanceType is None or pathInfo.isDirectory:
             continue
-        validExtensions = instanceType.getValidExtensions(isAmendment, isSubdirectory)
+        validExtensions = pathInfo.instanceType.getValidExtensions(pathInfo.isCorrection, pathInfo.isSubdirectory)
         if validExtensions is None:
             continue
+        ext = path.suffix
         if ext not in validExtensions:
             yield Validation.error(
                 codes='EDINET.EC0130E',
@@ -319,15 +309,17 @@ def rule_EC0192E(
     it again.
     """
     uploadContents = pluginData.getUploadContents(fileSource)
-    for coverPagePath in uploadContents.coverPagePaths:
-        if len(coverPagePath.parts) != 2 or coverPagePath.parts[0] != InstanceType.PRIVATE_DOC.value:
+    for path, pathInfo in uploadContents.uploadPaths.items():
+        if not pathInfo.isCoverPage:
             continue
-        yield Validation.error(
-            codes='EDINET.EC0192E',
-            msg=_("The cover file for PrivateDoc ('%(file)s') cannot be set because it uses a PublicDoc cover file. "
-                  "Please delete the cover file from PrivateDoc and upload it again."),
-            file=str(coverPagePath),
-        )
+        # Only applies to PrivateDoc correction reports
+        if pathInfo.isCorrection and pathInfo.instanceType == InstanceType.PRIVATE_DOC:
+            yield Validation.error(
+                codes='EDINET.EC0192E',
+                msg=_("The cover file for PrivateDoc ('%(file)s') cannot be set because it uses a PublicDoc cover file. "
+                      "Please delete the cover file from PrivateDoc and upload it again."),
+                file=str(path),
+            )
 
 
 @validation(
