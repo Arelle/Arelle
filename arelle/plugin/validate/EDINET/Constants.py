@@ -37,3 +37,5 @@ qnEdinetManifestList = qname("{http://disclosure.edinet-fsa.go.jp/2013/manifest}
 qnEdinetManifestTitle = qname("{http://disclosure.edinet-fsa.go.jp/2013/manifest}title")
 qnEdinetManifestTocComposition = qname("{http://disclosure.edinet-fsa.go.jp/2013/manifest}tocComposition")
 xhtmlDtdExtension = "xhtml1-strict-ix.dtd"
+
+COVER_PAGE_FILENAME_PREFIX = "0000000_header_"

@@ -12,6 +12,7 @@ from .InstanceType import InstanceType
 @dataclass(frozen=True)
 class UploadContents:
     amendmentPaths: dict[InstanceType, frozenset[Path]]
+    coverPagePaths: frozenset[Path]
     directories: frozenset[Path]
     instances: dict[InstanceType, frozenset[Path]]
     rootPaths: frozenset[Path]
