@@ -1,10 +1,12 @@
 # Use oldest release with standard support for linked glibc compatibility
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 ARG OPENSSL_VERSION
 ARG PYTHON_VERSION
 ENV LD_LIBRARY_PATH=/usr/local/lib
 ENV DEBIAN_FRONTEND=noninteractive
+ENV SSL_CERT_DIR=/etc/ssl/certs
+ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
 
 RUN apt-get update -y && \
     apt-get dist-upgrade -y && \
@@ -43,10 +45,11 @@ RUN wget https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
             -fPIC \
             --openssldir=/usr/local/ssl \
             --prefix=/usr/local \
-            no-shared \
-            no-ssl2 \
-        && make \
-        && make install_sw --jobs "$(nproc)") \
+            --libdir=lib \
+            shared \
+        && make --jobs "$(nproc)" \
+        && make install_sw \
+        && ldconfig) \
     && rm -r ./openssl-${OPENSSL_VERSION} \
     && rm ./openssl-${OPENSSL_VERSION}.tar.gz
 
@@ -56,7 +59,9 @@ ENV TCLTK_LIBS="-ltcl8.6 -ltk8.6"
 RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz \
     && tar xzf Python-${PYTHON_VERSION}.tgz \
     && (cd Python-${PYTHON_VERSION} \
-        && sed -ri 's/^( *LIBS)="(\$LIBS) (\$(OPENSSL|LIBCRYPTO)_LIBS)"/\1="\3 \2"/' configure \
+        && export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH \
+        && export LDFLAGS="-L/usr/local/lib" \
+        && export CPPFLAGS="-I/usr/local/include" \
         && ./configure \
             --enable-optimizations \
             --enable-shared \
@@ -64,7 +69,6 @@ RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VER
             --with-lto \
             --with-openssl=/usr/local \
             --with-openssl-rpath=auto \
-            --with-system-ffi \
         && make --jobs "$(nproc)" \
         && make install) \
     && rm -r ./Python-${PYTHON_VERSION} \
