@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="EDINET.EC0233E"
+        description="EDINET.EC0233E: There is a file in the report directory that comes before the cover file in file name sort order."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid01" name="invalid01">
+        <description>
+            A file comes before the cover page file in the filename sort order.
+            <!-- valid09.zip with "00000000_images/001.jpg" added. -->
+        </description>
+        <data>
+            <instance readMeFirst="true">invalid01.zip</instance>
+        </data>
+        <result>
+            <error>EDINET.EC0233E</error>
+        </result>
+    </variation>
+</testcase>

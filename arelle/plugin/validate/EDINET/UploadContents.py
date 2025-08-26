@@ -14,6 +14,10 @@ class UploadContents:
     reports: dict[ReportFolderType, frozenset[Path]]
     uploadPaths: dict[Path, UploadPathInfo]
 
+    @property
+    def sortedPaths(self) -> list[Path]:
+        return sorted(self.uploadPaths.keys())
+
 
 @dataclass(frozen=True)
 class UploadPathInfo:
@@ -23,4 +27,6 @@ class UploadPathInfo:
     isDirectory: bool
     isRoot: bool
     isSubdirectory: bool
+    path: Path
     reportFolderType: ReportFolderType | None
+    reportPath: Path | None
