@@ -1,5 +1,5 @@
 # Use oldest release with standard support for linked glibc compatibility
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 ARG OPENSSL_VERSION
 ARG PYTHON_VERSION
