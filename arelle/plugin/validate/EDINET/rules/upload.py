@@ -537,6 +537,41 @@ def rule_EC0206E(
     hook=ValidationHook.FILESOURCE,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_EC0349E(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC0349E: An unexpected directory or file exists in the XBRL directory.
+    Only PublicDoc, PrivateDoc, or AuditDoc directories may exist beneath the XBRL directory.
+    """
+    uploadContent = pluginData.getUploadContents(fileSource)
+    xbrlDirectoryPath = Path('XBRL')
+    allowedPaths = {p.xbrlDirectory for p in (
+        ReportFolderType.AUDIT_DOC,
+        ReportFolderType.PRIVATE_DOC,
+        ReportFolderType.PUBLIC_DOC,
+    )}
+    for path, pathInfo in uploadContent.uploadPaths.items():
+        if path.parent != xbrlDirectoryPath:
+            continue
+        if path not in allowedPaths:
+            if not any(pattern.fullmatch(path.name) for pattern in PATTERNS):
+                yield Validation.error(
+                    codes='EDINET.EC0349E',
+                    msg=_("An unexpected directory or file exists in the XBRL directory. "
+                          "Directory or file name: '%(file)s'."),
+                    file=path.name,
+                )
+
+
+@validation(
+    hook=ValidationHook.FILESOURCE,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_EC0352E(
         pluginData: ControllerPluginData,
         cntlr: Cntlr,
@@ -554,6 +589,7 @@ def rule_EC0352E(
             pathInfo.isCorrection or
             pathInfo.isSubdirectory or
             pathInfo.isAttachment or
+            pathInfo.reportFolderType is None or
             any(path == t.manifestPath for t in ReportFolderType)
         ):
             continue
