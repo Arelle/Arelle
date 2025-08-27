@@ -18,6 +18,7 @@
         </data>
         <result>
             <error>EDINET.EC0132E</error>
+            <error>EDINET.EC0352E</error> <!-- renamed/invalid manifest name means invalid filename -->
         </result>
     </variation>
 </testcase>
