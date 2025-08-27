@@ -406,6 +406,37 @@ def rule_EC0233E(
     hook=ValidationHook.FILESOURCE,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_EC0234E(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC0234E: A cover file exists in an unsupported subdirectory.
+    """
+    uploadContents = pluginData.getUploadContents(fileSource)
+    for path, pathInfo in uploadContents.uploadPaths.items():
+        if pathInfo.isDirectory:
+            continue
+        if pathInfo.reportFolderType not in (ReportFolderType.PRIVATE_DOC, ReportFolderType.PUBLIC_DOC):
+            continue
+        if pathInfo.isSubdirectory and pathInfo.isCoverPage:
+            yield Validation.error(
+                codes='EDINET.EC0234E',
+                msg=_("A cover file ('%(coverPage)s') exists in an unsupported subdirectory. "
+                      "Directory: '%(directory)s'. "
+                      "Please make sure there is no cover file in the subfolder and upload again."),
+                coverPage=str(path.name),
+                directory=str(path.parent),
+            )
+
+
+@validation(
+    hook=ValidationHook.FILESOURCE,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_EC0237E(
         pluginData: ControllerPluginData,
         cntlr: Cntlr,
