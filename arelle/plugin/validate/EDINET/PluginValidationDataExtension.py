@@ -7,15 +7,17 @@ from collections import defaultdict
 from dataclasses import dataclass
 from decimal import Decimal
 from functools import lru_cache
+from lxml.etree import DTD, XML
 from operator import attrgetter
 from typing import Callable, Hashable, Iterable, cast
 
+import os
 import regex
 
 from arelle.LinkbaseType import LinkbaseType
 from arelle.ModelDocument import Type as ModelDocumentType
 from arelle.ModelDtsObject import ModelConcept
-from arelle.ModelInstanceObject import ModelFact, ModelUnit, ModelContext
+from arelle.ModelInstanceObject import ModelFact, ModelUnit, ModelContext, ModelInlineFact
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import QName, qname
 from arelle.ModelXbrl import ModelXbrl
@@ -24,7 +26,7 @@ from arelle.ValidateDuplicateFacts import getDeduplicatedFacts, DeduplicationTyp
 from arelle.XmlValidate import VALID
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
-from .Constants import CORPORATE_FORMS, FormType
+from .Constants import CORPORATE_FORMS, FormType, xhtmlDtdExtension
 from .ControllerPluginData import ControllerPluginData
 from .ManifestInstance import ManifestInstance
 from .Statement import Statement, STATEMENTS, BalanceSheet, StatementInstance, StatementType
@@ -165,6 +167,22 @@ class PluginValidationDataExtension(PluginData):
                 )
             )
         return balanceSheets
+
+    def getProblematicTextBlocks(self, modelXbrl: ModelXbrl) -> list[ModelInlineFact]:
+        problematicTextBlocks: list[ModelInlineFact] = []
+        dtd = DTD(os.path.join(modelXbrl.modelManager.cntlr.configDir, xhtmlDtdExtension))
+        htmlBodyTemplate = "<body><div>\n{0}\n</div></body>\n"
+        for fact in modelXbrl.facts:
+            concept = fact.concept
+            if isinstance(fact, ModelInlineFact) and not fact.isNil and concept is not None and concept.isTextBlock and not fact.isEscaped:
+                xmlBody = htmlBodyTemplate.format(fact.value)
+                try:
+                    textblockXml = XML(xmlBody)
+                    if not dtd.validate(textblockXml):
+                        problematicTextBlocks.append(fact)
+                except Exception:
+                    problematicTextBlocks.append(fact)
+        return problematicTextBlocks
 
     @lru_cache(1)
     def getStatementInstance(self, modelXbrl: ModelXbrl, statement: Statement) -> StatementInstance | None:
