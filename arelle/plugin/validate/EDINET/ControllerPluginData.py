@@ -60,6 +60,7 @@ class ControllerPluginData(PluginData):
             isCorrection = True
             isDirectory = len(path.suffix) == 0
             isInSubdirectory = False
+            reportPath = None
             if len(parents) > 0:
                 isCorrection = parents[0] != 'XBRL'
                 if not isCorrection:
@@ -71,8 +72,10 @@ class ControllerPluginData(PluginData):
                     formName = parents[0]
                     isInSubdirectory = len(parents) > 1
                     reportFolderType = ReportFolderType.parse(formName)
-                if reportFolderType is not None and not isCorrection:
-                    reports[reportFolderType].append(path)
+                if reportFolderType is not None:
+                    reportPath = Path(reportFolderType.value) if isCorrection else Path("XBRL") / reportFolderType.value
+                    if not isCorrection:
+                        reports[reportFolderType].append(path)
             uploadPaths[path] = UploadPathInfo(
                 isAttachment=reportFolderType is not None and reportFolderType.isAttachment,
                 isCorrection=isCorrection,
@@ -80,7 +83,9 @@ class ControllerPluginData(PluginData):
                 isDirectory=len(path.suffix) == 0,
                 isRoot=len(path.parts) == 1,
                 isSubdirectory=isInSubdirectory or (isDirectory and reportFolderType is not None),
-                reportFolderType=reportFolderType
+                path=path,
+                reportFolderType=reportFolderType,
+                reportPath=reportPath,
             )
         return UploadContents(
             reports={k: frozenset(v) for k, v in reports.items() if len(v) > 0},

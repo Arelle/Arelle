@@ -361,6 +361,51 @@ def rule_EC0198E(
     hook=ValidationHook.FILESOURCE,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_EC0233E(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC0233E: There is a file in the report directory that comes before the cover file
+    in file name sort order.
+
+    NOTE: This includes files in subdirectories. For example, PublicDoc/00000000_images/image.png
+    comes before PublicDoc/0000000_header_*.htm
+    """
+    uploadContents = pluginData.getUploadContents(fileSource)
+    directories = defaultdict(list)
+    for path in uploadContents.sortedPaths:
+        pathInfo = uploadContents.uploadPaths[path]
+        if pathInfo.isDirectory:
+            continue
+        if pathInfo.reportFolderType in (ReportFolderType.PRIVATE_DOC, ReportFolderType.PUBLIC_DOC):
+            directories[pathInfo.reportPath].append(pathInfo)
+    for reportPath, pathInfos in directories.items():
+        coverPagePath = next(iter(p for p in pathInfos if p.isCoverPage), None)
+        if coverPagePath is None:
+            continue
+        errorPathInfos = pathInfos[:pathInfos.index(coverPagePath)]
+        for pathInfo in errorPathInfos:
+            yield Validation.error(
+                codes='EDINET.EC0233E',
+                msg=_("There is a file in the report directory in '%(reportPath)s' that comes before the cover "
+                      "file ('%(coverPage)s') in file name sort order. "
+                      "Directory name or file name: '%(path)s'. "
+                      "Please make sure that there are no files that come before the cover file in the file "
+                      "name sort order, and then upload again."),
+                reportPath=str(reportPath),
+                coverPage=str(coverPagePath.path.name),
+                path=str(pathInfo.path),
+            )
+
+
+@validation(
+    hook=ValidationHook.FILESOURCE,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_EC0237E(
         pluginData: ControllerPluginData,
         cntlr: Cntlr,
