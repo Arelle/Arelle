@@ -16,7 +16,7 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
-from ..InstanceType import InstanceType, HTML_EXTENSIONS, IMAGE_EXTENSIONS
+from ..ReportFolderType import ReportFolderType, HTML_EXTENSIONS, IMAGE_EXTENSIONS
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 if TYPE_CHECKING:
@@ -77,56 +77,16 @@ def rule_EC0100E(
     This allows for a false-negative outcome when a non-correction submission has a correction-only root directory.
     """
     uploadContents = pluginData.getUploadContents(fileSource)
-    for rootPath in uploadContents.rootPaths:
-        if rootPath.name in ALLOWED_ROOT_FOLDERS:
-            continue
-        yield Validation.error(
-            codes='EDINET.EC0100E',
-            msg=_("An illegal directory is found directly under the transferred directory. "
-                  "Directory name or file name: '%(rootDirectory)s'. "
-                  "Delete all folders except the following folders that exist directly "
-                  "under the root folder, and then upload again: %(allowedDirectories)s."),
-            rootDirectory=rootPath.name,
-            allowedDirectories=', '.join(f"'{d}'" for d in ALLOWED_ROOT_FOLDERS)
-        )
-
-
-@validation(
-    hook=ValidationHook.FILESOURCE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
-)
-def rule_EC0121E(
-        pluginData: ControllerPluginData,
-        cntlr: Cntlr,
-        fileSource: FileSource,
-        *args: Any,
-        **kwargs: Any,
-) -> Iterable[Validation]:
-    """
-    EDINET.EC0121E: There is a directory or file that contains more than 31 characters
-    or uses characters other than those allowed (alphanumeric characters, '-' and '_').
-
-    Note: Sample instances from EDINET almost always violate this rule based on our
-    current interpretation. The exception being files placed outside the XBRL directory,
-    i.e. amendment documents. For now, we will only check amendment documents, directory
-    names, or other files in unexpected locations.
-    """
-    uploadContents = pluginData.getUploadContents(fileSource)
-    paths = set(uploadContents.directories | uploadContents.unknownPaths)
-    for amendmentPaths in uploadContents.amendmentPaths.values():
-        paths.update(amendmentPaths)
-    for path in paths:
-        if len(str(path.name)) > 31 or not FILENAME_STEM_PATTERN.match(path.stem):
+    for path, pathInfo in uploadContents.uploadPaths.items():
+        if pathInfo.isRoot and path.name not in ALLOWED_ROOT_FOLDERS:
             yield Validation.error(
-                codes='EDINET.EC0121E',
-                msg=_("There is a directory or file in '%(directory)s' that contains more than 31 characters "
-                      "or uses characters other than those allowed (alphanumeric characters, '-' and '_'). "
-                      "Directory or file name: '%(basename)s'. "
-                      "Please change the file name (or folder name) to within 31 characters and to usable "
-                      "characters, and upload again."),
-                directory=str(path.parent),
-                basename=path.name,
-                file=str(path)
+                codes='EDINET.EC0100E',
+                msg=_("An illegal directory is found directly under the transferred directory. "
+                      "Directory name or file name: '%(rootDirectory)s'. "
+                      "Delete all folders except the following folders that exist directly "
+                      "under the root folder, and then upload again: %(allowedDirectories)s."),
+                rootDirectory=path.name,
+                allowedDirectories=', '.join(f"'{d}'" for d in ALLOWED_ROOT_FOLDERS)
             )
 
 
@@ -222,22 +182,13 @@ def rule_EC0130E(
     EDINET.EC0130E: File extensions must match the file extensions allowed in Figure 2-1-3 and Figure 2-1-5.
     """
     uploadContents = pluginData.getUploadContents(fileSource)
-    checks = []
-    for instanceType, amendmentPaths in uploadContents.amendmentPaths.items():
-        for amendmentPath in amendmentPaths:
-            isSubdirectory = amendmentPath.parent.name != instanceType.value
-            checks.append((amendmentPath, True, instanceType, isSubdirectory))
-    for instanceType, formPaths in uploadContents.instances.items():
-        for amendmentPath in formPaths:
-            isSubdirectory = amendmentPath.parent.name != instanceType.value
-            checks.append((amendmentPath, False, instanceType, isSubdirectory))
-    for path, isAmendment, instanceType, isSubdirectory in checks:
-        ext = path.suffix
-        if len(ext) == 0:
+    for path, pathInfo in uploadContents.uploadPaths.items():
+        if pathInfo.reportFolderType is None or pathInfo.isDirectory:
             continue
-        validExtensions = instanceType.getValidExtensions(isAmendment, isSubdirectory)
+        validExtensions = pathInfo.reportFolderType.getValidExtensions(pathInfo.isCorrection, pathInfo.isSubdirectory)
         if validExtensions is None:
             continue
+        ext = path.suffix
         if ext not in validExtensions:
             yield Validation.error(
                 codes='EDINET.EC0130E',
@@ -269,18 +220,17 @@ def rule_EC0132E(
     EDINET.EC0132E: Store the manifest file directly under the relevant folder.
     """
     uploadContents = pluginData.getUploadContents(fileSource)
-    for instanceType in (InstanceType.AUDIT_DOC, InstanceType.PRIVATE_DOC, InstanceType.PUBLIC_DOC):
-        if instanceType not in uploadContents.instances:
+    for reportFolderType, paths in uploadContents.reports.items():
+        if reportFolderType.isAttachment:
             continue
-        if instanceType.manifestPath in uploadContents.instances.get(instanceType, []):
-            continue
-        yield Validation.error(
-            codes='EDINET.EC0132E',
-            msg=_("'%(expectedManifestName)s' does not exist in '%(expectedManifestDirectory)s'. "
-                  "Please store the manifest file (or cover file) directly under the relevant folder and upload it again. "),
-            expectedManifestName=instanceType.manifestPath.name,
-            expectedManifestDirectory=str(instanceType.manifestPath.parent),
-        )
+        if reportFolderType.manifestPath not in paths:
+            yield Validation.error(
+                codes='EDINET.EC0132E',
+                msg=_("'%(expectedManifestName)s' does not exist in '%(expectedManifestDirectory)s'. "
+                      "Please store the manifest file (or cover file) directly under the relevant folder and upload it again. "),
+                expectedManifestName=reportFolderType.manifestPath.name,
+                expectedManifestDirectory=str(reportFolderType.manifestPath.parent),
+            )
 
 
 @validation(
@@ -358,15 +308,17 @@ def rule_EC0192E(
     it again.
     """
     uploadContents = pluginData.getUploadContents(fileSource)
-    for coverPagePath in uploadContents.coverPagePaths:
-        if len(coverPagePath.parts) != 2 or coverPagePath.parts[0] != InstanceType.PRIVATE_DOC.value:
+    for path, pathInfo in uploadContents.uploadPaths.items():
+        if not pathInfo.isCoverPage:
             continue
-        yield Validation.error(
-            codes='EDINET.EC0192E',
-            msg=_("The cover file for PrivateDoc ('%(file)s') cannot be set because it uses a PublicDoc cover file. "
-                  "Please delete the cover file from PrivateDoc and upload it again."),
-            file=str(coverPagePath),
-        )
+        # Only applies to PrivateDoc correction reports
+        if pathInfo.isCorrection and pathInfo.reportFolderType == ReportFolderType.PRIVATE_DOC:
+            yield Validation.error(
+                codes='EDINET.EC0192E',
+                msg=_("The cover file for PrivateDoc ('%(file)s') cannot be set because it uses a PublicDoc cover file. "
+                      "Please delete the cover file from PrivateDoc and upload it again."),
+                file=str(path),
+            )
 
 
 @validation(
@@ -531,6 +483,61 @@ def rule_EC1020E(
                       "one head tag, and one body tag each."),
                 path=str(path),
                 file=str(path),
+            )
+
+
+@validation(
+    hook=ValidationHook.FILESOURCE,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_filenames(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC0121E: There is a directory or file that contains
+    more than 31 characters or uses characters other than those allowed (alphanumeric characters,
+    '-' and '_').
+    Note: Applies to everything EXCEPT files directly beneath non-correction report folders.
+
+    EDINET.EC0200E: There is a file that uses characters other
+    than those allowed (alphanumeric characters, '-' and '_').
+    Note: Applies ONLY to files directly beneath non-correction report folders.
+    """
+    for path, pathInfo in pluginData.getUploadContents(fileSource).uploadPaths.items():
+        isReportFile = (
+            not pathInfo.isAttachment and
+            not pathInfo.isCorrection and
+            not pathInfo.isDirectory and
+            not pathInfo.isSubdirectory
+        )
+        charactersAreValid = FILENAME_STEM_PATTERN.fullmatch(path.stem)
+        lengthIsValid = isReportFile or (len(path.name) <= 31)
+        if charactersAreValid and lengthIsValid:
+            continue
+        if isReportFile:
+            yield Validation.error(
+                codes='EDINET.EC0200E',
+                msg=_("There is a file inside the XBRL directory that uses characters "
+                      "other than those allowed (alphanumeric characters, '-' and '_'). "
+                      "File: '%(path)s'. "
+                      "Please change the filename to usable characters, and upload again."),
+                path=str(path)
+            )
+        else:
+            yield Validation.error(
+                codes='EDINET.EC0121E',
+                msg=_("There is a directory or file in '%(directory)s' that contains more "
+                      "than 31 characters or uses characters other than those allowed "
+                      "(alphanumeric characters, '-' and '_'). "
+                      "Directory or filename: '%(basename)s'. "
+                      "Please change the file name (or folder name) to within 31 characters and to usable "
+                      "characters, and upload again."),
+                directory=str(path.parent),
+                basename=path.name,
             )
 
 

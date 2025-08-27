@@ -15,8 +15,8 @@ from arelle.FileSource import FileSource
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
 from . import Constants
-from .InstanceType import InstanceType
-from .UploadContents import UploadContents
+from .ReportFolderType import ReportFolderType
+from .UploadContents import UploadContents, UploadPathInfo
 
 if TYPE_CHECKING:
     from .ManifestInstance import ManifestInstance
@@ -50,43 +50,41 @@ class ControllerPluginData(PluginData):
     @lru_cache(1)
     def getUploadContents(self, fileSource: FileSource) -> UploadContents:
         uploadFilepaths = self.getUploadFilepaths(fileSource)
-        amendmentPaths = defaultdict(list)
-        coverPagePaths = []
-        unknownPaths = []
-        directories = []
-        rootPaths = []
-        forms = defaultdict(list)
+        reports = defaultdict(list)
+        uploadPaths = {}
         for path in uploadFilepaths:
-            if len(path.parts) == 1:
-                rootPaths.append(path)
+            if len(path.parts) == 0:
+                continue
             parents = list(reversed([p.name for p in path.parents if len(p.name) > 0]))
-            if len(parents) == 0:
-                continue
-            if path.stem.startswith(Constants.COVER_PAGE_FILENAME_PREFIX):
-                coverPagePaths.append(path)
-            if parents[0] == 'XBRL':
-                if len(parents) > 1:
-                    formName = parents[1]
-                    instanceType = InstanceType.parse(formName)
-                    if instanceType is not None:
-                        forms[instanceType].append(path)
-                        continue
-            formName = parents[0]
-            instanceType = InstanceType.parse(formName)
-            if instanceType is not None:
-                amendmentPaths[instanceType].append(path)
-                continue
-            if len(path.suffix) == 0:
-                directories.append(path)
-                continue
-            unknownPaths.append(path)
+            reportFolderType = None
+            isCorrection = True
+            isDirectory = len(path.suffix) == 0
+            isInSubdirectory = False
+            if len(parents) > 0:
+                isCorrection = parents[0] != 'XBRL'
+                if not isCorrection:
+                    if len(parents) > 1:
+                        formName = parents[1]
+                        isInSubdirectory = len(parents) > 2
+                        reportFolderType = ReportFolderType.parse(formName)
+                if reportFolderType is None:
+                    formName = parents[0]
+                    isInSubdirectory = len(parents) > 1
+                    reportFolderType = ReportFolderType.parse(formName)
+                if reportFolderType is not None and not isCorrection:
+                    reports[reportFolderType].append(path)
+            uploadPaths[path] = UploadPathInfo(
+                isAttachment=reportFolderType is not None and reportFolderType.isAttachment,
+                isCorrection=isCorrection,
+                isCoverPage=not isDirectory and path.stem.startswith(Constants.COVER_PAGE_FILENAME_PREFIX),
+                isDirectory=len(path.suffix) == 0,
+                isRoot=len(path.parts) == 1,
+                isSubdirectory=isInSubdirectory or (isDirectory and reportFolderType is not None),
+                reportFolderType=reportFolderType
+            )
         return UploadContents(
-            amendmentPaths={k: frozenset(v) for k, v in amendmentPaths.items() if len(v) > 0},
-            coverPagePaths=frozenset(coverPagePaths),
-            directories=frozenset(directories),
-            instances={k: frozenset(v) for k, v in forms.items() if len(v) > 0},
-            rootPaths=frozenset(rootPaths),
-            unknownPaths=frozenset(unknownPaths)
+            reports={k: frozenset(v) for k, v in reports.items() if len(v) > 0},
+            uploadPaths=uploadPaths
         )
 
     @lru_cache(1)

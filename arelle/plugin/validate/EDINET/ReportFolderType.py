@@ -8,7 +8,7 @@ from functools import cached_property, lru_cache
 from pathlib import Path
 
 
-class InstanceType(Enum):
+class ReportFolderType(Enum):
     ATTACH_DOC = "AttachDoc"
     AUDIT_DOC = "AuditDoc"
     PRIVATE_ATTACH = "PrivateAttach"
@@ -16,7 +16,7 @@ class InstanceType(Enum):
     PUBLIC_DOC = "PublicDoc"
 
     @classmethod
-    def parse(cls, value: str) -> InstanceType | None:
+    def parse(cls, value: str) -> ReportFolderType | None:
         try:
             return cls(value)
         except ValueError:
@@ -25,6 +25,10 @@ class InstanceType(Enum):
     @cached_property
     def extensionCategory(self) -> ExtensionCategory | None:
         return FORM_TYPE_EXTENSION_CATEGORIES.get(self, None)
+
+    @cached_property
+    def isAttachment(self) -> bool:
+        return "Attach" in self.value
 
     @cached_property
     def manifestName(self) -> str:
@@ -58,11 +62,11 @@ class ExtensionCategory(Enum):
 
 
 FORM_TYPE_EXTENSION_CATEGORIES = {
-    InstanceType.ATTACH_DOC: ExtensionCategory.ATTACH,
-    InstanceType.AUDIT_DOC: ExtensionCategory.DOC,
-    InstanceType.PRIVATE_ATTACH: ExtensionCategory.ATTACH,
-    InstanceType.PRIVATE_DOC: ExtensionCategory.DOC,
-    InstanceType.PUBLIC_DOC: ExtensionCategory.DOC,
+    ReportFolderType.ATTACH_DOC: ExtensionCategory.ATTACH,
+    ReportFolderType.AUDIT_DOC: ExtensionCategory.DOC,
+    ReportFolderType.PRIVATE_ATTACH: ExtensionCategory.ATTACH,
+    ReportFolderType.PRIVATE_DOC: ExtensionCategory.DOC,
+    ReportFolderType.PUBLIC_DOC: ExtensionCategory.DOC,
 }
 
 
