@@ -472,12 +472,24 @@ def moduleModuleInfo(
                     mergedImportURLs.append(moduleImport + ".py")
             imports = []
             for url in mergedImportURLs:
-                if isAbsolute(url) or isLegacyAbs(url):
-                    importURL = url # URL is absolute http or local file system
-                else: # check if exists relative to this module's directory
-                    importURL = os.path.join(os.path.dirname(moduleURL), os.path.normpath(url))
-                    if not os.path.exists(importURL): # not relative to this plugin, assume standard plugin base
-                        importURL = url # moduleModuleInfo adjusts relative URL to plugin base
+                importURL = url
+                if not _isAbsoluteModuleURL(url):
+                    # Handle relative imports when plugin is loaded from external directory.
+                    # When EDGAR/render imports EDGAR/validate, this works if EDGAR is in the plugin directory
+                    # but fails if loaded externally (e.g., dev repo clone at /dev/path/to/EDGAR/).
+                    # Solution: Find common path segments to resolve /dev/path/to/EDGAR/validate
+                    # from the importing module at /dev/path/to/EDGAR/render.
+                    modulePath = Path(moduleFilename)
+                    importPath = Path(url)
+                    if importPath.parts:
+                        importFirstPart = importPath.parts[0]
+                        for i, modulePathPart in enumerate(reversed(modulePath.parts)):
+                            if modulePathPart != importFirstPart:
+                                continue
+                            # Found a potential branching point, construct and check a new path
+                            candidateImportURL = str(modulePath.parents[i] / importPath)
+                            if normalizeModuleFilename(candidateImportURL):
+                                importURL = candidateImportURL
                 importModuleInfo = moduleModuleInfo(moduleURL=importURL, reload=reload, parentImportsSubtree=moduleImportsSubtree)
                 if importModuleInfo:
                     importModuleInfo["isImported"] = True
@@ -499,6 +511,10 @@ def moduleInfo(pluginInfo):
             moduleInfo[name] = value
         elif isinstance(value, types.FunctionType):
             moduleInfo.getdefault('classes', []).append(name)
+
+
+def _isAbsoluteModuleURL(moduleURL: str) -> bool:
+    return isAbsolute(moduleURL) or isLegacyAbs(moduleURL)
 
 
 def _get_name_dir_prefix(
