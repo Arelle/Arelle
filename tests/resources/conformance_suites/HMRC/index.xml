@@ -13,6 +13,7 @@
     <testcase uri='audited_small_company/testcase.xml' />
     <testcase uri='audited_small_LLP/testcase.xml' />
     <testcase uri='jfcvc/3312-testcase.xml' />
+    <testcase uri='jfcvc/3314-testcase.xml' />
     <testcase uri='jfcvc/3315-testcase.xml' />
     <testcase uri='unaudited_charity_group_accounts/testcase.xml' />
     <testcase uri='unaudited_company_abbreviated_accounts/testcase.xml' />

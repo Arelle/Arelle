@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://xbrl.org/2005/conformance"
+  name="JFCVC.3314"
+  description="Check inconsistent duplicate fact detection."
+  outpath=''
+  owner="support@arelle.org"
+  xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+  <variation id="inconsistent-duplicates" name="Inconsistent Duplicate Facts">
+    <description>
+      The document contains inconsistent duplicate facts.
+    </description>
+    <data>
+        <instance readMeFirst="true">3314-invalid-inconsistent-duplicates.xbrl</instance>
+    </data>
+    <result>
+      <error>JFCVC.3314</error>
+    </result>
+  </variation>
+</testcase>

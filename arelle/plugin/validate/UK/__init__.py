@@ -8,10 +8,10 @@ References:
 - [HMRC CT Inline XBRL Style Guide](https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/434588/xbrl-style-guide.pdf)
 """
 import os
-from math import isnan
 from arelle import ModelDocument, XmlUtil
 from arelle.ModelValue import qname, dateTime, DATE
-from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue, insignificantDigits
+from arelle.ValidateDuplicateFacts import getDuplicateFactSets
+from arelle.ValidateXbrlCalcs import insignificantDigits
 from arelle.Version import authorLabel, copyrightLabel
 from arelle.XbrlConst import xbrli, qnXbrliXbrl
 import regex as re
@@ -374,62 +374,12 @@ def validateXbrlFinally(val, *args, **kwargs):
                     _("Generic dimension members have no associated name or description item, member names (name or description item): %(memberNames)s"),
                     modelObject=modelXbrl, memberNames=", ".join(sorted(memLocalNamesMissing)))
 
-
-
-        aspectEqualFacts = defaultdict(dict) # dict [(qname,lang)] of dict(cntx,unit) of [fact, fact]
-        for hashEquivalentFacts in factForConceptContextUnitHash.values():
-            if len(hashEquivalentFacts) > 1:
-                for f in hashEquivalentFacts: # check for hash collision by value checks on context and unit
-                    if getattr(f,"xValid", 0) >= 4:
-                        cuDict = aspectEqualFacts[(f.qname,
-                                                   (f.xmlLang or "").lower() if f.concept.type.isWgnStringFactType else None)]
-                        _matched = False
-                        for (_cntx,_unit),fList in cuDict.items():
-                            if (((_cntx is None and f.context is None) or (f.context is not None and f.context.isEqualTo(_cntx))) and
-                                ((_unit is None and f.unit is None) or (f.unit is not None and f.unit.isEqualTo(_unit)))):
-                                _matched = True
-                                fList.append(f)
-                                break
-                        if not _matched:
-                            cuDict[(f.context,f.unit)] = [f]
-                decVals = {}
-                for cuDict in aspectEqualFacts.values(): # dups by qname, lang
-                    for fList in cuDict.values():  # dups by equal-context equal-unit
-                        if len(fList) > 1:
-                            f0 = fList[0]
-                            if f0.concept.isNumeric:
-                                if any(f.isNil for f in fList):
-                                    _inConsistent = not all(f.isNil for f in fList)
-                                else: # not all have same decimals
-                                    _d = inferredDecimals(f0)
-                                    _v = f0.xValue
-                                    _inConsistent = isnan(_v) # NaN is incomparable, always makes dups inconsistent
-                                    decVals[_d] = _v
-                                    aMax, bMin, _inclA, _inclB = rangeValue(_v, _d)
-                                    for f in fList[1:]:
-                                        _d = inferredDecimals(f)
-                                        _v = f.xValue
-                                        if isnan(_v):
-                                            _inConsistent = True
-                                            break
-                                        if _d in decVals:
-                                            _inConsistent |= _v != decVals[_d]
-                                        else:
-                                            decVals[_d] = _v
-                                        a, b, _inclA, _inclB = rangeValue(_v, _d)
-                                        if a > aMax: aMax = a
-                                        if b < bMin: bMin = b
-                                    if not _inConsistent:
-                                        _inConsistent = (bMin < aMax)
-                                    decVals.clear()
-                            else:
-                                _inConsistent = any(not f.isVEqualTo(f0) for f in fList[1:])
-                            if _inConsistent:
-                                modelXbrl.error("JFCVC.3314",
-                                    "Inconsistent duplicate fact values %(fact)s: %(values)s.",
-                                    modelObject=fList, fact=f0.qname, contextID=f0.contextID, values=", ".join(f.value for f in fList))
-                aspectEqualFacts.clear()
-        del factForConceptContextUnitHash, aspectEqualFacts
+    for duplicateFactSet in getDuplicateFactSets(modelXbrl.facts, includeSingles=False):
+        if duplicateFactSet.areAnyInconsistent:
+            f0 = duplicateFactSet.facts[0]
+            modelXbrl.error("JFCVC.3314",
+                "Inconsistent duplicate fact values %(fact)s: %(values)s.",
+                modelObject=duplicateFactSet, fact=f0.qname, values=", ".join(f'"{f.value}"' for f in duplicateFactSet))
 
     if modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL:
         rootElt = modelXbrl.modelDocument.xmlRootElement
