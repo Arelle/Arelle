@@ -22,6 +22,7 @@ _tuple = tuple  # type: ignore[type-arg]
 xsd = "http://www.w3.org/2001/XMLSchema"
 qnXsdComplexType = qname("{http://www.w3.org/2001/XMLSchema}xsd:complexType")
 qnXsdDocumentation = qname("{http://www.w3.org/2001/XMLSchema}xsd:documentation")
+qnXsdInclude = qname("{http://www.w3.org/2001/XMLSchema}xsd:include")
 qnXsdImport = qname("{http://www.w3.org/2001/XMLSchema}xsd:import")
 qnXsdSchema = qname("{http://www.w3.org/2001/XMLSchema}xsd:schema")
 qnXsdAppinfo = qname("{http://www.w3.org/2001/XMLSchema}xsd:appinfo")
