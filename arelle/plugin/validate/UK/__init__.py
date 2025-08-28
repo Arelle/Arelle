@@ -379,7 +379,7 @@ def validateXbrlFinally(val, *args, **kwargs):
             f0 = duplicateFactSet.facts[0]
             modelXbrl.error("JFCVC.3314",
                 "Inconsistent duplicate fact values %(fact)s: %(values)s.",
-                modelObject=duplicateFactSet, fact=f0.qname, values=", ".join(f'"{f.value}"' for f in duplicateFactSet))
+                modelObject=duplicateFactSet.facts, fact=f0.qname, values=", ".join(f'"{f.value}"' for f in duplicateFactSet))
 
     if modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL:
         rootElt = modelXbrl.modelDocument.xmlRootElement
