@@ -1,20 +1,26 @@
 """
 See COPYRIGHT.md for copyright information.
 """
-from typing import GenericAlias, _UnionGenericAlias, Any
+from typing import GenericAlias, _UnionGenericAlias, Any, _GenericAlias, ClassVar, ForwardRef
 import os
 from .XbrlConst import qnStdLabel
 XbrlTaxonomyObject = None # class forward reference
 
 EMPTY_DICT = {}
 
-class XbrlObject:
+class XbrlModelClass:
+    @classmethod
+    def propertyNameTypes(cls):
+        for propName, propType in getattr(cls, "__annotations__", EMPTY_DICT).items():
+            if not isinstance(propType, _GenericAlias) or propType.__origin__ != ClassVar:
+                yield propName, propType
 
-    def __init__(self, dtsObjectIndex=0, **kwargs):
-        self.dtsObjectIndex = dtsObjectIndex
+class XbrlObject(XbrlModelClass):
+    def __init__(self, xbrlMdlObjIndex=0, **kwargs):
+        self.xbrlMdlObjIndex = xbrlMdlObjIndex
 
     @property
-    def xbrlDts(self):
+    def xbrlTxmyMdl(self):
         return None
 
     @property
@@ -38,10 +44,12 @@ class XbrlObject:
         propVals = []
         initialParentObjProp = True
         referenceProperties = None
-        for propName, propType in getattr(objClass, "__annotations__", EMPTY_DICT).items():
+        for propName, propType in self.propertyNameTypes():
             if initialParentObjProp:
                 initialParentObjProp = False
-                if isinstance(propType, str) or propType.__name__.startswith("Xbrl"): # skip taxonomy alias type
+                if (isinstance(propType, str) or propType.__name__.startswith("Xbrl") or # skip taxonomy alias type
+                    (isinstance(propType, _UnionGenericAlias) and
+                     any((isinstance(t.__forward_arg__, str) or t.__forward_arg__.__name__.startswith("Xbrl")) for t in propType.__args__ if isinstance(t,ForwardRef)))): # Union of TypeAliases are ForwardArgs
                     continue
             if hasattr(self, propName):
                 val = getattr(self, propName)
@@ -52,11 +60,11 @@ class XbrlObject:
                         continue
                     if propName in ("name", "groupName") and val and issubclass(objClass, XbrlReferencableTaxonomyObject):
                         # insert label first if any
-                        label = self.xbrlDts.labelValue(val, qnStdLabel, fallbackToName=False)
+                        label = self.xbrlTxmyMdl.labelValue(val, qnStdLabel, fallbackToName=False)
                         if label:
                             propVals.append( ("label", label) )
-                        referenceProperties = self.xbrlDts.referenceProperties(val, None)
-                elif propName == "dimensions" and isinstance(val, dict):
+                        referenceProperties = self.xbrlTxmyMdl.referenceProperties(val, None)
+                elif propName == "factDimensions" and isinstance(val, dict):
                     for propKey, propVal in val.items():
                         propVals.append( (str(propKey), str(propVal) ) )
                     continue
@@ -67,7 +75,8 @@ class XbrlObject:
                         if isinstance(val, (set,list)) and propValueClass.__name__.startswith("Xbrl"):
                             continue
                         propVal = [propName, f"({len(val)})"]
-                        nestedPropvals = [o.propertyView for o in val]
+                        vals = val.values() if isinstance(val, dict) else val
+                        nestedPropvals = [o.propertyView for o in vals]
                         if isinstance(nestedPropvals, (list, tuple)):
                             l = len(nestedPropvals)
                             if l == 1:
@@ -103,9 +112,11 @@ class XbrlObject:
         # print object generic string based on class declaration
         objClass = type(self)
         objName = objClass.__name__[0].lower() + objClass.__name__[1:]
-        propVals = [f"{self.dtsObjectIndex}"]
+        propVals = [f"{self.xbrlMdlObjIndex}"]
         initialParentObjProp = True
         for propName, propType in getattr(objClass, "__annotations__", EMPTY_DICT).items():
+            if isinstance(propType, _GenericAlias) and propType.__origin__ == ClassVar:
+                continue
             if initialParentObjProp:
                 initialParentProp = False
                 if isinstance(propType, str) or getattr(propType, "__name__", "").startswith("Xbrl"): # skip taxonomy alias type
@@ -129,14 +140,14 @@ class XbrlReferencableTaxonomyObject(XbrlTaxonomyObject):
         super(XbrlReferencableTaxonomyObject, self).__init__(*args, **kwargs)
 
     @property
-    def xbrlDts(self):
+    def xbrlTxmyMdl(self):
         if hasattr(self, "taxonomy"):
-            return self.taxonomy.dts
+            return self.taxonomy.txmyMdl
         return None
 
     def getProperty(self, propertyName, propertyType=None, language=None, defaultValue=None):
         if propertyName == "label" and hasattr(self, "name"):
-            return self.xbrlDts.labelValue(self.name, propertyType or qnStdLabel, language)
+            return self.xbrlTxmyMdl.labelValue(self.name, propertyType or qnStdLabel, language)
         return getattr(self, propertyName, defaultValue)
 
 class XbrlTaxonomyTagObject(XbrlTaxonomyObject):
@@ -145,9 +156,9 @@ class XbrlTaxonomyTagObject(XbrlTaxonomyObject):
         super(XbrlTaxonomyTagObject, self).__init__(*args, **kwargs)
 
     @property
-    def xbrlDts(self):
+    def xbrlTxmyMdl(self):
         if hasattr(self, "taxonomy"):
-            return self.taxonomy.dts
+            return self.taxonomy.txmyMdl
         return None
 
     def getProperty(self, propertyName, propertyType=None, language=None, defaultValue=None):
