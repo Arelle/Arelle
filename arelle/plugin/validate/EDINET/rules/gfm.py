@@ -3,10 +3,8 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-import os
 from collections import defaultdict
 from datetime import timedelta
-from lxml.etree import XML, DTD
 from typing import Any, cast, Iterable
 
 import regex
@@ -614,4 +612,32 @@ def rule_gfm_1_2_30(
             codes='EDINET.EC5700W.GFM.1.2.30',
             msg=_("A context must not contain the xbrli:forever element."),
             modelObject=errors
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_3_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.3.1] The submitter-specific taxonomy contains include elements.
+    """
+    warnings = []
+    for modelDocument in val.modelXbrl.urlDocs.values():
+        if pluginData.isStandardTaxonomyUrl(modelDocument.uri, val.modelXbrl):
+            continue
+        rootElt = modelDocument.xmlRootElement
+        for elt in rootElt.iterdescendants(XbrlConst.qnXsdInclude.clarkNotation):
+            warnings.append(elt)
+    if len(warnings) > 0:
+        yield Validation.warning(
+            codes='EDINET.EC5700W.GFM.1.3.1',
+            msg=_("The submitter-specific taxonomy contains include elements."),
+            modelObject=warnings
         )
