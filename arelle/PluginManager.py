@@ -1,26 +1,32 @@
 '''
 See COPYRIGHT.md for copyright information.
-
-based on pull request 4
-
 '''
 from __future__ import annotations
-import os, sys, types, time, ast, importlib, io, json, gettext, traceback
-from dataclasses import dataclass
-from importlib.metadata import entry_points, EntryPoint
-import importlib.util
-import logging
 
-from types import ModuleType
-from typing import TYPE_CHECKING, Any, cast
-from arelle.Locale import getLanguageCodes
-import arelle.FileSource
-from arelle.PythonUtil import isLegacyAbs
-from arelle.UrlUtil import isAbsolute
-from pathlib import Path
+import ast
+import gettext
+import importlib.util
+import io
+import json
+import logging
+import os
+import sys
+import time
+import traceback
+import types
 from collections import OrderedDict, defaultdict
 from collections.abc import Callable, Iterator
+from dataclasses import dataclass
+from importlib.metadata import EntryPoint, entry_points
+from numbers import Number
+from pathlib import Path
+from types import ModuleType
+from typing import TYPE_CHECKING, Any, cast
 
+import arelle.FileSource
+from arelle.Locale import getLanguageCodes
+from arelle.PythonUtil import isLegacyAbs
+from arelle.UrlUtil import isAbsolute
 
 if TYPE_CHECKING:
     # Prevent potential circular import error
