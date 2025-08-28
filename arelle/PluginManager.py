@@ -13,7 +13,7 @@ import sys
 import time
 import traceback
 import types
-from collections import OrderedDict, defaultdict
+from collections import defaultdict
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from importlib.metadata import EntryPoint, entry_points
@@ -88,23 +88,39 @@ def reset() -> None:  # force reloading modules and plugin infos
         pluginMethodsForClasses.clear() # dict by class of list of ordered callable function objects
 
 def orderedPluginConfig():
-    return OrderedDict(
-        (('modules',OrderedDict((moduleName,
-                                 OrderedDict(sorted(moduleInfo.items(),
-                                                    key=lambda k: {'name': '01',
-                                                                   'status': '02',
-                                                                   'version': '03',
-                                                                   'fileDate': '04',                                                             'version': '05',
-                                                                   'description': '05',
-                                                                   'moduleURL': '06',
-                                                                   'localeURL': '07',
-                                                                   'localeDomain': '08',
-                                                                   'license': '09',
-                                                                   'author': '10',
-                                                                   'copyright': '11',
-                                                                   'classMethods': '12'}.get(k[0],k[0]))))
-                                for moduleName, moduleInfo in sorted(pluginConfig['modules'].items()))),
-         ('classes',OrderedDict(sorted(pluginConfig['classes'].items())))))
+    fieldOrder = [
+        'name',
+        'status',
+        'fileDate',
+        'version',
+        'description',
+        'moduleURL',
+        'localeURL',
+        'localeDomain',
+        'license',
+        'author',
+        'copyright',
+        'classMethods',
+    ]
+    priorityIndex = {k: i for i, k in enumerate(fieldOrder)}
+
+    def sortModuleInfo(moduleInfo):
+        # Prioritize known fields by the index in fieldOrder; sort others alphabetically
+        orderedKeys = sorted(
+            moduleInfo.keys(),
+            key=lambda k: (priorityIndex.get(k, len(priorityIndex)), k)
+        )
+        return {k: moduleInfo[k] for k in orderedKeys}
+
+    orderedModules = {
+        moduleName: sortModuleInfo(pluginConfig['modules'][moduleName])
+        for moduleName in sorted(pluginConfig['modules'].keys())
+    }
+
+    return {
+        'modules': orderedModules,
+        'classes': dict(sorted(pluginConfig['classes'].items()))
+    }
 
 def save(cntlr: Cntlr) -> None:
     global pluginConfigChanged
