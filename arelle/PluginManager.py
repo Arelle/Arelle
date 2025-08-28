@@ -6,7 +6,6 @@ from __future__ import annotations
 import ast
 import gettext
 import importlib.util
-import io
 import json
 import logging
 import os
@@ -26,11 +25,15 @@ from typing import TYPE_CHECKING, Any, cast
 import arelle.FileSource
 from arelle.Locale import getLanguageCodes
 from arelle.PythonUtil import isLegacyAbs
+from arelle.typing import TypeGetText
 from arelle.UrlUtil import isAbsolute
 
 if TYPE_CHECKING:
     # Prevent potential circular import error
     from .Cntlr import Cntlr
+
+
+_: TypeGetText
 
 PLUGIN_TRACE_FILE = None
 # PLUGIN_TRACE_FILE = "c:/temp/pluginerr.txt"
@@ -64,7 +67,7 @@ def init(cntlr: Cntlr, loadPluginConfig: bool = True) -> None:
     if loadPluginConfig:
         try:
             pluginJsonFile = cntlr.userAppDir + os.sep + "plugins.json"
-            with io.open(pluginJsonFile, 'rt', encoding='utf-8') as f:
+            with open(pluginJsonFile, encoding='utf-8') as f:
                 pluginConfig = json.load(f)
             freshenModuleInfos()
         except Exception:
@@ -107,7 +110,7 @@ def save(cntlr: Cntlr) -> None:
     global pluginConfigChanged
     if pluginConfigChanged and cntlr.hasFileSystem and not cntlr.disablePersistentConfig:
         pluginJsonFile = cntlr.userAppDir + os.sep + "plugins.json"
-        with io.open(pluginJsonFile, 'wt', encoding='utf-8') as f:
+        with open(pluginJsonFile, 'w', encoding='utf-8') as f:
             jsonStr = str(json.dumps(orderedPluginConfig(), ensure_ascii=False, indent=2)) # might not be unicode in 2.7
             f.write(jsonStr)
         pluginConfigChanged = False
@@ -160,7 +163,6 @@ moduleInfo = {
 
 
 '''
-
 
 def logPluginTrace(message: str, level: Number) -> None:
     """
@@ -422,7 +424,7 @@ def moduleModuleInfo(
 
     if moduleFilename:
         try:
-            logPluginTrace("Scanning module for plug-in info: {}".format(moduleFilename), logging.INFO)
+            logPluginTrace(f"Scanning module for plug-in info: {moduleFilename}", logging.INFO)
             moduleInfo = parsePluginInfo(moduleURL, moduleFilename, entryPoint)
             if moduleInfo is None:
                 return None
@@ -572,10 +574,12 @@ def loadModule(moduleInfo: dict[str, Any], packagePrefix: str="") -> None:
                     localeDir = os.path.dirname(module.__file__) + os.sep + pluginInfo['localeURL']
                     try:
                         _gettext = gettext.translation(pluginInfo['localeDomain'], localeDir, getLanguageCodes())
-                    except IOError:
-                        _gettext = lambda x: x # no translation
+                    except OSError:
+                        def _gettext(x):
+                            return x # no translation
                 else:
-                    _gettext = lambda x: x
+                    def _gettext(x):
+                        return x
                 for key, value in pluginInfo.items():
                     if key == 'name':
                         if name:
@@ -633,8 +637,7 @@ def pluginClassMethods(className: str) -> Iterator[Callable[..., Any]]:
                                 if className in pluginInfo:
                                     pluginMethodsForClass.append(pluginInfo[className])
             pluginMethodsForClasses[className] = pluginMethodsForClass
-        for method in pluginMethodsForClass:
-            yield method
+        yield from pluginMethodsForClass
 
 
 def addPluginModule(name: str) -> dict[str, Any] | None:
