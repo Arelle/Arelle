@@ -8,6 +8,8 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any, Iterable, TYPE_CHECKING
 
+import regex
+
 from arelle.Cntlr import Cntlr
 from arelle.FileSource import FileSource
 from arelle.ValidateXbrl import ValidateXbrl
@@ -15,6 +17,7 @@ from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
+from .. import Constants
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
 from ..ReportFolderType import ReportFolderType, HTML_EXTENSIONS, IMAGE_EXTENSIONS
 from ..PluginValidationDataExtension import PluginValidationDataExtension
@@ -48,6 +51,48 @@ FILE_COUNT_LIMITS = {
 
 FILENAME_STEM_PATTERN = re.compile(r'[a-zA-Z0-9_-]*')
 
+PATTERN_CODE = r'(?P<code>[A-Za-z\d]*)'
+PATTERN_CONSOLIDATED = r'(?P<consolidated>c|n)'
+PATTERN_COUNT = r'(?P<count>\d{2})'
+PATTERN_DATE1 = r'(?P<year1>\d{4})-(?P<month1>\d{2})-(?P<day1>\d{2})'
+PATTERN_DATE2 = r'(?P<year2>\d{4})-(?P<month2>\d{2})-(?P<day2>\d{2})'
+PATTERN_FORM = r'(?P<form>\d{6})'
+PATTERN_LINKBASE = r'(?P<linkbase>lab|lab-en|gla|pre|def|cal)'
+PATTERN_MAIN = r'(?P<main>\d{7})'
+PATTERN_NAME = r'(?P<name>[a-z]{6})'
+PATTERN_ORDINANCE = r'(?P<ordinance>[a-z]*)'
+PATTERN_PERIOD = r'(?P<period>c|p)'  # TODO: Have only seen "c" in sample/public filings, assuming "p" for previous.
+PATTERN_REPORT = r'(?P<report>[a-z]*)'
+PATTERN_REPORT_SERIAL = r'(?P<report_serial>\d{3})'
+PATTERN_SERIAL = r'(?P<serial>\d{3})'
+
+PATTERN_AUDIT_REPORT_PREFIX = rf'jpaud-{PATTERN_REPORT}-{PATTERN_PERIOD}{PATTERN_CONSOLIDATED}'
+PATTERN_REPORT_PREFIX = rf'jp{PATTERN_ORDINANCE}{PATTERN_FORM}-{PATTERN_REPORT}'
+PATTERN_SUFFIX = rf'{PATTERN_REPORT_SERIAL}_{PATTERN_CODE}-{PATTERN_SERIAL}_{PATTERN_DATE1}_{PATTERN_COUNT}_{PATTERN_DATE2}'
+
+PATTERNS = list(regex.compile(p) for p in (
+    # Schema file for report
+    # Example: jpcrp050300-esr-001_X99007-000_2025-04-10_01_2025-04-10.xsd
+    rf'{PATTERN_REPORT_PREFIX}-{PATTERN_SUFFIX}.xsd',
+    # Schema file for audit report
+    # Example: jpaud-aar-cn-001_X99001-000_2025-03-31_01_2025-06-28.xsd
+    rf'{PATTERN_AUDIT_REPORT_PREFIX}-{PATTERN_SUFFIX}.xsd',
+    # Linkbase file for report
+    # Example: jpcrp020000-srs-001_X99001-000_2025-03-31_01_2025-11-20_cal.xml
+    rf'{PATTERN_REPORT_PREFIX}-{PATTERN_SUFFIX}_{PATTERN_LINKBASE}.xml',
+    # Linkbase file for audit report
+    # Example: jpaud-qrr-cc-001_X99001-000_2025-03-31_01_2025-11-20_pre.xml
+    rf'{PATTERN_AUDIT_REPORT_PREFIX}-{PATTERN_SUFFIX}_{PATTERN_LINKBASE}.xml',
+    # Cover page file for report
+    # Example: 0000000_header_jpcrp020000-srs-001_X99001-000_2025-03-31_01_2025-11-20_ixbrl.htm
+    rf'{Constants.COVER_PAGE_FILENAME_PREFIX}{PATTERN_REPORT_PREFIX}-{PATTERN_SUFFIX}_ixbrl.htm',
+    # Main file for report
+    # Example: 0205020_honbun_jpcrp020000-srs-001_X99001-000_2025-03-31_01_2025-11-20_ixbrl.htm
+    rf'{PATTERN_MAIN}_{PATTERN_NAME}_{PATTERN_REPORT_PREFIX}-{PATTERN_SUFFIX}_ixbrl.htm',
+    # Main file for audit report
+    # Example: jpaud-qrr-cc-001_X99001-000_2025-03-31_01_2025-11-20_pre.xml
+    rf'{PATTERN_AUDIT_REPORT_PREFIX}-{PATTERN_SUFFIX}_ixbrl.htm',
+))
 
 @validation(
     hook=ValidationHook.FILESOURCE,
@@ -486,6 +531,75 @@ def rule_EC0206E(
             path=str(path),
             file=str(path),
         )
+
+
+@validation(
+    hook=ValidationHook.FILESOURCE,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC0349E(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC0349E: An unexpected directory or file exists in the XBRL directory.
+    Only PublicDoc, PrivateDoc, or AuditDoc directories may exist beneath the XBRL directory.
+    """
+    uploadContent = pluginData.getUploadContents(fileSource)
+    xbrlDirectoryPath = Path('XBRL')
+    allowedPaths = {p.xbrlDirectory for p in (
+        ReportFolderType.AUDIT_DOC,
+        ReportFolderType.PRIVATE_DOC,
+        ReportFolderType.PUBLIC_DOC,
+    )}
+    for path, pathInfo in uploadContent.uploadPaths.items():
+        if path.parent != xbrlDirectoryPath:
+            continue
+        if path not in allowedPaths:
+            if not any(pattern.fullmatch(path.name) for pattern in PATTERNS):
+                yield Validation.error(
+                    codes='EDINET.EC0349E',
+                    msg=_("An unexpected directory or file exists in the XBRL directory. "
+                          "Directory or file name: '%(file)s'."),
+                    file=path.name,
+                )
+
+
+@validation(
+    hook=ValidationHook.FILESOURCE,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC0352E(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC0352E: An XBRL file with an invalid name exists.
+    """
+    uploadContent = pluginData.getUploadContents(fileSource)
+    for path, pathInfo in uploadContent.uploadPaths.items():
+        if (
+            pathInfo.isDirectory or
+            pathInfo.isCorrection or
+            pathInfo.isSubdirectory or
+            pathInfo.isAttachment or
+            pathInfo.reportFolderType is None or
+            any(path == t.manifestPath for t in ReportFolderType)
+        ):
+            continue
+        if not any(pattern.fullmatch(path.name) for pattern in PATTERNS):
+            yield Validation.error(
+                codes='EDINET.EC0352E',
+                msg=_("A file with an invalid name exists. "
+                      "File path: '%(path)s'."),
+                path=str(path),
+            )
 
 
 @validation(

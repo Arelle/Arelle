@@ -260,7 +260,7 @@ class PluginValidationDataExtension(PluginData):
         return controllerPluginData.matchManifestInstance(modelXbrl.ixdsDocUrls)
 
     def hasValidNonNilFact(self, modelXbrl: ModelXbrl, qname: QName) -> bool:
-        return any(fact is not None for fact in self.iterValidNonNilFacts(modelXbrl, qname))
+        return any(True for fact in self.iterValidNonNilFacts(modelXbrl, qname))
 
     def isStandardTaxonomyUrl(self, uri: str, modelXbrl: ModelXbrl) -> bool:
         return modelXbrl.modelManager.disclosureSystem.hrefValidForDisclosureSystem(uri)

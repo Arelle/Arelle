@@ -3,22 +3,21 @@
 <testcase
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns="http://xbrl.org/2005/conformance"
-        name="EDINET.EC0188E"
-        description="EDINET.EC0188E: There is an html file directly under PublicDoc or PrivateDoc whose first 7 characters are not numbers."
+        name="EDINET.EC0349E"
+        description="EDINET.EC0349E: An unexpected directory or file exists in the XBRL directory."
         outpath=''
         owner="support@arelle.org"
         xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
     <variation id="invalid01" name="invalid01">
         <description>
-            HTML file with invalid filename exists directly beneath PublicDoc.
-            <!--valid09.zip with 'invalid.html' added under 'XBRL/PublicDoc'.-->
+            XBRL directory contains unexpected file and directory.
+            <!--valid09.zip with file and directory added beneath XBRL directory. -->
         </description>
         <data>
             <instance readMeFirst="true">invalid01.zip</instance>
         </data>
         <result>
-            <error>EDINET.EC0188E</error>
-            <error>EDINET.EC0352E</error> <!-- invalid HTML file prefix also means invalid filename -->
+            <error num="2">EDINET.EC0349E</error>
         </result>
     </variation>
 </testcase>

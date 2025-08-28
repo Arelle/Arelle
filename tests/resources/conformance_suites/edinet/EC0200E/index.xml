@@ -18,6 +18,7 @@
         </data>
         <result>
             <error num="1">EDINET.EC0200E</error>
+            <error>EDINET.EC0352E</error> <!-- invalid chars in filename also means invalid filename -->
         </result>
     </variation>
 </testcase>
