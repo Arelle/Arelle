@@ -635,6 +635,34 @@ def rule_EC1016E(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_EC1006E(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC1006E: Prohibited tag is used in HTML.
+    """
+    for doc in val.modelXbrl.urlDocs.values():
+        for elt in pluginData.getProhibitedTagElements(doc):
+            yield Validation.error(
+                codes='EDINET.EC1006E',
+                msg=_("Prohibited tag (%(tag)s) is used in HTML. File name: %(file)s (line %(line)s). "
+                      "Please correct the prohibited tags for the relevant files. "
+                      "For information on prohibited tags, please refer to \"4-1-4 Prohibited Rules\" "
+                      "in the Validation Guidelines."),
+                tag=elt.prefixedName.lower(),
+                file=doc.basename,
+                line=elt.sourceline,
+                modelObject=elt,
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_EC1020E(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
