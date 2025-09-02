@@ -265,9 +265,9 @@ class PluginValidationDataExtension(PluginData):
         if modelDocument.type not in (ModelDocumentType.INLINEXBRL, ModelDocumentType.HTML):
             return elts
         for elt in modelDocument.xmlRootElement.iter():
-            if isinstance(elt, (_ElementTree, _Comment, _ProcessingInstruction)):
+            if not isinstance(elt, ModelObject):
                 continue
-            tag = elt.prefixedName.lower()
+            tag = elt.qname.localName
             if tag in PROHIBITED_HTML_TAGS:
                 elts.append(elt)
         return elts

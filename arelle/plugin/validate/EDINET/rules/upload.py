@@ -652,7 +652,7 @@ def rule_EC1006E(
                       "Please correct the prohibited tags for the relevant files. "
                       "For information on prohibited tags, please refer to \"4-1-4 Prohibited Rules\" "
                       "in the Validation Guidelines."),
-                tag=elt.prefixedName.lower(),
+                tag=elt.qname.localName,
                 file=doc.basename,
                 line=elt.sourceline,
                 modelObject=elt,
