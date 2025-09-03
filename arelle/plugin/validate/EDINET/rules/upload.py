@@ -635,7 +635,7 @@ def rule_EC1006E(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
-def rule_EC1007E(
+def rule_html_uris(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
         *args: Any,
@@ -643,6 +643,8 @@ def rule_EC1007E(
 ) -> Iterable[Validation]:
     """
     EDINET.EC1007E: The URI in the HTML specifies a URL or absolute path.
+    EDINET.EC1013E: The URI in the HTML specifies a path not under a subdirectory.
+    EDINET.EC1014E: The URI in the HTML specifies a path to a file that doesn't exist.
     """
     for doc in val.modelXbrl.urlDocs.values():
         for elt, name, value in pluginData.getUriAttributeValues(doc):
@@ -656,24 +658,6 @@ def rule_EC1007E(
                     line=elt.sourceline,
                     modelObject=elt,
                 )
-
-
-@validation(
-    hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
-)
-def rule_EC1013E(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
-        *args: Any,
-        **kwargs: Any,
-) -> Iterable[Validation]:
-    """
-    EDINET.EC1013E: The URI in the HTML specifies a path not under a subdirectory.
-    """
-    for doc in val.modelXbrl.urlDocs.values():
-        for elt, name, value in pluginData.getUriAttributeValues(doc):
-            if UrlUtil.isAbsolute(value):
                 continue
             path = Path(value)
             if len(path.parts) < 2:
@@ -686,26 +670,7 @@ def rule_EC1013E(
                     line=elt.sourceline,
                     modelObject=elt,
                 )
-
-
-@validation(
-    hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
-)
-def rule_EC1014E(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
-        *args: Any,
-        **kwargs: Any,
-) -> Iterable[Validation]:
-    """
-    EDINET.EC1014E: The URI in the HTML specifies a path to a file that doesn't exist.
-    """
-    for doc in val.modelXbrl.urlDocs.values():
-        for elt, name, value in pluginData.getUriAttributeValues(doc):
-            if UrlUtil.isAbsolute(value):
                 continue
-            path = Path(value)
             fullPath = Path(doc.uri).parent / path
             if not val.modelXbrl.fileSource.exists(str(fullPath)):
                 yield Validation.error(
@@ -717,6 +682,7 @@ def rule_EC1014E(
                     line=elt.sourceline,
                     modelObject=elt,
                 )
+                continue
 
 
 @validation(
