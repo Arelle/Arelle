@@ -689,6 +689,37 @@ def rule_EC1013E(
 
 
 @validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC1014E(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC1014E: The URI in the HTML specifies a path to a file that doesn't exist.
+    """
+    for doc in val.modelXbrl.urlDocs.values():
+        for elt, name, value in pluginData.getUriAttributeValues(doc):
+            if UrlUtil.isAbsolute(value):
+                continue
+            path = Path(value)
+            fullPath = Path(doc.uri).parent / path
+            if not val.modelXbrl.fileSource.exists(str(fullPath)):
+                yield Validation.error(
+                    codes='EDINET.EC1014E',
+                    msg=_("The URI in the HTML specifies a path to a file that doesn't exist. "
+                          "File name: %(file)s (line %(line)s). "
+                          "Please update the URI to reference a file."),
+                    file=doc.basename,
+                    line=elt.sourceline,
+                    modelObject=elt,
+                )
+
+
+@validation(
     hook=ValidationHook.FILESOURCE,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
