@@ -641,3 +641,31 @@ def rule_gfm_1_3_1(
             msg=_("The submitter-specific taxonomy contains include elements."),
             modelObject=warnings
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_5_6(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.5.6] The length of a label must be less than 511 characters.
+    """
+    warnings = []
+    for concept in val.modelXbrl.qnameConcepts.values():
+        if pluginData.isStandardTaxonomyUrl(concept.modelDocument.uri, val.modelXbrl):
+            continue
+        label = concept.label(XbrlConst.standardLabel, fallbackToQname=False)
+        if label is not None and len(label) >= 511:
+            warnings.append(label)
+    if len(warnings) > 0:
+        yield Validation.warning(
+            codes='EDINET.EC5700W.GFM.1.5.6',
+            msg=_("The length of a label must be less than 511 characters."),
+            modelObject=warnings
+        )
