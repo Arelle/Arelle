@@ -659,6 +659,36 @@ def rule_EC1007E(
 
 
 @validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC1013E(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC1013E: The URI in the HTML specifies a path not under a subdirectory.
+    """
+    for doc in val.modelXbrl.urlDocs.values():
+        for elt, name, value in pluginData.getUriAttributeValues(doc):
+            if UrlUtil.isAbsolute(value):
+                continue
+            path = Path(value)
+            if len(path.parts) < 2:
+                yield Validation.error(
+                    codes='EDINET.EC1013E',
+                    msg=_("The URI in the HTML specifies a path not under a subdirectory. "
+                          "File name: %(file)s (line %(line)s). "
+                          "Please move the referenced file into a subfolder, or correct the URI."),
+                    file=doc.basename,
+                    line=elt.sourceline,
+                    modelObject=elt,
+                )
+
+
+@validation(
     hook=ValidationHook.FILESOURCE,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
