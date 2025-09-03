@@ -7,7 +7,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from decimal import Decimal
 from functools import lru_cache
-from lxml.etree import DTD, XML
+from lxml.etree import DTD, XML, _ElementTree, _Comment, _ProcessingInstruction
 from operator import attrgetter
 from typing import Callable, Hashable, Iterable, cast
 
@@ -15,7 +15,7 @@ import os
 import regex
 
 from arelle.LinkbaseType import LinkbaseType
-from arelle.ModelDocument import Type as ModelDocumentType
+from arelle.ModelDocument import Type as ModelDocumentType, ModelDocument
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelInstanceObject import ModelFact, ModelUnit, ModelContext, ModelInlineFact
 from arelle.ModelObject import ModelObject
@@ -26,7 +26,7 @@ from arelle.ValidateDuplicateFacts import getDeduplicatedFacts, DeduplicationTyp
 from arelle.XmlValidate import VALID
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
-from .Constants import CORPORATE_FORMS, FormType, xhtmlDtdExtension
+from .Constants import CORPORATE_FORMS, FormType, xhtmlDtdExtension, PROHIBITED_HTML_TAGS
 from .ControllerPluginData import ControllerPluginData
 from .ManifestInstance import ManifestInstance
 from .Statement import Statement, STATEMENTS, BalanceSheet, StatementInstance, StatementType
@@ -258,6 +258,19 @@ class PluginValidationDataExtension(PluginData):
     def getManifestInstance(self, modelXbrl: ModelXbrl) -> ManifestInstance | None:
         controllerPluginData = ControllerPluginData.get(modelXbrl.modelManager.cntlr, self.name)
         return controllerPluginData.matchManifestInstance(modelXbrl.ixdsDocUrls)
+
+    @lru_cache(1)
+    def getProhibitedTagElements(self, modelDocument: ModelDocument) -> list[ModelObject]:
+        elts: list[ModelObject] = []
+        if modelDocument.type not in (ModelDocumentType.INLINEXBRL, ModelDocumentType.HTML):
+            return elts
+        for elt in modelDocument.xmlRootElement.iter():
+            if not isinstance(elt, ModelObject):
+                continue
+            tag = elt.qname.localName
+            if tag in PROHIBITED_HTML_TAGS:
+                elts.append(elt)
+        return elts
 
     def hasValidNonNilFact(self, modelXbrl: ModelXbrl, qname: QName) -> bool:
         return any(True for fact in self.iterValidNonNilFacts(modelXbrl, qname))
