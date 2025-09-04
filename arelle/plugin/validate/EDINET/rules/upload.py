@@ -10,6 +10,7 @@ from typing import Any, Iterable, TYPE_CHECKING
 
 import regex
 
+from arelle import UrlUtil
 from arelle.Cntlr import Cntlr
 from arelle.FileSource import FileSource
 from arelle.ValidateXbrl import ValidateXbrl
@@ -603,6 +604,61 @@ def rule_EC0352E(
 
 
 @validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC1006E(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC1006E: Prohibited tag is used in HTML.
+    """
+    for doc in val.modelXbrl.urlDocs.values():
+        for elt in pluginData.getProhibitedTagElements(doc):
+            yield Validation.error(
+                codes='EDINET.EC1006E',
+                msg=_("Prohibited tag (%(tag)s) is used in HTML. File name: %(file)s (line %(line)s). "
+                      "Please correct the prohibited tags for the relevant files. "
+                      "For information on prohibited tags, please refer to \"4-1-4 Prohibited Rules\" "
+                      "in the Validation Guidelines."),
+                tag=elt.qname.localName,
+                file=doc.basename,
+                line=elt.sourceline,
+                modelObject=elt,
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC1007E(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC1007E: The URI in the HTML specifies a URL or absolute path.
+    """
+    for doc in val.modelXbrl.urlDocs.values():
+        for elt, name, value in pluginData.getUriAttributeValues(doc):
+            if UrlUtil.isAbsolute(value):
+                yield Validation.error(
+                    codes='EDINET.EC1007E',
+                    msg=_("The URI in the HTML specifies a URL or absolute path. "
+                          "File name: %(file)s (line %(line)s). "
+                          "Please change the links in the files to relative paths."),
+                    file=doc.basename,
+                    line=elt.sourceline,
+                    modelObject=elt,
+                )
+
+
+@validation(
     hook=ValidationHook.FILESOURCE,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
@@ -629,34 +685,6 @@ def rule_EC1016E(
             path=str(path),
             file=str(path),
         )
-
-
-@validation(
-    hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
-)
-def rule_EC1006E(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
-        *args: Any,
-        **kwargs: Any,
-) -> Iterable[Validation]:
-    """
-    EDINET.EC1006E: Prohibited tag is used in HTML.
-    """
-    for doc in val.modelXbrl.urlDocs.values():
-        for elt in pluginData.getProhibitedTagElements(doc):
-            yield Validation.error(
-                codes='EDINET.EC1006E',
-                msg=_("Prohibited tag (%(tag)s) is used in HTML. File name: %(file)s (line %(line)s). "
-                      "Please correct the prohibited tags for the relevant files. "
-                      "For information on prohibited tags, please refer to \"4-1-4 Prohibited Rules\" "
-                      "in the Validation Guidelines."),
-                tag=elt.qname.localName,
-                file=doc.basename,
-                line=elt.sourceline,
-                modelObject=elt,
-            )
 
 
 @validation(

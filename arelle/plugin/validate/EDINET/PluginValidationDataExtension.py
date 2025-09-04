@@ -23,6 +23,7 @@ from arelle.ModelValue import QName, qname
 from arelle.ModelXbrl import ModelXbrl
 from arelle.PrototypeDtsObject import LinkPrototype
 from arelle.ValidateDuplicateFacts import getDeduplicatedFacts, DeduplicationType
+from arelle.XhtmlValidate import htmlEltUriAttrs
 from arelle.XmlValidate import VALID
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
@@ -271,6 +272,18 @@ class PluginValidationDataExtension(PluginData):
             if tag in PROHIBITED_HTML_TAGS:
                 elts.append(elt)
         return elts
+
+    @lru_cache(1)
+    def getUriAttributeValues(self, modelDocument: ModelDocument) -> list[tuple[ModelObject, str, str]]:
+        results: list[tuple[ModelObject, str, str]] = []
+        if modelDocument.type not in (ModelDocumentType.INLINEXBRL, ModelDocumentType.HTML):
+            return results
+        for elt in modelDocument.xmlRootElement.iter():
+            for name in htmlEltUriAttrs.get(elt.localName, ()):
+                value = elt.get(name)
+                if value is not None:
+                    results.append((elt, name, value))
+        return results
 
     def hasValidNonNilFact(self, modelXbrl: ModelXbrl, qname: QName) -> bool:
         return any(True for fact in self.iterValidNonNilFacts(modelXbrl, qname))
