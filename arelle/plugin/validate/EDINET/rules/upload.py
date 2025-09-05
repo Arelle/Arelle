@@ -635,7 +635,7 @@ def rule_EC1006E(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
-def rule_EC1007E(
+def rule_html_uris(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
         *args: Any,
@@ -643,6 +643,8 @@ def rule_EC1007E(
 ) -> Iterable[Validation]:
     """
     EDINET.EC1007E: The URI in the HTML specifies a URL or absolute path.
+    EDINET.EC1013E: The URI in the HTML specifies a path not under a subdirectory.
+    EDINET.EC1014E: The URI in the HTML specifies a path to a file that doesn't exist.
     """
     for doc in val.modelXbrl.urlDocs.values():
         for elt, name, value in pluginData.getUriAttributeValues(doc):
@@ -656,6 +658,31 @@ def rule_EC1007E(
                     line=elt.sourceline,
                     modelObject=elt,
                 )
+                continue
+            path = Path(value)
+            if len(path.parts) < 2:
+                yield Validation.error(
+                    codes='EDINET.EC1013E',
+                    msg=_("The URI in the HTML specifies a path not under a subdirectory. "
+                          "File name: %(file)s (line %(line)s). "
+                          "Please move the referenced file into a subfolder, or correct the URI."),
+                    file=doc.basename,
+                    line=elt.sourceline,
+                    modelObject=elt,
+                )
+                continue
+            fullPath = Path(doc.uri).parent / path
+            if not val.modelXbrl.fileSource.exists(str(fullPath)):
+                yield Validation.error(
+                    codes='EDINET.EC1014E',
+                    msg=_("The URI in the HTML specifies a path to a file that doesn't exist. "
+                          "File name: %(file)s (line %(line)s). "
+                          "Please update the URI to reference a file."),
+                    file=doc.basename,
+                    line=elt.sourceline,
+                    modelObject=elt,
+                )
+                continue
 
 
 @validation(
