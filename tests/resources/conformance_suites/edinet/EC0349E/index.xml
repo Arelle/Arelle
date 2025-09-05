@@ -18,6 +18,7 @@
         </data>
         <result>
             <error num="2">EDINET.EC0349E</error>
+            <error>EDINET.EC1017E</error> <!-- added file is not used -->
         </result>
     </variation>
 </testcase>

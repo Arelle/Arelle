@@ -646,13 +646,21 @@ def rule_html_uris(
     EDINET.EC1013E: The URI in the HTML specifies a path not under a subdirectory.
     EDINET.EC1014E: The URI in the HTML specifies a path to a file that doesn't exist.
     """
-    for doc in val.modelXbrl.urlDocs.values():
+    if not isinstance(val.modelXbrl.fileSource.basefile, str):
+        return
+    basePath = Path(val.modelXbrl.fileSource.basefile)
+    for uri, doc in val.modelXbrl.urlDocs.items():
+        docPath = Path(uri)
+        if docPath.is_relative_to(basePath):
+            pluginData.addUsedFilepath(val.modelXbrl, docPath.relative_to(basePath))
+        else:
+            continue
         for elt, name, value in pluginData.getUriAttributeValues(doc):
             if UrlUtil.isAbsolute(value):
                 yield Validation.error(
                     codes='EDINET.EC1007E',
                     msg=_("The URI in the HTML specifies a URL or absolute path. "
-                          "File name: %(file)s (line %(line)s). "
+                          "File name: '%(file)s' (line %(line)s). "
                           "Please change the links in the files to relative paths."),
                     file=doc.basename,
                     line=elt.sourceline,
@@ -664,7 +672,7 @@ def rule_html_uris(
                 yield Validation.error(
                     codes='EDINET.EC1013E',
                     msg=_("The URI in the HTML specifies a path not under a subdirectory. "
-                          "File name: %(file)s (line %(line)s). "
+                          "File name: '%(file)s' (line %(line)s). "
                           "Please move the referenced file into a subfolder, or correct the URI."),
                     file=doc.basename,
                     line=elt.sourceline,
@@ -676,13 +684,15 @@ def rule_html_uris(
                 yield Validation.error(
                     codes='EDINET.EC1014E',
                     msg=_("The URI in the HTML specifies a path to a file that doesn't exist. "
-                          "File name: %(file)s (line %(line)s). "
+                          "File name: '%(file)s' (line %(line)s). "
                           "Please update the URI to reference a file."),
                     file=doc.basename,
                     line=elt.sourceline,
                     modelObject=elt,
                 )
                 continue
+            fileSourcePath = fullPath.relative_to(basePath)
+            pluginData.addUsedFilepath(val.modelXbrl, fileSourcePath)
 
 
 @validation(
@@ -710,6 +720,38 @@ def rule_EC1016E(
                   "File name: '%(path)s'. "
                   "Please create an image file with a size of 300KB or less."),
             path=str(path),
+            file=str(path),
+        )
+
+
+@validation(
+    hook=ValidationHook.COMPLETE,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC1017E(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC1017E: There is an unused file.
+    """
+    uploadContents = pluginData.getUploadContents(fileSource)
+    existingSubdirectoryFilepaths = {
+        path
+        for path, pathInfo in uploadContents.uploadPaths.items()
+        if pathInfo.isSubdirectory and not pathInfo.isDirectory
+    }
+    usedFilepaths = pluginData.getUsedFilepaths()
+    unusedSubdirectoryFilepaths = existingSubdirectoryFilepaths - usedFilepaths
+    for path in unusedSubdirectoryFilepaths:
+        yield Validation.error(
+            codes='EDINET.EC1017E',
+            msg=_("There is an unused file. "
+                  "File name: '%(file)s'. "
+                  "Please remove the file or reference it in the HTML."),
             file=str(path),
         )
 

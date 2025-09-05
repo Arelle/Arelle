@@ -7,6 +7,8 @@ from collections import defaultdict
 from dataclasses import dataclass
 from decimal import Decimal
 from functools import lru_cache
+from pathlib import Path
+
 from lxml.etree import DTD, XML, _ElementTree, _Comment, _ProcessingInstruction
 from operator import attrgetter
 from typing import Callable, Hashable, Iterable, cast
@@ -296,3 +298,7 @@ class PluginValidationDataExtension(PluginData):
         for fact in facts:
             if fact.xValid >= VALID and not fact.isNil:
                 yield fact
+
+    def addUsedFilepath(self, modelXbrl: ModelXbrl, path: Path) -> None:
+        controllerPluginData = ControllerPluginData.get(modelXbrl.modelManager.cntlr, self.name)
+        controllerPluginData.addUsedFilepath(path)

@@ -34,6 +34,7 @@ class ValidationHook(Enum):
     These hooks are called at different stages of validation, but all provide a common interface (ValidateXbrl is the first param).
     """
 
+    COMPLETE = "Validate.Complete"
     FILESOURCE = "Validate.FileSource"
     XBRL_START = "Validate.XBRL.Start"
     XBRL_FINALLY = "Validate.XBRL.Finally"
@@ -563,6 +564,35 @@ class PluginHooks(ABC):
         [ModelDocument](#arelle.ModelDocument.ModelDocument) loading is complete.
 
         :param modelXbrl: The constructed [ModelXbrl](#arelle.ModelXbrl.ModelXbrl).
+        :param args: Argument capture to ensure new parameters don't break plugin hook.
+        :param kwargs: Argument capture to ensure new named parameters don't break plugin hook.
+        :return: None
+        """
+        raise NotImplementedError
+
+    @staticmethod
+    def validateComplete(
+            cntlr: Cntlr,
+            fileSource: FileSource,
+            *args: Any,
+            **kwargs: Any,
+    ) -> None:
+        """
+        Plugin hook: `Validate.Complete`
+
+        Hook for executing controller-level validation rules after model-level validation is complete.
+        This can be useful for validating multi-instance filings when a rule requires information that
+        is only available after all instances have been parsed and validated.
+
+        Example:
+        ```python
+        unusedFilepaths = pluginData.getExistingFilepaths() - pluginData.getUsedFilepaths()
+        if len(unusedSubdirectoryFilepaths) > 0:
+            yield Validation.error(codes="0.0.0", msg="Unused files exist.")
+        ```
+
+        :param cntlr: The [Cntlr](#arelle.Cntlr.Cntlr) instance.
+        :param fileSource: The [FileSource](#arelle.FileSource.FileSource) involved in loading the entrypoint files.
         :param args: Argument capture to ensure new parameters don't break plugin hook.
         :param kwargs: Argument capture to ensure new named parameters don't break plugin hook.
         :return: None

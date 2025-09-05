@@ -19,6 +19,7 @@
         <result>
             <error>EDINET.EC0121E</error> <!-- Also exceeds 31 character filename limit. -->
             <error>EDINET.EC0237E</error>
+            <error>EDINET.EC1017E</error> <!-- added file is not used -->
         </result>
     </variation>
 </testcase>

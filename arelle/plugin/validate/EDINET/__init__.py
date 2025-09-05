@@ -59,6 +59,10 @@ def loggingSeverityReleveler(modelXbrl: ModelXbrl, level: str, messageCode: str,
     return level, messageCode
 
 
+def validateComplete(*args: Any, **kwargs: Any) -> None:
+    return validationPlugin.validateComplete(*args, **kwargs)
+
+
 def validateFileSource(*args: Any, **kwargs: Any) -> None:
     return validationPlugin.validateFileSource(*args, **kwargs)
 
@@ -83,6 +87,7 @@ __pluginInfo__ = {
     "DisclosureSystem.ConfigURL": disclosureSystemConfigURL,
     "FileSource.EntrypointFiles": fileSourceEntrypointFiles,
     "Logging.Severity.Releveler": loggingSeverityReleveler,
+    "Validate.Complete": validateComplete,
     "Validate.FileSource": validateFileSource,
     "Validate.XBRL.Finally": validateXbrlFinally,
     "ValidateFormula.Finished": validateFinally,
