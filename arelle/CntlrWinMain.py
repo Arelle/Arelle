@@ -914,25 +914,15 @@ class CntlrWinMain (Cntlr.Cntlr):
                 else:
                     action = _("loaded")
                     profileStat = "load"
-                    if (reportPackage := filesource.reportPackage) and "_IXDS#?#" not in filesource.url:
-                        for report in reportPackage.reports or []:
-                            if len(report.fullPathFiles) > 1:
-                                self.addToLog(_("Loading error. Inline document set encountered. Enable 'Inline XBRL Document Set' plug-in and use the Open Inline Doc Set dialog from the file menu to open this filing: {0}").format(filesource.url))
-                                continue
-                            filesource.select(report.fullPathPrimary)
-                            modelXbrl = self.modelManager.load(filesource, _("views loading"), entrypoint=entrypoint)
-                            if modelXbrl:
-                                loadedModels.append(modelXbrl)
-                    else:
-                        modelXbrl = self.modelManager.load(
-                            filesource,
-                            _("views loading"),
-                            # check modified time if GUI-loading from web
-                            checkModifiedTime=isHttpUrl(filesource.url),
-                            entrypoint=entrypoint,
-                        )
-                        if modelXbrl:
-                            loadedModels.append(modelXbrl)
+                    modelXbrl = self.modelManager.load(
+                        filesource,
+                        _("views loading"),
+                        # check modified time if GUI-loading from web
+                        checkModifiedTime=isHttpUrl(filesource.url),
+                        entrypoint=entrypoint,
+                    )
+                    if modelXbrl:
+                        loadedModels.append(modelXbrl)
         except ModelDocument.LoadingException:
             self.showStatus(_("Loading terminated, unrecoverable error"), 15000)
             return
