@@ -849,10 +849,12 @@ class CntlrWinMain (Cntlr.Cntlr):
             for xbrlLoadedMethod in pluginClassMethods("CntlrWinMain.Xbrl.Open"):
                 url = xbrlLoadedMethod(self, url) # runs in GUI thread, allows mapping url, mult return url
             filesource = openFileSource(url,self)
-            if filesource.isArchive and not filesource.isReportPackage and not filesource.selection: # or filesource.isRss:
-                from arelle import DialogOpenArchive
-                url = DialogOpenArchive.askArchiveFile(self, filesource)
-                self.updateFileHistory(url, False)
+            if filesource.isArchive:
+                if not filesource.selection and not filesource.isReportPackage: # or filesource.isRss:
+                    from arelle import DialogOpenArchive
+                    url = DialogOpenArchive.askArchiveFile(self, filesource)
+                    self.updateFileHistory(url, False)
+                filesource.loadTaxonomyPackageMappings()
             thread = threading.Thread(target=self.backgroundLoadXbrl, args=(filesource,False,False), daemon=True).start()
 
     def importWebOpen(self, *ignore):
