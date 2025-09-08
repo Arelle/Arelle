@@ -19,13 +19,22 @@ if TYPE_CHECKING:
     from arelle.FileSource import FileSource
 
 
+def pathsContainReportsDirectory(paths: set[str], topLevelDir: str) -> bool:
+    reportDirectory = f"{topLevelDir}/{Const.REPORTS_DIRECTORY}"
+    if reportDirectory in paths:
+        return True
+    reportDirectory = f"{reportDirectory}/"
+    return any(path.startswith(reportDirectory) for path in paths)
+
 def getReportPackageTopLevelDirectory(filesource: FileSource) -> str | None:
     packageEntries = set(filesource.dir or [])
-    potentialTopLevelReportDirs = {
-        topLevelDir
-        for topLevelDir in PackageUtils.getPackageTopLevelDirectories(filesource)
-        if any(f"{topLevelDir}/{path}" in packageEntries for path in Const.REPORT_PACKAGE_PATHS)
-    }
+    potentialTopLevelReportDirs = set()
+    for topLevelDir in PackageUtils.getPackageTopLevelDirectories(filesource):
+        if (
+            f"{topLevelDir}/{Const.REPORT_PACKAGE_FILE}" in packageEntries or
+            pathsContainReportsDirectory(packageEntries, topLevelDir)
+        ):
+            potentialTopLevelReportDirs.add(topLevelDir)
     if len(potentialTopLevelReportDirs) == 1:
         return next(iter(potentialTopLevelReportDirs))
     return None
@@ -98,7 +107,7 @@ def getAllReportEntries(filesource: FileSource, stld: str | None) -> list[Report
     if not isinstance(filesource.fs, zipfile.ZipFile):
         return None
     entries = [f.orig_filename for f in filesource.fs.infolist()]
-    if not any(entry.startswith(f"{stld}/{Const.REPORTS_DIRECTORY}") for entry in entries):
+    if not pathsContainReportsDirectory(set(entries), stld):
         return None
     topReportEntries = []
     entriesBySubDir = defaultdict(list)
