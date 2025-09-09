@@ -791,6 +791,33 @@ def rule_EC1020E(
 
 
 @validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC1031E(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC1031E: Prohibited attribute is used in HTML.
+    """
+    for doc in val.modelXbrl.urlDocs.values():
+        for elt, attributeName in pluginData.getProhibitedAttributeElements(doc):
+            yield Validation.error(
+                codes='EDINET.EC1031E',
+                msg=_("Prohibited attribute '%(attributeName)s' is used in HTML. "
+                      "File name: %(file)s (line %(line)s). "
+                      "Please correct the tag attributes of the relevant file."),
+                attributeName=elt.qname.localName,
+                file=doc.basename,
+                line=elt.sourceline,
+                modelObject=elt,
+            )
+
+
+@validation(
     hook=ValidationHook.FILESOURCE,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )

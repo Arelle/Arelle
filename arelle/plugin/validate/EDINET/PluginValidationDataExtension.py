@@ -31,7 +31,7 @@ from arelle.XhtmlValidate import htmlEltUriAttrs
 from arelle.XmlValidate import VALID
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
-from .Constants import CORPORATE_FORMS, FormType, xhtmlDtdExtension, PROHIBITED_HTML_TAGS
+from .Constants import CORPORATE_FORMS, FormType, xhtmlDtdExtension, PROHIBITED_HTML_TAGS, PROHIBITED_HTML_ATTRIBUTES
 from .ControllerPluginData import ControllerPluginData
 from .ManifestInstance import ManifestInstance
 from .Statement import Statement, STATEMENTS, BalanceSheet, StatementInstance, StatementType
@@ -300,6 +300,19 @@ class PluginValidationDataExtension(PluginData):
     def getManifestInstance(self, modelXbrl: ModelXbrl) -> ManifestInstance | None:
         controllerPluginData = ControllerPluginData.get(modelXbrl.modelManager.cntlr, self.name)
         return controllerPluginData.matchManifestInstance(modelXbrl.ixdsDocUrls)
+
+    @lru_cache(1)
+    def getProhibitedAttributeElements(self, modelDocument: ModelDocument) -> list[tuple[ModelObject, str]]:
+        results: list[tuple[ModelObject, str]] = []
+        if modelDocument.type not in (ModelDocumentType.INLINEXBRL, ModelDocumentType.HTML):
+            return results
+        for elt in modelDocument.xmlRootElement.iter():
+            if not isinstance(elt, ModelObject):
+                continue
+            for attributeName in elt.attrib.keys():
+                if attributeName in PROHIBITED_HTML_ATTRIBUTES:
+                    results.append((elt, str(attributeName)))
+        return results
 
     @lru_cache(1)
     def getProhibitedTagElements(self, modelDocument: ModelDocument) -> list[ModelObject]:
