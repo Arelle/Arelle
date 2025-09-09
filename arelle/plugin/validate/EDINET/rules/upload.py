@@ -660,8 +660,11 @@ def rule_uri_references(
     """
     EDINET.EC1007E: The URI in the HTML specifies a URL or absolute path.
     EDINET.EC1013E: The URI in the HTML specifies a path not under a subdirectory.
-    EDINET.EC1014E: The URI in the HTML specifies a path to a file that doesn't exist.
+    EDINET.EC1014E: The URI in the HTML specifies a path to a directory.
     """
+    uploadContents = pluginData.getUploadContents(val.modelXbrl)
+    if uploadContents is None:
+        return
     for uriReference in pluginData.uriReferences:
         if UrlUtil.isAbsolute(uriReference.attributeValue):
             yield Validation.error(
@@ -687,10 +690,11 @@ def rule_uri_references(
             )
             continue
         fullPath = Path(uriReference.document.uri).parent / path
-        if not val.modelXbrl.fileSource.exists(str(fullPath)):
+        pathInfo = uploadContents.uploadPathsByFullPath.get(fullPath)
+        if pathInfo is not None and pathInfo.isDirectory:
             yield Validation.error(
                 codes='EDINET.EC1014E',
-                msg=_("The URI in the HTML specifies a path to a file that doesn't exist. "
+                msg=_("The URI in the HTML specifies a path to a directory. "
                       "File name: '%(file)s' (line %(line)s). "
                       "Please update the URI to reference a file."),
                 file=uriReference.document.basename,

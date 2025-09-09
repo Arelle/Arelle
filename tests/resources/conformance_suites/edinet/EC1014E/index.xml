@@ -4,20 +4,21 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns="http://xbrl.org/2005/conformance"
         name="EDINET.EC1014E"
-        description="EDINET.EC1014E: The URI in the HTML specifies a path to a file that doesn't exist."
+        description="EDINET.EC1014E: The URI in the HTML specifies a path to a directory."
         outpath=''
         owner="support@arelle.org"
         xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
     <variation id="invalid01" name="invalid01">
         <description>
-            HTML references file that doesn't exist.
-            <!--valid09.zip with img tag referencing non-existing image.-->
+            HTML references a directory.
+            <!--valid09.zip with img tag referencing a '.images/test/' directory.-->
         </description>
         <data>
             <instance readMeFirst="true">invalid01.zip</instance>
         </data>
         <result>
             <error>EDINET.EC1014E</error>
+            <error>EDINET.EC1017E</error> <!-- Unused image added within '.images/test/'. -->
         </result>
     </variation>
 </testcase>
