@@ -15,7 +15,8 @@ from .XbrlConst import xbrl, qnXbrlReferenceObj, qnXbrlLabelObj
 from .XbrlCube import (XbrlCube, XbrlCubeType, baseCubeTypes, XbrlCubeDimension,
                        periodCoreDim, conceptCoreDim, entityCoreDim, unitCoreDim, languageCoreDim, coreDimensions,
                     conceptDomainRoot, entityDomainRoot, unitDomainRoot, languageDomainRoot,
-                    defaultCubeType, reportCubeType)
+                    defaultCubeType, reportCubeType, timeSeriesCubeType,
+                    timeSeriesPropType, intervalOfMeasurementPropType, intervalConventionPropType)
 from .XbrlDimension import XbrlDimension, XbrlDomain, XbrlDomainRoot, XbrlMember
 from .XbrlEntity import XbrlEntity
 from .XbrlGroup import XbrlGroup, XbrlGroupContent
@@ -295,6 +296,7 @@ def validateTaxonomy(txmyMdl, txmy):
     for cubeObj in txmy.cubes:
         assertObjectType(cubeObj, XbrlCube)
         name = cubeObj.name
+        cubeType = txmyMdl.namedObjects.get(cubeObj.cubeType or reportCubeType)
         ntwks = set()
         for ntwrkQn in cubeObj.cubeNetworks:
             ntwk = txmyMdl.namedObjects.get(ntwrkQn)
@@ -309,19 +311,40 @@ def validateTaxonomy(txmyMdl, txmy):
             else:
                  ntwks.add(ntwk)
         dimQnCounts = {}
-        for allowedCubeDimObj in cubeObj.cubeDimensions:
-            dimQn = allowedCubeDimObj.dimensionName
-            if dimQn not in coreDimensions and not isinstance(txmyMdl.namedObjects.get(dimQn), XbrlDimension):
+        for cubeDimObj in cubeObj.cubeDimensions:
+            dimQn = cubeDimObj.dimensionName
+            dimObj = txmyMdl.namedObjects.get(dimQn)
+            if dimQn not in coreDimensions and not isinstance(dimObj, XbrlDimension):
                 txmyMdl.error("oimte:invalidTaxonomyDefinedDimension",
-                          _("The allowedCubeDimensions property on cube %(name)s MUST resolve to a dimension object: %(dimension)s"),
+                          _("The cubeDimensions property on cube %(name)s MUST resolve to a dimension object: %(dimension)s"),
                           xbrlObject=cubeObj, name=name, dimension=dimQn)
+            else:
+                # specific cubeType dimension property validations
+                tsProps = {timeSeriesPropType, intervalOfMeasurementPropType, intervalConventionPropType} & set(p.property for p in dimObj.properties)
+                if tsProps:
+                    if cubeType.name != timeSeriesCubeType:
+                        txmyMdl.error("oimte:timeSeriesDimensionPropertyOnNonTimeSeriesDimension",
+                                  _("The dimension %(dimension)s properties %(tsProps)s on cube %(name)s type %(cubeType)s MUST only be used on a timeSeries cubeType."),
+                                  xbrlObject=cubeObj, name=name, dimension=dimQn, cubeType=cubeType.name, tsProps=", ".join(str(p) for p in tsProps))
+                    else:
+                        dimDomDTQn = dimObj.domainDataType
+                        domDTobj = txmyMdl.namedObjects.get(dimDomDTQn)
+                        if not (isinstance(txmyMdl.namedObjects.get(dimDomDTQn), XbrlDataType) or
+                                domDTobj.instanceOfType(qnXsDateTime, txmyMdl)):
+                            txmyMdl.error("oimte:timeSeriesTypeOnNonTimeSeriesDimension",
+                                      _("The dimension %(dimension)s of domain type %(dimDomType)s properties %(tsProps)s on cube %(name)s MUST only be used on a date-time typed dimension."),
+                                      xbrlObject=cubeObj, name=name, dimension=dimQn, dimDomType=dimDomDTQn, tsProps=", ".join(str(p) for p in tsProps))
+                        if len(tsProps & {intervalOfMeasurementPropType, intervalConventionPropType}) == 1:
+                            txmyMdl.error("oimte:missingIntervalOfMeasurementForConvention",
+                                      _("The dimension %(dimension)s of domain type %(dimDomType)s on cube %(name)s MUST also have property %(tsProp)s."),
+                                      xbrlObject=cubeObj, name=name, dimension=dimQn, dimDomType=dimDomDTQn, 
+                                      tsProp=next(iter({intervalOfMeasurementPropType, intervalConventionPropType} - tsProps)))
             dimQnCounts[dimQn] = dimQnCounts.get(dimQn, 0) + 1
         if any(c > 1 for c in dimQnCounts.values()):
             txmyMdl.error("oimte:duplicateObjects",
                       _("The cubeDimensions of cube %(name)s duplicate these dimension object(s): %(dimensions)s"),
                       xbrlObject=cubeObj, name=name, dimensions=", ".join(str(qn) for qn, ct in dimQnCounts.items() if ct > 1))
         # check cube dims against cube type
-        cubeType = txmyMdl.namedObjects.get(cubeObj.cubeType or reportCubeType)
         if not isinstance(cubeType, XbrlCubeType):
             txmyMdl.error("oimte:invalidPropertyValue",
                       _("The cube %(name)s  cubeType %(qname)s must be a valid cube type."),
@@ -387,6 +410,7 @@ def validateTaxonomy(txmyMdl, txmy):
                     txmyMdl.error("oimte:cubeMissingRelationships",
                               _("The cube %(name)s, type %(cubeType)s, requiredCubeRelationships %(reqRel)s is missing"),
                               xbrlObject=cubeObj, name=name, cubeType=cubeType.name, reqRel=reqRelStr)
+            
 
         for exclCubeQn in cubeObj.excludeCubes:
             if exclCubeQn == cubeObj.name:
