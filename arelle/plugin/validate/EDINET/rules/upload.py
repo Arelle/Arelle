@@ -661,6 +661,7 @@ def rule_uri_references(
     EDINET.EC1007E: The URI in the HTML specifies a URL or absolute path.
     EDINET.EC1013E: The URI in the HTML specifies a path not under a subdirectory.
     EDINET.EC1014E: The URI in the HTML specifies a path to a directory.
+    EDINET.EC1021E: The URI in the HTML specifies a path to a file that doesn't exist.
     """
     uploadContents = pluginData.getUploadContents(val.modelXbrl)
     if uploadContents is None:
@@ -697,6 +698,19 @@ def rule_uri_references(
                 msg=_("The URI in the HTML specifies a path to a directory. "
                       "File name: '%(file)s' (line %(line)s). "
                       "Please update the URI to reference a file."),
+                file=uriReference.document.basename,
+                line=uriReference.element.sourceline,
+                modelObject=uriReference.element,
+            )
+            continue
+        fullPath = Path(uriReference.document.uri).parent / path
+        if not val.modelXbrl.fileSource.exists(str(fullPath)):
+            yield Validation.error(
+                codes='EDINET.EC1021E',
+                msg=_("The linked file ('%(path)s') does not exist. "
+                      "File name: '%(file)s' (line %(line)s). "
+                      "Please update the URI to reference a file."),
+                path=str(path),
                 file=uriReference.document.basename,
                 line=uriReference.element.sourceline,
                 modelObject=uriReference.element,
