@@ -662,6 +662,7 @@ def rule_uri_references(
     EDINET.EC1013E: The URI in the HTML specifies a path not under a subdirectory.
     EDINET.EC1014E: The URI in the HTML specifies a path to a directory.
     EDINET.EC1021E: The URI in the HTML specifies a path to a file that doesn't exist.
+    EDINET.EC1023E: The URI in the HTML specifies a path to a PDF file.
     """
     uploadContents = pluginData.getUploadContents(val.modelXbrl)
     if uploadContents is None:
@@ -698,6 +699,17 @@ def rule_uri_references(
                 msg=_("The URI in the HTML specifies a path to a directory. "
                       "File name: '%(file)s' (line %(line)s). "
                       "Please update the URI to reference a file."),
+                file=uriReference.document.basename,
+                line=uriReference.element.sourceline,
+                modelObject=uriReference.element,
+            )
+            continue
+        if path.suffix.lower() == '.pdf':
+            yield Validation.error(
+                codes='EDINET.EC1023E',
+                msg=_("The URI in the HTML specifies a path to a PDF file. "
+                      "File name: '%(file)s' (line %(line)s). "
+                      "Please remove the link from the relevant file."),
                 file=uriReference.document.basename,
                 line=uriReference.element.sourceline,
                 modelObject=uriReference.element,
