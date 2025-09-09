@@ -122,8 +122,10 @@ def rule_EC0100E(
     For this implementation, we will allow all directories that may be valid for at least one submission type.
     This allows for a false-negative outcome when a non-correction submission has a correction-only root directory.
     """
-    uploadContents = pluginData.getUploadContents(fileSource)
-    for path, pathInfo in uploadContents.uploadPaths.items():
+    uploadContents = pluginData.getUploadContents()
+    if uploadContents is None:
+        return
+    for path, pathInfo in uploadContents.uploadPathsByPath.items():
         if pathInfo.isRoot and path.name not in ALLOWED_ROOT_FOLDERS:
             yield Validation.error(
                 codes='EDINET.EC0100E',
@@ -227,8 +229,10 @@ def rule_EC0130E(
     """
     EDINET.EC0130E: File extensions must match the file extensions allowed in Figure 2-1-3 and Figure 2-1-5.
     """
-    uploadContents = pluginData.getUploadContents(fileSource)
-    for path, pathInfo in uploadContents.uploadPaths.items():
+    uploadContents = pluginData.getUploadContents()
+    if uploadContents is None:
+        return
+    for path, pathInfo in uploadContents.uploadPathsByPath.items():
         if pathInfo.reportFolderType is None or pathInfo.isDirectory:
             continue
         validExtensions = pathInfo.reportFolderType.getValidExtensions(pathInfo.isCorrection, pathInfo.isSubdirectory)
@@ -265,7 +269,9 @@ def rule_EC0132E(
     """
     EDINET.EC0132E: Store the manifest file directly under the relevant folder.
     """
-    uploadContents = pluginData.getUploadContents(fileSource)
+    uploadContents = pluginData.getUploadContents()
+    if uploadContents is None:
+        return
     for reportFolderType, paths in uploadContents.reports.items():
         if reportFolderType.isAttachment:
             continue
@@ -353,8 +359,10 @@ def rule_EC0192E(
     PublicDoc cover file. Please delete the cover file from PrivateDoc and upload
     it again.
     """
-    uploadContents = pluginData.getUploadContents(fileSource)
-    for path, pathInfo in uploadContents.uploadPaths.items():
+    uploadContents = pluginData.getUploadContents()
+    if uploadContents is None:
+        return
+    for path, pathInfo in uploadContents.uploadPathsByPath.items():
         if not pathInfo.isCoverPage:
             continue
         # Only applies to PrivateDoc correction reports
@@ -421,10 +429,12 @@ def rule_EC0233E(
     NOTE: This includes files in subdirectories. For example, PublicDoc/00000000_images/image.png
     comes before PublicDoc/0000000_header_*.htm
     """
-    uploadContents = pluginData.getUploadContents(fileSource)
+    uploadContents = pluginData.getUploadContents()
+    if uploadContents is None:
+        return
     directories = defaultdict(list)
     for path in uploadContents.sortedPaths:
-        pathInfo = uploadContents.uploadPaths[path]
+        pathInfo = uploadContents.uploadPathsByPath[path]
         if pathInfo.isDirectory:
             continue
         if pathInfo.reportFolderType in (ReportFolderType.PRIVATE_DOC, ReportFolderType.PUBLIC_DOC):
@@ -462,8 +472,10 @@ def rule_EC0234E(
     """
     EDINET.EC0234E: A cover file exists in an unsupported subdirectory.
     """
-    uploadContents = pluginData.getUploadContents(fileSource)
-    for path, pathInfo in uploadContents.uploadPaths.items():
+    uploadContents = pluginData.getUploadContents()
+    if uploadContents is None:
+        return
+    for path, pathInfo in uploadContents.uploadPathsByPath.items():
         if pathInfo.isDirectory:
             continue
         if pathInfo.reportFolderType not in (ReportFolderType.PRIVATE_DOC, ReportFolderType.PUBLIC_DOC):
@@ -549,14 +561,16 @@ def rule_EC0349E(
     EDINET.EC0349E: An unexpected directory or file exists in the XBRL directory.
     Only PublicDoc, PrivateDoc, or AuditDoc directories may exist beneath the XBRL directory.
     """
-    uploadContent = pluginData.getUploadContents(fileSource)
+    uploadContents = pluginData.getUploadContents()
+    if uploadContents is None:
+        return
     xbrlDirectoryPath = Path('XBRL')
     allowedPaths = {p.xbrlDirectory for p in (
         ReportFolderType.AUDIT_DOC,
         ReportFolderType.PRIVATE_DOC,
         ReportFolderType.PUBLIC_DOC,
     )}
-    for path, pathInfo in uploadContent.uploadPaths.items():
+    for path, pathInfo in uploadContents.uploadPathsByPath.items():
         if path.parent != xbrlDirectoryPath:
             continue
         if path not in allowedPaths:
@@ -583,8 +597,10 @@ def rule_EC0352E(
     """
     EDINET.EC0352E: An XBRL file with an invalid name exists.
     """
-    uploadContent = pluginData.getUploadContents(fileSource)
-    for path, pathInfo in uploadContent.uploadPaths.items():
+    uploadContents = pluginData.getUploadContents()
+    if uploadContents is None:
+        return
+    for path, pathInfo in uploadContents.uploadPathsByPath.items():
         if (
             pathInfo.isDirectory or
             pathInfo.isCorrection or
@@ -727,10 +743,12 @@ def rule_EC1017E(
     """
     EDINET.EC1017E: There is an unused file.
     """
-    uploadContents = pluginData.getUploadContents(fileSource)
+    uploadContents = pluginData.getUploadContents()
+    if uploadContents is None:
+        return
     existingSubdirectoryFilepaths = {
         path
-        for path, pathInfo in uploadContents.uploadPaths.items()
+        for path, pathInfo in uploadContents.uploadPathsByPath.items()
         if pathInfo.isSubdirectory and not pathInfo.isDirectory
     }
     usedFilepaths = pluginData.getUsedFilepaths()
@@ -838,7 +856,10 @@ def rule_filenames(
     than those allowed (alphanumeric characters, '-' and '_').
     Note: Applies ONLY to files directly beneath non-correction report folders.
     """
-    for path, pathInfo in pluginData.getUploadContents(fileSource).uploadPaths.items():
+    uploadContents = pluginData.getUploadContents()
+    if uploadContents is None:
+        return
+    for path, pathInfo in uploadContents.uploadPathsByPath.items():
         isReportFile = (
             not pathInfo.isAttachment and
             not pathInfo.isCorrection and

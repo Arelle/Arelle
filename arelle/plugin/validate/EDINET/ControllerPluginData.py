@@ -27,12 +27,14 @@ _: TypeGetText
 @dataclass
 class ControllerPluginData(PluginData):
     _manifestInstancesById: dict[str, ManifestInstance]
+    _uploadContents: UploadContents | None
     _usedFilepaths: set[Path]
 
     def __init__(self, name: str):
         super().__init__(name)
         self._manifestInstancesById = {}
         self._usedFilepaths = set()
+        self._uploadContents = None
 
     def __hash__(self) -> int:
         return id(self)
@@ -49,14 +51,18 @@ class ControllerPluginData(PluginData):
         """
         return list(self._manifestInstancesById.values())
 
-    @lru_cache(1)
-    def getUploadContents(self, fileSource: FileSource) -> UploadContents:
+    def getUploadContents(self) -> UploadContents | None:
+        return self._uploadContents
+
+    def setUploadContents(self, fileSource: FileSource) -> UploadContents:
         uploadFilepaths = self.getUploadFilepaths(fileSource)
         reports = defaultdict(list)
         uploadPaths = {}
         for path in uploadFilepaths:
             if len(path.parts) == 0:
                 continue
+            assert isinstance(fileSource.basefile, str)
+            fullPath = Path(fileSource.basefile) / path
             parents = list(reversed([p.name for p in path.parents if len(p.name) > 0]))
             reportFolderType = None
             isCorrection = True
@@ -79,6 +85,7 @@ class ControllerPluginData(PluginData):
                     if not isCorrection:
                         reports[reportFolderType].append(path)
             uploadPaths[path] = UploadPathInfo(
+                fullPath=fullPath,
                 isAttachment=reportFolderType is not None and reportFolderType.isAttachment,
                 isCorrection=isCorrection,
                 isCoverPage=not isDirectory and path.stem.startswith(Constants.COVER_PAGE_FILENAME_PREFIX),
@@ -89,10 +96,11 @@ class ControllerPluginData(PluginData):
                 reportFolderType=reportFolderType,
                 reportPath=reportPath,
             )
-        return UploadContents(
+        self._uploadContents = UploadContents(
             reports={k: frozenset(v) for k, v in reports.items() if len(v) > 0},
-            uploadPaths=uploadPaths
+            uploadPaths=list(uploadPaths.values())
         )
+        return self._uploadContents
 
     @lru_cache(1)
     def getUploadFilepaths(self, fileSource: FileSource) -> list[Path]:
