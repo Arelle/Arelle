@@ -116,10 +116,9 @@ class PluginValidationDataExtension(PluginData):
         basePath = Path(modelXbrl.fileSource.basefile)
         for uri, doc in modelXbrl.urlDocs.items():
             docPath = Path(uri)
-            if docPath.is_relative_to(basePath):
-                controllerPluginData.addUsedFilepath(docPath.relative_to(basePath))
-            else:
+            if not docPath.is_relative_to(basePath):
                 continue
+            controllerPluginData.addUsedFilepath(docPath.relative_to(basePath))
             for elt, name, value in self.getUriAttributeValues(doc):
                 self._uriReferences.append(UriReference(
                     attributeName=name,
