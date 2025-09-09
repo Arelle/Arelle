@@ -166,4 +166,4 @@ def parseManifests(filesource: FileSource) -> list[ManifestInstance]:
                     err,
                     traceback.format_exc()
                 ))
-    return instances
+    return sorted(instances, key=lambda i: i.id)
