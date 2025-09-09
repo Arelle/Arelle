@@ -101,6 +101,26 @@ class ValidationPlugin:
     ) -> ModelDocument | LoadingException | None:
         raise NotImplementedError
 
+    def validateComplete(
+            self,
+            cntlr: Cntlr,
+            fileSource: FileSource,
+            *args: Any,
+            **kwargs: Any,
+    ) -> None:
+        """
+        Executes validation functions in the rules module that was provided to the constructor of this class.
+        Each function decorated with [@validation](#arelle.utils.validate.Decorator.validation) will be run if:
+        1. the decorator was used with the validation complete hook: `@validation(hook=ValidationHook.COMPLETE)`
+
+        :param cntlr: The [Cntlr](#arelle.Cntlr.Cntlr) instance.
+        :param fileSource: The [FileSource](#arelle.FileSource.FileSource) involved in loading the entrypoint files.
+        :param args: Argument capture to ensure new parameters don't break plugin hook.
+        :param kwargs: Argument capture to ensure new named parameters don't break plugin hook.
+        :return: None
+        """
+        self._executeCntlrValidations(ValidationHook.COMPLETE, cntlr, fileSource, *args, **kwargs)
+
     def validateFileSource(
         self,
         cntlr: Cntlr,
@@ -112,7 +132,7 @@ class ValidationPlugin:
         """
         Executes validation functions in the rules module that was provided to the constructor of this class.
         Each function decorated with [@validation](#arelle.utils.validate.Decorator.validation) will be run if:
-        1. the decorator was used with the xbrl start hook: `@validation(hook=ValidationHook.FILESOURCE)`
+        1. the decorator was used with the FileSource validation hook: `@validation(hook=ValidationHook.FILESOURCE)`
 
         :param cntlr: The [Cntlr](#arelle.Cntlr.Cntlr) instance.
         :param fileSource: The [FileSource](#arelle.FileSource.FileSource) involved in loading the entrypoint files.

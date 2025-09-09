@@ -49,4 +49,5 @@ class ValidationPluginExtension(ValidationPlugin):
             raise ValueError(f'Invalid EDINET disclosure system: {disclosureSystem}')
         return PluginValidationDataExtension(
             self.name,
+            validateXbrl
         )

@@ -304,6 +304,7 @@ class Validate:
     def _testcaseLoadReadMeFirstUri(self, testcase, modelTestcaseVariation, index, readMeFirstUri, resultIsVersioningReport, resultIsTaxonomyPackage, inputDTSes, errorCaptureLevel, baseForElement, parameters):
         preLoadingErrors = [] # accumulate pre-loading errors, such as during taxonomy package loading
         loadedModels = []
+        filesource = None
         readMeFirstElements = modelTestcaseVariation.readMeFirstElements
         expectTaxonomyPackage = (index < len(readMeFirstElements) and
                                     readMeFirstElements[index] is not None and
@@ -487,6 +488,8 @@ class Validate:
                     self.instValidator.validate(model, parameters)
                     for pluginXbrlMethod in pluginClassMethods("TestcaseVariation.Xbrl.Validated"):
                         pluginXbrlMethod(self.modelXbrl, model)
+                    for pluginXbrlMethod in pluginClassMethods("Validate.Complete"):
+                        pluginXbrlMethod(self.modelXbrl.modelManager.cntlr, filesource)
                 except Exception as err:
                     model.error("exception:" + type(err).__name__,
                         _("Testcase variation validation exception: %(error)s, instance: %(instance)s"),

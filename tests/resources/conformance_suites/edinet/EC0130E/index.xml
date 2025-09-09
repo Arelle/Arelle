@@ -19,6 +19,7 @@
         <result>
             <error num="12">EDINET.EC0130E</error>
             <error>EDINET.EC0352E</error> <!-- invalid file extension also means invalid filename -->
+            <error num="11">EDINET.EC1017E</error> <!-- added files are not used -->
         </result>
     </variation>
 </testcase>

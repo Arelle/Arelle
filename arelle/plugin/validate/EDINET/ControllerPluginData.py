@@ -27,10 +27,12 @@ _: TypeGetText
 @dataclass
 class ControllerPluginData(PluginData):
     _manifestInstancesById: dict[str, ManifestInstance]
+    _usedFilepaths: set[Path]
 
     def __init__(self, name: str):
         super().__init__(name)
         self._manifestInstancesById = {}
+        self._usedFilepaths = set()
 
     def __hash__(self) -> int:
         return id(self)
@@ -120,6 +122,9 @@ class ControllerPluginData(PluginData):
             if not i.is_dir()
         }
 
+    def getUsedFilepaths(self) -> frozenset[Path]:
+        return frozenset(self._usedFilepaths)
+
     @lru_cache(1)
     def isUpload(self, fileSource: FileSource) -> bool:
         fileSource.open()  # Make sure file source is open
@@ -164,6 +169,9 @@ class ControllerPluginData(PluginData):
             matchedInstance = instance
             break
         return matchedInstance
+
+    def addUsedFilepath(self, path: Path) -> None:
+        self._usedFilepaths.add(path)
 
     @staticmethod
     def get(cntlr: Cntlr, name: str) -> ControllerPluginData:
