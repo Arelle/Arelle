@@ -95,6 +95,7 @@ class XbrlCubeType(XbrlReferencableTaxonomyObject):
     taxonomyDefinedDimension: Optional[bool] # (optional) boolean to indicate if taxonomy defined dimensions are included in the cube. Defaults to true if no baseCubeType.
     allowedCubeDimensions: Optional[OrderedSet[XbrlAllowedCubeDimension]] # (optional) An ordered set of allowedCubeDimension objects that are permitted to be used on the cube. If the property is not defined then any dimensions can be associated with the cube.
     requiredCubeRelationships: OrderedSet[XbrlRequiredCubeRelationship] # (optional) An ordered set of requiredCubeRelationship objects that at a minimum must be associated with the cube.
+    requiredCubeProperties: OrderedSet[XbrlRequiredCubeRelationship] # (optional) An ordered set of property objects that at a minimum must be associated with the cube.
 
     def effectivePropVal(self, propName, txmyMdl): # property effective value considering inheritance and default value if not on basemost cube type
         val = getattr(self, propName, None)
@@ -122,6 +123,9 @@ timeSeriesCubeType = qname(xbrl, "xbrl:timeSeriesCube")
 defaultCubeType = qname(xbrl, "xbrl:defaultCube")
 baseCubeTypes = {eventCubeType, positionCubeType, referenceCubeType, reportCubeType, journalCubeType,
                  eventDetailsCubeType, timeSeriesCubeType, defaultCubeType}
+timeSeriesPropType = qname(xbrl, "xbrl:timeSeriesType")
+intervalOfMeasurementPropType = qname(xbrl, "xbrl:intervalOfMeasurement")
+intervalConventionPropType = qname(xbrl, "xbrl:intervalConvention")
 
 periodCoreDim = qname(xbrl, "xbrl:period")
 conceptCoreDim = qname(xbrl, "xbrl:concept")
