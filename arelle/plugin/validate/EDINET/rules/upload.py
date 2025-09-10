@@ -715,7 +715,6 @@ def rule_uri_references(
                 modelObject=uriReference.element,
             )
             continue
-        fullPath = Path(uriReference.document.uri).parent / path
         if not val.modelXbrl.fileSource.exists(str(fullPath)):
             yield Validation.error(
                 codes='EDINET.EC1021E',

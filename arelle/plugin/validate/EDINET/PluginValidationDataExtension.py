@@ -310,7 +310,7 @@ class PluginValidationDataExtension(PluginData):
         for elt in modelDocument.xmlRootElement.iter():
             if not isinstance(elt, ModelObject):
                 continue
-            for attributeName in elt.attrib.keys():
+            for attributeName in elt.attrib:
                 if attributeName in PROHIBITED_HTML_ATTRIBUTES:
                     results.append((elt, str(attributeName)))
         return results
