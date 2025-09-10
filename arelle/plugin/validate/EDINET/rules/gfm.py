@@ -686,16 +686,18 @@ def rule_gfm_1_5_6(
     EDINET.EC5700W: [GFM 1.5.6] The length of a label must be less than 511 characters unless it its role is documentation.
     """
     labelRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
-    if labelRelationshipSet is not None:
-        for concept in val.modelXbrl.qnameConcepts.values():
-            labelRels = labelRelationshipSet.fromModelObject(concept)
-            for rel in labelRels:
-                label = rel.toModelObject
-                if label.role is not XbrlConst.documentationLabel and label.viewText() is not None and len(label.viewText()) > 511:
-                    yield Validation.warning(
-                        codes='EDINET.EC5700W.GFM.1.5.6',
-                        msg=_("The concept of \"{concept}\" has a label classified as \"{role}\" that is longer than 511 characters: {label}".format(
-                            concept=concept.qname, role=label.role, label=label.viewText()
-                        )),
-                        modelObject=label
-                    )
+    if labelRelationshipSet is None:
+        return
+    for concept in val.modelXbrl.qnameConcepts.values():
+        labelRels = labelRelationshipSet.fromModelObject(concept)
+        for rel in labelRels:
+            label = rel.toModelObject
+            if label.role != XbrlConst.documentationLabel and label.viewText() is not None and len(label.viewText()) > 511:
+                yield Validation.warning(
+                    codes='EDINET.EC5700W.GFM.1.5.6',
+                    msg=_("The concept of '%(concept)s' has a label classified as '%(role)s' that is longer than 511 characters: %(label)s"),
+                    concept=concept.qname,
+                    role=label.role,
+                    label=label.viewText(),
+                    modelObject=label
+                )
