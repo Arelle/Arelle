@@ -832,7 +832,7 @@ def rule_EC1031E(
                 msg=_("Prohibited attribute '%(attributeName)s' is used in HTML. "
                       "File name: %(file)s (line %(line)s). "
                       "Please correct the tag attributes of the relevant file."),
-                attributeName=elt.qname.localName,
+                attributeName=attributeName,
                 file=doc.basename,
                 line=elt.sourceline,
                 modelObject=elt,
