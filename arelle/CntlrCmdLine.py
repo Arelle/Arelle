@@ -1171,10 +1171,6 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         for pluginXbrlMethod in PluginManager.pluginClassMethods("CntlrCmdLine.Xbrl.Run"):
                             pluginXbrlMethod(self, options, modelXbrl, _entrypoint, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
 
-                    if options.validate:
-                        for pluginXbrlMethod in PluginManager.pluginClassMethods("Validate.Complete"):
-                            pluginXbrlMethod(self, filesource)
-
                 except OSError as err:
                     self.addToLog(_("[IOError] Failed to save output:\n {0}").format(err),
                                   messageCode="IOError",
@@ -1222,6 +1218,11 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         self.modelManager.close(modelDiffReport)
                     elif modelXbrl:
                         self.modelManager.close(modelXbrl)
+
+        if options.validate:
+            for pluginXbrlMethod in PluginManager.pluginClassMethods("Validate.Complete"):
+                pluginXbrlMethod(self, filesource)
+
         if filesource is not None and not options.keepOpen:
             # Archive filesource potentially used by multiple reports may still be open.
             filesource.close()
