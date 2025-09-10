@@ -691,7 +691,7 @@ def rule_gfm_1_5_6(
             labelRels = labelRelationshipSet.fromModelObject(concept)
             for rel in labelRels:
                 label = rel.toModelObject
-                if label.role is not XbrlConst.documentationLabel and label.viewText() is not None and len(label.viewText()) > 511:
+                if label.role != XbrlConst.documentationLabel and label.viewText() is not None and len(label.viewText()) > 511:
                     yield Validation.warning(
                         codes='EDINET.EC5700W.GFM.1.5.6',
                         msg=_("The concept of \"{concept}\" has a label classified as \"{role}\" that is longer than 511 characters: {label}".format(
