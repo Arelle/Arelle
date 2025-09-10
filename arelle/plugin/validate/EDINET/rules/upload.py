@@ -155,8 +155,8 @@ def rule_EC0124E_EC0187E(
     """
     uploadFilepaths = pluginData.getUploadFilepaths(fileSource)
     emptyDirectories = []
-    for path in uploadFilepaths:
-        if path.suffix:
+    for path, zipPath in uploadFilepaths.items():
+        if not zipPath.is_dir():
             continue
         if not any(path in p.parents for p in uploadFilepaths):
             emptyDirectories.append(path)
@@ -391,8 +391,8 @@ def rule_EC0198E(
     """
     fileCounts: dict[Path, int] = defaultdict(int)
     uploadFilepaths = pluginData.getUploadFilepaths(fileSource)
-    for path in uploadFilepaths:
-        if len(path.suffix) == 0:
+    for path, zipPath in uploadFilepaths.items():
+        if zipPath.is_dir():
             continue
         for directory in FILE_COUNT_LIMITS.keys():
             if directory in path.parents:

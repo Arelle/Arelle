@@ -55,10 +55,9 @@ class ControllerPluginData(PluginData):
         return self._uploadContents
 
     def setUploadContents(self, fileSource: FileSource) -> UploadContents:
-        uploadFilepaths = self.getUploadFilepaths(fileSource)
         reports = defaultdict(list)
         uploadPaths = {}
-        for path in uploadFilepaths:
+        for path, zipPath in self.getUploadFilepaths(fileSource).items():
             if len(path.parts) == 0:
                 continue
             assert isinstance(fileSource.basefile, str)
@@ -66,7 +65,7 @@ class ControllerPluginData(PluginData):
             parents = list(reversed([p.name for p in path.parents if len(p.name) > 0]))
             reportFolderType = None
             isCorrection = True
-            isDirectory = len(path.suffix) == 0
+            isDirectory = zipPath.is_dir()
             isInSubdirectory = False
             reportPath = None
             if len(parents) > 0:
@@ -89,7 +88,7 @@ class ControllerPluginData(PluginData):
                 isAttachment=reportFolderType is not None and reportFolderType.isAttachment,
                 isCorrection=isCorrection,
                 isCoverPage=not isDirectory and path.stem.startswith(Constants.COVER_PAGE_FILENAME_PREFIX),
-                isDirectory=len(path.suffix) == 0,
+                isDirectory=isDirectory,
                 isRoot=len(path.parts) == 1,
                 isSubdirectory=isInSubdirectory or (isDirectory and reportFolderType is not None),
                 path=path,
@@ -103,16 +102,25 @@ class ControllerPluginData(PluginData):
         return self._uploadContents
 
     @lru_cache(1)
-    def getUploadFilepaths(self, fileSource: FileSource) -> list[Path]:
+    def getUploadFilepaths(self, fileSource: FileSource) -> dict[Path, zipfile.Path]:
         if not self.isUpload(fileSource):
-            return []
-        paths = set()
+            return {}
+        paths = {}
         assert isinstance(fileSource.fs, zipfile.ZipFile)
-        for name in fileSource.fs.namelist():
-            path = Path(name)
-            paths.add(path)
-            paths.update(path.parents)
-        return sorted(paths)
+        # First, fill in paths from zip file list
+        for file in fileSource.fs.filelist:
+            zipPath = zipfile.Path(fileSource.fs, file.filename)
+            paths[Path(file.filename)] = zipPath
+        # Then, fill in any parent directories that weren't in file list
+        for path in list(paths):
+            for parent in path.parents:
+                if parent in paths:
+                    continue
+                paths[parent] = zipfile.Path(fileSource.fs, parent.as_posix() + '/')
+        return {
+            path: paths[path]
+            for path in sorted(paths)
+        }
 
     @lru_cache(1)
     def getUploadFileSizes(self, fileSource: FileSource) -> dict[Path, int]:
