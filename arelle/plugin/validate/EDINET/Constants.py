@@ -40,6 +40,27 @@ xhtmlDtdExtension = "xhtml1-strict-ix.dtd"
 
 COVER_PAGE_FILENAME_PREFIX = "0000000_header_"
 
+PROHIBITED_HTML_ATTRIBUTES = frozenset({
+    'onblur',
+    'onchange',
+    'onclick',
+    'ondblclick',
+    'onfocus',
+    'onkeydown',
+    'onkeypress',
+    'onkeyup',
+    'onload',
+    'onmousedown',
+    'onmousemove',
+    'onmouseout',
+    'onmouseover',
+    'onmouseup',
+    'onreset',
+    'onselect',
+    'onsubmit',
+    'onunload',
+})
+
 PROHIBITED_HTML_TAGS = frozenset({
     'applet',
     'embed',
