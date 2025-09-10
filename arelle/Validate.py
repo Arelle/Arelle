@@ -488,13 +488,13 @@ class Validate:
                     self.instValidator.validate(model, parameters)
                     for pluginXbrlMethod in pluginClassMethods("TestcaseVariation.Xbrl.Validated"):
                         pluginXbrlMethod(self.modelXbrl, model)
-                    for pluginXbrlMethod in pluginClassMethods("Validate.Complete"):
-                        pluginXbrlMethod(self.modelXbrl.modelManager.cntlr, filesource)
                 except Exception as err:
                     model.error("exception:" + type(err).__name__,
                         _("Testcase variation validation exception: %(error)s, instance: %(instance)s"),
                         modelXbrl=model, instance=model.modelDocument.basename, error=err, exc_info=(type(err) is not AssertionError))
                 model.hasFormulae = _hasFormulae
+        for pluginXbrlMethod in pluginClassMethods("Validate.Complete"):
+            pluginXbrlMethod(self.modelXbrl.modelManager.cntlr, filesource)
         errors = [error for model in loadedModels for error in model.errors]
         for err in preLoadingErrors:
             if err not in errors:
