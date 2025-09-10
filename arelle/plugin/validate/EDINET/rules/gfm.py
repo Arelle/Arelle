@@ -641,3 +641,32 @@ def rule_gfm_1_3_1(
             msg=_("The submitter-specific taxonomy contains include elements."),
             modelObject=warnings
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_3_8(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.3.8] TThe submitter-specific taxonomy has an embedded linkbase.
+    """
+    embeddedElements = []
+    for modelDocument in val.modelXbrl.urlDocs.values():
+        if pluginData.isStandardTaxonomyUrl(modelDocument.uri, val.modelXbrl):
+            continue
+        rootElt = modelDocument.xmlRootElement
+        for elt in rootElt.iterdescendants(XbrlConst.qnLinkLinkbaseRef.clarkNotation):
+            if elt.attrib.get(XbrlConst.qnXlinkType.clarkNotation) in ('extended', 'arc', 'resource', 'locator'):
+                embeddedElements.append(elt)
+    if len(embeddedElements) > 0:
+        yield Validation.warning(
+            codes='EDINET.EC5700W.GFM.1.3.8',
+            msg=_("The submitter-specific taxonomy has an embedded linkbase."),
+            modelObject=embeddedElements
+        )
