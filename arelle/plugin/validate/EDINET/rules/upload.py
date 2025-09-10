@@ -10,6 +10,7 @@ from typing import Any, Iterable, TYPE_CHECKING
 
 import regex
 
+from arelle import UrlUtil
 from arelle.Cntlr import Cntlr
 from arelle.FileSource import FileSource
 from arelle.ValidateXbrl import ValidateXbrl
@@ -603,6 +604,87 @@ def rule_EC0352E(
 
 
 @validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC1006E(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC1006E: Prohibited tag is used in HTML.
+    """
+    for doc in val.modelXbrl.urlDocs.values():
+        for elt in pluginData.getProhibitedTagElements(doc):
+            yield Validation.error(
+                codes='EDINET.EC1006E',
+                msg=_("Prohibited tag (%(tag)s) is used in HTML. File name: %(file)s (line %(line)s). "
+                      "Please correct the prohibited tags for the relevant files. "
+                      "For information on prohibited tags, please refer to \"4-1-4 Prohibited Rules\" "
+                      "in the Validation Guidelines."),
+                tag=elt.qname.localName,
+                file=doc.basename,
+                line=elt.sourceline,
+                modelObject=elt,
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_uri_references(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC1007E: The URI in the HTML specifies a URL or absolute path.
+    EDINET.EC1013E: The URI in the HTML specifies a path not under a subdirectory.
+    EDINET.EC1014E: The URI in the HTML specifies a path to a file that doesn't exist.
+    """
+    for uriReference in pluginData.uriReferences:
+        if UrlUtil.isAbsolute(uriReference.attributeValue):
+            yield Validation.error(
+                codes='EDINET.EC1007E',
+                msg=_("The URI in the HTML specifies a URL or absolute path. "
+                      "File name: '%(file)s' (line %(line)s). "
+                      "Please change the links in the files to relative paths."),
+                file=uriReference.document.basename,
+                line=uriReference.element.sourceline,
+                modelObject=uriReference.element,
+            )
+            continue
+        path = Path(uriReference.attributeValue)
+        if len(path.parts) < 2:
+            yield Validation.error(
+                codes='EDINET.EC1013E',
+                msg=_("The URI in the HTML specifies a path not under a subdirectory. "
+                      "File name: '%(file)s' (line %(line)s). "
+                      "Please move the referenced file into a subfolder, or correct the URI."),
+                file=uriReference.document.basename,
+                line=uriReference.element.sourceline,
+                modelObject=uriReference.element,
+            )
+            continue
+        fullPath = Path(uriReference.document.uri).parent / path
+        if not val.modelXbrl.fileSource.exists(str(fullPath)):
+            yield Validation.error(
+                codes='EDINET.EC1014E',
+                msg=_("The URI in the HTML specifies a path to a file that doesn't exist. "
+                      "File name: '%(file)s' (line %(line)s). "
+                      "Please update the URI to reference a file."),
+                file=uriReference.document.basename,
+                line=uriReference.element.sourceline,
+                modelObject=uriReference.element,
+            )
+            continue
+
+
+@validation(
     hook=ValidationHook.FILESOURCE,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
@@ -632,31 +714,35 @@ def rule_EC1016E(
 
 
 @validation(
-    hook=ValidationHook.XBRL_FINALLY,
+    hook=ValidationHook.COMPLETE,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
-def rule_EC1006E(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
+def rule_EC1017E(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
         *args: Any,
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    EDINET.EC1006E: Prohibited tag is used in HTML.
+    EDINET.EC1017E: There is an unused file.
     """
-    for doc in val.modelXbrl.urlDocs.values():
-        for elt in pluginData.getProhibitedTagElements(doc):
-            yield Validation.error(
-                codes='EDINET.EC1006E',
-                msg=_("Prohibited tag (%(tag)s) is used in HTML. File name: %(file)s (line %(line)s). "
-                      "Please correct the prohibited tags for the relevant files. "
-                      "For information on prohibited tags, please refer to \"4-1-4 Prohibited Rules\" "
-                      "in the Validation Guidelines."),
-                tag=elt.qname.localName,
-                file=doc.basename,
-                line=elt.sourceline,
-                modelObject=elt,
-            )
+    uploadContents = pluginData.getUploadContents(fileSource)
+    existingSubdirectoryFilepaths = {
+        path
+        for path, pathInfo in uploadContents.uploadPaths.items()
+        if pathInfo.isSubdirectory and not pathInfo.isDirectory
+    }
+    usedFilepaths = pluginData.getUsedFilepaths()
+    unusedSubdirectoryFilepaths = existingSubdirectoryFilepaths - usedFilepaths
+    for path in unusedSubdirectoryFilepaths:
+        yield Validation.error(
+            codes='EDINET.EC1017E',
+            msg=_("There is an unused file. "
+                  "File name: '%(file)s'. "
+                  "Please remove the file or reference it in the HTML."),
+            file=str(path),
+        )
 
 
 @validation(
@@ -701,6 +787,33 @@ def rule_EC1020E(
                       "one head tag, and one body tag each."),
                 path=str(path),
                 file=str(path),
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC1031E(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC1031E: Prohibited attribute is used in HTML.
+    """
+    for doc in val.modelXbrl.urlDocs.values():
+        for elt, attributeName in pluginData.getProhibitedAttributeElements(doc):
+            yield Validation.error(
+                codes='EDINET.EC1031E',
+                msg=_("Prohibited attribute '%(attributeName)s' is used in HTML. "
+                      "File name: %(file)s (line %(line)s). "
+                      "Please correct the tag attributes of the relevant file."),
+                attributeName=elt.qname.localName,
+                file=doc.basename,
+                line=elt.sourceline,
+                modelObject=elt,
             )
 
 

@@ -5,11 +5,14 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 
+from typing import Any
+
 from arelle import ValidateDuplicateFacts
 import os, sys, subprocess, pickle, time, locale, fnmatch, platform, webbrowser
 import regex as re
 
 from arelle.logging.formatters.LogFormatter import logRefsFileLines
+from arelle.utils.EntryPointDetection import parseEntrypointFileInput
 
 if sys.platform == 'win32' and getattr(sys, 'frozen', False):
     # need the .dll directory in path to be able to access Tk and Tcl DLLs efore importinng Tk, etc.
@@ -816,15 +819,22 @@ class CntlrWinMain (Cntlr.Cntlr):
         if filename:
             for xbrlLoadedMethod in pluginClassMethods("CntlrWinMain.Xbrl.Open"):
                 filename = xbrlLoadedMethod(self, filename) # runs in GUI thread, allows mapping filename, mult return filename
-            filesource = None
+            entrypointParseResult = parseEntrypointFileInput(self, filename, fallbackSelect=False)
+            if not entrypointParseResult.success or entrypointParseResult.filesource is None:
+                return
+            filesource = entrypointParseResult.filesource
+            entrypointFiles = entrypointParseResult.entrypointFiles
             # check for archive files
-            filesource = openFileSource(filename, self,
-                                        checkIfXmlIsEis=self.modelManager.disclosureSystem and
-                                        self.modelManager.disclosureSystem.validationType == "EFM")
             if filesource.isArchive:
-                if not filesource.selection and not filesource.isReportPackage: # or filesource.isRss:
+                if (
+                    len(entrypointFiles) == 0 and
+                    not filesource.selection and
+                    not filesource.isReportPackage
+                ):
                     from arelle import DialogOpenArchive
                     filename = DialogOpenArchive.askArchiveFile(self, filesource)
+                    if filename is not None:
+                        entrypointFiles.append({"file": filename})
                     if filename and filesource.basefile and not isHttpUrl(filesource.basefile):
                         self.config["fileOpenDir"] = os.path.dirname(filesource.baseurl)
                 filesource.loadTaxonomyPackageMappings() # if a package, load mappings if not loaded yet
@@ -837,7 +847,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 self.updateFileHistory(filename, importToDTS)
             elif len(filename) == 1:
                 self.updateFileHistory(filename[0], importToDTS)
-            thread = threading.Thread(target=self.backgroundLoadXbrl, args=(filesource,importToDTS,selectTopView), daemon=True).start()
+            thread = threading.Thread(target=self.backgroundLoadXbrl, args=(filesource,entrypointFiles,importToDTS,selectTopView), daemon=True).start()
 
     def webOpen(self, *ignore):
         if not self.okayToContinue():
@@ -848,12 +858,24 @@ class CntlrWinMain (Cntlr.Cntlr):
             self.updateFileHistory(url, False)
             for xbrlLoadedMethod in pluginClassMethods("CntlrWinMain.Xbrl.Open"):
                 url = xbrlLoadedMethod(self, url) # runs in GUI thread, allows mapping url, mult return url
-            filesource = openFileSource(url,self)
-            if filesource.isArchive and not filesource.isReportPackage and not filesource.selection: # or filesource.isRss:
-                from arelle import DialogOpenArchive
-                url = DialogOpenArchive.askArchiveFile(self, filesource)
-                self.updateFileHistory(url, False)
-            thread = threading.Thread(target=self.backgroundLoadXbrl, args=(filesource,False,False), daemon=True).start()
+            entrypointParseResult = parseEntrypointFileInput(self, url, fallbackSelect=False)
+            if not entrypointParseResult.success or entrypointParseResult.filesource is None:
+                return
+            filesource = entrypointParseResult.filesource
+            entrypointFiles = entrypointParseResult.entrypointFiles
+            if filesource.isArchive:
+                if (
+                        len(entrypointFiles) == 0 and
+                        not filesource.selection and
+                        not filesource.isReportPackage
+                ):
+                    from arelle import DialogOpenArchive
+                    url = DialogOpenArchive.askArchiveFile(self, filesource)
+                    if url is not None:
+                        entrypointFiles.append({"file": url})
+                    self.updateFileHistory(url, False)
+                filesource.loadTaxonomyPackageMappings()
+            thread = threading.Thread(target=self.backgroundLoadXbrl, args=(filesource,entrypointFiles,False,False), daemon=True).start()
 
     def importWebOpen(self, *ignore):
         if not self.modelManager.modelXbrl or self.modelManager.modelXbrl.modelDocument.type not in (
@@ -867,36 +889,37 @@ class CntlrWinMain (Cntlr.Cntlr):
             self.fileOpenFile(url, importToDTS=True)
 
 
-    def backgroundLoadXbrl(self, filesource, importToDTS, selectTopView):
+    def backgroundLoadXbrl(self, filesource, entrypointFiles: list[dict[str, Any]], importToDTS, selectTopView):
         startedAt = time.time()
         loadedModels = []
         try:
-            if importToDTS:
-                action = _("imported")
-                profileStat = "import"
-                modelXbrl = self.modelManager.modelXbrl
-                if modelXbrl:
-                    ModelDocument.load(modelXbrl, filesource.url, isSupplemental=importToDTS)
-                    modelXbrl.relationshipSets.clear() # relationships have to be re-cached
-                    loadedModels.append(modelXbrl)
-            else:
-                action = _("loaded")
-                profileStat = "load"
-                if (reportPackage := filesource.reportPackage) and "_IXDS#?#" not in filesource.url:
-                    for report in reportPackage.reports or []:
-                        if len(report.fullPathFiles) > 1:
-                            self.addToLog(_("Loading error. Inline document set encountered. Enable 'Inline XBRL Document Set' plug-in and use the Open Inline Doc Set dialog from the file menu to open this filing: {0}").format(filesource.url))
-                            continue
-                        filesource.select(report.fullPathPrimary)
-                        modelXbrl = self.modelManager.load(filesource, _("views loading"))
-                        if modelXbrl:
-                            loadedModels.append(modelXbrl)
+            action = _("preparing entrypoints")
+            for pluginXbrlMethod in pluginClassMethods("CntlrWinMain.Filing.Start"):
+                pluginXbrlMethod(self, filesource, entrypointFiles)
+            for entrypoint in entrypointFiles:
+                entrypointFile = entrypoint.get("file", None) if isinstance(entrypoint,dict) else entrypoint
+                if filesource and filesource.isArchive:
+                    filesource.select(entrypointFile)
                 else:
+                    entrypointFile = PackageManager.mappedUrl(entrypointFile)
+                    filesource = openFileSource(entrypointFile, self)
+                if importToDTS:
+                    action = _("imported")
+                    profileStat = "import"
+                    modelXbrl = self.modelManager.modelXbrl
+                    if modelXbrl:
+                        ModelDocument.load(modelXbrl, filesource.url, isSupplemental=importToDTS)
+                        modelXbrl.relationshipSets.clear() # relationships have to be re-cached
+                        loadedModels.append(modelXbrl)
+                else:
+                    action = _("loaded")
+                    profileStat = "load"
                     modelXbrl = self.modelManager.load(
                         filesource,
                         _("views loading"),
                         # check modified time if GUI-loading from web
                         checkModifiedTime=isHttpUrl(filesource.url),
+                        entrypoint=entrypoint,
                     )
                     if modelXbrl:
                         loadedModels.append(modelXbrl)

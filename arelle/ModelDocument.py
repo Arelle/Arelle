@@ -446,7 +446,7 @@ def loadSchemalocatedSchema(modelXbrl, element, relativeUrl, namespace, baseUrl)
             doc.inDTS = False
     return doc
 
-def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None, initialComment=None, base=None, discover=True, documentEncoding="utf-8", xbrliNamespacePrefix=None) -> ModelDocument:
+def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None, initialComment=None, base=None, discover=True, documentEncoding="utf-8", xbrliNamespacePrefix=None, entrypoint=None) -> ModelDocument:
     """Returns a new modelDocument, created from scratch, with any necessary header elements
 
     (such as the schema, instance, or RSS feed top level elements)
@@ -538,6 +538,7 @@ def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None
         modelDocument.isQualifiedElementFormDefault = False
         modelDocument.isQualifiedAttributeFormDefault = False
     modelDocument.definesUTR = False
+    modelDocument.entrypoint = entrypoint
     return modelDocument
 
 class Type:
@@ -727,10 +728,12 @@ class ModelDocument:
     # The document encoding. The XML declaration is stripped from the document
     # before lxml parses the document making the lxml DocInfo encoding unreliable.
     documentEncoding: str
+    entrypoint: dict[str, Any] | None
     xmlRootElement: Any
     targetXbrlRootElement: ModelObject
 
     def __init__(self, modelXbrl, type, uri, filepath, xmlDocument):
+        self.entrypoint = None
         self.modelXbrl = modelXbrl
         self.skipDTS = modelXbrl.skipDTS
         self.type = type

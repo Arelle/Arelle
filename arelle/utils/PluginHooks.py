@@ -34,6 +34,7 @@ class ValidationHook(Enum):
     These hooks are called at different stages of validation, but all provide a common interface (ValidateXbrl is the first param).
     """
 
+    COMPLETE = "Validate.Complete"
     FILESOURCE = "Validate.FileSource"
     XBRL_START = "Validate.XBRL.Start"
     XBRL_FINALLY = "Validate.XBRL.Finally"
@@ -42,6 +43,42 @@ class ValidationHook(Enum):
 
 
 class PluginHooks(ABC):
+
+    @staticmethod
+    def cntlrCmdLineFilingStart(
+            cntlr: CntlrCmdLine,
+            options: RuntimeOptions,
+            filesource: FileSource | None,
+            entrypoints: list[dict[str, Any]] | None = None,
+            sourceZipStream: BinaryIO | None = None,
+            responseZipStream: BinaryIO | None = None,
+            *args: Any,
+            **kwargs: Any,
+    ) -> None:
+        """
+        Plugin hook: `CntlrCmdLine.Filing.Start`
+
+        This hook is triggered after entrypoints have been discovered and parsed, but before
+        models have been loaded.
+
+        Example:
+        ```python
+        timeAtStart = time.time()
+        myOptionEnabled = options.myOption
+        ```
+
+        :param cntlr: The [CntlrCmdLine](#arelle.CntlrCmdLine.CntlrCmdLine) that is currently running.
+        :param options: Parsed options object.
+        :param filesource: FileSource, if available.
+        :param entrypoints: A list of entrypoint configurations.
+        :param sourceZipStream: The source zip stream if the model was loaded from a zip that was POSTed to the webserver.
+        :param responseZipStream: The response zip stream if loaded from the webserver and the user requested a zip response.
+        :param args: Argument capture to ensure new parameters don't break plugin hook.
+        :param kwargs: Argument capture to ensure new named parameters don't break plugin hook.
+        :return: None
+        """
+        raise NotImplementedError
+
     @staticmethod
     def cntlrCmdLineOptions(
         parser: OptionParser,
@@ -215,6 +252,34 @@ class PluginHooks(ABC):
             # Normal routes will be combined with plugin routes and app started.
             return None
             ```
+        """
+        raise NotImplementedError
+
+    @staticmethod
+    def cntlrWinMainFilingStart(
+            cntlr: CntlrWinMain,
+            filesource: FileSource | None,
+            entrypoints: list[dict[str, Any]] | None = None,
+            *args: Any,
+            **kwargs: Any,
+    ) -> None:
+        """
+        Plugin hook: `CntlrWinMain.Filing.Start`
+
+        This hook is triggered after entrypoints have been discovered and parsed, but before
+        models have been loaded.
+
+        Example:
+        ```python
+        timeAtStart = time.time()
+        ```
+
+        :param cntlr: The [CntlrWinMain](#arelle.CntlrWinMain.CntlrWinMain) that is currently running.
+        :param filesource: FileSource, if available.
+        :param entrypoints: A list of entrypoint configurations.
+        :param args: Argument capture to ensure new parameters don't break plugin hook.
+        :param kwargs: Argument capture to ensure new named parameters don't break plugin hook.
+        :return: None
         """
         raise NotImplementedError
 
@@ -563,6 +628,35 @@ class PluginHooks(ABC):
         [ModelDocument](#arelle.ModelDocument.ModelDocument) loading is complete.
 
         :param modelXbrl: The constructed [ModelXbrl](#arelle.ModelXbrl.ModelXbrl).
+        :param args: Argument capture to ensure new parameters don't break plugin hook.
+        :param kwargs: Argument capture to ensure new named parameters don't break plugin hook.
+        :return: None
+        """
+        raise NotImplementedError
+
+    @staticmethod
+    def validateComplete(
+            cntlr: Cntlr,
+            fileSource: FileSource,
+            *args: Any,
+            **kwargs: Any,
+    ) -> None:
+        """
+        Plugin hook: `Validate.Complete`
+
+        Hook for executing controller-level validation rules after model-level validation is complete.
+        This can be useful for validating multi-instance filings when a rule requires information that
+        is only available after all instances have been parsed and validated.
+
+        Example:
+        ```python
+        unusedFilepaths = pluginData.getExistingFilepaths() - pluginData.getUsedFilepaths()
+        if len(unusedSubdirectoryFilepaths) > 0:
+            yield Validation.error(codes="0.0.0", msg="Unused files exist.")
+        ```
+
+        :param cntlr: The [Cntlr](#arelle.Cntlr.Cntlr) instance.
+        :param fileSource: The [FileSource](#arelle.FileSource.FileSource) involved in loading the entrypoint files.
         :param args: Argument capture to ensure new parameters don't break plugin hook.
         :param kwargs: Argument capture to ensure new named parameters don't break plugin hook.
         :return: None

@@ -57,8 +57,7 @@ from arelle.RuntimeOptions import RuntimeOptions, RuntimeOptionsException
 from arelle.SocketUtils import INTERNET_CONNECTIVITY, OFFLINE
 from arelle.SystemInfo import PlatformOS, getSystemInfo, getSystemWordSize, hasWebServer, isCGI, isGAE
 from arelle.typing import TypeGetText
-from arelle.UrlUtil import isHttpUrl
-from arelle.utils.EntryPointDetection import filesourceEntrypointFiles
+from arelle.utils.EntryPointDetection import parseEntrypointFileInput
 from arelle.ValidateXbrlDTS import ValidateBaseTaxonomiesMode
 from arelle.WebCache import proxyTuple
 
@@ -978,41 +977,12 @@ class CntlrCmdLine(Cntlr.Cntlr):
             if not (options.entrypointFile or sourceZipStream):
                 return True # success
 
+        entrypointParseResult = parseEntrypointFileInput(self, options.entrypointFile, sourceZipStream)
+        if not entrypointParseResult.success:
+            return False
+        filesource = entrypointParseResult.filesource
+        _entrypointFiles = entrypointParseResult.entrypointFiles
         success = True
-        # entrypointFile may be absent (if input is a POSTED zip or file name ending in .zip)
-        #    or may be a | separated set of file names
-        _entryPoints = []
-        _checkIfXmlIsEis = self.modelManager.disclosureSystem and self.modelManager.disclosureSystem.validationType == "EFM"
-        if options.entrypointFile:
-            _f = options.entrypointFile
-            try: # may be a json list
-                _entryPoints = json.loads(_f)
-                _checkIfXmlIsEis = False # json entry objects never specify an xml EIS archive
-            except ValueError as e:
-                # is it malformed json?
-                if _f.startswith("[{") or _f.endswith("]}") or '"file:"' in _f:
-                    self.addToLog(_("File name parameter appears to be malformed JSON: {}\n{}").format(e, _f),
-                                  messageCode="FileNameFormatError",
-                                  level=logging.ERROR)
-                    success = False
-                else: # try as file names separated by '|'
-                    for f in (_f or '').split('|'):
-                        if not sourceZipStream and not isHttpUrl(f) and not os.path.isabs(f):
-                            f = os.path.normpath(os.path.join(os.getcwd(), f)) # make absolute normed path
-                        _entryPoints.append({"file":f})
-        filesource = None # file source for all instances if not None
-        if sourceZipStream:
-            filesource = FileSource.openFileSource(None, self, sourceZipStream)
-        elif len(_entryPoints) == 1 and "file" in _entryPoints[0]: # check if an archive and need to discover entry points (and not IXDS)
-            entryPath = PackageManager.mappedUrl(_entryPoints[0]["file"])
-            filesource = FileSource.openFileSource(entryPath, self, checkIfXmlIsEis=_checkIfXmlIsEis)
-        _entrypointFiles = _entryPoints
-        if filesource and not filesource.selection and not (sourceZipStream and len(_entrypointFiles) > 0):
-            try:
-                filesourceEntrypointFiles(filesource, _entrypointFiles)
-            except Exception as err:
-                self.addToLog(str(err), messageCode="error", level=logging.ERROR)
-                return False
 
         for pluginXbrlMethod in PluginManager.pluginClassMethods("CntlrCmdLine.Filing.Start"):
             pluginXbrlMethod(self, options, filesource, _entrypointFiles, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
@@ -1248,6 +1218,11 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         self.modelManager.close(modelDiffReport)
                     elif modelXbrl:
                         self.modelManager.close(modelXbrl)
+
+        if options.validate:
+            for pluginXbrlMethod in PluginManager.pluginClassMethods("Validate.Complete"):
+                pluginXbrlMethod(self, filesource)
+
         if filesource is not None and not options.keepOpen:
             # Archive filesource potentially used by multiple reports may still be open.
             filesource.close()

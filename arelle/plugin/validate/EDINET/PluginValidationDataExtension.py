@@ -7,6 +7,8 @@ from collections import defaultdict
 from dataclasses import dataclass
 from decimal import Decimal
 from functools import lru_cache
+from pathlib import Path
+
 from lxml.etree import DTD, XML, _ElementTree, _Comment, _ProcessingInstruction
 from operator import attrgetter
 from typing import Callable, Hashable, Iterable, cast
@@ -14,6 +16,7 @@ from typing import Callable, Hashable, Iterable, cast
 import os
 import regex
 
+from arelle import UrlUtil
 from arelle.LinkbaseType import LinkbaseType
 from arelle.ModelDocument import Type as ModelDocumentType, ModelDocument
 from arelle.ModelDtsObject import ModelConcept
@@ -23,10 +26,12 @@ from arelle.ModelValue import QName, qname
 from arelle.ModelXbrl import ModelXbrl
 from arelle.PrototypeDtsObject import LinkPrototype
 from arelle.ValidateDuplicateFacts import getDeduplicatedFacts, DeduplicationType
+from arelle.ValidateXbrl import ValidateXbrl
+from arelle.XhtmlValidate import htmlEltUriAttrs
 from arelle.XmlValidate import VALID
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
-from .Constants import CORPORATE_FORMS, FormType, xhtmlDtdExtension, PROHIBITED_HTML_TAGS
+from .Constants import CORPORATE_FORMS, FormType, xhtmlDtdExtension, PROHIBITED_HTML_TAGS, PROHIBITED_HTML_ATTRIBUTES
 from .ControllerPluginData import ControllerPluginData
 from .ManifestInstance import ManifestInstance
 from .Statement import Statement, STATEMENTS, BalanceSheet, StatementInstance, StatementType
@@ -35,6 +40,14 @@ _: TypeGetText
 
 
 _DEBIT_QNAME_PATTERN = regex.compile('.*(Liability|Liabilities|Equity)')
+
+
+@dataclass(frozen=True)
+class UriReference:
+    attributeName: str
+    attributeValue: str
+    document: ModelDocument
+    element: ModelObject
 
 
 @dataclass
@@ -51,9 +64,9 @@ class PluginValidationDataExtension(PluginData):
 
     contextIdPattern: regex.Pattern[str]
 
-    _primaryModelXbrl: ModelXbrl | None = None
+    _uriReferences: list[UriReference]
 
-    def __init__(self, name: str):
+    def __init__(self, name: str, validateXbrl: ValidateXbrl):
         super().__init__(name)
         jpcrpEsrNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jpcrp-esr/2024-11-01/jpcrp-esr_cor"
         self.jpcrpNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpcrp/2024-11-01/jpcrp_cor'
@@ -74,6 +87,9 @@ class PluginValidationDataExtension(PluginData):
 
         self.contextIdPattern = regex.compile(r'(Prior[1-9]Year|CurrentYear|Prior[1-9]Interim|Interim)(Duration|Instant)')
 
+        self._uriReferences = []
+        self._initialize(validateXbrl.modelXbrl)
+
     # Identity hash for caching.
     def __hash__(self) -> int:
         return id(self)
@@ -92,6 +108,28 @@ class PluginValidationDataExtension(PluginData):
         memberValue = context.dimMemberQname(self.consolidatedOrNonConsolidatedAxisQn, includeDefaults=True)
         contextIsConsolidated = memberValue != self.nonConsolidatedMemberQn
         return bool(statement.isConsolidated == contextIsConsolidated)
+
+    def _initialize(self, modelXbrl: ModelXbrl) -> None:
+        if not isinstance(modelXbrl.fileSource.basefile, str):
+            return
+        controllerPluginData = ControllerPluginData.get(modelXbrl.modelManager.cntlr, self.name)
+        basePath = Path(modelXbrl.fileSource.basefile)
+        for uri, doc in modelXbrl.urlDocs.items():
+            docPath = Path(uri)
+            if not docPath.is_relative_to(basePath):
+                continue
+            controllerPluginData.addUsedFilepath(docPath.relative_to(basePath))
+            for elt, name, value in self.getUriAttributeValues(doc):
+                self._uriReferences.append(UriReference(
+                    attributeName=name,
+                    attributeValue=value,
+                    document=doc,
+                    element=elt,
+                ))
+                fullPath = Path(doc.uri).parent / value
+                if fullPath.is_relative_to(basePath):
+                    fileSourcePath = fullPath.relative_to(basePath)
+                    controllerPluginData.addUsedFilepath(fileSourcePath)
 
     def _isDebitConcept(self, concept: ModelConcept) -> bool:
         """
@@ -201,6 +239,10 @@ class PluginValidationDataExtension(PluginData):
             if (statementInstance := self.getStatementInstance(modelXbrl, statement)) is not None
         ]
 
+    @property
+    def uriReferences(self) -> list[UriReference]:
+        return self._uriReferences
+
     @lru_cache(1)
     def getDeduplicatedFacts(self, modelXbrl: ModelXbrl) -> list[ModelFact]:
         return getDeduplicatedFacts(modelXbrl, DeduplicationType.CONSISTENT_PAIRS)
@@ -260,6 +302,19 @@ class PluginValidationDataExtension(PluginData):
         return controllerPluginData.matchManifestInstance(modelXbrl.ixdsDocUrls)
 
     @lru_cache(1)
+    def getProhibitedAttributeElements(self, modelDocument: ModelDocument) -> list[tuple[ModelObject, str]]:
+        results: list[tuple[ModelObject, str]] = []
+        if modelDocument.type not in (ModelDocumentType.INLINEXBRL, ModelDocumentType.HTML):
+            return results
+        for elt in modelDocument.xmlRootElement.iter():
+            if not isinstance(elt, ModelObject):
+                continue
+            for attributeName in elt.attrib.keys():
+                if attributeName in PROHIBITED_HTML_ATTRIBUTES:
+                    results.append((elt, str(attributeName)))
+        return results
+
+    @lru_cache(1)
     def getProhibitedTagElements(self, modelDocument: ModelDocument) -> list[ModelObject]:
         elts: list[ModelObject] = []
         if modelDocument.type not in (ModelDocumentType.INLINEXBRL, ModelDocumentType.HTML):
@@ -272,6 +327,18 @@ class PluginValidationDataExtension(PluginData):
                 elts.append(elt)
         return elts
 
+    @lru_cache(1)
+    def getUriAttributeValues(self, modelDocument: ModelDocument) -> list[tuple[ModelObject, str, str]]:
+        results: list[tuple[ModelObject, str, str]] = []
+        if modelDocument.type not in (ModelDocumentType.INLINEXBRL, ModelDocumentType.HTML):
+            return results
+        for elt in modelDocument.xmlRootElement.iter():
+            for name in htmlEltUriAttrs.get(elt.localName, ()):
+                value = elt.get(name)
+                if value is not None:
+                    results.append((elt, name, value))
+        return results
+
     def hasValidNonNilFact(self, modelXbrl: ModelXbrl, qname: QName) -> bool:
         return any(True for fact in self.iterValidNonNilFacts(modelXbrl, qname))
 
@@ -283,3 +350,7 @@ class PluginValidationDataExtension(PluginData):
         for fact in facts:
             if fact.xValid >= VALID and not fact.isNil:
                 yield fact
+
+    def addUsedFilepath(self, modelXbrl: ModelXbrl, path: Path) -> None:
+        controllerPluginData = ControllerPluginData.get(modelXbrl.modelManager.cntlr, self.name)
+        controllerPluginData.addUsedFilepath(path)

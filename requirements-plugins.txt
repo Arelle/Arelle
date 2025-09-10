@@ -2,7 +2,7 @@ ixbrl-viewer==1.4.74
 
 # EDGAR & XULE plugins
 aniso8601==10.0.1
-holidays==0.79
+holidays==0.80
 matplotlib==3.10.1 ; python_version > "3.9"
 matplotlib==3.9.4 ; python_version <= "3.9"
 pytz==2025.2

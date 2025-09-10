@@ -30,7 +30,10 @@ class ViewDTS(ViewWinTree.ViewTree):
 
     def viewDtsElement(self, modelDocument, parentNode, n, parents, siblings):
         if modelDocument.type == ModelDocument.Type.INLINEXBRLDOCUMENTSET:
-            text = modelDocument.gettype() # no file name to display
+            if modelDocument.entrypoint is not None and "id" in modelDocument.entrypoint:
+                text = f"{modelDocument.entrypoint['id']} (IXDS)"
+            else:
+                text = "Inline XBRL Document Set" # no file name or ID to display
         else:
             text = "{0} - {1}".format(os.path.basename(modelDocument.uri), modelDocument.gettype())
         node = self.treeView.insert(parentNode, "end",

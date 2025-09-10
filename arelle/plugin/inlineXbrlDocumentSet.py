@@ -248,7 +248,7 @@ def inlineXbrlDocumentSetLoader(modelXbrl, normalizedUri, filepath, isEntry=Fals
         for url in modelXbrl.ixdsDocUrls:
             xml.append("<instance>{}</instance>\n".format(url))
         xml.append("</instances>\n")
-        ixdocset = create(modelXbrl, Type.INLINEXBRLDOCUMENTSET, docsetUrl, isEntry=True, initialXml="".join(xml))
+        ixdocset = create(modelXbrl, Type.INLINEXBRLDOCUMENTSET, docsetUrl, isEntry=True, initialXml="".join(xml), entrypoint=kwargs.get('entrypoint'))
         ixdocset.type = Type.INLINEXBRLDOCUMENTSET
         ixdocset.targetDocumentPreferredFilename = None # possibly no inline docs in this doc set
         for i, elt in enumerate(ixdocset.xmlRootElement.iter(tag="instance")):
@@ -739,7 +739,22 @@ def commandLineOptionExtender(parser, *args, **kwargs):
 def commandLineFilingStart(cntlr, options, filesource, entrypointFiles, *args, **kwargs):
     global skipExpectedInstanceComparison
     skipExpectedInstanceComparison = getattr(options, "skipExpectedInstanceComparison", False)
-    inlineTarget = getattr(options, "inlineTarget", None)
+    filingStart(
+        cntlr,
+        entrypointFiles,
+        getattr(options, "inlineTarget", None),
+    )
+
+def guiFilingStart(cntlr, filesource, entrypointFiles, *args, **kwargs):
+    global skipExpectedInstanceComparison
+    skipExpectedInstanceComparison = False
+    filingStart(
+        cntlr,
+        entrypointFiles,
+        inlineTarget=None
+    )
+
+def filingStart(cntlr, entrypointFiles, inlineTarget):
     if inlineTarget:
         if isinstance(entrypointFiles, dict):
             entrypointFiles = [entrypointFiles]
@@ -1018,6 +1033,7 @@ __pluginInfo__ = {
     'InlineDocumentSet.Discovery': inlineDocsetDiscovery,
     'InlineDocumentSet.Url.Separator': inlineDocsetUrlSeparator,
     'InlineDocumentSet.CreateTargetInstance': createTargetInstance,
+    'CntlrWinMain.Filing.Start': guiFilingStart,
     'CntlrWinMain.Menu.File.Open': fileOpenMenuEntender,
     'CntlrWinMain.Menu.Tools': saveTargetDocumentMenuEntender,
     'CntlrCmdLine.Options': commandLineOptionExtender,
