@@ -35,6 +35,7 @@ from .Constants import CORPORATE_FORMS, FormType, xhtmlDtdExtension, PROHIBITED_
 from .ControllerPluginData import ControllerPluginData
 from .ManifestInstance import ManifestInstance
 from .Statement import Statement, STATEMENTS, BalanceSheet, StatementInstance, StatementType
+from .UploadContents import UploadContents
 
 _: TypeGetText
 
@@ -309,7 +310,7 @@ class PluginValidationDataExtension(PluginData):
         for elt in modelDocument.xmlRootElement.iter():
             if not isinstance(elt, ModelObject):
                 continue
-            for attributeName in elt.attrib.keys():
+            for attributeName in elt.attrib:
                 if attributeName in PROHIBITED_HTML_ATTRIBUTES:
                     results.append((elt, str(attributeName)))
         return results
@@ -326,6 +327,10 @@ class PluginValidationDataExtension(PluginData):
             if tag in PROHIBITED_HTML_TAGS:
                 elts.append(elt)
         return elts
+
+    def getUploadContents(self, modelXbrl: ModelXbrl) -> UploadContents | None:
+        controllerPluginData = ControllerPluginData.get(modelXbrl.modelManager.cntlr, self.name)
+        return controllerPluginData.getUploadContents()
 
     @lru_cache(1)
     def getUriAttributeValues(self, modelDocument: ModelDocument) -> list[tuple[ModelObject, str, str]]:

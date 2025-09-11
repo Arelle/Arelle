@@ -27,12 +27,14 @@ _: TypeGetText
 @dataclass
 class ControllerPluginData(PluginData):
     _manifestInstancesById: dict[str, ManifestInstance]
+    _uploadContents: UploadContents | None
     _usedFilepaths: set[Path]
 
     def __init__(self, name: str):
         super().__init__(name)
         self._manifestInstancesById = {}
         self._usedFilepaths = set()
+        self._uploadContents = None
 
     def __hash__(self) -> int:
         return id(self)
@@ -49,18 +51,21 @@ class ControllerPluginData(PluginData):
         """
         return list(self._manifestInstancesById.values())
 
-    @lru_cache(1)
-    def getUploadContents(self, fileSource: FileSource) -> UploadContents:
-        uploadFilepaths = self.getUploadFilepaths(fileSource)
+    def getUploadContents(self) -> UploadContents | None:
+        return self._uploadContents
+
+    def setUploadContents(self, fileSource: FileSource) -> UploadContents:
         reports = defaultdict(list)
         uploadPaths = {}
-        for path in uploadFilepaths:
+        for path, zipPath in self.getUploadFilepaths(fileSource).items():
             if len(path.parts) == 0:
                 continue
+            assert isinstance(fileSource.basefile, str)
+            fullPath = Path(fileSource.basefile) / path
             parents = list(reversed([p.name for p in path.parents if len(p.name) > 0]))
             reportFolderType = None
             isCorrection = True
-            isDirectory = len(path.suffix) == 0
+            isDirectory = zipPath.is_dir()
             isInSubdirectory = False
             reportPath = None
             if len(parents) > 0:
@@ -79,32 +84,43 @@ class ControllerPluginData(PluginData):
                     if not isCorrection:
                         reports[reportFolderType].append(path)
             uploadPaths[path] = UploadPathInfo(
+                fullPath=fullPath,
                 isAttachment=reportFolderType is not None and reportFolderType.isAttachment,
                 isCorrection=isCorrection,
                 isCoverPage=not isDirectory and path.stem.startswith(Constants.COVER_PAGE_FILENAME_PREFIX),
-                isDirectory=len(path.suffix) == 0,
+                isDirectory=isDirectory,
                 isRoot=len(path.parts) == 1,
                 isSubdirectory=isInSubdirectory or (isDirectory and reportFolderType is not None),
                 path=path,
                 reportFolderType=reportFolderType,
                 reportPath=reportPath,
             )
-        return UploadContents(
+        self._uploadContents = UploadContents(
             reports={k: frozenset(v) for k, v in reports.items() if len(v) > 0},
-            uploadPaths=uploadPaths
+            uploadPaths=list(uploadPaths.values())
         )
+        return self._uploadContents
 
     @lru_cache(1)
-    def getUploadFilepaths(self, fileSource: FileSource) -> list[Path]:
+    def getUploadFilepaths(self, fileSource: FileSource) -> dict[Path, zipfile.Path]:
         if not self.isUpload(fileSource):
-            return []
-        paths = set()
+            return {}
+        paths = {}
         assert isinstance(fileSource.fs, zipfile.ZipFile)
-        for name in fileSource.fs.namelist():
-            path = Path(name)
-            paths.add(path)
-            paths.update(path.parents)
-        return sorted(paths)
+        # First, fill in paths from zip file list
+        for file in fileSource.fs.filelist:
+            zipPath = zipfile.Path(fileSource.fs, file.filename)
+            paths[Path(file.filename)] = zipPath
+        # Then, fill in any parent directories that weren't in file list
+        for path in list(paths):
+            for parent in path.parents:
+                if parent in paths:
+                    continue
+                paths[parent] = zipfile.Path(fileSource.fs, parent.as_posix() + '/')
+        return {
+            path: paths[path]
+            for path in sorted(paths)
+        }
 
     @lru_cache(1)
     def getUploadFileSizes(self, fileSource: FileSource) -> dict[Path, int]:

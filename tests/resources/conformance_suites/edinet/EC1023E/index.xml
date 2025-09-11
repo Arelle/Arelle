@@ -3,22 +3,21 @@
 <testcase
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns="http://xbrl.org/2005/conformance"
-        name="EDINET.EC1014E"
-        description="EDINET.EC1014E: The URI in the HTML specifies a path to a directory."
+        name="EDINET.EC1023E"
+        description="EDINET.EC1023E: The URI in the HTML specifies a path to a PDF file."
         outpath=''
         owner="support@arelle.org"
         xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
     <variation id="invalid01" name="invalid01">
         <description>
-            HTML references a directory.
-            <!--valid09.zip with img tag referencing a '.images/test/' directory.-->
+            HTML references a PDF file.
+            <!--valid09.zip with a tag referencing PDF file.-->
         </description>
         <data>
             <instance readMeFirst="true">invalid01.zip</instance>
         </data>
         <result>
-            <error>EDINET.EC1014E</error>
-            <error>EDINET.EC1017E</error> <!-- Unused image added within '.images/test/'. -->
+            <error>EDINET.EC1023E</error>
         </result>
     </variation>
 </testcase>
