@@ -122,8 +122,10 @@ def rule_EC0100E(
     For this implementation, we will allow all directories that may be valid for at least one submission type.
     This allows for a false-negative outcome when a non-correction submission has a correction-only root directory.
     """
-    uploadContents = pluginData.getUploadContents(fileSource)
-    for path, pathInfo in uploadContents.uploadPaths.items():
+    uploadContents = pluginData.getUploadContents()
+    if uploadContents is None:
+        return
+    for path, pathInfo in uploadContents.uploadPathsByPath.items():
         if pathInfo.isRoot and path.name not in ALLOWED_ROOT_FOLDERS:
             yield Validation.error(
                 codes='EDINET.EC0100E',
@@ -153,8 +155,8 @@ def rule_EC0124E_EC0187E(
     """
     uploadFilepaths = pluginData.getUploadFilepaths(fileSource)
     emptyDirectories = []
-    for path in uploadFilepaths:
-        if path.suffix:
+    for path, zipPath in uploadFilepaths.items():
+        if not zipPath.is_dir():
             continue
         if not any(path in p.parents for p in uploadFilepaths):
             emptyDirectories.append(path)
@@ -227,8 +229,10 @@ def rule_EC0130E(
     """
     EDINET.EC0130E: File extensions must match the file extensions allowed in Figure 2-1-3 and Figure 2-1-5.
     """
-    uploadContents = pluginData.getUploadContents(fileSource)
-    for path, pathInfo in uploadContents.uploadPaths.items():
+    uploadContents = pluginData.getUploadContents()
+    if uploadContents is None:
+        return
+    for path, pathInfo in uploadContents.uploadPathsByPath.items():
         if pathInfo.reportFolderType is None or pathInfo.isDirectory:
             continue
         validExtensions = pathInfo.reportFolderType.getValidExtensions(pathInfo.isCorrection, pathInfo.isSubdirectory)
@@ -265,7 +269,9 @@ def rule_EC0132E(
     """
     EDINET.EC0132E: Store the manifest file directly under the relevant folder.
     """
-    uploadContents = pluginData.getUploadContents(fileSource)
+    uploadContents = pluginData.getUploadContents()
+    if uploadContents is None:
+        return
     for reportFolderType, paths in uploadContents.reports.items():
         if reportFolderType.isAttachment:
             continue
@@ -353,8 +359,10 @@ def rule_EC0192E(
     PublicDoc cover file. Please delete the cover file from PrivateDoc and upload
     it again.
     """
-    uploadContents = pluginData.getUploadContents(fileSource)
-    for path, pathInfo in uploadContents.uploadPaths.items():
+    uploadContents = pluginData.getUploadContents()
+    if uploadContents is None:
+        return
+    for path, pathInfo in uploadContents.uploadPathsByPath.items():
         if not pathInfo.isCoverPage:
             continue
         # Only applies to PrivateDoc correction reports
@@ -383,8 +391,8 @@ def rule_EC0198E(
     """
     fileCounts: dict[Path, int] = defaultdict(int)
     uploadFilepaths = pluginData.getUploadFilepaths(fileSource)
-    for path in uploadFilepaths:
-        if len(path.suffix) == 0:
+    for path, zipPath in uploadFilepaths.items():
+        if zipPath.is_dir():
             continue
         for directory in FILE_COUNT_LIMITS.keys():
             if directory in path.parents:
@@ -421,10 +429,12 @@ def rule_EC0233E(
     NOTE: This includes files in subdirectories. For example, PublicDoc/00000000_images/image.png
     comes before PublicDoc/0000000_header_*.htm
     """
-    uploadContents = pluginData.getUploadContents(fileSource)
+    uploadContents = pluginData.getUploadContents()
+    if uploadContents is None:
+        return
     directories = defaultdict(list)
     for path in uploadContents.sortedPaths:
-        pathInfo = uploadContents.uploadPaths[path]
+        pathInfo = uploadContents.uploadPathsByPath[path]
         if pathInfo.isDirectory:
             continue
         if pathInfo.reportFolderType in (ReportFolderType.PRIVATE_DOC, ReportFolderType.PUBLIC_DOC):
@@ -462,8 +472,10 @@ def rule_EC0234E(
     """
     EDINET.EC0234E: A cover file exists in an unsupported subdirectory.
     """
-    uploadContents = pluginData.getUploadContents(fileSource)
-    for path, pathInfo in uploadContents.uploadPaths.items():
+    uploadContents = pluginData.getUploadContents()
+    if uploadContents is None:
+        return
+    for path, pathInfo in uploadContents.uploadPathsByPath.items():
         if pathInfo.isDirectory:
             continue
         if pathInfo.reportFolderType not in (ReportFolderType.PRIVATE_DOC, ReportFolderType.PUBLIC_DOC):
@@ -549,14 +561,16 @@ def rule_EC0349E(
     EDINET.EC0349E: An unexpected directory or file exists in the XBRL directory.
     Only PublicDoc, PrivateDoc, or AuditDoc directories may exist beneath the XBRL directory.
     """
-    uploadContent = pluginData.getUploadContents(fileSource)
+    uploadContents = pluginData.getUploadContents()
+    if uploadContents is None:
+        return
     xbrlDirectoryPath = Path('XBRL')
     allowedPaths = {p.xbrlDirectory for p in (
         ReportFolderType.AUDIT_DOC,
         ReportFolderType.PRIVATE_DOC,
         ReportFolderType.PUBLIC_DOC,
     )}
-    for path, pathInfo in uploadContent.uploadPaths.items():
+    for path, pathInfo in uploadContents.uploadPathsByPath.items():
         if path.parent != xbrlDirectoryPath:
             continue
         if path not in allowedPaths:
@@ -583,8 +597,10 @@ def rule_EC0352E(
     """
     EDINET.EC0352E: An XBRL file with an invalid name exists.
     """
-    uploadContent = pluginData.getUploadContents(fileSource)
-    for path, pathInfo in uploadContent.uploadPaths.items():
+    uploadContents = pluginData.getUploadContents()
+    if uploadContents is None:
+        return
+    for path, pathInfo in uploadContents.uploadPathsByPath.items():
         if (
             pathInfo.isDirectory or
             pathInfo.isCorrection or
@@ -600,6 +616,43 @@ def rule_EC0352E(
                 msg=_("A file with an invalid name exists. "
                       "File path: '%(path)s'."),
                 path=str(path),
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rules_cover_page(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC1000E: Cover page must contain "【表紙】".
+    """
+    uploadContents = pluginData.getUploadContents(val.modelXbrl)
+    if uploadContents is None:
+        return
+    for url, doc in val.modelXbrl.urlDocs.items():
+        path = Path(url)
+        pathInfo = uploadContents.uploadPathsByFullPath.get(path)
+        if pathInfo is None or not pathInfo.isCoverPage:
+            continue
+        rootElt = doc.xmlRootElement
+        coverPageTextFound = False
+        for elt in rootElt.iterdescendants():
+            if not coverPageTextFound and elt.text and '【表紙】' in elt.text:
+                coverPageTextFound = True
+            # TODO: Other checks related to the cover page will be implemented here.
+        if not coverPageTextFound:
+            yield Validation.error(
+                codes='EDINET.EC1000E',
+                msg=_("There is no '【表紙】' on the cover page. "
+                      "File name: '%(file)s'. "
+                      "Please add '【表紙】' to the relevant file."),
+                file=doc.basename,
             )
 
 
@@ -644,8 +697,13 @@ def rule_uri_references(
     """
     EDINET.EC1007E: The URI in the HTML specifies a URL or absolute path.
     EDINET.EC1013E: The URI in the HTML specifies a path not under a subdirectory.
-    EDINET.EC1014E: The URI in the HTML specifies a path to a file that doesn't exist.
+    EDINET.EC1014E: The URI in the HTML specifies a path to a directory.
+    EDINET.EC1021E: The URI in the HTML specifies a path to a file that doesn't exist.
+    EDINET.EC1023E: The URI in the HTML specifies a path to a PDF file.
     """
+    uploadContents = pluginData.getUploadContents(val.modelXbrl)
+    if uploadContents is None:
+        return
     for uriReference in pluginData.uriReferences:
         if UrlUtil.isAbsolute(uriReference.attributeValue):
             yield Validation.error(
@@ -671,12 +729,36 @@ def rule_uri_references(
             )
             continue
         fullPath = Path(uriReference.document.uri).parent / path
-        if not val.modelXbrl.fileSource.exists(str(fullPath)):
+        pathInfo = uploadContents.uploadPathsByFullPath.get(fullPath)
+        if pathInfo is not None and pathInfo.isDirectory:
             yield Validation.error(
                 codes='EDINET.EC1014E',
-                msg=_("The URI in the HTML specifies a path to a file that doesn't exist. "
+                msg=_("The URI in the HTML specifies a path to a directory. "
                       "File name: '%(file)s' (line %(line)s). "
                       "Please update the URI to reference a file."),
+                file=uriReference.document.basename,
+                line=uriReference.element.sourceline,
+                modelObject=uriReference.element,
+            )
+            continue
+        if path.suffix.lower() == '.pdf':
+            yield Validation.error(
+                codes='EDINET.EC1023E',
+                msg=_("The URI in the HTML specifies a path to a PDF file. "
+                      "File name: '%(file)s' (line %(line)s). "
+                      "Please remove the link from the relevant file."),
+                file=uriReference.document.basename,
+                line=uriReference.element.sourceline,
+                modelObject=uriReference.element,
+            )
+            continue
+        if not val.modelXbrl.fileSource.exists(str(fullPath)):
+            yield Validation.error(
+                codes='EDINET.EC1021E',
+                msg=_("The linked file ('%(path)s') does not exist. "
+                      "File name: '%(file)s' (line %(line)s). "
+                      "Please update the URI to reference a file."),
+                path=str(path),
                 file=uriReference.document.basename,
                 line=uriReference.element.sourceline,
                 modelObject=uriReference.element,
@@ -727,10 +809,12 @@ def rule_EC1017E(
     """
     EDINET.EC1017E: There is an unused file.
     """
-    uploadContents = pluginData.getUploadContents(fileSource)
+    uploadContents = pluginData.getUploadContents()
+    if uploadContents is None:
+        return
     existingSubdirectoryFilepaths = {
         path
-        for path, pathInfo in uploadContents.uploadPaths.items()
+        for path, pathInfo in uploadContents.uploadPathsByPath.items()
         if pathInfo.isSubdirectory and not pathInfo.isDirectory
     }
     usedFilepaths = pluginData.getUsedFilepaths()
@@ -810,7 +894,7 @@ def rule_EC1031E(
                 msg=_("Prohibited attribute '%(attributeName)s' is used in HTML. "
                       "File name: %(file)s (line %(line)s). "
                       "Please correct the tag attributes of the relevant file."),
-                attributeName=elt.qname.localName,
+                attributeName=attributeName,
                 file=doc.basename,
                 line=elt.sourceline,
                 modelObject=elt,
@@ -838,7 +922,10 @@ def rule_filenames(
     than those allowed (alphanumeric characters, '-' and '_').
     Note: Applies ONLY to files directly beneath non-correction report folders.
     """
-    for path, pathInfo in pluginData.getUploadContents(fileSource).uploadPaths.items():
+    uploadContents = pluginData.getUploadContents()
+    if uploadContents is None:
+        return
+    for path, pathInfo in uploadContents.uploadPathsByPath.items():
         isReportFile = (
             not pathInfo.isAttachment and
             not pathInfo.isCorrection and

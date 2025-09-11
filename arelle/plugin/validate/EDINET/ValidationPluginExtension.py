@@ -37,6 +37,7 @@ class ValidationPluginExtension(ValidationPlugin):
             }, level=logging.INFO
         )
         pluginData = ControllerPluginData.get(filesource.cntlr, self.name)
+        pluginData.setUploadContents(filesource)
         entrypointFiles = []
         for instance in instances:
             pluginData.addManifestInstance(instance)
