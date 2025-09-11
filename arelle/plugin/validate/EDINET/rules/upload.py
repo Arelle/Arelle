@@ -623,6 +623,43 @@ def rule_EC0352E(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rules_cover_page(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC1000E: Cover page must contain "【表紙】".
+    """
+    uploadContents = pluginData.getUploadContents(val.modelXbrl)
+    if uploadContents is None:
+        return
+    for url, doc in val.modelXbrl.urlDocs.items():
+        path = Path(url)
+        pathInfo = uploadContents.uploadPathsByFullPath.get(path)
+        if pathInfo is None or not pathInfo.isCoverPage:
+            continue
+        rootElt = doc.xmlRootElement
+        coverPageTextFound = False
+        for elt in rootElt.iterdescendants():
+            if not coverPageTextFound and elt.text and '【表紙】' in elt.text:
+                coverPageTextFound = True
+            # TODO: Other checks related to the cover page will be implemented here.
+        if not coverPageTextFound:
+            yield Validation.error(
+                codes='EDINET.EC1000E',
+                msg=_("There is no '【表紙】' on the cover page. "
+                      "File name: '%(file)s'. "
+                      "Please add '【表紙】' to the relevant file."),
+                file=doc.basename,
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_EC1006E(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,

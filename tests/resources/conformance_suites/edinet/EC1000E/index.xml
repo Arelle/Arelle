@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="EDINET.EC1000E"
+        description="EDINET.EC1000E: Cover page must contain '【表紙】'."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid01" name="invalid01">
+        <description>
+            Cover page does not contain '【表紙】'.
+            <!-- valid09.zip with '【表紙】' text altered. -->
+        </description>
+        <data>
+            <instance readMeFirst="true">invalid01.zip</instance>
+        </data>
+        <result>
+            <error>EDINET.EC1000E</error>
+        </result>
+    </variation>
+</testcase>
