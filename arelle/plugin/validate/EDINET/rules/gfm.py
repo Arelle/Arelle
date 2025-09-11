@@ -32,7 +32,6 @@ from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
 
-BEGINNING_AND_ENDING_WHITE_SPACE = regex.compile(r'^\s|\s$')
 DISALLOWED_LABEL_WHITE_SPACE_CHARACTERS = regex.compile(r'\s{2,}')
 DISALLOWED_LABEL_CHARACTERS = regex.compile(r'<|&lt;|&#60;|&#x3c;')
 GFM_CONTEXT_DATE_PATTERN = regex.compile(r"^[12][0-9]{3}-[01][0-9]-[0-3][0-9]$")
@@ -728,7 +727,7 @@ def rule_gfm_1_5_7(
         for rel in labelRels:
             label = rel.toModelObject
             if label.role != XbrlConst.documentationLabel and label.viewText() is not None:
-                if DISALLOWED_LABEL_CHARACTERS.findall(label.viewText()):
+                if DISALLOWED_LABEL_CHARACTERS.search(label.viewText()):
                     yield Validation.warning(
                         codes='EDINET.EC5700W.GFM.1.5.7',
                         msg=_("The concept of '%(concept)s' has a label classified as '%(role)s that contains the '<' character: %(label)s"),
@@ -737,7 +736,7 @@ def rule_gfm_1_5_7(
                         label=label.viewText(),
                         modelObject=label
                     )
-                elif DISALLOWED_LABEL_WHITE_SPACE_CHARACTERS.findall(label.viewText()):
+                elif DISALLOWED_LABEL_WHITE_SPACE_CHARACTERS.search(label.viewText()):
                     yield Validation.warning(
                         codes='EDINET.EC5700W.GFM.1.5.7',
                         msg=_("The concept of '%(concept)s' has a label classified as '%(role)s' that contains consecutive white space characters: %(label)s"),
@@ -768,7 +767,7 @@ def rule_gfm_1_5_8(
         labelRels = labelRelationshipSet.fromModelObject(concept)
         for rel in labelRels:
             label = rel.toModelObject
-            if label.textValue is not None and BEGINNING_AND_ENDING_WHITE_SPACE.findall(label.textValue):
+            if label.textValue is not None and label.textValue != label.textValue.strip():
                 yield Validation.warning(
                     codes='EDINET.EC5700W.GFM.1.5.8',
                     msg=_("The concept of '%(concept)s' has a label that contains disallowed white space either at the begining or the end: '%(label)s'"),
