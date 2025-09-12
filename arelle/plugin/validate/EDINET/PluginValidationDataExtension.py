@@ -33,6 +33,7 @@ from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
 from .Constants import xhtmlDtdExtension, PROHIBITED_HTML_TAGS, PROHIBITED_HTML_ATTRIBUTES
 from .ControllerPluginData import ControllerPluginData
+from .CoverPageRequirements import CoverPageRequirements
 from .FormType import FormType
 from .ManifestInstance import ManifestInstance
 from .Statement import Statement, STATEMENTS, BalanceSheet, StatementInstance, StatementType
@@ -71,6 +72,7 @@ class PluginValidationDataExtension(PluginData):
     ratioOfFemaleDirectorsAndOtherOfficersQn: QName
 
     contextIdPattern: regex.Pattern[str]
+    coverPageRequirementsPath: Path
 
     _uriReferences: list[UriReference]
 
@@ -98,6 +100,7 @@ class PluginValidationDataExtension(PluginData):
         self.ratioOfFemaleDirectorsAndOtherOfficersQn = qname(self.jpcrpNamespace, "RatioOfFemaleDirectorsAndOtherOfficers")
 
         self.contextIdPattern = regex.compile(r'(Prior[1-9]Year|CurrentYear|Prior[1-9]Interim|Interim)(Duration|Instant)')
+        self.coverPageRequirementsPath = Path(__file__).parent / "resources" / "cover-page-requirements.csv"
 
         self._uriReferences = []
         self._initialize(validateXbrl.modelXbrl)
@@ -222,6 +225,10 @@ class PluginValidationDataExtension(PluginData):
                 )
             )
         return balanceSheets
+
+    def getCoverPageRequirements(self, modelXbrl: ModelXbrl) -> CoverPageRequirements:
+        controllerPluginData = ControllerPluginData.get(modelXbrl.modelManager.cntlr, self.name)
+        return controllerPluginData.getCoverPageRequirements(self.coverPageRequirementsPath)
 
     def getProblematicTextBlocks(self, modelXbrl: ModelXbrl) -> list[ModelInlineFact]:
         problematicTextBlocks: list[ModelInlineFact] = []
