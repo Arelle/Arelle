@@ -726,23 +726,23 @@ def rule_gfm_1_5_7(
         labelRels = labelRelationshipSet.fromModelObject(concept)
         for rel in labelRels:
             label = rel.toModelObject
-            if label.role != XbrlConst.documentationLabel and label.viewText() is not None:
-                if DISALLOWED_LABEL_CHARACTERS.search(label.viewText()):
+            if label.role != XbrlConst.documentationLabel and label.textValue is not None:
+                if DISALLOWED_LABEL_CHARACTERS.search(label.textValue):
                     yield Validation.warning(
                         codes='EDINET.EC5700W.GFM.1.5.7',
                         msg=_("The concept of '%(concept)s' has a label classified as '%(role)s that contains the '<' character: %(label)s"),
                         concept=concept.qname,
                         role=label.role,
-                        label=label.viewText(),
+                        label=label.textValue,
                         modelObject=label
                     )
-                elif DISALLOWED_LABEL_WHITE_SPACE_CHARACTERS.search(label.viewText()):
+                elif DISALLOWED_LABEL_WHITE_SPACE_CHARACTERS.search(label.textValue):
                     yield Validation.warning(
                         codes='EDINET.EC5700W.GFM.1.5.7',
                         msg=_("The concept of '%(concept)s' has a label classified as '%(role)s' that contains consecutive white space characters: %(label)s"),
                         concept=concept.qname,
                         role=label.role,
-                        label=label.viewText(),
+                        label=label.textValue,
                         modelObject=label
                     )
 

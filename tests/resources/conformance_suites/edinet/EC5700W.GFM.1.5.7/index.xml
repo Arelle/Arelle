@@ -10,7 +10,7 @@
         xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
     <variation id="invalid01" name="invalid01">
         <description>
-            A label should not contain the '<' symbol or any of its various serializations
+            A label should not contain the '&lt;' (less than symbol) symbol or any of its various serializations
             <!--valid05.zip with label that contains '&lt;'.-->
         </description>
         <data>
