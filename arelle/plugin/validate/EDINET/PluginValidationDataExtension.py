@@ -34,6 +34,7 @@ from arelle.utils.PluginData import PluginData
 from .Constants import xhtmlDtdExtension, PROHIBITED_HTML_TAGS, PROHIBITED_HTML_ATTRIBUTES
 from .ControllerPluginData import ControllerPluginData
 from .CoverPageRequirements import CoverPageRequirements
+from .FilingFormat import FilingFormat, FILING_FORMATS
 from .FormType import FormType
 from .ManifestInstance import ManifestInstance
 from .Statement import Statement, STATEMENTS, BalanceSheet, StatementInstance, StatementType
@@ -73,6 +74,7 @@ class PluginValidationDataExtension(PluginData):
 
     contextIdPattern: regex.Pattern[str]
     coverPageRequirementsPath: Path
+    coverPageTitleQns: tuple[QName, ...]
 
     _uriReferences: list[UriReference]
 
@@ -101,6 +103,12 @@ class PluginValidationDataExtension(PluginData):
 
         self.contextIdPattern = regex.compile(r'(Prior[1-9]Year|CurrentYear|Prior[1-9]Interim|Interim)(Duration|Instant)')
         self.coverPageRequirementsPath = Path(__file__).parent / "resources" / "cover-page-requirements.csv"
+        self.coverPageTitleQns = (
+            qname(self.jpspsNamespace, "DocumentTitleAnnualSecuritiesReportCoverPage"),
+            qname(self.jpcrpNamespace, "DocumentTitleCoverPage"),
+            qname(self.jpcrpEsrNamespace, "DocumentTitleCoverPage"),
+            qname(self.jpspsNamespace, "DocumentTitleCoverPage"),
+        )
 
         self._uriReferences = []
         self._initialize(validateXbrl.modelXbrl)
@@ -311,6 +319,62 @@ class PluginValidationDataExtension(PluginData):
             if isinstance(elt, (ModelObject, LinkPrototype))
         ]
 
+    @lru_cache(1)
+    def getFilingFormat(self, modelXbrl: ModelXbrl) ->  FilingFormat | None:
+        # This function attempts to identify the filing format based on form number and title concepts.
+        # The provided form number value directly informs the format.
+        # However, the document title is not necessarily an explicit setting of the format's
+        # document type. In the samples available to us and in a handful of public filings,
+        # it is effective to match the first segment of the title value against document type
+        # values assigned to the various FilingFormats. This may only be by coincidence or convention.
+        # If it doesn't end up being reliable, we may need to find another way to identify the form.
+        # For example, by disclosure system selection or CLI argument.
+        documentTitleFacts = []
+        for qname in self.coverPageTitleQns:
+            for fact in self.iterValidNonNilFacts(modelXbrl, qname):
+                documentTitleFacts.append(fact)
+        formTypes = self.getFormTypes(modelXbrl)
+        filingFormats = []
+        for filingFormatIndex, filingFormat in enumerate(FILING_FORMATS):
+            if filingFormat.formType not in formTypes:
+                continue
+            prefixes = {taxonomy.value for taxonomy in filingFormat.taxonomies}
+            if not any(
+                str(fact.xValue).startswith(filingFormat.documentType.value) and
+                fact.concept.qname.prefix.split('_')[0] in prefixes
+                for fact in documentTitleFacts
+            ):
+                continue
+            filingFormats.append((filingFormat, filingFormatIndex))
+        if len(filingFormats) == 0:
+            modelXbrl.error(
+                "arelle:NoMatchingEdinetFormat",
+                _("No matching EDINET filing formats could be identified based on form "
+                  "type (%(formTypes)s) and title."),
+                formTypes=formTypes,
+                modelObject=documentTitleFacts,
+            )
+            return None
+        if len(filingFormats) > 1:
+            formatIndexes = [str(idx + 1) for _, idx in filingFormats]
+            modelXbrl.error(
+                "arelle:MultipleMatchingEdinetFormats",
+                _("Multiple EDINET filing formats (%(formatIndexes)s) matched based on form "
+                  "type %(formTypes)s and title."),
+                formatIndexes=formatIndexes,
+                formTypes=formTypes,
+                modelObject=documentTitleFacts,
+            )
+            return None
+        filingFormat, filingFormatIndex = filingFormats[0]
+        modelXbrl.modelManager.cntlr.addToLog("Identified filing format: #{}, {}, {}, {}, {}".format(
+            filingFormatIndex + 1,
+            filingFormat.ordinance.value,
+            filingFormat.documentType.value,
+            filingFormat.formType.value,
+            ', '.join(taxonomy.value for taxonomy in filingFormat.taxonomies)
+        ), messageCode="info")
+        return filingFormat
 
     @lru_cache(1)
     def getFormTypes(self, modelXbrl: ModelXbrl) -> set[FormType]:
