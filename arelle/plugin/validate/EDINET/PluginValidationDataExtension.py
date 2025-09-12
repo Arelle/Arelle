@@ -58,8 +58,14 @@ class PluginValidationDataExtension(PluginData):
     consolidatedOrNonConsolidatedAxisQn: QName
     documentTypeDeiQn: QName
     jpcrpEsrFilingDateCoverPageQn: QName
+    jpcrpEsrNamespace: str
     jpcrpFilingDateCoverPageQn: QName
+    jpcrpNamespace: str
+    jpdeiNamespace: str
+    jpigpNamespace: str
+    jppfsNamespace: str
     jpspsFilingDateCoverPageQn: QName
+    jpspsNamespace: str
     nonConsolidatedMemberQn: QName
     ratioOfFemaleDirectorsAndOtherOfficersQn: QName
 
@@ -69,21 +75,25 @@ class PluginValidationDataExtension(PluginData):
 
     def __init__(self, name: str, validateXbrl: ValidateXbrl):
         super().__init__(name)
-        jpcrpEsrNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jpcrp-esr/2024-11-01/jpcrp-esr_cor"
+
+        # Namespaces
+        self.jpcrpEsrNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jpcrp-esr/2024-11-01/jpcrp-esr_cor"
         self.jpcrpNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpcrp/2024-11-01/jpcrp_cor'
-        jpdeiNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpdei/2013-08-31/jpdei_cor'
-        jpigpNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jpigp/2024-11-01/jpigp_cor"
-        jppfsNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jppfs/2024-11-01/jppfs_cor"
-        jpspsNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpsps/2024-11-01/jpsps_cor'
-        self.accountingStandardsDeiQn = qname(jpdeiNamespace, 'AccountingStandardsDEI')
-        self.assetsIfrsQn = qname(jpigpNamespace, 'AssetsIFRS')
-        self.consolidatedOrNonConsolidatedAxisQn = qname(jppfsNamespace, 'ConsolidatedOrNonConsolidatedAxis')
-        self.documentTypeDeiQn = qname(jpdeiNamespace, 'DocumentTypeDEI')
+        self.jpdeiNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpdei/2013-08-31/jpdei_cor'
+        self.jpigpNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jpigp/2024-11-01/jpigp_cor"
+        self.jppfsNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jppfs/2024-11-01/jppfs_cor"
+        self.jpspsNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpsps/2024-11-01/jpsps_cor'
+
+        # QNames
+        self.accountingStandardsDeiQn = qname(self.jpdeiNamespace, 'AccountingStandardsDEI')
+        self.assetsIfrsQn = qname(self.jpigpNamespace, 'AssetsIFRS')
+        self.consolidatedOrNonConsolidatedAxisQn = qname(self.jppfsNamespace, 'ConsolidatedOrNonConsolidatedAxis')
+        self.documentTypeDeiQn = qname(self.jpdeiNamespace, 'DocumentTypeDEI')
         self.issuedSharesTotalNumberOfSharesEtcQn = qname(self.jpcrpNamespace, 'IssuedSharesTotalNumberOfSharesEtcTextBlock')
-        self.jpcrpEsrFilingDateCoverPageQn = qname(jpcrpEsrNamespace, 'FilingDateCoverPage')
+        self.jpcrpEsrFilingDateCoverPageQn = qname(self.jpcrpEsrNamespace, 'FilingDateCoverPage')
         self.jpcrpFilingDateCoverPageQn = qname(self.jpcrpNamespace, 'FilingDateCoverPage')
-        self.jpspsFilingDateCoverPageQn = qname(jpspsNamespace, 'FilingDateCoverPage')
-        self.nonConsolidatedMemberQn = qname(jppfsNamespace, "NonConsolidatedMember")
+        self.jpspsFilingDateCoverPageQn = qname(self.jpspsNamespace, 'FilingDateCoverPage')
+        self.nonConsolidatedMemberQn = qname(self.jppfsNamespace, "NonConsolidatedMember")
         self.ratioOfFemaleDirectorsAndOtherOfficersQn = qname(self.jpcrpNamespace, "RatioOfFemaleDirectorsAndOtherOfficers")
 
         self.contextIdPattern = regex.compile(r'(Prior[1-9]Year|CurrentYear|Prior[1-9]Interim|Interim)(Duration|Instant)')
