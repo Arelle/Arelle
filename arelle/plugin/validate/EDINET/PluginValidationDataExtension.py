@@ -31,8 +31,9 @@ from arelle.XhtmlValidate import htmlEltUriAttrs
 from arelle.XmlValidate import VALID
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
-from .Constants import CORPORATE_FORMS, FormType, xhtmlDtdExtension, PROHIBITED_HTML_TAGS, PROHIBITED_HTML_ATTRIBUTES
+from .Constants import xhtmlDtdExtension, PROHIBITED_HTML_TAGS, PROHIBITED_HTML_ATTRIBUTES
 from .ControllerPluginData import ControllerPluginData
+from .FormType import FormType
 from .ManifestInstance import ManifestInstance
 from .Statement import Statement, STATEMENTS, BalanceSheet, StatementInstance, StatementType
 from .UploadContents import UploadContents
@@ -150,17 +151,22 @@ class PluginValidationDataExtension(PluginData):
 
     @lru_cache(1)
     def isCorporateForm(self, modelXbrl: ModelXbrl) -> bool:
-        documentTypes = self.getDocumentTypes(modelXbrl)
-        if any(documentType == form.value for form in CORPORATE_FORMS for documentType in documentTypes):
-            return True
-        return False
+        formTypes = self.getFormTypes(modelXbrl)
+        return any(
+            formType.isCorporateForm
+            for formType in formTypes
+        )
 
     def isCorporateReport(self, modelXbrl: ModelXbrl) -> bool:
         return self.jpcrpNamespace in modelXbrl.namespaceDocs
 
+    @lru_cache(1)
     def isStockForm(self, modelXbrl: ModelXbrl) -> bool:
-        documentTypes = self.getDocumentTypes(modelXbrl)
-        return any(documentType == form.value for form in FormType if form.isStockReport for documentType in documentTypes)
+        formTypes = self.getFormTypes(modelXbrl)
+        return any(
+            formType.isStockReport
+            for formType in formTypes
+        )
 
     def getBalanceSheets(self, modelXbrl: ModelXbrl, statement: Statement) -> list[BalanceSheet]:
         """
@@ -258,15 +264,6 @@ class PluginValidationDataExtension(PluginData):
     def getDeduplicatedFacts(self, modelXbrl: ModelXbrl) -> list[ModelFact]:
         return getDeduplicatedFacts(modelXbrl, DeduplicationType.CONSISTENT_PAIRS)
 
-    @lru_cache(1)
-    def getDocumentTypes(self, modelXbrl: ModelXbrl) -> set[str]:
-        documentFacts = modelXbrl.factsByQname.get(self.documentTypeDeiQn, set())
-        documentTypes = set()
-        for fact in documentFacts:
-            if fact.xValid >= VALID:
-                documentTypes.add(fact.textValue)
-        return documentTypes
-
     def getFactsByContextAndUnit(
             self, modelXbrl: ModelXbrl,
             getContextKey: Callable[[ModelContext], Hashable],
@@ -306,6 +303,24 @@ class PluginValidationDataExtension(PluginData):
             for elt in elts
             if isinstance(elt, (ModelObject, LinkPrototype))
         ]
+
+
+    @lru_cache(1)
+    def getFormTypes(self, modelXbrl: ModelXbrl) -> set[FormType]:
+        """
+        Retrieves form type values from the instance.
+        Note that the underlying concept is labeled "DocumentTypeDEI",
+        but "Document Type" refers to something else in EDINET documentation.
+        In practice, the value of this field is the form number / form type.
+        :param modelXbrl: Instance to get form types from.
+        :return: Set of discovered form types.
+        """
+        formTypes = set()
+        for fact in self.iterValidNonNilFacts(modelXbrl, self.documentTypeDeiQn):
+            formType = FormType.parse(fact.textValue)
+            if formType is not None:
+                formTypes.add(formType)
+        return formTypes
 
     @lru_cache(1)
     def getManifestInstance(self, modelXbrl: ModelXbrl) -> ManifestInstance | None:
