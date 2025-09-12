@@ -32,6 +32,8 @@ from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
 
+DISALLOWED_LABEL_WHITE_SPACE_CHARACTERS = regex.compile(r'\s{2,}')
+DISALLOWED_LABEL_CHARACTERS = regex.compile(r'<|&lt;|&#60;|&#x3c;')
 GFM_CONTEXT_DATE_PATTERN = regex.compile(r"^[12][0-9]{3}-[01][0-9]-[0-3][0-9]$")
 GFM_RECOMMENDED_NAMESPACE_PREFIXES = {
     XbrlConst.xbrli: ("xbrli",),
@@ -699,5 +701,77 @@ def rule_gfm_1_5_6(
                     concept=concept.qname,
                     role=label.role,
                     label=label.viewText(),
+                    modelObject=label
+                )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_5_7(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.5.7] A label cannot contain the "<" character or consecutive white space characters including
+                    but not limited to: space, carriage return, line feed or tab.
+    """
+    labelRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
+    if labelRelationshipSet is None:
+        return
+    for concept in val.modelXbrl.qnameConcepts.values():
+        labelRels = labelRelationshipSet.fromModelObject(concept)
+        for rel in labelRels:
+            label = rel.toModelObject
+            if label.role != XbrlConst.documentationLabel and label.textValue is not None:
+                if DISALLOWED_LABEL_CHARACTERS.search(label.textValue):
+                    yield Validation.warning(
+                        codes='EDINET.EC5700W.GFM.1.5.7',
+                        msg=_("The concept of '%(concept)s' has a label classified as '%(role)s that contains the '<' character: %(label)s"),
+                        concept=concept.qname,
+                        role=label.role,
+                        label=label.textValue,
+                        modelObject=label
+                    )
+                elif DISALLOWED_LABEL_WHITE_SPACE_CHARACTERS.search(label.textValue):
+                    yield Validation.warning(
+                        codes='EDINET.EC5700W.GFM.1.5.7',
+                        msg=_("The concept of '%(concept)s' has a label classified as '%(role)s' that contains consecutive white space characters: %(label)s"),
+                        concept=concept.qname,
+                        role=label.role,
+                        label=label.textValue,
+                        modelObject=label
+                    )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_5_8(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.5.8] A label should not begin or end with a white space character
+    """
+    labelRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
+    if labelRelationshipSet is None:
+        return
+    for concept in val.modelXbrl.qnameConcepts.values():
+        labelRels = labelRelationshipSet.fromModelObject(concept)
+        for rel in labelRels:
+            label = rel.toModelObject
+            if label.textValue is not None and label.textValue != label.textValue.strip():
+                yield Validation.warning(
+                    codes='EDINET.EC5700W.GFM.1.5.8',
+                    msg=_("The concept of '%(concept)s' has a label that contains disallowed white space either at the begining or the end: '%(label)s'"),
+                    concept=concept.qname,
+                    label=label.textValue,
                     modelObject=label
                 )
