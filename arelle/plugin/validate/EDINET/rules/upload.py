@@ -19,7 +19,9 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from .. import Constants
+from ..CoverPageRequirements import CoverPageItemStatus
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
+from ..FilingFormat import FILING_FORMATS
 from ..ReportFolderType import ReportFolderType, HTML_EXTENSIONS, IMAGE_EXTENSIONS
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
@@ -631,15 +633,18 @@ def rules_cover_page(
 ) -> Iterable[Validation]:
     """
     EDINET.EC1000E: Cover page must contain "【表紙】".
+    EDINET.EC1001E: A required item is missing from the cover page.
     """
     uploadContents = pluginData.getUploadContents(val.modelXbrl)
     if uploadContents is None:
         return
+    instanceHasCoverPage = False
     for url, doc in val.modelXbrl.urlDocs.items():
         path = Path(url)
         pathInfo = uploadContents.uploadPathsByFullPath.get(path)
         if pathInfo is None or not pathInfo.isCoverPage:
             continue
+        instanceHasCoverPage = True
         rootElt = doc.xmlRootElement
         coverPageTextFound = False
         for elt in rootElt.iterdescendants():
@@ -654,6 +659,32 @@ def rules_cover_page(
                       "Please add '【表紙】' to the relevant file."),
                 file=doc.basename,
             )
+    if not instanceHasCoverPage:
+        return
+    filingFormat = pluginData.getFilingFormat(val.modelXbrl)
+    if filingFormat is None:
+        return
+    coverPageRequirements = pluginData.getCoverPageRequirements(val.modelXbrl)
+    for itemIndex, qname in enumerate(pluginData.coverPageItems):
+        filingFormatIndex = FILING_FORMATS.index(filingFormat)
+        status = coverPageRequirements.get(itemIndex, filingFormatIndex)
+        if status is None:
+            continue
+        if status == CoverPageItemStatus.REQUIRED:
+            foundFact = False
+            for fact in pluginData.iterValidNonNilFacts(val.modelXbrl, qname):
+                if fact.qname.prefix is not None and filingFormat.includesTaxonomyPrefix(fact.qname.prefix):
+                    foundFact = True
+                    break
+            if not foundFact:
+                yield Validation.error(
+                    codes='EDINET.EC1001E',
+                    msg=_("Cover item %(localName)s is missing. "
+                          "File name: '%(file)s'. "
+                          "Please add the cover item %(localName)s to the relevant file."),
+                    localName=qname.localName,
+                    file=doc.basename,
+                )
 
 
 @validation(

@@ -33,7 +33,7 @@ from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
 from .Constants import xhtmlDtdExtension, PROHIBITED_HTML_TAGS, PROHIBITED_HTML_ATTRIBUTES
 from .ControllerPluginData import ControllerPluginData
-from .CoverPageRequirements import CoverPageRequirements
+from .CoverPageRequirements import CoverPageRequirements, COVER_PAGE_ITEM_LOCAL_NAMES
 from .FilingFormat import FilingFormat, FILING_FORMATS
 from .FormType import FormType
 from .ManifestInstance import ManifestInstance
@@ -73,6 +73,7 @@ class PluginValidationDataExtension(PluginData):
     ratioOfFemaleDirectorsAndOtherOfficersQn: QName
 
     contextIdPattern: regex.Pattern[str]
+    coverPageItems: tuple[QName, ...]
     coverPageRequirementsPath: Path
     coverPageTitleQns: tuple[QName, ...]
 
@@ -102,6 +103,10 @@ class PluginValidationDataExtension(PluginData):
         self.ratioOfFemaleDirectorsAndOtherOfficersQn = qname(self.jpcrpNamespace, "RatioOfFemaleDirectorsAndOtherOfficers")
 
         self.contextIdPattern = regex.compile(r'(Prior[1-9]Year|CurrentYear|Prior[1-9]Interim|Interim)(Duration|Instant)')
+        self.coverPageItems = tuple(
+            qname(self.jpdeiNamespace, localName)
+            for localName in COVER_PAGE_ITEM_LOCAL_NAMES
+        )
         self.coverPageRequirementsPath = Path(__file__).parent / "resources" / "cover-page-requirements.csv"
         self.coverPageTitleQns = (
             qname(self.jpspsNamespace, "DocumentTitleAnnualSecuritiesReportCoverPage"),
