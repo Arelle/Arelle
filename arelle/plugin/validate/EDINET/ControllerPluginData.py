@@ -15,6 +15,7 @@ from arelle.FileSource import FileSource
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
 from . import Constants
+from .CoverPageRequirements import CoverPageRequirements
 from .ReportFolderType import ReportFolderType
 from .UploadContents import UploadContents, UploadPathInfo
 
@@ -44,6 +45,10 @@ class ControllerPluginData(PluginData):
         Add a manifest instance with unique ID to the plugin data.
         """
         self._manifestInstancesById[manifestInstance.id] = manifestInstance
+
+    @lru_cache(1)
+    def getCoverPageRequirements(self, csvPath: Path) -> CoverPageRequirements:
+        return CoverPageRequirements(csvPath)
 
     def getManifestInstances(self) -> list[ManifestInstance]:
         """
