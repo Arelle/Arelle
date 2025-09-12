@@ -635,6 +635,7 @@ def rules_cover_page(
     EDINET.EC1000E: Cover page must contain "【表紙】".
     EDINET.EC1001E: A required item is missing from the cover page.
     EDINET.EC1002E: A duplicate item is included on the cover page.
+    EDINET.EC1003E: An unnecessary item is included on the cover page.
     """
     uploadContents = pluginData.getUploadContents(val.modelXbrl)
     if uploadContents is None:
@@ -697,6 +698,18 @@ def rules_cover_page(
                           "Please add the cover item %(localName)s to the relevant file."),
                     localName=qname.localName,
                     file=doc.basename,
+                )
+        elif status == CoverPageItemStatus.PROHIBITED:
+            for fact in foundFacts:
+                yield Validation.error(
+                    codes='EDINET.EC1003E',
+                    msg=_("Cover item %(localName)s is not necessary. "
+                          "File name: '%(file)s' (line %(line)s). "
+                          "Please add the cover item %(localName)s to the relevant file."),
+                    localName=qname.localName,
+                    file=doc.basename,
+                    line=fact.sourceline,
+                    modelObject=fact,
                 )
 
 
