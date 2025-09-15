@@ -1,12 +1,12 @@
 flake8==7.3.0
 flake8-noqa==1.4.0
 
-mypy==1.17.1
+mypy==1.18.1
 
-boto3-stubs==1.40.25
+boto3-stubs==1.40.30
 lxml-stubs==0.5.1
-types-openpyxl==3.1.5.20250822
-types-PyMySQL==1.1.0.20250822
+types-openpyxl==3.1.5.20250914
+types-PyMySQL==1.1.0.20250914
 types-python-dateutil==2.9.0.20250822
 types-pytz==2025.2.0.20250809
 types-regex==2025.9.1.20250903
