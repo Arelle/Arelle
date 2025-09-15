@@ -302,14 +302,14 @@ def rule_ros19(
     equity_facts = val.modelXbrl.factsByLocalName.get(EQUITY, set())
     largest_equity_fact = None
     for e_fact in equity_facts:
-        if e_fact.xValid >= VALID:
+        if e_fact.xValid >= VALID and e_fact.xValue is not None:
             if largest_equity_fact is None or abs(convertToDecimal(e_fact.xValue)) > abs(convertToDecimal(largest_equity_fact.xValue)):
                 largest_equity_fact = e_fact
 
     turnover_facts = val.modelXbrl.factsByLocalName.get(TURNOVER_REVENUE, set())
     largest_turnover_fact = None
     for t_fact in turnover_facts:
-        if t_fact.xValid >= VALID:
+        if t_fact.xValid >= VALID and t_fact.xValue is not None:
             if largest_turnover_fact is None or convertToDecimal(t_fact.xValue) > convertToDecimal(largest_turnover_fact.xValue):
                 largest_turnover_fact = t_fact
 
