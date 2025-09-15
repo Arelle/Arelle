@@ -241,7 +241,7 @@ class PluginValidationDataExtension(PluginData):
 
     def getCoverPageRequirements(self, modelXbrl: ModelXbrl) -> CoverPageRequirements:
         controllerPluginData = ControllerPluginData.get(modelXbrl.modelManager.cntlr, self.name)
-        return controllerPluginData.getCoverPageRequirements(self.coverPageRequirementsPath)
+        return controllerPluginData.getCoverPageRequirements(self.coverPageRequirementsPath, self.coverPageItems, FILING_FORMATS)
 
     def getProblematicTextBlocks(self, modelXbrl: ModelXbrl) -> list[ModelInlineFact]:
         problematicTextBlocks: list[ModelInlineFact] = []

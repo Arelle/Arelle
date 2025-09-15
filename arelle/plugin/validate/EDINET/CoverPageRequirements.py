@@ -6,17 +6,25 @@ from __future__ import annotations
 from enum import Enum
 from pathlib import Path
 
+from arelle.ModelValue import QName
+from arelle.plugin.validate.EDINET.FilingFormat import FilingFormat
+
+
 # Cover page requirements parsing is designed so that the contents of Attachment #5
 # in "(Appendix) Taxonomy Extension Guideline" (ESE140111.zip), or future versions,
 # can be easily exported to a CSV file where the rows correspond to Cover Page items
 # andt the columns correspond to different formats.
 class CoverPageRequirements:
+    _coverPageItems: tuple[QName, ...]
     _csvPath: Path
     _data: list[list[CoverPageItemStatus | None]] | None
+    _filingFormats: tuple[FilingFormat, ...]
 
-    def __init__(self, csvPath: Path):
+    def __init__(self, csvPath: Path, coverPageItems: tuple[QName, ...], filingFormats: tuple[FilingFormat, ...]):
+        self._coverPageItems = coverPageItems
         self._csvPath = csvPath
         self._data = None
+        self._filingFormats = filingFormats
 
     def _load(self) -> list[list[CoverPageItemStatus | None]]:
         if self._data is None:
@@ -30,10 +38,12 @@ class CoverPageRequirements:
         return self._data
 
 
-    def get(self, itemIndex: int, formatIndex: int) -> CoverPageItemStatus | None:
+    def get(self, coverPageItem: QName, filingFormat: FilingFormat) -> CoverPageItemStatus | None:
         try:
-            return self._load()[itemIndex][formatIndex]
-        except IndexError:
+            coverPageItemIndex = self._coverPageItems.index(coverPageItem)
+            filingFormatIndex = self._filingFormats.index(filingFormat)
+            return self._load()[coverPageItemIndex][filingFormatIndex]
+        except (IndexError, ValueError):
             return None
 
 

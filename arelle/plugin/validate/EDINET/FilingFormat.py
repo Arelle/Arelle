@@ -101,7 +101,7 @@ FINANCIAL_STATEMENT_TAXONOMIES = frozenset({
 # The below values are based on Table 2-3-1 in "Framework Design of EDINET Taxonomy" (ESE140301.pdf).
 # The order is preserved. The index is used to map to other data structures. EDINET documentation often
 # references this same list of formats in this same order.
-FILING_FORMATS = [
+FILING_FORMATS = (
     # 開示府令
 
     # 有価証券届出書 第二号様式
@@ -250,4 +250,4 @@ FILING_FORMATS = [
 
     # 内部統制報告書 第一号様式
     FilingFormat(Ordinance.INTERNAL_CONTROL,  DocumentType.INTERNAL_CONTROL_REPORT, FormType.FORM_1, frozenset({Taxonomy.INTERNAL_CONTROL})),
-]
+)

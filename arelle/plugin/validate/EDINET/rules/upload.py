@@ -667,7 +667,7 @@ def rules_cover_page(
     if filingFormat is None:
         return
     coverPageRequirements = pluginData.getCoverPageRequirements(val.modelXbrl)
-    for itemIndex, qname in enumerate(pluginData.coverPageItems):
+    for qname in pluginData.coverPageItems:
         foundFacts = []
         for fact in pluginData.iterValidNonNilFacts(val.modelXbrl, qname):
             if fact.qname.prefix is not None and filingFormat.includesTaxonomyPrefix(fact.qname.prefix):
@@ -685,8 +685,7 @@ def rules_cover_page(
                 modelObject=foundFacts,
             )
 
-        filingFormatIndex = FILING_FORMATS.index(filingFormat)
-        status = coverPageRequirements.get(itemIndex, filingFormatIndex)
+        status = coverPageRequirements.get(qname, filingFormat)
         if status is None:
             continue
         if status == CoverPageItemStatus.REQUIRED:
