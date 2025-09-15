@@ -638,6 +638,7 @@ def rules_cover_page(
     EDINET.EC1002E: A duplicate item is included on the cover page.
     EDINET.EC1003E: An unnecessary item is included on the cover page.
     EDINET.EC1004E: An item on the cover page is out of order.
+    EDINET.EC1005E: A required item on the cover page is missing a valid value.
     """
     uploadContents = pluginData.getUploadContents(val.modelXbrl)
     if uploadContents is None:
@@ -672,11 +673,14 @@ def rules_cover_page(
     currentLineNumber = 0
     for qname in pluginData.coverPageItems:
         foundFacts = []
+        validNonNilFacts = []
         for fact in pluginData.iterFacts(val.modelXbrl, qname):
             if fact.modelDocument != coverPageDocument:
                 continue
             if fact.qname.prefix is not None and filingFormat.includesTaxonomyPrefix(fact.qname.prefix):
                 foundFacts.append(fact)
+            if fact.xValid >= VALID and not fact.isNil:
+                validNonNilFacts.append(fact)
 
         for fact in sorted(foundFacts, key=lambda f: f.sourceline):
             if (sourceLine := cast(int, fact.sourceline)) <= currentLineNumber:
@@ -716,6 +720,16 @@ def rules_cover_page(
                           "Please add the cover item %(localName)s to the relevant file."),
                     localName=qname.localName,
                     file=coverPageDocument.basename,
+                )
+            elif len(validNonNilFacts) == 0:
+                yield Validation.error(
+                    codes='EDINET.EC1005E',
+                    msg=_("Cover item %(localName)s is missing a valid value. "
+                          "File name: '%(file)s'. "
+                          "Please enter a valid value for %(localName)s in the relevant file."),
+                    localName=qname.localName,
+                    file=foundFacts[0].modelDocument.basename,
+                    modelObject=foundFacts,
                 )
         elif status == CoverPageItemStatus.PROHIBITED:
             for fact in foundFacts:
