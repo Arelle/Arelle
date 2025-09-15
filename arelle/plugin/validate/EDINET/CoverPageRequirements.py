@@ -7,7 +7,7 @@ from enum import Enum
 from pathlib import Path
 
 from arelle.ModelValue import QName
-from arelle.plugin.validate.EDINET.FilingFormat import FilingFormat
+from .FilingFormat import FilingFormat
 
 
 # Cover page requirements parsing is designed so that the contents of Attachment #5
@@ -17,7 +17,7 @@ from arelle.plugin.validate.EDINET.FilingFormat import FilingFormat
 class CoverPageRequirements:
     _coverPageItems: tuple[QName, ...]
     _csvPath: Path
-    _data: list[list[CoverPageItemStatus | None]] | None
+    _data: dict[QName, dict[FilingFormat, CoverPageItemStatus | None]] | None
     _filingFormats: tuple[FilingFormat, ...]
 
     def __init__(self, csvPath: Path, coverPageItems: tuple[QName, ...], filingFormats: tuple[FilingFormat, ...]):
@@ -26,25 +26,36 @@ class CoverPageRequirements:
         self._data = None
         self._filingFormats = filingFormats
 
-    def _load(self) -> list[list[CoverPageItemStatus | None]]:
+    def _load(self) -> dict[QName, dict[FilingFormat, CoverPageItemStatus | None]]:
         if self._data is None:
             with open(self._csvPath, encoding='utf-8') as f:
-                self._data = [
+                data = [
                     [
                         CoverPageItemStatus.parse(cell) for cell in line.strip().split(',')
                     ]
                     for line in f.readlines()
                 ]
+                self._data = {}
+                assert len(data) == len(self._coverPageItems), \
+                    "Unexpected number of rows in cover page requirements CSV."
+                for rowIndex, row in enumerate(data):
+                    assert len(row) == len(self._filingFormats), \
+                        f"Unexpected number of columns in cover page requirements CSV at row {rowIndex}."
+                    coverPageItem = self._coverPageItems[rowIndex]
+                    self._data[coverPageItem] = {}
+                    for colIndex, cell in enumerate(row):
+                        filingFormat = self._filingFormats[colIndex]
+                        self._data[coverPageItem][filingFormat] = cell
         return self._data
 
 
     def get(self, coverPageItem: QName, filingFormat: FilingFormat) -> CoverPageItemStatus | None:
-        try:
-            coverPageItemIndex = self._coverPageItems.index(coverPageItem)
-            filingFormatIndex = self._filingFormats.index(filingFormat)
-            return self._load()[coverPageItemIndex][filingFormatIndex]
-        except (IndexError, ValueError):
+        data = self._load()
+        if coverPageItem not in data:
             return None
+        if filingFormat not in data[coverPageItem]:
+            return None
+        return data[coverPageItem][filingFormat]
 
 
 class CoverPageItemStatus(Enum):
