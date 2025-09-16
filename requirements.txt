@@ -10,7 +10,7 @@ numpy==2.0.2 ; python_version <= "3.9"
 numpy==2.2.4 ; python_version > "3.9"
 openpyxl==3.1.5
 pycountry==24.6.1
-pyparsing==3.2.3
+pyparsing==3.2.4
 python-dateutil==2.9.0.post0
 regex==2025.9.1
 tornado==6.5.2
@@ -21,7 +21,7 @@ typing-extensions==4.15.0
 pycryptodome==3.23.0
 # xbrlDB plugin
 cx_Oracle==8.3.0
-pg8000==1.31.4
+pg8000==1.31.5
 PyMySQL==1.1.2
 pyodbc==5.2.0
 rdflib==7.1.4

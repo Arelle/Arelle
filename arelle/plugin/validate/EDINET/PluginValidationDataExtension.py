@@ -9,14 +9,13 @@ from decimal import Decimal
 from functools import lru_cache
 from pathlib import Path
 
-from lxml.etree import DTD, XML, _ElementTree, _Comment, _ProcessingInstruction
+from lxml.etree import DTD, XML
 from operator import attrgetter
 from typing import Callable, Hashable, Iterable, cast
 
 import os
 import regex
 
-from arelle import UrlUtil
 from arelle.LinkbaseType import LinkbaseType
 from arelle.ModelDocument import Type as ModelDocumentType, ModelDocument
 from arelle.ModelDtsObject import ModelConcept
@@ -31,8 +30,11 @@ from arelle.XhtmlValidate import htmlEltUriAttrs
 from arelle.XmlValidate import VALID
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
-from .Constants import CORPORATE_FORMS, FormType, xhtmlDtdExtension, PROHIBITED_HTML_TAGS, PROHIBITED_HTML_ATTRIBUTES
+from .Constants import xhtmlDtdExtension, PROHIBITED_HTML_TAGS, PROHIBITED_HTML_ATTRIBUTES
 from .ControllerPluginData import ControllerPluginData
+from .CoverPageRequirements import CoverPageRequirements, COVER_PAGE_ITEM_LOCAL_NAMES
+from .FilingFormat import FilingFormat, FILING_FORMATS
+from .FormType import FormType
 from .ManifestInstance import ManifestInstance
 from .Statement import Statement, STATEMENTS, BalanceSheet, StatementInstance, StatementType
 from .UploadContents import UploadContents
@@ -58,35 +60,59 @@ class PluginValidationDataExtension(PluginData):
     consolidatedOrNonConsolidatedAxisQn: QName
     documentTypeDeiQn: QName
     jpcrpEsrFilingDateCoverPageQn: QName
+    jpcrpEsrNamespace: str
     jpcrpFilingDateCoverPageQn: QName
+    jpcrpNamespace: str
+    jpdeiNamespace: str
+    jpigpNamespace: str
+    jppfsNamespace: str
     jpspsFilingDateCoverPageQn: QName
+    jpspsNamespace: str
     nonConsolidatedMemberQn: QName
     ratioOfFemaleDirectorsAndOtherOfficersQn: QName
 
     contextIdPattern: regex.Pattern[str]
+    coverPageItems: tuple[QName, ...]
+    coverPageRequirementsPath: Path
+    coverPageTitleQns: tuple[QName, ...]
 
     _uriReferences: list[UriReference]
 
     def __init__(self, name: str, validateXbrl: ValidateXbrl):
         super().__init__(name)
-        jpcrpEsrNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jpcrp-esr/2024-11-01/jpcrp-esr_cor"
+
+        # Namespaces
+        self.jpcrpEsrNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jpcrp-esr/2024-11-01/jpcrp-esr_cor"
         self.jpcrpNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpcrp/2024-11-01/jpcrp_cor'
-        jpdeiNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpdei/2013-08-31/jpdei_cor'
-        jpigpNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jpigp/2024-11-01/jpigp_cor"
-        jppfsNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jppfs/2024-11-01/jppfs_cor"
-        jpspsNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpsps/2024-11-01/jpsps_cor'
-        self.accountingStandardsDeiQn = qname(jpdeiNamespace, 'AccountingStandardsDEI')
-        self.assetsIfrsQn = qname(jpigpNamespace, 'AssetsIFRS')
-        self.consolidatedOrNonConsolidatedAxisQn = qname(jppfsNamespace, 'ConsolidatedOrNonConsolidatedAxis')
-        self.documentTypeDeiQn = qname(jpdeiNamespace, 'DocumentTypeDEI')
+        self.jpdeiNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpdei/2013-08-31/jpdei_cor'
+        self.jpigpNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jpigp/2024-11-01/jpigp_cor"
+        self.jppfsNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jppfs/2024-11-01/jppfs_cor"
+        self.jpspsNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpsps/2024-11-01/jpsps_cor'
+
+        # QNames
+        self.accountingStandardsDeiQn = qname(self.jpdeiNamespace, 'AccountingStandardsDEI')
+        self.assetsIfrsQn = qname(self.jpigpNamespace, 'AssetsIFRS')
+        self.consolidatedOrNonConsolidatedAxisQn = qname(self.jppfsNamespace, 'ConsolidatedOrNonConsolidatedAxis')
+        self.documentTypeDeiQn = qname(self.jpdeiNamespace, 'DocumentTypeDEI')
         self.issuedSharesTotalNumberOfSharesEtcQn = qname(self.jpcrpNamespace, 'IssuedSharesTotalNumberOfSharesEtcTextBlock')
-        self.jpcrpEsrFilingDateCoverPageQn = qname(jpcrpEsrNamespace, 'FilingDateCoverPage')
+        self.jpcrpEsrFilingDateCoverPageQn = qname(self.jpcrpEsrNamespace, 'FilingDateCoverPage')
         self.jpcrpFilingDateCoverPageQn = qname(self.jpcrpNamespace, 'FilingDateCoverPage')
-        self.jpspsFilingDateCoverPageQn = qname(jpspsNamespace, 'FilingDateCoverPage')
-        self.nonConsolidatedMemberQn = qname(jppfsNamespace, "NonConsolidatedMember")
+        self.jpspsFilingDateCoverPageQn = qname(self.jpspsNamespace, 'FilingDateCoverPage')
+        self.nonConsolidatedMemberQn = qname(self.jppfsNamespace, "NonConsolidatedMember")
         self.ratioOfFemaleDirectorsAndOtherOfficersQn = qname(self.jpcrpNamespace, "RatioOfFemaleDirectorsAndOtherOfficers")
 
         self.contextIdPattern = regex.compile(r'(Prior[1-9]Year|CurrentYear|Prior[1-9]Interim|Interim)(Duration|Instant)')
+        self.coverPageItems = tuple(
+            qname(self.jpdeiNamespace, localName)
+            for localName in COVER_PAGE_ITEM_LOCAL_NAMES
+        )
+        self.coverPageRequirementsPath = Path(__file__).parent / "resources" / "cover-page-requirements.csv"
+        self.coverPageTitleQns = (
+            qname(self.jpspsNamespace, "DocumentTitleAnnualSecuritiesReportCoverPage"),
+            qname(self.jpcrpNamespace, "DocumentTitleCoverPage"),
+            qname(self.jpcrpEsrNamespace, "DocumentTitleCoverPage"),
+            qname(self.jpspsNamespace, "DocumentTitleCoverPage"),
+        )
 
         self._uriReferences = []
         self._initialize(validateXbrl.modelXbrl)
@@ -140,17 +166,22 @@ class PluginValidationDataExtension(PluginData):
 
     @lru_cache(1)
     def isCorporateForm(self, modelXbrl: ModelXbrl) -> bool:
-        documentTypes = self.getDocumentTypes(modelXbrl)
-        if any(documentType == form.value for form in CORPORATE_FORMS for documentType in documentTypes):
-            return True
-        return False
+        formTypes = self.getFormTypes(modelXbrl)
+        return any(
+            formType.isCorporateForm
+            for formType in formTypes
+        )
 
     def isCorporateReport(self, modelXbrl: ModelXbrl) -> bool:
         return self.jpcrpNamespace in modelXbrl.namespaceDocs
 
+    @lru_cache(1)
     def isStockForm(self, modelXbrl: ModelXbrl) -> bool:
-        documentTypes = self.getDocumentTypes(modelXbrl)
-        return any(documentType == form.value for form in FormType if form.isStockReport for documentType in documentTypes)
+        formTypes = self.getFormTypes(modelXbrl)
+        return any(
+            formType.isStockReport
+            for formType in formTypes
+        )
 
     def getBalanceSheets(self, modelXbrl: ModelXbrl, statement: Statement) -> list[BalanceSheet]:
         """
@@ -207,6 +238,10 @@ class PluginValidationDataExtension(PluginData):
             )
         return balanceSheets
 
+    def getCoverPageRequirements(self, modelXbrl: ModelXbrl) -> CoverPageRequirements:
+        controllerPluginData = ControllerPluginData.get(modelXbrl.modelManager.cntlr, self.name)
+        return controllerPluginData.getCoverPageRequirements(self.coverPageRequirementsPath, self.coverPageItems, FILING_FORMATS)
+
     def getProblematicTextBlocks(self, modelXbrl: ModelXbrl) -> list[ModelInlineFact]:
         problematicTextBlocks: list[ModelInlineFact] = []
         dtd = DTD(os.path.join(modelXbrl.modelManager.cntlr.configDir, xhtmlDtdExtension))
@@ -248,15 +283,6 @@ class PluginValidationDataExtension(PluginData):
     def getDeduplicatedFacts(self, modelXbrl: ModelXbrl) -> list[ModelFact]:
         return getDeduplicatedFacts(modelXbrl, DeduplicationType.CONSISTENT_PAIRS)
 
-    @lru_cache(1)
-    def getDocumentTypes(self, modelXbrl: ModelXbrl) -> set[str]:
-        documentFacts = modelXbrl.factsByQname.get(self.documentTypeDeiQn, set())
-        documentTypes = set()
-        for fact in documentFacts:
-            if fact.xValid >= VALID:
-                documentTypes.add(fact.textValue)
-        return documentTypes
-
     def getFactsByContextAndUnit(
             self, modelXbrl: ModelXbrl,
             getContextKey: Callable[[ModelContext], Hashable],
@@ -296,6 +322,80 @@ class PluginValidationDataExtension(PluginData):
             for elt in elts
             if isinstance(elt, (ModelObject, LinkPrototype))
         ]
+
+    @lru_cache(1)
+    def getFilingFormat(self, modelXbrl: ModelXbrl) ->  FilingFormat | None:
+        # This function attempts to identify the filing format based on form number and title concepts.
+        # The provided form number value directly informs the format.
+        # However, the document title is not necessarily an explicit setting of the format's
+        # document type. In the samples available to us and in a handful of public filings,
+        # it is effective to match the first segment of the title value against document type
+        # values assigned to the various FilingFormats. This may only be by coincidence or convention.
+        # If it doesn't end up being reliable, we may need to find another way to identify the form.
+        # For example, by disclosure system selection or CLI argument.
+        documentTitleFacts = []
+        for qname in self.coverPageTitleQns:
+            for fact in self.iterValidNonNilFacts(modelXbrl, qname):
+                documentTitleFacts.append(fact)
+        formTypes = self.getFormTypes(modelXbrl)
+        filingFormats = []
+        for filingFormatIndex, filingFormat in enumerate(FILING_FORMATS):
+            if filingFormat.formType not in formTypes:
+                continue
+            prefixes = {taxonomy.value for taxonomy in filingFormat.taxonomies}
+            if not any(
+                str(fact.xValue).startswith(filingFormat.documentType.value) and
+                fact.concept.qname.prefix.split('_')[0] in prefixes
+                for fact in documentTitleFacts
+            ):
+                continue
+            filingFormats.append((filingFormat, filingFormatIndex))
+        if len(filingFormats) == 0:
+            modelXbrl.error(
+                "arelle:NoMatchingEdinetFormat",
+                _("No matching EDINET filing formats could be identified based on form "
+                  "type (%(formTypes)s) and title."),
+                formTypes=formTypes,
+                modelObject=documentTitleFacts,
+            )
+            return None
+        if len(filingFormats) > 1:
+            formatIndexes = [str(idx + 1) for _, idx in filingFormats]
+            modelXbrl.error(
+                "arelle:MultipleMatchingEdinetFormats",
+                _("Multiple EDINET filing formats (%(formatIndexes)s) matched based on form "
+                  "type %(formTypes)s and title."),
+                formatIndexes=formatIndexes,
+                formTypes=formTypes,
+                modelObject=documentTitleFacts,
+            )
+            return None
+        filingFormat, filingFormatIndex = filingFormats[0]
+        modelXbrl.modelManager.cntlr.addToLog("Identified filing format: #{}, {}, {}, {}, {}".format(
+            filingFormatIndex + 1,
+            filingFormat.ordinance.value,
+            filingFormat.documentType.value,
+            filingFormat.formType.value,
+            ', '.join(taxonomy.value for taxonomy in filingFormat.taxonomies)
+        ), messageCode="info")
+        return filingFormat
+
+    @lru_cache(1)
+    def getFormTypes(self, modelXbrl: ModelXbrl) -> set[FormType]:
+        """
+        Retrieves form type values from the instance.
+        Note that the underlying concept is labeled "DocumentTypeDEI",
+        but "Document Type" refers to something else in EDINET documentation.
+        In practice, the value of this field is the form number / form type.
+        :param modelXbrl: Instance to get form types from.
+        :return: Set of discovered form types.
+        """
+        formTypes = set()
+        for fact in self.iterValidNonNilFacts(modelXbrl, self.documentTypeDeiQn):
+            formType = FormType.parse(fact.textValue)
+            if formType is not None:
+                formTypes.add(formType)
+        return formTypes
 
     @lru_cache(1)
     def getManifestInstance(self, modelXbrl: ModelXbrl) -> ManifestInstance | None:

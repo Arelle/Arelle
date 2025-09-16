@@ -12,9 +12,12 @@ from typing import TYPE_CHECKING
 
 from arelle.Cntlr import Cntlr
 from arelle.FileSource import FileSource
+from arelle.ModelValue import QName
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
 from . import Constants
+from .CoverPageRequirements import CoverPageRequirements
+from .FilingFormat import FilingFormat
 from .ReportFolderType import ReportFolderType
 from .UploadContents import UploadContents, UploadPathInfo
 
@@ -44,6 +47,10 @@ class ControllerPluginData(PluginData):
         Add a manifest instance with unique ID to the plugin data.
         """
         self._manifestInstancesById[manifestInstance.id] = manifestInstance
+
+    @lru_cache(1)
+    def getCoverPageRequirements(self, csvPath: Path, coverPageItems: tuple[QName, ...], filingFormats: tuple[FilingFormat, ...]) -> CoverPageRequirements:
+        return CoverPageRequirements(csvPath, coverPageItems, filingFormats)
 
     def getManifestInstances(self) -> list[ManifestInstance]:
         """

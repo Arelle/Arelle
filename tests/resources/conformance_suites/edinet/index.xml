@@ -18,6 +18,9 @@
     <testcase uri="EC0349E/index.xml" />
     <testcase uri="EC0352E/index.xml" />
     <testcase uri="EC1000E/index.xml" />
+    <testcase uri="EC1001E/index.xml" />
+    <testcase uri="EC1002E/index.xml" />
+    <testcase uri="EC1003E/index.xml" />
     <testcase uri="EC1006E/index.xml" />
     <testcase uri="EC1007E/index.xml" />
     <testcase uri="EC1013E/index.xml" />
@@ -51,6 +54,10 @@
     <testcase uri="EC5700W.GFM.1.2.30/index.xml" />
     <testcase uri="EC5700W.GFM.1.3.1/index.xml" />
     <testcase uri="EC5700W.GFM.1.3.8/index.xml" />
+    <testcase uri="EC5700W.GFM.1.3.20/index.xml" />
+    <testcase uri="EC5700W.GFM.1.3.23/index.xml" />
+    <testcase uri="EC5700W.GFM.1.3.30/index.xml" />
+    <testcase uri="EC5700W.GFM.1.3.31/index.xml" />
     <testcase uri="EC5700W.GFM.1.5.6/index.xml" />
     <testcase uri="EC5700W.GFM.1.5.7/index.xml" />
     <testcase uri="EC5700W.GFM.1.5.8/index.xml" />

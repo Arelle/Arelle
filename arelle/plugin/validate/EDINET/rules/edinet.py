@@ -93,7 +93,7 @@ def rule_EC1057E(
     Ensure that there is a nonnil value disclosed for FilingDateCoverPage
     Note: This rule is only applicable to the public documents.
     """
-    dei = pluginData.getDocumentTypes(val.modelXbrl)
+    dei = pluginData.getFormTypes(val.modelXbrl)
     if len(dei) > 0:
         if not (pluginData.hasValidNonNilFact(val.modelXbrl, pluginData.jpcrpEsrFilingDateCoverPageQn)
                 or pluginData.hasValidNonNilFact(val.modelXbrl, pluginData.jpcrpFilingDateCoverPageQn)
