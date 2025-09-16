@@ -450,10 +450,17 @@ class PluginValidationDataExtension(PluginData):
     def isStandardTaxonomyUrl(self, uri: str, modelXbrl: ModelXbrl) -> bool:
         return modelXbrl.modelManager.disclosureSystem.hrefValidForDisclosureSystem(uri)
 
+    def iterFacts(self, modelXbrl: ModelXbrl, qname: QName) -> Iterable[ModelFact]:
+        yield from modelXbrl.factsByQname.get(qname, set())
+
+    def iterValidFacts(self, modelXbrl: ModelXbrl, qname: QName) -> Iterable[ModelFact]:
+        for fact in self.iterFacts(modelXbrl, qname):
+            if fact.xValid >= VALID:
+                yield fact
+
     def iterValidNonNilFacts(self, modelXbrl: ModelXbrl, qname: QName) -> Iterable[ModelFact]:
-        facts = modelXbrl.factsByQname.get(qname, set())
-        for fact in facts:
-            if fact.xValid >= VALID and not fact.isNil:
+        for fact in self.iterValidFacts(modelXbrl, qname):
+            if not fact.isNil:
                 yield fact
 
     def addUsedFilepath(self, modelXbrl: ModelXbrl, path: Path) -> None:
