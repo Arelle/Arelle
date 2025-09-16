@@ -9,14 +9,13 @@ from decimal import Decimal
 from functools import lru_cache
 from pathlib import Path
 
-from lxml.etree import DTD, XML, _ElementTree, _Comment, _ProcessingInstruction
+from lxml.etree import DTD, XML
 from operator import attrgetter
 from typing import Callable, Hashable, Iterable, cast
 
 import os
 import regex
 
-from arelle import UrlUtil
 from arelle.LinkbaseType import LinkbaseType
 from arelle.ModelDocument import Type as ModelDocumentType, ModelDocument
 from arelle.ModelDtsObject import ModelConcept
