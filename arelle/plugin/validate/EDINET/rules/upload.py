@@ -10,7 +10,7 @@ from typing import Any, Iterable, TYPE_CHECKING
 
 import regex
 
-from arelle import UrlUtil
+from arelle import UrlUtil, XbrlConst
 from arelle.Cntlr import Cntlr
 from arelle.FileSource import FileSource
 from arelle.ValidateXbrl import ValidateXbrl
@@ -820,6 +820,77 @@ def rule_uri_references(
                 modelObject=uriReference.element,
             )
             continue
+
+
+@validation(
+    hook=ValidationHook.FILESOURCE,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC1009R(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC1009R: The HTML file size must be 2.5MB (megabytes) or less.
+    """
+    for path, size in pluginData.getUploadFileSizes(fileSource).items():
+        if path.suffix not in HTML_EXTENSIONS:
+            continue
+        if size > 2_500_000:
+            yield Validation.warning(
+                codes='EDINET.EC1009R',
+                msg=_("The HTML file size exceeds the maximum limit. "
+                      "File name: '%(path)s'. "
+                      "Please split the file so that the file size is 2.5MB or less."),
+                path=str(path),
+            )
+
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC1010E(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC1010E: The charset specification in the content attribute of the HTML <meta> tag must be UTF-8.
+    """
+    for modelDocument in val.modelXbrl.urlDocs.values():
+        path = Path(modelDocument.uri)
+        if path.suffix not in HTML_EXTENSIONS:
+            continue
+        rootElt = modelDocument.xmlRootElement
+        matchingElt = None
+        missingElts = []
+        for metaElt in rootElt.iterdescendants(tag=XbrlConst.qnXhtmlMeta.clarkNotation):
+            if metaElt.qname.localName != 'meta':
+                continue
+            content = metaElt.get('content')
+            if content is None:
+                continue
+            charset = content.split('charset=')[-1].strip().lower()
+            if charset == 'utf-8':
+                matchingElt = metaElt
+            else:
+                missingElts.append(metaElt)
+
+        if matchingElt is None or len(missingElts) > 0:
+            yield Validation.error(
+                codes='EDINET.EC1010E',
+                msg=_("The charset specification in the content attribute of the HTML <meta> tag is not UTF-8. "
+                      "File name: '%(path)s'. "
+                      "Please change the character code of the file to UTF-8."),
+                path=str(path),
+                modelObject=missingElts
+            )
 
 
 @validation(

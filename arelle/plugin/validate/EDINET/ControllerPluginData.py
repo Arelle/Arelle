@@ -154,10 +154,10 @@ class ControllerPluginData(PluginData):
         if (fileSource.fs is None or
                 not isinstance(fileSource.fs, zipfile.ZipFile)):
             if fileSource.cntlr is not None:
-                fileSource.cntlr.error(
-                    level="WARNING",
-                    codes="EDINET.uploadNotValidated",
-                    msg=_("The target file is not a zip file, so upload validation could not be performed.")
+                fileSource.cntlr.addToLog(
+                    _("The target file is not a zip file, so upload validation was not performed."),
+                    messageCode="EDINET.uploadNotValidated",
+                    file=str(fileSource.url)
                 )
             return False
         return True
