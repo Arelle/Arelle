@@ -19,7 +19,9 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from .. import Constants
+from ..CoverPageRequirements import CoverPageItemStatus
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
+from ..FilingFormat import FILING_FORMATS
 from ..ReportFolderType import ReportFolderType, HTML_EXTENSIONS, IMAGE_EXTENSIONS
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
@@ -631,15 +633,20 @@ def rules_cover_page(
 ) -> Iterable[Validation]:
     """
     EDINET.EC1000E: Cover page must contain "【表紙】".
+    EDINET.EC1001E: A required item is missing from the cover page.
+    EDINET.EC1002E: A duplicate item is included on the cover page.
+    EDINET.EC1003E: An unnecessary item is included on the cover page.
     """
     uploadContents = pluginData.getUploadContents(val.modelXbrl)
     if uploadContents is None:
         return
+    instanceHasCoverPage = False
     for url, doc in val.modelXbrl.urlDocs.items():
         path = Path(url)
         pathInfo = uploadContents.uploadPathsByFullPath.get(path)
         if pathInfo is None or not pathInfo.isCoverPage:
             continue
+        instanceHasCoverPage = True
         rootElt = doc.xmlRootElement
         coverPageTextFound = False
         for elt in rootElt.iterdescendants():
@@ -654,6 +661,55 @@ def rules_cover_page(
                       "Please add '【表紙】' to the relevant file."),
                 file=doc.basename,
             )
+    if not instanceHasCoverPage:
+        return
+    filingFormat = pluginData.getFilingFormat(val.modelXbrl)
+    if filingFormat is None:
+        return
+    coverPageRequirements = pluginData.getCoverPageRequirements(val.modelXbrl)
+    for qname in pluginData.coverPageItems:
+        foundFacts = []
+        for fact in pluginData.iterValidNonNilFacts(val.modelXbrl, qname):
+            if fact.qname.prefix is not None and filingFormat.includesTaxonomyPrefix(fact.qname.prefix):
+                foundFacts.append(fact)
+
+        if len(foundFacts) > 1:
+            yield Validation.error(
+                codes='EDINET.EC1002E',
+                msg=_("Cover item %(localName)s is duplicated. "
+                      "File name: '%(file)s'. "
+                      "Please check the cover item %(localName)s of the relevant file "
+                      "and make sure there are no duplicates."),
+                localName=qname.localName,
+                file=doc.basename,
+                modelObject=foundFacts,
+            )
+
+        status = coverPageRequirements.get(qname, filingFormat)
+        if status is None:
+            continue
+        if status == CoverPageItemStatus.REQUIRED:
+            if len(foundFacts) == 0:
+                yield Validation.error(
+                    codes='EDINET.EC1001E',
+                    msg=_("Cover item %(localName)s is missing. "
+                          "File name: '%(file)s'. "
+                          "Please add the cover item %(localName)s to the relevant file."),
+                    localName=qname.localName,
+                    file=doc.basename,
+                )
+        elif status == CoverPageItemStatus.PROHIBITED:
+            for fact in foundFacts:
+                yield Validation.error(
+                    codes='EDINET.EC1003E',
+                    msg=_("Cover item %(localName)s is not necessary. "
+                          "File name: '%(file)s' (line %(line)s). "
+                          "Please add the cover item %(localName)s to the relevant file."),
+                    localName=qname.localName,
+                    file=doc.basename,
+                    line=fact.sourceline,
+                    modelObject=fact,
+                )
 
 
 @validation(
