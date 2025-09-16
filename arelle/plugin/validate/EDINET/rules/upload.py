@@ -6,7 +6,7 @@ from __future__ import annotations
 import re
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Iterable, TYPE_CHECKING
+from typing import Any, Iterable, TYPE_CHECKING, cast
 
 import regex
 
@@ -14,6 +14,7 @@ from arelle import UrlUtil
 from arelle.Cntlr import Cntlr
 from arelle.FileSource import FileSource
 from arelle.ValidateXbrl import ValidateXbrl
+from arelle.XmlValidateConst import VALID
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
@@ -636,17 +637,18 @@ def rules_cover_page(
     EDINET.EC1001E: A required item is missing from the cover page.
     EDINET.EC1002E: A duplicate item is included on the cover page.
     EDINET.EC1003E: An unnecessary item is included on the cover page.
+    EDINET.EC1004E: An item on the cover page is out of order.
     """
     uploadContents = pluginData.getUploadContents(val.modelXbrl)
     if uploadContents is None:
         return
-    instanceHasCoverPage = False
+    coverPageDocument = None
     for url, doc in val.modelXbrl.urlDocs.items():
         path = Path(url)
         pathInfo = uploadContents.uploadPathsByFullPath.get(path)
         if pathInfo is None or not pathInfo.isCoverPage:
             continue
-        instanceHasCoverPage = True
+        coverPageDocument = doc
         rootElt = doc.xmlRootElement
         coverPageTextFound = False
         for elt in rootElt.iterdescendants():
@@ -661,17 +663,34 @@ def rules_cover_page(
                       "Please add '【表紙】' to the relevant file."),
                 file=doc.basename,
             )
-    if not instanceHasCoverPage:
+    if coverPageDocument is None:
         return
     filingFormat = pluginData.getFilingFormat(val.modelXbrl)
     if filingFormat is None:
         return
     coverPageRequirements = pluginData.getCoverPageRequirements(val.modelXbrl)
+    currentLineNumber = 0
     for qname in pluginData.coverPageItems:
         foundFacts = []
-        for fact in pluginData.iterValidNonNilFacts(val.modelXbrl, qname):
+        for fact in pluginData.iterFacts(val.modelXbrl, qname):
+            if fact.modelDocument != coverPageDocument:
+                continue
             if fact.qname.prefix is not None and filingFormat.includesTaxonomyPrefix(fact.qname.prefix):
                 foundFacts.append(fact)
+
+        for fact in sorted(foundFacts, key=lambda f: f.sourceline):
+            if (sourceLine := cast(int, fact.sourceline)) <= currentLineNumber:
+                yield Validation.error(
+                    codes='EDINET.EC1004E',
+                    msg=_("Cover item %(localName)s is not in the correct order. "
+                          "File name: '%(file)s'. "
+                          "Please correct the order of cover items in the appropriate file."),
+                    localName=qname.localName,
+                    file=fact.modelDocument.basename,
+                    modelObject=fact,
+                )
+            else:
+                currentLineNumber = sourceLine
 
         if len(foundFacts) > 1:
             yield Validation.error(
@@ -681,7 +700,7 @@ def rules_cover_page(
                       "Please check the cover item %(localName)s of the relevant file "
                       "and make sure there are no duplicates."),
                 localName=qname.localName,
-                file=doc.basename,
+                file=foundFacts[0].modelDocument.basename,
                 modelObject=foundFacts,
             )
 
@@ -696,17 +715,19 @@ def rules_cover_page(
                           "File name: '%(file)s'. "
                           "Please add the cover item %(localName)s to the relevant file."),
                     localName=qname.localName,
-                    file=doc.basename,
+                    file=coverPageDocument.basename,
                 )
         elif status == CoverPageItemStatus.PROHIBITED:
             for fact in foundFacts:
+                if fact.isNil:
+                    continue
                 yield Validation.error(
                     codes='EDINET.EC1003E',
                     msg=_("Cover item %(localName)s is not necessary. "
                           "File name: '%(file)s' (line %(line)s). "
                           "Please add the cover item %(localName)s to the relevant file."),
                     localName=qname.localName,
-                    file=doc.basename,
+                    file=fact.modelDocument.basename,
                     line=fact.sourceline,
                     modelObject=fact,
                 )
