@@ -313,3 +313,6 @@ class ErrorManager:
         if isinstance(argValue, dict):
             return dict((self._loggableValue(k), self._loggableValue(v)) for k, v in argValue.items())
         return str(argValue)
+
+    def setErrorCaptureLevel(self, errorCaptureLevel: int) -> None:
+        self._errorCaptureLevel = errorCaptureLevel

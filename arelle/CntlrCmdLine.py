@@ -950,6 +950,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
         if options.testcaseFilters:
             fo.testcaseFilters = options.testcaseFilters
         if options.testcaseResultsCaptureWarnings:
+            self.errorManager.setErrorCaptureLevel(logging._checkLevel("WARNING"))
             fo.testcaseResultsCaptureWarnings = True
         if options.testcaseResultOptions:
             fo.testcaseResultOptions = options.testcaseResultOptions
