@@ -826,6 +826,33 @@ def rule_uri_references(
     hook=ValidationHook.FILESOURCE,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_EC1009R(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC1009R: The HTML file size must be 2.5MB (megabytes) or less.
+    """
+    for path, size in pluginData.getUploadFileSizes(fileSource).items():
+        if path.suffix not in HTML_EXTENSIONS:
+            continue
+        if size > 2_500_000:
+            yield Validation.warning(
+                codes='EDINET.EC1009R',
+                msg=_("The HTML file size exceeds the maximum limit. "
+                      "File name: '%(path)s'. "
+                      "Please split the file so that the file size is 2.5MB or less."),
+                path=str(path),
+            )
+
+
+@validation(
+    hook=ValidationHook.FILESOURCE,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_EC1016E(
         pluginData: ControllerPluginData,
         cntlr: Cntlr,
