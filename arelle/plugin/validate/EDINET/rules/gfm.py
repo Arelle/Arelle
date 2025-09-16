@@ -33,7 +33,6 @@ from ..PluginValidationDataExtension import PluginValidationDataExtension
 _: TypeGetText
 
 DISALLOWED_LABEL_WHITE_SPACE_CHARACTERS = regex.compile(r'\s{2,}')
-DISALLOWED_LABEL_CHARACTERS = regex.compile(r'<|&lt;|&#60;|&#x3c;')
 GFM_CONTEXT_DATE_PATTERN = regex.compile(r"^[12][0-9]{3}-[01][0-9]-[0-3][0-9]$")
 GFM_RECOMMENDED_NAMESPACE_PREFIXES = {
     XbrlConst.xbrli: ("xbrli",),
@@ -727,7 +726,7 @@ def rule_gfm_1_5_7(
         for rel in labelRels:
             label = rel.toModelObject
             if label.role != XbrlConst.documentationLabel and label.textValue is not None:
-                if DISALLOWED_LABEL_CHARACTERS.search(label.textValue):
+                if '<' in label.textValue:
                     yield Validation.warning(
                         codes='EDINET.EC5700W.GFM.1.5.7',
                         msg=_("The concept of '%(concept)s' has a label classified as '%(role)s that contains the '<' character: %(label)s"),
