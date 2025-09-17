@@ -363,7 +363,7 @@ def rule_ros20(
                     _("'PrincipalCurrencyUsedInBusinessReport' has a %(currencies_dimension)s value of %(principal_currency_value)s, "
                       "which must match the functional(majority) unit of the financial statement."),
                     modelObject=principal_currency_facts,
-                    CurrenciesDimension=CURRENCIES_DIMENSION,
+                    currencies_dimension=CURRENCIES_DIMENSION,
                     principal_currency_value=principal_currency_value,
                 )
                 break
