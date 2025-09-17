@@ -402,7 +402,7 @@ def getAspectEqualFacts(
                 fact.qname,
                 (
                     cast(str, fact.xmlLang or "").lower()
-                    if useLang and fact.concept.type.isWgnStringFactType
+                    if useLang and fact.concept.type.isOimTextFactType
                     else None
                 ),
             )
