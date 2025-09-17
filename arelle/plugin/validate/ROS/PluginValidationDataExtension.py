@@ -35,6 +35,8 @@ SCHEMA_PATTERNS = {
     "http://www.cro.ie/": re.compile(r"^\d{1,6}$")
 }
 
+UK_REF_NS_PATTERN = re.compile(r"^http://xbrl.frc.org.uk/general/\d{4,}-\d{2,}-\d{2,}/ref$")
+
 TR_NAMESPACES = {
     "http://www.xbrl.org/inlineXBRL/transformation/2010-04-20",
     "http://www.xbrl.org/inlineXBRL/transformation/2011-07-31",

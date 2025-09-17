@@ -30,7 +30,7 @@ from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
 from arelle.XbrlConst import qnXbrliMonetaryItemType, qnXbrliXbrl, xhtml
 from arelle.XmlValidateConst import VALID
 from ..ValidationPluginExtension import CURRENCIES_DIMENSION, EQUITY, PRINCIPAL_CURRENCY, TURNOVER_REVENUE
-from ..PluginValidationDataExtension import MANDATORY_ELEMENTS,  SCHEMA_PATTERNS, TR_NAMESPACES, PluginValidationDataExtension
+from ..PluginValidationDataExtension import MANDATORY_ELEMENTS, SCHEMA_PATTERNS, TR_NAMESPACES, UK_REF_NS_PATTERN, PluginValidationDataExtension
 
 
 def checkFileEncoding(modelXbrl: ModelXbrl) -> None:
@@ -380,6 +380,14 @@ def _getCurrencyDimensionCode(modelXbrl: ModelXbrl, fact: ModelInlineFact) -> st
         if mem_concept is None:
             return None
         for ref_rel in modelXbrl.relationshipSet(XbrlConst.conceptReference).fromModelObject(mem_concept):
-            if code := ref_rel.toModelObject.findtext("{*}Code"):
+            concept_ref = ref_rel.toModelObject
+            uk_ref_ns = None
+            for ns in concept_ref.nsmap.values():
+                if UK_REF_NS_PATTERN.match(ns):
+                    uk_ref_ns = ns
+                    break
+            if uk_ref_ns is None:
+                continue
+            if code := concept_ref.findtext(f"{{{uk_ref_ns}}}Code"):
                 return code.strip()
         return None
