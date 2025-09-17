@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import ast
 import gettext
+from glob import glob
 import importlib.util
 import json
 import logging
@@ -298,6 +299,14 @@ def getModuleFilename(moduleURL: str, reload: bool, normalize: bool, base: str |
         if moduleFilename:
             # `moduleFilename` normalized to an existing script
             return moduleFilename, None
+    if base and not _isAbsoluteModuleURL(moduleURL):
+        # Search for a matching plugin deeper in the plugin directory tree.
+        # Handles cases where a plugin exists in a nested structure, such as
+        # when a developer clones an entire repository into the plugin directory.
+        # Example: arelle/plugin/xule/plugin/xule/__init__.py
+        for path in glob("**/" + moduleURL.replace('\\', '/'), recursive=True):
+            if normalizedPath := normalizeModuleFilename(path):
+                return normalizedPath, None
     # `moduleFilename` did not map to a local filepath or did not normalize to a script
     # Try using `moduleURL` to search for pip-installed entry point
     entryPointRef = EntryPointRef.get(moduleURL)
