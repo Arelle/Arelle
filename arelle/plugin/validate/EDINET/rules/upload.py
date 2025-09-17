@@ -653,6 +653,7 @@ def rules_cover_page(
         for elt in rootElt.iterdescendants():
             if not coverPageTextFound and elt.text and '【表紙】' in elt.text:
                 coverPageTextFound = True
+                break
         if not coverPageTextFound:
             yield Validation.error(
                 codes='EDINET.EC1000E',
