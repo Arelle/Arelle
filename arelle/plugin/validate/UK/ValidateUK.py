@@ -25,6 +25,7 @@ CO_AUDIT = 'Co.Audit'
 CO_AUDIT_NR = 'Co.AuditNR'
 CO_DIR_REP = 'Co.DirReport'
 CO_DIR_RESP = 'Co.DirResp'
+CO_GROUP = 'Co.Group'
 CO_MED_CO = 'Co.MedCo'
 CO_MICRO = 'Co.Micro'
 CO_MISSING_ELEMENT = 'Co.MissingElement'
@@ -35,6 +36,7 @@ CO_SEC_477 = 'Co.Sec477'
 CO_SEC_480 = 'Co.Sec480'
 LP_ABRID = 'Lp.Abrid'
 LP_AUDIT = 'Lp.Audit'
+LP_GROUP = 'Lp.Group'
 LP_MED_LP = 'Lp.MedLp'
 LP_MEM_RESP = 'Lp.MemResp'
 LP_MICRO = 'Lp.Micro'
@@ -57,10 +59,12 @@ CONCEPT_ACCOUNTS_STATUS_DIMENSION = 'AccountsStatusDimension'
 CONCEPT_ACCOUNTS_TYPE_FULL_OR_ABBREVIATED = 'AccountsTypeFullOrAbbreviated'  # DEPRECATED IN 2022+ taxonomies.  No replacement yet.
 CONCEPT_ACCOUNTS_TYPE_DIMENSION = 'AccountsTypeDimension'
 CONCEPT_ADVERSE_OPINION = 'AdverseOpinion'
+CONCEPT_BALANCE_SHEET_DATE = 'BalanceSheetDate'
 CONCEPT_CHARITY_FUNDS = 'CharityFunds'
 CONCEPT_CHARITY_REGISTRATION_NUMBER_ENGLAND_WALES = 'CharityRegistrationNumberEnglandWales'
 CONCEPT_CHARITY_REGISTRATION_NUMBER_NORTH_IRELAND = 'CharityRegistrationNumberNorthernIreland'
 CONCEPT_CHARITY_REGISTRATION_NUMBER_SCOTLAND = 'CharityRegistrationNumberScotland'
+CONCEPT_CONSOLIDATED = 'Consolidated'
 CONCEPT_DATE_AUDITOR_REPORT = 'DateAuditorsReport'
 CONCEPT_DATE_CHARITY_AUDITORS_REPORT = 'DateCharityAuditorsReport'
 CONCEPT_DATE_SIGNING_DIRECTOR_REPORT = 'DateSigningDirectorsReport'
@@ -70,6 +74,7 @@ CONCEPT_DISCLAIMER_OPINION = 'DisclaimerOpinion'
 CONCEPT_ENTITY_DORMANT = 'EntityDormantTruefalse'
 CONCEPT_ENTITY_TRADING_STATUS = 'EntityTradingStatus'
 CONCEPT_ENTITY_TRADING_STATUS_DIMENSION = 'EntityTradingStatusDimension'
+CONCEPT_GROUP_COMPANY_DATA_DIMENSION = 'GroupCompanyDataDimension'
 CONCEPT_LANGUAGES_DIMENSION = 'LanguagesDimension'
 CONCEPT_MEDIUM_COMPANY = 'StatementThatCompanyHasPreparedAccountsUnderProvisionsRelatingToMedium-sizedCompanies'
 CONCEPT_MEDIUM_COMPANIES_REGIME_FOR_ACCOUNTS = 'Medium-sizedCompaniesRegimeForAccounts'
@@ -646,6 +651,31 @@ class ValidateUK:
             )
         return CodeResult()
 
+    def _evaluateGroupFacts(self) -> CodeResult:
+        """
+        Logs an error if BalanceSheetDate with GroupCompanyDataDimension and Consolidated must exist as non-nil and
+        equal BalanceSheetDate with GroupCompanyDataDimension and Consolidated
+        """
+        consolidatedFact = None
+        defaultFact = None
+        for balanceSheetDateFact in self._getFacts(CONCEPT_BALANCE_SHEET_DATE):
+            if self._checkValidFact(balanceSheetDateFact):
+                if not balanceSheetDateFact.context.qnameDims:
+                    defaultFact = balanceSheetDateFact
+                for qname, value in balanceSheetDateFact.context.qnameDims.items():
+                    if value.xValid < VALID:
+                        continue
+                    if qname.localName == CONCEPT_GROUP_COMPANY_DATA_DIMENSION and cast(str, value.xValue.localName) == CONCEPT_CONSOLIDATED:
+                        consolidatedFact = balanceSheetDateFact
+        if consolidatedFact is None or defaultFact is None or consolidatedFact.xValue != defaultFact.xValue:
+            return CodeResult(
+                conceptLocalName=CONCEPT_BALANCE_SHEET_DATE,
+                success=False,
+                message="A fact tagged with BalanceSheetDate with the dimension of GroupCompanyDataDimension/Consolidated "
+                        "must equal a fact tagged with BalanceSheetDate with the dimension of GroupCompanyDataDimension/CompanyDefault."
+            )
+        return CodeResult()
+
     def _evaluateCode(self, code: str) -> CodeResult:
         """
         Evaluates whether the conditions associated with the given code pass.
@@ -667,6 +697,8 @@ class ValidateUK:
             result = self._evaluateProfLossOrCharityFundsFact(code)
         elif code == CH_AUDIT:
             result = self._evaluateCharAuditFacts()
+        elif code in (CO_GROUP, LP_GROUP):
+            result = self._evaluateGroupFacts()
         return self._setCode(code, result)
 
     def _getFacts(self, conceptLocalName: str) -> list[ModelFact]:
@@ -831,6 +863,14 @@ class ValidateUK:
                     self.validateAuditedOtherLLP()
                 else:
                     self.validateAuditedOtherCompany()
+            elif self.scopeAccounts in {
+                ScopeAccounts.GROUP_ONLY.value,
+                ScopeAccounts.CONSOLIDATED_GROUP.value,
+            }:
+                if self.legalFormEntity == CONCEPT_LLP:
+                    self.validateAuditedGroupLLP()
+                else:
+                    self.validateAuditedGroupCompany()
 
     def validateCharities(self) -> None:
         """
@@ -1271,3 +1311,53 @@ class ValidateUK:
         result = self._evaluateCode(CO_SM_CO)
         if not result.success:
             self._errorOnMissingFactText(CO_SM_CO, result)
+
+    def validateAuditedGroupCompany(self) -> None:
+        """
+        Checks conditions applicable to audited group companies:
+        Co.Audit AND ((Co.DirReport AND Co.ProfLoss AND Co.Group) OR Co.SmCo).
+        """
+        result = self._evaluateCode(CO_AUDIT)
+        if not result.success:
+            self._yieldErrorOrWarning(CO_AUDIT, result)
+
+        result = self._evaluateCode(CO_SM_CO)
+        if not result.success:
+            failedOr = False
+            dirRepResult = self._evaluateCode(CO_DIR_REP)
+            if not dirRepResult.success:
+                self._yieldErrorOrWarning(CO_DIR_REP, dirRepResult)
+                failedOr = True
+            profLossResult = self._evaluateCode(CO_PROF_LOSS)
+            if not profLossResult.success:
+                self._yieldErrorOrWarning(CO_PROF_LOSS, profLossResult)
+                failedOr = True
+            groupResult = self._evaluateCode(CO_GROUP)
+            if not groupResult.success:
+                self._yieldErrorOrWarning(CO_GROUP, groupResult)
+                failedOr = True
+            if failedOr:
+                self._errorOnMissingFactText(CO_SM_CO, result)
+
+    def validateAuditedGroupLLP(self) -> None:
+        """
+        Checks conditions applicable to audited group companies:
+        LP.Audit AND ((LP.ProfLoss+LP.Group) OR LP.SmLp)
+        """
+        result = self._evaluateCode(LP_AUDIT)
+        if not result.success:
+            self._yieldErrorOrWarning(LP_AUDIT, result)
+
+        result = self._evaluateCode(LP_SM_LP)
+        if not result.success:
+            failedOr = False
+            profLossResult = self._evaluateCode(LP_PROF_LOSS)
+            if not profLossResult.success:
+                self._yieldErrorOrWarning(LP_PROF_LOSS, profLossResult)
+                failedOr = True
+            groupResult = self._evaluateCode(LP_GROUP)
+            if not groupResult.success:
+                self._yieldErrorOrWarning(LP_GROUP, groupResult)
+                failedOr = True
+            if failedOr:
+                self._errorOnMissingFactText(LP_SM_LP, result)
