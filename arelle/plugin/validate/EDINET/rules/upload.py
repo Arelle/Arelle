@@ -13,6 +13,7 @@ import regex
 from arelle import UrlUtil, XbrlConst
 from arelle.Cntlr import Cntlr
 from arelle.FileSource import FileSource
+from arelle.ModelInstanceObject import ModelFact
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.XmlValidateConst import VALID
 from arelle.typing import TypeGetText
@@ -653,6 +654,7 @@ def rules_cover_page(
         for elt in rootElt.iterdescendants():
             if not coverPageTextFound and elt.text and '【表紙】' in elt.text:
                 coverPageTextFound = True
+                break
         if not coverPageTextFound:
             yield Validation.error(
                 codes='EDINET.EC1000E',
@@ -990,20 +992,22 @@ def rule_EC1017E(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
-def rule_EC1020E(
+def rule_html_elements(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
+    EDINET.EC1011E: The HTML lang attribute is not Japanese.
     EDINET.EC1020E: When writing a DOCTYPE declaration, do not define it multiple times.
-    Also, please modify the relevant file so that there is only one html tag, one head tag, and one body tag each.
+        Also, please modify the relevant file so that there is only one html tag, one head tag, and one body tag each.
 
-    Note: Some violations of this rule (such as multiple DOCTYPE declarations) prevent Arelle from parsing
+    Note: Some violations of EC1020E (such as multiple DOCTYPE declarations) prevent Arelle from parsing
     the XML at all, and thus an XML schema error will be triggered rather than this validation error.
     """
     checkNames = frozenset({'body', 'head', 'html'})
+    langAttributeValues = frozenset({'ja', 'jp', 'ja-jp', 'JA', 'JP', 'JA-JP'})
     for modelDocument in val.modelXbrl.urlDocs.values():
         path = Path(modelDocument.uri)
         if path.suffix not in HTML_EXTENSIONS:
@@ -1014,10 +1018,22 @@ def rule_EC1020E(
         }
         for elt in rootElt.iterdescendants():
             name = elt.qname.localName
-            if name not in checkNames:
-                continue
-            eltCounts[name] = eltCounts.get(name, 0) + 1
-            pass
+            if name in checkNames:
+                eltCounts[name] = eltCounts.get(name, 0) + 1
+            if not isinstance(elt, ModelFact):
+                lang = elt.get(XbrlConst.qnXmlLang.clarkNotation)
+                if lang is not None and lang not in langAttributeValues:
+                    yield Validation.error(
+                        codes='EDINET.EC1011E',
+                        msg=_("The language setting is not Japanese. "
+                              "File name: %(file)s (line %(line)s). "
+                              "Please set the lang attribute on the given line of the "
+                              "relevant file to one of the following: %(langValues)s."),
+                        file=modelDocument.basename,
+                        line=elt.sourceline,
+                        langValues=', '.join(langAttributeValues),
+                    )
+
         if any(count > 1 for count in eltCounts.values()):
             yield Validation.error(
                 codes='EDINET.EC1020E',
