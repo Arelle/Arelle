@@ -784,6 +784,7 @@ def rule_uri_references(
     EDINET.EC1007E: The URI in the HTML specifies a URL or absolute path.
     EDINET.EC1013E: The URI in the HTML specifies a path not under a subdirectory.
     EDINET.EC1014E: The URI in the HTML specifies a path to a directory.
+    EDINET.EC1015E: The URI in the HTML specifies a path to a file located directly within a parent folder.
     EDINET.EC1021E: The URI in the HTML specifies a path to a file that doesn't exist.
     EDINET.EC1023E: The URI in the HTML specifies a path to a PDF file.
     EDINET.EC1035E: The URI in the HTML file uses a path that includes a parent folder.
@@ -829,7 +830,19 @@ def rule_uri_references(
                 modelObject=uriReference.element,
             )
             continue
-        fullPath = Path(uriReference.document.uri).parent / path
+        fullPath = (Path(uriReference.document.uri).parent / path).resolve()
+        if fullPath.parent in documentFullPath.parents:
+            yield Validation.error(
+                codes='EDINET.EC1015E',
+                msg=_("The URI in the HTML specifies a path to a file located directly within a parent folder. "
+                      "File name: '%(file)s' (line %(line)s). "
+                      "You cannot create a link from a subfolder to a parent folder. "
+                      "Please correct the relevant link."),
+                file=uriReference.document.basename,
+                line=uriReference.element.sourceline,
+                modelObject=uriReference.element,
+            )
+            continue
         pathInfo = uploadContents.uploadPathsByFullPath.get(fullPath)
         if pathInfo is not None and pathInfo.isDirectory:
             yield Validation.error(
