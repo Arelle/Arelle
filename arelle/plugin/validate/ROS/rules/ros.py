@@ -10,6 +10,7 @@ from collections import Counter
 from collections.abc import Iterable
 from decimal import Decimal
 
+from arelle import XbrlConst
 from arelle.typing import TypeGetText
 from arelle.ValidateXbrl import ValidateXbrl
 from collections import defaultdict
@@ -28,8 +29,8 @@ from arelle.utils.validate.Validation import Validation
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
 from arelle.XbrlConst import qnXbrliMonetaryItemType, qnXbrliXbrl, xhtml
 from arelle.XmlValidateConst import VALID
-from ..ValidationPluginExtension import EQUITY, PRINCIPAL_CURRENCY, TURNOVER_REVENUE
-from ..PluginValidationDataExtension import MANDATORY_ELEMENTS,  SCHEMA_PATTERNS, TR_NAMESPACES, PluginValidationDataExtension
+from ..ValidationPluginExtension import CURRENCIES_DIMENSION, EQUITY, PRINCIPAL_CURRENCY, TURNOVER_REVENUE
+from ..PluginValidationDataExtension import MANDATORY_ELEMENTS, SCHEMA_PATTERNS, TR_NAMESPACES, UK_REF_NS_PATTERN, PluginValidationDataExtension
 
 
 def checkFileEncoding(modelXbrl: ModelXbrl) -> None:
@@ -337,27 +338,56 @@ def rule_ros20(
     used for the majority of monetary facts.
     """
     principal_currency_facts = val.modelXbrl.factsByLocalName.get(PRINCIPAL_CURRENCY, set())
-    principal_currency_values = set(fact.text for fact in principal_currency_facts)
+    principal_currency_values = {
+        currencyDimensionCode
+        for pc_fact in principal_currency_facts
+        if (currencyDimensionCode := _getCurrencyDimensionCode(val.modelXbrl, pc_fact))
+    }
     if len(principal_currency_values) != 1:
         yield Validation.error(
             "ROS.20",
             _("'PrincipalCurrencyUsedInBusinessReport' must exist and have a single value.  Values found: %(principal_currency_values)s."),
             modelObject=principal_currency_facts,
-            principal_currency_values=principal_currency_values,
+            principal_currency_values=sorted(principal_currency_values),
         )
     else:
         principal_currency_value = principal_currency_values.pop()
         monetary_facts = list(val.modelXbrl.factsByDatatype(False, qnXbrliMonetaryItemType))
-        monetary_units = [list(fact.utrEntries)[0].unitName for fact in monetary_facts if fact.unit is not None]
+        monetary_units = [list(fact.utrEntries)[0].unitId for fact in monetary_facts if fact.unit is not None]
         unit_counts = Counter(monetary_units)
         principal_currency_value_count = unit_counts[principal_currency_value]
-        for unit, count in unit_counts.items():
+        for count in unit_counts.values():
             if count > principal_currency_value_count:
                 yield Validation.warning(
                     "ROS.20",
-                    _("'PrincipalCurrencyUsedInBusinessReport' has a value of %(principal_currency_value)s, "
+                    _("'PrincipalCurrencyUsedInBusinessReport' has a %(currencies_dimension)s value of %(principal_currency_value)s, "
                       "which must match the functional(majority) unit of the financial statement."),
                     modelObject=principal_currency_facts,
+                    currencies_dimension=CURRENCIES_DIMENSION,
                     principal_currency_value=principal_currency_value,
                 )
                 break
+
+def _getCurrencyDimensionCode(modelXbrl: ModelXbrl, fact: ModelInlineFact) -> str | None:
+    if fact.context is None:
+        return None
+    for dim, mem in fact.context.qnameDims.items():
+        if dim.localName != CURRENCIES_DIMENSION:
+            continue
+        if mem.xValid < VALID:
+            return None
+        mem_concept = modelXbrl.qnameConcepts.get(mem.xValue)
+        if mem_concept is None:
+            return None
+        for ref_rel in modelXbrl.relationshipSet(XbrlConst.conceptReference).fromModelObject(mem_concept):
+            concept_ref = ref_rel.toModelObject
+            uk_ref_ns = None
+            for ns in concept_ref.nsmap.values():
+                if UK_REF_NS_PATTERN.match(ns):
+                    uk_ref_ns = ns
+                    break
+            if uk_ref_ns is None:
+                continue
+            if code := concept_ref.findtext(f"{{{uk_ref_ns}}}Code"):
+                return code.strip()
+        return None
