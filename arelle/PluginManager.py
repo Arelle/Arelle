@@ -450,38 +450,38 @@ def moduleModuleInfo(
             del moduleInfo["importURLs"]
             moduleImports = moduleInfo["moduleImports"]
             del moduleInfo["moduleImports"]
-            _moduleImportsSubtree = False
+            moduleImportsSubtree = False
             mergedImportURLs = []
 
-            for _url in importURLs:
-                if _url.startswith("module_import"):
+            for url in importURLs:
+                if url.startswith("module_import"):
                     for moduleImport in moduleImports:
                         mergedImportURLs.append(moduleImport + ".py")
-                    if _url == "module_import_subtree":
-                        _moduleImportsSubtree = True
-                elif _url == "module_subtree":
+                    if url == "module_import_subtree":
+                        moduleImportsSubtree = True
+                elif url == "module_subtree":
                     for _dir in os.listdir(moduleDir):
-                        _subtreeModule = os.path.join(moduleDir,_dir)
-                        if os.path.isdir(_subtreeModule) and _dir != "__pycache__":
-                            mergedImportURLs.append(_subtreeModule)
+                        subtreeModule = os.path.join(moduleDir,_dir)
+                        if os.path.isdir(subtreeModule) and _dir != "__pycache__":
+                            mergedImportURLs.append(subtreeModule)
                 else:
-                    mergedImportURLs.append(_url)
-            if parentImportsSubtree and not _moduleImportsSubtree:
-                _moduleImportsSubtree = True
+                    mergedImportURLs.append(url)
+            if parentImportsSubtree and not moduleImportsSubtree:
+                moduleImportsSubtree = True
                 for moduleImport in moduleImports:
                     mergedImportURLs.append(moduleImport + ".py")
             imports = []
-            for _url in mergedImportURLs:
-                if isAbsolute(_url) or isLegacyAbs(_url):
-                    _importURL = _url # URL is absolute http or local file system
+            for url in mergedImportURLs:
+                if isAbsolute(url) or isLegacyAbs(url):
+                    importURL = url # URL is absolute http or local file system
                 else: # check if exists relative to this module's directory
-                    _importURL = os.path.join(os.path.dirname(moduleURL), os.path.normpath(_url))
-                    if not os.path.exists(_importURL): # not relative to this plugin, assume standard plugin base
-                        _importURL = _url # moduleModuleInfo adjusts relative URL to plugin base
-                _importModuleInfo = moduleModuleInfo(moduleURL=_importURL, reload=reload, parentImportsSubtree=_moduleImportsSubtree)
-                if _importModuleInfo:
-                    _importModuleInfo["isImported"] = True
-                    imports.append(_importModuleInfo)
+                    importURL = os.path.join(os.path.dirname(moduleURL), os.path.normpath(url))
+                    if not os.path.exists(importURL): # not relative to this plugin, assume standard plugin base
+                        importURL = url # moduleModuleInfo adjusts relative URL to plugin base
+                importModuleInfo = moduleModuleInfo(moduleURL=importURL, reload=reload, parentImportsSubtree=moduleImportsSubtree)
+                if importModuleInfo:
+                    importModuleInfo["isImported"] = True
+                    imports.append(importModuleInfo)
             moduleInfo["imports"] = imports
             logPluginTrace(f"Successful module plug-in info: {moduleFilename}", logging.INFO)
             return moduleInfo
