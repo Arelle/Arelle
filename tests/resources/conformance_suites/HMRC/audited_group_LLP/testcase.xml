@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="Audited group LLP"
+        description="Audited group LLP filings must meet certain criteria."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="valid" name="Valid">
+        <description>
+            The document is valid.
+        </description>
+        <data>
+            <instance readMeFirst="true">valid.xbrl</instance>
+        </data>
+        <result>
+        </result>
+    </variation>
+    <variation id="lp-group" name="Lp.Group">
+        <description>
+            BalanceSheetDate facts dont match
+        </description>
+        <data>
+            <instance readMeFirst="true">invalid-lp-group.xbrl</instance>
+        </data>
+        <result>
+            <error>Lp.Group</error>
+            <error>Lp.SmLp</error>
+        </result>
+    </variation>
+</testcase>

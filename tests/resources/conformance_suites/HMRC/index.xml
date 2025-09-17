@@ -2,6 +2,8 @@
 <testcases name="HMRC">
     <testcase uri='audited_abridged_LLP_accounts/testcase.xml' />
     <testcase uri='audited_company_abridged_accounts/testcase.xml' />
+    <testcase uri='audited_group_company/testcase.xml' />
+    <testcase uri='audited_group_LLP/testcase.xml' />
     <testcase uri='audited_medium_company/testcase.xml' />
     <testcase uri='audited_medium_LLP/testcase.xml' />
     <testcase uri='audited_micro_company/testcase.xml' />
