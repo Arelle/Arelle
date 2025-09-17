@@ -517,43 +517,26 @@ def _isAbsoluteModuleURL(moduleURL: str) -> bool:
     return isAbsolute(moduleURL) or isLegacyAbs(moduleURL)
 
 
-def _get_name_dir_prefix(
-    controller: Cntlr,
-    pluginBase: str,
-    moduleURL: str,
-    packagePrefix: str = "",
-) -> tuple[str, str, str] | tuple[None, None, None]:
+def _get_name_dir_prefix(modulePath: Path, packagePrefix: str = "") -> tuple[str, str, str] | tuple[None, None, None]:
     """Get the name, directory and prefix of a module."""
-    moduleFilename: str
-    moduleDir: str
-    packageImportPrefix: str
+    moduleName = None
+    moduleDir = None
+    packageImportPrefix = None
+    initFileName = "__init__.py"
 
-    moduleFilename = controller.webCache.getfilename(
-        url=moduleURL, normalize=True, base=pluginBase, allowTransformation=False
-    )
+    if modulePath.is_file() and modulePath.name == initFileName:
+        modulePath = modulePath.parent
 
-    if moduleFilename:
-        if os.path.basename(moduleFilename) == "__init__.py" and os.path.isfile(
-            moduleFilename
-        ):
-            moduleFilename = os.path.dirname(
-                moduleFilename
-            )  # want just the dirpart of package
+    if modulePath.is_dir() and (modulePath / initFileName).is_file():
+        moduleName = modulePath.name
+        moduleDir = str(modulePath.parent)
+        packageImportPrefix = moduleName + "."
+    elif modulePath.is_file() and modulePath.suffix == ".py":
+        moduleName = modulePath.stem
+        moduleDir = str(modulePath.parent)
+        packageImportPrefix = packagePrefix
 
-        if os.path.isdir(moduleFilename) and os.path.isfile(
-            os.path.join(moduleFilename, "__init__.py")
-        ):
-            moduleDir = os.path.dirname(moduleFilename)
-            moduleName = os.path.basename(moduleFilename)
-            packageImportPrefix = moduleName + "."
-        else:
-            moduleName = os.path.basename(moduleFilename).partition(".")[0]
-            moduleDir = os.path.dirname(moduleFilename)
-            packageImportPrefix = packagePrefix
-
-        return (moduleName, moduleDir, packageImportPrefix)
-
-    return (None, None, None)
+    return (moduleName, moduleDir, packageImportPrefix)
 
 def _get_location(moduleDir: str, moduleName: str) -> str:
     """Get the file name of a plugin."""
@@ -583,13 +566,9 @@ def _find_and_load_module(moduleDir: str, moduleName: str) -> ModuleType | None:
 def loadModule(moduleInfo: dict[str, Any], packagePrefix: str="") -> None:
     name = moduleInfo['name']
     moduleURL = moduleInfo['moduleURL']
+    modulePath = Path(moduleInfo['path'])
 
-    moduleName, moduleDir, packageImportPrefix = _get_name_dir_prefix(
-        controller=_cntlr,
-        pluginBase=_pluginBase,
-        moduleURL=moduleURL,
-        packagePrefix=packagePrefix,
-    )
+    moduleName, moduleDir, packageImportPrefix = _get_name_dir_prefix(modulePath, packagePrefix)
 
     if all(p is None for p in [moduleName, moduleDir, packageImportPrefix]):
         _cntlr.addToLog(message=_ERROR_MESSAGE_IMPORT_TEMPLATE.format(name), level=logging.ERROR)

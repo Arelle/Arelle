@@ -1,13 +1,13 @@
 """Tests for the PluginManager module."""
 from __future__ import annotations
 import os
+from pathlib import Path
 import sys
 
 import pytest
 from unittest.mock import Mock
 
 from arelle import PluginManager
-from arelle.Cntlr import Cntlr
 
 
 def test_plugin_manager_init_first_pass():
@@ -84,50 +84,37 @@ def test_plugin_manager_reset():
 @pytest.mark.parametrize(
     "test_data, expected_result",
     [
-        # Test case 1
+        # Non-existent plugin
         (
-            # Test data
-            ("tests/unit_tests/arelle", "functionsMaths", "xyz"),
-            # Expected result
-            ("functionsMaths", "tests/unit_tests", "xyz")
+            (Path("arelle/plugin/non-existent-plugin"), "xyz"),
+            (None, None, None)
         ),
-        # Test case 2
+        # File plugin
         (
-            # Test data
-            ("arelle/plugin/", "xbrlDB/__init__.py", "xyz"),
-            # Expected result
+            (Path("arelle/plugin/CacheBuilder.py"), "xyz"),
+            ("CacheBuilder", "arelle/plugin", "xyz")
+        ),
+        # Module plugin with init file
+        (
+            (Path("arelle/plugin/xbrlDB/__init__.py"), "xyz"),
             ("xbrlDB", "arelle/plugin", "xbrlDB.")
         ),
-        # Test case 3
+        # Module plugin without init file
         (
-            # Test data
-            ("plugin/xbrlDB", None, "xyz"),
-            # Expected result
-            (None, None, None)
+            (Path("arelle/plugin/validate/ESEF"), "xyz"),
+            ("ESEF", "arelle/plugin/validate", "ESEF.")
         ),
     ]
 )
 def test_function_get_name_dir_prefix(
-    test_data: tuple[str, str, str],
+    test_data: tuple[str, str],
     expected_result: tuple[str, str, str],
     ):
     """Test util function get_name_dir_prefix."""
-    class Controller(Cntlr):
-        """Controller."""
-
-        pluginDir = test_data[0]
-
-        def __init__(self) -> None:
-            """Init controller with logging."""
-            super().__init__(logFileName="logToBuffer")
-
-    cntlr = Controller()
 
     moduleName, moduleDir, packageImportPrefix = PluginManager._get_name_dir_prefix(
-        controller=cntlr,
-        pluginBase=Controller.pluginDir,
-        moduleURL=test_data[1],
-        packagePrefix=test_data[2],
+        modulePath=test_data[0],
+        packagePrefix=test_data[1],
     )
 
     assert moduleName == expected_result[0]
@@ -144,25 +131,15 @@ def test_function_loadModule():
     the function.
     """
 
-    class Controller(Cntlr):
-        """Controller."""
-
-        pluginDir = "tests/unit_tests/arelle"
-
-        def __init__(self) -> None:
-            """Init controller with logging."""
-            super().__init__(logFileName="logToBuffer")
-
-    Controller()
-
     PluginManager.loadModule(
         moduleInfo={
             "name": "mock",
             "moduleURL": "functionsMath",
+            "path": "arelle/plugin/functionsMath.py",
         }
     )
 
-    all_modules_list: list[str] = [m.__name__ for m in sys.modules.values() if m]
+    all_modules_list = {m.__name__ for m in sys.modules.values() if m}
 
     assert "arelle.formula.XPathContext" in all_modules_list
     assert "arelle.FunctionUtil" in all_modules_list
