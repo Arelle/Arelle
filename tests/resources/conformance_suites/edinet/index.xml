@@ -35,6 +35,7 @@
     <testcase uri="EC1021E/index.xml" />
     <testcase uri="EC1023E/index.xml" />
     <testcase uri="EC1031E/index.xml" />
+    <testcase uri="EC1035E/index.xml" />
     <testcase uri="EC1057E/index.xml" />
     <testcase uri="EC5002E/index.xml" />
     <testcase uri="EC5613W/index.xml" />

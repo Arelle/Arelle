@@ -786,6 +786,7 @@ def rule_uri_references(
     EDINET.EC1014E: The URI in the HTML specifies a path to a directory.
     EDINET.EC1021E: The URI in the HTML specifies a path to a file that doesn't exist.
     EDINET.EC1023E: The URI in the HTML specifies a path to a PDF file.
+    EDINET.EC1035E: The URI in the HTML file uses a path that includes a parent folder.
     """
     uploadContents = pluginData.getUploadContents(val.modelXbrl)
     if uploadContents is None:
@@ -809,6 +810,20 @@ def rule_uri_references(
                 msg=_("The URI in the HTML specifies a path not under a subdirectory. "
                       "File name: '%(file)s' (line %(line)s). "
                       "Please move the referenced file into a subfolder, or correct the URI."),
+                file=uriReference.document.basename,
+                line=uriReference.element.sourceline,
+                modelObject=uriReference.element,
+            )
+            continue
+        documentFullPath = Path(uriReference.document.uri)
+        documentPathInfo = uploadContents.uploadPathsByFullPath.get(documentFullPath)
+        if documentPathInfo is not None and any(part in documentPathInfo.path.parts for part in path.parts):
+            yield Validation.error(
+                codes='EDINET.EC1035E',
+                msg=_("The URI in the HTML file uses a path that includes a parent folder. "
+                      "File name: '%(file)s' (line %(line)s). "
+                      "You cannot create a link from a subfolder to a parent folder. "
+                      "Please delete the link."),
                 file=uriReference.document.basename,
                 line=uriReference.element.sourceline,
                 modelObject=uriReference.element,
