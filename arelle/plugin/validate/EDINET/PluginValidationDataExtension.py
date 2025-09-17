@@ -44,6 +44,20 @@ _: TypeGetText
 
 _DEBIT_QNAME_PATTERN = regex.compile('.*(Liability|Liabilities|Equity)')
 
+STANDARD_TAXONOMY_URL_PREFIXES = frozenset((
+    'http://disclosure.edinet-fsa.go.jp/taxonomy/',
+    'https://disclosure.edinet-fsa.go.jp/taxonomy/',
+    'http://www.xbrl.org/20',
+    'https://www.xbrl.org/20',
+    'http://www.xbrl.org/lrr/',
+    'https://www.xbrl.org/lrr/',
+    'http://xbrl.org/20',
+    'https://xbrl.org/20',
+    'http://www.xbrl.org/dtr/',
+    'https://www.xbrl.org/dtr/',
+    'http://www.w3.org/1999/xlink',
+    'https://www.w3.org/1999/xlink'
+))
 
 @dataclass(frozen=True)
 class UriReference:
@@ -175,6 +189,11 @@ class PluginValidationDataExtension(PluginData):
     def isCorporateReport(self, modelXbrl: ModelXbrl) -> bool:
         return self.jpcrpNamespace in modelXbrl.namespaceDocs
 
+    def isExtensionUri(self, uri: str, modelXbrl: ModelXbrl) -> bool:
+        if uri.startswith(modelXbrl.uriDir):
+            return True
+        return not any(uri.startswith(taxonomyUri) for taxonomyUri in STANDARD_TAXONOMY_URL_PREFIXES)
+
     @lru_cache(1)
     def isStockForm(self, modelXbrl: ModelXbrl) -> bool:
         formTypes = self.getFormTypes(modelXbrl)
@@ -182,6 +201,18 @@ class PluginValidationDataExtension(PluginData):
             formType.isStockReport
             for formType in formTypes
         )
+
+    @lru_cache(1)
+    def getExtensionConcepts(self, modelXbrl: ModelXbrl) -> list[ModelConcept]:
+        """
+        Returns a list of extension concepts in the DTS.
+        """
+        extensionConcepts = []
+        for concepts in modelXbrl.nameConcepts.values():
+            for concept in concepts:
+                if self.isExtensionUri(concept.qname.namespaceURI, modelXbrl):
+                    extensionConcepts.append(concept)
+        return extensionConcepts
 
     def getBalanceSheets(self, modelXbrl: ModelXbrl, statement: Statement) -> list[BalanceSheet]:
         """
