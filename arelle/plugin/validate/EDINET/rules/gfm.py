@@ -27,6 +27,7 @@ from arelle.utils.Units import getDuplicateUnitGroups
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
+from ..Constants import NUMERIC_LABEL_ROLES
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
@@ -909,5 +910,37 @@ def rule_gfm_1_5_8(
                     msg=_("The concept of '%(concept)s' has a label that contains disallowed white space either at the begining or the end: '%(label)s'"),
                     concept=concept.qname,
                     label=label.textValue,
+                    modelObject=label
+                )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_5_10(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.5.10] A non-numeric concept should not have a label with a numeric role
+    """
+    labelRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
+    if labelRelationshipSet is None:
+        return
+    for concept in val.modelXbrl.qnameConcepts.values():
+        if concept.isNumeric:
+            continue
+        labelRels = labelRelationshipSet.fromModelObject(concept)
+        for rel in labelRels:
+            label = rel.toModelObject
+            if not pluginData.isStandardTaxonomyUrl(label.modelDocument.uri, val.modelXbrl) and label.role in NUMERIC_LABEL_ROLES:
+                yield Validation.warning(
+                    codes='EDINET.EC5700W.GFM.1.5.10',
+                    msg=_("The non-numeric concept of '%(concept)s' has a label with a numeric role of '%(labelrole)s'"),
+                    concept=concept.qname,
+                    labelrole=label.role,
                     modelObject=label
                 )
