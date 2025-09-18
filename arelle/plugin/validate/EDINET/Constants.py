@@ -58,3 +58,22 @@ PROHIBITED_HTML_TAGS = frozenset({
     'select',
     'textarea',
 })
+
+NUMERIC_LABEL_ROLES = frozenset({
+    'http://www.xbrl.org/2003/role/positiveLabel',
+    'http://www.xbrl.org/2003/role/positiveTerseLabel',
+    'http://www.xbrl.org/2003/role/positiveVerboseLabel',
+    'http://www.xbrl.org/2003/role/negativeLabel',
+    'http://www.xbrl.org/2003/role/negativeTerseLabel',
+    'http://www.xbrl.org/2003/role/negativeVerboseLabel',
+    'http://www.xbrl.org/2003/role/zeroLabel',
+    'http://www.xbrl.org/2003/role/zeroTerseLabel',
+    'http://www.xbrl.org/2003/role/zeroVerboseLabel',
+    'http://www.xbrl.org/2003/role/totalLabel',
+    'http://www.xbrl.org/2009/role/negatedLabel',
+    'http://www.xbrl.org/2009/role/negatedPeriodEndLabel',
+    'http://www.xbrl.org/2009/role/negatedPeriodStartLabel',
+    'http://www.xbrl.org/2009/role/negatedTotalLabel',
+    'http://www.xbrl.org/2009/role/negatedNetLabel',
+    'http://www.xbrl.org/2009/role/negatedTerseLabel',
+})
