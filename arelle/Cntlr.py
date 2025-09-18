@@ -161,6 +161,7 @@ class Cntlr:
         disable_persistent_config: bool = False,
         betaFeatures: dict[str, bool] | None = None
     ) -> None:
+        self.logger = None
         if betaFeatures is None:
             betaFeatures = {}
         self.betaFeatures = {

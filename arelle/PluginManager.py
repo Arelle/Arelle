@@ -1,30 +1,40 @@
 '''
 See COPYRIGHT.md for copyright information.
-
-based on pull request 4
-
 '''
 from __future__ import annotations
-import os, sys, types, time, ast, importlib, io, json, gettext, traceback
-from dataclasses import dataclass
-from importlib.metadata import entry_points, EntryPoint
-import importlib.util
-import logging
 
+import ast
+import gettext
+from glob import glob
+import importlib.util
+import json
+import logging
+import os
+import sys
+import time
+import traceback
+import types
+from collections import defaultdict
+from collections.abc import Callable, Iterator
+from dataclasses import dataclass
+from importlib.metadata import EntryPoint, entry_points
+from numbers import Number
+from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, cast
-from arelle.Locale import getLanguageCodes
-import arelle.FileSource
-from arelle.PythonUtil import isLegacyAbs
-from arelle.UrlUtil import isAbsolute
-from pathlib import Path
-from collections import OrderedDict, defaultdict
-from collections.abc import Callable, Iterator
 
+import arelle.FileSource
+from arelle.Locale import getLanguageCodes
+from arelle.PythonUtil import isLegacyAbs
+from arelle.typing import TypeGetText
+from arelle.UrlUtil import isAbsolute
 
 if TYPE_CHECKING:
     # Prevent potential circular import error
     from .Cntlr import Cntlr
+
+
+_: TypeGetText
 
 PLUGIN_TRACE_FILE = None
 # PLUGIN_TRACE_FILE = "c:/temp/pluginerr.txt"
@@ -58,7 +68,7 @@ def init(cntlr: Cntlr, loadPluginConfig: bool = True) -> None:
     if loadPluginConfig:
         try:
             pluginJsonFile = cntlr.userAppDir + os.sep + "plugins.json"
-            with io.open(pluginJsonFile, 'rt', encoding='utf-8') as f:
+            with open(pluginJsonFile, encoding='utf-8') as f:
                 pluginConfig = json.load(f)
             freshenModuleInfos()
         except Exception:
@@ -79,29 +89,45 @@ def reset() -> None:  # force reloading modules and plugin infos
         pluginMethodsForClasses.clear() # dict by class of list of ordered callable function objects
 
 def orderedPluginConfig():
-    return OrderedDict(
-        (('modules',OrderedDict((moduleName,
-                                 OrderedDict(sorted(moduleInfo.items(),
-                                                    key=lambda k: {'name': '01',
-                                                                   'status': '02',
-                                                                   'version': '03',
-                                                                   'fileDate': '04',                                                             'version': '05',
-                                                                   'description': '05',
-                                                                   'moduleURL': '06',
-                                                                   'localeURL': '07',
-                                                                   'localeDomain': '08',
-                                                                   'license': '09',
-                                                                   'author': '10',
-                                                                   'copyright': '11',
-                                                                   'classMethods': '12'}.get(k[0],k[0]))))
-                                for moduleName, moduleInfo in sorted(pluginConfig['modules'].items()))),
-         ('classes',OrderedDict(sorted(pluginConfig['classes'].items())))))
+    fieldOrder = [
+        'name',
+        'status',
+        'fileDate',
+        'version',
+        'description',
+        'moduleURL',
+        'localeURL',
+        'localeDomain',
+        'license',
+        'author',
+        'copyright',
+        'classMethods',
+    ]
+    priorityIndex = {k: i for i, k in enumerate(fieldOrder)}
+
+    def sortModuleInfo(moduleInfo):
+        # Prioritize known fields by the index in fieldOrder; sort others alphabetically
+        orderedKeys = sorted(
+            moduleInfo.keys(),
+            key=lambda k: (priorityIndex.get(k, len(priorityIndex)), k)
+        )
+        return {k: moduleInfo[k] for k in orderedKeys}
+
+    orderedModules = {
+        moduleName: sortModuleInfo(pluginConfig['modules'][moduleName])
+        for moduleName in sorted(pluginConfig['modules'].keys())
+    }
+
+    return {
+        'modules': orderedModules,
+        'classes': dict(sorted(pluginConfig['classes'].items()))
+    }
 
 def save(cntlr: Cntlr) -> None:
     global pluginConfigChanged
     if pluginConfigChanged and cntlr.hasFileSystem and not cntlr.disablePersistentConfig:
         pluginJsonFile = cntlr.userAppDir + os.sep + "plugins.json"
-        with io.open(pluginJsonFile, 'wt', encoding='utf-8') as f:
+        with open(pluginJsonFile, 'w', encoding='utf-8') as f:
             jsonStr = str(json.dumps(orderedPluginConfig(), ensure_ascii=False, indent=2)) # might not be unicode in 2.7
             f.write(jsonStr)
         pluginConfigChanged = False
@@ -154,7 +180,6 @@ moduleInfo = {
 
 
 '''
-
 
 def logPluginTrace(message: str, level: Number) -> None:
     """
@@ -274,6 +299,14 @@ def getModuleFilename(moduleURL: str, reload: bool, normalize: bool, base: str |
         if moduleFilename:
             # `moduleFilename` normalized to an existing script
             return moduleFilename, None
+    if base and not _isAbsoluteModuleURL(moduleURL):
+        # Search for a matching plugin deeper in the plugin directory tree.
+        # Handles cases where a plugin exists in a nested structure, such as
+        # when a developer clones an entire repository into the plugin directory.
+        # Example: arelle/plugin/xule/plugin/xule/__init__.py
+        for path in glob("**/" + moduleURL.replace('\\', '/'), recursive=True):
+            if normalizedPath := normalizeModuleFilename(path):
+                return normalizedPath, None
     # `moduleFilename` did not map to a local filepath or did not normalize to a script
     # Try using `moduleURL` to search for pip-installed entry point
     entryPointRef = EntryPointRef.get(moduleURL)
@@ -416,7 +449,7 @@ def moduleModuleInfo(
 
     if moduleFilename:
         try:
-            logPluginTrace("Scanning module for plug-in info: {}".format(moduleFilename), logging.INFO)
+            logPluginTrace(f"Scanning module for plug-in info: {moduleFilename}", logging.INFO)
             moduleInfo = parsePluginInfo(moduleURL, moduleFilename, entryPoint)
             if moduleInfo is None:
                 return None
@@ -426,38 +459,50 @@ def moduleModuleInfo(
             del moduleInfo["importURLs"]
             moduleImports = moduleInfo["moduleImports"]
             del moduleInfo["moduleImports"]
-            _moduleImportsSubtree = False
+            moduleImportsSubtree = False
             mergedImportURLs = []
 
-            for _url in importURLs:
-                if _url.startswith("module_import"):
+            for url in importURLs:
+                if url.startswith("module_import"):
                     for moduleImport in moduleImports:
                         mergedImportURLs.append(moduleImport + ".py")
-                    if _url == "module_import_subtree":
-                        _moduleImportsSubtree = True
-                elif _url == "module_subtree":
+                    if url == "module_import_subtree":
+                        moduleImportsSubtree = True
+                elif url == "module_subtree":
                     for _dir in os.listdir(moduleDir):
-                        _subtreeModule = os.path.join(moduleDir,_dir)
-                        if os.path.isdir(_subtreeModule) and _dir != "__pycache__":
-                            mergedImportURLs.append(_subtreeModule)
+                        subtreeModule = os.path.join(moduleDir,_dir)
+                        if os.path.isdir(subtreeModule) and _dir != "__pycache__":
+                            mergedImportURLs.append(subtreeModule)
                 else:
-                    mergedImportURLs.append(_url)
-            if parentImportsSubtree and not _moduleImportsSubtree:
-                _moduleImportsSubtree = True
+                    mergedImportURLs.append(url)
+            if parentImportsSubtree and not moduleImportsSubtree:
+                moduleImportsSubtree = True
                 for moduleImport in moduleImports:
                     mergedImportURLs.append(moduleImport + ".py")
             imports = []
-            for _url in mergedImportURLs:
-                if isAbsolute(_url) or isLegacyAbs(_url):
-                    _importURL = _url # URL is absolute http or local file system
-                else: # check if exists relative to this module's directory
-                    _importURL = os.path.join(os.path.dirname(moduleURL), os.path.normpath(_url))
-                    if not os.path.exists(_importURL): # not relative to this plugin, assume standard plugin base
-                        _importURL = _url # moduleModuleInfo adjusts relative URL to plugin base
-                _importModuleInfo = moduleModuleInfo(moduleURL=_importURL, reload=reload, parentImportsSubtree=_moduleImportsSubtree)
-                if _importModuleInfo:
-                    _importModuleInfo["isImported"] = True
-                    imports.append(_importModuleInfo)
+            for url in mergedImportURLs:
+                importURL = url
+                if not _isAbsoluteModuleURL(url):
+                    # Handle relative imports when plugin is loaded from external directory.
+                    # When EDGAR/render imports EDGAR/validate, this works if EDGAR is in the plugin directory
+                    # but fails if loaded externally (e.g., dev repo clone at /dev/path/to/EDGAR/).
+                    # Solution: Find common path segments to resolve /dev/path/to/EDGAR/validate
+                    # from the importing module at /dev/path/to/EDGAR/render.
+                    modulePath = Path(moduleFilename)
+                    importPath = Path(url)
+                    if importPath.parts:
+                        importFirstPart = importPath.parts[0]
+                        for i, modulePathPart in enumerate(reversed(modulePath.parts)):
+                            if modulePathPart != importFirstPart:
+                                continue
+                            # Found a potential branching point, construct and check a new path
+                            candidateImportURL = str(modulePath.parents[i] / importPath)
+                            if normalizeModuleFilename(candidateImportURL):
+                                importURL = candidateImportURL
+                importModuleInfo = moduleModuleInfo(moduleURL=importURL, reload=reload, parentImportsSubtree=moduleImportsSubtree)
+                if importModuleInfo:
+                    importModuleInfo["isImported"] = True
+                    imports.append(importModuleInfo)
             moduleInfo["imports"] = imports
             logPluginTrace(f"Successful module plug-in info: {moduleFilename}", logging.INFO)
             return moduleInfo
@@ -477,43 +522,30 @@ def moduleInfo(pluginInfo):
             moduleInfo.getdefault('classes', []).append(name)
 
 
-def _get_name_dir_prefix(
-    controller: Cntlr,
-    pluginBase: str,
-    moduleURL: str,
-    packagePrefix: str = "",
-) -> tuple[str, str, str] | tuple[None, None, None]:
+def _isAbsoluteModuleURL(moduleURL: str) -> bool:
+    return isAbsolute(moduleURL) or isLegacyAbs(moduleURL)
+
+
+def _get_name_dir_prefix(modulePath: Path, packagePrefix: str = "") -> tuple[str, str, str] | tuple[None, None, None]:
     """Get the name, directory and prefix of a module."""
-    moduleFilename: str
-    moduleDir: str
-    packageImportPrefix: str
+    moduleName = None
+    moduleDir = None
+    packageImportPrefix = None
+    initFileName = "__init__.py"
 
-    moduleFilename = controller.webCache.getfilename(
-        url=moduleURL, normalize=True, base=pluginBase, allowTransformation=False
-    )
+    if modulePath.is_file() and modulePath.name == initFileName:
+        modulePath = modulePath.parent
 
-    if moduleFilename:
-        if os.path.basename(moduleFilename) == "__init__.py" and os.path.isfile(
-            moduleFilename
-        ):
-            moduleFilename = os.path.dirname(
-                moduleFilename
-            )  # want just the dirpart of package
+    if modulePath.is_dir() and (modulePath / initFileName).is_file():
+        moduleName = modulePath.name
+        moduleDir = str(modulePath.parent)
+        packageImportPrefix = moduleName + "."
+    elif modulePath.is_file() and modulePath.suffix == ".py":
+        moduleName = modulePath.stem
+        moduleDir = str(modulePath.parent)
+        packageImportPrefix = packagePrefix
 
-        if os.path.isdir(moduleFilename) and os.path.isfile(
-            os.path.join(moduleFilename, "__init__.py")
-        ):
-            moduleDir = os.path.dirname(moduleFilename)
-            moduleName = os.path.basename(moduleFilename)
-            packageImportPrefix = moduleName + "."
-        else:
-            moduleName = os.path.basename(moduleFilename).partition(".")[0]
-            moduleDir = os.path.dirname(moduleFilename)
-            packageImportPrefix = packagePrefix
-
-        return (moduleName, moduleDir, packageImportPrefix)
-
-    return (None, None, None)
+    return (moduleName, moduleDir, packageImportPrefix)
 
 def _get_location(moduleDir: str, moduleName: str) -> str:
     """Get the file name of a plugin."""
@@ -543,13 +575,9 @@ def _find_and_load_module(moduleDir: str, moduleName: str) -> ModuleType | None:
 def loadModule(moduleInfo: dict[str, Any], packagePrefix: str="") -> None:
     name = moduleInfo['name']
     moduleURL = moduleInfo['moduleURL']
+    modulePath = Path(moduleInfo['path'])
 
-    moduleName, moduleDir, packageImportPrefix = _get_name_dir_prefix(
-        controller=_cntlr,
-        pluginBase=_pluginBase,
-        moduleURL=moduleURL,
-        packagePrefix=packagePrefix,
-    )
+    moduleName, moduleDir, packageImportPrefix = _get_name_dir_prefix(modulePath, packagePrefix)
 
     if all(p is None for p in [moduleName, moduleDir, packageImportPrefix]):
         _cntlr.addToLog(message=_ERROR_MESSAGE_IMPORT_TEMPLATE.format(name), level=logging.ERROR)
@@ -566,10 +594,12 @@ def loadModule(moduleInfo: dict[str, Any], packagePrefix: str="") -> None:
                     localeDir = os.path.dirname(module.__file__) + os.sep + pluginInfo['localeURL']
                     try:
                         _gettext = gettext.translation(pluginInfo['localeDomain'], localeDir, getLanguageCodes())
-                    except IOError:
-                        _gettext = lambda x: x # no translation
+                    except OSError:
+                        def _gettext(x):
+                            return x # no translation
                 else:
-                    _gettext = lambda x: x
+                    def _gettext(x):
+                        return x
                 for key, value in pluginInfo.items():
                     if key == 'name':
                         if name:
@@ -627,8 +657,7 @@ def pluginClassMethods(className: str) -> Iterator[Callable[..., Any]]:
                                 if className in pluginInfo:
                                     pluginMethodsForClass.append(pluginInfo[className])
             pluginMethodsForClasses[className] = pluginMethodsForClass
-        for method in pluginMethodsForClass:
-            yield method
+        yield from pluginMethodsForClass
 
 
 def addPluginModule(name: str) -> dict[str, Any] | None:

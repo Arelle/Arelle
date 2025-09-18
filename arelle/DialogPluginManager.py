@@ -386,15 +386,17 @@ class DialogPluginManager(Toplevel):
         group = {
             "ixbrl-viewer": "1",  # pip installed Arelle viewer
             "iXBRLViewerPlugin": "2",  # git clone installed Arelle viewer
-            "Edgar Renderer": "3",
+            "EDGAR": "3",
+            "Inline XBRL Document Set": "4",
+            "XBRL rule processor (xule)": "5",
         }.get(key)
         if not group:
             if key.startswith("Validate"):
-                group = "4"
-            elif key.startswith("xbrlDB"):
-                group = "5"
-            else:
                 group = "6"
+            elif key.startswith("xbrlDB"):
+                group = "7"
+            else:
+                group = "8"
         return group + key.lower()
 
     @staticmethod
