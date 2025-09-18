@@ -180,7 +180,10 @@ class ErrorManager:
                             objectUrl = arg
                         else:
                             try:
-                                objectUrl = arg.modelDocument.displayUri
+                                if isinstance(arg, ObjectPropertyViewWrapper):
+                                    objectUrl = arg.modelObject.modelDocument.displayUri
+                                else:
+                                    objectUrl = arg.modelDocument.displayUri
                             except AttributeError:
                                 try:
                                     objectUrl = arg.displayUri
