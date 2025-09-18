@@ -732,6 +732,32 @@ def rule_gfm_1_3_21(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_gfm_1_3_22(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.3.22] Do not set the xbrldt:typedDomainRef attribute on elements defined in submitter-specific taxonomies.
+    """
+    typedDomainConcepts = [
+        concept for concept in pluginData.getExtensionConcepts(val.modelXbrl)
+        if concept.isTypedDimension
+    ]
+
+    if len(typedDomainConcepts) > 0:
+        yield Validation.warning(
+            codes='EDINET.EC5700W.GFM.1.3.22',
+            msg=_("Do not set the xbrldt:typedDomainRef attribute on elements defined in submitter-specific taxonomies."),
+            modelObject=typedDomainConcepts
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_gfm_1_3_23(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
