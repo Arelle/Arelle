@@ -931,12 +931,12 @@ def rule_gfm_1_5_10(
     if labelRelationshipSet is None:
         return
     for concept in val.modelXbrl.qnameConcepts.values():
-        if pluginData.isStandardTaxonomyUrl(concept.qname.namespaceURI, val.modelXbrl) or concept.isNumeric:
+        if concept.isNumeric:
             continue
         labelRels = labelRelationshipSet.fromModelObject(concept)
         for rel in labelRels:
             label = rel.toModelObject
-            if label.role in NUMERIC_LABEL_ROLES:
+            if not pluginData.isStandardTaxonomyUrl(label.modelDocument.uri, val.modelXbrl) and label.role in NUMERIC_LABEL_ROLES:
                 yield Validation.warning(
                     codes='EDINET.EC5700W.GFM.1.5.10',
                     msg=_("The non-numeric concept of '%(concept)s' has a label with a numeric role of '%(labelrole)s'"),
