@@ -706,6 +706,31 @@ def rule_gfm_1_3_20(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_gfm_1_3_21(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.3.21] Remove the tuple definition.
+    """
+    tupleConcepts = [
+        concept for concept in pluginData.getExtensionConcepts(val.modelXbrl)
+        if concept.isTuple
+    ]
+    if len(tupleConcepts) > 0:
+        yield Validation.warning(
+            codes='EDINET.EC5700W.GFM.1.3.21',
+            msg=_("Remove the tuple definition."),
+            modelObject=tupleConcepts
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_gfm_1_3_23(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
