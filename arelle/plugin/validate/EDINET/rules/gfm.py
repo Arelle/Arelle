@@ -1136,7 +1136,7 @@ def rule_gfm_1_7_3(
     for rel in calculationRelationshipSet.modelRelationships:
         fromConcept = rel.fromModelObject
         toConcept = rel.toModelObject
-        if fromConcept.periodType != toConcept.periodType:
+        if fromConcept is not None and toConcept is not None and fromConcept.periodType != toConcept.periodType:
             yield Validation.warning(
                 codes='EDINET.EC5700W.GFM.1.7.3',
                 msg=_("The concepts participating in a calculation relationship must have the same period types. "
