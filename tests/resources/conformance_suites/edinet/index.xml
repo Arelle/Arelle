@@ -70,6 +70,8 @@
     <testcase uri="EC5700W.GFM.1.5.8/index.xml" />
     <testcase uri="EC5700W.GFM.1.5.10/index.xml" />
     <testcase uri="EC5700W.GFM.1.6.1/index.xml" />
+    <testcase uri="EC5700W.GFM.1.6.2/index.xml" />
+    <testcase uri="EC5700W.GFM.1.6.5/index.xml" />
     <testcase uri="EC5700W.GFM.1.7.1/index.xml" />
     <testcase uri="EC5700W.GFM.1.8.1/index.xml" />
     <testcase uri="EC5710W.FRTA.2.1.9/index.xml" />
