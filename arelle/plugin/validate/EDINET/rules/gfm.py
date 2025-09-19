@@ -10,6 +10,7 @@ from typing import Any, cast, Iterable
 import regex
 
 from arelle import XbrlConst, XmlUtil
+from arelle.LinkbaseType import LinkbaseType
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelObject import ModelObject
@@ -970,3 +971,78 @@ def rule_gfm_1_5_10(
                     labelrole=label.role,
                     modelObject=label
                 )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_6_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.6.1] All presentation relationships must have an order attribute
+    """
+    presentationRelationshipSet = val.modelXbrl.relationshipSet(tuple(LinkbaseType.PRESENTATION.getArcroles()))
+    if presentationRelationshipSet is None:
+        return
+    for rel in presentationRelationshipSet.modelRelationships:
+        if not rel.arcElement.get("order"):
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.1.6.1',
+                msg=_("The presentation relationship is missing the order attribute"),
+                modelObject=rel
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_7_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.7.1] All calculation relationships must have an order attribute
+    """
+    calculationRelationshipSet = val.modelXbrl.relationshipSet(tuple(LinkbaseType.CALCULATION.getArcroles()))
+    if calculationRelationshipSet is None:
+        return
+    for rel in calculationRelationshipSet.modelRelationships:
+        if not rel.arcElement.get("order"):
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.1.7.1',
+                msg=_("The calculation relationship is missing the order attribute"),
+                modelObject=rel
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_8_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.8.1] All definition relationships must have an order attribute
+    """
+    definitionRelationshipSet = val.modelXbrl.relationshipSet(tuple(LinkbaseType.DEFINITION.getArcroles()))
+    if definitionRelationshipSet is None:
+        return
+    for rel in definitionRelationshipSet.modelRelationships:
+        if not rel.arcElement.get("order"):
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.1.8.1',
+                msg=_("The definition relationship is missing the order attribute"),
+                modelObject=rel
+            )
