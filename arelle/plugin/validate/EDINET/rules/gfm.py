@@ -970,3 +970,80 @@ def rule_gfm_1_5_10(
                     labelrole=label.role,
                     modelObject=label
                 )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_6_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.6.1] All presentation relationships must have an order attribute
+    """
+    presentationRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.parentChild)
+    if presentationRelationshipSet is None:
+        return
+    for rel in presentationRelationshipSet.modelRelationships:
+        if not rel.arcElement.get("order"):
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.1.6.1',
+                msg=_("The presentation relationship is missing the order attribute"),
+                modelObject=rel
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_7_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.7.1] All calculation relationships must have an order attribute
+    """
+    calculationRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.summationItem)
+    if calculationRelationshipSet is None:
+        return
+    for rel in calculationRelationshipSet.modelRelationships:
+        if not rel.arcElement.get("order"):
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.1.7.1',
+                msg=_("The calculation relationship is missing the order attribute"),
+                modelObject=rel
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_8_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.8.1] All definition relationships must have an order attribute
+    """
+    definitionRelationshipSet = val.modelXbrl.relationshipSet(
+        (XbrlConst.all, XbrlConst.dimensionDefault, XbrlConst.dimensionDomain, XbrlConst.domainMember, XbrlConst.hypercubeDimension)
+    )
+    if definitionRelationshipSet is None:
+        return
+    for rel in definitionRelationshipSet.modelRelationships:
+        if not rel.arcElement.get("order"):
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.1.8.1',
+                msg=_("The definition relationship is missing the order attribute"),
+                modelObject=rel
+            )
