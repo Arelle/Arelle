@@ -71,6 +71,7 @@ CONCEPT_DATE_SIGNING_DIRECTOR_REPORT = 'DateSigningDirectorsReport'
 CONCEPT_DATE_SIGNING_TRUSTEES_REPORT = 'DateSigningTrusteesAnnualReport'
 CONCEPT_DIRECTOR_SIGNING_DIRECTORS_REPORT = 'DirectorSigningDirectorsReport'
 CONCEPT_DISCLAIMER_OPINION = 'DisclaimerOpinion'
+CONCEPT_END_DATE_FOR_PERIOD_COVERED_BY_REPORT = 'EndDateForPeriodCoveredByReport'
 CONCEPT_ENTITY_DORMANT = 'EntityDormantTruefalse'
 CONCEPT_ENTITY_TRADING_STATUS = 'EntityTradingStatus'
 CONCEPT_ENTITY_TRADING_STATUS_DIMENSION = 'EntityTradingStatusDimension'
@@ -658,9 +659,16 @@ class ValidateUK:
         """
         consolidatedFact = None
         defaultFact = None
+        endDateFact = None
+        for fact in self._getFacts(CONCEPT_END_DATE_FOR_PERIOD_COVERED_BY_REPORT):
+            if not fact.context.qnameDims:
+                endDateFact = fact
+                break
+        if endDateFact is None:
+            return CodeResult()
         for balanceSheetDateFact in self._getFacts(CONCEPT_BALANCE_SHEET_DATE):
             if self._checkValidFact(balanceSheetDateFact):
-                if not balanceSheetDateFact.context.qnameDims:
+                if not balanceSheetDateFact.context.qnameDims and balanceSheetDateFact.context.instantDate == endDateFact.context.instantDate:
                     defaultFact = balanceSheetDateFact
                 for qname, value in balanceSheetDateFact.context.qnameDims.items():
                     if value.xValid < VALID:
@@ -673,7 +681,7 @@ class ValidateUK:
                 conceptLocalName=CONCEPT_BALANCE_SHEET_DATE,
                 success=False,
                 message="A fact tagged with BalanceSheetDate with the dimension of GroupCompanyDataDimension/Consolidated "
-                        "must equal a fact tagged with BalanceSheetDate with the dimension of GroupCompanyDataDimension/CompanyDefault."
+                        "must equal a fact tagged with BalanceSheetDate with the default dimension."
             )
         return CodeResult()
 
