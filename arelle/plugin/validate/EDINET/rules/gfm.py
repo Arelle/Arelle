@@ -10,6 +10,7 @@ from typing import Any, cast, Iterable
 import regex
 
 from arelle import XbrlConst, XmlUtil
+from arelle.LinkbaseType import LinkbaseType
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelObject import ModelObject
@@ -985,7 +986,7 @@ def rule_gfm_1_6_1(
     """
     EDINET.EC5700W: [GFM 1.6.1] All presentation relationships must have an order attribute
     """
-    presentationRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.parentChild)
+    presentationRelationshipSet = val.modelXbrl.relationshipSet(tuple(LinkbaseType.PRESENTATION.getArcroles()))
     if presentationRelationshipSet is None:
         return
     for rel in presentationRelationshipSet.modelRelationships:
@@ -1010,7 +1011,7 @@ def rule_gfm_1_7_1(
     """
     EDINET.EC5700W: [GFM 1.7.1] All calculation relationships must have an order attribute
     """
-    calculationRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.summationItem)
+    calculationRelationshipSet = val.modelXbrl.relationshipSet(tuple(LinkbaseType.CALCULATION.getArcroles()))
     if calculationRelationshipSet is None:
         return
     for rel in calculationRelationshipSet.modelRelationships:
@@ -1035,9 +1036,7 @@ def rule_gfm_1_8_1(
     """
     EDINET.EC5700W: [GFM 1.8.1] All definition relationships must have an order attribute
     """
-    definitionRelationshipSet = val.modelXbrl.relationshipSet(
-        (XbrlConst.all, XbrlConst.dimensionDefault, XbrlConst.dimensionDomain, XbrlConst.domainMember, XbrlConst.hypercubeDimension)
-    )
+    definitionRelationshipSet = val.modelXbrl.relationshipSet(tuple(LinkbaseType.DEFINITION.getArcroles()))
     if definitionRelationshipSet is None:
         return
     for rel in definitionRelationshipSet.modelRelationships:
