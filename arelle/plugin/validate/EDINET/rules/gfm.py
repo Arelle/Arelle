@@ -1027,6 +1027,97 @@ def rule_gfm_1_7_1(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_gfm_1_7_2(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.7.2] All calculation relationships must have a weight of either 1 or -1
+    """
+    calculationRelationshipSet = val.modelXbrl.relationshipSet(tuple(LinkbaseType.CALCULATION.getArcroles()))
+    if calculationRelationshipSet is None:
+        return
+    for rel in calculationRelationshipSet.modelRelationships:
+        if rel.weight not in [1, -1]:
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.1.7.2',
+                msg=_("The calculation relationship must have a weight of 1 or -1, actual weight: '%(weight)s'"),
+                weight=rel.weight,
+                modelObject=rel
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_7_3(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.7.3] The concepts participating in a calculation relationship must have the same period type
+    """
+    calculationRelationshipSet = val.modelXbrl.relationshipSet(tuple(LinkbaseType.CALCULATION.getArcroles()))
+    if calculationRelationshipSet is None:
+        return
+    for rel in calculationRelationshipSet.modelRelationships:
+        fromConcept = rel.fromModelObject
+        toConcept = rel.toModelObject
+        if fromConcept.periodType != toConcept.periodType:
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.1.7.3',
+                msg=_("The concepts participating in a calculation relationship must have the same period types. "
+                      "The concept of '%(concept1)s' has a period type of '%(concept1PeriodType)s' and the concept "
+                      "of '%(concept2)s' has a period type of '%(concept2PeriodType)s'"),
+                concept1=fromConcept.qname,
+                concept1PeriodType=fromConcept.periodType,
+                concept2=toConcept.qname,
+                concept2PeriodType=toConcept.periodType,
+                modelObject=rel
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_7_6(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.7.6] Calculation relationships must have unique order attributes
+    """
+    calculationRelationshipSet = val.modelXbrl.relationshipSet(tuple(LinkbaseType.CALCULATION.getArcroles()))
+    if calculationRelationshipSet is None:
+        return
+    for modelObject, rels in calculationRelationshipSet.loadModelRelationshipsFrom().items():
+        if len(rels) <= 1:
+            continue
+        relsByOrder = defaultdict(list)
+        for rel in rels:
+            relsByOrder[(rel.arcElement.get("order"), rel.linkrole)].append(rel)
+        for key, orderRels in relsByOrder.items():
+            if len(orderRels) > 1:
+                yield Validation.warning(
+                    codes='EDINET.EC5700W.GFM.1.7.6',
+                    msg=_("The calculation relationships have the same order attribute: '%(order)s'"),
+                    order=key[0],
+                    modelObject=orderRels
+                )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_gfm_1_8_1(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
