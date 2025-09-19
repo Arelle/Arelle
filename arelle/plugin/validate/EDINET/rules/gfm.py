@@ -858,10 +858,13 @@ def rule_gfm_1_5_6(
         labelRels = labelRelationshipSet.fromModelObject(concept)
         for rel in labelRels:
             label = rel.toModelObject
-            if label.role != XbrlConst.documentationLabel and label.viewText() is not None and len(label.viewText()) >= 511:
+            if (label is not None and
+                    label.role != XbrlConst.documentationLabel and
+                    label.viewText() is not None and
+                    len(label.viewText()) >= 511):
                 yield Validation.warning(
                     codes='EDINET.EC5700W.GFM.1.5.6',
-                    msg=_("The concept of '%(concept)s' has a label classified as '%(role)s' that is longer than 511 characters: %(label)s"),
+                    msg=_("The concept of '%(concept)s' has a label classified as '%(role)s' that is greater than or equal to 511 characters: %(label)s"),
                     concept=concept.qname,
                     role=label.role,
                     label=label.viewText(),
@@ -890,7 +893,7 @@ def rule_gfm_1_5_7(
         labelRels = labelRelationshipSet.fromModelObject(concept)
         for rel in labelRels:
             label = rel.toModelObject
-            if label.role != XbrlConst.documentationLabel and label.textValue is not None:
+            if label is not None and label.role != XbrlConst.documentationLabel and label.textValue is not None:
                 if '<' in label.textValue:
                     yield Validation.warning(
                         codes='EDINET.EC5700W.GFM.1.5.7',
@@ -931,7 +934,7 @@ def rule_gfm_1_5_8(
         labelRels = labelRelationshipSet.fromModelObject(concept)
         for rel in labelRels:
             label = rel.toModelObject
-            if label.textValue is not None and label.textValue != label.textValue.strip():
+            if label is not None and label.textValue is not None and label.textValue != label.textValue.strip():
                 yield Validation.warning(
                     codes='EDINET.EC5700W.GFM.1.5.8',
                     msg=_("The concept of '%(concept)s' has a label that contains disallowed white space either at the begining or the end: '%(label)s'"),
@@ -963,7 +966,9 @@ def rule_gfm_1_5_10(
         labelRels = labelRelationshipSet.fromModelObject(concept)
         for rel in labelRels:
             label = rel.toModelObject
-            if not pluginData.isStandardTaxonomyUrl(label.modelDocument.uri, val.modelXbrl) and label.role in NUMERIC_LABEL_ROLES:
+            if (label is not None and
+                    not pluginData.isStandardTaxonomyUrl(label.modelDocument.uri, val.modelXbrl) and
+                    label.role in NUMERIC_LABEL_ROLES):
                 yield Validation.warning(
                     codes='EDINET.EC5700W.GFM.1.5.10',
                     msg=_("The non-numeric concept of '%(concept)s' has a label with a numeric role of '%(labelrole)s'"),
