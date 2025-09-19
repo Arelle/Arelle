@@ -1012,12 +1012,14 @@ def rule_gfm_1_6_2(
     EDINET.EC5700W: [GFM 1.6.2] Presentation relationships must have unique order attributes
     """
     presentationRelationshipSet = val.modelXbrl.relationshipSet(tuple(LinkbaseType.PRESENTATION.getArcroles()))
+    if presentationRelationshipSet is None:
+        return
     for modelObject, rels in presentationRelationshipSet.loadModelRelationshipsFrom().items():
         if len(rels) <= 1:
             continue
         relsByOrder = defaultdict(list)
         for rel in rels:
-            relsByOrder[(rel.order, rel.linkrole)].append(rel)
+            relsByOrder[(rel.arcElement.get("order"), rel.linkrole)].append(rel)
         for key, orderRels in relsByOrder.items():
             if len(orderRels) > 1:
                 yield Validation.warning(
@@ -1044,6 +1046,8 @@ def rule_gfm_1_6_5(
                                 presentation arcs must have distinct values of the preferredLabel attribute.
     """
     presentationRelationshipSet = val.modelXbrl.relationshipSet(tuple(LinkbaseType.PRESENTATION.getArcroles()))
+    if presentationRelationshipSet is None:
+        return
     for modelObject, rels in presentationRelationshipSet.loadModelRelationshipsTo().items():
         if len(rels) <= 1:
             continue
