@@ -59,7 +59,7 @@ def checkLei(lei: str) -> LEIValidationResult:
         result = LEIValidationResult.VALID
 
     if (
-        LEIValidationResult.INVALID_CHECKSUM == result
+        result is LEIValidationResult.INVALID_CHECKSUM
         and lei in _validLeiDespiteChecksumFailSet
     ):
         result = LEIValidationResult.VALID
