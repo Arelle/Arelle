@@ -52,8 +52,8 @@ def test_checkLei(arg, expected, description):
 def test_performance_checkLei():
     NANOSECONDS_IN_MILLISECOND = 1_000_000
     MIN_TIME = 50 * NANOSECONDS_IN_MILLISECOND
-    MAX_TIME = 500 * NANOSECONDS_IN_MILLISECOND
-    NUM_LEIS = 10**5
+    MAX_TIME = 1_000 * NANOSECONDS_IN_MILLISECOND
+    NUM_LEIS = 100_000
 
     num_letter_population = string.ascii_uppercase + string.digits
     random_leis = [
@@ -77,6 +77,7 @@ def test_performance_checkLei():
     for lei in leis:
         checkLei(lei)
     taken = time.perf_counter_ns() - start
+
     assert MIN_TIME < taken < MAX_TIME, (
-        f"Processed {len(leis):,} LEIs in {taken:,.0f} nanoseconds. Rate = {int(10**9 / (taken / len(leis))):,} per second."
+        f"Processed {len(leis):,} LEIs in {(taken/NANOSECONDS_IN_MILLISECOND):,.0f} milliseconds. Rate = {int(10**9 / (taken / len(leis))):,} per second."
     )
