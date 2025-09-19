@@ -6,7 +6,7 @@ Implementation of ISO 17442:2012(E) Appendix A
 """
 
 import string
-from enum import Enum, auto, property
+from enum import Enum, auto
 
 import regex as re
 
@@ -16,7 +16,6 @@ class LEIValidationResult(Enum):
     INVALID_LEXICAL = auto()
     INVALID_CHECKSUM = auto()
 
-    @property
     def description(self) -> str:
         return self.name.lower().replace("_", " ")
 
@@ -73,4 +72,4 @@ if __name__ == "__main__":
         raise SystemExit("Specify the LEI(s) you want to check as arguments.")
 
     for arg in sys.argv[1:]:
-        print(f"{arg:20s} : {checkLei(arg).description}")
+        print(f"{arg:20s} : {checkLei(arg).description()}")
