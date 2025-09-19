@@ -25,7 +25,7 @@ LEI_VALID = LEIValidationResult.VALID
 LEI_INVALID_LEXICAL = LEIValidationResult.INVALID_LEXICAL
 LEI_INVALID_CHECKSUM = LEIValidationResult.INVALID_CHECKSUM
 
-_leiLexicalPattern = re.compile(r"^[0-9A-Z]{18}[0-9]{2}$", re.ASCII)
+_leiLexicalPattern = re.compile(r"[0-9A-Z]{18}[0-9]{2}", re.ASCII)
 _requiredLEILength = 20
 
 _leiToDigitTable = str.maketrans(
@@ -48,7 +48,7 @@ def checkLei(lei: str) -> LEIValidationResult:
     if len(lei) != _requiredLEILength:
         return LEIValidationResult.INVALID_LEXICAL
 
-    if not _leiLexicalPattern.match(lei):
+    if not _leiLexicalPattern.fullmatch(lei):
         return LEIValidationResult.INVALID_LEXICAL
 
     result = LEIValidationResult.INVALID_CHECKSUM
