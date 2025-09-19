@@ -24,8 +24,6 @@ RELEVELER_MAP: dict[str, dict[str, tuple[str, str | None]]] = {
         "xbrl.4.8.2:sharesFactUnit-notSingleMeasure": ("ERROR", None),
         # Silence, duplicated by EDINET.EC5700W.GFM.1.7.2
         "xbrl.5.2.5.2.1:zeroWeight": ("ERROR", None),
-        # Silence, duplicated by EDINET.EC5700W.GFM.1.7.2
-        "xbrl.5.2.5.2.1:balanceCalcWeightIllegal": ("ERROR", None),
     },
 }
 

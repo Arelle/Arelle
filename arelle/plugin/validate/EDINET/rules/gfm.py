@@ -1014,7 +1014,7 @@ def rule_gfm_1_6_2(
     presentationRelationshipSet = val.modelXbrl.relationshipSet(tuple(LinkbaseType.PRESENTATION.getArcroles()))
     if presentationRelationshipSet is None:
         return
-    for modelObject, rels in presentationRelationshipSet.loadModelRelationshipsFrom().items():
+    for modelObject, rels in presentationRelationshipSet.fromModelObjects().items():
         if len(rels) <= 1:
             continue
         relsByOrder = defaultdict(list)
@@ -1048,7 +1048,7 @@ def rule_gfm_1_6_5(
     presentationRelationshipSet = val.modelXbrl.relationshipSet(tuple(LinkbaseType.PRESENTATION.getArcroles()))
     if presentationRelationshipSet is None:
         return
-    for modelObject, rels in presentationRelationshipSet.loadModelRelationshipsTo().items():
+    for modelObject, rels in presentationRelationshipSet.toModelObjects().items():
         if len(rels) <= 1:
             continue
         relsByFrom = defaultdict(list)
@@ -1164,7 +1164,7 @@ def rule_gfm_1_7_6(
     calculationRelationshipSet = val.modelXbrl.relationshipSet(tuple(LinkbaseType.CALCULATION.getArcroles()))
     if calculationRelationshipSet is None:
         return
-    for modelObject, rels in calculationRelationshipSet.loadModelRelationshipsFrom().items():
+    for modelObject, rels in calculationRelationshipSet.fromModelObjects().items():
         if len(rels) <= 1:
             continue
         relsByOrder = defaultdict(list)
