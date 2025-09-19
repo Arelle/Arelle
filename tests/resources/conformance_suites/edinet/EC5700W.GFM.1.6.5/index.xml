@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="EDINET.EC5700W.GFM.1.6.5"
+        description="EDINET.EC5700W.GFM.1.6.5"
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid01" name="invalid01">
+        <description>
+            Two presentation relationships have identical values of the preferredLabel attribute when they have
+            the same source and target elements
+            <!--valid05.zip with two presentation arcs with the same source and target elements and preferredLabel attribute-->
+        </description>
+        <data>
+            <instance readMeFirst="true">invalid01.zip</instance>
+        </data>
+        <result>
+            <warning>EDINET.EC5700W.GFM.1.6.5</warning>
+        </result>
+    </variation>
+</testcase>

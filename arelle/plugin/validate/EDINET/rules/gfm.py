@@ -1002,6 +1002,72 @@ def rule_gfm_1_6_1(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_gfm_1_6_2(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.6.2] Presentation relationships must have unique order attributes
+    """
+    presentationRelationshipSet = val.modelXbrl.relationshipSet(tuple(LinkbaseType.PRESENTATION.getArcroles()))
+    if presentationRelationshipSet is None:
+        return
+    for modelObject, rels in presentationRelationshipSet.loadModelRelationshipsFrom().items():
+        if len(rels) <= 1:
+            continue
+        relsByOrder = defaultdict(list)
+        for rel in rels:
+            relsByOrder[(rel.arcElement.get("order"), rel.linkrole)].append(rel)
+        for key, orderRels in relsByOrder.items():
+            if len(orderRels) > 1:
+                yield Validation.warning(
+                    codes='EDINET.EC5700W.GFM.1.6.2',
+                    msg=_("The presentation relationships have the same order attribute: '%(order)s'"),
+                    order=key[0],
+                    modelObject=orderRels
+                )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_6_5(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.6.5] If an element used in an instance is the target in the instance DTS of more than one
+                                effective presentation arc in a base set with the same source element, then the
+                                presentation arcs must have distinct values of the preferredLabel attribute.
+    """
+    presentationRelationshipSet = val.modelXbrl.relationshipSet(tuple(LinkbaseType.PRESENTATION.getArcroles()))
+    if presentationRelationshipSet is None:
+        return
+    for modelObject, rels in presentationRelationshipSet.loadModelRelationshipsTo().items():
+        if len(rels) <= 1:
+            continue
+        relsByFrom = defaultdict(list)
+        for rel in rels:
+            relsByFrom[(rel.fromModelObject, rel.preferredLabel, rel.linkrole)].append(rel)
+        for key, fromRels in relsByFrom.items():
+            if len(fromRels) > 1:
+                yield Validation.warning(
+                    codes='EDINET.EC5700W.GFM.1.6.5',
+                    msg=_("The presentation relationships must have distinct values of the preferredLabel attribute "
+                          "when they have the same source and target elements"),
+                    modelObject=fromRels
+                )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_gfm_1_7_1(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
