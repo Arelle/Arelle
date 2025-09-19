@@ -28,7 +28,7 @@ from arelle.utils.Units import getDuplicateUnitGroups
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
-from ..Constants import NUMERIC_LABEL_ROLES
+from ..Constants import NUMERIC_LABEL_ROLES, domainItemTypeQname
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
@@ -858,10 +858,13 @@ def rule_gfm_1_5_6(
         labelRels = labelRelationshipSet.fromModelObject(concept)
         for rel in labelRels:
             label = rel.toModelObject
-            if label.role != XbrlConst.documentationLabel and label.viewText() is not None and len(label.viewText()) >= 511:
+            if (label is not None and
+                    label.role != XbrlConst.documentationLabel and
+                    label.viewText() is not None and
+                    len(label.viewText()) >= 511):
                 yield Validation.warning(
                     codes='EDINET.EC5700W.GFM.1.5.6',
-                    msg=_("The concept of '%(concept)s' has a label classified as '%(role)s' that is longer than 511 characters: %(label)s"),
+                    msg=_("The concept of '%(concept)s' has a label classified as '%(role)s' that is greater than or equal to 511 characters: %(label)s"),
                     concept=concept.qname,
                     role=label.role,
                     label=label.viewText(),
@@ -890,7 +893,7 @@ def rule_gfm_1_5_7(
         labelRels = labelRelationshipSet.fromModelObject(concept)
         for rel in labelRels:
             label = rel.toModelObject
-            if label.role != XbrlConst.documentationLabel and label.textValue is not None:
+            if label is not None and label.role != XbrlConst.documentationLabel and label.textValue is not None:
                 if '<' in label.textValue:
                     yield Validation.warning(
                         codes='EDINET.EC5700W.GFM.1.5.7',
@@ -931,7 +934,7 @@ def rule_gfm_1_5_8(
         labelRels = labelRelationshipSet.fromModelObject(concept)
         for rel in labelRels:
             label = rel.toModelObject
-            if label.textValue is not None and label.textValue != label.textValue.strip():
+            if label is not None and label.textValue is not None and label.textValue != label.textValue.strip():
                 yield Validation.warning(
                     codes='EDINET.EC5700W.GFM.1.5.8',
                     msg=_("The concept of '%(concept)s' has a label that contains disallowed white space either at the begining or the end: '%(label)s'"),
@@ -963,7 +966,9 @@ def rule_gfm_1_5_10(
         labelRels = labelRelationshipSet.fromModelObject(concept)
         for rel in labelRels:
             label = rel.toModelObject
-            if not pluginData.isStandardTaxonomyUrl(label.modelDocument.uri, val.modelXbrl) and label.role in NUMERIC_LABEL_ROLES:
+            if (label is not None and
+                    not pluginData.isStandardTaxonomyUrl(label.modelDocument.uri, val.modelXbrl) and
+                    label.role in NUMERIC_LABEL_ROLES):
                 yield Validation.warning(
                     codes='EDINET.EC5700W.GFM.1.5.10',
                     msg=_("The non-numeric concept of '%(concept)s' has a label with a numeric role of '%(labelrole)s'"),
@@ -1205,5 +1210,97 @@ def rule_gfm_1_8_1(
             yield Validation.warning(
                 codes='EDINET.EC5700W.GFM.1.8.1',
                 msg=_("The definition relationship is missing the order attribute"),
+                modelObject=rel
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_8_3(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.8.3] The target of an effective arc with an xlink:arcrole attribute equal to
+                                "http://xbrl.org/int/dim/arcrole/dimension-domain" or
+                                "http://xbrl.org/int/arcrole/dimension-default" must be of type
+                                nonnum:domainItemType.
+    """
+    dimensionRelationshipSet = val.modelXbrl.relationshipSet((XbrlConst.dimensionDomain, XbrlConst.dimensionDefault))
+    if dimensionRelationshipSet is None:
+        return
+    for rel in dimensionRelationshipSet.modelRelationships:
+        toConcept = rel.toModelObject
+        if toConcept is not None and toConcept.typeQname != domainItemTypeQname:
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.1.8.3',
+                msg=_("The definition relationship target concept of '%(concept)s' has a type of '%(type)s' instead of 'nonnum:domainItemType'."),
+                concept=toConcept.qname,
+                type=toConcept.typeQname,
+                modelObject=rel
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_8_10(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.8.10] Definition relationships must have unique order attributes
+    """
+    definitionRelationshipSet = val.modelXbrl.relationshipSet(tuple(LinkbaseType.DEFINITION.getArcroles()))
+    if definitionRelationshipSet is None:
+        return
+    for modelObject, rels in definitionRelationshipSet.loadModelRelationshipsFrom().items():
+        if len(rels) <= 1:
+            continue
+        relsByOrder = defaultdict(list)
+        for rel in rels:
+            order = rel.arcElement.get("order")
+            if order is not None:
+                relsByOrder[(order, rel.linkrole, rel.arcrole)].append(rel)
+        for key, orderRels in relsByOrder.items():
+            if len(orderRels) > 1:
+                yield Validation.warning(
+                    codes='EDINET.EC5700W.GFM.1.8.10',
+                    msg=_("The definition relationships have the same order attribute: '%(order)s'"),
+                    order=key[0],
+                    modelObject=orderRels
+                )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_8_11(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.8.11] Definition relationships can not have the xbrldt:usable attribute set to False
+    """
+    definitionRelationshipSet = val.modelXbrl.relationshipSet(tuple(LinkbaseType.DEFINITION.getArcroles()))
+    if definitionRelationshipSet is None:
+        return
+    for rel in definitionRelationshipSet.modelRelationships:
+        if rel.arcrole in [XbrlConst.dimensionDomain, XbrlConst.domainMember]:
+            continue
+        if not rel.isUsable:
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.1.8.11',
+                msg=_("The definition relationship can not have the xbrldt:usable attribute set to False"),
                 modelObject=rel
             )

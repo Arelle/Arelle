@@ -11,6 +11,8 @@ class AccountingStandard(Enum):
     US_GAAP = 'US GAAP'
 
 
+domainItemTypeQname = qname("{http://www.xbrl.org/dtr/type/non-numeric}nonnum:domainItemType")
+
 qnEdinetManifestInsert = qname("{http://disclosure.edinet-fsa.go.jp/2013/manifest}insert")
 qnEdinetManifestInstance = qname("{http://disclosure.edinet-fsa.go.jp/2013/manifest}instance")
 qnEdinetManifestItem = qname("{http://disclosure.edinet-fsa.go.jp/2013/manifest}item")
