@@ -1019,7 +1019,9 @@ def rule_gfm_1_6_2(
             continue
         relsByOrder = defaultdict(list)
         for rel in rels:
-            relsByOrder[(rel.arcElement.get("order"), rel.linkrole)].append(rel)
+            order = rel.arcElement.get("order")
+            if order is not None:
+                relsByOrder[(order, rel.linkrole)].append(rel)
         for key, orderRels in relsByOrder.items():
             if len(orderRels) > 1:
                 yield Validation.warning(
@@ -1169,7 +1171,9 @@ def rule_gfm_1_7_6(
             continue
         relsByOrder = defaultdict(list)
         for rel in rels:
-            relsByOrder[(rel.arcElement.get("order"), rel.linkrole)].append(rel)
+            order = rel.arcElement.get("order")
+            if order is not None:
+                relsByOrder[(order, rel.linkrole)].append(rel)
         for key, orderRels in relsByOrder.items():
             if len(orderRels) > 1:
                 yield Validation.warning(
