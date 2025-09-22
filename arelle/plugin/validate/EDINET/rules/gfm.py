@@ -680,6 +680,35 @@ def rule_gfm_1_3_8(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_gfm_1_3_19(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.3.19] The id attribute of the element defined in the submitter-specific taxonomy
+    should be set in the following format:{namespace prefix}_{element name}.
+    """
+    improperlyFormattedIds = set()
+    for concept in pluginData.getExtensionConcepts(val.modelXbrl):
+        prefix = concept.qname.prefix or ""
+        name = concept.qname.localName
+        requiredId = f"{prefix}_{name}"
+        if concept.id != requiredId or not prefix:
+            improperlyFormattedIds.add(concept)
+    if len(improperlyFormattedIds) > 0:
+        yield Validation.warning(
+            codes='EDINET.EC5700W.GFM.1.3.19',
+            msg=_("The id attribute of the element defined in the submitter-specific taxonomy should be set in the following format: {namespace prefix}_{element name}"),
+            modelObject=improperlyFormattedIds
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_gfm_1_3_20(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
