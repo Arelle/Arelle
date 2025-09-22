@@ -21,4 +21,17 @@
             <error>EDINET.EC0352E</error> <!-- renamed/invalid manifest name means invalid filename -->
         </result>
     </variation>
+    <variation id="invalid02" name="invalid02">
+        <description>
+            Cover page is not named correctly.
+            <!--valid09.zip with '0000000_header_*' renamed to '0000001_header_*'.-->
+        </description>
+        <data>
+            <instance readMeFirst="true">invalid01.zip</instance>
+        </data>
+        <result>
+            <error>EDINET.EC0132E</error>
+            <error>EDINET.EC0352E</error> <!-- renamed/invalid cover page file means invalid filename -->
+        </result>
+    </variation>
 </testcase>

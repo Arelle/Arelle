@@ -271,19 +271,37 @@ def rule_EC0132E(
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    EDINET.EC0132E: Store the manifest file directly under the relevant folder.
+    EDINET.EC0132E: Cover page or manifest file is missing.
+
+    Note: Cover page is not required in AuditDoc.
     """
     uploadContents = pluginData.getUploadContents()
     if uploadContents is None:
         return
     for reportFolderType, paths in uploadContents.reports.items():
         if reportFolderType.isAttachment:
+            # These rules don't apply to "Attach" directories
             continue
-        if reportFolderType.manifestPath not in paths:
+        coverPageFound = False
+        manifestFound = False
+        for path in paths:
+            pathInfo = uploadContents.uploadPathsByPath[path]
+            if pathInfo.isCoverPage:
+                coverPageFound = True
+            if path == reportFolderType.manifestPath:
+                manifestFound = True
+        if not coverPageFound and reportFolderType != ReportFolderType.AUDIT_DOC:
+            yield Validation.error(
+                codes='EDINET.EC0132E',
+                msg=_("Cover page does not exist in '%(expectedManifestDirectory)s'. "
+                      "Please store the cover file directly under the relevant folder and upload it again. "),
+                expectedManifestDirectory=str(reportFolderType.manifestPath.parent),
+            )
+        if not manifestFound:
             yield Validation.error(
                 codes='EDINET.EC0132E',
                 msg=_("'%(expectedManifestName)s' does not exist in '%(expectedManifestDirectory)s'. "
-                      "Please store the manifest file (or cover file) directly under the relevant folder and upload it again. "),
+                      "Please store the manifest file directly under the relevant folder and upload it again. "),
                 expectedManifestName=reportFolderType.manifestPath.name,
                 expectedManifestDirectory=str(reportFolderType.manifestPath.parent),
             )
