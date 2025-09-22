@@ -1,18 +1,18 @@
 # core modules
 bottle==0.13.4
 certifi==2025.8.3
-cheroot==10.0.1
+cheroot==11.0.0
 filelock==3.19.1
 isodate==0.7.2
 jsonschema==4.25.1
-lxml==6.0.1
+lxml==6.0.2
 numpy==2.0.2 ; python_version <= "3.9"
 numpy==2.2.4 ; python_version > "3.9"
 openpyxl==3.1.5
 pycountry==24.6.1
-pyparsing==3.2.4
+pyparsing==3.2.5
 python-dateutil==2.9.0.post0
-regex==2025.9.1
+regex==2025.9.18
 tornado==6.5.2
 truststore==0.10.1 ; python_version > "3.9"
 typing-extensions==4.15.0
@@ -24,7 +24,7 @@ cx_Oracle==8.3.0
 pg8000==1.31.5
 PyMySQL==1.1.2
 pyodbc==5.2.0
-rdflib==7.1.4
+rdflib==7.2.1
 # other
 graphviz==0.21
 pillow==11.3.0
