@@ -101,10 +101,10 @@ class Statement:
 
 @dataclass(frozen=True)
 class BalanceSheet:
-    assetsTotal: Decimal
+    creditSum: Decimal
     contextId: str
     facts: list[ModelFact]
-    liabilitiesAndEquityTotal: Decimal
+    debitSum: Decimal
     unitId: str
 
 

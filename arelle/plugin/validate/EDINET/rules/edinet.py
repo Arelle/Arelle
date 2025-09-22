@@ -44,7 +44,7 @@ def rule_balances(
     for statementInstance in pluginData.getStatementInstances(val.modelXbrl):
         statement = statementInstance.statement
         for balanceSheet in statementInstance.balanceSheets:
-            if balanceSheet.assetsTotal == balanceSheet.liabilitiesAndEquityTotal:
+            if balanceSheet.creditSum == balanceSheet.debitSum:
                 continue
             code = None
             if statement.statementType == StatementType.BALANCE_SHEET:
@@ -62,15 +62,15 @@ def rule_balances(
                 codes=code,
                 msg=_("The %(consolidated)s %(balanceSheet)s is not balanced. "
                       "The sum of all liabilities and equity must equal the sum of all assets. "
-                      "Please correct the debit (%(liabilitiesAndEquitySum)s) and credit (%(assetSum)s) "
+                      "Please correct the debit (%(debitSum)s) and credit (%(creditSum)s) "
                       "values so that they match "
                       "<roleUri=%(roleUri)s> <contextID=%(contextId)s> <unitID=%(unitId)s>."),
                 consolidated=_("consolidated") if statement.isConsolidated
                 else _("nonconsolidated"),
                 balanceSheet=_("balance sheet") if statement.statementType == StatementType.BALANCE_SHEET
                 else _("statement of financial position"),
-                liabilitiesAndEquitySum=f"{balanceSheet.liabilitiesAndEquityTotal:,}",
-                assetSum=f"{balanceSheet.assetsTotal:,}",
+                debitSum=f"{balanceSheet.debitSum:,}",
+                creditSum=f"{balanceSheet.creditSum:,}",
                 roleUri=statement.roleUri,
                 contextId=balanceSheet.contextId,
                 unitId=balanceSheet.unitId,

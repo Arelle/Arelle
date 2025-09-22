@@ -42,8 +42,6 @@ from .UploadContents import UploadContents
 _: TypeGetText
 
 
-_DEBIT_QNAME_PATTERN = regex.compile('.*(Liability|Liabilities|Equity)')
-
 STANDARD_TAXONOMY_URL_PREFIXES = frozenset((
     'http://disclosure.edinet-fsa.go.jp/taxonomy/',
     'https://disclosure.edinet-fsa.go.jp/taxonomy/',
@@ -172,12 +170,6 @@ class PluginValidationDataExtension(PluginData):
                     fileSourcePath = fullPath.relative_to(basePath)
                     controllerPluginData.addUsedFilepath(fileSourcePath)
 
-    def _isDebitConcept(self, concept: ModelConcept) -> bool:
-        """
-        :return: Whether the given concept is a debit concept.
-        """
-        return bool(_DEBIT_QNAME_PATTERN.match(concept.qname.localName))
-
     @lru_cache(1)
     def isCorporateForm(self, modelXbrl: ModelXbrl) -> bool:
         formTypes = self.getFormTypes(modelXbrl)
@@ -247,23 +239,23 @@ class PluginValidationDataExtension(PluginData):
         for (contextId, unitId), facts in factsByContextIdAndUnitId.items():
             if not self._contextMatchesStatement(modelXbrl, contextId, statement):
                 continue
-            assetSum = Decimal(0)
-            liabilitiesAndEquitySum = Decimal(0)
+            creditSum = Decimal(0)
+            debitSum = Decimal(0)
             for fact in facts:
                 if isinstance(fact.xValue, float):
                     value = Decimal(fact.xValue)
                 else:
                     value = cast(Decimal, fact.xValue)
-                if self._isDebitConcept(fact.concept):
-                    liabilitiesAndEquitySum += value
-                else:
-                    assetSum += value
+                if fact.concept.balance == "debit":
+                    debitSum += value
+                elif fact.concept.balance == "credit":
+                    creditSum += value
             balanceSheets.append(
                 BalanceSheet(
-                    assetsTotal=assetSum,
+                    creditSum=creditSum,
                     contextId=str(contextId),
                     facts=facts,
-                    liabilitiesAndEquityTotal=liabilitiesAndEquitySum,
+                    debitSum=debitSum,
                     unitId=str(unitId),
                 )
             )
