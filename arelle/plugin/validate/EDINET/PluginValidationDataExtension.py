@@ -473,6 +473,17 @@ class PluginValidationDataExtension(PluginData):
     def isStandardTaxonomyUrl(self, uri: str, modelXbrl: ModelXbrl) -> bool:
         return modelXbrl.modelManager.disclosureSystem.hrefValidForDisclosureSystem(uri)
 
+    def iterCoverPages(self, modelXbrl: ModelXbrl) -> Iterable[ModelDocument]:
+        uploadContents = self.getUploadContents(modelXbrl)
+        if uploadContents is None:
+            return
+        for url, doc in modelXbrl.urlDocs.items():
+            path = Path(url)
+            pathInfo = uploadContents.uploadPathsByFullPath.get(path)
+            if pathInfo is None or not pathInfo.isCoverPage:
+                continue
+            yield doc
+
     def iterFacts(self, modelXbrl: ModelXbrl, qname: QName) -> Iterable[ModelFact]:
         yield from modelXbrl.factsByQname.get(qname, set())
 
