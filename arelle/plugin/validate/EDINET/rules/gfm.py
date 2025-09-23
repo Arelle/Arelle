@@ -815,6 +815,33 @@ def rule_gfm_1_3_23(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_gfm_1_3_25(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.3.25] Correct the element name so that it does not end with "Axis", or correct the
+    substitutionGroup to "xbrldt:dimensionItem".
+
+    GFM 1.3.25: The xsd:element substitutionGroup attribute must equal "xbrldt:dimensionItem" if
+    and only if the name attribute ends with "Axis".
+    """
+    for concept in pluginData.getExtensionConcepts(val.modelXbrl):
+        if concept.qname.localName.endswith("Axis") != (concept.substitutionGroupQname == XbrlConst.qnXbrldtDimensionItem):
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.1.3.25',
+                msg=_("Modify the element name, '%(conceptName)s', so that it does not end with 'Axis', or modify the substitutionGroup to 'xbrldt:dimensionItem'."),
+                conceptName=concept.qname.localName,
+                modelObject=concept,
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_gfm_1_3_26(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
