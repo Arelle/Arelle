@@ -1350,19 +1350,16 @@ def rule_gfm_1_10_14(
     EDINET.EC5700W: [GFM 1.10.14] All non-empty footnotes must be referenced by an element
     """
     footnotes = set()
-    used_footnote_ids = set()
+    usedFootnoteIDs = set()
     for ixdsHtmlRootElt in val.modelXbrl.ixdsHtmlElements:
-        for elt in pluginData.etree_iter(ixdsHtmlRootElt):
-            if (isinstance(elt, ModelInlineFootnote) and
-                 elt.qname == XbrlConst.qnLinkFootnote and
-                    (elt is not None and hasattr(elt, 'value') and elt.value != '')):
-                print('adding footnote id: {}'.format(elt.footnoteID))
+        for elt in ixdsHtmlRootElt.iterdescendants(XbrlConst.qnIXbrlFootnote.clarkNotation, XbrlConst.qnIXbrl11Footnote.clarkNotation):
+            if isinstance(elt, ModelInlineFootnote) and elt.value != '':
                 footnotes.add(elt)
-    for rel in ModelRelationshipSet(val.modelXbrl, "XBRL-footnotes").modelRelationships:
-        if rel.fromModelObject is not None:
-            used_footnote_ids.add(rel.toModelObject.footnoteID)
+    for rel in val.modelXbrl.relationshipSet("XBRL-footnotes").modelRelationships:
+        if rel.fromModelObject is not None and rel.toModelObject is not None:
+            usedFootnoteIDs.add(rel.toModelObject.footnoteID)
     for footnote in footnotes:
-        if footnote.footnoteID not in used_footnote_ids:
+        if footnote.footnoteID not in usedFootnoteIDs:
             yield Validation.warning(
                 codes='EDINET.EC5700W.GFM.1.10.14',
                 msg=_("A non-empty footnote is not referenced by an element"),
