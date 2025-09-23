@@ -817,6 +817,88 @@ def rule_gfm_1_3_23(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_gfm_1_3_26(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.3.26] Correct the element name so that it does not end with "Table", or correct the
+    substitutionGroup to "xbrldt:hypercubeItem".
+
+    GFM 1.3.26: The xsd:element name attribute must ends with "Table" if and only if
+    substitutionGroup attribute equals "xbrldt:hypercubeItem".
+    """
+    for concept in pluginData.getExtensionConcepts(val.modelXbrl):
+        if concept.qname.localName.endswith("Table") != (concept.substitutionGroupQname == XbrlConst.qnXbrldtHypercubeItem):
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.1.3.26',
+                msg=_("The substitution group 'xbrldt:hypercubeItem' is only allowed with an element name that ends with 'Table'."
+                      "Please change %(conceptName)s or change the substitutionGroup."),
+                conceptName=concept.qname.localName,
+                modelObject=concept
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_3_28(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.3.28] If the element name of an element extended by a submitter-specific taxonomy ends with "LineItems",
+    set the abstract attribute to "true".
+    """
+    for concept in pluginData.getExtensionConcepts(val.modelXbrl):
+        if concept.qname.localName.endswith("LineItems") and not concept.isAbstract:
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.1.3.28',
+                msg=_("If the element name of an element extended by a submitter-specific taxonomy ends with 'LineItems', "
+                      "set the abstract attribute to 'true'. For the element, '%(conceptName)s', the abstract attribute is 'false'."),
+                conceptName=concept.qname.localName,
+                modelObject=concept
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_3_29(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.3.29] If the element name of an element extended by the submitter-specific taxonomy ends with
+    "Domain" or "Member", please set the type attribute to "nonnum:domainItemType".
+
+    GFM 1.3.29: The xsd:element name attribute must end with "Domain" or "Member" if and only
+    if the type attribute equals "nonnum:domainItemType".
+    """
+    for concept in pluginData.getExtensionConcepts(val.modelXbrl):
+        isConceptDomain = concept.type.isDomainItemType if concept.type is not None else False
+        if ((concept.qname.localName.endswith("Domain") or concept.qname.localName.endswith("Member")) != isConceptDomain):
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.1.3.29',
+                msg=_("The type 'us-types:domainItemType' is only allowed with an element name that ends with 'Domain' or 'Member'. "
+                      "Please change %(conceptName)s or change the type."),
+                conceptName=concept.qname.localName,
+                modelObject=concept
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_gfm_1_3_30(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
