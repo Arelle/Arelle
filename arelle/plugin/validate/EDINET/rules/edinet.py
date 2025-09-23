@@ -44,7 +44,7 @@ def rule_balances(
     for statementInstance in pluginData.getStatementInstances(val.modelXbrl):
         statement = statementInstance.statement
         for balanceSheet in statementInstance.balanceSheets:
-            if balanceSheet.assetsTotal == balanceSheet.liabilitiesAndEquityTotal:
+            if balanceSheet.creditSum == balanceSheet.debitSum:
                 continue
             code = None
             if statement.statementType == StatementType.BALANCE_SHEET:
@@ -62,15 +62,15 @@ def rule_balances(
                 codes=code,
                 msg=_("The %(consolidated)s %(balanceSheet)s is not balanced. "
                       "The sum of all liabilities and equity must equal the sum of all assets. "
-                      "Please correct the debit (%(liabilitiesAndEquitySum)s) and credit (%(assetSum)s) "
+                      "Please correct the debit (%(debitSum)s) and credit (%(creditSum)s) "
                       "values so that they match "
                       "<roleUri=%(roleUri)s> <contextID=%(contextId)s> <unitID=%(unitId)s>."),
                 consolidated=_("consolidated") if statement.isConsolidated
                 else _("nonconsolidated"),
                 balanceSheet=_("balance sheet") if statement.statementType == StatementType.BALANCE_SHEET
                 else _("statement of financial position"),
-                liabilitiesAndEquitySum=f"{balanceSheet.liabilitiesAndEquityTotal:,}",
-                assetSum=f"{balanceSheet.assetsTotal:,}",
+                debitSum=f"{balanceSheet.debitSum:,}",
+                creditSum=f"{balanceSheet.creditSum:,}",
                 roleUri=statement.roleUri,
                 contextId=balanceSheet.contextId,
                 unitId=balanceSheet.unitId,
@@ -93,14 +93,27 @@ def rule_EC1057E(
     Ensure that there is a nonnil value disclosed for FilingDateCoverPage
     Note: This rule is only applicable to the public documents.
     """
-    dei = pluginData.getFormTypes(val.modelXbrl)
-    if len(dei) > 0:
+    facts = [
+        fact
+        for qname in (
+            pluginData.jpcrpEsrFilingDateCoverPageQn,
+            pluginData.jpcrpFilingDateCoverPageQn,
+            pluginData.jpspsFilingDateCoverPageQn
+        )
+        for fact in pluginData.iterValidNonNilFacts(val.modelXbrl, qname)
+    ]
+    for modelDocument in pluginData.iterCoverPages(val.modelXbrl):
+        if any(fact.modelDocument == modelDocument for fact in facts):
+            continue
         if not (pluginData.hasValidNonNilFact(val.modelXbrl, pluginData.jpcrpEsrFilingDateCoverPageQn)
                 or pluginData.hasValidNonNilFact(val.modelXbrl, pluginData.jpcrpFilingDateCoverPageQn)
                 or pluginData.hasValidNonNilFact(val.modelXbrl, pluginData.jpspsFilingDateCoverPageQn)):
             yield Validation.error(
                 codes='EDINET.EC1057E',
-                msg=_("The [Submission Date] on the cover page has not been filled in."),
+                msg=_("There is no submission date ('【提出日】') on the cover page. "
+                      "File name: '%(file)s'. "
+                      "Please add '【提出日】' to the relevant file."),
+                file=modelDocument.basename,
             )
 
 
