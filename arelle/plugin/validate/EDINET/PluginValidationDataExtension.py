@@ -11,14 +11,14 @@ from pathlib import Path
 
 from lxml.etree import DTD, XML
 from operator import attrgetter
-from typing import Callable, Hashable, Iterable, cast
+from typing import Any, Callable, Hashable, Iterable, cast
 
 import os
 import regex
 
 from arelle.LinkbaseType import LinkbaseType
 from arelle.ModelDocument import Type as ModelDocumentType, ModelDocument
-from arelle.ModelDtsObject import ModelConcept
+from arelle.ModelDtsObject import ModelConcept, ModelRelationship
 from arelle.ModelInstanceObject import ModelFact, ModelUnit, ModelContext, ModelInlineFact
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import QName, qname
@@ -500,3 +500,18 @@ class PluginValidationDataExtension(PluginData):
     def addUsedFilepath(self, modelXbrl: ModelXbrl, path: Path) -> None:
         controllerPluginData = ControllerPluginData.get(modelXbrl.modelManager.cntlr, self.name)
         controllerPluginData.addUsedFilepath(path)
+
+    def directedCycle(self, fromObject: ModelObject, origin: ModelObject, fromRelationships: dict[Any, list[ModelRelationship]], path: set[ModelObject]) -> None | list[ModelRelationship]:
+        if fromObject in fromRelationships:
+            for rel in fromRelationships[fromObject]:
+                toObject = rel.toModelObject
+                if toObject == origin:
+                    return [rel]
+                if toObject not in path: # report cycle only where origin causes the cycle
+                    path.add(toObject)
+                    foundCycle = self.directedCycle(toObject, origin, fromRelationships, path)
+                    if foundCycle is not None:
+                        foundCycle.insert(0, rel)
+                        return foundCycle
+                    path.discard(toObject)
+        return None
