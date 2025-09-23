@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="EDINET.EC5700W.GFM.1.3.29"
+        description="EDINET.EC5700W.GFM.1.3.29"
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid01" name="invalid01">
+        <description>
+            The XSD contains an element ending in 'Domain' and one ending in 'Member' but neither are domains and a domain element
+            that does not end with 'Domain' or 'Member'
+            <!-- valid04.zip with element named 'ClassAPreferredSharesSharesWithNoVotingRightsDomain' that is not a domain -->
+            <!-- valid04.zip with element named 'ClassAPreferredSharesSharesWithNoVotingMember' that is not a domain -->\
+            <!-- valid04.zip with element named 'ClassA' that is a domain -->
+        </description>
+        <data>
+            <instance readMeFirst="true">invalid01.zip</instance>
+        </data>
+        <result>
+            <warning>EDINET.EC5700W.GFM.1.3.29</warning>
+            <warning>EDINET.EC5700W.GFM.1.3.29</warning>
+            <warning>EDINET.EC5700W.GFM.1.3.29</warning>
+        </result>
+    </variation>
+</testcase>
