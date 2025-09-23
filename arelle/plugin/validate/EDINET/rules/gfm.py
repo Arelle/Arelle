@@ -11,8 +11,10 @@ import regex
 
 from arelle import XbrlConst, XmlUtil
 from arelle.LinkbaseType import LinkbaseType
-from arelle.ModelInstanceObject import ModelFact
+from arelle.ModelDtsObject import ModelConcept, ModelResource
+from arelle.ModelInstanceObject import ModelFact, ModelInlineFootnote
 from arelle.ModelObject import ModelObject
+from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelValue import QName
 from arelle.PrototypeDtsObject import LocPrototype, ArcPrototype
 from arelle.UrlUtil import isHttpUrl, splitDecodeFragment
@@ -1413,4 +1415,35 @@ def rule_gfm_1_8_11(
                 codes='EDINET.EC5700W.GFM.1.8.11',
                 msg=_("The definition relationship can not have the xbrldt:usable attribute set to False"),
                 modelObject=rel
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_10_14(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.10.14] All non-empty footnotes must be referenced by an element
+    """
+    footnotes = set()
+    usedFootnoteIDs = set()
+    for ixdsHtmlRootElt in val.modelXbrl.ixdsHtmlElements:
+        for elt in ixdsHtmlRootElt.iterdescendants(XbrlConst.qnIXbrlFootnote.clarkNotation, XbrlConst.qnIXbrl11Footnote.clarkNotation):
+            if isinstance(elt, ModelInlineFootnote) and elt.value != '':
+                footnotes.add(elt)
+    for rel in val.modelXbrl.relationshipSet("XBRL-footnotes").modelRelationships:
+        if rel.fromModelObject is not None and rel.toModelObject is not None:
+            usedFootnoteIDs.add(rel.toModelObject.footnoteID)
+    for footnote in footnotes:
+        if footnote.footnoteID not in usedFootnoteIDs:
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.1.10.14',
+                msg=_("A non-empty footnote is not referenced by an element"),
+                modelObject=footnote
             )
