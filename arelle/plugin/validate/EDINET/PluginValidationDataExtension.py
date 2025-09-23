@@ -9,7 +9,7 @@ from decimal import Decimal
 from functools import lru_cache
 from pathlib import Path
 
-from lxml.etree import DTD, XML
+from lxml.etree import DTD, XML, _Element
 from operator import attrgetter
 from typing import Callable, Hashable, Iterable, cast
 
@@ -500,3 +500,9 @@ class PluginValidationDataExtension(PluginData):
     def addUsedFilepath(self, modelXbrl: ModelXbrl, path: Path) -> None:
         controllerPluginData = ControllerPluginData.get(modelXbrl.modelManager.cntlr, self.name)
         controllerPluginData.addUsedFilepath(path)
+
+    def etree_iter(self, node: ModelObject | _Element):
+        yield node
+        for child in node.iterchildren():
+            for n_d in self.etree_iter(child):
+                yield n_d
