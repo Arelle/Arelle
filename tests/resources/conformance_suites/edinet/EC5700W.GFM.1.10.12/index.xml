@@ -18,6 +18,7 @@
         </data>
         <result>
             <warning>EDINET.EC5700W.GFM.1.10.12</warning>
+            <error num="45">EDINET.EC1002E</error> <!--Targets assigned on cover page items-->
         </result>
     </variation>
 </testcase>

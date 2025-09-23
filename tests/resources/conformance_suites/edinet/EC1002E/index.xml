@@ -10,8 +10,8 @@
         xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
     <variation id="invalid01" name="invalid01">
         <description>
-            Cover page does contains multiple EDINETCodeDEI facts.
-            <!-- valid09.zip with second EDINETCodeDEI added. -->
+            Cover page does contains multiple PlaceOfFilingCoverPage facts.
+            <!-- valid09.zip with second PlaceOfFilingCoverPage added. -->
         </description>
         <data>
             <instance readMeFirst="true">invalid01.zip</instance>

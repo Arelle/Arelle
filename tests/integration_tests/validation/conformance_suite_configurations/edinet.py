@@ -28,6 +28,9 @@ VALID_EXPECTED_ERRORS = {
         "EDINET.EC2002W": 2,
     },
     "valid/index.xml:valid11": {
+        # Appears to be two sets of cover page facts, not sure how it's valid.
+        "EDINET.EC1002E": 5,
+        "EDINET.EC1004E": 1,
         "EDINET.EC2002W": 3,
     },
     "valid/index.xml:valid12": {
@@ -38,21 +41,32 @@ VALID_EXPECTED_ERRORS = {
         "EDINET.EC8027W": 2,
     },
     "valid/index.xml:valid21": {
+        # Appears to be two sets of cover page facts, not sure how it's valid.
+        "EDINET.EC1002E": 5,
+        "EDINET.EC1004E": 1,
         "EDINET.EC2002W": 3,
     },
     "valid/index.xml:valid22": {
+        # Appears to be two sets of cover page facts, not sure how it's valid.
+        "EDINET.EC1002E": 5,
+        "EDINET.EC1004E": 1,
         "EDINET.EC2002W": 3,
     },
 }
 
 INVALID_TESTCASE_PARENTS = {
+    "EC1001E/index.xml:invalid01": "valid/index.xml:valid09",
+    "EC1002E/index.xml:invalid01": "valid/index.xml:valid09",
+    "EC1003E/index.xml:invalid01": "valid/index.xml:valid03",
+    "EC1004E/index.xml:invalid01": "valid/index.xml:valid09",
+    "EC1005E/index.xml:invalid01": "valid/index.xml:valid09",
     "EC1057E/index.xml:invalid01": "valid/index.xml:valid05",
     "EC5002E/index.xml:invalid01": "valid/index.xml:valid05",
     "EC5613W/index.xml:invalid01": "valid/index.xml:valid05",
-    "EC5700W.GFM.1.2.13/index.xml:invalid01": "valid/index.xml:valid05",
     "EC5700W.GFM.1.10.14/index.xml:invalid01": "valid/index.xml:valid05",
     "EC5700W.GFM.1.1.7/index.xml:invalid01": "valid/index.xml:valid05",
     "EC5700W.GFM.1.2.10/index.xml:invalid01": "valid/index.xml:valid05",
+    "EC5700W.GFM.1.2.13/index.xml:invalid01": "valid/index.xml:valid05",
     "EC5700W.GFM.1.2.14/index.xml:invalid01": "valid/index.xml:valid05",
     "EC5700W.GFM.1.2.22/index.xml:invalid01": "valid/index.xml:valid05",
     "EC5700W.GFM.1.2.26/index.xml:invalid01": "valid/index.xml:valid05",

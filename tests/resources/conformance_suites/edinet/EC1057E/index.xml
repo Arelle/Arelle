@@ -17,6 +17,8 @@
         </data>
         <result>
             <error>EDINET.EC1057E</error>
+            <error>EDINET.EC1001E</error> <!--FilingDateCoverPage missing-->
+            <error>EDINET.EC1004E</error> <!--SemiAnnualAccountingPeriodCoverPage out of order-->
         </result>
     </variation>
 </testcase>

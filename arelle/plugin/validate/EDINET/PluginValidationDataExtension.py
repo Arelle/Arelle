@@ -32,7 +32,7 @@ from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
 from .Constants import xhtmlDtdExtension, PROHIBITED_HTML_TAGS, PROHIBITED_HTML_ATTRIBUTES
 from .ControllerPluginData import ControllerPluginData
-from .CoverPageRequirements import CoverPageRequirements, COVER_PAGE_ITEM_LOCAL_NAMES
+from .CoverItemRequirements import CoverItemRequirements
 from .DeiRequirements import DeiRequirements, DEI_LOCAL_NAMES
 from .FilingFormat import FilingFormat, FILING_FORMATS
 from .FormType import FormType
@@ -69,29 +69,42 @@ class UriReference:
 
 @dataclass
 class PluginValidationDataExtension(PluginData):
+    # Namespaces
+    jpcrpEsrNamespace: str
+    jpcrpNamespace: str
+    jpctlNamespace: str
+    jpcrpSbrNamespace: str
+    jpdeiNamespace: str
+    jpigpNamespace: str
+    jplvhNamespace: str
+    jppfsNamespace: str
+    jpspsEsrNamespace: str
+    jpspsSbrNamespace: str
+    jpspsNamespace: str
+    jptoiNamespace: str
+    jptooPstNamespace: str
+    jptooToaNamespace: str
+    jptooTonNamespace: str
+    jptooTorNamespace: str
+    jptooWtoNamespace: str
+
     accountingStandardsDeiQn: QName
     assetsIfrsQn: QName
     consolidatedOrNonConsolidatedAxisQn: QName
     documentTypeDeiQn: QName
     jpcrpEsrFilingDateCoverPageQn: QName
-    jpcrpEsrNamespace: str
     jpcrpFilingDateCoverPageQn: QName
-    jpcrpNamespace: str
-    jpdeiNamespace: str
-    jpigpNamespace: str
-    jppfsNamespace: str
     jpspsFilingDateCoverPageQn: QName
-    jpspsNamespace: str
     nonConsolidatedMemberQn: QName
     ratioOfFemaleDirectorsAndOtherOfficersQn: QName
 
     contextIdPattern: regex.Pattern[str]
-    coverPageItems: tuple[QName, ...]
-    coverPageRequirementsPath: Path
+    coverItemRequirementsPath: Path
     coverPageTitleQns: tuple[QName, ...]
     deiItems: tuple[QName, ...]
     deiRequirementsPath: Path
 
+    _namespaceMap: dict[str, str]
     _uriReferences: list[UriReference]
 
     def __init__(self, name: str, validateXbrl: ValidateXbrl):
@@ -100,10 +113,40 @@ class PluginValidationDataExtension(PluginData):
         # Namespaces
         self.jpcrpEsrNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jpcrp-esr/2024-11-01/jpcrp-esr_cor"
         self.jpcrpNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpcrp/2024-11-01/jpcrp_cor'
+        self.jpcrpSbrNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jpcrp-sbr/2024-11-01/jpcrp-sbr_cor"
+        self.jpctlNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpctl/2024-11-01/jpctl_cor'
         self.jpdeiNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpdei/2013-08-31/jpdei_cor'
         self.jpigpNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jpigp/2024-11-01/jpigp_cor"
+        self.jplvhNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jplvh/2024-11-01/jplvh_cor"
         self.jppfsNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jppfs/2024-11-01/jppfs_cor"
+        self.jpspsEsrNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpsps-esr/2024-11-01/jpsps-esr_cor'
+        self.jpspsSbrNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpsps-sbr/2024-11-01/jpsps-sbr_cor'
         self.jpspsNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpsps/2024-11-01/jpsps_cor'
+        self.jptoiNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jptoi/2024-11-01/jptoi_cor'
+        self.jptooPstNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jptoo-pst/2024-11-01/jptoo-pst_cor'
+        self.jptooToaNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jptoo-toa/2024-11-01/jptoo-toa_cor'
+        self.jptooTonNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jptoo-ton/2024-11-01/jptoo-ton_cor'
+        self.jptooTorNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jptoo-tor/2024-11-01/jptoo-tor_cor'
+        self.jptooWtoNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jptoo-wto/2024-11-01/jptoo-wto_cor'
+        self._namespaceMap = {
+            "jpcrp-esr_cor": self.jpcrpEsrNamespace,
+            "jpcrp-sbr_cor": self.jpcrpEsrNamespace,
+            "jpcrp_cor": self.jpcrpNamespace,
+            "jpctl_cor": self.jpctlNamespace,
+            "jpdei_cor": self.jpdeiNamespace,
+            "jpigp_cor": self.jpigpNamespace,
+            "jplvh_cor": self.jplvhNamespace,
+            "jppfs_cor": self.jppfsNamespace,
+            "jpsps_cor": self.jpspsNamespace,
+            "jpsps-esr_cor": self.jpspsEsrNamespace,
+            "jpsps-sbr_cor": self.jpspsSbrNamespace,
+            "jptoi_cor": self.jptoiNamespace,
+            "jptoo-pst_cor": self.jptooPstNamespace,
+            "jptoo-toa_cor": self.jptooToaNamespace,
+            "jptoo-ton_cor": self.jptooTonNamespace,
+            "jptoo-tor_cor": self.jptooPstNamespace,
+            "jptoo-wto_cor": self.jptooWtoNamespace,
+        }
 
         # QNames
         self.accountingStandardsDeiQn = qname(self.jpdeiNamespace, 'AccountingStandardsDEI')
@@ -118,11 +161,7 @@ class PluginValidationDataExtension(PluginData):
         self.ratioOfFemaleDirectorsAndOtherOfficersQn = qname(self.jpcrpNamespace, "RatioOfFemaleDirectorsAndOtherOfficers")
 
         self.contextIdPattern = regex.compile(r'(Prior[1-9]Year|CurrentYear|Prior[1-9]Interim|Interim)(Duration|Instant)')
-        self.coverPageItems = tuple(
-            qname(self.jpdeiNamespace, localName)
-            for localName in COVER_PAGE_ITEM_LOCAL_NAMES
-        )
-        self.coverPageRequirementsPath = Path(__file__).parent / "resources" / "cover-page-requirements.csv"
+        self.coverItemRequirementsPath = Path(__file__).parent / "resources" / "cover-item-requirements.json"
         self.coverPageTitleQns = (
             qname(self.jpspsNamespace, "DocumentTitleAnnualSecuritiesReportCoverPage"),
             qname(self.jpcrpNamespace, "DocumentTitleCoverPage"),
@@ -210,6 +249,9 @@ class PluginValidationDataExtension(PluginData):
             pathInfo = uploadContents.uploadPathsByFullPath.get(path)
             if pathInfo is not None and not pathInfo.isCoverPage:
                 tocBuilder.addDocument(modelDocument)
+
+    def _qname(self, prefix: str, localName: str) -> QName:
+        return qname(self._namespaceMap[prefix], localName)
 
     @lru_cache(1)
     def isCorporateForm(self, modelXbrl: ModelXbrl) -> bool:
@@ -302,9 +344,36 @@ class PluginValidationDataExtension(PluginData):
             )
         return balanceSheets
 
-    def getCoverPageRequirements(self, modelXbrl: ModelXbrl) -> CoverPageRequirements:
+    @lru_cache(1)
+    def getCoverItemRequirements(self, modelXbrl: ModelXbrl) -> list[QName] | None:
+        manifestInstance = self.getManifestInstance(modelXbrl)
+        if manifestInstance is None:
+            return None
+        if any(e is not None and e.startswith('EDINET.EC5800E') for e in modelXbrl.errors):
+            # Manifest TOC parsing failed, so cannot determine cover items.
+            return None
+        assert len(manifestInstance.tocItems) == 1, _("Only one TOC item should be associated with this instance.")
+        roleUri = manifestInstance.tocItems[0].extrole
+        roleUri = roleUri.replace("_std_", "_")
         controllerPluginData = ControllerPluginData.get(modelXbrl.modelManager.cntlr, self.name)
-        return controllerPluginData.getCoverPageRequirements(self.coverPageRequirementsPath, self.coverPageItems, FILING_FORMATS)
+        coverItemRequirements = controllerPluginData.getCoverItemRequirements(self.coverItemRequirementsPath)
+        coverItems = coverItemRequirements.get(roleUri)
+        return [
+            self._qname(prefix, localName)
+            for prefix, localName in
+            [name.split(':') for name in coverItems]
+        ]
+
+    @lru_cache(1)
+    def getCoverItems(self, modelXbrl: ModelXbrl) -> frozenset[QName]:
+        controllerPluginData = ControllerPluginData.get(modelXbrl.modelManager.cntlr, self.name)
+        coverItemRequirements = controllerPluginData.getCoverItemRequirements(self.coverItemRequirementsPath)
+        coverItems = coverItemRequirements.all()
+        return frozenset(
+            self._qname(prefix, localName)
+            for prefix, localName in
+            [name.split(':') for name in coverItems]
+        )
 
     def getDeiRequirements(self, modelXbrl: ModelXbrl) -> DeiRequirements:
         controllerPluginData = ControllerPluginData.get(modelXbrl.modelManager.cntlr, self.name)
@@ -423,7 +492,7 @@ class PluginValidationDataExtension(PluginData):
                 "arelle:NoMatchingEdinetFormat",
                 _("No matching EDINET filing formats could be identified based on form "
                   "type (%(formTypes)s) and title."),
-                formTypes=formTypes,
+                formTypes=", ".join(t.value for t in formTypes),
                 modelObject=documentTitleFacts,
             )
             return None
