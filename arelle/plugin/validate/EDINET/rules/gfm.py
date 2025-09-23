@@ -30,6 +30,7 @@ from arelle.utils.validate.Validation import Validation
 from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
 from ..Constants import NUMERIC_LABEL_ROLES, domainItemTypeQname
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
+from .. loops import directedCycle
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 
@@ -1181,6 +1182,35 @@ def rule_gfm_1_7_3(
                 concept2=toConcept.qname,
                 concept2PeriodType=toConcept.periodType,
                 modelObject=rel
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_7_4(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.7.4] A calculation link can not contain directed loops.
+    """
+    loopObjects = set()
+    fromRelationships = val.modelXbrl.relationshipSet(tuple(LinkbaseType.CALCULATION.getArcroles())).fromModelObjects()
+    for fromObject, rels in fromRelationships.items():
+        if fromObject in loopObjects:
+            continue
+        loopRels = directedCycle(val, fromObject, fromObject, fromRelationships, {fromObject})
+        if loopRels is not None:
+            for rel in loopRels:
+                loopObjects.add(rel.toModelObject)
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.1.7.4',
+                msg=_("A calculation link can not contain directed loops."),
+                modelObject=loopRels
             )
 
 
