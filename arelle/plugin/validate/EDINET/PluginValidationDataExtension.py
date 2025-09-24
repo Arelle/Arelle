@@ -33,6 +33,7 @@ from arelle.utils.PluginData import PluginData
 from .Constants import xhtmlDtdExtension, PROHIBITED_HTML_TAGS, PROHIBITED_HTML_ATTRIBUTES
 from .ControllerPluginData import ControllerPluginData
 from .CoverPageRequirements import CoverPageRequirements, COVER_PAGE_ITEM_LOCAL_NAMES
+from .DeiRequirements import DeiRequirements, DEI_LOCAL_NAMES
 from .FilingFormat import FilingFormat, FILING_FORMATS
 from .FormType import FormType
 from .ManifestInstance import ManifestInstance
@@ -88,6 +89,8 @@ class PluginValidationDataExtension(PluginData):
     coverPageItems: tuple[QName, ...]
     coverPageRequirementsPath: Path
     coverPageTitleQns: tuple[QName, ...]
+    deiItems: tuple[QName, ...]
+    deiRequirementsPath: Path
 
     _uriReferences: list[UriReference]
 
@@ -126,6 +129,11 @@ class PluginValidationDataExtension(PluginData):
             qname(self.jpcrpEsrNamespace, "DocumentTitleCoverPage"),
             qname(self.jpspsNamespace, "DocumentTitleCoverPage"),
         )
+        self.deiItems = tuple(
+            qname(self.jpdeiNamespace, localName)
+            for localName in DEI_LOCAL_NAMES
+        )
+        self.deiRequirementsPath = Path(__file__).parent / "resources" / "dei-requirements.csv"
 
         self._uriReferences = []
         self._initialize(validateXbrl.modelXbrl)
@@ -297,6 +305,10 @@ class PluginValidationDataExtension(PluginData):
     def getCoverPageRequirements(self, modelXbrl: ModelXbrl) -> CoverPageRequirements:
         controllerPluginData = ControllerPluginData.get(modelXbrl.modelManager.cntlr, self.name)
         return controllerPluginData.getCoverPageRequirements(self.coverPageRequirementsPath, self.coverPageItems, FILING_FORMATS)
+
+    def getDeiRequirements(self, modelXbrl: ModelXbrl) -> DeiRequirements:
+        controllerPluginData = ControllerPluginData.get(modelXbrl.modelManager.cntlr, self.name)
+        return controllerPluginData.getDeiRequirements(self.deiRequirementsPath, self.deiItems, FILING_FORMATS)
 
     def getProblematicTextBlocks(self, modelXbrl: ModelXbrl) -> list[ModelInlineFact]:
         problematicTextBlocks: list[ModelInlineFact] = []

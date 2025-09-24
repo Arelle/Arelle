@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import re
 from collections import defaultdict
-from pathlib import Path, PurePath
+from pathlib import Path
 from typing import Any, Iterable, TYPE_CHECKING, cast
 
 import regex
@@ -23,8 +23,8 @@ from arelle.utils.validate.Validation import Validation
 from .. import Constants
 from ..CoverPageRequirements import CoverPageItemStatus
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
-from ..ReportFolderType import ReportFolderType, HTML_EXTENSIONS, IMAGE_EXTENSIONS
 from ..PluginValidationDataExtension import PluginValidationDataExtension
+from ..ReportFolderType import ReportFolderType, HTML_EXTENSIONS, IMAGE_EXTENSIONS
 
 if TYPE_CHECKING:
     from ..ControllerPluginData import ControllerPluginData
