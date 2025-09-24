@@ -11,10 +11,9 @@ import regex
 
 from arelle import XbrlConst, XmlUtil
 from arelle.LinkbaseType import LinkbaseType
-from arelle.ModelDtsObject import ModelConcept, ModelResource
+from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFootnote
 from arelle.ModelObject import ModelObject
-from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelValue import QName
 from arelle.PrototypeDtsObject import LocPrototype, ArcPrototype
 from arelle.UrlUtil import isHttpUrl, splitDecodeFragment
@@ -1442,6 +1441,34 @@ def rule_gfm_1_8_11(
                 codes='EDINET.EC5700W.GFM.1.8.11',
                 msg=_("The definition relationship can not have the xbrldt:usable attribute set to False"),
                 modelObject=rel
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_9_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.9.1] References should not be defined for extension concepts.
+    """
+    conceptReferenceSet = val.modelXbrl.relationshipSet(XbrlConst.conceptReference)
+    for modelConcept in conceptReferenceSet.fromModelObjects():
+        if not isinstance(modelConcept, ModelConcept):
+            continue
+        if modelConcept.qname is None or modelConcept.qname.namespaceURI is None:
+            continue
+        if pluginData.isExtensionUri(modelConcept.qname.namespaceURI, val.modelXbrl):
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.1.9.1',
+                msg=_("References should not be defined for extension concepts: %(conceptName)s"),
+                conceptName=modelConcept.qname,
+                modelObject=modelConcept
             )
 
 
