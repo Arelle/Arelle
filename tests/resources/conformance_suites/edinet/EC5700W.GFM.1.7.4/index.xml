@@ -11,12 +11,13 @@
     <variation id="invalid01" name="invalid01">
         <description>
             A calculation can not have a directed loop.
-            <!--valid05.zip with a loop in the calculations-->
+            <!--valid05.zip with overlapping loops in the calculations-->
         </description>
         <data>
             <instance readMeFirst="true">invalid01.zip</instance>
         </data>
         <result>
+            <warning>EDINET.EC5700W.GFM.1.7.4</warning>
             <warning>EDINET.EC5700W.GFM.1.7.4</warning>
         </result>
     </variation>

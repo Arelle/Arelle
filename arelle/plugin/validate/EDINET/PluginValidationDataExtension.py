@@ -504,14 +504,15 @@ class PluginValidationDataExtension(PluginData):
     def directedCycle(self, fromObject: ModelObject, origin: ModelObject, fromRelationships: dict[Any, list[ModelRelationship]], path: set[ModelObject]) -> None | list[ModelRelationship]:
         if fromObject in fromRelationships:
             for rel in fromRelationships[fromObject]:
-                toObject = rel.toModelObject
-                if toObject == origin:
-                    return [rel]
-                if toObject not in path: # report cycle only where origin causes the cycle
-                    path.add(toObject)
-                    foundCycle = self.directedCycle(toObject, origin, fromRelationships, path)
-                    if foundCycle is not None:
-                        foundCycle.insert(0, rel)
-                        return foundCycle
-                    path.discard(toObject)
+                if rel.toModelObject is not None:
+                    toObject = rel.toModelObject
+                    if toObject == origin:
+                        return [rel]
+                    if toObject not in path: # report cycle only where origin causes the cycle
+                        path.add(toObject)
+                        foundCycle = self.directedCycle(toObject, origin, fromRelationships, path)
+                        if foundCycle is not None:
+                            foundCycle.insert(0, rel)
+                            return foundCycle
+                        path.discard(toObject)
         return None
