@@ -1498,6 +1498,34 @@ def rule_gfm_1_9_1(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_gfm_1_10_3(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.10.3] The Inline XBRL document must contain all necessary namespace declarations including
+    those for QName values of attributes. These namespace declarations must be on the root html element.
+    """
+    for ixdsHtmlRootElt in val.modelXbrl.ixdsHtmlElements:
+        for elt in ixdsHtmlRootElt.iterdescendants():
+            parent = elt.getparent()
+            if parent is None or elt.nsmap == parent.nsmap:
+                continue
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.1.10.3',
+                msg=_('The Inline XBRL document must contain all necessary namespace declarations on the root html '
+                      'element. Found namespace declaration on descendant element %(elementName)s.'),
+                elementName=elt.tag,
+                modelObject=elt
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_gfm_1_10_14(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
