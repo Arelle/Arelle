@@ -1690,6 +1690,7 @@ class RelationStatus:
     INEFFECTIVE = 4
 
 arcCustAttrsExclusions = {XbrlConst.xlink, "use","priority","order","weight","preferredLabel"}
+modelObjectAttrs = frozenset(dir(ModelObject))
 
 class ModelRelationship(ModelObject):
     """
@@ -2085,6 +2086,11 @@ class ModelRelationship(ModelObject):
                         self.fromModelObject.qname if isinstance(self.fromModelObject, ModelObject) else "??",
                         self.toModelObject.qname if isinstance(self.toModelObject, ModelObject) else "??",
                         self.modelDocument.basename, self.sourceline))
+
+    def __dir__(self):
+        # Ignore ModelObject attributes because most relate to the underlying lxml element,
+        # which ModelRelationship does not have.
+        return [a for a in object.__dir__(self) if a.startswith('__') or a not in modelObjectAttrs]
 
     @property
     def viewConcept(self):
