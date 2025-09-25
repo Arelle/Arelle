@@ -11,14 +11,14 @@ from pathlib import Path
 
 from lxml.etree import DTD, XML
 from operator import attrgetter
-from typing import Any, Callable, Hashable, Iterable, cast
+from typing import Callable, Hashable, Iterable, cast
 
 import os
 import regex
 
 from arelle.LinkbaseType import LinkbaseType
 from arelle.ModelDocument import Type as ModelDocumentType, ModelDocument
-from arelle.ModelDtsObject import ModelConcept, ModelRelationship
+from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelInstanceObject import ModelFact, ModelUnit, ModelContext, ModelInlineFact
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import QName, qname
