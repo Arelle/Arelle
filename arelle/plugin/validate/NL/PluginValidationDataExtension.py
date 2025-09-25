@@ -709,9 +709,7 @@ class PluginValidationDataExtension(PluginData):
     def isExtensionUri(self, uri: str, modelXbrl: ModelXbrl) -> bool:
         if uri.startswith(modelXbrl.uriDir):
             return True
-        if not any(uri.startswith(taxonomyUri) for taxonomyUri in STANDARD_TAXONOMY_URLS):
-            return True
-        return False
+        return not any(uri.startswith(taxonomyUri) for taxonomyUri in STANDARD_TAXONOMY_URLS)
 
     @lru_cache(1)
     def isFilenameValidCharacters(self, filename: str) -> bool:
