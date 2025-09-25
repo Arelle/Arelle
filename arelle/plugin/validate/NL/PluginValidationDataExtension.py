@@ -696,13 +696,13 @@ class PluginValidationDataExtension(PluginData):
         return reportXmlLang
 
     @lru_cache(1)
-    def getTargetElements(self, modelXbrl: ModelXbrl) -> list[Any]:
+    def getTargetElements(self, modelXbrl: ModelXbrl) -> list[ModelObject]:
         targetElements = []
         for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
             ixNStag = str(getattr(ixdsHtmlRootElt.modelDocument, "ixNStag", ixbrl11))
-            ixTags = set(ixNStag + ln for ln in ("nonNumeric", "nonFraction", "references", "relationship"))
-            for elt in ixdsHtmlRootElt.iter():
-                if elt.tag in ixTags and elt.get("target"):
+            ixTags = (ixNStag + ln for ln in ("nonNumeric", "nonFraction", "references", "relationship"))
+            for elt in ixdsHtmlRootElt.iter(*ixTags):
+                if elt.get("target"):
                     targetElements.append(elt)
         return targetElements
 
