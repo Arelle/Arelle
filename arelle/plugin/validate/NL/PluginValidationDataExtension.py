@@ -372,7 +372,7 @@ class PluginValidationDataExtension(PluginData):
                         tupleElements.add(elt)
                     if elt.tag == ixFractionTag:
                         fractionElements.add(elt)
-            for elt, depth in etreeIterWithDepth(ixdsHtmlRootElt):
+            for elt in ixdsHtmlRootElt.iter():
                 if elt.get(xmlBaseIdentifier) is not None:
                     baseElements.add(elt)
                 if elt.tag == xhtmlBaseIdentifier:
@@ -701,7 +701,7 @@ class PluginValidationDataExtension(PluginData):
         for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
             ixNStag = str(getattr(ixdsHtmlRootElt.modelDocument, "ixNStag", ixbrl11))
             ixTags = set(ixNStag + ln for ln in ("nonNumeric", "nonFraction", "references", "relationship"))
-            for elt, depth in etreeIterWithDepth(ixdsHtmlRootElt):
+            for elt in ixdsHtmlRootElt.iter():
                 if elt.tag in ixTags and elt.get("target"):
                     targetElements.append(elt)
         return targetElements

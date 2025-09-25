@@ -19,5 +19,4 @@ def etreeIterWithDepth(
 ) -> Generator[tuple[ModelObject | _Element, int], None, None]:
     yield node, depth
     for child in node.iterchildren():
-        for n_d in etreeIterWithDepth(child, depth + 1):
-            yield n_d
+        yield from etreeIterWithDepth(child, depth + 1)

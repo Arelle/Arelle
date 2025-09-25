@@ -27,7 +27,6 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.Units import getDuplicateUnitGroups
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
-from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
 from ..Constants import NUMERIC_LABEL_ROLES, domainItemTypeQname
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
 from ..PluginValidationDataExtension import PluginValidationDataExtension
@@ -129,7 +128,7 @@ def rule_gfm_1_1_7(
     """
     baseElements = []
     for rootElt in val.modelXbrl.ixdsHtmlElements:
-            for uncast_elt, depth in etreeIterWithDepth(rootElt):
+            for uncast_elt in rootElt.iter():
                 elt = cast(Any, uncast_elt)
                 if elt.get(xmlBaseIdentifier) is not None:
                     baseElements.append(elt)
