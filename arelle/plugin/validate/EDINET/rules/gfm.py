@@ -680,6 +680,29 @@ def rule_gfm_1_3_8(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_gfm_1_3_10(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.3.10] Remove the duplicate link:roleType element.
+    """
+    for modelRoleTypes in val.modelXbrl.roleTypes.values():
+        if modelRoleTypes and len(modelRoleTypes) > 1:
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.1.3.10',
+                msg=_("Remove the duplicate link:roleType element. Duplicate roleURI: %(roleURI)s"),
+                roleURI=modelRoleTypes[0].roleURI,
+                modelObject=modelRoleTypes
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_gfm_1_3_19(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
