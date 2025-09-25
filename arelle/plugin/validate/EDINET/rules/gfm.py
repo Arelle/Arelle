@@ -1188,41 +1188,6 @@ def rule_gfm_1_7_3(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
-def rule_gfm_1_7_4(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
-        *args: Any,
-        **kwargs: Any,
-) -> Iterable[Validation]:
-    """
-    EDINET.EC5700W: [GFM 1.7.4] A calculation link can not contain directed cycles.
-    """
-    seenELRs = set()
-    for baseSetKey in val.modelXbrl.baseSets:
-        arcrole, elr, linkqname, arcqname = baseSetKey
-        if arcrole not in LinkbaseType.CALCULATION.getArcroles() or elr is None or elr in seenELRs:
-            continue
-        seenELRs.add(elr)
-        cycleObjects = set()
-        fromRelationships = val.modelXbrl.relationshipSet(arcrole, elr).fromModelObjects()
-        for fromObject in fromRelationships:
-            if fromObject in cycleObjects:
-                continue
-            cycleRels = pluginData.directedCycle(fromObject, fromObject, fromRelationships, {fromObject})
-            if cycleRels is not None:
-                for rel in cycleRels:
-                    cycleObjects.add(rel.toModelObject)
-                yield Validation.warning(
-                    codes='EDINET.EC5700W.GFM.1.7.4',
-                    msg=_("A calculation link can not contain directed loops."),
-                    modelObject=cycleRels
-                )
-
-
-@validation(
-    hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
-)
 def rule_gfm_1_7_6(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
