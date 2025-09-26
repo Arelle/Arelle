@@ -24,15 +24,6 @@ config = ConformanceSuiteConfig(
         "EC5700W.GFM.1.2.13/index.xml:invalid01": {
             "EDINET.EC5700W.GFM.1.1.3": 1,
         },
-        "EC8024E/index.xml:invalid01": {
-            "EDINET.EC8027W": 1,
-        },
-        "EC8058W/index.xml:invalid01": {
-            "EDINET.EC8027W": 1,
-        },
-        "EC8062W/index.xml:invalid01": {
-            "EDINET.EC8027W": 1,
-        },
         "EC8075W/index.xml:invalid01": {
             "EDINET.EC8027W": 2,
         },
@@ -41,9 +32,6 @@ config = ConformanceSuiteConfig(
         },
         "valid/index.xml:valid02": {
             "EDINET.EC8027W": 2,
-        },
-        "valid/index.xml:valid03": {
-            "EDINET.EC8027W": 1,
         },
         "valid/index.xml:valid20": {
             "EDINET.EC8027W": 2,

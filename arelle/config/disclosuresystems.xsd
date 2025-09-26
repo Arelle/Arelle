@@ -74,6 +74,7 @@
       <xs:attribute name="standardTaxonomyDatabase" />
       <xs:attribute name="standardTaxonomyUrlPattern" />
       <xs:attribute name="options" />
+      <xs:attribute name="arcroleCyclesAllowed" type="xs:string"/>
     </xs:complexType>
   </xs:element>
 </xs:schema>

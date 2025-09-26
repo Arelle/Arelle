@@ -6,6 +6,12 @@
     <DisclosureSystem
             names="EDINET|edinet"
             description="Checks for EDINET."
+            arcroleCyclesAllowed='{
+                "http://xbrl.org/int/dim/arcrole/dimension-domain": ["none", "EDINET.EC5700W.GFM.1.8.4"],
+                "http://xbrl.org/int/dim/arcrole/domain-member": ["none", "EDINET.EC5700W.GFM.1.8.4"],
+                "http://www.xbrl.org/2003/arcrole/summation-item": ["none", "EDINET.EC5700W.GFM.1.7.4"],
+                "https://xbrl.org/2023/arcrole/summation-item": ["none", "EDINET.EC5700W.GFM.1.7.4"]
+                }'
             defaultXmlLang="ja"
             blockDisallowedReferences="true"
             validationType="EDINET"

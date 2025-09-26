@@ -147,6 +147,8 @@ class ValidateXbrl:
             if arcrole.startswith("XBRL-") or ELR is None or \
                 linkqname is None or arcqname is None:
                 continue
+            elif arcrole in self.modelXbrl.modelManager.disclosureSystem.arcroleCyclesAllowed:
+                cyclesAllowed, specSect = self.modelXbrl.modelManager.disclosureSystem.arcroleCyclesAllowed[arcrole]
             elif arcrole in XbrlConst.standardArcroleCyclesAllowed:
                 # TODO: table should be in this module, where it is used
                 cyclesAllowed, specSect = XbrlConst.standardArcroleCyclesAllowed[arcrole]
@@ -163,7 +165,7 @@ class ValidateXbrl:
                                       or arcrole in self.genericArcArcroles  \
                                       or arcrole.startswith(XbrlConst.formulaStartsWith) \
                                       or (modelXbrl.hasXDT and arcrole.startswith(XbrlConst.dimStartsWith)):
-                relsSet = modelXbrl.relationshipSet(arcrole,ELR,linkqname,arcqname)
+                relsSet = modelXbrl.relationshipSet(arcrole, ELR, linkqname, arcqname)
                 if cyclesAllowed != "any" and \
                     ((XbrlConst.isStandardExtLinkQname(linkqname) and XbrlConst.isStandardArcQname(arcqname)) \
                         or arcrole in self.genericArcArcroles):
