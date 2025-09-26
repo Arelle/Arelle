@@ -1,8 +1,11 @@
+"""
+See COPYRIGHT.md for copyright information.
+"""
+from __future__ import annotations
+
 from typing import Iterable
 
 from collections import defaultdict
-
-import unicodedata
 
 from arelle.ModelDocument import ModelDocument
 from arelle.ModelObject import ModelObject
@@ -309,8 +312,6 @@ class TableOfContentsBuilder:
         # Convert to full-width, ONLY if fully half-width.
         # EDINET does not support a mixture of half-width and full-width digits in TOC numbers.
         number = self._normalizeNumber(number)
-        if not any(unicodedata.east_asian_width(c) in ('F', 'W') for c in number):
-            number = ''.join(FULL_WIDTH_DIGIT_MAP.get(c, c) for c in number)
         nextPosition = self._levelPositions[self._currentLevel]
         currentSequence = self._levelSequences.get(self._currentLevel)
 
