@@ -372,7 +372,7 @@ class PluginValidationDataExtension(PluginData):
                         tupleElements.add(elt)
                     if elt.tag == ixFractionTag:
                         fractionElements.add(elt)
-            for elt, depth in etreeIterWithDepth(ixdsHtmlRootElt):
+            for elt in ixdsHtmlRootElt.iter():
                 if elt.get(xmlBaseIdentifier) is not None:
                     baseElements.add(elt)
                 if elt.tag == xhtmlBaseIdentifier:
@@ -696,22 +696,20 @@ class PluginValidationDataExtension(PluginData):
         return reportXmlLang
 
     @lru_cache(1)
-    def getTargetElements(self, modelXbrl: ModelXbrl) -> list[Any]:
+    def getTargetElements(self, modelXbrl: ModelXbrl) -> list[ModelObject]:
         targetElements = []
         for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
             ixNStag = str(getattr(ixdsHtmlRootElt.modelDocument, "ixNStag", ixbrl11))
-            ixTags = set(ixNStag + ln for ln in ("nonNumeric", "nonFraction", "references", "relationship"))
-            for elt, depth in etreeIterWithDepth(ixdsHtmlRootElt):
-                if elt.tag in ixTags and elt.get("target"):
+            ixTags = (ixNStag + ln for ln in ("nonNumeric", "nonFraction", "references", "relationship"))
+            for elt in ixdsHtmlRootElt.iter(*ixTags):
+                if elt.get("target"):
                     targetElements.append(elt)
         return targetElements
 
     def isExtensionUri(self, uri: str, modelXbrl: ModelXbrl) -> bool:
         if uri.startswith(modelXbrl.uriDir):
             return True
-        if not any(uri.startswith(taxonomyUri) for taxonomyUri in STANDARD_TAXONOMY_URLS):
-            return True
-        return False
+        return not any(uri.startswith(taxonomyUri) for taxonomyUri in STANDARD_TAXONOMY_URLS)
 
     @lru_cache(1)
     def isFilenameValidCharacters(self, filename: str) -> bool:

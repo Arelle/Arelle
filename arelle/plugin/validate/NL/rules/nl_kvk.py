@@ -29,7 +29,6 @@ from arelle.utils.validate.DetectScriptsInXhtml import containsScriptMarkers
 from arelle.utils.validate.ESEFImage import ImageValidationParameters, validateImage
 from arelle.utils.validate.Validation import Validation
 from arelle.ValidateDuplicateFacts import getHashEquivalentFactGroups, getAspectEqualFacts
-from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
 from ..DisclosureSystems import (ALL_NL_INLINE_DISCLOSURE_SYSTEMS, NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
                                  NL_INLINE_GAAP_OTHER_DISCLOSURE_SYSTEMS)
 from ..PluginValidationDataExtension import (
@@ -751,7 +750,7 @@ def rule_nl_kvk_3_5_2_3(
     """
     badLangsUsed = set()
     for ixdsHtmlRootElt in val.modelXbrl.ixdsHtmlElements:
-        for uncast_elt, depth in etreeIterWithDepth(ixdsHtmlRootElt):
+        for uncast_elt in ixdsHtmlRootElt.iter():
             elt = cast(Any, uncast_elt)
             xmlLang = elt.get("{http://www.w3.org/XML/1998/namespace}lang")
             if xmlLang and xmlLang not in ALLOWABLE_LANGUAGES:

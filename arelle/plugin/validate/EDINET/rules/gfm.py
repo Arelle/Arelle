@@ -27,7 +27,6 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.Units import getDuplicateUnitGroups
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
-from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
 from ..Constants import NUMERIC_LABEL_ROLES, domainItemTypeQname
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
 from ..PluginValidationDataExtension import PluginValidationDataExtension
@@ -129,7 +128,7 @@ def rule_gfm_1_1_7(
     """
     baseElements = []
     for rootElt in val.modelXbrl.ixdsHtmlElements:
-            for uncast_elt, depth in etreeIterWithDepth(rootElt):
+            for uncast_elt in rootElt.iter():
                 elt = cast(Any, uncast_elt)
                 if elt.get(xmlBaseIdentifier) is not None:
                     baseElements.append(elt)
@@ -1492,6 +1491,34 @@ def rule_gfm_1_9_1(
                 msg=_("References should not be defined for extension concepts: %(conceptName)s"),
                 conceptName=modelConcept.qname,
                 modelObject=modelConcept
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_10_3(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.10.3] The Inline XBRL document must contain all necessary namespace declarations including
+    those for QName values of attributes. These namespace declarations must be on the root html element.
+    """
+    for ixdsHtmlRootElt in val.modelXbrl.ixdsHtmlElements:
+        for elt in ixdsHtmlRootElt.iterdescendants():
+            parent = elt.getparent()
+            if parent is None or elt.nsmap == parent.nsmap:
+                continue
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.1.10.3',
+                msg=_('The Inline XBRL document must contain all necessary namespace declarations on the root html '
+                      'element. Found namespace declaration on descendant element %(elementName)s.'),
+                elementName=elt.tag,
+                modelObject=elt
             )
 
 
