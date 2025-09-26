@@ -19,6 +19,7 @@ from . import Constants
 from .CoverPageRequirements import CoverPageRequirements
 from .FilingFormat import FilingFormat
 from .ReportFolderType import ReportFolderType
+from .TableOfContentsBuilder import TableOfContentsBuilder
 from .UploadContents import UploadContents, UploadPathInfo
 
 if TYPE_CHECKING:
@@ -30,12 +31,14 @@ _: TypeGetText
 @dataclass
 class ControllerPluginData(PluginData):
     _manifestInstancesById: dict[str, ManifestInstance]
+    _tocBuilder: TableOfContentsBuilder
     _uploadContents: UploadContents | None
     _usedFilepaths: set[Path]
 
     def __init__(self, name: str):
         super().__init__(name)
         self._manifestInstancesById = {}
+        self._tocBuilder = TableOfContentsBuilder()
         self._usedFilepaths = set()
         self._uploadContents = None
 
@@ -57,6 +60,9 @@ class ControllerPluginData(PluginData):
         Retrieve all loaded manifest instances.
         """
         return list(self._manifestInstancesById.values())
+
+    def getTableOfContentsBuilder(self) -> TableOfContentsBuilder:
+        return self._tocBuilder
 
     def getUploadContents(self) -> UploadContents | None:
         return self._uploadContents

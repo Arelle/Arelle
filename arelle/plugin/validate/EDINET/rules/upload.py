@@ -26,6 +26,7 @@ from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
 from ..FilingFormat import FILING_FORMATS
 from ..ReportFolderType import ReportFolderType, HTML_EXTENSIONS, IMAGE_EXTENSIONS
 from ..PluginValidationDataExtension import PluginValidationDataExtension
+from ..TableOfContentsBuilder import TableOfContentsBuilder
 
 if TYPE_CHECKING:
     from ..ControllerPluginData import ControllerPluginData
@@ -1004,6 +1005,43 @@ def rule_EC1017E(
                   "Please remove the file or reference it in the HTML."),
             file=str(path),
         )
+
+
+@validation(
+    hook=ValidationHook.COMPLETE,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_toc(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    Performs validation via controller-level TableOfContentsBuilder.
+    """
+    tocBuilder = pluginData.getTableOfContentsBuilder()
+    yield from tocBuilder.validate()
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_toc_pre(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    Doesn't perform validations, but prepares data for TableOfContentsBuilder.
+    """
+    manifestInstance = pluginData.getManifestInstance(val.modelXbrl)
+    if manifestInstance is not None and manifestInstance.type == ReportFolderType.PUBLIC_DOC.value:
+        pluginData.addToTableOfContents(val.modelXbrl)
+    return iter(())
 
 
 @validation(
