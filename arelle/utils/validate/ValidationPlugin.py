@@ -240,7 +240,7 @@ class ValidationPlugin:
             validations = rule(pluginData, cntlr, fileSource, entrypoints, *args, **kwargs)
             if validations is not None:
                 for val in validations:
-                    cntlr.error(level=val.level.name, codes=val.codes, msg=val.msg, **val.args)
+                    cntlr.error(level=val.level.name, codes=val.codes, msg=val.msg, fileSource=fileSource, **val.args)
 
     def _executeModelValidations(
         self,
