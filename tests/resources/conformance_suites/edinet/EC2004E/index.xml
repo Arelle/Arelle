@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="EDINET.EC2004E"
+        description="EDINET.EC2004E: Corner brackets (【) must not overlap."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid01" name="invalid01">
+        <description>
+            A second opening bracket occurs before a closing bracket.
+            <!--valid08.zip with opening bracket duplicated.-->
+        </description>
+        <data>
+            <instance readMeFirst="true">invalid01.zip</instance>
+        </data>
+        <result>
+            <error>EDINET.EC2004E</error>
+        </result>
+    </variation>
+</testcase>
