@@ -1,9 +1,10 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-import regex as re
+from __future__ import annotations
 
-def attrValue(str, name):
+
+def attrValue(str: str, name: str | None = None) -> str:
     # retrieves attribute in a string, such as xyz="abc" or xyz='abc' or xyz=abc;
     prestuff, matchedName, valuePart = str.lower().partition("charset")
     value = []
