@@ -9,7 +9,8 @@ from typing import Any, cast, Iterable
 
 import regex
 
-from arelle import XbrlConst, XmlUtil
+from arelle import ModelDocument, XbrlConst, XmlUtil
+from arelle.HtmlUtil import attrValue
 from arelle.LinkbaseType import LinkbaseType
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFootnote
@@ -1520,6 +1521,75 @@ def rule_gfm_1_10_3(
                 elementName=elt.tag,
                 modelObject=elt
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_10_4(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.10.4] The document encoding must be set in both the XML document declaration and the HTML
+    meta element for content type.
+    """
+    for modelDocument in val.modelXbrl.urlDocs.values():
+        if modelDocument.type != ModelDocument.Type.INLINEXBRL:
+            continue
+
+        if pluginData.isStandardTaxonomyUrl(modelDocument.uri, val.modelXbrl):
+            continue
+
+        xmlDeclaredEncoding = None
+        try:
+            with val.modelXbrl.fileSource.file(modelDocument.filepath)[0] as f:
+                fileContent = cast(str, f.read(512))
+            match = XmlUtil.xmlEncodingPattern.match(fileContent)
+            if match:
+                xmlDeclaredEncoding = match.group(1)
+        except Exception:
+            pass
+
+        metaCharset = None
+        metaElt = None
+        for meta in modelDocument.xmlRootElement.iterdescendants(tag=XbrlConst.qnXhtmlMeta.clarkNotation):
+            httpEquiv = meta.get("http-equiv", "").lower()
+            if httpEquiv == "content-type":
+                content = meta.get("content", "")
+                if content:
+                    metaCharset = attrValue(content, "charset")
+                    metaElt = meta
+                    break
+
+        if not xmlDeclaredEncoding:
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.1.10.4',
+                msg=_("The document encoding must be declared in an XML document declaration"),
+                modelObject=modelDocument
+            )
+
+        if not metaCharset:
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.1.10.4',
+                msg=_("The document encoding must be declared in an HTML meta element charset"),
+                modelObject=modelDocument
+            )
+
+        if xmlDeclaredEncoding and metaCharset:
+            normalizedXmlEncoding = xmlDeclaredEncoding.lower()
+            normalizedMetaCharset = metaCharset.lower()
+            if normalizedXmlEncoding != normalizedMetaCharset:
+                yield Validation.warning(
+                    codes='EDINET.EC5700W.GFM.1.10.4',
+                    msg=_("The XML declaration encoding '%(xmlEncoding)s' does not match the HTML meta charset '%(metaCharset)s'"),
+                    xmlEncoding=xmlDeclaredEncoding,
+                    metaCharset=metaCharset,
+                    modelObject=metaElt
+                )
 
 
 @validation(
