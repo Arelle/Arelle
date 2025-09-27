@@ -919,7 +919,6 @@ def rule_EC1010E(
         if path.suffix not in HTML_EXTENSIONS:
             continue
         rootElt = modelDocument.xmlRootElement
-        matchingElt = None
         missingElts = []
         for metaElt in rootElt.iterdescendants(tag=XbrlConst.qnXhtmlMeta.clarkNotation):
             if metaElt.qname.localName != 'meta':
@@ -928,12 +927,10 @@ def rule_EC1010E(
             if content is None:
                 continue
             charset = content.split('charset=')[-1].strip().lower()
-            if charset == 'utf-8':
-                matchingElt = metaElt
-            else:
+            if charset != 'utf-8':
                 missingElts.append(metaElt)
 
-        if matchingElt is None or len(missingElts) > 0:
+        if len(missingElts) > 0:
             yield Validation.error(
                 codes='EDINET.EC1010E',
                 msg=_("The charset specification in the content attribute of the HTML <meta> tag is not UTF-8. "
