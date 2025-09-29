@@ -4,7 +4,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns="http://xbrl.org/2005/conformance"
         name="EDINET.EC1014E"
-        description="EDINET.EC1014E: The URI in the HTML specifies a path to a directory."
+        description="EDINET.EC1014E: A URI in an HTML file must not specify a path to a directory."
         outpath=''
         owner="support@arelle.org"
         xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">

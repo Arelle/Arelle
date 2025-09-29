@@ -3,21 +3,22 @@
 <testcase
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns="http://xbrl.org/2005/conformance"
-        name="EDINET.EC1013E"
-        description="EDINET.EC1013E: A URI in an HTML file directly beneath a report folder must specify a path under a subdirectory."
+        name="EDINET.EC1035E"
+        description="EDINET.EC1035E: A URI in an HTML file must not specify a path to a location higher than the report path."
         outpath=''
         owner="support@arelle.org"
         xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
     <variation id="invalid01" name="invalid01">
         <description>
-            HTML references files not in subfolders.
-            <!--valid09.zip with img tags referencing 'image.jpg' and './image.jpg'.-->
+            HTML URI references file located directly beneath "XBRL" folder.
+            <!--valid09.zip IXBRL referencing file at "XBRL/test.jpg".-->
         </description>
         <data>
             <instance readMeFirst="true">invalid01.zip</instance>
         </data>
         <result>
-            <error num="2">EDINET.EC1013E</error>
+            <error>EDINET.EC1035E</error>
+            <error>EDINET.EC0349E</error> <!-- Invalid file in XBRL directory. -->
         </result>
     </variation>
 </testcase>
