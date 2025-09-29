@@ -36,6 +36,7 @@ from .CoverPageRequirements import CoverPageRequirements, COVER_PAGE_ITEM_LOCAL_
 from .FilingFormat import FilingFormat, FILING_FORMATS
 from .FormType import FormType
 from .ManifestInstance import ManifestInstance
+from .ReportFolderType import HTML_EXTENSIONS
 from .Statement import Statement, STATEMENTS, BalanceSheet, StatementInstance, StatementType
 from .UploadContents import UploadContents
 
@@ -169,6 +170,20 @@ class PluginValidationDataExtension(PluginData):
                 if fullPath.is_relative_to(basePath):
                     fileSourcePath = fullPath.relative_to(basePath)
                     controllerPluginData.addUsedFilepath(fileSourcePath)
+
+    def addToTableOfContents(self, modelXbrl: ModelXbrl) -> None:
+        uploadContents = self.getUploadContents(modelXbrl)
+        if uploadContents is None:
+            return
+        controllerPluginData = ControllerPluginData.get(modelXbrl.modelManager.cntlr, self.name)
+        tocBuilder = controllerPluginData.getTableOfContentsBuilder()
+        for modelDocument in modelXbrl.urlDocs.values():
+            path = Path(modelDocument.uri)
+            if path.suffix not in HTML_EXTENSIONS:
+                continue
+            pathInfo = uploadContents.uploadPathsByFullPath.get(path)
+            if pathInfo is not None and not pathInfo.isCoverPage:
+                tocBuilder.addDocument(modelDocument)
 
     @lru_cache(1)
     def isCorporateForm(self, modelXbrl: ModelXbrl) -> bool:
