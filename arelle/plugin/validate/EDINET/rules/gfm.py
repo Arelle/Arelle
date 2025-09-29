@@ -1526,6 +1526,39 @@ def rule_gfm_1_10_3(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_gfm_1_10_12(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.10.12] In all inline XBRL files, multiple target attribute values ​​are not allowed.
+    Correct the target attribute value. (A warning will be issued if the target attribute is not specified and is
+    specified at the same time.)
+    """
+    targets: set[str | None] = set()
+    for ixdsHtmlRootElt in val.modelXbrl.ixdsHtmlElements:
+        targetEltTags = [qname.clarkNotation for qname in XbrlConst.ixbrlAllTargetElements]
+        for elt in ixdsHtmlRootElt.iter(targetEltTags):
+            targets.add(elt.get("target"))
+    if len(targets) > 1:
+        if None in targets:
+            msg = _("Inline document set may not use multiple target documents. Found targets: default, %(targets)s")
+        else:
+            msg = _("Inline document set may not use multiple target documents. Found targets: %(targets)s")
+        yield Validation.warning(
+            codes='EDINET.EC5700W.GFM.1.10.12',
+            msg=msg,
+            targets=",".join(target for target in targets if target is not None),
+            modelObject=val.modelXbrl,
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_gfm_1_10_14(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,

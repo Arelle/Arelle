@@ -180,6 +180,21 @@ ixAttributes = set(
         "tupleID",
     )
 )
+ixbrlTargetElements = frozenset({
+    qnIXbrlFraction,
+    qnIXbrlNonFraction,
+    qnIXbrlNonNumeric,
+    qnIXbrlResources,
+    qnIXbrlTuple,
+})
+ixbrl11TargetElements = frozenset({
+    qnIXbrl11Fraction,
+    qnIXbrl11NonFraction,
+    qnIXbrl11NonNumeric,
+    qnIXbrl11Resources,
+    qnIXbrl11Tuple,
+})
+ixbrlAllTargetElements = ixbrlTargetElements | ixbrl11TargetElements
 conceptLabel = "http://www.xbrl.org/2003/arcrole/concept-label"
 conceptReference = "http://www.xbrl.org/2003/arcrole/concept-reference"
 footnote = "http://www.xbrl.org/2003/role/footnote"
