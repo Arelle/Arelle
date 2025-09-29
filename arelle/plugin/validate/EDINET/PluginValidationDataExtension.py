@@ -17,7 +17,7 @@ import os
 import regex
 
 from arelle.LinkbaseType import LinkbaseType
-from arelle.ModelDocument import Type as ModelDocumentType, ModelDocument
+from arelle.ModelDocument import Type as ModelDocumentType, ModelDocument, load as modelDocumentLoad
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelInstanceObject import ModelFact, ModelUnit, ModelContext, ModelInlineFact
 from arelle.ModelObject import ModelObject
@@ -149,27 +149,45 @@ class PluginValidationDataExtension(PluginData):
         contextIsConsolidated = memberValue != self.nonConsolidatedMemberQn
         return bool(statement.isConsolidated == contextIsConsolidated)
 
+    def _initializeDocument(self, uri: str, modelDocument: ModelDocument, modelXbrl: ModelXbrl) -> None:
+        docPath = Path(uri)
+        basePath = Path(str(modelXbrl.fileSource.basefile))
+        if not docPath.is_relative_to(basePath):
+            return
+        controllerPluginData = ControllerPluginData.get(modelXbrl.modelManager.cntlr, self.name)
+        controllerPluginData.addUsedFilepath(docPath.relative_to(basePath))
+        for elt, name, value in self.getUriAttributeValues(modelDocument):
+            self._uriReferences.append(UriReference(
+                attributeName=name,
+                attributeValue=value,
+                document=modelDocument,
+                element=elt,
+            ))
+            fullPath = (Path(modelDocument.uri).parent / value).resolve()
+            if fullPath.is_relative_to(basePath):
+                fileSourcePath = fullPath.relative_to(basePath)
+                controllerPluginData.addUsedFilepath(fileSourcePath)
+            referenceUri = str(fullPath)
+            if (
+                    fullPath.suffix in HTML_EXTENSIONS and
+                    referenceUri not in modelXbrl.urlDocs and
+                    modelXbrl.fileSource.exists(referenceUri)
+            ):
+                referenceModelDocument = modelDocumentLoad(
+                    modelXbrl,
+                    referenceUri,
+                    referringElement=elt
+                )
+                if referenceModelDocument is not None:
+                    self._initializeDocument(referenceUri, referenceModelDocument, modelXbrl)
+
     def _initialize(self, modelXbrl: ModelXbrl) -> None:
         if not isinstance(modelXbrl.fileSource.basefile, str):
             return
-        controllerPluginData = ControllerPluginData.get(modelXbrl.modelManager.cntlr, self.name)
-        basePath = Path(modelXbrl.fileSource.basefile)
-        for uri, doc in modelXbrl.urlDocs.items():
-            docPath = Path(uri)
-            if not docPath.is_relative_to(basePath):
-                continue
-            controllerPluginData.addUsedFilepath(docPath.relative_to(basePath))
-            for elt, name, value in self.getUriAttributeValues(doc):
-                self._uriReferences.append(UriReference(
-                    attributeName=name,
-                    attributeValue=value,
-                    document=doc,
-                    element=elt,
-                ))
-                fullPath = Path(doc.uri).parent / value
-                if fullPath.is_relative_to(basePath):
-                    fileSourcePath = fullPath.relative_to(basePath)
-                    controllerPluginData.addUsedFilepath(fileSourcePath)
+        # Additional documents may be loaded, so make a copy to iterate over.
+        urlDocs = list(modelXbrl.urlDocs.items())
+        for uri, modelDocument in urlDocs:
+            self._initializeDocument(uri, modelDocument, modelXbrl)
 
     def addToTableOfContents(self, modelXbrl: ModelXbrl) -> None:
         uploadContents = self.getUploadContents(modelXbrl)
@@ -473,7 +491,12 @@ class PluginValidationDataExtension(PluginData):
     @lru_cache(1)
     def getUriAttributeValues(self, modelDocument: ModelDocument) -> list[tuple[ModelObject, str, str]]:
         results: list[tuple[ModelObject, str, str]] = []
-        if modelDocument.type not in (ModelDocumentType.INLINEXBRL, ModelDocumentType.HTML):
+        modelDocumentType = modelDocument.type
+        # Normal document parsing does not assign the HTML type to HTML files.
+        # Use ModelDocumentType.identify to check for HTML files.
+        if modelDocumentType == ModelDocumentType.UnknownXML:
+            modelDocumentType = ModelDocumentType.identify(modelDocument.modelXbrl.fileSource, modelDocument.uri)
+        if modelDocumentType not in (ModelDocumentType.INLINEXBRL, ModelDocumentType.HTML):
             return results
         for elt in modelDocument.xmlRootElement.iter():
             for name in htmlEltUriAttrs.get(elt.localName, ()):
