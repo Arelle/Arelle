@@ -702,6 +702,35 @@ def rule_gfm_1_3_10(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_gfm_1_3_13(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.3.13]  Remove any leading or trailing XML whitespace and newline
+    characters from the "link:definition" of your extended link role.
+    """
+    for modelRoleTypes in val.modelXbrl.roleTypes.values():
+        modelRoleType = modelRoleTypes[0]
+        if (
+                modelRoleType.definition and modelRoleType.definitionNotStripped
+                and modelRoleType.definition != modelRoleType.definitionNotStripped
+        ):
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.1.3.13',
+                msg=_("Remove any leading or trailing XML whitespace and newline characters from "
+                      "the `link:definition` of your extended link role. Definition: %(definition)s"),
+                definition=modelRoleTypes[0].definitionNotStripped,
+                modelObject=modelRoleTypes[0]
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_gfm_1_3_19(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
