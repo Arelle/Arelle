@@ -197,7 +197,7 @@ class PluginValidationDataExtension(PluginData):
         tocBuilder = controllerPluginData.getTableOfContentsBuilder()
         for modelDocument in modelXbrl.urlDocs.values():
             path = Path(modelDocument.uri)
-            if path.suffix not in HTML_EXTENSIONS:
+            if modelDocument.type != ModelDocumentType.INLINEXBRL:
                 continue
             pathInfo = uploadContents.uploadPathsByFullPath.get(path)
             if pathInfo is not None and not pathInfo.isCoverPage:
