@@ -1,12 +1,13 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-import regex as re
+from __future__ import annotations
 
-def attrValue(str, name):
+
+def attrValue(attr: str) -> str:
     # retrieves attribute in a string, such as xyz="abc" or xyz='abc' or xyz=abc;
-    prestuff, matchedName, valuePart = str.lower().partition("charset")
-    value = []
+    prestuff, matchedName, valuePart = attr.lower().partition("charset")
+    value: list[str] = []
     endSep = None
     beforeEquals = True
     for c in valuePart:
