@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import re
 from collections import defaultdict
-from pathlib import Path, PurePath
+from pathlib import Path
 from typing import Any, Iterable, TYPE_CHECKING, cast
 
 import regex
@@ -23,8 +23,8 @@ from arelle.utils.validate.Validation import Validation
 from .. import Constants
 from ..CoverPageRequirements import CoverPageItemStatus
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
-from ..ReportFolderType import ReportFolderType, HTML_EXTENSIONS, IMAGE_EXTENSIONS
 from ..PluginValidationDataExtension import PluginValidationDataExtension
+from ..ReportFolderType import ReportFolderType, HTML_EXTENSIONS, IMAGE_EXTENSIONS
 
 if TYPE_CHECKING:
     from ..ControllerPluginData import ControllerPluginData
@@ -658,6 +658,8 @@ def rules_cover_page(
     EDINET.EC1004E: An item on the cover page is out of order.
     EDINET.EC1005E: A required item on the cover page is missing a valid value.
     """
+    # TODO: Temporarily disable until implementations are corrected.
+    return
     uploadContents = pluginData.getUploadContents(val.modelXbrl)
     if uploadContents is None:
         return

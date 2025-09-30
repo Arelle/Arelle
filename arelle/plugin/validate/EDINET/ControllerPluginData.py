@@ -17,6 +17,7 @@ from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
 from . import Constants
 from .CoverPageRequirements import CoverPageRequirements
+from .DeiRequirements import DeiRequirements
 from .FilingFormat import FilingFormat
 from .ReportFolderType import ReportFolderType
 from .TableOfContentsBuilder import TableOfContentsBuilder
@@ -54,6 +55,10 @@ class ControllerPluginData(PluginData):
     @lru_cache(1)
     def getCoverPageRequirements(self, csvPath: Path, coverPageItems: tuple[QName, ...], filingFormats: tuple[FilingFormat, ...]) -> CoverPageRequirements:
         return CoverPageRequirements(csvPath, coverPageItems, filingFormats)
+
+    @lru_cache(1)
+    def getDeiRequirements(self, csvPath: Path, deiItems: tuple[QName, ...], filingFormats: tuple[FilingFormat, ...]) -> DeiRequirements:
+        return DeiRequirements(csvPath, deiItems, filingFormats)
 
     def getManifestInstances(self) -> list[ManifestInstance]:
         """
