@@ -732,6 +732,29 @@ def rule_gfm_1_3_13(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_gfm_1_3_16(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.3.16] Remove the duplicate link:arcroleType element.
+    """
+    for modelArcRoleTypes in val.modelXbrl.arcroleTypes.values():
+        if len(modelArcRoleTypes) > 1:
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.1.3.16',
+                msg=_("Remove the duplicate link:arcroleType element. Duplicate arcroleURI: %(arcroleURI)s"),
+                arcroleURI=modelArcRoleTypes[0].arcroleURI,
+                modelObject=modelArcRoleTypes
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_gfm_1_3_19(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
