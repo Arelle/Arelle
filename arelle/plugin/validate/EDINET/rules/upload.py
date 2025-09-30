@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import re
 from collections import defaultdict
-from pathlib import Path
+from pathlib import Path, PurePath
 from typing import Any, Iterable, TYPE_CHECKING, cast
 
 import regex
@@ -802,11 +802,17 @@ def rule_uri_references(
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    EDINET.EC1007E: The URI in the HTML specifies a URL or absolute path.
-    EDINET.EC1013E: The URI in the HTML specifies a path not under a subdirectory.
-    EDINET.EC1014E: The URI in the HTML specifies a path to a directory.
-    EDINET.EC1021E: The URI in the HTML specifies a path to a file that doesn't exist.
-    EDINET.EC1023E: The URI in the HTML specifies a path to a PDF file.
+    EDINET.EC1007E: A URI in an HTML file must not be a URL or absolute path.
+    EDINET.EC1013E: A URI in an HTML file directly beneath a report folder
+        must specify a path under a subdirectory.
+    EDINET.EC1014E: A URI in an HTML file must not specify a path to a directory.
+    EDINET.EC1015E: A URI in an HTML file within a subdirectory
+        must not specify a path directly beneath the report folder.
+    EDINET.EC1021E: A URI in an HTML file must not specify a path to a file that doesn't exist.
+    EDINET.EC1023E: A URI in an HTML file must not specify a path to a PDF file.
+    EDINET.EC1035E: A URI in an HTML file must not specify a path to a location higher than the report path.
+
+    Note: See "図表 3-4-8 PublicDoc フォルダ全体のイメージ" in "File Specification for EDINET".
     """
     uploadContents = pluginData.getUploadContents(val.modelXbrl)
     if uploadContents is None:
@@ -823,21 +829,62 @@ def rule_uri_references(
                 modelObject=uriReference.element,
             )
             continue
-        path = Path(uriReference.attributeValue)
-        if len(path.parts) < 2:
+
+        uriPath = Path(uriReference.attributeValue)
+        documentFullPath = Path(uriReference.document.uri)
+        referenceFullPath = (documentFullPath.parent / uriPath).resolve()
+        documentPathInfo = uploadContents.uploadPathsByFullPath.get(documentFullPath)
+        assert documentPathInfo is not None # Should always be present, as it must exist to have a uriReference discovered.
+        reportFullPath = Path(str(val.modelXbrl.fileSource.baseurl)) / (documentPathInfo.reportPath or "")
+
+        if reportFullPath not in referenceFullPath.parents:
             yield Validation.error(
-                codes='EDINET.EC1013E',
-                msg=_("The URI in the HTML specifies a path not under a subdirectory. "
+                codes='EDINET.EC1035E',
+                msg=_("The URI in the HTML specifies a path that navigates "
+                      "outside of the report folder '%(reportPath)s'. "
                       "File name: '%(file)s' (line %(line)s). "
-                      "Please move the referenced file into a subfolder, or correct the URI."),
+                      "You cannot create a link from a subfolder to a parent folder. "
+                      "Please delete the link."),
+                reportPath=str(documentPathInfo.reportPath),
                 file=uriReference.document.basename,
                 line=uriReference.element.sourceline,
                 modelObject=uriReference.element,
             )
             continue
-        fullPath = Path(uriReference.document.uri).parent / path
-        pathInfo = uploadContents.uploadPathsByFullPath.get(fullPath)
-        if pathInfo is not None and pathInfo.isDirectory:
+
+        if not documentPathInfo.isSubdirectory:
+            if documentFullPath.parent not in referenceFullPath.parent.parents:
+                yield Validation.error(
+                    codes='EDINET.EC1013E',
+                    msg=_("The URI in the HTML file directly beneath '%(reportPath)s' "
+                          "specifies a path not under a subdirectory. "
+                          "File name: '%(file)s' (line %(line)s). "
+                          "Please move the referenced file into a subfolder beneath "
+                          "'%(reportPath)s', or correct the URI."),
+                    reportPath=str(documentPathInfo.reportPath),
+                    file=uriReference.document.basename,
+                    line=uriReference.element.sourceline,
+                    modelObject=uriReference.element,
+                )
+                continue
+
+        elif referenceFullPath.parent == reportFullPath:
+            yield Validation.error(
+                codes='EDINET.EC1015E',
+                msg=_("The URI in the HTML file within a subdirectory specifies a "
+                      "path to a file located directly beneath '%(reportPath)s'. "
+                      "File name: '%(file)s' (line %(line)s). "
+                      "You cannot create a link from a subfolder to this parent folder. "
+                      "Please correct the relevant link."),
+                reportPath=str(documentPathInfo.reportPath),
+                file=uriReference.document.basename,
+                line=uriReference.element.sourceline,
+                modelObject=uriReference.element,
+            )
+            continue
+
+        referencePathInfo = uploadContents.uploadPathsByFullPath.get(referenceFullPath)
+        if referencePathInfo is not None and referencePathInfo.isDirectory:
             yield Validation.error(
                 codes='EDINET.EC1014E',
                 msg=_("The URI in the HTML specifies a path to a directory. "
@@ -848,7 +895,8 @@ def rule_uri_references(
                 modelObject=uriReference.element,
             )
             continue
-        if path.suffix.lower() == '.pdf':
+
+        if referenceFullPath.suffix.lower() == '.pdf':
             yield Validation.error(
                 codes='EDINET.EC1023E',
                 msg=_("The URI in the HTML specifies a path to a PDF file. "
@@ -859,13 +907,14 @@ def rule_uri_references(
                 modelObject=uriReference.element,
             )
             continue
-        if not val.modelXbrl.fileSource.exists(str(fullPath)):
+
+        if not val.modelXbrl.fileSource.exists(str(referenceFullPath)):
             yield Validation.error(
                 codes='EDINET.EC1021E',
                 msg=_("The linked file ('%(path)s') does not exist. "
                       "File name: '%(file)s' (line %(line)s). "
                       "Please update the URI to reference a file."),
-                path=str(path),
+                path=str(uriPath),
                 file=uriReference.document.basename,
                 line=uriReference.element.sourceline,
                 modelObject=uriReference.element,
@@ -921,7 +970,7 @@ def rule_EC1010E(
         rootElt = modelDocument.xmlRootElement
         matchingElt = None
         missingElts = []
-        for metaElt in rootElt.iterdescendants(tag=XbrlConst.qnXhtmlMeta.clarkNotation):
+        for metaElt in rootElt.iterdescendants(XbrlConst.qnXhtmlMeta.clarkNotation, "meta"):
             if metaElt.qname.localName != 'meta':
                 continue
             content = metaElt.get('content')

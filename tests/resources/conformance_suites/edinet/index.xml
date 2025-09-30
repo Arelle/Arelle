@@ -30,12 +30,14 @@
     <testcase uri="EC1011E/index.xml" />
     <testcase uri="EC1013E/index.xml" />
     <testcase uri="EC1014E/index.xml" />
+    <testcase uri="EC1015E/index.xml" />
     <testcase uri="EC1016E/index.xml" />
     <testcase uri="EC1017E/index.xml" />
     <testcase uri="EC1020E/index.xml" />
     <testcase uri="EC1021E/index.xml" />
     <testcase uri="EC1023E/index.xml" />
     <testcase uri="EC1031E/index.xml" />
+    <testcase uri="EC1035E/index.xml" />
     <testcase uri="EC1057E/index.xml" />
     <testcase uri="EC2001E/index.xml" />
     <testcase uri="EC2002W/index.xml" />
