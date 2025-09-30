@@ -1214,15 +1214,14 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 modelXbrl.profileStat(_("total"), time.time() - firstStartedAt)
                 if options.collectProfileStats and modelXbrl:
                     modelXbrl.logProfileStats()
-                if not options.keepOpen:
-                    if modelDiffReport:
-                        self.modelManager.close(modelDiffReport)
-                    elif modelXbrl:
-                        self.modelManager.close(modelXbrl)
 
         if options.validate:
             for pluginXbrlMethod in PluginManager.pluginClassMethods("Validate.Complete"):
                 pluginXbrlMethod(self, filesource)
+
+        if not options.keepOpen:
+            for modelXbrl in self.modelManager.loadedModelXbrls:
+                self.modelManager.close(modelXbrl)
 
         if filesource is not None and not options.keepOpen:
             # Archive filesource potentially used by multiple reports may still be open.
