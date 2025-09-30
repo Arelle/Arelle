@@ -3,21 +3,23 @@
 <testcase
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns="http://xbrl.org/2005/conformance"
-        name="EDINET.EC1013E"
-        description="EDINET.EC1013E: A URI in an HTML file directly beneath a report folder must specify a path under a subdirectory."
+        name="EDINET.EC5700W.GFM.1.3.13"
+        description="EDINET.EC5700W.GFM.1.3.13"
         outpath=''
         owner="support@arelle.org"
         xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
     <variation id="invalid01" name="invalid01">
         <description>
-            HTML references files not in subfolders.
-            <!--valid09.zip with img tags referencing 'image.jpg' and './image.jpg'.-->
+            The filing contains two elements with whitespace in the definition.
+            <!-- valid04.zip with element with definition <link:definition>A description of a role.  </link:definition>.-->
+            <!-- valid04.zip with element with definition <link:definition> A description of a role.</link:definition>.-->
         </description>
         <data>
             <instance readMeFirst="true">invalid01.zip</instance>
         </data>
         <result>
-            <error num="2">EDINET.EC1013E</error>
+            <warning>EDINET.EC5700W.GFM.1.3.13</warning>
+            <warning>EDINET.EC5700W.GFM.1.3.13</warning>
         </result>
     </variation>
 </testcase>
