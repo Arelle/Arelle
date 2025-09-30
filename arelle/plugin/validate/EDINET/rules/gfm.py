@@ -755,6 +755,30 @@ def rule_gfm_1_3_16(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_gfm_1_3_17(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.3.17] Add a link:definition to the link:arcroleType element.
+    """
+    for modelArcRoleTypes in val.modelXbrl.arcroleTypes.values():
+        modelArcRoleType = modelArcRoleTypes[0]
+        if not modelArcRoleType.definition:
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.1.3.17',
+                msg=_("Add a link:definition to the link:arcroleType element. ArcroleURI: %(arcroleURI)s"),
+                arcroleURI=modelArcRoleType.arcroleURI,
+                modelObject=modelArcRoleType
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_gfm_1_3_19(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
