@@ -1348,6 +1348,50 @@ def rule_gfm_1_7_3(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_gfm_1_7_5(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.7.5] The source and target of a calculation relationship must appear in a presentation
+                                relationship within the same elr.
+    """
+    calculationRelationshipSet = val.modelXbrl.relationshipSet(tuple(LinkbaseType.CALCULATION.getArcroles()))
+    if calculationRelationshipSet is None:
+        return
+    for rel in calculationRelationshipSet.modelRelationships:
+        if rel.fromModelObject is None and rel.toModelObject is None:
+            continue
+        conceptsMissingRels = []
+        concepts = [rel.fromModelObject, rel.toModelObject]
+        presentationRelationshipSet = val.modelXbrl.relationshipSet(tuple(LinkbaseType.PRESENTATION.getArcroles()), rel.linkrole)
+        if presentationRelationshipSet is None:
+            conceptsMissingRels.extend([concept for concept in concepts if concept is not None])
+        else:
+            for concept in concepts:
+                if concept is None:
+                    continue
+                conceptPresentationRels = presentationRelationshipSet.fromModelObject(concept) + presentationRelationshipSet.toModelObject(concept)
+                if len(conceptPresentationRels) == 0:
+                    conceptsMissingRels.append(concept)
+        if len(conceptsMissingRels) > 0:
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.1.7.5',
+                msg=_("The concepts participating in a calculation relationship must also participate in a presentation "
+                      "relationship within the same extended link role. The concept(s) of '%(concepts)s' "
+                      "do not appear in a presentation relationship within the extended link role of '%(elr)s'."),
+                concepts=' and '.join([concept.qname.localName for concept in conceptsMissingRels]),
+                elr=rel.linkrole,
+                modelObject=rel
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_gfm_1_7_6(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
