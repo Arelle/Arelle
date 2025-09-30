@@ -658,6 +658,8 @@ def rules_cover_page(
     EDINET.EC1004E: An item on the cover page is out of order.
     EDINET.EC1005E: A required item on the cover page is missing a valid value.
     """
+    # TODO: Temporarily disable until implementations are corrected.
+    return
     uploadContents = pluginData.getUploadContents(val.modelXbrl)
     if uploadContents is None:
         return
