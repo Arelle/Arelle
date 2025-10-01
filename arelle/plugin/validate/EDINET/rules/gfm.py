@@ -703,6 +703,36 @@ def rule_gfm_1_3_10(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_gfm_1_3_11(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.3.11] The usedOn attribute of the extended link role should be set to include all of link:presentationLink, link:calculationLink, and link:definitionLink.
+    """
+    requiredUsedOns = {XbrlConst.qnLinkPresentationLink,
+                       XbrlConst.qnLinkCalculationLink,
+                       XbrlConst.qnLinkDefinitionLink}
+    for modelRoleTypes in val.modelXbrl.roleTypes.values():
+        if len(modelRoleTypes) > 0:
+            modelRoleType = modelRoleTypes[0]
+            usedOns = modelRoleType.usedOns
+            if not usedOns.isdisjoint(requiredUsedOns) and len(requiredUsedOns - usedOns) > 0:
+                yield Validation.warning(
+                    codes='EDINET.EC5700W.GFM.1.3.11',
+                    msg=_("The usedOn attribute of the extended link role should be set to include all of link:presentationLink, link:calculationLink, and link:definitionLink. "
+                          "Extended link role roleURI: %(roleURI)s is missing %(usedOn)s."),
+                    roleURI=modelRoleType.roleURI,
+                    modelObject=modelRoleType
+                )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_gfm_1_3_13(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
@@ -714,18 +744,19 @@ def rule_gfm_1_3_13(
     characters from the "link:definition" of your extended link role.
     """
     for modelRoleTypes in val.modelXbrl.roleTypes.values():
-        modelRoleType = modelRoleTypes[0]
-        if (
-                modelRoleType.definition and modelRoleType.definitionNotStripped
-                and modelRoleType.definition != modelRoleType.definitionNotStripped
-        ):
-            yield Validation.warning(
-                codes='EDINET.EC5700W.GFM.1.3.13',
-                msg=_("Remove any leading or trailing XML whitespace and newline characters from "
-                      "the `link:definition` of your extended link role. Definition: %(definition)s"),
-                definition=modelRoleTypes[0].definitionNotStripped,
-                modelObject=modelRoleTypes[0]
-            )
+        if len(modelRoleTypes) > 0:
+            modelRoleType = modelRoleTypes[0]
+            if (
+                    modelRoleType.definition and modelRoleType.definitionNotStripped
+                    and modelRoleType.definition != modelRoleType.definitionNotStripped
+            ):
+                yield Validation.warning(
+                    codes='EDINET.EC5700W.GFM.1.3.13',
+                    msg=_("Remove any leading or trailing XML whitespace and newline characters from "
+                          "the `link:definition` of your extended link role. Definition: %(definition)s"),
+                    definition=modelRoleTypes[0].definitionNotStripped,
+                    modelObject=modelRoleTypes[0]
+                )
 
 
 @validation(
