@@ -14,6 +14,7 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from ..Constants import AccountingStandard
+from ..DeiRequirements import DeiItemStatus
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 from ..Statement import StatementType
@@ -187,6 +188,40 @@ def rule_EC5613W(
             values=', '.join(f'"{s.value}"' for s in AccountingStandard),
             modelObject=errorFacts,
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC5614E(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5614E: A required DEI value is missing.
+    """
+    for coverPageDocument in pluginData.iterCoverPages(val.modelXbrl):
+        filingFormat = pluginData.getFilingFormat(val.modelXbrl)
+        if filingFormat is None:
+            return
+        deiRequirements = pluginData.getDeiRequirements(val.modelXbrl)
+        for qname in pluginData.deiItems:
+            status = deiRequirements.get(qname, filingFormat)
+            if (
+                    status == DeiItemStatus.REQUIRED and
+                    not pluginData.hasValidNonNilFact(val.modelXbrl, qname)
+            ):
+                yield Validation.error(
+                    codes='EDINET.EC5614E',
+                    msg=_("The value of '%(localName)s' in the DEI does not exist. "
+                          "File name: '%(file)s'. "
+                          "Please add the cover item %(localName)s to the relevant file."),
+                    localName=qname.localName,
+                    file=coverPageDocument.basename,
+                )
 
 
 @validation(

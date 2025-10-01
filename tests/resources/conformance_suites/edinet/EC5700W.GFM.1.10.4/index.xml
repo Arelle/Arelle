@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="EDINET.EC5700W.GFM.1.10.4"
+        description="EDINET.EC5700W.GFM.1.10.4"
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid01" name="invalid01">
+        <description>
+            Inline document is missing an XML encoding declaration.
+            <!--valid05.zip without an XML document encoding declaration-->
+        </description>
+        <data>
+            <instance readMeFirst="true">invalid01.zip</instance>
+        </data>
+        <result>
+            <warning>EDINET.EC5700W.GFM.1.10.4</warning>
+        </result>
+    </variation>
+    <variation id="invalid02" name="invalid02">
+        <description>
+            Inline document is missing an HTML meta element encoding declaration.
+            <!--valid05.zip without an HTML meta encoding declaration-->
+        </description>
+        <data>
+            <instance readMeFirst="true">invalid02.zip</instance>
+        </data>
+        <result>
+            <warning>EDINET.EC5700W.GFM.1.10.4</warning>
+        </result>
+    </variation>
+    <variation id="invalid03" name="invalid03">
+        <description>
+            The XML element and HTML meta element encoding declarations do not match.
+            <!--valid05.zip with inconsistent XML document and HTML meta encoding declarations-->
+        </description>
+        <data>
+            <instance readMeFirst="true">invalid03.zip</instance>
+        </data>
+        <result>
+            <warning>EDINET.EC5700W.GFM.1.10.4</warning>
+        </result>
+    </variation>
+</testcase>

@@ -164,7 +164,6 @@ module = [
     'arelle.FunctionXfi',
     'arelle.FunctionXs',
     'arelle.HashUtil',
-    'arelle.HtmlUtil',
     'arelle.InstanceAspectsEvaluator',
     'arelle.LocalViewer',
     'arelle.ModelDocument',

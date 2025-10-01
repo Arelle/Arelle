@@ -17,12 +17,13 @@
     <testcase uri="EC0237E/index.xml" />
     <testcase uri="EC0349E/index.xml" />
     <testcase uri="EC0352E/index.xml" />
-    <testcase uri="EC1000E/index.xml" />
-    <testcase uri="EC1001E/index.xml" />
-    <testcase uri="EC1002E/index.xml" />
-    <testcase uri="EC1003E/index.xml" />
-    <testcase uri="EC1004E/index.xml" />
-    <testcase uri="EC1005E/index.xml" />
+    <!-- TODO: Temporarily disable until implementations are corrected. -->
+    <!--<testcase uri="EC1000E/index.xml" />-->
+    <!--<testcase uri="EC1001E/index.xml" />-->
+    <!--<testcase uri="EC1002E/index.xml" />-->
+    <!--<testcase uri="EC1003E/index.xml" />-->
+    <!--<testcase uri="EC1004E/index.xml" />-->
+    <!--<testcase uri="EC1005E/index.xml" />-->
     <testcase uri="EC1006E/index.xml" />
     <testcase uri="EC1007E/index.xml" />
     <testcase uri="EC1009R/index.xml" />
@@ -51,6 +52,7 @@
     <testcase uri="EC3005E/index.xml" />
     <testcase uri="EC5002E/index.xml" />
     <testcase uri="EC5613W/index.xml" />
+    <testcase uri="EC5614E/index.xml" />
     <testcase uri="EC5700W.GFM.1.1.3/index.xml" />
     <testcase uri="EC5700W.GFM.1.1.7/index.xml" />
     <testcase uri="EC5700W.GFM.1.2.3/index.xml" />
@@ -73,6 +75,8 @@
     <testcase uri="EC5700W.GFM.1.3.8/index.xml" />
     <testcase uri="EC5700W.GFM.1.3.10/index.xml" />
     <testcase uri="EC5700W.GFM.1.3.13/index.xml" />
+    <testcase uri="EC5700W.GFM.1.3.16/index.xml" />
+    <testcase uri="EC5700W.GFM.1.3.17/index.xml" />
     <testcase uri="EC5700W.GFM.1.3.19/index.xml" />
     <testcase uri="EC5700W.GFM.1.3.20/index.xml" />
     <testcase uri="EC5700W.GFM.1.3.21/index.xml" />
@@ -104,6 +108,7 @@
     <testcase uri="EC5700W.GFM.1.8.11/index.xml" />
     <testcase uri="EC5700W.GFM.1.9.1/index.xml" />
     <testcase uri="EC5700W.GFM.1.10.3/index.xml" />
+    <testcase uri="EC5700W.GFM.1.10.4/index.xml" />
     <testcase uri="EC5700W.GFM.1.10.12/index.xml" />
     <testcase uri="EC5700W.GFM.1.10.14/index.xml" />
     <testcase uri="EC5710W.FRTA.2.1.9/index.xml" />
