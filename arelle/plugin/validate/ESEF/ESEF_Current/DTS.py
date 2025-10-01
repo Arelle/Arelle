@@ -386,6 +386,16 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
             val.modelXbrl.error("ESEF.3.1.1.linkbasesNotSeparateFiles",
                 _("Each linkbase type MUST be provided in a separate linkbase file, found: %(linkbasesFound)s."),
                 modelObject=modelDocument.xmlRootElement, linkbasesFound=", ".join(sorted(linkbasesFound)))
+            # found linkbases are not valid, so enable top level warning message for 3.1.1
+            for foundLinkBase in linkbasesFound:
+                if foundLinkBase == "calculationLink":
+                    val.hasExtensionCal = False
+                elif foundLinkBase == "definitionLink":
+                    val.hasExtensionDef = False
+                elif foundLinkBase == "labelLink":
+                    val.hasExtensionLbl = False
+                elif foundLinkBase == "presentationLink":
+                    val.hasExtensionPre = False
 
         # check for any prohibiting dimensionArc's
         for prohibitingArcElt in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}definitionArc"):
