@@ -1415,7 +1415,7 @@ def rule_gfm_1_7_5(
         concepts = []
         for concept in [rel.fromModelObject, rel.toModelObject]:
             if concept is not None:
-                conceptFacts = val.modelXbrl.factsByQname.get(concept.qname, [])
+                conceptFacts = val.modelXbrl.factsByQname.get(concept.qname, set())
                 if len([fact for fact in conceptFacts if fact.xValid >= VALID and not fact.isNil]) > 0:
                     concepts.append(concept)
         if len(concepts) > 0:
