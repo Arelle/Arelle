@@ -94,6 +94,7 @@ INVALID_TESTCASE_PARENTS = {
     "EC5700W.GFM.1.7.2/index.xml:invalid01": "valid/index.xml:valid05",
     "EC5700W.GFM.1.7.3/index.xml:invalid01": "valid/index.xml:valid05",
     "EC5700W.GFM.1.7.4/index.xml:invalid01": "valid/index.xml:valid05",
+    "EC5700W.GFM.1.7.5/index.xml:invalid01": "valid/index.xml:valid05",
     "EC5700W.GFM.1.7.6/index.xml:invalid01": "valid/index.xml:valid05",
     "EC5700W.GFM.1.8.1/index.xml:invalid01": "valid/index.xml:valid05",
     "EC5700W.GFM.1.8.10/index.xml:invalid01": "valid/index.xml:valid05",
@@ -121,6 +122,9 @@ ADDITIONAL_INVALID_ERRORS = {
     # until we are more confident in our interpretation of the EDINET rule.
     "EC5700W.GFM.1.2.13/index.xml:invalid01": {
         "EDINET.EC5700W.GFM.1.1.3": 1,
+    },
+    "EC5700W.GFM.1.7.3/index.xml:invalid01": {
+        "EDINET.EC5700W.GFM.1.7.5": 1,
     },
     "EC5700W.GFM.1.8.4/index.xml:invalid01": {
         # Modified version of valid03
