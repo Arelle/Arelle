@@ -1355,8 +1355,9 @@ def rule_gfm_1_7_5(
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    EDINET.EC5700W: [GFM 1.7.5] The source and target of a calculation relationship must appear in a presentation
-                                relationship within the same elr.
+    EDINET.EC5700W: [GFM 1.7.5] The source and target of a calculation relationship must appear in either:
+                                1) a presentation relationship within each other
+                                2) two presentation relationships with any other elements that also share the same ELR.
     """
     calculationRelationshipSet = val.modelXbrl.relationshipSet(tuple(LinkbaseType.CALCULATION.getArcroles()))
     if calculationRelationshipSet is None:

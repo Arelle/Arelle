@@ -32,7 +32,7 @@ VALID_EXPECTED_ERRORS = {
     },
     "valid/index.xml:valid12": {
         "EDINET.EC2002W": 1,
-        "EDINET.EC5700W.GFM.1.7.5": 1,
+        "EDINET.EC5700W.GFM.1.7.5": 2,
     },
     "valid/index.xml:valid20": {
         "EDINET.EC2002W": 1,
