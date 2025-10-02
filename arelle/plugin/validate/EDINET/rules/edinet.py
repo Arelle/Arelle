@@ -266,14 +266,14 @@ def rule_EC5602R(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
-def rule_EC5613W(
+def rule_EC5613E(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    EDINET.EC5613W: Please set the DEI "Accounting Standard" value to one
+    EDINET.EC5613E: Please set the DEI "Accounting Standard" value to one
     of the following: "Japan GAAP", "US GAAP", "IFRS".
     """
     validAccountingStandards = {s.value for s in AccountingStandard}
@@ -282,8 +282,8 @@ def rule_EC5613W(
         if fact.xValue not in validAccountingStandards
     ]
     if len(errorFacts) > 0:
-        yield Validation.warning(
-            codes='EDINET.EC5613W',
+        yield Validation.error(
+            codes='EDINET.EC5613E',
             msg=_("Please set the DEI \"Accounting Standard\" value to one "
                   "of the following: %(values)s."),
             values=', '.join(f'"{s.value}"' for s in AccountingStandard),
