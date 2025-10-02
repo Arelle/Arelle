@@ -130,7 +130,7 @@ class PluginValidationDataExtension(PluginData):
         self.jptooWtoNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jptoo-wto/2024-11-01/jptoo-wto_cor'
         self._namespaceMap = {
             "jpcrp-esr_cor": self.jpcrpEsrNamespace,
-            "jpcrp-sbr_cor": self.jpcrpEsrNamespace,
+            "jpcrp-sbr_cor": self.jpcrpSbrNamespace,
             "jpcrp_cor": self.jpcrpNamespace,
             "jpctl_cor": self.jpctlNamespace,
             "jpdei_cor": self.jpdeiNamespace,
@@ -250,7 +250,7 @@ class PluginValidationDataExtension(PluginData):
             if pathInfo is not None and not pathInfo.isCoverPage:
                 tocBuilder.addDocument(modelDocument)
 
-    def _qname(self, prefix: str, localName: str) -> QName:
+    def qname(self, prefix: str, localName: str) -> QName:
         return qname(self._namespaceMap[prefix], localName)
 
     @lru_cache(1)
@@ -359,7 +359,7 @@ class PluginValidationDataExtension(PluginData):
         coverItemRequirements = controllerPluginData.getCoverItemRequirements(self.coverItemRequirementsPath)
         coverItems = coverItemRequirements.get(roleUri)
         return [
-            self._qname(prefix, localName)
+            self.qname(prefix, localName)
             for prefix, localName in
             [name.split(':') for name in coverItems]
         ]
@@ -370,7 +370,7 @@ class PluginValidationDataExtension(PluginData):
         coverItemRequirements = controllerPluginData.getCoverItemRequirements(self.coverItemRequirementsPath)
         coverItems = coverItemRequirements.all()
         return frozenset(
-            self._qname(prefix, localName)
+            self.qname(prefix, localName)
             for prefix, localName in
             [name.split(':') for name in coverItems]
         )

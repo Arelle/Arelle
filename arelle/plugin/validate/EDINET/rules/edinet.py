@@ -5,8 +5,11 @@ from __future__ import annotations
 
 from typing import Any, Iterable
 
+import regex
+
 from arelle import XbrlConst, ValidateDuplicateFacts
 from arelle.LinkbaseType import LinkbaseType
+from arelle.ModelValue import QName
 from arelle.ValidateDuplicateFacts import DuplicateType
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
@@ -158,6 +161,104 @@ def rule_EC5002E(
                   "Please check the units and enter the correct information."),
             qname=fact.qname.clarkNotation,
             modelObject=fact,
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC5602R(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5602R: DEI value must match corresponding cover page value.
+
+    Applies to FilerNameInJapaneseDEI, FilerNameInEnglishDEI, FundNameInJapaneseDEI.
+    """
+    errors = []
+    def _collectMismatchedValues(deiQName: QName, coverPageQnames: list[QName]) -> None:
+        deiFact = next((
+            fact
+            for fact in pluginData.iterValidNonNilFacts(val.modelXbrl, deiQName)
+        ), None)
+        if deiFact is None or deiFact.xValue is None:
+            return
+        deiValue = regex.sub(r'\s+', ' ', str(deiFact.xValue)).strip()
+        for coverPageQname in coverPageQnames:
+            for coverPageFact in pluginData.iterValidNonNilFacts(val.modelXbrl, coverPageQname):
+                factValue = regex.sub(r'\s+', ' ', str(coverPageFact.xValue)).strip()
+                if not factValue.startswith(deiValue):
+                    errors.append((deiFact, coverPageFact))
+
+    _collectMismatchedValues(
+        pluginData.qname('jpdei_cor', 'FilerNameInJapaneseDEI'),
+        [
+            #【発行者名】
+            pluginData.qname('jpsps-esr_cor', 'IssuerNameCoverPage'),
+            pluginData.qname('jpsps-sbr_cor', 'IssuerNameCoverPage'),
+            pluginData.qname('jpsps_cor', 'IssuerNameCoverPage'),
+            #【会社名】
+            pluginData.qname('jpcrp-esr_cor', 'CompanyNameCoverPage'),
+            pluginData.qname('jpcrp-sbr_cor', 'CompanyNameCoverPage'),
+            pluginData.qname('jpcrp_cor', 'CompanyNameCoverPage'),
+            pluginData.qname('jpctl_cor', 'CompanyNameCoverPage'),
+            #【氏名又は名称】
+            pluginData.qname('jplvh_cor', 'NameCoverPage'),
+            #【届出者の名称】
+            pluginData.qname('jptoi_cor', 'FullNameOrNameOfFilerOfNotificationCoverPage'),
+            #【届出者の氏名又は名称】
+            pluginData.qname('jptoo-ton_cor', 'FullNameOrNameOfFilerOfNotificationCoverPage'),
+            pluginData.qname('jptoo-wto_cor', 'FullNameOrNameOfFilerOfNotificationCoverPage'),
+            #【報告者の名称】
+            pluginData.qname('jptoi_cor', 'NameOfFilerCoverPage'),
+            pluginData.qname('jptoo-pst_cor', 'NameOfFilerCoverPage'),
+            #【報告者の氏名又は名称】
+            pluginData.qname('jptoo-toa_cor', 'FullNameOrNameOfFilerCoverPage'),
+            pluginData.qname('jptoo-tor_cor', 'FullNameOrNameOfFilerCoverPage'),
+        ]
+    )
+
+    _collectMismatchedValues(
+        pluginData.qname('jpdei_cor', 'FilerNameInEnglishDEI'),
+        [
+            #【英訳名】
+            pluginData.qname('jpcrp-esr_cor', 'CompanyNameInEnglishCoverPage'),
+            pluginData.qname('jpcrp-sbr_cor', 'CompanyNameInEnglishCoverPage'),
+            pluginData.qname('jpcrp_cor', 'CompanyNameInEnglishCoverPage'),
+            pluginData.qname('jpctl_cor', 'CompanyNameInEnglishCoverPage'),
+        ]
+    )
+
+    _collectMismatchedValues(
+        pluginData.qname('jpdei_cor', 'FundNameInJapaneseDEI'),
+        [
+            #【ファンド名】
+            pluginData.qname('jpsps-esr_cor', 'FundNameCoverPage'),
+            pluginData.qname('jpsps_cor', 'FundNameCoverPage'),
+            #【届出の対象とした募集（売出）内国投資信託受益証券に係るファンドの名称】
+            pluginData.qname('jpsps_cor', 'NameOfFundRelatedToDomesticInvestmentTrustBeneficiaryCertificateToRegisterForOfferingOrDistributionCoverPageTextBlock'),
+            #【届出の対象とした募集（売出）内国投資証券に係る投資法人の名称】
+            pluginData.qname('jpsps_cor', 'NameOfInvestmentCorporationRelatedToDomesticInvestmentSecuritiesToRegisterForOfferingOrDistributionCoverPage'),
+        ]
+    )
+
+    for deiFact, coverPageFact in errors:
+        yield Validation.warning(
+            codes='EDINET.EC5602R',
+            msg=_("The DEI information \"%(deiQname)s\" (%(deiValue)s) does not match "
+                  "\"%(coverPageQname)s\" (%(coverPageValue)s) . "
+                  "Please check the content of the corresponding DEI (the element "
+                  "displayed in the message) and the value in the submitted document, "
+                  "and correct it so that they match."),
+            deiQname=deiFact.qname,
+            deiValue=deiFact.xValue,
+            coverPageQname=coverPageFact.qname,
+            coverPageValue=coverPageFact.xValue,
+            modelObject=[deiFact, coverPageFact],
         )
 
 
