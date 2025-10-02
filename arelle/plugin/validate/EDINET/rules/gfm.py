@@ -1564,6 +1564,35 @@ def rule_gfm_1_8_3(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_gfm_1_8_5(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.8.5] Each ELR can have at most one effective arc with the role of http://xbrl.org/int/dim/arcrole/all.
+    """
+    dimensionAllRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.all)
+    if dimensionAllRelationshipSet is None:
+        return
+    relsByLinkrole = defaultdict(list)
+    for rel in dimensionAllRelationshipSet.modelRelationships:
+        relsByLinkrole[rel.linkrole].append(rel)
+    for linkrole, rels in relsByLinkrole.items():
+        if len(rels) > 1:
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.1.8.5',
+                msg=_("The extended link role of '%(elr)s' has more than one effective arc with the role of 'http://xbrl.org/int/dim/arcrole/all'"),
+                elr=linkrole,
+                modelObject=rels
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_gfm_1_8_10(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
