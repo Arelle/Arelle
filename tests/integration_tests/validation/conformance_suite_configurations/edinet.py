@@ -129,7 +129,8 @@ ADDITIONAL_INVALID_ERRORS = {
     "EC5700W.GFM.1.8.5/index.xml:invalid01": {
         # Modified version of valid03
         "EDINET.EC2002W": 1,
-        "EDINET.EC5700W.GFM.1.8.4": 1
+        "EDINET.EC5700W.GFM.1.8.4": 2,
+        "xbrl.5.1.4.3:cycles": 1,
     },
     "EC5806E/index.xml:invalid01": {
         # Instance duplicated means table of contents are included twice.
