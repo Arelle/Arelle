@@ -329,6 +329,33 @@ def rule_EC5614E(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_EC5623W(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5623W: Instances using IFRS taxonomies must set the DEI "Accounting Standard" value to "IFRS".
+    """
+    if pluginData.jpigpNamespace not in val.modelXbrl.prefixedNamespaces.values():
+        return
+    errorFacts = [
+        fact for fact in pluginData.iterValidNonNilFacts(val.modelXbrl, pluginData.accountingStandardsDeiQn)
+        if fact.xValue != AccountingStandard.IFRS.value
+    ]
+    if len(errorFacts) > 0:
+        yield Validation.warning(
+            codes='EDINET.EC5623W',
+            msg=_("Please set the DEI \"Accounting Standard\" value to \"IFRS\"."),
+            modelObject=errorFacts,
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_EC8024E(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,

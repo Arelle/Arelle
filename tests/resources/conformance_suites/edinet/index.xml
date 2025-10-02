@@ -53,6 +53,7 @@
     <testcase uri="EC5602R/index.xml" />
     <testcase uri="EC5613E/index.xml" />
     <testcase uri="EC5614E/index.xml" />
+    <testcase uri="EC5623W/index.xml" />
     <testcase uri="EC5700W.GFM.1.1.3/index.xml" />
     <testcase uri="EC5700W.GFM.1.1.7/index.xml" />
     <testcase uri="EC5700W.GFM.1.2.3/index.xml" />
