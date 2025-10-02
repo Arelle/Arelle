@@ -16,7 +16,7 @@ from arelle.ModelValue import QName
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
 from . import Constants
-from .CoverPageRequirements import CoverPageRequirements
+from .CoverItemRequirements import CoverItemRequirements
 from .DeiRequirements import DeiRequirements
 from .FilingFormat import FilingFormat
 from .ReportFolderType import ReportFolderType
@@ -53,8 +53,8 @@ class ControllerPluginData(PluginData):
         self._manifestInstancesById[manifestInstance.id] = manifestInstance
 
     @lru_cache(1)
-    def getCoverPageRequirements(self, csvPath: Path, coverPageItems: tuple[QName, ...], filingFormats: tuple[FilingFormat, ...]) -> CoverPageRequirements:
-        return CoverPageRequirements(csvPath, coverPageItems, filingFormats)
+    def getCoverItemRequirements(self, jsonPath: Path) -> CoverItemRequirements:
+        return CoverItemRequirements(jsonPath)
 
     @lru_cache(1)
     def getDeiRequirements(self, csvPath: Path, deiItems: tuple[QName, ...], filingFormats: tuple[FilingFormat, ...]) -> DeiRequirements:
