@@ -56,6 +56,8 @@
     <testcase uri="EC5623W/index.xml" />
     <testcase uri="EC5700W.GFM.1.1.3/index.xml" />
     <testcase uri="EC5700W.GFM.1.1.7/index.xml" />
+    <testcase uri="EC5700W.GFM.1.2.1/index.xml" />
+    <testcase uri="EC5700W.GFM.1.2.2/index.xml" />
     <testcase uri="EC5700W.GFM.1.2.3/index.xml" />
     <testcase uri="EC5700W.GFM.1.2.4/index.xml" />
     <testcase uri="EC5700W.GFM.1.2.5/index.xml" />
