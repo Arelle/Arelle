@@ -11,7 +11,7 @@ import regex
 
 from arelle import ModelDocument, XbrlConst, XmlUtil
 from arelle.HtmlUtil import attrValue
-from arelle.LinkbaseType import LinkbaseType
+from arelle.LinkbaseType import LinkbaseType, LINKBASE_REF_URIS
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFootnote
 from arelle.ModelObject import ModelObject
@@ -1865,11 +1865,41 @@ def rule_gfm_2_5_1(
         for elt in rootElt.iterdescendants(XbrlConst.qnLinkLinkbaseRef.clarkNotation):
             uri = elt.attrib.get(XbrlConst.qnXlinkHref.clarkNotation)
             role = elt.attrib.get(XbrlConst.qnXlinkRole.clarkNotation)
-            if not role == 'http://www.xbrl.org/2003/role/presentationLinkbaseRef' or pluginData.isExtensionUri(uri, val.modelXbrl):
+            if not role == LINKBASE_REF_URIS[LinkbaseType.PRESENTATION] or pluginData.isExtensionUri(uri, val.modelXbrl):
                 continue
             yield Validation.warning(
                 codes='EDINET.EC5700W.GFM.2.5.1',
                 msg=_("A presentation linkbase from the standard taxonomy file of '%(uri)s' is not allowed."),
+                uri=uri,
+                modelObject=elt
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_2_6_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 2.6.1] A calculation linkbase of a standard taxonomy should not be included in the DTS of an instance.
+    """
+    for modelDocument in val.modelXbrl.urlDocs.values():
+        if pluginData.isStandardTaxonomyUrl(modelDocument.uri, val.modelXbrl) or not modelDocument.type == ModelDocument.Type.SCHEMA:
+            continue
+        rootElt = modelDocument.xmlRootElement
+        for elt in rootElt.iterdescendants(XbrlConst.qnLinkLinkbaseRef.clarkNotation):
+            uri = elt.attrib.get(XbrlConst.qnXlinkHref.clarkNotation)
+            role = elt.attrib.get(XbrlConst.qnXlinkRole.clarkNotation)
+            if not role == LINKBASE_REF_URIS[LinkbaseType.CALCULATION] or pluginData.isExtensionUri(uri, val.modelXbrl):
+                continue
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.2.6.1',
+                msg=_("A calculation linkbase from the standard taxonomy file of '%(uri)s' is not allowed."),
                 uri=uri,
                 modelObject=elt
             )

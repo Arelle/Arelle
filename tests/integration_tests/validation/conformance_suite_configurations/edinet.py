@@ -120,6 +120,7 @@ INVALID_TESTCASE_PARENTS = {
     "EC5700W.GFM.1.9.1/index.xml:invalid01": "valid/index.xml:valid05",
     "EC5700W.GFM.1.10.3/index.xml:invalid01": "valid/index.xml:valid05",
     "EC5700W.GFM.2.5.1/index.xml:invalid01": "valid/index.xml:valid05",
+    "EC5700W.GFM.2.6.1/index.xml:invalid01": "valid/index.xml:valid05",
     "EC5806E/index.xml:invalid01": "valid/index.xml:valid09",
     "EC8013W/index.xml:invalid01": "valid/index.xml:valid05",
     "EC8024E/index.xml:invalid01": "valid/index.xml:valid03",
