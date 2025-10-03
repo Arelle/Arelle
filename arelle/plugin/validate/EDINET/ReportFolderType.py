@@ -31,12 +31,12 @@ class ReportFolderType(Enum):
         return FORM_TYPE_EXTENSION_CATEGORIES.get(self, None)
 
     @cached_property
-    def filenamePatterns(self) -> list[Pattern[str]]:
-        return FILENAME_PATTERNS.get(self, [])
-
-    @cached_property
     def isAttachment(self) -> bool:
         return "Attach" in self.value
+
+    @cached_property
+    def ixbrlFilenamePatterns(self) -> list[Pattern[str]]:
+        return IXBRL_FILENAME_PATTERNS.get(self, [])
 
     @cached_property
     def manifestName(self) -> str:
@@ -57,6 +57,10 @@ class ReportFolderType(Enum):
     @cached_property
     def xbrlDirectory(self) -> Path:
         return Path('XBRL') / str(self.value)
+
+    @cached_property
+    def xbrlFilenamePatterns(self) -> list[Pattern[str]]:
+        return XBRL_FILENAME_PATTERNS.get(self, [])
 
     @lru_cache(1)
     def getValidExtensions(self, isAmendment: bool, isSubdirectory: bool) -> frozenset[str] | None:
@@ -116,16 +120,16 @@ VALID_EXTENSIONS = {
     },
 }
 
-FILENAME_PATTERNS = {
+IXBRL_FILENAME_PATTERNS = {
     ReportFolderType.AUDIT_DOC: [
+        Constants.AUDIT_IXBRL_FILENAME_PATTERN,
         Constants.AUDIT_LINKBASE_FILENAME_PATTERN,
-        Constants.AUDIT_MAIN_FILENAME_PATTERN,
         Constants.AUDIT_SCHEMA_FILENAME_PATTERN,
     ],
     ReportFolderType.PUBLIC_DOC: [
         Constants.REPORT_COVER_FILENAME_PATTERN,
+        Constants.REPORT_IXBRL_FILENAME_PATTERN,
         Constants.REPORT_LINKBASE_FILENAME_PATTERN,
-        Constants.REPORT_MAIN_FILENAME_PATTERN,
         Constants.REPORT_SCHEMA_FILENAME_PATTERN,
     ]
 }
@@ -145,5 +149,14 @@ PREFIX_PATTERNS = {
     ],
     ReportFolderType.PUBLIC_DOC: [
         Constants.REPORT_PREFIX_PATTERN,
+    ],
+}
+
+XBRL_FILENAME_PATTERNS = {
+    ReportFolderType.AUDIT_DOC: [
+        Constants.AUDIT_XBRL_FILENAME_PATTERN,
+    ],
+    ReportFolderType.PUBLIC_DOC: [
+        Constants.REPORT_XBRL_FILENAME_PATTERN,
     ],
 }

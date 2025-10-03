@@ -584,7 +584,7 @@ def rule_EC0352E(
             any(path == t.manifestPath for t in ReportFolderType)
         ):
             continue
-        patterns = pathInfo.reportFolderType.filenamePatterns
+        patterns = pathInfo.reportFolderType.ixbrlFilenamePatterns
         if not any(pattern.fullmatch(path.name) for pattern in patterns):
             yield Validation.error(
                 codes='EDINET.EC0352E',
@@ -1119,10 +1119,10 @@ def rule_filenames(
         return
     for path, pathInfo in uploadContents.uploadPathsByPath.items():
         isReportFile = (
-            not pathInfo.isAttachment and
-            not pathInfo.isCorrection and
-            not pathInfo.isDirectory and
-            not pathInfo.isSubdirectory
+                not pathInfo.isAttachment and
+                not pathInfo.isCorrection and
+                not pathInfo.isDirectory and
+                not pathInfo.isSubdirectory
         )
         charactersAreValid = FILENAME_STEM_PATTERN.fullmatch(path.stem)
         lengthIsValid = isReportFile or (len(path.name) <= 31)
@@ -1173,6 +1173,12 @@ def rule_manifest_preferredFilename(
     EDINET.EC5806E: The same instance file name is set multiple times. File name: xxx
     The preferredFilename attribute value of the instance element in the manifest
     file must be unique within the same file.
+
+    EDINET.EC8008W: The file name of the report instance set in the manifest file
+    does not conform to the rules.
+
+    EDINET.EC8009W: The file name of the audit report instance set in the manifest file
+    does not conform to the rules.
     """
     instances = pluginData.getManifestInstances()
     preferredFilenames: dict[Path, set[str]] = defaultdict(set)
@@ -1188,6 +1194,7 @@ def rule_manifest_preferredFilename(
                 id=instance.id,
             )
             continue
+
         preferredFilename = Path(instance.preferredFilename)
         if preferredFilename.suffix != '.xbrl':
             yield Validation.error(
@@ -1202,6 +1209,34 @@ def rule_manifest_preferredFilename(
                 id=instance.id,
             )
             continue
+
+        reportFolderType = ReportFolderType.parse(instance.type)
+        match = True if reportFolderType is None else any(
+            pattern.fullmatch(preferredFilename.name)
+            for pattern in reportFolderType.xbrlFilenamePatterns
+        )
+        if not match:
+            if reportFolderType == ReportFolderType.AUDIT_DOC:
+                yield Validation.warning(
+                    codes='EDINET.EC8009W',
+                    msg=_("The file name of the audit report instance set in the manifest "
+                          "file does not conform to the rules. "
+                          "File name: '%(file)s'. "
+                          "Please set the file name of the corresponding audit report instance "
+                          "according to the rules. Please correct the contents of the manifest file."),
+                    file=preferredFilename.name,
+                )
+            else:
+                yield Validation.warning(
+                    codes='EDINET.EC8008W',
+                    msg=_("The file name of the report instance set in the manifest "
+                          "file does not comply with the regulations. "
+                          "File name: '%(file)s'. "
+                          "Please set the file name of the corresponding report instance "
+                          "according to the rules. Please correct the contents of the manifest file."),
+                    file=preferredFilename.name,
+                )
+
         if instance.preferredFilename in preferredFilenames[instance.path]:
             duplicateFilenames[instance.path].add(instance.preferredFilename)
             continue
