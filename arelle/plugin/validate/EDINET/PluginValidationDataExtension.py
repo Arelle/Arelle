@@ -285,7 +285,7 @@ class PluginValidationDataExtension(PluginData):
         extensionConcepts = []
         for concepts in modelXbrl.nameConcepts.values():
             for concept in concepts:
-                if self.isExtensionUri(concept.qname.namespaceURI, modelXbrl):
+                if self.isExtensionUri(concept.document.uri, modelXbrl):
                     extensionConcepts.append(concept)
         return extensionConcepts
 
