@@ -1903,3 +1903,33 @@ def rule_gfm_2_6_1(
                 uri=uri,
                 modelObject=elt
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_2_8_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 2.8.1] A reference linkbase of a standard taxonomy should not be included in the DTS of an instance.
+    """
+    for modelDocument in val.modelXbrl.urlDocs.values():
+        if pluginData.isStandardTaxonomyUrl(modelDocument.uri, val.modelXbrl) or not modelDocument.type == ModelDocument.Type.SCHEMA:
+            continue
+        rootElt = modelDocument.xmlRootElement
+        for elt in rootElt.iterdescendants(XbrlConst.qnLinkLinkbaseRef.clarkNotation):
+            uri = elt.attrib.get(XbrlConst.qnXlinkHref.clarkNotation)
+            role = elt.attrib.get(XbrlConst.qnXlinkRole.clarkNotation)
+            if not role == LINKBASE_REF_URIS[LinkbaseType.REFERENCE] or pluginData.isExtensionUri(uri, val.modelXbrl):
+                continue
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.2.8.1',
+                msg=_("A reference linkbase from the standard taxonomy file of '%(uri)s' is not allowed."),
+                uri=uri,
+                modelObject=elt
+            )
