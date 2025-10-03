@@ -39,7 +39,7 @@ from .FormType import FormType
 from .ManifestInstance import ManifestInstance
 from .ReportFolderType import HTML_EXTENSIONS
 from .Statement import Statement, STATEMENTS, BalanceSheet, StatementInstance, StatementType
-from .UploadContents import UploadContents
+from .UploadContents import UploadContents, UploadPathInfo
 
 _: TypeGetText
 
@@ -378,6 +378,26 @@ class PluginValidationDataExtension(PluginData):
     def getDeiRequirements(self, modelXbrl: ModelXbrl) -> DeiRequirements:
         controllerPluginData = ControllerPluginData.get(modelXbrl.modelManager.cntlr, self.name)
         return controllerPluginData.getDeiRequirements(self.deiRequirementsPath, self.deiItems, FILING_FORMATS)
+
+    @lru_cache(1)
+    def getExtensionSchemas(self, modelXbrl: ModelXbrl) -> dict[str, UploadPathInfo]:
+        namespacePathInfos: dict[str, UploadPathInfo] = {}
+        uploadContents = self.getUploadContents(modelXbrl)
+        if uploadContents is None:
+            return namespacePathInfos
+        for modelDocument in modelXbrl.urlDocs.values():
+            if modelDocument.type != ModelDocumentType.SCHEMA:
+                continue # Not a schema
+            if modelDocument.targetNamespace is None:
+                continue # No target namespace
+            if not self.isExtensionUri(modelDocument.uri, modelXbrl):
+                continue # Not an extension schema
+            path = Path(modelDocument.uri)
+            pathInfo = uploadContents.uploadPathsByFullPath.get(path)
+            if pathInfo is None or pathInfo.reportFolderType is None:
+                continue # Not part of the filing, error will be caught elsewhere
+            namespacePathInfos[modelDocument.targetNamespace] = pathInfo
+        return namespacePathInfos
 
     def getProblematicTextBlocks(self, modelXbrl: ModelXbrl) -> list[ModelInlineFact]:
         problematicTextBlocks: list[ModelInlineFact] = []

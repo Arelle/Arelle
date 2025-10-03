@@ -3,22 +3,21 @@
 <testcase
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns="http://xbrl.org/2005/conformance"
-        name="EDINET.EC0349E"
-        description="EDINET.EC0349E: An unexpected directory or file exists directly beneath the XBRL directory."
+        name="EDINET.EC8009W"
+        description="EDINET.EC8009W: The file name of the audit report instance set in the manifest file does not conform to the rules."
         outpath=''
         owner="support@arelle.org"
         xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
     <variation id="invalid01" name="invalid01">
         <description>
-            XBRL directory contains unexpected file and directory.
-            <!--valid09.zip with file and directory added beneath XBRL directory. -->
+            The preferred filename in the AuditDoc manifest is not valid.
+            <!--valid05.zip with the AuditDoc manifest's `preferredFilename` changed.-->
         </description>
         <data>
             <instance readMeFirst="true">invalid01.zip</instance>
         </data>
         <result>
-            <error num="2">EDINET.EC0349E</error>
-            <error>EDINET.EC1017E</error> <!-- added file is not used -->
+            <warning>EDINET.EC8009W</warning>
         </result>
     </variation>
 </testcase>
