@@ -16,6 +16,7 @@ from typing import Callable, Hashable, Iterable, cast
 import os
 import regex
 
+from arelle import XbrlConst
 from arelle.LinkbaseType import LinkbaseType
 from arelle.ModelDocument import Type as ModelDocumentType, ModelDocument, load as modelDocumentLoad
 from arelle.ModelDtsObject import ModelConcept
@@ -582,6 +583,20 @@ class PluginValidationDataExtension(PluginData):
                 continue
             tag = elt.qname.localName
             if tag in PROHIBITED_HTML_TAGS:
+                elts.append(elt)
+        return elts
+
+    def getStandardTaxonomyExtensionLinks(self, linkbaseType: LinkbaseType, modelXbrl: ModelXbrl) -> list[ModelObject]:
+        elts: list[ModelObject] = []
+        for modelDocument in modelXbrl.urlDocs.values():
+            if self.isStandardTaxonomyUrl(modelDocument.uri, modelXbrl) or not modelDocument.type == ModelDocumentType.SCHEMA:
+                continue
+            rootElt = modelDocument.xmlRootElement
+            for elt in rootElt.iterdescendants(XbrlConst.qnLinkLinkbaseRef.clarkNotation):
+                uri = elt.attrib.get(XbrlConst.qnXlinkHref.clarkNotation)
+                role = elt.attrib.get(XbrlConst.qnXlinkRole.clarkNotation)
+                if not role == linkbaseType.getRefUri() or self.isExtensionUri(uri, modelXbrl):
+                    continue
                 elts.append(elt)
         return elts
 

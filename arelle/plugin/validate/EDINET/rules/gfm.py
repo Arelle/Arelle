@@ -11,7 +11,7 @@ import regex
 
 from arelle import ModelDocument, XbrlConst, XmlUtil
 from arelle.HtmlUtil import attrValue
-from arelle.LinkbaseType import LinkbaseType
+from arelle.LinkbaseType import LinkbaseType, LINKBASE_REF_URIS
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFootnote
 from arelle.ModelObject import ModelObject
@@ -1874,3 +1874,69 @@ def rule_gfm_1_10_14(
                 msg=_("A non-empty footnote is not referenced by an element"),
                 modelObject=footnote
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_2_5_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 2.5.1] A presentation linkbase of a standard taxonomy should not be included in the DTS of an instance.
+    """
+    for elt in pluginData.getStandardTaxonomyExtensionLinks(LinkbaseType.PRESENTATION, val.modelXbrl):
+        yield Validation.warning(
+            codes='EDINET.EC5700W.GFM.2.5.1',
+            msg=_("A presentation linkbase from the standard taxonomy file of '%(uri)s' is not allowed."),
+            uri=elt.attr(XbrlConst.qnXlinkHref.clarkNotation),
+            modelObject=elt
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_2_6_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 2.6.1] A calculation linkbase of a standard taxonomy should not be included in the DTS of an instance.
+    """
+    for elt in pluginData.getStandardTaxonomyExtensionLinks(LinkbaseType.CALCULATION, val.modelXbrl):
+        yield Validation.warning(
+            codes='EDINET.EC5700W.GFM.2.6.1',
+            msg=_("A calculation linkbase from the standard taxonomy file of '%(uri)s' is not allowed."),
+            uri=elt.attr(XbrlConst.qnXlinkHref.clarkNotation),
+            modelObject=elt
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_2_8_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 2.8.1] A reference linkbase of a standard taxonomy should not be included in the DTS of an instance.
+    """
+    for elt in pluginData.getStandardTaxonomyExtensionLinks(LinkbaseType.REFERENCE, val.modelXbrl):
+        yield Validation.warning(
+            codes='EDINET.EC5700W.GFM.2.8.1',
+            msg=_("A reference linkbase from the standard taxonomy file of '%(uri)s' is not allowed."),
+            uri=elt.attr(XbrlConst.qnXlinkHref.clarkNotation),
+            modelObject=elt
+        )
