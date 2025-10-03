@@ -114,6 +114,14 @@ REPORT_NAMESPACE_URI_PATTERN = regex.compile(rf'{PATTERN_URI_HOST}\/{PATTERN_REP
 # Example: http://disclosure.edinet-fsa.go.jp/jpaud/aar/cn/001/X99002-000/2025-03-31/01/2025-06-28
 AUDIT_NAMESPACE_URI_PATTERN = regex.compile(rf'{PATTERN_URI_HOST}\/{PATTERN_AUDIT_URI_PREFIX}\/{PATTERN_URI_SUFFIX}')
 
+# Extension namespace prefix for report
+# Example: jpcrp040300-ssr_X99005-000
+REPORT_PREFIX_PATTERN = regex.compile(rf'{PATTERN_REPORT_PREFIX}_{PATTERN_CODE}-{PATTERN_SERIAL}')
+
+# Extension namespace prefix for audit report
+# Example: jpaud-qrr-cn_X99005-000
+AUDIT_PREFIX_PATTERN = regex.compile(rf'{PATTERN_AUDIT_REPORT_PREFIX}_{PATTERN_CODE}-{PATTERN_SERIAL}')
+
 # Schema file for report
 # Example: jpcrp050300-esr-001_X99007-000_2025-04-10_01_2025-04-10.xsd
 REPORT_SCHEMA_FILENAME_PATTERN = regex.compile(rf'{PATTERN_REPORT_PREFIX}-{PATTERN_SUFFIX}.xsd')

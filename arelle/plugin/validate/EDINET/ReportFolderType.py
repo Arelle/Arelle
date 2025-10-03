@@ -51,6 +51,10 @@ class ReportFolderType(Enum):
         return NAMESPACE_URI_PATTERNS.get(self, [])
 
     @cached_property
+    def prefixPatterns(self) -> list[Pattern[str]]:
+        return PREFIX_PATTERNS.get(self, [])
+
+    @cached_property
     def xbrlDirectory(self) -> Path:
         return Path('XBRL') / str(self.value)
 
@@ -132,5 +136,14 @@ NAMESPACE_URI_PATTERNS = {
     ],
     ReportFolderType.PUBLIC_DOC: [
         Constants.REPORT_NAMESPACE_URI_PATTERN,
+    ],
+}
+
+PREFIX_PATTERNS = {
+    ReportFolderType.AUDIT_DOC: [
+        Constants.AUDIT_PREFIX_PATTERN,
+    ],
+    ReportFolderType.PUBLIC_DOC: [
+        Constants.REPORT_PREFIX_PATTERN,
     ],
 }

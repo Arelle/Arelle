@@ -358,6 +358,60 @@ def rule_EC5623W(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_namespace_prefixes(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8003W: The namespace prefix used in the namespace declaration of the
+    report schema file must conform to the rules.
+        jp{府令略号}{様式番号}-{報告書略号}_{EDINET コード又はファンドコード}-{追番(3 桁)}
+    EDINET.EC8004W: The namespace prefix used in the namespace declaration of the
+    audit report schema file must conform to the rules.
+        jpaud-{監査報告書略号}-{当期又は前期の別}{連結又は個別の別}_{EDINET コード又はファンドコード}-{追番(3 桁)}
+    """
+    extensionSchemas = pluginData.getExtensionSchemas(val.modelXbrl)
+    for modelDocument in val.modelXbrl.urlDocs.values():
+        pass
+        for prefix, namespace in modelDocument.xmlRootElement.nsmap.items():
+            if namespace not in extensionSchemas:
+                continue # Not an extension schema namespace
+            pathInfo = extensionSchemas[namespace]
+            assert pathInfo.reportFolderType is not None
+            patterns = pathInfo.reportFolderType.prefixPatterns
+            if len(patterns) == 0:
+                continue # No patterns to check against
+            match = any(pattern.fullmatch(prefix) for pattern in patterns)
+            if match:
+                continue # Valid namespace URI
+            if pathInfo.reportFolderType == ReportFolderType.AUDIT_DOC:
+                yield Validation.warning(
+                    codes='EDINET.EC8004W',
+                    msg=_("The namespace prefix used in the namespace declaration of the "
+                          "audit report schema file does not conform to the rules. "
+                          "File name: '%(file)s'. "
+                          "Prefix: '%(prefix)s'."),
+                    file=pathInfo.path.name,
+                    prefix=prefix
+                )
+            else:
+                yield Validation.warning(
+                    codes='EDINET.EC8003W',
+                    msg=_("The namespace prefix used in the namespace declaration of the "
+                          "report schema file does not conform to the rules. "
+                          "File name: '%(file)s'. "
+                          "Prefix: '%(prefix)s'."),
+                    file=pathInfo.path.name,
+                    prefix=prefix
+                )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_namespace_uris(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
@@ -374,18 +428,8 @@ def rule_namespace_uris(
             /{報告書連番(3 桁)}/{EDINET コード又はファンドコード}-{追番(3桁)}/{報告対象期間期末日}
             /{報告書提出回数(2 桁)}/{報告書提出日}
     """
-    uploadContents = pluginData.getUploadContents(val.modelXbrl)
-    if uploadContents is None:
-        return
-    for modelDocument in val.modelXbrl.urlDocs.values():
-        if (targetNamespace := modelDocument.targetNamespace) is None:
-            continue # No target namespace
-        if not pluginData.isExtensionUri(modelDocument.uri, val.modelXbrl):
-            continue # Not an extension schema
-        path = Path(modelDocument.uri)
-        pathInfo = uploadContents.uploadPathsByFullPath.get(path)
-        if pathInfo is None or pathInfo.reportFolderType is None:
-            continue # Not part of the filing, error will be caught elsewhere
+    for targetNamespace, pathInfo in pluginData.getExtensionSchemas(val.modelXbrl).items():
+        assert pathInfo.reportFolderType is not None
         patterns = pathInfo.reportFolderType.namespaceUriPatterns
         if len(patterns) == 0:
             continue # No patterns to check against
@@ -399,8 +443,8 @@ def rule_namespace_uris(
                       "audit report schema file does not conform to the rules. "
                       "File name: '%(file)s'. "
                       "<<Namespace URI=%(uri)s>>."),
-                file=modelDocument.basename,
-                uri=modelDocument.targetNamespace
+                file=pathInfo.path.name,
+                uri=targetNamespace
             )
         else:
             yield Validation.warning(
@@ -409,8 +453,8 @@ def rule_namespace_uris(
                       "report schema file does not conform to the rules. "
                       "File name: '%(file)s'. "
                       "<<Namespace URI=%(uri)s>>."),
-                file=modelDocument.basename,
-                uri=modelDocument.targetNamespace
+                file=pathInfo.path.name,
+                uri=targetNamespace
             )
 
 
