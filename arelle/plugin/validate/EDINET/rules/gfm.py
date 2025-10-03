@@ -36,6 +36,7 @@ from ..PluginValidationDataExtension import PluginValidationDataExtension
 _: TypeGetText
 
 DISALLOWED_LABEL_WHITE_SPACE_CHARACTERS = regex.compile(r'\s{2,}')
+XBRLI_IDENTIFIER_PATTERN = regex.compile(r"^[A-Z]\d{5}-\d{3}$")
 GFM_CONTEXT_DATE_PATTERN = regex.compile(r"^[12][0-9]{3}-[01][0-9]-[0-3][0-9]$")
 GFM_RECOMMENDED_NAMESPACE_PREFIXES = {
     XbrlConst.xbrli: ("xbrli",),
@@ -141,6 +142,54 @@ def rule_gfm_1_1_7(
             msg=_("Attribute xml:base must not appear in any filing document."),
             modelObject=baseElements,
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_2_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.2.1] The scheme of the entity identifier must be http://disclosure.edinet-fsa.go.jp
+    """
+    entityIdentifierValues = val.modelXbrl.entityIdentifiersInDocument()
+    for entityId in entityIdentifierValues:
+        if entityId[0] != 'http://disclosure.edinet-fsa.go.jp':
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.1.2.1',
+                msg=_("The scheme of the entity identifier is: '%(scheme)s' but it must be 'http://disclosure.edinet-fsa.go.jp'."),
+                scheme=entityId[0],
+                modelObject=entityId,
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_2_2(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.2.2] The entity identifier element must match the following: X00000-000
+    """
+    entityIdentifierValues = val.modelXbrl.entityIdentifiersInDocument()
+    for entityId in entityIdentifierValues:
+        if not XBRLI_IDENTIFIER_PATTERN.match(entityId[1]):
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.1.2.2',
+                msg=_("The entity identifier element: '%(element)s' is incorrect. It must take the form of 'X00000-000'."),
+                element=entityId[1],
+                modelObject=entityId,
+            )
 
 
 @validation(
