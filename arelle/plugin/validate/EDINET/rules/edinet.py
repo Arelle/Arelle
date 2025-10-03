@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any, Iterable
 
 import regex
@@ -20,6 +21,7 @@ from ..Constants import AccountingStandard
 from ..DeiRequirements import DeiItemStatus
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
 from ..PluginValidationDataExtension import PluginValidationDataExtension
+from ..ReportFolderType import ReportFolderType
 from ..Statement import StatementType
 
 _: TypeGetText
@@ -350,6 +352,66 @@ def rule_EC5623W(
             msg=_("Please set the DEI \"Accounting Standard\" value to \"IFRS\"."),
             modelObject=errorFacts,
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_namespace_uris(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8000W: A report's extension taxonomy namespace URI must conform to the rules.
+        http://disclosure.edinet-fsa.go.jp/jp{府令略号}{様式番号}/{報告書略号}/{報告書連番(3 桁)}
+            /{EDINET コード又はファンドコード}-{追番(3 桁)}/{報告対象期間期末日|報告義務発生日}
+            /{報告書提出回数(2 桁)}/{報告書提出日}
+    EDINET.EC8001W: An audit report's extension taxonomy namespace URI must conform to the rules.
+        http://disclosure.edinet-fsa.go.jp/jpaud/{監査報告書略号}/{当期又は前期の別}{連結又は個別の別}
+            /{報告書連番(3 桁)}/{EDINET コード又はファンドコード}-{追番(3桁)}/{報告対象期間期末日}
+            /{報告書提出回数(2 桁)}/{報告書提出日}
+    """
+    uploadContents = pluginData.getUploadContents(val.modelXbrl)
+    if uploadContents is None:
+        return
+    for modelDocument in val.modelXbrl.urlDocs.values():
+        if (targetNamespace := modelDocument.targetNamespace) is None:
+            continue # No target namespace
+        if not pluginData.isExtensionUri(modelDocument.uri, val.modelXbrl):
+            continue # Not an extension schema
+        path = Path(modelDocument.uri)
+        pathInfo = uploadContents.uploadPathsByFullPath.get(path)
+        if pathInfo is None or pathInfo.reportFolderType is None:
+            continue # Not part of the filing, error will be caught elsewhere
+        patterns = pathInfo.reportFolderType.namespaceUriPatterns
+        if len(patterns) == 0:
+            continue # No patterns to check against
+        match = any(pattern.fullmatch(targetNamespace) for pattern in patterns)
+        if match:
+            continue # Valid namespace URI
+        if pathInfo.reportFolderType == ReportFolderType.AUDIT_DOC:
+            yield Validation.warning(
+                codes='EDINET.EC8001W',
+                msg=_("The namespace URI used in the namespace declaration of the "
+                      "audit report schema file does not conform to the rules. "
+                      "File name: '%(file)s'. "
+                      "<<Namespace URI=%(uri)s>>."),
+                file=modelDocument.basename,
+                uri=modelDocument.targetNamespace
+            )
+        else:
+            yield Validation.warning(
+                codes='EDINET.EC8000W',
+                msg=_("The namespace URI used in the namespace declaration of the "
+                      "report schema file does not conform to the rules. "
+                      "File name: '%(file)s'. "
+                      "<<Namespace URI=%(uri)s>>."),
+                file=modelDocument.basename,
+                uri=modelDocument.targetNamespace
+            )
 
 
 @validation(
