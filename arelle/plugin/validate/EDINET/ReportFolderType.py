@@ -7,6 +7,10 @@ from enum import Enum
 from functools import cached_property, lru_cache
 from pathlib import Path
 
+from regex import Pattern
+
+from . import Constants
+
 
 class ReportFolderType(Enum):
     ATTACH_DOC = "AttachDoc"
@@ -27,6 +31,10 @@ class ReportFolderType(Enum):
         return FORM_TYPE_EXTENSION_CATEGORIES.get(self, None)
 
     @cached_property
+    def filenamePatterns(self) -> list[Pattern[str]]:
+        return FILENAME_PATTERNS.get(self, [])
+
+    @cached_property
     def isAttachment(self) -> bool:
         return "Attach" in self.value
 
@@ -37,6 +45,10 @@ class ReportFolderType(Enum):
     @cached_property
     def manifestPath(self) -> Path:
         return self.xbrlDirectory / self.manifestName
+
+    @cached_property
+    def namespaceUriPatterns(self) -> list[Pattern[str]]:
+        return NAMESPACE_URI_PATTERNS.get(self, [])
 
     @cached_property
     def xbrlDirectory(self) -> Path:
@@ -98,4 +110,27 @@ VALID_EXTENSIONS = {
             True: ASSET_EXTENSIONS,
         },
     },
+}
+
+FILENAME_PATTERNS = {
+    ReportFolderType.AUDIT_DOC: [
+        Constants.AUDIT_LINKBASE_FILENAME_PATTERN,
+        Constants.AUDIT_MAIN_FILENAME_PATTERN,
+        Constants.AUDIT_SCHEMA_FILENAME_PATTERN,
+    ],
+    ReportFolderType.PUBLIC_DOC: [
+        Constants.REPORT_COVER_FILENAME_PATTERN,
+        Constants.REPORT_LINKBASE_FILENAME_PATTERN,
+        Constants.REPORT_MAIN_FILENAME_PATTERN,
+        Constants.REPORT_SCHEMA_FILENAME_PATTERN,
+    ]
+}
+
+NAMESPACE_URI_PATTERNS = {
+    ReportFolderType.AUDIT_DOC: [
+        Constants.AUDIT_NAMESPACE_URI_PATTERN,
+    ],
+    ReportFolderType.PUBLIC_DOC: [
+        Constants.REPORT_NAMESPACE_URI_PATTERN,
+    ],
 }
