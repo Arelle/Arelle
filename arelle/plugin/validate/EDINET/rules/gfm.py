@@ -810,6 +810,37 @@ def rule_gfm_1_3_17(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_gfm_1_3_18(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.3.18] The submitter's taxonomy contains an element whose name matches an element in the EDINET taxonomy.
+    Modify the element name so that it does not match the EDINET taxonomy, or use the element in the EDINET taxonomy and delete the
+    element added in the submitter's taxonomy.
+    """
+    for extensionConcept in pluginData.getExtensionConcepts(val.modelXbrl):
+        name = extensionConcept.get("name")
+        if name is not None:
+            concepts = val.modelXbrl.nameConcepts.get(name, [])
+            for concept in concepts:
+                if not pluginData.isExtensionUri(concept.document.uri, val.modelXbrl):
+                    yield Validation.warning(
+                        codes='EDINET.EC5700W.GFM.1.3.18',
+                        msg=_("Your extension taxonomy contains an element, %(concept)s, which has the same name as an element "
+                              "in the base taxonomy, %(standardConcept)s.  Please ensure that this extension is appropriate and "
+                              "if so, please change the extension concept."),
+                        concept=name,
+                        standardConcept=concept
+                    )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_gfm_1_3_19(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
