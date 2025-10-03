@@ -136,10 +136,10 @@ IXBRL_FILENAME_PATTERNS = {
 
 NAMESPACE_URI_PATTERNS = {
     ReportFolderType.AUDIT_DOC: [
-        Constants.AUDIT_NAMESPACE_URI_PATTERN,
+        Constants.AUDIT_NAMESPACE_PATTERN,
     ],
     ReportFolderType.PUBLIC_DOC: [
-        Constants.REPORT_NAMESPACE_URI_PATTERN,
+        Constants.REPORT_NAMESPACE_PATTERN,
     ],
 }
 

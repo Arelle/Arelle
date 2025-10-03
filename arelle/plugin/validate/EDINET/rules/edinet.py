@@ -23,7 +23,7 @@ from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
-from ..Constants import AccountingStandard
+from ..Constants import AccountingStandard, REPORT_ELR_URI_PATTERN, REPORT_ELR_ID_PATTERN
 from ..ControllerPluginData import ControllerPluginData
 from ..DeiRequirements import DeiItemStatus
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
@@ -453,7 +453,7 @@ def rule_namespace_uris(
                 msg=_("The namespace URI used in the namespace declaration of the "
                       "audit report schema file does not conform to the rules. "
                       "File name: '%(file)s'. "
-                      "<<Namespace URI=%(uri)s>>."),
+                      "URI: '%(uri)s'."),
                 file=pathInfo.path.name,
                 uri=targetNamespace
             )
@@ -463,10 +463,52 @@ def rule_namespace_uris(
                 msg=_("The namespace URI used in the namespace declaration of the "
                       "report schema file does not conform to the rules. "
                       "File name: '%(file)s'. "
-                      "<<Namespace URI=%(uri)s>>."),
+                      "URI: '%(uri)s'."),
                 file=pathInfo.path.name,
                 uri=targetNamespace
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_roles(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8006W: The ID of the report's extended link role must conform to the rules.
+        rol_{Root element name (excluding Abstract and Heading)}(-{Modifier})(-{2-digit sequential number})
+    EDINET.EC8007W: The URI of the report's extended link role must conform to the rules.
+        http://disclosure.edinet-fsa.go.jp/role/jp{Prefecture Ordinance abbreviation|dei}
+            (-{report abbreviation})/rol_{root element name (excluding Abstract and Heading)}
+            (-{modifier})(-{two-digit sequential number})
+    """
+    for roleTypes in val.modelXbrl.roleTypes.values():
+        for roleType in roleTypes:
+            if not pluginData.isExtensionUri(roleType.modelDocument.uri, val.modelXbrl):
+                continue
+            if not REPORT_ELR_ID_PATTERN.fullmatch(str(roleType.id)):
+                yield Validation.warning(
+                    codes='EDINET.EC8006W',
+                    msg=_("The ID of the report's extended link role does not conform to the rules. "
+                          "File name: '%(file)s'. "
+                          "ID: '%(id)s'."),
+                    file=roleType.modelDocument.basename,
+                    id=roleType.id
+                )
+            if not REPORT_ELR_URI_PATTERN.fullmatch(roleType.roleURI):
+                yield Validation.warning(
+                    codes='EDINET.EC8007W',
+                    msg=_("The URI of the report's extended link role does not conform to the rules. "
+                          "File name: '%(file)s'. "
+                          "URI: '%(uri)s'."),
+                    file=roleType.modelDocument.basename,
+                    uri=roleType.roleURI
+                )
 
 
 @validation(
