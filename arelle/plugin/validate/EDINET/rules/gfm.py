@@ -28,7 +28,7 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.Units import getDuplicateUnitGroups
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
-from ..Constants import NUMERIC_LABEL_ROLES, domainItemTypeQname
+from ..Constants import EDINET_NAMESPACE_PREFIX, NUMERIC_LABEL_ROLES, domainItemTypeQname
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
@@ -694,6 +694,46 @@ def rule_gfm_1_3_1(
             msg=_("The submitter-specific taxonomy contains include elements."),
             modelObject=warnings
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_3_2(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.3.2] The schemaLocation attribute of the xsd:import element specifying the EDINET taxonomy does not point to a valid location.
+
+    GFM-1.3.2:  If an xsd:import element has a namespace attribute equal to a standard taxonomy
+    schema, then its schemaLocation attribute must be the standard taxonomy assigned
+    to that namespace.
+    """
+    for document in val.modelXbrl.urlDocs.values():
+        if not pluginData.isExtensionUri(document.uri, val.modelXbrl) or not document.type == ModelDocument.Type.SCHEMA:
+            continue
+        for refDoc in document.referencesDocument.values():
+            if 'import' not in refDoc.referenceTypes:
+                continue
+            namespace = refDoc.referringModelObject.attrib.get('namespace')
+            if not namespace:
+                continue
+            if namespace.endswith('iod'):
+                namespace = namespace[:-3]
+            if namespace.startswith(EDINET_NAMESPACE_PREFIX):
+                schemaLocation = refDoc.referringModelObject.attrib.get('schemaLocation')
+                if schemaLocation and not schemaLocation.startswith(namespace):
+                    yield Validation.warning(
+                                         codes='EDINET.EC5700W.GFM.1.3.2',
+                                         msg=_("The schemaLocation attribute of the xsd:import element specifying the EDINET taxonomy does not point to a valid location. "
+                                               "The schemaLocation attribute value '%(schemaLocation)s'."),
+                                         schemaLocation = schemaLocation,
+                                         modelObject = refDoc
+                                     )
 
 
 @validation(
