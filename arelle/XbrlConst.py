@@ -128,6 +128,7 @@ qnXlinkArcRole = qname("{http://www.w3.org/1999/xlink}xlink:arcrole")
 qnXlinkFrom = qname("{http://www.w3.org/1999/xlink}xlink:from")
 qnXlinkHref = qname("{http://www.w3.org/1999/xlink}xlink:href")
 qnXlinkLabel = qname("{http://www.w3.org/1999/xlink}xlink:label")
+qnXlinkRole = qname("{http://www.w3.org/1999/xlink}xlink:role")
 qnXlinkTo = qname("{http://www.w3.org/1999/xlink}xlink:to")
 qnXlinkType = qname("{http://www.w3.org/1999/xlink}xlink:type")
 xl = "http://www.xbrl.org/2003/XLink"
