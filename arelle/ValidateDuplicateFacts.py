@@ -210,6 +210,8 @@ class DuplicateFactSet:
         if not self.areNumeric:
             # Consistency is equivalent to completeness for non-numeric facts
             return facts
+        if len(facts) < 2:
+            return facts
         decimalsMap = defaultdict(list)
         for fact in facts:
             decimals = self.getDecimals(fact)
