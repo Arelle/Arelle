@@ -127,6 +127,8 @@ class TableOfContentsBuilder:
         for document in documents:
             rootElt = document.xmlRootElement
             for elt in rootElt.iterdescendants():
+                if not isinstance(elt, ModelObject):
+                    continue
                 if elt.elementQname.localName == 'title':
                     continue
                 if elt.text is not None:

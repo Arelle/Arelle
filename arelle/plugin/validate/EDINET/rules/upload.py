@@ -12,6 +12,7 @@ from arelle import UrlUtil, XbrlConst
 from arelle.Cntlr import Cntlr
 from arelle.FileSource import FileSource
 from arelle.ModelInstanceObject import ModelFact
+from arelle.ModelObject import ModelObject
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.XmlValidateConst import VALID
 from arelle.typing import TypeGetText
@@ -1036,6 +1037,8 @@ def rule_html_elements(
             rootElt.qname.localName: 1
         }
         for elt in rootElt.iterdescendants():
+            if not isinstance(elt, ModelObject):
+                continue
             name = elt.qname.localName
             if name in checkNames:
                 eltCounts[name] = eltCounts.get(name, 0) + 1

@@ -1774,6 +1774,8 @@ def rule_gfm_1_10_3(
     """
     for ixdsHtmlRootElt in val.modelXbrl.ixdsHtmlElements:
         for elt in ixdsHtmlRootElt.iterdescendants():
+            if not isinstance(elt, ModelObject):
+                continue
             parent = elt.getparent()
             if parent is None or elt.nsmap == parent.nsmap:
                 continue

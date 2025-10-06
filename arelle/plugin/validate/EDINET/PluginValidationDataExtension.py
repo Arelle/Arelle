@@ -615,6 +615,8 @@ class PluginValidationDataExtension(PluginData):
         if modelDocumentType not in (ModelDocumentType.INLINEXBRL, ModelDocumentType.HTML):
             return results
         for elt in modelDocument.xmlRootElement.iter():
+            if not isinstance(elt, ModelObject):
+                continue
             for name in htmlEltUriAttrs.get(elt.localName, ()):
                 value = elt.get(name)
                 if value is not None:
