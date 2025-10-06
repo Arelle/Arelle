@@ -92,6 +92,8 @@ def rule_gfm_1_1_3(
     for modelDocument, elt, uri in values:
         if uri is None:
             continue
+        if uri in val.modelXbrl.urlUnloadableDocs:
+            continue  # Already blocked, error fired.
         if not isHttpUrl(uri):
             if '/' not in uri:
                 continue  # Valid relative path

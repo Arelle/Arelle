@@ -18,6 +18,8 @@ PLUGIN_NAME = "Validate EDINET"
 DISCLOSURE_SYSTEM_VALIDATION_TYPE = "EDINET"
 RELEVELER_MAP: dict[str, dict[str, tuple[str, str | None]]] = {
     "ERROR": {
+        # Re-code to EDINET version
+        "GFM.1.1.3": ("ERROR", "EDINET.EC5700W.GFM.1.1.3"),
         # Silence, duplicated by EDINET.EC5002E
         "xbrl.4.8.2:sharesFactUnit-notSharesMeasure": ("ERROR", None),
         # Silence, duplicated by EDINET.EC5002E
@@ -56,8 +58,15 @@ def fileSourceEntrypointFiles(*args: Any, **kwargs: Any) -> list[dict[str, Any]]
 
 
 def loggingSeverityReleveler(modelXbrl: ModelXbrl, level: str, messageCode: str, args: Any, **kwargs: Any) -> tuple[str | None, str | None]:
-    if level in RELEVELER_MAP:
-        return RELEVELER_MAP[level].get(messageCode, (level, messageCode))
+    if level not in RELEVELER_MAP:
+        return level, messageCode
+    messageCodes = list(args.get('messageCodes') or [])
+    if messageCode is not None:
+        messageCodes.append(messageCode)
+    for code in messageCodes:
+        result =  RELEVELER_MAP[level].get(code)
+        if result is not None:
+            return result
     return level, messageCode
 
 
