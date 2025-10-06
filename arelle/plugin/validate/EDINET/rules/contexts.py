@@ -105,7 +105,7 @@ def rule_EC8013W(
             continue
         if fact.contextID is None:
             continue
-        if not pluginData.contextIdPattern.match(fact.contextID):
+        if not FINANCIAL_STATEMENT_CONTEXT_ID_PATTERN.fullmatch(fact.contextID):
             invalidContextIdMap[fact.contextID].append(fact)
     for contextId, facts in invalidContextIdMap.items():
         yield Validation.warning(
