@@ -86,6 +86,9 @@ def rule_gfm_1_1_3(
         for elt in rootElt.iterdescendants(XbrlConst.qnLinkLinkbase.clarkNotation):
             uri = elt.attrib.get(XbrlConst.qnXsiSchemaLocation.clarkNotation)
             values.append((modelDocument, elt, uri))
+        for elt in rootElt.iterdescendants(XbrlConst.qnLinkLinkbaseRef.clarkNotation):
+            uri = elt.attrib.get(XbrlConst.qnXlinkHref.clarkNotation)
+            values.append((modelDocument, elt, uri))
     for modelDocument, elt, uri in values:
         if uri is None:
             continue
