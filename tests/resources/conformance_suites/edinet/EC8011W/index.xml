@@ -3,21 +3,21 @@
 <testcase
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns="http://xbrl.org/2005/conformance"
-        name="EDINET.EC5700W.GFM.1.2.5"
-        description="EDINET.EC5700W.GFM.1.2.5"
+        name="EDINET.EC8011W"
+        description="EDINET.EC8011W: The context ID must conform to the naming rules."
         outpath=''
         owner="support@arelle.org"
         xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
     <variation id="invalid01" name="invalid01">
         <description>
-            A scenario element is used without an explicit member.
+            Context has invalid ID.
+            <!--valid09.zip with "FilingDateInstant" context ID changed to "FilingDatesInstant"-->
         </description>
         <data>
             <instance readMeFirst="true">invalid01.zip</instance>
         </data>
         <result>
-            <warning>EDINET.EC5700W.GFM.1.2.5</warning>
-            <warning>EDINET.EC8011W</warning> <!-- due to invalid "ID" context ID. -->
+            <warning>EDINET.EC8011W</warning>
         </result>
     </variation>
 </testcase>

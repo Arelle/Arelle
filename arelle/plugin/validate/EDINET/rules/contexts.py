@@ -14,6 +14,7 @@ from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
+from ..Constants import FINANCIAL_STATEMENT_CONTEXT_ID_PATTERN, CONTEXT_ID_PATTERN
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
@@ -26,6 +27,35 @@ FINANCIAL_STATEMENT_ELR_PREFIXES = (
     '3', # Codes starting with 3 indicate "Japanese GAAP Financial Statement"
     '5', # Codes starting with 5 indicate "IFRS Financial Statement"
 )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8011W(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8011W: The context ID must conform to the naming rules.
+    """
+    for contextId, context in val.modelXbrl.contexts.items():
+        if not CONTEXT_ID_PATTERN.fullmatch(contextId):
+            yield Validation.warning(
+                codes='EDINET.EC8011W',
+                msg=_("The context ID does not conform to the naming rules. "
+                      "Context ID: '%(contextId)s'. "
+                      "Please correct the relevant context ID in accordance with the naming rules. "
+                      "* No action is required for warnings caused by setting \"FutureDate\" "
+                      "for first portion of context ID. "
+                      "* No action is required for warnings caused by tagging for disclosure beyond "
+                      "the period specified in the naming convention for \"total greenhouse gas emissions.\""),
+                contextId=contextId,
+                modelObject=context,
+            )
 
 
 @validation(
