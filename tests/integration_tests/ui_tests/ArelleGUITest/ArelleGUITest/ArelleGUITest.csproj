@@ -14,8 +14,8 @@
     <PackageReference Include="FlaUI.TestUtilities" Version="5.0.0" />
     <PackageReference Include="FlaUI.UIA3.Signed" Version="5.0.0" />
     <PackageReference Include="JUnitTestLogger" Version="1.1.0" />
-    <PackageReference Include="JunitXml.TestLogger" Version="6.1.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="JunitXml.TestLogger" Version="7.0.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
     <PackageReference Include="Microsoft.Windows.Compatibility" Version="9.0.9" />
     <PackageReference Include="NUnit" Version="4.4.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="5.1.0" />
