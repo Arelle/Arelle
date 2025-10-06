@@ -374,7 +374,6 @@ def rule_namespace_prefixes(
     """
     extensionSchemas = pluginData.getExtensionSchemas(val.modelXbrl)
     for modelDocument in val.modelXbrl.urlDocs.values():
-        pass
         for prefix, namespace in modelDocument.xmlRootElement.nsmap.items():
             if namespace not in extensionSchemas:
                 continue # Not an extension schema namespace
