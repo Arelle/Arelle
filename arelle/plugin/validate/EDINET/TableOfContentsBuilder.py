@@ -6,6 +6,7 @@ from __future__ import annotations
 from typing import Iterable
 
 from collections import defaultdict
+from jaconv import jaconv
 
 from arelle.ModelDocument import ModelDocument
 from arelle.ModelObject import ModelObject
@@ -30,12 +31,8 @@ TOC_DIGITS = [
     '十',
 ]
 FULL_WIDTH_DIGIT_MAP = {
-    str(d): chr(ord('０') + ord(str(d)) - ord('0'))
+    str(d): jaconv.h2z(str(d), kana=True, ascii=True, digit=True)
     for d in range(0, 10)
-}
-FULL_WIDTH_CHAR_MAP = FULL_WIDTH_DIGIT_MAP | {
-    '(': '（',
-    ')': '）',
 }
 KATAKANA_GOJUON_SEQUENCE = [
     # a-column
@@ -286,7 +283,6 @@ class TableOfContentsBuilder:
             return number
         paranthesesFullWidth: bool | None = None
         numbersFullWidth: bool | None = None
-        normalizedNumber = ""
         for c in number:
             if c in ("(", ")"):
                 if paranthesesFullWidth == True:
@@ -304,8 +300,7 @@ class TableOfContentsBuilder:
                 if numbersFullWidth == False:
                     return number # Mix of half/full-width digits
                 numbersFullWidth = True
-            normalizedNumber += FULL_WIDTH_CHAR_MAP.get(c, c)
-        return normalizedNumber
+        return jaconv.h2z(number, kana=True, ascii=True, digit=True)
 
     def _openDocument(self, modelDocument: ModelDocument) -> None:
         assert self._currentDocument is None, "Close current document before opening another."
