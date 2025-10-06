@@ -8,6 +8,7 @@ from itertools import chain
 from typing import Any, Iterable
 
 from arelle import XbrlConst
+from arelle.LinkbaseType import LinkbaseType
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
@@ -56,6 +57,35 @@ def rule_EC8011W(
                 contextId=contextId,
                 modelObject=context,
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8012W(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8012W: If a main financial statement element is present, a calculation linkbase file must be present.
+    """
+    if not any(
+            fact.qname.namespaceURI == pluginData.jppfsNamespace
+            for fact in val.modelXbrl.facts
+    ):
+        return
+    relSet = val.modelXbrl.relationshipSet(tuple(LinkbaseType.CALCULATION.getArcroles()))
+    if relSet is None or len(relSet.modelRelationships) == 0:
+        yield Validation.warning(
+            codes='EDINET.EC8012W',
+            msg=_("If a main financial statement element is present, a calculation linkbase "
+                  "file must be present. "
+                  "If you wish to tag the financial statements, please submit a "
+                  "calculation linkbase file."),
+        )
 
 
 @validation(
