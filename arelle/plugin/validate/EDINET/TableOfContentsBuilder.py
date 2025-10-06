@@ -304,7 +304,7 @@ class TableOfContentsBuilder:
                 if numbersFullWidth == False:
                     return number # Mix of half/full-width digits
                 numbersFullWidth = True
-            normalizedNumber += FULL_WIDTH_DIGIT_MAP.get(c, c)
+            normalizedNumber += FULL_WIDTH_CHAR_MAP.get(c, c)
         return normalizedNumber
 
     def _openDocument(self, modelDocument: ModelDocument) -> None:
@@ -325,7 +325,7 @@ class TableOfContentsBuilder:
         if number == "":
             # Only trigger floating/warning if we are not already floating, and we
             # aren't already at the deepest level.
-            if self._isFloating():
+            if not self._isFloating():
                 # EDINET.EC2002W: The table of contents number must be present.
                 # Note from documentation: Even if the data content is normal, it may be identified as an
                 # exception and a warning may be displayed.
@@ -441,7 +441,7 @@ class TableOfContentsBuilder:
             yield from self._validateItem(number, label, elt)
 
             # We are only concerned about duplicates if we are not floating.
-            if self._isFloating():
+            if not self._isFloating():
                 if label in self._levelLabels[self._currentLevel]:
                     # EDINET.EC2005E: Table of contents entries must not be duplicated.
                     # Note: Sample filings suggest this applies to entries that are
@@ -459,7 +459,7 @@ class TableOfContentsBuilder:
                 else:
                     self._levelLabels[self._currentLevel].add(label)
 
-            if self._isFloating():
+            if not self._isFloating():
                 # EDINET.EC2003E: The table of contents must be no longer than 384 bytes
                 # (equivalent to 128 full-width characters).
                 b = label.encode('utf-8')
