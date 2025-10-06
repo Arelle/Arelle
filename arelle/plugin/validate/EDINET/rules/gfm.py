@@ -1754,7 +1754,7 @@ def rule_gfm_1_9_1(
             continue
         if modelConcept.qname is None or modelConcept.qname.namespaceURI is None:
             continue
-        if pluginData.isExtensionUri(modelConcept.qname.namespaceURI, val.modelXbrl):
+        if pluginData.isExtensionUri(modelConcept.document.uri, val.modelXbrl):
             yield Validation.warning(
                 codes='EDINET.EC5700W.GFM.1.9.1',
                 msg=_("References should not be defined for extension concepts: %(conceptName)s"),
