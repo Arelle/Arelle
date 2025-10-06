@@ -33,6 +33,10 @@ FULL_WIDTH_DIGIT_MAP = {
     str(d): chr(ord('０') + ord(str(d)) - ord('0'))
     for d in range(0, 10)
 }
+FULL_WIDTH_CHAR_MAP = FULL_WIDTH_DIGIT_MAP | {
+    '(': '（',
+    ')': '）',
+}
 KATAKANA_GOJUON_SEQUENCE = [
     # a-column
     'ア', 'イ', 'ウ', 'エ', 'オ',
@@ -267,7 +271,7 @@ class TableOfContentsBuilder:
                 ))
 
     def _isFloating(self) -> bool:
-        return self._floatingLevel is None and self._currentLevel < DEEPEST_LEVEL
+        return self._floatingLevel is not None or self._currentLevel >= DEEPEST_LEVEL
 
     def _normalizeNumber(self, number: str) -> str:
         # EDINET does not support:
