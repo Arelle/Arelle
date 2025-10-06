@@ -93,7 +93,7 @@ PATTERN_MAIN = r'(?P<main>\d{7})'
 PATTERN_NAME = r'(?P<name>[a-z]{6})'
 PATTERN_ORDINANCE = r'(?P<ordinance>[a-z]*)'
 PATTERN_PERIOD = r'(?P<period>c|p)'  # TODO: Have only seen "c" in sample/public filings, assuming "p" for previous.
-PATTERN_REPORT = r'(?P<report>[a-z]*)'
+PATTERN_REPORT = r'(?P<report>[a-z0-9]*)'
 PATTERN_REPORT_SERIAL = r'(?P<report_serial>\d{3})'
 PATTERN_SERIAL = r'(?P<serial>\d{3})'
 
@@ -124,36 +124,36 @@ AUDIT_PREFIX_PATTERN = regex.compile(rf'{PATTERN_AUDIT_REPORT_PREFIX}_{PATTERN_C
 
 # Instance file for report
 # Example: jpcrp050300-esr-001_X99007-000_2025-04-10_01_2025-04-10.xsd
-REPORT_XBRL_FILENAME_PATTERN = regex.compile(rf'{PATTERN_REPORT_PREFIX}-{PATTERN_SUFFIX}.xbrl')
+REPORT_XBRL_FILENAME_PATTERN = regex.compile(rf'{PATTERN_REPORT_PREFIX}-{PATTERN_SUFFIX}\.xbrl')
 
 # Instance file for audit report
 # Example: jpaud-aar-cn-001_X99001-000_2025-03-31_01_2025-06-28.xsd
-AUDIT_XBRL_FILENAME_PATTERN = regex.compile(rf'{PATTERN_AUDIT_REPORT_PREFIX}-{PATTERN_SUFFIX}.xbrl')
+AUDIT_XBRL_FILENAME_PATTERN = regex.compile(rf'{PATTERN_AUDIT_REPORT_PREFIX}-{PATTERN_SUFFIX}\.xbrl')
 
 # Schema file for report
 # Example: jpcrp050300-esr-001_X99007-000_2025-04-10_01_2025-04-10.xsd
-REPORT_SCHEMA_FILENAME_PATTERN = regex.compile(rf'{PATTERN_REPORT_PREFIX}-{PATTERN_SUFFIX}.xsd')
+REPORT_SCHEMA_FILENAME_PATTERN = regex.compile(rf'{PATTERN_REPORT_PREFIX}-{PATTERN_SUFFIX}\.xsd')
 
 # Schema file for audit report
 # Example: jpaud-aar-cn-001_X99001-000_2025-03-31_01_2025-06-28.xsd
-AUDIT_SCHEMA_FILENAME_PATTERN = regex.compile(rf'{PATTERN_AUDIT_REPORT_PREFIX}-{PATTERN_SUFFIX}.xsd')
+AUDIT_SCHEMA_FILENAME_PATTERN = regex.compile(rf'{PATTERN_AUDIT_REPORT_PREFIX}-{PATTERN_SUFFIX}\.xsd')
 
 # Linkbase file for report
 # Example: jpcrp020000-srs-001_X99001-000_2025-03-31_01_2025-11-20_cal.xml
-REPORT_LINKBASE_FILENAME_PATTERN = regex.compile(rf'{PATTERN_REPORT_PREFIX}-{PATTERN_SUFFIX}_{PATTERN_LINKBASE}.xml')
+REPORT_LINKBASE_FILENAME_PATTERN = regex.compile(rf'{PATTERN_REPORT_PREFIX}-{PATTERN_SUFFIX}_{PATTERN_LINKBASE}\.xml')
 
 # Linkbase file for audit report
 # Example: jpaud-qrr-cc-001_X99001-000_2025-03-31_01_2025-11-20_pre.xml
-AUDIT_LINKBASE_FILENAME_PATTERN = regex.compile(rf'{PATTERN_AUDIT_REPORT_PREFIX}-{PATTERN_SUFFIX}_{PATTERN_LINKBASE}.xml')
+AUDIT_LINKBASE_FILENAME_PATTERN = regex.compile(rf'{PATTERN_AUDIT_REPORT_PREFIX}-{PATTERN_SUFFIX}_{PATTERN_LINKBASE}\.xml')
 
 # Cover page file for report
 # Example: 0000000_header_jpcrp020000-srs-001_X99001-000_2025-03-31_01_2025-11-20_ixbrl.htm
-REPORT_COVER_FILENAME_PATTERN = regex.compile(rf'{COVER_PAGE_FILENAME_PREFIX}{PATTERN_REPORT_PREFIX}-{PATTERN_SUFFIX}_ixbrl.htm')
+REPORT_COVER_FILENAME_PATTERN = regex.compile(rf'{COVER_PAGE_FILENAME_PREFIX}{PATTERN_REPORT_PREFIX}-{PATTERN_SUFFIX}_ixbrl\.htm')
 
 # Main file for report
 # Example: 0205020_honbun_jpcrp020000-srs-001_X99001-000_2025-03-31_01_2025-11-20_ixbrl.htm
-REPORT_IXBRL_FILENAME_PATTERN = regex.compile(rf'{PATTERN_MAIN}_{PATTERN_NAME}_{PATTERN_REPORT_PREFIX}-{PATTERN_SUFFIX}_ixbrl.htm')
+REPORT_IXBRL_FILENAME_PATTERN = regex.compile(rf'{PATTERN_MAIN}_{PATTERN_NAME}_{PATTERN_REPORT_PREFIX}-{PATTERN_SUFFIX}_ixbrl\.htm')
 
 # Main file for audit report
 # Example: jpaud-qrr-cc-001_X99001-000_2025-03-31_01_2025-11-20_pre.xml
-AUDIT_IXBRL_FILENAME_PATTERN = regex.compile(rf'{PATTERN_AUDIT_REPORT_PREFIX}-{PATTERN_SUFFIX}_ixbrl.htm')
+AUDIT_IXBRL_FILENAME_PATTERN = regex.compile(rf'{PATTERN_AUDIT_REPORT_PREFIX}-{PATTERN_SUFFIX}_ixbrl\.htm')
