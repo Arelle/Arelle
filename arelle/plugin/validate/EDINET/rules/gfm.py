@@ -1843,15 +1843,15 @@ def rule_charsets(
                         metaCharset=metaCharset,
                         modelObject=metaElt
                     )
-            if metaCharset is None or metaCharset.lower() != 'utf-8':
-                yield Validation.error(
-                    codes='EDINET.EC1010E',
-                    msg=_("The charset specification in the content attribute of the HTML <meta> tag is not UTF-8. "
-                        "File name: '%(path)s'. "
-                        "Please set the character code of the file to UTF-8."),
-                    path=modelDocument.uri,
-                    modelObject=metaElt,
-                )
+                if metaCharset.lower() != 'utf-8':
+                    yield Validation.error(
+                        codes='EDINET.EC1010E',
+                        msg=_("The charset specification in the content attribute of the HTML <meta> tag is not UTF-8. "
+                            "File name: '%(path)s'. "
+                            "Please set the character code of the file to UTF-8."),
+                        path=modelDocument.uri,
+                        modelObject=metaElt,
+                    )
 
         if not metaCharsetDeclared:
             yield Validation.warning(
