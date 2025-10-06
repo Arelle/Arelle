@@ -502,7 +502,7 @@ class PluginValidationDataExtension(PluginData):
                 continue
             prefixes = {taxonomy.value for taxonomy in filingFormat.taxonomies}
             if not any(
-                str(fact.xValue).startswith(filingFormat.documentType.value) and
+                str(fact.xValue).strip().startswith(filingFormat.documentType.value) and
                 fact.concept.qname.prefix.split('_')[0] in prefixes
                 for fact in documentTitleFacts
             ):
