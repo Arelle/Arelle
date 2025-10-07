@@ -207,10 +207,10 @@ class DuplicateFactSet:
         :return: A subset of the facts where the fact of lower precision in every consistent pair has been removed.
         """
         facts = self.deduplicateCompleteSubsets()
+        if len(facts) < 2:
+            return facts
         if not self.areNumeric:
             # Consistency is equivalent to completeness for non-numeric facts
-            return facts
-        if len(facts) < 2:
             return facts
         decimalsMap = defaultdict(list)
         for fact in facts:
