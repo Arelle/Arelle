@@ -6,7 +6,7 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Any, Iterable
 
-from arelle import XbrlConst
+from arelle import XbrlConst, ModelDocument
 from arelle.ModelDtsObject import ModelResource, ModelConcept
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
@@ -180,3 +180,32 @@ def rule_frta_3_1_10(
             msg=_("Role types defined in the extension taxonomy must have a definition."),
             modelObject=errors,
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_frta_4_2_2(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5710W: [FRTA.4.2.2] Taxonomy schemas must be defined in XML documents in which the XML Schema 'schema'
+                                 element appears once only as the root element.
+    """
+    for modelDocument in val.modelXbrl.urlDocs.values():
+        if pluginData.isStandardTaxonomyUrl(modelDocument.uri, val.modelXbrl):
+            continue
+        for hrefElt, hrefedDoc, hrefId in modelDocument.hrefObjects:
+            if hrefElt.localName != "schemaRef":
+                continue
+            hrefedElt = hrefedDoc.xmlRootElement
+            if hrefedElt.namespaceURI != XbrlConst.xsd:
+                yield Validation.warning(
+                    codes='EDINET.EC5710W.FRTA.4.2.2',
+                    msg=_("The root of a taxonomy schema file MUST be the XMLSchema element."),
+                    modelObject=modelDocument,
+                )

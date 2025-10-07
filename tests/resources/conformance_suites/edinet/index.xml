@@ -123,6 +123,7 @@
     <testcase uri="EC5710W.FRTA.2.1.9/index.xml" />
     <testcase uri="EC5710W.FRTA.2.1.11/index.xml" />
     <testcase uri="EC5710W.FRTA.3.1.10/index.xml" />
+    <testcase uri="EC5710W.FRTA.4.2.2/index.xml" />
     <testcase uri="EC5800E/index.xml" />
     <testcase uri="EC5804E/index.xml" />
     <testcase uri="EC5805E/index.xml" />
