@@ -17,6 +17,7 @@
         </data>
         <result>
             <warning>EDINET.EC5700W.GFM.1.2.5</warning>
+            <warning>EDINET.EC8011W</warning> <!-- due to invalid "ID" context ID. -->
         </result>
     </variation>
 </testcase>

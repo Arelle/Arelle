@@ -99,7 +99,6 @@ class PluginValidationDataExtension(PluginData):
     nonConsolidatedMemberQn: QName
     ratioOfFemaleDirectorsAndOtherOfficersQn: QName
 
-    contextIdPattern: regex.Pattern[str]
     coverItemRequirementsPath: Path
     coverPageTitleQns: tuple[QName, ...]
     deiItems: tuple[QName, ...]
@@ -161,7 +160,6 @@ class PluginValidationDataExtension(PluginData):
         self.nonConsolidatedMemberQn = qname(self.jppfsNamespace, "NonConsolidatedMember")
         self.ratioOfFemaleDirectorsAndOtherOfficersQn = qname(self.jpcrpNamespace, "RatioOfFemaleDirectorsAndOtherOfficers")
 
-        self.contextIdPattern = regex.compile(r'(Prior[1-9]Year|CurrentYear|Prior[1-9]Interim|Interim)(Duration|Instant)')
         self.coverItemRequirementsPath = Path(__file__).parent / "resources" / "cover-item-requirements.json"
         self.coverPageTitleQns = (
             qname(self.jpspsNamespace, "DocumentTitleAnnualSecuritiesReportCoverPage"),

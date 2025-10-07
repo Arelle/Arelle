@@ -3,21 +3,21 @@
 <testcase
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns="http://xbrl.org/2005/conformance"
-        name="EDINET.EC8013W"
-        description="EDINET.EC8013W: The context ID of the element associated with the financial statement extended link role must adhere to a certain format."
+        name="EDINET.EC8011W"
+        description="EDINET.EC8011W: The context ID must conform to the naming rules."
         outpath=''
         owner="support@arelle.org"
         xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
     <variation id="invalid01" name="invalid01">
         <description>
-            Fact(s) associated with a financial statement link roles have invalid context IDs.
-            <!--valid05.zip with a context ID "Prior1InterimDuration_NonConsolidatedMember" changed to "FilingDateDuration_NonConsolidatedMember".-->
+            Context has invalid ID.
+            <!--valid09.zip with "FilingDateInstant" context ID changed to "FilingDatesInstant"-->
         </description>
         <data>
             <instance readMeFirst="true">invalid01.zip</instance>
         </data>
         <result>
-            <warning>EDINET.EC8013W</warning>
+            <warning>EDINET.EC8011W</warning>
         </result>
     </variation>
 </testcase>
