@@ -491,10 +491,9 @@ class PluginValidationDataExtension(PluginData):
         # values assigned to the various FilingFormats. This may only be by coincidence or convention.
         # If it doesn't end up being reliable, we may need to find another way to identify the form.
         # For example, by disclosure system selection or CLI argument.
-        documentTitleFacts = []
+        documentTitleFacts: list[ModelFact] = []
         for qname in self.coverPageTitleQns:
-            for fact in self.iterValidNonNilFacts(modelXbrl, qname):
-                documentTitleFacts.append(fact)
+            documentTitleFacts.extend(self.iterValidNonNilFacts(modelXbrl, qname))
         formTypes = self.getFormTypes(modelXbrl)
         filingFormats = []
         for filingFormatIndex, filingFormat in enumerate(FILING_FORMATS):
