@@ -15,6 +15,7 @@ from arelle import ModelDocument, PackageManager, PluginManager
 from arelle.Cntlr import Cntlr
 from arelle.CntlrCmdLine import parseAndRun
 from arelle.FileSource import archiveFilenameParts
+from test_suite.TestcaseResult import TestcaseResult
 
 if TYPE_CHECKING:
     from _pytest.mark import ParameterSet
@@ -165,6 +166,91 @@ def get_test_data(
         return results
     finally:
         cntlr.modelManager.close()
+        PackageManager.close()  # type: ignore[no-untyped-call]
+        PluginManager.close()  # type: ignore[no-untyped-call]
+
+
+def get_test_suite_data(
+        test_case_results: list[TestcaseResult],
+        expected_failure_ids: frozenset[str] = frozenset(),
+        expected_model_errors: frozenset[str] = frozenset(),
+        required_locale_by_ids: dict[str, re.Pattern[str]] | None = None,
+        strict_testcase_index: bool = True,
+) -> list[ParameterSet]:
+    """
+    Produces a list of Pytest Params that can be fed into a parameterized pytest function
+
+    :param args: The args to be parsed by arelle in order to correctly produce the desired result set
+    :param expected_failure_ids: The set of string test IDs that are expected to fail
+    :param expected_model_errors: The set of error codes expected to be in the ModelXbrl errors
+    :param required_locale_by_ids: The dict of IDs for tests which require a system locale matching a regex pattern.
+    :param strict_testcase_index: Don't allow IOerrors when loading the testcase index
+    :return: A list of PyTest Params that can be used to run a parameterized pytest function
+    """
+    if required_locale_by_ids is None:
+        required_locale_by_ids = {}
+    try:
+        system_locale = locale.setlocale(locale.LC_CTYPE)
+        results: list[ParameterSet] = []
+        test_cases_with_no_variations = set()
+        test_cases_with_unrecognized_type = {}
+        test_cases: list[ModelDocument.ModelDocument] = []
+
+        # TODO:
+        # if strict_testcase_index and model_document.type == ModelDocument.Type.TESTCASESINDEX:
+        #     model_errors = sorted(cntlr.modelManager.modelXbrl.errors)
+        #     assert 'IOerror' not in model_errors, f'One or more testcases referenced by testcases index "{model_document.filepath}" were not found.'
+
+        for test_case_result in sorted(test_case_results, key=lambda x: x.testcaseVariation.fullId): # TODO: Sort
+            test_case_file_id = test_case_result.testcaseVariation.fullId # TODO: get_document_id(test_case)
+
+            # TODO:
+            # if test_case.type not in (ModelDocument.Type.TESTCASE, ModelDocument.Type.REGISTRYTESTCASE):
+            #     test_cases_with_unrecognized_type[test_case_file_id] = test_case.type
+
+            if not getattr(test_case_result, "testcaseVariations", None):
+                pass
+                # test_cases_with_no_variations.add(test_case_file_id) # TODO:
+            else:
+                test_id = test_case_file_id # f'{test_case_file_id}:{mv.id}'
+                marks = []
+                if isExpectedFailure(test_id, expected_failure_ids, required_locale_by_ids, system_locale):
+                    marks.append(pytest.mark.xfail())
+                expected_results = [
+                    str(e)
+                    for e in test_case_result.testcaseVariation.testcaseConstraintSet.errors
+                ]
+                # Arelle adds message code frequencies to the end, but conformance suites usually don't.
+                # Skip assertion results dictionaries.
+                actual = [
+                    re.sub(r' \(\d+\)$', '',  str(actualError.qname or actualError.code))
+                    for actualError in test_case_result.actualErrors
+                ]
+                param = pytest.param(
+                    {
+                        'status': test_case_result.status,
+                        'expected': json.dumps(expected_results),
+                        'actual': actual,
+                        'duration': test_case_result.duration_seconds,
+                    },
+                    id=test_id,
+                    marks=marks,
+                )
+                results.append(param)
+        if test_cases_with_unrecognized_type:
+            raise Exception(f"Some test cases have an unrecognized document type: {sorted(test_cases_with_unrecognized_type.items())}.")
+        test_id_frequencies = Counter(cast(str, p.id) for p in results)
+        nonunique_test_ids = {test_id: count for test_id, count in test_id_frequencies.items() if count > 1}
+        if nonunique_test_ids:
+            raise Exception(f'Some test IDs are not unique.  Frequencies of nonunique test IDs: {nonunique_test_ids}.')
+        nonexistent_expected_failure_ids = expected_failure_ids - test_id_frequencies.keys()
+        if nonexistent_expected_failure_ids:
+            raise Exception(f"Some expected failure IDs don't match any test cases: {sorted(nonexistent_expected_failure_ids)}.")
+        nonexistent_required_locale_testcase_ids = required_locale_by_ids.keys() - test_id_frequencies.keys()
+        if nonexistent_required_locale_testcase_ids:
+            raise Exception(f"Some required locale IDs don't match any test cases: {sorted(nonexistent_required_locale_testcase_ids)}.")
+        return results
+    finally:
         PackageManager.close()  # type: ignore[no-untyped-call]
         PluginManager.close()  # type: ignore[no-untyped-call]
 

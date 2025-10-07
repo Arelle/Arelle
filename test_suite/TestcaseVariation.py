@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from test_suite.ExpectedErrorSet import ExpectedErrorSet
+from test_suite.TestcaseConstraintSet import TestcaseConstraintSet
 
 
 @dataclass(frozen=True)
@@ -10,5 +10,10 @@ class TestcaseVariation:
     description: str
     base: str
     readFirstUris: list[str]
+    shortName: str
     status: str
-    expectedErrorSet: ExpectedErrorSet | None
+    testcaseConstraintSet: TestcaseConstraintSet | None
+
+    @property
+    def fullId(self) -> str:
+        return f"{self.base}:{self.id}"

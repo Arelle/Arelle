@@ -208,5 +208,11 @@ config = ConformanceSuiteConfig(
     name=PurePath(__file__).stem,
     plugins=frozenset({'validate/EDINET', 'inlineXbrlDocumentSet'}),
     shards=4,
+    test_suite_options={
+        'baseTaxonomyValidationMode': 'none',
+        'disclosureSystemName': 'EDINET',
+        'testcaseResultsCaptureWarnings': True,
+        'keepOpen': True,
+    },
     test_case_result_options='match-all',
 )

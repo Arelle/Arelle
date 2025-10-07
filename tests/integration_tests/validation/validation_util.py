@@ -20,7 +20,9 @@ from unittest.mock import patch
 from lxml import etree
 
 from arelle.WebCache import WebCache
-from tests.integration_tests.integration_test_util import get_test_data
+from test_suite import TestSuite
+from test_suite.TestSuiteOptions import TestSuiteOptions
+from tests.integration_tests.integration_test_util import get_test_data, get_test_suite_data
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig
 
 if TYPE_CHECKING:
@@ -305,6 +307,27 @@ def get_conformance_suite_test_results(
 ) -> list[ParameterSet]:
     assert len(shards) == 0 or config.shards != 1, \
         'Conformance suite configuration must specify shards if --shard is passed'
+    if config.name == "edinet":
+        additional_plugins = frozenset().union(*(plugins for _, plugins in config.additional_plugins_by_prefix))
+        results = TestSuite.run(TestSuiteOptions(
+            indexFile=config.entry_point_path.as_posix(),
+            options=json.dumps(
+                get_test_suite_options(
+                    config=config, additional_plugins=additional_plugins,
+                    build_cache=build_cache, offline=offline, log_to_file=log_to_file, shard=None,
+                    expected_additional_testcase_errors=config.expected_additional_testcase_errors,
+                    testcase_filters=testcase_filters,
+                )
+            ),
+            parallel=not series,
+        ))
+        return get_test_suite_data(
+            test_case_results=results,
+            expected_failure_ids=config.expected_failure_ids,
+            expected_model_errors=config.expected_model_errors,
+            required_locale_by_ids=config.required_locale_by_ids,
+            strict_testcase_index=config.strict_testcase_index,
+        )
     if shards:
         assert not testcase_filters, 'Testcase filters are not supported with shards.'
         return get_conformance_suite_test_results_with_shards(
@@ -407,6 +430,50 @@ def get_conformance_suite_test_results_without_shards(
         url_context_manager = nullcontext()
     with url_context_manager:
         return get_test_data(args, **kws)
+
+
+def get_test_suite_options(
+        config: ConformanceSuiteConfig,
+        additional_plugins: frozenset[str],
+        build_cache: bool,
+        offline: bool,
+        log_to_file: bool,
+        expected_additional_testcase_errors: dict[str, dict[str, int]],
+        shard: int | None,
+        testcase_filters: list[str]
+) -> dict[str, Any]:
+    use_shards = shard is not None
+    optional_plugins = set()
+    if build_cache:
+        optional_plugins.add('CacheBuilder')
+    plugins = config.plugins | additional_plugins | optional_plugins
+    args: dict[str, Any] = {
+        # TODO: '--testcaseResultOptions', config.test_case_result_options,
+        'validate': True,
+    }
+    if config.package_paths:
+        args['packages'] = '|'.join(sorted(p.as_posix() for p in config.package_paths))
+    if plugins:
+        args['plugins'] = '|'.join(sorted(plugins))
+    shard_str = f'-s{shard}' if use_shards else ''
+    if build_cache:
+        args['cacheBuilderPath'] = f'conf-{config.name}{shard_str}-cache.zip'
+    if config.capture_warnings:
+        args['testcaseResultsCaptureWarnings'] = True
+    if log_to_file:
+        args['testReport'] = f'conf-{config.name}{shard_str}-report.csv'
+        args['logFile'] = f'conf-{config.name}{shard_str}-log.txt'
+    if offline or config.runs_without_network:
+        args['internetConnectivity'] = 'offline'
+    if testcase_filters:
+        args['testcaseFilters'] = [pattern for pattern in testcase_filters]
+    # TODO:
+    # for testcase_id, errorCounts in expected_additional_testcase_errors.items():
+    #     errors = []
+    #     for error, count in errorCounts.items():
+    #         errors.extend([error] * count)
+    #     args.extend(['--testcaseExpectedErrors', f'{testcase_id}|{",".join(errors)}'])
+    return args | config.test_suite_options
 
 
 def load_timing_file(name: str) -> dict[str, float]:
