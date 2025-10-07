@@ -209,3 +209,42 @@ def rule_frta_4_2_2(
                     msg=_("The root of a taxonomy schema file MUST be the XMLSchema element."),
                     modelObject=modelDocument,
                 )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_frta_4_2_4(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5710W: [FRTA.4.2.4] Taxonomy schemas must be defined in XML documents in which the XML Schema 'schema'
+                                 element appears once only as the root element.
+    """
+    for modelDocument in val.modelXbrl.urlDocs.values():
+        if pluginData.isStandardTaxonomyUrl(modelDocument.uri, val.modelXbrl) or not modelDocument.type == ModelDocument.Type.SCHEMA:
+            continue
+        rootElt = modelDocument.xmlRootElement
+        if rootElt.get('elementFormDefault') != 'qualified' or rootElt.get('attributeFormDefault') != 'unqualified':
+            yield Validation.warning(
+                codes='EDINET.EC5710W.FRTA.4.2.4',
+                msg=_("The XMLSchema root in taxonomy schema files must have the 'elementFormDefault' atribute set as "
+                      "'qulaified' and the 'attributeFormDefault' attribute set as 'unqualified'"),
+                modelObject=modelDocument,
+            )
+        formUsages = []
+        for elt in rootElt.iterdescendants():
+            if elt.prefixedName not in ['xsd:element', 'xsd:attribute']:
+                continue
+            if elt.get('form') is not None:
+                formUsages.append(elt)
+        if len(formUsages) > 0:
+            yield Validation.warning(
+                codes='EDINET.EC5710W.FRTA.4.2.4',
+                msg=_("The 'form' attribute is not allowed on 'xsd:element' or 'xsd:attribute' declarations in a schema file"),
+                modelObject=formUsages,
+            )
