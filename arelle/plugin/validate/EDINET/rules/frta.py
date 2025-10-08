@@ -256,6 +256,35 @@ def rule_frta_4_2_4(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_frta_4_2_7(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5710W: [FRTA.4.2.7] A label linkbase should only contain labels defined in a single language.
+    """
+    for modelDocument in val.modelXbrl.urlDocs.values():
+        if pluginData.isStandardTaxonomyUrl(modelDocument.uri, val.modelXbrl) or not modelDocument.type == ModelDocument.Type.LINKBASE:
+            continue
+        usedLangs = {
+            elt.get(XbrlConst.qnXmlLang.clarkNotation)
+            for elt in modelDocument.xmlRootElement.iterdescendants(XbrlConst.qnLinkLabel.clarkNotation)
+        }
+        if len(usedLangs) > 1:
+            yield Validation.warning(
+                codes='EDINET.EC5710W.FRTA.4.2.7',
+                msg=_("A label linkbase should only contain labels defined in a single language. This linkbase uses the following languages: %(langs)s"),
+                langs=usedLangs,
+                modelObject=modelDocument,
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_frta_4_2_11(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
