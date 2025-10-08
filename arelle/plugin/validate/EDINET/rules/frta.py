@@ -250,3 +250,28 @@ def rule_frta_4_2_4(
                 msg=_("The 'form' attribute is not allowed on 'xsd:element' or 'xsd:attribute' declarations in a schema file"),
                 modelObject=formUsages,
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_frta_4_2_11(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5710W: [FRTA.4.2.11] Every schema in a DTS must define a non-empty targetNamespace attribute value
+    """
+    for modelDocument in val.modelXbrl.urlDocs.values():
+        if pluginData.isStandardTaxonomyUrl(modelDocument.uri, val.modelXbrl) or not modelDocument.type == ModelDocument.Type.SCHEMA:
+            continue
+        rootElt = modelDocument.xmlRootElement
+        if rootElt.get('targetNamespace') is None or rootElt.get('targetNamespace') == "":
+            yield Validation.warning(
+                codes='EDINET.EC5710W.FRTA.4.2.11',
+                msg=_("Every schema in a DTS must define a non-empty targetNamespace attribute value."),
+                modelObject=modelDocument,
+            )
