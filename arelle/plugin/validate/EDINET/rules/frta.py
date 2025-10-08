@@ -199,16 +199,17 @@ def rule_frta_4_2_2(
     for modelDocument in val.modelXbrl.urlDocs.values():
         if pluginData.isStandardTaxonomyUrl(modelDocument.uri, val.modelXbrl):
             continue
-        for hrefElt, hrefedDoc, hrefId in modelDocument.hrefObjects:
-            if hrefElt.localName != "schemaRef":
-                continue
-            hrefedElt = hrefedDoc.xmlRootElement
-            if hrefedElt.namespaceURI != XbrlConst.xsd:
-                yield Validation.warning(
-                    codes='EDINET.EC5710W.FRTA.4.2.2',
-                    msg=_("The root of a taxonomy schema file MUST be the XMLSchema element."),
-                    modelObject=modelDocument,
-                )
+        # check for nested Schema declarations which are not allowed.
+        schemaElts = {
+            elt for elt in modelDocument.xmlRootElement.iterdescendants()
+            if hasattr(elt, 'elementQname') and elt.elementQname == XbrlConst.qnXsdSchema
+        }
+        if len(schemaElts) > 0:
+            yield Validation.warning(
+                codes='EDINET.EC5710W.FRTA.4.2.2',
+                msg=_("The root of a taxonomy schema file MUST be the XMLSchema element."),
+                modelObject=modelDocument,
+            )
 
 
 @validation(
@@ -222,8 +223,9 @@ def rule_frta_4_2_4(
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    EDINET.EC5710W: [FRTA.4.2.4] Taxonomy schemas must be defined in XML documents in which the XML Schema 'schema'
-                                 element appears once only as the root element.
+    EDINET.EC5710W: [FRTA.4.2.4] Taxonomy schemas must declare elementFormDefault to be 'qualified',
+                                 attributeFormDefault must have the value 'unqualified', and the 'form attribute
+                                  must not appear on element and attribute declarations.
     """
     for modelDocument in val.modelXbrl.urlDocs.values():
         if pluginData.isStandardTaxonomyUrl(modelDocument.uri, val.modelXbrl) or not modelDocument.type == ModelDocument.Type.SCHEMA:
@@ -238,7 +240,7 @@ def rule_frta_4_2_4(
             )
         formUsages = []
         for elt in rootElt.iterdescendants():
-            if elt.prefixedName not in ['xsd:element', 'xsd:attribute']:
+            if elt.elementQname not in [XbrlConst.qnXsdElement, XbrlConst.qnXsdAttribute]:
                 continue
             if elt.get('form') is not None:
                 formUsages.append(elt)

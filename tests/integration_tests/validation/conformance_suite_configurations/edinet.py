@@ -152,6 +152,9 @@ ADDITIONAL_INVALID_ERRORS = {
     "EC5700W.GFM.1.2.13/index.xml:invalid01": {
         "EDINET.EC5700W.GFM.1.1.3": 1,
     },
+    "EC5700W.GFM.1.3.1/index.xml:invalid01": {
+        "EDINET.EC5710W.FRTA.4.2.4": 1,
+    },
     "EC5700W.GFM.1.7.3/index.xml:invalid01": {
         "EDINET.EC5700W.GFM.1.7.5": 1,
     },
