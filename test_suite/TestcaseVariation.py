@@ -13,6 +13,7 @@ class TestcaseVariation:
     shortName: str
     status: str
     testcaseConstraintSet: TestcaseConstraintSet | None
+    blockedCodePattern: str
 
     @property
     def fullId(self) -> str:

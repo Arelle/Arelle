@@ -1,8 +1,11 @@
 import argparse
+import fnmatch
 import json
 import multiprocessing
+import os
 from typing import Any
 
+import regex
 import time
 from pathlib import Path
 
@@ -25,8 +28,8 @@ def _longestCommonPrefix(values: list[str]) -> str:
     if not values:
         return ""
     values = sorted(values)
-    first = values[0]
-    last = values[-1]
+    first = Path(values[0]).parts
+    last = Path(values[-1]).parts
 
     # Use zip to iterate through characters of both strings simultaneously
     prefix = []
@@ -35,7 +38,7 @@ def _longestCommonPrefix(values: list[str]) -> str:
             prefix.append(char1)
         else:
             break
-    return "".join(prefix)
+    return str(Path(*prefix)) + os.sep
 
 
 def _longestCommonSuffix(values: list[str]) -> str:
@@ -50,6 +53,12 @@ def parse_args() -> argparse.Namespace:
         help="Path or URL to the testcase index file.",
         required=True,
         type=str
+    )
+    parser.add_argument(
+        '-f', '--filters',
+        help="Filter patterns to determine testcase variations to include.",
+        required=False,
+        action='append',
     )
     parser.add_argument(
         '-p', '--parallel',
@@ -67,17 +76,17 @@ def parse_args() -> argparse.Namespace:
 
 
 def loadTestcaseIndex(index_path: str) -> list[TestcaseVariation]:
-    options = RuntimeOptions(
+    runtimeOptions = RuntimeOptions(
         entrypointFile=index_path,
         keepOpen=True,
-        internetConnectivity='offline',
-        internetRecheck='never',
-        disablePersistentConfig=True,
+        # internetConnectivity='offline',
+        # internetRecheck='never',
+        # disablePersistentConfig=True,
         # validate=True,
     )
     with Session() as session:
         session.run(
-            options,
+            runtimeOptions,
             logHandler=StructuredMessageLogHandler(),
         )
         models = session.get_models()
@@ -94,7 +103,7 @@ def loadTestcaseIndex(index_path: str) -> list[TestcaseVariation]:
         for doc in docs:
             docUri = doc.uri.removeprefix(prefix).removesuffix(suffix)
             for testcaseVariation in doc.testcaseVariations:
-                expected = testcaseVariation.expected
+                expected = testcaseVariation.expected or []
                 errors = []
                 if isinstance(expected, list):
                     for e in expected:
@@ -123,6 +132,28 @@ def loadTestcaseIndex(index_path: str) -> list[TestcaseVariation]:
                             ))
                         else:
                             raise ValueError(f"Unexpected expected error type: {type(e)}")
+                expectedWarnings = testcaseVariation.expectedWarnings or []
+                for warning in expectedWarnings:
+                    if isinstance(warning, QName):
+                        errors.append(TestcaseConstraint(
+                            qname=warning,
+                            pattern=None,
+                            min=1,
+                            max=1,
+                            warnings=True,
+                            errors=False,
+                        ))
+                    elif isinstance(warning, str):
+                        errors.append(TestcaseConstraint(
+                            qname=None,
+                            pattern=warning,
+                            min=1,
+                            max=1,
+                            warnings=True,
+                            errors=False,
+                        ))
+
+                blockedCodePattern = testcaseVariation.blockedMessageCodes # restricts codes examined when provided
 
                 testcaseConstraintSet = TestcaseConstraintSet(
                     errors=errors,
@@ -136,33 +167,55 @@ def loadTestcaseIndex(index_path: str) -> list[TestcaseVariation]:
                     readFirstUris=testcaseVariation.readMeFirstUris,
                     shortName=f"{docUri}:{testcaseVariation.id}",
                     status=testcaseVariation.status,
-                    testcaseConstraintSet=testcaseConstraintSet
+                    testcaseConstraintSet=testcaseConstraintSet,
+                    blockedCodePattern=blockedCodePattern,
                 ))
         return testcaseVariations
 
 
-def runTestcaseVariationArgs(inputArgs: tuple[TestcaseVariation, dict[str, Any]]) -> TestcaseResult:
-    testcaseVariation, runtimeOptions = inputArgs
-    return runTestcaseVariation(testcaseVariation, runtimeOptions)
+def runTestcaseVariationArgs(inputArgs: tuple[TestcaseVariation, TestSuiteOptions]) -> TestcaseResult:
+    testcaseVariation, testSuiteOptions = inputArgs
+    return runTestcaseVariation(testcaseVariation, testSuiteOptions)
+
+
+def filterTestcaseVariation(testcaseVariation: TestcaseVariation, filters: list[str]) -> bool:
+    if not filters:
+        return True
+    variationId = testcaseVariation.fullId
+    for filter in filters:
+        if fnmatch.fnmatch(variationId, filter):
+            return True
+    return False
 
 
 def runTestcaseVariation(
     testcaseVariation: TestcaseVariation,
-    runtimeOptions: dict[str, Any],
+    testSuiteOptions: TestSuiteOptions,
 ) -> TestcaseResult:
+    if not filterTestcaseVariation(testcaseVariation, testSuiteOptions.filters):
+        return TestcaseResult(
+            testcaseVariation=testcaseVariation,
+            appliedConstraintSet=TestcaseConstraintSet(errors=[], matchAll=False),
+            actualErrors=[],
+            constraintResults=[],
+            passed=True,
+            skip=True,
+            duration_seconds=0,
+            blockedErrors={},
+        )
     readMeFirstPaths = [
         str(Path(testcaseVariation.base).parent.joinpath(Path(readMeFirstUri)))
         for readMeFirstUri in testcaseVariation.readFirstUris
     ]
     entrypointFile = '|'.join(readMeFirstPaths)
-    testcaseVariationOptions = RuntimeOptions(
+    runtimeOptions = RuntimeOptions(
         entrypointFile=entrypointFile,
-        **runtimeOptions
+        **testSuiteOptions.options
     )
     with Session() as session:
         start_ts = time.perf_counter_ns()
         session.run(
-            testcaseVariationOptions,
+            runtimeOptions,
             logHandler=StructuredMessageLogHandler(),
         )
         duration_seconds = (time.perf_counter_ns() - start_ts) / 1_000_000_000
@@ -183,51 +236,56 @@ def runTestcaseVariation(
             testcaseVariation=testcaseVariation,
             actualErrors=actualErrors,
             duration_seconds=duration_seconds,
+            additionalConstraints=testSuiteOptions.additionalConstraints
         )
         return result
 
 
 def runTestcaseVariationsInParallel(
     testcaseVariations: list[TestcaseVariation],
-    runtimeOptions: dict[str, Any],
+    testSuiteOptions: TestSuiteOptions,
 ) -> list[TestcaseResult]:
     tasks = [
-        (testcaseVariation, runtimeOptions)
+        (testcaseVariation, testSuiteOptions)
         for testcaseVariation in testcaseVariations
     ]
     with multiprocessing.Pool() as pool:
-        parallel_results = pool.map(runTestcaseVariationArgs, tasks)
-        return parallel_results
-    return results
-
+        results = pool.map(runTestcaseVariationArgs, tasks)
+        for result in results:
+            if not result.skip:
+                print(result.report())
+        return results
 
 def runTestcaseVariationsInSeries(
         testcaseVariations: list[TestcaseVariation],
-        runtimeOptions: dict[str, Any],
+        testSuiteOptions: TestSuiteOptions,
 ) -> list[TestcaseResult]:
     results = []
     for testcaseVariation in testcaseVariations:
-        result = runTestcaseVariation(testcaseVariation, runtimeOptions)
-        print(result)
+        result = runTestcaseVariation(testcaseVariation, testSuiteOptions)
+        if not result.skip:
+            print(result.report())
         results.append(result)
     return results
 
 
-def _normalizedConstraints(testcaseVariation: TestcaseVariation) -> list[TestcaseConstraint]:
+def _normalizedConstraints(
+        constraints: list[tuple[str, list[TestcaseConstraint]]]
+) -> list[TestcaseConstraint]:
     normalizedConstraintsMap = {}
-    for testcaseConstraint in testcaseVariation.testcaseConstraintSet.errors:
+    for constraint in constraints:
         key = (
-            testcaseConstraint.qname,
-            testcaseConstraint.pattern,
-            testcaseConstraint.warnings,
-            testcaseConstraint.errors
+            constraint.qname,
+            constraint.pattern,
+            constraint.warnings,
+            constraint.errors
         )
         if key not in normalizedConstraintsMap:
             normalizedConstraintsMap[key] = (0, 0)
         minCount, maxCount = normalizedConstraintsMap[key]
         normalizedConstraintsMap[key] = (
-            (minCount + (testcaseConstraint.min or 0)),
-            (maxCount + (testcaseConstraint.max or 0))
+            (minCount + (constraint.min or 0)),
+            (maxCount + (constraint.max or 0))
         )
     normalizedConstraints = [
         TestcaseConstraint(
@@ -243,18 +301,41 @@ def _normalizedConstraints(testcaseVariation: TestcaseVariation) -> list[Testcas
     return normalizedConstraints
 
 
+def blockCodes(actualErrors: list[ActualError], pattern: str) -> tuple[list[ActualError], dict[str, int]]:
+    results = []
+    blockedCodes = defaultdict(int)
+    if not pattern:
+        return actualErrors, blockedCodes
+    compiledPattern = regex.compile(regex.sub(r'\\(.)', r'\1', pattern))
+    for actualError in actualErrors:
+        value = str(actualError.qname or actualError.code)
+        if compiledPattern.match(value):
+            blockedCodes[value] += 1
+            continue
+        results.append(actualError)
+    return results, blockedCodes
+
 def buildResult(
     testcaseVariation: TestcaseVariation,
     actualErrors: list[ActualError],
     duration_seconds: float,
+    additionalConstraints: list[tuple[str, list[TestcaseConstraint]]],
 ) -> TestcaseResult:
     diff = {}
     anyPassed = False
     actualErrorCounts = defaultdict(int)
+    actualErrors, blockedErrors = blockCodes(actualErrors, testcaseVariation.blockedCodePattern)
     for actualError in actualErrors:
         actualErrorCounts[actualError.qname or actualError.code] += 1
-    constraints = _normalizedConstraints(testcaseVariation)
-    for constraint in constraints:
+    appliedConstraints = list(testcaseVariation.testcaseConstraintSet.errors)
+    for filter, constraints in additionalConstraints:
+        if fnmatch.fnmatch(testcaseVariation.fullId, filter):
+            appliedConstraints.extend(constraints)
+    appliedConstraintSet = TestcaseConstraintSet(
+        errors=_normalizedConstraints(appliedConstraints),
+        matchAll=testcaseVariation.testcaseConstraintSet
+    )
+    for constraint in appliedConstraints:
         matchCount = 0
         for actualError, count in list(actualErrorCounts.items()):
             if (
@@ -276,11 +357,8 @@ def buildResult(
         if count == 0:
             continue
         diff[actualError] = count
-    if testcaseVariation.testcaseConstraintSet.matchAll:
-        diff = {
-            k: v for k, v in diff.items() if v != 0
-        }
-        passed = len(diff) == 0
+    if appliedConstraintSet.matchAll: #TODO: matchAll/Any?
+        passed = all(d == 0 for d in diff.values())
     else:
         passed = anyPassed
     constraintResults = [
@@ -289,35 +367,35 @@ def buildResult(
             diff=v
         )
         for k, v in diff.items()
-        if v != 0
     ]
     return TestcaseResult(
         testcaseVariation=testcaseVariation,
+        appliedConstraintSet=appliedConstraintSet,
         actualErrors=actualErrors,
         constraintResults=constraintResults,
         passed=passed,
         skip=False,
         duration_seconds=duration_seconds,
+        blockedErrors=blockedErrors,
     )
 
 
-def run(options: TestSuiteOptions) -> list[TestcaseResult]:
+def run(testSuiteOptions: TestSuiteOptions) -> list[TestcaseResult]:
     start_ts = time.perf_counter_ns()
 
-    runtimeOptions = json.loads(options.options)
-
-    testcaseVariations = loadTestcaseIndex(options.indexFile)
-    print(f'Loaded {len(testcaseVariations)} testcase variations from {options.indexFile}')
+    testcaseVariations = loadTestcaseIndex(testSuiteOptions.indexFile)
+    print(f'Loaded {len(testcaseVariations)} testcase variations from {testSuiteOptions.indexFile}')
     test_realtime_ts = time.perf_counter_ns()
-    if options.parallel:
+    if testSuiteOptions.parallel:
         print('Running in parallel...')
-        results = runTestcaseVariationsInParallel(testcaseVariations, runtimeOptions)
+        results = runTestcaseVariationsInParallel(testcaseVariations, testSuiteOptions)
     else:
         print('Running in series...')
-        results = runTestcaseVariationsInSeries(testcaseVariations, runtimeOptions)
+        results = runTestcaseVariationsInSeries(testcaseVariations, testSuiteOptions)
     test_realtime_duration_seconds = (time.perf_counter_ns() - test_realtime_ts) / 1_000_000_000
-    passed = sum(1 for result in results if result.passed)
-    failed = sum(1 for result in results if not result.passed)
+    passed = sum(1 for result in results if result.passed and not result.skip)
+    failed = sum(1 for result in results if not result.passed and not result.skip)
+    skipped = sum(1 for result in results if result.skip)
     test_duration_seconds = sum(result.duration_seconds for result in results)
     duration_seconds = (time.perf_counter_ns() - start_ts) / 1_000_000_000
     print(
@@ -330,6 +408,7 @@ def run(options: TestSuiteOptions) -> list[TestcaseResult]:
         f'Results: '
         f'\n\tPassed: \t{passed}'
         f'\n\tFailed: \t{failed}'
+        f'\n\tSkipped: \t{skipped}'
         f'\n\tTotal:  \t{len(results)}'
     )
     return results
@@ -338,8 +417,10 @@ def run(options: TestSuiteOptions) -> list[TestcaseResult]:
 if __name__ == "__main__":
     args = parse_args()
     run(TestSuiteOptions(
+        additionalConstraints=[],
+        filters=args.filters,
         indexFile=args.index,
-        options=args.options,
+        options=json.loads(args.options),
         parallel=args.parallel,
     ))
 

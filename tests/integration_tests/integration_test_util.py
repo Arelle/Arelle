@@ -15,6 +15,8 @@ from arelle import ModelDocument, PackageManager, PluginManager
 from arelle.Cntlr import Cntlr
 from arelle.CntlrCmdLine import parseAndRun
 from arelle.FileSource import archiveFilenameParts
+from test_suite import TestSuite
+from test_suite.TestSuiteOptions import TestSuiteOptions
 from test_suite.TestcaseResult import TestcaseResult
 
 if TYPE_CHECKING:
@@ -171,7 +173,8 @@ def get_test_data(
 
 
 def get_test_suite_data(
-        test_case_results: list[TestcaseResult],
+        test_suite_options: TestSuiteOptions,
+        expected_additional_testcase_errors: dict[str, dict[str, int]],
         expected_failure_ids: frozenset[str] = frozenset(),
         expected_model_errors: frozenset[str] = frozenset(),
         required_locale_by_ids: dict[str, re.Pattern[str]] | None = None,
@@ -189,6 +192,7 @@ def get_test_suite_data(
     """
     if required_locale_by_ids is None:
         required_locale_by_ids = {}
+    test_case_results = TestSuite.run(test_suite_options)
     try:
         system_locale = locale.setlocale(locale.LC_CTYPE)
         results: list[ParameterSet] = []
@@ -208,7 +212,7 @@ def get_test_suite_data(
             # if test_case.type not in (ModelDocument.Type.TESTCASE, ModelDocument.Type.REGISTRYTESTCASE):
             #     test_cases_with_unrecognized_type[test_case_file_id] = test_case.type
 
-            if not getattr(test_case_result, "testcaseVariations", None):
+            if not getattr(test_case_result, "testcaseVariations", None) and False:
                 pass
                 # test_cases_with_no_variations.add(test_case_file_id) # TODO:
             else:
@@ -216,10 +220,16 @@ def get_test_suite_data(
                 marks = []
                 if isExpectedFailure(test_id, expected_failure_ids, required_locale_by_ids, system_locale):
                     marks.append(pytest.mark.xfail())
+                # elif test_case_result.status == 'skip':
+                #     continue  # don't report variations skipped due to shards
                 expected_results = [
                     str(e)
-                    for e in test_case_result.testcaseVariation.testcaseConstraintSet.errors
+                    for e in test_case_result.appliedConstraintSet.errors
                 ]
+                message = ', '.join([
+                    str(e)
+                    for e in test_case_result.constraintResults
+                ])
                 # Arelle adds message code frequencies to the end, but conformance suites usually don't.
                 # Skip assertion results dictionaries.
                 actual = [
@@ -230,10 +240,11 @@ def get_test_suite_data(
                     {
                         'status': test_case_result.status,
                         'expected': json.dumps(expected_results),
-                        'actual': actual,
+                        'actual': json.dumps(dict(Counter(actual))),
                         'duration': test_case_result.duration_seconds,
+                        'message': message,
                     },
-                    id=test_id,
+                    id=test_case_result.testcaseVariation.shortName,
                     marks=marks,
                 )
                 results.append(param)

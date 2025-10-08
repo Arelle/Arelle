@@ -15,9 +15,9 @@ class TestcaseConstraint:
     def __str__(self):
         value = str(self.qname or self.pattern)
         if self.errors:
-            value += " [ERROR]"
+            value += " [E]"
         if self.warnings:
-            value += " [WARNING]"
+            value += " [W]"
         minCount = self.min or 1
         maxCount = self.max or 1
         if minCount == maxCount:

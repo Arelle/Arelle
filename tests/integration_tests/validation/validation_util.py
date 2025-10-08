@@ -22,6 +22,8 @@ from lxml import etree
 from arelle.WebCache import WebCache
 from test_suite import TestSuite
 from test_suite.TestSuiteOptions import TestSuiteOptions
+from test_suite.TestcaseConstraint import TestcaseConstraint
+from test_suite.TestcaseConstraintSet import TestcaseConstraintSet
 from tests.integration_tests.integration_test_util import get_test_data, get_test_suite_data
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig
 
@@ -52,6 +54,11 @@ def normalize_url_function(config: ConformanceSuiteConfig) -> Callable[[WebCache
 def get_test_data_mp_wrapper(args_kws: tuple[list[Any], dict[str, Any]]) -> list[ParameterSet]:
     args, kws = args_kws
     return get_test_data(args, **kws)
+
+
+def get_test_suite_mp_wrapper(args_kws: tuple[TestSuiteOptions, dict[str, Any]]) -> list[ParameterSet]:
+    args, kws = args_kws
+    return get_test_suite_data(args, **kws)
 
 
 def get_testcase_variation_map(config: ConformanceSuiteConfig) -> dict[str, list[str]]:
@@ -307,27 +314,16 @@ def get_conformance_suite_test_results(
 ) -> list[ParameterSet]:
     assert len(shards) == 0 or config.shards != 1, \
         'Conformance suite configuration must specify shards if --shard is passed'
-    if config.name == "edinet":
-        additional_plugins = frozenset().union(*(plugins for _, plugins in config.additional_plugins_by_prefix))
-        results = TestSuite.run(TestSuiteOptions(
-            indexFile=config.entry_point_path.as_posix(),
-            options=json.dumps(
-                get_test_suite_options(
-                    config=config, additional_plugins=additional_plugins,
-                    build_cache=build_cache, offline=offline, log_to_file=log_to_file, shard=None,
-                    expected_additional_testcase_errors=config.expected_additional_testcase_errors,
-                    testcase_filters=testcase_filters,
-                )
-            ),
-            parallel=not series,
-        ))
-        return get_test_suite_data(
-            test_case_results=results,
-            expected_failure_ids=config.expected_failure_ids,
-            expected_model_errors=config.expected_model_errors,
-            required_locale_by_ids=config.required_locale_by_ids,
-            strict_testcase_index=config.strict_testcase_index,
-        )
+    if config.name == "edinet" and False:
+        if shards:
+            assert not testcase_filters, 'Testcase filters are not supported with shards.'
+            return get_test_suite_test_results_with_shards(
+                config=config, shards=shards, build_cache=build_cache, log_to_file=log_to_file, offline=offline, series=series
+            )
+        else:
+            return get_test_suite_test_results_without_shards(
+                config=config, build_cache=build_cache, log_to_file=log_to_file, offline=offline, series=series, testcase_filters=testcase_filters
+            )
     if shards:
         assert not testcase_filters, 'Testcase filters are not supported with shards.'
         return get_conformance_suite_test_results_with_shards(
@@ -336,6 +332,152 @@ def get_conformance_suite_test_results(
     else:
         return get_conformance_suite_test_results_without_shards(
             config=config, build_cache=build_cache, log_to_file=log_to_file, offline=offline, testcase_filters=testcase_filters
+        )
+
+
+def _get_additional_constraints(config: ConformanceSuiteConfig) -> list[tuple[str, list[TestcaseConstraint]]]:
+    additional_constraints = []
+    for test_id, errors in config.expected_additional_testcase_errors.items():
+        additional_constraints.append(
+            (
+                test_id,
+                [
+                    TestcaseConstraint(
+                        qname=None,
+                        pattern=code,
+                        min=count,
+                        max=count,
+                        warnings=False,
+                        errors=True,
+                    )
+                    for code, count in errors.items()
+                ],
+            )
+        )
+    return additional_constraints
+
+
+def get_test_suite_test_results_with_shards(
+        config: ConformanceSuiteConfig,
+        shards: list[int],
+        build_cache: bool = False,
+        log_to_file: bool = False,
+        offline: bool = False,
+        series: bool = False) -> list[ParameterSet]:
+    tasks = []
+    all_testcase_filters = []
+    for shard_id in shards:
+        test_shards = get_test_shards(config)
+        shard = test_shards[shard_id]
+        test_paths = shard.paths
+        additional_plugins = shard.plugins
+        all_test_paths = {path for test_shard in test_shards for path in test_shard.paths}
+
+        unrecognized_additional_error_ids = {
+            pattern
+            for pattern in {
+                _id.rsplit(':', 1)[0]
+                for _id in config.expected_additional_testcase_errors.keys()
+            }
+            if not any(fnmatch.fnmatch(test_path, pattern) for test_path in all_test_paths)
+        }
+        assert not unrecognized_additional_error_ids, f'Unrecognized expected additional error IDs: {unrecognized_additional_error_ids}'
+
+        unrecognized_expected_failure_ids = {_id.rsplit(':', 1)[0] for _id in config.expected_failure_ids} - all_test_paths
+        assert not unrecognized_expected_failure_ids, f'Unrecognized expected failure IDs: {unrecognized_expected_failure_ids}'
+        expected_failure_ids = set()
+        for expected_failure_id in config.expected_failure_ids:
+            test_path, test_id = expected_failure_id.rsplit(':', 1)
+            if test_id in test_paths.get(test_path, []):
+                expected_failure_ids.add(expected_failure_id)
+
+        testcase_filters = sorted([
+            f'*{os.path.sep}{path}:{vid}'
+            for path, vids in test_paths.items()
+            for vid in vids
+        ])
+        all_testcase_filters.extend(testcase_filters)
+
+        runtime_options = get_test_suite_runtime_options(
+            config=config, additional_plugins=additional_plugins,
+            build_cache=build_cache, offline=offline, log_to_file=log_to_file, shard=shard_id,
+        )
+        test_suite_options = TestSuiteOptions(
+            additionalConstraints=_get_additional_constraints(config),
+            filters=testcase_filters,
+            indexFile=config.entry_point_path.as_posix(),
+            options=runtime_options,
+            parallel=not series, # "daemonic processes are not allowed to have children"
+        )
+        kws = dict(
+            expected_additional_testcase_errors=config.expected_additional_testcase_errors,
+            expected_failure_ids=expected_failure_ids,
+            expected_model_errors=config.expected_model_errors,
+            required_locale_by_ids=config.required_locale_by_ids,
+            strict_testcase_index=config.strict_testcase_index,
+        )
+        tasks.append((test_suite_options, kws))
+
+    url_context_manager: AbstractContextManager[Any]
+    if config.url_replace:
+        url_context_manager = patch('arelle.WebCache.WebCache.normalizeUrl', normalize_url_function(config))
+    else:
+        url_context_manager = nullcontext()
+    with url_context_manager:
+        results = []
+        for task in tasks:
+            task_results = get_test_suite_mp_wrapper(task)
+            results.extend(task_results)
+    merged_results = {}
+    for result in results:
+        status = result.values[0].get('status')
+        existing_result = merged_results.get(result.id)
+        if existing_result is None:
+            merged_results[result.id] = result
+        elif status != 'skip':
+            existing_status = existing_result.values[0].get('status')
+            assert existing_status == 'skip', \
+                f'Conflicting results for {result.id}: {existing_status} vs {status}'
+            merged_results[result.id] = result
+    results = list(sorted(merged_results.values(), key=lambda x: x.id))
+
+    assert sum(1 for r in results if r.values[0].get('status') != 'skip') == len(all_testcase_filters), \
+        f'Expected {len(all_testcase_filters)} results based on testcase filters, received {len(results)}'
+    return results
+
+
+def get_test_suite_test_results_without_shards(
+        config: ConformanceSuiteConfig,
+        build_cache: bool = False,
+        log_to_file: bool = False,
+        offline: bool = False,
+        series: bool = False,
+        testcase_filters: list[str] | None = None,
+) -> list[ParameterSet]:
+    additional_plugins = frozenset().union(*(plugins for _, plugins in config.additional_plugins_by_prefix))
+    runtime_options = get_test_suite_runtime_options(
+        config=config, additional_plugins=additional_plugins,
+        build_cache=build_cache, offline=offline, log_to_file=log_to_file, shard=None,
+    )
+    url_context_manager: AbstractContextManager[Any]
+    if config.url_replace:
+        url_context_manager = patch('arelle.WebCache.WebCache.normalizeUrl', normalize_url_function(config))
+    else:
+        url_context_manager = nullcontext()
+    with url_context_manager:
+        return get_test_suite_data(
+            test_suite_options=TestSuiteOptions(
+                additionalConstraints=_get_additional_constraints(config),
+                filters=testcase_filters,
+                indexFile=config.entry_point_path.as_posix(),
+                options=runtime_options,
+                parallel=not series,
+            ),
+            expected_additional_testcase_errors=config.expected_additional_testcase_errors,
+            expected_failure_ids=config.expected_failure_ids,
+            expected_model_errors=config.expected_model_errors,
+            required_locale_by_ids=config.required_locale_by_ids,
+            strict_testcase_index=config.strict_testcase_index,
         )
 
 
@@ -417,30 +559,28 @@ def get_conformance_suite_test_results_without_shards(
     additional_plugins = frozenset().union(*(plugins for _, plugins in config.additional_plugins_by_prefix))
     filename = config.entry_point_path.as_posix()
     expected_failure_ids = config.expected_failure_ids
-    args, kws = get_conformance_suite_arguments(
-        config=config, filename=filename, additional_plugins=additional_plugins,
-        build_cache=build_cache, offline=offline, log_to_file=log_to_file, shard=None,
-        expected_additional_testcase_errors=config.expected_additional_testcase_errors,
-        expected_failure_ids=expected_failure_ids, testcase_filters=testcase_filters or [],
-    )
     url_context_manager: AbstractContextManager[Any]
     if config.url_replace:
         url_context_manager = patch('arelle.WebCache.WebCache.normalizeUrl', normalize_url_function(config))
     else:
         url_context_manager = nullcontext()
     with url_context_manager:
+        args, kws = get_conformance_suite_arguments(
+            config=config, filename=filename, additional_plugins=additional_plugins,
+            build_cache=build_cache, offline=offline, log_to_file=log_to_file, shard=None,
+            expected_additional_testcase_errors=config.expected_additional_testcase_errors,
+            expected_failure_ids=expected_failure_ids, testcase_filters=testcase_filters or [],
+        )
         return get_test_data(args, **kws)
 
 
-def get_test_suite_options(
+def get_test_suite_runtime_options(
         config: ConformanceSuiteConfig,
         additional_plugins: frozenset[str],
         build_cache: bool,
         offline: bool,
         log_to_file: bool,
-        expected_additional_testcase_errors: dict[str, dict[str, int]],
         shard: int | None,
-        testcase_filters: list[str]
 ) -> dict[str, Any]:
     use_shards = shard is not None
     optional_plugins = set()
@@ -465,14 +605,6 @@ def get_test_suite_options(
         args['logFile'] = f'conf-{config.name}{shard_str}-log.txt'
     if offline or config.runs_without_network:
         args['internetConnectivity'] = 'offline'
-    if testcase_filters:
-        args['testcaseFilters'] = [pattern for pattern in testcase_filters]
-    # TODO:
-    # for testcase_id, errorCounts in expected_additional_testcase_errors.items():
-    #     errors = []
-    #     for error, count in errorCounts.items():
-    #         errors.extend([error] * count)
-    #     args.extend(['--testcaseExpectedErrors', f'{testcase_id}|{",".join(errors)}'])
     return args | config.test_suite_options
 
 

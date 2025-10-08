@@ -777,9 +777,10 @@ def rule_gfm_1_3_11(
                 yield Validation.warning(
                     codes='EDINET.EC5700W.GFM.1.3.11',
                     msg=_("The usedOn attribute of the extended link role should be set to include all of link:presentationLink, link:calculationLink, and link:definitionLink. "
-                          "Extended link role roleURI: %(roleURI)s is missing %(usedOn)s."),
+                          "Extended link role roleURI: %(roleURI)s is missing %(usedOns)s."),
                     roleURI=modelRoleType.roleURI,
-                    modelObject=modelRoleType
+                    modelObject=modelRoleType,
+                    usedOns=', '.join(f'"{usedOn}"' for usedOn in sorted(requiredUsedOns - usedOns)),
                 )
 
 
