@@ -11,9 +11,15 @@ from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.validate.ValidationPlugin import ValidationPlugin
-from .DisclosureSystems import (DISCLOSURE_SYSTEM_NT16, DISCLOSURE_SYSTEM_NT17, DISCLOSURE_SYSTEM_NT18,
-                                DISCLOSURE_SYSTEM_NT19, DISCLOSURE_SYSTEM_NL_INLINE_2024,
-                                DISCLOSURE_SYSTEM_NL_INLINE_2024_GAAP_OTHER)
+from .DisclosureSystems import (
+    DISCLOSURE_SYSTEM_NT16,
+    DISCLOSURE_SYSTEM_NT17,
+    DISCLOSURE_SYSTEM_NT18,
+    DISCLOSURE_SYSTEM_NT19,
+
+    DISCLOSURE_SYSTEM_NL_INLINE_2024,
+    DISCLOSURE_SYSTEM_NL_INLINE_2024_GAAP_OTHER,
+)
 from .PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
