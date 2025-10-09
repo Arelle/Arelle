@@ -16,6 +16,7 @@ from .DisclosureSystems import (
     DISCLOSURE_SYSTEM_NT17,
     DISCLOSURE_SYSTEM_NT18,
     DISCLOSURE_SYSTEM_NT19,
+    DISCLOSURE_SYSTEM_NT20,
 
     DISCLOSURE_SYSTEM_NL_INLINE_2024,
     DISCLOSURE_SYSTEM_NL_INLINE_2024_GAAP_OTHER,
@@ -180,6 +181,42 @@ class ValidationPluginExtension(ValidationPlugin):
                 'kvk-rpt-jaarverantwoording-2024-nlgaap-toegelaten-instellingen-volkshuisvesting.xsd',
                 'kvk-rpt-jaarverantwoording-2024-nlgaap-verzekeringsmaatschappijen.xsd',
                 'kvk-rpt-jaarverantwoording-2024-nlgaap-zorginstellingen.xsd',
+            ]}
+        elif disclosureSystem == DISCLOSURE_SYSTEM_NT20:
+            ifrsNamespace = None
+            jenvNamespace = 'http://www.nltaxonomie.nl/nt20/jenv/20251210/dictionary/jenv-bw2-data'
+            kvkINamespace = 'http://www.nltaxonomie.nl/nt20/kvk/20251210/dictionary/kvk-data'
+            nlTypesNamespace = 'http://www.nltaxonomie.nl/nt20/sbr/20250301/dictionary/nl-types'
+            rjNamespace = None
+            entrypointRoot = 'http://www.nltaxonomie.nl/nt20/kvk/20251210/entrypoints/'
+            entrypoints = {entrypointRoot + e for e in [
+                'kvk-rpt-jaarverantwoording-2025-nlgaap-banken.xsd',
+                'kvk-rpt-jaarverantwoording-2025-nlgaap-beleggingsentiteiten.xsd',
+                'kvk-rpt-jaarverantwoording-2025-nlgaap-cooperaties.xsd',
+                'kvk-rpt-jaarverantwoording-2025-nlgaap-cv-vof.xsd',
+                'kvk-rpt-jaarverantwoording-2025-nlgaap-fondsenwervende-organisaties-klein.xsd',
+                'kvk-rpt-jaarverantwoording-2025-nlgaap-fondsenwervende-organisaties.xsd',
+                'kvk-rpt-jaarverantwoording-2025-nlgaap-groot-verticaal.xsd',
+                'kvk-rpt-jaarverantwoording-2025-nlgaap-groot.xsd',
+                'kvk-rpt-jaarverantwoording-2025-nlgaap-klein-publicatiestukken.xsd',
+                'kvk-rpt-jaarverantwoording-2025-nlgaap-klein-verticaal-publicatiestukken.xsd',
+                'kvk-rpt-jaarverantwoording-2025-nlgaap-klein-verticaal.xsd',
+                'kvk-rpt-jaarverantwoording-2025-nlgaap-klein.xsd',
+                'kvk-rpt-jaarverantwoording-2025-nlgaap-micro-publicatiestukken.xsd',
+                'kvk-rpt-jaarverantwoording-2025-nlgaap-micro.xsd',
+                'kvk-rpt-jaarverantwoording-2025-nlgaap-middelgroot-plus.xsd',
+                'kvk-rpt-jaarverantwoording-2025-nlgaap-middelgroot-publicatiestukken.xsd',
+                'kvk-rpt-jaarverantwoording-2025-nlgaap-middelgroot-verticaal-publicatiestukken.xsd',
+                'kvk-rpt-jaarverantwoording-2025-nlgaap-middelgroot-verticaal.xsd',
+                'kvk-rpt-jaarverantwoording-2025-nlgaap-middelgroot.xsd',
+                'kvk-rpt-jaarverantwoording-2025-nlgaap-organisaties-zonder-winststreven-klein.xsd',
+                'kvk-rpt-jaarverantwoording-2025-nlgaap-organisaties-zonder-winststreven.xsd',
+                'kvk-rpt-jaarverantwoording-2025-nlgaap-pensioenfondsen.xsd',
+                'kvk-rpt-jaarverantwoording-2025-nlgaap-premiepensioeninstellingen.xsd',
+                'kvk-rpt-jaarverantwoording-2025-nlgaap-stichtingen.xsd',
+                'kvk-rpt-jaarverantwoording-2025-nlgaap-toegelaten-instellingen-volkshuisvesting.xsd',
+                'kvk-rpt-jaarverantwoording-2025-nlgaap-verzekeringsmaatschappijen.xsd',
+                'kvk-rpt-jaarverantwoording-2025-nlgaap-zorginstellingen.xsd',
             ]}
         elif disclosureSystem == DISCLOSURE_SYSTEM_NL_INLINE_2024:
             ifrsNamespace = 'https://xbrl.ifrs.org/taxonomy/2024-03-27/ifrs-full'
