@@ -25,9 +25,9 @@ RELEVELER_MAP: dict[str, dict[str, tuple[str, str | None]]] = {
         # Silence, duplicated by EDINET.EC5700W.GFM.1.7.2
         "xbrl.5.2.5.2.1:zeroWeight": ("ERROR", None),
         # Silence, Duplicated by EDINET.EC5710W.FRTA.4.2.2
-        "xbrl.4.2.2:schemaRefHref": ("Error", None),
+        "xbrl.4.2.2:schemaRefHref": ("ERROR", None),
         # Silence, Duplicated by EDINET.EC5710W.FRTA.4.2.11
-        "xbrl.5.1:emptyTargetNamespace": ("Error", None),
+        "xbrl.5.1:emptyTargetNamespace": ("ERROR", None),
     },
 }
 

@@ -200,10 +200,7 @@ def rule_frta_4_2_2(
         if pluginData.isStandardTaxonomyUrl(modelDocument.uri, val.modelXbrl):
             continue
         # check for nested Schema declarations which are not allowed.
-        schemaElts = {
-            elt for elt in modelDocument.xmlRootElement.iterdescendants()
-            if hasattr(elt, 'elementQname') and elt.elementQname == XbrlConst.qnXsdSchema
-        }
+        schemaElts = {elt for elt in modelDocument.xmlRootElement.iterdescendants(XbrlConst.qnXsdSchema.clarkNotation)}
         if len(schemaElts) > 0:
             yield Validation.warning(
                 codes='EDINET.EC5710W.FRTA.4.2.2',
@@ -224,7 +221,7 @@ def rule_frta_4_2_4(
 ) -> Iterable[Validation]:
     """
     EDINET.EC5710W: [FRTA.4.2.4] Taxonomy schemas must declare elementFormDefault to be 'qualified',
-                                 attributeFormDefault must have the value 'unqualified', and the 'form attribute
+                                 attributeFormDefault must have the value 'unqualified', and the 'form' attribute
                                   must not appear on element and attribute declarations.
     """
     for modelDocument in val.modelXbrl.urlDocs.values():
@@ -239,9 +236,7 @@ def rule_frta_4_2_4(
                 modelObject=modelDocument,
             )
         formUsages = []
-        for elt in rootElt.iterdescendants():
-            if elt.elementQname not in [XbrlConst.qnXsdElement, XbrlConst.qnXsdAttribute]:
-                continue
+        for elt in rootElt.iterdescendants([XbrlConst.qnXsdElement.clarkNotation, XbrlConst.qnXsdAttribute.clarkNotation]):
             if elt.get('form') is not None:
                 formUsages.append(elt)
         if len(formUsages) > 0:
