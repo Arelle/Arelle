@@ -102,6 +102,7 @@ INVALID_TESTCASE_PARENTS = {
     "EC5700W.GFM.1.3.31/index.xml:invalid01": "valid/index.xml:valid05",
     "EC5700W.GFM.1.3.8/index.xml:invalid01": "valid/index.xml:valid05",
     "EC5700W.GFM.1.5.10/index.xml:invalid01": "valid/index.xml:valid05",
+    "EC5700W.GFM.1.5.1/index.xml:invalid01": "valid/index.xml:valid03",
     "EC5700W.GFM.1.5.6/index.xml:invalid01": "valid/index.xml:valid05",
     "EC5700W.GFM.1.5.7/index.xml:invalid01": "valid/index.xml:valid05",
     "EC5700W.GFM.1.5.7/index.xml:invalid02": "valid/index.xml:valid05",
@@ -172,6 +173,9 @@ ADDITIONAL_INVALID_ERRORS = {
         "EDINET.EC2005E": 2,
         "EDINET.EC3002E": 2,
     },
+    "FRTA.2.1.10": {
+        "EDINET.EC5700W.GFM.1.5.1": 1,
+    }
 }
 
 EXPECTED_ADDITIONAL_TESTCASE_ERRORS = defaultdict(lambda: defaultdict(int))

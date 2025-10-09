@@ -30,7 +30,7 @@ from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from ..Constants import NUMERIC_LABEL_ROLES, domainItemTypeQname
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
-from ..PluginValidationDataExtension import PluginValidationDataExtension
+from ..PluginValidationDataExtension import PluginValidationDataExtension, LANG_ATTRIBUTE_VALUES
 
 
 _: TypeGetText
@@ -1184,6 +1184,47 @@ def rule_gfm_1_3_31(
             msg=_("Set the abstract attribute to 'true'."),
             modelObject=nonAbstractDomainElements
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_5_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.5.1] An element used in a fact or xbrldi:explicitMember in an instance must have a Japanese
+                                language standard label in the DTS of that instance.
+    """
+    usedConcepts = {fact.concept for fact in val.modelXbrl.facts if fact.concept is not None}
+    for context in val.modelXbrl.contextsInUse:
+        for dim in context.scenDimValues.values():
+            if dim.isExplicit:
+                usedConcepts.update([dim.dimension, dim.member])
+    labelRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
+    if labelRelationshipSet is None:
+        return
+    for concept in usedConcepts:
+        labelRels = labelRelationshipSet.fromModelObject(concept)
+        labelExists = False
+        for rel in labelRels:
+            label = rel.toModelObject
+            if (label is not None and
+                    label.role == XbrlConst.standardLabel and
+                    label.xmlLang in LANG_ATTRIBUTE_VALUES):
+                labelExists = True
+                break
+        if not labelExists:
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.1.5.1',
+                msg=_("The used concept of '%(concept)s' is missing a standard label in Japanese"),
+                concept=concept.qname.localName,
+                modelObject=concept
+            )
 
 
 @validation(
