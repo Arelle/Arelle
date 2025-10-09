@@ -147,9 +147,6 @@ class ValidationPluginExtension(ValidationPlugin):
             rjNamespace = None
             entrypointRoot = 'http://www.nltaxonomie.nl/nt19/kvk/20241211/entrypoints/'
             entrypoints = {entrypointRoot + e for e in [
-                'kvk-rpt-jaarverantwoording-2024-ifrs-full.xsd',
-                'kvk-rpt-jaarverantwoording-2024-ifrs-geconsolideerd-nlgaap-enkelvoudig.xsd',
-                'kvk-rpt-jaarverantwoording-2024-ifrs-smes.xsd',
                 'kvk-rpt-jaarverantwoording-2024-nlgaap-banken.xsd',
                 'kvk-rpt-jaarverantwoording-2024-nlgaap-beleggingsentiteiten.xsd',
                 'kvk-rpt-jaarverantwoording-2024-nlgaap-cooperaties.xsd',
