@@ -1268,6 +1268,48 @@ def rule_gfm_1_5_2(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_gfm_1_5_3(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.5.3] If an element used in an instance is assigned a label in the DTS whose xml:lang
+                                attribute does not reflect the default language, then the DTS must also contain a
+                                link:label for the same element and all other attributes with an xml:lang attribute
+                                reflecting the default language.
+    """
+    usedConcepts = pluginData.getUsedConcepts(val.modelXbrl)
+    labelRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
+    if labelRelationshipSet is None:
+        return
+    for concept in usedConcepts:
+        labelRels = labelRelationshipSet.fromModelObject(concept)
+        labelsByRole = defaultdict(list)
+        for rel in labelRels:
+            label = rel.toModelObject
+            if label is None:
+                continue
+            labelsByRole[label.role].append(label)
+        warningRoles = []
+        for role, labels in labelsByRole.items():
+            if len([label for label in labels if label.xmlLang in JAPAN_LANGUAGE_CODES]) == 0:
+                warningRoles.append(role)
+        if len(warningRoles) > 0:
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.1.5.3',
+                msg=_("The used concept of '%(concept)s' is missing a label in Japanese in the following roles: %(roles)s."),
+                concept=concept.qname.localName,
+                roles=warningRoles,
+                modelObject=concept
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_gfm_1_5_6(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
