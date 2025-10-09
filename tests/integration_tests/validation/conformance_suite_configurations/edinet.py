@@ -169,14 +169,14 @@ ADDITIONAL_INVALID_ERRORS = {
         "EDINET.EC5700W.GFM.1.8.4": 2,
         "xbrl.5.1.4.3:cycles": 1,
     },
+    "EC5710W.FRTA.2.1.10/index.xml:invalid01": {
+        "EDINET.EC5700W.GFM.1.5.1": 1,
+    },
     "EC5806E/index.xml:invalid01": {
         # Instance duplicated means table of contents are included twice.
         "EDINET.EC2005E": 2,
         "EDINET.EC3002E": 2,
     },
-    "FRTA.2.1.10": {
-        "EDINET.EC5700W.GFM.1.5.1": 1,
-    }
 }
 
 EXPECTED_ADDITIONAL_TESTCASE_ERRORS = defaultdict(lambda: defaultdict(int))

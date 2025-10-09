@@ -3,8 +3,8 @@
 <testcase
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns="http://xbrl.org/2005/conformance"
-        name="EDINET.FRTA.2.1.10"
-        description="EDINET.FRTA.2.1.10: All extension taxonomy concepts must have a standard label."
+        name="EDINET.EC5710W.FRTA.2.1.10"
+        description="EDINET.EC5710W.FRTA.2.1.10: All extension taxonomy concepts must have a standard label."
         outpath=''
         owner="support@arelle.org"
         xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
@@ -17,7 +17,7 @@
             <instance readMeFirst="true">invalid01.zip</instance>
         </data>
         <result>
-            <warning>EDINET.FRTA.2.1.10</warning>
+            <warning>EDINET.EC5710W.FRTA.2.1.10</warning>
         </result>
     </variation>
 </testcase>
