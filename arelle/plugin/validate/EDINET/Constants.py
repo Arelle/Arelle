@@ -26,6 +26,8 @@ xhtmlDtdExtension = "xhtml1-strict-ix.dtd"
 
 COVER_PAGE_FILENAME_PREFIX = "0000000_header_"
 
+EDINET_NAMESPACE_PREFIX = 'http://disclosure.edinet-fsa.go.jp/taxonomy/'
+
 PROHIBITED_HTML_ATTRIBUTES = frozenset({
     'onblur',
     'onchange',
