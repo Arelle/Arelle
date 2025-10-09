@@ -60,7 +60,6 @@ STANDARD_TAXONOMY_URL_PREFIXES = frozenset((
     'https://www.w3.org/1999/xlink'
 ))
 
-LANG_ATTRIBUTE_VALUES = frozenset({'ja', 'jp', 'ja-jp', 'JA', 'JP', 'JA-JP'})
 
 @dataclass(frozen=True)
 class UriReference:

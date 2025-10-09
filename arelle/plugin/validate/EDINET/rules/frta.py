@@ -70,7 +70,7 @@ def rule_frta_2_1_10(
             errors.append(concept)
     if len(errors) > 0:
         yield Validation.warning(
-            codes='EDINET.EC5710W.FRTA.2.1.10',  # Not associated with EC5710W code.
+            codes='EDINET.EC5710W.FRTA.2.1.10',
             msg=_("All extension taxonomy concepts must have a standard label. "
                   "A standard label is not specified for a concept in an "
                   "extension taxonomy. When adding a concept to an extension taxonomy, "

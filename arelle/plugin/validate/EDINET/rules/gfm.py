@@ -11,7 +11,7 @@ import regex
 
 from arelle import ModelDocument, XbrlConst, XmlUtil
 from arelle.HtmlUtil import attrValue
-from arelle.LinkbaseType import LinkbaseType, LINKBASE_REF_URIS
+from arelle.LinkbaseType import LinkbaseType
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFootnote
 from arelle.ModelObject import ModelObject
@@ -28,9 +28,9 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.Units import getDuplicateUnitGroups
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
-from ..Constants import NUMERIC_LABEL_ROLES, domainItemTypeQname
+from ..Constants import JAPAN_LANGUAGE_CODES, NUMERIC_LABEL_ROLES, domainItemTypeQname
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
-from ..PluginValidationDataExtension import PluginValidationDataExtension, LANG_ATTRIBUTE_VALUES
+from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 
 _: TypeGetText
@@ -1211,7 +1211,7 @@ def rule_gfm_1_5_1(
             label = rel.toModelObject
             if (label is not None and
                     label.role == XbrlConst.standardLabel and
-                    label.xmlLang in LANG_ATTRIBUTE_VALUES):
+                    label.xmlLang in JAPAN_LANGUAGE_CODES):
                 labelExists = True
                 break
         if not labelExists:
