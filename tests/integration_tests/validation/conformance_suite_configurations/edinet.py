@@ -190,29 +190,20 @@ for test_id, errors in ADDITIONAL_INVALID_ERRORS.items():
 
 
 config = ConformanceSuiteConfig(
-    args=[
-        '--baseTaxonomyValidation', 'none',
-        '--disclosureSystem', 'EDINET',
-        '--testcaseResultsCaptureWarnings',
-    ],
     assets=[
         ConformanceSuiteAssetConfig.local_conformance_suite(
             Path('edinet'),
             entry_point=Path('index.xml'),
         ),
     ],
+    base_taxonomy_validation='none',
     cache_version_id='cs2wODrDheJqDIm1kEU4Qwk8jwd7DfQu',
+    disclosure_system='EDINET',
     expected_additional_testcase_errors={f"*{s}": val for s, val in EXPECTED_ADDITIONAL_TESTCASE_ERRORS.items()},
     expected_failure_ids=frozenset([]),
     info_url='https://disclosure2.edinet-fsa.go.jp/weee0020.aspx',
     name=PurePath(__file__).stem,
     plugins=frozenset({'validate/EDINET', 'inlineXbrlDocumentSet'}),
     shards=4,
-    test_suite_options={
-        'baseTaxonomyValidationMode': 'none',
-        'disclosureSystemName': 'EDINET',
-        'testcaseResultsCaptureWarnings': True,
-        'keepOpen': True,
-    },
     test_case_result_options='match-all',
 )

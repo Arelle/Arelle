@@ -271,6 +271,10 @@ def get_conformance_suite_arguments(config: ConformanceSuiteConfig, filename: st
         '--testcaseResultOptions', config.test_case_result_options,
         '--validate',
     ]
+    if config.base_taxonomy_validation:
+        args.extend(['--baseTaxonomyValidation', config.base_taxonomy_validation])
+    if config.disclosure_system:
+        args.extend(['--disclosureSystem', config.disclosure_system])
     if config.package_paths:
         args.extend(['--packages', '|'.join(sorted(p.as_posix() for p in config.package_paths))])
     if plugins:
@@ -314,7 +318,7 @@ def get_conformance_suite_test_results(
 ) -> list[ParameterSet]:
     assert len(shards) == 0 or config.shards != 1, \
         'Conformance suite configuration must specify shards if --shard is passed'
-    if config.name == "edinet" and False:
+    if config.supports_test_engine:
         if shards:
             assert not testcase_filters, 'Testcase filters are not supported with shards.'
             return get_test_suite_test_results_with_shards(
@@ -588,16 +592,22 @@ def get_test_suite_runtime_options(
         optional_plugins.add('CacheBuilder')
     plugins = config.plugins | additional_plugins | optional_plugins
     args: dict[str, Any] = {
-        # TODO: '--testcaseResultOptions', config.test_case_result_options,
+        'testcaseResultOptions': config.test_case_result_options,
         'validate': True,
+        'keepOpen': True,  # Session API requires keepOpen to retrieve model data.
     }
+    plugin_options = {}
+    if config.base_taxonomy_validation:
+        args['baseTaxonomyValidationMode'] = config.base_taxonomy_validation
+    if config.disclosure_system:
+        args['disclosureSystemName'] = config.disclosure_system
     if config.package_paths:
         args['packages'] = '|'.join(sorted(p.as_posix() for p in config.package_paths))
     if plugins:
         args['plugins'] = '|'.join(sorted(plugins))
     shard_str = f'-s{shard}' if use_shards else ''
     if build_cache:
-        args['cacheBuilderPath'] = f'conf-{config.name}{shard_str}-cache.zip'
+        plugin_options['cacheBuilderPath'] = f'conf-{config.name}{shard_str}-cache.zip'
     if config.capture_warnings:
         args['testcaseResultsCaptureWarnings'] = True
     if log_to_file:
@@ -605,7 +615,17 @@ def get_test_suite_runtime_options(
         args['logFile'] = f'conf-{config.name}{shard_str}-log.txt'
     if offline or config.runs_without_network:
         args['internetConnectivity'] = 'offline'
-    return args | config.test_suite_options
+    args['pluginOptions'] = plugin_options
+    for k, v in config.runtime_options.items():
+        if k not in args:
+            args[k] = v
+        elif isinstance(v, dict):
+            args[k] |= v
+        elif isinstance(v, list):
+            args[k] += v
+        else:
+            args[k] = v
+    return args
 
 
 def load_timing_file(name: str) -> dict[str, float]:

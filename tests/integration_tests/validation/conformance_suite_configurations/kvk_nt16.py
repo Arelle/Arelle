@@ -7,10 +7,6 @@ ZIP_PATH = Path('NT16_KVK_20211208 Berichten_0.zip')
 # needs to be extracted because arelle can't load a taxonomy package ZIP from within a ZIP
 EXTRACTED_PATH = Path(ZIP_PATH.stem)
 config = ConformanceSuiteConfig(
-    args=[
-        '--disclosureSystem', 'NT16',
-        '--baseTaxonomyValidation', 'none',
-    ],
     assets=[
         ConformanceSuiteAssetConfig.nested_conformance_suite(
             ZIP_PATH,
@@ -22,6 +18,8 @@ config = ConformanceSuiteConfig(
         ),
         *NL_PACKAGES['NT16'],
     ],
+    base_taxonomy_validation='none',
+    disclosure_system='NT16',
     expected_failure_ids=frozenset([
         # message:valueAssertion_ConsolidatedCashFlowStatementInsurance_PrtFST1SumOfChildrenParentDebit6
         'testcase-kvk-rpt-jaarverantwoording-2021-all-entrypoints-valid.xml:V-30',

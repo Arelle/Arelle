@@ -3,18 +3,17 @@ import fnmatch
 import json
 import multiprocessing
 import os
-from typing import Any
+from collections import defaultdict
+from pathlib import Path
 
 import regex
 import time
-from pathlib import Path
-
-from mypy.checkexpr import defaultdict
 
 from arelle.ModelValue import QName
 from arelle.RuntimeOptions import RuntimeOptions
 from arelle.api.Session import Session
 from arelle.logging.handlers.StructuredMessageLogHandler import StructuredMessageLogHandler
+from arelle.plugin.inlineXbrlDocumentSet import IXDS_SURROGATE, IXDS_DOC_SEPARATOR
 from test_suite.ActualError import ActualError
 from test_suite.TestSuiteOptions import TestSuiteOptions
 from test_suite.TestcaseConstraint import TestcaseConstraint
@@ -75,6 +74,15 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def buildEntrypointUris(uris: list[str]) -> list[str]:
+    if len(uris) > 1:
+        paths = [Path(uri) for uri in uris]
+        if all(path.suffix in ('.htm', '.html', '.xhtml') for path in paths):
+            docsetSurrogatePath = os.path.join(os.path.dirname(uris[0]), IXDS_SURROGATE)
+            return [docsetSurrogatePath + IXDS_DOC_SEPARATOR.join(uris)]
+    return uris
+
+
 def loadTestcaseIndex(index_path: str) -> list[TestcaseVariation]:
     runtimeOptions = RuntimeOptions(
         entrypointFile=index_path,
@@ -103,9 +111,18 @@ def loadTestcaseIndex(index_path: str) -> list[TestcaseVariation]:
         for doc in docs:
             docUri = doc.uri.removeprefix(prefix).removesuffix(suffix)
             for testcaseVariation in doc.testcaseVariations:
-                expected = testcaseVariation.expected or []
+                expected = testcaseVariation.expected
                 errors = []
-                if isinstance(expected, list):
+                if expected == 'invalid':
+                    errors.append(TestcaseConstraint(
+                        qname=None,
+                        pattern='',  # matches any code
+                        min=1,
+                        max=None,
+                        warnings=False,
+                        errors=True,
+                    ))
+                elif isinstance(expected, list):
                     for e in expected:
                         # TODO: testcase element
                         # TODO: testGroup element
@@ -117,7 +134,7 @@ def loadTestcaseIndex(index_path: str) -> list[TestcaseVariation]:
                                 qname=e,
                                 pattern=None,
                                 min=1,
-                                max=1,
+                                max=None,
                                 warnings=False,
                                 errors=True,
                             ))
@@ -126,7 +143,7 @@ def loadTestcaseIndex(index_path: str) -> list[TestcaseVariation]:
                                 qname=None,
                                 pattern=e,
                                 min=1,
-                                max=1,
+                                max=None,
                                 warnings=False,
                                 errors=True,
                             ))
@@ -139,7 +156,7 @@ def loadTestcaseIndex(index_path: str) -> list[TestcaseVariation]:
                             qname=warning,
                             pattern=None,
                             min=1,
-                            max=1,
+                            max=None,
                             warnings=True,
                             errors=False,
                         ))
@@ -148,7 +165,7 @@ def loadTestcaseIndex(index_path: str) -> list[TestcaseVariation]:
                             qname=None,
                             pattern=warning,
                             min=1,
-                            max=1,
+                            max=None,
                             warnings=True,
                             errors=False,
                         ))
@@ -203,11 +220,11 @@ def runTestcaseVariation(
             duration_seconds=0,
             blockedErrors={},
         )
-    readMeFirstPaths = [
+    entrypointUris = buildEntrypointUris([
         str(Path(testcaseVariation.base).parent.joinpath(Path(readMeFirstUri)))
         for readMeFirstUri in testcaseVariation.readFirstUris
-    ]
-    entrypointFile = '|'.join(readMeFirstPaths)
+    ])
+    entrypointFile = '|'.join(entrypointUris)
     runtimeOptions = RuntimeOptions(
         entrypointFile=entrypointFile,
         **testSuiteOptions.options
@@ -270,7 +287,7 @@ def runTestcaseVariationsInSeries(
 
 
 def _normalizedConstraints(
-        constraints: list[tuple[str, list[TestcaseConstraint]]]
+        constraints: list[TestcaseConstraint]
 ) -> list[TestcaseConstraint]:
     normalizedConstraintsMap = {}
     for constraint in constraints:
@@ -281,18 +298,18 @@ def _normalizedConstraints(
             constraint.errors
         )
         if key not in normalizedConstraintsMap:
-            normalizedConstraintsMap[key] = (0, 0)
+            normalizedConstraintsMap[key] = (None, None)
         minCount, maxCount = normalizedConstraintsMap[key]
         normalizedConstraintsMap[key] = (
-            (minCount + (constraint.min or 0)),
-            (maxCount + (constraint.max or 0))
+            constraint.min if minCount is None else (minCount + (constraint.min or 0)),
+            constraint.max if maxCount is None else (maxCount + (constraint.max or 0))
         )
     normalizedConstraints = [
         TestcaseConstraint(
             qname=k[0],
             pattern=k[1],
-            min=v[0] if v[0] > 0 else None,
-            max=v[1] if v[1] > 0 else None,
+            min=v[0],
+            max=v[1],
             warnings=k[2],
             errors=k[3],
         )
@@ -333,15 +350,15 @@ def buildResult(
             appliedConstraints.extend(constraints)
     appliedConstraintSet = TestcaseConstraintSet(
         errors=_normalizedConstraints(appliedConstraints),
-        matchAll=testcaseVariation.testcaseConstraintSet
+        matchAll=testcaseVariation.testcaseConstraintSet.matchAll
     )
     for constraint in appliedConstraints:
         matchCount = 0
         for actualError, count in list(actualErrorCounts.items()):
             if (
-                    (constraint.qname and actualError == constraint.qname) or
-                    (constraint.qname and actualError == constraint.qname.localName) or
-                    (constraint.pattern and constraint.pattern in actualError)
+                    (constraint.qname is not None and actualError == constraint.qname) or
+                    (constraint.qname is not None and actualError == constraint.qname.localName) or
+                    (constraint.pattern is not None and constraint.pattern in actualError)
             ):
                 if constraint.max is not None and count > constraint.max:
                     count = constraint.max

@@ -19,9 +19,6 @@
         <result>
             <warning>EDINET.EC5700W.GFM.1.10.12</warning>
             <error num="90">EDINET.EC1002E</error> <!--Targets assigned on cover page items-->
-            <error num="6">EDINET.EC3005E</error> <!--Targets assigned on cover page items-->
-            <error num="3">EDINET.EC3002E</error> <!--Targets assigned on cover page items-->
-            <error num="3">EDINET.EC2005E</error> <!--Targets assigned on cover page items-->
         </result>
     </variation>
 </testcase>
