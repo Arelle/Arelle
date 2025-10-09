@@ -489,10 +489,9 @@ class PluginValidationDataExtension(PluginData):
         # values assigned to the various FilingFormats. This may only be by coincidence or convention.
         # If it doesn't end up being reliable, we may need to find another way to identify the form.
         # For example, by disclosure system selection or CLI argument.
-        documentTitleFacts = []
+        documentTitleFacts: list[ModelFact] = []
         for qname in self.coverPageTitleQns:
-            for fact in self.iterValidNonNilFacts(modelXbrl, qname):
-                documentTitleFacts.append(fact)
+            documentTitleFacts.extend(self.iterValidNonNilFacts(modelXbrl, qname))
         formTypes = self.getFormTypes(modelXbrl)
         filingFormats = []
         for filingFormatIndex, filingFormat in enumerate(FILING_FORMATS):
@@ -500,7 +499,7 @@ class PluginValidationDataExtension(PluginData):
                 continue
             prefixes = {taxonomy.value for taxonomy in filingFormat.taxonomies}
             if not any(
-                str(fact.xValue).startswith(filingFormat.documentType.value) and
+                str(fact.xValue).strip().startswith(filingFormat.documentType.value) and
                 fact.concept.qname.prefix.split('_')[0] in prefixes
                 for fact in documentTitleFacts
             ):
@@ -613,6 +612,8 @@ class PluginValidationDataExtension(PluginData):
         if modelDocumentType not in (ModelDocumentType.INLINEXBRL, ModelDocumentType.HTML):
             return results
         for elt in modelDocument.xmlRootElement.iter():
+            if not isinstance(elt, ModelObject):
+                continue
             for name in htmlEltUriAttrs.get(elt.localName, ()):
                 value = elt.get(name)
                 if value is not None:

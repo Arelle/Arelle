@@ -6,6 +6,7 @@ from __future__ import annotations
 from typing import Iterable
 
 from collections import defaultdict
+from jaconv import jaconv
 
 from arelle.ModelDocument import ModelDocument
 from arelle.ModelObject import ModelObject
@@ -30,7 +31,7 @@ TOC_DIGITS = [
     '十',
 ]
 FULL_WIDTH_DIGIT_MAP = {
-    str(d): chr(ord('０') + ord(str(d)) - ord('0'))
+    str(d): jaconv.h2z(str(d), kana=True, ascii=True, digit=True)
     for d in range(0, 10)
 }
 KATAKANA_GOJUON_SEQUENCE = [
@@ -126,6 +127,8 @@ class TableOfContentsBuilder:
         for document in documents:
             rootElt = document.xmlRootElement
             for elt in rootElt.iterdescendants():
+                if not isinstance(elt, ModelObject):
+                    continue
                 if elt.elementQname.localName == 'title':
                     continue
                 if elt.text is not None:
@@ -267,7 +270,7 @@ class TableOfContentsBuilder:
                 ))
 
     def _isFloating(self) -> bool:
-        return self._floatingLevel is None and self._currentLevel < DEEPEST_LEVEL
+        return self._floatingLevel is not None or self._currentLevel >= DEEPEST_LEVEL
 
     def _normalizeNumber(self, number: str) -> str:
         # EDINET does not support:
@@ -282,7 +285,6 @@ class TableOfContentsBuilder:
             return number
         paranthesesFullWidth: bool | None = None
         numbersFullWidth: bool | None = None
-        normalizedNumber = ""
         for c in number:
             if c in ("(", ")"):
                 if paranthesesFullWidth == True:
@@ -300,8 +302,7 @@ class TableOfContentsBuilder:
                 if numbersFullWidth == False:
                     return number # Mix of half/full-width digits
                 numbersFullWidth = True
-            normalizedNumber += FULL_WIDTH_DIGIT_MAP.get(c, c)
-        return normalizedNumber
+        return jaconv.h2z(number, kana=True, ascii=True, digit=True)
 
     def _openDocument(self, modelDocument: ModelDocument) -> None:
         assert self._currentDocument is None, "Close current document before opening another."
@@ -321,7 +322,7 @@ class TableOfContentsBuilder:
         if number == "":
             # Only trigger floating/warning if we are not already floating, and we
             # aren't already at the deepest level.
-            if self._isFloating():
+            if not self._isFloating():
                 # EDINET.EC2002W: The table of contents number must be present.
                 # Note from documentation: Even if the data content is normal, it may be identified as an
                 # exception and a warning may be displayed.
@@ -437,7 +438,7 @@ class TableOfContentsBuilder:
             yield from self._validateItem(number, label, elt)
 
             # We are only concerned about duplicates if we are not floating.
-            if self._isFloating():
+            if not self._isFloating():
                 if label in self._levelLabels[self._currentLevel]:
                     # EDINET.EC2005E: Table of contents entries must not be duplicated.
                     # Note: Sample filings suggest this applies to entries that are
@@ -455,7 +456,7 @@ class TableOfContentsBuilder:
                 else:
                     self._levelLabels[self._currentLevel].add(label)
 
-            if self._isFloating():
+            if not self._isFloating():
                 # EDINET.EC2003E: The table of contents must be no longer than 384 bytes
                 # (equivalent to 128 full-width characters).
                 b = label.encode('utf-8')

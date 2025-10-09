@@ -4,6 +4,7 @@ certifi==2025.10.5
 cheroot==11.0.0
 filelock==3.19.1
 isodate==0.7.2
+jaconv==0.4.0
 jsonschema==4.25.1
 lxml==6.0.2
 numpy==2.0.2 ; python_version <= "3.9"

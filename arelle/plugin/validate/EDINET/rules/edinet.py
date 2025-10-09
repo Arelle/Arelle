@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, Iterable
 
 import regex
+from jaconv import jaconv
 
 from arelle import XbrlConst, ValidateDuplicateFacts
 from arelle.LinkbaseType import LinkbaseType
@@ -182,6 +183,11 @@ def rule_EC5602R(
     Applies to FilerNameInJapaneseDEI, FilerNameInEnglishDEI, FundNameInJapaneseDEI.
     """
     errors = []
+
+    def _normalizeValue(value: str) -> str:
+        value = regex.sub(r'\s+', ' ', value).strip()
+        return jaconv.h2z(value, kana=True, ascii=True, digit=True)
+
     def _collectMismatchedValues(deiQName: QName, coverPageQnames: list[QName]) -> None:
         deiFact = next((
             fact
@@ -189,10 +195,10 @@ def rule_EC5602R(
         ), None)
         if deiFact is None or deiFact.xValue is None:
             return
-        deiValue = regex.sub(r'\s+', ' ', str(deiFact.xValue)).strip()
+        deiValue = _normalizeValue(str(deiFact.xValue))
         for coverPageQname in coverPageQnames:
             for coverPageFact in pluginData.iterValidNonNilFacts(val.modelXbrl, coverPageQname):
-                factValue = regex.sub(r'\s+', ' ', str(coverPageFact.xValue)).strip()
+                factValue = _normalizeValue(str(coverPageFact.xValue))
                 if not factValue.startswith(deiValue):
                     errors.append((deiFact, coverPageFact))
 
@@ -374,7 +380,6 @@ def rule_namespace_prefixes(
     """
     extensionSchemas = pluginData.getExtensionSchemas(val.modelXbrl)
     for modelDocument in val.modelXbrl.urlDocs.values():
-        pass
         for prefix, namespace in modelDocument.xmlRootElement.nsmap.items():
             if namespace not in extensionSchemas:
                 continue # Not an extension schema namespace

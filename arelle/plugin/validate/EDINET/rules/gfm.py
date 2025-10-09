@@ -86,9 +86,14 @@ def rule_gfm_1_1_3(
         for elt in rootElt.iterdescendants(XbrlConst.qnLinkLinkbase.clarkNotation):
             uri = elt.attrib.get(XbrlConst.qnXsiSchemaLocation.clarkNotation)
             values.append((modelDocument, elt, uri))
+        for elt in rootElt.iterdescendants(XbrlConst.qnLinkLinkbaseRef.clarkNotation):
+            uri = elt.attrib.get(XbrlConst.qnXlinkHref.clarkNotation)
+            values.append((modelDocument, elt, uri))
     for modelDocument, elt, uri in values:
         if uri is None:
             continue
+        if uri in val.modelXbrl.urlUnloadableDocs:
+            continue  # Already blocked, error fired.
         if not isHttpUrl(uri):
             if '/' not in uri:
                 continue  # Valid relative path
@@ -1749,7 +1754,7 @@ def rule_gfm_1_9_1(
             continue
         if modelConcept.qname is None or modelConcept.qname.namespaceURI is None:
             continue
-        if pluginData.isExtensionUri(modelConcept.qname.namespaceURI, val.modelXbrl):
+        if pluginData.isExtensionUri(modelConcept.document.uri, val.modelXbrl):
             yield Validation.warning(
                 codes='EDINET.EC5700W.GFM.1.9.1',
                 msg=_("References should not be defined for extension concepts: %(conceptName)s"),
@@ -1774,6 +1779,8 @@ def rule_gfm_1_10_3(
     """
     for ixdsHtmlRootElt in val.modelXbrl.ixdsHtmlElements:
         for elt in ixdsHtmlRootElt.iterdescendants():
+            if not isinstance(elt, ModelObject):
+                continue
             parent = elt.getparent()
             if parent is None or elt.nsmap == parent.nsmap:
                 continue
@@ -1843,15 +1850,15 @@ def rule_charsets(
                         metaCharset=metaCharset,
                         modelObject=metaElt
                     )
-            if metaCharset is None or metaCharset.lower() != 'utf-8':
-                yield Validation.error(
-                    codes='EDINET.EC1010E',
-                    msg=_("The charset specification in the content attribute of the HTML <meta> tag is not UTF-8. "
-                        "File name: '%(path)s'. "
-                        "Please set the character code of the file to UTF-8."),
-                    path=modelDocument.uri,
-                    modelObject=metaElt,
-                )
+                if metaCharset.lower() != 'utf-8':
+                    yield Validation.error(
+                        codes='EDINET.EC1010E',
+                        msg=_("The charset specification in the content attribute of the HTML <meta> tag is not UTF-8. "
+                            "File name: '%(path)s'. "
+                            "Please set the character code of the file to UTF-8."),
+                        path=modelDocument.uri,
+                        modelObject=metaElt,
+                    )
 
         if not metaCharsetDeclared:
             yield Validation.warning(
