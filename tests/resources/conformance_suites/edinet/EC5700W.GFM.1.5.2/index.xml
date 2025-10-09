@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="EDINET.EC5700W.GFM.1.5.2"
+        description="EDINET.EC5700W.GFM.1.5.2"
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid01" name="invalid01">
+        <description>
+            An element used in a fact or xbrldi:explicitMember in an instance must have at most one
+            label for any combination of the xlink:role attribute and the xml:lang attribute in the
+            DTS of that instance.
+            <!--valid03.zip with multiple standard labels in Japanese-->
+        </description>
+        <data>
+            <instance readMeFirst="true">invalid01.zip</instance>
+        </data>
+        <result>
+            <warning>EDINET.EC5700W.GFM.1.5.2</warning>
+        </result>
+    </variation>
+</testcase>

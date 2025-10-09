@@ -1200,11 +1200,7 @@ def rule_gfm_1_5_1(
     EDINET.EC5700W: [GFM 1.5.1] An element used in a fact or xbrldi:explicitMember in an instance must have a Japanese
                                 language standard label in the DTS of that instance.
     """
-    usedConcepts = {fact.concept for fact in val.modelXbrl.facts if fact.concept is not None}
-    for context in val.modelXbrl.contextsInUse:
-        for dim in context.scenDimValues.values():
-            if dim.isExplicit:
-                usedConcepts.update([dim.dimension, dim.member])
+    usedConcepts = pluginData.getUsedConcepts(val.modelXbrl)
     labelRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
     if labelRelationshipSet is None:
         return
@@ -1223,6 +1219,47 @@ def rule_gfm_1_5_1(
                 codes='EDINET.EC5700W.GFM.1.5.1',
                 msg=_("The used concept of '%(concept)s' is missing a standard label in Japanese"),
                 concept=concept.qname.localName,
+                modelObject=concept
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_5_2(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.5.2] An element used in a fact or xbrldi:explicitMember in an instance must have at most one
+                                label for any combination of the xlink:role attribute and the xml:lang attribute in the
+                                DTS of that instance.
+    """
+    usedConcepts = pluginData.getUsedConcepts(val.modelXbrl)
+    labelRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
+    if labelRelationshipSet is None:
+        return
+    for concept in usedConcepts:
+        labelRels = labelRelationshipSet.fromModelObject(concept)
+        labelsByRoleAndLang = defaultdict(list)
+        for rel in labelRels:
+            label = rel.toModelObject
+            if label is None:
+                continue
+            labelsByRoleAndLang[(label.role, label.xmlLang)].append(label)
+        warningLabels = []
+        for key, labels in labelsByRoleAndLang.items():
+            if len(labels) > 1:
+                warningLabels.append(key)
+        if len(warningLabels) > 0:
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.1.5.2',
+                msg=_("The used concept of '%(concept)s' has more than one label for the given role/lang pairs: %(pairs)s."),
+                concept=concept.qname.localName,
+                pairs=warningLabels,
                 modelObject=concept
             )
 
