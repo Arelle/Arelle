@@ -121,6 +121,33 @@ def rule_gfm_1_1_3(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_gfm_1_1_6(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.1.6] Filing must have one or more submitter specific(extension) taxonomies
+    """
+    if not hasattr(val, 'hasExtensionSchema'):
+        val.hasExtensionSchema = False
+    for modelDocument in val.modelXbrl.urlDocs.values():
+        if pluginData.isExtensionUri(modelDocument.uri, val.modelXbrl) and modelDocument.type == ModelDocument.Type.SCHEMA:
+            val.hasExtensionSchema = True
+            break
+    if not val.hasExtensionSchema:
+        yield Validation.warning(
+            codes='EDINET.EC5700W.GFM.1.1.6',
+            msg=_("Filing is missing an extension taxonomy."),
+            modelObject=val.modelXbrl,
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_gfm_1_1_7(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
