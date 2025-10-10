@@ -11,7 +11,7 @@ import regex
 
 from arelle import ModelDocument, XbrlConst, XmlUtil
 from arelle.HtmlUtil import attrValue
-from arelle.LinkbaseType import LinkbaseType, LINKBASE_REF_URIS
+from arelle.LinkbaseType import LinkbaseType
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFootnote
 from arelle.ModelObject import ModelObject
@@ -28,7 +28,7 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.Units import getDuplicateUnitGroups
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
-from ..Constants import NUMERIC_LABEL_ROLES, domainItemTypeQname
+from ..Constants import JAPAN_LANGUAGE_CODES, NUMERIC_LABEL_ROLES, domainItemTypeQname
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
@@ -1189,6 +1189,160 @@ def rule_gfm_1_3_31(
             msg=_("Set the abstract attribute to 'true'."),
             modelObject=nonAbstractDomainElements
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_5_1(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.5.1] An element used in a fact or xbrldi:explicitMember in an instance must have a Japanese
+                                language standard label in the DTS of that instance.
+    """
+    usedConcepts = pluginData.getUsedConcepts(val.modelXbrl)
+    labelRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
+    if labelRelationshipSet is None:
+        return
+    for concept in usedConcepts:
+        labelRels = labelRelationshipSet.fromModelObject(concept)
+        labelExists = False
+        for rel in labelRels:
+            label = rel.toModelObject
+            if (label is not None and
+                    label.role == XbrlConst.standardLabel and
+                    label.xmlLang in JAPAN_LANGUAGE_CODES):
+                labelExists = True
+                break
+        if not labelExists:
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.1.5.1',
+                msg=_("The used concept of '%(concept)s' is missing a standard label in Japanese"),
+                concept=concept.qname.localName,
+                modelObject=concept
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_5_2(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.5.2] An element used in a fact or xbrldi:explicitMember in an instance must have at most one
+                                label for any combination of the xlink:role attribute and the xml:lang attribute in the
+                                DTS of that instance.
+    """
+    usedConcepts = pluginData.getUsedConcepts(val.modelXbrl)
+    labelRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
+    if labelRelationshipSet is None:
+        return
+    for concept in usedConcepts:
+        labelRels = labelRelationshipSet.fromModelObject(concept)
+        labelsByRoleAndLang = defaultdict(list)
+        for rel in labelRels:
+            label = rel.toModelObject
+            if label is None:
+                continue
+            labelsByRoleAndLang[(label.role, label.xmlLang)].append(label)
+        warningLabels = []
+        for key, labels in labelsByRoleAndLang.items():
+            if len(labels) > 1:
+                warningLabels.append(key)
+        if len(warningLabels) > 0:
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.1.5.2',
+                msg=_("The used concept of '%(concept)s' has more than one label for the given role/lang pairs: %(pairs)s."),
+                concept=concept.qname.localName,
+                pairs=warningLabels,
+                modelObject=concept
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_5_3(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.5.3] If an element used in an instance is assigned a label in the DTS whose xml:lang
+                                attribute does not reflect the default language, then the DTS must also contain a
+                                link:label for the same element and all other attributes with an xml:lang attribute
+                                reflecting the default language.
+    """
+    usedConcepts = pluginData.getUsedConcepts(val.modelXbrl)
+    labelRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
+    if labelRelationshipSet is None:
+        return
+    for concept in usedConcepts:
+        labelRels = labelRelationshipSet.fromModelObject(concept)
+        labelsByRole = defaultdict(list)
+        for rel in labelRels:
+            label = rel.toModelObject
+            if label is None:
+                continue
+            labelsByRole[label.role].append(label)
+        warningRoles = []
+        for role, labels in labelsByRole.items():
+            if len([label for label in labels if label.xmlLang in JAPAN_LANGUAGE_CODES]) == 0:
+                warningRoles.append(role)
+        if len(warningRoles) > 0:
+            yield Validation.warning(
+                codes='EDINET.EC5700W.GFM.1.5.3',
+                msg=_("The used concept of '%(concept)s' is missing a label in Japanese in the following roles: %(roles)s."),
+                concept=concept.qname.localName,
+                roles=warningRoles,
+                modelObject=concept
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_5_5(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.5.5] A label linkbase must not have a documentation label for an element defined in a
+                                standard taxonomy.
+    """
+    labelRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
+    if labelRelationshipSet is None:
+        return
+    for concept in val.modelXbrl.qnameConcepts.values():
+        if concept.namespaceURI is not None and not pluginData.isStandardTaxonomyUrl(concept.namespaceURI, val.modelXbrl):
+            continue
+        labelRels = labelRelationshipSet.fromModelObject(concept)
+        for rel in labelRels:
+            label = rel.toModelObject
+            if (label is not None and
+                    not pluginData.isStandardTaxonomyUrl(label.modelDocument.uri, val.modelXbrl) and
+                    label.role == XbrlConst.documentationLabel):
+                yield Validation.warning(
+                    codes='EDINET.EC5700W.GFM.1.5.5',
+                    msg=_("The standard concept of '%(concept)s' must not have a documentation label defined."),
+                    concept=concept.qname.localName,
+                    modelObject=label
+                )
 
 
 @validation(

@@ -19,6 +19,7 @@ from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
+from ..Constants import JAPAN_LANGUAGE_CODES
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 from ..ReportFolderType import ReportFolderType, HTML_EXTENSIONS, IMAGE_EXTENSIONS
@@ -1027,7 +1028,6 @@ def rule_html_elements(
     the XML at all, and thus an XML schema error will be triggered rather than this validation error.
     """
     checkNames = frozenset({'body', 'head', 'html'})
-    langAttributeValues = frozenset({'ja', 'jp', 'ja-jp', 'JA', 'JP', 'JA-JP'})
     for modelDocument in val.modelXbrl.urlDocs.values():
         path = Path(modelDocument.uri)
         if path.suffix not in HTML_EXTENSIONS:
@@ -1044,7 +1044,7 @@ def rule_html_elements(
                 eltCounts[name] = eltCounts.get(name, 0) + 1
             if not isinstance(elt, ModelFact):
                 lang = elt.get(XbrlConst.qnXmlLang.clarkNotation)
-                if lang is not None and lang not in langAttributeValues:
+                if lang is not None and lang not in JAPAN_LANGUAGE_CODES:
                     yield Validation.error(
                         codes='EDINET.EC1011E',
                         msg=_("The language setting is not Japanese. "
@@ -1053,7 +1053,7 @@ def rule_html_elements(
                               "relevant file to one of the following: %(langValues)s."),
                         file=modelDocument.basename,
                         line=elt.sourceline,
-                        langValues=', '.join(langAttributeValues),
+                        langValues=', '.join(JAPAN_LANGUAGE_CODES),
                     )
 
         if any(count > 1 for count in eltCounts.values()):

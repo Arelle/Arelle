@@ -171,3 +171,6 @@ CONTEXT_ID_PATTERN = regex.compile(rf'{PATTERN_CONTEXT_PERIOD}{PATTERN_CONTEXT_D
 # Context IDs for facts associated with Financial Statements
 # Example: Prior2YearDuration
 FINANCIAL_STATEMENT_CONTEXT_ID_PATTERN = regex.compile(rf'^{PATTERN_CONTEXT_RELATIVE_PERIOD}{PATTERN_CONTEXT_DURATION}.*')
+
+# Accepted language codes for Japan
+JAPAN_LANGUAGE_CODES = frozenset({'ja', 'jp', 'ja-jp', 'JA', 'JP', 'JA-JP'})

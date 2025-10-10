@@ -93,6 +93,10 @@
     <testcase uri="EC5700W.GFM.1.3.29/index.xml" />
     <testcase uri="EC5700W.GFM.1.3.30/index.xml" />
     <testcase uri="EC5700W.GFM.1.3.31/index.xml" />
+    <testcase uri="EC5700W.GFM.1.5.1/index.xml" />
+    <testcase uri="EC5700W.GFM.1.5.2/index.xml" />
+    <testcase uri="EC5700W.GFM.1.5.3/index.xml" />
+    <testcase uri="EC5700W.GFM.1.5.5/index.xml" />
     <testcase uri="EC5700W.GFM.1.5.6/index.xml" />
     <testcase uri="EC5700W.GFM.1.5.7/index.xml" />
     <testcase uri="EC5700W.GFM.1.5.8/index.xml" />
@@ -121,6 +125,7 @@
     <testcase uri="EC5700W.GFM.2.6.1/index.xml" />
     <testcase uri="EC5700W.GFM.2.8.1/index.xml" />
     <testcase uri="EC5710W.FRTA.2.1.9/index.xml" />
+    <testcase uri="EC5710W.FRTA.2.1.10/index.xml" />
     <testcase uri="EC5710W.FRTA.2.1.11/index.xml" />
     <testcase uri="EC5710W.FRTA.3.1.10/index.xml" />
     <testcase uri="EC5710W.FRTA.4.2.2/index.xml" />
@@ -150,6 +155,5 @@
     <testcase uri="EC8076W/index.xml" />
     <!-- <testcase uri="EC8064W/index.xml" /> TODO: Relevant sample filings not provided, not found in EDINET index, not trivial to create. -->
     <testcase uri="EC8075W/index.xml" />
-    <testcase uri="FRTA.2.1.10/index.xml" />
     <testcase uri="valid/index.xml" />
 </testcases>

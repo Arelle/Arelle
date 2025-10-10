@@ -3,21 +3,24 @@
 <testcase
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns="http://xbrl.org/2005/conformance"
-        name="EDINET.FRTA.2.1.10"
-        description="EDINET.FRTA.2.1.10: All extension taxonomy concepts must have a standard label."
+        name="EDINET.EC5700W.GFM.1.5.3"
+        description="EDINET.EC5700W.GFM.1.5.3"
         outpath=''
         owner="support@arelle.org"
         xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
     <variation id="invalid01" name="invalid01">
         <description>
-            Extension taxonomy has concept without a standard label.
-            <!--valid06.zip with one concept's standard labels removed.-->
+            If an element used in an instance is assigned a label in the DTS whose xml:lang
+            attribute does not reflect the default language, then the DTS must also contain a
+            link:label for the same element and all other attributes with an xml:lang attribute
+            reflecting the default language.
+            <!--valid03.zip with a missing Japanese Verbose label-->
         </description>
         <data>
             <instance readMeFirst="true">invalid01.zip</instance>
         </data>
         <result>
-            <warning>EDINET.FRTA.2.1.10</warning>
+            <warning>EDINET.EC5700W.GFM.1.5.3</warning>
         </result>
     </variation>
 </testcase>

@@ -60,6 +60,7 @@ STANDARD_TAXONOMY_URL_PREFIXES = frozenset((
     'https://www.w3.org/1999/xlink'
 ))
 
+
 @dataclass(frozen=True)
 class UriReference:
     attributeName: str
@@ -287,6 +288,18 @@ class PluginValidationDataExtension(PluginData):
                 if self.isExtensionUri(concept.document.uri, modelXbrl):
                     extensionConcepts.append(concept)
         return extensionConcepts
+
+    @lru_cache(1)
+    def getUsedConcepts(self, modelXbrl: ModelXbrl) -> set[ModelConcept]:
+        """
+        Returns a set of concepts used on facts and in explicit dimensions
+        """
+        usedConcepts = {fact.concept for fact in modelXbrl.facts if fact.concept is not None}
+        for context in modelXbrl.contextsInUse:
+            for dim in context.scenDimValues.values():
+                if dim.isExplicit:
+                    usedConcepts.update([dim.dimension, dim.member])
+        return usedConcepts
 
     def getBalanceSheets(self, modelXbrl: ModelXbrl, statement: Statement) -> list[BalanceSheet]:
         """
