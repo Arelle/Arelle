@@ -17,7 +17,15 @@
             <instance readMeFirst="true">invalid01.zip</instance>
         </data>
         <result>
+            <warning>arelle:NoMatchingEdinetFormat</warning>
+            <warning>EDINET.EC1057E</warning>
             <warning>EDINET.EC5700W.GFM.1.1.6</warning>
+            <warning>EDINET.EC5700W.GFM.1.2.8</warning>
+            <warning>EDINET.EC5700W.GFM.1.2.27</warning>
+            <warning>EDINET.EC5800E.FATAL_ERROR_TOC_TREE_NOT_DEFINED</warning>
+            <warning num="43">ix10.11.1.2:missingReferences</warning>
+            <warning>ix11.12.1.2:missingReferences</warning>
+            <warning>ix11.12.1.2:missingReferenceTargets</warning>
         </result>
     </variation>
 </testcase>
