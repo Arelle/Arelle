@@ -1310,6 +1310,40 @@ def rule_gfm_1_5_3(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_gfm_1_5_5(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.5.5] A label linkbase must not have a documentation label for an element defined in a
+                                standard taxonomy.
+    """
+    labelRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
+    if labelRelationshipSet is None:
+        return
+    for concept in val.modelXbrl.qnameConcepts.values():
+        if concept.namespaceURI is not None and not pluginData.isStandardTaxonomyUrl(concept.namespaceURI, val.modelXbrl):
+            continue
+        labelRels = labelRelationshipSet.fromModelObject(concept)
+        for rel in labelRels:
+            label = rel.toModelObject
+            if (label is not None and
+                    not pluginData.isStandardTaxonomyUrl(label.modelDocument.uri, val.modelXbrl) and
+                    label.role == XbrlConst.documentationLabel):
+                yield Validation.warning(
+                    codes='EDINET.EC5700W.GFM.1.5.5',
+                    msg=_("The standard concept of '%(concept)s' must not have a documentation label defined."),
+                    concept=concept.qname.localName,
+                    modelObject=label
+                )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_gfm_1_5_6(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
