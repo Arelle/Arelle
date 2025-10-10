@@ -158,16 +158,6 @@ ADDITIONAL_INVALID_ERRORS = {
     "EC5700W.GFM.1.2.13/index.xml:invalid01": {
         "EDINET.EC5700W.GFM.1.1.3": 1,
     },
-    "EC5700W.GFM.1.5.1/index.xml:invalid01": {
-        "EDINET.EC5700W.GFM.1.5.3": 1,
-    },
-    "EC5700W.GFM.1.5.6/index.xml:invalid01": {
-        "EDINET.EC5700W.GFM.1.5.3": 1,
-        "EDINET.EC5700W.GFM.1.5.5": 1,
-    },
-    "EC5700W.GFM.1.5.10/index.xml:invalid01": {
-        "EDINET.EC5700W.GFM.1.5.3": 1,
-    },
     "EC5700W.GFM.1.7.3/index.xml:invalid01": {
         "EDINET.EC5700W.GFM.1.7.5": 1,
     },
@@ -180,9 +170,6 @@ ADDITIONAL_INVALID_ERRORS = {
         "EDINET.EC2002W": 1,
         "EDINET.EC5700W.GFM.1.8.4": 2,
         "xbrl.5.1.4.3:cycles": 1,
-    },
-    "EC5710W.FRTA.2.1.10/index.xml:invalid01": {
-        "EDINET.EC5700W.GFM.1.5.1": 1,
     },
     "EC5806E/index.xml:invalid01": {
         # Instance duplicated means table of contents are included twice.
