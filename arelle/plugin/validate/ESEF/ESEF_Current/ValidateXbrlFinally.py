@@ -33,7 +33,7 @@ from arelle.PythonUtil import strTruncate
 from arelle.utils.Contexts import partitionModelXbrlContexts
 from arelle.utils.Units import partitionModelXbrlUnits
 from arelle.utils.validate.DetectScriptsInXhtml import containsScriptMarkers
-from arelle.UrlUtil import isHttpUrl
+from arelle.UrlUtil import isHttpUrl, scheme
 from arelle.ValidateUtr import ValidateUtr
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
@@ -355,6 +355,27 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                             modelXbrl.error(f"{contentOtherThanXHTMLGuidance}.executableCodePresent",
                                 _("Inline XBRL documents MUST NOT contain executable code: %(element)s"),
                                 modelObject=elt, element=eltTag)
+                            externalReferenceFound = False
+                            if eltTag == "object":
+                                # Check if the attribute 'archive' contains an external reference!
+                                archiveAttr = elt.get("archive", "").strip()
+                                for possibleURI in archiveAttr.split(" "):
+                                    if scheme(possibleURI.strip()) in ("http", "https", "ftp"):
+                                        externalReferenceFound = True
+                                        break
+                            elif eltTag == "script":
+                                # Check if the attribute 'src' contains an external reference!
+                                srcAttr = elt.get("src", "").strip()
+                                if scheme(srcAttr) in ("http", "https", "ftp"):
+                                    externalReferenceFound = True
+                            if externalReferenceFound:
+                                modelXbrl.error(
+                                    "ESEF.4.1.6.xHTMLDocumentContainsExternalReferences" if val.unconsolidated
+                                    else "ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences",
+                                    _("Inline XBRL instance documents MUST NOT contain any reference pointing to resources outside the reporting package: %(element)s"),
+                                    modelObject=elt, element=eltTag,
+                                    messageCodes=("ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences",
+                                                  "ESEF.4.1.6.xHTMLDocumentContainsExternalReferences"))
                         elif eltTag == "a" and "mailto" in elt.get("href", ""):
                             modelXbrl.warning(f"{contentOtherThanXHTMLGuidance}.executableCodePresent.mailto",
                                             _("Inline XBRL documents SHOULD NOT contain any 'mailto' URI: %(element)s"),
