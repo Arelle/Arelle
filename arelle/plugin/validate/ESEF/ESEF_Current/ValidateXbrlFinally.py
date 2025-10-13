@@ -33,7 +33,7 @@ from arelle.PythonUtil import strTruncate
 from arelle.utils.Contexts import partitionModelXbrlContexts
 from arelle.utils.Units import partitionModelXbrlUnits
 from arelle.utils.validate.DetectScriptsInXhtml import containsScriptMarkers
-from arelle.UrlUtil import isHttpUrl, scheme
+from arelle.UrlUtil import isHttpUrl, isExternalUrl
 from arelle.ValidateUtr import ValidateUtr
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
@@ -360,13 +360,13 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                 # Check if the attribute 'archive' contains an external reference!
                                 archiveAttr = elt.get("archive", "").strip()
                                 for possibleURI in archiveAttr.split(" "):
-                                    if scheme(possibleURI.strip()) in ("http", "https", "ftp"):
+                                    if isExternalUrl(possibleURI.strip()):
                                         externalReferenceFound = True
                                         break
                             elif eltTag == "script":
                                 # Check if the attribute 'src' contains an external reference!
                                 srcAttr = elt.get("src", "").strip()
-                                if scheme(srcAttr) in ("http", "https", "ftp"):
+                                if isExternalUrl(srcAttr):
                                     externalReferenceFound = True
                             if externalReferenceFound:
                                 modelXbrl.error(
@@ -392,7 +392,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                         #    or to other sections of the annual financial report.'''
                         #elif eltTag == "a":
                         #    href = elt.get("href","").strip()
-                        #    if scheme(href) in ("http", "https", "ftp"):
+                        #    if isExternalUrl(href):
                         #        modelXbrl.error("ESEF.4.1.6.xHTMLDocumentContainsExternalReferences" if val.unconsolidated
                         #                        else "ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences",
                         #            _("Inline XBRL instance documents MUST NOT contain any reference pointing to resources outside the reporting package: %(element)s"),

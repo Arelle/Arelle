@@ -13,7 +13,7 @@ from arelle.PythonUtil import isLegacyAbs
 from arelle.XbrlConst import ixbrlAll, xhtml
 from arelle.XmlUtil import setXmlns, xmlstring, xmlDeclarationPattern, XmlDeclarationLocationException
 from arelle.ModelObject import ModelObject
-from arelle.UrlUtil import decodeBase64DataImage, isHttpUrl, scheme
+from arelle.UrlUtil import decodeBase64DataImage, isExternalUrl, isHttpUrl, scheme
 
 XMLpattern = re.compile(r".*(<|&lt;|&#x3C;|&#60;)[A-Za-z_]+[A-Za-z0-9_:]*[^>]*(/>|>|&gt;|/&gt;).*", re.DOTALL)
 CDATApattern = re.compile(r"<!\[CDATA\[(.+)\]\]")
@@ -631,7 +631,7 @@ def validateTextBlockFacts(modelXbrl):
                                         attribute=attrTag, element=eltTag)
                                 elif eltTag == "a" and (not allowedExternalHrefPattern or allowedExternalHrefPattern.match(attrValue)):
                                     pass
-                                elif scheme(attrValue) in ("http", "https", "ftp"):
+                                elif isExternalUrl(attrValue):
                                     modelXbrl.error(("EFM.6.05.16.externalReference", "FERC.6.05.16.externalReference"),
                                         _("Fact %(fact)s of context %(contextID)s has an invalid external reference in '%(attribute)s' for <%(element)s>"),
                                         modelObject=f1, fact=f1.qname, contextID=f1.contextID,
@@ -773,7 +773,7 @@ def validateHtmlContent(modelXbrl, referenceElt, htmlEltTree, validatedObjectLab
                         messageCodes=("EFM.6.05.34.activeContent", "EFM.5.02.05.activeContent", "FERC.6.05.34.activeContent", "FERC.5.02.05.activeContent"))
                 elif eltTag == "a" and (not allowedExternalHrefPattern or allowedExternalHrefPattern.match(attrValue)):
                     pass
-                elif scheme(attrValue) in ("http", "https", "ftp"):
+                elif isExternalUrl(attrValue):
                     modelXbrl.error(messageCodePrefix + "externalReference",
                         _("%(validatedObjectLabel)s has an invalid external reference in '%(attribute)s' for <%(element)s>: %(value)s"),
                         modelObject=elt, validatedObjectLabel=validatedObjectLabel,
