@@ -654,6 +654,8 @@ def rule_cover_items(
         for elt in rootElt.iterdescendants(ixNStag + "nonNumeric", ixNStag + "nonFraction", ixNStag + "fraction"):
             if not isinstance(elt, ModelFact):
                 continue
+            if not elt.qname in allCoverItems:
+                continue
             if elt.qname in prohibitedCoverItems:
                 yield Validation.error(
                     codes='EDINET.EC1003E',
