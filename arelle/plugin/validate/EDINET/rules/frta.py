@@ -231,8 +231,8 @@ def rule_frta_4_2_4(
         if rootElt.get('elementFormDefault') != 'qualified' or rootElt.get('attributeFormDefault') != 'unqualified':
             yield Validation.warning(
                 codes='EDINET.EC5710W.FRTA.4.2.4',
-                msg=_("The XMLSchema root in taxonomy schema files must have the 'elementFormDefault' atribute set as "
-                      "'qulaified' and the 'attributeFormDefault' attribute set as 'unqualified'"),
+                msg=_("The XMLSchema root in taxonomy schema files must have the 'elementFormDefault' attribute set as "
+                      "'qualified' and the 'attributeFormDefault' attribute set as 'unqualified'"),
                 modelObject=modelDocument,
             )
         formUsages = []
