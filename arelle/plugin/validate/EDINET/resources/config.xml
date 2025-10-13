@@ -13,6 +13,7 @@
                 "https://xbrl.org/2023/arcrole/summation-item": ["none", "EDINET.EC5700W.GFM.1.7.4"]
                 }'
             defaultXmlLang="ja"
+            keepOpen="true"
             blockDisallowedReferences="true"
             validationType="EDINET"
             validTaxonomiesUrl="edinet-taxonomies.xml"
