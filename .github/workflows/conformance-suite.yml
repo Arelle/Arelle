@@ -21,7 +21,7 @@ on:
         required: true
         type: string
       python_version:
-        default: '3.13.7'
+        default: '3.13.8'
         description: Python version to use
         required: true
         type: string
