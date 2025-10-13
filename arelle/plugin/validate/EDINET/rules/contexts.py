@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import datetime
 from collections import defaultdict
+
+from dateutil.relativedelta import relativedelta
 from itertools import chain
 from typing import Any, Iterable, cast
 
@@ -299,6 +301,56 @@ def rule_contextDeiRequirements(
                         deiValue=deiValue.date().isoformat(),
                         contextValue=contextValue.date().isoformat(),
                     )
+
+
+@validation(
+    hook=ValidationHook.COMPLETE,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8021W(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8021W: "EndDateOfQuarterlyOrSemiAnnualPeriodOfNextFiscalYearDEI" or "CurrentPeriodEndDateDEI"
+    must not be more than one year earlier than "FilingDateCoverPage".
+
+
+    If the "EndDateOfQuarterlyOrSemiAnnualPeriodOfNextFiscalYearDEI" of the DEI information is present,
+    then its value must not be more than one year earlier than "FilingDateCoverPage".
+    If "EndDateOfQuarterlyOrSemiAnnualPeriodOfNextFiscalYearDEI" is not present, but "CurrentPeriodEndDateDEI"
+    is present, then its value must not be more than one year earlier than "FilingDateCoverPage".
+    """
+    localName = 'EndDateOfQuarterlyOrSemiAnnualPeriodOfNextFiscalYearDEI'
+    targetDate = pluginData.getDeiValue(localName)
+    if not isinstance(targetDate, datetime.datetime):
+        localName = 'CurrentPeriodEndDateDEI'
+        targetDate = pluginData.getDeiValue(localName)
+    if not isinstance(targetDate, datetime.datetime):
+        return
+    compareDate = cast(datetime.datetime, targetDate + relativedelta(years=1))
+    for modelXbrl in pluginData.loadedModelXbrls:
+        for fact in modelXbrl.factsByLocalName.get('FilingDateCoverPage', set()):
+            if fact.isNil or fact.xValid < VALID:
+                continue
+            submissionDate = cast(datetime.datetime, fact.xValue)
+            if compareDate < submissionDate:
+                yield Validation.warning(
+                    codes='EDINET.EC8021W',
+                    msg=_("The DEI '%(localName)s' information is set to a date that is "
+                          "more than one year earlier than 'FilingDateCoverPage'. "
+                          "Please set the '%(localName)s' value to a value that is less "
+                          "than one year earlier than the value of 'FilingDateCoverPage'. "
+                          "%(localName)s: '%(targetDate)s'. "
+                          "FilingDateCoverPage: '%(submissionDate)s'. "),
+                    localName=localName,
+                    targetDate=targetDate.date().isoformat(),
+                    submissionDate=submissionDate.date().isoformat(),
+                    modelObject=fact,
+                )
 
 
 @validation(
