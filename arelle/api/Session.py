@@ -113,6 +113,13 @@ class Session:
     ) -> bool:
         """
         Perform a run using the given options.
+        
+        When using a sourceZipStream, the name attribute on it will be checked
+        and, if present, assumed to be the effective name of the zip file the
+        stream represents. When validating '.xbri' files, via a sourceZipStream,
+        it is important to set this name attribute to avoid
+        rpe:documentTypeFileExtensionMismatch errors.
+
         :param options: Options to use for the run.
         :param sourceZipStream: Optional stream to read source data from.
         :param responseZipStream: Options stream to write response data to.
