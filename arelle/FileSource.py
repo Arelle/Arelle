@@ -51,7 +51,9 @@ def openFileSource(
     sourceFileSource: FileSource | None = None,
 ) -> FileSource:
     if sourceZipStream:
-        if isinstance(sourceZipStream, FileNamedBytesIO) and sourceZipStream.fileName:
+        if isinstance(sourceZipStream, io.IOBase) and (name := getattr(sourceZipStream, "name", None)):
+            sourceZipStreamFileName = os.sep + name
+        elif isinstance(sourceZipStream, FileNamedBytesIO) and sourceZipStream.fileName:
             sourceZipStreamFileName = os.sep + sourceZipStream.fileName
         else:
             sourceZipStreamFileName = os.sep + "POSTupload.zip"
