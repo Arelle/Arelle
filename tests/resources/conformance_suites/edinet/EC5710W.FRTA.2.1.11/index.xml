@@ -16,7 +16,9 @@
         <data>
             <instance readMeFirst="true">valid01.zip</instance>
         </data>
-        <result expected="valid"/>
+        <result>
+            <warning>EDINET.EC8015W</warning> <!-- from base sample filing -->
+        </result>
     </variation>
     <variation id="invalid01" name="invalid01">
         <description>
@@ -28,6 +30,7 @@
         </data>
         <result>
             <warning>EDINET.EC5710W.FRTA.2.1.11</warning>
+            <warning>EDINET.EC8015W</warning> <!-- from base sample filing -->
         </result>
     </variation>
 </testcase>

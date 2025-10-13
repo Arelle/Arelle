@@ -17,7 +17,9 @@
         <data>
             <instance readMeFirst="true">valid01.zip</instance>
         </data>
-        <result expected="valid"/>
+        <result>
+            <warning>EDINET.EC8015W</warning>
+        </result>
     </variation>
     <variation id="valid02" name="valid02">
         <description>
@@ -28,7 +30,9 @@
         <data>
             <instance readMeFirst="true">valid02.zip</instance>
         </data>
-        <result expected="valid"/>
+        <result>
+            <warning>EDINET.EC8015W</warning>
+        </result>
     </variation>
     <variation id="valid03" name="valid03">
         <description>
@@ -39,7 +43,9 @@
         <data>
             <instance readMeFirst="true">valid03.zip</instance>
         </data>
-        <result expected="valid"/>
+        <result>
+            <warning>EDINET.EC8015W</warning>
+        </result>
     </variation>
     <variation id="valid04" name="valid04">
         <description>
@@ -50,7 +56,9 @@
         <data>
             <instance readMeFirst="true">valid04.zip</instance>
         </data>
-        <result expected="valid"/>
+        <result>
+            <warning>EDINET.EC8015W</warning>
+        </result>
     </variation>
     <variation id="valid05" name="valid05">
         <description>
@@ -73,7 +81,9 @@
         <data>
             <instance readMeFirst="true">valid06.zip</instance>
         </data>
-        <result expected="valid"/>
+        <result>
+            <warning>EDINET.EC8015W</warning>
+        </result>
     </variation>
     <variation id="valid07" name="valid07">
         <description>
@@ -172,7 +182,9 @@
         <data>
             <instance readMeFirst="true">valid20.zip</instance>
         </data>
-        <result expected="valid"/>
+        <result>
+            <warning>EDINET.EC8015W</warning>
+        </result>
     </variation>
     <variation id="valid21" name="valid21">
         <description>

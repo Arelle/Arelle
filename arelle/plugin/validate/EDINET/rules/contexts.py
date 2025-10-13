@@ -193,6 +193,46 @@ def rule_EC8014W(
 
 
 @validation(
+    hook=ValidationHook.COMPLETE,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8015W(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8015W: For consolidated reports, there must not be a context that represents an individual.
+
+    Consolidated reports identified by presence of WhetherConsolidatedFinancialStatementsArePreparedDEI with True value.
+    Individual context identified by context ID matching pattern with "_NonConsolidatedMember".
+    """
+    if pluginData.isConsolidated() != True:
+        return
+    individualContexts = [
+            context
+            for modelXbrl in pluginData.loadedModelXbrls
+            for contextId, context in modelXbrl.contexts.items()
+            if INDIVIDUAL_CONTEXT_ID_PATTERN.fullmatch(contextId)
+    ]
+    if len(individualContexts) > 0:
+        yield Validation.warning(
+            codes='EDINET.EC8015W',
+            msg=_("There is a context ID in the inline XBRL file that represents an individual. "
+                  "If you do not want to enter information related to individual financial statements, "
+                  "delete the context ID that indicates individual. "
+                  "If you want to enter individual financial statements, "
+                  "check the \"WhetherConsolidatedFinancialStatementsArePreparedDEI\" status in the DEI "
+                  "information. "
+                  "* If there is a change from non-consolidated to consolidated, even if the data content "
+                  "is normal, it may be recognized as an exception and a warning may be displayed."),
+            modelObject=individualContexts,
+        )
+
+
+@validation(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
