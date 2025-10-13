@@ -8,7 +8,7 @@ on:
         required: false
         type: string
       python_version:
-        default: '3.13.7'
+        default: '3.13.8'
         description: 'Python version to use'
         required: false
         type: string
@@ -82,7 +82,7 @@ jobs:
         with:
           cache: 'pip'
           check-latest: true
-          python-version: ${{ github.event_name == 'workflow_dispatch' && inputs.python_version || '3.13.7' }}
+          python-version: ${{ github.event_name == 'workflow_dispatch' && inputs.python_version || '3.13.8' }}
       - name: Install Python dependencies
         if: matrix.build-type == 'source'
         run: |
