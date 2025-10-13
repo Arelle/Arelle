@@ -19,6 +19,7 @@
         <result>
             <warning>arelle:NoMatchingEdinetFormat</warning>
             <warning>EDINET.EC1057E</warning>
+            <warning>EDINET.EC5700W.GFM.1.1.6</warning>
             <warning>EDINET.EC5700W.GFM.1.2.8</warning>
             <warning>EDINET.EC5700W.GFM.1.2.27</warning>
             <warning>EDINET.EC5710W.FRTA.4.2.2</warning>

@@ -18,7 +18,7 @@
             <instance readMeFirst="true">invalid01.zip</instance>
         </data>
         <result>
-            <warning>EDINET.FRTA.2.1.10</warning>
+            <warning>EDINET.EC5710W.FRTA.2.1.10</warning>
             <warning num="2">EDINET.EC5710W.FRTA.4.2.4</warning>
         </result>
     </variation>
