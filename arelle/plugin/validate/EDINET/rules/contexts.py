@@ -233,6 +233,75 @@ def rule_EC8015W(
 
 
 @validation(
+    hook=ValidationHook.COMPLETE,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_contextDeiRequirements(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8018W, EDINET.EC8019W, and EDINET.EC8020W assert that context instant, startDate, and endDate values
+    (respectively) match certain DEI values based on the presence of DEI values and patterns in the context ID.
+    See section 3-4-2 in the Validation Guidelines.
+    """
+    for modelXbrl in pluginData.loadedModelXbrls:
+        for contextId, context in modelXbrl.contexts.items():
+            for contextDeiRequirement in CONTEXT_REQUIREMENTS:
+                if not contextId.startswith(contextDeiRequirement.contextId):
+                    continue
+                if contextDeiRequirement.elementDoesNotExist is not None:
+                    if pluginData.getDeiValue(contextDeiRequirement.elementDoesNotExist) is not None:
+                        continue
+                if contextDeiRequirement.elementExists is not None:
+                    if pluginData.getDeiValue(contextDeiRequirement.elementExists) is None:
+                        continue
+
+                if contextDeiRequirement.element == 'startDate':
+                    contextValue = context.startDatetime
+                    code = "EDINET.EC8019W"
+                elif contextDeiRequirement.element == 'endDate':
+                    contextValue = context.endDatetime
+                    code = "EDINET.EC8020W"
+                else:
+                    assert contextDeiRequirement.element == 'instant'
+                    contextValue = context.instantDatetime
+                    code = "EDINET.EC8018W"
+
+                deiValue = pluginData.getDeiValue(contextDeiRequirement.elementMatch)
+                if deiValue is None:
+                    continue
+                deiValue = cast(datetime.datetime, deiValue)
+
+                if contextDeiRequirement.element in ('instant', 'endDate'):
+                    # Instant and end dates are parsed as the beginning of the day after the date specified by the value
+                    # DEI values need to be adjusted by 1 day to match this.
+                    deiValue = cast(datetime.datetime, deiValue) + datetime.timedelta(1)
+                if contextDeiRequirement.dayAdjustment:
+                    deiValue = cast(datetime.datetime, deiValue) + datetime.timedelta(contextDeiRequirement.dayAdjustment)
+
+                if contextValue != deiValue:
+                    yield Validation.warning(
+                        codes=code,
+                        msg=_("The context %(element)s element does not match the information in DEI "
+                              "\"%(elementMatch)s\". "
+                              "Context ID: '%(contextId)s'. "
+                              "DEI value: '%(deiValue)s'. "
+                              "Context value: '%(contextValue)s'. "
+                              "Please set the same value for the %(element)s element value of the corresponding "
+                              "context ID and the DEI information value."),
+                        element=contextDeiRequirement.element,
+                        elementMatch=contextDeiRequirement.elementMatch,
+                        contextId=contextId,
+                        deiValue=deiValue.date().isoformat(),
+                        contextValue=contextValue.date().isoformat(),
+                    )
+
+
+@validation(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
