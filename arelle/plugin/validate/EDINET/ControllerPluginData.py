@@ -172,6 +172,28 @@ class ControllerPluginData(PluginData):
     def getUsedFilepaths(self) -> frozenset[Path]:
         return frozenset(self._usedFilepaths)
 
+    def isConsolidated(self) -> bool | None:
+        """
+        Is this a consolidated (not individual) filing?
+        Looks for the DEI fact 'WhetherConsolidatedFinancialStatementsArePreparedDEI'
+        within PublicDoc instances. If an explicit True/False value is found, it is returned.
+        If no non-nil value exists, None is returned, which indicates a not applicable state.
+        :return:
+        """
+        for modelXbrl in self.loadedModelXbrls:
+            manifestInstance = self.getManifestInstance(modelXbrl)
+            if manifestInstance is None:
+                continue
+            if manifestInstance.type != ReportFolderType.PUBLIC_DOC.value:
+                continue
+            facts = modelXbrl.factsByLocalName.get('WhetherConsolidatedFinancialStatementsArePreparedDEI', set())
+            for fact in facts:
+                if fact.xValue == True:
+                    return True
+                if fact.xValue == False:
+                    return False
+        return None
+
     @lru_cache(1)
     def isUpload(self, fileSource: FileSource) -> bool:
         fileSource.open()  # Make sure file source is open

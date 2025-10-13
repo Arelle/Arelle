@@ -3,21 +3,28 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
+import datetime
 from collections import defaultdict
 from itertools import chain
-from typing import Any, Iterable
+from typing import Any, Iterable, cast
 
 from arelle import XbrlConst
+from arelle.Cntlr import Cntlr
+from arelle.FileSource import FileSource
 from arelle.LinkbaseType import LinkbaseType
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ValidateXbrl import ValidateXbrl
+from arelle.XmlValidateConst import VALID
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
-from ..Constants import FINANCIAL_STATEMENT_CONTEXT_ID_PATTERN, CONTEXT_ID_PATTERN
+from ..Constants import FINANCIAL_STATEMENT_CONTEXT_ID_PATTERN, CONTEXT_ID_PATTERN, INDIVIDUAL_CONTEXT_ID_PATTERN
+from ..ContextRequirement import CONTEXT_REQUIREMENTS
+from ..ControllerPluginData import ControllerPluginData
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
 from ..PluginValidationDataExtension import PluginValidationDataExtension
+from ..ReportFolderType import ReportFolderType
 
 _: TypeGetText
 
@@ -147,6 +154,41 @@ def rule_EC8013W(
                   "\"Validation Guidelines\"."),
             contextId=contextId,
             modelObject=facts,
+        )
+
+
+@validation(
+    hook=ValidationHook.COMPLETE,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8014W(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8014W: For individual (non-consolidated) reports, there must be a context that represents an individual.
+
+    Individual reports identified by presence of WhetherConsolidatedFinancialStatementsArePreparedDEI with False value.
+    Individual context identified by context ID matching pattern with "_NonConsolidatedMember".
+    """
+    if pluginData.isConsolidated() != False:
+        return
+    if not any(
+            INDIVIDUAL_CONTEXT_ID_PATTERN.fullmatch(contextID)
+            for modelXbrl in pluginData.loadedModelXbrls
+            for contextID in modelXbrl.contexts
+    ):
+        yield Validation.warning(
+            codes='EDINET.EC8014W',
+            msg=_("There is no context ID in the inline XBRL file that represents an individual. "
+                  "Please set a context ID that indicates individual financial "
+                  "statements in the inline XBRL file. "
+                  "If you are not including individual financial statements, "
+                  "please check the \"WhetherConsolidatedFinancialStatementsArePreparedDEI\" "
+                  "value of the DEI information."),
         )
 
 
