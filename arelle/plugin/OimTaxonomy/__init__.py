@@ -61,6 +61,7 @@ from .ViewXbrlTaxonomyObject import viewXbrlTaxonomyObject
 from .XbrlConst import xbrl, oimTaxonomyDocTypePattern, oimTaxonomyDocTypes, xbrlTaxonomyObjects
 from .ParseSelectionWhereClause import parseSelectionWhereClause
 from .LoadCsvTable import csvTableRowFacts
+from .SaveModel import saveModel
 
 from arelle.oim.Load import (DUPJSONKEY, DUPJSONVALUE, EMPTY_DICT, EMPTY_LIST, UrlInvalidPattern,
                              OIMException, NotOIMException)
@@ -228,14 +229,17 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
         try:
             for err in jsonschemaValidator.iter_errors(oimObject) or ():
                 path = []
+                p_last = p_beforeLast = None
                 for p in err.absolute_path:
                     path.append(f"[{p}]" if isinstance(p,int) else f"/{p}")
+                    p_beforeLast = p_last
+                    p_last = p
                 msg = err.message
-                if err.absolute_path[-1] == "allowedAsLinkProperty" and " is not of type " in msg:
+                if p_last == "allowedAsLinkProperty" and " is not of type " in msg:
                     errCode = "oimte:invalidPropertyValue"
-                elif err.absolute_path[-1] == "language" and " does not match " in msg:
+                elif p_last == "language" and " does not match " in msg:
                     errCode = "oimte:invalidLanguage"
-                elif err.absolute_path[-2] == "dimensions" and " valid under each of {'required': ['domainRoot']}, {'required': ['domainDataType']}" in msg:
+                elif p_beforeLast == "dimensions" and " valid under each of {'required': ['domainRoot']}, {'required': ['domainDataType']}" in msg:
                     errCode = "oimte:invalidDimensionObject"
                 else:
                     errCode = "oimte:invalidJSONStructure",
@@ -1084,6 +1088,21 @@ def oimTaxonomyViews(cntlr, xbrlTxmyMdl):
         return True # block ordinary taxonomy views
     return False
 
+def oimTaxonomySave(cntlr, view, fileType=None, filenameFromInstance=False, *args, **kwargs):
+    if not isinatance(view, ViewXbrlTxmyObj):
+        return False # not an OIM Taxonomy View
+    # for now always ask file name and type to save
+    filename = self.uiFileDialog("save",
+            title="Save OIM Taxonomy",
+            initialdir=initialdir,
+            filetypes=[(_("OIM Taxonomy json"), "*.json"), (_("OIM Taxonomy cbor .cbor"), "*.cbor"), (_("Excel .xlsx"), "*.xlsx"), (_("HTML table .html"), "*.html"), (_("HTML table .htm"), "*.htm")],
+            defaultextension=".xlsx")
+    if filename and (filename.endswith(".json") or filename.endswith(".cbor")):
+        saveModel(cntlr, view.xbrlTxmyMdl, filename)
+        return True
+    return False # no action by this plugin
+    
+
 __pluginInfo__ = {
     'name': 'OIM Taxonomy',
     'version': '1.2',
@@ -1096,6 +1115,7 @@ __pluginInfo__ = {
     'CntlrCmdLine.Filing.Start': filingStart,
     'CntlrCmdLine.Xbrl.Loaded': oimTaxonomyLoaded,
     'CntlrWinMain.Xbrl.Views': oimTaxonomyViews,
+    'CntlrWinMain.Xbrl.Save': oimTaxonomySave,
     'ModelDocument.IsPullLoadable': isOimTaxonomyLoadable,
     'ModelDocument.PullLoader': oimTaxonomyLoader,
     'Validate.XBRL.Start': oimTaxonomyValidator

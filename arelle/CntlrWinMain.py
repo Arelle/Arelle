@@ -611,7 +611,10 @@ class CntlrWinMain (Cntlr.Cntlr):
                         filename = None
                 except AttributeError:
                     pass
-            if isinstance(view, ViewWinRenderedGrid.ViewRenderedGrid):
+            if any(extSave(self, view, fileType, filenameFromInstance)
+                   for extSave in pluginClassMethods("CntlrWinMain.Xbrl.Save")):
+                currentAction = "ext save method provided"
+            elif isinstance(view, ViewWinRenderedGrid.ViewRenderedGrid):
                 initialdir = os.path.dirname(modelXbrl.modelDocument.uri)
                 if caption is not None and method is not None:
                     if fileType in ("html", "xml", "json") and filename is None:

@@ -11,7 +11,6 @@
         "documentNamespace":"xbrl"
     },
     "taxonomy": {
-        "resolved" : false,
         "name": "xbrl:CoreTaxonomyModule",
         "frameworkName": "Core",
         "version": "2025",
@@ -80,7 +79,7 @@
                     "name": "xbrl:timeSeriesCube",
                     "periodDimension": false,
                     "entityDimension": false,
-                    "unitDimension": false,
+                    "unitDimension": true,
                     "taxonomyDefinedDimension": true,
                     "allowedCubeDimensions" : [
                         {
@@ -88,7 +87,8 @@
                             "dimensionDataType": "xs:dateTime",
                             "required" : true
                         }   
-                    ]
+                    ],
+                    "allowedCubeDimensionsClosed" : false
                 },
                 {
                     "name": "xbrl:positionCube",
@@ -857,6 +857,234 @@
                 "language": "en",
                 "relatedName": "xbrl:dep-partConcept-deprecatedAggregateConcept",
                 "value": "Deprecated: part concept - deprecated aggregate concept."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:intervalOfMeasurement",
+                "value": "A property that defines the frequency interval where data is sampled for use in a time series. If the data measurement is performed every day then the frequency of measurement will be a day. For an aggregated time series type this represents the interval over which all measurements are made and an aggregated value such as maximum, minimum, average, median etc are reported. For a raw time series this represents the interval between each measurement. The datetime dimension on a time series cube must include this property."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:completeTimeSeries",
+                "value": "A boolean property that defines if the dimension used for a time series must have a value for every interval.  If true then every interval of the time series must have a fact. If false the time series does not have to be complete. If the property is not defined the default value is false."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:timeSeriesType",
+                "value": "A string property that defines if the dimension used for a time series is raw data or aggregated data. The value of the property must be either Raw or Aggregated.  If no value is provided the default is Aggregated."
+            },
+            {
+                "relatedName": "xbrl:concept",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "Represents the concept core dimension in a taxonomy.  The concept dimension is used to identify concepts that have  measurable facts (for example, a numeric or textual fact). Concepts have data types, period types and may have properties and labels."
+            },
+            {
+                "relatedName": "xbrl:unit",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "Represents the unit core dimension in a taxonomy. Only unit objects can be added to the unit dimension. Each unit object defines the unit of measure associated with numeric facts, for example 'USD' or 'ug/m3'. Units may be simple or composed with numerators and denominators."
+            },
+            {
+                "relatedName": "xbrl:period",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "The period core dimension identifies the reporting period associated with a fact. Period values may be instants, durations, or open intervals, depending on the taxonomy."
+            },
+            {
+                "relatedName": "xbrl:entity",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "The entity core dimension identifies the reporting entity or subject of the fact. Entity identifiers used on this dimension may be expressed as LEIs, names or other identifiers as defined by the taxonomy."
+            },
+            {
+                "relatedName": "xbrl:traitDomain",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "A domain used to express trait values or annotations that can be applied to objects. Trait domains are typically used to model property-like annotations in the taxonomy."
+            },
+            {
+                "relatedName": "xbrl:conceptDomain",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "A concept domain groups concept members that can be referenced by cubes and dimensions. It is the domain used when a cube restricts the concept dimension to a subset of concepts."
+            },
+            {
+                "relatedName": "xbrl:unitDomain",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "A unit domain groups unit definitions for use by concepts and facts. It allows taxonomies to declare a set of preferred or allowed units."
+            },
+            {
+                "relatedName": "xbrl:balance",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "A balance property indicates the accounting balance orientation (debit or credit) for a numeric concept, used in validation and mapping rules."
+            },
+            {
+                "relatedName": "xbrl:semanticLink",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "A semantic link is a relationship type used to express semantic associations between objects, for example to indicate equivalence, suggested mappings or explanatory links."
+            },
+            {
+                "relatedName": "xbrl:weight",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "A weight link property is used on certain relationship types (for example summation-item) to indicate the multiplier applied to the source when computing aggregates."
+            },
+            {
+                "relatedName": "xbrl:preferredLabel",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "The preferredLabel link property indicates which label role should be used as the preferred human-readable label for presentation."
+            },
+            {
+                "relatedName": "xbrl:reportAttribute",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "Report attributes are properties attached to concepts objects to indicate how a concept in a taxonomy maps to standard report attributes such as reporting period end, or report type."
+            },
+            {
+                "relatedName": "xbrl:traitLinkType",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "A traitLinkType is a custom link property used to express typed property relationships between objects and trait domains."
+            },
+            {
+                "relatedName": "xbrl:parent-child",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "The parent-child relationship type is used to build hierarchical structures (trees) between taxonomy objects such as concepts, members, and domains."
+            },
+            {
+                "relatedName": "xbrl:class-subclass",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "The class-subclass relationship type expresses a subclassing relationship between concepts indicating a tighter or more specific definition."
+            },
+            {
+                "relatedName": "xbrl:propertyValue-object",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "A propertyValue-object link expresses the assignment of a property value to a target taxonomy object, used to model custom properties in the taxonomy."
+            },
+            {
+                "relatedName": "xbrl:concept-refDimension",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "The concept-refDimension relationship links a concept to a dimension indicating that the value of the concept in a detailed cube may be the key of a dimension is a summarized cube."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:defaultCube",
+                "value": "Default generic cube type used when no other cube type is appropriate."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:eventCube",
+                "value": "Cube type for single-event facts identified by a typed dimension; does not include standard period/entity/unit core dimensions."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:eventDetailsCube",
+                "value": "Cube type for event detail records that reference concept-to-dimension relationships for richer typed dimensions."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:journalCube",
+                "value": "A specialization of eventDetailsCube intended for journal or ledger style event records."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:referenceCube",
+                "value": "Cube type used for reference or lookup data where facts act as descriptions rather than periodic measurements."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:timeSeriesCube",
+                "value": "Cube type optimized for time-series data; requires a typed date/time dimension and typically includes the unit core-dimension."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:positionCube",
+                "value": "Cube type for position-style facts that typically include period, entity and unit core dimensions."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:reportCube",
+                "value": "Cube type representing a report or statement where period and entity core dimensions are expected."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:language",
+                "value": "Core dimension used to indicate the language of a fact where applicable."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:summation-item",
+                "value": "Relationship type that indicates the source contributes to the target as part of a summation (aggregation) with an associated weight."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:general-special",
+                "value": "Relationship type used to indicate a general-to-special relationship between concepts (a refinement or more specific version)."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:instant-accrual",
+                "value": "Relationship type linking instant and accrual concepts used for mapping or validation between instant and duration concepts."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:instant-inflow",
+                "value": "Relationship type indicating an instant concept maps to a duration inflow concept."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:instant-outflow",
+                "value": "Relationship type indicating an instant concept maps to a duration outflow concept."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:instant-contra",
+                "value": "Relationship type indicating an instant concept is the contra (opposite sign) of a duration concept."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:concept-aggDimension",
+                "value": "Relationship type that links a concept to a dimension when the concept represents an aggregation over that dimension (aggregation specified on the relationship)."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:unit-factConcept",
+                "value": "Relationship type indicating a unit applies to a fact concept or group of concepts."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:unitFact-factConcept",
+                "value": "Relationship type used for mapping unit-fact constructs between concept objects when unit-specific facts are modelled."
             }
         ],
         "propertyTypes": [
@@ -897,7 +1125,8 @@
                 "dataType": "xbrli:aggregationType",
                 "definitional": false,
                 "allowedObjects": [
-                    "xbrl:relationshipObject"
+                    "xbrl:relationshipObject",
+                    "xbrl:conceptObject"
                 ]
             },
             {
@@ -917,14 +1146,6 @@
                 ]
             },
             {
-                "name":"xbrl:abstractDataType",
-                "dataType": "xs:QName",
-                "definitional": true,
-                "allowedObjects": [
-                    "xbrl:abstractObject"
-                ]
-            },
-            {
                 "name": "xbrl:reportAttribute",
                 "dataType": "xbrli:reportAttributeType",
                 "definitional": false,
@@ -939,6 +1160,38 @@
                 "definitional": false,
                 "allowedObjects": [
                     "xbrl:relationshipObject"
+                ]
+            },
+            {
+                "name": "xbrl:intervalOfMeasurement",
+                "dataType": "xs:duration",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:dimensionObject"
+                ]
+            },
+            {
+                "name": "xbrl:timeSeriesType",
+                "dataType": "xbrli:timeSeriesDataType",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:dimensionObject"
+                ]
+            },
+            {
+                "name": "xbrl:intervalConvention",
+                "dataType": "xbrli:intervalConventionType",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:dimensionObject"
+                ]
+            },
+            {
+                "name": "xbrl:completeTimeSeries",
+                "dataType": "xs:boolean",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:dimensionObject"
                 ]
             }
         ],
@@ -1052,10 +1305,10 @@
                 "targetObjects" : ["xbrl:conceptObject"],
                 "constraints": [
                                   {
-                                      "constraint": "relationship.source.xbrli:datatype == relationship.target.xbrli:datatype AND relationship.source.property.xbrli:balance != relationship.target.property.xbrli:balance AND relationship.source.xbrli:periodType == relationship.target.xbrli:periodType AND relationship.property.weight == -1"
+                                      "constraint": "relationship.source.xbrli:dataType == relationship.target.xbrli:dataType AND relationship.source.property.xbrli:balance != relationship.target.property.xbrli:balance AND relationship.source.xbrli:periodType == relationship.target.xbrli:periodType AND relationship.property.weight == -1"
                                   },
                                   {
-                                      "constraint": "relationship.source.xbrli:datatype == relationship.target.xbrli:datatype  AND relationship.source.property.xbrli:balance  == relationship.target.property.xbrli:balance AND relationship.source.xbrli:periodType == relationship.target.xbrli:periodType AND relationship.property.weight == 1"
+                                      "constraint": "relationship.source.xbrli:dataType == relationship.target.xbrli:dataType  AND relationship.source.property.xbrli:balance  == relationship.target.property.xbrli:balance AND relationship.source.xbrli:periodType == relationship.target.xbrli:periodType AND relationship.property.weight == 1"
                                   }         
                               ]
             },
@@ -1068,7 +1321,7 @@
                 "targetObjects" : ["xbrl:conceptObject"],
                 "constraints": [
                           {
-                              "constraint": "relationship.source.xbrli:datatype == relationship.target.xbrli:datatype AND relationship.source.properties <= relationship.target.properties AND relationship.source.xbrli:periodType == relationship.target.xbrli:periodType"
+                              "constraint": "relationship.source.xbrli:dataType == relationship.target.xbrli:dataType AND relationship.source.properties <= relationship.target.properties AND relationship.source.xbrli:periodType == relationship.target.xbrli:periodType"
                           }         
                         ]
             },
@@ -1095,7 +1348,7 @@
                 "targetObjects" : ["xbrl:conceptObject"],
                 "constraints": [
                           {
-                              "constraint": "relationship.source.xbrli:datatype == relationship.target.xbrli:datatype AND relationship.source.property.xbrl:balance == relationship.target.property.xbrl:balance AND relationship.source.xbrli:periodType == instant AND relationship.target.xbrli:periodType == duration"
+                              "constraint": "relationship.source.xbrli:dataType == relationship.target.xbrli:dataType AND relationship.source.property.xbrl:balance == relationship.target.property.xbrl:balance AND relationship.source.xbrli:periodType == instant AND relationship.target.xbrli:periodType == duration"
                           }         
                         ]
             },
@@ -1107,7 +1360,7 @@
                 "targetObjects" : ["xbrl:conceptObject"],
                  "constraints": [
                           {
-                              "constraint": "relationship.source.xbrli:datatype == relationship.target.xbrli:datatype AND relationship.source.property.xbrl:balance != relationship.target.property.xbrl:balance AND relationship.source.xbrli:periodType == instant AND relationship.target.xbrli:periodType == duration"
+                              "constraint": "relationship.source.xbrli:dataType == relationship.target.xbrli:dataType AND relationship.source.property.xbrl:balance != relationship.target.property.xbrl:balance AND relationship.source.xbrli:periodType == instant AND relationship.target.xbrli:periodType == duration"
                           }         
                         ]
             },
