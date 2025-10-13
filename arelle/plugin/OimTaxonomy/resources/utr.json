@@ -12,7 +12,6 @@
         "documentNamespace":"utr"
     },
     "taxonomy": {
-        "resolved" : false,
         "frameworkName": "utr",
         "name": "utr:UnitsTaxonomyModule",
         "version": "2025",

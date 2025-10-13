@@ -263,7 +263,7 @@ def validateTaxonomy(txmyMdl, txmy):
                     if _typedDimType and not isinstance(txmyMdl.namedObjects.get(_typedDimType), XbrlDataType):
                         txmyMdl.error("oimte:cubeTypeAllowedDimensionDataType",
                                   _("The cube type %(name)s, allowedCubeDimension[%(i)s], dimensionDataType %(typedDimType)s does not resolve to a dataType object."),
-                                  xbrlObject=cubeType, name=name, i=i)
+                                  xbrlObject=cubeType, name=name, i=i, typedDimType=_typedDimType)
                     if not _dimName and (not _dimType or not _typedDimType):
                         txmyMdl.error("oimte:missingDimensionTypeProperty",
                                   _("The cube type %(name)s, allowedCubeDimension[%(i)s], dimensionName is required if dimensionType or dimensionDataType is not defined."),
@@ -323,7 +323,9 @@ def validateTaxonomy(txmyMdl, txmy):
                 tsProps = {timeSeriesPropType, intervalOfMeasurementPropType, intervalConventionPropType} & set(p.property for p in dimObj.properties)
                 if tsProps:
                     if cubeType.name != timeSeriesCubeType:
-                        txmyMdl.error("oimte:timeSeriesDimensionPropertyOnNonTimeSeriesDimension",
+                        txmyMdl.error("oimte:timeSeriesTypeOnNonTimeSeriesDimension" if timeSeriesPropType in tsProps else
+                                      "oimte:intervalConventionOnNonTimeSeriesDimension" if intervalConventionPropType in tsProps else
+                                      "oimte:intervalOfMeasurementOnNonTimeSeriesDimension",
                                   _("The dimension %(dimension)s properties %(tsProps)s on cube %(name)s type %(cubeType)s MUST only be used on a timeSeries cubeType."),
                                   xbrlObject=cubeObj, name=name, dimension=dimQn, cubeType=cubeType.name, tsProps=", ".join(str(p) for p in tsProps))
                     else:

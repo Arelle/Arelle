@@ -11,7 +11,6 @@
         "documentNamespace":"xbrltt"
   },
   "taxonomy": {
-      "resolved" : false,
       "name": "xbrltt:TransformsTaxonomyModule",
       "frameworkName": "transforms",
       "version": "2025",

@@ -41,9 +41,6 @@
             "type": "object",
             "properties": {
                 "name": { "$ref": "#/definitions/QName" },
-                "resolved": {
-                    "type": "boolean"
-                },
                 "frameworkName": {
                     "type": "string"
                 },
@@ -212,7 +209,22 @@
                         }
                       },
                       "required": ["name", "dataType", "periodType"],
-                      "additionalProperties": false
+                      "additionalProperties": false,
+                      "allOf": [
+                        {
+                          "if": {
+                            "properties": {
+                              "enumerationDomain": { "type": "string" }
+                            },
+                            "required": ["enumerationDomain"]
+                          },
+                          "then": {
+                            "properties": {
+                              "dataType": { "const": "xs:QName" }
+                            }
+                          }
+                        }
+                      ]
                     },
                     "uniqueItems": true
                 },
@@ -607,7 +619,7 @@
                       "language": {
                         "type": "string",
                         "pattern": "^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$",
-                        "description": "Language code (BCP 47)."
+                        "description": "[oimte:badlanguage] Language code (BCP 47)."
                       },
                       "value": {
                         "type": "string",
@@ -660,14 +672,22 @@
                   },
                     "uniqueItems": true
                 },
-                "facts": {
+                "factspaces": {
                   "type": "array",
                   "items": {
                     "type": "object",
                     "properties": {
                       "name": { "$ref": "#/definitions/SQName" },
-                      "value": { "type": "string" },
-                      "decimals": { "type": "number" },
+                      "factValues" : {
+                           "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "value": { "type": "string" },
+                                "decimals": { "type": "number" }
+                                }
+                              }
+                            },
                       "factDimensions": {
                         "type": "object",
                         "description": "Object mapping dimension QNames to their values for this fact.",
@@ -695,7 +715,7 @@
                         "required": ["xbrl:concept"]
                       }
                     },
-                    "required": ["name", "value", "factDimensions"],
+                    "required": ["name", "factDimensions"],
                     "additionalProperties": false
                   },
                   "uniqueItems": true
@@ -839,6 +859,10 @@
                             ]
                           }
                         },
+                        "allowedCubeDimensionsClosed": {
+                          "type": "boolean",
+                          "description": "Indicates if the allowedCubeDimensions property is closed. If true then additional taxonomy defined dimensions cannot be added to the cube other than those defined in the allowed cube dimensions. Defaults to true."
+                        },
                         "requiredCubeRelationships": {
                           "type": "array",
                           "description": "Ordered set of requiredCubeRelationship objects that must be associated with the cube.",
@@ -856,7 +880,12 @@
                             "required": ["relationshipTypeName"],
                             "additionalProperties": false
                           }
-                        } 
+                        },
+                        "requiredCubeProperties": {
+                            "type": "array",
+                            "items": { "$ref": "#/definitions/QName" },
+                            "uniqueItems": true
+                      }
                       },
                   "required": ["name"],
                   "additionalProperties": false
@@ -952,7 +981,7 @@
                     "uniqueItems": true
                 }
             },
-            "required": ["name", "resolved"],
+            "required": ["name"],
             "additionalProperties": false
         },
       "layout" :{
@@ -976,7 +1005,14 @@
                                   "additionalProperties": {
                                     "type": "string"
                                   }
-                                }
+                                },
+                                "propertyGroups": {
+                                  "type": "object",
+                                  "additionalProperties": {
+                                    "type": "string"
+                                  }
+                                },
+                                "decimals": { "type": "number" }
                               },
                               "additionalProperties": false
                             }
@@ -1043,6 +1079,72 @@
               "value": {
                 "type": "string",
                 "enum": ["credit", "debit"]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "property": { "const": "xbrl:intervalOfMeasurement" } }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "string",
+                "pattern": "^P(?!$)(\\d+Y)?(\\d+M)?(\\d+D)?(T(\\d+H)?(\\d+M)?(\\d+S)?)?$",
+                "description": "An ISO 8601 duration (xs:duration), e.g. PT1H"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "property": { "const": "xbrl:timeSeriesType" } }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "string",
+                "enum": ["Raw", "Aggregated"]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "property": { "const": "xbrl:intervalConvention" } }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "string",
+                "enum": ["StartTime", "EndTime"]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "property": { "const": "xbrl:completeTimeSeries" } }
+          },
+          "then": {
+            "properties": {
+              "value": { "type": "boolean" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "property": { "const": "xbrl:excludedIntervals" } }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "oneOf": [
+                  { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+                  { "type": "string" }
+                ],
+                "description": "A list of excluded interval identifiers (e.g., RRULE/EXDATE strings) or a single string."
               }
             }
           }

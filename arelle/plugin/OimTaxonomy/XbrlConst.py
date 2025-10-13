@@ -57,7 +57,6 @@ xbrlTaxonomyObjects = {
         "name": "xbrl:BuiltInCoreObjectsTaxonomy",
         "frameworkName": "types",
         "version": "2025",
-        "resolved": False,
         "dataTypes": [
             {
                 "name": "xs:string",

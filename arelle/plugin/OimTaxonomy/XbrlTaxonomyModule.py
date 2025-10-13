@@ -33,7 +33,6 @@ class XbrlTaxonomyModule(XbrlTaxonomyObject):
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the taxonomy object.
     frameworkName: Optional[str] # (optional) The framework name of the taxonomy such as "US-GAAP" that indicates the taxonomy broad taxonomy family. The framework name stays consistent between regular taxonomy releases of the same taxonomy domain.
     version: Optional[str] # (optional) Used to identify the version of the taxonomy such as the year of release.
-    resolved: bool # (required) Used to indicate if the taxonomy is in a resolved form. Allowable values are true or false. True indicates that the taxonomy is a complete model including all objects post dts processing that has resolved all importedTaxonomy objects, extendTargetName attributes and domain filters. False indicates that the taxonomy is pre dts processing and is not in resolved form.
     importedTaxonomies: OrderedSet[XbrlImportTaxonomy] # ordered set of importTaxonomy objects that can comprise QName of the taxonomy to be imported, an object type or a taxonomy object referenced by its QName.
     exportProfiles: OrderedSet[XbrlExportProfile] # (optional) ordered set of exportProfile objects.
     abstracts: OrderedSet[XbrlAbstract] # ordered set of abstract objects.

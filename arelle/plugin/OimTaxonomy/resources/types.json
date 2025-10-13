@@ -6,12 +6,12 @@
             "xbrl": "https://xbrl.org/2025",
             "xbrli":"https://xbrl.org/2025/instance",
             "xs": "http://www.w3.org/2001/XMLSchema",
-            "ref": "https://xbrl.org/2025/ref"
+            "ref": "https://xbrl.org/2025/ref",
+            "utr": "https://xbrl.org/2025/utr"
             },
         "documentNamespace":"xbrli"
     },
     "taxonomy": {
-        "resolved" : false,
         "name": "xbrli:TypesTaxonomyModule",
         "frameworkName": "types",
         "version": "2025",
@@ -29,16 +29,26 @@
                 "baseType": "xs:string",
                 "enumeration": ["instant", "duration", "none"]
             },
+            
+            {   "name": "xbrli:timeSeriesDataType",
+                "baseType": "xs:string",
+                "enumeration": ["Aggregated", "Raw"]
+            },
+            {   "name": "xbrli:intervalConventionType",
+                "baseType": "xs:QName",
+                "enumeration": ["StartTime", "EndTime"]
+            },
+            
             {   "name": "xbrli:dimensionPeriodType",
                 "baseType": "xs:string"
             },
             {
-                "name": "xbrli:monetary",
-                "baseType": "xs:decimal"
+                "name" : "xbrli:duration",
+                "baseType" : "xs:duration"
             },
             {
-                "name": "xbrli:duration",
-                "baseType": "xs:integer"
+                "name": "xbrli:monetary",
+                "baseType": "xs:decimal"
             },
             {
                 "name": "xbrli:pureType",
@@ -359,25 +369,38 @@
                 "relatedName" : "xbrli:aggregationType",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
-                "value" : "The aggregation datatype is used to uniquely identify the method of aggregation used to generate a single value from a population."
+                "value" : "The aggregation data type is used to uniquely identify the method of aggregation used to generate a single value from a population."
             },
+            {
+                "relatedName" : "xbrli:intervalConventionType",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "Used to identify the duration for a time series interval. Can be used to identify the interval by its start time or by its end time. If not provided on a dimension then the default is the start time. Start time is cCommon in IoT, databases, and time series analysis.  End time is common in finance time series analysis."
+            },
+            {
+                "relatedName" : "xbrli:timeSeriesDataType",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "Used to identify if the time series is recording raw data or aggregated data. Possible values are Raw or Aggregated. Raw data is collected at the defined interval as a single measurement. This data is usually highly voluminous. Aggregated time series data is used with continuous or high-frequency data (say, every second), but only stores one value per interval (like an hour), the value used within that period must be an aggregation such  as: Max - the highest observed value in the hour (e.g., max temperature). Min - the lowest observed value in the hour (e.g., min heart rate). First - the earliest value recorded in that hour (open price in finance). Last - the latest value recorded in that hour (close price in finance). Mean / Sum, Median, and  Percentile are other forms of possible aggregation. The aggregation performed should be associated with the concept recording the measurement as an aggregation property."
+            },
+           
             {
                 "relatedName" : "xbrli:monetary",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
-                "value" : "The monetary type serves as the datatype for those financial concepts in a taxonomy which denote units in a currency. Instance items with this type must have a unit of measure from the ISO 4217 namespace of currencies."
+                "value" : "The monetary type serves as the data type for those financial concepts in a taxonomy which denote units in a currency. Instance items with this type must have a unit of measure from the ISO 4217 namespace of currencies."
             },
             {
                 "relatedName" : "xbrli:pureType",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
-                "value" : "This datatype serves as the type for dimensionless numbers such as percentage change, growth rates, and other ratios where the numerator and denominator have the same units."
+                "value" : "This data type serves as the type for dimensionless numbers such as percentage change, growth rates, and other ratios where the numerator and denominator have the same units."
             },
             {
                 "relatedName" : "xbrli:sharesType",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
-                "value" : "This datatype serves as the datatype for share based financial concepts."
+                "value" : "This data type serves as the data type for share based financial concepts."
             },
             {
                 "relatedName" : "xbrli:enumeration",
@@ -533,7 +556,7 @@
                 "relatedName" : "xbrli:speed",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
-                "value" : " The speed item type is used to represent a measure of speed (distance travelled by an object per unit time). Units include knots, mach, and metres per second."
+                "value" : " The speed item type is used to represent a measure of speed (distance traveled by an object per unit time). Units include knots, mach, and metres per second."
             },
             {
                 "relatedName" : "xbrli:planeAngle",
@@ -605,7 +628,7 @@
                 "relatedName" : "xbrli:gYearList",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
-                "value" : "This datatype allows the reporting of a list of xsd:gYear values as a single value"
+                "value" : "This data type allows the reporting of a list of xsd:gYear values as a single value"
             },
             {
                 "relatedName" : "xbrli:flow",
@@ -659,7 +682,7 @@
                 "relatedName" : "xbrli:dateTime",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
-                "value" : "A subtype of xbrli:dateTime that requires a time component (as xs:dateTime does)."
+                "value" : "A subtype of xs:dateTime that requires a time component (as xs:dateTime does)."
             },
             {
                 "relatedName" : "xbrli:ghgEmissions",

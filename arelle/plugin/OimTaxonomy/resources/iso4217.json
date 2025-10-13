@@ -12,7 +12,6 @@
         "documentNamespace":"iso4217"
     },
     "taxonomy": {
-        "resolved" : false,
         "frameworkName": "iso4217",
         "name": "iso4217:iso4217TaxonomyModule",
         "version": "2025",
