@@ -12,13 +12,14 @@ from typing import TYPE_CHECKING
 
 from arelle.Cntlr import Cntlr
 from arelle.FileSource import FileSource
-from arelle.ModelValue import QName
+from arelle.ModelValue import QName, TypeXValue
 from arelle.ModelXbrl import ModelXbrl
+from arelle.XmlValidateConst import VALID
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
 from . import Constants
 from .CoverItemRequirements import CoverItemRequirements
-from .DeiRequirements import DeiRequirements
+from .DeiRequirements import DeiRequirements, DEI_LOCAL_NAMES
 from .FilingFormat import FilingFormat
 from .ReportFolderType import ReportFolderType
 from .TableOfContentsBuilder import TableOfContentsBuilder
@@ -32,6 +33,7 @@ _: TypeGetText
 
 @dataclass
 class ControllerPluginData(PluginData):
+    _deiValues: dict[str, TypeXValue]
     _loadedModelXbrls: list[ModelXbrl]
     _manifestInstancesById: dict[str, ManifestInstance]
     _tocBuilder: TableOfContentsBuilder
@@ -40,6 +42,7 @@ class ControllerPluginData(PluginData):
 
     def __init__(self, name: str):
         super().__init__(name)
+        self._deiValues = {}
         self._loadedModelXbrls = []
         self._manifestInstancesById = {}
         self._tocBuilder = TableOfContentsBuilder()
@@ -57,6 +60,7 @@ class ControllerPluginData(PluginData):
 
     def addModelXbrl(self, modelXbrl: ModelXbrl) -> None:
         self._loadedModelXbrls.append(modelXbrl)
+        self.setDeiValues(modelXbrl)
 
     @lru_cache(1)
     def getCoverItemRequirements(self, jsonPath: Path) -> CoverItemRequirements:
@@ -65,6 +69,9 @@ class ControllerPluginData(PluginData):
     @lru_cache(1)
     def getDeiRequirements(self, csvPath: Path, deiItems: tuple[QName, ...], filingFormats: tuple[FilingFormat, ...]) -> DeiRequirements:
         return DeiRequirements(csvPath, deiItems, filingFormats)
+
+    def getDeiValue(self, localName: str) -> TypeXValue:
+        return self._deiValues.get(localName)
 
     def getManifestInstances(self) -> list[ManifestInstance]:
         """
@@ -219,6 +226,27 @@ class ControllerPluginData(PluginData):
             matchedInstance = instance
             break
         return matchedInstance
+
+    def setDeiValue(self, localName: str, value: TypeXValue) -> None:
+        if localName in self._deiValues:
+            # Duplicate DEI values will be caught by validations.
+            return
+        self._deiValues[localName] = value
+
+    def setDeiValues(self, modelXbrl: ModelXbrl) -> None:
+        """
+        Set DEI values from the provided modelXbrl.
+        Some EDINET validations rely on both DEI values defined in one instance
+        and other values in a separate instance, so we collect DEI values from
+        all instances and collect them at a controller level.
+        :param modelXbrl:
+        :return:
+        """
+        for localName in DEI_LOCAL_NAMES:
+            for fact in modelXbrl.factsByLocalName.get(localName, ()):
+                if fact.isNil or fact.xValid < VALID:
+                    continue
+                self.setDeiValue(localName, fact.xValue)
 
     def addUsedFilepath(self, path: Path) -> None:
         self._usedFilepaths.add(path)
