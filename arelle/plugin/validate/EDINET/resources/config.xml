@@ -14,8 +14,8 @@
                 }'
             defaultXmlLang="ja"
             blockDisallowedReferences="true"
+            standardTaxonomiesUrl="edinet-taxonomies.xml"
             validationType="EDINET"
-            validTaxonomiesUrl="edinet-taxonomies.xml"
             exclusiveTypesPattern="EFM|GFM|FERC|HMRC|SBR.NL|EBA|EIOPA|ESEF"
     />
 </DisclosureSystems>
