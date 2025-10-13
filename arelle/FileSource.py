@@ -51,7 +51,10 @@ def openFileSource(
     sourceFileSource: FileSource | None = None,
 ) -> FileSource:
     if sourceZipStream:
-        if name := getattr(sourceZipStream, "name", None):
+        if (
+            name := getattr(sourceZipStream, "name", None) # Python IO convention
+            or (name := getattr(sourceZipStream, "filename", None)) # zipfile.ZipFile
+        ):
             sourceZipStreamFileName: str = os.sep + str(name)
         elif isinstance(sourceZipStream, FileNamedBytesIO) and sourceZipStream.fileName:
             sourceZipStreamFileName = os.sep + sourceZipStream.fileName
