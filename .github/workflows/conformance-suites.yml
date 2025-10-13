@@ -47,7 +47,7 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
       - name: Configure AWS Credentials
         if: ${{ matrix.test.environment == 'integration-tests' }}
-        uses: aws-actions/configure-aws-credentials@v5.0.0
+        uses: aws-actions/configure-aws-credentials@v5.1.0
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
