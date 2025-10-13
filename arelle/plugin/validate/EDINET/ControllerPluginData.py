@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING
 from arelle.Cntlr import Cntlr
 from arelle.FileSource import FileSource
 from arelle.ModelValue import QName
+from arelle.ModelXbrl import ModelXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
 from . import Constants
@@ -31,6 +32,7 @@ _: TypeGetText
 
 @dataclass
 class ControllerPluginData(PluginData):
+    _loadedModelXbrls: list[ModelXbrl]
     _manifestInstancesById: dict[str, ManifestInstance]
     _tocBuilder: TableOfContentsBuilder
     _uploadContents: UploadContents | None
@@ -38,6 +40,7 @@ class ControllerPluginData(PluginData):
 
     def __init__(self, name: str):
         super().__init__(name)
+        self._loadedModelXbrls = []
         self._manifestInstancesById = {}
         self._tocBuilder = TableOfContentsBuilder()
         self._usedFilepaths = set()
@@ -51,6 +54,9 @@ class ControllerPluginData(PluginData):
         Add a manifest instance with unique ID to the plugin data.
         """
         self._manifestInstancesById[manifestInstance.id] = manifestInstance
+
+    def addModelXbrl(self, modelXbrl: ModelXbrl) -> None:
+        self._loadedModelXbrls.append(modelXbrl)
 
     @lru_cache(1)
     def getCoverItemRequirements(self, jsonPath: Path) -> CoverItemRequirements:
@@ -173,13 +179,23 @@ class ControllerPluginData(PluginData):
             return False
         return True
 
-    def matchManifestInstance(self, ixdsDocUrls: list[str]) -> ManifestInstance | None:
+    @property
+    def loadedModelXbrls(self) -> list[ModelXbrl]:
+        """
+        TODO: Only necessary because cntlr.modelManager.loadedModelXbrls is not reliable
+            in the current conformance suite runner. Remove when that is fixed/replaced.
+        """
+        return self._loadedModelXbrls
+
+    @lru_cache(1)
+    def getManifestInstance(self, modelXbrl: ModelXbrl) -> ManifestInstance | None:
         """
         Match a manifest instance based on the provided ixdsDocUrls.
         A one-to-one mapping must exist between the model's IXDS document URLs and the manifest instance's IXBRL files.
         :param ixdsDocUrls: A model's list of IXDS document URLs.
         :return: A matching ManifestInstance if found, otherwise None.
         """
+        ixdsDocUrls = modelXbrl.ixdsDocUrls
         modelUrls = set(ixdsDocUrls)
         matchedInstance = None
         for instance in self._manifestInstancesById.values():

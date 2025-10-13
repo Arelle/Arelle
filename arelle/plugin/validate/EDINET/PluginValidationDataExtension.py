@@ -568,7 +568,7 @@ class PluginValidationDataExtension(PluginData):
     @lru_cache(1)
     def getManifestInstance(self, modelXbrl: ModelXbrl) -> ManifestInstance | None:
         controllerPluginData = ControllerPluginData.get(modelXbrl.modelManager.cntlr, self.name)
-        return controllerPluginData.matchManifestInstance(modelXbrl.ixdsDocUrls)
+        return controllerPluginData.getManifestInstance(modelXbrl)
 
     @lru_cache(1)
     def getProhibitedAttributeElements(self, modelDocument: ModelDocument) -> list[tuple[ModelObject, str]]:
