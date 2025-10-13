@@ -6,7 +6,7 @@ from tests.integration_tests.validation.conformance_suite_config import (
     ConformanceSuiteConfig,
 )
 
-CONFORMANCE_SUITE_ZIP_NAME = 'efm-75-250804.zip'
+CONFORMANCE_SUITE_ZIP_NAME = 'efm-76d-250908.zip'
 
 config = ConformanceSuiteConfig(
     additional_plugins_by_prefix=[(f'conf/{t}', frozenset({'EDGAR/render'})) for t in [
@@ -27,7 +27,11 @@ config = ConformanceSuiteConfig(
             source=AssetSource.S3_PUBLIC,
         )
     ],
-    cache_version_id='IBC0pzZwY3hicqT9aVtv34awiyX81Jib',
+    cache_version_id='UoUBsvJEii2aAKHl1EgjP1PTM6M2teSm',
+    expected_failure_ids=frozenset(f'conf/{s}' for s in [
+        # Expected to pass with release of EFM 25.3 conformance suite.
+        '605-instance-syntax/605-08-no-unused-contexts/605-08-no-unused-contexts-testcase.xml:_002ng'
+    ]),
     info_url='https://www.sec.gov/structureddata/osdinteractivedatatestsuite',
     name=PurePath(__file__).stem,
     plugins=frozenset({
