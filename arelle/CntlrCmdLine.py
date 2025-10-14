@@ -826,6 +826,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
         else:
             self.modelManager.disclosureSystem.select(None) # just load ordinary mappings
             self.modelManager.validateDisclosureSystem = False
+        if self.modelManager.disclosureSystem.keepOpen:
+            # Force keepOpen if specified by disclosure system.
+            options.keepOpen = True
         if options.baseTaxonomyValidationMode is not None:
             self.modelManager.baseTaxonomyValidationMode = ValidateBaseTaxonomiesMode.fromName(options.baseTaxonomyValidationMode)
         self.modelManager.validateXmlOim = bool(options.validateXmlOim)

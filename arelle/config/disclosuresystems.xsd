@@ -51,6 +51,7 @@
       <xs:attribute name="deiFilerNameElement" use="optional" type="xs:NCName"/>
       <xs:attribute name="deiNamespacePattern" use="optional"/>
       <xs:attribute name="description" />
+      <xs:attribute name="keepOpen" type="xs:boolean"/>
       <xs:attribute name="identifierSchemePattern" use="optional"/>
       <xs:attribute name="identifierValueName" use="optional"/>
       <xs:attribute name="identifierValuePattern" use="optional"/>

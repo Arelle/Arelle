@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="EDINET.EC8018W"
+        description="EDINET.EC8018W: Context date values must match DEI date values as appropriate."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid01" name="invalid01">
+        <description>
+            EndDateOfQuarterlyOrSemiAnnualPeriodOfNextFiscalYearDEI exists, but...
+            CurrentQuarterInstant context instant value does not match EndDateOfQuarterlyOrSemiAnnualPeriodOfNextFiscalYearDEI,
+            CurrentYTDDuration context endDate value does not match EndDateOfQuarterlyOrSemiAnnualPeriodOfNextFiscalYearDEI,
+            InterimDuration context endDate value does not match EndDateOfQuarterlyOrSemiAnnualPeriodOfNextFiscalYearDEI,
+            InterimInstant context instant value does not match EndDateOfQuarterlyOrSemiAnnualPeriodOfNextFiscalYearDEI,
+            Prior1YearDuration context endDate value does not match CurrentFiscalYearEndDateDEI,
+            Prior1YearInstant context instant value does not match CurrentFiscalYearEndDateDEI,
+            Prior2YearDuration context endDate value does not match PreviousFiscalYearEndDateDEI,
+            Prior2YearInstant context instant value does not match PreviousFiscalYearEndDateDEI
+
+            NextFiscalYearStartDateDEI exists, but...
+            CurrentYTDDuration context startDate value does not match NextFiscalYearStartDateDEI,
+            InterimDuration context startDate value does not match NextFiscalYearStartDateDEI,
+            Prior1YearDuration context startDate value does not match CurrentFiscalYearStartDateDEI,
+            Prior2YearDuration context startDate value does not match PreviousFiscalYearStartDateDEI
+
+            <!--
+            valid09.zip with:
+            DurationConcept and TestConcept extension concepts defined.
+
+            (date values from valid01.zip)
+            CurrentFiscalYearStartDateDEI set to 2024-04-01
+            CurrentPeriodEndDateDEI set to 2025-03-31
+            TypeOfCurrentPeriodDEI set to FY
+            CurrentFiscalYearEndDateDEI set to 2025-03-31
+            PreviousFiscalYearStartDateDEI set to 2023-04-01
+            ComparativePeriodEndDateDEI set to 2024-03-31
+            PreviousFiscalYearEndDateDEI set to 2024-03-31
+            NextFiscalYearStartDateDEI set to 2025-04-01
+            EndDateOfQuarterlyOrSemiAnnualPeriodOfNextFiscalYearDEI set to 2025-09-30
+
+            CurrentQuarterInstant instant date set to 2025-09-28 (should be 2025-09-30)
+            CurrentYTDDuration startDate set to 2025-04-02 (should be 2025-04-01)
+            CurrentYTDDuration endDate set to 2025-09-28 (should be 2025-09-30)
+            InterimInstant instant date set to 2025-09-29 (should be 2025-09-30)
+            InterimDuration startDate set to 2025-04-02 (should be 2025-04-01)
+            InterimDuration endDate set to 2025-09-29 (should be 2025-09-30)
+            Prior1YearInstant instant date set to 2025-03-30 (should be 2025-03-31)
+            Prior1YearDuration startDate set to 2024-04-02 (should be 2024-04-01)
+            Prior1YearDuration endDate set to 2025-03-30 (should be 2025-03-31)
+            Prior2YearInstant instant date set to 2024-03-30 (should be 2024-03-31)
+            Prior2YearDuration startDate set to 2023-04-02 (should be 2023-04-01)
+            Prior2YearDuration endDate set to 2024-03-30 (should be 2024-03-31)
+            -->
+        </description>
+        <data>
+            <instance readMeFirst="true">invalid01.zip</instance>
+        </data>
+        <result>
+            <warning>EDINET.EC5710W.FRTA.2.1.10</warning> <!-- No labels for test concepts -->
+            <warning num="2">EDINET.EC5700W.GFM.1.5.1</warning> <!-- No labels for test concepts -->
+            <warning num="4">EDINET.EC8018W</warning>
+            <warning num="4">EDINET.EC8019W</warning>
+            <warning num="4">EDINET.EC8020W</warning>
+        </result>
+    </variation>
+    <variation id="invalid02" name="invalid02">
+        <description>
+            EndDateOfQuarterlyOrSemiAnnualPeriodOfNextFiscalYearDEI does not exist, but...
+            CurrentQuarterInstant context instant value does not match CurrentPeriodEndDateDEI,
+            CurrentYTDDuration context endDate value does not match CurrentPeriodEndDateDEI,
+            InterimDuration context endDate value does not match CurrentPeriodEndDateDEI,
+            InterimInstant context instant value does not match CurrentPeriodEndDateDEI,
+            Prior1InterimDuration context endDate value does not match ComparativePeriodEndDateDEI,
+            Prior1InterimInstant context instant value does not match ComparativePeriodEndDateDEI,
+            Prior1QuarterInstant context instant value does not match ComparativePeriodEndDateDEI,
+            Prior1YTDDuration context endDate value does not match ComparativePeriodEndDateDEI,
+            Prior1YearDuration context endDate value does not match PreviousFiscalYearEndDateDEI,
+            Prior1YearInstant context instant value does not match PreviousFiscalYearEndDateDEI,
+            Prior2YearInstant context instant value does not match PreviousFiscalYearStartDateDEI adjusted by -1 day(s)
+
+            NextFiscalYearStartDateDEI does not exist, but...
+            CurrentYTDDuration context startDate value does not match CurrentFiscalYearStartDateDEI,
+            InterimDuration context startDate value does not match CurrentFiscalYearStartDateDEI,
+            Prior1InterimDuration context startDate value does not match PreviousFiscalYearStartDateDEI,
+            Prior1YTDDuration context startDate value does not match PreviousFiscalYearStartDateDEI,
+            Prior1YearDuration context startDate value does not match PreviousFiscalYearStartDateDEI
+
+            Also...
+            CurrentYearDuration context endDate value does not match CurrentFiscalYearEndDateDEI,
+            CurrentYearDuration context startDate value does not match CurrentFiscalYearStartDateDEI,
+            CurrentYearInstant context instant value does not match CurrentFiscalYearEndDateDEI
+
+            <!--
+            valid09.zip with:
+            DurationConcept and TestConcept extension concepts defined.
+
+            (date values from valid02.zip)
+            CurrentFiscalYearStartDateDEI set to 2024-04-01
+            CurrentPeriodEndDateDEI set to 2025-03-31
+            TypeOfCurrentPeriodDEI set to FY
+            CurrentFiscalYearEndDateDEI set to 2025-03-31
+            PreviousFiscalYearStartDateDEI set to 2023-04-01
+            ComparativePeriodEndDateDEI set to 2024-03-31
+            PreviousFiscalYearEndDateDEI set to 2024-03-31
+
+            CurrentQuarterInstant instant set to 2025-03-30 (should be 2025-03-31)
+            CurrentYTDDuration startDate set to 2024-04-02 (should be 2024-04-01)
+            CurrentYTDDuration endDate set to 2025-03-30 (should be 2025-03-31)
+
+            InterimInstant instant set to 2025-03-29 (should be 2025-03-31)
+            InterimDuration startDate set to 2024-04-02 (should be 2024-04-01)
+            InterimDuration endDate set to 2025-03-29 (should be 2025-03-31)
+
+            Prior1InterimInstant instant set to 2024-03-30 (should be 2024-03-31)
+            Prior1InterimDuration startDate set to 2023-04-02 (should be 2023-04-01)
+            Prior1InterimDuration endDate set to 2024-03-30 (should be 2024-03-31)
+
+            Prior1QuarterInstant instant set to 2024-03-29 (should be 2024-03-31)
+            Prior1YTDDuration startDate set to 2023-04-02 (should be 2023-04-01)
+            Prior1YTDDuration endDate set to 2024-03-29 (should be 2024-03-31)
+
+            Prior1YearInstant instant set to 2024-03-28 (should be 2024-03-31)
+            Prior1YearDuration startDate set to 2023-04-02 (should be 2023-04-01)
+            Prior1YearDuration endDate set to 2024-03-28 (should be 2024-03-31)
+
+            Prior2YearInstant instant set to 2023-03-30 (should be 2023-03-31)
+
+            CurrentYearInstant instant set to 2025-03-28 (should be 2025-03-31)
+            CurrentYearDuration startDate set to 2024-04-02 (should be 2024-04-01)
+            CurrentYearDuration endDate set to 2025-03-28 (should be 2025-03-31)
+            -->
+        </description>
+        <data>
+            <instance readMeFirst="true">invalid02.zip</instance>
+        </data>
+        <result>
+            <warning>EDINET.EC5710W.FRTA.2.1.10</warning> <!-- No labels for test concepts -->
+            <warning num="2">EDINET.EC5700W.GFM.1.5.1</warning> <!-- No labels for test concepts -->
+            <warning num="7">EDINET.EC8018W</warning>
+            <warning num="6">EDINET.EC8019W</warning>
+            <warning num="6">EDINET.EC8020W</warning>
+        </result>
+    </variation>
+</testcase>

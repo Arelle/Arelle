@@ -159,7 +159,7 @@ REPORT_IXBRL_FILENAME_PATTERN = regex.compile(rf'{PATTERN_MAIN}_{PATTERN_NAME}_{
 AUDIT_IXBRL_FILENAME_PATTERN = regex.compile(rf'{PATTERN_AUDIT_REPORT_PREFIX}-{PATTERN_SUFFIX}_ixbrl\.htm')
 
 PATTERN_CONTEXT_RELATIVE_PERIOD = r'(?P<relative_period>Prior[1-9]Year|CurrentYear|Prior[1-9]Interim|Interim)'
-PATTERN_CONTEXT_PERIOD = r'(?P<relative_period>Prior[1-9]Year|CurrentYear|Prior[1-9]Interim|Interim|FilingDate|RecordDate)'
+PATTERN_CONTEXT_PERIOD = r'(?P<relative_period>Prior[1-9]Year|CurrentYear|Prior[1-9]Interim|Prior[1-9]Quarter|Prior[1-9]YTD|Interim|FilingDate|RecordDate|CurrentQuarter|CurrentYTD)'
 PATTERN_CONTEXT_DURATION = r'(?P<duration>Duration|Instant)'
 PATTERN_CONTEXT_MEMBERS = r'(?P<context_members>(?:_[a-zA-Z][a-zA-Z0-9-]+)+)*'
 PATTERN_CONTEXT_NUMBER = r'(?P<context_number>[0-9]{3})'
@@ -171,6 +171,10 @@ CONTEXT_ID_PATTERN = regex.compile(rf'{PATTERN_CONTEXT_PERIOD}{PATTERN_CONTEXT_D
 # Context IDs for facts associated with Financial Statements
 # Example: Prior2YearDuration
 FINANCIAL_STATEMENT_CONTEXT_ID_PATTERN = regex.compile(rf'^{PATTERN_CONTEXT_RELATIVE_PERIOD}{PATTERN_CONTEXT_DURATION}.*')
+
+# Context IDs for facts associated with individual (non-consolidated) Financial Statements
+# Example: Prior2YearDuration_NonConsolidatedMember
+INDIVIDUAL_CONTEXT_ID_PATTERN = regex.compile(rf'^{PATTERN_CONTEXT_RELATIVE_PERIOD}{PATTERN_CONTEXT_DURATION}_NonConsolidatedMember.*')
 
 # Accepted language codes for Japan
 JAPAN_LANGUAGE_CODES = frozenset({'ja', 'jp', 'ja-jp', 'JA', 'JP', 'JA-JP'})

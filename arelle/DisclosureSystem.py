@@ -80,6 +80,7 @@ class DisclosureSystem:
         self.utrUrl = ["http://www.xbrl.org/utr/utr.xml"]
         self.utrStatusFilters = None
         self.utrTypeEntries = None
+        self.keepOpen: bool = False
         self.identifierSchemePattern = None
         self.identifierValuePattern = None
         self.identifierValueName = None
@@ -214,6 +215,7 @@ class DisclosureSystem:
                                     self.utrUrl = [self.modelManager.cntlr.webCache.normalizeUrl(u, url)
                                                    for u in dsElt.get("utrUrl").split()]
                                 self.utrStatusFilters = dsElt.get("utrStatusFilters")
+                                self.keepOpen = dsElt.get("keepOpen") == "true"
                                 self.identifierSchemePattern = compileAttrPattern(dsElt,"identifierSchemePattern")
                                 self.identifierValuePattern = compileAttrPattern(dsElt,"identifierValuePattern")
                                 self.identifierValueName = dsElt.get("identifierValueName")

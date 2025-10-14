@@ -9,8 +9,10 @@ from pathlib import Path
 from typing import Any
 
 from arelle.ModelXbrl import ModelXbrl
+from arelle.ValidateXbrl import ValidateXbrl
 from arelle.Version import authorLabel, copyrightLabel
 from . import Constants
+from .ControllerPluginData import ControllerPluginData
 from .ValidationPluginExtension import ValidationPluginExtension
 from .rules import contexts, edinet, frta, gfm, manifests, upload
 
@@ -84,6 +86,13 @@ def validateFinally(*args: Any, **kwargs: Any) -> None:
     return validationPlugin.validateFinally(*args, **kwargs)
 
 
+def validateXbrlStart(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
+    # TODO: See ControllerPluginData.loadedModelXbrls comment
+    controllerPluginData = ControllerPluginData.get(val.modelXbrl.modelManager.cntlr, PLUGIN_NAME)
+    controllerPluginData.addModelXbrl(val.modelXbrl)
+    return validationPlugin.validateXbrlStart(val, *args, **kwargs)
+
+
 def validateXbrlFinally(*args: Any, **kwargs: Any) -> None:
     return validationPlugin.validateXbrlFinally(*args, **kwargs)
 
@@ -103,5 +112,6 @@ __pluginInfo__ = {
     "Validate.Complete": validateComplete,
     "Validate.FileSource": validateFileSource,
     "Validate.XBRL.Finally": validateXbrlFinally,
+    'Validate.XBRL.Start': validateXbrlStart,
     "ValidateFormula.Finished": validateFinally,
 }

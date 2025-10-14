@@ -12,12 +12,14 @@ from typing import TYPE_CHECKING
 
 from arelle.Cntlr import Cntlr
 from arelle.FileSource import FileSource
-from arelle.ModelValue import QName
+from arelle.ModelValue import QName, TypeXValue
+from arelle.ModelXbrl import ModelXbrl
+from arelle.XmlValidateConst import VALID
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
 from . import Constants
 from .CoverItemRequirements import CoverItemRequirements
-from .DeiRequirements import DeiRequirements
+from .DeiRequirements import DeiRequirements, DEI_LOCAL_NAMES
 from .FilingFormat import FilingFormat
 from .ReportFolderType import ReportFolderType
 from .TableOfContentsBuilder import TableOfContentsBuilder
@@ -31,6 +33,8 @@ _: TypeGetText
 
 @dataclass
 class ControllerPluginData(PluginData):
+    _deiValues: dict[str, TypeXValue]
+    _loadedModelXbrls: list[ModelXbrl]
     _manifestInstancesById: dict[str, ManifestInstance]
     _tocBuilder: TableOfContentsBuilder
     _uploadContents: UploadContents | None
@@ -38,6 +42,8 @@ class ControllerPluginData(PluginData):
 
     def __init__(self, name: str):
         super().__init__(name)
+        self._deiValues = {}
+        self._loadedModelXbrls = []
         self._manifestInstancesById = {}
         self._tocBuilder = TableOfContentsBuilder()
         self._usedFilepaths = set()
@@ -52,6 +58,10 @@ class ControllerPluginData(PluginData):
         """
         self._manifestInstancesById[manifestInstance.id] = manifestInstance
 
+    def addModelXbrl(self, modelXbrl: ModelXbrl) -> None:
+        self._loadedModelXbrls.append(modelXbrl)
+        self.setDeiValues(modelXbrl)
+
     @lru_cache(1)
     def getCoverItemRequirements(self, jsonPath: Path) -> CoverItemRequirements:
         return CoverItemRequirements(jsonPath)
@@ -59,6 +69,9 @@ class ControllerPluginData(PluginData):
     @lru_cache(1)
     def getDeiRequirements(self, csvPath: Path, deiItems: tuple[QName, ...], filingFormats: tuple[FilingFormat, ...]) -> DeiRequirements:
         return DeiRequirements(csvPath, deiItems, filingFormats)
+
+    def getDeiValue(self, localName: str) -> TypeXValue:
+        return self._deiValues.get(localName)
 
     def getManifestInstances(self) -> list[ManifestInstance]:
         """
@@ -159,6 +172,28 @@ class ControllerPluginData(PluginData):
     def getUsedFilepaths(self) -> frozenset[Path]:
         return frozenset(self._usedFilepaths)
 
+    def isConsolidated(self) -> bool | None:
+        """
+        Is this a consolidated (not individual) filing?
+        Looks for the DEI fact 'WhetherConsolidatedFinancialStatementsArePreparedDEI'
+        within PublicDoc instances. If an explicit True/False value is found, it is returned.
+        If no non-nil value exists, None is returned, which indicates a not applicable state.
+        :return:
+        """
+        for modelXbrl in self.loadedModelXbrls:
+            manifestInstance = self.getManifestInstance(modelXbrl)
+            if manifestInstance is None:
+                continue
+            if manifestInstance.type != ReportFolderType.PUBLIC_DOC.value:
+                continue
+            facts = modelXbrl.factsByLocalName.get('WhetherConsolidatedFinancialStatementsArePreparedDEI', set())
+            for fact in facts:
+                if fact.xValue == True:
+                    return True
+                if fact.xValue == False:
+                    return False
+        return None
+
     @lru_cache(1)
     def isUpload(self, fileSource: FileSource) -> bool:
         fileSource.open()  # Make sure file source is open
@@ -173,13 +208,23 @@ class ControllerPluginData(PluginData):
             return False
         return True
 
-    def matchManifestInstance(self, ixdsDocUrls: list[str]) -> ManifestInstance | None:
+    @property
+    def loadedModelXbrls(self) -> list[ModelXbrl]:
+        """
+        TODO: Only necessary because cntlr.modelManager.loadedModelXbrls is not reliable
+            in the current conformance suite runner. Remove when that is fixed/replaced.
+        """
+        return self._loadedModelXbrls
+
+    @lru_cache(1)
+    def getManifestInstance(self, modelXbrl: ModelXbrl) -> ManifestInstance | None:
         """
         Match a manifest instance based on the provided ixdsDocUrls.
         A one-to-one mapping must exist between the model's IXDS document URLs and the manifest instance's IXBRL files.
         :param ixdsDocUrls: A model's list of IXDS document URLs.
         :return: A matching ManifestInstance if found, otherwise None.
         """
+        ixdsDocUrls = modelXbrl.ixdsDocUrls
         modelUrls = set(ixdsDocUrls)
         matchedInstance = None
         for instance in self._manifestInstancesById.values():
@@ -203,6 +248,27 @@ class ControllerPluginData(PluginData):
             matchedInstance = instance
             break
         return matchedInstance
+
+    def setDeiValue(self, localName: str, value: TypeXValue) -> None:
+        if localName in self._deiValues:
+            # Duplicate DEI values will be caught by validations.
+            return
+        self._deiValues[localName] = value
+
+    def setDeiValues(self, modelXbrl: ModelXbrl) -> None:
+        """
+        Set DEI values from the provided modelXbrl.
+        Some EDINET validations rely on both DEI values defined in one instance
+        and other values in a separate instance, so we collect DEI values from
+        all instances and collect them at a controller level.
+        :param modelXbrl:
+        :return:
+        """
+        for localName in DEI_LOCAL_NAMES:
+            for fact in modelXbrl.factsByLocalName.get(localName, ()):
+                if fact.isNil or fact.xValid < VALID:
+                    continue
+                self.setDeiValue(localName, fact.xValue)
 
     def addUsedFilepath(self, path: Path) -> None:
         self._usedFilepaths.add(path)

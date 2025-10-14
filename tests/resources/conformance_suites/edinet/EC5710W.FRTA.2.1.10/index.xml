@@ -19,6 +19,7 @@
         <result>
             <warning>EDINET.EC5700W.GFM.1.5.1</warning>
             <warning>EDINET.EC5710W.FRTA.2.1.10</warning>
+            <warning>EDINET.EC8015W</warning> <!-- from base sample filing -->
         </result>
     </variation>
 </testcase>

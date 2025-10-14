@@ -3,21 +3,30 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
+import datetime
 from collections import defaultdict
+
+from dateutil.relativedelta import relativedelta
 from itertools import chain
-from typing import Any, Iterable
+from typing import Any, Iterable, cast
 
 from arelle import XbrlConst
+from arelle.Cntlr import Cntlr
+from arelle.FileSource import FileSource
 from arelle.LinkbaseType import LinkbaseType
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ValidateXbrl import ValidateXbrl
+from arelle.XmlValidateConst import VALID
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
-from ..Constants import FINANCIAL_STATEMENT_CONTEXT_ID_PATTERN, CONTEXT_ID_PATTERN
+from ..Constants import FINANCIAL_STATEMENT_CONTEXT_ID_PATTERN, CONTEXT_ID_PATTERN, INDIVIDUAL_CONTEXT_ID_PATTERN
+from ..ContextRequirement import CONTEXT_REQUIREMENTS
+from ..ControllerPluginData import ControllerPluginData
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
 from ..PluginValidationDataExtension import PluginValidationDataExtension
+from ..ReportFolderType import ReportFolderType
 
 _: TypeGetText
 
@@ -148,6 +157,200 @@ def rule_EC8013W(
             contextId=contextId,
             modelObject=facts,
         )
+
+
+@validation(
+    hook=ValidationHook.COMPLETE,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8014W(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8014W: For individual (non-consolidated) reports, there must be a context that represents an individual.
+
+    Individual reports identified by presence of WhetherConsolidatedFinancialStatementsArePreparedDEI with False value.
+    Individual context identified by context ID matching pattern with "_NonConsolidatedMember".
+    """
+    if pluginData.isConsolidated() != False:
+        return
+    if not any(
+            INDIVIDUAL_CONTEXT_ID_PATTERN.fullmatch(contextID)
+            for modelXbrl in pluginData.loadedModelXbrls
+            for contextID in modelXbrl.contexts
+    ):
+        yield Validation.warning(
+            codes='EDINET.EC8014W',
+            msg=_("There is no context ID in the inline XBRL file that represents an individual. "
+                  "Please set a context ID that indicates individual financial "
+                  "statements in the inline XBRL file. "
+                  "If you are not including individual financial statements, "
+                  "please check the \"WhetherConsolidatedFinancialStatementsArePreparedDEI\" "
+                  "value of the DEI information."),
+        )
+
+
+@validation(
+    hook=ValidationHook.COMPLETE,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8015W(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8015W: For consolidated reports, there must not be a context that represents an individual.
+
+    Consolidated reports identified by presence of WhetherConsolidatedFinancialStatementsArePreparedDEI with True value.
+    Individual context identified by context ID matching pattern with "_NonConsolidatedMember".
+    """
+    if pluginData.isConsolidated() != True:
+        return
+    individualContexts = [
+            context
+            for modelXbrl in pluginData.loadedModelXbrls
+            for contextId, context in modelXbrl.contexts.items()
+            if INDIVIDUAL_CONTEXT_ID_PATTERN.fullmatch(contextId)
+    ]
+    if len(individualContexts) > 0:
+        yield Validation.warning(
+            codes='EDINET.EC8015W',
+            msg=_("There is a context ID in the inline XBRL file that represents an individual. "
+                  "If you do not want to enter information related to individual financial statements, "
+                  "delete the context ID that indicates individual. "
+                  "If you want to enter individual financial statements, "
+                  "check the \"WhetherConsolidatedFinancialStatementsArePreparedDEI\" status in the DEI "
+                  "information. "
+                  "* If there is a change from non-consolidated to consolidated, even if the data content "
+                  "is normal, it may be recognized as an exception and a warning may be displayed."),
+            modelObject=individualContexts,
+        )
+
+
+@validation(
+    hook=ValidationHook.COMPLETE,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_contextDeiRequirements(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8018W, EDINET.EC8019W, and EDINET.EC8020W assert that context instant, startDate, and endDate values
+    (respectively) match certain DEI values based on the presence of DEI values and patterns in the context ID.
+    See section 3-4-2 in the Validation Guidelines.
+    """
+    for modelXbrl in pluginData.loadedModelXbrls:
+        for contextId, context in modelXbrl.contexts.items():
+            for contextDeiRequirement in CONTEXT_REQUIREMENTS:
+                if not contextId.startswith(contextDeiRequirement.contextId):
+                    continue
+                if contextDeiRequirement.elementDoesNotExist is not None:
+                    if pluginData.getDeiValue(contextDeiRequirement.elementDoesNotExist) is not None:
+                        continue
+                if contextDeiRequirement.elementExists is not None:
+                    if pluginData.getDeiValue(contextDeiRequirement.elementExists) is None:
+                        continue
+
+                if contextDeiRequirement.element == 'startDate':
+                    contextValue = context.startDatetime
+                    code = "EDINET.EC8019W"
+                elif contextDeiRequirement.element == 'endDate':
+                    contextValue = context.endDatetime
+                    code = "EDINET.EC8020W"
+                else:
+                    assert contextDeiRequirement.element == 'instant'
+                    contextValue = context.instantDatetime
+                    code = "EDINET.EC8018W"
+
+                deiValue = pluginData.getDeiValue(contextDeiRequirement.elementMatch)
+                if deiValue is None:
+                    continue
+                deiValue = cast(datetime.datetime, deiValue)
+
+                if contextDeiRequirement.element in ('instant', 'endDate'):
+                    # Instant and end dates are parsed as the beginning of the day after the date specified by the value
+                    # DEI values need to be adjusted by 1 day to match this.
+                    deiValue = cast(datetime.datetime, deiValue) + datetime.timedelta(1)
+                if contextDeiRequirement.dayAdjustment:
+                    deiValue = cast(datetime.datetime, deiValue) + datetime.timedelta(contextDeiRequirement.dayAdjustment)
+
+                if contextValue != deiValue:
+                    yield Validation.warning(
+                        codes=code,
+                        msg=_("The context %(element)s element does not match the information in DEI "
+                              "\"%(elementMatch)s\". "
+                              "Context ID: '%(contextId)s'. "
+                              "DEI value: '%(deiValue)s'. "
+                              "Context value: '%(contextValue)s'. "
+                              "Please set the same value for the %(element)s element value of the corresponding "
+                              "context ID and the DEI information value."),
+                        element=contextDeiRequirement.element,
+                        elementMatch=contextDeiRequirement.elementMatch,
+                        contextId=contextId,
+                        deiValue=deiValue.date().isoformat(),
+                        contextValue=contextValue.date().isoformat(),
+                    )
+
+
+@validation(
+    hook=ValidationHook.COMPLETE,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8021W(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8021W: "EndDateOfQuarterlyOrSemiAnnualPeriodOfNextFiscalYearDEI" or "CurrentPeriodEndDateDEI"
+    must not be more than one year earlier than "FilingDateCoverPage".
+
+
+    If the "EndDateOfQuarterlyOrSemiAnnualPeriodOfNextFiscalYearDEI" of the DEI information is present,
+    then its value must not be more than one year earlier than "FilingDateCoverPage".
+    If "EndDateOfQuarterlyOrSemiAnnualPeriodOfNextFiscalYearDEI" is not present, but "CurrentPeriodEndDateDEI"
+    is present, then its value must not be more than one year earlier than "FilingDateCoverPage".
+    """
+    localName = 'EndDateOfQuarterlyOrSemiAnnualPeriodOfNextFiscalYearDEI'
+    targetDate = pluginData.getDeiValue(localName)
+    if not isinstance(targetDate, datetime.datetime):
+        localName = 'CurrentPeriodEndDateDEI'
+        targetDate = pluginData.getDeiValue(localName)
+    if not isinstance(targetDate, datetime.datetime):
+        return
+    compareDate = cast(datetime.datetime, targetDate + relativedelta(years=1))
+    for modelXbrl in pluginData.loadedModelXbrls:
+        for fact in modelXbrl.factsByLocalName.get('FilingDateCoverPage', set()):
+            if fact.isNil or fact.xValid < VALID:
+                continue
+            submissionDate = cast(datetime.datetime, fact.xValue)
+            if compareDate < submissionDate:
+                yield Validation.warning(
+                    codes='EDINET.EC8021W',
+                    msg=_("The DEI '%(localName)s' information is set to a date that is "
+                          "more than one year earlier than 'FilingDateCoverPage'. "
+                          "Please set the '%(localName)s' value to a value that is less "
+                          "than one year earlier than the value of 'FilingDateCoverPage'. "
+                          "%(localName)s: '%(targetDate)s'. "
+                          "FilingDateCoverPage: '%(submissionDate)s'. "),
+                    localName=localName,
+                    targetDate=targetDate.date().isoformat(),
+                    submissionDate=submissionDate.date().isoformat(),
+                    modelObject=fact,
+                )
 
 
 @validation(
