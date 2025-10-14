@@ -26,7 +26,7 @@ from .XbrlTransform import XbrlTransform
 from .XbrlUnit import XbrlUnit
 from .XbrlTypes import QNameKeyType
 from .XbrlObject import XbrlTaxonomyObject
-from .XbrlTableTemplate import XbrlLayout, XbrlTableTemplate, XbrlDataTable, XbrlAxis, XbrlAxisDimension
+from .XbrlLayout import XbrlLayout, XbrlTableTemplate, XbrlDataTable, XbrlAxis, XbrlAxisDimension
 
 class XbrlTaxonomyModule(XbrlTaxonomyObject):
     txmyMdl: XbrlTaxonomyModel
@@ -44,7 +44,7 @@ class XbrlTaxonomyModule(XbrlTaxonomyObject):
     domains: OrderedSet[XbrlDomain] # (optional) ordered set of domain objects.
     domainRoots: OrderedSet[XbrlDomainRoot] # (optional) ordered set of domain root objects.
     entities: OrderedSet[XbrlEntity] # (optional) ordered set of entity objects.
-    facts: OrderedSet[XbrlFact] #  (optional) ordered set of fact objects.
+    factspaces: OrderedSet[XbrlFact] #  (optional) ordered set of fact objects.
     groups: OrderedSet[XbrlGroup] #  (optional) ordered set of group objects.
     groupContents: OrderedSet[XbrlGroupContent] # ordered set of groupContent objects that link a group QName to a list of network or cube objects.
     labels: OrderedSet[XbrlLabel] # (optional) ordered set of label objects.
@@ -55,8 +55,6 @@ class XbrlTaxonomyModule(XbrlTaxonomyObject):
     labelTypes: OrderedSet[XbrlLabelType] # (optional)  ordered set of labelType objects.
     referenceTypes: OrderedSet[XbrlReferenceType] # (optional) ordered set of referenceType objects.
     relationshipTypes: OrderedSet[XbrlRelationshipType] # (optional) ordered set of relationshipType objects.
-    tableTemplates: OrderedSet[XbrlTableTemplate] # (optional) ordered set of tableTemplate objects.
-    dataTables: OrderedSet[XbrlDataTable] # (optional) ordered set of dataTable objects.
     transforms: OrderedSet[XbrlTransform] # (optional) an ordered set of transform objects.
     units: OrderedSet[XbrlUnit] # ordered set of unit objects.
     properties: OrderedSet[XbrlProperty] # ordered set of property objects used to specify additional properties associated with the taxonomy. Only immutable properties as defined in the propertyType object can be added to a taxonom
@@ -88,7 +86,7 @@ referencableObjectTypes = {
         qname("{https://xbrl.org/2025}xbrl:transformObject"): XbrlTransform,
         qname("{https://xbrl.org/2025}xbrl:layoutObject"): XbrlLayout,
         qname("{https://xbrl.org/2025}xbrl:tableTemplateObject"): XbrlTableTemplate,
-        qname("{https://xbrl.org/2025}xbrl:axisObject"): XbrlAxis,
+        qname("{https://xbrl.org/2025}xbrl:dataTableObject"): XbrlDataTable,
     }
 nonReferencableObjectTypes = {
         qname("{https://xbrl.org/2025}xbrl:importTaxonomyObject"): XbrlImportTaxonomy,
@@ -101,6 +99,7 @@ nonReferencableObjectTypes = {
         qname("{https://xbrl.org/2025}xbrl:propertyObject"): XbrlProperty,
         qname("{https://xbrl.org/2025}xbrl:allowedCubeDimensionObject"): XbrlAllowedCubeDimension,
         qname("{https://xbrl.org/2025}xbrl:requiredCubeRelationshipObject"): XbrlRequiredCubeRelationship,
+        qname("{https://xbrl.org/2025}xbrl:axisObject"): XbrlAxis,
         qname("{https://xbrl.org/2025}xbrl:axisDimensionObject"): XbrlAxisDimension,
     }
 xbrlObjectTypes = referencableObjectTypes | nonReferencableObjectTypes

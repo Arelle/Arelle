@@ -15,7 +15,7 @@ from .XbrlConcept import XbrlConcept
 from .XbrlCube import coreDimensionsByLocalname
 from .XbrlDimension import XbrlDimension
 from .XbrlReport import XbrlFact
-from .XbrlTableTemplate import XbrlTableTemplate
+from .XbrlLayout import XbrlTableTemplate
 
 # Load CSV Table
 columnProperties = {"comment", "decimals", "dimensions", "propertyGroups", "parameterURL", "propertiesFrom"}

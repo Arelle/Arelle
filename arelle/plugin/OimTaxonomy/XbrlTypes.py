@@ -6,6 +6,7 @@ from typing_extensions import TypeAlias
 from arelle.ModelValue import QName
 
 XbrlLabelType: TypeAlias = "XbrlLabel"
+XbrlLayoutType: TypeAlias = "XbrlLayout"
 XbrlPropertyType: TypeAlias = "XbrlProperty"
 XbrlTaxonomyModelType: TypeAlias = "XbrlTaxonomyModel"
 XbrlTaxonomyModuleType: TypeAlias = "XbrlTaxonomyModule"

@@ -611,7 +611,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                         filename = None
                 except AttributeError:
                     pass
-            if any(extSave(self, view, fileType, filenameFromInstance)
+            if any(extSave(self, view, fileType, filename)
                    for extSave in pluginClassMethods("CntlrWinMain.Xbrl.Save")):
                 currentAction = "ext save method provided"
             elif isinstance(view, ViewWinRenderedGrid.ViewRenderedGrid):
