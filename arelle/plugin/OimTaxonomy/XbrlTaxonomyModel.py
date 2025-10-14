@@ -12,13 +12,14 @@ from arelle.PythonUtil import OrderedSet
 from .XbrlConcept import XbrlConcept, XbrlDataType
 from .XbrlGroup import XbrlGroupContent
 from .XbrlReport import XbrlFact, XbrlReport
-from .XbrlTypes import XbrlTaxonomyModuleType, QNameKeyType, XbrlLabelType, XbrlPropertyType
+from .XbrlTypes import XbrlTaxonomyModuleType, XbrlLayoutType, QNameKeyType, XbrlLabelType, XbrlPropertyType
 from .XbrlObject import XbrlObject, XbrlReferencableTaxonomyObject, XbrlTaxonomyTagObject, XbrlReportObject
 
 def castToXbrlTaxonomyModel(modelXbrl, isReport=False):
     if not isinstance(modelXbrl, XbrlTaxonomyModel) and isinstance(modelXbrl, ModelXbrl):
         modelXbrl.__class__ = XbrlTaxonomyModel
         modelXbrl.taxonomies: OrderedDict[QNameKeyType, XbrlTaxonomyModuleType] = OrderedDict()
+        modelXbrl.layouts: OrderedDict[QNameKeyType, XbrlLayoutType] = OrderedDict()
         modelXbrl.dtsObjectIndex = 0
         modelXbrl.xbrlObjects: list[XbrlObject] = []
         modelXbrl.namedObjects: OrderedDict[QNameKeyType, XbrlReferencableTaxonomyObject] = OrderedDict() # not visible metadata
@@ -29,6 +30,7 @@ def castToXbrlTaxonomyModel(modelXbrl, isReport=False):
 
 class XbrlTaxonomyModel(ModelXbrl): # complete wrapper for ModelXbrl
     taxonomies: OrderedDict[QNameKeyType, XbrlTaxonomyModuleType]
+    layouts: OrderedDict[QNameKeyType, XbrlLayoutType]
     xbrlObjects: list[XbrlObject] # not visible metadata
     # objects only present for XbrlReports
     linkTypes: dict[str, AnyURI]

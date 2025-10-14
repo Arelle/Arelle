@@ -51,7 +51,7 @@ from .XbrlUnit import XbrlUnit
 from .XbrlTaxonomyModel import XbrlTaxonomyModel, castToXbrlTaxonomyModel
 from .XbrlTaxonomyModule import XbrlTaxonomyModule
 from .XbrlObject import XbrlObject, XbrlReferencableTaxonomyObject, XbrlTaxonomyTagObject
-from .XbrlTypes import (XbrlTaxonomyModelType, XbrlTaxonomyModuleType, XbrlReportType, XbrlUnitTypeType, 
+from .XbrlTypes import (XbrlTaxonomyModelType, XbrlTaxonomyModuleType, XbrlLayoutType, XbrlReportType, XbrlUnitTypeType, 
                         QNameKeyType, SQNameKeyType, DefaultTrue, DefaultFalse, DefaultZero)
 from .ValidateTaxonomyModel import validateTaxonomyModel
 from .ValidateReport import validateReport
@@ -61,7 +61,7 @@ from .ViewXbrlTaxonomyObject import viewXbrlTaxonomyObject
 from .XbrlConst import xbrl, oimTaxonomyDocTypePattern, oimTaxonomyDocTypes, xbrlTaxonomyObjects
 from .ParseSelectionWhereClause import parseSelectionWhereClause
 from .LoadCsvTable import csvTableRowFacts
-from .SaveModel import saveModel
+from .SaveModel import oimTaxonomySave
 
 from arelle.oim.Load import (DUPJSONKEY, DUPJSONVALUE, EMPTY_DICT, EMPTY_LIST, UrlInvalidPattern,
                              OIMException, NotOIMException)
@@ -76,6 +76,7 @@ jsonschemaValidator = None
 
 xbrlTypeAliasClass = {
     XbrlLabelType: XbrlLabel,
+    XbrlLayoutType: XbrlLayout,
     XbrlPropertyType: XbrlProperty,
     XbrlTaxonomyModelType: XbrlTaxonomyModel,
     XbrlTaxonomyModuleType: XbrlTaxonomyModule,
@@ -536,6 +537,8 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                         objClass = objClass.__args__[0]
                     if objClass == XbrlTaxonomyModuleType:
                         objClass = XbrlTaxonomyModule
+                    elif objClass == XbrlLayoutType:
+                        objClass = XbrlLayout
                     if isinstance(objClass,ForwardRef) and objClass.__forward_arg__ in xbrlTypeAliasClass:
                         objClass = xbrlTypeAliasClass[objClass.__forward_arg__]
                     if issubclass(objClass, XbrlObject):
@@ -1087,21 +1090,6 @@ def oimTaxonomyViews(cntlr, xbrlTxmyMdl):
             viewXbrlTaxonomyObject(xbrlTxmyMdl, *view, additionalViews)
         return True # block ordinary taxonomy views
     return False
-
-def oimTaxonomySave(cntlr, view, fileType=None, filenameFromInstance=False, *args, **kwargs):
-    if not isinatance(view, ViewXbrlTxmyObj):
-        return False # not an OIM Taxonomy View
-    # for now always ask file name and type to save
-    filename = self.uiFileDialog("save",
-            title="Save OIM Taxonomy",
-            initialdir=initialdir,
-            filetypes=[(_("OIM Taxonomy json"), "*.json"), (_("OIM Taxonomy cbor .cbor"), "*.cbor"), (_("Excel .xlsx"), "*.xlsx"), (_("HTML table .html"), "*.html"), (_("HTML table .htm"), "*.htm")],
-            defaultextension=".xlsx")
-    if filename and (filename.endswith(".json") or filename.endswith(".cbor")):
-        saveModel(cntlr, view.xbrlTxmyMdl, filename)
-        return True
-    return False # no action by this plugin
-    
 
 __pluginInfo__ = {
     'name': 'OIM Taxonomy',

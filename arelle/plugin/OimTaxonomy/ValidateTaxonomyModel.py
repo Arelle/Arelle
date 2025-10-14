@@ -22,10 +22,10 @@ from .XbrlEntity import XbrlEntity
 from .XbrlGroup import XbrlGroup, XbrlGroupContent
 from .XbrlImportTaxonomy import XbrlImportTaxonomy, XbrlExportProfile
 from .XbrlLabel import XbrlLabel, XbrlLabelType, preferredLabel
+from .XbrlLayout import XbrlLayout, XbrlTableTemplate, XbrlDataTable
 from .XbrlNetwork import XbrlNetwork, XbrlRelationship, XbrlRelationshipType
 from .XbrlProperty import XbrlPropertyType
 from .XbrlReference import XbrlReference, XbrlReferenceType
-from .XbrlTableTemplate import XbrlTableTemplate
 from .XbrlTaxonomyModule import XbrlTaxonomyModule, xbrlObjectTypes, referencableObjectTypes, xbrlObjectQNames
 from .XbrlUnit import XbrlUnit, parseUnitString
 from .XbrlConst import qnXsQName, qnXsDate, qnXsDateTime, qnXsDuration, objectsWithProperties
@@ -37,12 +37,20 @@ def validateTaxonomyModel(txmyMdl):
 
     for txmy in txmyMdl.taxonomies.values():
         validateTaxonomy(txmyMdl, txmy)
+    for layout in txmyMdl.layouts.values():
+        validateLayout(txmyMdl, layout)
 
 def objType(obj):
     clsName = type(obj).__name__
     if clsName.startswith("Xbrl"):
         return clsName[4:]
     return clsName
+
+def assertObjectType(txmyMdl, obj, objType):
+    if not isinstance(obj, objType):
+        txmyMdl.error("oimte:invalidObjectType",
+                  _("This %(thisType)s object was included where an %(expectedType)s object was expected."),
+                  xbrlObject=obj, thisType=obj.__class__.__name__, expectedType=objType.__name__)
 
 def validateValue(txmyMdl, txmy, obj, value, dataTypeQn, pathElt, msgCode):
     if isinstance(dataTypeQn, QName):
@@ -117,17 +125,11 @@ def validateProperties(txmyMdl, oimFile, txmy, obj):
 def validateTaxonomy(txmyMdl, txmy):
     oimFile = str(txmy.name)
 
-    def assertObjectType(obj, objType):
-        if not isinstance(obj, objType):
-            txmyMdl.error("oimte:invalidObjectType",
-                      _("This %(thisType)s object was included where an %(expectedType)s object was expected."),
-                      xbrlObject=obj, thisType=obj.__class__.__name__, expectedType=objType.__name__)
-
     # Taxonomy object
-    assertObjectType(txmy, XbrlTaxonomyModule)
+    assertObjectType(txmyMdl, txmy, XbrlTaxonomyModule)
 
     for impTxObj in txmy.importedTaxonomies:
-        assertObjectType(impTxObj, XbrlImportTaxonomy)
+        assertObjectType(txmyMdl, impTxObj, XbrlImportTaxonomy)
         for qnObjType in impTxObj.importObjectTypes:
             if qnObjType in xbrlObjectTypes:
                 if xbrlObjectTypes[qnObjType] == XbrlLabel:
@@ -145,7 +147,7 @@ def validateTaxonomy(txmyMdl, txmy):
 
     expPrflCt = defaultdict(list)
     for expPrflObj in txmy.exportProfiles:
-        assertObjectType(expPrflObj, XbrlExportProfile)
+        assertObjectType(txmyMdl, expPrflObj, XbrlExportProfile)
         name = expPrflObj.name
         for expObjQn in expPrflObj.exportObjects:
             if expObjQn not in txmyMdl.namedObjects:
@@ -182,7 +184,7 @@ def validateTaxonomy(txmyMdl, txmy):
 
     # Concept Objects
     for cncpt in txmy.concepts:
-        assertObjectType(cncpt, XbrlConcept)
+        assertObjectType(txmyMdl, cncpt, XbrlConcept)
         perType = getattr(cncpt, "periodType", None)
         if perType not in ("instant", "duration", "none"):
             txmyMdl.error("oime:invalidPropertyValue",
@@ -202,7 +204,7 @@ def validateTaxonomy(txmyMdl, txmy):
 
     # CubeType Objects
     for cubeType in txmy.cubeTypes:
-        assertObjectType(cubeType, XbrlCubeType)
+        assertObjectType(txmyMdl, cubeType, XbrlCubeType)
         name = cubeType.name
         if cubeType.baseCubeType is not None:
             if cubeType.baseCubeType not in txmyMdl.namedObjects:
@@ -294,7 +296,7 @@ def validateTaxonomy(txmyMdl, txmy):
 
     # Cube Objects
     for cubeObj in txmy.cubes:
-        assertObjectType(cubeObj, XbrlCube)
+        assertObjectType(txmyMdl, cubeObj, XbrlCube)
         name = cubeObj.name
         cubeType = txmyMdl.namedObjects.get(cubeObj.cubeType or reportCubeType)
         ntwks = set()
@@ -431,7 +433,7 @@ def validateTaxonomy(txmyMdl, txmy):
         unitDataTypeQNs = set()
         cncptDataTypeQNs = set()
         for iCubeDim, cubeDimObj in enumerate(cubeObj.cubeDimensions):
-            assertObjectType(cubeDimObj, XbrlCubeDimension)
+            assertObjectType(txmyMdl, cubeDimObj, XbrlCubeDimension)
             dimName = cubeDimObj.dimensionName
             dimObj = txmyMdl.namedObjects[dimName]
             isTyped = False
@@ -602,7 +604,7 @@ def validateTaxonomy(txmyMdl, txmy):
 
     # DataType Objects
     for dtObj in txmy.dataTypes:
-        assertObjectType(dtObj, XbrlDataType)
+        assertObjectType(txmyMdl, dtObj, XbrlDataType)
         btQn = dtObj.baseType
         if btQn and btQn.namespaceURI != "http://www.w3.org/2001/XMLSchema" and not isinstance(txmyMdl.namedObjects.get(btQn), XbrlDataType):
             txmyMdl.error("oimte:invalidPropertyValue",
@@ -610,7 +612,7 @@ def validateTaxonomy(txmyMdl, txmy):
                       xbrlObject=dtObj, name=dt.name)
         if dtObj.unitType is not None:
             utObj = dtObj.unitType
-            assertObjectType(utObj, XbrlUnitType)
+            assertObjectType(txmyMdl, utObj, XbrlUnitType)
             for utProp in ("dataTypeNumerator", "dataTypeDenominator", "dataTypeMutiplier"):
                 utPropQn = getattr(utObj, utProp)
                 if utPropQn and not isinstance(txmyMdl.namedObjects.get(utPropQn), XbrlDataType):
@@ -620,7 +622,7 @@ def validateTaxonomy(txmyMdl, txmy):
 
     # Dimension Objects
     for dimObj in txmy.dimensions:
-        assertObjectType(dimObj, XbrlDimension)
+        assertObjectType(txmyMdl, dimObj, XbrlDimension)
         for cubeTypeQn in dimObj.cubeTypes:
             if cubeTypeQn not in txmyMdl.namedObjects:
                 txmyMdl.error("oimte:missingQNameReference",
@@ -658,7 +660,7 @@ def validateTaxonomy(txmyMdl, txmy):
 
     # Domain Objects
     for domObj in txmy.domains:
-        assertObjectType(domObj, XbrlDomain)
+        assertObjectType(txmyMdl, domObj, XbrlDomain)
         extendTargetObj = None
         if domObj.extendTargetName:
             extendTargetObj = txmyMdl.namedObjects.get(domObj.extendTargetName)
@@ -693,7 +695,7 @@ def validateTaxonomy(txmyMdl, txmy):
         for i, relObj in enumerate(domObj.relationships):
             if i == 0:
                 domRootSourceInRel = False
-            assertObjectType(relObj, XbrlRelationship)
+            assertObjectType(txmyMdl, relObj, XbrlRelationship)
             src = getattr(relObj, "source", None)
             tgt = getattr(relObj, "target", None)
             if src not in txmyMdl.namedObjects or tgt not in txmyMdl.namedObjects:
@@ -706,7 +708,7 @@ def validateTaxonomy(txmyMdl, txmy):
                         txmyMdl.error("oimte:invalidObjectType",
                                   _("The domain %(name)s relationship[%(nbr)s] source, %(source)s MUST be a concept object in the taxonomy model."),
                                   xbrlObject=relObj, name=domObj.name, nbr=i, source=relObj.source)
-                    if not isinstance(txmyMdl.namedObjects[relObj.target], XbrlConcept):
+                    if not isinstance(txmyMdl.namedObjects[relObj.target], (XbrlConcept, XbrlAbstract)):
                         txmyMdl.error("oimte:invalidDomainTarget",
                                   _("The domain %(name)s relationship[%(nbr)s] target, %(target)s, MUST be a concept object in the taxonomy model."),
                                   xbrlObject=relObj, name=domObj.name, nbr=i, target=relObj.target)
@@ -766,17 +768,17 @@ def validateTaxonomy(txmyMdl, txmy):
 
     # DomainRoot Objects
     for domRtObj in txmy.domainRoots:
-        assertObjectType(domRtObj, XbrlDomainRoot)
+        assertObjectType(txmyMdl, domRtObj, XbrlDomainRoot)
         validateProperties(txmyMdl, oimFile, txmy, domRtObj)
 
     # Entity Objects
     for entityObj in txmy.entities:
-        assertObjectType(entityObj, XbrlEntity)
+        assertObjectType(txmyMdl, entityObj, XbrlEntity)
         validateProperties(txmyMdl, oimFile, txmy, entityObj)
 
     # GroupContent Objects
     for grpCntObj in txmy.groupContents:
-        assertObjectType(grpCntObj, XbrlGroupContent)
+        assertObjectType(txmyMdl, grpCntObj, XbrlGroupContent)
         grpQn = grpCntObj.groupName
         if grpQn not in txmyMdl.namedObjects or type(txmyMdl.namedObjects[grpQn]) != XbrlGroup:
             txmyMdl.error("oimte:invalidGroupObject",
@@ -791,7 +793,7 @@ def validateTaxonomy(txmyMdl, txmy):
     # Label Objects
     labelsCt = defaultdict(list)
     for lblObj in txmy.labels:
-        assertObjectType(lblObj, XbrlLabel)
+        assertObjectType(txmyMdl, lblObj, XbrlLabel)
         relatedName = lblObj.relatedName
         relatedObj = None
         if relatedName not in txmyMdl.namedObjects:
@@ -824,7 +826,7 @@ def validateTaxonomy(txmyMdl, txmy):
     # Network Objects
     ntwkCt = {}
     for ntwkObj in txmy.networks:
-        assertObjectType(ntwkObj, XbrlNetwork)
+        assertObjectType(txmyMdl, ntwkObj, XbrlNetwork)
         extendTargetObj = None
         relTypeObj = None
         if ntwkObj.extendTargetName:
@@ -874,7 +876,7 @@ def validateTaxonomy(txmyMdl, txmy):
         sources = OrderedSet()
         targets = OrderedSet()
         for i, relObj in enumerate(ntwkObj.relationships):
-            assertObjectType(relObj, XbrlRelationship)
+            assertObjectType(txmyMdl, relObj, XbrlRelationship)
             if  relObj.source not in txmyMdl.namedObjects or relObj.target not in txmyMdl.namedObjects:
                 txmyMdl.error("oimte:missingQNameReference",
                           _("The network %(name)s relationship[%(nbr)s] source, %(source)s, and target, %(target)s, MUST be objects in the taxonomy model."),
@@ -920,7 +922,7 @@ def validateTaxonomy(txmyMdl, txmy):
 
     # PropertyType Objects
     for propTpObj in txmy.propertyTypes:
-        assertObjectType(propTpObj, XbrlPropertyType)
+        assertObjectType(txmyMdl, propTpObj, XbrlPropertyType)
         dataTypeObj = txmyMdl.namedObjects.get(propTpObj.dataType)
         if not isinstance(dataTypeObj, XbrlDataType):
             txmyMdl.error("oimte:missingQNameReference",
@@ -938,7 +940,7 @@ def validateTaxonomy(txmyMdl, txmy):
 
     # RelationshipType Objects
     for relTpObj in txmy.relationshipTypes:
-        assertObjectType(relTpObj, XbrlRelationshipType)
+        assertObjectType(txmyMdl, relTpObj, XbrlRelationshipType)
         for prop in ("allowedLinkProperties", "requiredLinkProperties"):
             for propTpQn in getattr(relTpObj, prop):
                 if not isinstance(txmyMdl.namedObjects.get(propTpQn), XbrlPropertyType):
@@ -956,7 +958,7 @@ def validateTaxonomy(txmyMdl, txmy):
     refInvalidNames = []
     refsDup = defaultdict(list)
     for refObj in txmy.references:
-        assertObjectType(refObj, XbrlReference)
+        assertObjectType(txmyMdl, refObj, XbrlReference)
         name = refObj.name
         lang = refObj.language
         refTp = refObj.referenceType
@@ -1004,7 +1006,7 @@ def validateTaxonomy(txmyMdl, txmy):
     # LabelType Objects
     lblTpCt = {}
     for lblObj in txmy.labelTypes:
-        assertObjectType(lblObj, XbrlLabelType)
+        assertObjectType(txmyMdl, lblObj, XbrlLabelType)
         dataTypeObj = txmyMdl.namedObjects.get(lblObj.dataType)
         if not isinstance(dataTypeObj, XbrlDataType):
             txmyMdl.error("oimte:invalidDataTypeObject",
@@ -1025,7 +1027,7 @@ def validateTaxonomy(txmyMdl, txmy):
     # ReferenceType Objects
     refTpCt = {}
     for refObj in txmy.referenceTypes:
-        assertObjectType(refObj, XbrlReferenceType)
+        assertObjectType(txmyMdl, refObj, XbrlReferenceType)
         for allowedObj in refObj.allowedObjects:
             if allowedObj not in referencableObjectTypes:
                 txmyMdl.error("oimte:invalidObjectType",
@@ -1046,7 +1048,7 @@ def validateTaxonomy(txmyMdl, txmy):
 
     # Unit Objects
     for unitObj in txmy.units:
-        assertObjectType(unitObj, XbrlUnit)
+        assertObjectType(txmyMdl, unitObj, XbrlUnit)
         name = unitObj.name
         dtQn = getattr(unitObj, "dataType", None)
         if dtQn:
@@ -1068,10 +1070,46 @@ def validateTaxonomy(txmyMdl, txmy):
                                   xbrlObject=unitObj, name=unitObj.name, measure=m)
 
     # Facts in taxonomy
-    if txmy.facts:
+    if txmy.factspaces:
         global validateFact
         if validateFact is None:
             from .ValidateReport import validateFact
-        for fact in txmy.facts:
+        for fact in txmy.factspaces:
             validateFact(fact, txmy.name, txmy, txmyMdl)
 
+def validateLayout(txmyMdl, layout):
+    oimFile = str(layout.name)
+
+    # Taxonomy object
+    assertObjectType(txmyMdl, layout, XbrlLayout)
+
+    for tblTmpl in txmy.tableTemplates:
+        assertObjectType(txmyMdl, tblTmpl, XbrlTableTemplate)
+        
+        for dim in tblTmpl.dimensions:
+            if dim.startswith('$'):
+                colName = dim[1:]
+                if colName not in tblTmpl.columns:
+                    txmyMdl.error("oimte:tableTemplateDimensionColumnReference",
+                              _("The table template dimension %(dimension)s is missing from the table template columns."),
+                              xbrlObject=tblTmpl, dimension=dim)
+        
+    for dataTbl in txmy.dataTables:
+        assertObjectType(txmyMdl, dataTbl, XbrlDataTable)
+        
+        for axisName, axis in (("xAxis", dataTbl.xAxis), ("yAxis", dataTbl.yAxis), ("zAxis", dataTbl.zAxis)):
+            assertObjectType(txmyMdl, axis, XbrlAxis)
+            dimsOnThisAxis = {} # qnames of axis dimensions and counts on axis
+            for axisDimName in axis.dimensionNames:
+                if axisDimName.dimensionName in (conceptCoreDim, unitCoreDim, periodCoreDim) and axisDimName.showTotal:
+                    txmyMdl.error("oimte:invalidShowTotalValue",
+                              _("For dimension $(dimension)s, showTotal MUST be absent or false,"),
+                              xbrlObject=dataTbl, dimension=axisDimName.dimensionName)
+                dimsOnThisAxis[axisDimName.dimensionName] = dimsOnThisAxis.get(axisDimName.dimensionName,0) + 1
+            if any(d.value() > 1 for d in dimsOnThisAxis.values()):
+                txmyMdl.error("oimte:multipleDimensionsForPresentationNetwork",
+                          _("The axes %(axes)s on dataTable %(dataTable)s have more than one of the same dimension."),
+                          xbrlObject=dataTbl, axes=", ".join(str(d) for d,c in dimsOnThisAxis.items() if c > 1))
+                txmyMdl.error("oimte:invalidObjectType",
+                          _("The importObjectTypes property MUST specify valid OIM object types, %(qname)s is not valid."),
+                          xbrlObject=impTxObj, qname=qnObjType)

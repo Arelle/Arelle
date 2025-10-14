@@ -13,7 +13,7 @@ from .XbrlConst import unsupportedTypedDimensionDataTypes
 from .XbrlConcept import XbrlConcept, XbrlDataType
 from .XbrlCube import conceptCoreDim, languageCoreDim, periodCoreDim, unitCoreDim, coreDimensions
 from .XbrlDimension import XbrlDimension, XbrlMember
-from .XbrlTableTemplate import XbrlTableTemplate
+from .XbrlLayout import XbrlTableTemplate
 from .XbrlUnit import parseUnitString, XbrlUnit
 from .ValidateTaxonomyModel import validateValue
 from .ValidateCubes import validateCubes
@@ -36,9 +36,10 @@ def validateFact(fact, reportQn, reportObj, txmyMdl):
     if cDataType is None or not isinstance(cDataType, XbrlDataType):
         # presume this error would have been reported on validating loaded taxonomy model
         return
-    _valid, _value = validateValue(txmyMdl, reportObj, fact, fact.value, cDataType, f"/value", "oime:invalidFactValue")
-    fact._valid = _valid
-    fact._value = _value
+    for factValue in fact.factValues:
+        _valid, _value = validateValue(txmyMdl, reportObj, factValue, factValue.value, cDataType, f"/value", "oime:invalidFactValue")
+        fact._valid = _valid
+        fact._value = _value
     if not name:
         error("oime:missingFactId", _("The name (name) MUST be present on fact."))
     if languageCoreDim in fact.factDimensions:

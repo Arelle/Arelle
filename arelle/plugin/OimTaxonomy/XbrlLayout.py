@@ -7,10 +7,11 @@ from decimal import Decimal
 
 from arelle.ModelValue import QName
 from arelle.PythonUtil import OrderedSet
-from .XbrlTypes import XbrlTaxonomyModuleType, QNameKeyType, DefaultFalse
+from .XbrlTypes import XbrlLayoutType, XbrlTaxonomyModuleType, QNameKeyType, DefaultFalse
 from .XbrlObject import XbrlTaxonomyObject, XbrlReferencableTaxonomyObject
 
 class XbrlTableTemplate(XbrlReferencableTaxonomyObject):
+    layout: XbrlLayoutType
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the transform object.
     rowIdColumn: Optional[str] # (optional) An identifier specifying the name of the row ID column.
     columns: dict # (required) A columns object. (See xbrl-csv specification)
@@ -25,12 +26,14 @@ class XbrlAxisDimension(XbrlTaxonomyObject):
     periodAlign: OrderedSet[str] # (optional) the period align attribute can only be used with the period dimension. This attribute is used to align time values of facts in a dimension rather than being created as seperate columns or rows. The values @start and @end are used to indicate if instant values are aligned with duration values. These values are used to support roll-forwards in a datatgrid and will align duration values and instant values with the same start and end dates.
 
 class XbrlAxis(XbrlTaxonomyObject):
+    layout: XbrlLayoutType
     dimensionNames: OrderedSet[XbrlAxisDimension] # (required) The axis dimension objects that define the dimensions associated with the axis.
     axisLabels: OrderedSet[str] # (optional) Defines a set of strings that are used as the axis labels. Cannot be used with the presentationNetwork property.
     language: Optional[str] # (optional) Defines the language of the axisLabels using a valid BCP 47 [BCP47] language code.
     presentationNetwork: Optional[QName] # (optional) Defines a QName of a network with a relationshipType of xbrl:parent-child that is used to control the order of items on the axis and the labels that are used
 
 class XbrlDataTable(XbrlReferencableTaxonomyObject):
+    layout: XbrlLayoutType
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the data table object.
     cubeName: QName # (required) The name is a QName that identifies the cube associated with the data table.
     xAxis: XbrlAxis # (required) An axis object that identifies an ordered set of axis and the behaviour of the dimension when mapped to the X axis of the table.
