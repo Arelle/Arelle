@@ -4,8 +4,8 @@ from tests.integration_tests.validation.conformance_suite_config import Conforma
 config = ConformanceSuiteConfig(
     assets=[
         ConformanceSuiteAssetConfig.conformance_suite(
-            Path('xdt-conf-cr4-2009-10-06.zip'),
-            entry_point=Path('xdt.xml'),
+            Path('XBRL-XDT-CONF-2025-09-09.zip'),
+            entry_point=Path('XBRL-XDT-CONF-2025-09-09/xdt.xml'),
             public_download_url='https://www.xbrl.org/2009/xdt-conf-cr4-2009-10-06.zip',
             source=AssetSource.S3_PUBLIC,
         ),
@@ -13,7 +13,7 @@ config = ConformanceSuiteConfig(
     args=[
         '--infoset',
     ],
-    expected_failure_ids=frozenset([
+    expected_failure_ids=frozenset(f"XBRL-XDT-CONF-2025-09-09/{s}" for s in [
         # The value of the xbrldt:targetRole attribute is valid
         # Expected: sche:XmlSchemaError, Actual: xbrldte:TargetRoleNotResolvedError
         '000-Schema-invalid/001-Taxonomy/001-TestCase-Taxonomy.xml:V-03',
