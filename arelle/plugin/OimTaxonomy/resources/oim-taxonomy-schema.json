@@ -683,9 +683,11 @@
                             "items": {
                               "type": "object",
                               "properties": {
+                                "name": { "$ref": "#/definitions/QName" },
                                 "value": { "type": "string" },
                                 "decimals": { "type": "number" }
-                                }
+                                },
+                                "additionalProperties": false
                               }
                             },
                       "factDimensions": {
@@ -705,13 +707,16 @@
                                           ]},
                           "xbrl:period":{"type": "string"}
                         },
-                        "additionalProperties": {
-                          "oneOf": [
-                            { "type": "string" },
-                            { "type": "number" },
-                            { "type": "null" }
-                          ]
-                        },
+                         "patternProperties": {
+                              "^[A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z_][A-Za-z0-9_.-]*$": {
+                                "oneOf": [
+                                  { "type": "string" },
+                                  { "type": "number" },
+                                  { "type": "null" }
+                                ]
+                              }
+                            },
+                        "additionalProperties": false,
                         "required": ["xbrl:concept"]
                       }
                     },

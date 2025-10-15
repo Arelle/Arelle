@@ -6,38 +6,48 @@ Saves OIM Taxonomy Model into json, cbor and Excel
 '''
 import os
 import tkinter
+from collections import OrderedDict
 from typing import GenericAlias
 from arelle.PythonUtil import  OrderedSet
 from .ViewXbrlTaxonomyObject import ViewXbrlTxmyObj
+from .XbrlObject import XbrlObject
 from .XbrlTaxonomyModel import XbrlTaxonomyModel
 from .XbrlTaxonomyModule import XbrlTaxonomyModule
 from arelle.plugin.xule.XuleServer import sep
 
 
-def savableObjects(mdlObj, sparateNamespaces, isXlsx=False, isJson=False, isCbor=False):
-    if isinstance(mdlObj, XbrlTaxonomyModel):
-        return dict((txmy.name, savableObjects(txmy, sparateNamespaces, isXlsx, isJson, isCbor))
-                    for txmy in mdlObj.taxonomies.values())
-    objProps = []
-    objSets = []
+def saveableObjects(mdlObj, **kwargs):
+    saveableObj = OrderedDict()
+    # fpr taxonomyModel, combine the objects of taxonomyModules and possibly sort by namespace
     for propName, propType in type(mdlObj).propertyNameTypes():
-        if isinstance(propType, GenericAlias) and propType.__origin__ == OrderedSet:
-            objSets.append(propName)
+        propVal = getattr(mdlObj, propName, ())
+        if isinstance(propVal, (set, list, dict)):
+            saveVal = []
+            saveableObj[propName] = saveVal
+            for setObj in (propVal.values() if hasattr(propVal,"values") else propVal):
+                if isinstance(setObj, XbrlObject):
+                    saveVal.append(saveableObjects(setObj, **kwargs))
+                else:
+                    saveVal.append(setObj)
         elif propName not in ("txmyMdl", "layout"):
-            objProps.append(propName)
-    print(f"obj {type(mdlObj)} props {objProps} sets {objSets}")
+            if isinstance(propVal, XbrlObject):
+                saveableObj[propName] = saveableObjects(propVal, **kwargs)
+            else:
+                saveableObj[propName] = propVal
+    print(f"obj {type(mdlObj)} val {saveableObj}")
+    return saveableObj
     
 def saveXlsx(cntlr, txmyMdl, fileName):
     # nested sheet for each OrderedSet of XbrlTaxonomyModule object
-    objs = savableObjects(txmyMdl, True, isXlsx=True)
+    objs = saveableObjects(txmyMdl, isXlsx=True)
 
-def saveJson(cntlr, txmyMdl, fileName, sparateNamespaces):
+def saveJson(cntlr, txmyMdl, fileName, **kwargs):
     # nested sheet for each OrderedSet of XbrlTaxonomyModule object
-    objs = savableObjects(txmyMdl, sparateNamespaces, isJson=True)
+    objs = saveableObjects(txmyMdl, isJson=True, **kwargs)
 
 def saveCbor(cntlr, txmyMdl, fileName, sparateNamespaces):
     # nested sheet for each OrderedSet of XbrlTaxonomyModule object
-    objs = savableObjects(txmyMdl, sparateNamespaces, isCbor=True)
+    objs = saveableObjects(txmyMdl, isCbor=True, **kwargs)
 
     
     
@@ -68,9 +78,9 @@ def oimTaxonomySave(cntlr, view, fileType=None, fileName=None, *args, **kwargs):
             saveXlsx(cntlr, txmyMdl, fileName)
             return True
         elif fileExt == ".json":
-            saveJson(cntlr, txmyMdl, fileName, sparateNamespaces)
+            saveJson(cntlr, txmyMdl, fileName, sparateNamespaces=sparateNamespaces)
             return True
         elif fileExt == ".cbor":
-            saveCbor(cntlr, txmyMdl, fileName, sparateNamespaces)
+            saveCbor(cntlr, txmyMdl, fileName, sparateNamespaces=sparateNamespaces)
             return True
     return False # no action by this plugin
