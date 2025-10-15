@@ -6,15 +6,18 @@ from tests.integration_tests.validation.conformance_suite_config import Conforma
 VALID_EXPECTED_ERRORS = {
     "valid/index.xml:valid01": {
         "EDINET.EC2002W": 1,
+        "EDINET.EC8023W": 4,
         "EDINET.EC8027W": 2,
     },
     "valid/index.xml:valid02": {
         "EDINET.EC2002W": 1,
+        "EDINET.EC8023W": 4,
         "EDINET.EC8027W": 2,
     },
     "valid/index.xml:valid03": {
         "EDINET.EC2002W": 1,
         "EDINET.EC5700W.GFM.1.8.4": 2,
+        "EDINET.EC8023W": 2,
         "EDINET.EC8027W": 1,
     },
     "valid/index.xml:valid04": {
@@ -25,6 +28,9 @@ VALID_EXPECTED_ERRORS = {
         "EDINET.EC2002W": 1,
         # The original valid05.zip (unmodified from source sample) fires EDINET.EC5700W.GFM.1.1.3
         # The version checked into this repo has been modified to not fire that error.
+    },
+    "valid/index.xml:valid06": {
+        "EDINET.EC8023W": 2,
     },
     "valid/index.xml:valid10": {
         "EDINET.EC2002W": 2,
@@ -40,6 +46,7 @@ VALID_EXPECTED_ERRORS = {
     },
     "valid/index.xml:valid20": {
         "EDINET.EC2002W": 1,
+        "EDINET.EC8023W": 4,
         "EDINET.EC8027W": 2,
     },
     "valid/index.xml:valid21": {
@@ -132,6 +139,9 @@ INVALID_TESTCASE_PARENTS = {
     "EC5700W.GFM.2.6.1/index.xml:invalid01": "valid/index.xml:valid05",
     "EC5700W.GFM.2.8.1/index.xml:invalid01": "valid/index.xml:valid05",
     "EC5710W.FRTA.4.2.7/index.xml:invalid01": "valid/index.xml:valid03",
+    "EC5710W.FRTA.2.1.10/index.xml:invalid01": "valid/index.xml:valid06",
+    "EC5710W.FRTA.2.1.11/index.xml:invalid01": "valid/index.xml:valid06",
+    "EC5710W.FRTA.2.1.11/index.xml:valid01": "valid/index.xml:valid06",
     "EC5806E/index.xml:invalid01": "valid/index.xml:valid09",
     "EC8000W/index.xml:invalid01": "valid/index.xml:valid09",
     "EC8001W/index.xml:invalid01": "valid/index.xml:valid05",
@@ -145,6 +155,7 @@ INVALID_TESTCASE_PARENTS = {
     "EC8014W/index.xml:invalid01": "valid/index.xml:valid05",
     "EC8018W/index.xml:invalid01": "valid/index.xml:valid09",
     "EC8021W/index.xml:invalid01": "valid/index.xml:valid09",
+    "EC8023W/index.xml:invalid01": "valid/index.xml:valid05",
     "EC8024E/index.xml:invalid01": "valid/index.xml:valid03",
     "EC8033W/index.xml:invalid01": "valid/index.xml:valid22",
     "EC8054W/index.xml:invalid01": "valid/index.xml:valid05",
@@ -173,6 +184,7 @@ ADDITIONAL_INVALID_ERRORS = {
     "EC5700W.GFM.1.8.4/index.xml:invalid01": {
         # Modified version of valid03
         "EDINET.EC2002W": 1,
+        "EDINET.EC8023W": 2,
     },
     "EC5700W.GFM.1.8.5/index.xml:invalid01": {
         # Modified version of valid03
