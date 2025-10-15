@@ -387,10 +387,12 @@ class Cntlr:
 
         if logHandler is not None:
             self.logger = logging.getLogger("arelle")
+            self.logger.handlers.clear()
             self.logHandler = logHandler
             self.logger.addHandler(logHandler)
         elif logFileName: # use default logging
             self.logger = logging.getLogger("arelle")
+            self.logger.handlers.clear()
             if logFileName in ("logToPrint", "logToStdErr") and not logToBuffer:
                 self.logHandler = LogToPrintHandler(logFileName)
             elif logFileName == "logToBuffer":

@@ -60,6 +60,12 @@ def parse_args() -> argparse.Namespace:
         action='append',
     )
     parser.add_argument(
+        '-l', '--log-directory',
+        help="Directory to write log files and test reports to.",
+        required=False,
+        type=str
+    )
+    parser.add_argument(
         '-p', '--parallel',
         help="Run testcases in parallel.",
         required=False,
@@ -95,7 +101,7 @@ def loadTestcaseIndex(index_path: str) -> list[TestcaseVariation]:
     with Session() as session:
         session.run(
             runtimeOptions,
-            logHandler=StructuredMessageLogHandler(),
+            # logHandler=StructuredMessageLogHandler(), TODO
         )
         models = session.get_models()
         logs = session.get_log_messages()
@@ -205,6 +211,11 @@ def filterTestcaseVariation(testcaseVariation: TestcaseVariation, filters: list[
     return False
 
 
+def logFilename(name: str) -> str:
+    name = regex.sub(r'[<>:"/\\|?*\x00-\x1F]', '_', name)
+    return name.strip().strip('.')
+
+
 def runTestcaseVariation(
     testcaseVariation: TestcaseVariation,
     testSuiteOptions: TestSuiteOptions,
@@ -227,13 +238,14 @@ def runTestcaseVariation(
     entrypointFile = '|'.join(entrypointUris)
     runtimeOptions = RuntimeOptions(
         entrypointFile=entrypointFile,
+        logFile=str(testSuiteOptions.logDirectory / f"{logFilename(testcaseVariation.shortName)}-log.txt"),
         **testSuiteOptions.options
     )
     with Session() as session:
         start_ts = time.perf_counter_ns()
         session.run(
             runtimeOptions,
-            logHandler=StructuredMessageLogHandler(),
+            # logHandler=StructuredMessageLogHandler() if 'logFile' not in testSuiteOptions.options else None, TODO
         )
         duration_seconds = (time.perf_counter_ns() - start_ts) / 1_000_000_000
         # logs = session.get_log_messages()
@@ -400,6 +412,9 @@ def buildResult(
 def run(testSuiteOptions: TestSuiteOptions) -> list[TestcaseResult]:
     start_ts = time.perf_counter_ns()
 
+    if testSuiteOptions.logDirectory is not None:
+        testSuiteOptions.logDirectory.mkdir(parents=True, exist_ok=True)
+
     testcaseVariations = loadTestcaseIndex(testSuiteOptions.indexFile)
     print(f'Loaded {len(testcaseVariations)} testcase variations from {testSuiteOptions.indexFile}')
     test_realtime_ts = time.perf_counter_ns()
@@ -437,6 +452,7 @@ if __name__ == "__main__":
         additionalConstraints=[],
         filters=args.filters,
         indexFile=args.index,
+        logDirectory=Path(args.log_directory),
         options=json.loads(args.options),
         parallel=args.parallel,
     ))

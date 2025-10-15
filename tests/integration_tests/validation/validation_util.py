@@ -410,6 +410,7 @@ def get_test_suite_test_results_with_shards(
             additionalConstraints=_get_additional_constraints(config),
             filters=testcase_filters,
             indexFile=config.entry_point_path.as_posix(),
+            logDirectory=Path(f'conf-{config.name}-s{shard_id}-logs'),
             options=runtime_options,
             parallel=not series, # "daemonic processes are not allowed to have children"
         )
@@ -474,6 +475,7 @@ def get_test_suite_test_results_without_shards(
                 additionalConstraints=_get_additional_constraints(config),
                 filters=testcase_filters,
                 indexFile=config.entry_point_path.as_posix(),
+                logDirectory=Path(f'conf-{config.name}-logs'),
                 options=runtime_options,
                 parallel=not series,
             ),
@@ -610,9 +612,6 @@ def get_test_suite_runtime_options(
         plugin_options['cacheBuilderPath'] = f'conf-{config.name}{shard_str}-cache.zip'
     if config.capture_warnings:
         args['testcaseResultsCaptureWarnings'] = True
-    if log_to_file:
-        args['testReport'] = f'conf-{config.name}{shard_str}-report.csv'
-        args['logFile'] = f'conf-{config.name}{shard_str}-log.txt'
     if offline or config.runs_without_network:
         args['internetConnectivity'] = 'offline'
     args['pluginOptions'] = plugin_options
@@ -654,7 +653,7 @@ def save_actual_results_file(config: ConformanceSuiteConfig, results: list[Param
     rows = []
     for result in results:
         testcase_id = result.id
-        actual_codes = result.values[0].get('actual')  # type: ignore[union-attr]
+        actual_codes = result.values[0].get('actual')  # type: ignore[union-attr] TODO: update for test engine
         for code in actual_codes:
             rows.append((testcase_id, code))
     output_filepath = Path(f'conf-{config.name}-actual.csv')

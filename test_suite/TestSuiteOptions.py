@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 from test_suite.TestcaseConstraint import TestcaseConstraint
@@ -9,5 +10,6 @@ class TestSuiteOptions:
     additionalConstraints: list[tuple[str, list[TestcaseConstraint]]]
     filters: list[str]
     indexFile: str
+    logDirectory: Path
     options: dict[str, Any]
     parallel: bool
