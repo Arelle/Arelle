@@ -38,6 +38,12 @@ class XbrlTaxonomyModel(ModelXbrl): # complete wrapper for ModelXbrl
     facts: dict[str, XbrlFact] # constant facts in taxonomy
     reports: OrderedDict[QNameKeyType, XbrlReport] = OrderedDict()
 
+    @classmethod
+    def propertyNameTypes(cls):
+        for propName, propType in getattr(cls, "__annotations__", EMPTY_DICT).items():
+            if propName in ("taxonomies", "layouts"):
+                yield propName, propType
+
     def __init__(self, isReport:bool = False, *args: Any, **kwargs: Any) -> None:
         global XbrlTaxonomyModule
         super(XbrlTaxonomyModel, self).__init__(*args, **kwargs)

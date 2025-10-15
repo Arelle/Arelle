@@ -12,9 +12,10 @@ from .XbrlProperty import XbrlProperty
 from .XbrlUnit import  parseUnitString
 
 class XbrlFactValue(XbrlObject):
+    name: QNameKeyType
     value: Optional[str] # (required) The value of the {value} property of the fact. The value MUST be represented as (xbrlje:invalidFactValue):
     decimals: Optional[int] # An integer providing the value of the {decimals} property, or absent if the value is infinitely precise or not applicable (for nil or non-numeric facts).
-    
+    # language?
 
 class XbrlFact(XbrlReportObject):
     parent: Union[XbrlReportType,XbrlTaxonomyModuleType]  # facts in taxonomy module are owned by the txmyMdl
