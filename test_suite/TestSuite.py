@@ -66,6 +66,12 @@ def parse_args() -> argparse.Namespace:
         type=str
     )
     parser.add_argument(
+        '-m', '--match-all',
+        help="Whether tests results need to match all of the expected errors/warnings to pass.",
+        required=False,
+        action='store_true',
+    )
+    parser.add_argument(
         '-p', '--parallel',
         help="Run testcases in parallel.",
         required=False,
@@ -89,7 +95,7 @@ def buildEntrypointUris(uris: list[str]) -> list[str]:
     return uris
 
 
-def loadTestcaseIndex(index_path: str) -> list[TestcaseVariation]:
+def loadTestcaseIndex(index_path: str, testSuiteOptions: TestSuiteOptions) -> list[TestcaseVariation]:
     runtimeOptions = RuntimeOptions(
         entrypointFile=index_path,
         keepOpen=True,
@@ -180,7 +186,7 @@ def loadTestcaseIndex(index_path: str) -> list[TestcaseVariation]:
 
                 testcaseConstraintSet = TestcaseConstraintSet(
                     constraints=constraints,
-                    matchAll=True
+                    matchAll=testSuiteOptions.matchAll,
                 )
                 testcaseVariations.append(TestcaseVariation(
                     id=testcaseVariation.id,
@@ -223,7 +229,7 @@ def runTestcaseVariation(
     if not filterTestcaseVariation(testcaseVariation, testSuiteOptions.filters):
         return TestcaseResult(
             testcaseVariation=testcaseVariation,
-            appliedConstraintSet=TestcaseConstraintSet(constraints=[], matchAll=False),
+            appliedConstraintSet=TestcaseConstraintSet(constraints=[], matchAll=testSuiteOptions.matchAll),
             actualErrors=[],
             constraintResults=[],
             passed=True,
@@ -415,7 +421,7 @@ def run(testSuiteOptions: TestSuiteOptions) -> list[TestcaseResult]:
     if testSuiteOptions.logDirectory is not None:
         testSuiteOptions.logDirectory.mkdir(parents=True, exist_ok=True)
 
-    testcaseVariations = loadTestcaseIndex(testSuiteOptions.indexFile)
+    testcaseVariations = loadTestcaseIndex(testSuiteOptions.indexFile, testSuiteOptions)
     print(f'Loaded {len(testcaseVariations)} testcase variations from {testSuiteOptions.indexFile}')
     test_realtime_ts = time.perf_counter_ns()
     if testSuiteOptions.parallel:
@@ -453,6 +459,7 @@ if __name__ == "__main__":
         filters=args.filters,
         indexFile=args.index,
         logDirectory=Path(args.log_directory),
+        matchAll=args.match_all,
         options=json.loads(args.options),
         parallel=args.parallel,
     ))

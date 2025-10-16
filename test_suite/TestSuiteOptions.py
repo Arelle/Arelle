@@ -11,5 +11,6 @@ class TestSuiteOptions:
     filters: list[str]
     indexFile: str
     logDirectory: Path
+    matchAll: bool
     options: dict[str, Any]
     parallel: bool
