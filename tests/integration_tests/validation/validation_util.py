@@ -411,6 +411,7 @@ def get_test_suite_test_results_with_shards(
             filters=testcase_filters,
             indexFile=config.entry_point_path.as_posix(),
             logDirectory=Path(f'conf-{config.name}-s{shard_id}-logs'),
+            matchAll=config.test_case_result_options == 'match-all',
             options=runtime_options,
             parallel=not series, # "daemonic processes are not allowed to have children"
         )
@@ -476,6 +477,7 @@ def get_test_suite_test_results_without_shards(
                 filters=testcase_filters,
                 indexFile=config.entry_point_path.as_posix(),
                 logDirectory=Path(f'conf-{config.name}-logs'),
+                matchAll=config.test_case_result_options == 'match-all',
                 options=runtime_options,
                 parallel=not series,
             ),
@@ -594,7 +596,6 @@ def get_test_suite_runtime_options(
         optional_plugins.add('CacheBuilder')
     plugins = config.plugins | additional_plugins | optional_plugins
     args: dict[str, Any] = {
-        'testcaseResultOptions': config.test_case_result_options,
         'validate': True,
         'keepOpen': True,  # Session API requires keepOpen to retrieve model data.
     }
