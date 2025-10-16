@@ -1,4 +1,4 @@
-boto3==1.40.50
+boto3==1.40.53
 pytest==8.4.2
 requests==2.32.5
 
