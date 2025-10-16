@@ -7,10 +7,15 @@ from tests.integration_tests.validation.conformance_suite_config import (
     ConformanceSuiteConfig,
 )
 
+# needs to be extracted because arelle can't load a taxonomy package ZIP from within a ZIP
+ZIP_PATH = Path('esef_conformance_suite_2024.zip')
+EXTRACTED_PATH = Path(ZIP_PATH.stem)
 config = ConformanceSuiteConfig(
     assets=[
-        ConformanceSuiteAssetConfig.conformance_suite(
-            Path('esef_conformance_suite_2024.zip'),
+        ConformanceSuiteAssetConfig.nested_conformance_suite(
+            ZIP_PATH,
+            EXTRACTED_PATH,
+            entry_point_root=EXTRACTED_PATH,
             entry_point=Path('esef_conformance_suite_2024/index_inline_xbrl.xml'),
             public_download_url='https://www.esma.europa.eu/sites/default/files/2025-01/esef_conformance_suite_2024.zip',
             source=AssetSource.S3_PUBLIC,

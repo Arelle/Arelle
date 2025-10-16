@@ -359,7 +359,6 @@ def buildResult(
     additionalConstraints: list[tuple[str, list[TestcaseConstraint]]],
 ) -> TestcaseResult:
     diff = {}
-    anyPassed = False
     actualErrorCounts = defaultdict(int)
     actualErrors, blockedErrors = blockCodes(actualErrors, testcaseVariation.blockedCodePattern)
     for actualError in actualErrors:
@@ -384,12 +383,14 @@ def buildResult(
         constraints=_normalizedConstraints(appliedConstraints),
         matchAll=testcaseVariation.testcaseConstraintSet.matchAll
     )
+    anyPassed = False
     for constraint in appliedConstraintSet.constraints:
         matchCount = 0
         for actualError, count in list(actualErrorCounts.items()):
             if (
                     (constraint.qname is not None and actualError == constraint.qname) or
                     (constraint.qname is not None and actualError == constraint.qname.localName) or
+                    (constraint.qname is not None and actualError.split('.')[-1] == constraint.qname.localName) or
                     (constraint.pattern is not None and constraint.pattern in actualError)
             ):
                 if constraint.max is not None and count > constraint.max:
@@ -409,7 +410,10 @@ def buildResult(
     if appliedConstraintSet.matchAll: #TODO: matchAll/Any?
         passed = all(d == 0 for d in diff.values())
     else:
-        passed = anyPassed
+        if len(appliedConstraintSet.constraints) > 0:
+            passed = anyPassed
+        else:
+            passed = True
     constraintResults = [
         TestcaseConstraintResult(
             code=k,
