@@ -10,7 +10,7 @@ from lxml.etree import XML, XMLSyntaxError
 
 from arelle.ModelObject import ModelObject
 from arelle.ModelXbrl import ModelXbrl
-from arelle.UrlUtil import scheme
+from arelle.UrlUtil import isExternalUrl
 from arelle.ValidateFilingText import validateGraphicHeaderType
 from arelle.typing import TypeGetText
 from ..Const import supportedImgTypes
@@ -89,7 +89,7 @@ def checkSVGContent(
                 modelXbrl.error(f"{guidance}.executableCodePresent",
                                 _("Inline XBRL images MUST NOT contain executable code: %(element)s"),
                                 modelObject=imgElt, element=eltTag)
-            elif scheme(href) in ("http", "https", "ftp"):
+            elif isExternalUrl(href):
                 modelXbrl.error(f"{guidance}.referencesPointingOutsideOfTheReportingPackagePresent",
                                 _("Inline XBRL instance document [image] MUST NOT contain any reference pointing to resources outside the reporting package: %(element)s"),
                                 modelObject=imgElt, element=eltTag)

@@ -31,6 +31,9 @@ def authority(url: str, includeScheme: bool=True) -> str:
 def scheme(url: str) -> str | None: # returns None if no scheme part
     return (url or "").rpartition(":")[0] or None
 
+def isExternalUrl(url: str) -> bool:
+    return scheme(url) in ("http", "https", "ftp")
+
 absoluteUrlPattern = None
 # http://www.ietf.org/rfc/rfc2396.txt section 4.3
 # this pattern doesn't allow some valid unicode characters

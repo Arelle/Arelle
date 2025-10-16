@@ -14,7 +14,7 @@ from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import ModelXbrl
 from arelle.typing import TypeGetText
-from arelle.UrlUtil import scheme
+from arelle.UrlUtil import isExternalUrl
 from arelle.utils.Contexts import ContextHashKey
 from arelle.utils.validate.Validation import Validation
 from arelle.ValidateFilingText import parseImageDataURL
@@ -73,7 +73,7 @@ def errorOnForbiddenImage(
     """
     invalidImages = []
     for image in images:
-        if scheme(image) in ("http", "https", "ftp"):
+        if isExternalUrl(image):
             invalidImages.append(image)
         elif image.startswith("data:image"):
             dataURLParts = parseImageDataURL(image)

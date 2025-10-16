@@ -17,7 +17,7 @@ from arelle import ModelDocument
 from arelle.ModelObjectFactory import parser
 from arelle.ModelXbrl import ModelXbrl
 from arelle.typing import TypeGetText
-from arelle.UrlUtil import decodeBase64DataImage, scheme
+from arelle.UrlUtil import decodeBase64DataImage, isExternalUrl
 from arelle.utils.validate.Validation import Validation
 from arelle.ValidateFilingText import parseImageDataURL, validateGraphicHeaderType
 from arelle.ValidateXbrl import ValidateXbrl
@@ -105,7 +105,7 @@ def validateImage(
         if minExternalRessourceSize != -1:
             # transform kb to b
             minExternalRessourceSize = minExternalRessourceSize * 1024
-    if scheme(image) in ("http", "https", "ftp"):
+    if isExternalUrl(image):
         yield Validation.error(("ESEF.4.1.6.xHTMLDocumentContainsExternalReferences" if not params.consolidated
                                else "ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences",
                                "NL.NL-KVK.3.6.2.1.inlineXbrlDocumentContainsExternalReferences"),
@@ -277,7 +277,7 @@ def checkSVGContentElt(
                 yield Validation.error((f"{guidance}.executableCodePresent", "NL.NL-KVK.3.5.1.1.executableCodePresent"),
                                        _("Inline XBRL images MUST NOT contain executable code: %(element)s"),
                                        modelObject=imgElts, element=eltTag)
-            elif scheme(href) in ("http", "https", "ftp"):
+            elif isExternalUrl(href):
                 yield Validation.error((f"{guidance}.referencesPointingOutsideOfTheReportingPackagePresent", "NL.NL-KVK.3.6.2.1.inlineXbrlDocumentContainsExternalReferences"),
                                        _("Inline XBRL instance document [image] MUST NOT contain any reference pointing to resources outside the reporting package: %(element)s"),
                                        modelObject=imgElts, element=eltTag)
