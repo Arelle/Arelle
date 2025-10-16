@@ -258,14 +258,16 @@ def runTestcaseVariation(
         actualErrors = []
         for error in session._cntlr.errors:
             actualErrors.append(ActualError(
+                assertions=error if isinstance(error, dict) else None,
+                code=error if isinstance(error, str) else None,
                 qname=error if isinstance(error, QName) else None,
-                code=str(error)
             ))
         for model in session.get_models():
             for error in model.errors:
                 actualErrors.append(ActualError(
+                    assertions=error if isinstance(error, dict) else None,
+                    code=error if isinstance(error, str) else None,
                     qname=error if isinstance(error, QName) else None,
-                    code=str(error)
                 ))
         result = buildResult(
             testcaseVariation=testcaseVariation,
@@ -343,7 +345,7 @@ def blockCodes(actualErrors: list[ActualError], pattern: str) -> tuple[list[Actu
         return actualErrors, blockedCodes
     compiledPattern = regex.compile(regex.sub(r'\\(.)', r'\1', pattern))
     for actualError in actualErrors:
-        value = str(actualError.qname or actualError.code)
+        value = str(actualError.qname or actualError.code or actualError.assertions)
         if compiledPattern.match(value):
             blockedCodes[value] += 1
             continue
@@ -361,7 +363,19 @@ def buildResult(
     actualErrorCounts = defaultdict(int)
     actualErrors, blockedErrors = blockCodes(actualErrors, testcaseVariation.blockedCodePattern)
     for actualError in actualErrors:
-        actualErrorCounts[actualError.qname or actualError.code] += 1
+        if actualError.assertions is not None:
+            # TODO:  Whether or not to validate formula assertions
+            # Look into formula conformance suite:
+            #   <assertionTests
+            #          assertionID="assertion"
+            #          countSatisfied="0"
+            #          countNotSatisfied="1" />
+            if False:
+                for code, counts in actualError.assertions.items():
+                    satisfiedCount, notSatisfiedCount, okCount, warningCount, errorCount = counts
+                    actualErrorCounts[code] += notSatisfiedCount + warningCount + errorCount
+        else:
+            actualErrorCounts[actualError.qname or actualError.code] += 1
     appliedConstraints = list(testcaseVariation.testcaseConstraintSet.constraints)
     for filter, constraints in additionalConstraints:
         if fnmatch.fnmatch(testcaseVariation.fullId, filter):
