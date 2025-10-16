@@ -1139,9 +1139,7 @@ def rule_EC8023W(
         if not pluginData.isExtensionUri(doc.uri, val.modelXbrl):
             continue
         nsmap = {
-            key: val
-            for key, val in doc.xmlRootElement.nsmap.items()
-            if key
+            'ix': XbrlConst.ixbrl
         }
         for elt in doc.xmlRootElement.xpath(negativeFactXpath, namespaces=nsmap):
             if elt.qname.namespaceURI == pluginData.jpigpNamespace:
