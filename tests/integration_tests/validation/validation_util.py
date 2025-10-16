@@ -604,7 +604,7 @@ def get_test_suite_runtime_options(
     if config.disclosure_system:
         args['disclosureSystemName'] = config.disclosure_system
     if config.package_paths:
-        args['packages'] = '|'.join(sorted(p.as_posix() for p in config.package_paths))
+        args['packages'] = sorted(p.as_posix() for p in config.package_paths)
     if plugins:
         args['plugins'] = '|'.join(sorted(plugins))
     shard_str = f'-s{shard}' if use_shards else ''
