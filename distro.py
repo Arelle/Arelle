@@ -60,6 +60,7 @@ includeLibs = [
     "graphviz",
     "gzip",
     "isodate",
+    "jaconv",
     "lxml._elementpath",
     "lxml.etree",
     "lxml.html",
