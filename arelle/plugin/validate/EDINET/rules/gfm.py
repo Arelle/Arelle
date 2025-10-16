@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
+import contextlib
 from collections import defaultdict
 from datetime import timedelta
 from typing import Any, cast, Iterable
@@ -1322,6 +1323,38 @@ def rule_gfm_1_4_6(
                     refURI=refUri,
                     xlinkHref=hrefUri
                 )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_4_8(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.4.8] Correct the priority attribute value so that it is less than 10.
+    """
+
+    for modelDocument in val.modelXbrl.urlDocs.values():
+        if pluginData.isStandardTaxonomyUrl(modelDocument.uri, val.modelXbrl):
+            continue
+        rootElt = modelDocument.xmlRootElement
+        ns = {'xlink': 'http://www.w3.org/1999/xlink'}
+        for elt in rootElt.xpath('//*[@xlink:type="arc"][@priority]', namespaces=ns):
+            priority = elt.get("priority")
+            with contextlib.suppress(ValueError, TypeError):
+                if int(priority) >= 10:
+                    yield Validation.warning(
+                        codes='EDINET.EC5700W.GFM.1.4.8',
+                        msg=_("Correct the priority attribute value so that it is less than 10. Arc element: %(arcName)s, priority: %(priority)s"),
+                        arcName=elt.qname,
+                        modelObject=elt,
+                        priority=priority,
+                    )
 
 
 @validation(
