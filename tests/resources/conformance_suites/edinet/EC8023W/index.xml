@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="EDINET.EC8023W"
+        description="EDINET.EC8023W: In IXBRL files, 'nonFraction' elements should be immediately preceded by '△' if and only if the sign attribute is '-'."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid01" name="invalid01">
+        <description>
+            Positive fact is immediately precded by '△' and negative fact is not immediately preceded by '△'.
+            <!-- valid05.zip with △ removed from before a negative fact and added before a positive fact. -->
+        </description>
+        <data>
+            <instance readMeFirst="true">invalid01.zip</instance>
+        </data>
+        <result>
+            <warning num="2">EDINET.EC8023W</warning>
+        </result>
+    </variation>
+</testcase>
