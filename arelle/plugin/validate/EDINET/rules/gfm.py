@@ -1260,6 +1260,39 @@ def rule_gfm_1_3_31(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_gfm_1_4_4(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.4.4] If the type attribute is "extended" or "resource", set the xlink:role attribute to the extended link role.
+
+    GFM 1.4.4: The xlink:role attribute of an element with a type="extended" attribute or a
+    type="resource" attribute must be present and must not be empty.
+    """
+
+    for modelDocument in val.modelXbrl.urlDocs.values():
+        if pluginData.isStandardTaxonomyUrl(modelDocument.uri, val.modelXbrl):
+            continue
+        rootElt = modelDocument.xmlRootElement
+        ns = {'xlink': 'http://www.w3.org/1999/xlink'}
+        for elt in rootElt.xpath('//*[@xlink:type="extended" or @xlink:type="resource"]', namespaces=ns):
+            xlinkRole = elt.get(XbrlConst.qnXlinkRole.clarkNotation)
+            if not xlinkRole:
+                yield Validation.warning(
+                    codes='EDINET.EC5700W.GFM.1.4.4',
+                    msg=_("If the type attribute is 'extended' or 'resource', set the xlink:role attribute to the extended link role."
+                            "%(element)s is missing an xlink:role"),
+                            modelObject=elt, element=elt.qname
+                )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_gfm_1_5_1(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
