@@ -9,7 +9,7 @@ from typing import Any, cast, Iterable
 
 import regex
 
-from arelle import ModelDocument, XbrlConst, XmlUtil
+from arelle import ModelDocument, UrlUtil, XbrlConst, XmlUtil
 from arelle.HtmlUtil import attrValue
 from arelle.LinkbaseType import LinkbaseType
 from arelle.ModelDtsObject import ModelConcept
@@ -1272,7 +1272,6 @@ def rule_gfm_1_4_4(
     GFM 1.4.4: The xlink:role attribute of an element with a type="extended" attribute or a
     type="resource" attribute must be present and must not be empty.
     """
-
     for modelDocument in val.modelXbrl.urlDocs.values():
         if pluginData.isStandardTaxonomyUrl(modelDocument.uri, val.modelXbrl):
             continue
@@ -1286,6 +1285,42 @@ def rule_gfm_1_4_4(
                     msg=_("If the type attribute is 'extended' or 'resource', set the xlink:role attribute to the extended link role."
                             "%(element)s is missing an xlink:role"),
                             modelObject=elt, element=elt.qname
+                )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_1_4_6(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.4.6] Please correct the value of the link:arcroleRef attribute to
+    one specified in the XBRL 2.1 specification or the EDINET taxonomy.
+    GFM 1.4.6: The text preceding a sharp sign "#" in an xlink:href attribute of link:arcroleRef must
+    be a standard taxonomy or in a file recognised in the disclosure system.
+    """
+
+    for modelDocument in val.modelXbrl.urlDocs.values():
+        if pluginData.isStandardTaxonomyUrl(modelDocument.uri, val.modelXbrl):
+            continue
+        rootElt = modelDocument.xmlRootElement
+        for elt in rootElt.iter(XbrlConst.qnLinkArcroleRef.clarkNotation):
+            refUri = elt.get("arcroleURI")
+            hrefAttr = elt.get(XbrlConst.qnXlinkHref.clarkNotation)
+            hrefUri, hrefId = UrlUtil.splitDecodeFragment(hrefAttr)
+            if hrefUri not in val.disclosureSystem.standardTaxonomiesDict:
+                yield Validation.warning(
+                    codes='EDINET.EC5700W.GFM.1.4.6',
+                    msg=_("Please correct the value of the link:arcroleRef attribute to one specified in the XBRL 2.1 specification or the EDINET taxonomy."
+                          " link:arcroleRef: %(xlinkHref)s, arcrole: %(refURI)s,"),
+                    modelObject=elt,
+                    refURI=refUri,
+                    xlinkHref=hrefUri
                 )
 
 
