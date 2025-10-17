@@ -377,7 +377,7 @@ def buildResult(
             actualErrorCounts[actualError.qname or actualError.code] += 1
     appliedConstraints = list(testcaseVariation.testcaseConstraintSet.constraints)
     for filter, constraints in additionalConstraints:
-        if fnmatch.fnmatch(testcaseVariation.fullId, filter):
+        if fnmatch.fnmatch(testcaseVariation.fullId, f'*{filter}'):
             appliedConstraints.extend(constraints)
     appliedConstraintSet = TestcaseConstraintSet(
         constraints=_normalizedConstraints(appliedConstraints),
