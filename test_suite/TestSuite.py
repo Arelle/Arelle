@@ -123,6 +123,11 @@ def loadTestcaseIndex(index_path: str, testSuiteOptions: TestSuiteOptions) -> li
         for doc in docs:
             docUri = doc.uri.removeprefix(prefix).removesuffix(suffix)
             for testcaseVariation in doc.testcaseVariations:
+                fullId = f"{testcaseVariation.base}:{testcaseVariation.id}"
+                if testSuiteOptions.filters:
+                    if not any(fnmatch.fnmatch(fullId, filter) for filter in testSuiteOptions.filters):
+                        continue # TODO: Only filter here
+
                 expected = testcaseVariation.expected
                 constraints = []
                 if expected == 'invalid':
@@ -389,6 +394,7 @@ def buildResult(
         for actualError, count in list(actualErrorCounts.items()):
             if (
                     (constraint.qname is not None and actualError == constraint.qname) or
+                    (constraint.qname is not None and actualError == str(constraint.qname)) or
                     (constraint.qname is not None and actualError == constraint.qname.localName) or
                     (constraint.qname is not None and actualError.split('.')[-1] == constraint.qname.localName) or
                     (constraint.pattern is not None and constraint.pattern in actualError)
