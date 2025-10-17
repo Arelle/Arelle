@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import fnmatch
 import json
 import locale
 import os.path
@@ -255,8 +256,9 @@ def get_test_suite_data(
         if nonunique_test_ids:
             raise Exception(f'Some test IDs are not unique.  Frequencies of nonunique test IDs: {nonunique_test_ids}.')
         nonexistent_expected_failure_ids = expected_failure_ids - test_id_frequencies.keys()
-        if nonexistent_expected_failure_ids:
-            raise Exception(f"Some expected failure IDs don't match any test cases: {sorted(nonexistent_expected_failure_ids)}.")
+        # TODO: Uncomment once "fullId" is the non-absolute path ID
+        # if nonexistent_expected_failure_ids:
+        #     raise Exception(f"Some expected failure IDs don't match any test cases: {sorted(nonexistent_expected_failure_ids)}.")
         nonexistent_required_locale_testcase_ids = required_locale_by_ids.keys() - test_id_frequencies.keys()
         if nonexistent_required_locale_testcase_ids:
             raise Exception(f"Some required locale IDs don't match any test cases: {sorted(nonexistent_required_locale_testcase_ids)}.")
@@ -318,6 +320,8 @@ def isExpectedFailure(
         system_locale: str,
 ) -> bool:
     if test_id in expected_failure_ids:
+        return True
+    if any(fnmatch.fnmatch(test_id, f'*{pattern}') for pattern in expected_failure_ids):
         return True
     if test_id in required_locale_by_ids:
         return not required_locale_by_ids[test_id].search(system_locale)
