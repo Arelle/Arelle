@@ -1117,6 +1117,9 @@ def rule_EC8023W(
     * Tagging using Japanese GAAP notes or IFRS financial statement filer-specific additional elements
         may be identified as an exception and a warning displayed, even if the data content is correct.
     """
+    nsmap = {
+        'ix': XbrlConst.ixbrl
+    }
     negativeFactXpath = """
     //ix:nonFraction[@sign="-"][
         (preceding-sibling::text()[1] and normalize-space(preceding-sibling::text()[1]) != '△')
@@ -1138,9 +1141,6 @@ def rule_EC8023W(
             continue
         if not pluginData.isExtensionUri(doc.uri, val.modelXbrl):
             continue
-        nsmap = {
-            'ix': XbrlConst.ixbrl
-        }
         for elt in doc.xmlRootElement.xpath(negativeFactXpath, namespaces=nsmap):
             if elt.qname.namespaceURI == pluginData.jpigpNamespace:
                 continue
