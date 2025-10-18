@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
+from collections import defaultdict
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -11,6 +12,7 @@ from jaconv import jaconv
 
 from arelle import XbrlConst, ValidateDuplicateFacts
 from arelle.LinkbaseType import LinkbaseType
+from arelle.ModelDtsObject import ModelResource
 from arelle.ModelValue import QName
 from arelle.ValidateDuplicateFacts import DuplicateType
 from arelle.ValidateXbrl import ValidateXbrl
@@ -546,6 +548,54 @@ def rule_EC8027W(
                 roleUri=roleType.roleURI,
                 modelObject=rels,
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8028W(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8028W: The priority attribute must not be duplicated for the same
+    element and label role within the submitter's taxonomy.
+
+    Note: Not mentioned in documentation, but inferring from sample filings that
+    label language should also be considered.
+    """
+    labelsRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
+    if labelsRelationshipSet is None:
+        return
+    for concept, rels in labelsRelationshipSet.fromModelObjects().items():
+        groups = defaultdict(list)
+        for rel in rels:
+            if not isinstance(rel.toModelObject, ModelResource):
+                continue
+            if not pluginData.isExtensionUri(rel.modelDocument.uri, val.modelXbrl):
+                continue
+            groups[(rel.toModelObject.xmlLang, rel.toModelObject.role, rel.priority)].append(rel)
+        for (lang, role, priority), group in groups.items():
+            if len(group) > 1:
+                yield Validation.warning(
+                    codes='EDINET.EC8028W',
+                    msg=_("The priority attribute must not be duplicated for the same "
+                          "element and label role in the same submitter taxonomy. "
+                          "File name: '%(path)s'. Concept: '%(concept)s'. "
+                          "Role: '%(role)s'. Priority: %(priority)s. "
+                          "Please check the element and label name of the corresponding "
+                          "file. Please set the priority attribute so that the same "
+                          "element and the same label role in the submitter's taxonomy "
+                          "are not duplicated."),
+                    path=rels[0].document.basename,
+                    concept=concept.qname,
+                    role=role,
+                    priority=priority,
+                    modelObject=group,
+                )
 
 
 @validation(
