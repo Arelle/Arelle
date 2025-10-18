@@ -34,8 +34,8 @@ Only StructTree nodes which have IDs, and form fields with IDs, are available to
 ## Key Features
 
 An xBRL-JSON template file is provided for each tagged PDF/A with inline XBRL.
-   a) as an embedded file "ix.json" in the PDF or
-   b) as a sibling file to the pdf named ix-template.json"
+   a) as an embedded file "xbrl-report.json" in the PDF or
+   b) as a sibling file to the pdf named xbrl-template.json"
 
    The template file facts which are to receive contents from the pdf have @value missing and
    instead pdfIdRefs which is a list of space-separated IDs of structural node IDs and form field IDs
@@ -96,8 +96,8 @@ from collections import defaultdict, OrderedDict
 from decimal import Decimal
 import sys, os, json, regex as re
 
-DEFAULT_TEMPLATE_FILE_NAME = "ix-template.json"
-DEFAULT_REPORT_FILE_NAME =  "ix-report.json"
+DEFAULT_TEMPLATE_FILE_NAME = "xbrl-template.json"
+DEFAULT_REPORT_FILE_NAME =  "xbrl-report.json"
 DEFAULT_MISSING_ID_PREFIX = "pdf_"  # None to block
 
 # from https://github.com/maxwell-bland/pdf-latin-text-encodings
@@ -416,7 +416,7 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=
         print(f"text blocks:\n{os.linesep.join(k + ': ' + v for k,v in textBlocks.items())}")
         print(f"form fields:\n{os.linesep.join(k + ': ' + str(v) for k,v in formFields.items())}")
 
-    # read attached ix.jsonl for inline specifications
+    # read attached xbrl-report.json for inline specifications
     oimObject = None
     if loadTemplateFromPdf and templateFileName in pdf.attachments:
         oimObject = json.loads(pdf.attachments[templateFileName].get_file().read_bytes())
@@ -447,7 +447,8 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=
                         continTexts.append(textBlocks[pdfId])
                         ixTextFields[oimFactId].extend(structMcid[pdfId])
                     if pdfId in formFields:
-                        continTexts.append(formFields[pdfId]["V"])
+                        if "V" in formFields[pdfId]:
+                            continTexts.append(formFields[pdfId]["V"])
                         ixFormFields[oimFactId].append(f"p{formFields[pdfId]['Page']}R_{pdfId}")
                 value = " ".join(continTexts)
                 if format:
