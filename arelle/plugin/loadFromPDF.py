@@ -435,7 +435,9 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=
         ixTextFields = defaultdict(list)
         ixFormFields = defaultdict(list)
         # replace fact pdfIdRefs with strings
-        for oimFactId, fact in oimObject.get("facts", {}).items():
+        oimFacts = oimObject.get("facts", {})
+        unreportedFactIds = []
+        for oimFactId, fact in oimFacts.items():
             idRefs = fact.pop("pdfIdRefs", None)
             format = fact.pop("pdfFormat", None)
             scale = fact.pop("pdfScale", None)
@@ -450,6 +452,9 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=
                         if "V" in formFields[pdfId]:
                             continTexts.append(formFields[pdfId]["V"])
                         ixFormFields[oimFactId].append(f"p{formFields[pdfId]['Page']}R_{pdfId}")
+                if not continTexts:
+                    unreportedFactIds.append(oimFactId)
+                    continue
                 value = " ".join(continTexts)
                 if format:
                     tr5fn = format.rpartition(":")[2]
@@ -477,6 +482,8 @@ def loadFromPDF(cntlr, error, warning, modelXbrl, filepath, mappedUri, showInfo=
                 ("ixTextFields", ixTextFields),
                 ("ixFormFields", ixFormFields)
                 ))
+        for oimFactId in unreportedFactIds:
+            del oimFacts[oimFactId]
         if saveReport and reportFileName:
             if saveReportInPdf:
                 pdf.attachments[reportFileName] = AttachedFileSpec(
