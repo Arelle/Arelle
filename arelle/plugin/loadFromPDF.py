@@ -34,8 +34,8 @@ Only StructTree nodes which have IDs, and form fields with IDs, are available to
 ## Key Features
 
 An xBRL-JSON template file is provided for each tagged PDF/A with inline XBRL.
-   a) as an embedded file "xbrl-report.json" in the PDF or
-   b) as a sibling file to the pdf named xbrl-template.json"
+   a) as an embedded file "xbrl-report-template.json" in the PDF or
+   b) as a sibling file to the pdf named xbrl-report-template.json"
 
    The template file facts which are to receive contents from the pdf have @value missing and
    instead pdfIdRefs which is a list of space-separated IDs of structural node IDs and form field IDs
@@ -96,7 +96,7 @@ from collections import defaultdict, OrderedDict
 from decimal import Decimal
 import sys, os, json, regex as re
 
-DEFAULT_TEMPLATE_FILE_NAME = "xbrl-template.json"
+DEFAULT_TEMPLATE_FILE_NAME = "xbrl-report-template.json"
 DEFAULT_REPORT_FILE_NAME =  "xbrl-report.json"
 DEFAULT_MISSING_ID_PREFIX = "pdf_"  # None to block
 
