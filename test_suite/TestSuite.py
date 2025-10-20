@@ -123,10 +123,17 @@ def loadTestcaseIndex(index_path: str, testSuiteOptions: TestSuiteOptions) -> li
         for doc in docs:
             docUri = doc.uri.removeprefix(prefix).removesuffix(suffix)
             for testcaseVariation in doc.testcaseVariations:
-                fullId = f"{testcaseVariation.base}:{testcaseVariation.id}"
+                fullId = f"{testcaseVariation.base}:{testcaseVariation.id}" # TODO: Defined twice
                 if testSuiteOptions.filters:
                     if not any(fnmatch.fnmatch(fullId, filter) for filter in testSuiteOptions.filters):
                         continue # TODO: Only filter here
+
+                # TODO: Improve
+                from arelle import XmlUtil
+                resultElt = XmlUtil.descendant(testcaseVariation, None, "result")
+                calcMode = resultElt.attr('{https://xbrl.org/2023/conformance}mode')
+                if calcMode == 'truncate':
+                    calcMode = 'truncation'
 
                 expected = testcaseVariation.expected
                 constraints = []
@@ -203,6 +210,7 @@ def loadTestcaseIndex(index_path: str, testSuiteOptions: TestSuiteOptions) -> li
                     status=testcaseVariation.status,
                     testcaseConstraintSet=testcaseConstraintSet,
                     blockedCodePattern=blockedCodePattern,
+                    calcMode=calcMode,
                 ))
         return testcaseVariations
 
@@ -246,12 +254,16 @@ def runTestcaseVariation(
         str(Path(testcaseVariation.base).parent.joinpath(Path(readMeFirstUri)))
         for readMeFirstUri in testcaseVariation.readFirstUris
     ])
+    dynamicOptions = dict(testSuiteOptions.options)
+    if testcaseVariation.calcMode is not None:
+        dynamicOptions['calcs'] = testcaseVariation.calcMode
     entrypointFile = '|'.join(entrypointUris)
     runtimeOptions = RuntimeOptions(
         entrypointFile=entrypointFile,
         logFile=str(testSuiteOptions.logDirectory / f"{logFilename(testcaseVariation.shortName)}-log.txt"),
-        **testSuiteOptions.options
+        **dynamicOptions
     )
+    print("Running with options: ", json.dumps({k: v for k, v in vars(runtimeOptions).items() if v is not None}, indent=4, sort_keys=True))
     with Session() as session:
         start_ts = time.perf_counter_ns()
         session.run(

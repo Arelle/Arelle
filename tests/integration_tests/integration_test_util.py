@@ -227,7 +227,7 @@ def get_test_suite_data(
                     str(e)
                     for e in test_case_result.appliedConstraintSet.constraints
                 ]
-                message = ', '.join([
+                message = ',\n'.join([
                     str(e)
                     for e in test_case_result.constraintResults
                 ])

@@ -9,9 +9,7 @@ class TestcaseConstraintResult:
     diff: int
 
     def __str__(self):
-        descriptor = ""
+        num = str(self.diff)
         if self.diff > 0:
-            descriptor = "extra"
-        elif self.diff < 0:
-            descriptor = "missing"
-        return f"({self.diff}) \"{self.code}\" {descriptor}"
+            num = f'+{num}'
+        return f"{num:>10} \t\"{self.code}\""
