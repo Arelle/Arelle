@@ -409,7 +409,7 @@ def get_test_suite_test_results_with_shards(
         test_suite_options = TestSuiteOptions(
             additionalConstraints=_get_additional_constraints(config),
             filters=testcase_filters,
-            indexFile=config.entry_point_path.as_posix(),
+            indexFile=str(config.entry_point_path),
             logDirectory=Path(f'conf-{config.name}-s{shard_id}-logs'),
             matchAll=config.test_case_result_options == 'match-all',
             options=runtime_options,
@@ -475,7 +475,7 @@ def get_test_suite_test_results_without_shards(
             test_suite_options=TestSuiteOptions(
                 additionalConstraints=_get_additional_constraints(config),
                 filters=testcase_filters,
-                indexFile=config.entry_point_path.as_posix(),
+                indexFile=str(config.entry_point_path),
                 logDirectory=Path(f'conf-{config.name}-logs'),
                 matchAll=config.test_case_result_options == 'match-all',
                 options=runtime_options,
@@ -605,7 +605,7 @@ def get_test_suite_runtime_options(
     if config.disclosure_system:
         args['disclosureSystemName'] = config.disclosure_system
     if config.package_paths:
-        args['packages'] = sorted(p.as_posix() for p in config.package_paths)
+        args['packages'] = sorted(str(p) for p in config.package_paths)
     if plugins:
         args['plugins'] = '|'.join(sorted(plugins))
     shard_str = f'-s{shard}' if use_shards else ''
