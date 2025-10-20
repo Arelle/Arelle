@@ -23,6 +23,8 @@ qnXsQName = qname(xsd, "xs:QName")
 qnXbrlLabelObj = qname(xbrl, "xbrl:labelObject")
 qnXbrlReferenceObj = qname(xbrl, "xbrl:referenceObject")
 
+qnBuiltInCoreObjectsTaxonomy = qname(xbrl, "xbrl:BuiltInCoreObjectsTaxonomy")
+
 qnErrorQname = qname(None, "InvalidQName")
 
 objectsWithProperties = {

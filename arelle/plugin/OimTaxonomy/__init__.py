@@ -18,7 +18,7 @@ For debugging, saves the xsd objects loaded from the OIM taxonomy if
 
 from typing import TYPE_CHECKING, cast, GenericAlias, Union, _GenericAlias, _UnionGenericAlias, get_origin, ClassVar, ForwardRef
 
-import os, io, json, sys, time, traceback
+import os, io, json, cbor2, sys, time, traceback
 import jsonschema
 import regex as re
 from collections import OrderedDict, defaultdict
@@ -58,7 +58,7 @@ from .ValidateReport import validateReport
 from .SelectImportedObjects import selectImportedObjects
 from .ModelValueMore import SQName, QNameAt
 from .ViewXbrlTaxonomyObject import viewXbrlTaxonomyObject
-from .XbrlConst import xbrl, oimTaxonomyDocTypePattern, oimTaxonomyDocTypes, xbrlTaxonomyObjects
+from .XbrlConst import xbrl, oimTaxonomyDocTypePattern, oimTaxonomyDocTypes, oimTaxonomyDocTypes, xbrlTaxonomyObjects
 from .ParseSelectionWhereClause import parseSelectionWhereClause
 from .LoadCsvTable import csvTableRowFacts
 from .SaveModel import oimTaxonomySave
@@ -205,12 +205,19 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                 txFileName = href
                 txBase = None
             else:
-                _file = modelXbrl.fileSource.file(oimFile, encoding="utf-8-sig")[0]
                 href = os.path.basename(oimFile)
                 txFileName = oimFile
                 txBase = os.path.dirname(oimFile) # import referenced taxonomies
-                with _file as f:
-                    oimObject = json.load(f, object_pairs_hook=loadDict, parse_float=Decimal)
+                fileExt = os.path.splitext(oimFile)[1].lower()
+                if fileExt == ".json":
+                    _file = modelXbrl.fileSource.file(oimFile, encoding="utf-8-sig")[0]
+                    with _file as f:
+                        oimObject = json.load(f, object_pairs_hook=loadDict, parse_float=Decimal)
+                elif fileExt == ".cbor":
+                    _file = modelXbrl.fileSource.file(oimFile, binary="true")[0]
+                    with _file as f:
+                        oimObject = cbor2.load(f)
+                        
         except UnicodeDecodeError as ex:
             raise OIMException("{}:invalidJSON".format(errPrefix),
                   _("File MUST use utf-8 encoding: %(file)s, error %(error)s"),
@@ -1019,6 +1026,18 @@ def isOimTaxonomyLoadable(modelXbrl, mappedUri, normalizedUri, filepath, **kwarg
                 lastFilePathIsOIM = True
                 lastFilePath = filepath
         except IOError:
+            pass # nothing to open
+    elif _ext == ".cbor":
+        try:
+            with io.open(filepath, 'rb', buffering=2048) as f:
+                decoder = cbor2.CBORDecoder(f)
+                obj = decoder.decode() # this stream-reads outermost object, documentInfo should be first
+                if (isinstance(obj, dict) and isinstance(obj.get("documentInfo",{}), dict) and 
+                    obj.get("documentInfo",{}).get("documentType","") in oimTaxonomyDocTypes):
+                    lastFilePathIsOIM = True
+                    lastFilePath = filepath
+        except IOError as ex:
+            print(ex)
             pass # nothing to open
     return lastFilePathIsOIM
 
