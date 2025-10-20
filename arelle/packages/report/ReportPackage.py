@@ -101,15 +101,16 @@ def forbidDuplicateKeys(pairs: list[tuple[Any, Any]]) -> Any:
     return seen
 
 
-def getAllReportEntries(filesource: FileSource, stld: str | None) -> list[ReportEntry] | None:
+def getAllReportEntries(filesource: FileSource, stld: str | None) -> tuple[list[ReportEntry] | None, list[ReportEntry] | None]:
     if stld is None:
-        return None
+        return None, None
     if not isinstance(filesource.fs, zipfile.ZipFile):
-        return None
+        return None, None
     entries = [f.orig_filename for f in filesource.fs.infolist()]
     if not pathsContainReportsDirectory(set(entries), stld):
-        return None
+        return None, None
     topReportEntries = []
+    misplacedEntries = []
     entriesBySubDir = defaultdict(list)
     for entry in entries:
         if entry.endswith("/"):
@@ -118,8 +119,10 @@ def getAllReportEntries(filesource: FileSource, stld: str | None) -> list[Report
         if path.suffix not in Const.REPORT_FILE_EXTENSIONS:
             continue
         if not (2 < len(path.parts) < 5):
+            misplacedEntries.append(ReportEntry(filesource.basefile, [entry]))
             continue
         if not (path.parts[0] == stld and path.parts[1] == Const.REPORTS_DIRECTORY):
+            misplacedEntries.append(ReportEntry(filesource.basefile, [entry]))
             continue
         if len(path.parts) == 3:
             topReportEntries.append(entry)
@@ -132,7 +135,7 @@ def getAllReportEntries(filesource: FileSource, stld: str | None) -> list[Report
             reportEntries.append(ReportEntry(filesource.basefile, entries))
         else:
             reportEntries.extend(sorted(ReportEntry(filesource.basefile, [entry]) for entry in entries))
-    return sorted(reportEntries)
+    return sorted(reportEntries), sorted(misplacedEntries)
 
 
 @dataclass(frozen=True, order=True)
@@ -184,12 +187,14 @@ class ReportPackage:
         reportType: Const.ReportType | None,
         reportPackageJson: dict[str, Any] | None,
         reports: list[ReportEntry] | None,
+        misplacedEntries: list[ReportEntry] | None,
     ) -> None:
         self._reportPackageZip = reportPackageZip
         self._stld = stld
         self._reportType = reportType
         self._reportPackageJson = reportPackageJson
         self._allReports = reports
+        self._misplacedEntries = misplacedEntries
         if self._allReports is None:
             self._reports = None
         else:
@@ -214,7 +219,7 @@ class ReportPackage:
         reportPackageJson = None
         if reportPackageJsonFile:
             reportPackageJson = getPackageJson(filesource, reportPackageJsonFile)
-        reports = getAllReportEntries(filesource, stld)
+        reports, misplacedEntries = getAllReportEntries(filesource, stld)
         if reportPackageJsonFile is None and reports is None:
             return None
         reportEntriesBySubDir = Counter(report.dir for report in reports or [] if not report.isTopLevel)
@@ -230,6 +235,7 @@ class ReportPackage:
             reportType=reportType,
             reportPackageJson=reportPackageJson,
             reports=reports,
+            misplacedEntries=misplacedEntries,
         )
 
     @property
@@ -255,6 +261,10 @@ class ReportPackage:
     @property
     def allReports(self) -> list[ReportEntry] | None:
         return self._allReports
+
+    @property
+    def misplacedEntries(self) -> list[ReportEntry] | None:
+        return self._misplacedEntries
 
     @property
     def reports(self) -> list[ReportEntry] | None:

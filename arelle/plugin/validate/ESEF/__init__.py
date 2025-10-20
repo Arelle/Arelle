@@ -43,6 +43,7 @@ import regex as re
 from lxml.etree import XMLParser, XMLSyntaxError, parse
 
 from arelle import ModelDocument, XhtmlValidate
+from arelle.Cntlr import Cntlr
 from arelle.DisclosureSystem import DisclosureSystem
 from arelle.FileSource import FileSource
 from arelle.ModelDocument import LoadingException, ModelDocument as ModelDocumentClass
@@ -210,6 +211,18 @@ class ESEFPlugin(PluginHooks):
                                         validateEntity(modelXbrl, filename, filesource)
 
     @staticmethod
+    def validateFileSource(
+            cntlr: Cntlr,
+            fileSource: FileSource,
+            entrypoints: list[dict[str, Any]] | None = None,
+            *args: Any,
+            **kwargs: Any,
+    ) -> None:
+        if len(entrypoints) == 0:
+            cntlr.error("ESEF.3.1.3.missingOrInvalidTaxonomyPackage",
+                            _("RTS Annex III Par 3 and ESEF 3.1.3 requires an XBRL Report Package but one could not be loaded."))
+
+    @staticmethod
     def validateXbrlStart(
         val: ValidateXbrl,
         parameters: dict[Any, Any],
@@ -218,6 +231,16 @@ class ESEFPlugin(PluginHooks):
     ) -> None:
         if not esefDisclosureSystemSelected(val.modelXbrl) and val.validateDisclosureSystem:
             return None
+
+        if (reportPackage := val.modelXbrl.fileSource.reportPackage) is not None:
+            for entry in reportPackage.misplacedEntries:
+                val.modelXbrl.error("ESEF.2.6.1.reportIncorrectlyPlacedInPackage",
+                                _("Inline XBRL document MUST be included within an ESEF report package as defined in "
+                                  "http://www.xbrl.org/WGN/report-packages/WGN-2018-08-14/report-packages-WGN-2018-08-14"
+                                  ".html: %(fileName)s (Document file not in correct place in package)"),
+                                fileName=entry.files[0])
+
+
         modelXbrl = val.modelXbrl
         val.extensionImportedUrls = set()
         val.unconsolidated = any("unconsolidated" in n for n in val.disclosureSystem.names)
@@ -381,10 +404,10 @@ __pluginInfo__ = {
     "DisclosureSystem.Types": ESEFPlugin.disclosureSystemTypes,
     "DisclosureSystem.ConfigURL": ESEFPlugin.disclosureSystemConfigURL,
     "ModelXbrl.LoadComplete": ESEFPlugin.modelXbrlLoadComplete,
+    "Validate.FileSource": ESEFPlugin.validateFileSource,
     "Validate.XBRL.Start": ESEFPlugin.validateXbrlStart,
     "Validate.XBRL.Finally": ESEFPlugin.validateXbrlFinally,  # before formula processing
     "ValidateFormula.Compiled": ESEFPlugin.validateFormulaCompiled,
     "ValidateFormula.Finished": ESEFPlugin.validateFormulaFinished,  # after formula processing
     "Validate.Finally": ESEFPlugin.validateFinally,  # run *after* formula processing
-    "ModelTestcaseVariation.ReportPackageIxdsOptions": ESEFPlugin.modelTestcaseVariationReportPackageIxdsOptions,
 }

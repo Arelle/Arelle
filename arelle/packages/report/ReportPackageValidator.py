@@ -128,7 +128,7 @@ class ReportPackageValidator:
         return None
 
     def _validateReports(self) -> Validation | None:
-        reportEntries = getAllReportEntries(self._filesource, self._stld)
+        reportEntries, __ = getAllReportEntries(self._filesource, self._stld)
         filesourceFiles = self._filesource.dir or []
         topLevelDir = f"{self._stld}/" if self._stld else ""
         reportsDirExist = any(entry.startswith(f"{topLevelDir}/reports") for entry in filesourceFiles)
