@@ -19,6 +19,7 @@
             <error>EDINET.EC1057E</error>
             <error>EDINET.EC1001E</error> <!--FilingDateCoverPage missing-->
             <error>EDINET.EC1004E</error> <!--SemiAnnualAccountingPeriodCoverPage out of order-->
+            <warning>EDINET.EC8029W</warning> <!-- removed fact's concept still exists in pres/def linkbase -->
         </result>
     </variation>
 </testcase>

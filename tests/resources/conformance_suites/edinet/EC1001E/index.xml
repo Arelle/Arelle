@@ -19,6 +19,7 @@
         <result>
             <error>EDINET.EC1001E</error>
             <error>EDINET.EC1004E</error> > <!--Missing item means next item is out of sequence.-->
+            <warning>EDINET.EC8029W</warning> <!-- removed fact's concept still exists in pres/def linkbase -->
         </result>
     </variation>
 </testcase>
