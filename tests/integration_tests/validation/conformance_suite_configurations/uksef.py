@@ -8,15 +8,19 @@ from tests.integration_tests.validation.conformance_suite_config import (
 
 ZIP_PATH = Path('uksef-conformance-suite-v2.0.zip')
 EXTRACTED_PATH = Path(ZIP_PATH.stem)
+EXTRACTED_ZIP_PATH = EXTRACTED_PATH / 'uksef-conformance-suite-v2.0' / 'uksef-conformance-suite-v2.0.zip'
+EXTRACTED_EXTRACTED_PATH = Path(EXTRACTED_ZIP_PATH.parent) / EXTRACTED_ZIP_PATH.stem
 config = ConformanceSuiteConfig(
     args=[
         '--formula', 'none',
     ],
     assets=[
-        ConformanceSuiteAssetConfig.nested_conformance_suite(
-            ZIP_PATH,
-            EXTRACTED_PATH,
-            entry_point_root=EXTRACTED_PATH / 'uksef-conformance-suite-v2.0' / 'uksef-conformance-suite-v2.0.zip',
+        ConformanceSuiteAssetConfig.extracted_conformance_suite(
+            (
+                (ZIP_PATH, EXTRACTED_PATH),
+                (EXTRACTED_ZIP_PATH, EXTRACTED_EXTRACTED_PATH),
+            ),
+            entry_point_root=EXTRACTED_EXTRACTED_PATH,
             entry_point=Path('uksef-conformance-suite/index.xml'),
             public_download_url='https://www.frc.org.uk/documents/8116/uksef-conformance-suite-v2.0.zip',
             source=AssetSource.S3_PUBLIC,
@@ -31,9 +35,9 @@ config = ConformanceSuiteConfig(
     base_taxonomy_validation='none',
     expected_additional_testcase_errors={f'uksef-conformance-suite/tests/FRC/{s}': val for s, val in {
         # Test case references TC2_valid.zip, but actual file in suite has .xbri extension.
-        'FRC_09/index.xml:TC2_valid': {'IOerror': 1},
+        'FRC_09/index.xml:TC2_valid': {'FileSourceError': 1},
         # Test case references TC3_valid.zip, but actual file in suite has .xbri extension.
-        'FRC_09/index.xml:TC3_valid': {'IOerror': 1},
+        'FRC_09/index.xml:TC3_valid': {'FileSourceError': 1},
         # Report package uses CR document type URI instead of rec URI.
         'FRC_09/index.xml:TC4_valid': {'rpe:unsupportedReportPackageVersion': 1},
     }.items()},
