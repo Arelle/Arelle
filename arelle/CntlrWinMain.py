@@ -613,7 +613,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                     pass
             if any(extSave(self, view, fileType, filename)
                    for extSave in pluginClassMethods("CntlrWinMain.Xbrl.Save")):
-                currentAction = "ext save method provided"
+                return True
             elif isinstance(view, ViewWinRenderedGrid.ViewRenderedGrid):
                 initialdir = os.path.dirname(modelXbrl.modelDocument.uri)
                 if caption is not None and method is not None:
