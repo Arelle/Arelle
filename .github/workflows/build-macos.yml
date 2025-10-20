@@ -18,7 +18,7 @@ on:
         required: false
         type: string
       python_version:
-        default: '3.13.8'
+        default: '3.13.9'
         description: 'Python version to use'
         required: false
         type: string
@@ -60,7 +60,7 @@ on:
         required: true
         type: string
       python_version:
-        default: '3.13.8'
+        default: '3.13.9'
         description: 'Python version to use'
         required: true
         type: string
