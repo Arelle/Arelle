@@ -1020,6 +1020,10 @@ def ixdsTargetDiscoveryCompleted(modelXbrl, modelIxdsDocument):
         if referencedDoc.type == Type.SCHEMA:
             modelIxdsDocument.targetDocumentSchemaRefs.add(modelIxdsDocument.relativeUri(referencedDoc.uri))
 
+def modelXbrlLoadComplete(modelXbrl: ModelXbrl, *args, **kwargs):
+    if modelXbrl.modelDocument.type not in (Type.INLINEXBRL, Type.INLINEXBRLDOCUMENTSET):
+        modelXbrl.error("NotAnIxbrlDocument", "")
+
 __pluginInfo__ = {
     'name': 'Inline XBRL Document Set',
     'version': '1.1',
@@ -1049,4 +1053,5 @@ __pluginInfo__ = {
     'ModelTestcaseVariation.ArchiveIxds': testcaseVariationArchiveIxds,
     'ModelTestcaseVariation.ReportPackageIxds': testcaseVariationReportPackageIxds,
     'ModelTestcaseVariation.ResultXbrlInstanceUri': testcaseVariationResultInstanceUri,
+    'ModelXbrl.LoadComplete': modelXbrlLoadComplete,
 }

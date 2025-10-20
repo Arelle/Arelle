@@ -11,13 +11,6 @@ from arelle.ModelDocument import Type
 from arelle.Version import authorLabel, copyrightLabel
 from arelle.XhtmlValidate import htmlEltUriAttrs, resolveHtmlUri
 
-def variationInstanceLoaded(testcaseInstance, variationInstance, extraErrors, inputDTSes, *args, **kwargs):
-    # test case variations which have xhtml documents which are not inline blissfully load as unrecognized plain xml
-    # provide an error code that no iXBRL document was loaded so test case script can honor variation's expectation that this is an error
-    for inputDTS in inputDTSes.values():
-        for ixds in inputDTS:
-            if ixds.modelDocument.type not in (Type.INLINEXBRL, Type.INLINEXBRLDOCUMENTSET):
-                extraErrors.append( "NotAnIxbrlDocument" )
 
 def expectedInstanceLoaded(expectedInstance, outputInstanceToCompare):
     for f in expectedInstance.facts:
@@ -40,6 +33,5 @@ __pluginInfo__ = {
     'author': authorLabel,
     'copyright': copyrightLabel,
     # classes of mount points (required)
-    'TestcaseVariation.Validated': variationInstanceLoaded,
     'TestcaseVariation.ExpectedInstance.Loaded': expectedInstanceLoaded,
 }
