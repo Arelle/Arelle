@@ -653,6 +653,42 @@ def rule_EC8029W(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_EC8030W(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8030W: Any concept (other than DEI concepts) used in an instance must
+    be in the presentation linkbase.
+    """
+    usedConcepts = pluginData.getUsedConcepts(val.modelXbrl)
+    relSet = val.modelXbrl.relationshipSet(tuple(LinkbaseType.PRESENTATION.getArcroles()))
+    if relSet is None:
+        return
+    for concept in usedConcepts:
+        if concept.qname.namespaceURI == pluginData.jpdeiNamespace:
+            continue
+        if concept.qname.localName.endswith('DEI'):
+            # Example: jpsps_cor:SecuritiesRegistrationStatementAmendmentFlagDeemedRegistrationStatementDEI
+            continue
+        if not relSet.contains(concept):
+            yield Validation.warning(
+                codes='EDINET.EC8030W',
+                msg=_("An element (other than DEI) set in the inline XBRL file is not set in the "
+                      "presentation linkbase. "
+                      "Element: '%(concept)s'. "
+                      "Please set the relevant element in the presentation linkbase."),
+                concept=concept.qname.localName,
+                modelObject=concept,
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_EC8075W(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,

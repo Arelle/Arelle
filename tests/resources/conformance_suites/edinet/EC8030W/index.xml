@@ -3,23 +3,21 @@
 <testcase
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns="http://xbrl.org/2005/conformance"
-        name="EDINET.EC1003E"
-        description="EDINET.EC1003E: An unnecessary item is included on the cover page."
+        name="EDINET.EC8030W"
+        description="EDINET.EC8030W: Any concept (other than DEI concepts) used in an instance must be in the presentation linkbase."
         outpath=''
         owner="support@arelle.org"
         xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
     <variation id="invalid01" name="invalid01">
         <description>
-            Cover page contains unnecessary AmountToRegisterForOfferingOrDistributionCoverPageTextBlock.
-            <!-- valid03.zip with AmountToRegisterForOfferingOrDistributionCoverPageTextBlock added. -->
+            A concept in an instance is not in the presentation linkbase.
+            <!--valid09.zip with 'PlaceForPublicInspectionCoverPageTextBlock` fact removed from presentation linkbase.-->
         </description>
         <data>
             <instance readMeFirst="true">invalid01.zip</instance>
         </data>
         <result>
-            <error>EDINET.EC1003E</error>
-            <warning>EDINET.EC8015W</warning> <!-- from base sample filing -->
-            <warning>EDINET.EC8030W</warning> <!-- added concept is not in presentation linkbase -->
+            <warning>EDINET.EC8030W</warning>
         </result>
     </variation>
 </testcase>
