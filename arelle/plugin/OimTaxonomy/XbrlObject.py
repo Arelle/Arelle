@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 """
 from typing import GenericAlias, _UnionGenericAlias, Any, _GenericAlias, ClassVar, ForwardRef
 import os
+from arelle.XmlValidate import INVALID, VALID
 from .XbrlConst import qnStdLabel
 XbrlTaxonomyObject = None # class forward reference
 
@@ -33,8 +34,16 @@ class XbrlObject(XbrlModelClass):
                 href = f"{href}/{className[4].lower()}{className[5:]}[{classIndex}]"
         return href
 
+    # getProperty returns an object property (e.g. an @property of the object, not object.properties[foo])
     def getProperty(self, propertyName, propertyClass=None, propertyType=None, language=None, defaultValue=None):
         return getattr(self, propertyName, defaultValue)
+
+    # propertyObjectValue returns an object's property object validated typed xValue from .properties
+    def propertyObjectValue(self, propertyType, defaultValue=None):
+        for propObj in getattr(self, "properties", ()):
+            if propObj.property == propertyType and getattr(propObj, "_xValid", INVALID) >= VALID:
+                return getattr(propObj, "_xValue", defaultValue)
+        return defaultValue
 
     @property
     def propertyView(self):

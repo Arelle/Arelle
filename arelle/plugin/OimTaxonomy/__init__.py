@@ -433,7 +433,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                                                 collectionProp.add(listObj)
                                             else:
                                                 error("oimte:duplicateObjects",
-                                                      _("Object expected but non-object found: %(listObj)s, jsonObj: %(path)s"),
+                                                      _("Duplicate %(listObj)s in jsonObj: %(path)s"),
                                                       sourceFileLine=href, listObj=listObj, path=f"{'/'.join(pathParts + [f'{propName}[{iObj}]'])}")
                                         except TypeError as ex:
                                             print("exception adding collection property")
