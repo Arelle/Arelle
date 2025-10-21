@@ -35,10 +35,21 @@ perCnstrtFmtStartEndPattern = re.compile(r".*@(start|end)")
 
 def validateTaxonomyModel(txmyMdl):
 
+    mdlLvlChecks = attrdict(
+        labelsCt = defaultdict(list), # count of duplicated labels by relatedName, labelType and language
+    )
+
     for txmy in txmyMdl.taxonomies.values():
-        validateTaxonomy(txmyMdl, txmy)
+        validateTaxonomy(txmyMdl, txmy, mdlLvlChecks)
     for layout in txmyMdl.layouts.values():
         validateLayout(txmyMdl, layout)
+
+    # model lavel checks
+    for lblKey, lblObjs in mdlLvlChecks.labelsCt.items():
+        if len(lblObjs) > 1:
+            txmyMdl.error("oimte:duplicateLabelObject",
+                      _("The labels are duplicated for relatedName %(name)s type %(type)s language %(language)s"),
+                      xbrlObject=lblObjs, name=lblKey[0], type=lblKey[1], language=lblKey[2])
 
 def objType(obj):
     clsName = type(obj).__name__
@@ -113,16 +124,16 @@ def validateProperties(txmyMdl, oimFile, txmy, obj):
                               file=oimFile, parentObjName=objType(obj), parentName=getattr(obj,"name","(n/a)"),
                               name=propTypeQn)
             propObj._xValid, propObj._xValue = validateValue(txmyMdl, txmy, obj, propObj.value, propTypeObj.dataType, f"/properties[{i}]", "oimte:invalidPropertyValue")
-            
+
         propTypeQns[propTypeQn] = propTypeQns.get(propTypeQn, 0) + 1
     if any(ct > 1 for qn, ct in propTypeQns.items()):
         txmyMdl.error("oimte:duplicateObjects",
                   _("%(parentObjName)s %(parentName)s has duplicated properties %(names)s"),
                   file=oimFile, parentObjName=objType(obj), parentName=getattr(obj,"name","(n/a)"),
                   names=", ".join(str(qn) for qn, ct in propTypeQns.items() if ct > 1))
-            
 
-def validateTaxonomy(txmyMdl, txmy):
+
+def validateTaxonomy(txmyMdl, txmy, mdlLvlChecks):
     oimFile = str(txmy.name)
 
     # Taxonomy object
@@ -288,7 +299,7 @@ def validateTaxonomy(txmyMdl, txmy):
                 compObj = prop.endswith("Object")
                 propVal = getattr(reqdRelshp, prop, None)
                 if propVal is not None and (
-                    (compObj ^ (propVal in xbrlObjectTypes)) or 
+                    (compObj ^ (propVal in xbrlObjectTypes)) or
                     (not compObj and propVal not in txmyMdl.namedObjects)): # note that tag objects aren't referencable by name
                     txmyMdl.error("oimte:invalidSourceOrTargetObjectType" if compObj else "oimte:invalidSourceOrTargetType",
                               _("The cube type %(name)s, requiredCubeRelationship[%(i)s] %(property)s, %(value)s, does not resolve to a %(non)staxonomy component object."),
@@ -341,7 +352,7 @@ def validateTaxonomy(txmyMdl, txmy):
                         if len(tsProps & {intervalOfMeasurementPropType, intervalConventionPropType}) == 1:
                             txmyMdl.error("oimte:missingIntervalOfMeasurementForConvention",
                                       _("The dimension %(dimension)s of domain type %(dimDomType)s on cube %(name)s MUST also have property %(tsProp)s."),
-                                      xbrlObject=cubeObj, name=name, dimension=dimQn, dimDomType=dimDomDTQn, 
+                                      xbrlObject=cubeObj, name=name, dimension=dimQn, dimDomType=dimDomDTQn,
                                       tsProp=next(iter({intervalOfMeasurementPropType, intervalConventionPropType} - tsProps)))
             dimQnCounts[dimQn] = dimQnCounts.get(dimQn, 0) + 1
         if any(c > 1 for c in dimQnCounts.values()):
@@ -414,7 +425,7 @@ def validateTaxonomy(txmyMdl, txmy):
                     txmyMdl.error("oimte:cubeMissingRelationships",
                               _("The cube %(name)s, type %(cubeType)s, requiredCubeRelationships %(reqRel)s is missing"),
                               xbrlObject=cubeObj, name=name, cubeType=cubeType.name, reqRel=reqRelStr)
-            
+
 
         for exclCubeQn in cubeObj.excludeCubes:
             if exclCubeQn == cubeObj.name:
@@ -791,7 +802,6 @@ def validateTaxonomy(txmyMdl, txmy):
                           xbrlObject=grpCntObj, name=grpQn, relName=relName)
 
     # Label Objects
-    labelsCt = defaultdict(list)
     for lblObj in txmy.labels:
         assertObjectType(txmyMdl, lblObj, XbrlLabel)
         relatedName = lblObj.relatedName
@@ -808,7 +818,7 @@ def validateTaxonomy(txmyMdl, txmy):
                 type(relatedObj) == xbrlObjectTypes[allowedObj] for allowedObj in lblTpObj.allowedObjects):
                 txmyMdl.error("oimte:invalidAllowedObject",
                           _("Label has disallowed related object %(relatedName)s"),
-                          xbrlObject=lblObj, relatedName=relatedName)                
+                          xbrlObject=lblObj, relatedName=relatedName)
             lblObj._xValid, lblObj._xValue = validateValue(txmyMdl, txmy, lblObj, lblObj.value, lblTpObj.dataType, "", "oimte:invalidPropertyValue")
         else:
             txmyMdl.error("oimte:missingQNameReference",
@@ -816,12 +826,7 @@ def validateTaxonomy(txmyMdl, txmy):
                       xbrlObject=lblObj, labelType=lblObj.labelType)
         validateProperties(txmyMdl, oimFile, txmy, lblObj)
         lblKey = (relatedName, lblObj.labelType, lblObj.language)
-        labelsCt[lblKey].append(lblObj)
-    for lblKey, lblObjs in labelsCt.items():
-        if len(lblObjs) > 1:
-            txmyMdl.error("oimte:duplicateLabelObject",
-                      _("The labels are duplicated for relatedName %(name)s type %(type)s language %(language)s"),
-                      xbrlObject=lblObjs, name=lblKey[0], type=lblKey[1], language=lblKey[2])
+        mdlLvlChecks.labelsCt[lblKey].append(lblObj)
 
     # Network Objects
     ntwkCt = {}
@@ -896,13 +901,12 @@ def validateTaxonomy(txmyMdl, txmy):
                                   _("The network %(name)s relationship[%(nbr)s] target, %(target)s MUST be an object type allowed for the relationship type %(relationshipType)s."),
                                   xbrlObject=relObj, name=ntwkObj.name, nbr=i, target=relObj.target, relationshipType=ntwkObj.relationshipTypeName)
             validateProperties(txmyMdl, oimFile, txmy, relObj)
-            for propObj in relObj.properties:
-                if propObj.property == preferredLabel and getattr(propObj, "_xValid", INVALID) >= VALID:
-                    if not isinstance(txmyMdl.namedObjects.get(propObj._xValue), XbrlLabelType):
-                        txmyMdl.error("oimte:missingQNameReference",
-                                  _("The network %(name)s relationship[%(nbr)s] preferredLabel, %(preferredLabel)s MUST be a label type object."),
-                                  xbrlObject=relObj, name=ntwkObj.name, nbr=i, preferredLabel=propObj._xValue)
-            relKey = (relObj.source, relObj.target)
+            relObjPrefLbl = relObj.propertyObjectValue(preferredLabel)
+            if relObjPrefLbl and  not isinstance(txmyMdl.namedObjects.get(relObjPrefLbl), XbrlLabelType):
+                txmyMdl.error("oimte:missingQNameReference",
+                          _("The network %(name)s relationship[%(nbr)s] preferredLabel, %(preferredLabel)s MUST be a label type object."),
+                          xbrlObject=relObj, name=ntwkObj.name, nbr=i, preferredLabel=relObjPrefLbl)
+            relKey = (relObj.source, relObj.target, relObjPrefLbl)
             ntwkCt[relKey] = ntwkCt.get(relKey, 0) + 1
         if any(ct > 1 for relKey, ct in ntwkCt.items()):
             txmyMdl.error("oimte:duplicateObjects",
@@ -1033,7 +1037,7 @@ def validateTaxonomy(txmyMdl, txmy):
                 txmyMdl.error("oimte:invalidObjectType",
                           _("The referenceType %(name)s allowedObject %(allowedObject)s MUST be a referenceable taxonomy model object."),
                           xbrlObject=refObj, name=refObj.name, allowedObject=allowedObj)
-        for prop, msgCode in (("orderedProperties","oimte:invalidOrderedProperty"), 
+        for prop, msgCode in (("orderedProperties","oimte:invalidOrderedProperty"),
                               ("requiredProperties","oimte:invalidRequiredProperty")):
             for propTpQn in getattr(refObj, prop):
                 propTpObj = txmyMdl.namedObjects.get(propTpQn)
@@ -1085,7 +1089,7 @@ def validateLayout(txmyMdl, layout):
 
     for tblTmpl in txmy.tableTemplates:
         assertObjectType(txmyMdl, tblTmpl, XbrlTableTemplate)
-        
+
         for dim in tblTmpl.dimensions:
             if dim.startswith('$'):
                 colName = dim[1:]
@@ -1093,10 +1097,10 @@ def validateLayout(txmyMdl, layout):
                     txmyMdl.error("oimte:tableTemplateDimensionColumnReference",
                               _("The table template dimension %(dimension)s is missing from the table template columns."),
                               xbrlObject=tblTmpl, dimension=dim)
-        
+
     for dataTbl in txmy.dataTables:
         assertObjectType(txmyMdl, dataTbl, XbrlDataTable)
-        
+
         for axisName, axis in (("xAxis", dataTbl.xAxis), ("yAxis", dataTbl.yAxis), ("zAxis", dataTbl.zAxis)):
             assertObjectType(txmyMdl, axis, XbrlAxis)
             dimsOnThisAxis = {} # qnames of axis dimensions and counts on axis
