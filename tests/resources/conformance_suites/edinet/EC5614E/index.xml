@@ -18,6 +18,7 @@
         </data>
         <result>
             <error>EDINET.EC5614E</error>
+            <warning>EDINET.EC8029W</warning> <!-- removed fact's concept still exists in pres/def linkbase -->
         </result>
     </variation>
 </testcase>

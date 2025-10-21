@@ -18,6 +18,7 @@
         </data>
         <result>
             <warning>EDINET.EC8015W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8029W</warning> <!-- removed fact's concept still exists in pres/def linkbase -->
             <warning>EDINET.EC8075W</warning>
         </result>
     </variation>
