@@ -1334,6 +1334,14 @@
                 "targetObjects" : ["xbrl:conceptObject"]
             },
             {
+                "name": "xbrl:essence-alias",
+                "uri": "http://www.xbrl.org/2003/arcrole/essence-alias",
+                "cycles" : "undirected",
+                "allowedLinkProperties" : ["xbrl:order"],
+                "sourceObjects" : ["xbrl:conceptObject"],
+                "targetObjects" : ["xbrl:conceptObject"]
+            },
+            {
                 "name": "xbrl:instant-accrual",
                 "uri": "http://xbrl.org/oim/instant-accrual",
                 "cycles" : "undirected",
