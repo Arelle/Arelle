@@ -18,6 +18,7 @@
         </data>
         <result>
             <warning>EDINET.EC5700W.GFM.1.2.25</warning>
+            <warning num="4">EDINET.EC8031W</warning> <!-- FilingDateInstant modified -->
         </result>
     </variation>
 </testcase>
