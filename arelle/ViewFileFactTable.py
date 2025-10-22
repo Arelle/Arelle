@@ -3,7 +3,7 @@ See COPYRIGHT.md for copyright information.
 '''
 from arelle import ViewFile, ModelDtsObject, XbrlConst, XmlUtil
 from arelle.XbrlConst import conceptNameLabelRole, standardLabel, terseLabel, documentationLabel
-from arelle.ViewFile import CSV, XLSX, HTML, XML, JSON
+from arelle.ViewFile import CSV, XLSX, HTML, XML, JSON, TABULAR_VIEW_TYPES
 import datetime
 import regex as re
 from collections import defaultdict
@@ -324,7 +324,7 @@ class ViewFacts(ViewFile.View):
             try:
                 colId = self.contextColId[fact.context.objectId()]
                 # special case of start date, pick column corresponding
-                if preferredLabel == XbrlConst.periodStartLabel:
+                if self.type in TABULAR_VIEW_TYPES and preferredLabel == XbrlConst.periodStartLabel:
                     date = fact.context.instantDatetime
                     if date:
                         if date in self.startdatetimeColId:
