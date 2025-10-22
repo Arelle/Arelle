@@ -710,12 +710,17 @@ def validateTaxonomy(txmyMdl, txmy, mdlLvlChecks):
             src = getattr(relObj, "source", None)
             tgt = getattr(relObj, "target", None)
             if src not in txmyMdl.namedObjects or tgt not in txmyMdl.namedObjects:
-                txmyMdl.error("oimte:missingQNameReference",
-                          _("The domain %(name)s relationship[%(nbr)s] source, %(source)s, and target, %(target)s, MUST be objects in the taxonomy model."),
-                          xbrlObject=relObj, name=domObj.name, nbr=i, source=src, target=tgt)
+                if src not in txmyMdl.namedObjects:
+                    txmyMdl.error("oimte:missingQNameReference",
+                              _("The domain %(name)s relationship[%(nbr)s] source, %(source)s, MUST be an object in the taxonomy model."),
+                              xbrlObject=relObj, name=domObj.name, nbr=i, source=src)
+                if tgt not in txmyMdl.namedObjects:
+                    txmyMdl.error("oimte:missingQNameReference",
+                              _("The domain %(name)s relationship[%(nbr)s] target, %(target)s, MUST be an object in the taxonomy model."),
+                              xbrlObject=relObj, name=domObj.name, nbr=i, target=tgt)
             else:
                 if domRt == conceptDomainRoot:
-                    if relObj.source != domRt and not isinstance(txmyMdl.namedObjects[relObj.source], XbrlConcept):
+                    if relObj.source != domRt and not isinstance(txmyMdl.namedObjects[relObj.source], (XbrlConcept, XbrlAbstract)):
                         txmyMdl.error("oimte:invalidObjectType",
                                   _("The domain %(name)s relationship[%(nbr)s] source, %(source)s MUST be a concept object in the taxonomy model."),
                                   xbrlObject=relObj, name=domObj.name, nbr=i, source=relObj.source)
@@ -883,9 +888,14 @@ def validateTaxonomy(txmyMdl, txmy, mdlLvlChecks):
         for i, relObj in enumerate(ntwkObj.relationships):
             assertObjectType(txmyMdl, relObj, XbrlRelationship)
             if  relObj.source not in txmyMdl.namedObjects or relObj.target not in txmyMdl.namedObjects:
-                txmyMdl.error("oimte:missingQNameReference",
-                          _("The network %(name)s relationship[%(nbr)s] source, %(source)s, and target, %(target)s, MUST be objects in the taxonomy model."),
-                          xbrlObject=relObj, name=ntwkObj.name, nbr=i, source=relObj.source, target=relObj.target)
+                if relObj.source not in txmyMdl.namedObjects:
+                    txmyMdl.error("oimte:missingQNameReference",
+                              _("The network %(name)s relationship[%(nbr)s] source, %(source)s MUST be an object in the taxonomy model."),
+                              xbrlObject=relObj, name=ntwkObj.name, nbr=i, source=relObj.source)
+                if relObj.target not in txmyMdl.namedObjects:
+                    txmyMdl.error("oimte:missingQNameReference",
+                              _("The network %(name)s relationship[%(nbr)s] target, %(target)s MUST be an object in the taxonomy model."),
+                              xbrlObject=relObj, name=ntwkObj.name, nbr=i, target=relObj.target)
             else:
                 sources.add(relObj.source)
                 targets.add(relObj.target)
@@ -913,14 +923,15 @@ def validateTaxonomy(txmyMdl, txmy, mdlLvlChecks):
                       _("The network %(name)s has duplicated relationships %(names)s"),
                       xbrlObject=ntwkObj, name=ntwkObj.name,
                       names=", ".join(f"{relKey[0]}\u2192{relKey[1]}" for relKey, ct in ntwkCt.items() if ct > 1))
-        ntwkObj._roots = sources - targets
+        ntwkObj._rootsFound = sources - targets
         if ntwkObj.roots:
-            if ntwkObj.roots != ntwkObj._roots:
+            undeclaredRoots = ntwkObj._rootsFound - ntwkObj.roots
+            if undeclaredRoots:
                 txmyMdl.error("oimte:invalidNetworkRoot",
-                          _("The network %(name)s network object roots property does not match actual relationship roots: %(roots)s"),
-                          xbrlObject=ntwkObj, name=ntwkObj.name, roots=", ".join(str(r) for r in ntwkObj._roots))
+                          _("The network %(name)s network object roots property does not include these undeclared relationship roots: %(undeclaredRoots)s"),
+                          xbrlObject=ntwkObj, name=ntwkObj.name, undeclaredRoots=", ".join(str(r) for r in undeclaredRoots))
         else:
-            ntwkObj.roots = ntwkObj._roots # not specified so use actual roots
+            ntwkObj.roots = ntwkObj._rootsFound # not specified so use actual roots
         validateProperties(txmyMdl, oimFile, txmy, ntwkObj)
         del ntwkCt
 
