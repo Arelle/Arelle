@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="EDINET.EC8032E"
+        description="EDINET.EC8032E: The first six digits of each context identifier must match the 'EDINET code' in the DEI information (or the 'fund code' in the DEI information in the case of the Cabinet Office Ordinance on Specified Securities Disclosure)."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid01" name="invalid01">
+        <description>
+            The 'FilingDateInstant' context identifier does not match the 'EDINET code' in the DEI information.
+            <!--valid09.zip 'FilingDateInstant' identifier modified to mismatch EDINETCodeDEI.-->
+        </description>
+        <data>
+            <instance readMeFirst="true">invalid01.zip</instance>
+        </data>
+        <result>
+            <error>EDINET.EC8032E</error>
+        </result>
+    </variation>
+</testcase>
