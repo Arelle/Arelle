@@ -64,6 +64,7 @@
             <warning num="4">EDINET.EC8018W</warning>
             <warning num="4">EDINET.EC8019W</warning>
             <warning num="4">EDINET.EC8020W</warning>
+            <warning num="2">EDINET.EC8030W</warning> <!-- added concepts are not in presentation linkbase -->
         </result>
     </variation>
     <variation id="invalid02" name="invalid02">
@@ -142,6 +143,7 @@
             <warning num="7">EDINET.EC8018W</warning>
             <warning num="6">EDINET.EC8019W</warning>
             <warning num="6">EDINET.EC8020W</warning>
+            <warning num="2">EDINET.EC8030W</warning> <!-- added concepts are not in presentation linkbase -->
         </result>
     </variation>
 </testcase>

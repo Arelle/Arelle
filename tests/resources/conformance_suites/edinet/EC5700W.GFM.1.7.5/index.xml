@@ -18,6 +18,7 @@
         </data>
         <result>
             <warning num="2">EDINET.EC5700W.GFM.1.7.5</warning>
+            <warning>EDINET.EC8030W</warning> <!-- presentation arc removed -->
         </result>
     </variation>
 </testcase>
