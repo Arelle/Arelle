@@ -665,8 +665,6 @@ def rule_EC8030W(
     """
     usedConcepts = pluginData.getUsedConcepts(val.modelXbrl)
     relSet = val.modelXbrl.relationshipSet(tuple(LinkbaseType.PRESENTATION.getArcroles()))
-    if relSet is None:
-        return
     for concept in usedConcepts:
         if concept.qname.namespaceURI == pluginData.jpdeiNamespace:
             continue
