@@ -4,12 +4,13 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 from collections import defaultdict
+from pathlib import Path
 from typing import Any, Iterable
 
 import regex
 from jaconv import jaconv
 
-from arelle import XbrlConst, ValidateDuplicateFacts
+from arelle import XbrlConst, ValidateDuplicateFacts, XmlUtil
 from arelle.Cntlr import Cntlr
 from arelle.FileSource import FileSource
 from arelle.LinkbaseType import LinkbaseType
@@ -680,6 +681,96 @@ def rule_EC8030W(
                       "Please set the relevant element in the presentation linkbase."),
                 concept=concept.qname.localName,
                 modelObject=concept,
+            )
+
+
+@validation(
+    hook=ValidationHook.COMPLETE,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8031W(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8031W: For contexts having an ID beginning with "FilingDate", the instant
+    date value must match the report submission date set in the file name.
+
+    However, when reporting corrections, please set the following:
+    Context beginning with "FilingDate": The submission date on the cover page of the attached inline XBRL (original submission date)
+    "Report submission date" in the file name: The submission date of the correction report, etc.
+    """
+    isAmendment = pluginData.getDeiValue('ReportAmendmentFlagDEI')
+    if isAmendment:
+        # Amendment/corrections report are not subject to this validation, but documentation does note:
+        #   However, when reporting corrections, please set the following:
+        #   Context beginning with "FilingDate": The submission date on the cover page of the attached inline XBRL (original submission date)
+        #   "Report submission date" in the file name: The submission date of the correction report, etc.
+        return
+    uploadContents = pluginData.getUploadContents()
+    if uploadContents is None:
+        return
+    docUris = {
+        docUri
+        for modelXbrl in pluginData.loadedModelXbrls
+        for docUri in modelXbrl.urlDocs.keys()
+    }
+    actualDates = defaultdict(set)
+    for uri in docUris:
+        path = Path(uri)
+        pathInfo = uploadContents.uploadPathsByFullPath.get(path)
+        if pathInfo is None or pathInfo.reportFolderType is None:
+            continue
+        patterns = pathInfo.reportFolderType.ixbrlFilenamePatterns
+        for pattern in patterns:
+            matches = pattern.match(path.name)
+            if not matches:
+                continue
+            groups = matches.groupdict()
+            year = groups['submission_year']
+            month = groups['submission_month']
+            day = groups['submission_day']
+            actualDate = f'{year:04}-{month:02}-{day:02}'
+            actualDates[actualDate].add(path)
+    expectedDates = defaultdict(set)
+    for modelXbrl in pluginData.loadedModelXbrls:
+        for context in modelXbrl.contexts.values():
+            if context.id is None:
+                continue
+            if not context.id.startswith("FilingDate"):
+                continue
+            if not context.isInstantPeriod:
+                continue
+            expectedDate = XmlUtil.dateunionValue(context.instantDatetime, subtractOneDay=True)[:10]
+            expectedDates[expectedDate].add(context)
+    invalidDates = {k: v for k, v in actualDates.items() if k not in expectedDates}
+    if len(invalidDates) == 0:
+        return
+    paths = [
+        path
+        for paths in invalidDates.values()
+        for path in paths
+    ]
+    contexts = [
+        context
+        for contexts in expectedDates.values()
+        for context in contexts
+    ]
+    for path in paths:
+        for context in contexts:
+            yield Validation.warning(
+                codes='EDINET.EC8031W',
+                msg=_("The value of the instant element in context '%(context)s' "
+                      "must match the report submission date set in the file name. "
+                      "File name: '%(file)s'. "
+                      "Please correct the report submission date in the filename or "
+                      "the instant element value for the context with ID '%(context)s'."),
+                context=context.id,
+                file=path.name,
+                modelObject=context,
             )
 
 

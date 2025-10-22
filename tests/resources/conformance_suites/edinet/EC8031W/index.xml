@@ -3,21 +3,21 @@
 <testcase
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns="http://xbrl.org/2005/conformance"
-        name="EDINET.EC5700W.GFM.1.3.1"
-        description="EDINET.EC5700W.GFM.1.3.1"
+        name="EDINET.EC8031W"
+        description="EDINET.EC8031W: For contexts having an ID beginning with 'FilingDate', the instant date value must match the report submission date set in the file name."
         outpath=''
         owner="support@arelle.org"
         xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
     <variation id="invalid01" name="invalid01">
         <description>
-            The XSD has an include element.
+            The FilingDateInstant context instant value does not match the report submission date set in the file name.
+            <!--valid09.zip 'FilingDateInstant' context instant value set to '2025-04-11'.-->
         </description>
         <data>
             <instance readMeFirst="true">invalid01.zip</instance>
         </data>
-        <result >
-            <warning>EDINET.EC5700W.GFM.1.3.1</warning>
-            <warning num="3">EDINET.EC8031W</warning> <!-- 1 schema file added with incorrect date x 3 'FilingDateInstant' contexts -->
+        <result>
+            <warning num="4">EDINET.EC8031W</warning> <!-- 2 ixbrl, 1 schema, 1 linkbase -->
         </result>
     </variation>
 </testcase>
