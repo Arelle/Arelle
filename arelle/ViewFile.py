@@ -18,6 +18,7 @@ XLSX  = 2
 HTML  = 3
 XML   = 4
 JSON  = 5
+TABULAR_VIEW_TYPES = {CSV, XLSX, HTML}
 TYPENAMES = ["NOOUT", "CSV", "XLSX", "HTML", "XML", "JSON"] # null means no output
 nonNameCharPattern =  re.compile(r"[^\w\-\.:]")
 
