@@ -38,12 +38,18 @@ IMG_URL_CSS_PROPERTIES = frozenset([
 EMPTYDICT = {}
 _6_APR_2008 = dateTime("2008-04-06", type=DATE)
 
-COMMON_GENERIC_DIMENSIONS = {
+GENERIC_DIMENSION_VALIDATIONS = {
+    # "LocalName": (range of numbers if any, first item name, 2nd choice item name if any)
+    "SpecificDiscontinuedOperation": (1, 8, "DescriptionDiscontinuedOperationOrNon-currentAssetsOrDisposalGroupHeldForSale"),
+    "SpecificNon-currentAssetsDisposalGroupHeldForSale": (1, 8, "DescriptionDiscontinuedOperationOrNon-currentAssetsOrDisposalGroupHeldForSale"),
     "Chairman": ("NameEntityOfficer",),
     "ChiefExecutive": ("NameEntityOfficer",),
     "ChairmanChiefExecutive": ("NameEntityOfficer",),
     "SeniorPartnerLimitedLiabilityPartnership": ("NameEntityOfficer",),
-    "HighestPaidDirector": ("NameEntityOfficer",),
+    "CorporateTrustee": (1, 3, "NameEntityOfficer"),
+    "DirectorOfCorporateTrustee": ("NameEntityOfficer",),
+    "CustodianTrustee": ("NameEntityOfficer",),
+    "Trustee": (1, 20, "NameEntityOfficer",),
     "CompanySecretary": (1, 2, "NameEntityOfficer",),
     "CompanySecretaryDirector": (1, 2, "NameEntityOfficer",),
     "Director": (1, 40, "NameEntityOfficer",),
@@ -60,7 +66,7 @@ COMMON_GENERIC_DIMENSIONS = {
     "UnconsolidatedStructuredEntity": (1, 5, "NameUnconsolidatedStructuredEntity"),
     "IntermediateParent": (1, 5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
     "EntityWithJointControlOrSignificantInfluence": (1, 5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
-    "AnotherGroupMember": (1, 8, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
+    "OtherGroupMember": (1, 8, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
     "KeyManagementIndividualGroup": (1, 5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
     "CloseFamilyMember": (1, 5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
     "EntityControlledByKeyManagementPersonnel": (1, 5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
@@ -77,6 +83,7 @@ COMMON_GENERIC_DIMENSIONS = {
     "OtherPost-employmentBenefitPlan": (1, 2, "NameDefinedContributionPlan", "NameDefinedBenefitPlan"),
     "OtherContractType": (1, 2, "DescriptionOtherContractType"),
     "OtherDurationType": (1, 2, "DescriptionOtherContractDurationType"),
+    "OtherChannelType": (1, 2, "DescriptionOtherSalesChannelType"),
     "SalesChannel": (1, 2, "DescriptionOtherSalesChannelType"),
 }
 
@@ -113,33 +120,6 @@ MUST_HAVE_ONE_ITEM = {
         "CharityRegistrationNumberEnglandWales", "CharityRegistrationNumberScotland",
         "CharityRegistrationNumberNorthernIreland",
     }
-}
-
-GENERIC_DIMENSION_VALIDATION = {
-    # "taxonomyType": { "LocalName": (range of numbers if any, first item name, 2nd choice item name if any)
-    "ukGAAP": COMMON_GENERIC_DIMENSIONS,
-    "ukIFRS": COMMON_GENERIC_DIMENSIONS,
-    "charities": {
-        **COMMON_GENERIC_DIMENSIONS,
-        **{
-            "Trustee": (1, 20, "NameEntityOfficer"),
-            "CorporateTrustee": (1, 3, "NameEntityOfficer"),
-            "CustodianTrustee": (1, 3, "NameEntityOfficer"),
-            "Director1CorporateTrustee": ("NameEntityOfficer",),
-            "Director2CorporateTrustee": ("NameEntityOfficer",),
-            "Director3CorporateTrustee": ("NameEntityOfficer",),
-            "TrusteeTrustees": (1, 5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
-            "CloseFamilyMemberTrusteeTrustees": (1, 5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
-            "EntityControlledTrustees": (1, 5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
-            "Activity": (1, 50, "DescriptionActivity"),
-            "MaterialFund": (1, 50, "DescriptionsMaterialFund"),
-            "LinkedCharity": (1, 5, "DescriptionActivitiesLinkedCharity"),
-            "NameGrantRecipient": (1, 50, "NameSpecificInstitutionalGrantRecipient"),
-            "ConcessionaryLoan": (1, 50, "DescriptionConcessionaryLoan"),
-        }
-    },
-    "FRS": COMMON_GENERIC_DIMENSIONS,
-    "FRS-2022": COMMON_GENERIC_DIMENSIONS
 }
 
 ALLOWED_IMG_MIME_TYPES = (
@@ -243,7 +223,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                     else:
                         l = _memName
                         n = None
-                    gdv = GENERIC_DIMENSION_VALIDATION.get(val.txmyType, EMPTYDICT).get(l)
+                    gdv = GENERIC_DIMENSION_VALIDATIONS.get(l)
                     if (gdv and (n is None or
                                  (isinstance(gdv[0],int) and isinstance(gdv[1],int) and n >= gdv[0] and n <= gdv[1]))):
                         gdvFacts = [f for f in gdv if isinstance(f,str)]
