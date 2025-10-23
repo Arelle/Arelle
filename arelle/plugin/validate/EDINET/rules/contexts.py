@@ -354,6 +354,48 @@ def rule_EC8021W(
 
 
 @validation(
+    hook=ValidationHook.COMPLETE,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8032E(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8032E: The first six digits of each context identifier must match the "EDINET code"
+    in the DEI information (or the "fund code" in the DEI information in the case of the Cabinet
+    Office Ordinance on Specified Securities Disclosure).
+    """
+    localNames = ('EDINETCodeDEI', 'FundCodeDEI')
+    codes = set()
+    for localName in localNames:
+        code = pluginData.getDeiValue(localName)
+        if code is None:
+            continue
+        codes.add(str(code)[:6])
+    if len(codes) == 0:
+        # If neither code is present in the DEI, it will be caught by other validation(s).
+        return
+    for modelXbrl in pluginData.loadedModelXbrls:
+        for context in modelXbrl.contexts.values():
+            __, identifier = context.entityIdentifier
+            identifier = identifier[:6]
+            if identifier not in codes:
+                yield Validation.error(
+                    codes='EDINET.EC8032E',
+                    msg=_("The context identifier must match the 'EDINETCodeDEI' information in the DEI. "
+                          "Please set the identifier (first six digits) of the relevant context ID so "
+                          "that it matches the EDINET code of the person submitting the disclosure "
+                          "documents (or the fund code in the case of the Specified Securities Disclosure "
+                          "Ordinance)."),
+                    modelObject=context,
+                )
+
+
+@validation(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
