@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any, Iterable
 
 import regex
+import unicodedata
 from jaconv import jaconv
 
 from arelle import XbrlConst, ValidateDuplicateFacts, XmlUtil
@@ -772,6 +773,48 @@ def rule_EC8031W(
                 file=path.name,
                 modelObject=context,
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8034W(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8034W: English labels for extension concepts must not contain full-width characters.
+    """
+    labelsRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
+    for concept, modelLabelRels in labelsRelationshipSet.fromModelObjects().items():
+        for modelLabelRel in modelLabelRels:
+            modelLabel = modelLabelRel.toModelObject
+            if not isinstance(modelLabel, ModelResource):
+                continue
+            if not pluginData.isExtensionUri(modelLabel.modelDocument.uri, val.modelXbrl):
+                continue
+            if modelLabel.xmlLang != 'en':
+                continue
+            label = modelLabel.textValue.strip()  # Does not trim full-width spaces
+            if any(
+                unicodedata.east_asian_width(char) in ('F', 'W')
+                for char in label
+            ):
+                yield Validation.warning(
+                    codes='EDINET.EC8034W',
+                    msg=_("The English label must be set using half-width alphanumeric characters "
+                          "and half-width symbols. "
+                          "File name: '%(file)s'. "
+                          "English label: '%(label)s'. "
+                          "Please use only half-width alphanumeric characters and half-width symbols "
+                          "for the English labels of concepts in the relevant files."),
+                    file=modelLabel.document.basename,
+                    label=modelLabel.id,
+                    modelObject=modelLabel,
+                )
 
 
 @validation(
