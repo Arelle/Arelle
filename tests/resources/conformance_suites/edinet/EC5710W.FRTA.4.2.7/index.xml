@@ -22,6 +22,7 @@
             <warning>EDINET.EC5710W.FRTA.4.2.7</warning>
             <warning>EDINET.EC8015W</warning> <!-- from base sample filing -->
             <warning>EDINET.EC8028W</warning> <!-- related to duplicate labels -->
+            <warning>EDINET.EC8034W</warning> <!-- related to modified labels -->
         </result>
     </variation>
 </testcase>
