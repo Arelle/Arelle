@@ -1183,15 +1183,7 @@
           }
         },
         "required": ["dimensionNames"],
-        "additionalProperties": false,
-        "allOf": [
-          {
-            "not": {
-              "required": ["axisLabels", "presentationNetwork"],
-              "additionalProperties": false
-            }
-          }
-        ]
+        "additionalProperties": false
       },
       "axisDimensionObject": {
         "type": "object",

@@ -801,7 +801,7 @@ def validateTaxonomy(txmyMdl, txmy, mdlLvlChecks):
                       _("The groupContent object groupName QName %(name)s MUST be a valid group object in the taxonomy model"),
                       xbrlObject=grpCntObj, name=grpQn)
         for relName in grpCntObj.relatedNames:
-            if relName not in txmyMdl.namedObjects or not isinstance(txmyMdl.namedObjects.get(relName), (XbrlNetwork, XbrlCube, XbrlTableTemplate)):
+            if relName not in txmyMdl.namedObjects or not isinstance(txmyMdl.namedObjects.get(relName), (XbrlNetwork, XbrlCube, XbrlTableTemplate, XbrlDomain)):
                 txmyMdl.error("oimte:invalidGroupObject",
                           _("The groupContent object %(name)s relatedName %(relName)s MUST only include QNames associated with network objects, cube objects or table template objects."),
                           xbrlObject=grpCntObj, name=grpQn, relName=relName)

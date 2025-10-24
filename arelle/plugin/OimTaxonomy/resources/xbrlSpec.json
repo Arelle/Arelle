@@ -1437,8 +1437,22 @@
                 "name": "xbrl:dep-concept-deprecatedConcept",
                 "uri": "http://www.xbrl.org/2009/arcrole/dep-concept-deprecatedConcept",
                 "cycles" : "undirected",
-                "sourceObjects" : ["xbrl:conceptObject"],
-                "targetObjects" : ["xbrl:conceptObject"]
+                 "sourceObjects" : ["xbrl:conceptObject",
+                    "xbrl:abstractObject",
+                    "xbrl:memberObject", 
+                    "xbrl:domainObject",
+                    "xbrl:domainRootObject", 
+                    "xbrl:dimensionObject",
+                    "xbrl:cubeObject"
+                ],
+                "targetObjects" : ["xbrl:conceptObject", 
+                    "xbrl:abstractObject",
+                    "xbrl:memberObject", 
+                    "xbrl:domainObject",
+                    "xbrl:domainRootObject", 
+                    "xbrl:dimensionObject",
+                    "xbrl:cubeObject"
+                ]
             },
             {
                 "name": "xbrl:dep-aggregateConcept-deprecatedPartConcept",
