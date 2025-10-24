@@ -30,6 +30,8 @@ RELEVELER_MAP: dict[str, dict[str, tuple[str, str | None]]] = {
         "xbrl.5.2.5.2.1:zeroWeight": ("ERROR", None),
         # Silence, Duplicated by EDINET.EC5710W.FRTA.4.2.11
         "xbrl.5.1:emptyTargetNamespace": ("ERROR", None),
+        # Silence, Duplicated by EDINET.EC8060E
+        "xbrldie:DefaultValueUsedInInstanceError": ("ERROR", None),
     },
 }
 

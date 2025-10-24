@@ -20,6 +20,15 @@ class Validation:
     args: dict[str, Any] = field(default_factory=dict)
 
     @staticmethod
+    def build(
+            level: Level,
+            codes: str | tuple[str, ...],
+            msg: str,
+            **kwargs: Any,
+    ) -> Validation:
+        return Validation(level=level, codes=codes, msg=msg, args=kwargs)
+
+    @staticmethod
     def error(
         codes: str | tuple[str, ...],
         msg: str,

@@ -7,7 +7,7 @@ import traceback
 import zipfile
 from collections import defaultdict
 from dataclasses import dataclass
-from functools import lru_cache
+from functools import lru_cache, cached_property
 from pathlib import Path
 from typing import cast
 
@@ -20,6 +20,7 @@ from arelle.FileSource import FileSource
 from arelle.ModelValue import QName, qname
 from arelle.typing import TypeGetText
 from . import Constants
+from .ReportFolderType import ReportFolderType
 
 _: TypeGetText
 
@@ -30,9 +31,31 @@ class ManifestInstance:
     ixbrlFiles: list[Path]
     path: Path
     preferredFilename: str
+    reportFolderType: ReportFolderType | None
     titlesByLang: dict[str, str]
     tocItems: list[ManifestTocItem]
     type: str
+
+    @cached_property
+    def filenameValues(self) -> dict[str, str]:
+        if self.reportFolderType is not None:
+            for pattern in self.reportFolderType.xbrlFilenamePatterns:
+                matchResult = pattern.match(self.preferredFilename)
+                if matchResult is not None:
+                    return matchResult.groupdict()
+        return {}
+
+    @property
+    def formCode(self) -> str | None:
+        return self.filenameValues.get('form')
+
+    @property
+    def reportAbbreviation(self) -> str | None:
+        return self.filenameValues.get('report')
+
+    @property
+    def ordinance(self) -> str | None:
+        return self.filenameValues.get('ordinance')
 
 
 @dataclass(frozen=True)
@@ -107,6 +130,7 @@ def _parseManifestDoc(xmlRootElement: _Element, path: Path) -> list[ManifestInst
             ixbrlFiles=ixbrlFiles,
             path=path,
             preferredFilename=preferredFilename,
+            reportFolderType=ReportFolderType.parse(base.name),
             titlesByLang=titlesByLang,
             tocItems=tocItemsByRef.get(instanceId, []),
             type=instanceType,
