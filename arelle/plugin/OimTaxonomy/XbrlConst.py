@@ -21,6 +21,11 @@ qnXsDuration = qname(xsd, "xs:duration")
 qnXsQName = qname(xsd, "xs:QName")
 
 qnXbrlLabelObj = qname(xbrl, "xbrl:labelObject")
+qnXbrlReferenceObj = qname(xbrl, "xbrl:referenceObject")
+
+qnBuiltInCoreObjectsTaxonomy = qname(xbrl, "xbrl:BuiltInCoreObjectsTaxonomy")
+
+qnErrorQname = qname(None, "InvalidQName")
 
 objectsWithProperties = {
     qname(xbrl, "xbrl:taxonomyObject"),
@@ -34,9 +39,12 @@ objectsWithProperties = {
     qname(xbrl, "xbrl:networkObject"),
     qnXbrlLabelObj,
     qname(xbrl, "xbrl:memberObject"),
-    qname(xbrl, "xbrl:referenceObject"),
+    qnXbrlReferenceObj,
     qname(xbrl, "xbrl:relationshipObject"),
     }
+
+unsupportedTypedDimensionDataTypes = set(
+    qname(xsd, n) for n in ("ENTITY", "ENTITIES", "ID", "IDREF", "IDREFS", "NMTOKEN", "NMTOKENS", "NOTATION"))
 
 xbrlTaxonomyObjects = {
     "documentInfo": {
@@ -51,7 +59,6 @@ xbrlTaxonomyObjects = {
         "name": "xbrl:BuiltInCoreObjectsTaxonomy",
         "frameworkName": "types",
         "version": "2025",
-        "resolved": False,
         "dataTypes": [
             {
                 "name": "xs:string",
