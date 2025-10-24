@@ -19,7 +19,17 @@ For debugging, saves the xsd objects loaded from the OIM taxonomy if
 from typing import TYPE_CHECKING, cast, GenericAlias, Union, _GenericAlias, _UnionGenericAlias, get_origin, ClassVar, ForwardRef
 
 import os, io, json, cbor2, sys, time, traceback
-import jsonschema
+JSON_SCHEMA_VALIDATOR = "jsonschema" # select one of below JSON schema validator libraries (seriously different performance)
+JSON_SCHEMA_VALIDATOR = "fastjsonschema"
+if JSON_SCHEMA_VALIDATOR == "jsonschema": # slow and thorough
+    import jsonschema
+    jsonSchemaLoaderMethod = jsonschema.Draft7Validator
+elif JSON_SCHEMA_VALIDATOR == "fastjsonschema": # may be faster if it works on our schemas
+    import fastjsonschema
+    jsonSchemaLoaderMethod = fastjsonschema.compile
+elif JSON_SCHEMA_VALIDATOR == "jsonschema_rs": # RUST implemented, does hot support Python values like long ints
+    import jsonschema_rs
+    jsonSchemaLoaderMethod = jsonschema_rs.Draft202012Validator
 import regex as re
 from collections import OrderedDict, defaultdict
 from decimal import Decimal
@@ -68,6 +78,8 @@ from arelle.oim.Load import (DUPJSONKEY, DUPJSONVALUE, EMPTY_DICT, EMPTY_LIST, U
 
 RESOURCES_DIR = os.path.join(os.path.dirname(__file__), "resources")
 OIMT_SCHEMA = os.path.join(RESOURCES_DIR, "oim-taxonomy-schema.json")
+
+PROFILE_MIN_TIME = 0.1
 
 saveOIMTaxonomySchemaFiles = False
 SAVE_OIM_SCHEMA_CMDLINE_PARAMETER = "--saveOIMschemafile"
@@ -203,12 +215,15 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                 oimObject = oimFile
                 href = "BakedInConstants"
                 txFileName = href
+                txFileBasename = os.path.basename(txFileName)
                 txBase = None
             else:
                 href = os.path.basename(oimFile)
                 txFileName = oimFile
                 txBase = os.path.dirname(oimFile) # import referenced taxonomies
+                txFileBasename = os.path.basename(txFileName)
                 fileExt = os.path.splitext(oimFile)[1].lower()
+                cntlr.showStatus(_("Loading OIM taxonomy file: {0}").format(txFileBasename))
                 if fileExt == ".json":
                     _file = modelXbrl.fileSource.file(oimFile, encoding="utf-8-sig")[0]
                     with _file as f:
@@ -217,6 +232,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                     _file = modelXbrl.fileSource.file(oimFile, binary="true")[0]
                     with _file as f:
                         oimObject = cbor2.load(f)
+            modelXbrl.profileActivity(f"Load OIM Taxonomy file {txFileBasename}", minTimeToShow=PROFILE_MIN_TIME)
                         
         except UnicodeDecodeError as ex:
             raise OIMException("{}:invalidJSON".format(errPrefix),
@@ -232,35 +248,70 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                     file=oimFile, action=currentAction, error=ex)
         # schema validation
         if jsonschemaValidator is None:
+            cntlr.showStatus(_("Loading schema validator schema file"))
             with io.open(OIMT_SCHEMA, mode="rt") as fh:
-                jsonschemaValidator = jsonschema.Draft7Validator(json.load(fh))
-        try:
-            for err in jsonschemaValidator.iter_errors(oimObject) or ():
+                jsonschemaValidator = jsonSchemaLoaderMethod(json.load(fh))
+            modelXbrl.profileActivity("Load schema validator schema file", minTimeToShow=PROFILE_MIN_TIME)
+        cntlr.showStatus(_("Schema validating: {0}").format(txFileBasename))
+        if JSON_SCHEMA_VALIDATOR == "jsonschema":
+            try:
+                for err in jsonschemaValidator.iter_errors(oimObject) or ():
+                    path = []
+                    p_last = p_beforeLast = None
+                    for p in err.absolute_path:
+                        path.append(f"[{p}]" if isinstance(p,int) else f"/{p}")
+                        p_beforeLast = p_last
+                        p_last = p
+                    msg = err.message
+                    if p_last == "allowedAsLinkProperty" and " is not of type " in msg:
+                        errCode = "oimte:invalidPropertyValue"
+                    elif p_last == "language" and " does not match " in msg:
+                        errCode = "oimte:invalidLanguage"
+                    elif p_beforeLast == "dimensions" and " valid under each of {'required': ['domainRoot']}, {'required': ['domainDataType']}" in msg:
+                        errCode = "oimte:invalidDimensionObject"
+                    else:
+                        errCode = "oimte:invalidJSONStructure",
+                    error(errCode,
+                          _("Error: %(error)s, jsonObj: %(path)s"),
+                          sourceFileLine=href, error=msg, path="".join(path))
+            except (jsonschema.exceptions.SchemaError, jsonschema.exceptions._RefResolutionError, jsonschema.exceptions.UndefinedTypeCheck) as ex:
+                msg = str(ex)
+                if "PointerToNowhere" in msg:
+                    msg = msg[:121]
+                error("jsonschema:schemaError",
+                      _("Error in json schema processing: %(error)s"),
+                      sourceFileLine=href, error=msg)
+        elif JSON_SCHEMA_VALIDATOR == "fastjsonschema":
+            try:
+                jsonschemaValidator(oimObject)
+            except fastjsonschema.JsonSchemaValueException as ex: 
                 path = []
                 p_last = p_beforeLast = None
-                for p in err.absolute_path:
+                for p in ex.path:
                     path.append(f"[{p}]" if isinstance(p,int) else f"/{p}")
                     p_beforeLast = p_last
                     p_last = p
-                msg = err.message
-                if p_last == "allowedAsLinkProperty" and " is not of type " in msg:
+                msg = ex.message
+                if p_last == "allowedAsLinkProperty" and " must be boolean" in msg:
                     errCode = "oimte:invalidPropertyValue"
-                elif p_last == "language" and " does not match " in msg:
+                elif p_last == "language" and " must match " in msg:
                     errCode = "oimte:invalidLanguage"
-                elif p_beforeLast == "dimensions" and " valid under each of {'required': ['domainRoot']}, {'required': ['domainDataType']}" in msg:
+                elif p_beforeLast == "dimensions" and isinstance(ex.rule_definition, list) and all(k == "required" for o in ex.rule_definition for k in o.keys()):
                     errCode = "oimte:invalidDimensionObject"
                 else:
                     errCode = "oimte:invalidJSONStructure",
                 error(errCode,
                       _("Error: %(error)s, jsonObj: %(path)s"),
                       sourceFileLine=href, error=msg, path="".join(path))
-        except (jsonschema.exceptions.SchemaError, jsonschema.exceptions._RefResolutionError, jsonschema.exceptions.UndefinedTypeCheck) as ex:
-            msg = str(ex)
-            if "PointerToNowhere" in msg:
-                msg = msg[:121]
-            error("jsonschema:schemaError",
-                  _("Error in json schema processing: %(error)s"),
-                  sourceFileLine=href, error=msg)
+        elif JSON_SCHEMA_VALIDATOR == "jsonschema_rs":
+            try:
+                jsonschemaValidator.validate(oimObject)
+            except Exception as ex: # jsonschema_rs.alidationError as ex:
+                error("oimte:invalidJSONStructure",
+                      _("Error: %(error)s"),
+                      sourceFileLine=href, error=str(ex))
+        modelXbrl.profileActivity(f"Json schema validation {txFileBasename}", minTimeToShow=PROFILE_MIN_TIME)
+        cntlr.showStatus(_("Loading model objects from: {0}").format(txFileBasename))
         documentInfo = jsonGet(oimObject, "documentInfo", {})
         documentType = jsonGet(documentInfo, "documentType")
         taxonomyObj = jsonGet(oimObject, "taxonomy", {})
@@ -575,11 +626,13 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
             return None
 
         newTxmy = createTaxonomyObjects("taxonomy", oimObject["taxonomy"], xbrlTxmyMdl, ["", "taxonomy"])
+        modelXbrl.profileActivity(f"Create taxonomy objects from {txFileBasename}", minTimeToShow=PROFILE_MIN_TIME)
         newTxmy._prefixNamespaces = prefixNamespaces
         if isReport:
             newReport = createTaxonomyObjects("report", oimObject["report"], xbrlTxmyMdl, ["", "report"])
             newReport._prefixNamespaces = prefixNamespaces
             newReport._url = oimFile
+            modelXbrl.profileActivity(f"Create report objects from {txFileBasename}", minTimeToShow=PROFILE_MIN_TIME)
         newTxmy._lastMdlObjIndex = len(xbrlTxmyMdl.xbrlObjects) - 1
 
         if jsonEltsNotInObjClass:
@@ -614,6 +667,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                                         importingTxmyObj=impTxObj)
                         selectImportedObjects(xbrlTxmyMdl, newTxmy, impTxObj)
 
+        modelXbrl.profileActivity(f"Load taxonomies imported from {txFileBasename}", minTimeToShow=PROFILE_MIN_TIME)
         xbrlTxmyMdl.namespaceDocs[taxonomyName.namespaceURI].append(schemaDoc)
 
         return schemaDoc
@@ -1046,7 +1100,7 @@ def oimTaxonomyLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
         return None # not an OIM file
 
     cntlr = modelXbrl.modelManager.cntlr
-    cntlr.showStatus(_("Loading OIM taxonomy file: {0}").format(os.path.basename(filepath)))
+    modelXbrl.profileActivity()
     doc = loadOIMTaxonomy(cntlr, modelXbrl.error, modelXbrl.warning, modelXbrl, filepath, mappedUri, **kwargs)
     if doc is None:
         return None # not an OIM file
