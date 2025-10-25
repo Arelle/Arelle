@@ -118,6 +118,9 @@
                         "name": { "$ref": "#/definitions/QName" },
                         "dataType": { "$ref": "#/definitions/QName" },
                         "enumerationDomain": { "$ref": "#/definitions/QName" },
+                        "defaultValue": {
+                          "type": "string"
+                        },
                         "definitional": {
                           "type": "boolean"
                         },
@@ -822,6 +825,14 @@
                               "required": {
                                 "type": "boolean",
                                 "description": "True if the defined dimension is required on the cube. Defaults to false."
+                              },
+                              "allowedDimensionProperties": {
+                                "type": "array",
+                                "items": { "$ref": "#/definitions/QName" }
+                              },
+                              "requiredDimensionProperties": {
+                                "type": "array",
+                                "items": { "$ref": "#/definitions/QName" }
                               }
                             },
                             "additionalProperties": false,

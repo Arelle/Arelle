@@ -85,7 +85,19 @@
                         {
                             "dimensionType": "typed",
                             "dimensionDataType": "xs:dateTime",
-                            "required" : true
+                            "required" : true,
+                            "allowedDimensionProperties": [
+                                "xbrl:intervalOfMeasurement",
+                                "xbrl:timeSeriesType",
+                                "xbrl:aggregation",
+                                "xbrl:intervalConvention",
+                                "xbrl:completeTimeSeries",
+                                "xbrl:excludedIntervals"
+                            ],
+                            "requiredDimensionProperties": [
+                                "xbrl:intervalOfMeasurement",
+                                 "xbrl:timeSeriesType"
+                            ]
                         }   
                     ],
                     "allowedCubeDimensionsClosed" : false
@@ -1126,7 +1138,8 @@
                 "definitional": false,
                 "allowedObjects": [
                     "xbrl:relationshipObject",
-                    "xbrl:conceptObject"
+                    "xbrl:conceptObject",
+                    "xbrl:dimensionObject"
                 ]
             },
             {
@@ -1181,6 +1194,7 @@
             {
                 "name": "xbrl:intervalConvention",
                 "dataType": "xbrli:intervalConventionType",
+                "defaultValue": "StartTime",
                 "definitional": false,
                 "allowedObjects": [
                     "xbrl:dimensionObject"

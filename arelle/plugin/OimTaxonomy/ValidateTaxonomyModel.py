@@ -6,7 +6,7 @@ import regex as re
 from collections import defaultdict
 from arelle.ModelValue import QName, timeInterval
 from arelle.XmlValidate import languagePattern, validateValue as validateXmlValue,\
-    INVALID, VALID
+    INVALID, VALID, NONE
 from arelle.PythonUtil import attrdict, OrderedSet
 from arelle.oim.Load import EMPTY_DICT, csvPeriod
 from .XbrlAbstract import XbrlAbstract
@@ -289,6 +289,12 @@ def validateTaxonomy(txmyMdl, txmy, mdlLvlChecks):
                         txmyMdl.error("oimte:invalidDimensionDataTypeProperty",
                                   _("The cube type %(name)s, allowedCubeDimension[%(i)s], dimensionType MUST NOT be defined if the dimensionType is explicit."),
                                   xbrlObject=cubeType, name=name, i=i, dimType=_dimType)
+                for prop in ("allowedDimensionProperties", "requiredDimensionProperties"):
+                    for propTpQn in getattr(allwdDim, prop):
+                        if not isinstance(txmyMdl.namedObjects.get(propTpQn), XbrlPropertyType):
+                            txmyMdl.error("oimte:missingQNameReference",
+                                      _("The cubeType %(name)s %(property)s has an invalid propertyType reference %(propType)s"),
+                                      xbrlObject=cubeType, name=cubeType.name, property=prop, propType=propTpQn)
         for i, reqdRelshp in enumerate(getattr(cubeType, "requiredCubeRelationships", ())):
             relType = getattr(reqdRelshp, "relationshipTypeName", None)
             if not isinstance(txmyMdl.namedObjects.get(relType), XbrlRelationshipType):
@@ -304,6 +310,11 @@ def validateTaxonomy(txmyMdl, txmy, mdlLvlChecks):
                     txmyMdl.error("oimte:invalidSourceOrTargetObjectType" if compObj else "oimte:invalidSourceOrTargetType",
                               _("The cube type %(name)s, requiredCubeRelationship[%(i)s] %(property)s, %(value)s, does not resolve to a %(non)staxonomy component object."),
                               xbrlObject=cubeType, name=name, i=i, property=prop, value=propVal, non=("" if compObj else "non "))
+        for propTpQn in cubeType.requiredCubeProperties:
+            if not isinstance(txmyMdl.namedObjects.get(propTpQn), XbrlPropertyType):
+                txmyMdl.error("oimte:missingQNameReference",
+                          _("The cubeType %(name)s requiredCubeProperties has an invalid propertyType reference %(propType)s"),
+                          xbrlObject=cubeType, name=cubeType.name, propType=propTpQn)
 
     # Cube Objects
     for cubeObj in txmy.cubes:
@@ -936,7 +947,7 @@ def validateTaxonomy(txmyMdl, txmy, mdlLvlChecks):
         del ntwkCt
 
     # PropertyType Objects
-    for propTpObj in txmy.propertyTypes:
+    for i, propTpObj in enumerate(txmy.propertyTypes):
         assertObjectType(txmyMdl, propTpObj, XbrlPropertyType)
         dataTypeObj = txmyMdl.namedObjects.get(propTpObj.dataType)
         if not isinstance(dataTypeObj, XbrlDataType):
@@ -947,6 +958,10 @@ def validateTaxonomy(txmyMdl, txmy, mdlLvlChecks):
             txmyMdl.error("oimte:missingQNameReference",
                       _("The propertyType %(name)s dataType %(qname)s MUST be a valid dataType object in the taxonomy model"),
                       xbrlObject=propTpObj, name=propTpObj.name, qname=propTpObj.dataType)
+        if propTpObj.defaultValue is not None:
+            propTpObj._xValid, propTpObj._xValue = validateValue(txmyMdl, txmy, propTpObj, propTpObj.defaultValue, propTpObj.dataType, f"/propertyTypes[{i}]/defaultValue", "oimte:invalidPropertyValue")
+        else:
+            propTpObj._xValid = NONE # no default value provided
         for allowedObjQn in propTpObj.allowedObjects:
             if allowedObjQn not in objectsWithProperties:
                 txmyMdl.error("oimte:invalidAllowedObject",
@@ -961,7 +976,7 @@ def validateTaxonomy(txmyMdl, txmy, mdlLvlChecks):
                 if not isinstance(txmyMdl.namedObjects.get(propTpQn), XbrlPropertyType):
                     txmyMdl.error("oimte:missingQNameReference",
                               _("The relationshipType %(name)s %(property)s has an invalid propertyType reference %(propType)s"),
-                              xbrlObject=propTpObj, name=relTpObj.name, property=prop, propType=propTpQn)
+                              xbrlObject=relTpObj, name=relTpObj.name, property=prop, propType=propTpQn)
         reqdNotAllowed = relTpObj.requiredLinkProperties - relTpObj.allowedLinkProperties
         if reqdNotAllowed:
             txmyMdl.error("oimte:invalidPropertyValue",
