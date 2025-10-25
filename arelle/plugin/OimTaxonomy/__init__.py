@@ -23,12 +23,16 @@ JSON_SCHEMA_VALIDATOR = "jsonschema" # select one of below JSON schema validator
 JSON_SCHEMA_VALIDATOR = "fastjsonschema"
 if JSON_SCHEMA_VALIDATOR == "jsonschema": # slow and thorough
     import jsonschema
+    # finds all errors in source object
     jsonSchemaLoaderMethod = jsonschema.Draft7Validator
 elif JSON_SCHEMA_VALIDATOR == "fastjsonschema": # may be faster if it works on our schemas
     import fastjsonschema
+    # only provides first schema error in source object
+    # see: https://github.com/horejsek/python-fastjsonschema/issues/36
     jsonSchemaLoaderMethod = fastjsonschema.compile
 elif JSON_SCHEMA_VALIDATOR == "jsonschema_rs": # RUST implemented, does hot support Python values like long ints
     import jsonschema_rs
+    # appears to raise RUST ValueError on us-gaap taxonomy validation
     jsonSchemaLoaderMethod = jsonschema_rs.Draft202012Validator
 import regex as re
 from collections import OrderedDict, defaultdict
@@ -284,7 +288,9 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
         elif JSON_SCHEMA_VALIDATOR == "fastjsonschema":
             try:
                 jsonschemaValidator(oimObject)
-            except fastjsonschema.JsonSchemaValueException as ex: 
+            except fastjsonschema.JsonSchemaValueException as ex:
+                # only provides first schema error in source object
+                # see: https://github.com/horejsek/python-fastjsonschema/issues/36
                 path = []
                 p_last = p_beforeLast = None
                 for p in ex.path:

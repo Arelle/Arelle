@@ -65,6 +65,8 @@ class XbrlAllowedCubeDimension(XbrlTaxonomyObject):
     dimensionType: Optional[str] # (optional) The dimension QName that identifies the taxonomy defined dimension.
     dimensionDataType: Optional[QName] # (optional) The dimension QName that identifies the taxonomy defined dimension.
     required: Union[bool, DefaultFalse] # (optional) The dimension QName that identifies the taxonomy defined dimension.
+    allowedDimensionProperties: OrderedSet[QName] # (optional) An ordered set of property type Qnames that may be associated with the cube dimension.
+    requiredDimensionProperties: OrderedSet[QName] # (optional) An ordered set of property type Qnames that at a minimum must be associated with the cube dimension.
 
 class XbrlRequiredCubeRelationship(XbrlTaxonomyObject):
     relationshipTypeName: QName # (required) The relationship type QName of a relationship. This requires that at lease one of these relationship types exist on the cube.
@@ -96,7 +98,7 @@ class XbrlCubeType(XbrlReferencableTaxonomyObject):
     allowedCubeDimensions: Optional[OrderedSet[XbrlAllowedCubeDimension]] # (optional) An ordered set of allowedCubeDimension objects that are permitted to be used on the cube. If the property is not defined then any dimensions can be associated with the cube.
     allowedCubeDimensionsClosed: Union[bool, DefaultTrue] # (optional) If the property is true then the cube can only include taxonomy defined dimensions that are defined in the allowedCubeDimensions set. If false the cube can include other taxonomy defined dimensions. The default value is true.
     requiredCubeRelationships: OrderedSet[XbrlRequiredCubeRelationship] # (optional) An ordered set of requiredCubeRelationship objects that at a minimum must be associated with the cube.
-    requiredCubeProperties: OrderedSet[XbrlRequiredCubeRelationship] # (optional) An ordered set of property objects that at a minimum must be associated with the cube.
+    requiredCubeProperties: OrderedSet[QName] # (optional) An ordered set of property type Qnames that at a minimum must be associated with the cube.
 
     def effectivePropVal(self, propName, txmyMdl): # property effective value considering inheritance and default value if not on basemost cube type
         val = getattr(self, propName, None)
