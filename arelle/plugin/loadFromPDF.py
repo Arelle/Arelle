@@ -41,7 +41,29 @@ An xBRL-JSON template file is provided for each tagged PDF/A with inline XBRL.
    instead pdfIdRefs which is a list of space-separated IDs of structural node IDs and form field IDs
    which are space-contenated to form the value for the output xBRL-JSON file.
 
-   Attributes pdfFormat, pdfScale and pdfSign correspond to like-named ix:nonFraction features.
+   Attributes pdfFormat, pdfSourceScale and pdfSign correspond to like-named ix:nonFraction features.
+   
+   When @value is missing the value can be obtained from pdf sources (multiple, in the case of continuations):
+   
+    "valueSources": [
+        { "medium": "PDF", "kind": "formField", "fieldName": "AbsoluteGrossScope1GHGEmissions_1" },
+        { "medium": "PDF", "kind": "structure", "selector": { "type": "mcid", "page": 1, "mcid": 23 } }
+    ]
+       medium - now PDF but AI-suggested for future to accommodate HTML, XLSX and API
+       kind - formField, where the field is identified by fieldName
+            - structure, where a structure model element is identified by
+                         mcid: page and mcid number
+                         structElemId: the structure element id
+                         structPath:  the path as an  of path element name and sequence number
+                         tbd: might add bounding box?
+                         
+    When valueSources is present, selecting the element will highlight the identified fields in a viewer
+    
+    When @value is present (for example when there is no direct transformation of viewed text) pdfAnchors
+    specifies which pdf element correspond (same array of objects as valueSources).  If pdfAnchors is not
+    proivded and valueSources is present, the valueSources are the pdfAnchors for fact highlighting in UI.
+    
+    For future anchor highlighting in HTML, htmlAnchor is suggested.
 
    The output file is named with .pdf replaced by .json.
 
