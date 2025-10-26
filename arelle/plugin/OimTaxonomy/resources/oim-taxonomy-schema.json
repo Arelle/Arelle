@@ -118,9 +118,6 @@
                         "name": { "$ref": "#/definitions/QName" },
                         "dataType": { "$ref": "#/definitions/QName" },
                         "enumerationDomain": { "$ref": "#/definitions/QName" },
-                        "defaultValue": {
-                          "type": "string"
-                        },
                         "definitional": {
                           "type": "boolean"
                         },
@@ -1194,7 +1191,29 @@
           }
         },
         "required": ["dimensionNames"],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "required": ["axisLabels"]
+            },
+            "then": {
+              "not": {
+                "required": ["presentationNetwork"]
+              }
+            }
+          },
+          {
+            "if": {
+              "required": ["presentationNetwork"]
+            },
+            "then": {
+              "not": {
+                "required": ["axisLabels"]
+              }
+            }
+          }
+        ]
       },
       "axisDimensionObject": {
         "type": "object",

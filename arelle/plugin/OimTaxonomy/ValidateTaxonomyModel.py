@@ -958,10 +958,6 @@ def validateTaxonomy(txmyMdl, txmy, mdlLvlChecks):
             txmyMdl.error("oimte:missingQNameReference",
                       _("The propertyType %(name)s dataType %(qname)s MUST be a valid dataType object in the taxonomy model"),
                       xbrlObject=propTpObj, name=propTpObj.name, qname=propTpObj.dataType)
-        if propTpObj.defaultValue is not None:
-            propTpObj._xValid, propTpObj._xValue = validateValue(txmyMdl, txmy, propTpObj, propTpObj.defaultValue, propTpObj.dataType, f"/propertyTypes[{i}]/defaultValue", "oimte:invalidPropertyValue")
-        else:
-            propTpObj._xValid = NONE # no default value provided
         for allowedObjQn in propTpObj.allowedObjects:
             if allowedObjQn not in objectsWithProperties:
                 txmyMdl.error("oimte:invalidAllowedObject",
