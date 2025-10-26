@@ -1194,7 +1194,6 @@
             {
                 "name": "xbrl:intervalConvention",
                 "dataType": "xbrli:intervalConventionType",
-                "defaultValue": "StartTime",
                 "definitional": false,
                 "allowedObjects": [
                     "xbrl:dimensionObject"
