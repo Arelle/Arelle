@@ -1,12 +1,13 @@
-import pytest
-import re
-
 from unittest.mock import patch
+
+import pytest
+import regex
+
 from arelle.RuntimeOptions import RuntimeOptions, RuntimeOptionsException
 
 
 def test_existing_plugin_options_collision():
-    with pytest.raises(RuntimeOptionsException, match=re.escape("Provided plugin options already exist as base options ['uiLang']")):
+    with pytest.raises(RuntimeOptionsException, match=regex.escape("Provided plugin options already exist as base options ['uiLang']")):
         RuntimeOptions(
             entrypointFile='fr',
             pluginOptions={

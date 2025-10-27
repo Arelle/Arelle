@@ -11,7 +11,6 @@ import datetime
 import fnmatch
 import gettext
 import glob
-import json
 import logging
 import multiprocessing
 import os
