@@ -65,7 +65,7 @@ from .XbrlUnit import XbrlUnit
 from .XbrlTaxonomyModel import XbrlTaxonomyModel, castToXbrlTaxonomyModel
 from .XbrlTaxonomyModule import XbrlTaxonomyModule
 from .XbrlObject import XbrlObject, XbrlReferencableTaxonomyObject, XbrlTaxonomyTagObject
-from .XbrlTypes import (XbrlTaxonomyModelType, XbrlTaxonomyModuleType, XbrlLayoutType, XbrlReportType, XbrlUnitTypeType, 
+from .XbrlTypes import (XbrlTaxonomyModelType, XbrlTaxonomyModuleType, XbrlLayoutType, XbrlReportType, XbrlUnitTypeType,
                         QNameKeyType, SQNameKeyType, DefaultTrue, DefaultFalse, DefaultZero)
 from .ValidateTaxonomyModel import validateTaxonomyModel
 from .ValidateReport import validateReport
@@ -237,7 +237,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                     with _file as f:
                         oimObject = cbor2.load(f)
             modelXbrl.profileActivity(f"Load OIM Taxonomy file {txFileBasename}", minTimeToShow=PROFILE_MIN_TIME)
-                        
+
         except UnicodeDecodeError as ex:
             raise OIMException("{}:invalidJSON".format(errPrefix),
                   _("File MUST use utf-8 encoding: %(file)s, error %(error)s"),
@@ -369,7 +369,8 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                   sourceFileLine=href)
         # first OIM Taxonomy load Baked In objects
         if not xbrlTxmyMdl.namedObjects and not "loadingBakedInObjects" in kwargs:
-            loadOIMTaxonomy(cntlr, error, warning, modelXbrl, xbrlTaxonomyObjects, "BakedInCoreObjects", loadingBakedInObjects=True, **kwargs)
+            #loadOIMTaxonomy(cntlr, error, warning, modelXbrl, xbrlTaxonomyObjects, "BakedInCoreObjects", loadingBakedInObjects=True, **kwargs)
+            loadOIMTaxonomy(cntlr, error, warning, modelXbrl, os.path.join(RESOURCES_DIR, "xs-types.json"), "BakedInXbrlSpecObjects", loadingBakedInObjects=True, **kwargs)
             loadOIMTaxonomy(cntlr, error, warning, modelXbrl, os.path.join(RESOURCES_DIR, "xbrlSpec.json"), "BakedInXbrlSpecObjects", loadingBakedInObjects=True, **kwargs)
             loadOIMTaxonomy(cntlr, error, warning, modelXbrl, os.path.join(RESOURCES_DIR, "types.json"), "BakedInXbrlSpecObjects", loadingBakedInObjects=True, **kwargs)
             loadOIMTaxonomy(cntlr, error, warning, modelXbrl, os.path.join(RESOURCES_DIR, "utr.json"), "BakedInXbrlSpecObjects", loadingBakedInObjects=True, **kwargs)
@@ -1092,7 +1093,7 @@ def isOimTaxonomyLoadable(modelXbrl, mappedUri, normalizedUri, filepath, **kwarg
             with io.open(filepath, 'rb', buffering=2048) as f:
                 decoder = cbor2.CBORDecoder(f)
                 obj = decoder.decode() # this stream-reads outermost object, documentInfo should be first
-                if (isinstance(obj, dict) and isinstance(obj.get("documentInfo",{}), dict) and 
+                if (isinstance(obj, dict) and isinstance(obj.get("documentInfo",{}), dict) and
                     obj.get("documentInfo",{}).get("documentType","") in oimTaxonomyDocTypes):
                     lastFilePathIsOIM = True
                     lastFilePath = filepath

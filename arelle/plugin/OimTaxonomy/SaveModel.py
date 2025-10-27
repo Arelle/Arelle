@@ -156,8 +156,8 @@ def saveFiles(cntlr, txmyMdl, fileName, **kwargs):
                         df.to_excel(writer, sheet_name=key, index=False)
             print("trace")
 
-    
-    
+
+
 def oimTaxonomySave(cntlr, view, fileType=None, fileName=None, *args, **kwargs):
     if not isinstance(view, ViewXbrlTxmyObj):
         return False # not an OIM Taxonomy View
@@ -172,7 +172,7 @@ def oimTaxonomySave(cntlr, view, fileType=None, fileName=None, *args, **kwargs):
                 defaultextension=".xlsx")
     if fileName is not None:
         fileExt = os.path.splitext(fileName)[1].lower()
-        # ask if namespaces are to be separated 
+        # ask if namespaces are to be separated
         separateNamespaces = bool(parameters.get(qname("oimTaxonomySaveSeparateNamespaces",noPrefixIsNoNamespace=True),('',''))[1] in ("true","yes"))
         saveFiles(cntlr, txmyMdl, fileName, separateNamespaces=separateNamespaces)
         return True

@@ -55,9 +55,13 @@ class XbrlDataType(XbrlReferencableTaxonomyObject):
             return self._xsBaseType
         except AttributeError:
             if not visitedTypes: visitedTypes = set() # might be a loop
-            if self.baseType.namespaceURI == xsd:
-                self._xsBaseType = self.baseType.localName
+            if self.name.namespaceURI == xsd: # this is a base type
+                self._xsBaseType = self.name.localName
                 return self._xsBaseType
+            # below finds an xs-derived more-base type but shouldn' return xs:anyType
+            #if self.baseType.namespaceURI == xsd:
+            #    self._xsBaseType = self.baseType.localName
+            #    return self._xsBaseType
             elif self not in visitedTypes:
                 visitedTypes.add(self)
                 baseTypeObj = txmyMdl.namedObjects.get(self.baseType)

@@ -46,4 +46,3 @@ class XbrlLayout(XbrlTaxonomyObject):
     taxonomyName: XbrlTaxonomyModuleType # (required) The name is a QName that identifies the taxonomy associated with the layout objects.
     tableTemplates: OrderedSet[XbrlTableTemplate] # (optional) ordered set of tableTemplate objects.
     dataTables: OrderedSet[XbrlDataTable] # (optional) ordered set of dataTable objects.
-    
