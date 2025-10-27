@@ -145,11 +145,11 @@ def validateFact(fact, reportQn, reportObj, txmyMdl):
                             error("oime:unknownDimension",
                                           _("Fact %(name)s unit dimension QName not be resolved to an xbrl Unit object with available DTS: %(qname)s."),
                                           qname=dimName)
-                        elif not cDataType.instanceOfType(unitObj.dataType, txmyMdl): 
+                        elif not cDataType.instanceOfType(unitObj.dataType, txmyMdl):
                             error("oimte:invalidPropertyValue",
                                           _("Fact %(name)s unit dimension data type %(unitDataType)s does not correspond to concept data type %(factDataType)s."),
                                           unitDataType=unitObj.dataType, factDataType=cObj.dataType)
-            
+
     for dimName, dimVal in updateDimVals.items():
         fact.factDimensions[dimName] = dimVal
 

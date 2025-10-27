@@ -129,6 +129,7 @@ baseCubeTypes = {eventCubeType, positionCubeType, referenceCubeType, reportCubeT
 timeSeriesPropType = qname(xbrl, "xbrl:timeSeriesType")
 intervalOfMeasurementPropType = qname(xbrl, "xbrl:intervalOfMeasurement")
 intervalConventionPropType = qname(xbrl, "xbrl:intervalConvention")
+excludedIntervalsPropType = qname(xbrl, "xbrl:excludedIntervals")
 
 periodCoreDim = qname(xbrl, "xbrl:period")
 conceptCoreDim = qname(xbrl, "xbrl:concept")
@@ -143,3 +144,4 @@ conceptDomainRoot = qname(xbrl, "xbrl:conceptDomain")
 entityDomainRoot = qname(xbrl, "xbrl:entityDomain")
 unitDomainRoot = qname(xbrl, "xbrl:unitDomain")
 languageDomainRoot = qname(xbrl, "xbrl:languageDomain")
+

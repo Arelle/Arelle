@@ -2,11 +2,13 @@
 See COPYRIGHT.md for copyright information.
 '''
 
-import regex as re
+import regex as re, dateutil
 from collections import defaultdict
+from decimal import Decimal
 from arelle.ModelValue import QName, timeInterval
 from arelle.XmlValidate import languagePattern, validateValue as validateXmlValue,\
     INVALID, VALID, NONE
+from arelle.XbrlConst import isNumericXsdType
 from arelle.PythonUtil import attrdict, OrderedSet
 from arelle.oim.Load import EMPTY_DICT, csvPeriod
 from .XbrlAbstract import XbrlAbstract
@@ -16,7 +18,7 @@ from .XbrlCube import (XbrlCube, XbrlCubeType, baseCubeTypes, XbrlCubeDimension,
                        periodCoreDim, conceptCoreDim, entityCoreDim, unitCoreDim, languageCoreDim, coreDimensions,
                     conceptDomainRoot, entityDomainRoot, unitDomainRoot, languageDomainRoot,
                     defaultCubeType, reportCubeType, timeSeriesCubeType,
-                    timeSeriesPropType, intervalOfMeasurementPropType, intervalConventionPropType)
+                    timeSeriesPropType, intervalOfMeasurementPropType, intervalConventionPropType, excludedIntervalsPropType)
 from .XbrlDimension import XbrlDimension, XbrlDomain, XbrlDomainRoot, XbrlMember
 from .XbrlEntity import XbrlEntity
 from .XbrlGroup import XbrlGroup, XbrlGroupContent
@@ -79,8 +81,28 @@ def validateValue(txmyMdl, txmy, obj, value, dataTypeQn, pathElt, msgCode):
     prototypeElt = attrdict(elementQname=dataTypeQn,
                             entryLoadingUrl=obj.entryLoadingUrl + pathElt,
                             nsmap=txmy._prefixNamespaces)
-    if not isinstance(value, str): # HF - is this right?  xml value validation can only work on string input
-        value = str(value)
+    if dataTypeLn == "boolean":
+        if isinstance(value, bool) and not facets:
+            return (VALID, value) # no conversion or facets test
+        else:
+            value = str(value).lower() # convert True to true
+    elif isinstance(value, (int, float, Decimal)):
+        if isNumericXsdType(dataTypeLn):
+            if not facets:
+                return (VALID, value) # no conversion or facets test
+        else:
+            modelXbrl.error(msgCode,
+                _("Element %(element)s type %(typeName)s value error: %(value)s, %(error)s"),
+                modelObject=prototypeElt,
+                element=errElt,
+                typeName=baseXsdType,
+                value=value,
+                error="numeric value for non-numeric data type")
+    elif isinstance(value, list) and dataTypeLn == "string" and all(isinstance(e, str) for e in value):
+        # specially allowed list type
+        return (VALID, value)
+    if not isinstance(value, str):
+        value = str(value) # xml validation is only applicable to string source
     validateXmlValue(txmyMdl, prototypeElt, None, dataTypeLn, value, False, False, facets, msgCode)
     return (prototypeElt.xValid, prototypeElt.xValue)
 
@@ -344,7 +366,7 @@ def validateTaxonomy(txmyMdl, txmy, mdlLvlChecks):
                           xbrlObject=cubeObj, name=name, dimension=dimQn)
             else:
                 # specific cubeType dimension property validations
-                tsProps = {timeSeriesPropType, intervalOfMeasurementPropType, intervalConventionPropType} & set(p.property for p in dimObj.properties)
+                tsProps = {timeSeriesPropType, intervalOfMeasurementPropType, intervalConventionPropType, excludedIntervalsPropType} & set(p.property for p in dimObj.properties)
                 if tsProps:
                     if cubeType.name != timeSeriesCubeType:
                         txmyMdl.error("oimte:timeSeriesTypeOnNonTimeSeriesDimension" if timeSeriesPropType in tsProps else
@@ -594,7 +616,7 @@ def validateTaxonomy(txmyMdl, txmy, mdlLvlChecks):
                         if dtResObj is not None:
                             if dtResObj.conceptName:
                                 cncpt = txmyMdl.namedObjects.get(dtResObj.conceptName)
-                                if not isinstance(cncpt, XbrlConcept) or not isinstance(txmyMdl.namedObjects.get(cncpt.dataType), XbrlDataType) or txmyMdl.namedObjects[cncpt.dataType].baseType not in (qnXsDate, qnXsDateTime):
+                                if not isinstance(cncpt, XbrlConcept) or not isinstance(txmyMdl.namedObjects.get(cncpt.dataType), XbrlDataType) or txmyMdl.namedObjects[cncpt.dataType].xsBaseType(txmyMdl) not in ("date", "dateTime"):
                                     txmyMdl.error("oimte:invalidObjectType",
                                               _("Cube %(name)s period constraint concept %(qname)s base type MUST be a date or dateTime."),
                                               xbrlObject=(cubeObj,cubeDimObj), name=name, qname=dtResObj.conceptName)
@@ -679,6 +701,17 @@ def validateTaxonomy(txmyMdl, txmy, mdlLvlChecks):
                 txmyMdl.error("oimte:invalidDomainRoot",
                           _("The dimension domainRoot object QName MUST not be %(name)s."),
                           xbrlObject=dimObj, name=dimDomRtQn)
+        validateProperties(txmyMdl, oimFile, txmy, dimObj)
+        exclIntPropStr = dimObj.propertyObjectValue(excludedIntervalsPropType)
+        if exclIntPropStr is not None:
+            try:
+                if isinstance(exclIntPropStr, list): # allow list of strings
+                    exclIntPropStr = "\n".join(exclIntPropStr)
+                dimObj._excludedIntervals = dateutil.rrule.rrulestr(exclIntPropStr.replace("\\n", "\n"))
+            except dateutil.parser._parser.ParserError as ex:
+                txmyMdl.error("oimte:invalidExcludedIntervals",
+                          _("The dimension %(name)s excludedIntervals property error %(error)s, value %(excludedIntervals)s."),
+                          xbrlObject=dimObj, name=dimObj.name, error=str(ex), excludedIntervals=exclIntPropStr)
 
     # Domain Objects
     for domObj in txmy.domains:
@@ -927,13 +960,14 @@ def validateTaxonomy(txmyMdl, txmy, mdlLvlChecks):
                 txmyMdl.error("oimte:missingQNameReference",
                           _("The network %(name)s relationship[%(nbr)s] preferredLabel, %(preferredLabel)s MUST be a label type object."),
                           xbrlObject=relObj, name=ntwkObj.name, nbr=i, preferredLabel=relObjPrefLbl)
-            relKey = (relObj.source, relObj.target, relObjPrefLbl)
+            relKey = (relObj.source, relObj.target, relObjPrefLbl, relObj.order)
             ntwkCt[relKey] = ntwkCt.get(relKey, 0) + 1
         if any(ct > 1 for relKey, ct in ntwkCt.items()):
             txmyMdl.error("oimte:duplicateObjects",
                       _("The network %(name)s has duplicated relationships %(names)s"),
                       xbrlObject=ntwkObj, name=ntwkObj.name,
-                      names=", ".join(f"{relKey[0]}\u2192{relKey[1]}" for relKey, ct in ntwkCt.items() if ct > 1))
+                      names=", ".join(f"{relFrom}\u2192{relTo}{f' [{str(prefLbl)}]' if prefLbl else ''} ord {str(ordr)}"
+                                      for (relFrom, relTo, prefLbl, ordr), ct in ntwkCt.items() if ct > 1))
         ntwkObj._rootsFound = sources - targets
         if ntwkObj.roots:
             undeclaredRoots = ntwkObj._rootsFound - ntwkObj.roots
@@ -954,7 +988,7 @@ def validateTaxonomy(txmyMdl, txmy, mdlLvlChecks):
             txmyMdl.error("oimte:missingQNameReference",
                       _("The propertyType %(name)s dataType %(qname)s MUST be a valid dataType object in the taxonomy model"),
                       xbrlObject=propTpObj, name=propTpObj.name, qname=propTpObj.dataType)
-        elif propTpObj.enumerationDomain and dataTypeObj.baseType != qnXsQName:
+        elif propTpObj.enumerationDomain and dataTypeObj.xsBaseType(txmyMdl) != "QName":
             txmyMdl.error("oimte:missingQNameReference",
                       _("The propertyType %(name)s dataType %(qname)s MUST be a valid dataType object in the taxonomy model"),
                       xbrlObject=propTpObj, name=propTpObj.name, qname=propTpObj.dataType)
