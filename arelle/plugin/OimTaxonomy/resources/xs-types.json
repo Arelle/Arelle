@@ -208,6 +208,10 @@
                 "name": "xs:positiveInteger",
                 "baseType": "xs:nonNegativeInteger",
                 "minInclusive": 1
+            },
+            {
+                "name": "xs:dateTimeStamp",
+                "baseType": "xs:dateTime"
             }
         ],
         "labels": [
