@@ -3,10 +3,12 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-import re
 from collections import defaultdict
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Iterable, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
+
+import regex
 
 from arelle import UrlUtil, XbrlConst
 from arelle.Cntlr import Cntlr
@@ -14,16 +16,17 @@ from arelle.FileSource import FileSource
 from arelle.ModelDocument import Type as ModelDocumentType
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelObject import ModelObject
-from arelle.ValidateXbrl import ValidateXbrl
-from arelle.XmlValidateConst import VALID
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
+from arelle.ValidateXbrl import ValidateXbrl
+from arelle.XmlValidateConst import VALID
+
 from ..Constants import JAPAN_LANGUAGE_CODES
-from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
+from ..DisclosureSystems import DISCLOSURE_SYSTEM_EDINET
 from ..PluginValidationDataExtension import PluginValidationDataExtension
-from ..ReportFolderType import ReportFolderType, HTML_EXTENSIONS, IMAGE_EXTENSIONS
+from ..ReportFolderType import HTML_EXTENSIONS, IMAGE_EXTENSIONS, ReportFolderType
 
 if TYPE_CHECKING:
     from ..ControllerPluginData import ControllerPluginData
@@ -52,7 +55,7 @@ FILE_COUNT_LIMITS = {
     Path("XBRL"): 99_990,
 }
 
-FILENAME_STEM_PATTERN = re.compile(r'[a-zA-Z0-9_-]*')
+FILENAME_STEM_PATTERN = regex.compile(r'[a-zA-Z0-9_-]*')
 
 
 @validation(
@@ -302,7 +305,7 @@ def rule_EC0188E(
     """
     EDINET.EC0188E: There is an HTML file directly under PublicDoc or PrivateDoc whose first 7 characters are not numbers.
     """
-    pattern = re.compile(r'^\d{7}')
+    pattern = regex.compile(r'^\d{7}')
     uploadFilepaths = pluginData.getUploadFilepaths(fileSource)
     docFolders = frozenset({"PublicDoc", "PrivateDoc"})
     for path in uploadFilepaths:

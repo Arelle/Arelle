@@ -3,13 +3,13 @@ from __future__ import annotations
 import json
 import locale
 import os.path
-import re
 import urllib.parse
 from collections import Counter, defaultdict
 from pathlib import PurePath
 from typing import TYPE_CHECKING, cast
 
 import pytest
+import regex
 
 from arelle import ModelDocument, PackageManager, PluginManager
 from arelle.Cntlr import Cntlr
@@ -77,7 +77,7 @@ def get_test_data(
         args: list[str],
         expected_failure_ids: frozenset[str] = frozenset(),
         expected_model_errors: frozenset[str] = frozenset(),
-        required_locale_by_ids: dict[str, re.Pattern[str]] | None = None,
+        required_locale_by_ids: dict[str, regex.Pattern[str]] | None = None,
         strict_testcase_index: bool = True,
 ) -> list[ParameterSet]:
     """
@@ -138,7 +138,7 @@ def get_test_data(
                                 expected_results["WARNING"][str(warning)] += 1
                     # Arelle adds message code frequencies to the end, but conformance suites usually don't.
                     # Skip assertion results dictionaries.
-                    actual = [re.sub(r' \(\d+\)$', '', code) for code in mv.actual if not isinstance(code, dict)]
+                    actual = [regex.sub(r' \(\d+\)$', '', code) for code in mv.actual if not isinstance(code, dict)]
                     param = pytest.param(
                         {
                             'status': mv.status,
@@ -173,7 +173,7 @@ def collect_test_data(
         cntlr: Cntlr,
         expected_failure_ids: frozenset[str],
         expected_model_errors: frozenset[str],
-        required_locale_by_ids: dict[str, re.Pattern[str]],
+        required_locale_by_ids: dict[str, regex.Pattern[str]],
         system_locale: str,
         results: list[ParameterSet],
         model_document: ModelDocument.ModelDocument,
@@ -217,7 +217,7 @@ def collect_test_data(
 def isExpectedFailure(
         test_id: str,
         expected_failure_ids: frozenset[str],
-        required_locale_by_ids: dict[str, re.Pattern[str]],
+        required_locale_by_ids: dict[str, regex.Pattern[str]],
         system_locale: str,
 ) -> bool:
     if test_id in expected_failure_ids:
