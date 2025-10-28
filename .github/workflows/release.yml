@@ -25,6 +25,7 @@ jobs:
   publish-linux:
     permissions:
       contents: write
+      id-token: write
     needs: build-linux
     uses: ./.github/workflows/publish-frozen-build.yml
     with:
@@ -42,6 +43,7 @@ jobs:
   publish-macos-x64:
     permissions:
       contents: write
+      id-token: write
     needs: build-macos-x64
     uses: ./.github/workflows/publish-frozen-build.yml
     with:
@@ -59,6 +61,7 @@ jobs:
   publish-macos-arm64:
     permissions:
       contents: write
+      id-token: write
     needs: build-macos-arm64
     uses: ./.github/workflows/publish-frozen-build.yml
     with:
@@ -72,6 +75,7 @@ jobs:
   publish-windows-installer:
     permissions:
       contents: write
+      id-token: write
     needs: build-windows
     uses: ./.github/workflows/publish-frozen-build.yml
     with:
@@ -82,6 +86,7 @@ jobs:
   publish-windows-zip:
     permissions:
       contents: write
+      id-token: write
     needs: build-windows
     uses: ./.github/workflows/publish-frozen-build.yml
     with:
