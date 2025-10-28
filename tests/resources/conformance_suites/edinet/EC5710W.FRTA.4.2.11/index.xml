@@ -30,6 +30,7 @@
         </data>
         <result>
             <warning>EDINET.EC5710W.FRTA.4.2.11</warning>
+            <error nonStandardErrorCodes="true">xbrl.5.1:emptyTargetNamespace</error>
         </result>
     </variation>
 </testcase>

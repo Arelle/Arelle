@@ -18,6 +18,7 @@
         </data>
         <result>
             <error>EDINET.EC5002E</error>
+            <error nonStandardErrorCodes="true">xbrl.4.8.2:sharesFactUnit-notSharesMeasure</error>
         </result>
     </variation>
 </testcase>

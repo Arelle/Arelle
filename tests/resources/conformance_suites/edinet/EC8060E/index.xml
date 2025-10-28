@@ -19,6 +19,7 @@
         <result>
             <warning>EDINET.EC8015W</warning> <!-- from base sample filing -->
             <warning>EDINET.EC8060W</warning>
+            <error nonStandardErrorCodes="true">xbrldie:DefaultValueUsedInInstanceError</error>
         </result>
     </variation>
     <!-- TODO: Testcase that produces the EC8060E error -->
