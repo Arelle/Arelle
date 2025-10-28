@@ -23,6 +23,7 @@ jobs:
     environment: release
     permissions:
       contents: write
+      id-token: write
     runs-on: ubuntu-24.04
     if: startsWith(github.ref, 'refs/tags/')
 
@@ -46,8 +47,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v5.1.0
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
+          role-to-assume: arn:aws:iam::494047596077:role/GitHubActionsArelleS3Upload
           aws-region: us-west-1
       - name: Upload build to AWS S3
         run: aws s3 cp --acl public-read ${{ inputs.build_name }} s3://arelle-us/${{ env.ARELLE_WEBSITE_BUILD_NAME }}
