@@ -12,7 +12,7 @@ from arelle import UrlUtil, XbrlConst
 from arelle.Cntlr import Cntlr
 from arelle.FileSource import FileSource
 from arelle.ModelDocument import Type as ModelDocumentType
-from arelle.ModelInstanceObject import ModelFact
+from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
 from arelle.ModelObject import ModelObject
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.XmlValidateConst import VALID
@@ -1116,51 +1116,53 @@ def rule_EC8023W(
     * Tagging using International Financial Reporting Standards taxonomy elements is not checked.
     * Tagging using Japanese GAAP notes or IFRS financial statement filer-specific additional elements
         may be identified as an exception and a warning displayed, even if the data content is correct.
+
+    Note: This implementation interprets "immediately preceded" to mean that the symbol is present in the text
+    immediately before the target element, not nested within, or separated by, siblings elements. The use of
+    this symbol in sample filings support this interpretation.
     """
-    nsmap = {
-        'ix': XbrlConst.ixbrl
-    }
-    negativeFactXpath = """
-    //ix:nonFraction[@sign="-"][
-        (preceding-sibling::text()[1] and normalize-space(preceding-sibling::text()[1]) != '△')
-        or
-        not(preceding-sibling::text()[1])
-    ]
-    """
-    postiveFactXpath = """
-    //ix:nonFraction[
-        not(@sign="-")
-        and
-        (
-            (preceding-sibling::text()[1] and normalize-space(preceding-sibling::text()[1]) = '△')
-        )
-    ]
-    """
-    for doc in val.modelXbrl.urlDocs.values():
-        if doc.type != ModelDocumentType.INLINEXBRL:
+    negativeChar = '△'
+    for fact in val.modelXbrl.facts:
+        if not isinstance(fact, ModelInlineFact):
             continue
-        if not pluginData.isExtensionUri(doc.uri, val.modelXbrl):
+        if fact.localName != 'nonFraction':
             continue
-        for elt in doc.xmlRootElement.xpath(negativeFactXpath, namespaces=nsmap):
-            if elt.qname.namespaceURI == pluginData.jpigpNamespace:
-                continue
-            yield Validation.error(
-                codes='EDINET.EC8023W',
-                msg=_("In an inline XBRL file, if the sign attribute of the ix:nonFraction "
-                      "element is set to \"-\" (minus), you must set \"△\" immediately "
-                      "before the ix:nonFraction element tag."),
-                modelObject=elt,
-            )
-        for elt in doc.xmlRootElement.xpath(postiveFactXpath, namespaces=nsmap):
-            if elt.qname.namespaceURI == pluginData.jpigpNamespace:
-                continue
-            yield Validation.error(
-                codes='EDINET.EC8023W',
-                msg=_("In an inline XBRL file, if the sign attribute of the ix:nonFraction "
-                      "element is not set to \"-\" (minus), there is no need to set \"△\" "
-                      "immediately before the ix:nonFraction element tag."),
-                modelObject=elt,
-            )
+        if fact.qname.namespaceURI == pluginData.jpigpNamespace:
+            continue
+
+        precedingChar = None
+        precedingSibling = fact.getprevious()
+        # Check for the tail of the preceding sibling first.
+        if precedingSibling is not None:
+            if precedingSibling.tail:
+                strippedText = precedingSibling.tail.strip()
+                if strippedText:
+                    precedingChar = strippedText[-1]
+        # If nothing found, check the parent element if this is the first child.
+        elif (parent := fact.getparent()) is not None:
+            if fact == list(parent)[0] and parent.text:
+                strippedText = parent.text.strip()
+                if strippedText:
+                    precedingChar = strippedText[-1]
+
+        if fact.sign == '-' :
+            if precedingChar != negativeChar:
+                yield Validation.error(
+                    codes='EDINET.EC8023W',
+                    msg=_("In an inline XBRL file, if the sign attribute of the ix:nonFraction "
+                          "element is set to \"-\" (minus), you must set \"△\" immediately "
+                          "before the ix:nonFraction element tag."),
+                    modelObject=fact,
+                )
+        else:
+            if precedingChar == negativeChar:
+                yield Validation.error(
+                    codes='EDINET.EC8023W',
+                    msg=_("In an inline XBRL file, if the sign attribute of the ix:nonFraction "
+                          "element is not set to \"-\" (minus), there is no need to set \"△\" "
+                          "immediately before the ix:nonFraction element tag."),
+                    modelObject=fact,
+                )
 
 
 
