@@ -992,7 +992,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
 
         if options.validate:
             for pluginXbrlMethod in PluginManager.pluginClassMethods("Validate.FileSource"):
-                pluginXbrlMethod(self, filesource, _entrypointFiles)
+                pluginXbrlMethod(self, filesource)
 
         if len(_entrypointFiles) == 0 and not options.packages:
             if options.entrypointFile:
