@@ -25,7 +25,6 @@ from arelle.ModelTestcaseObject import testcaseVariationsByTarget, ModelTestcase
 from arelle.ModelValue import (qname, QName)
 from arelle.PluginManager import pluginClassMethods
 from arelle.packages.report.DetectReportPackage import isReportPackageExtension
-from arelle.packages.report.ReportPackageValidator import ReportPackageValidator
 from arelle.rendering import RenderingEvaluator
 from arelle.utils.EntryPointDetection import filesourceEntrypointFiles
 from arelle.XmlUtil import collapseWhitespace, xmlstring
@@ -127,10 +126,6 @@ class Validate:
         elif self.modelXbrl.modelDocument.type == Type.RSSFEED:
             self.validateRssFeed()
         else:
-            if self.modelXbrl.fileSource.isReportPackage or self.modelXbrl.modelManager.validateAllFilesAsReportPackages:
-                rpValidator = ReportPackageValidator(self.modelXbrl.fileSource)
-                for val in rpValidator.validate():
-                    self.modelXbrl.log(level=val.level.name, codes=val.codes, msg=val.msg, modelXbrl=self.modelXbrl, **val.args)
             try:
                 self.instValidator.validate(self.modelXbrl, self.modelXbrl.modelManager.formulaOptions.typedParameters(self.modelXbrl.prefixedNamespaces))
                 self.instValidator.close()
@@ -389,10 +384,11 @@ class Validate:
                     pluginXbrlMethod(self, _rptPkgIxdsOptions)
                 reportPackageErrors = False
                 if (filesource.isReportPackage or self.modelXbrl.modelManager.validateAllFilesAsReportPackages) and not _rptPkgIxdsOptions:
-                    rpValidator = ReportPackageValidator(filesource)
-                    for val in rpValidator.validate():
+                    preLoadingErrorsCount = len(preLoadingErrors)
+                    fileSourceValidator = ValidateFileSource(self.modelXbrl.modelManager.cntlr, filesource)
+                    fileSourceValidator.validate(self.modelXbrl.modelManager.validateAllFilesAsReportPackages, preLoadingErrors)
+                    if len(preLoadingErrors) > preLoadingErrorsCount:
                         reportPackageErrors = True
-                        preLoadingErrors.append(val.codes)
                 if filesource and not filesource.selection and filesource.isArchive:
                     try:
                         if filesource.isTaxonomyPackage or expectTaxonomyPackage:
@@ -400,7 +396,8 @@ class Validate:
                             filesource.select(None) # must select loadable reports (not the taxonomy package itself)
                         elif not filesource.isReportPackage:
                             entrypoints = filesourceEntrypointFiles(filesource)
-                            ValidateFileSource(self.modelXbrl.modelManager.cntlr, filesource).validate()
+                            fileSourceValidator = ValidateFileSource(self.modelXbrl.modelManager.cntlr, filesource)
+                            fileSourceValidator.validate(self.modelXbrl.modelManager.validateAllFilesAsReportPackages, preLoadingErrors)
                             if entrypoints:
                                 # resolve an IXDS in entrypoints
                                 for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ArchiveIxds"):
@@ -424,7 +421,8 @@ class Validate:
                     if not reportPackageErrors:
                         assert isinstance(filesource.basefile, str)
                         if entrypoints := filesourceEntrypointFiles(filesource):
-                            ValidateFileSource(self.modelXbrl.modelManager.cntlr, filesource).validate()
+                            fileSourceValidator = ValidateFileSource(self.modelXbrl.modelManager.cntlr, filesource)
+                            fileSourceValidator.validate(self.modelXbrl.modelManager.validateAllFilesAsReportPackages, preLoadingErrors)
                             for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ArchiveIxds"):
                                 pluginXbrlMethod(self, filesource, entrypoints)
                             for entrypoint in entrypoints:
