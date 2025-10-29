@@ -1209,7 +1209,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                         pluginXbrlMethod(self, None, loadedModelXbrl)
                 if loadedModelXbrl.fileSource not in validatedFileSources:
                     validatedFileSources.add(loadedModelXbrl.fileSource)
-                    ValidateFileSource(self, loadedModelXbrl.fileSource).validate()
+                    ValidateFileSource(self, loadedModelXbrl.fileSource).validate(self.modelManager.validateAllFilesAsReportPackages)
 
                 for modelXbrl in [loadedModelXbrl] + getattr(loadedModelXbrl, "supplementalModelXbrls", []):
                     priorOutputInstance = modelXbrl.formulaOutputInstance
