@@ -35,7 +35,7 @@ from .Constants import xhtmlDtdExtension, PROHIBITED_HTML_TAGS, PROHIBITED_HTML_
 from .ControllerPluginData import ControllerPluginData
 from .CoverItemRequirements import CoverItemRequirements
 from .DeiRequirements import DeiRequirements, DEI_LOCAL_NAMES
-from .FilingFormat import FilingFormat, FILING_FORMATS
+from .FilingFormat import FilingFormat, FILING_FORMATS, DocumentType, Ordinance
 from .FormType import FormType
 from .ManifestInstance import ManifestInstance
 from .ReportFolderType import HTML_EXTENSIONS
@@ -255,11 +255,10 @@ class PluginValidationDataExtension(PluginData):
 
     @lru_cache(1)
     def isCorporateForm(self, modelXbrl: ModelXbrl) -> bool:
-        formTypes = self.getFormTypes(modelXbrl)
-        return any(
-            formType.isCorporateForm
-            for formType in formTypes
-        )
+        formType = self.getFormType(modelXbrl)
+        if formType is None:
+            return False
+        return formType.isCorporateForm
 
     def isCorporateReport(self, modelXbrl: ModelXbrl) -> bool:
         return self.jpcrpNamespace in modelXbrl.namespaceDocs
@@ -271,11 +270,10 @@ class PluginValidationDataExtension(PluginData):
 
     @lru_cache(1)
     def isStockForm(self, modelXbrl: ModelXbrl) -> bool:
-        formTypes = self.getFormTypes(modelXbrl)
-        return any(
-            formType.isStockReport
-            for formType in formTypes
-        )
+        formType = self.getFormType(modelXbrl)
+        if formType is None:
+            return False
+        return formType.isStockReport
 
     @lru_cache(1)
     def getExtensionConcepts(self, modelXbrl: ModelXbrl) -> list[ModelConcept]:
@@ -452,6 +450,18 @@ class PluginValidationDataExtension(PluginData):
     def getDeduplicatedFacts(self, modelXbrl: ModelXbrl) -> list[ModelFact]:
         return getDeduplicatedFacts(modelXbrl, DeduplicationType.CONSISTENT_PAIRS)
 
+    @lru_cache(1)
+    def getDocumentType(self, modelXbrl: ModelXbrl) -> DocumentType | None:
+        """
+        Retrieves document type value from the instance.
+        :param modelXbrl: Instance to get document type from.
+        :return: document type parsed from filename.
+        """
+        manifestInstance = self.getManifestInstance(modelXbrl)
+        if manifestInstance is None or manifestInstance.reportAbbreviation is None:
+            return None
+        return DocumentType.parse(manifestInstance.reportAbbreviation)
+
     def getFactsByContextAndUnit(
             self, modelXbrl: ModelXbrl,
             getContextKey: Callable[[ModelContext], Hashable],
@@ -502,40 +512,36 @@ class PluginValidationDataExtension(PluginData):
         # values assigned to the various FilingFormats. This may only be by coincidence or convention.
         # If it doesn't end up being reliable, we may need to find another way to identify the form.
         # For example, by disclosure system selection or CLI argument.
-        documentTitleFacts: list[ModelFact] = []
-        for qname in self.coverPageTitleQns:
-            documentTitleFacts.extend(self.iterValidNonNilFacts(modelXbrl, qname))
-        formTypes = self.getFormTypes(modelXbrl)
+        documentType = self.getDocumentType(modelXbrl)
+        formType = self.getFormType(modelXbrl)
+        ordinance = self.getOrdinance(modelXbrl)
+        if documentType == DocumentType.SECURITIES_REGISTRATION_STATEMENT_DEEMED:
+            documentType = DocumentType.ANNUAL_SECURITIES_REPORT
         filingFormats = []
         for filingFormatIndex, filingFormat in enumerate(FILING_FORMATS):
-            if filingFormat.formType not in formTypes:
+            if filingFormat.formType != formType:
                 continue
-            prefixes = {taxonomy.value for taxonomy in filingFormat.taxonomies}
-            if not any(
-                str(fact.xValue).strip().startswith(filingFormat.documentType.value) and
-                fact.concept.qname.prefix.split('_')[0] in prefixes
-                for fact in documentTitleFacts
-            ):
+            if filingFormat.documentType != documentType:
+                continue
+            if filingFormat.ordinance != ordinance:
                 continue
             filingFormats.append((filingFormat, filingFormatIndex))
         if len(filingFormats) == 0:
             modelXbrl.error(
-                "arelle:NoMatchingEdinetFormat",
+                "NoMatchingEdinetFormat",
                 _("No matching EDINET filing formats could be identified based on form "
-                  "type (%(formTypes)s) and title."),
-                formTypes=", ".join(t.value for t in formTypes),
-                modelObject=documentTitleFacts,
+                  "type (%(formType)s) and document type (%(documentType)s)."),
+                formType=formType.value if formType is not None else "None",
+                documentType=documentType.value if documentType is not None else "None",
             )
             return None
         if len(filingFormats) > 1:
-            formatIndexes = [str(idx + 1) for _, idx in filingFormats]
             modelXbrl.error(
-                "arelle:MultipleMatchingEdinetFormats",
+                "MultipleMatchingEdinetFormats",
                 _("Multiple EDINET filing formats (%(formatIndexes)s) matched based on form "
-                  "type %(formTypes)s and title."),
-                formatIndexes=formatIndexes,
-                formTypes=formTypes,
-                modelObject=documentTitleFacts,
+                  "type (%(formType)s) and document type (%(documentType)s)."),
+                formType=formType.value if formType is not None else "None",
+                documentType=documentType.value if documentType is not None else "None",
             )
             return None
         filingFormat, filingFormatIndex = filingFormats[0]
@@ -549,26 +555,33 @@ class PluginValidationDataExtension(PluginData):
         return filingFormat
 
     @lru_cache(1)
-    def getFormTypes(self, modelXbrl: ModelXbrl) -> set[FormType]:
+    def getFormType(self, modelXbrl: ModelXbrl) -> FormType | None:
         """
-        Retrieves form type values from the instance.
-        Note that the underlying concept is labeled "DocumentTypeDEI",
-        but "Document Type" refers to something else in EDINET documentation.
-        In practice, the value of this field is the form number / form type.
-        :param modelXbrl: Instance to get form types from.
-        :return: Set of discovered form types.
+        Retrieves form type value from the instance.
+        :param modelXbrl: Instance to get form type from.
+        :return: Form type parsed from filename.
         """
-        formTypes = set()
-        for fact in self.iterValidNonNilFacts(modelXbrl, self.documentTypeDeiQn):
-            formType = FormType.parse(fact.textValue)
-            if formType is not None:
-                formTypes.add(formType)
-        return formTypes
+        manifestInstance = self.getManifestInstance(modelXbrl)
+        if manifestInstance is None or manifestInstance.formCode is None:
+            return None
+        return FormType.lookup(manifestInstance.formCode)
 
     @lru_cache(1)
     def getManifestInstance(self, modelXbrl: ModelXbrl) -> ManifestInstance | None:
         controllerPluginData = ControllerPluginData.get(modelXbrl.modelManager.cntlr, self.name)
         return controllerPluginData.getManifestInstance(modelXbrl)
+
+    @lru_cache(1)
+    def getOrdinance(self, modelXbrl: ModelXbrl) -> Ordinance | None:
+        """
+        Retrieves ordinance value from the instance.
+        :param modelXbrl: Instance to get ordinance from.
+        :return: Ordinance parsed from filename.
+        """
+        manifestInstance = self.getManifestInstance(modelXbrl)
+        if manifestInstance is None or manifestInstance.ordinance is None:
+            return None
+        return Ordinance.parse(manifestInstance.ordinance)
 
     @lru_cache(1)
     def getProhibitedAttributeElements(self, modelDocument: ModelDocument) -> list[tuple[ModelObject, str]]:

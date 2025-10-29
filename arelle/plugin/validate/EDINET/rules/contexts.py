@@ -20,11 +20,13 @@ from arelle.XmlValidateConst import VALID
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
-from arelle.utils.validate.Validation import Validation
+from arelle.utils.validate.Validation import Level, Validation
 from ..Constants import FINANCIAL_STATEMENT_CONTEXT_ID_PATTERN, CONTEXT_ID_PATTERN, INDIVIDUAL_CONTEXT_ID_PATTERN
 from ..ContextRequirement import CONTEXT_REQUIREMENTS
 from ..ControllerPluginData import ControllerPluginData
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
+from ..FilingFormat import DocumentType
+from ..FormType import FormType
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 from ..ReportFolderType import ReportFolderType
 
@@ -486,3 +488,60 @@ def rule_EC8054W(
                 contextId=context.id,
                 modelObject=context,
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8060E(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8060E: A context's scenario element must not have an explicit default member.
+    """
+    # The error gets downgraded to a warning in the following scenarios:
+    warningScenarios = {
+        (FormType.FORM_2, DocumentType.SECURITIES_REGISTRATION_STATEMENT),
+        (FormType.FORM_2_4, DocumentType.SECURITIES_REGISTRATION_STATEMENT),
+        (FormType.FORM_2_5, DocumentType.SECURITIES_REGISTRATION_STATEMENT),
+        (FormType.FORM_2_6, DocumentType.SECURITIES_REGISTRATION_STATEMENT),
+        (FormType.FORM_2_7, DocumentType.SECURITIES_REGISTRATION_STATEMENT),
+        (FormType.FORM_3, DocumentType.ANNUAL_SECURITIES_REPORT),
+        (FormType.FORM_3_2, DocumentType.ANNUAL_SECURITIES_REPORT),
+        (FormType.FORM_4, DocumentType.ANNUAL_SECURITIES_REPORT),
+        (FormType.FORM_4_3, DocumentType.SEMI_ANNUAL_REPORT),
+        (FormType.FORM_5, DocumentType.SEMI_ANNUAL_REPORT),
+        (FormType.FORM_5_2, DocumentType.SEMI_ANNUAL_REPORT),
+    }
+    level = Level.ERROR
+    code = 'EDINET.EC8060E'
+    if (pluginData.getFormType(val.modelXbrl), pluginData.getDocumentType(val.modelXbrl)) in warningScenarios:
+        level = Level.WARNING
+        code = 'EDINET.EC8060W'
+    allContexts = chain(val.modelXbrl.contexts.values(), val.modelXbrl.ixdsUnmappedContexts.values())
+    for context in allContexts:
+        for qname, dimensionValue in context.qnameDims.items():
+            if dimensionValue.contextElement != 'scenario':
+                continue
+            if dimensionValue.xValid < VALID:
+                continue
+            explicitValue = dimensionValue.xValue
+            dimensionQname = dimensionValue.dimensionQname
+            defaultValue = val.modelXbrl.qnameDimensionDefaults.get(dimensionQname)
+            if explicitValue == defaultValue:
+                yield Validation.build(
+                    level=level,
+                    codes=code,
+                    msg=_("The default member element is explicitly set in the scenario element of the context. "
+                          "Context: '%(contextId)s'. "
+                          "Please delete the default member (the element with the dimension default "
+                          "arc role set) from the scenario element of the context. If deleting it "
+                          "violates GFM 1.2.7, the context is unnecessary and cannot be set. "
+                          "For details of GFM 1.2.7, please refer to 'Attachment 3 GFM Validation Item List'."),
+                    contextId=context.id,
+                    modelObject=context,
+                )

@@ -62,6 +62,10 @@ class FormType(Enum):
         except ValueError:
             return None
 
+    @staticmethod
+    def lookup(code: str) -> FormType | None:
+        return FORM_CODES.get(code)
+
     @property
     def isCorporateForm(self) -> bool:
         return self in CORPORATE_FORMS
@@ -79,3 +83,52 @@ STOCK_REPORT_FORMS = frozenset([
     FormType.FORM_3,
     FormType.FORM_4,
 ])
+
+FORM_CODES = {
+    # Source: ESE140110 Guide Attachment 4
+    '010000': FormType.FORM_1,
+    '020000': FormType.FORM_2,
+    '020200': FormType.FORM_2_2,
+    '020300': FormType.FORM_2_3,
+    '020400': FormType.FORM_2_4,
+    '020500': FormType.FORM_2_5,
+    '020600': FormType.FORM_2_6,
+    '020700': FormType.FORM_2_7,
+    '030000': FormType.FORM_3,
+    '030200': FormType.FORM_3_2,
+    '040000': FormType.FORM_4,
+    '040300': FormType.FORM_4_3,
+    '040302': FormType.FORM_4_3_2,
+    '040303': FormType.FORM_4_3_3,
+    '050000': FormType.FORM_5,
+    '050200': FormType.FORM_5_2,
+    '050300': FormType.FORM_5_3,
+    '050400': FormType.FORM_5_4,
+    '060000': FormType.FORM_6,
+    '060500': FormType.FORM_6_5,
+    '060700': FormType.FORM_6_7_AND_FORM_7,
+    '060900': FormType.FORM_6_9_AND_FORM_9,
+    '070000': FormType.FORM_7,
+    '070300': FormType.FORM_7_3,
+    '070400': FormType.FORM_7_4,
+    '080000': FormType.FORM_8,
+    '080200': FormType.FORM_8_2,
+    '080400': FormType.FORM_8_4,
+    '090000': FormType.FORM_9,
+    '090300': FormType.FORM_9_3,
+    '090500': FormType.FORM_9_5,
+    '100000': FormType.FORM_10,
+    '100300': FormType.FORM_10_3,
+    '110000': FormType.FORM_11,
+    '110200': FormType.FORM_11_2,
+    '110202': FormType.FORM_11_2_2,
+    '110400': FormType.FORM_11_4,
+    '120000': FormType.FORM_12,
+    '120200': FormType.FORM_12_2,
+    '120500': FormType.FORM_12_5,
+    '150000': FormType.FORM_15,
+    '150300': FormType.FORM_15_3,
+    '170000': FormType.FORM_17,
+    '210000': FormType.FORM_21,
+    '250300': FormType.FORM_25_3,
+}
