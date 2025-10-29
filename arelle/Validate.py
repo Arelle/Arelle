@@ -14,6 +14,7 @@ from arelle import (FileSource, ModelXbrl, ModelDocument, ModelVersReport, XbrlC
                ValidateXbrl, ValidateVersReport,
                ValidateInfoset, ViewFileRenderedLayout, UrlUtil)
 from arelle.PythonUtil import isLegacyAbs
+from arelle.ValidateFileSource import ValidateFileSource
 from arelle.formula import ValidateFormula
 from arelle.ModelDocument import Type, ModelDocumentReference, load as modelDocumentLoad
 from arelle.ModelDtsObject import ModelResource
@@ -399,8 +400,7 @@ class Validate:
                             filesource.select(None) # must select loadable reports (not the taxonomy package itself)
                         elif not filesource.isReportPackage:
                             entrypoints = filesourceEntrypointFiles(filesource)
-                            for pluginXbrlMethod in pluginClassMethods("Validate.FileSource"):
-                                pluginXbrlMethod(self.modelXbrl.modelManager.cntlr, filesource)
+                            ValidateFileSource(self.modelXbrl.modelManager.cntlr, filesource).validate()
                             if entrypoints:
                                 # resolve an IXDS in entrypoints
                                 for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ArchiveIxds"):
@@ -424,8 +424,7 @@ class Validate:
                     if not reportPackageErrors:
                         assert isinstance(filesource.basefile, str)
                         if entrypoints := filesourceEntrypointFiles(filesource):
-                            for pluginXbrlMethod in pluginClassMethods("Validate.FileSource"):
-                                pluginXbrlMethod(self.modelXbrl.modelManager.cntlr, filesource)
+                            ValidateFileSource(self.modelXbrl.modelManager.cntlr, filesource).validate()
                             for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ArchiveIxds"):
                                 pluginXbrlMethod(self, filesource, entrypoints)
                             for entrypoint in entrypoints:
