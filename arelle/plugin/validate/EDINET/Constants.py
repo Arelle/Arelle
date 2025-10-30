@@ -26,6 +26,8 @@ xhtmlDtdExtension = "xhtml1-strict-ix.dtd"
 
 COVER_PAGE_FILENAME_PREFIX = "0000000_header_"
 
+LC3_NAME_PATTERN = regex.compile(r"^[A-Z][^\][\(\)\*\+\?\/\^\{\}\|@#%^=~`\"';:,<>&$\u00a3\u20ac]*$") # u20ac=Euro, u00a3=pound sterling
+
 PROHIBITED_HTML_ATTRIBUTES = frozenset({
     'onblur',
     'onchange',
