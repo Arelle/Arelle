@@ -18,6 +18,7 @@ from typing import Any
 import regex as re
 
 from arelle import ValidateDuplicateFacts
+from arelle.ValidateFileSource import ValidateFileSource
 from arelle.logging.formatters.LogFormatter import logRefsFileLines
 from arelle.utils.EntryPointDetection import parseEntrypointFileInput
 
@@ -1199,12 +1200,17 @@ class CntlrWinMain (Cntlr.Cntlr):
 
     def backgroundValidate(self):
         from arelle import Validate
+        validatedFileSources = set()
         for loadedModelXbrl in self.modelManager.loadedModelXbrls:
             if loadedModelXbrl.modelDocument:
                 startedAt = time.time()
                 if loadedModelXbrl.modelDocument.type in ModelDocument.Type.TESTCASETYPES:
                     for pluginXbrlMethod in pluginClassMethods("Testcases.Start"):
                         pluginXbrlMethod(self, None, loadedModelXbrl)
+                if loadedModelXbrl.fileSource not in validatedFileSources:
+                    validatedFileSources.add(loadedModelXbrl.fileSource)
+                    ValidateFileSource(self, loadedModelXbrl.fileSource).validate(self.modelManager.validateAllFilesAsReportPackages)
+
                 for modelXbrl in [loadedModelXbrl] + getattr(loadedModelXbrl, "supplementalModelXbrls", []):
                     priorOutputInstance = modelXbrl.formulaOutputInstance
                     modelXbrl.formulaOutputInstance = None # prevent closing on background thread by validateFormula

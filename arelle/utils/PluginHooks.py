@@ -667,14 +667,14 @@ class PluginHooks(ABC):
     def validateFileSource(
             cntlr: Cntlr,
             fileSource: FileSource,
-            entrypoints: list[dict[str, Any]] | None = None,
             *args: Any,
             **kwargs: Any,
     ) -> None:
         """
         Plugin hook: `Validate.FileSource`
 
-        Hook for executing validation rules applicable to entrypoint files.
+        Hook for validating FileSource. This is useful for validations that apply to the filesource and not the
+        XBRL models loaded from it.
 
         Example:
         ```python
@@ -686,8 +686,7 @@ class PluginHooks(ABC):
         ```
 
         :param cntlr: The [Cntlr](#arelle.Cntlr.Cntlr) instance.
-        :param fileSource: The [FileSource](#arelle.FileSource.FileSource) involved in loading the entrypoint files.
-        :param entrypoints: A list of entrypoint configurations.
+        :param fileSource: The [FileSource](#arelle.FileSource.FileSource) to validate.
         :param args: Argument capture to ensure new parameters don't break plugin hook.
         :param kwargs: Argument capture to ensure new named parameters don't break plugin hook.
         :return: None
