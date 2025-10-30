@@ -13,7 +13,7 @@ import regex
 from arelle import ModelDocument, UrlUtil, XbrlConst, XmlUtil
 from arelle.HtmlUtil import attrValue
 from arelle.LinkbaseType import LinkbaseType
-from arelle.ModelDtsObject import ModelConcept
+from arelle.ModelDtsObject import ModelConcept, ModelResource
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFootnote
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import QName
@@ -29,7 +29,7 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.Units import getDuplicateUnitGroups
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
-from ..Constants import JAPAN_LANGUAGE_CODES, NUMERIC_LABEL_ROLES, domainItemTypeQname
+from ..Constants import JAPAN_LANGUAGE_CODES, NUMERIC_LABEL_ROLES, domainItemTypeQname, LC3_NAME_PATTERN
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
@@ -2250,6 +2250,47 @@ def rule_gfm_1_10_14(
                 msg=_("A non-empty footnote is not referenced by an element"),
                 modelObject=footnote
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_gfm_2_3_5(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 2.3.5] The name attribute of an xsd:element should consist of
+    capitalized words corresponding to the standard label, a convention called Label
+    Camel Case Concatenation (LC3).
+    1. The first character of a name attribute must not be underscore.
+    2. The first character of a name attribute must be capitalized.
+    3. The following characters are not allowed in a name attribute:
+        ()*+[]?\\/^{}|@#%^=~`“‘;:,<>&$₤€
+    4. Do not use digits in the name attribute unless the element is
+        being declared specifically because it must identify a regulation
+        known by a number (“12b-1 Fees”, “FAS 132”). Always begin the name
+        with a letter (e.g., “Rule12b1Fees”) and conform to LC3 (e.g., “Fas132”).
+    5. Convert acronyms to Proper case (e.g., FAS becomes Fas, FHLC becomes
+        Fhlc). Treat digits in an acronym as word separators (e.g., WIN2K becomes Win2K).
+
+    Note: "corresponding to the standard label" is not enforceable, this implementation
+    only checks the LC3 formatting rules. Similarly, rule 4 and 5 are not enforced here.
+    """
+    for name, concepts in val.modelXbrl.nameConcepts.items():
+        for concept in concepts:
+            if pluginData.isStandardTaxonomyUrl(concept.modelDocument.uri, val.modelXbrl):
+                continue
+            if not LC3_NAME_PATTERN.fullmatch(name):
+                yield Validation.warning(
+                    codes='EDINET.EC5700W.GFM.2.3.5',
+                    msg=_("Element names should be set using capitalized words "
+                          "(LC3 conversion rules) that correspond to standard labels."),
+                    modelObject=concept
+                )
 
 
 @validation(
