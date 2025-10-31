@@ -172,6 +172,7 @@
     <testcase uri="EC8058W/index.xml" />
     <testcase uri="EC8060E/index.xml" />
     <testcase uri="EC8062W/index.xml" />
+    <testcase uri="EC8073E/index.xml" />
     <testcase uri="EC8076W/index.xml" />
     <!-- <testcase uri="EC8064W/index.xml" /> TODO: Relevant sample filings not provided, not found in EDINET index, not trivial to create. -->
     <testcase uri="EC8075W/index.xml" />
