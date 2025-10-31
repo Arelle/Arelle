@@ -78,6 +78,11 @@ TAXONOMY_URLS_BY_YEAR = {
         'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-nlgaap-ext.xsd',
         'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-ifrs-ext.xsd',
         'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-other-gaap.xsd',
+    },
+    '2025': {
+        'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-nlgaap-ext.xsd',
+        'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-ifrs-ext.xsd',
+        'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-other-gaap.xsd',
     }
 }
 
