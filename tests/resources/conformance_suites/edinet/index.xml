@@ -146,6 +146,8 @@
     <testcase uri="EC8001W/index.xml" />
     <testcase uri="EC8003W/index.xml" />
     <testcase uri="EC8004W/index.xml" />
+    <testcase uri="EC8006W/index.xml" />
+    <testcase uri="EC8007W/index.xml" />
     <testcase uri="EC8008W/index.xml" />
     <testcase uri="EC8009W/index.xml" />
     <testcase uri="EC8011W/index.xml" />

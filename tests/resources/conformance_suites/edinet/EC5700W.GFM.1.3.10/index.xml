@@ -18,6 +18,8 @@
         </data>
         <result blockedMessageCodes="^xbrl\.5\.1\.3\:roleTypes-inequality|^xbrl\.5\.1\.3\:roleTypeDuplicate">
             <warning>EDINET.EC5700W.GFM.1.3.10</warning>
+            <warning num="2">EDINET.EC8006W</warning> <!-- invalid roleTypes defined -->
+            <warning num="2">EDINET.EC8007W</warning> <!-- invalid roleTypes defined -->
             <warning>EDINET.EC8015W</warning> <!-- from base sample filing -->
         </result>
     </variation>

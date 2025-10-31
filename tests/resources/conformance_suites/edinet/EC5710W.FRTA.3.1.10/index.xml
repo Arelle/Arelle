@@ -16,7 +16,10 @@
         <data>
             <instance readMeFirst="true">valid01.zip</instance>
         </data>
-        <result expected="valid"/>
+        <result>
+            <warning>EDINET.EC8006W</warning> <!-- invalid roleType defined -->
+            <warning>EDINET.EC8007W</warning> <!-- invalid roleType defined -->
+        </result>
     </variation>
     <variation id="invalid01" name="invalid01">
         <description>
@@ -28,6 +31,8 @@
         </data>
         <result>
             <warning>EDINET.EC5710W.FRTA.3.1.10</warning>
+            <warning>EDINET.EC8006W</warning> <!-- invalid roleType defined -->
+            <warning>EDINET.EC8007W</warning> <!-- invalid roleType defined -->
         </result>
     </variation>
 </testcase>
