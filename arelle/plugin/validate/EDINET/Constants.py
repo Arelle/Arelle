@@ -84,7 +84,7 @@ NUMERIC_LABEL_ROLES = frozenset({
     'http://www.xbrl.org/2009/role/negatedTerseLabel',
 })
 
-PATTERN_CODE = r'(?P<code>[A-Za-z\d]*)'
+PATTERN_CODE = r'(?P<code>[A-Za-z\d]+)'
 PATTERN_CONSOLIDATED = r'(?P<consolidated>c|n)'
 PATTERN_COUNT = r'(?P<count>\d{2})'
 PATTERN_PERIOD_DATE = r'(?P<period_year>\d{4})-(?P<period_month>\d{2})-(?P<period_day>\d{2})'
@@ -93,9 +93,9 @@ PATTERN_FORM = r'(?P<form>\d{6})'
 PATTERN_LINKBASE = r'(?P<linkbase>lab|lab-en|gla|pre|def|cal)'
 PATTERN_MAIN = r'(?P<main>\d{7})'
 PATTERN_NAME = r'(?P<name>[a-z]{6})'
-PATTERN_ORDINANCE = r'(?P<ordinance>[a-z]*)'
+PATTERN_ORDINANCE = r'(?P<ordinance>[a-z]+)'
 PATTERN_PERIOD = r'(?P<period>c|p)'  # TODO: Have only seen "c" in sample/public filings, assuming "p" for previous.
-PATTERN_REPORT = r'(?P<report>[a-z0-9]*)'
+PATTERN_REPORT = r'(?P<report>[a-z]+)'
 PATTERN_REPORT_SERIAL = r'(?P<report_serial>\d{3})'
 PATTERN_SERIAL = r'(?P<serial>\d{3})'
 
@@ -104,17 +104,29 @@ PATTERN_REPORT_PREFIX = rf'jp{PATTERN_ORDINANCE}{PATTERN_FORM}-{PATTERN_REPORT}'
 PATTERN_SUFFIX = rf'{PATTERN_REPORT_SERIAL}_{PATTERN_CODE}-{PATTERN_SERIAL}_{PATTERN_PERIOD_DATE}_{PATTERN_COUNT}_{PATTERN_SUBMISSION_DATE}'
 
 PATTERN_URI_HOST = r'http:\/\/disclosure\.edinet-fsa\.go\.jp'
-PATTERN_AUDIT_URI_PREFIX = rf'jpaud\/{PATTERN_REPORT}\/{PATTERN_PERIOD}{PATTERN_CONSOLIDATED}'
-PATTERN_REPORT_URI_PREFIX = rf'jp{PATTERN_ORDINANCE}{PATTERN_FORM}\/{PATTERN_REPORT}'
-PATTERN_URI_SUFFIX = rf'{PATTERN_REPORT_SERIAL}\/{PATTERN_CODE}-{PATTERN_SERIAL}\/{PATTERN_PERIOD_DATE}\/{PATTERN_COUNT}\/{PATTERN_SUBMISSION_DATE}'
+
+PATTERN_AUDIT_NAMESPACE_PREFIX = rf'jpaud\/{PATTERN_REPORT}\/{PATTERN_PERIOD}{PATTERN_CONSOLIDATED}'
+PATTERN_REPORT_NAMESPACE_PREFIX = rf'jp{PATTERN_ORDINANCE}{PATTERN_FORM}\/{PATTERN_REPORT}'
+PATTERN_NAMESPACE_SUFFIX = rf'{PATTERN_REPORT_SERIAL}\/{PATTERN_CODE}-{PATTERN_SERIAL}\/{PATTERN_PERIOD_DATE}\/{PATTERN_COUNT}\/{PATTERN_SUBMISSION_DATE}'
+
+PATTERN_ELR_ID = rf'rol_(?P<root_element_name>[\w]+)(?:-(?P<modifier>[a-zA-Z0-9]+))?(?:-{PATTERN_COUNT})?'
+
+# Extension role ID
+# Example: http://disclosure.edinet-fsa.go.jp/role/jpcrp-esr/rol_CoverPage-Modifier-01
+REPORT_ELR_ID_PATTERN = regex.compile(PATTERN_ELR_ID)
+
+# Extension role URI
+# Example: http://disclosure.edinet-fsa.go.jp/role/jpdei/rol_RootElementName
+# Example: http://disclosure.edinet-fsa.go.jp/role/jpdei-qrr/rol_RootElementName-Modifier-01
+REPORT_ELR_URI_PATTERN = regex.compile(rf'{PATTERN_URI_HOST}\/role\/jp{PATTERN_ORDINANCE}(?:-{PATTERN_REPORT})?\/{PATTERN_ELR_ID}')
 
 # Extension namespace URI for report
 # Example: http://disclosure.edinet-fsa.go.jp/jpcrp030000/asr/001/X99002-000/2025-03-31/01/2025-06-28
-REPORT_NAMESPACE_URI_PATTERN = regex.compile(rf'{PATTERN_URI_HOST}\/{PATTERN_REPORT_URI_PREFIX}\/{PATTERN_URI_SUFFIX}')
+REPORT_NAMESPACE_PATTERN = regex.compile(rf'{PATTERN_URI_HOST}\/{PATTERN_REPORT_NAMESPACE_PREFIX}\/{PATTERN_NAMESPACE_SUFFIX}')
 
 # Extension namespace URI for audit report
 # Example: http://disclosure.edinet-fsa.go.jp/jpaud/aar/cn/001/X99002-000/2025-03-31/01/2025-06-28
-AUDIT_NAMESPACE_URI_PATTERN = regex.compile(rf'{PATTERN_URI_HOST}\/{PATTERN_AUDIT_URI_PREFIX}\/{PATTERN_URI_SUFFIX}')
+AUDIT_NAMESPACE_PATTERN = regex.compile(rf'{PATTERN_URI_HOST}\/{PATTERN_AUDIT_NAMESPACE_PREFIX}\/{PATTERN_NAMESPACE_SUFFIX}')
 
 # Extension namespace prefix for report
 # Example: jpcrp040300-ssr_X99005-000
