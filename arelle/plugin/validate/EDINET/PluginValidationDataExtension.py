@@ -92,8 +92,10 @@ class PluginValidationDataExtension(PluginData):
 
     accountingStandardsDeiQn: QName
     assetsIfrsQn: QName
+    categoriesOfDirectorsAndOtherOfficersAxisQn: QName
     consolidatedOrNonConsolidatedAxisQn: QName
     documentTypeDeiQn: QName
+    executiveOfficersMemberQn: QName
     jpcrpEsrFilingDateCoverPageQn: QName
     jpcrpFilingDateCoverPageQn: QName
     jpspsFilingDateCoverPageQn: QName
@@ -153,7 +155,9 @@ class PluginValidationDataExtension(PluginData):
         self.accountingStandardsDeiQn = qname(self.jpdeiNamespace, 'AccountingStandardsDEI')
         self.assetsIfrsQn = qname(self.jpigpNamespace, 'AssetsIFRS')
         self.consolidatedOrNonConsolidatedAxisQn = qname(self.jppfsNamespace, 'ConsolidatedOrNonConsolidatedAxis')
+        self.categoriesOfDirectorsAndOtherOfficersAxisQn = qname(self.jpcrpNamespace, 'CategoriesOfDirectorsAndOtherOfficersAxis')
         self.documentTypeDeiQn = qname(self.jpdeiNamespace, 'DocumentTypeDEI')
+        self.executiveOfficersMemberQn = qname(self.jpcrpNamespace, 'ExecutiveOfficersMember')
         self.issuedSharesTotalNumberOfSharesEtcQn = qname(self.jpcrpNamespace, 'IssuedSharesTotalNumberOfSharesEtcTextBlock')
         self.jpcrpEsrFilingDateCoverPageQn = qname(self.jpcrpEsrNamespace, 'FilingDateCoverPage')
         self.jpcrpFilingDateCoverPageQn = qname(self.jpcrpNamespace, 'FilingDateCoverPage')

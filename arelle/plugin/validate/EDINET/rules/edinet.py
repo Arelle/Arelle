@@ -22,7 +22,7 @@ from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
-from ..Constants import AccountingStandard
+from ..Constants import AccountingStandard, HALF_KANA
 from ..ControllerPluginData import ControllerPluginData
 from ..DeiRequirements import DeiItemStatus
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
@@ -772,6 +772,44 @@ def rule_EC8031W(
                 file=path.name,
                 modelObject=context,
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8073E(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8073E: Prohibited characters are used in the labels for descendents of
+                    CategoriesOfDirectorsAndOtherOfficersAxis except for ExecutiveOfficersMember
+    """
+    axisConcept = val.modelXbrl.qnameConcepts.get(pluginData.categoriesOfDirectorsAndOtherOfficersAxisQn)
+    if axisConcept is None:
+        return
+    defRelSet = val.modelXbrl.relationshipSet(tuple(LinkbaseType.DEFINITION.getArcroles()))
+    labelRelSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
+    for rel in defRelSet.fromModelObject(axisConcept):
+        if rel.toModelObject is None or rel.toModelObject.qname == pluginData.executiveOfficersMemberQn:
+            continue
+        for labelRel in labelRelSet.fromModelObject(rel.toModelObject):
+            if labelRel.toModelObject is None or labelRel.toModelObject.textValue is None:
+                continue
+            illegalChars = HALF_KANA.intersection(set(labelRel.toModelObject.textValue))
+            if any(illegalChars):
+                yield Validation.warning(
+                    codes='EDINET.EC8073E',
+                    msg=_("The concept: %(concept) has a %(linkrole) label which contains characters that are not "
+                          "allowed. Label: %(label), disallowed characters: %(characters)"),
+                    concept=rel.toModelObject.qname.localName,
+                    linkrole=labelRel.toModelObject.role,
+                    label=labelRel.toModelObject.textValue,
+                    characters=illegalChars
+                )
 
 
 @validation(
