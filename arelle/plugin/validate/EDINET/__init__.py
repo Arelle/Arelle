@@ -21,15 +21,7 @@ DISCLOSURE_SYSTEM_VALIDATION_TYPE = "EDINET"
 RELEVELER_MAP: dict[str, dict[str, tuple[str, str | None]]] = {
     "ERROR": {
         # Re-code to EDINET version
-        "GFM.1.1.3": ("ERROR", "EDINET.EC5700W.GFM.1.1.3"),
-        # Silence, duplicated by EDINET.EC5002E
-        "xbrl.4.8.2:sharesFactUnit-notSharesMeasure": ("ERROR", None),
-        # Silence, duplicated by EDINET.EC5002E
-        "xbrl.4.8.2:sharesFactUnit-notSingleMeasure": ("ERROR", None),
-        # Silence, duplicated by EDINET.EC5700W.GFM.1.7.2
-        "xbrl.5.2.5.2.1:zeroWeight": ("ERROR", None),
-        # Silence, Duplicated by EDINET.EC5710W.FRTA.4.2.11
-        "xbrl.5.1:emptyTargetNamespace": ("ERROR", None),
+        "GFM.1.1.3": ("WARNING", "EDINET.EC5700W.GFM.1.1.3"),
     },
 }
 

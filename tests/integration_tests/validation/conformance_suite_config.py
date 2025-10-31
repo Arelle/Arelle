@@ -10,7 +10,6 @@ from typing import Literal
 
 from tests.integration_tests.validation.github import OS_CORES
 
-
 CONFORMANCE_SUITE_PATH_PREFIX = 'tests/resources/conformance_suites'
 
 

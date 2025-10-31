@@ -11,7 +11,6 @@ import datetime
 import fnmatch
 import gettext
 import glob
-import json
 import logging
 import multiprocessing
 import os
@@ -51,6 +50,7 @@ from arelle.BetaFeatures import BETA_FEATURES_AND_DESCRIPTIONS
 from arelle.Locale import format_string, setApplicationLocale, setDisableRTL
 from arelle.ModelFormulaObject import FormulaOptions
 from arelle.ModelValue import qname
+from arelle.ValidateFileSource import ValidateFileSource
 from arelle.oim.xml.Save import saveOimReportToXmlInstance
 from arelle.rendering import RenderingEvaluator
 from arelle.RuntimeOptions import RuntimeOptions, RuntimeOptionsException
@@ -991,9 +991,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
         for pluginXbrlMethod in PluginManager.pluginClassMethods("CntlrCmdLine.Filing.Start"):
             pluginXbrlMethod(self, options, filesource, _entrypointFiles, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
 
-        if options.validate:
-            for pluginXbrlMethod in PluginManager.pluginClassMethods("Validate.FileSource"):
-                pluginXbrlMethod(self, filesource, _entrypointFiles)
+        if options.validate and filesource is not None:
+            ValidateFileSource(self, filesource).validate(options.reportPackage)
 
         if len(_entrypointFiles) == 0 and not options.packages:
             if options.entrypointFile:
@@ -1010,6 +1009,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
             else:
                 _entrypointFile = PackageManager.mappedUrl(_entrypointFile)
                 filesource = FileSource.openFileSource(_entrypointFile, self, sourceZipStream)
+                if options.validate:
+                    ValidateFileSource(self, filesource).validate(options.reportPackage)
             self.entrypointFile = _entrypointFile
             timeNow = XmlUtil.dateunionValue(datetime.datetime.now())
             firstStartedAt = startedAt = time.time()

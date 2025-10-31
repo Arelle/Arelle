@@ -5,11 +5,10 @@ from __future__ import annotations
 
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import cast
 
 import regex
 
-from arelle.ModelInstanceObject import ModelFact, ModelContext
+from arelle.ModelInstanceObject import ModelContext, ModelFact
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import ModelXbrl
 from arelle.utils.PluginData import PluginData
@@ -46,7 +45,7 @@ class PluginValidationDataExtension(PluginData):
     disclosureOfEquityQns: frozenset[QName]
     consolidatedMemberQn: QName
     consolidatedSoloDimensionQn: QName
-    cpr_regex: regex.regex.Pattern[str]
+    cpr_regex: regex.Pattern[str]
     dateOfApprovalOfAnnualReportQn: QName
     dateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod: QName
     dateOfGeneralMeetingQn: QName

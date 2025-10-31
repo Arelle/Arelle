@@ -17,8 +17,8 @@
             <instance readMeFirst="true">invalid01.zip</instance>
         </data>
         <result>
-            <warning>arelle:NoMatchingEdinetFormat</warning>
-            <warning>EDINET.EC1057E</warning>
+            <error>EDINET.EC1057E</error>
+            <error num="9">EDINET.EC5614E</error>
             <warning>EDINET.EC5700W.GFM.1.1.6</warning>
             <warning>EDINET.EC5700W.GFM.1.2.8</warning>
             <warning>EDINET.EC5700W.GFM.1.2.27</warning>

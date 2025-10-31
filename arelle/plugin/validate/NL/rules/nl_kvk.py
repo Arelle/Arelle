@@ -3,36 +3,37 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-import re
 from collections import defaultdict
 from collections.abc import Iterable
 from datetime import date
-from typing import Any, cast, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
+import regex
 from lxml.etree import Element
 
+from arelle import ModelDocument, XbrlConst, XmlUtil
 from arelle.LinkbaseType import LinkbaseType
 from arelle.ModelDtsObject import ModelConcept, ModelLink, ModelResource, ModelType
 from arelle.ModelInstanceObject import ModelInlineFact
 from arelle.ModelObject import ModelObject
 from arelle.PrototypeDtsObject import PrototypeObject
-from arelle.ValidateDuplicateFacts import getDuplicateFactSets
-from arelle.XbrlConst import parentChild, standardLabel
-from arelle.XmlValidateConst import VALID
-
-from arelle import XbrlConst, XmlUtil, ModelDocument
-from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.DetectScriptsInXhtml import containsScriptMarkers
 from arelle.utils.validate.ESEFImage import ImageValidationParameters, validateImage
 from arelle.utils.validate.Validation import Validation
-from arelle.ValidateDuplicateFacts import getHashEquivalentFactGroups, getAspectEqualFacts
-from ..DisclosureSystems import (ALL_NL_INLINE_DISCLOSURE_SYSTEMS, NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
-                                 NL_INLINE_GAAP_OTHER_DISCLOSURE_SYSTEMS)
+from arelle.ValidateDuplicateFacts import getAspectEqualFacts, getDuplicateFactSets, getHashEquivalentFactGroups
+from arelle.ValidateXbrl import ValidateXbrl
+from arelle.XbrlConst import parentChild, standardLabel
+from arelle.XmlValidateConst import VALID
+
+from ..DisclosureSystems import (
+    ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
+    NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+    NL_INLINE_GAAP_OTHER_DISCLOSURE_SYSTEMS,
+)
 from ..PluginValidationDataExtension import (
-    PluginValidationDataExtension,
     ALLOWABLE_LANGUAGES,
     DEFAULT_MEMBER_ROLE_URI,
     DISALLOWED_IXT_NAMESPACES,
@@ -45,15 +46,16 @@ from ..PluginValidationDataExtension import (
     TAXONOMY_URLS_BY_YEAR,
     XBRLI_IDENTIFIER_PATTERN,
     XBRLI_IDENTIFIER_SCHEMA,
+    PluginValidationDataExtension,
 )
 
 if TYPE_CHECKING:
-    from arelle.ModelXbrl import ModelXbrl
     from arelle.ModelValue import QName
+    from arelle.ModelXbrl import ModelXbrl
 
 _: TypeGetText
 
-DOCTYPE_XHTML_PATTERN = re.compile(r"^<!(?:DOCTYPE\s+)\s*html(?:PUBLIC\s+)?(?:.*-//W3C//DTD\s+(X?HTML)\s)?.*>$", re.IGNORECASE)
+DOCTYPE_XHTML_PATTERN = regex.compile(r"^<!(?:DOCTYPE\s+)\s*html(?:PUBLIC\s+)?(?:.*-//W3C//DTD\s+(X?HTML)\s)?.*>$", regex.IGNORECASE)
 
 
 def _getReportingPeriodDateValue(modelXbrl: ModelXbrl, qname: QName) -> date | None:

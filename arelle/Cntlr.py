@@ -18,24 +18,24 @@ import os
 import subprocess
 import sys
 import tempfile
-from typing import Any, TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
-import regex as re
+import regex
 
 from arelle import Locale, ModelManager, PackageManager, PluginManager, XbrlConst
 from arelle.BetaFeatures import BETA_FEATURES_AND_DESCRIPTIONS
 from arelle.ErrorManager import ErrorManager
 from arelle.FileSource import FileSource
-from arelle.SystemInfo import PlatformOS, getSystemWordSize, hasFileSystem, hasWebServer, isCGI, isGAE
-from arelle.WebCache import WebCache
 from arelle.logging.formatters.LogFormatter import LogFormatter, logRefsFileLines  # noqa: F401 - for reimport
 from arelle.logging.handlers.LogHandlerWithXml import LogHandlerWithXml  # noqa: F401 - for reimport
 from arelle.logging.handlers.LogToBufferHandler import LogToBufferHandler
 from arelle.logging.handlers.LogToPrintHandler import LogToPrintHandler
 from arelle.logging.handlers.LogToXmlHandler import LogToXmlHandler
 from arelle.logging.handlers.StructuredMessageLogHandler import StructuredMessageLogHandler
+from arelle.SystemInfo import PlatformOS, getSystemWordSize, hasFileSystem, hasWebServer, isCGI, isGAE
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
+from arelle.WebCache import WebCache
 
 _: TypeGetText
 
@@ -60,7 +60,7 @@ def resourcesDir() -> str:
     # for python 3.2 remove __pycache__
     if _moduleDir.endswith("__pycache__"):
         _moduleDir = os.path.dirname(_moduleDir)
-    if (re.match(r".*[\\/](library|python{0.major}{0.minor}).zip[\\/]arelle$".format(sys.version_info),
+    if (regex.match(r".*[\\/](library|python{0.major}{0.minor}).zip[\\/]arelle$".format(sys.version_info),
                    _moduleDir)): # cx_Freexe uses library up to 3.4 and python35 after 3.5
         _resourcesDir = os.path.dirname(os.path.dirname(_moduleDir))
     else:
@@ -435,11 +435,11 @@ class Cntlr:
 
     def setLogLevelFilter(self, logLevelFilter: str) -> None:
         if self.logger:
-            setattr(self.logger, "messageLevelFilter", re.compile(logLevelFilter) if logLevelFilter else None)
+            setattr(self.logger, "messageLevelFilter", regex.compile(logLevelFilter) if logLevelFilter else None)
 
     def setLogCodeFilter(self, logCodeFilter: str) -> None:
         if self.logger:
-            setattr(self.logger, "messageCodeFilter", re.compile(logCodeFilter) if logCodeFilter else None)
+            setattr(self.logger, "messageCodeFilter", regex.compile(logCodeFilter) if logCodeFilter else None)
 
     def addToLog(
         self,

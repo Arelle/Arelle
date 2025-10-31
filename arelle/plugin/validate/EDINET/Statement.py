@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from enum import Enum
 
-from regex import regex
+import regex
 
 from arelle.ModelInstanceObject import ModelFact
 

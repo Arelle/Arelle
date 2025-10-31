@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any, Iterable
 
 import regex
+import unicodedata
 from jaconv import jaconv
 
 from arelle import XbrlConst, ValidateDuplicateFacts, XmlUtil
@@ -778,11 +779,53 @@ def rule_EC8031W(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
-def rule_EC8073E(
+def rule_EC8034W(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8034W: English labels for extension concepts must not contain full-width characters.
+    """
+    labelsRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
+    for concept, modelLabelRels in labelsRelationshipSet.fromModelObjects().items():
+        for modelLabelRel in modelLabelRels:
+            modelLabel = modelLabelRel.toModelObject
+            if not isinstance(modelLabel, ModelResource):
+                continue
+            if not pluginData.isExtensionUri(modelLabel.modelDocument.uri, val.modelXbrl):
+                continue
+            if modelLabel.xmlLang != 'en':
+                continue
+            label = modelLabel.textValue.strip()  # Does not trim full-width spaces
+            if any(
+                unicodedata.east_asian_width(char) in ('F', 'W')
+                for char in label
+            ):
+                yield Validation.warning(
+                    codes='EDINET.EC8034W',
+                    msg=_("The English label must be set using half-width alphanumeric characters "
+                          "and half-width symbols. "
+                          "File name: '%(file)s'. "
+                          "English label: '%(label)s'. "
+                          "Please use only half-width alphanumeric characters and half-width symbols "
+                          "for the English labels of concepts in the relevant files."),
+                    file=modelLabel.document.basename,
+                    label=modelLabel.id,
+                    modelObject=modelLabel,
+                )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8073E(
+    pluginData: PluginValidationDataExtension,
+    val: ValidateXbrl,
+    *args: Any,
+    **kwargs: Any,
 ) -> Iterable[Validation]:
     """
     EDINET.EC8073E: Prohibited characters are used in the labels for descendents of
@@ -803,10 +846,10 @@ def rule_EC8073E(
             if any(illegalChars):
                 yield Validation.warning(
                     codes='EDINET.EC8073E',
-                    msg=_("The concept: %(concept) has a %(linkrole) label which contains characters that are not "
+                    msg=_("The concept: %(concept) has a %(role) label which contains characters that are not "
                           "allowed. Label: %(label), disallowed characters: %(characters)"),
                     concept=rel.toModelObject.qname.localName,
-                    linkrole=labelRel.toModelObject.role,
+                    role=labelRel.toModelObject.role,
                     label=labelRel.toModelObject.textValue,
                     characters=illegalChars
                 )
@@ -817,10 +860,10 @@ def rule_EC8073E(
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
 def rule_EC8075W(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
-        *args: Any,
-        **kwargs: Any,
+    pluginData: PluginValidationDataExtension,
+    val: ValidateXbrl,
+    *args: Any,
+    **kwargs: Any,
 ) -> Iterable[Validation]:
     """
     EDINET.EC8075W: The percentage of female executives has not been tagged in detail. Ensure that there is

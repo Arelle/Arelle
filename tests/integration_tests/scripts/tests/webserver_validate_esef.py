@@ -1,15 +1,21 @@
 from __future__ import annotations
 
 import os
-import re
 import urllib.parse
 import urllib.request
 from pathlib import Path
 
+import regex
 import requests
 
 from tests.integration_tests.integration_test_util import get_s3_uri
-from tests.integration_tests.scripts.script_util import parse_args, assert_result, prepare_logfile, run_arelle_webserver, validate_log_xml
+from tests.integration_tests.scripts.script_util import (
+    assert_result,
+    parse_args,
+    prepare_logfile,
+    run_arelle_webserver,
+    validate_log_xml,
+)
 from tests.integration_tests.validation.assets import ESEF_PACKAGES
 from tests.integration_tests.validation.download_assets import download_assets
 
@@ -73,10 +79,10 @@ if "[info] Activation of plug-in Validate ESMA ESEF successful" not in contents.
 print("Checking log XML for errors...")
 errors += validate_log_xml(log_xml_bytes, expected_results={
     'error': {
-        re.compile(r'.*\[ESEF\.2\.2\.1\.precisionAttributeUsed] .*'): 1
+        regex.compile(r'.*\[ESEF\.2\.2\.1\.precisionAttributeUsed] .*'): 1
     },
     'info': {
-        re.compile(r'.*\[arelle\.ESEF\.reportPackageSize] The exact report package zipped .*'): 1
+        regex.compile(r'.*\[arelle\.ESEF\.reportPackageSize] The exact report package zipped .*'): 1
     }
 })
 

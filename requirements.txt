@@ -13,7 +13,7 @@ openpyxl==3.1.5
 pycountry==24.6.1
 pyparsing==3.2.5
 python-dateutil==2.9.0.post0
-regex==2025.9.18
+regex==2025.10.23
 tornado==6.5.2
 truststore==0.10.1 ; python_version > "3.9"
 typing-extensions==4.15.0
@@ -25,7 +25,7 @@ cx_Oracle==8.3.0
 pg8000==1.31.5
 PyMySQL==1.1.2
 pyodbc==5.3.0
-rdflib==7.2.1
+rdflib==7.3.0
 # other
 graphviz==0.21
 pillow==11.3.0

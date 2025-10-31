@@ -5,12 +5,20 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 
+import fnmatch
+import os
+import pickle
+import platform
+import subprocess
+import sys
+import time
+import webbrowser
 from typing import Any
 
-from arelle import ValidateDuplicateFacts
-import os, sys, subprocess, pickle, time, locale, fnmatch, platform, webbrowser
 import regex as re
 
+from arelle import ValidateDuplicateFacts
+from arelle.ValidateFileSource import ValidateFileSource
 from arelle.logging.formatters.LogFormatter import logRefsFileLines
 from arelle.utils.EntryPointDetection import parseEntrypointFileInput
 
@@ -18,55 +26,89 @@ if sys.platform == 'win32' and getattr(sys, 'frozen', False):
     # need the .dll directory in path to be able to access Tk and Tcl DLLs efore importinng Tk, etc.
     os.environ['PATH'] = os.path.dirname(sys.executable) + ";" + os.environ['PATH']
 
-from tkinter import (Tk, Tcl, TclError, Toplevel, Menu, PhotoImage, StringVar, BooleanVar, IntVar, N, S, E, W, EW,
-                     HORIZONTAL, VERTICAL, END, font as tkFont)
+from tkinter import (
+    END,
+    EW,
+    HORIZONTAL,
+    VERTICAL,
+    BooleanVar,
+    E,
+    IntVar,
+    Menu,
+    N,
+    PhotoImage,
+    S,
+    StringVar,
+    Tcl,
+    TclError,
+    Tk,
+    W,
+)
+from tkinter import font as tkFont
+
 try:
-    from tkinter.ttk import Frame, Button, Label, Combobox, Separator, PanedWindow, Notebook
+    from tkinter.ttk import Button, Combobox, Frame, Label, Notebook, PanedWindow, Separator
 except ImportError:  # 3.0 versions of tkinter
-    from ttk import Frame, Button, Label, Combobox, Separator, PanedWindow, Notebook
+    from ttk import Button, Combobox, Frame, Label, Notebook, PanedWindow, Separator
 try:
     import syslog
 except ImportError:
     syslog = None
+
+import logging
+import multiprocessing
+import queue
+import threading
 import tkinter.filedialog
-import tkinter.messagebox, traceback
+import tkinter.messagebox
 import tkinter.simpledialog
-from arelle.Locale import format_string, setApplicationLocale
+import traceback
+
+from arelle import (
+    Cntlr,
+    DialogLanguage,
+    DialogPackageManager,
+    DialogPluginManager,
+    DialogURL,
+    ModelDocument,
+    PackageManager,
+    TableStructure,
+    Updater,
+    ViewFileConcepts,
+    ViewFileDTS,
+    ViewFileFactList,
+    ViewFileFactTable,
+    ViewFileFormulae,
+    ViewFileRelationshipSet,
+    ViewFileRoleTypes,
+    ViewFileTests,
+    ViewWinConcepts,
+    ViewWinDTS,
+    ViewWinFactList,
+    ViewWinFactTable,
+    ViewWinFormulae,
+    ViewWinProperties,
+    ViewWinRelationshipSet,
+    ViewWinRenderedGrid,
+    ViewWinRoleTypes,
+    ViewWinRssFeed,
+    ViewWinTests,
+    ViewWinTree,
+    ViewWinVersReport,
+    ViewWinXml,
+    XbrlConst,
+)
 from arelle.CntlrWinTooltip import ToolTip
-from arelle import XbrlConst
+from arelle.FileSource import openFileSource
+from arelle.Locale import format_string, setApplicationLocale
+from arelle.ModelFormulaObject import FormulaOptions
+from arelle.oim.xml.Save import saveOimReportToXmlInstance
 from arelle.PluginManager import pluginClassMethods
+from arelle.rendering import RenderingEvaluator
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateXbrlCalcs import ValidateCalcsMode as CalcsMode
 from arelle.ValidateXbrlDTS import ValidateBaseTaxonomiesMode
 from arelle.Version import copyrightLabel
-from arelle.oim.xml.Save import saveOimReportToXmlInstance
-import logging
-import multiprocessing
-
-import threading, queue
-
-from arelle import Cntlr
-from arelle import (DialogURL, DialogLanguage,
-                    DialogPluginManager, DialogPackageManager,
-                    ModelDocument,
-                    ModelManager,
-                    PackageManager,
-                    TableStructure,
-                    ViewWinDTS,
-                    ViewWinProperties, ViewWinConcepts, ViewWinRelationshipSet, ViewWinFormulae,
-                    ViewWinFactList, ViewFileFactList, ViewWinFactTable, ViewWinRenderedGrid, ViewWinXml,
-                    ViewWinRoleTypes, ViewFileRoleTypes, ViewFileConcepts,
-                    ViewWinTests, ViewWinTree, ViewWinVersReport, ViewWinRssFeed,
-                    ViewFileDTS,
-                    ViewFileFactTable,
-                    ViewFileFormulae,
-                    ViewFileTests,
-                    ViewFileRelationshipSet,
-                    Updater
-                   )
-from arelle.ModelFormulaObject import FormulaOptions
-from arelle.FileSource import openFileSource
-from arelle.rendering import RenderingEvaluator
 
 restartMain = True
 
@@ -1158,12 +1200,17 @@ class CntlrWinMain (Cntlr.Cntlr):
 
     def backgroundValidate(self):
         from arelle import Validate
+        validatedFileSources = set()
         for loadedModelXbrl in self.modelManager.loadedModelXbrls:
             if loadedModelXbrl.modelDocument:
                 startedAt = time.time()
                 if loadedModelXbrl.modelDocument.type in ModelDocument.Type.TESTCASETYPES:
                     for pluginXbrlMethod in pluginClassMethods("Testcases.Start"):
                         pluginXbrlMethod(self, None, loadedModelXbrl)
+                if loadedModelXbrl.fileSource not in validatedFileSources:
+                    validatedFileSources.add(loadedModelXbrl.fileSource)
+                    ValidateFileSource(self, loadedModelXbrl.fileSource).validate(self.modelManager.validateAllFilesAsReportPackages)
+
                 for modelXbrl in [loadedModelXbrl] + getattr(loadedModelXbrl, "supplementalModelXbrls", []):
                     priorOutputInstance = modelXbrl.formulaOutputInstance
                     modelXbrl.formulaOutputInstance = None # prevent closing on background thread by validateFormula

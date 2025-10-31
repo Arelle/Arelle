@@ -3,21 +3,22 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-from datetime import date, timedelta
-from dateutil import relativedelta
 from collections.abc import Iterable
-from typing import Any, cast, TYPE_CHECKING
+from datetime import date, timedelta
+from typing import TYPE_CHECKING, Any, cast
 
-from regex import regex
+import regex
+from dateutil import relativedelta
 
-from arelle import XmlUtil, XbrlConst
+from arelle import XbrlConst, XmlUtil
 from arelle.ModelObject import ModelObject
-from arelle.ValidateXbrl import ValidateXbrl
-from arelle.XmlValidate import INVALID
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
+from arelle.ValidateXbrl import ValidateXbrl
+from arelle.XmlValidate import INVALID
+
 from ..DisclosureSystems import (
     DISCLOSURE_SYSTEM_NT16,
     DISCLOSURE_SYSTEM_NT17,
