@@ -245,6 +245,8 @@
                           "properties": {
                             "dimensionName": { "$ref": "#/definitions/QName" },
                             "domainName": { "$ref": "#/definitions/QName" },
+                            "domainDatatype" : { "$ref": "#/definitions/QName" },
+                            
                             "typedSort": {
                               "type": "string",
                               "enum": ["asc", "desc"],
@@ -325,7 +327,6 @@
                     "type": "object",
                     "properties": {
                       "name": { "$ref": "#/definitions/QName" },
-                      "domainDataType": { "$ref": "#/definitions/QName" },
                       "domainRoot": { "$ref": "#/definitions/QName" },
                       "cubeTypes": {
                         "type": "array",
@@ -339,11 +340,7 @@
                             "uniqueItems": true
                         }
                     },
-                    "required": ["name"],
-                    "oneOf": [
-                        { "required": ["domainDataType"] },
-                        { "required": ["domainRoot"] }
-                      ],
+                    "required": ["name", "domainRoot"],
                     "additionalProperties": false
                     },
                     "uniqueItems": true
@@ -407,6 +404,11 @@
                         "type": "object",
                         "properties": {
                             "name": { "$ref": "#/definitions/QName" },
+                            "allowedDomainItems": {
+                              "type": "array",
+                              "items": { "$ref": "#/definitions/QName" },
+                              "uniqueItems": true
+                            },
                             "properties": {
                                 "type": "array",
                                 "items": { "$ref": "#/definitions/propertyObject" },
@@ -558,6 +560,42 @@
                     "additionalProperties": false
                   },
                   "uniqueItems": true
+                },
+                "groupTree": {
+                  "type": "object",
+                  "description": "Defines the hierarchical organization of groups within the taxonomy. Only one groupTree is allowed per taxonomy.",
+                  "properties": {
+                    "name": { 
+                      "$ref": "#/definitions/QName",
+                      "description": "The QName that uniquely identifies the groupTree object."
+                    },
+                    "relationships": {
+                      "type": "array",
+                      "description": "Ordered set of relationships organizing groups hierarchically using the xbrl:taxonomy-group relationship type. Source can be a taxonomy or group object, target must be a group object.",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "source": { 
+                            "$ref": "#/definitions/QName",
+                            "description": "QName of the source taxonomy or group object."
+                          },
+                          "target": { 
+                            "$ref": "#/definitions/QName",
+                            "description": "QName of the target group object."
+                          },
+                          "order": {
+                            "type": "number",
+                            "description": "Order of the relationship in the hierarchy."
+                          }
+                        },
+                        "required": ["source", "target"],
+                        "additionalProperties": false
+                      },
+                      "uniqueItems": true
+                    }
+                  },
+                  "required": ["name"],
+                  "additionalProperties": false
                 },
                 "relationshipTypes": {
                   "type": "array",

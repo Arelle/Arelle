@@ -33,6 +33,7 @@ class XbrlPeriodConstraint(XbrlTaxonomyObject):
 class XbrlCubeDimension(XbrlTaxonomyObject):
     dimensionName: QName # (required) The QName of the dimension object that is used to identify the dimension. For the core dimensions of concept, period, entity and unit, the core dimension QNames of xbrl:concept, xbrl:period, xbrl:entity, xbrl:unit and xbrl:language are used. The dimension object indicates if the dimension is typed or explicit.
     domainName: Optional[QName] # (required if explicit dimension) The QName of the domain object that is used to identify the domain associated with the dimension. Only one domain can be associated with a dimension. The domain name cannot be provided for a typed dimension or the period core dimension.
+    domainDataType: Optional[QName] # (optional) The dimension QName that identifies the taxonomy defined dimension.
     typedSort: Optional[str] # (optional if typed dimension) A string value that indicates the sort order of the typed dimension. The values can be either asc or desc. This indicates the viewing order of the values using a typed dimension. The typedSort property cannot be used with an explicit dimension. The typedSort can be used with the period dimension. The sort order is applied to each period constraint defined in periodConstraints. If there are two period constraints the first for instant and the second for duration and a typedSort of asc then all instant dates appear first ascending, then all duration dates appear second in ascending order.
     allowDomainFacts: Union[bool, DefaultFalse] # (optional) A boolean value that indicates if facts not identified with the dimension are included in the cube. For typed and explicit dimensions the value defaults to false. A value of true for a typed or explicit dimension will include facts that don't use the dimension in the cube. For the period core dimension, forever facts or facts with no period dimension are included when this value is set to true. For units, this is a unit with no units such as a string or date. For the entity core dimension, it is fact values with no entity. This property cannot be used on the concept core dimension.
     periodConstraints: set[XbrlPeriodConstraint] # (optional only for period core dimension) Defines an ordered set of periodConstraint objects to restrict fact values in a cube to fact values with a specified period.
@@ -42,7 +43,7 @@ class XbrlCubeDimension(XbrlTaxonomyObject):
             return self._allowedMembers
         except AttributeError:
             self._allowedMembers = mem = OrderedSet()
-            domObj = txmyMdl.namedObjects.get(getattr(self, "domainName", None))
+            domObj = txmyMdl.namedObjects.get(self.domainName)
             if isinstance(domObj, XbrlDomain):
                 if self.allowDomainFacts:
                     mem.add(domObj.root)
