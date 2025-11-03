@@ -1,7 +1,7 @@
 # core modules
 bottle==0.13.4
 certifi==2025.10.5
-cheroot==11.0.0
+cheroot==11.1.0
 filelock==3.19.1
 isodate==0.7.2
 jaconv==0.4.0
@@ -25,7 +25,7 @@ cx_Oracle==8.3.0
 pg8000==1.31.5
 PyMySQL==1.1.2
 pyodbc==5.3.0
-rdflib==7.3.0
+rdflib==7.4.0
 # other
 graphviz==0.21
 pillow==11.3.0
