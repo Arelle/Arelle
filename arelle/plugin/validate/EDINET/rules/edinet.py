@@ -23,7 +23,7 @@ from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
-from ..Constants import AccountingStandard, HALF_KANA, REPORT_ELR_URI_PATTERN, REPORT_ELR_ID_PATTERN
+from ..Constants import AccountingStandard, HALF_KANA, JAPAN_LANGUAGE_CODES, REPORT_ELR_URI_PATTERN, REPORT_ELR_ID_PATTERN
 from ..ControllerPluginData import ControllerPluginData
 from ..DeiRequirements import DeiItemStatus
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
@@ -888,12 +888,52 @@ def rule_EC8073E(
             if any(illegalChars):
                 yield Validation.error(
                     codes='EDINET.EC8073E',
-                    msg=_("The concept: %(concept) has a %(role) label which contains characters that are not "
-                          "allowed. Label: %(label), disallowed characters: %(characters)"),
+                    msg=_("The concept: %(concept)s has a %(role)s label which contains characters that are not "
+                          "allowed. Label: %(label)s, disallowed characters: %(characters)s"),
                     concept=rel.toModelObject.qname.localName,
                     role=labelRel.toModelObject.role,
                     label=labelRel.toModelObject.textValue,
-                    characters=illegalChars
+                    characters=list(illegalChars)
+                )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8073W(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8073W: Prohibited characters are used in Japanese labels for descendents of ExecutiveOfficersMember
+    """
+    memberConcept = val.modelXbrl.qnameConcepts.get(pluginData.executiveOfficersMemberQn)
+    if memberConcept is None:
+        return
+    defRelSet = val.modelXbrl.relationshipSet(tuple(LinkbaseType.DEFINITION.getArcroles()))
+    labelRelSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
+    conceptsLabelsToCheck = {memberConcept}.union(
+        {rel.toModelObject for rel in defRelSet.fromModelObject(memberConcept) if rel.toModelObject is not None}
+    )
+    for concept in conceptsLabelsToCheck:
+        for labelRel in labelRelSet.fromModelObject(concept):
+            if (labelRel.toModelObject is None or
+                    labelRel.toModelObject.xmlLang not in JAPAN_LANGUAGE_CODES or
+                    labelRel.toModelObject.textValue is None):
+                continue
+            illegalChars = HALF_KANA.intersection(set(labelRel.toModelObject.textValue))
+            if any(illegalChars):
+                yield Validation.warning(
+                    codes='EDINET.EC8073W',
+                    msg=_("The concept: %(concept)s has a %(role)s label which contains characters that are not "
+                          "allowed. Label: %(label)s, disallowed characters: %(characters)s"),
+                    concept=concept.qname.localName,
+                    role=labelRel.toModelObject.role,
+                    label=labelRel.toModelObject.textValue,
+                    characters=list(illegalChars)
                 )
 
 
