@@ -17,6 +17,7 @@
             <instance readMeFirst="true">invalid01.zip</instance>
         </data>
         <result>
+            <error>EDINET.EC5000E</error> <!-- XML encoding declaration is missing -->
             <warning>EDINET.EC5700W.GFM.1.10.4</warning>
         </result>
     </variation>
@@ -41,6 +42,7 @@
             <instance readMeFirst="true">invalid03.zip</instance>
         </data>
         <result>
+            <error>EDINET.EC5000E</error> <!-- XML encoding declaration is missing -->
             <warning>EDINET.EC5700W.GFM.1.10.4</warning>
         </result>
     </variation>
