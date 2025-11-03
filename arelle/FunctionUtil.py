@@ -80,7 +80,9 @@ def testTypeCompatibility(
         a1: ContextItem,
         a2: ContextItem,
 ) -> None:
-    if (isinstance(a1,ModelValue.DateTime) and isinstance(a2,ModelValue.DateTime)):
+    if (a1 is None or a2 is None) and op not in ('eq', 'ne'):
+        pass # fail if either arg is None and op is not an equality check
+    elif (isinstance(a1,ModelValue.DateTime) and isinstance(a2,ModelValue.DateTime)):
         if a1.dateOnly == a2.dateOnly:
             return # can't interoperate between date and datetime
     elif isinstance(a1, bool) != isinstance(a2, bool):
