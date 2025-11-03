@@ -926,7 +926,7 @@ def rule_EC8073W(
                 continue
             illegalChars = HALF_KANA.intersection(set(labelRel.toModelObject.textValue))
             if any(illegalChars):
-                yield Validation.error(
+                yield Validation.warning(
                     codes='EDINET.EC8073W',
                     msg=_("The concept: %(concept)s has a %(role)s label which contains characters that are not "
                           "allowed. Label: %(label)s, disallowed characters: %(characters)s"),
