@@ -63,7 +63,7 @@ class FormType(Enum):
             return None
 
     @staticmethod
-    def lookup(code: str) -> FormType | None:
+    def lookup(code: str | None) -> FormType | None:
         return FORM_CODES.get(code)
 
     @property
@@ -84,7 +84,7 @@ STOCK_REPORT_FORMS = frozenset([
     FormType.FORM_4,
 ])
 
-FORM_CODES = {
+FORM_CODES: dict[str | None, FormType] = {
     # Source: ESE140110 Guide Attachment 4
     '010000': FormType.FORM_1,
     '020000': FormType.FORM_2,

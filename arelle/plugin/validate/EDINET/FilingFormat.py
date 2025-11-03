@@ -22,7 +22,7 @@ class Ordinance(Enum):
     TENDER_OFFERS_FOR_SHARES_OWN = 'toi'
 
     @classmethod
-    def parse(cls, value: str) -> Ordinance | None:
+    def parse(cls, value: str | None) -> Ordinance | None:
         try:
             return cls(value)
         except ValueError:
@@ -54,7 +54,7 @@ class DocumentType(Enum):
     TENDER_OFFER_WITHDRAWAL_NOTICE = 'wto'
 
     @classmethod
-    def parse(cls, value: str) -> DocumentType | None:
+    def parse(cls, value: str | None) -> DocumentType | None:
         try:
             return cls(value)
         except ValueError:

@@ -461,10 +461,10 @@ class PluginValidationDataExtension(PluginData):
         :param modelXbrl: Instance to get document type from.
         :return: document type parsed from filename.
         """
-        manifestInstance = self.getManifestInstance(modelXbrl)
-        if manifestInstance is None or manifestInstance.reportAbbreviation is None:
+        filingFormat = self.getFilingFormat(modelXbrl)
+        if filingFormat is None:
             return None
-        return DocumentType.parse(manifestInstance.reportAbbreviation)
+        return filingFormat.documentType
 
     def getFactsByContextAndUnit(
             self, modelXbrl: ModelXbrl,
@@ -508,55 +508,10 @@ class PluginValidationDataExtension(PluginData):
 
     @lru_cache(1)
     def getFilingFormat(self, modelXbrl: ModelXbrl) ->  FilingFormat | None:
-        # This function attempts to identify the filing format based on form number and title concepts.
-        # The provided form number value directly informs the format.
-        # However, the document title is not necessarily an explicit setting of the format's
-        # document type. In the samples available to us and in a handful of public filings,
-        # it is effective to match the first segment of the title value against document type
-        # values assigned to the various FilingFormats. This may only be by coincidence or convention.
-        # If it doesn't end up being reliable, we may need to find another way to identify the form.
-        # For example, by disclosure system selection or CLI argument.
-        documentType = self.getDocumentType(modelXbrl)
-        formType = self.getFormType(modelXbrl)
-        ordinance = self.getOrdinance(modelXbrl)
-        if documentType == DocumentType.SECURITIES_REGISTRATION_STATEMENT_DEEMED:
-            documentType = DocumentType.ANNUAL_SECURITIES_REPORT
-        filingFormats = []
-        for filingFormatIndex, filingFormat in enumerate(FILING_FORMATS):
-            if filingFormat.formType != formType:
-                continue
-            if filingFormat.documentType != documentType:
-                continue
-            if filingFormat.ordinance != ordinance:
-                continue
-            filingFormats.append((filingFormat, filingFormatIndex))
-        if len(filingFormats) == 0:
-            modelXbrl.error(
-                "NoMatchingEdinetFormat",
-                _("No matching EDINET filing formats could be identified based on form "
-                  "type (%(formType)s) and document type (%(documentType)s)."),
-                formType=formType.value if formType is not None else "None",
-                documentType=documentType.value if documentType is not None else "None",
-            )
+        manifestInstance = self.getManifestInstance(modelXbrl)
+        if manifestInstance is None:
             return None
-        if len(filingFormats) > 1:
-            modelXbrl.error(
-                "MultipleMatchingEdinetFormats",
-                _("Multiple EDINET filing formats (%(formatIndexes)s) matched based on form "
-                  "type (%(formType)s) and document type (%(documentType)s)."),
-                formType=formType.value if formType is not None else "None",
-                documentType=documentType.value if documentType is not None else "None",
-            )
-            return None
-        filingFormat, filingFormatIndex = filingFormats[0]
-        modelXbrl.modelManager.cntlr.addToLog("Identified filing format: #{}, {}, {}, {}, {}".format(
-            filingFormatIndex + 1,
-            filingFormat.ordinance.value,
-            filingFormat.documentType.value,
-            filingFormat.formType.value,
-            ', '.join(taxonomy.value for taxonomy in filingFormat.taxonomies)
-        ), messageCode="info")
-        return filingFormat
+        return manifestInstance.filingFormat
 
     @lru_cache(1)
     def getFormType(self, modelXbrl: ModelXbrl) -> FormType | None:
@@ -565,10 +520,10 @@ class PluginValidationDataExtension(PluginData):
         :param modelXbrl: Instance to get form type from.
         :return: Form type parsed from filename.
         """
-        manifestInstance = self.getManifestInstance(modelXbrl)
-        if manifestInstance is None or manifestInstance.formCode is None:
+        filingFormat = self.getFilingFormat(modelXbrl)
+        if filingFormat is None:
             return None
-        return FormType.lookup(manifestInstance.formCode)
+        return filingFormat.formType
 
     @lru_cache(1)
     def getManifestInstance(self, modelXbrl: ModelXbrl) -> ManifestInstance | None:
@@ -582,10 +537,10 @@ class PluginValidationDataExtension(PluginData):
         :param modelXbrl: Instance to get ordinance from.
         :return: Ordinance parsed from filename.
         """
-        manifestInstance = self.getManifestInstance(modelXbrl)
-        if manifestInstance is None or manifestInstance.ordinance is None:
+        filingFormat = self.getFilingFormat(modelXbrl)
+        if filingFormat is None:
             return None
-        return Ordinance.parse(manifestInstance.ordinance)
+        return filingFormat.ordinance
 
     @lru_cache(1)
     def getProhibitedAttributeElements(self, modelDocument: ModelDocument) -> list[tuple[ModelObject, str]]:
