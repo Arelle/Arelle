@@ -35,12 +35,8 @@
                 "enumeration": ["Aggregated", "Raw"]
             },
             {   "name": "xbrli:intervalConventionType",
-                "baseType": "xs:QName",
+                "baseType": "xs:string",
                 "enumeration": ["StartTime", "EndTime"]
-            },
-            
-            {   "name": "xbrli:dimensionPeriodType",
-                "baseType": "xs:string"
             },
             {
                 "name" : "xbrli:duration",
@@ -352,6 +348,27 @@
                 "name" :"xbrli:reportAttributeType",
                 "baseType" : "xs:string",
                 "enumeration": ["reportDate", "reportFilingDate", "reportName", "reportingEntity", "reportingPeriod", "reportIdentifier"]
+            },
+            {
+                "name": "xbrli:emoji",
+                "baseType": "xs:string"
+            },
+            {
+                "name" : "xbrli:domainType",
+                "baseType": "xs:string",
+                "enumeration": ["typed", "explicit", "both"]
+            },
+            {
+                "name": "xbrli:periodString",
+                "baseType": "xs:string"
+            },
+            {
+                "name": "xbrli:startEndDates",
+                "baseType": "xs:anySimpleType"
+            },
+            {
+                "name": "xbrli:unitString",
+                "baseType": "xs:string"
             }
         ],
         "units": [
@@ -365,6 +382,30 @@
             }
         ],
         "labels": [
+            {
+                "relatedName" : "xbrli:periodString",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The period dimension takes a value that is a time interval, which may be zero-length (i.e. an instant). This type defines a standard period string representation which can be used to express such values.The period string representation is obtained as follows: If the value is a non-zero length interval, then the representation is a pair of ISO 8601 date-time values, separated by the / character; Otherwise, the value is a single ISO 8601 date-time value. The date-time values used in this representation MUST be valid according to the xs:dateTime datatype and MUST be in the canonical lexical representation. The error code oimce:invalidPeriodRepresentation MUST be raised for values that are required to be a period string representation and which do not conform to the above format. It should be noted that unlike the xbrli:dateUnion type used in xBRL-XML, the xs:dateTime datatype used here does not allow the time component to be omitted."
+            },
+            {
+                "relatedName" : "xbrli:startEndDates",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The start and end dates of a period defined as a single type."
+            },
+            {
+                "relatedName" : "xbrli:unitString",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The unit dimension defines units in terms of the combination of QNames by defining an unordered collection of numerators and an unordered collection of denominators. This type defines a standardised unit string representation, allowing units to be captured using a unique string value. This has the property that, provided that a consistent set of namespace prefixes are used, a given unit will have a single representation meaning that equivalence of units can be determined by string comparison. The unit string representation is obtained as follows: If {denominators} is not present, the QNames representing the {numerators} are combined in lexicographic order, separated by the * character. Otherwise, lists of {numerators} and {denominators} are created by combining QNames in lexicographic order and separating with the * character, as above. If a list contains more than one item, the list is enclosed in parentheses. The final string is then obtained by concatenating the list of numerators, the / character, and the list of denominators. Whitespace is not permitted anywhere in the string representation, and the use of QNames ensures that a 1:1 mapping between prefixes and namespaces is available thus ensuring that equivalent units appearing within the same document are represented with the same string. Lexicographic order means ordered based on comparison of Unicode code point values of each character. If any QNames in the unit string representation use a prefix that is not defined in the prefix map then oimce:unboundPrefix MUST be raised."
+            },
+            {
+                "relatedName" : "xbrli:domainType",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The domain data type is used to identify the type of a domainRoot. Any domains using this domain root must match the defined type. If the value is the string both, then typed domains (with relationships) and typed domains can be used with the domain root."
+            },
             {
                 "relatedName" : "xbrli:aggregationType",
                 "language" : "en",
@@ -744,6 +785,18 @@
                 "language": "en",
                 "relatedName": "xbrli:MonetaryPerShare",
                 "value": "Monetary Unit / Share"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrli:emoji",
+                "value": "Image or Emoji Icon"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrli:emoji",
+                "value": "A datatype for associating images or emoji icons with taxonomy objects. Values can be emoji characters, image URLs, or data URIs representing icons for visual representation of taxonomy objects."
             }
         ],
         "references": [

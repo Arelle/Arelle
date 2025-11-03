@@ -139,7 +139,7 @@
             },
             {
                 "name": "xbrl:period",
-                "domainDataType": "xbrli:dimensionPeriodType"
+                "domainRoot": "xbrl:periodDomain"
             },
             {
                 "name": "xbrl:entity",
@@ -152,13 +152,20 @@
         ],
         "domainRoots" : [
             {
-                "name": "xbrl:conceptDomain"
+                "name": "xbrl:conceptDomain",
+                "allowedDomainItems" : ["xbrl:conceptObject"]
             },
             {
-                "name": "xbrl:unitDomain"
+                "name": "xbrl:periodDomain",
+                "allowedDomainItems" : ["xs:dateTime", "xbrli:startEndDates", "xbrli:periodString"]
             },
             {
-                "name": "xbrl:entityDomain"
+                "name": "xbrl:unitDomain",
+                "allowedDomainItems" : ["xbrl:unitObject", "xbrli:unitString"]
+            },
+            {
+                "name": "xbrl:entityDomain",
+                "allowedDomainItems" : ["xbrl:entityObject", "xs:QName"]
             },
             {
                 "name": "xbrl:languageDomain"
@@ -500,6 +507,10 @@
                 "allowedObjects": [
                     "xbrl:unitObject"
                 ]
+            },
+            {
+                "name": "xbrl:iconLabel",
+                "dataType": "xbrli:emoji"
             }
         ],
         "labels" : [
@@ -779,6 +790,18 @@
                 "language": "en",
                 "relatedName": "xbrl:symbolLabel",
                 "value": "Label for a unit, when the unit is represented by a symbol."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrl:iconLabel",
+                "value": "Icon Label"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:iconLabel",
+                "value": "Label that can be used to associate images or emoji icons with different defined objects in the taxonomy. This label type uses the emoji datatype and can be applied to any taxonomy object to provide visual representation through icons, emoji, or image references."
             },
             {
                 "labelType": "xbrl:documentation",
