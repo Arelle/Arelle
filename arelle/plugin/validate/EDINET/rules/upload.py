@@ -25,6 +25,7 @@ from arelle.XmlValidateConst import VALID
 
 from ..Constants import JAPAN_LANGUAGE_CODES
 from ..DisclosureSystems import DISCLOSURE_SYSTEM_EDINET
+from ..FilingFormat import Ordinance, Taxonomy
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 from ..ReportFolderType import HTML_EXTENSIONS, IMAGE_EXTENSIONS, ReportFolderType
 
@@ -1100,6 +1101,44 @@ def rule_EC1031E(
                 line=elt.sourceline,
                 modelObject=elt,
             )
+
+
+@validation(
+    hook=ValidationHook.FILESOURCE,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC5032E(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5032E: A manifest file for an IFRS submission must not define multiple instances.
+    """
+    instances = pluginData.getManifestInstances()
+    instancesByManifest = defaultdict(list)
+    for instance in instances:
+        instancesByManifest[instance.path].append(instance)
+    for manifestPath, instances in instancesByManifest.items():
+        if len(instances) < 2:
+            continue
+        for instance in instances:
+            if instance.filingFormat is None:
+                continue
+            if (
+                    instance.filingFormat.ordinance == Ordinance.IFRS or
+                    Taxonomy.IFRS in instance.filingFormat.taxonomies
+            ):
+                yield Validation.error(
+                    codes='EDINET.EC5032E',
+                    msg=_("A manifest file for an IFRS submission defines multiple instances. "
+                          "File: '%(path)s'. "
+                          "If you use the IFRS taxonomy, please specify only one instance."),
+                    path=str(manifestPath),
+                )
+                break
 
 
 @validation(
