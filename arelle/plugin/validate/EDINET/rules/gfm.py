@@ -2130,22 +2130,11 @@ def rule_charsets(
     meta element for content type.
     """
     for modelDocument in val.modelXbrl.urlDocs.values():
-
         if pluginData.isStandardTaxonomyUrl(modelDocument.uri, val.modelXbrl):
             continue
 
-        xmlDeclaredEncoding = None
-        try:
-            with val.modelXbrl.fileSource.file(modelDocument.filepath)[0] as f:
-                fileContent = cast(str, f.read(512))
-            match = XmlUtil.xmlEncodingPattern.match(fileContent)
-            if match:
-                xmlDeclaredEncoding = match.group(1)
-        except Exception:
-            pass
-
         if modelDocument.type != ModelDocument.Type.INLINEXBRLDOCUMENTSET:
-            if xmlDeclaredEncoding is None or xmlDeclaredEncoding.lower() != 'utf-8':
+            if modelDocument.documentEncoding is None or modelDocument.documentEncoding.lower() not in ('utf-8', 'utf-8-sig'):
                 yield Validation.error(
                     codes='EDINET.EC5000E',
                     msg=_("The encoding is not UTF-8. "
@@ -2157,6 +2146,16 @@ def rule_charsets(
 
         if modelDocument.type != ModelDocument.Type.INLINEXBRL:
             continue
+
+        xmlDeclaredEncoding = None
+        try:
+            with val.modelXbrl.fileSource.file(modelDocument.filepath)[0] as f:
+                fileContent = cast(str, f.read(512))
+            match = XmlUtil.xmlEncodingPattern.match(fileContent)
+            if match:
+                xmlDeclaredEncoding = match.group(1)
+        except Exception:
+            pass
 
         if xmlDeclaredEncoding is None:
             yield Validation.warning(

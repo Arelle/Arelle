@@ -18,7 +18,6 @@
         </data>
         <result>
             <error>EDINET.EC1010E</error>
-            <error>EDINET.EC5000E</error> <!-- XML encoding declaration is also UTF-16 -->
         </result>
     </variation>
 </testcase>
