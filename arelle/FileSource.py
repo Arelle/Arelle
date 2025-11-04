@@ -567,7 +567,7 @@ class FileSource:
                     if encoding is None:
                         encoding = XmlUtil.encoding(b)
                     if stripDeclaration:
-                        b = stripDeclarationBytes(b)
+                        b = stripDeclarationBytes(b, encoding)
                     return (FileNamedTextIOWrapper(filepath, io.BytesIO(b), encoding=encoding),
                             encoding)
                 except KeyError as err:
@@ -584,7 +584,7 @@ class FileSource:
                     if encoding is None:
                         encoding = XmlUtil.encoding(b)
                     if stripDeclaration:
-                        b = stripDeclarationBytes(b)
+                        b = stripDeclarationBytes(b, encoding)
                     return (FileNamedTextIOWrapper(filepath, io.BytesIO(b), encoding=encoding),
                             encoding)
                 except KeyError as err:
@@ -917,7 +917,11 @@ def openXmlFileStream(
             text = stripDeclarationText(text)
         return (FileNamedStringIO(filepath, initial_value=text), encoding)
 
-def stripDeclarationBytes(xml: bytes) -> bytes:
+def stripDeclarationBytes(xml: bytes, encoding: str | None) -> bytes:
+    if encoding is not None and not encoding.lower().startswith('utf-8'):
+        text = xml.decode(encoding)
+        text = stripDeclarationText(text)
+        return text.encode(encoding)
     xmlStart = xml[0:120]
     indexOfDeclaration = xmlStart.find(b"<?xml")
     if indexOfDeclaration >= 0:

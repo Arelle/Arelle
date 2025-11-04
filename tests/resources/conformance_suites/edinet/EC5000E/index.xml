@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="EDINET.EC5000E"
+        description="EDINET.EC5000E: The encoding of the file must be UTF-8."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid01" name="invalid01">
+        <description>
+            A file has UTF-16 encoding.
+            <!--valid09.zip with a UTF-16 "jpcrp050300-esr-001_X99007-000_2025-04-10_01_2025-04-10_cal.xml" added and explicit declaration removed from schema.-->
+        </description>
+        <data>
+            <instance readMeFirst="true">invalid01.zip</instance>
+        </data>
+        <result>
+            <error>EDINET.EC5000E</error>
+        </result>
+    </variation>
+</testcase>

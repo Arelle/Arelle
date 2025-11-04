@@ -2125,14 +2125,26 @@ def rule_charsets(
 ) -> Iterable[Validation]:
     """
     EDINET.EC1010E: The charset specification in the content attribute of the HTML <meta> tag must be UTF-8.
+    EDINET.EC5000E: The encoding of the file must be UTF-8.
     EDINET.EC5700W: [GFM 1.10.4] The document encoding must be set in both the XML document declaration and the HTML
     meta element for content type.
     """
     for modelDocument in val.modelXbrl.urlDocs.values():
-        if modelDocument.type != ModelDocument.Type.INLINEXBRL:
+        if pluginData.isStandardTaxonomyUrl(modelDocument.uri, val.modelXbrl):
             continue
 
-        if pluginData.isStandardTaxonomyUrl(modelDocument.uri, val.modelXbrl):
+        if modelDocument.type != ModelDocument.Type.INLINEXBRLDOCUMENTSET:
+            if modelDocument.documentEncoding is None or modelDocument.documentEncoding.lower() not in ('utf-8', 'utf-8-sig'):
+                yield Validation.error(
+                    codes='EDINET.EC5000E',
+                    msg=_("The encoding is not UTF-8. "
+                          "File name: '%(path)s'. "
+                          "Please change the encoding of the relevant file to UTF-8."),
+                    path=modelDocument.uri,
+                    modelObject=modelDocument,
+                )
+
+        if modelDocument.type != ModelDocument.Type.INLINEXBRL:
             continue
 
         xmlDeclaredEncoding = None
