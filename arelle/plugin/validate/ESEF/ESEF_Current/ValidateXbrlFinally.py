@@ -311,8 +311,14 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                        "%(url)s: %(documentSets)s (Document files appear to be in multiple document sets)"),
                 modelObject=doc, documentSets=", ".join(sorted(ixdsDocDirs)), url=reportIncorrectlyPlacedInPackageRef)
         ixTargetUsage = val.authParam["ixTargetUsage"]
-        IXT_NAMESPACES = frozenset(
-            ns for ns in ixtNamespaces.values() if ns >= val.authParam["earliestTransformationRegistry"])
+        earliestTransformationRegistry = val.authParam["earliestTransformationRegistry"]
+        allowedTRnamespaces = set()
+        earliestTRnumber = ""
+        for key, ns in ixtNamespaces.items():
+            if ns == earliestTransformationRegistry:
+                earliestTRnumber = key[5:]
+            if ns >= earliestTransformationRegistry:
+                allowedTRnamespaces.add(ns)
         if modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET, ModelDocument.Type.UnknownXML):
             hiddenEltIds = {}
             presentedHiddenEltIds = defaultdict(list)
@@ -490,7 +496,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     elif isinstance(elt, ModelResource) and elt.qname == XbrlConst.qnLinkFootnote:
                         checkFootnote(elt, elt.value)
                     elif isinstance(elt, ModelInlineFact):
-                        if elt.format is not None and elt.format.namespaceURI not in IXT_NAMESPACES:
+                        if elt.format is not None and elt.format.namespaceURI not in allowedTRnamespaces:
                             transformRegistryErrors.add(elt)
                 ixHiddenFacts = set()
                 for ixHiddenElt in ixdsHtmlRootElt.iterdescendants(tag=ixNStag + "hidden"):
@@ -799,8 +805,8 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
 
         if transformRegistryErrors:
             modelXbrl.error("ESEF.2.2.3.incorrectTransformationRuleApplied",
-                              _("ESMA recommends applying the Transformation Rules Registry 4, as published by XBRL International or any more recent versions of the Transformation Rules Registry provided with a 'Recommendation' status, for these elements: %(elements)s."),
-                              modelObject=transformRegistryErrors,
+                              _("ESMA recommends applying the Transformation Rules Registry %(earliestTrNum)s, as published by XBRL International or any more recent versions of the Transformation Rules Registry provided with a 'Recommendation' status, for these elements: %(elements)s."),
+                              modelObject=transformRegistryErrors, earliestTrNum=earliestTRnumber,
                               elements=", ".join(sorted(str(fact.qname) for fact in transformRegistryErrors)))
 
         if orphanedFootnotes:

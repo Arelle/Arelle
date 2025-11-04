@@ -179,7 +179,7 @@
 		],
 		"earliestTransformationRegistry": "http://www.xbrl.org/inlineXBRL/transformation/2020-02-12"
     },
-	"ESEF-2025": {
+	"ESEF-2025-DRAFT": {
 	    "outdatedTaxonomyURLs": [
 	        "http://www.esma.europa.eu/taxonomy/2017-03-31/esef_cor.xsd",
 	        "https://www.esma.europa.eu/taxonomy/2017-03-31/esef_cor.xsd",
