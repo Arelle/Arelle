@@ -311,7 +311,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                        "%(url)s: %(documentSets)s (Document files appear to be in multiple document sets)"),
                 modelObject=doc, documentSets=", ".join(sorted(ixdsDocDirs)), url=reportIncorrectlyPlacedInPackageRef)
         ixTargetUsage = val.authParam["ixTargetUsage"]
-        earliestTransformationRegistry = val.authParam["earliestTransformationRegistry"]
+        earliestTransformationRegistry = val.authParam.get("earliestTransformationRegistry","zzzz")
         allowedTRnamespaces = set()
         earliestTRnumber = ""
         for key, ns in ixtNamespaces.items():
