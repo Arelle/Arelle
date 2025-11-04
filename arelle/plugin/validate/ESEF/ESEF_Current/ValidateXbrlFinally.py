@@ -15,6 +15,7 @@ import tinycss2.ast  # type: ignore[import-untyped]
 from lxml.etree import _Comment, _Element, _ElementTree, _Entity, _ProcessingInstruction
 
 from arelle import LeiUtil, ModelDocument, XbrlConst
+from arelle.FunctionIxt import ixtNamespaces
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelDtsObject import ModelResource
 from arelle.ModelInstanceObject import ModelContext
@@ -56,7 +57,6 @@ from .DTS import checkFilingDTS
 from ..Const import (
     DefaultDimensionLinkroles,
     FOOTNOTE_LINK_CHILDREN,
-    IXT_NAMESPACES,
     LineItemsNotQualifiedLinkroles,
     PERCENT_TYPES, datetimePattern,
     docTypeXhtmlPattern,
@@ -311,6 +311,8 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                        "%(url)s: %(documentSets)s (Document files appear to be in multiple document sets)"),
                 modelObject=doc, documentSets=", ".join(sorted(ixdsDocDirs)), url=reportIncorrectlyPlacedInPackageRef)
         ixTargetUsage = val.authParam["ixTargetUsage"]
+        IXT_NAMESPACES = frozenset(
+            ns for ns in ixtNamespaces.values() if ns >= val.authParam["earliestTransformationRegistry"])
         if modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET, ModelDocument.Type.UnknownXML):
             hiddenEltIds = {}
             presentedHiddenEltIds = defaultdict(list)

@@ -133,7 +133,8 @@ class Validate:
                 self.modelXbrl.error("exception:" + type(err).__name__,
                     _("Instance validation exception: %(error)s, instance: %(instance)s"),
                     modelXbrl=self.modelXbrl,
-                    instance=self.modelXbrl.modelDocument.basename, error=err,
+                    instance=self.modelXbrl.modelDocument.basename if hasattr(self.modelXbrl, "modelDocument") and hasattr(self.modelXbrl.modelDocument, "basename") else "(closed)",
+                    error=err,
                     # traceback=traceback.format_tb(sys.exc_info()[2]),
                     exc_info=(type(err) is not AssertionError))
         self.close()
