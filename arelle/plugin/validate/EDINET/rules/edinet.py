@@ -4,8 +4,9 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 from collections import defaultdict
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 import regex
 import unicodedata
@@ -23,10 +24,12 @@ from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
+from arelle.utils.validate.ValidationUtil import hasPresentationalConceptsWithFacts
 from ..Constants import AccountingStandard, HALF_KANA, JAPAN_LANGUAGE_CODES, REPORT_ELR_URI_PATTERN, REPORT_ELR_ID_PATTERN
 from ..ControllerPluginData import ControllerPluginData
 from ..DeiRequirements import DeiItemStatus
-from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
+from ..DisclosureSystems import DISCLOSURE_SYSTEM_EDINET
+from ..FilingFormat import DocumentType
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 from ..ReportFolderType import ReportFolderType
 from ..Statement import StatementType
@@ -979,3 +982,38 @@ def rule_EC8076W(
                 codes='EDINET.EC8076W',
                 msg=_('"Issued Shares, Total Number of Shares, etc. [Text Block]" (IssuedSharesTotalNumberOfSharesEtcTextBlock) is not tagged.'),
             )
+
+
+@validation(
+    hook=ValidationHook.COMPLETE,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8038W(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8038W: The details of the major shareholders' status have not been tagged.
+    Should have facts in one of the major shareholders roles.
+    """
+    if not pluginData.hasDocumentType({DocumentType.ANNUAL_SECURITIES_REPORT, DocumentType.SEMI_ANNUAL_REPORT}):
+        return
+
+    roleUris = (
+        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_MajorShareholders-01',
+        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_MajorShareholders-02',
+        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_MajorShareholders-01',
+        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_MajorShareholders-02',
+    )
+    for modelXbrl in pluginData.loadedModelXbrls:
+        if hasPresentationalConceptsWithFacts(modelXbrl, roleUris):
+            return
+
+    yield Validation.warning(
+        codes='EDINET.EC8038W',
+        msg=_("The details of the major shareholders' status have not been tagged. "
+              "Please provide detailed tagging of the status of major shareholders."),
+    )
