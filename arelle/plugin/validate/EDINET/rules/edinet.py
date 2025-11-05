@@ -1017,3 +1017,52 @@ def rule_EC8038W(
         msg=_("The details of the major shareholders' status have not been tagged. "
               "Please provide detailed tagging of the status of major shareholders."),
     )
+
+
+@validation(
+    hook=ValidationHook.COMPLETE,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8039W(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8039W: The consolidated balance sheet details have not been tagged.
+    If WhetherConsolidatedFinancialStatementsArePreparedDEI is TRUE and AccountingStandardsDEI is "Japan GAAP",
+    then a BS must exist using one of the specified roles.
+    """
+    if not pluginData.hasDocumentType({DocumentType.ANNUAL_SECURITIES_REPORT, DocumentType.SEMI_ANNUAL_REPORT}):
+        return
+
+    if pluginData.isConsolidated() != True:
+        return
+    accountingStandard = pluginData.getDeiValue('AccountingStandardsDEI')
+    if accountingStandard != AccountingStandard.JAPAN_GAAP.value:
+        return
+
+    roleUris = (
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_ConsolidatedBalanceSheet',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_ConsolidatedBalanceSheet',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualConsolidatedBalanceSheet',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualConsolidatedBalanceSheet',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualConsolidatedBalanceSheet',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_Type1SemiAnnualConsolidatedBalanceSheet',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_QuarterlyConsolidatedBalanceSheet',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_QuarterlyConsolidatedBalanceSheet',
+    )
+
+    for modelXbrl in pluginData.loadedModelXbrls:
+        if hasPresentationalConceptsWithFacts(modelXbrl, roleUris):
+            return
+
+    yield Validation.warning(
+        codes='EDINET.EC8039W',
+        msg=_("The consolidated balance sheet details have not been tagged. "
+              "Please provide detailed tagging of the consolidated balance sheet. "
+              "If you do not provide a consolidated balance sheet, please confirm that "
+              'the "Consolidated Financial Statements" field in the DEI information is correct.'),
+    )

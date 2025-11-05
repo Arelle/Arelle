@@ -3,21 +3,20 @@
 <testcase
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns="http://xbrl.org/2005/conformance"
-        name="EDINET.EC5623W"
-        description="EDINET.EC5623W: Instances using IFRS taxonomies must set the DEI 'Accounting Standard'' value to 'IFRS'."
+        name="EDINET.EC8039W"
+        description="EDINET.EC8039W: The consolidated balance sheet details have not been tagged."
         outpath=''
         owner="support@arelle.org"
         xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
     <variation id="invalid01" name="invalid01">
         <description>
-            The instance imports the IFRS taxonomy but has AccountingStandardsDEI set to "Japan GAAP".
-            <!--valid03.zip with AccountingStandardsDEI "IFRS" -> "Japan GAAP".-->
+            Consolidated=true, Japan GAAP, but no consolidated balance sheet roles.
+            <!--Based on valid06.zip-->
         </description>
         <data>
             <instance readMeFirst="true">invalid01.zip</instance>
         </data>
         <result>
-            <warning>EDINET.EC5623W</warning>
             <warning>EDINET.EC8015W</warning> <!-- from base sample filing -->
             <warning>EDINET.EC8039W</warning>
         </result>
