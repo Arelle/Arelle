@@ -41,10 +41,12 @@ VALID_EXPECTED_ERRORS = {
         "EDINET.EC1004E": 1,
         "EDINET.EC2002W": 3,
         "EDINET.EC8038W": 1,
+        "EDINET.EC8042W": 1,
     },
     "valid/index.xml:valid12": {
         "EDINET.EC2002W": 1,
         "EDINET.EC8038W": 1,
+        "EDINET.EC8042W": 1,
     },
     "valid/index.xml:valid20": {
         "EDINET.EC2002W": 1,
@@ -57,6 +59,7 @@ VALID_EXPECTED_ERRORS = {
         "EDINET.EC1004E": 1,
         "EDINET.EC2002W": 3,
         "EDINET.EC8038W": 1,
+        "EDINET.EC8042W": 1,
     },
     "valid/index.xml:valid22": {
         # Appears to be two sets of cover page facts, not sure how it's valid.
@@ -64,6 +67,7 @@ VALID_EXPECTED_ERRORS = {
         "EDINET.EC1004E": 1,
         "EDINET.EC2002W": 3,
         "EDINET.EC8038W": 1,
+        "EDINET.EC8042W": 1,
     },
 }
 
@@ -176,6 +180,7 @@ INVALID_TESTCASE_PARENTS = {
     "EC8039W/index.xml:invalid01": "valid/index.xml:valid06",
     "EC8040W/index.xml:invalid01": "valid/index.xml:valid05",
     "EC8041W/index.xml:invalid01": "valid/index.xml:valid06",
+    "EC8042W/index.xml:invalid01": "valid/index.xml:valid05",
     "EC8054W/index.xml:invalid01": "valid/index.xml:valid05",
     "EC8057W/index.xml:invalid01": "valid/index.xml:valid04",
     "EC8058W/index.xml:invalid01": "valid/index.xml:valid03",
