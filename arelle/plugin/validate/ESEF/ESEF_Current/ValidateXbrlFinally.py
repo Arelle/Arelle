@@ -15,7 +15,7 @@ import tinycss2.ast  # type: ignore[import-untyped]
 from lxml.etree import _Comment, _Element, _ElementTree, _Entity, _ProcessingInstruction
 
 from arelle import LeiUtil, ModelDocument, XbrlConst
-from arelle.FunctionIxt import ixtNamespaces
+from arelle.FunctionIxt import ixtNamespaces, TRnumber
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelDtsObject import ModelResource
 from arelle.ModelInstanceObject import ModelContext
@@ -70,7 +70,6 @@ from ..Const import (
 )
 from ..Dimensions import checkFilingDimensions
 from ..Util import checkForMultiLangDuplicates, getEsefNotesStatementConcepts, isExtension, getDisclosureSystemYear
-from _ast import Or
 
 _: TypeGetText  # Handle gettext
 
@@ -317,10 +316,10 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
         allowedTRnamespaces = set()
         earliestTRnumber = ""
         for key, ns in ixtNamespaces.items():
-            if ns == earliestTransformationRegistry:
-                earliestTRnumber = key[5:]
             if ns >= earliestTransformationRegistry:
                 allowedTRnamespaces.add(ns)
+            if ns == earliestTransformationRegistry:
+                earliestTRnumber = TRnumber[ns]
         if modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET, ModelDocument.Type.UnknownXML):
             hiddenEltIds = {}
             presentedHiddenEltIds = defaultdict(list)
@@ -700,13 +699,17 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 if esefDisclosureSystemYear >= 2024:
                     if not f.id:
                         factsMissingId.append(f)
-                    if isinstance(f, ModelInlineFact) and f.concept is not None and (
-                        (esefDisclosureSystemYear == 2024 and f.isEscaped != f.concept.isTextBlock) or
-                        (esefDisclosureSystemYear >= 2025 and (not f.isEscaped and 
-                            (f.concept.isTextBlock or (f.value and escapeWorthyStr.match(f.value)))))):
-                        modelXbrl.error("ESEF.2.2.7.improperApplicationOfEscapeAttribute",
-                                          _("Facts with datatype 'dtr-types:textBlockItemType' MUST use the 'escape' attribute set to 'true'. Facts with any other datatype MUST use the 'escape' attribute set to 'false' - fact %(conceptName)s"),
-                                          modelObject=f, conceptName=f.concept.qname)
+                    if isinstance(f, ModelInlineFact) and f.concept is not None and esefDisclosureSystemYear >= 2024:
+                        if esefDisclosureSystemYear == 2024:
+                            hasEscapeIssue = f.isEscaped != f.concept.isTextBlock
+                        elif esefDisclosureSystemYear >= 2025:
+                            hasEscapeIssue = not f.isEscaped and (
+                                f.concept.isTextBlock or 
+                                (f.value and escapeWorthyStr.match(f.value)))
+                        if hasEscapeIssue:
+                            modelXbrl.error("ESEF.2.2.7.improperApplicationOfEscapeAttribute",
+                                              _("Facts with datatype 'dtr-types:textBlockItemType' MUST use the 'escape' attribute set to 'true'. Facts with any other datatype MUST use the 'escape' attribute set to 'false' - fact %(conceptName)s"),
+                                              modelObject=f, conceptName=f.concept.qname)
                     if f.effectiveValue in ["0", "-0"] and f.xValue != 0:
                         modelXbrl.warning("ESEF.2.2.5.roundedValueBelowScaleNotNull",
                                           _("A value that has been rounded and is below the scale should show a value of zero. It has been found to have the value %(value)s - fact %(conceptName)s"),

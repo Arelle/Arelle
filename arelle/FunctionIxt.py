@@ -1262,6 +1262,8 @@ ixtNamespaces = {
     "ixt v5": 'http://www.xbrl.org/inlineXBRL/transformation/2022-02-16',
     }
 
+TRnumber = dict((ixtNs, f"TR{ixtKey[5:]}") for ixtKey, ixtNs in ixtNamespaces.items())
+
 ixtNamespaceFunctions = {
     ixtNamespaces["ixt v1"]: tr1Functions, # transformation registry v1
     ixtNamespaces["ixt v2"]: tr2Functions, # transformation registry v2
