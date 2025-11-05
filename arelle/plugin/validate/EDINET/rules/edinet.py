@@ -1112,3 +1112,54 @@ def rule_EC8040W(
         codes='EDINET.EC8040W',
         msg=_("Balance sheet details not tagged. Please tag the balance sheet in detail."),
     )
+
+
+@validation(
+    hook=ValidationHook.COMPLETE,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8041W(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8041W: The consolidated income statement has not been tagged in detail.
+    If WhetherConsolidatedFinancialStatementsArePreparedDEI is TRUE and AccountingStandardsDEI is "Japan GAAP",
+    then an IS must exist using one of the specified roles.
+    """
+    if not pluginData.hasDocumentType({DocumentType.ANNUAL_SECURITIES_REPORT, DocumentType.SEMI_ANNUAL_REPORT}):
+        return
+
+    if pluginData.isConsolidated() != True:
+        return
+    accountingStandard = pluginData.getDeiValue('AccountingStandardsDEI')
+    if accountingStandard != AccountingStandard.JAPAN_GAAP.value:
+        return
+
+    roleUris = (
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_ConsolidatedStatementOfIncome',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_ConsolidatedStatementOfIncome',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualConsolidatedStatementOfIncome',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualConsolidatedStatementOfIncome',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualConsolidatedStatementOfIncome',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_Type1SemiAnnualConsolidatedStatementOfIncome',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_YearToQuarterEndConsolidatedStatementOfIncome',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_YearToQuarterEndConsolidatedStatementOfIncome',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_QuarterPeriodConsolidatedStatementOfIncome',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_QuarterPeriodConsolidatedStatementOfIncome',
+    )
+
+    for modelXbrl in pluginData.loadedModelXbrls:
+        if hasPresentationalConceptsWithFacts(modelXbrl, roleUris):
+            return
+
+    yield Validation.warning(
+        codes='EDINET.EC8041W',
+        msg=_("The consolidated income statement has not been tagged in detail. "
+              "Please provide detailed tagging for the consolidated income statement. "
+              "If you do not provide a consolidated income statement, please confirm that "
+              'the "Consolidated Financial Statements" field in the DEI information is correct.'),
+    )
