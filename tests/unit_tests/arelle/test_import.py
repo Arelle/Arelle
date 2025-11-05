@@ -29,6 +29,7 @@ IGNORE_MODULE_PREFIXES = (
     'arelle.plugin.validate.DQC',
     'arelle.plugin.validate.eforms',
     'arelle.plugin.validate.ESEF-DQC',
+    'arelle.plugin.xbrlus',
     'arelle.plugin.xendr',
     'arelle.plugin.Xince',
     'arelle.plugin.xodel',
