@@ -15,7 +15,7 @@ from arelle.HtmlUtil import attrValue
 from arelle.LinkbaseType import LinkbaseType
 from arelle.ModelDtsObject import ModelConcept, ModelResource
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFootnote
-from arelle.ModelObject import ModelObject
+from arelle.ModelObject import ModelObject, ModelComment
 from arelle.ModelValue import QName
 from arelle.PrototypeDtsObject import LocPrototype, ArcPrototype
 from arelle.UrlUtil import isHttpUrl, splitDecodeFragment
@@ -29,7 +29,7 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.Units import getDuplicateUnitGroups
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
-from ..Constants import JAPAN_LANGUAGE_CODES, NUMERIC_LABEL_ROLES, domainItemTypeQname, LC3_NAME_PATTERN
+from ..Constants import JAPAN_LANGUAGE_CODES, NUMERIC_LABEL_ROLES, domainItemTypeQname, LC3_NAME_PATTERN, HALF_KANA
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
@@ -2126,6 +2126,7 @@ def rule_charsets(
     """
     EDINET.EC1010E: The charset specification in the content attribute of the HTML <meta> tag must be UTF-8.
     EDINET.EC5000E: The encoding of the file must be UTF-8.
+    EDINET.EC5003E: Prohibited characters must not be used.
     EDINET.EC5700W: [GFM 1.10.4] The document encoding must be set in both the XML document declaration and the HTML
     meta element for content type.
     """
@@ -2142,6 +2143,28 @@ def rule_charsets(
                           "Please change the encoding of the relevant file to UTF-8."),
                     path=modelDocument.uri,
                     modelObject=modelDocument,
+                )
+
+        # TODO: Consolidate wtih NL.FR-NL-1.02
+        for elt in modelDocument.xmlRootElement.iter():
+            if isinstance(elt, ModelComment):
+                texts = [getattr(elt, 'text')]
+            else:
+                texts = [elt.elementAttributesStr, elt.textValue]
+            illegalChars: set[str] = set()
+            for text in texts:
+                illegalChars.update(HALF_KANA.intersection(set(text)))
+            if len(illegalChars) > 0:
+                yield Validation.error(
+                    codes='EDINET.EC5003E',
+                    msg=_("Prohibited characters (%(chars)s) are used. "
+                          "File name: '%(file)s' (line %(line)s). "
+                          "The file in question contains prohibited characters. "
+                          "Please correct the prohibited characters. "),
+                    chars=', '.join(sorted(illegalChars)),
+                    file=modelDocument.basename,
+                    line=elt.sourceline,
+                    modelObject=elt,
                 )
 
         if modelDocument.type != ModelDocument.Type.INLINEXBRL:
