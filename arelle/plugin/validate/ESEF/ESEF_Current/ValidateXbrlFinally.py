@@ -70,10 +70,12 @@ from ..Const import (
 )
 from ..Dimensions import checkFilingDimensions
 from ..Util import checkForMultiLangDuplicates, getEsefNotesStatementConcepts, isExtension, getDisclosureSystemYear
+from _ast import Or
 
 _: TypeGetText  # Handle gettext
 
 ifrsNsPattern = re.compile(r"https?://xbrl.ifrs.org/taxonomy/[0-9-]{10}/ifrs-full")
+escapeWorthyStr = re.compile(r".*[<&]")
 
 
 def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
@@ -698,7 +700,10 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 if esefDisclosureSystemYear >= 2024:
                     if not f.id:
                         factsMissingId.append(f)
-                    if isinstance(f, ModelInlineFact) and f.concept is not None and f.isEscaped != f.concept.isTextBlock:
+                    if isinstance(f, ModelInlineFact) and f.concept is not None and (
+                        (esefDisclosureSystemYear == 2024 and f.isEscaped != f.concept.isTextBlock) or
+                        (esefDisclosureSystemYear >= 2025 and (not f.isEscaped and 
+                            (f.concept.isTextBlock or (f.value and escapeWorthyStr.match(f.value)))))):
                         modelXbrl.error("ESEF.2.2.7.improperApplicationOfEscapeAttribute",
                                           _("Facts with datatype 'dtr-types:textBlockItemType' MUST use the 'escape' attribute set to 'true'. Facts with any other datatype MUST use the 'escape' attribute set to 'false' - fact %(conceptName)s"),
                                           modelObject=f, conceptName=f.concept.qname)
