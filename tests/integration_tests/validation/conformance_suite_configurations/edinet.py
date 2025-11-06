@@ -182,6 +182,7 @@ INVALID_TESTCASE_PARENTS = {
     "EC8041W/index.xml:invalid01": "valid/index.xml:valid06",
     "EC8042W/index.xml:invalid01": "valid/index.xml:valid05",
     "EC8043W/index.xml:invalid01": "valid/index.xml:valid12",
+    "EC8044W/index.xml:invalid01": "valid/index.xml:valid06",
     "EC8054W/index.xml:invalid01": "valid/index.xml:valid05",
     "EC8057W/index.xml:invalid01": "valid/index.xml:valid04",
     "EC8058W/index.xml:invalid01": "valid/index.xml:valid03",
