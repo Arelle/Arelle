@@ -17,7 +17,9 @@ from arelle.Cntlr import Cntlr
 from arelle.FileSource import FileSource
 from arelle.LinkbaseType import LinkbaseType
 from arelle.ModelDtsObject import ModelResource, ModelConcept
-from arelle.ModelValue import QName
+from arelle.ModelRelationshipSet import ModelRelationshipSet
+from arelle.ModelValue import QName, qname
+from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateDuplicateFacts import DuplicateType
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
@@ -1547,4 +1549,181 @@ def rule_EC8049W(
               "Please provide detailed tagging for the cash flow statement. "
               "If you do not provide a cash flow statement, please provide the DEI information with "
               '"Whether or not consolidated financial statements are provided."'),
+    )
+
+
+@validation(
+    hook=ValidationHook.COMPLETE,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8050W(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8050W: Segment information is not tagged in detail.
+    Based on AccountingStandardsDEI, segment information with ReportableSegmentsMember must exist.
+    """
+    if not pluginData.hasDocumentType({DocumentType.ANNUAL_SECURITIES_REPORT, DocumentType.SEMI_ANNUAL_REPORT, }):
+        return
+
+    accountingStandard = pluginData.getDeiValue('AccountingStandardsDEI')
+    if accountingStandard == AccountingStandard.JAPAN_GAAP.value:
+        roleUris: tuple[str, ...] = (
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcType1SemiAnnualFinancialStatements-01',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcType1SemiAnnualFinancialStatements-02',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcType1SemiAnnualFinancialStatements-03',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcType1SemiAnnualConsolidatedFinancialStatements-01',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcType1SemiAnnualConsolidatedFinancialStatements-02',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcType1SemiAnnualConsolidatedFinancialStatements-03',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualFinancialStatements-01',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualFinancialStatements-02',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualFinancialStatements-03',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualFinancialStatements-04',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualFinancialStatements-05',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualFinancialStatements-06',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualFinancialStatements-07',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualFinancialStatements-08',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualFinancialStatements-09',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-01',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-02',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-03',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-04',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-05',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-06',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-07',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-08',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-09',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcQuarterlyFinancialStatements-01',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcQuarterlyFinancialStatements-02',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcQuarterlyFinancialStatements-03',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcQuarterlyConsolidatedFinancialStatements-01',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcQuarterlyConsolidatedFinancialStatements-02',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcQuarterlyConsolidatedFinancialStatements-03',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcFinancialStatements-01',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcFinancialStatements-02',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcFinancialStatements-03',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcFinancialStatements-04',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcFinancialStatements-05',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcFinancialStatements-06',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcFinancialStatements-07',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcFinancialStatements-08',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcFinancialStatements-09',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcConsolidatedFinancialStatements-01',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcConsolidatedFinancialStatements-02',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcConsolidatedFinancialStatements-03',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcConsolidatedFinancialStatements-04',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcConsolidatedFinancialStatements-05',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcConsolidatedFinancialStatements-06',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcConsolidatedFinancialStatements-07',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcConsolidatedFinancialStatements-08',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcConsolidatedFinancialStatements-09',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcType1SemiAnnualFinancialStatements-01',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcType1SemiAnnualFinancialStatements-02',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcType1SemiAnnualFinancialStatements-03',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcType1SemiAnnualConsolidatedFinancialStatements-01',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcType1SemiAnnualConsolidatedFinancialStatements-02',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcType1SemiAnnualConsolidatedFinancialStatements-03',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualFinancialStatements-01',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualFinancialStatements-02',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualFinancialStatements-03',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualFinancialStatements-04',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualFinancialStatements-05',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualFinancialStatements-06',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualFinancialStatements-07',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualFinancialStatements-08',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualFinancialStatements-09',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-01',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-02',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-03',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-04',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-05',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-06',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-07',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-08',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-09',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcQuarterlyFinancialStatements-01',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcQuarterlyFinancialStatements-02',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcQuarterlyFinancialStatements-03',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcQuarterlyConsolidatedFinancialStatements-01',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcQuarterlyConsolidatedFinancialStatements-02',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcQuarterlyConsolidatedFinancialStatements-03',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcFinancialStatements-01',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcFinancialStatements-02',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcFinancialStatements-03',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcFinancialStatements-04',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcFinancialStatements-05',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcFinancialStatements-06',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcFinancialStatements-07',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcFinancialStatements-08',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcFinancialStatements-09',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcConsolidatedFinancialStatements-01',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcConsolidatedFinancialStatements-02',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcConsolidatedFinancialStatements-03',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcConsolidatedFinancialStatements-04',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcConsolidatedFinancialStatements-05',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcConsolidatedFinancialStatements-06',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcConsolidatedFinancialStatements-07',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcConsolidatedFinancialStatements-08',
+            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcConsolidatedFinancialStatements-09',
+        )
+    elif accountingStandard == AccountingStandard.IFRS.value:
+        roleUris = (
+            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_std_NotesSegmentInformationConsolidatedFinancialStatementsIFRS-01',
+            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_std_NotesSegmentInformationConsolidatedFinancialStatementsIFRS-02',
+            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_std_NotesSegmentInformationConsolidatedFinancialStatementsIFRS-03',
+            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationFinancialStatementsIFRS-01',
+            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationFinancialStatementsIFRS-02',
+            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationFinancialStatementsIFRS-03',
+            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationConsolidatedFinancialStatementsIFRS-01',
+            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationConsolidatedFinancialStatementsIFRS-02',
+            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationConsolidatedFinancialStatementsIFRS-03',
+            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationCondensedSemiAnnualFinancialStatementsIFRS-01',
+            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationCondensedSemiAnnualFinancialStatementsIFRS-02',
+            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationCondensedSemiAnnualFinancialStatementsIFRS-03',
+            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationCondensedSemiAnnualConsolidatedFinancialStatementsIFRS-01',
+            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationCondensedSemiAnnualConsolidatedFinancialStatementsIFRS-02',
+            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationCondensedSemiAnnualConsolidatedFinancialStatementsIFRS-03',
+            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationCondensedQuarterlyFinancialStatementsIFRS-01',
+            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationCondensedQuarterlyFinancialStatementsIFRS-02',
+            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationCondensedQuarterlyFinancialStatementsIFRS-03',
+            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationCondensedQuarterlyConsolidatedFinancialStatementsIFRS-01',
+            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationCondensedQuarterlyConsolidatedFinancialStatementsIFRS-02',
+            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationCondensedQuarterlyConsolidatedFinancialStatementsIFRS-03',
+        )
+    else:
+        return
+
+    reportableSegmentsMemberQn = qname(pluginData.jpcrpNamespace, "ReportableSegmentsMember")
+
+    def _getConceptAndDescendantQNames(
+            modelXbrl: ModelXbrl,
+            concept: ModelConcept,
+            relSet: ModelRelationshipSet,
+    ) -> Iterable[QName]:
+        # This is crude (doesn't handle target roles), but appears to be good enough for EDINET.
+        if concept.qname is None:
+            return
+        yield concept.qname
+        for rel in relSet.fromModelObject(concept):
+            if isinstance(rel.toModelObject, ModelConcept):
+                yield from _getConceptAndDescendantQNames(modelXbrl, rel.toModelObject, relSet)
+
+    for modelXbrl in pluginData.loadedModelXbrls:
+        reportableSegmentsMember = modelXbrl.qnameConcepts.get(reportableSegmentsMemberQn)
+        if reportableSegmentsMember is None:
+            continue
+        for roleUri in roleUris:
+            domainMemberRelSet = modelXbrl.relationshipSet(XbrlConst.domainMember, roleUri)
+            members = set(_getConceptAndDescendantQNames(modelXbrl, reportableSegmentsMember, domainMemberRelSet))
+            if members and hasPresentationalConceptsWithFacts(modelXbrl, [roleUri], members):
+                return
+
+    yield Validation.warning(
+        codes='EDINET.EC8050W',
+        msg=_("Segment information is not tagged in detail. "
+              "Please provide detailed tagging of segment information."),
     )

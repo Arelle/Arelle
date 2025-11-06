@@ -48,6 +48,7 @@ class ControllerPluginData(PluginData):
         self._tocBuilder = TableOfContentsBuilder()
         self._usedFilepaths = set()
         self._uploadContents = None
+        self.jpcrpNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpcrp/2024-11-01/jpcrp_cor'
 
     def __hash__(self) -> int:
         return id(self)
