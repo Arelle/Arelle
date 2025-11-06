@@ -1815,3 +1815,48 @@ def rule_EC8063W(
         msg=_("The statement of financial position has not been tagged in detail. "
               "Please provide detailed tagging of the statement of financial position."),
     )
+
+
+@validation(
+    hook=ValidationHook.COMPLETE,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8065W(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8065W: The consolidated statement of comprehensive income has not been tagged in detail.
+    If AccountingStandardsDEI = "IFRS" and WhetherConsolidatedFinancialStatementsArePreparedDEI = "true",
+    then a section must exist using one of the specified roles.
+    """
+    if not pluginData.hasDocumentType({DocumentType.ANNUAL_SECURITIES_REPORT, DocumentType.SEMI_ANNUAL_REPORT}):
+        return
+
+    if pluginData.isConsolidated() != True:
+        return
+    accountingStandard = pluginData.getDeiValue('AccountingStandardsDEI')
+    if accountingStandard != AccountingStandard.IFRS.value:
+        return
+
+    roleUris = (
+        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_ConsolidatedStatementOfComprehensiveIncomeSingleStatementIFRS',
+        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualConsolidatedStatementOfComprehensiveIncomeSingleStatementIFRS',
+        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedYearToQuarterEndConsolidatedStatementOfComprehensiveIncomeSingleStatementIFRS',
+        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedQuarterPeriodConsolidatedStatementOfComprehensiveIncomeSingleStatementIFRS',
+    )
+
+    for modelXbrl in pluginData.loadedModelXbrls:
+        if hasPresentationalConceptsWithFacts(modelXbrl, roleUris):
+            return
+
+    yield Validation.warning(
+        codes='EDINET.EC8065W',
+        msg=_("The consolidated statement of comprehensive income has not been tagged in detail. "
+              "Please provide detailed tagging for the consolidated statement of comprehensive income. "
+              "If you do not provide a consolidated statement of comprehensive income, please confirm that "
+              'the "Consolidated Financial Statements" field in the DEI information is correct.'),
+    )

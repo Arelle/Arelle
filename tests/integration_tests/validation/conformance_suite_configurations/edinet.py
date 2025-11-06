@@ -19,6 +19,7 @@ VALID_EXPECTED_ERRORS = {
         "EDINET.EC5700W.GFM.1.8.4": 2,
         "EDINET.EC8023W": 2,
         "EDINET.EC8027W": 1,
+        "EDINET.EC8065W": 1,
     },
     "valid/index.xml:valid04": {
         "EDINET.EC2002W": 2,
@@ -98,7 +99,6 @@ INVALID_TESTCASE_PARENTS = {
     "EC5032E/index.xml:invalid01": "valid/index.xml:valid05",
     "EC5602R/index.xml:invalid01": "valid/index.xml:valid09",
     "EC5602R/index.xml:invalid02": "valid/index.xml:valid12",
-    "EC5623W/index.xml:invalid01": "valid/index.xml:valid03",
     "EC5700W.GFM.1.10.14/index.xml:invalid01": "valid/index.xml:valid05",
     "EC5700W.GFM.1.1.7/index.xml:invalid01": "valid/index.xml:valid05",
     "EC5700W.GFM.1.2.10/index.xml:invalid01": "valid/index.xml:valid05",
@@ -210,7 +210,6 @@ INVALID_TESTCASE_PARENTS = {
     "EC8060E/index.xml:invalid01": "valid/index.xml:valid04",
     "EC8061W/index.xml:invalid01": "valid/index.xml:valid03",
     "EC8062W/index.xml:invalid01": "valid/index.xml:valid03",
-    "EC8063W/index.xml:invalid01": "valid/index.xml:valid03",
     "EC8073E/index.xml:invalid01": "valid/index.xml:valid03",
     "EC8073W/index.xml:invalid01": "valid/index.xml:valid03",
     "EC8075W/index.xml:invalid01": "valid/index.xml:valid02",
