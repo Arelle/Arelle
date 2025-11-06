@@ -24,6 +24,7 @@
             <warning>EDINET.EC5700W.GFM.1.3.29</warning>
             <warning>EDINET.EC5700W.GFM.1.3.29</warning>
             <warning>EDINET.EC8015W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8050W</warning> <!-- from base sample filing -->
         </result>
     </variation>
 </testcase>

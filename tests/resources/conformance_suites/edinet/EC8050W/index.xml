@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="EDINET.EC8050W"
+        description="EDINET.EC8050W: Segment information is not tagged in detail."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid01" name="invalid01">
+        <description>
+            Accounting standard set to Japan GAAP, but no segment information with ReportableSegmentsMember.
+            <!--Based on valid05.zip-->
+        </description>
+        <data>
+            <instance readMeFirst="true">invalid01.zip</instance>
+        </data>
+        <result>
+            <warning>EDINET.EC8043W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8045W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8050W</warning>
+        </result>
+    </variation>
+    <variation id="invalid02" name="invalid02">
+        <description>
+            Accounting standard set to IFRS, but no segment information with ReportableSegmentsMember.
+            <!--Based on valid03.zip-->
+        </description>
+        <data>
+            <instance readMeFirst="true">invalid02.zip</instance>
+        </data>
+        <result>
+            <warning>EDINET.EC8015W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8050W</warning>
+            <warning>EDINET.EC8065W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8067W</warning> <!-- from base sample filing -->
+        </result>
+    </variation>
+</testcase>

@@ -28,6 +28,8 @@
             <warning>EDINET.EC5700W.GFM.1.8.1</warning>
             <warning>EDINET.EC5700W.GFM.1.8.1</warning>
             <warning>EDINET.EC5700W.GFM.1.8.1</warning>
+            <warning>EDINET.EC8043W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8045W</warning> <!-- from base sample filing -->
         </result>
     </variation>
 </testcase>

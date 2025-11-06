@@ -18,6 +18,7 @@
         </data>
         <result>
             <warning>EDINET.EC8015W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8050W</warning> <!-- from base sample filing -->
             <warning>EDINET.EC8057W</warning>
         </result>
     </variation>

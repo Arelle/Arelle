@@ -20,6 +20,7 @@
             <warning>EDINET.EC5700W.GFM.1.3.22</warning>
             <warning num="2">EDINET.EC5700W.GFM.2.3.5</warning> <!-- concepts with invalid names introduced -->
             <warning>EDINET.EC8015W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8050W</warning> <!-- from base sample filing -->
         </result>
     </variation>
 </testcase>

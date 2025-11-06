@@ -17,6 +17,8 @@
         </data>
         <result blockedMessageCodes="^xbrl\.3\.5\.1\.1:simpleLinkType">
             <warning>EDINET.EC5700W.GFM.1.3.8</warning>
+            <warning>EDINET.EC8043W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8045W</warning> <!-- from base sample filing -->
         </result>
     </variation>
 </testcase>

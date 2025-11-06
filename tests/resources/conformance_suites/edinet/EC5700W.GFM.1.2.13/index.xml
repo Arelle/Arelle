@@ -18,6 +18,8 @@
         <result>
             <warning>EDINET.EC5700W.GFM.1.2.13</warning>
             <error>EDINET.EC1002E</error> <!--NameOfContactPersonNearestPlaceOfContactCoverPage duplicated.-->
+            <warning>EDINET.EC8043W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8045W</warning> <!-- from base sample filing -->
         </result>
     </variation>
 </testcase>

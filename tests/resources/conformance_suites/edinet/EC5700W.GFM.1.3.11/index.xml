@@ -21,6 +21,7 @@
             <warning>EDINET.EC8006W</warning> <!-- invalid roleType defined -->
             <warning>EDINET.EC8007W</warning> <!-- invalid roleType defined -->
             <warning>EDINET.EC8015W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8050W</warning> <!-- from base sample filing -->
         </result>
     </variation>
 </testcase>

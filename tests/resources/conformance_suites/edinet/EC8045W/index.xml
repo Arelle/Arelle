@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="EDINET.EC8045W"
+        description="EDINET.EC8045W: The statement of changes in equity has not been tagged in detail."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid01" name="invalid01">
+        <description>
+            Consolidated=false, Japan GAAP, but no statement of changes in equity roles.
+            <!--Based on valid06.zip-->
+        </description>
+        <data>
+            <instance readMeFirst="true">invalid01.zip</instance>
+        </data>
+        <result>
+            <warning>EDINET.EC8043W</warning>
+            <warning>EDINET.EC8045W</warning>
+            <warning>EDINET.EC8049W</warning>
+        </result>
+    </variation>
+</testcase>

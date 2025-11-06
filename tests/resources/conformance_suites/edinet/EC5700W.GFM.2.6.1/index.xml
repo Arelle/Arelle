@@ -19,6 +19,8 @@
         <result>
             <warning>EDINET.EC5700W.GFM.2.6.1</warning>
             <warning>EDINET.EC5700W.GFM.1.1.3</warning> <!-- due to blocked URL -->
+            <warning>EDINET.EC8043W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8045W</warning> <!-- from base sample filing -->
         </result>
     </variation>
 </testcase>

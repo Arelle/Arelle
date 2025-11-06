@@ -18,6 +18,8 @@
         </data>
         <result>
             <warning>EDINET.EC5700W.GFM.1.5.7</warning>
+            <warning>EDINET.EC8043W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8045W</warning> <!-- from base sample filing -->
         </result>
     </variation>
     <variation id="invalid02" name="invalid02">
@@ -30,6 +32,8 @@
         </data>
         <result>
             <warning>EDINET.EC5700W.GFM.1.5.7</warning>
+            <warning>EDINET.EC8043W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8045W</warning> <!-- from base sample filing -->
         </result>
     </variation>
 </testcase>

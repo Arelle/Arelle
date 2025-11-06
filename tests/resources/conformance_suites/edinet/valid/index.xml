@@ -45,6 +45,8 @@
         </data>
         <result>
             <warning>EDINET.EC8015W</warning>
+            <warning>EDINET.EC8065W</warning>
+            <warning>EDINET.EC8067W</warning>
         </result>
     </variation>
     <variation id="valid04" name="valid04">
@@ -58,6 +60,7 @@
         </data>
         <result>
             <warning>EDINET.EC8015W</warning>
+            <warning>EDINET.EC8050W</warning>
         </result>
     </variation>
     <variation id="valid05" name="valid05">
@@ -70,7 +73,10 @@
         <data>
             <instance readMeFirst="true">valid05.zip</instance>
         </data>
-        <result expected="valid"/>
+        <result>
+            <warning>EDINET.EC8043W</warning>
+            <warning>EDINET.EC8045W</warning>
+        </result>
     </variation>
     <variation id="valid06" name="valid06">
         <description>
@@ -138,7 +144,13 @@
         <data>
             <instance readMeFirst="true">valid11.zip</instance>
         </data>
-        <result expected="valid"/>
+        <result>
+            <warning>EDINET.EC8038W</warning>
+            <warning>EDINET.EC8042W</warning>
+            <warning>EDINET.EC8045W</warning>
+            <warning>EDINET.EC8049W</warning>
+            <warning>EDINET.EC8050W</warning>
+        </result>
     </variation>
     <variation id="valid12" name="valid12">
         <description>
@@ -149,7 +161,13 @@
         <data>
             <instance readMeFirst="true">valid12.zip</instance>
         </data>
-        <result expected="valid"/>
+        <result>
+            <warning>EDINET.EC8038W</warning>
+            <warning>EDINET.EC8042W</warning>
+            <warning>EDINET.EC8045W</warning>
+            <warning>EDINET.EC8049W</warning>
+            <warning>EDINET.EC8050W</warning>
+        </result>
     </variation>
     <variation id="valid13" name="valid13">
         <description>
@@ -195,7 +213,13 @@
         <data>
             <instance readMeFirst="true">valid21.zip</instance>
         </data>
-        <result expected="valid"/>
+        <result>
+            <warning>EDINET.EC8038W</warning>
+            <warning>EDINET.EC8042W</warning>
+            <warning>EDINET.EC8045W</warning>
+            <warning>EDINET.EC8049W</warning>
+            <warning>EDINET.EC8050W</warning>
+        </result>
     </variation>
     <variation id="valid22" name="valid22">
         <description>
@@ -206,6 +230,12 @@
         <data>
             <instance readMeFirst="true">valid22.zip</instance>
         </data>
-        <result expected="valid"/>
+        <result>
+            <warning>EDINET.EC8038W</warning>
+            <warning>EDINET.EC8042W</warning>
+            <warning>EDINET.EC8045W</warning>
+            <warning>EDINET.EC8049W</warning>
+            <warning>EDINET.EC8050W</warning>
+        </result>
     </variation>
 </testcase>

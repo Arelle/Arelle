@@ -20,7 +20,7 @@ from arelle.utils.PluginData import PluginData
 from . import Constants
 from .CoverItemRequirements import CoverItemRequirements
 from .DeiRequirements import DeiRequirements, DEI_LOCAL_NAMES
-from .FilingFormat import FilingFormat
+from .FilingFormat import DocumentType, FilingFormat
 from .ReportFolderType import ReportFolderType
 from .TableOfContentsBuilder import TableOfContentsBuilder
 from .UploadContents import UploadContents, UploadPathInfo
@@ -48,6 +48,7 @@ class ControllerPluginData(PluginData):
         self._tocBuilder = TableOfContentsBuilder()
         self._usedFilepaths = set()
         self._uploadContents = None
+        self.jpcrpNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpcrp/2024-11-01/jpcrp_cor'
 
     def __hash__(self) -> int:
         return id(self)
@@ -272,6 +273,20 @@ class ControllerPluginData(PluginData):
 
     def addUsedFilepath(self, path: Path) -> None:
         self._usedFilepaths.add(path)
+
+    def hasDocumentType(self, documentTypes: set[DocumentType]) -> bool:
+        """
+        Check if any of the loaded instances are one of the specfied document types.
+        """
+        for modelXbrl in self.loadedModelXbrls:
+            manifestInstance = self.getManifestInstance(modelXbrl)
+            if manifestInstance is None:
+                continue
+            if manifestInstance.filingFormat is None:
+                continue
+            if manifestInstance.filingFormat.documentType in documentTypes:
+                return True
+        return False
 
     @staticmethod
     def get(cntlr: Cntlr, name: str) -> ControllerPluginData:
