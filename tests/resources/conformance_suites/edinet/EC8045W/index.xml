@@ -3,21 +3,20 @@
 <testcase
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns="http://xbrl.org/2005/conformance"
-        name="EDINET.EC5700W.GFM.1.8.5"
-        description="EDINET.EC5700W.GFM.1.8.5"
+        name="EDINET.EC8045W"
+        description="EDINET.EC8045W: The statement of changes in equity has not been tagged in detail."
         outpath=''
         owner="support@arelle.org"
         xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
     <variation id="invalid01" name="invalid01">
         <description>
-            Has two definition relationships defined in the same ELR with the same arcrole of http://xbrl.org/int/dim/arcrole/all
-            <!--valid03.zip with 2 relationships with the same arcrole-->
+            Consolidated=false, Japan GAAP, but no statement of changes in equity roles.
+            <!--Based on valid06.zip-->
         </description>
         <data>
             <instance readMeFirst="true">invalid01.zip</instance>
         </data>
         <result>
-            <error>EDINET.EC5700W.GFM.1.8.5</error>
             <warning>EDINET.EC8043W</warning>
             <warning>EDINET.EC8045W</warning>
         </result>

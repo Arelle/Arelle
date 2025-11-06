@@ -1304,3 +1304,50 @@ def rule_EC8044W(
               "If you do not include a consolidated statement of changes in equity, please confirm that "
               'the "Consolidated Financial Statements" field in the DEI information is correct.'),
     )
+
+
+@validation(
+    hook=ValidationHook.COMPLETE,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8045W(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8045W: The statement of changes in equity has not been tagged in detail.
+    If WhetherConsolidatedFinancialStatementsArePreparedDEI is FALSE and AccountingStandardsDEI is "Japan GAAP",
+    then an Equity Statement must exist using one of the specified roles.
+    """
+    if not pluginData.hasDocumentType({DocumentType.ANNUAL_SECURITIES_REPORT, DocumentType.SEMI_ANNUAL_REPORT}):
+        return
+
+    if pluginData.isConsolidated() != False:
+        return
+    accountingStandard = pluginData.getDeiValue('AccountingStandardsDEI')
+    if accountingStandard != AccountingStandard.JAPAN_GAAP.value:
+        return
+
+    roleUris = (
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_StatementOfChangesInEquity',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_StatementOfChangesInEquity',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_StatementOfChangesInNetAssets',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_StatementOfChangesInNetAssets',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfChangesInEquity',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualStatementOfChangesInEquity',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfChangesInNetAssets',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualStatementOfChangesInNetAssets',
+    )
+
+    for modelXbrl in pluginData.loadedModelXbrls:
+        if hasPresentationalConceptsWithFacts(modelXbrl, roleUris):
+            return
+
+    yield Validation.warning(
+        codes='EDINET.EC8045W',
+        msg=_("The statement of changes in equity has not been tagged in detail. "
+              "Please provide detailed tagging for the Statement of Changes in Equity."),
+    )

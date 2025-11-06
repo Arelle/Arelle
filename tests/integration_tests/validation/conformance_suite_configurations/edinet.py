@@ -27,6 +27,7 @@ VALID_EXPECTED_ERRORS = {
     "valid/index.xml:valid05": {
         "EDINET.EC2002W": 1,
         "EDINET.EC8043W": 1,
+        "EDINET.EC8045W": 1,
         # The original valid05.zip (unmodified from source sample) fires EDINET.EC5700W.GFM.1.1.3
         # The version checked into this repo has been modified to not fire that error.
     },
@@ -43,11 +44,13 @@ VALID_EXPECTED_ERRORS = {
         "EDINET.EC2002W": 3,
         "EDINET.EC8038W": 1,
         "EDINET.EC8042W": 1,
+        "EDINET.EC8045W": 1,
     },
     "valid/index.xml:valid12": {
         "EDINET.EC2002W": 1,
         "EDINET.EC8038W": 1,
         "EDINET.EC8042W": 1,
+        "EDINET.EC8045W": 1,
     },
     "valid/index.xml:valid20": {
         "EDINET.EC2002W": 1,
@@ -61,6 +64,7 @@ VALID_EXPECTED_ERRORS = {
         "EDINET.EC2002W": 3,
         "EDINET.EC8038W": 1,
         "EDINET.EC8042W": 1,
+        "EDINET.EC8045W": 1,
     },
     "valid/index.xml:valid22": {
         # Appears to be two sets of cover page facts, not sure how it's valid.
@@ -69,6 +73,7 @@ VALID_EXPECTED_ERRORS = {
         "EDINET.EC2002W": 3,
         "EDINET.EC8038W": 1,
         "EDINET.EC8042W": 1,
+        "EDINET.EC8045W": 1,
     },
 }
 
@@ -183,6 +188,7 @@ INVALID_TESTCASE_PARENTS = {
     "EC8042W/index.xml:invalid01": "valid/index.xml:valid05",
     "EC8043W/index.xml:invalid01": "valid/index.xml:valid12",
     "EC8044W/index.xml:invalid01": "valid/index.xml:valid06",
+    "EC8045W/index.xml:invalid01": "valid/index.xml:valid06",
     "EC8054W/index.xml:invalid01": "valid/index.xml:valid05",
     "EC8057W/index.xml:invalid01": "valid/index.xml:valid04",
     "EC8058W/index.xml:invalid01": "valid/index.xml:valid03",
