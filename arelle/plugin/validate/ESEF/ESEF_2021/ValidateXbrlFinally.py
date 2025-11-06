@@ -60,7 +60,6 @@ from ..Const import (
     esefStatementsOfMonetaryDeclarationNames,
     mandatory,
     styleCssHiddenPattern,
-    styleIxHiddenPattern,
     untransformableTypes,
 )
 from ..Dimensions import checkFilingDimensions
@@ -269,6 +268,9 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                        "%(documentSets)s (Document files appear to be in multiple document sets)"),
                 modelObject=doc, documentSets=", ".join(sorted(ixdsDocDirs)))
         ixTargetUsage = val.authParam["ixTargetUsage"]
+        styleIxHiddenProperty = val.authParam.get("styleIxHiddenProperty")
+        if styleIxHiddenProperty:
+            styleIxHiddenPattern = re.compile(rf"(.*[^\w]|^){styleIxHiddenProperty}\s*:\s*([\w.-]+).*")
         if modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET, ModelDocument.Type.UnknownXML):
             hiddenEltIds = {}
             presentedHiddenEltIds = defaultdict(list)
@@ -461,17 +463,18 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     modelObject=eligibleForTransformHiddenFacts,
                     countEligible=len(eligibleForTransformHiddenFacts),
                     elements=", ".join(sorted(set(str(f.qname) for f in eligibleForTransformHiddenFacts))))
-            for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
-                for ixElt in ixdsHtmlRootElt.getroottree().iterfind(".//{http://www.w3.org/1999/xhtml}*[@style]"):
-                    hiddenFactRefMatch = styleIxHiddenPattern.match(ixElt.get("style",""))
-                    if hiddenFactRefMatch:
-                        hiddenFactRef = hiddenFactRefMatch.group(2)
-                        if hiddenFactRef not in hiddenEltIds:
-                            modelXbrl.error("ESEF.2.4.1.esefIxHiddenStyleNotLinkingFactInHiddenSection",
-                                _("\"-esef-ix-hidden\" style identifies id attribute of a fact that is not in ix:hidden section: %(factId)s"),
-                                modelObject=ixElt, factId=hiddenFactRef)
-                        else:
-                            presentedHiddenEltIds[hiddenFactRef].append(ixElt)
+            if styleIxHiddenProperty:
+                for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
+                    for ixElt in ixdsHtmlRootElt.getroottree().iterfind(".//{http://www.w3.org/1999/xhtml}*[@style]"):
+                        hiddenFactRefMatch = styleIxHiddenPattern.match(ixElt.get("style",""))
+                        if hiddenFactRefMatch:
+                            hiddenFactRef = hiddenFactRefMatch.group(2)
+                            if hiddenFactRef not in hiddenEltIds:
+                                modelXbrl.error("ESEF.2.4.1.esefIxHiddenStyleNotLinkingFactInHiddenSection",
+                                    _("\"%(styleIxHiddenProperty)s\" style identifies id attribute of a fact that is not in ix:hidden section: %(factId)s"),
+                                    modelObject=ixElt, styleIxHiddenProperty=styleIxHiddenProperty, factId=hiddenFactRef)
+                            else:
+                                presentedHiddenEltIds[hiddenFactRef].append(ixElt)
             for hiddenEltId, ixElt in hiddenEltIds.items():
                 if (hiddenEltId not in presentedHiddenEltIds and
                     getattr(ixElt, "xValid", 0) >= VALID and # may not be validated

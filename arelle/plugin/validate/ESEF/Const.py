@@ -10,7 +10,6 @@ from arelle.FunctionIxt import ixtNamespaces
 from arelle.ModelValue import QName, qname
 from arelle.XmlValidate import lexicalPatterns
 
-styleIxHiddenPattern = re.compile(r"(.*[^\w]|^)-esef-ix-hidden\s*:\s*([\w.-]+).*")
 styleCssHiddenPattern = re.compile(r"(.*[^\w]|^)display\s*:\s*none([^\w].*|$)")
 datetimePattern = lexicalPatterns["XBRLI_DATEUNION"]
 docTypeXhtmlPattern = re.compile(r"^<!(?:DOCTYPE\s+)\s*html(?:PUBLIC\s+)?(?:.*-//W3C//DTD\s+(X?HTML)\s)?.*>$", re.IGNORECASE)

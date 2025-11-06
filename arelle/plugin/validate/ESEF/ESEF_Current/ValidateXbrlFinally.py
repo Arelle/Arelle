@@ -64,7 +64,6 @@ from ..Const import (
     esefPrimaryStatementPlaceholderNames,
     mandatory,
     styleCssHiddenPattern,
-    styleIxHiddenPattern,
     supportedImgTypes,
     untransformableTypes,
 )
@@ -320,6 +319,9 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 allowedTRnamespaces.add(ns)
             if ns == earliestTransformationRegistry:
                 earliestTRnumber = TRnumber[ns]
+        styleIxHiddenProperty = val.authParam.get("styleIxHiddenProperty")
+        if styleIxHiddenProperty:
+            styleIxHiddenPattern = re.compile(rf"(.*[^\w]|^){styleIxHiddenProperty}\s*:\s*([\w.-]+).*")
         if modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET, ModelDocument.Type.UnknownXML):
             hiddenEltIds = {}
             presentedHiddenEltIds = defaultdict(list)
@@ -539,7 +541,6 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
             for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
                 for ixElt in ixdsHtmlRootElt.getroottree().iterfind(".//{http://www.w3.org/1999/xhtml}*[@style]"):
                     styleValue = ixElt.get("style","")
-                    hiddenFactRefMatch = styleIxHiddenPattern.match(styleValue)
 
                     if styleValue:
                         for declaration in tinycss2.parse_blocks_contents(styleValue):
@@ -551,14 +552,16 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                                   _("The style attribute contains erroneous CSS declaration \"%(styleContent)s\": %(parseError)s"),
                                                   modelObject=ixElt, parseError=declaration.message,
                                                   styleContent=styleValue)
-                    if hiddenFactRefMatch:
-                        hiddenFactRef = hiddenFactRefMatch.group(2)
-                        if hiddenFactRef not in hiddenEltIds:
-                            modelXbrl.error("ESEF.2.4.1.esefIxHiddenStyleNotLinkingFactInHiddenSection",
-                                _("\"-esef-ix-hidden\" style identifies id attribute of a fact that is not in ix:hidden section: %(factId)s"),
-                                modelObject=ixElt, factId=hiddenFactRef)
-                        else:
-                            presentedHiddenEltIds[hiddenFactRef].append(ixElt)
+                    if styleIxHiddenProperty:
+                        hiddenFactRefMatch = styleIxHiddenPattern.match(styleValue)
+                        if hiddenFactRefMatch:
+                            hiddenFactRef = hiddenFactRefMatch.group(2)
+                            if hiddenFactRef not in hiddenEltIds:
+                                modelXbrl.error("ESEF.2.4.1.esefIxHiddenStyleNotLinkingFactInHiddenSection",
+                                    _("\"%(styleIxHiddenProperty)s\" style identifies id attribute of a fact that is not in ix:hidden section: %(factId)s"),
+                                    modelObject=ixElt, styleIxHiddenProperty=styleIxHiddenProperty, factId=hiddenFactRef)
+                            else:
+                                presentedHiddenEltIds[hiddenFactRef].append(ixElt)
             for hiddenEltId, ixElt in hiddenEltIds.items():
                 if (hiddenEltId not in presentedHiddenEltIds and
                     getattr(ixElt, "xValid", 0) >= VALID and # may not be validated
