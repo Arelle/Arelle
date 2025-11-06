@@ -118,6 +118,9 @@ filenameRegexes = {
     "ref": r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}_ref[.]xml$",
 }
 
+reportBasenamePattern = "{base}-{date}-{version}-{lang}"
+reportBasenameRegex = re.compile(r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}-[1-9]-[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*$")
+
 mandatory: set[QName] = set()  # mandatory element qnames
 
 # hidden references
