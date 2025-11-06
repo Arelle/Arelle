@@ -1393,3 +1393,45 @@ def rule_EC8046W(
         msg=_("The statement of changes in unitholders' equity has not been tagged in detail. "
               "Please provide detailed tagging for the Statement of Changes in Unitholders' Equity."),
     )
+
+
+@validation(
+    hook=ValidationHook.COMPLETE,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8047W(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8047W: The statement of changes in employee capital etc. has not been tagged in detail.
+    If industry code is "liq", then facts must exist in one of the specified roles.
+    """
+    if not pluginData.hasDocumentType({DocumentType.ANNUAL_SECURITIES_REPORT, DocumentType.SEMI_ANNUAL_REPORT}):
+        return
+
+    industryCodeConsolidated = pluginData.getDeiValue('IndustryCodeWhenConsolidatedFinancialStatementsArePreparedInAccordanceWithIndustrySpecificRegulationsDEI')
+    industryCodeNonConsolidated = pluginData.getDeiValue('IndustryCodeWhenFinancialStatementsArePreparedInAccordanceWithIndustrySpecificRegulationsDEI')
+
+    if industryCodeConsolidated != 'LIQ' and industryCodeNonConsolidated != 'LIQ':
+        return
+
+    roleUris = (
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_StatementOfMembersEquity',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_StatementOfMembersEquity',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfMembersEquity',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualStatementOfMembersEquity',
+    )
+
+    for modelXbrl in pluginData.loadedModelXbrls:
+        if hasPresentationalConceptsWithFacts(modelXbrl, roleUris):
+            return
+
+    yield Validation.warning(
+        codes='EDINET.EC8047W',
+        msg=_("The statement of changes in employee capital etc. has not been tagged in detail. "
+              "Please provide detailed tagging for the Statement of Changes in Employee Capital, etc."),
+    )
