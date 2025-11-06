@@ -20,6 +20,8 @@
             <error>EDINET.EC1003E</error>
             <warning>EDINET.EC8015W</warning> <!-- from base sample filing -->
             <warning>EDINET.EC8030W</warning> <!-- added concept is not in presentation linkbase -->
+            <warning>EDINET.EC8065W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8067W</warning> <!-- from base sample filing -->
         </result>
     </variation>
 </testcase>

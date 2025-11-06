@@ -17,6 +17,8 @@
             <instance readMeFirst="true">invalid01.zip</instance>
         </data>
         <result>
+            <warning>EDINET.EC8043W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8045W</warning> <!-- from base sample filing -->
             <warning>EDINET.EC8050W</warning>
         </result>
     </variation>
@@ -31,6 +33,8 @@
         <result>
             <warning>EDINET.EC8015W</warning> <!-- from base sample filing -->
             <warning>EDINET.EC8050W</warning>
+            <warning>EDINET.EC8065W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8067W</warning> <!-- from base sample filing -->
         </result>
     </variation>
 </testcase>

@@ -30,6 +30,11 @@
         </data>
         <result>
             <warning>EDINET.EC5602R</warning>
+            <warning>EDINET.EC8038W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8042W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8045W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8049W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8050W</warning> <!-- from base sample filing -->
         </result>
     </variation>
 </testcase>

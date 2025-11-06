@@ -19,6 +19,8 @@
         <result>
             <warning>EDINET.EC5700W.GFM.1.7.2</warning>
             <error nonStandardErrorCodes="true">xbrl.5.2.5.2.1:zeroWeight</error>
+            <warning>EDINET.EC8043W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8045W</warning> <!-- from base sample filing -->
         </result>
     </variation>
 </testcase>

@@ -17,7 +17,6 @@
             <instance readMeFirst="true">invalid01.zip</instance>
         </data>
         <result>
-            <warning>EDINET.EC2002W</warning> <!-- from base sample filing -->
             <warning>EDINET.EC5613E</warning>
         </result>
     </variation>

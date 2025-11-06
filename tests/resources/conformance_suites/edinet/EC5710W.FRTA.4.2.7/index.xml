@@ -23,6 +23,8 @@
             <warning>EDINET.EC8015W</warning> <!-- from base sample filing -->
             <warning>EDINET.EC8028W</warning> <!-- related to duplicate labels -->
             <warning>EDINET.EC8034W</warning> <!-- related to modified labels -->
+            <warning>EDINET.EC8065W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8067W</warning> <!-- from base sample filing -->
         </result>
     </variation>
 </testcase>

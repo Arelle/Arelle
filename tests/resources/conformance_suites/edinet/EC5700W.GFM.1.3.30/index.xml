@@ -20,6 +20,8 @@
             <warning>EDINET.EC5700W.GFM.1.3.23</warning>
             <!-- Due to the nature of the GFM rules this filing will either be an invalid abstract/instant or nonAbstract/nonnum:domainItemType combination-->
             <warning>EDINET.EC5700W.GFM.1.3.30</warning>
+            <warning>EDINET.EC8043W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8045W</warning> <!-- from base sample filing -->
         </result>
     </variation>
 </testcase>

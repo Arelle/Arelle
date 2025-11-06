@@ -19,6 +19,11 @@
         <result>
             <warning>EDINET.EC8020W</warning>
             <warning>EDINET.EC8033W</warning>
+            <warning>EDINET.EC8038W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8042W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8045W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8049W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8050W</warning> <!-- from base sample filing -->
         </result>
     </variation>
 </testcase>

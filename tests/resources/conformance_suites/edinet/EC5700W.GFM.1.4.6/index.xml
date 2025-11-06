@@ -18,6 +18,8 @@
         </data>
         <result blockedMessageCodes="^xbrl\.3\.5\.4:hrefIdNotFound|^xbrl\.3\.5\.2\.5\.5:arcroleRefDuplicate">
             <warning>EDINET.EC5700W.GFM.1.4.6</warning>
+            <warning>EDINET.EC8043W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8045W</warning> <!-- from base sample filing -->
         </result>
     </variation>
 </testcase>

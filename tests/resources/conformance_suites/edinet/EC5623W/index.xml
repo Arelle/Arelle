@@ -17,12 +17,8 @@
             <instance readMeFirst="true">invalid01.zip</instance>
         </data>
         <result>
-            <error num="2">EDINET.EC8023W</error>
-            <error num="2">EDINET.EC5700W.GFM.1.8.4</error>
-            <warning>EDINET.EC2002W</warning>
             <warning>EDINET.EC5623W</warning>
             <warning>EDINET.EC8015W</warning> <!-- from base sample filing -->
-            <warning>EDINET.EC8027W</warning>
             <warning>EDINET.EC8039W</warning>
             <warning>EDINET.EC8041W</warning>
             <warning>EDINET.EC8044W</warning>

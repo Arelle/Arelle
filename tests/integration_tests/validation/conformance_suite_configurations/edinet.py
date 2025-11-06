@@ -19,18 +19,13 @@ VALID_EXPECTED_ERRORS = {
         "EDINET.EC5700W.GFM.1.8.4": 2,
         "EDINET.EC8023W": 2,
         "EDINET.EC8027W": 1,
-        "EDINET.EC8065W": 1,
-        "EDINET.EC8067W": 1,
     },
     "valid/index.xml:valid04": {
         "EDINET.EC2002W": 2,
         "EDINET.EC2005E": 1,
-        "EDINET.EC8050W": 1,
     },
     "valid/index.xml:valid05": {
         "EDINET.EC2002W": 1,
-        "EDINET.EC8043W": 1,
-        "EDINET.EC8045W": 1,
         # The original valid05.zip (unmodified from source sample) fires EDINET.EC5700W.GFM.1.1.3
         # The version checked into this repo has been modified to not fire that error.
     },
@@ -45,19 +40,9 @@ VALID_EXPECTED_ERRORS = {
         "EDINET.EC1002E": 5,
         "EDINET.EC1004E": 1,
         "EDINET.EC2002W": 3,
-        "EDINET.EC8038W": 1,
-        "EDINET.EC8042W": 1,
-        "EDINET.EC8045W": 1,
-        "EDINET.EC8049W": 1,
-        "EDINET.EC8050W": 1,
     },
     "valid/index.xml:valid12": {
         "EDINET.EC2002W": 1,
-        "EDINET.EC8038W": 1,
-        "EDINET.EC8042W": 1,
-        "EDINET.EC8045W": 1,
-        "EDINET.EC8049W": 1,
-        "EDINET.EC8050W": 1,
     },
     "valid/index.xml:valid20": {
         "EDINET.EC2002W": 1,
@@ -69,22 +54,12 @@ VALID_EXPECTED_ERRORS = {
         "EDINET.EC1002E": 5,
         "EDINET.EC1004E": 1,
         "EDINET.EC2002W": 3,
-        "EDINET.EC8038W": 1,
-        "EDINET.EC8042W": 1,
-        "EDINET.EC8045W": 1,
-        "EDINET.EC8049W": 1,
-        "EDINET.EC8050W": 1,
     },
     "valid/index.xml:valid22": {
         # Appears to be two sets of cover page facts, not sure how it's valid.
         "EDINET.EC1002E": 5,
         "EDINET.EC1004E": 1,
         "EDINET.EC2002W": 3,
-        "EDINET.EC8038W": 1,
-        "EDINET.EC8042W": 1,
-        "EDINET.EC8045W": 1,
-        "EDINET.EC8049W": 1,
-        "EDINET.EC8050W": 1,
     },
 }
 
@@ -100,6 +75,8 @@ INVALID_TESTCASE_PARENTS = {
     "EC5032E/index.xml:invalid01": "valid/index.xml:valid05",
     "EC5602R/index.xml:invalid01": "valid/index.xml:valid09",
     "EC5602R/index.xml:invalid02": "valid/index.xml:valid12",
+    "EC5613E/index.xml:invalid01": "valid/index.xml:valid05",
+    "EC5623W/index.xml:invalid01": "valid/index.xml:valid03",
     "EC5700W.GFM.1.10.14/index.xml:invalid01": "valid/index.xml:valid05",
     "EC5700W.GFM.1.1.7/index.xml:invalid01": "valid/index.xml:valid05",
     "EC5700W.GFM.1.2.10/index.xml:invalid01": "valid/index.xml:valid05",
