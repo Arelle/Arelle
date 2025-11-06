@@ -1351,3 +1351,45 @@ def rule_EC8045W(
         msg=_("The statement of changes in equity has not been tagged in detail. "
               "Please provide detailed tagging for the Statement of Changes in Equity."),
     )
+
+
+@validation(
+    hook=ValidationHook.COMPLETE,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8046W(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8046W: The statement of changes in unitholders' equity has not been tagged in detail.
+    If industry code is "inv", then facts must exist in one of the specified roles.
+    """
+    if not pluginData.hasDocumentType({DocumentType.ANNUAL_SECURITIES_REPORT, DocumentType.SEMI_ANNUAL_REPORT}):
+        return
+
+    industryCodeConsolidated = pluginData.getDeiValue('IndustryCodeWhenConsolidatedFinancialStatementsArePreparedInAccordanceWithIndustrySpecificRegulationsDEI')
+    industryCodeNonConsolidated = pluginData.getDeiValue('IndustryCodeWhenFinancialStatementsArePreparedInAccordanceWithIndustrySpecificRegulationsDEI')
+
+    if industryCodeConsolidated != 'INV' and industryCodeNonConsolidated != 'INV':
+        return
+
+    roleUris = (
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_StatementOfUnitholdersEquity',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_StatementOfUnitholdersEquity',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfUnitholdersEquity',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualStatementOfUnitholdersEquity',
+    )
+
+    for modelXbrl in pluginData.loadedModelXbrls:
+        if hasPresentationalConceptsWithFacts(modelXbrl, roleUris):
+            return
+
+    yield Validation.warning(
+        codes='EDINET.EC8046W',
+        msg=_("The statement of changes in unitholders' equity has not been tagged in detail. "
+              "Please provide detailed tagging for the Statement of Changes in Unitholders' Equity."),
+    )
