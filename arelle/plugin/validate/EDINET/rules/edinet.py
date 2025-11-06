@@ -1212,3 +1212,46 @@ def rule_EC8042W(
         msg=_("The income statement details are not tagged. "
               "Please provide detailed tagging of your income statement."),
     )
+
+
+@validation(
+    hook=ValidationHook.COMPLETE,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8043W(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8043W: The profit and loss statement has not been tagged in detail.
+    If AccountingStandardsDEI = "Japan GAAP" and WhetherConsolidatedFinancialStatementsArePreparedDEI = "false",
+    then a P&L must exist using one of the specified roles.
+    """
+    if not pluginData.hasDocumentType({DocumentType.ANNUAL_SECURITIES_REPORT, DocumentType.SEMI_ANNUAL_REPORT}):
+        return
+
+    if pluginData.isConsolidated() != False:
+        return
+    accountingStandard = pluginData.getDeiValue('AccountingStandardsDEI')
+    if accountingStandard != AccountingStandard.JAPAN_GAAP.value:
+        return
+
+    roleUris = (
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_StatementOfIncomeAndRetainedEarnings',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_StatementOfIncomeAndRetainedEarnings',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfIncomeAndRetainedEarnings',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualStatementOfIncomeAndRetainedEarnings',
+    )
+
+    for modelXbrl in pluginData.loadedModelXbrls:
+        if hasPresentationalConceptsWithFacts(modelXbrl, roleUris):
+            return
+
+    yield Validation.warning(
+        codes='EDINET.EC8043W',
+        msg=_("The profit and loss statement has not been tagged in detail. "
+              "Please provide detailed tagging of the profit and loss and retained earnings statement."),
+    )

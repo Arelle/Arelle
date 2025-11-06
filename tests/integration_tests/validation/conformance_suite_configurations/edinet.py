@@ -26,6 +26,7 @@ VALID_EXPECTED_ERRORS = {
     },
     "valid/index.xml:valid05": {
         "EDINET.EC2002W": 1,
+        "EDINET.EC8043W": 1,
         # The original valid05.zip (unmodified from source sample) fires EDINET.EC5700W.GFM.1.1.3
         # The version checked into this repo has been modified to not fire that error.
     },
@@ -83,7 +84,6 @@ INVALID_TESTCASE_PARENTS = {
     "EC5032E/index.xml:invalid01": "valid/index.xml:valid05",
     "EC5602R/index.xml:invalid01": "valid/index.xml:valid09",
     "EC5602R/index.xml:invalid02": "valid/index.xml:valid12",
-    "EC5613E/index.xml:invalid01": "valid/index.xml:valid05",
     "EC5623W/index.xml:invalid01": "valid/index.xml:valid03",
     "EC5700W.GFM.1.10.14/index.xml:invalid01": "valid/index.xml:valid05",
     "EC5700W.GFM.1.1.7/index.xml:invalid01": "valid/index.xml:valid05",
@@ -181,6 +181,7 @@ INVALID_TESTCASE_PARENTS = {
     "EC8040W/index.xml:invalid01": "valid/index.xml:valid05",
     "EC8041W/index.xml:invalid01": "valid/index.xml:valid06",
     "EC8042W/index.xml:invalid01": "valid/index.xml:valid05",
+    "EC8043W/index.xml:invalid01": "valid/index.xml:valid12",
     "EC8054W/index.xml:invalid01": "valid/index.xml:valid05",
     "EC8057W/index.xml:invalid01": "valid/index.xml:valid04",
     "EC8058W/index.xml:invalid01": "valid/index.xml:valid03",
