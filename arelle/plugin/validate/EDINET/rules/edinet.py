@@ -1903,3 +1903,47 @@ def rule_EC8066W(
         msg=_("The statement of comprehensive income has not been tagged in detail. "
               "Please provide detailed tagging for the statement of comprehensive income."),
     )
+
+
+@validation(
+    hook=ValidationHook.COMPLETE,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8067W(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8067W: The consolidated statement of changes in equity has not been tagged in detail.
+    If AccountingStandardsDEI = "IFRS" and WhetherConsolidatedFinancialStatementsArePreparedDEI = "true",
+    then a section must exist using one of the specified roles.
+    """
+    if not pluginData.hasDocumentType({DocumentType.ANNUAL_SECURITIES_REPORT, DocumentType.SEMI_ANNUAL_REPORT}):
+        return
+
+    if pluginData.isConsolidated() != True:
+        return
+    accountingStandard = pluginData.getDeiValue('AccountingStandardsDEI')
+    if accountingStandard != AccountingStandard.IFRS.value:
+        return
+
+    roleUris = (
+        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedQuarterlyConsolidatedStatementOfChangesInEquityIFRS',
+        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualConsolidatedStatementOfChangesInEquityIFRS',
+        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_std_ConsolidatedStatementOfChangesInEquityIFRS',
+    )
+
+    for modelXbrl in pluginData.loadedModelXbrls:
+        if hasPresentationalConceptsWithFacts(modelXbrl, roleUris):
+            return
+
+    yield Validation.warning(
+        codes='EDINET.EC8067W',
+        msg=_("The consolidated statement of changes in equity has not been tagged in detail. "
+              "Please tag the details of the consolidated statement of changes in equity. "
+              "If you do not include a consolidated statement of changes in equity, please confirm that "
+              'the "Consolidated" field in the DEI information is correct.'),
+    )

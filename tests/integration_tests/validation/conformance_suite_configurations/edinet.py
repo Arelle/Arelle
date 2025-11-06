@@ -20,6 +20,7 @@ VALID_EXPECTED_ERRORS = {
         "EDINET.EC8023W": 2,
         "EDINET.EC8027W": 1,
         "EDINET.EC8065W": 1,
+        "EDINET.EC8067W": 1,
     },
     "valid/index.xml:valid04": {
         "EDINET.EC2002W": 2,
