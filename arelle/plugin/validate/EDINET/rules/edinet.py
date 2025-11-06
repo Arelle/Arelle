@@ -1492,3 +1492,59 @@ def rule_EC8048W(
               "If you do not provide a consolidated cash flow statement, please make sure that "
               'the "Consolidated Financial Statements" in the DEI information is correct.'),
     )
+
+
+@validation(
+    hook=ValidationHook.COMPLETE,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8049W(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8049W: The cash flow statement is not tagged in detail.
+    If WhetherConsolidatedFinancialStatementsArePreparedDEI is FALSE, then an SCF must exist using one of the specified roles.
+    """
+    if not pluginData.hasDocumentType({DocumentType.ANNUAL_SECURITIES_REPORT, DocumentType.SEMI_ANNUAL_REPORT}):
+        return
+
+    if pluginData.isConsolidated() != False:
+        return
+
+    roleUris = (
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_StatementOfCashFlows-direct',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_StatementOfCashFlows-direct',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfCashFlows-direct',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualStatementOfCashFlows-direct',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualStatementOfCashFlows-direct',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_Type1SemiAnnualStatementOfCashFlows-direct',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_QuarterlyStatementOfCashFlows-direct',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_QuarterlyStatementOfCashFlows-direct',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_StatementOfCashFlows-indirect',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_StatementOfCashFlows-indirect',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfCashFlows-indirect',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualStatementOfCashFlows-indirect',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualStatementOfCashFlows-indirect',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_Type1SemiAnnualStatementOfCashFlows-indirect',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_QuarterlyStatementOfCashFlows-indirect',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_QuarterlyStatementOfCashFlows-indirect',
+        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_StatementOfCashFlowsIFRS',
+        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualStatementOfCashFlowsIFRS',
+        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedQuarterlyStatementOfCashFlowsIFRS',
+    )
+
+    for modelXbrl in pluginData.loadedModelXbrls:
+        if hasPresentationalConceptsWithFacts(modelXbrl, roleUris):
+            return
+
+    yield Validation.warning(
+        codes='EDINET.EC8049W',
+        msg=_("The cash flow statement is not tagged in detail. "
+              "Please provide detailed tagging for the cash flow statement. "
+              "If you do not provide a cash flow statement, please provide the DEI information with "
+              '"Whether or not consolidated financial statements are provided."'),
+    )
