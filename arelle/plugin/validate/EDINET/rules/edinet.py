@@ -1860,3 +1860,46 @@ def rule_EC8065W(
               "If you do not provide a consolidated statement of comprehensive income, please confirm that "
               'the "Consolidated Financial Statements" field in the DEI information is correct.'),
     )
+
+
+@validation(
+    hook=ValidationHook.COMPLETE,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8066W(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8066W: The statement of comprehensive income has not been tagged in detail.
+    If AccountingStandardsDEI = "IFRS" and WhetherConsolidatedFinancialStatementsArePreparedDEI = "false",
+    then a section must exist using one of the specified roles.
+    """
+    if not pluginData.hasDocumentType({DocumentType.ANNUAL_SECURITIES_REPORT, DocumentType.SEMI_ANNUAL_REPORT}):
+        return
+
+    if pluginData.isConsolidated() != False:
+        return
+    accountingStandard = pluginData.getDeiValue('AccountingStandardsDEI')
+    if accountingStandard != AccountingStandard.IFRS.value:
+        return
+
+    roleUris = (
+        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_StatementOfComprehensiveIncomeSingleStatementIFRS',
+        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualStatementOfComprehensiveIncomeSingleStatementIFRS',
+        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedYearToQuarterEndStatementOfComprehensiveIncomeSingleStatementIFRS',
+        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedQuarterPeriodStatementOfComprehensiveIncomeSingleStatementIFRS',
+    )
+
+    for modelXbrl in pluginData.loadedModelXbrls:
+        if hasPresentationalConceptsWithFacts(modelXbrl, roleUris):
+            return
+
+    yield Validation.warning(
+        codes='EDINET.EC8066W',
+        msg=_("The statement of comprehensive income has not been tagged in detail. "
+              "Please provide detailed tagging for the statement of comprehensive income."),
+    )

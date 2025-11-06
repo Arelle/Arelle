@@ -191,6 +191,7 @@
     <testcase uri="EC8061W/index.xml" />
     <testcase uri="EC8063W/index.xml" />
     <testcase uri="EC8065W/index.xml" />
+    <testcase uri="EC8066W/index.xml" />
     <testcase uri="EC8073E/index.xml" />
     <testcase uri="EC8073W/index.xml" />
     <testcase uri="EC8076W/index.xml" />
