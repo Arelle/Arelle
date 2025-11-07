@@ -755,6 +755,17 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                         #elif dim.isTyped:
                         #    conceptsUsed.add(dim.typedMember)
                 '''
+        # identify report date
+        reportDate = None
+        for f in modelXbrl.factsByLocalName.get("DateOfEndOfReportingPeriod2013", ()):
+            if getattr(f, "xValid", 0) >= VALID:
+                reportDate = f.xValue
+                break
+        if not reportDate: # no report period, take name's end context
+            for f in modelXbrl.factsByLocalName.get("NameOfReportingEntityOrOtherMeansOfIdentification", ()):
+                if getattr(f, "xValid", 0) >= VALID:
+                    reportDate = f.context.endDate
+                    break
 
         if esefDisclosureSystemYear >= 2024 and factsMissingId:
             modelXbrl.warning("ESEF.2.2.8.missingFactID",
@@ -881,7 +892,12 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
 
         # 3.1.1 test
         hasOutdatedUrl = False
-        for e in val.authParam["outdatedTaxonomyURLs"]:
+        outdatedTaxonomyURLs = val.authParam["outdatedTaxonomyURLs"].copy()
+        if reportDate:
+            for expiringTaxonomyURLs in val.authParam.get("expiringTaxonomyURLs", ()):
+                if expiringTaxonomyURLs["lastReportableDate"] < str(reportDate):
+                    outdatedTaxonomyURLs.update(expiringTaxonomyURLs["URLs"])
+        for e in outdatedTaxonomyURLs:
             if e in val.extensionImportedUrls:
                 val.modelXbrl.error("ESEF.3.1.2.incorrectEsefTaxonomyVersionUsed",
                      _("The issuer's extension taxonomies MUST import the applicable version of the taxonomy files prepared by ESMA. Outdated entry point: %(url)s"),

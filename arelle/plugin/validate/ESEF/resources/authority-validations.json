@@ -210,6 +210,14 @@
 			"http://www.esma.europa.eu/taxonomy/2024-03-27/esef_cor.xsd",
 			"https://www.esma.europa.eu/taxonomy/2024-03-27/esef_cor.xsd"
 		],
+		"expiringTaxonomyURLs": [
+			{"lastReportableDate": "2025-12-31",
+			 "URLs": [
+				"http://www.esma.europa.eu/taxonomy/2024-03-27/esef_cor.xsd",
+				"https://www.esma.europa.eu/taxonomy/2024-03-27/esef_cor.xsd"
+			 ]
+		    }
+		],
 		"earliestTransformationRegistry": "http://www.xbrl.org/inlineXBRL/transformation/2022-02-16",
 		"styleIxHiddenProperty": "-ix-hidden"
 	},
