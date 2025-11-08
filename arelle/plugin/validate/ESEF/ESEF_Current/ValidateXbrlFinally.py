@@ -715,7 +715,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                             hasEscapeIssue = f.isEscaped != f.concept.isTextBlock
                         elif esefDisclosureSystemYear >= 2025:
                             hasEscapeIssue = not f.isEscaped and (
-                                f.concept.isTextBlock or 
+                                f.concept.isTextBlock or
                                 (f.value and escapeWorthyStr.match(f.value)))
                         if hasEscapeIssue:
                             modelXbrl.error("ESEF.2.2.7.improperApplicationOfEscapeAttribute",
