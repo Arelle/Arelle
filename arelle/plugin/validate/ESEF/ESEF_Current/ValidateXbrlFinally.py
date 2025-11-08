@@ -296,7 +296,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                 "http://www.xbrl.org/WGN/report-packages/WGN-2018-08-14/report-packages-WGN-2018-08-14"
                                 ".html: %(fileName)s (Document file not in correct place in package)"),
                                 modelObject=doc, fileName=doc.basename)
-                    elif esefDisclosureSystemYear <= 2025:
+                    elif esefDisclosureSystemYear >= 2025:
                         m = reportBasenameRegex.match(_baseName)
                         if not m:
                             modelXbrl.error("ESEF.2.6.3.incorrectNamingConventionReportPackageReportFile",
