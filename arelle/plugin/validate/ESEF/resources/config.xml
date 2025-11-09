@@ -5,7 +5,7 @@
     <!-- see ../../../../config/disclosuresystem.xml for full comments -->
 
     <DisclosureSystem
-        names="ESMA RTS on ESEF-2025|ESEF-2025-DRAFT|esef-2025-draft"
+        names="Draft ESMA RTS on ESEF-2025|ESEF-2025-DRAFT|esef-2025-draft"
         description="ESMA RTS on ESEF-2025 Validation Checks for Consolidated Financial Statements (DRAFT)"
         validationType="ESEF"
         exclusiveTypesPattern="EFM|GFM|FERC|HMRC|SBR.NL|EBA|EIOPA|ESEF"
@@ -15,7 +15,7 @@
     />
 
     <DisclosureSystem
-        names="ESMA RTS on ESEF-2025 Unconsolidated|ESEF-Unconsolidated-2025-draft|esef-unconsolidated-2025-draft"
+        names="Draft ESMA RTS on ESEF-2025 Unconsolidated|ESEF-Unconsolidated-2025-DRAFT|esef-unconsolidated-2025-draft"
         description="ESMA RTS on ESEF-2025 Validation Checks for Unconsolidated Financial Statements (DRAFT)"
         validationType="ESEF"
         exclusiveTypesPattern="EFM|GFM|FERC|HMRC|SBR.NL|EBA|EIOPA|ESEF"
