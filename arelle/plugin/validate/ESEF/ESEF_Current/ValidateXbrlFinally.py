@@ -327,9 +327,10 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 allowedTRnamespaces.add(ns)
             if ns == earliestTransformationRegistry:
                 earliestTRnumber = TRnumber[ns]
-        styleIxHiddenProperty = val.authParam.get("styleIxHiddenProperty")
-        if styleIxHiddenProperty:
+        if styleIxHiddenProperty := val.authParam.get("styleIxHiddenProperty"):
             styleIxHiddenPattern = re.compile(rf"(.*[^\w]|^){styleIxHiddenProperty}\s*:\s*([\w.-]+).*")
+        else:
+            styleIxHiddenPattern = None
         if modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET, ModelDocument.Type.UnknownXML):
             hiddenEltIds = {}
             presentedHiddenEltIds = defaultdict(list)
@@ -560,7 +561,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                                   _("The style attribute contains erroneous CSS declaration \"%(styleContent)s\": %(parseError)s"),
                                                   modelObject=ixElt, parseError=declaration.message,
                                                   styleContent=styleValue)
-                    if styleIxHiddenProperty:
+                    if styleIxHiddenPattern is not None:
                         hiddenFactRefMatch = styleIxHiddenPattern.match(styleValue)
                         if hiddenFactRefMatch:
                             hiddenFactRef = hiddenFactRefMatch.group(2)
