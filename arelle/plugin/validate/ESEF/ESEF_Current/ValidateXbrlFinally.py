@@ -15,7 +15,7 @@ import tinycss2.ast  # type: ignore[import-untyped]
 from lxml.etree import _Comment, _Element, _ElementTree, _Entity, _ProcessingInstruction
 
 from arelle import LeiUtil, ModelDocument, XbrlConst
-from arelle.FunctionIxt import ixtNamespaces, TRnumber
+from arelle.FunctionIxt import ixtNamespacesByVersion
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelDtsObject import ModelResource
 from arelle.ModelInstanceObject import ModelContext
@@ -319,14 +319,13 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                        "%(url)s: %(documentSets)s (Document files appear to be in multiple document sets)"),
                 modelObject=doc, documentSets=", ".join(sorted(ixdsDocDirs)), url=reportIncorrectlyPlacedInPackageRef)
         ixTargetUsage = val.authParam["ixTargetUsage"]
-        earliestTransformationRegistry = val.authParam.get("earliestTransformationRegistry","")
-        allowedTRnamespaces = set()
-        earliestTRnumber = ""
-        for key, ns in ixtNamespaces.items():
-            if ns >= earliestTransformationRegistry:
-                allowedTRnamespaces.add(ns)
-            if ns == earliestTransformationRegistry:
-                earliestTRnumber = TRnumber[ns]
+        earliestTRVersion = val.authParam.get("earliestTransformationRegistryVersion", min(ixtNamespacesByVersion.keys()))
+        if earliestTRVersion not in ixtNamespacesByVersion:
+            raise ValueError(f'Unsupported "earliestTransformationRegistryVersion" disclosure system config setting: {earliestTRVersion}')
+        allowedTRnamespaces = frozenset(
+            ns for version, ns in ixtNamespacesByVersion.items()
+            if version >= earliestTRVersion
+        )
         if styleIxHiddenProperty := val.authParam.get("styleIxHiddenProperty"):
             styleIxHiddenPattern = re.compile(rf"(.*[^\w]|^){styleIxHiddenProperty}\s*:\s*([\w.-]+).*")
         else:
@@ -837,7 +836,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
         if transformRegistryErrors:
             modelXbrl.error("ESEF.2.2.3.incorrectTransformationRuleApplied",
                               _("ESMA recommends applying the Transformation Rules Registry %(earliestTrNum)s, as published by XBRL International or any more recent versions of the Transformation Rules Registry provided with a 'Recommendation' status, for these elements: %(elements)s."),
-                              modelObject=transformRegistryErrors, earliestTrNum=earliestTRnumber,
+                              modelObject=transformRegistryErrors, earliestTrNum=earliestTRVersion,
                               elements=", ".join(sorted(str(fact.qname) for fact in transformRegistryErrors)))
 
         if orphanedFootnotes:

@@ -104,7 +104,7 @@
             "http://www.esma.europa.eu/taxonomy/2021-03-24/esef_cor.xsd",
             "https://www.esma.europa.eu/taxonomy/2021-03-24/esef_cor.xsd"
         ],
-		"earliestTransformationRegistry": "http://www.xbrl.org/inlineXBRL/transformation/2020-02-12",
+		"earliestTransformationRegistryVersion": 4,
 		"styleIxHiddenProperty": "-esef-ix-hidden"
     },
     "ESEF-2022": {
@@ -128,7 +128,7 @@
             "http://www.esma.europa.eu/taxonomy/2022-03-24/esef_cor.xsd",
             "https://www.esma.europa.eu/taxonomy/2022-03-24/esef_cor.xsd"
 		],
-		"earliestTransformationRegistry": "http://www.xbrl.org/inlineXBRL/transformation/2020-02-12",
+		"earliestTransformationRegistryVersion": 4,
 		"styleIxHiddenProperty": "-esef-ix-hidden"
     },
     "ESEF-2023": {
@@ -152,7 +152,7 @@
             "http://www.esma.europa.eu/taxonomy/2022-03-24/esef_cor.xsd",
             "https://www.esma.europa.eu/taxonomy/2022-03-24/esef_cor.xsd"
 		],
-		"earliestTransformationRegistry": "http://www.xbrl.org/inlineXBRL/transformation/2020-02-12",
+		"earliestTransformationRegistryVersion": 4,
 		"styleIxHiddenProperty": "-esef-ix-hidden"
     },
     "ESEF-2024": {
@@ -180,7 +180,7 @@
             "http://www.esma.europa.eu/taxonomy/2024-03-27/esef_cor.xsd",
             "https://www.esma.europa.eu/taxonomy/2024-03-27/esef_cor.xsd"
 		],
-		"earliestTransformationRegistry": "http://www.xbrl.org/inlineXBRL/transformation/2020-02-12",
+		"earliestTransformationRegistryVersion": 4,
 		"styleIxHiddenProperty": "-esef-ix-hidden"
     },
 	"ESEF-2025-DRAFT": {
@@ -210,7 +210,7 @@
 			 ]
 		    }
 		],
-		"earliestTransformationRegistry": "http://www.xbrl.org/inlineXBRL/transformation/2022-02-16",
+		"earliestTransformationRegistryVersion": 5,
 		"styleIxHiddenProperty": "-ix-hidden"
 	},
     "AT": {
