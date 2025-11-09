@@ -379,7 +379,7 @@ __pluginInfo__ = {
         "Validate ESMA ESEF-2022",
         "validate/ESEF_2022",
     ],
-    "version": "1.2024.00",
+    "version": "1.2025.00",
     "description": """ESMA ESEF Filer Manual and RTS Validations.""",
     "license": "Apache-2",
     "author": authorLabel,
