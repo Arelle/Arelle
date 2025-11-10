@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 class EntrypointParseResult:
     success: bool
     entrypointFiles: list[dict[str, Any]]
-    filesource: FileSource | None
+    filesource: FileSource.FileSource | None
 
 
 def parseEntrypointFileInput(cntlr: Cntlr, entrypointFile: str | None, sourceZipStream=None, fallbackSelect=True) -> EntrypointParseResult:
@@ -79,8 +79,9 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=None, inlineOnly=False
         if filesource.isTaxonomyPackage:  # if archive is also a taxonomy package, activate mappings
             filesource.loadTaxonomyPackageMappings()
         # HF note: a web api request to load a specific file from archive is ignored, is this right?
-        del entrypointFiles[:] # clear out archive from entrypointFiles
+        discoveredEntrypointFiles = []
         if reportPackage := filesource.reportPackage:
+            del entrypointFiles[:]
             assert isinstance(filesource.basefile, str)
             for report in reportPackage.reports or []:
                 if report.isInline:
@@ -91,9 +92,9 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=None, inlineOnly=False
                         ixdsDiscovered = True
                     if not ixdsDiscovered and len(reportEntries) > 1:
                         raise RuntimeError(_("Loading error. Inline document set encountered. Enable 'InlineXbrlDocumentSet' plug-in to load this filing: {0}").format(filesource.url))
-                    entrypointFiles.extend(reportEntries)
+                    discoveredEntrypointFiles.extend(reportEntries)
                 elif not inlineOnly:
-                    entrypointFiles.append({"file": report.fullPathPrimary})
+                    discoveredEntrypointFiles.append({"file": report.fullPathPrimary})
         elif fallbackSelect:
             # attempt to find inline XBRL files before instance files, .xhtml before probing others (ESMA)
             urlsByType = {}
@@ -105,20 +106,25 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=None, inlineOnly=False
             # use inline instances, if any, else non-inline instances
             for identifiedType in ((ModelDocument.Type.INLINEXBRL,) if inlineOnly else (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INSTANCE)):
                 for url in urlsByType.get(identifiedType, []):
-                    entrypointFiles.append({"file":url})
-                if entrypointFiles:
+                    discoveredEntrypointFiles.append({"file":url})
+                if discoveredEntrypointFiles:
                     if identifiedType == ModelDocument.Type.INLINEXBRL:
                         for pluginXbrlMethod in PluginManager.pluginClassMethods("InlineDocumentSet.Discovery"):
-                            pluginXbrlMethod(filesource, entrypointFiles) # group into IXDS if plugin feature is available
+                            pluginXbrlMethod(filesource, discoveredEntrypointFiles) # group into IXDS if plugin feature is available
                     break # found inline (or non-inline) entrypoint files, don't look for any other type
             # for ESEF non-consolidated xhtml documents accept an xhtml entry point
-            if not entrypointFiles and not inlineOnly:
+            if not discoveredEntrypointFiles and not inlineOnly:
                 for url in urlsByType.get(ModelDocument.Type.HTML, []):
-                    entrypointFiles.append({"file":url})
-            if not entrypointFiles and filesource.taxonomyPackage is not None:
+                    discoveredEntrypointFiles.append({"file":url})
+            if not discoveredEntrypointFiles and filesource.taxonomyPackage is not None:
                 for packageEntry in filesource.taxonomyPackage.get('entryPoints', {}).values():
                     for _resolvedUrl, remappedUrl, _closest in packageEntry:
-                        entrypointFiles.append({"file": remappedUrl})
+                        discoveredEntrypointFiles.append({"file": remappedUrl})
+        if discoveredEntrypointFiles:
+            # Only clear archive entry points if we discovered new ones.
+            # This could be a plugin loaded archive, such as an Excel file.
+            del entrypointFiles[:]
+            entrypointFiles.extend(discoveredEntrypointFiles)
 
 
     elif os.path.isdir(filesource.url):
