@@ -1,7 +1,7 @@
 # core modules
 bottle==0.13.4
 certifi==2025.10.5
-cheroot==11.1.0
+cheroot==11.1.2
 filelock==3.19.1
 isodate==0.7.2
 jaconv==0.4.0
@@ -13,7 +13,7 @@ openpyxl==3.1.5
 pycountry==24.6.1
 pyparsing==3.2.5
 python-dateutil==2.9.0.post0
-regex==2025.10.23
+regex==2025.11.3
 tornado==6.5.2
 truststore==0.10.1 ; python_version > "3.9"
 typing-extensions==4.15.0
