@@ -103,7 +103,9 @@
             "https://www.esma.europa.eu/taxonomy/2020-03-16/esef_cor.xsd",
             "http://www.esma.europa.eu/taxonomy/2021-03-24/esef_cor.xsd",
             "https://www.esma.europa.eu/taxonomy/2021-03-24/esef_cor.xsd"
-        ]
+        ],
+		"earliestTransformationRegistryVersion": 4,
+		"styleIxHiddenProperty": "-esef-ix-hidden"
     },
     "ESEF-2022": {
         "outdatedTaxonomyURLs": [
@@ -125,7 +127,9 @@
             "https://www.esma.europa.eu/taxonomy/2021-03-24/esef_cor.xsd",
             "http://www.esma.europa.eu/taxonomy/2022-03-24/esef_cor.xsd",
             "https://www.esma.europa.eu/taxonomy/2022-03-24/esef_cor.xsd"
-        ]
+		],
+		"earliestTransformationRegistryVersion": 4,
+		"styleIxHiddenProperty": "-esef-ix-hidden"
     },
     "ESEF-2023": {
         "outdatedTaxonomyURLs": [
@@ -147,7 +151,9 @@
             "https://www.esma.europa.eu/taxonomy/2021-03-24/esef_cor.xsd",
             "http://www.esma.europa.eu/taxonomy/2022-03-24/esef_cor.xsd",
             "https://www.esma.europa.eu/taxonomy/2022-03-24/esef_cor.xsd"
-        ]
+		],
+		"earliestTransformationRegistryVersion": 4,
+		"styleIxHiddenProperty": "-esef-ix-hidden"
     },
     "ESEF-2024": {
         "outdatedTaxonomyURLs": [
@@ -173,8 +179,40 @@
             "https://www.esma.europa.eu/taxonomy/2022-03-24/esef_cor.xsd",
             "http://www.esma.europa.eu/taxonomy/2024-03-27/esef_cor.xsd",
             "https://www.esma.europa.eu/taxonomy/2024-03-27/esef_cor.xsd"
-        ]
+		],
+		"earliestTransformationRegistryVersion": 4,
+		"styleIxHiddenProperty": "-esef-ix-hidden"
     },
+	"ESEF-2025-DRAFT": {
+	    "outdatedTaxonomyURLs": [
+	        "http://www.esma.europa.eu/taxonomy/2017-03-31/esef_cor.xsd",
+	        "https://www.esma.europa.eu/taxonomy/2017-03-31/esef_cor.xsd",
+	        "http://www.esma.europa.eu/taxonomy/2019-03-27/esef_cor.xsd",
+	        "https://www.esma.europa.eu/taxonomy/2019-03-27/esef_cor.xsd",
+	        "http://www.esma.europa.eu/taxonomy/2020-03-16/esef_cor.xsd",
+	        "https://www.esma.europa.eu/taxonomy/2020-03-16/esef_cor.xsd",
+	        "http://www.esma.europa.eu/taxonomy/2021-03-24/esef_cor.xsd",
+	        "https://www.esma.europa.eu/taxonomy/2021-03-24/esef_cor.xsd",
+			"http://www.esma.europa.eu/taxonomy/2022-03-24/esef_cor.xsd",
+			"https://www.esma.europa.eu/taxonomy/2022-03-24/esef_cor.xsd"
+	    ],
+	    "effectiveTaxonomyURLs": [
+			"http://www.esma.europa.eu/taxonomy/2025-03-27/esef_cor.xsd",
+			"https://www.esma.europa.eu/taxonomy/2025-03-27/esef_cor.xsd",
+			"http://www.esma.europa.eu/taxonomy/2024-03-27/esef_cor.xsd",
+			"https://www.esma.europa.eu/taxonomy/2024-03-27/esef_cor.xsd"
+		],
+		"expiringTaxonomyURLs": [
+			{"lastReportableDate": "2025-12-31",
+			 "URLs": [
+				"http://www.esma.europa.eu/taxonomy/2024-03-27/esef_cor.xsd",
+				"https://www.esma.europa.eu/taxonomy/2024-03-27/esef_cor.xsd"
+			 ]
+		    }
+		],
+		"earliestTransformationRegistryVersion": 5,
+		"styleIxHiddenProperty": "-ix-hidden"
+	},
     "AT": {
         "name": "Austria",
         "reportPackageMaxMB": "100",

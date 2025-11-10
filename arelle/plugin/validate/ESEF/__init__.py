@@ -64,6 +64,7 @@ _: TypeGetText
 ESEF_DISCLOSURE_SYSTEM_TEST_PROPERTY = "ESEFplugin"
 
 ixErrorPattern = re.compile(r"ix11[.]|xmlSchema[:]|(?!xbrl.5.2.5.2|xbrl.5.2.6.2)xbrl[.]|xbrld[ti]e[:]|utre[:]")
+dupIdErrorPattern = re.compile(r"xml.3.3.1:idMustBeUnique|ix11.14.1.2:uniqueIxId")
 
 
 def validateEntity(modelXbrl: ModelXbrl, filename:str, filesource: FileSource) -> None:
@@ -306,6 +307,14 @@ class ESEFPlugin(PluginHooks):
                             modelObject=modelXbrl)
             return # never loaded properly
 
+        disclosureSystemYear = getDisclosureSystemYear(modelXbrl)
+        if disclosureSystemYear >= 2025:
+            numDupIdErrors = sum(dupIdErrorPattern.match(e) is not None for e in modelXbrl.errors if isinstance(e,str))
+            if numDupIdErrors:
+                modelXbrl.warning("ESEF.2.2.8.duplicatedIdAttribute",
+                                _("ID attributes should be unique, %(numDupIdErrors)s such errors were reported."),
+                                modelObject=modelXbrl, numDupIdErrors=numDupIdErrors)
+
         numXbrlErrors = sum(ixErrorPattern.match(e) is not None for e in modelXbrl.errors if isinstance(e,str))
         if numXbrlErrors:
             modelXbrl.error("ESEF.RTS.Annex.III.Par.1.invalidInlineXBRL",
@@ -370,7 +379,7 @@ __pluginInfo__ = {
         "Validate ESMA ESEF-2022",
         "validate/ESEF_2022",
     ],
-    "version": "1.2024.00",
+    "version": "1.2025.00",
     "description": """ESMA ESEF Filer Manual and RTS Validations.""",
     "license": "Apache-2",
     "author": authorLabel,
