@@ -6,7 +6,7 @@ config = ConformanceSuiteConfig(
         ConformanceSuiteAssetConfig.conformance_suite(
             Path('XBRL-XDT-CONF-2025-09-09.zip'),
             entry_point=Path('XBRL-XDT-CONF-2025-09-09/xdt.xml'),
-            public_download_url='https://www.xbrl.org/2009/xdt-conf-cr4-2009-10-06.zip',
+            public_download_url='https://www.xbrl.org/2025/XBRL-XDT-CONF-2025-09-09.zip',
             source=AssetSource.S3_PUBLIC,
         ),
     ],
