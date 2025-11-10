@@ -16,6 +16,7 @@ jobs:
   python-package:
     permissions:
       contents: write
+      id-token: write
     needs: tests
     uses: ./.github/workflows/python-package.yml
     secrets: inherit
