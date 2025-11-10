@@ -70,7 +70,7 @@ BASE_XSD_TYPES = {
         {"value": "/test.test/test", "expected": ("=", "=", VALID)},
         {"value": "test.test/test", "expected": ("=", "=", VALID)},
         {"value": "\\escaped", "expected": ("=", "%5Cescaped", VALID)},
-        {"value": ":invalid:", "expected": ("=", "=", VALID)},
+        {"value": ":invalid:", "expected": ("=", None, INVALID)},
     ],
     "boolean": [
         {"value": "true", "expected": (True, True, VALID)},

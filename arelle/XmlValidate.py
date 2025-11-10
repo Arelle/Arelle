@@ -458,9 +458,8 @@ def validateValue(
                     xValue = sValue = value
                     xValid = VALID_ID
                 elif baseXsdType == "anyURI":
-                    if value:  # allow empty strings to be valid anyURIs
-                        if UrlUtil.isValidUriReference(value) is None:
-                            raise ValueError("IETF RFC 2396 4.3 syntax")
+                    if not UrlUtil.isValidUriReference(value):
+                        raise ValueError("IETF RFC 2396 4.3 syntax")
                     # encode PSVI xValue similarly to Xerces and other implementations
                     xValue = anyURI(UrlUtil.anyUriQuoteForPSVI(value))
                     sValue = value
