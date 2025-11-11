@@ -49,31 +49,3 @@ jobs:
           name: arelle.whl
           if-no-files-found: error
           path: dist/*.whl
-
-  publish-package:
-    needs: build-package
-    environment: release
-    permissions:
-      contents: write
-    runs-on: ubuntu-24.04
-    if: startsWith(github.ref, 'refs/tags')
-    steps:
-      - name: Download tar artifact
-        uses: actions/download-artifact@v6.0.0
-        with:
-          name: arelle.tar.gz
-      - name: Download wheel artifact
-        uses: actions/download-artifact@v6.0.0
-        with:
-          name: arelle.whl
-      - name: Publish package on release
-        env:
-          TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
-          TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
-          TWINE_REPOSITORY: ${{ github.repository == 'Arelle/Arelle' && 'pypi' || 'testpypi' }}
-        run: pipx run twine upload ./*
-      - name: Upload release artifact
-        uses: softprops/action-gh-release@v2.4.2
-        with:
-          fail_on_unmatched_files: true
-          files: './*'

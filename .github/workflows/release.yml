@@ -14,11 +14,36 @@ jobs:
   tests:
     uses: ./.github/workflows/tests.yml
   python-package:
+    uses: ./.github/workflows/python-package.yml
+  publish-python-package:
+    # publish job is inline here because PyPI doesn't support trusted publishers from GitHub reusable workflows.
+    # https://docs.pypi.org/trusted-publishers/troubleshooting/#reusable-workflows-on-github
+    needs: 
+      - tests
+      - python-package
+    environment: release
     permissions:
       contents: write
-    needs: tests
-    uses: ./.github/workflows/python-package.yml
-    secrets: inherit
+      id-token: write
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Download tar artifact
+        uses: actions/download-artifact@v6.0.0
+        with:
+          name: arelle.tar.gz
+          path: dist/
+      - name: Download wheel artifact
+        uses: actions/download-artifact@v6.0.0
+        with:
+          name: arelle.whl
+          path: dist/
+      - name: Publish package on release
+        uses: pypa/gh-action-pypi-publish@v1.13.0
+      - name: Upload release artifact
+        uses: softprops/action-gh-release@v2.4.2
+        with:
+          fail_on_unmatched_files: true
+          files: 'dist/*'
 
   build-linux:
     uses: ./.github/workflows/build-linux.yml
