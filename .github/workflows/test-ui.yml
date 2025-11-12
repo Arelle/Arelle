@@ -39,7 +39,7 @@ jobs:
     needs: [build-windows-dispatch, build-windows-pr]
     # https://github.com/actions/runner/issues/491
     if: always() && (needs.build-windows-dispatch.result == 'success' || needs.build-windows-pr.result == 'success') && !cancelled()
-    runs-on: windows-2022
+    runs-on: windows-2025
     strategy:
       fail-fast: false
       matrix:
