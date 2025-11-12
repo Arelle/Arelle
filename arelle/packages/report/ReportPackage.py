@@ -215,9 +215,17 @@ class ReportPackage:
         if reportPackageJsonFile:
             reportPackageJson = getPackageJson(filesource, reportPackageJsonFile)
         reports = getAllReportEntries(filesource, stld)
-        if reportType == Const.ReportType.UNCONSTRAINED_REPORT_PACKAGE and reportPackageJsonFile is None and reports is None:
+        identifedByInspection = reportPackageJsonFile is not None or reports is not None
+        if reportType == Const.ReportType.UNCONSTRAINED_REPORT_PACKAGE and not identifedByInspection:
             # A zip file, but not a report package.
             return None
+        if reportType is None:
+            # Archive with unrecognized file extension.
+            if not identifedByInspection:
+                # Not a report package
+                return None
+            # Invalid file extension. Validate as report package and block loading reports.
+            reports = None
         if reports is not None and any(report.isTopLevel for report in reports):
             reports = [report for report in reports if report.isTopLevel]
         return ReportPackage(

@@ -868,6 +868,8 @@ class CntlrWinMain (Cntlr.Cntlr):
             entrypointFiles = entrypointParseResult.entrypointFiles
             # check for archive files
             if filesource.isArchive:
+                if all(e.get("file") == filename for e in entrypointFiles):
+                    entrypointFiles = []
                 if (
                     len(entrypointFiles) == 0 and
                     not filesource.selection and
