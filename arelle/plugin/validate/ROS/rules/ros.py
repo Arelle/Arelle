@@ -353,7 +353,9 @@ def rule_ros20(
     else:
         principal_currency_value = principal_currency_values.pop()
         monetary_facts = list(val.modelXbrl.factsByDatatype(False, qnXbrliMonetaryItemType))
-        monetary_units = [list(fact.utrEntries)[0].unitId for fact in monetary_facts if fact.unit is not None]
+        monetary_units = [
+            list(fact.utrEntries)[0].unitId for fact in monetary_facts if fact.unit is not None and len(fact.utrEntries) > 0
+        ]
         unit_counts = Counter(monetary_units)
         principal_currency_value_count = unit_counts[principal_currency_value]
         for count in unit_counts.values():
