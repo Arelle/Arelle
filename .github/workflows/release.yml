@@ -37,7 +37,7 @@ jobs:
   build-macos-x64:
     uses: ./.github/workflows/build-macos.yml
     with:
-      macos_version: 13
+      macos_version: 15-intel
       python_architecture: x64
     secrets: inherit
   publish-macos-x64:
