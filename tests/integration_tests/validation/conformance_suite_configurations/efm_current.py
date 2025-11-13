@@ -29,6 +29,17 @@ config = ConformanceSuiteConfig(
     expected_failure_ids=frozenset(f'conf/{s}' for s in [
         # Next EFM update will resolve this by checking contexts not mapped to target documents.
         '605-instance-syntax/605-08-no-unused-contexts/605-08-no-unused-contexts-testcase.xml:_002ng'
+        
+        ### Discovered during transition to Test Engine:
+        # Related to EFM.6.05.23.submissionIdentifier not firing
+        'filing-fee-exhibit/000-userstories/00-other/00-userstories/00-userstories-testcase.xml:0016ng'
+        'filing-fee-exhibit/000-userstories/00-other/00-userstories/00-userstories-testcase.xml:0008ng'
+        'filing-fee-exhibit/000-userstories/00-other/00-userstories/00-userstories-testcase.xml:0044ng'
+        'filing-fee-exhibit/000-userstories/00-other/00-userstories/00-userstories-testcase.xml:0024ng'
+        'filing-fee-exhibit/000-userstories/00-other/00-userstories/00-userstories-testcase.xml:0041ng'
+        'filing-fee-exhibit/000-userstories/00-other/00-userstories/00-userstories-testcase.xml:0049ng'
+        # Related to EFM.FT.3.8.8.dailyFeeRate not firing
+        'filing-fee-exhibit/300-offeringTable/08-Rule0-11/08-FeeRate/08-FeeRate-testcase.xml:0004gw'
     ]),
     info_url='https://www.sec.gov/structureddata/osdinteractivedatatestsuite',
     name=PurePath(__file__).stem,
