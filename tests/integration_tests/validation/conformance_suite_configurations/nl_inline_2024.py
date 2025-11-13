@@ -49,10 +49,6 @@ config = ConformanceSuiteConfig(
         'G3-2-7_1/index.xml:TC7_invalid': {
             'missingRelevantPlaceholder': 1,
         },
-        'G3-5-1_5/index.xml:TC2_invalid': {
-            # This is the expected error, but we return two of them, slightly different.
-            'imageFormatNotSupported': 1,
-        },
         'G3-5-2_3/index.xml:TC2_invalid': {
             'missingLabelForRoleInReportLanguage': 1,
         },
@@ -67,9 +63,6 @@ config = ConformanceSuiteConfig(
         },
         'G4-1-1_1/index.xml:TC3_invalid': {
             'extensionConceptNoLabel': 1,
-        },
-        'G4-1-1_1/index.xml:TC4_invalid': {
-            'extensionTaxonomyWrongFilesStructure': 1,
         },
         'G4-1-1_1/index.xml:TC5_invalid': {
             'usableConceptsNotIncludedInPresentationLink': 1,
