@@ -5,12 +5,12 @@
         "namespaces": {
             "xbrl": "https://xbrl.org/2025",
             "xbrli":"https://xbrl.org/2025/instance",
-            "xs": "http://www.w3.org/2001/XMLSchema" 
+            "xs": "http://www.w3.org/2001/XMLSchema",
+            "utr": "https://xbrl.org/2025/utr"
             },
         "documentNamespace":"xbrl"
     },
     "taxonomy": {
-        "resolved" : false,
         "name": "xbrl:CoreTaxonomyModule",
         "frameworkName": "Core",
         "version": "2025",
@@ -24,13 +24,13 @@
                     "allowedCubeDimensions" : [
                         {
                         "dimensionType": "typed",
-                        "dimensionDataType": "xs:dateTime",
+                        "dimensionDataType": "xs:token",
                         "required" : true
                         }
                     ],
                     "requiredCubeRelationships" : [
                         {
-                        "source":"xs:dateTime",
+                        "sourceDataType":"xs:dateTime",
                         "relationshipTypeName": "xbrl:concept-refDimension",
                         "target": "xbrl:period"
                         }
@@ -45,12 +45,15 @@
                     "allowedCubeDimensions" : [
                         {
                             "dimensionType": "typed",
+                            "dimensionDataType": "xs:token",
                             "required" : true
                         }
                     ],
                     "requiredCubeRelationships" : [
                         {
-                            "relationshipTypeName": "xbrl:concept-refDimension"
+                            "sourceObject": "xbrl:conceptObject",
+                            "relationshipTypeName": "xbrl:concept-refDimension",
+                            "targetObject" : "xbrl:dimensionObject"
                         }
                     ]
                 },
@@ -67,6 +70,7 @@
                     "allowedCubeDimensions" : [
                         {
                             "dimensionType": "typed",
+                            "dimensionDataType": "xs:token",
                             "required" : true
                         }
                     ]
@@ -75,15 +79,28 @@
                     "name": "xbrl:timeSeriesCube",
                     "periodDimension": false,
                     "entityDimension": false,
-                    "unitDimension": false,
+                    "unitDimension": true,
                     "taxonomyDefinedDimension": true,
                     "allowedCubeDimensions" : [
                         {
                             "dimensionType": "typed",
                             "dimensionDataType": "xs:dateTime",
-                            "required" : true
-                        }
-                    ]
+                            "required" : true,
+                            "allowedDimensionProperties": [
+                                "xbrl:intervalOfMeasurement",
+                                "xbrl:timeSeriesType",
+                                "xbrl:aggregation",
+                                "xbrl:intervalConvention",
+                                "xbrl:completeTimeSeries",
+                                "xbrl:excludedIntervals"
+                            ],
+                            "requiredDimensionProperties": [
+                                "xbrl:intervalOfMeasurement",
+                                 "xbrl:timeSeriesType"
+                            ]
+                        }   
+                    ],
+                    "allowedCubeDimensionsClosed" : false
                 },
                 {
                     "name": "xbrl:positionCube",
@@ -94,6 +111,7 @@
                     "allowedCubeDimensions" : [
                         {
                             "dimensionType": "typed",
+                            "dimensionDataType": "xs:token",
                             "required" : true
                         }
                     ]
@@ -121,7 +139,7 @@
             },
             {
                 "name": "xbrl:period",
-                "domainDataType": "xbrli:periodType"
+                "domainRoot": "xbrl:periodDomain"
             },
             {
                 "name": "xbrl:entity",
@@ -134,34 +152,48 @@
         ],
         "domainRoots" : [
             {
-                "name": "xbrl:conceptDomain"
+                "name": "xbrl:conceptDomain",
+                "allowedDomainItems" : ["xbrl:conceptObject"]
             },
             {
-                "name": "xbrl:unitDomain"
+                "name": "xbrl:periodDomain",
+                "allowedDomainItems" : ["xs:dateTime", "xbrli:startEndDates", "xbrli:periodString"]
             },
             {
-                "name": "xbrl:entityDomain"
+                "name": "xbrl:unitDomain",
+                "allowedDomainItems" : ["xbrl:unitObject", "xbrli:unitString"]
+            },
+            {
+                "name": "xbrl:entityDomain",
+                "allowedDomainItems" : ["xbrl:entityObject", "xs:QName"]
             },
             {
                 "name": "xbrl:languageDomain"
+            },
+            {
+                "name": "xbrl:traitDomain"
             }
         ],
         "labelTypes": [
             {
                 "name": "xbrl:label",
-                "uri": "http://www.xbrl.org/2003/role/label"
+                "uri": "http://www.xbrl.org/2003/role/label",
+                "dataType": "xs:string"
             },
             {
                 "name": "xbrl:terseLabel",
-                "uri": "http://www.xbrl.org/2003/role/terseLabel"
+                "uri": "http://www.xbrl.org/2003/role/terseLabel",
+                "dataType": "xs:string"
             },
             {
                 "name": "xbrl:verboseLabel",
-                "uri": "http://www.xbrl.org/2003/role/verboseLabel"
+                "uri": "http://www.xbrl.org/2003/role/verboseLabel",
+                "dataType": "xs:string"
             },
             {
                 "name": "xbrl:positiveLabel",
                 "uri": "http://www.xbrl.org/2003/role/positiveLabel",
+                "dataType": "xs:string",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -169,6 +201,7 @@
             {
                 "name": "xbrl:positiveTerseLabel",
                 "uri": "http://www.xbrl.org/2003/role/positiveTerseLabel",
+                "dataType": "xs:string",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -176,6 +209,7 @@
             {
                 "name": "xbrl:positiveVerboseLabel",
                 "uri": "http://www.xbrl.org/2003/role/positiveVerboseLabel",
+                "dataType": "xs:string",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -183,6 +217,7 @@
             {
                 "name": "xbrl:negativeLabel",
                 "uri": "http://www.xbrl.org/2003/role/negativeLabel",
+                "dataType": "xs:string",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -190,6 +225,7 @@
             {
                 "name": "xbrl:negativeTerseLabel",
                 "uri": "http://www.xbrl.org/2003/role/negativeTerseLabel",
+                "dataType": "xs:string",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -197,6 +233,7 @@
             {
                 "name": "xbrl:negativeVerboseLabel",
                 "uri": "http://www.xbrl.org/2003/role/negativeVerboseLabel",
+                "dataType": "xs:string",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -204,6 +241,7 @@
             {
                 "name": "xbrl:zeroLabel",
                 "uri": "http://www.xbrl.org/2003/role/zeroLabel",
+                "dataType": "xs:string",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -211,6 +249,7 @@
             {
                 "name": "xbrl:zeroTerseLabel",
                 "uri": "http://www.xbrl.org/2003/role/zeroTerseLabel",
+                "dataType": "xs:string",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -218,6 +257,7 @@
             {
                 "name": "xbrl:zeroVerboseLabel",
                 "uri": "http://www.xbrl.org/2003/role/zeroVerboseLabel",
+                "dataType": "xs:string",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -225,6 +265,7 @@
             {
                 "name": "xbrl:totalLabel",
                 "uri": "http://www.xbrl.org/2003/role/totalLabel",
+                "dataType": "xs:string",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -232,6 +273,7 @@
             {
                 "name": "xbrl:periodStartLabel",
                 "uri": "http://www.xbrl.org/2003/role/periodStartLabel",
+                "dataType": "xs:string",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -239,58 +281,70 @@
             {
                 "name": "xbrl:periodEndLabel",
                 "uri": "http://www.xbrl.org/2003/role/periodEndLabel",
+                "dataType": "xs:string",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
             },
             {
                 "name": "xbrl:documentation",
-                "uri": "http://www.xbrl.org/2003/role/documentation"
+                "uri": "http://www.xbrl.org/2003/role/documentation",
+                "dataType": "xs:string"
             },
             {
                 "name": "xbrl:definitionGuidance",
-                "uri": "http://www.xbrl.org/2003/role/definitionGuidance"
+                "uri": "http://www.xbrl.org/2003/role/definitionGuidance",
+                "dataType": "xs:string"
             },
             {
                 "name": "xbrl:disclosureGuidance",
-                "uri": "http://www.xbrl.org/2003/role/disclosureGuidance"
+                "uri": "http://www.xbrl.org/2003/role/disclosureGuidance",
+                "dataType": "xs:string"
                 
             },
             {
                 "name": "xbrl:presentationGuidance",
-                "uri": "http://www.xbrl.org/2003/role/presentationGuidance"
+                "uri": "http://www.xbrl.org/2003/role/presentationGuidance",
+                "dataType": "xs:string"
                 
             },
             {
                 "name": "xbrl:measurementGuidance",
-                "uri": "http://www.xbrl.org/2003/role/measurementGuidance"
+                "uri": "http://www.xbrl.org/2003/role/measurementGuidance",
+                "dataType": "xs:string"
                 
             },
             {
                 "name": "xbrl:commentaryGuidance",
-                "uri": "http://www.xbrl.org/2003/role/commentaryGuidance"
+                "uri": "http://www.xbrl.org/2003/role/commentaryGuidance",
+                "dataType": "xs:string"
                 
             },
             {
                 "name": "xbrl:exampleGuidance",
-                "uri": "http://www.xbrl.org/2003/role/exampleGuidance"
+                "uri": "http://www.xbrl.org/2003/role/exampleGuidance",
+                "dataType": "xs:string"
                 
             },
             {
                 "name": "xbrl:commonPracticeRef",
-                "uri": "http://www.xbrl.org/2009/role/commonPracticeRef"
+                "uri": "http://www.xbrl.org/2009/role/commonPracticeRef",
+                "dataType": "xs:string"
             },
             {
                 "name": "xbrl:deprecatedDateLabel",
-                "uri": "http://www.xbrl.org/2009/role/deprecatedDateLabel"
+                "uri": "http://www.xbrl.org/2009/role/deprecatedDateLabel",
+                "dataType": "xs:string"
             },
             {
                 "name": "xbrl:deprecatedLabel",
-                "uri": "http://www.xbrl.org/2009/role/deprecatedLabel"
+                "uri": "http://www.xbrl.org/2009/role/deprecatedLabel",
+                "dataType": "xs:string"
             },
             {
                 "name": "xbrl:negated",
                 "uri": "http://xbrl.us/us-gaap/role/label/negated",
+                "dataType": "xs:string",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -298,6 +352,7 @@
             {
                 "name": "xbrl:negatedLabel",
                 "uri": "http://www.xbrl.org/2009/role/negatedLabel",
+                "dataType": "xs:string",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -305,6 +360,7 @@
             {
                 "name": "xbrl:negatedNetLabel",
                 "uri": "http://www.xbrl.org/2009/role/negatedNetLabel",
+                "dataType": "xs:string",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -312,6 +368,7 @@
             {
                 "name": "xbrl:negatedPeriodEnd",
                 "uri": "http://xbrl.us/us-gaap/role/label/negatedPeriodEnd",
+                "dataType": "xs:string",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -319,6 +376,7 @@
             {
                 "name": "xbrl:negatedPeriodEndLabel",
                 "uri": "http://www.xbrl.org/2009/role/negatedPeriodEndLabel",
+                "dataType": "xs:string",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -326,6 +384,7 @@
             {
                 "name": "xbrl:negatedPeriodStart",
                 "uri": "http://xbrl.us/us-gaap/role/label/negatedPeriodStart",
+                "dataType": "xs:string",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -333,6 +392,7 @@
             {
                 "name": "xbrl:negatedPeriodStartLabel",
                 "uri": "http://www.xbrl.org/2009/role/negatedPeriodStartLabel",
+                "dataType": "xs:string",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -340,6 +400,7 @@
             {
                 "name": "xbrl:negatedTerseLabel",
                 "uri": "http://www.xbrl.org/2009/role/negatedTerseLabel",
+                "dataType": "xs:string",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -347,6 +408,7 @@
             {
                 "name": "xbrl:negatedTotal",
                 "uri": "http://xbrl.us/us-gaap/role/label/negatedTotal",
+                "dataType": "xs:string",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -354,6 +416,7 @@
             {
                 "name": "xbrl:negatedTotalLabel",
                 "uri": "http://www.xbrl.org/2009/role/negatedTotalLabel",
+                "dataType": "xs:string",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -361,6 +424,7 @@
             {
                 "name": "xbrl:negativePeriodEndLabel",
                 "uri": "http://www.xbrl.org/2009/role/negativePeriodEndTotalLabel",
+                "dataType": "xs:string",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -368,6 +432,7 @@
             {
                 "name": "xbrl:negativePeriodEndTotalLabel",
                 "uri": "http://www.xbrl.org/2009/role/negativePeriodEndTotalLabel",
+                "dataType": "xs:string",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -375,6 +440,7 @@
             {
                 "name": "xbrl:negativePeriodStartLabel",
                 "uri": "http://www.xbrl.org/2009/role/negativePeriodStartLabel",
+                "dataType": "xs:string",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -382,6 +448,7 @@
             {
                 "name": "xbrl:negativePeriodStartTotalLabel",
                 "uri": "http://www.xbrl.org/2009/role/negativePeriodStartTotalLabel",
+                "dataType": "xs:string",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -389,6 +456,7 @@
             {
                 "name": "xbrl:netLabel",
                 "uri": "http://www.xbrl.org/2009/role/netLabel",
+                "dataType": "xs:string",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -396,6 +464,7 @@
             {
                 "name": "xbrl:positivePeriodEndLabel",
                 "uri": "http://www.xbrl.org/2009/role/positivePeriodEndLabel",
+                "dataType": "xs:string",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -403,6 +472,7 @@
             {
                 "name": "xbrl:positivePeriodEndTotalLabel",
                 "uri": "http://www.xbrl.org/2009/role/positivePeriodStartTotalLabel",
+                "dataType": "xs:string",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -410,6 +480,7 @@
             {
                 "name": "xbrl:positivePeriodStartLabel",
                 "uri": "http://www.xbrl.org/2009/role/positivePeriodStartLabel",
+                "dataType": "xs:string",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -417,6 +488,7 @@
             {
                 "name": "xbrl:positivePeriodStartTotalLabel",
                 "uri": "http://www.xbrl.org/2009/role/positivePeriodStartTotalLabel",
+                "dataType": "xs:string",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -424,15 +496,21 @@
             {
                 "name": "xbrl:restatedLabel",
                 "uri": "http://www.xbrl.org/2006/role/restatedLabel",
+                "dataType": "xs:string",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
             },
             {
                 "name": "xbrl:symbolLabel",
+                "dataType": "xs:string",
                 "allowedObjects": [
                     "xbrl:unitObject"
                 ]
+            },
+            {
+                "name": "xbrl:iconLabel",
+                "dataType": "xbrli:emoji"
             }
         ],
         "labels" : [
@@ -714,6 +792,18 @@
                 "value": "Label for a unit, when the unit is represented by a symbol."
             },
             {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrl:iconLabel",
+                "value": "Icon Label"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:iconLabel",
+                "value": "Label that can be used to associate images or emoji icons with different defined objects in the taxonomy. This label type uses the emoji datatype and can be applied to any taxonomy object to provide visual representation through icons, emoji, or image references."
+            },
+            {
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "relatedName": "xbrl:reference",
@@ -802,6 +892,234 @@
                 "language": "en",
                 "relatedName": "xbrl:dep-partConcept-deprecatedAggregateConcept",
                 "value": "Deprecated: part concept - deprecated aggregate concept."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:intervalOfMeasurement",
+                "value": "A property that defines the frequency interval where data is sampled for use in a time series. If the data measurement is performed every day then the frequency of measurement will be a day. For an aggregated time series type this represents the interval over which all measurements are made and an aggregated value such as maximum, minimum, average, median etc are reported. For a raw time series this represents the interval between each measurement. The datetime dimension on a time series cube must include this property."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:completeTimeSeries",
+                "value": "A boolean property that defines if the dimension used for a time series must have a value for every interval.  If true then every interval of the time series must have a fact. If false the time series does not have to be complete. If the property is not defined the default value is false."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:timeSeriesType",
+                "value": "A string property that defines if the dimension used for a time series is raw data or aggregated data. The value of the property must be either Raw or Aggregated.  If no value is provided the default is Aggregated."
+            },
+            {
+                "relatedName": "xbrl:concept",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "Represents the concept core dimension in a taxonomy.  The concept dimension is used to identify concepts that have  measurable facts (for example, a numeric or textual fact). Concepts have data types, period types and may have properties and labels."
+            },
+            {
+                "relatedName": "xbrl:unit",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "Represents the unit core dimension in a taxonomy. Only unit objects can be added to the unit dimension. Each unit object defines the unit of measure associated with numeric facts, for example 'USD' or 'ug/m3'. Units may be simple or composed with numerators and denominators."
+            },
+            {
+                "relatedName": "xbrl:period",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "The period core dimension identifies the reporting period associated with a fact. Period values may be instants, durations, or open intervals, depending on the taxonomy."
+            },
+            {
+                "relatedName": "xbrl:entity",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "The entity core dimension identifies the reporting entity or subject of the fact. Entity identifiers used on this dimension may be expressed as LEIs, names or other identifiers as defined by the taxonomy."
+            },
+            {
+                "relatedName": "xbrl:traitDomain",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "A domain used to express trait values or annotations that can be applied to objects. Trait domains are typically used to model property-like annotations in the taxonomy."
+            },
+            {
+                "relatedName": "xbrl:conceptDomain",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "A concept domain groups concept members that can be referenced by cubes and dimensions. It is the domain used when a cube restricts the concept dimension to a subset of concepts."
+            },
+            {
+                "relatedName": "xbrl:unitDomain",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "A unit domain groups unit definitions for use by concepts and facts. It allows taxonomies to declare a set of preferred or allowed units."
+            },
+            {
+                "relatedName": "xbrl:balance",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "A balance property indicates the accounting balance orientation (debit or credit) for a numeric concept, used in validation and mapping rules."
+            },
+            {
+                "relatedName": "xbrl:semanticLink",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "A semantic link is a relationship type used to express semantic associations between objects, for example to indicate equivalence, suggested mappings or explanatory links."
+            },
+            {
+                "relatedName": "xbrl:weight",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "A weight link property is used on certain relationship types (for example summation-item) to indicate the multiplier applied to the source when computing aggregates."
+            },
+            {
+                "relatedName": "xbrl:preferredLabel",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "The preferredLabel link property indicates which label role should be used as the preferred human-readable label for presentation."
+            },
+            {
+                "relatedName": "xbrl:reportAttribute",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "Report attributes are properties attached to concepts objects to indicate how a concept in a taxonomy maps to standard report attributes such as reporting period end, or report type."
+            },
+            {
+                "relatedName": "xbrl:traitLinkType",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "A traitLinkType is a custom link property used to express typed property relationships between objects and trait domains."
+            },
+            {
+                "relatedName": "xbrl:parent-child",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "The parent-child relationship type is used to build hierarchical structures (trees) between taxonomy objects such as concepts, members, and domains."
+            },
+            {
+                "relatedName": "xbrl:class-subclass",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "The class-subclass relationship type expresses a subclassing relationship between concepts indicating a tighter or more specific definition."
+            },
+            {
+                "relatedName": "xbrl:propertyValue-object",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "A propertyValue-object link expresses the assignment of a property value to a target taxonomy object, used to model custom properties in the taxonomy."
+            },
+            {
+                "relatedName": "xbrl:concept-refDimension",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "The concept-refDimension relationship links a concept to a dimension indicating that the value of the concept in a detailed cube may be the key of a dimension is a summarized cube."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:defaultCube",
+                "value": "Default generic cube type used when no other cube type is appropriate."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:eventCube",
+                "value": "Cube type for single-event facts identified by a typed dimension; does not include standard period/entity/unit core dimensions."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:eventDetailsCube",
+                "value": "Cube type for event detail records that reference concept-to-dimension relationships for richer typed dimensions."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:journalCube",
+                "value": "A specialization of eventDetailsCube intended for journal or ledger style event records."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:referenceCube",
+                "value": "Cube type used for reference or lookup data where facts act as descriptions rather than periodic measurements."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:timeSeriesCube",
+                "value": "Cube type optimized for time-series data; requires a typed date/time dimension and typically includes the unit core-dimension."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:positionCube",
+                "value": "Cube type for position-style facts that typically include period, entity and unit core dimensions."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:reportCube",
+                "value": "Cube type representing a report or statement where period and entity core dimensions are expected."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:language",
+                "value": "Core dimension used to indicate the language of a fact where applicable."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:summation-item",
+                "value": "Relationship type that indicates the source contributes to the target as part of a summation (aggregation) with an associated weight."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:general-special",
+                "value": "Relationship type used to indicate a general-to-special relationship between concepts (a refinement or more specific version)."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:instant-accrual",
+                "value": "Relationship type linking instant and accrual concepts used for mapping or validation between instant and duration concepts."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:instant-inflow",
+                "value": "Relationship type indicating an instant concept maps to a duration inflow concept."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:instant-outflow",
+                "value": "Relationship type indicating an instant concept maps to a duration outflow concept."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:instant-contra",
+                "value": "Relationship type indicating an instant concept is the contra (opposite sign) of a duration concept."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:concept-aggDimension",
+                "value": "Relationship type that links a concept to a dimension when the concept represents an aggregation over that dimension (aggregation specified on the relationship)."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:unit-factConcept",
+                "value": "Relationship type indicating a unit applies to a fact concept or group of concepts."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:unitFact-factConcept",
+                "value": "Relationship type used for mapping unit-fact constructs between concept objects when unit-specific facts are modelled."
             }
         ],
         "propertyTypes": [
@@ -830,11 +1148,21 @@
                 ]
             },
             {
+                "name": "xbrl:usable",
+                "dataType": "xs:boolean",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:relationshipObject"
+                ]
+            },
+            {
                 "name": "xbrl:aggregation",
                 "dataType": "xbrli:aggregationType",
                 "definitional": false,
                 "allowedObjects": [
-                    "xbrl:relationshipObject"
+                    "xbrl:relationshipObject",
+                    "xbrl:conceptObject",
+                    "xbrl:dimensionObject"
                 ]
             },
             {
@@ -854,11 +1182,60 @@
                 ]
             },
             {
-                "name":"xbrl:abstractDataType",
-                "dataType": "xs:QName",
-                "definitional": true,
+                "name": "xbrl:reportAttribute",
+                "dataType": "xbrli:reportAttributeType",
+                "definitional": false,
                 "allowedObjects": [
-                    "xbrl:abstractObject"
+                    "xbrl:conceptObject"
+                ]
+            }
+            ,
+            {
+                "name": "xbrl:traitLinkType",
+                "dataType": "xs:QName",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:relationshipObject"
+                ]
+            },
+            {
+                "name": "xbrl:intervalOfMeasurement",
+                "dataType": "xs:duration",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:dimensionObject"
+                ]
+            },
+            {
+                "name": "xbrl:timeSeriesType",
+                "dataType": "xbrli:timeSeriesDataType",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:dimensionObject"
+                ]
+            },
+            {
+                "name": "xbrl:intervalConvention",
+                "dataType": "xbrli:intervalConventionType",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:dimensionObject"
+                ]
+            },
+            {
+                "name": "xbrl:completeTimeSeries",
+                "dataType": "xs:boolean",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:dimensionObject"
+                ]
+            },
+            {
+                "name": "xbrl:excludedIntervals",
+                "dataType": "xs:string",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:dimensionObject"
                 ]
             }
         ],
@@ -910,6 +1287,15 @@
                 ]
             },
             {
+                "name":"xbrl:baseUnitsStandard",
+                "allowedObjects": [
+                    "xbrl:unitObject"
+                ],
+                "requiredProperties": [
+                    "utr:baseStandardIdentifier"
+                ]
+            },
+            {
                 "name":"xbrl:specStatus",
                 "allowedObjects": [
                     "xbrl:dataTypeObject"
@@ -930,8 +1316,10 @@
                 "allowedLinkProperties" : ["xbrl:preferredLabel", "xbrl:order"],
                 "sourceObjects" : [
                     "xbrl:conceptObject", 
+                    "xbrl:abstractObject",
                     "xbrl:memberObject", 
-                    "xbrl:domainObject", 
+                    "xbrl:domainObject",
+                    "xbrl:domainRootObject", 
                     "xbrl:dimensionObject", 
                     "xbrl:cubeObject", 
                     "xbrl:entityObject",  
@@ -940,8 +1328,10 @@
                 ],
                 "targetObjects" : [
                     "xbrl:conceptObject", 
+                    "xbrl:abstractObject",
                     "xbrl:memberObject", 
-                    "xbrl:domainObject", 
+                    "xbrl:domainObject",
+                    "xbrl:domainRootObject",
                     "xbrl:dimensionObject", 
                     "xbrl:cubeObject", 
                     "xbrl:entityObject",  
@@ -956,7 +1346,15 @@
                 "allowedLinkProperties" : ["xbrl:weight", "xbrl:order"],
                 "requiredLinkProperties" : ["xbrl:weight"],
                 "sourceObjects" : ["xbrl:conceptObject"],
-                "targetObjects" : ["xbrl:conceptObject"]
+                "targetObjects" : ["xbrl:conceptObject"],
+                "constraints": [
+                                  {
+                                      "constraint": "relationship.source.xbrli:dataType == relationship.target.xbrli:dataType AND relationship.source.property.xbrli:balance != relationship.target.property.xbrli:balance AND relationship.source.xbrli:periodType == relationship.target.xbrli:periodType AND relationship.property.weight == -1"
+                                  },
+                                  {
+                                      "constraint": "relationship.source.xbrli:dataType == relationship.target.xbrli:dataType  AND relationship.source.property.xbrli:balance  == relationship.target.property.xbrli:balance AND relationship.source.xbrli:periodType == relationship.target.xbrli:periodType AND relationship.property.weight == 1"
+                                  }         
+                              ]
             },
             {
                 "name": "xbrl:class-subclass",
@@ -964,11 +1362,24 @@
                 "cycles" : "none",
                 "allowedLinkProperties" : ["xbrl:order"],
                 "sourceObjects" : ["xbrl:conceptObject"],
-                "targetObjects" : ["xbrl:conceptObject"]
+                "targetObjects" : ["xbrl:conceptObject"],
+                "constraints": [
+                          {
+                              "constraint": "relationship.source.xbrli:dataType == relationship.target.xbrli:dataType AND relationship.source.properties <= relationship.target.properties AND relationship.source.xbrli:periodType == relationship.target.xbrli:periodType"
+                          }         
+                        ]
             },
             {
                 "name": "xbrl:general-special",
                 "uri": "http://www.xbrl.org/2003/arcrole/general-special",
+                "cycles" : "undirected",
+                "allowedLinkProperties" : ["xbrl:order"],
+                "sourceObjects" : ["xbrl:conceptObject"],
+                "targetObjects" : ["xbrl:conceptObject"]
+            },
+            {
+                "name": "xbrl:essence-alias",
+                "uri": "http://www.xbrl.org/2003/arcrole/essence-alias",
                 "cycles" : "undirected",
                 "allowedLinkProperties" : ["xbrl:order"],
                 "sourceObjects" : ["xbrl:conceptObject"],
@@ -986,14 +1397,24 @@
                 "uri": "http://xbrl.org/oim/instant-inflow",
                 "cycles" : "undirected",
                 "sourceObjects" : ["xbrl:conceptObject"],
-                "targetObjects" : ["xbrl:conceptObject"]
+                "targetObjects" : ["xbrl:conceptObject"],
+                "constraints": [
+                          {
+                              "constraint": "relationship.source.xbrli:dataType == relationship.target.xbrli:dataType AND relationship.source.property.xbrl:balance == relationship.target.property.xbrl:balance AND relationship.source.xbrli:periodType == instant AND relationship.target.xbrli:periodType == duration"
+                          }         
+                        ]
             },
             {
                 "name": "xbrl:instant-outflow",
                 "uri": "http://xbrl.org/oim/instant-outflow",
                 "cycles" : "none",
                 "sourceObjects" : ["xbrl:conceptObject"],
-                "targetObjects" : ["xbrl:conceptObject"]
+                "targetObjects" : ["xbrl:conceptObject"],
+                 "constraints": [
+                          {
+                              "constraint": "relationship.source.xbrli:dataType == relationship.target.xbrli:dataType AND relationship.source.property.xbrl:balance != relationship.target.property.xbrl:balance AND relationship.source.xbrli:periodType == instant AND relationship.target.xbrli:periodType == duration"
+                          }         
+                        ]
             },
             {
                 "name": "xbrl:instant-contra",
@@ -1003,13 +1424,28 @@
                 "targetObjects" : ["xbrl:conceptObject"]
             },
             {
-                "name": "xbrl:property-concept",
-                "uri": "http://xbrl.org/oim/property-concept",
+                "name": "xbrl:propertyValue-object",
+                "uri": "http://xbrl.org/oim/propertyValue-object",
                 "cycles" : "undirected",
-                "allowedLinkProperties" : ["xbrl:propertyObject"],
-                "requiredLinkProperties" : ["xbrl:propertyObject"],
+                "allowedLinkProperties" : ["xbrl:traitLinkType"],
+                "requiredLinkProperties" : ["xbrl:traitLinkType"],
                 "sourceObjects" : ["xbrl:memberObject"],
-                "targetObjects" : ["xbrl:conceptObject"]
+                "targetObjects" : [
+                            "xbrl:taxonomyObject",
+                            "xbrl:conceptObject",
+                            "xbrl:abstractObject",
+                            "xbrl:memberObject",
+                            "xbrl:dimensionObject",
+                            "xbrl:entityObject",
+                            "xbrl:networkObject",
+                            "xbrl:groupObject",
+                            "xbrl:cubeObject",
+                            "xbrl:domainObject",
+                            "xbrl:domainRootObject",
+                            "xbrl:relationshipObject",
+                            "xbrl:labelObject",
+                            "xbrl:referenceObject"
+                        ]
             },
             {
                 "name": "xbrl:concept-refDimension",
@@ -1045,8 +1481,22 @@
                 "name": "xbrl:dep-concept-deprecatedConcept",
                 "uri": "http://www.xbrl.org/2009/arcrole/dep-concept-deprecatedConcept",
                 "cycles" : "undirected",
-                "sourceObjects" : ["xbrl:conceptObject"],
-                "targetObjects" : ["xbrl:conceptObject"]
+                 "sourceObjects" : ["xbrl:conceptObject",
+                    "xbrl:abstractObject",
+                    "xbrl:memberObject", 
+                    "xbrl:domainObject",
+                    "xbrl:domainRootObject", 
+                    "xbrl:dimensionObject",
+                    "xbrl:cubeObject"
+                ],
+                "targetObjects" : ["xbrl:conceptObject", 
+                    "xbrl:abstractObject",
+                    "xbrl:memberObject", 
+                    "xbrl:domainObject",
+                    "xbrl:domainRootObject", 
+                    "xbrl:dimensionObject",
+                    "xbrl:cubeObject"
+                ]
             },
             {
                 "name": "xbrl:dep-aggregateConcept-deprecatedPartConcept",

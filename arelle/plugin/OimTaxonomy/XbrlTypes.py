@@ -5,10 +5,14 @@ See COPYRIGHT.md for copyright information.
 from typing_extensions import TypeAlias
 from arelle.ModelValue import QName
 
-XbrlDtsType: TypeAlias = "XbrlDts"
 XbrlLabelType: TypeAlias = "XbrlLabel"
+XbrlLayoutType: TypeAlias = "XbrlLayout"
 XbrlPropertyType: TypeAlias = "XbrlProperty"
-XbrlTaxonomyType: TypeAlias = "XbrlTaxonomy"
+XbrlTaxonomyModelType: TypeAlias = "XbrlTaxonomyModel"
+XbrlTaxonomyModuleType: TypeAlias = "XbrlTaxonomyModule"
+XbrlReportType: TypeAlias = "XbrlReport"
+XbrlUnitTypeType: TypeAlias = "XbrlUnitType"
+
 class QNameKeyType(QName): # a QName which is also the primary key for parent collection object
     pass
 class SQNameKeyType(QName): # an SQName which is also the primary key for parent collection object
