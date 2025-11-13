@@ -139,6 +139,24 @@ class ConformanceSuiteAssetConfig:
         )
 
     @staticmethod
+    def extracted_conformance_suite(
+            extract_sequence: tuple[tuple[Path, Path]],
+            entry_point_root: Path,
+            entry_point: Path,
+            public_download_url: str | None = None,
+            source: AssetSource = AssetSource.S3_PRIVATE) -> ConformanceSuiteAssetConfig:
+        return ConformanceSuiteAssetConfig(
+            local_filename=extract_sequence[0][0],
+            source=source,
+            type=AssetType.CONFORMANCE_SUITE,
+            entry_point=entry_point,
+            entry_point_root=entry_point_root,
+            extract_sequence=extract_sequence,
+            public_download_url=public_download_url,
+            s3_key=extract_sequence[0][0].as_posix() if source.is_s3() else None,
+        )
+
+    @staticmethod
     def local_conformance_suite(
             name: Path,
             entry_point: Path | None = None) -> ConformanceSuiteAssetConfig:
@@ -158,17 +176,12 @@ class ConformanceSuiteAssetConfig:
             entry_point: Path,
             public_download_url: str | None = None,
             source: AssetSource = AssetSource.S3_PRIVATE) -> ConformanceSuiteAssetConfig:
-        return ConformanceSuiteAssetConfig(
-            local_filename=name,
-            source=source,
-            type=AssetType.CONFORMANCE_SUITE,
-            entry_point=entry_point,
+        return ConformanceSuiteAssetConfig.extracted_conformance_suite(
+            ((name, extract_to),),
             entry_point_root=entry_point_root,
-            extract_sequence=(
-                (name, extract_to),
-            ),
+            entry_point=entry_point,
             public_download_url=public_download_url,
-            s3_key=name.as_posix() if source.is_s3() else None,
+            source=source,
         )
 
     @staticmethod
