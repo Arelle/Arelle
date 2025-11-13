@@ -906,7 +906,7 @@ def rule_EC8073E(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
-def rule_EC8073W(
+def rule_EC8073W_EC8074W(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
         *args: Any,
@@ -914,7 +914,31 @@ def rule_EC8073W(
 ) -> Iterable[Validation]:
     """
     EDINET.EC8073W: Prohibited characters are used in Japanese labels for descendents of ExecutiveOfficersMember
+    EDINET.EC8074W: Prohibited characters are used in English labels for descendents of ExecutiveOfficersMember
     """
+    def getIllegalCharsJapanese(textValue: str) -> set[str]:
+        """Check for prohibited characters in Japanese labels."""
+        return set(HALF_KANA.intersection(set(textValue)))
+
+    def getIllegalCharsEnglish(textValue: str) -> set[str]:
+        """Check for prohibited characters in English labels."""
+        illegalChars = set()
+        for char in textValue:
+            if char in HALF_KANA:
+                illegalChars.add(char)
+                continue
+            codePoint = ord(char)
+            if 0xA1 <= codePoint <= 0xBF:
+                # Exclude symbols
+                illegalChars.add(char)
+            elif codePoint in (0xD7, 0xF7):
+                # Exclude multiplication and division symbols
+                illegalChars.add(char)
+            elif codePoint > 0xFF:
+                # Characters beyond Latin-1
+                illegalChars.add(char)
+        return illegalChars
+
     memberConcept = val.modelXbrl.qnameConcepts.get(pluginData.executiveOfficersMemberQn)
     if memberConcept is None:
         return
@@ -925,21 +949,37 @@ def rule_EC8073W(
     )
     for concept in conceptsLabelsToCheck:
         for labelRel in labelRelSet.fromModelObject(concept):
-            if (labelRel.toModelObject is None or
-                    labelRel.toModelObject.xmlLang not in JAPAN_LANGUAGE_CODES or
-                    labelRel.toModelObject.textValue is None):
+            label = labelRel.toModelObject
+            if label is None or label.textValue is None:
                 continue
-            illegalChars = HALF_KANA.intersection(set(labelRel.toModelObject.textValue))
-            if any(illegalChars):
-                yield Validation.warning(
-                    codes='EDINET.EC8073W',
-                    msg=_("The concept: %(concept)s has a %(role)s label which contains characters that are not "
-                          "allowed. Label: %(label)s, disallowed characters: %(characters)s"),
-                    concept=concept.qname.localName,
-                    role=labelRel.toModelObject.role,
-                    label=labelRel.toModelObject.textValue,
-                    characters=list(illegalChars)
-                )
+
+            # Check Japanese labels
+            if label.xmlLang in JAPAN_LANGUAGE_CODES:
+                illegalChars = getIllegalCharsJapanese(label.textValue)
+                if illegalChars:
+                    yield Validation.warning(
+                        codes='EDINET.EC8073W',
+                        msg=_("The concept: %(concept)s has a %(role)s label which contains characters that are not "
+                              "allowed. Label: %(label)s, disallowed characters: %(characters)s"),
+                        concept=concept.qname.localName,
+                        role=label.role,
+                        label=label.textValue,
+                        characters=list(illegalChars)
+                    )
+
+            # Check English labels
+            elif label.xmlLang == 'en':
+                illegalChars = getIllegalCharsEnglish(label.textValue)
+                if illegalChars:
+                    yield Validation.warning(
+                        codes='EDINET.EC8074W',
+                        msg=_("The concept: %(concept)s has a %(role)s label which contains characters that are not "
+                              "allowed. Label: %(label)s, disallowed characters: %(characters)s"),
+                        concept=concept.qname.localName,
+                        role=label.role,
+                        label=label.textValue,
+                        characters=sorted(illegalChars)
+                    )
 
 
 @validation(
