@@ -1,4 +1,4 @@
-ixbrl-viewer==1.4.77
+ixbrl-viewer==1.4.80
 
 # EDGAR & XULE plugins
 aniso8601==10.0.1
