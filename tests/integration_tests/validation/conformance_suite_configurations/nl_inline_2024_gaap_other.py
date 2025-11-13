@@ -3,10 +3,14 @@ from pathlib import PurePath, Path
 from tests.integration_tests.validation.assets import NL_PACKAGES
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig, AssetSource
 
+ZIP_PATH = Path('conformance-suite-2024-sbr-domein-handelsregister.zip')
+EXTRACTED_PATH = Path(ZIP_PATH.stem)
 config = ConformanceSuiteConfig(
     assets=[
-        ConformanceSuiteAssetConfig.conformance_suite(
-            Path('conformance-suite-2024-sbr-domein-handelsregister.zip'),
+        ConformanceSuiteAssetConfig.nested_conformance_suite(
+            ZIP_PATH,
+            EXTRACTED_PATH,
+            entry_point_root=EXTRACTED_PATH,
             entry_point=Path('conformance-suite-2024-sbr-domein-handelsregister/index.xml'),
             public_download_url='https://www.sbr-nl.nl/sites/default/files/2025-04/conformance-suite-2024-sbr-domein-handelsregister.zip',
             source=AssetSource.S3_PUBLIC,
@@ -24,11 +28,6 @@ config = ConformanceSuiteConfig(
         },
         'G5-1-3_2/index.xml:TC1_valid': {
             'noInlineXbrlTags': 1,
-        },
-        'G5-1-3_2/index.xml:TC2_invalid': {
-            'documentNameDoesNotFollowNamingConvention': 1,
-            'noInlineXbrlTags': 1,
-            'requiredEntryPointOtherGaapNotReferenced': 1,
         },
     }.items()},
     expected_failure_ids=frozenset([
