@@ -1,3 +1,7 @@
+"""
+See COPYRIGHT.md for copyright information.
+"""
+from __future__ import annotations
 import argparse
 import fnmatch
 import json
