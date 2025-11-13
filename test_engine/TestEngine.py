@@ -263,7 +263,10 @@ def runTestcaseVariation(
         logFile=str(testEngineOptions.logDirectory / f"{logFilename(testcaseVariation.shortName)}-log.txt"),
         **dynamicOptions
     )
-    print("Running with options: ", json.dumps({k: v for k, v in vars(runtimeOptions).items() if v is not None}, indent=4, sort_keys=True))
+    runtimeOptionsJson = json.dumps({k: v for k, v in vars(runtimeOptions).items() if v is not None}, indent=4, sort_keys=True)
+    print("Running with options: ", runtimeOptionsJson)
+    with open(runtimeOptions.logFile, 'w') as f:
+        f.write(f'Running with options: {runtimeOptionsJson}\n------\n')
     with Session() as session:
         start_ts = time.perf_counter_ns()
         session.run(
