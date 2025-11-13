@@ -271,6 +271,10 @@ def get_conformance_suite_arguments(config: ConformanceSuiteConfig, filename: st
         '--testcaseResultOptions', config.test_case_result_options,
         '--validate',
     ]
+    if config.base_taxonomy_validation:
+        args.extend(['--baseTaxonomyValidation', config.base_taxonomy_validation])
+    if config.disclosure_system:
+        args.extend(['--disclosureSystem', config.disclosure_system])
     if config.package_paths:
         args.extend(['--packages', '|'.join(sorted(p.as_posix() for p in config.package_paths))])
     if plugins:
@@ -563,18 +567,18 @@ def get_conformance_suite_test_results_without_shards(
     additional_plugins = frozenset().union(*(plugins for _, plugins in config.additional_plugins_by_prefix))
     filename = config.entry_point_path.as_posix()
     expected_failure_ids = config.expected_failure_ids
-    args, kws = get_conformance_suite_arguments(
-        config=config, filename=filename, additional_plugins=additional_plugins,
-        build_cache=build_cache, offline=offline, log_to_file=log_to_file, shard=None,
-        expected_additional_testcase_errors=config.expected_additional_testcase_errors,
-        expected_failure_ids=expected_failure_ids, testcase_filters=testcase_filters or [],
-    )
     url_context_manager: AbstractContextManager[Any]
     if config.url_replace:
         url_context_manager = patch('arelle.WebCache.WebCache.normalizeUrl', normalize_url_function(config))
     else:
         url_context_manager = nullcontext()
     with url_context_manager:
+        args, kws = get_conformance_suite_arguments(
+            config=config, filename=filename, additional_plugins=additional_plugins,
+            build_cache=build_cache, offline=offline, log_to_file=log_to_file, shard=None,
+            expected_additional_testcase_errors=config.expected_additional_testcase_errors,
+            expected_failure_ids=expected_failure_ids, testcase_filters=testcase_filters or [],
+        )
         return get_test_data(args, **kws)
 
 
@@ -650,7 +654,7 @@ def save_actual_results_file(config: ConformanceSuiteConfig, results: list[Param
     rows = []
     for result in results:
         testcase_id = result.id
-        actual_codes = result.values[0].get('actual')  # type: ignore[union-attr]
+        actual_codes = result.values[0].get('actual')  # type: ignore[union-attr] TODO: update for test engine
         for code in actual_codes:
             rows.append((testcase_id, code))
     output_filepath = Path(f'conf-{config.name}-actual.csv')

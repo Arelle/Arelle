@@ -16,9 +16,6 @@ config = ConformanceSuiteConfig(
         '626-rendering-syntax',
         '902-sdr/efm/62421-sdr-multiple',
     ]],
-    args=[
-        '--disclosureSystem', 'efm-pragmatic',
-    ],
     assets=[
         ConformanceSuiteAssetConfig.conformance_suite(
             Path(CONFORMANCE_SUITE_ZIP_NAME),
@@ -28,6 +25,7 @@ config = ConformanceSuiteConfig(
         )
     ],
     cache_version_id='bY6OmURBAtPB4UALKzz5aeeLlMSKxN9e',
+    disclosure_system='efm-pragmatic',
     expected_failure_ids=frozenset(f'conf/{s}' for s in [
         # Next EFM update will resolve this by checking contexts not mapped to target documents.
         '605-instance-syntax/605-08-no-unused-contexts/605-08-no-unused-contexts-testcase.xml:_002ng'

@@ -3,21 +3,23 @@ from pathlib import PurePath, Path
 from tests.integration_tests.validation.assets import NL_PACKAGES
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig, AssetSource
 
+# needs to be extracted because arelle can't load a taxonomy package ZIP from within a ZIP
+ZIP_PATH = Path('conformance-suite-2024-sbr-domein-handelsregister.zip')
+EXTRACTED_PATH = Path(ZIP_PATH.stem)
 config = ConformanceSuiteConfig(
-    args=[
-        '--disclosureSystem', 'NL-INLINE-2024',
-        '--baseTaxonomyValidation', 'none',
-        '--testcaseResultsCaptureWarnings',
-    ],
     assets=[
-        ConformanceSuiteAssetConfig.conformance_suite(
-            Path('conformance-suite-2024-sbr-domein-handelsregister.zip'),
+        ConformanceSuiteAssetConfig.nested_conformance_suite(
+            ZIP_PATH,
+            EXTRACTED_PATH,
+            entry_point_root=EXTRACTED_PATH,
             entry_point=Path('conformance-suite-2024-sbr-domein-handelsregister/index.xml'),
             public_download_url='https://www.sbr-nl.nl/sites/default/files/2025-04/conformance-suite-2024-sbr-domein-handelsregister.zip',
             source=AssetSource.S3_PUBLIC,
         ),
         *NL_PACKAGES['NL-INLINE-2024'],
     ],
+    base_taxonomy_validation='none',
+    disclosure_system='NL-INLINE-2024',
     expected_additional_testcase_errors={f"conformance-suite-2024-sbr-domein-handelsregister/tests/{s}": val for s, val in {
         'G3-1-3_1/index.xml:TC2_invalid': {
             'scenarioNotUsedInExtensionTaxonomy': 1,  # Also fails 4.2.1.1
@@ -53,13 +55,6 @@ config = ConformanceSuiteConfig(
         },
         'G3-5-2_3/index.xml:TC2_invalid': {
             'missingLabelForRoleInReportLanguage': 1,
-        },
-        'G3-5-3_1/index.xml:TC2_invalid': {
-            'arelle:ixdsTargetNotDefined': 1,
-            'extensionTaxonomyWrongFilesStructure': 2,
-            # This test is looking at the usage of the target attribute and does not import the correct taxonomy urls
-            'requiredEntryPointNotImported': 1,
-            'incorrectKvkTaxonomyVersionUsed': 1,
         },
         'G3-6-3_3/index.xml:TC2_invalid': {
             # Testcase expects only 3.6.3.3, but has a filename that has invalid characters (3.6.3.3)
@@ -138,20 +133,15 @@ config = ConformanceSuiteConfig(
             'undefinedLanguageForTextFact': 1,
             'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 5,
         },
-        'RTS_Annex_IV_Par_6/index.xml:TC3_invalid': {
-            'extensionTaxonomyWrongFilesStructure': 1,
-        },
         'RTS_Annex_IV_Par_6/index.xml:TC4_invalid': {
             'undefinedLanguageForTextFact': 1,
             'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 5,
-            'extensionTaxonomyWrongFilesStructure': 1,
         },
         'RTS_Art_6_a/index.xml:TC2_invalid': {
             'UsableConceptsNotAppliedByTaggedFacts': 1,
             'incorrectKvkTaxonomyVersionUsed': 1,
             'message:existsAtLeastOnce_ChamberOfCommerceRegistrationNumber': 1,
-            'message:existsAtLeastOnce_FinancialReportingPeriod': 1,
-            'message:existsAtLeastOnce_FinancialReportingPeriodEndDate': 1,
+            'message:existsAtLeastOnce_FinancialReportingPeriod': 2,
             'message:existsAtLeastOnce_LegalEntityLegalForm': 1,
             'message:existsAtLeastOnce_LegalEntityName': 1,
             'message:existsAtLeastOnce_LegalEntityRegisteredOffice': 1,

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import fnmatch
 import json
 import locale
 import os.path
@@ -318,6 +319,8 @@ def isExpectedFailure(
         system_locale: str,
 ) -> bool:
     if test_id in expected_failure_ids:
+        return True
+    if any(fnmatch.fnmatch(test_id, f'*{pattern}') for pattern in expected_failure_ids):
         return True
     if test_id in required_locale_by_ids:
         return not required_locale_by_ids[test_id].search(system_locale)

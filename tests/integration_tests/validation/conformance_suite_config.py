@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from functools import cached_property
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Any
 
 from tests.integration_tests.validation.github import OS_CORES
 
@@ -189,9 +189,11 @@ class ConformanceSuiteConfig:
     additional_plugins_by_prefix: list[tuple[str, frozenset[str]]] = field(default_factory=list)
     args: list[str] = field(default_factory=list)
     assets: list[ConformanceSuiteAssetConfig] = field(default_factory=list)
+    base_taxonomy_validation: Literal['disclosureSystem', 'none', 'all', None] = None
     cache_version_id: str | None = None
     capture_warnings: bool = True
     ci_enabled: bool = True
+    disclosure_system: str | None = None
     expected_additional_testcase_errors: dict[str, dict[str, int]] = field(default_factory=dict)
     expected_failure_ids: frozenset[str] = frozenset()
     expected_missing_testcases: frozenset[str] = frozenset()
@@ -200,6 +202,8 @@ class ConformanceSuiteConfig:
     plugins: frozenset[str] = frozenset()
     shards: int = 1
     strict_testcase_index: bool = True
+    supports_test_engine: bool = True
+    runtime_options: dict[str, Any] = field(default_factory=dict)
     url_replace: str | None = None
     required_locale_by_ids: dict[str, re.Pattern[str]] = field(default_factory=dict)
     test_case_result_options: Literal['match-all', 'match-any'] = 'match-all'
@@ -228,6 +232,8 @@ class ConformanceSuiteConfig:
         overlapping_expected_failure_testcase_ids = self.expected_failure_ids.intersection(self.expected_additional_testcase_errors.keys())
         assert not overlapping_expected_failure_testcase_ids, \
             f'Testcase IDs in both expected failures and expected additional errors: {sorted(overlapping_expected_failure_testcase_ids)}'
+        assert 'plugins' not in self.runtime_options, \
+            f'"plugins" must not be in runtime_options, use plugins field instead.'
         if self.shards > 1:
             ci_core_counts = set(OS_CORES.values())
             assert any(self.shards % core_count == 0 for core_count in ci_core_counts), \
