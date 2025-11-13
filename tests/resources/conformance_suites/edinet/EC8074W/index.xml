@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="EDINET.EC8074W"
+        description="EDINET.EC8074W: All English labels for concepts that are descendants of
+                    'ExecutiveOfficersMember' must not contain half Kana characters or latin symbols."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid01" name="invalid01">
+        <description>
+            A label for 'ExecutiveOfficersMember' contains a symbol
+        </description>
+        <data>
+            <instance readMeFirst="true">invalid01.zip</instance>
+        </data>
+        <result>
+            <warning>EDINET.EC8015W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8065W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8067W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8074W</warning>
+        </result>
+    </variation>
+</testcase>
