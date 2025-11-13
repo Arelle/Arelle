@@ -11,6 +11,7 @@ import datetime
 import fnmatch
 import gettext
 import glob
+import json
 import logging
 import multiprocessing
 import os
@@ -439,6 +440,9 @@ def parseArgs(args):
                       help=_("Show product version, copyright, and license."))
     parser.add_option("--diagnostics", action="store_true", dest="diagnostics",
                       help=_("output system diagnostics information"))
+    parser.add_option("-o", "--options",
+                      action="store", dest="optionsJson",
+                      help=_("Provide options JSON or a path to a JSON file."))
 
     if not args and isGAE():
         args = ["--webserver=::gae"]
@@ -518,6 +522,14 @@ def parseArgs(args):
         for groupOption in optGroup.option_list:
             pluginOptionDestinations.add(groupOption.dest)
     baseOptions = {}
+    if options.optionsJson:
+        # If provided, options JSON sets the initial base options.
+        # These will be overwritten if options are also provided by another source.
+        jsonOptions = _parseRuntimeOptionsArg(options.optionsJson)
+        if jsonOptions is None or not isinstance(jsonOptions, dict):
+            parser.error(_("Options argument is not valid JSON or a path to a valid JSON file."))
+        else:
+            baseOptions.update(_parseRuntimeOptionsArg(options.optionsJson))
     pluginOptions = {}
     for optionName, optionValue in vars(options).items():
         if optionName in pluginOptionDestinations:
@@ -531,7 +543,8 @@ def parseArgs(args):
                         parser.error(_("--testcaseExpectedErrors must be in the format '--testcaseExpectedErrors=testcase-index.xml:v-1|errorCode1,errorCode2,...'"))
                     expectedErrors[expectedErrorSplit[0]] = expectedErrorSplit[1].split(',')
                 optionValue = expectedErrors
-            baseOptions[optionName] = optionValue
+            if optionValue is not None or optionName not in baseOptions:
+                baseOptions[optionName] = optionValue
     try:
         runtimeOptions = RuntimeOptions(pluginOptions=pluginOptions, **baseOptions)
     except RuntimeOptionsException as e:
@@ -624,6 +637,27 @@ def _pluginHasCliOptions(moduleInfo):
     if imports := moduleInfo.get("imports"):
         return any(_pluginHasCliOptions(importedModule) for importedModule in imports)
     return False
+
+
+def _parseRuntimeOptionsArg(arg: str) -> Any:
+    """
+    Parses a runtime options argument which may be either a JSON string or a file path to a JSON file.
+    :param arg: Raw JSON or a path to a .json file.
+    :return: Runtime options dictionary, or None if parsing failed.
+    """
+    try:
+        return json.loads(arg)
+    except ValueError as e:
+        # Argument is not valid JSON
+        pass
+    if os.path.exists(arg):
+        try:
+            with open(arg) as f:
+                return json.load(f)
+        except ValueError as e:
+            # File does not contain valid JSON
+            pass
+    return None
 
 
 class CntlrCmdLine(Cntlr.Cntlr):
