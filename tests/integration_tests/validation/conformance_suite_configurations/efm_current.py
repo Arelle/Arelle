@@ -27,19 +27,16 @@ config = ConformanceSuiteConfig(
     cache_version_id='bY6OmURBAtPB4UALKzz5aeeLlMSKxN9e',
     disclosure_system='efm-pragmatic',
     expected_failure_ids=frozenset(f'conf/{s}' for s in [
-        # Next EFM update will resolve this by checking contexts not mapped to target documents.
-        '605-instance-syntax/605-08-no-unused-contexts/605-08-no-unused-contexts-testcase.xml:_002ng',
-        
         ### Discovered during transition to Test Engine:
-        # Related to EFM.6.05.23.submissionIdentifier not firing
-        'filing-fee-exhibit/000-userstories/00-other/00-userstories/00-userstories-testcase.xml:0016ng',
-        'filing-fee-exhibit/000-userstories/00-other/00-userstories/00-userstories-testcase.xml:0008ng',
-        'filing-fee-exhibit/000-userstories/00-other/00-userstories/00-userstories-testcase.xml:0044ng',
-        'filing-fee-exhibit/000-userstories/00-other/00-userstories/00-userstories-testcase.xml:0024ng',
-        'filing-fee-exhibit/000-userstories/00-other/00-userstories/00-userstories-testcase.xml:0041ng',
-        'filing-fee-exhibit/000-userstories/00-other/00-userstories/00-userstories-testcase.xml:0049ng',
+        # Related to EFM.FT.1.2.12.r424iEndDate not firing
+        'filing-fee-exhibit/100-submissionTable/02-424ISubmissions/12-RptgFsclYrEndDt/12-RptgFsclYrEndDt-testcase.xml:0003ng',
+        # Related to EFM.FT.1.2.1.r424iFileNb not firing
+        'filing-fee-exhibit/100-submissionTable/02-424ISubmissions/01-RegnFileNb/01-RegnFileNb-testcase.xml:0002gw',
         # Related to EFM.FT.3.8.8.dailyFeeRate not firing
+        'filing-fee-exhibit/300-offeringTable/08-Rule0-11/08-FeeRate/08-FeeRate-testcase.xml:0002gw',
         'filing-fee-exhibit/300-offeringTable/08-Rule0-11/08-FeeRate/08-FeeRate-testcase.xml:0004gw',
+        'filing-fee-exhibit/300-offeringTable/08-Rule0-11/08-FeeRate/08-FeeRate-testcase.xml:0006gw',
+        'filing-fee-exhibit/300-offeringTable/08-Rule0-11/08-FeeRate/08-FeeRate-testcase.xml:0009gw',
     ]),
     info_url='https://www.sec.gov/structureddata/osdinteractivedatatestsuite',
     name=PurePath(__file__).stem,
@@ -48,6 +45,11 @@ config = ConformanceSuiteConfig(
         'inlineXbrlDocumentSet',
         'xule',
     }),
+    runtime_options={
+        'pluginOptions': {
+            'keepFilingOpen': True, # Edgar normally closes the model in CntlrCmdLine.Filing.End
+        },
+    },
     shards=40,
     test_case_result_options='match-any',
 )
