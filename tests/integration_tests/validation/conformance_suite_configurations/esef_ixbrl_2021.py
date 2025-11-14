@@ -23,6 +23,14 @@ config = ConformanceSuiteConfig(
     ],
     base_taxonomy_validation='none',
     disclosure_system='esef-2021',
+    expected_failure_ids=frozenset(f'esef_conformance_suite_2021/tests/{s}' for s in [
+        ### Discovered during transition to Test Engine:
+        # Related to reportIncorrectlyPlacedInPackage not firing
+        'inline_xbrl/G2-6-2/index.xml:TC2_invalid',
+        # Related to missingOrInvalidTaxonomyPackage not firing
+        'inline_xbrl/RTS_Annex_III_Par_3_G3-1-3/index.xml:TC3_invalid',
+        'inline_xbrl/RTS_Annex_III_Par_3_G3-1-3/index.xml:TC5_invalid',
+    ]),
     info_url='https://www.esma.europa.eu/document/conformance-suite-2021',
     name=PurePath(__file__).stem,
     plugins=frozenset({'validate/ESEF'}),

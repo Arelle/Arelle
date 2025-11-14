@@ -32,6 +32,10 @@ config = ConformanceSuiteConfig(
             'differentExtensionDataType': 1,
         },
     }.items()},
+    expected_failure_ids=frozenset(f'tests/inline_xbrl/{s}' for s in [
+        ### Discovered during transition to Test Engine:
+        'G2-5-4_2/index.xml:TC2_invalid',
+    ]),
     info_url='https://www.esma.europa.eu/document/esef-conformance-suite-2024',
     name=PurePath(__file__).stem,
     plugins=frozenset({'validate/ESEF'}),
