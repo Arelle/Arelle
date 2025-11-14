@@ -378,14 +378,14 @@ def validateXbrlFinally(val, *args, **kwargs):
             if val.txmyType in MUST_HAVE_ONE_ITEM:
                 foundFact = False
                 for mustHaveOneConcept in MUST_HAVE_ONE_ITEM[val.txmyType]:
-                    for fact in mandatoryFacts.get(mustHaveOneConcept, set()):
+                    for fact in atLeastOneFacts.get(mustHaveOneConcept, set()):
                         if (fact is not None and fact.context is not None and fact.xValid >= VALID and
                                 ((fact.context.isInstantPeriod and dateUnionEqual(fact.context.instantDate, endDate) or
                                   (fact.context.isStartEndPeriod and dateUnionEqual(fact.context.startDatetime, startDate) and dateUnionEqual(fact.context.endDate, endDate))))):
                             foundFact = True
                             break
 
-                if foundFact:
+                if not foundFact:
                     modelXbrl.error("JFCVC.3312.atLeastOne",
                                     _("At least one of the facts is MANDATORY: %(missingItems)s"),
                                     modelObject=modelXbrl, missingItems=", ".join(sorted(MUST_HAVE_ONE_ITEM[val.txmyType])))
