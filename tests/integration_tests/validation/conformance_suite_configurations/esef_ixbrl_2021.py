@@ -23,7 +23,7 @@ config = ConformanceSuiteConfig(
     ],
     base_taxonomy_validation='none',
     disclosure_system='esef-2021',
-    expected_failure_ids=frozenset(f'esef_conformance_suite_2021/tests/{s}' for s in [
+    expected_failure_ids=frozenset(f'esef_conformance_suite_2021/esef_conformance_suite_2021/tests/{s}' for s in [
         ### Discovered during transition to Test Engine:
         # Related to reportIncorrectlyPlacedInPackage not firing
         'inline_xbrl/G2-6-2/index.xml:TC2_invalid',
