@@ -90,13 +90,16 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def buildEntrypointUris(uris: list[str]) -> list[str]:
+def buildEntrypointUris(uris: list[Path]) -> list[str]:
+    uris = [
+        uri.relative_to(Path.cwd()) if uri.is_relative_to(Path.cwd()) else uris
+        for uri in uris
+    ]
     if len(uris) > 1:
-        paths = [Path(uri) for uri in uris]
-        if all(path.suffix in ('.htm', '.html', '.xhtml') for path in paths):
-            docsetSurrogatePath = os.path.join(os.path.dirname(uris[0]), IXDS_SURROGATE)
-            return [docsetSurrogatePath + IXDS_DOC_SEPARATOR.join(uris)]
-    return uris
+        if all(uri.suffix in ('.htm', '.html', '.xhtml') for uri in uris):
+            docsetSurrogatePath = str(uris[0].parent) + IXDS_SURROGATE
+            return [docsetSurrogatePath + IXDS_DOC_SEPARATOR.join(str(uri) for uri in uris)]
+    return [str(uri) for uri in uris]
 
 
 def loadTestcaseIndex(index_path: str, testEngineOptions: TestEngineOptions) -> list[TestcaseVariation]:
@@ -134,8 +137,10 @@ def loadTestcaseIndex(index_path: str, testEngineOptions: TestEngineOptions) -> 
 
                 # TODO: Improve
                 from arelle import XmlUtil
+                calcMode = None
                 resultElt = XmlUtil.descendant(testcaseVariation, None, "result")
-                calcMode = resultElt.attr('{https://xbrl.org/2023/conformance}mode')
+                if resultElt is not None:
+                    calcMode = resultElt.attr('{https://xbrl.org/2023/conformance}mode')
                 if calcMode == 'truncate':
                     calcMode = 'truncation'
 
@@ -255,7 +260,7 @@ def runTestcaseVariation(
             blockedErrors={},
         )
     entrypointUris = buildEntrypointUris([
-        str(Path(testcaseVariation.base).parent.joinpath(Path(readMeFirstUri)))
+        Path(testcaseVariation.base).parent.joinpath(Path(readMeFirstUri))
         for readMeFirstUri in testcaseVariation.readFirstUris
     ])
     dynamicOptions = dict(testEngineOptions.options)
