@@ -27,6 +27,9 @@ from test_engine.TestcaseResult import TestcaseResult
 from test_engine.TestcaseVariation import TestcaseVariation
 
 
+PARAMETER_SEPARATOR = '\n'
+
+
 def _longestCommonPrefix(values: list[str]) -> str:
     if not values:
         return ""
@@ -212,7 +215,7 @@ def loadTestcaseIndex(index_path: str, testEngineOptions: TestEngineOptions) -> 
                     f'{k.clarkNotation}={v[1]}'
                     for k, v in testcaseVariation.parameters.items()
                 ]
-                if any('|' in parameter for parameter in parameters):
+                if any(PARAMETER_SEPARATOR in parameter for parameter in parameters):
                     raise ValueError('Parameter separator found in parameter key or value.')
 
                 testcaseConstraintSet = TestcaseConstraintSet(
@@ -230,7 +233,7 @@ def loadTestcaseIndex(index_path: str, testEngineOptions: TestEngineOptions) -> 
                     testcaseConstraintSet=testcaseConstraintSet,
                     blockedCodePattern=blockedCodePattern,
                     calcMode=calcMode,
-                    parameters='|'.join(parameters), # TODO: Constant/config for separator
+                    parameters=PARAMETER_SEPARATOR.join(parameters),
                 ))
         return testcaseVariations
 
@@ -282,7 +285,7 @@ def runTestcaseVariation(
         entrypointFile=entrypointFile,
         logFile=str(testEngineOptions.logDirectory / f"{logFilename(testcaseVariation.shortName)}-log.txt"),
         parameters=testcaseVariation.parameters,
-        parameterSeparator='|',
+        parameterSeparator=PARAMETER_SEPARATOR,
         **dynamicOptions
     )
     runtimeOptionsJson = json.dumps({k: v for k, v in vars(runtimeOptions).items() if v is not None}, indent=4, sort_keys=True)
@@ -432,11 +435,8 @@ def buildResult(
         matchCount = 0
         for actualError, count in list(actualErrorCounts.items()):
             if (
-                    (constraint.qname is not None and actualError == constraint.qname) or
-                    (constraint.qname is not None and actualError == str(constraint.qname)) or
-                    (constraint.qname is not None and actualError == constraint.qname.localName) or
-                    (constraint.qname is not None and actualError.split('.')[-1] == constraint.qname.localName) or
-                    (constraint.pattern is not None and constraint.pattern in actualError)
+                    (isinstance(actualError, QName) and constraint.compareQname(actualError)) or
+                    (isinstance(actualError, str) and constraint.compareCode(actualError))
             ):
                 if constraint.max is not None and count > constraint.max:
                     count = constraint.max
