@@ -240,7 +240,10 @@ class FileSource:
 
     def logError(self, err: Exception) -> None:
         if self.cntlr:
-            self.cntlr.addToLog(_("[{0}] {1}").format(type(err).__name__, err))
+            self.cntlr.error(
+                "FileSourceError",
+                _("[{0}] {1}").format(type(err).__name__, err),
+            )
 
     def open(self, reloadCache: bool = False) -> None:
         if self.isValid and not self.isOpen:
