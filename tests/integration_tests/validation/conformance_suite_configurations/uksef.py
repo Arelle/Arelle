@@ -43,6 +43,10 @@ config = ConformanceSuiteConfig(
             Path('The_2023_Taxonomy_suite_v1.0.1.zip'),
             public_download_url='https://www.frc.org.uk/documents/372/The_2023_Taxonomy_suite_v1.0.1.zip',
         ),
+       ConformanceSuiteAssetConfig.public_taxonomy_package(
+           Path('FRC-2024-Taxonomy-v1.0.0_GJp67Do.zip'),
+           public_download_url='https://www.frc.org.uk/documents/6566/FRC-2024-Taxonomy-v1.0.0_GJp67Do.zip',
+       ),
         ConformanceSuiteAssetConfig.public_taxonomy_package(
             Path('FRC-2025-Taxonomy-v1.0.0_LK4mek8.zip'),
             public_download_url='https://www.frc.org.uk/documents/7759/FRC-2025-Taxonomy-v1.0.0_LK4mek8.zip',
