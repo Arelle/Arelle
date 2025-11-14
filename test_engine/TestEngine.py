@@ -279,19 +279,22 @@ def runTestcaseVariation(
         duration_seconds = (time.perf_counter_ns() - start_ts) / 1_000_000_000
         # logs = session.get_log_messages()
         actualErrors = []
-        for error in session._cntlr.errors:
+        errors = []
+        errors.extend(session._cntlr.errors)
+        for model in session.get_models():
+            errors.extend(model.errors)
+        for error in errors:
+            if isinstance(error, dict):
+                error = {
+                    k: v
+                    for k, v in error.items()
+                    if any(i > 0 for i in v)
+                }
             actualErrors.append(ActualError(
                 assertions=error if isinstance(error, dict) else None,
                 code=error if isinstance(error, str) else None,
                 qname=error if isinstance(error, QName) else None,
             ))
-        for model in session.get_models():
-            for error in model.errors:
-                actualErrors.append(ActualError(
-                    assertions=error if isinstance(error, dict) else None,
-                    code=error if isinstance(error, str) else None,
-                    qname=error if isinstance(error, QName) else None,
-                ))
         result = buildResult(
             testcaseVariation=testcaseVariation,
             actualErrors=actualErrors,
