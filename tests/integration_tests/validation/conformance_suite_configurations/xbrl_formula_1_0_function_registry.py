@@ -25,7 +25,9 @@ config = ConformanceSuiteConfig(
         ('xbrl/90701 xfi.format-number/90701 xfi.format-number testcase.xml:V-05', re.compile(r"^(en|English).*$")),
     ]},
     runtime_options={
-        'checkFormulaRestrictedXPath': True,
+        'pluginOptions': {
+            'checkFormulaRestrictedXPath': True,
+        },
         'validateTestcaseSchema': False,
     },
     test_case_result_options='match-any',
