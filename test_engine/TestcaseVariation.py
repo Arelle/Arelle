@@ -19,6 +19,7 @@ class TestcaseVariation:
     testcaseConstraintSet: TestcaseConstraintSet | None
     blockedCodePattern: str
     calcMode: str | None
+    parameters: dict
 
     @property
     def fullId(self) -> str:

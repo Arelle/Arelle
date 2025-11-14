@@ -208,6 +208,13 @@ def loadTestcaseIndex(index_path: str, testEngineOptions: TestEngineOptions) -> 
 
                 blockedCodePattern = testcaseVariation.blockedMessageCodes # restricts codes examined when provided
 
+                parameters = [
+                    f'{k.clarkNotation}={v[1]}'
+                    for k, v in testcaseVariation.parameters.items()
+                ]
+                if any('|' in parameter for parameter in parameters):
+                    raise ValueError('Parameter separator found in parameter key or value.')
+
                 testcaseConstraintSet = TestcaseConstraintSet(
                     constraints=constraints,
                     matchAll=testEngineOptions.matchAll,
@@ -223,6 +230,7 @@ def loadTestcaseIndex(index_path: str, testEngineOptions: TestEngineOptions) -> 
                     testcaseConstraintSet=testcaseConstraintSet,
                     blockedCodePattern=blockedCodePattern,
                     calcMode=calcMode,
+                    parameters='|'.join(parameters), # TODO: Constant/config for separator
                 ))
         return testcaseVariations
 
@@ -273,6 +281,8 @@ def runTestcaseVariation(
     runtimeOptions = RuntimeOptions(
         entrypointFile=entrypointFile,
         logFile=str(testEngineOptions.logDirectory / f"{logFilename(testcaseVariation.shortName)}-log.txt"),
+        parameters=testcaseVariation.parameters,
+        parameterSeparator='|',
         **dynamicOptions
     )
     runtimeOptionsJson = json.dumps({k: v for k, v in vars(runtimeOptions).items() if v is not None}, indent=4, sort_keys=True)
