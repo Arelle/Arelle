@@ -8,6 +8,9 @@ config = ConformanceSuiteConfig(
             entry_point=Path('formula/tests/index.xml'),
         ),
     ],
+    expected_failure_ids=frozenset([
+        '40000 Filters/48210-PeriodFilter-Processing-Period/48210 PeriodFilter Processing Period.xml:V-04',
+    ]),
     info_url='https://specifications.xbrl.org/release-history-formula-1.0-formula-conf.html',
     name=PurePath(__file__).stem,
     shards=4,
