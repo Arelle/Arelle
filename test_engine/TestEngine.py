@@ -92,7 +92,7 @@ def parse_args() -> argparse.Namespace:
 
 def buildEntrypointUris(uris: list[Path]) -> list[str]:
     uris = [
-        uri.relative_to(Path.cwd()) if uri.is_relative_to(Path.cwd()) else uris
+        uri.relative_to(Path.cwd()) if uri.is_relative_to(Path.cwd()) else uri
         for uri in uris
     ]
     if len(uris) > 1:
@@ -130,7 +130,10 @@ def loadTestcaseIndex(index_path: str, testEngineOptions: TestEngineOptions) -> 
         for doc in docs:
             docUri = doc.uri.removeprefix(prefix).removesuffix(suffix)
             for testcaseVariation in doc.testcaseVariations:
-                fullId = f"{testcaseVariation.base}:{testcaseVariation.id}" # TODO: Defined twice
+                base = testcaseVariation.base
+                if base.startswith("file:\\"):
+                    base = base[6:]
+                fullId = f"{base}:{testcaseVariation.id}" # TODO: Defined twice
                 if testEngineOptions.filters:
                     if not any(fnmatch.fnmatch(fullId, filter) for filter in testEngineOptions.filters):
                         continue # TODO: Only filter here
@@ -213,7 +216,7 @@ def loadTestcaseIndex(index_path: str, testEngineOptions: TestEngineOptions) -> 
                     id=testcaseVariation.id,
                     name=testcaseVariation.name,
                     description=testcaseVariation.description,
-                    base=testcaseVariation.base,
+                    base=base,
                     readFirstUris=testcaseVariation.readMeFirstUris,
                     shortName=f"{docUri}:{testcaseVariation.id}",
                     status=testcaseVariation.status,
