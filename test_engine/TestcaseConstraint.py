@@ -17,7 +17,7 @@ class TestcaseConstraint:
     errors: bool
 
     def __str__(self):
-        value = str(self.qname or self.pattern)
+        value = str(self.qname or self.pattern or '(any)')
         if self.errors:
             value += " [E]"
         if self.warnings:

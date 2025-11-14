@@ -13,7 +13,8 @@ class TestcaseConstraintResult:
     diff: int
 
     def __str__(self):
-        num = str(self.diff)
-        if self.diff > 0:
-            num = f'+{num}'
-        return f"{num:>10} \t\"{self.code}\""
+        if self.diff < 0:
+            num = f'Missing {abs(self.diff)} expected'
+        else:
+            num = f'{self.diff} unexpected'
+        return f"{num} \"{self.code or '(any)'}\""
