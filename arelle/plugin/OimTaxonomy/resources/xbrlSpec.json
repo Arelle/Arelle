@@ -327,11 +327,6 @@
                 
             },
             {
-                "name": "xbrl:commonPracticeRef",
-                "uri": "http://www.xbrl.org/2009/role/commonPracticeRef",
-                "dataType": "xs:string"
-            },
-            {
                 "name": "xbrl:deprecatedDateLabel",
                 "uri": "http://www.xbrl.org/2009/role/deprecatedDateLabel",
                 "dataType": "xs:string"
@@ -894,6 +889,24 @@
                 "value": "Deprecated: part concept - deprecated aggregate concept."
             },
             {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrl:aggregation",
+                "value": "Population Aggregation Method (sum, avg, min, max, etc.)"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrl:intervalConvention",
+                "value": "Interval based on start or end time"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrl:intervalOfMeasurement",
+                "value": "Measurement time interval"
+            },
+            {
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "relatedName": "xbrl:intervalOfMeasurement",
@@ -904,6 +917,18 @@
                 "language": "en",
                 "relatedName": "xbrl:completeTimeSeries",
                 "value": "A boolean property that defines if the dimension used for a time series must have a value for every interval.  If true then every interval of the time series must have a fact. If false the time series does not have to be complete. If the property is not defined the default value is false."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrl:completeTimeSeries",
+                "value": "Time series is complete"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrl:timeSeriesType",
+                "value": "Time series type (Aggregated or Raw)"
             },
             {
                 "labelType": "xbrl:documentation",
@@ -1120,6 +1145,72 @@
                 "language": "en",
                 "relatedName": "xbrl:unitFact-factConcept",
                 "value": "Relationship type used for mapping unit-fact constructs between concept objects when unit-specific facts are modelled."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrl:conceptObject",
+                "value": "Concept Object"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrl:relationshipObject",
+                "value": "Relationship Object"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrl:referenceObject",
+                "value": "Reference Object"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrl:dimensionObject",
+                "value": "Dimension Object"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrl:domainRootObject",
+                "value": "Domain Root Object"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrl:abstractObject",
+                "value": "Abstract Object"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrl:factspaceObject",
+                "value": "Fact Space Object"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrl:cubeObject",
+                "value": "Cube Object"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrl:unitObject",
+                "value": "Unit Object"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrl:networkObject",
+                "value": "Network"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrl:entityObject",
+                "value": "Entity Object"
             }
         ],
         "propertyTypes": [
@@ -1162,7 +1253,8 @@
                 "allowedObjects": [
                     "xbrl:relationshipObject",
                     "xbrl:conceptObject",
-                    "xbrl:dimensionObject"
+                    "xbrl:dimensionObject",
+                    "xbrl:domainRootObject"
                 ]
             },
             {
@@ -1203,7 +1295,7 @@
                 "dataType": "xs:duration",
                 "definitional": false,
                 "allowedObjects": [
-                    "xbrl:dimensionObject"
+                    "xbrl:domainRootObject"
                 ]
             },
             {
@@ -1211,7 +1303,7 @@
                 "dataType": "xbrli:timeSeriesDataType",
                 "definitional": false,
                 "allowedObjects": [
-                    "xbrl:dimensionObject"
+                    "xbrl:domainRootObject"
                 ]
             },
             {
@@ -1219,7 +1311,7 @@
                 "dataType": "xbrli:intervalConventionType",
                 "definitional": false,
                 "allowedObjects": [
-                    "xbrl:dimensionObject"
+                    "xbrl:domainRootObject"
                 ]
             },
             {
@@ -1227,7 +1319,7 @@
                 "dataType": "xs:boolean",
                 "definitional": false,
                 "allowedObjects": [
-                    "xbrl:dimensionObject"
+                    "xbrl:domainRootObject"
                 ]
             },
             {
@@ -1235,7 +1327,15 @@
                 "dataType": "xs:string",
                 "definitional": false,
                 "allowedObjects": [
-                    "xbrl:dimensionObject"
+                    "xbrl:domainRootObject"
+                ]
+            },
+            {
+                "name": "xbrl:abstractDataType",
+                "dataType": "xs:QName",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:abstractObject"
                 ]
             }
         ],
@@ -1279,6 +1379,10 @@
             {
                 "name": "xbrl:exampleRef",
                 "uri": "http://www.xbrl.org/2003/role/exampleRef"
+            },
+            {
+                "name": "xbrl:commonPracticeRef",
+                "uri": "http://www.xbrl.org/2009/role/commonPracticeRef"
             },
             {
                 "name":"xbrl:dataTypeRequirement",
@@ -1525,6 +1629,13 @@
                 "cycles" : "undirected",
                 "sourceObjects" : ["xbrl:conceptObject"],
                 "targetObjects" : ["xbrl:conceptObject"]
+            },
+            {
+                "name": "xbrl:taxonomy-group",
+                "uri": "https://xbrl.org/2025/arcrole/taxonomy-group",
+                "cycles" : "none",
+                "sourceObjects" : ["xbrl:taxonomyObject", "xbrl:groupObject"],
+                "targetObjects" : ["xbrl:groupObject"]
             }
         ]
         

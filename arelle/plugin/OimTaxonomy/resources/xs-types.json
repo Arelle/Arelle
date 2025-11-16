@@ -14,6 +14,10 @@
         "version": "2025",
         "dataTypes": [
             {
+                "name": "xs:anySimpleType",
+                "baseType": "xs:anySimpleType"
+            },
+            {
                 "name": "xs:string",
                 "baseType": "xs:anySimpleType"
             },

@@ -2,7 +2,7 @@
 See COPYRIGHT.md for copyright information.
 """
 
-from typing import TYPE_CHECKING, Optional, Any
+from typing import TYPE_CHECKING, Union, Optional, Any
 from typing_extensions import TypeAlias
 from decimal import Decimal
 
@@ -10,7 +10,7 @@ from arelle.ModelValue import QName
 from arelle.PythonUtil import OrderedSet
 from arelle.XbrlConst import xsd, isNumericXsdType
 from .XbrlProperty import XbrlProperty
-from .XbrlTypes import XbrlTaxonomyModuleType, XbrlUnitTypeType, QNameKeyType
+from .XbrlTypes import XbrlTaxonomyModuleType, QNameKeyType, DefaultTrue, DefaultFalse
 from .XbrlObject import XbrlTaxonomyObject, XbrlReferencableTaxonomyObject
 from arelle.FunctionFn import true
 
@@ -31,12 +31,22 @@ class XbrlConcept(XbrlReferencableTaxonomyObject):
         dtObj = txmyMdl.namedObjects.get(self.dataType)
         return isinstance(dtObj, XbrlDataType) and dtObj.isOimTextFactType(txmyMdl)
 
+class XbrlSetType(XbrlTaxonomyObject):
+    dataTypesAllowed: OrderedSet[QName] # (required) Defines a set of data types that can be included in the set. The data types are defined using the QName of the dataType object.
+    uniqueValues: Union[bool, DefaultTrue] # (optional) Indicates if the values in the set must be unique. If true all values in the set must be unique. If false values can be duplicated. Defaults to true if not provided.
+    orderedValues: Union[bool, DefaultFalse] # (optional) Indicates if the values in the set are ordered. If true the order of the values in the set is significant. If false the order of the values in the set is not significant. Defaults to false if not provided.
+
+class XbrlUnitType(XbrlTaxonomyObject):
+    dataTypeNumerator: Optional[QName] # (optional) Defines the numerator data type of the data type.
+    dataTypeDenominator: Optional[QName] # (optional) Defines the denominator data type used by a unit used to define a value of the data type.
+    dataTypeMultiplier: Optional[QName] # (optional) Defines a multiplier data type used by a unit used to define a value of the data type.
 
 class XbrlDataType(XbrlReferencableTaxonomyObject):
     taxonomy: XbrlTaxonomyModuleType
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the datatype object.
     baseType: QName # (required) The base type is a QName that uniquely identifies the base datatype the datatype is based on.
     enumeration: OrderedSet[Any] # (optional) Defines an ordered set of enumerated values of the datatype if applicable
+    setType: Optional[XbrlSetType] # (optional) Defines a set of of data types that can be used in a set. This attribute can only be used when the base type is defined as a xbrli:set.
     minInclusive: Optional[Decimal] # (optional) Defines a decimal value to indicate a min inclusive cardinal value for a type. Only applies to types based on float, double and decimal.
     maxInclusive: Optional[Decimal] # (optional) Defines a decimal value to indicate a max inclusive cardinal value for a type. Only applies to types based on float, double and decimal.
     minExclusive: Optional[Decimal] # (optional) Defines a decimal value to indicate a min exclusive cardinal value for a type. Only applies to types based on float, double and decimal.
@@ -48,7 +58,7 @@ class XbrlDataType(XbrlReferencableTaxonomyObject):
     maxLength: Optional[int] # (optional) Defines an int used to define maximum length of a string value.
     whiteSpace: Optional[str] # (optional) Defines a string one of preserve, replace or collapse.
     patterns: set[str] # (optional) Defines a string as a single regex expressions. At least one of the regex patterns must match. (Uses XML regex)
-    unitType: Optional[XbrlUnitTypeType] # (optional) Defines a unitType object For example xbrli:flow has unit datatypes of xbrli:volume and xbrli:time
+    unitType: Optional[XbrlUnitType] # (optional) Defines a unitType object For example xbrli:flow has unit datatypes of xbrli:volume and xbrli:time
 
     def xsBaseType(self, txmyMdl, visitedTypes=None): # find base types thru dataType hierarchy
         try:
@@ -110,8 +120,3 @@ class XbrlDataType(XbrlReferencableTaxonomyObject):
             return False
         typeDerivedFrom = self.xbrlTxmyMdl.namedObjects.get(baseType)
         return typeDerivedFrom.isOimTextFactType if typeDerivedFrom is not None else False
-
-class XbrlUnitType(XbrlTaxonomyObject):
-    dataTypeNumerator: Optional[QName] # (optional) Defines the numerator datatype of of the datatype
-    dataTypeDenominator: Optional[QName] # (optional) Defines the denominator datatype used by a unit used to define a value of the datatype
-    dataTypeMutiplier: Optional[QName] # (optional) Defines a mutiplier datatype used by a unit used to define a value of the datatype

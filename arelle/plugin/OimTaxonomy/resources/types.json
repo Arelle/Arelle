@@ -65,6 +65,19 @@
                 "patterns" : ["([A-Za-z][-A-Za-z0-9+-.]*:\\S+#[\\i-[:]][\\c-[:]]*( [A-Za-z][-A-Za-z0-9+-.]*:\\S+#[\\i-[:]][\\c-[:]]*)*)?"]
             },
             {
+                "name": "xbrli:set",
+                "baseType": "xbrli:noLangToken"
+            },
+            {
+                "name": "xbrli:QNameSet",
+                "baseType": "xbrli:set",
+                "setType": {
+                    "dataTypesAllowed":["xs:QName"],
+                    "uniqueValues":true,
+                    "orderedValues":false
+                }
+            },
+            {
                 "name" : "xbrli:domain",
                 "baseType" : "xs:string"
             },
@@ -354,11 +367,6 @@
                 "baseType": "xs:string"
             },
             {
-                "name" : "xbrli:domainType",
-                "baseType": "xs:string",
-                "enumeration": ["typed", "explicit", "both"]
-            },
-            {
                 "name": "xbrli:periodString",
                 "baseType": "xs:string"
             },
@@ -369,6 +377,70 @@
             {
                 "name": "xbrli:unitString",
                 "baseType": "xs:string"
+            },
+            {
+                "name": "xbrli:domainRootQName",
+                "baseType": "xs:QName"
+            },
+            {
+                "name": "xbrli:dataTypeQName",
+                "baseType": "xs:QName"
+            },
+            {
+                "name": "xbrli:conceptQName",
+                "baseType": "xs:QName"
+            },
+            {
+                "name": "xbrli:dimensionQName",
+                "baseType": "xs:QName"
+            },
+            {
+                "name": "xbrli:domainQName",
+                "baseType": "xs:QName"
+            },
+            {
+                "name": "xbrli:cubeQName",
+                "baseType": "xs:QName"
+            },
+            {
+                "name": "xbrli:cubeTypeQName",
+                "baseType": "xs:QName"
+            },
+            {
+                "name": "xbrli:networkQName",
+                "baseType": "xs:QName"
+            },
+            {
+                "name": "xbrli:relationshipTypeQName",
+                "baseType": "xs:QName"
+            },
+            {
+                "name": "xbrli:labelTypeQName",
+                "baseType": "xs:QName"
+            },
+            {
+                "name": "xbrli:referenceTypeQName",
+                "baseType": "xs:QName"
+            },
+            {
+                "name": "xbrli:propertyTypeQName",
+                "baseType": "xs:QName"
+            },
+            {
+                "name": "xbrli:groupQName",
+                "baseType": "xs:QName"
+            },
+            {
+                "name": "xbrli:taxonomyQName",
+                "baseType": "xs:QName"
+            },
+            {
+                "name": "xbrli:unitQName",
+                "baseType": "xs:QName"
+            },
+            {
+                "name": "xbrli:realURL",
+                "baseType": "xs:anyURI"
             }
         ],
         "units": [
@@ -399,12 +471,6 @@
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The unit dimension defines units in terms of the combination of QNames by defining an unordered collection of numerators and an unordered collection of denominators. This type defines a standardised unit string representation, allowing units to be captured using a unique string value. This has the property that, provided that a consistent set of namespace prefixes are used, a given unit will have a single representation meaning that equivalence of units can be determined by string comparison. The unit string representation is obtained as follows: If {denominators} is not present, the QNames representing the {numerators} are combined in lexicographic order, separated by the * character. Otherwise, lists of {numerators} and {denominators} are created by combining QNames in lexicographic order and separating with the * character, as above. If a list contains more than one item, the list is enclosed in parentheses. The final string is then obtained by concatenating the list of numerators, the / character, and the list of denominators. Whitespace is not permitted anywhere in the string representation, and the use of QNames ensures that a 1:1 mapping between prefixes and namespaces is available thus ensuring that equivalent units appearing within the same document are represented with the same string. Lexicographic order means ordered based on comparison of Unicode code point values of each character. If any QNames in the unit string representation use a prefix that is not defined in the prefix map then oimce:unboundPrefix MUST be raised."
-            },
-            {
-                "relatedName" : "xbrli:domainType",
-                "language" : "en",
-                "labelType" : "xbrl:documentation",
-                "value" : "The domain data type is used to identify the type of a domainRoot. Any domains using this domain root must match the defined type. If the value is the string both, then typed domains (with relationships) and typed domains can be used with the domain root."
             },
             {
                 "relatedName" : "xbrli:aggregationType",
@@ -639,13 +705,13 @@
                 "relatedName" : "xbrli:noLangToken",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
-                "value" : "noLangToken is a derivation of token and is used to denote values that should not have an associated language. This is typically used for values that are unique identifiers, rather than human-readable strings. Any in-scope xml:lang declaration is ignored for facts using this type."
+                "value" : "noLangToken is a derivation of token and is used to denote values that should not have an associated language. This is typically used for values that are unique identifiers, rather than human-readable strings."
             },
             {
                 "relatedName" : "xbrli:noLangString",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
-                "value" : "noLangString is a derivation of string and is used to denote values that should not have an associated language. This is typically used for values that are unique identifiers, rather than human-readable strings. Any in-scope xml:lang declaration is ignored for facts using this type."
+                "value" : "noLangString is a derivation of string and is used to denote values that should not have an associated language. This is typically used for values that are unique identifiers, rather than human-readable strings."
             },
             {
                 "relatedName" : "xbrli:prefixedContent",
@@ -797,6 +863,192 @@
                 "language": "en",
                 "relatedName": "xbrli:emoji",
                 "value": "A datatype for associating images or emoji icons with taxonomy objects. Values can be emoji characters, image URLs, or data URIs representing icons for visual representation of taxonomy objects."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrli:dataTypeQName",
+                "value": "Data Type QName"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrli:dataTypeQName",
+                "value": "A QName that references a dataType object. Must reference either a built-in XML Schema datatype (xs:*) or a custom dataType defined in the taxonomy."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrli:conceptQName",
+                "value": "Concept QName"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrli:conceptQName",
+                "value": "A QName that references a concept object defined in the taxonomy."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrli:dimensionQName",
+                "value": "Dimension QName"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrli:dimensionQName",
+                "value": "A QName that references a dimension object. May reference built-in dimensions (xbrl:concept, xbrl:period, xbrl:entity, xbrl:unit, xbrl:language, xbrl:noteId) or taxonomy-defined dimensions."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrli:domainQName",
+                "value": "Domain QName"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrli:domainQName",
+                "value": "A QName that references a domain object defined in the taxonomy."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrli:domainRootQName",
+                "value": "Domain Root QName"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrli:domainRootQName",
+                "value": "A QName that references a domainRoot object defined in the taxonomy."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrli:cubeQName",
+                "value": "Cube QName"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrli:cubeQName",
+                "value": "A QName that references a cube object defined in the taxonomy."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrli:cubeTypeQName",
+                "value": "Cube Type QName"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrli:cubeTypeQName",
+                "value": "A QName that references a cubeType object defined in the taxonomy."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrli:networkQName",
+                "value": "Network QName"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrli:networkQName",
+                "value": "A QName that references a network object defined in the taxonomy."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrli:relationshipTypeQName",
+                "value": "Relationship Type QName"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrli:relationshipTypeQName",
+                "value": "A QName that references a relationshipType object defined in the taxonomy."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrli:labelTypeQName",
+                "value": "Label Type QName"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrli:labelTypeQName",
+                "value": "A QName that references a labelType object defined in the taxonomy."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrli:referenceTypeQName",
+                "value": "Reference Type QName"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrli:referenceTypeQName",
+                "value": "A QName that references a referenceType object defined in the taxonomy."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrli:propertyTypeQName",
+                "value": "Property Type QName"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrli:propertyTypeQName",
+                "value": "A QName that references a propertyType object defined in the taxonomy."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrli:groupQName",
+                "value": "Group QName"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrli:groupQName",
+                "value": "A QName that references a group object defined in the taxonomy."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrli:taxonomyQName",
+                "value": "Taxonomy QName"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrli:taxonomyQName",
+                "value": "A QName that references a taxonomy object."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrli:unitQName",
+                "value": "Unit QName"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrli:unitQName",
+                "value": "A QName that references a unit object defined in the taxonomy."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrli:realURL",
+                "value": "A URL that references a real link to a resource. If used the URL must be valid."
             }
         ],
         "references": [
