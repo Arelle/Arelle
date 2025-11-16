@@ -15,7 +15,7 @@ from .XbrlConcept import XbrlConcept, XbrlDataType, XbrlUnitType
 from .XbrlCube import XbrlCube, XbrlCubeType, XbrlCubeDimension, XbrlPeriodConstraint, XbrlDateResolution, XbrlAllowedCubeDimension, XbrlRequiredCubeRelationship
 from .XbrlDimension import XbrlDimension, XbrlDomain, XbrlDomainRoot, XbrlMember
 from .XbrlEntity import XbrlEntity
-from .XbrlGroup import XbrlGroup, XbrlGroupContent
+from .XbrlGroup import XbrlGroup, XbrlGroupContent, XbrlGroupTree
 from .XbrlLabel import XbrlLabel, XbrlLabelType
 from .XbrlNetwork import XbrlNetwork, XbrlRelationship, XbrlRelationshipType, XbrlRelationshipConstraint
 from .XbrlProperty import XbrlProperty, XbrlPropertyType
@@ -47,6 +47,7 @@ class XbrlTaxonomyModule(XbrlTaxonomyObject):
     factspaces: OrderedSet[XbrlFact] #  (optional) ordered set of fact objects.
     groups: OrderedSet[XbrlGroup] #  (optional) ordered set of group objects.
     groupContents: OrderedSet[XbrlGroupContent] # ordered set of groupContent objects that link a group QName to a list of network or cube objects.
+    groupTree: Optional[XbrlGroupTree] # (optional) A groupTree object that defines the hierarchical organization of groups within the taxonomy. Unlike groupContents which links groups to networks and cubes, groupTree organizes the groups themselves into a tree structure. The taxonomy serves as the root by being referenced as the source in top-level relationships. Only one groupTree object is allowed per taxonomy.
     labels: OrderedSet[XbrlLabel] # (optional) ordered set of label objects.
     members: OrderedSet[XbrlMember] #  (optional) ordered set of member objects.
     networks: OrderedSet[XbrlNetwork] # (optional) ordered set of network objects.

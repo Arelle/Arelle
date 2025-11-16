@@ -205,10 +205,22 @@
                 "labelType": "xbrl:label",
                 "language": "en",
                 "relatedName": "ref:Publisher",
+                "value": "Publisher"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "ref:Publisher",
                 "value": "Publisher of the reference material, such as SEC, FASB, or AICPA."
             },
             {
                 "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "ref:Name",
+                "value": "Name"
+            },
+            {
+                "labelType": "xbrl:documentation",
                 "language": "en",
                 "relatedName": "ref:Name",
                 "value": "Name refers to the specific publication. For example, 'Statement of Financial Standards', 'Statement of Position' or 'IFRS'. It does not include the number."
@@ -217,10 +229,22 @@
                 "labelType": "xbrl:label",
                 "language": "en",
                 "relatedName": "ref:Number",
+                "value": "Number"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "ref:Number",
                 "value": "Number is used to record the actual number of the specific publication. For example, the number for FAS 133 would be 133."
             },
             {
                 "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "ref:IssueDate",
+                "value": "Issue date (CCYY-MM-DD)"
+            },
+            {
+                "labelType": "xbrl:documentation",
                 "language": "en",
                 "relatedName": "ref:IssueDate",
                 "value": "The issue date of the specific reference. The format is CCYY-MM-DD."
@@ -229,10 +253,22 @@
                 "labelType": "xbrl:label",
                 "language": "en",
                 "relatedName": "ref:Chapter",
+                "value": "Chapter"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "ref:Chapter",
                 "value": "For a publication that uses chapters, this part should be used to capture this information. Because chapters are not necessarily numbers, this is a string."
             },
             {
                 "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "ref:Article",
+                "value": "Article"
+            },
+            {
+                "labelType": "xbrl:documentation",
                 "language": "en",
                 "relatedName": "ref:Article",
                 "value": "Article refers to a statutory article in legal material."
@@ -241,22 +277,46 @@
                 "labelType": "xbrl:label",
                 "language": "en",
                 "relatedName": "ref:Note",
+                "value": "Notes"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "ref:Note",
                 "value": "Notes can contain reference material; use this element when the note is published as a standalone document. There is a separate element for footnotes within other references."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
                 "relatedName": "ref:Section",
-                "value": "Section is used to capture information typically captured in sections of legislation or reference documents."
+                "value": "Section"
             },
             {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "ref:Section",
+                "value": "Section is used to capture information typically captured in sections of legislation or reference documents."
+            },
+             {
                 "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "ref:Subsection",
+                "value": "Subsection"
+            },
+            {
+                "labelType": "xbrl:documentation",
                 "language": "en",
                 "relatedName": "ref:Subsection",
                 "value": "Subsection is a subsection of the section part."
             },
-            {
+             {
                 "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "ref:Paragraph",
+                "value": "Paragraph"
+            },
+            {
+                "labelType": "xbrl:documentation",
                 "language": "en",
                 "relatedName": "ref:Paragraph",
                 "value": "Paragraph is used to refer to specific paragraphs in a document."
@@ -265,10 +325,22 @@
                 "labelType": "xbrl:label",
                 "language": "en",
                 "relatedName": "ref:Subparagraph",
+                "value": "Subparagraph"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "ref:Subparagraph",
                 "value": "Subparagraph of a paragraph."
             },
             {
                 "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "ref:Clause",
+                "value": "Clause"
+            },
+            {
+                "labelType": "xbrl:documentation",
                 "language": "en",
                 "relatedName": "ref:Clause",
                 "value": "Sub component of a sub paragraph."
@@ -277,10 +349,22 @@
                 "labelType": "xbrl:label",
                 "language": "en",
                 "relatedName": "ref:Subclause",
+                "value": "Subclause"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "ref:Subclause",
                 "value": "Subcomponent of a clause in a paragraph."
             },
             {
                 "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "ref:Appendix",
+                "value": "Appendix"
+            },
+            {
+                "labelType": "xbrl:documentation",
                 "language": "en",
                 "relatedName": "ref:Appendix",
                 "value": "Refers to the name of an Appendix, which could be a number or text."
@@ -289,10 +373,22 @@
                 "labelType": "xbrl:label",
                 "language": "en",
                 "relatedName": "ref:Example",
+                "value": "Example "
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "ref:Example",
                 "value": "Example captures examples used in reference documentation; there is a separate element for Exhibits."
             },
             {
                 "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "ref:Page",
+                "value": "Page number"
+            },
+            {
+                "labelType": "xbrl:documentation",
                 "language": "en",
                 "relatedName": "ref:Page",
                 "value": "Page number of the reference material."
@@ -301,10 +397,22 @@
                 "labelType": "xbrl:label",
                 "language": "en",
                 "relatedName": "ref:Exhibit",
+                "value": "Exhibit"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "ref:Exhibit",
                 "value": "Exhibit refers to exhibits in reference documentation; examples have a separate element."
             },
             {
                 "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "ref:Footnote",
+                "value": "Footnote"
+            },
+            {
+                "labelType": "xbrl:documentation",
                 "language": "en",
                 "relatedName": "ref:Footnote",
                 "value": "Footnote is used to reference footnotes that appear in reference information."
@@ -313,16 +421,34 @@
                 "labelType": "xbrl:label",
                 "language": "en",
                 "relatedName": "ref:Sentence",
+                "value": "Sentence"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "ref:Sentence",
                 "value": "In some reference material individual sentences can be referred to, and this element allows them to be referenced."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
                 "relatedName": "ref:URI",
+                "value": "Full URI"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "ref:URI",
                 "value": "Full URI of the reference such as 'http://www.fasb.org/fas133'."
             },
             {
                 "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "ref:URIDate",
+                "value": "Date URI valid (CCYY-MM-DD)"
+            },
+            {
+                "labelType": "xbrl:documentation",
                 "language": "en",
                 "relatedName": "ref:URIDate",
                 "value": "Date or DateTime that the URI was valid, in CCYY-MM-DD format."

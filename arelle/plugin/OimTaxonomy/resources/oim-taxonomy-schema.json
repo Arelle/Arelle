@@ -52,7 +52,7 @@
                   "items": {
                     "type": "object",
                     "properties": {
-                      "taxonomyName": { "$ref": "#/definitions/QName" },
+                      "taxonomyName": { "$ref": "#/definitions/taxonomyQName" },
                       "selections": {
                         "type": "array",
                         "items": { "$ref": "#/definitions/selectorObject" },
@@ -116,8 +116,8 @@
                       "type": "object",
                       "properties": {
                         "name": { "$ref": "#/definitions/QName" },
-                        "dataType": { "$ref": "#/definitions/QName" },
-                        "enumerationDomain": { "$ref": "#/definitions/QName" },
+                        "dataType": { "$ref": "#/definitions/dataTypeQName" },
+                        "enumerationDomain": { "$ref": "#/definitions/domainQName" },
                         "definitional": {
                           "type": "boolean"
                         },
@@ -192,12 +192,12 @@
                       "type": "object",
                       "properties": {
                         "name": { "$ref": "#/definitions/QName" },
-                        "dataType": { "$ref": "#/definitions/QName" },
+                        "dataType": { "$ref": "#/definitions/dataTypeQName" },
                         "periodType": {
                           "type": "string",
                           "enum": ["instant", "duration", "none"]
                         },
-                        "enumerationDomain": { "$ref": "#/definitions/QName" },
+                        "enumerationDomain": { "$ref": "#/definitions/domainQName" },
                         "nillable": {
                           "type": "boolean"
                         },
@@ -236,16 +236,16 @@
                         "type": "object",
                         "properties": {
                       "name": { "$ref": "#/definitions/QName" },
-                      "cubeType": { "$ref": "#/definitions/QName" },
+                      "cubeType": { "$ref": "#/definitions/cubeTypeQName" },
                       "cubeDimensions": {
                         "type": "array",
                         "description": "Ordered set of cubeDimension objects used on the cube.",
                         "items": {
                           "type": "object",
                           "properties": {
-                            "dimensionName": { "$ref": "#/definitions/QName" },
-                            "domainName": { "$ref": "#/definitions/QName" },
-                            "domainDatatype" : { "$ref": "#/definitions/QName" },
+                            "dimensionName": { "$ref": "#/definitions/dimensionQName" },
+                            "domainName": { "$ref": "#/definitions/domainQName" },
+                            "domainDataType" : { "$ref": "#/definitions/dataTypeQName" },
                             
                             "typedSort": {
                               "type": "string",
@@ -296,13 +296,13 @@
                       "cubeNetworks": {
                         "type": "array",
                         "description": "Ordered set of network object QNames related to the cube.",
-                        "items": { "$ref": "#/definitions/QName" },
+                        "items": { "$ref": "#/definitions/networkQName" },
                         "uniqueItems": true
                       },
                       "excludeCubes": {
                         "type": "array",
                         "description": "Ordered set of cube object QNames to be excluded from the cube.",
-                        "items": { "$ref": "#/definitions/QName" },
+                        "items": { "$ref": "#/definitions/cubeQName" },
                         "uniqueItems": true
                       },
                       "cubeComplete": {
@@ -327,10 +327,10 @@
                     "type": "object",
                     "properties": {
                       "name": { "$ref": "#/definitions/QName" },
-                      "domainRoot": { "$ref": "#/definitions/QName" },
+                      "domainRoot": { "$ref": "#/definitions/domainRootQName" },
                       "cubeTypes": {
                         "type": "array",
-                        "items": { "$ref": "#/definitions/QName" },
+                        "items": { "$ref": "#/definitions/cubeTypeQName" },
                         "uniqueItems": true
                       },
                       "properties": {
@@ -351,7 +351,7 @@
                   "type": "object",
                       "properties": {
                         "name": { "$ref": "#/definitions/QName" },
-                        "root": { "$ref": "#/definitions/QName" },
+                        "root": { "$ref": "#/definitions/domainRootQName" },
                         "relationships": {
                           "type": "array",
                           "items": {
@@ -427,7 +427,7 @@
                   "type": "object",
                       "properties": {
                         "name": { "$ref": "#/definitions/QName" },
-                        "relationshipTypeName": { "$ref": "#/definitions/QName" },
+                        "relationshipTypeName": { "$ref": "#/definitions/relationshipTypeQName" },
                         "roots": {
                           "type": "array",
                           "items": { "$ref": "#/definitions/QName" },
@@ -506,7 +506,7 @@
                     "type": "object",
                     "properties": {
                       "name": { "$ref": "#/definitions/QName" },
-                      "dataType": { "$ref": "#/definitions/QName" },
+                      "dataType": { "$ref": "#/definitions/dataTypeQName" },
                       "stringRepresentations": { 
                         "type": "array",
                         "items": { 
@@ -549,7 +549,7 @@
                   "items": {
                     "type": "object",
                     "properties": {
-                      "groupName": { "$ref": "#/definitions/QName" },
+                      "groupName": { "$ref": "#/definitions/groupQName" },
                       "relatedNames": {
                         "type": "array",
                         "items": { "$ref": "#/definitions/QName" },
@@ -655,7 +655,7 @@
                     "type": "object",
                     "properties": {
                       "relatedName": { "$ref": "#/definitions/QName" },
-                      "labelType": { "$ref": "#/definitions/QName" },
+                      "labelType": { "$ref": "#/definitions/labelTypeQName" },
                       "language": {
                         "type": "string",
                         "pattern": "^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$",
@@ -690,7 +690,7 @@
                           "description": "Ordered QNames the reference is associated with.",
                           "uniqueItems": true
                         },
-                        "referenceType": { "$ref": "#/definitions/QName" },
+                        "referenceType": { "$ref": "#/definitions/referenceTypeQName" },
                         "language": {
                           "type": "string",
                           "pattern": "^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$",
@@ -734,7 +734,7 @@
                         "type": "object",
                         "description": "Object mapping dimension QNames to their values for this fact.",
                         "properties": {
-                          "xbrl:concept":{ "$ref": "#/definitions/QName" },
+                          "xbrl:concept":{ "$ref": "#/definitions/conceptQName" },
                           "xbrl:entity":{ "$ref": "#/definitions/SQName" },
                           "xbrl:unit":{ "oneOf": [
                                             {
@@ -742,7 +742,7 @@
                                               "pattern": ".*(\\*|/).*"
                                             },
                                             {
-                                              "$ref": "#/definitions/QName"
+                                              "$ref": "#/definitions/unitQName"
                                             }
                                           ]},
                           "xbrl:period":{"type": "string"}
@@ -776,7 +776,7 @@
                           "format": "uri",
                           "description": "URI for backward compatibility with XBRL 2.1 taxonomies."
                         },
-                        "dataType": { "$ref": "#/definitions/QName" },
+                        "dataType": { "$ref": "#/definitions/dataTypeQName" },
                         "allowedObjects": {
                           "type": "array",
                           "items": { "$ref": "#/definitions/QName" },
@@ -827,7 +827,7 @@
                       "type": "object",
                       "properties": {
                         "name": { "$ref": "#/definitions/QName" },
-                        "baseCubeType": { "$ref": "#/definitions/QName" },
+                        "baseCubeType": { "$ref": "#/definitions/cubeTypeQName" },
                         "periodDimension": {
                           "type": "boolean",
                           "description": "Indicates if the period core dimension is included in the cube. Defaults to true."
@@ -850,13 +850,13 @@
                           "items": {
                             "type": "object",
                             "properties": {
-                              "dimensionName": { "$ref": "#/definitions/QName" },
+                              "dimensionName": { "$ref": "#/definitions/dimensionQName" },
                               "dimensionType": {
                                 "type": "string",
                                 "enum": ["typed", "explicit"],
                                 "description": "Indicates that the cube must have a typed or explicit dimension."
                               },
-                              "dimensionDataType": { "$ref": "#/definitions/QName" },
+                              "dimensionDataType": { "$ref": "#/definitions/dataTypeQName" },
                               "required": {
                                 "type": "boolean",
                                 "description": "True if the defined dimension is required on the cube. Defaults to false."
@@ -922,12 +922,12 @@
                           "items": {
                             "type": "object",
                             "properties": {
-                              "relationshipTypeName": { "$ref": "#/definitions/QName"},
+                              "relationshipTypeName": { "$ref": "#/definitions/relationshipTypeQName"},
                               "source": { "$ref": "#/definitions/QName"},
-                              "sourceDataType": { "$ref": "#/definitions/QName"},
+                              "sourceDataType": { "$ref": "#/definitions/dataTypeQName"},
                               "sourceObject": { "$ref": "#/definitions/QName"},
                               "target": { "$ref": "#/definitions/QName"},
-                              "targetDataType": { "$ref": "#/definitions/QName"},
+                              "targetDataType": { "$ref": "#/definitions/dataTypeQName"},
                               "targetObject": { "$ref": "#/definitions/QName"}
                             },
                             "required": ["relationshipTypeName"],
@@ -951,7 +951,7 @@
                       "type": "object",
                         "properties": {
                           "name": { "$ref": "#/definitions/QName" },
-                          "baseType": { "$ref": "#/definitions/QName" },
+                          "baseType": { "$ref": "#/definitions/dataTypeQName" },
                           "enumeration": {
                             "type": "array",
                             "description": "Ordered set of enumerated values of the datatype if applicable.",
@@ -1007,10 +1007,32 @@
                             "type": "object",
                             "description": "UnitType object defining numerator, denominator, and multiplier datatypes.",
                             "properties": {
-                              "dataTypeNumerator": { "$ref": "#/definitions/QName" },
-                              "dataTypeDenominator": { "$ref": "#/definitions/QName" },
-                              "dataTypeMultiplier": { "$ref": "#/definitions/QName" }
+                              "dataTypeNumerator": { "$ref": "#/definitions/dataTypeQName" },
+                              "dataTypeDenominator": { "$ref": "#/definitions/dataTypeQName" },
+                              "dataTypeMultiplier": { "$ref": "#/definitions/dataTypeQName" }
                             },
+                            "additionalProperties": false
+                          },
+                          "setType": {
+                            "type": "object",
+                            "description": "SetType object defining constraints for set-based datatypes.",
+                            "properties": {
+                              "dataTypesAllowed": {
+                                "type": "array",
+                                "description": "Array of QNames specifying the datatypes allowed as members of the set.",
+                                "items": { "$ref": "#/definitions/dataTypeQName" },
+                                "minItems": 1
+                              },
+                              "uniqueValues": {
+                                "type": "boolean",
+                                "description": "If true, all values in the set must be unique."
+                              },
+                              "orderedValues": {
+                                "type": "boolean",
+                                "description": "If true, the set maintains insertion order."
+                              }
+                            },
+                            "required": ["dataTypesAllowed"],
                             "additionalProperties": false
                           }
                         },
@@ -1025,8 +1047,8 @@
                         "type": "object",
                        "properties": {
                             "name": { "$ref": "#/definitions/QName" },
-                            "inputDataType": { "$ref": "#/definitions/QName" },
-                            "outputDataType": { "$ref": "#/definitions/QName" }
+                            "inputDataType": { "$ref": "#/definitions/dataTypeQName" },
+                            "outputDataType": { "$ref": "#/definitions/dataTypeQName" }
                           },
                           "required": ["name", "inputDataType", "outputDataType"],
                           "additionalProperties": false
@@ -1040,7 +1062,7 @@
       "layout" :{
         "type": "object",
         "name": { "$ref": "#/definitions/QName" },
-        "taxonomyName": { "$ref": "#/definitions/QName" },
+        "taxonomyName": { "$ref": "#/definitions/taxonomyQName" },
         "properties":{
           "tableTemplates": {
                     "type": "array",
@@ -1089,7 +1111,7 @@
                 "type": "object",
                   "properties": {
                     "name": { "$ref": "#/definitions/QName" },
-                    "cubeName": { "$ref": "#/definitions/QName" },
+                    "cubeName": { "$ref": "#/definitions/cubeQName" },
                     "xAxis": {
                         "$ref": "#/definitions/axisObject"
                       },
@@ -1117,7 +1139,7 @@
       "propertyObject": {
       "type": "object",
       "properties": {
-        "property": { "$ref": "#/definitions/QName" },
+        "property": { "$ref": "#/definitions/propertyTypeQName" },
         "value": {}
       },
       "required": ["property", "value"],
@@ -1291,6 +1313,66 @@
           "type": "string",
           "pattern": "^[A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z_][A-Za-z0-9_.-]*$",
           "description": "QName that uniquely identifies the object."
+      },
+      "dataTypeQName": {
+          "$ref": "#/definitions/QName",
+          "description": "QName that references a dataType object. Must reference either a built-in XML Schema datatype (xs:*) or a custom dataType defined in the taxonomy."
+      },
+      "conceptQName": {
+          "$ref": "#/definitions/QName",
+          "description": "QName that references a concept object defined in the taxonomy."
+      },
+      "dimensionQName": {
+          "$ref": "#/definitions/QName",
+          "description": "QName that references a dimension object. May reference built-in dimensions (xbrl:concept, xbrl:period, xbrl:entity, xbrl:unit, xbrl:language, xbrl:noteId) or taxonomy-defined dimensions."
+      },
+      "domainQName": {
+          "$ref": "#/definitions/QName",
+          "description": "QName that references a domain object defined in the taxonomy."
+      },
+      "domainRootQName": {
+          "$ref": "#/definitions/QName",
+          "description": "QName that references a domainRoot object defined in the taxonomy."
+      },
+      "cubeQName": {
+          "$ref": "#/definitions/QName",
+          "description": "QName that references a cube object defined in the taxonomy."
+      },
+      "cubeTypeQName": {
+          "$ref": "#/definitions/QName",
+          "description": "QName that references a cubeType object defined in the taxonomy."
+      },
+      "networkQName": {
+          "$ref": "#/definitions/QName",
+          "description": "QName that references a network object defined in the taxonomy."
+      },
+      "relationshipTypeQName": {
+          "$ref": "#/definitions/QName",
+          "description": "QName that references a relationshipType object defined in the taxonomy."
+      },
+      "labelTypeQName": {
+          "$ref": "#/definitions/QName",
+          "description": "QName that references a labelType object defined in the taxonomy."
+      },
+      "referenceTypeQName": {
+          "$ref": "#/definitions/QName",
+          "description": "QName that references a referenceType object defined in the taxonomy."
+      },
+      "propertyTypeQName": {
+          "$ref": "#/definitions/QName",
+          "description": "QName that references a propertyType object defined in the taxonomy."
+      },
+      "groupQName": {
+          "$ref": "#/definitions/QName",
+          "description": "QName that references a group object defined in the taxonomy."
+      },
+      "taxonomyQName": {
+          "$ref": "#/definitions/QName",
+          "description": "QName that references a taxonomy object."
+      },
+      "unitQName": {
+          "$ref": "#/definitions/QName",
+          "description": "QName that references a unit object defined in the taxonomy."
       },
       "relationshipConstraint" :{
             "type": "string",

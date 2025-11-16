@@ -54,7 +54,7 @@ from .XbrlCube import (XbrlCube, XbrlCubeDimension, XbrlPeriodConstraint, XbrlDa
                        coreDimensionsByLocalname)
 from .XbrlDimension import XbrlDimension
 from .XbrlEntity import XbrlEntity
-from .XbrlGroup import XbrlGroup, XbrlGroupContent
+from .XbrlGroup import XbrlGroup, XbrlGroupContent, XbrlGroupTree
 from .XbrlLabel import XbrlLabel, XbrlLabelType
 from .XbrlLayout import XbrlLayout
 from .XbrlNetwork import XbrlNetwork, XbrlRelationship, XbrlRelationshipType
@@ -372,6 +372,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
         if not xbrlTxmyMdl.namedObjects and not "loadingBakedInObjects" in kwargs:
             #loadOIMTaxonomy(cntlr, error, warning, modelXbrl, xbrlTaxonomyObjects, "BakedInCoreObjects", loadingBakedInObjects=True, **kwargs)
             loadOIMTaxonomy(cntlr, error, warning, modelXbrl, os.path.join(RESOURCES_DIR, "xs-types.json"), "BakedInXbrlSpecObjects", loadingBakedInObjects=True, **kwargs)
+            loadOIMTaxonomy(cntlr, error, warning, modelXbrl, os.path.join(RESOURCES_DIR, "xbrl-objects.json"), "BakedInXbrlSpecObjects", loadingBakedInObjects=True, **kwargs)
             loadOIMTaxonomy(cntlr, error, warning, modelXbrl, os.path.join(RESOURCES_DIR, "xbrlSpec.json"), "BakedInXbrlSpecObjects", loadingBakedInObjects=True, **kwargs)
             loadOIMTaxonomy(cntlr, error, warning, modelXbrl, os.path.join(RESOURCES_DIR, "types.json"), "BakedInXbrlSpecObjects", loadingBakedInObjects=True, **kwargs)
             loadOIMTaxonomy(cntlr, error, warning, modelXbrl, os.path.join(RESOURCES_DIR, "utr.json"), "BakedInXbrlSpecObjects", loadingBakedInObjects=True, **kwargs)
@@ -1159,6 +1160,7 @@ def oimTaxonomyViews(cntlr, xbrlTxmyMdl):
                            (XbrlCubeType, cntlr.tabWinBtm, "XBRL Cube Types"),
                            (XbrlDataType, cntlr.tabWinBtm, "XBRL Data Types"),
                            (XbrlEntity, cntlr.tabWinBtm, "XBRL Entities"),
+                           (XbrlGroupTree, cntlr.tabWinTopRt, "XBRL Group Tree"),
                            (XbrlLabel, cntlr.tabWinBtm, "XBRL Labels"),
                            (XbrlLabelType, cntlr.tabWinBtm, "XBRL Label Types"),
                            (XbrlPropertyType, cntlr.tabWinBtm, "XBRL Property Types"),
