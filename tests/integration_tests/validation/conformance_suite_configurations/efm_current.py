@@ -26,16 +26,6 @@ config = ConformanceSuiteConfig(
     ],
     cache_version_id='bY6OmURBAtPB4UALKzz5aeeLlMSKxN9e',
     disclosure_system='efm-pragmatic',
-    expected_failure_ids=frozenset(f'conf/{s}' for s in [
-        ### Discovered during transition to Test Engine:
-        # Related to EFM.FT.1.2.12.r424iEndDate not firing
-        'filing-fee-exhibit/100-submissionTable/02-424ISubmissions/12-RptgFsclYrEndDt/12-RptgFsclYrEndDt-testcase.xml:0003ng',
-        # Related to EFM.FT.3.8.8.dailyFeeRate not firing
-        'filing-fee-exhibit/300-offeringTable/08-Rule0-11/08-FeeRate/08-FeeRate-testcase.xml:0002gw',
-        'filing-fee-exhibit/300-offeringTable/08-Rule0-11/08-FeeRate/08-FeeRate-testcase.xml:0004gw',
-        'filing-fee-exhibit/300-offeringTable/08-Rule0-11/08-FeeRate/08-FeeRate-testcase.xml:0006gw',
-        'filing-fee-exhibit/300-offeringTable/08-Rule0-11/08-FeeRate/08-FeeRate-testcase.xml:0009gw',
-    ]),
     info_url='https://www.sec.gov/structureddata/osdinteractivedatatestsuite',
     name=PurePath(__file__).stem,
     plugins=frozenset({
