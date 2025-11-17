@@ -40,7 +40,6 @@ CONFORMANCE_SUITE_TIMING_RESOURCES_DIRECTORY = Path('tests/resources/conformance
 class Shard:
     paths: dict[str, list[str]]
     plugins: frozenset[str]
-    options: dict[str, Any]
 
 
 def normalize_url_function(config: ConformanceSuiteConfig) -> Callable[[WebCache, str, str | None], str]:
@@ -88,7 +87,6 @@ def get_test_shards(config: ConformanceSuiteConfig) -> list[Shard]:
     class PathInfo:
         path: tuple[str, str]
         plugins: tuple[str, ...]
-        options: dict[str, Any]
         runtime: float
     paths_by_plugins: dict[tuple[str, ...], list[PathInfo]] = defaultdict(list)
     approximate_relative_timing = load_timing_file(config.name)
@@ -98,11 +96,9 @@ def get_test_shards(config: ConformanceSuiteConfig) -> list[Shard]:
             empty_testcase_paths.add(testcase_path)
             continue
         path_plugins: set[str] = set()
-        path_options: dict[str, Any] = {}
-        for prefix, additional_plugins, additional_options in config.additional_plugins_by_prefix:
+        for prefix, additional_plugins in config.additional_plugins_by_prefix:
             if testcase_path.startswith(prefix):
                 path_plugins.update(additional_plugins)
-                path_options.update(additional_options)  # TODO: This does not merge nested dicts like `pluginOptions`
         testcase_runtime = approximate_relative_timing.get(testcase_path, 1)
         avg_variation_runtime = testcase_runtime/(len(variation_ids))  # compatability for testcase-level timing
         for variation_id in variation_ids:
@@ -110,7 +106,6 @@ def get_test_shards(config: ConformanceSuiteConfig) -> list[Shard]:
             paths_by_plugins[tuple(path_plugins)].append(PathInfo(
                 path=(testcase_path, variation_id),
                 plugins=tuple(path_plugins),
-                options=path_options,
                 runtime=variation_runtime,
             ))
     paths_in_runtime_order: list[PathInfo] = sorted((path for paths in paths_by_plugins.values() for path in paths),
@@ -132,16 +127,13 @@ def get_test_shards(config: ConformanceSuiteConfig) -> list[Shard]:
         shard_runtime, shard = shards_for_plugins[0]
         shard.append(path.path)
         heapreplace(shards_for_plugins, (shard_runtime + path.runtime, shard))
-    assert shards_by_plugins.keys() == {()} | {tuple(plugins) for _, plugins, _ in config.additional_plugins_by_prefix}
-    shards = _build_shards(shards_by_plugins, paths_by_plugins)
+    assert shards_by_plugins.keys() == {()} | {tuple(plugins) for _, plugins in config.additional_plugins_by_prefix}
+    shards = _build_shards(shards_by_plugins)
     _verify_shards(shards, testcase_variation_map, empty_testcase_paths)
     return shards
 
 
-def _build_shards(
-        shards_by_plugins: dict[tuple[str, ...], list[tuple[float, list[tuple[str, str]]]]],
-        paths_by_plugins: dict[tuple[str, ...], list[PathInfo]]
-) -> list[Shard]:
+def _build_shards(shards_by_plugins: dict[tuple[str, ...], list[tuple[float, list[tuple[str, str]]]]]) -> list[Shard]:
     # Sort shards by runtime so CI nodes are more likely to pick shards with similar runtimes.
     time_ordered_shards = sorted(
         (runtime, plugin_group, paths)
@@ -150,15 +142,12 @@ def _build_shards(
     )
     shards = []
     for _, plugin_group, paths in time_ordered_shards:
-        path_infos = paths_by_plugins[plugin_group]
-        path_options = path_infos[0].options if path_infos else {}
         shard_paths = defaultdict(list)
         for path, vid in paths:
             shard_paths[path].append(vid)
         shards.append(Shard(
             paths=shard_paths,
-            plugins=frozenset(plugin_group),
-            options=path_options
+            plugins=frozenset(plugin_group)
         ))
     return shards
 
@@ -421,9 +410,9 @@ def get_test_engine_test_results_with_shards(
             additionalConstraints=_get_additional_constraints(config),
             filters=testcase_filters,
             indexFile=str(config.entry_point_path),
-            logDirectory=Path(f'conf-logs/{config.name}'),
+            logDirectory=Path(f'conf-logs/{config.name}-s{shard_id}'),
             matchAll=config.test_case_result_options == 'match-all',
-            options=runtime_options | shard.options,
+            options=runtime_options,
             parallel=not series, # "daemonic processes are not allowed to have children"
         )
         kws = dict(
@@ -471,7 +460,7 @@ def get_test_engine_test_results_without_shards(
         series: bool = False,
         testcase_filters: list[str] | None = None,
 ) -> list[ParameterSet]:
-    additional_plugins = frozenset().union(*(plugins for _, plugins, _ in config.additional_plugins_by_prefix))
+    additional_plugins = frozenset().union(*(plugins for _, plugins in config.additional_plugins_by_prefix))
     runtime_options = get_test_engine_runtime_options(
         config=config, additional_plugins=additional_plugins,
         build_cache=build_cache, offline=offline, log_to_file=log_to_file, shard=None,
@@ -618,7 +607,7 @@ def get_test_engine_runtime_options(
     if config.package_paths:
         args['packages'] = sorted(str(p) for p in config.package_paths)
     if plugins:
-        args['plugins'] = '|'.join(sorted(plugins))+ '|show'
+        args['plugins'] = '|'.join(sorted(plugins))
     shard_str = f'-s{shard}' if use_shards else ''
     if build_cache:
         plugin_options['cacheBuilderPath'] = f'conf-{config.name}{shard_str}-cache.zip'

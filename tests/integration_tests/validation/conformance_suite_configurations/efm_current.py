@@ -9,23 +9,13 @@ from tests.integration_tests.validation.conformance_suite_config import (
 CONFORMANCE_SUITE_ZIP_NAME = 'efm-76-251010.zip'
 
 config = ConformanceSuiteConfig(
-    additional_plugins_by_prefix=[
-        (
-            f'conf/{t}',
-            frozenset({'EDGAR/render'}),
-            {
-                'pluginOptions': {
-                    'keepFilingOpen': True, # Edgar normally closes the model in CntlrCmdLine.Filing.End
-                },
-            }
-        ) for t in [
-            '612-presentation-syntax/612-09-presented-units-order',
-            '624-rendering/15-equity-changes',
-            '624-rendering/17-uncategorized-facts',
-            '626-rendering-syntax',
-            '902-sdr/efm/62421-sdr-multiple',
-        ]
-    ],
+    additional_plugins_by_prefix=[(f'conf/{t}', frozenset({'EDGAR/render'})) for t in [
+        '612-presentation-syntax/612-09-presented-units-order',
+        '624-rendering/15-equity-changes',
+        '624-rendering/17-uncategorized-facts',
+        '626-rendering-syntax',
+        '902-sdr/efm/62421-sdr-multiple',
+    ]],
     assets=[
         ConformanceSuiteAssetConfig.conformance_suite(
             Path(CONFORMANCE_SUITE_ZIP_NAME),
@@ -53,6 +43,11 @@ config = ConformanceSuiteConfig(
         'inlineXbrlDocumentSet',
         'xule',
     }),
+    runtime_options={
+        'pluginOptions': {
+            'keepFilingOpen': True, # Edgar normally closes the model in CntlrCmdLine.Filing.End
+        },
+    },
     shards=40,
     test_case_result_options='match-any',
 )

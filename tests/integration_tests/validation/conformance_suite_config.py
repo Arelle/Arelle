@@ -199,7 +199,7 @@ class ConformanceSuiteAssetConfig:
 class ConformanceSuiteConfig:
     info_url: str
     name: str
-    additional_plugins_by_prefix: list[tuple[str, frozenset[str], dict[str, Any]]] = field(default_factory=list)
+    additional_plugins_by_prefix: list[tuple[str, frozenset[str]]] = field(default_factory=list)
     args: list[str] = field(default_factory=list)
     assets: list[ConformanceSuiteAssetConfig] = field(default_factory=list)
     base_taxonomy_validation: Literal['disclosureSystem', 'none', 'all', None] = None
@@ -224,19 +224,19 @@ class ConformanceSuiteConfig:
 
     def __post_init__(self) -> None:
         redundant_plugins = [(prefix, overlap)
-            for prefix, additional_plugins, __ in self.additional_plugins_by_prefix
+            for prefix, additional_plugins in self.additional_plugins_by_prefix
             for overlap in [self.plugins & additional_plugins]
             if overlap]
         assert not redundant_plugins, \
             f'Plugins specified both as default and additional: {redundant_plugins}'
         overlapping_prefixes = [(p1, p2)
-            for (p1, _, _), (p2, _, _) in itertools.combinations(self.additional_plugins_by_prefix, 2)
+            for (p1, _), (p2, _) in itertools.combinations(self.additional_plugins_by_prefix, 2)
             if p1.startswith(p2) or p2.startswith(p1)]
         assert not overlapping_prefixes, \
             f'Overlapping prefixes are not supported: {overlapping_prefixes}'
         assert not (self.shards == 1 and self.additional_plugins_by_prefix), \
             'Cannot specify additional_plugins_by_prefix with only one shard.'
-        plugin_combinations = len({plugins for _, plugins, _ in self.additional_plugins_by_prefix}) + 1
+        plugin_combinations = len({plugins for _, plugins in self.additional_plugins_by_prefix}) + 1
         assert plugin_combinations <= self.shards, \
             'Too few shards to accommodate the number of plugin combinations:' \
             f' combinations={plugin_combinations} shards={self.shards}'
