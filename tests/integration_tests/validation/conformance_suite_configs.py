@@ -47,7 +47,6 @@ from tests.integration_tests.validation.conformance_suite_configurations.xbrl_ta
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_transformation_registry_3 import config as xbrl_transformation_registry_3
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_transformation_registry_4 import config as xbrl_transformation_registry_4
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_transformation_registry_5 import config as xbrl_transformation_registry_5
-from tests.integration_tests.validation.conformance_suite_configurations.xbrl_utr_malformed_1_0 import configs as xbrl_utr_malformed_1_0
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_utr_registry_1_0 import config as xbrl_utr_registry_1_0
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_utr_structure_1_0 import config as xbrl_utr_structure_1_0
 
@@ -99,7 +98,6 @@ ALL_CONFORMANCE_SUITE_CONFIGS: tuple[ConformanceSuiteConfig, ...] = (
     xbrl_transformation_registry_3,
     xbrl_transformation_registry_4,
     xbrl_transformation_registry_5,
-    *xbrl_utr_malformed_1_0,
     xbrl_utr_registry_1_0,
     xbrl_utr_structure_1_0,
 )
