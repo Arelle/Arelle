@@ -30,8 +30,6 @@ config = ConformanceSuiteConfig(
         ### Discovered during transition to Test Engine:
         # Related to EFM.FT.1.2.12.r424iEndDate not firing
         'filing-fee-exhibit/100-submissionTable/02-424ISubmissions/12-RptgFsclYrEndDt/12-RptgFsclYrEndDt-testcase.xml:0003ng',
-        # Related to EFM.FT.1.2.1.r424iFileNb not firing
-        'filing-fee-exhibit/100-submissionTable/02-424ISubmissions/01-RegnFileNb/01-RegnFileNb-testcase.xml:0002gw',
         # Related to EFM.FT.3.8.8.dailyFeeRate not firing
         'filing-fee-exhibit/300-offeringTable/08-Rule0-11/08-FeeRate/08-FeeRate-testcase.xml:0002gw',
         'filing-fee-exhibit/300-offeringTable/08-Rule0-11/08-FeeRate/08-FeeRate-testcase.xml:0004gw',
