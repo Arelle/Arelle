@@ -28,7 +28,15 @@ from test_engine.TestcaseVariation import TestcaseVariation
 
 
 PARAMETER_SEPARATOR = '\n'
-
+DEFAULT_PLUGIN_OPTIONS = {
+    'EDGAR/render': {
+        'keepFilingOpen': True,
+    },
+    'xule': {
+        "xule_time": 2.0,
+        "xule_rule_stats_log": True,
+    }
+}
 
 def _longestCommonPrefix(values: list[str]) -> str:
     if not values:
@@ -280,6 +288,10 @@ def runTestcaseVariation(
     dynamicOptions = dict(testEngineOptions.options)
     if testcaseVariation.calcMode is not None:
         dynamicOptions['calcs'] = testcaseVariation.calcMode
+    if 'plugins' in dynamicOptions:
+        for plugin in dynamicOptions['plugins'].split('|'):
+            dynamicOptions['pluginOptions'] = dynamicOptions.get('pluginOptions', {}) | DEFAULT_PLUGIN_OPTIONS.get(plugin, {})
+
     entrypointFile = '|'.join(entrypointUris)
     runtimeOptions = RuntimeOptions(
         entrypointFile=entrypointFile,
