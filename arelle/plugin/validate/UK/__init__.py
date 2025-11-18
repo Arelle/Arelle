@@ -330,7 +330,7 @@ def validateXbrlFinally(val, *args, **kwargs):
             startDate = None
             endDate = None
             _missingItems = []
-            for fact in mandatoryFacts.get('EndDateForPeriodCoveredByReport'):
+            for fact in mandatoryFacts.get('EndDateForPeriodCoveredByReport', set()):
                 if (fact is not None and
                         fact.xValid >= VALID and
                         fact.context is not None and
@@ -338,10 +338,10 @@ def validateXbrlFinally(val, *args, **kwargs):
                         dateUnionEqual(fact.context.instantDate, fact.xValue)):
                     endDate = fact.xValue
                     break
-            if not endDate:
+            else:
                 _missingItems.append('EndDateForPeriodCoveredByReport')
 
-            for fact in mandatoryFacts.get('StartDateForPeriodCoveredByReport'):
+            for fact in mandatoryFacts.get('StartDateForPeriodCoveredByReport', set()):
                 if (fact is not None and
                         fact.xValid >= VALID and
                         fact.context is not None and
@@ -349,7 +349,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                         dateUnionEqual(fact.context.instantDate, endDate)):
                     startDate = fact.xValue
                     break
-            if not startDate:
+            else:
                 _missingItems.append('StartDateForPeriodCoveredByReport')
 
             if startDate is not None and endDate is not None:
@@ -364,7 +364,8 @@ def validateXbrlFinally(val, *args, **kwargs):
                     for fact in mandatoryFacts.get(mandatoryConcept, set()):
                         if (fact is not None and fact.context is not None and fact.xValid >= VALID and
                                 ((fact.context.isInstantPeriod and dateUnionEqual(fact.context.instantDate, endDate) or
-                                  (fact.context.isStartEndPeriod and dateUnionEqual(fact.context.startDatetime, startDate) and dateUnionEqual(fact.context.endDate, endDate))))):
+                                  (fact.context.isStartEndPeriod and dateUnionEqual(fact.context.startDatetime, startDate) and
+                                   dateUnionEqual(fact.context.endDate, endDate, instantEndDate=True))))):
                                 foundFact = True
                                 break
                     if not foundFact:
@@ -372,16 +373,19 @@ def validateXbrlFinally(val, *args, **kwargs):
 
             if _missingItems:
                 modelXbrl.error("JFCVC.3312",
-                    _("Facts are MANDATORY: %(missingItems)s"),
+                    _("The following mandatory concepts are either not tagged on a fact or are tagged on facts that "
+                      "have contexts that do not align with the dates as reported in "
+                      "'StartDateForPeriodCoveredByReport' and 'EndDateForPeriodCoveredByReport': %(missingItems)s"),
                     modelObject=modelXbrl, missingItems=", ".join(sorted(_missingItems)))
 
-            if val.txmyType in MUST_HAVE_ONE_ITEM:
+            if startDate is not None and endDate is not None and val.txmyType in MUST_HAVE_ONE_ITEM:
                 foundFact = False
                 for mustHaveOneConcept in MUST_HAVE_ONE_ITEM[val.txmyType]:
                     for fact in atLeastOneFacts.get(mustHaveOneConcept, set()):
                         if (fact is not None and fact.context is not None and fact.xValid >= VALID and
                                 ((fact.context.isInstantPeriod and dateUnionEqual(fact.context.instantDate, endDate) or
-                                  (fact.context.isStartEndPeriod and dateUnionEqual(fact.context.startDatetime, startDate) and dateUnionEqual(fact.context.endDate, endDate))))):
+                                  (fact.context.isStartEndPeriod and dateUnionEqual(fact.context.startDatetime, startDate) and
+                                   dateUnionEqual(fact.context.endDate, endDate, instantEndDate=True))))):
                             foundFact = True
                             break
 
