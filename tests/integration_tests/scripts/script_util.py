@@ -145,6 +145,24 @@ def validate_log_file(
     return validate_log_tree(tree, expected_results)
 
 
+def validate_log_text(
+        logfile_path: Path,
+        expected_results: dict[regex.Pattern[str], int] | None = None,
+) -> list[str]:
+    if not logfile_path.exists():
+        return [f'Log file "{logfile_path}" not found.']
+    expected_results = expected_results or {}
+    results = []
+    with open(logfile_path) as f:
+        logs = f.read()
+    for pattern, expected_count in expected_results.items():
+        matches = regex.findall(pattern, logs)
+        actual_count = len(matches)
+        if actual_count != expected_count:
+            results.append(f'Expected {expected_count} occurrence(s) of "{pattern}" but found {actual_count}.')
+    return results
+
+
 def validate_log_tree(
         tree: _ElementTree,
         expected_results: dict[str, dict[regex.Pattern[str], int]] | None = None,

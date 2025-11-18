@@ -11,6 +11,7 @@ import datetime
 import fnmatch
 import gettext
 import glob
+import json
 import logging
 import multiprocessing
 import os
@@ -99,6 +100,7 @@ def parseAndRun(args):
 
 PREPARSE_ARG_CONFIGS = frozenset([
     (re.compile(r'^--plugins?.*$'), 'plugins'),
+    (re.compile(r'^--options(F|f)ile.*$'), 'optionsFile'),
 ])
 
 
@@ -445,17 +447,23 @@ def parseArgs(args):
     preparsedArgs = preparseArgs(args, parser)
 
     preloadPlugins = []
+    optionsFile = preparsedArgs.get('optionsFile')
+    optionsFileOptions = {}
+    if optionsFile:
+        optionsFileOptions = _parseOptionsFile(optionsFile, parser)
+        preloadPlugins.extend(optionsFileOptions.get('plugins', '').split('|'))
+
     preloadPlugins.extend(preparsedArgs.get('plugins', '').split('|'))
 
     # install any dynamic plugins so their command line options can be parsed if present
     arellePluginModules = {}
     for pluginCmd in preloadPlugins:
-                cmd = pluginCmd.strip()
-                if cmd not in ("show", "temp") and len(cmd) > 0 and cmd[0] not in ('-', '~', '+'):
-                    moduleInfo = PluginManager.addPluginModule(cmd)
-                    if moduleInfo:
-                        arellePluginModules[cmd] = moduleInfo
-                        PluginManager.reset()
+        cmd = pluginCmd.strip()
+        if cmd not in ("show", "temp") and len(cmd) > 0 and cmd[0] not in ('-', '~', '+'):
+            moduleInfo = PluginManager.addPluginModule(cmd)
+            if moduleInfo:
+                arellePluginModules[cmd] = moduleInfo
+                PluginManager.reset()
 
     # add plug-in options
     for optionsExtender in PluginManager.pluginClassMethods("CntlrCmdLine.Options"):
@@ -467,6 +475,10 @@ def parseArgs(args):
                       help=_("Show product version, copyright, and license."))
     parser.add_option("--diagnostics", action="store_true", dest="diagnostics",
                       help=_("output system diagnostics information"))
+    parser.add_option("--optionsFile", "--optionsfile",
+                      action="store", dest="optionsFile",
+                      help=_("Provide a path to a JSON file containing runtime options. "
+                             "These options will be overridden by any command line options provided."))
 
     if not args and isGAE():
         args = ["--webserver=::gae"]
@@ -545,9 +557,22 @@ def parseArgs(args):
     for optGroup in parser.option_groups[pluginOptionsGroupIndex:pluginLastOptionsGroupIndex]:
         for groupOption in optGroup.option_list:
             pluginOptionDestinations.add(groupOption.dest)
+
     baseOptions = {}
-    pluginOptions = {}
+    # Collect options from options file
+    for optionName, optionValue in optionsFileOptions.items():
+        if not hasattr(RuntimeOptions, optionName) and optionName not in pluginOptionDestinations:
+            parser.error(_("Unexpected name '{}' found in options file.").format(optionName))
+            continue
+        baseOptions[optionName] = optionValue
+    # Collect options from command line
     for optionName, optionValue in vars(options).items():
+        if optionName not in baseOptions or optionValue is not None:
+            baseOptions[optionName] = optionValue
+
+    pluginOptions = {}
+    finalOptions = {} # Validated options for RuntimeOptions
+    for optionName, optionValue in baseOptions.items():
         if optionName in pluginOptionDestinations:
             pluginOptions[optionName] = optionValue
         else:
@@ -559,9 +584,10 @@ def parseArgs(args):
                         parser.error(_("--testcaseExpectedErrors must be in the format '--testcaseExpectedErrors=testcase-index.xml:v-1|errorCode1,errorCode2,...'"))
                     expectedErrors[expectedErrorSplit[0]] = expectedErrorSplit[1].split(',')
                 optionValue = expectedErrors
-            baseOptions[optionName] = optionValue
+            if optionValue is not None or optionName not in finalOptions:
+                finalOptions[optionName] = optionValue
     try:
-        runtimeOptions = RuntimeOptions(pluginOptions=pluginOptions, **baseOptions)
+        runtimeOptions = RuntimeOptions(pluginOptions=pluginOptions, **finalOptions)
     except RuntimeOptionsException as e:
         parser.error(f"{e}, please try\n python CntlrCmdLine.py --help")
     if (
@@ -652,6 +678,28 @@ def _pluginHasCliOptions(moduleInfo):
     if imports := moduleInfo.get("imports"):
         return any(_pluginHasCliOptions(importedModule) for importedModule in imports)
     return False
+
+
+def _parseOptionsFile(optionsFile: str, parser: OptionParser) -> dict:
+    """
+    Parse the JSON options within the provided filepath.
+    :param optionsFile: The path to the JSON options file.
+    :param parser: The parser to log an error to if needed.
+    :return: The parsed options as a dictionary.
+    """
+    try:
+        with open(optionsFile) as f:
+            jsonOptions = json.load(f)
+    except OSError:
+        parser.error(_("Options file path does not exist: {}").format(optionsFile))
+        return {}
+    except Exception as e:
+        parser.error(_("Unable to parse options JSON file: {}").format(e))
+        return {}
+    if not isinstance(jsonOptions, dict):
+        parser.error(_("Options JSON file must contain a JSON object at its root."))
+        return {}
+    return jsonOptions
 
 
 class CntlrCmdLine(Cntlr.Cntlr):

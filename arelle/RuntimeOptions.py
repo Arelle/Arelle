@@ -106,6 +106,7 @@ class RuntimeOptions:
     logXmlMaxAttributeLength: Optional[int] = None
     monitorParentProcess: Optional[bool] = None
     noCertificateCheck: Optional[bool] = None
+    optionsFile: Optional[str] = None
     outputAttribution: Optional[str] = None
     packageManifestName: Optional[str] = None
     packages: Optional[list[str]] = None

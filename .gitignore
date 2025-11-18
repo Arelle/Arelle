@@ -45,6 +45,7 @@ dist
 docs/_build
 docs/source/apidocs
 obj/
+runtime_options.json
 tests/resources/conformance_suites/*
 !tests/resources/conformance_suites/cipc/
 !tests/resources/conformance_suites/dba/
