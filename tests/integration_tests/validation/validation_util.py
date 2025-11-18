@@ -410,7 +410,7 @@ def get_test_engine_test_results_with_shards(
             additionalConstraints=_get_additional_constraints(config),
             filters=testcase_filters,
             indexFile=str(config.entry_point_path),
-            logDirectory=Path(f'conf-logs/{config.name}-s{shard_id}'),
+            logDirectory=Path(f'conf-logs/{config.name}'),
             matchAll=config.test_case_result_options == 'match-all',
             options=runtime_options,
             parallel=not series, # "daemonic processes are not allowed to have children"

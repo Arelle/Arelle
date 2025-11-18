@@ -345,7 +345,10 @@ def runTestcaseVariationsInParallel(
         (testcaseVariation, testEngineOptions)
         for testcaseVariation in testcaseVariations
     ]
-    with multiprocessing.Pool() as pool:
+    # Some parts of Arelle and it's plugins have global state that is not reset.
+    # Setting maxtasksperchild helps ensure global state does not persist between
+    # two tasks run by the same child process.
+    with multiprocessing.Pool(maxtasksperchild=1) as pool:
         results = pool.map(runTestcaseVariationArgs, tasks)
         for result in results:
             if not result.skip:
