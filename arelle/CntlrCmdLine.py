@@ -97,6 +97,37 @@ def parseAndRun(args):
     return cntlr
 
 
+PREPARSE_ARG_CONFIGS = frozenset([
+    (re.compile(r'^--plugins?.*$'), 'plugins'),
+])
+
+
+def preparseArgs(args: list[str], parser: OptionParser) -> dict[str, str]:
+    """
+    Some command line arguments influence the actual parsing of other arguments.
+    This function pre-parses those arguments to allow for processing before full
+    argument parseing occurs.
+    :param args: Command line arguments
+    :param parser: OptionParser to report errors
+    :return: Dictionary of pre-parsed options
+    """
+    preparsedArgs = {}
+    for i, arg in enumerate(args):
+        for pattern, preparsedArg in PREPARSE_ARG_CONFIGS:
+            if pattern.fullmatch(arg):
+                __, sep, value = arg.partition('=')
+                if sep:  # --arg=value
+                    preparsedValue = value
+                elif i < len(args) - 1:  # --arg value
+                    preparsedValue = args[i+1]
+                else:  # --arg
+                    preparsedValue = ""
+                if preparsedArg in preparsedArgs:
+                    parser.error(_("Multiple '{}' values found during argument preparsing.").format(preparsedArg))
+                preparsedArgs[preparsedArg] = preparsedValue
+    return preparsedArgs
+
+
 def parseArgs(args):
     """
     Parses the command line arguments and generates runtimeOptions and arellePluginModules
@@ -411,24 +442,21 @@ def parseArgs(args):
     pluginOptionsIndex = len(parser.option_list)
     pluginOptionsGroupIndex = len(parser.option_groups)
 
+    preparsedArgs = preparseArgs(args, parser)
+
+    preloadPlugins = []
+    preloadPlugins.extend(preparsedArgs.get('plugins', '').split('|'))
+
     # install any dynamic plugins so their command line options can be parsed if present
     arellePluginModules = {}
-    for i, arg in enumerate(args):
-        if arg.startswith('--plugin'): # allow singular or plural (option must simply be non-ambiguous
-            if len(arg) > 9 and arg[9] == '=':
-                preloadPlugins = arg[10:]
-            elif i < len(args) - 1:
-                preloadPlugins = args[i+1]
-            else:
-                preloadPlugins = ""
-            for pluginCmd in preloadPlugins.split('|'):
+    for pluginCmd in preloadPlugins:
                 cmd = pluginCmd.strip()
                 if cmd not in ("show", "temp") and len(cmd) > 0 and cmd[0] not in ('-', '~', '+'):
                     moduleInfo = PluginManager.addPluginModule(cmd)
                     if moduleInfo:
                         arellePluginModules[cmd] = moduleInfo
                         PluginManager.reset()
-            break
+
     # add plug-in options
     for optionsExtender in PluginManager.pluginClassMethods("CntlrCmdLine.Options"):
         optionsExtender(parser)
