@@ -20,12 +20,13 @@ from . import errorOnDateFactComparison, getFactsWithDimension, getFactsGroupedB
     minimumRequiredFactsFound, consolidatedDimensionExists
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 from ..ValidationPluginExtension import DANISH_CURRENCY_ID, ROUNDING_MARGIN, PERSONNEL_EXPENSE_THRESHOLD, REQUIRED_DISCLOSURE_OF_EQUITY_FACTS, REQUIRED_STATEMENT_OF_CHANGES_IN_EQUITY_FACTS
-from ..DisclosureSystems import MULTI_TARGET_DISCLOSURE_SYSTEMS, STAND_ALONE_DISCLOSURE_SYSTEMS
+from ..DisclosureSystems import MULTI_TARGET_DISCLOSURE_SYSTEMS, STAND_ALONE_DISCLOSURE_SYSTEMS, ARL_DISCLOSURE_SYSTEMS
 
 _: TypeGetText
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ARL_DISCLOSURE_SYSTEMS,
 )
 def rule_fr1(
         pluginData: PluginValidationDataExtension,
@@ -52,6 +53,7 @@ def rule_fr1(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ARL_DISCLOSURE_SYSTEMS,
 )
 def rule_fr7(
         pluginData: PluginValidationDataExtension,
@@ -108,6 +110,7 @@ def rule_fr20(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ARL_DISCLOSURE_SYSTEMS,
 )
 def rule_fr24(
         pluginData: PluginValidationDataExtension,
@@ -143,6 +146,7 @@ def rule_fr24(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ARL_DISCLOSURE_SYSTEMS,
 )
 def rule_fr25(
         pluginData: PluginValidationDataExtension,
@@ -302,6 +306,7 @@ def rule_fr35(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ARL_DISCLOSURE_SYSTEMS,
 )
 def rule_fr36(
         pluginData: PluginValidationDataExtension,
@@ -329,6 +334,7 @@ def rule_fr36(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ARL_DISCLOSURE_SYSTEMS,
 )
 def rule_fr37(
         pluginData: PluginValidationDataExtension,
@@ -468,6 +474,7 @@ def rule_fr52(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ARL_DISCLOSURE_SYSTEMS,
 )
 def rule_fr53(
         pluginData: PluginValidationDataExtension,
@@ -770,6 +777,7 @@ def rule_fr57(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ARL_DISCLOSURE_SYSTEMS,
 )
 def rule_fr58(
         pluginData: PluginValidationDataExtension,
@@ -805,6 +813,7 @@ def rule_fr58(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ARL_DISCLOSURE_SYSTEMS,
 )
 def rule_fr59(
         pluginData: PluginValidationDataExtension,
@@ -934,6 +943,7 @@ def rule_fr71(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ARL_DISCLOSURE_SYSTEMS,
 )
 def rule_fr72(
         pluginData: PluginValidationDataExtension,
@@ -973,6 +983,7 @@ def rule_fr72(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ARL_DISCLOSURE_SYSTEMS,
 )
 def rule_fr73(
         pluginData: PluginValidationDataExtension,
@@ -1006,6 +1017,7 @@ def rule_fr73(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ARL_DISCLOSURE_SYSTEMS,
 )
 def rule_fr74(
         pluginData: PluginValidationDataExtension,
@@ -1146,6 +1158,7 @@ def rule_fr77(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ARL_DISCLOSURE_SYSTEMS,
 )
 def rule_fr81(
         pluginData: PluginValidationDataExtension,
@@ -1215,6 +1228,7 @@ def rule_fr83(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ARL_DISCLOSURE_SYSTEMS,
 )
 def rule_fr87(
         pluginData: PluginValidationDataExtension,
@@ -1251,6 +1265,7 @@ def rule_fr87(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ARL_DISCLOSURE_SYSTEMS,
 )
 def rule_fr89(
         pluginData: PluginValidationDataExtension,
@@ -1301,6 +1316,7 @@ def rule_fr89(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ARL_DISCLOSURE_SYSTEMS,
 )
 def rule_fr91(
         pluginData: PluginValidationDataExtension,
@@ -1331,6 +1347,7 @@ def rule_fr91(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ARL_DISCLOSURE_SYSTEMS,
 )
 def rule_fr92(
         pluginData: PluginValidationDataExtension,

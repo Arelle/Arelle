@@ -18,4 +18,9 @@
             description="Checks for 2024 multi-target rules"
             validationType="DBA"
     />
+    <DisclosureSystem
+            names="dkfin-2024-multi-target-preview"
+            description="Checks for dkfin 2024 multi-target rules"
+            validationType="DBA"
+    />
 </DisclosureSystems>
