@@ -76,7 +76,6 @@ def get_s3_uri(path: str, version_id: str | None = None) -> str:
 def get_test_data(
         args: list[str],
         expected_failure_ids: frozenset[str] = frozenset(),
-        expected_model_errors: frozenset[str] = frozenset(),
         required_locale_by_ids: dict[str, regex.Pattern[str]] | None = None,
         strict_testcase_index: bool = True,
 ) -> list[ParameterSet]:
@@ -85,7 +84,6 @@ def get_test_data(
 
     :param args: The args to be parsed by arelle in order to correctly produce the desired result set
     :param expected_failure_ids: The set of string test IDs that are expected to fail
-    :param expected_model_errors: The set of error codes expected to be in the ModelXbrl errors
     :param required_locale_by_ids: The dict of IDs for tests which require a system locale matching a regex pattern.
     :param strict_testcase_index: Don't allow IOerrors when loading the testcase index
     :return: A list of PyTest Params that can be used to run a parameterized pytest function
@@ -106,7 +104,6 @@ def get_test_data(
         collect_test_data(
             cntlr=cntlr,
             expected_failure_ids=expected_failure_ids,
-            expected_model_errors=expected_model_errors,
             required_locale_by_ids=required_locale_by_ids,
             system_locale=system_locale,
             results=results,
@@ -172,7 +169,6 @@ def get_test_data(
 def collect_test_data(
         cntlr: Cntlr,
         expected_failure_ids: frozenset[str],
-        expected_model_errors: frozenset[str],
         required_locale_by_ids: dict[str, regex.Pattern[str]],
         system_locale: str,
         results: list[ParameterSet],
@@ -184,7 +180,6 @@ def collect_test_data(
             collect_test_data(
                 cntlr=cntlr,
                 expected_failure_ids=expected_failure_ids,
-                expected_model_errors=expected_model_errors,
                 required_locale_by_ids=required_locale_by_ids,
                 system_locale=system_locale,
                 results=results,
@@ -195,21 +190,6 @@ def collect_test_data(
         test_cases.extend(model_document.referencesDocument.keys())
     elif model_document.type in (ModelDocument.Type.TESTCASE, ModelDocument.Type.REGISTRYTESTCASE):
         test_cases.append(model_document)
-    elif model_document.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
-        test_id = get_document_id(model_document)
-        expected_failure = isExpectedFailure(test_id, expected_failure_ids, required_locale_by_ids, system_locale)
-        model_errors = sorted(cntlr.modelManager.modelXbrl.errors)
-        expected_model_errors_list = sorted(expected_model_errors)
-        param = pytest.param(
-            {
-                'status': 'pass' if model_errors == expected_model_errors_list else 'fail',
-                'expected': expected_model_errors_list,
-                'actual': model_errors,
-            },
-            id=test_id,
-            marks=[pytest.mark.xfail()] if expected_failure else [],
-        )
-        results.append(param)
     else:
         raise Exception('Unhandled model document type: {}'.format(model_document.type))
 

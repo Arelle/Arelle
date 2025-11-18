@@ -287,7 +287,6 @@ def get_conformance_suite_arguments(config: ConformanceSuiteConfig, filename: st
         args.extend(['--testcaseExpectedErrors', f'{testcase_id}|{",".join(errors)}'])
     kws = dict(
         expected_failure_ids=expected_failure_ids,
-        expected_model_errors=config.expected_model_errors,
         required_locale_by_ids=config.required_locale_by_ids,
         strict_testcase_index=config.strict_testcase_index,
     )
