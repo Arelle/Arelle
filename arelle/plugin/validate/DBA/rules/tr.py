@@ -19,7 +19,7 @@ from arelle.XmlValidateConst import VALID
 from . import lookup_namespaced_facts, errorOnForbiddenImage
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 from ..ValidationPluginExtension import NAMESPACE_GSD
-from ..DisclosureSystems import (MULTI_TARGET_DISCLOSURE_SYSTEMS, STAND_ALONE_DISCLOSURE_SYSTEMS,
+from ..DisclosureSystems import (ARL_MULTI_TARGET_DISCLOSURE_SYSTEMS, STAND_ALONE_DISCLOSURE_SYSTEMS,
                                  ALL_DISCLOSURE_SYSTEMS, ARL_DISCLOSURE_SYSTEMS)
 
 _: TypeGetText
@@ -257,7 +257,7 @@ def rule_tr11(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=MULTI_TARGET_DISCLOSURE_SYSTEMS,
+    disclosureSystems=ARL_MULTI_TARGET_DISCLOSURE_SYSTEMS,
 )
 def rule_tr15(
         pluginData: PluginValidationDataExtension,
@@ -281,7 +281,7 @@ def rule_tr15(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=MULTI_TARGET_DISCLOSURE_SYSTEMS,
+    disclosureSystems=ARL_MULTI_TARGET_DISCLOSURE_SYSTEMS,
 )
 def rule_tr16(
         pluginData: PluginValidationDataExtension,
@@ -306,7 +306,7 @@ def rule_tr16(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=MULTI_TARGET_DISCLOSURE_SYSTEMS,
+    disclosureSystems=ARL_MULTI_TARGET_DISCLOSURE_SYSTEMS,
 )
 def rule_tr17(
         pluginData: PluginValidationDataExtension,
