@@ -1245,7 +1245,8 @@ def rule_nl_kvk_4_2_2_2(
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    NL-KVK.4.2.2.2: Domain members MUST have domainItemType data type as defined in https://www.xbrl.org/dtr/type/2022-03-31/types.xsd.
+    NL-KVK.4.2.2.2: Domain members MUST have domainItemType data type as defined in
+    https://www.xbrl.org/dtr/type/2022-03-31/types.xsd or https://www.xbrl.org/dtr/type/2024-01-31/types.xsd
     """
     domainMembersWrongType = []
     domainMembers = pluginData.getDimensionalData(val.modelXbrl).domainMembers
@@ -1775,21 +1776,21 @@ def rule_nl_kvk_5_1_3_2(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
-def rule_nl_kvk_6_1_1_1(
+def rule_nl_kvk_8_1_1_1(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    NL-KVK.6.1.1.1: The size of the report package MUST NOT exceed 100 MB.
+    NL-KVK.8.1.1.1: The size of the report package MUST NOT exceed 100 MB.
     """
     size = val.modelXbrl.fileSource.getBytesSize()
     if size is None:
         return  # File size is not available, cannot validate
     if size > MAX_REPORT_PACKAGE_SIZE_MBS * 1_000_000:  # Interpretting MB as megabytes (1,000,000 bytes)
         yield Validation.error(
-            codes='NL.NL-KVK.6.1.1.1.reportPackageMaximumSizeExceeded',
+            codes='NL.NL-KVK.8.1.1.1.reportPackageMaximumSizeExceeded',
             msg=_('The size of the report package must not exceed %(maxSize)s MBs, size is %(size)s MBs.'),
             modelObject=val.modelXbrl, maxSize=MAX_REPORT_PACKAGE_SIZE_MBS, size=int(size/1000000)
         )

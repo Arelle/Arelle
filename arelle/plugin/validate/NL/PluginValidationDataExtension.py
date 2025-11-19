@@ -106,6 +106,7 @@ STANDARD_TAXONOMY_URLS = frozenset((
 
 QN_DOMAIN_ITEM_TYPES = frozenset((
     qname("{http://www.xbrl.org/dtr/type/2022-03-31}nonnum:domainItemType"),
+    qname("{http://www.xbrl.org/dtr/type/2024-01-31}nonnum:domainItemType")
 ))
 
 SUPPORTED_IMAGE_TYPES_BY_IS_FILE = {

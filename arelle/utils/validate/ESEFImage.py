@@ -108,12 +108,12 @@ def validateImage(
     if isExternalUrl(image):
         yield Validation.error(("ESEF.4.1.6.xHTMLDocumentContainsExternalReferences" if not params.consolidated
                                else "ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences",
-                               "NL.NL-KVK.3.6.2.1.inlineXbrlDocumentContainsExternalReferences"),
+                               "NL.NL-KVK.3.6.2.1.inlineXbrlDocumentSetContainsExternalReferences"),
                                _("Inline XBRL instance documents MUST NOT contain any reference pointing to resources outside the reporting package: %(element)s"),
                                modelObject=elts, element=elts[0].tag, evaluatedMsg=evaluatedMsg,
                                messageCodes=("ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences",
                                              "ESEF.4.1.6.xHTMLDocumentContainsExternalReferences",
-                                             "NL.NL-KVK.3.6.2.1.inlineXbrlDocumentContainsExternalReferences"))
+                                             "NL.NL-KVK.3.6.2.1.inlineXbrlDocumentSetContainsExternalReferences"))
     elif image.startswith("data:image"):
         dataURLParts = parseImageDataURL(image)
         if not dataURLParts or not dataURLParts.isBase64:
@@ -278,6 +278,6 @@ def checkSVGContentElt(
                                        _("Inline XBRL images MUST NOT contain executable code: %(element)s"),
                                        modelObject=imgElts, element=eltTag)
             elif isExternalUrl(href):
-                yield Validation.error((f"{guidance}.referencesPointingOutsideOfTheReportingPackagePresent", "NL.NL-KVK.3.6.2.1.inlineXbrlDocumentContainsExternalReferences"),
+                yield Validation.error((f"{guidance}.referencesPointingOutsideOfTheReportingPackagePresent", "NL.NL-KVK.3.6.2.1.inlineXbrlDocumentSetContainsExternalReferences"),
                                        _("Inline XBRL instance document [image] MUST NOT contain any reference pointing to resources outside the reporting package: %(element)s"),
                                        modelObject=imgElts, element=eltTag)
