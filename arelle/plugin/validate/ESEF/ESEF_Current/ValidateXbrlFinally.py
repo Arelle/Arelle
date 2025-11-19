@@ -553,6 +553,11 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     if styleValue:
                         for declaration in tinycss2.parse_blocks_contents(styleValue):
                             if isinstance(declaration, tinycss2.ast.Declaration):
+                                disallowedHiddenStyle = val.authParam.get("disallowedHiddenStyle")
+                                if declaration.lower_name == disallowedHiddenStyle:
+                                    modelXbrl.error("ESEF.2.4.1.IxHiddenStyleDisallowed",
+                                                    _("Usage of disallowed hidden style: %(styleName)s"),
+                                                    modelObject=ixElt, styleName=disallowedHiddenStyle)
                                 validateCssUrlContent(declaration.value, ixElt.modelDocument.baseForElement(ixElt),
                                                       modelXbrl, val, ixElt, imageValidationParameters)
                             elif isinstance(declaration, tinycss2.ast.ParseError):

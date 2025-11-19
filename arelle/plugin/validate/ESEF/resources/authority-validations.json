@@ -105,7 +105,8 @@
             "https://www.esma.europa.eu/taxonomy/2021-03-24/esef_cor.xsd"
         ],
 		"earliestTransformationRegistryVersion": 4,
-		"styleIxHiddenProperty": "-esef-ix-hidden"
+		"styleIxHiddenProperty": "-esef-ix-hidden",
+        "disallowedHiddenStyle": "-ix-hidden"
     },
     "ESEF-2022": {
         "outdatedTaxonomyURLs": [
@@ -129,7 +130,8 @@
             "https://www.esma.europa.eu/taxonomy/2022-03-24/esef_cor.xsd"
 		],
 		"earliestTransformationRegistryVersion": 4,
-		"styleIxHiddenProperty": "-esef-ix-hidden"
+		"styleIxHiddenProperty": "-esef-ix-hidden",
+        "disallowedHiddenStyle": "-ix-hidden"
     },
     "ESEF-2023": {
         "outdatedTaxonomyURLs": [
@@ -153,7 +155,8 @@
             "https://www.esma.europa.eu/taxonomy/2022-03-24/esef_cor.xsd"
 		],
 		"earliestTransformationRegistryVersion": 4,
-		"styleIxHiddenProperty": "-esef-ix-hidden"
+		"styleIxHiddenProperty": "-esef-ix-hidden",
+        "disallowedHiddenStyle": "-ix-hidden"
     },
     "ESEF-2024": {
         "outdatedTaxonomyURLs": [
@@ -181,7 +184,8 @@
             "https://www.esma.europa.eu/taxonomy/2024-03-27/esef_cor.xsd"
 		],
 		"earliestTransformationRegistryVersion": 4,
-		"styleIxHiddenProperty": "-esef-ix-hidden"
+		"styleIxHiddenProperty": "-esef-ix-hidden",
+        "disallowedHiddenStyle": "-ix-hidden"
     },
 	"ESEF-2025-DRAFT": {
 	    "outdatedTaxonomyURLs": [
@@ -211,7 +215,8 @@
 		    }
 		],
 		"earliestTransformationRegistryVersion": 5,
-		"styleIxHiddenProperty": "-ix-hidden"
+		"styleIxHiddenProperty": "-ix-hidden",
+        "disallowedHiddenStyle": "-esef-ix-hidden"
 	},
     "AT": {
         "name": "Austria",
