@@ -29,9 +29,11 @@ from arelle.XbrlConst import parentChild, standardLabel
 from arelle.XmlValidateConst import VALID
 
 from ..DisclosureSystems import (
+    DISCLOSURE_SYSTEM_NL_INLINE_MULTI_TARGET,
     ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
     NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
-    NL_INLINE_GAAP_OTHER_DISCLOSURE_SYSTEMS,
+    NL_INLINE_MULTI_TARGET_DISCLOSURE_SYSTEMS,
+    NL_INLINE_OTHER_DISCLOSURE_SYSTEMS,
 )
 from ..PluginValidationDataExtension import (
     ALLOWABLE_LANGUAGES,
@@ -1723,23 +1725,27 @@ def rule_nl_kvk_4_4_6_1(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=NL_INLINE_GAAP_OTHER_DISCLOSURE_SYSTEMS,
+    disclosureSystems=NL_INLINE_OTHER_DISCLOSURE_SYSTEMS,
 )
-def rule_nl_kvk_5_1_3_1(
+def rule_nl_kvk_5_1_3_1_and_6_1_3_1(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    NL-KVK.5.1.3.1: Validate that the imported taxonomy matches the KVK-specified entry point.
+    NL-KVK.5.1.3.1 and NL-KVK.6.1.3.1: Validate that the imported taxonomy matches the KVK-specified entry point.
         - https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-other-gaap.xsd
+        - https://www.nltaxonomie.nl/kvk/2025-12-31/kvk-annual-report-other.xsd
     """
     uris = {doc[0].uri for doc in val.modelXbrl.namespaceDocs.values()}
     matches = uris & EFFECTIVE_KVK_GAAP_OTHER_ENTRYPOINT_FILES
     if not matches:
+        base_code = '5.1.3.1.requiredEntryPointOtherGaapNotReferenced'
+        if str(val.disclosureSystem.name) in DISCLOSURE_SYSTEM_NL_INLINE_MULTI_TARGET:
+            base_code = '6.1.3.1.requiredEntryPointOtherNotReferenced'
         yield Validation.error(
-            codes='NL.NL-KVK.5.1.3.1.requiredEntryPointOtherGaapNotReferenced',
+            codes=f'NL.NL-KVK.{base_code}',
             msg=_('The extension taxonomy must import the entry point of the taxonomy files prepared by KVK.'),
             modelObject=val.modelXbrl.modelDocument
         )
@@ -1747,28 +1753,55 @@ def rule_nl_kvk_5_1_3_1(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=NL_INLINE_GAAP_OTHER_DISCLOSURE_SYSTEMS,
+    disclosureSystems=NL_INLINE_OTHER_DISCLOSURE_SYSTEMS,
 )
-def rule_nl_kvk_5_1_3_2(
+def rule_nl_kvk_5_1_3_2_and_6_1_3_2(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    NL-KVK.5.1.3.2: The legal entity's report MUST import the applicable version of
+    NL-KVK.5.1.3.2 and NL-KVK.6.1.3.2: The legal entity's report MUST import the applicable version of
                     the taxonomy files prepared by KVK.
     """
     reportingPeriod = pluginData.getReportingPeriod(val.modelXbrl)
     uris = {doc[0].uri for doc in val.modelXbrl.namespaceDocs.values()}
     matches = uris & TAXONOMY_URLS_BY_YEAR.get(reportingPeriod or '', set())
     if not reportingPeriod or not matches:
+        base_code = '5.1.3.2.incorrectVersionEntryPointOtherGaapReferenced'
+        if str(val.disclosureSystem.name) in DISCLOSURE_SYSTEM_NL_INLINE_MULTI_TARGET:
+            base_code = '6.1.3.2.incorrectVersionEntryPointOtherReferenced'
         yield Validation.error(
-            codes='NL.NL-KVK.5.1.3.2.incorrectVersionEntryPointOtherGaapReferenced',
+            codes=f'NL.NL-KVK.{base_code}',
             msg=_('The report MUST import the applicable version of the taxonomy files prepared by KVK '
                   'for the reported financial reporting period. Verify the taxonomy version and make sure '
                   'that FinancialReportingPeriod are tagged correctly.'),
             modelObject=val.modelXbrl.modelDocument
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=NL_INLINE_MULTI_TARGET_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_6_1_3_3(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.6.1.3.3: The target attribute “filing-information” MUST be used for the content of the required elements
+                    for filing with the Business Register
+    """
+    targetElements = {elt.get("target") for elt in pluginData.getTargetElements(val.modelXbrl)}
+    if len(targetElements) > 2 or 'filing-information' not in targetElements or 'default' not in targetElements:
+        yield Validation.error(
+            codes='NL.NL-KVK.6.1.3.3.requiredTargetAttributeNotUsed',
+            msg=_('The target attribute `filing-information` MUST be used for the content of the required '
+                  'elements for filing with the Business Register.'),
+            modelObject=targetElements
         )
 
 
