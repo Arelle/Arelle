@@ -63,10 +63,13 @@ ALLOWABLE_LANGUAGES = frozenset((
 EFFECTIVE_KVK_GAAP_IFRS_ENTRYPOINT_FILES = frozenset((
     'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-nlgaap-ext.xsd',
     'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-ifrs-ext.xsd',
+    'https://www.nltaxonomie.nl/kvk/2025-12-31/kvk-annual-report-nlgaap-ext.xsd',
+    'https://www.nltaxonomie.nl/kvk/2025-12-31/kvk-annual-report-ifrs-ext.xsd',
 ))
 
 EFFECTIVE_KVK_GAAP_OTHER_ENTRYPOINT_FILES = frozenset((
     'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-other-gaap.xsd',
+    'https://www.nltaxonomie.nl/kvk/2025-12-31/kvk-annual-report-other.xsd'
 ))
 
 NON_DIMENSIONALIZED_LINE_ITEM_LINKROLES = frozenset((
@@ -78,6 +81,11 @@ TAXONOMY_URLS_BY_YEAR = {
         'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-nlgaap-ext.xsd',
         'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-ifrs-ext.xsd',
         'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-other-gaap.xsd',
+    },
+    '2025': {
+        'https://www.nltaxonomie.nl/kvk/2025-12-31/kvk-annual-report-nlgaap-ext.xsd',
+        'https://www.nltaxonomie.nl/kvk/2025-12-31/kvk-annual-report-ifrs-ext.xsd',
+        'https://www.nltaxonomie.nl/kvk/2025-12-31/kvk-annual-report-other.xsd',
     }
 }
 
