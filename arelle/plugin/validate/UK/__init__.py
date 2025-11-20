@@ -9,7 +9,7 @@ References:
 """
 import os
 from arelle import ModelDocument, XmlUtil
-from arelle.ModelValue import qname, dateTime, DATE
+from arelle.ModelValue import qname, dateTime, DATE, dateUnionEqual
 from arelle.ValidateDuplicateFacts import getDuplicateFactSets
 from arelle.ValidateXbrlCalcs import insignificantDigits
 from arelle.Version import authorLabel, copyrightLabel
@@ -17,6 +17,7 @@ from arelle.XbrlConst import xbrli, qnXbrliXbrl
 import regex as re
 import tinycss2.ast
 from collections import defaultdict
+from arelle.XmlValidate import VALID
 
 from .ValidateUK import ValidateUK
 
@@ -201,9 +202,9 @@ def validateXbrlFinally(val, *args, **kwargs):
             scheme, identifier = c1.entityIdentifier
             if scheme == "http://www.companieshouse.gov.uk/":
                 companyReferenceNumberContexts[identifier].append(c1.id)
-        atLeastOneFacts = {}
+        atLeastOneFacts = defaultdict(set)
         uniqueFacts = {}  # key = (qname, context hash, unit hash, lang)
-        mandatoryFacts = {}
+        mandatoryFacts = defaultdict(set)
         mandatoryGDV = defaultdict(set)
         factForConceptContextUnitHash = defaultdict(list)
         hasCompaniesHouseContext = any(cntx.entityIdentifier[0] == "http://www.companieshouse.gov.uk/"
@@ -250,12 +251,12 @@ def validateXbrlFinally(val, *args, **kwargs):
                     factNamespaceURI = f.qname.namespaceURI
                     factLocalName = f.qname.localName
                     if factLocalName in MANDATORY_ITEMS[val.txmyType]:
-                        mandatoryFacts[factLocalName] = f
+                        mandatoryFacts[factLocalName].add(f)
                     if val.txmyType in MUST_HAVE_ONE_ITEM and factLocalName in MUST_HAVE_ONE_ITEM[val.txmyType]:
-                        atLeastOneFacts[factLocalName] = f
+                        atLeastOneFacts[factLocalName].add(f)
                     if factLocalName == "UKCompaniesHouseRegisteredNumber" and val.isAccounts:
                         if hasCompaniesHouseContext:
-                            mandatoryFacts[factLocalName] = f
+                            mandatoryFacts[factLocalName].add(f)
                         for _cntx in contextsUsed:
                             _scheme, _identifier = _cntx.entityIdentifier
                             if _scheme == "http://www.companieshouse.gov.uk/" and f.xValue != _identifier:
@@ -326,17 +327,72 @@ def validateXbrlFinally(val, *args, **kwargs):
         checkFacts(modelXbrl.facts)
 
         if val.isAccounts:
-            _missingItems = MANDATORY_ITEMS[val.txmyType] - mandatoryFacts.keys()
-            if hasCompaniesHouseContext and "UKCompaniesHouseRegisteredNumber" not in mandatoryFacts:
-                _missingItems.add("UKCompaniesHouseRegisteredNumber")
+            startDate = None
+            endDate = None
+            _missingItems = []
+            for fact in mandatoryFacts.get('EndDateForPeriodCoveredByReport', set()):
+                if (fact is not None and
+                        fact.xValid >= VALID and
+                        fact.context is not None and
+                        fact.context.isInstantPeriod and
+                        dateUnionEqual(fact.context.instantDate, fact.xValue)):
+                    endDate = fact.xValue
+                    break
+            else:
+                _missingItems.append('EndDateForPeriodCoveredByReport')
+
+            for fact in mandatoryFacts.get('StartDateForPeriodCoveredByReport', set()):
+                if (fact is not None and
+                        fact.xValid >= VALID and
+                        fact.context is not None and
+                        fact.context.isInstantPeriod and
+                        dateUnionEqual(fact.context.instantDate, endDate)):
+                    startDate = fact.xValue
+                    break
+            else:
+                _missingItems.append('StartDateForPeriodCoveredByReport')
+
+            if startDate is not None and endDate is not None:
+                mandatoryConceptsToCheck = MANDATORY_ITEMS[val.txmyType]
+                if hasCompaniesHouseContext:
+                    mandatoryConceptsToCheck = MANDATORY_ITEMS[val.txmyType] | {"UKCompaniesHouseRegisteredNumber"}
+
+                for mandatoryConcept in mandatoryConceptsToCheck:
+                    if mandatoryConcept in ['StartDateForPeriodCoveredByReport', 'EndDateForPeriodCoveredByReport']:
+                        continue
+                    foundFact = False
+                    for fact in mandatoryFacts.get(mandatoryConcept, set()):
+                        if (fact is not None and fact.context is not None and fact.xValid >= VALID and
+                                ((fact.context.isInstantPeriod and dateUnionEqual(fact.context.instantDate, endDate) or
+                                  (fact.context.isStartEndPeriod and dateUnionEqual(fact.context.startDatetime, startDate) and
+                                   dateUnionEqual(fact.context.endDate, endDate, instantEndDate=True))))):
+                                foundFact = True
+                                break
+                    if not foundFact:
+                        _missingItems.append(mandatoryConcept)
+
             if _missingItems:
                 modelXbrl.error("JFCVC.3312",
-                    _("Facts are MANDATORY: %(missingItems)s"),
+                    _("The following mandatory concepts are either not tagged on a fact or are tagged on facts that "
+                      "have contexts that do not align with the dates as reported in "
+                      "'StartDateForPeriodCoveredByReport' and 'EndDateForPeriodCoveredByReport': %(missingItems)s"),
                     modelObject=modelXbrl, missingItems=", ".join(sorted(_missingItems)))
-            if not atLeastOneFacts and val.txmyType in MUST_HAVE_ONE_ITEM:
-                modelXbrl.error("JFCVC.3312.atLeastOne",
-                                _("At least one of the facts is MANDATORY: %(missingItems)s"),
-                                modelObject=modelXbrl, missingItems=", ".join(sorted(MUST_HAVE_ONE_ITEM[val.txmyType])))
+
+            if startDate is not None and endDate is not None and val.txmyType in MUST_HAVE_ONE_ITEM:
+                foundFact = False
+                for mustHaveOneConcept in MUST_HAVE_ONE_ITEM[val.txmyType]:
+                    for fact in atLeastOneFacts.get(mustHaveOneConcept, set()):
+                        if (fact is not None and fact.context is not None and fact.xValid >= VALID and
+                                ((fact.context.isInstantPeriod and dateUnionEqual(fact.context.instantDate, endDate) or
+                                  (fact.context.isStartEndPeriod and dateUnionEqual(fact.context.startDatetime, startDate) and
+                                   dateUnionEqual(fact.context.endDate, endDate, instantEndDate=True))))):
+                            foundFact = True
+                            break
+
+                if not foundFact:
+                    modelXbrl.error("JFCVC.3312.atLeastOne",
+                                    _("At least one of the facts is MANDATORY: %(missingItems)s"),
+                                    modelObject=modelXbrl, missingItems=", ".join(sorted(MUST_HAVE_ONE_ITEM[val.txmyType])))
 
             ''' removed with JFCVC v4.0 2020-06-09
             f = mandatoryFacts.get("StartDateForPeriodCoveredByReport")

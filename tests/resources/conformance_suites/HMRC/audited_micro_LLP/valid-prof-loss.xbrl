@@ -25,8 +25,8 @@
             </segment>
         </entity>
         <period>
-            <startDate>2021-01-01</startDate>
-            <endDate>2021-12-30</endDate>
+            <startDate>2020-01-01</startDate>
+            <endDate>2021-01-01</endDate>
         </period>
     </context>
     <bus:AccountingStandardsApplied contextRef="accounting-standards"></bus:AccountingStandardsApplied>
@@ -39,8 +39,8 @@
             </segment>
         </entity>
         <period>
-            <startDate>2021-01-01</startDate>
-            <endDate>2021-12-30</endDate>
+            <startDate>2020-01-01</startDate>
+            <endDate>2021-01-01</endDate>
         </period>
     </context>
     <bus:AccountsStatusAuditedOrUnaudited contextRef="accounts-status"></bus:AccountsStatusAuditedOrUnaudited>
@@ -53,8 +53,8 @@
             </segment>
         </entity>
         <period>
-            <startDate>2021-01-01</startDate>
-            <endDate>2021-12-30</endDate>
+            <startDate>2020-01-01</startDate>
+            <endDate>2021-01-01</endDate>
         </period>
     </context>
     <bus:AccountsType contextRef="accounts-type"></bus:AccountsType>
@@ -64,8 +64,8 @@
             <identifier scheme="http://www.gooog">12345678</identifier>
         </entity>
         <period>
-            <startDate>2021-01-01</startDate>
-            <endDate>2021-12-30</endDate>
+            <startDate>2020-01-01</startDate>
+            <endDate>2021-01-01</endDate>
         </period>
     </context>
     <xbrli:unit id="pure">
@@ -102,7 +102,7 @@
             <identifier scheme="http://www.gooog">12345678</identifier>
         </entity>
         <period>
-            <instant>2021-12-30</instant>
+            <instant>2021-01-01</instant>
         </period>
     </context>
     <bus:BalanceSheetDate contextRef="instant">2021-01-01</bus:BalanceSheetDate>
@@ -118,8 +118,8 @@
             </segment>
         </entity>
         <period>
-            <startDate>2021-01-01</startDate>
-            <endDate>2021-12-30</endDate>
+            <startDate>2020-01-01</startDate>
+            <endDate>2021-01-01</endDate>
         </period>
     </context>
     <bus:LegalFormEntity contextRef="legal-form-entity"></bus:LegalFormEntity>
