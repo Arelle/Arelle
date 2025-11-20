@@ -203,6 +203,8 @@ class ValidationPluginExtension(ValidationPlugin):
         ]) if kvkINamespace else frozenset()
         return PluginValidationDataExtension(
             self.name,
+            AnnualReportOfForeignGroupHeadForExemptionUnderArticle403Qn=qname(kvkINamespace, 'AnnualReportOfForeignGroupHeadForExemptionUnderArticle403'),
+            AnnualReportOfForeignGroupHeadForExemptionUnderArticle408Qn=qname(kvkINamespace, 'AnnualReportOfForeignGroupHeadForExemptionUnderArticle408'),
             chamberOfCommerceRegistrationNumberQn=qname(jenvNamespace, 'ChamberOfCommerceRegistrationNumber'),
             documentAdoptionDateQn=qname(jenvNamespace, 'DocumentAdoptionDate'),
             documentAdoptionStatusQn=qname(jenvNamespace, 'DocumentAdoptionStatus'),

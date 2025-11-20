@@ -123,6 +123,7 @@ class AnchorData:
     anchorsWithDomainItem: frozenset[ModelRelationship]
     extLineItemsNotAnchored: frozenset[ModelConcept]
     extLineItemsWronglyAnchored: frozenset[ModelConcept]
+    extConceptsNotAnchoredToSameDerivedType: frozenset[ModelConcept]
 
 
 @dataclass(frozen=True)
@@ -215,6 +216,8 @@ class LinkbaseData:
 
 @dataclass
 class PluginValidationDataExtension(PluginData):
+    AnnualReportOfForeignGroupHeadForExemptionUnderArticle403Qn: QName
+    AnnualReportOfForeignGroupHeadForExemptionUnderArticle408Qn: QName
     chamberOfCommerceRegistrationNumberQn: QName
     documentAdoptionDateQn: QName
     documentAdoptionStatusQn: QName
@@ -434,6 +437,7 @@ class PluginValidationDataExtension(PluginData):
         anchorsWithDomainItem = set()
         anchorsWithDimensionItem = set()
         anchorsInDimensionalElrs = defaultdict(set)
+        extConceptsNotAnchoredToSameDerivedType = set()
         for anchoringRel in widerNarrowerRelSet.modelRelationships:
             elr = anchoringRel.linkrole
             fromObj = anchoringRel.fromModelObject
@@ -441,6 +445,7 @@ class PluginValidationDataExtension(PluginData):
             if fromObj is not None and toObj is not None and fromObj.type is not None and toObj.type is not None:
                 if not ((not self.isExtensionUri(fromObj.modelDocument.uri, modelXbrl)) ^ (not self.isExtensionUri(toObj.modelDocument.uri, modelXbrl))):
                     anchorsNotInBase.add(anchoringRel)
+
                 if fromObj.type.isDomainItemType or toObj.type.isDomainItemType:
                     anchorsWithDomainItem.add(anchoringRel)
                 elif fromObj.isDimensionItem or toObj.isDimensionItem:
@@ -448,6 +453,11 @@ class PluginValidationDataExtension(PluginData):
                 else:
                     if elr in elrsContainingDimensionalRelationships:
                         anchorsInDimensionalElrs[elr].add(anchoringRel)
+
+                if (fromObj.type != toObj.type and
+                        (not fromObj.type.isDerivedFrom(toObj.type.qname) or
+                         not toObj.type.isDerivedFrom(fromObj.type.qname))):
+                    extConceptsNotAnchoredToSameDerivedType.add(toObj)
         return AnchorData(
             anchorsInDimensionalElrs={x: frozenset(y) for x, y in anchorsInDimensionalElrs.items()},
             anchorsNotInBase=frozenset(anchorsNotInBase),
@@ -455,6 +465,7 @@ class PluginValidationDataExtension(PluginData):
             anchorsWithDomainItem=frozenset(anchorsWithDomainItem),
             extLineItemsNotAnchored=frozenset(extLineItemsNotAnchored),
             extLineItemsWronglyAnchored=frozenset(extLineItemsWronglyAnchored),
+            extConceptsNotAnchoredToSameDerivedType=frozenset(extConceptsNotAnchoredToSameDerivedType),
         )
 
 
