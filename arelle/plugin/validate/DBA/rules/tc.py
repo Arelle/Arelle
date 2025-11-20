@@ -13,11 +13,13 @@ from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from arelle.XmlValidateConst import VALID
 from ..PluginValidationDataExtension import PluginValidationDataExtension
+from ..DisclosureSystems import ARL_DISCLOSURE_SYSTEMS
 
 _: TypeGetText
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ARL_DISCLOSURE_SYSTEMS,
 )
 def rule_tc02(
         pluginData: PluginValidationDataExtension,

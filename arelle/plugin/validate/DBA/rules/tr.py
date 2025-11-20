@@ -19,13 +19,15 @@ from arelle.XmlValidateConst import VALID
 from . import lookup_namespaced_facts, errorOnForbiddenImage
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 from ..ValidationPluginExtension import NAMESPACE_GSD
-from ..DisclosureSystems import MULTI_TARGET_DISCLOSURE_SYSTEMS, STAND_ALONE_DISCLOSURE_SYSTEMS
+from ..DisclosureSystems import (ARL_MULTI_TARGET_DISCLOSURE_SYSTEMS, STAND_ALONE_DISCLOSURE_SYSTEMS,
+                                 ALL_DISCLOSURE_SYSTEMS, ARL_DISCLOSURE_SYSTEMS)
 
 _: TypeGetText
 
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ARL_DISCLOSURE_SYSTEMS
 )
 def rule_tr01(
         pluginData: PluginValidationDataExtension,
@@ -178,6 +180,7 @@ def rule_tr06(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ARL_DISCLOSURE_SYSTEMS
 )
 def rule_tr09(
         pluginData: PluginValidationDataExtension,
@@ -197,7 +200,8 @@ def rule_tr09(
 
 
 @validation(
-    hook=ValidationHook.XBRL_FINALLY
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS
 )
 def rule_tr12(
         pluginData: PluginValidationDataExtension,
@@ -223,6 +227,7 @@ def rule_tr12(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ARL_DISCLOSURE_SYSTEMS
 )
 def rule_tr11(
         pluginData: PluginValidationDataExtension,
@@ -252,7 +257,7 @@ def rule_tr11(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=MULTI_TARGET_DISCLOSURE_SYSTEMS,
+    disclosureSystems=ARL_MULTI_TARGET_DISCLOSURE_SYSTEMS,
 )
 def rule_tr15(
         pluginData: PluginValidationDataExtension,
@@ -276,7 +281,7 @@ def rule_tr15(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=MULTI_TARGET_DISCLOSURE_SYSTEMS,
+    disclosureSystems=ARL_MULTI_TARGET_DISCLOSURE_SYSTEMS,
 )
 def rule_tr16(
         pluginData: PluginValidationDataExtension,
@@ -301,7 +306,7 @@ def rule_tr16(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=MULTI_TARGET_DISCLOSURE_SYSTEMS,
+    disclosureSystems=ARL_MULTI_TARGET_DISCLOSURE_SYSTEMS,
 )
 def rule_tr17(
         pluginData: PluginValidationDataExtension,
@@ -342,6 +347,7 @@ def rule_tr17(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ARL_DISCLOSURE_SYSTEMS
 )
 def rule_tr19(
         pluginData: PluginValidationDataExtension,
