@@ -29,9 +29,11 @@ from arelle.XbrlConst import parentChild, standardLabel
 from arelle.XmlValidateConst import VALID
 
 from ..DisclosureSystems import (
+    DISCLOSURE_SYSTEM_NL_INLINE_2025,
     DISCLOSURE_SYSTEM_NL_INLINE_MULTI_TARGET,
     ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
     NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
+    NL_INLINE_GAAP_OTHER_DISCLOSURE_SYSTEMS,
     NL_INLINE_MULTI_TARGET_DISCLOSURE_SYSTEMS,
     NL_INLINE_OTHER_DISCLOSURE_SYSTEMS,
 )
@@ -1332,6 +1334,29 @@ def rule_nl_kvk_4_3_1_1(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=DISCLOSURE_SYSTEM_NL_INLINE_2025,
+)
+def rule_nl_kvk_4_3_1_2(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.3.1.2: An extension element SHOULD be anchored to a taxonomy element with a compatible data type.
+    """
+    anchorData = pluginData.getAnchorData(val.modelXbrl)
+    if len(anchorData.extConceptsNotAnchoredToSameDerivedType) > 0:
+        yield Validation.warning(
+            codes="NL.NL-KVK.4.3.1.2.incompatibleDataTypeAnchoringRelationship",
+            msg=_("The extension and taxonomy concepts that participate in anchoring relationships must "
+                  "either have the same type or one concept type must derive from the other."),
+            modelObject=anchorData.extConceptsNotAnchoredToSameDerivedType,
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 def rule_nl_kvk_4_3_2_1(
@@ -1802,6 +1827,59 @@ def rule_nl_kvk_6_1_3_3(
             msg=_('The target attribute `filing-information` MUST be used for the content of the required '
                   'elements for filing with the Business Register.'),
             modelObject=targetElements
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=NL_INLINE_GAAP_OTHER_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_7_1_4_2(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.7.1.4.2: The concept kvk:AnnualReportOfForeignGroupHeadForExemptionUnderArticle403 MUST NOT be reported with
+                    a value of “False”.
+    """
+    factsInError = []
+    articleFacts = val.modelXbrl.factsByQname.get(pluginData.AnnualReportOfForeignGroupHeadForExemptionUnderArticle403Qn, set())
+    for fact in articleFacts:
+        if fact is not None and fact.xValid >= VALID and fact.xValue == 'False':
+            factsInError.append(fact)
+    if len(factsInError) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.7.1.4.2.reportedConcept403NotExpected',
+            msg=_('A fact or facts tagged with `kvk:AnnualReportOfForeignGroupHeadForExemptionUnderArticle403` is incorrectly marked as False.'),
+            modelObject=factsInError
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=NL_INLINE_GAAP_OTHER_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_7_2_1_2(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.7.2.1.2: The concept kvk:AnnualReportOfForeignGroupHeadForExemptionUnderArticle408 MUST NOT be reported with
+                    a value of “False”.
+    """
+    factsInError = []
+    articleFacts = val.modelXbrl.factsByQname.get(pluginData.AnnualReportOfForeignGroupHeadForExemptionUnderArticle408Qn, set())
+    for fact in articleFacts:
+        if fact is not None and fact.xValid >= VALID and fact.xValue == 'False':
+            factsInError.append(fact)
+    if len(factsInError) > 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.7.2.1.2.reportedConcept408NotExpected',
+            msg=_('A fact or facts tagged with `kvk:AnnualReportOfForeignGroupHeadForExemptionUnderArticle408` is incorrectly marked as False.'),
+            modelObject=factsInError
         )
 
 
