@@ -1827,6 +1827,7 @@ def rule_nl_kvk_6_1_3_3(
             msg=_('The target attribute `filing-information` MUST be used for the content of the required '
                   'elements for filing with the Business Register.'),
             modelObject=targetElements
+        )
 
 
 @validation(
