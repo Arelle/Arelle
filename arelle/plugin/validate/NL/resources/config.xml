@@ -22,6 +22,12 @@
             exclusiveTypesPattern="EFM|GFM|FERC|HMRC|SBR.NL|EBA|EIOPA|ESEF"
     />
     <DisclosureSystem
+            names="NL-INLINE-MULTI-TARGET|nl-inline-multi-target|kvk-inline-multi-target-preview"
+            description="Checks for NL INLINE. For use with other GAAP."
+            validationType="NL"
+            exclusiveTypesPattern="EFM|GFM|FERC|HMRC|SBR.NL|EBA|EIOPA|ESEF"
+    />
+    <DisclosureSystem
             names="NT19|nt19|NT19-preview|nt19-preview"
             description="Checks for NT19"
             validationType="NL"
