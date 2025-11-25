@@ -4,6 +4,12 @@
         xsi:noNamespaceSchemaLocation="../../../../config/disclosuresystems.xsd">
     <!-- see arelle/config/disclosuresystems.xml for full comments -->
     <DisclosureSystem
+            names="NL-INLINE-2025|nl-inline-2025|kvk-inline-2025-preview"
+            description="Checks for NL INLINE 2025. For use with NL GAAP and NL IFRS"
+            validationType="NL"
+            exclusiveTypesPattern="EFM|GFM|FERC|HMRC|SBR.NL|EBA|EIOPA|ESEF"
+    />
+    <DisclosureSystem
             names="NL-INLINE-2024|nl-inline-2024|kvk-inline-2024-preview"
             description="Checks for NL INLINE 2024. For use with NL GAAP and NL IFRS"
             validationType="NL"
