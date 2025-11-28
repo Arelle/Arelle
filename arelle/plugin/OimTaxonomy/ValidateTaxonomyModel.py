@@ -194,9 +194,9 @@ def validateTaxonomy(txmyMdl, txmy, mdlLvlChecks):
                           _("The exportProfile %(name)s objectType property MUST specify valid OIM object types, %(qname)s is not valid."),
                           xbrlObject=expPrflObj, name=name, qname=qnObjType)
         for iSel, selObj in enumerate(expPrflObj.selections):
-            if selObj.objectType not in xbrlObjectTypes.keys() - {qnXbrlLabelObj}:
+            if selObj.objectType not in xbrlObjectTypes.keys():
                 txmyMdl.error("oimte:invalidSelectionObjectType",
-                          _("The exportProfile %(name)s selection[%(nbr)s] must identify a referencable taxonomy component object, excluding labelObject: %(qname)s."),
+                          _("The exportProfile %(name)s selection[%(nbr)s] must identify a referencable taxonomy component object: %(qname)s."),
                           xbrlObject=expPrflObj, name=name, nbr=iSel, qname=selObj.objectType)
             for iWh, whereObj in enumerate(selObj.where):
                 if whereObj.property is None or whereObj.operator is None or whereObj.value is None:

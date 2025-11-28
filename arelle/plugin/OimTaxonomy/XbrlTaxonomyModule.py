@@ -8,7 +8,7 @@ from collections import OrderedDict
 from arelle.ModelValue import qname, QName, AnyURI
 from arelle.PythonUtil import OrderedSet
 from .ModelValueMore import SQName
-from .XbrlImportTaxonomy import XbrlImportTaxonomy, XbrlExportProfile
+from .XbrlImportTaxonomy import XbrlImportTaxonomy, XbrlExportProfile, XbrlFinalTaxonomy
 from .XbrlProperty import XbrlProperty
 from .XbrlAbstract import XbrlAbstract
 from .XbrlConcept import XbrlConcept, XbrlDataType, XbrlUnitType
@@ -20,7 +20,7 @@ from .XbrlLabel import XbrlLabel, XbrlLabelType
 from .XbrlNetwork import XbrlNetwork, XbrlRelationship, XbrlRelationshipType, XbrlRelationshipConstraint
 from .XbrlProperty import XbrlProperty, XbrlPropertyType
 from .XbrlReference import XbrlReference, XbrlReferenceType
-from .XbrlReport import XbrlFact
+from .XbrlReport import XbrlFact, XbrlFootnote
 from .XbrlTaxonomyModel import XbrlTaxonomyModel
 from .XbrlTransform import XbrlTransform
 from .XbrlUnit import XbrlUnit
@@ -45,6 +45,7 @@ class XbrlTaxonomyModule(XbrlTaxonomyObject):
     domainRoots: OrderedSet[XbrlDomainRoot] # (optional) ordered set of domain root objects.
     entities: OrderedSet[XbrlEntity] # (optional) ordered set of entity objects.
     factspaces: OrderedSet[XbrlFact] #  (optional) ordered set of fact objects.
+    footnotes: OrderedSet[XbrlFootnote] #  (optional) ordered set of footnote objects.
     groups: OrderedSet[XbrlGroup] #  (optional) ordered set of group objects.
     groupContents: OrderedSet[XbrlGroupContent] # ordered set of groupContent objects that link a group QName to a list of network or cube objects.
     groupTree: Optional[XbrlGroupTree] # (optional) A groupTree object that defines the hierarchical organization of groups within the taxonomy. Unlike groupContents which links groups to networks and cubes, groupTree organizes the groups themselves into a tree structure. The taxonomy serves as the root by being referenced as the source in top-level relationships. Only one groupTree object is allowed per taxonomy.
@@ -71,8 +72,10 @@ referencableObjectTypes = {
         qname("{https://xbrl.org/2025}xbrl:domainRootObject"): XbrlDomainRoot,
         qname("{https://xbrl.org/2025}xbrl:entityObject"): XbrlEntity,
         qname("{https://xbrl.org/2025}xbrl:fact"): XbrlFact,
+        qname("{https://xbrl.org/2025}xbrl:finalTaxonomyObject"): XbrlFinalTaxonomy,
+        qname("{https://xbrl.org/2025}xbrl:footnote"): XbrlFootnote,
         qname("{https://xbrl.org/2025}xbrl:groupObject"): XbrlGroup,
-        qname("{https://xbrl.org/2025}xbrl:groupContentObject"): XbrlGroupContent,
+        qname("{https://xbrl.org/2025}xbrl:groupTreeObject"): XbrlGroupTree,
         qname("{https://xbrl.org/2025}xbrl:networkObject"): XbrlNetwork,
         qname("{https://xbrl.org/2025}xbrl:relationshipTypeObject"): XbrlRelationshipType,
         qname("{https://xbrl.org/2025}xbrl:memberObject"): XbrlMember,
@@ -92,6 +95,7 @@ referencableObjectTypes = {
 nonReferencableObjectTypes = {
         qname("{https://xbrl.org/2025}xbrl:importTaxonomyObject"): XbrlImportTaxonomy,
         qname("{https://xbrl.org/2025}xbrl:cubeDimensionObject"): XbrlCubeDimension,
+        qname("{https://xbrl.org/2025}xbrl:groupContentObject"): XbrlGroupContent,
         qname("{https://xbrl.org/2025}xbrl:periodConstraintObject"): XbrlPeriodConstraint,
         qname("{https://xbrl.org/2025}xbrl:dateResolutionObject"): XbrlDateResolution,
         qname("{https://xbrl.org/2025}xbrl:relationshipObject"): XbrlRelationship,

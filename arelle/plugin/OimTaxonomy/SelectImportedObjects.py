@@ -6,11 +6,11 @@ import regex as re
 from bitarray import bitarray
 from arelle.oim.Load import EMPTY_DICT
 from .XbrlConst import qnXbrlLabelObj
-from .XbrlTaxonomyModule import xbrlObjectTypes
+from .XbrlTaxonomyModule import xbrlObjectTypes, xbrlObjectQNames
 from pickle import EMPTY_DICT
 
 def eval(obj, whereObj):
-    qn = where.property
+    qn = whereObj.property
     if qn.namespaceURI is None:
         v1 = getattr(obj, qn.localName)
     else:
@@ -18,7 +18,7 @@ def eval(obj, whereObj):
             if propObj.name == qn:
                 v1 = propObj.value # should use _xValue if _xValid >- VALID
                 break
-    op = whereObj.op
+    op = whereObj.operator
     v2 = whereObj.value
     if op == "==":
         return v1 == v2
@@ -44,8 +44,8 @@ def eval(obj, whereObj):
 def selectImportedObjects(txmyMdl, newTxmy, impTxObj):
     i0 = newTxmy.xbrlMdlObjIndex # object index range of imported objects
     iL = newTxmy._lastMdlObjIndex
-    selObjs = bitarray(iL - i0) # True if object is selected
-    exclObjs = bitarray(iL - i0) # True if object is excluded
+    selObjs = bitarray(iL - i0 + 1) # True if object is selected
+    exclObjs = bitarray(iL - i0 + 1) # True if object is excluded
     hasSel = False # has anything selecting
     hasExcl = False # has anything excluding
     exclLbls = impTxObj.excludeLabels
@@ -108,9 +108,9 @@ def selectImportedObjects(txmyMdl, newTxmy, impTxObj):
                         selObjs[obj.xbrlMdlObjIndex - i0] = True
     hasSelError = False
     for iSel, selObj in enumerate(selections):
-        if selObj.objectType not in xbrlObjectTypes.keys() - {qnXbrlLabelObj}:
+        if selObj.objectType not in xbrlObjectTypes.keys():
             txmyMdl.error("oimte:invalidSelectionObjectType",
-                      _("The importTaxonomy %(name)s selection[%(nbr)s] must identify a referencable taxonomy component object, excluding labelObject: %(qname)s."),
+                      _("The importTaxonomy %(name)s selection[%(nbr)s] must identify a referencable taxonomy component object: %(qname)s."),
                       xbrlObject=impTxObj, name=name, nbr=iSel, qname=selObj.objectType)
             hasSelError = True
         for iWh, whereObj in enumerate(selObj.where):
@@ -129,13 +129,15 @@ def selectImportedObjects(txmyMdl, newTxmy, impTxObj):
         for obj in txmyMdl.namedObjects.values():
             if i0 <= obj.xbrlMdlObjIndex <= iL: # applies to this taxonomy import
                 for selObj in impTxObj.selections:
+                    if type(obj) not in xbrlObjectQNames:
+                        print("trace")
                     if xbrlObjectQNames[type(obj)] == selObj.objectType and (
                         all((eval(obj, whereObj) for whereObj in selObj.where))):
                         selObjs[obj.xbrlMdlObjIndex - i0] = True
                         break # selections are or'ed, don't need to try more
     if hasSel:
         # exclude non-selections
-        for obj in txmyMdl.namedObjects.values():
+        for obj in [o for o in txmyMdl.namedObjects.values()]:
             if i0 <= obj.xbrlMdlObjIndex <= iL: # applies to this taxonomy import
                 if not selObjs[obj.xbrlMdlObjIndex - i0]:
                     name = obj.name
