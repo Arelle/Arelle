@@ -11,39 +11,46 @@ from arelle.oim.Load import EMPTY_DICT
 from arelle.PythonUtil import OrderedSet
 from .XbrlConcept import XbrlConcept, XbrlDataType
 from .XbrlGroup import XbrlGroupContent
-from .XbrlReport import addReportProperties, XbrlFact, XbrlReportObject
-from .XbrlTypes import XbrlTaxonomyType, QNameKeyType, XbrlLabelType, XbrlPropertyType
-from .XbrlTaxonomyObject import XbrlObject, XbrlReferencableTaxonomyObject, XbrlTaxonomyTagObject
+from .XbrlReport import XbrlFact, XbrlFootnote, XbrlReport
+from .XbrlTypes import XbrlTaxonomyModuleType, XbrlLayoutType, QNameKeyType, XbrlLabelType, XbrlPropertyType
+from .XbrlObject import XbrlObject, XbrlReferencableTaxonomyObject, XbrlTaxonomyTagObject, XbrlReportObject
 
-def castToDts(modelXbrl, isReport=False):
-    if not isinstance(modelXbrl, XbrlDts) and isinstance(modelXbrl, ModelXbrl):
-        modelXbrl.__class__ = XbrlDts
-        modelXbrl.taxonomies: OrderedDict[QNameKeyType, XbrlTaxonomyType] = OrderedDict()
+def castToXbrlTaxonomyModel(modelXbrl, isReport=False):
+    if not isinstance(modelXbrl, XbrlTaxonomyModel) and isinstance(modelXbrl, ModelXbrl):
+        modelXbrl.__class__ = XbrlTaxonomyModel
+        modelXbrl.taxonomies: OrderedDict[QNameKeyType, XbrlTaxonomyModuleType] = OrderedDict()
+        modelXbrl.layouts: OrderedDict[QNameKeyType, XbrlLayoutType] = OrderedDict()
         modelXbrl.dtsObjectIndex = 0
         modelXbrl.xbrlObjects: list[XbrlObject] = []
         modelXbrl.namedObjects: OrderedDict[QNameKeyType, XbrlReferencableTaxonomyObject] = OrderedDict() # not visible metadata
         modelXbrl.tagObjects: defaultdict[QName, list[XbrlReferencableTaxonomyObject]] = defaultdict(list) # labels and references
-        if isReport:
-            addReportProperties(modelXbrl)
+        modelXbrl.reports: OrderedDict[QNameKeyType, XbrlReport] = OrderedDict()
     return modelXbrl
 
 
-class XbrlDts(ModelXbrl): # complete wrapper for ModelXbrl
-    taxonomies: OrderedDict[QNameKeyType, XbrlTaxonomyType]
+class XbrlTaxonomyModel(ModelXbrl): # complete wrapper for ModelXbrl
+    taxonomies: OrderedDict[QNameKeyType, XbrlTaxonomyModuleType]
+    layouts: OrderedDict[QNameKeyType, XbrlLayoutType]
     xbrlObjects: list[XbrlObject] # not visible metadata
     # objects only present for XbrlReports
     linkTypes: dict[str, AnyURI]
     linkGroups: dict[str, AnyURI]
-    facts: dict[str, XbrlFact]
+    facts: dict[str, XbrlFact] # constant facts in taxonomy
+    reports: OrderedDict[QNameKeyType, XbrlReport] = OrderedDict()
+
+    @classmethod
+    def propertyNameTypes(cls):
+        for propName, propType in getattr(cls, "__annotations__", EMPTY_DICT).items():
+            if propName in ("taxonomies", "layouts"):
+                yield propName, propType
 
     def __init__(self, isReport:bool = False, *args: Any, **kwargs: Any) -> None:
-        super(XbrlDts, self).__init__(*args, **kwargs)
+        global XbrlTaxonomyModule
+        super(XbrlTaxonomyModel, self).__init__(*args, **kwargs)
         self.dtsObjectIndex = 0
         self.xbrlObjects: list[XbrlObject] = []
         self.namedObjects: OrderedDict[QNameKeyType, XbrlReferencableTaxonomyObject] = OrderedDict() # not visible metadata
         self.tagObjects: defaultdict[QName, list[XbrlReferencableTaxonomyObject]] = defaultdict(list) # labels and references
-        if isReport:
-            addReportProperties(self)
 
 
     @property
@@ -110,7 +117,8 @@ class XbrlDts(ModelXbrl): # complete wrapper for ModelXbrl
 
     # dts-wide object accumulator properties
     def filterNamedObjects(self, _class, _type=None, _lang=None):
-        if issubclass(_class, XbrlReferencableTaxonomyObject):
+        if (issubclass(_class, XbrlReferencableTaxonomyObject) or # taxpmp,u-pwmed referemcab;e pbkect
+            (issubclass(_class, (XbrlFact,XbrlFootnote)) and isinstance(self, XbrlTaxonomyModel))):  # taxonomy-owned fact
             for obj in self.namedObjects.values():
                 if isinstance(obj, _class):
                     yield obj
@@ -121,32 +129,36 @@ class XbrlDts(ModelXbrl): # complete wrapper for ModelXbrl
                         (not _type or _type == obj._type) and
                         (not _lang or not obj.language or _lang.startswith(obj.language) or obj.language.startswith(lang))):
                         yield obj
-        elif issubclass(_class, XbrlReportObject):
-            for obj in getattr(self, "facts", EMPTY_DICT).values():
+        elif issubclass(_class, XbrlReportObject) and isinstance(self, (XbrlTaxonomyModel, XbrlReport)): # report facts
+            if issubclass(_class, XbrlReport):
+                objs = self.reports.values()
+            else:
+                facts = getattr(self, "facts", EMPTY_DICT).values()
+            for obj in objs:
                 yield obj
 
     def error(self, *args, **kwargs):
         if "xbrlObject" in kwargs:
             argValue = kwargs["xbrlObject"]
             if isinstance(argValue, (tuple,list,set,OrderedSet)):
-                kwargs["sourceFileLines"] = [a.entryLoadingUrl for a in argValue]
+                kwargs["sourceFileLines"] = [a.entryLoadingUrl for a in argValue if a is not None]
             else:
                 kwargs["sourceFileLine"] = argValue.entryLoadingUrl
         elif "modelObject" in kwargs:
             modelObject = kwargs["modelObject"]
             if hasattr(modelObject, "entryLoadingUrl"):
                 kwargs["sourceFileLine"] = modelObject.entryLoadingUrl
-        super(XbrlDts, self).error(*args, **kwargs)
+        super(XbrlTaxonomyModel, self).error(*args, **kwargs)
 
     def warning(self, *args, **kwargs):
         if "xbrlObject" in kwargs:
             argValue = kwargs["xbrlObject"]
             if isinstance(argValue, (tuple,list)):
-                kwargs["sourceFileLines"] = [a.entryLoadingUrl for a in argValue]
+                kwargs["sourceFileLines"] = [a.entryLoadingUrl for a in argValue if a is not None]
             else:
                 kwargs["sourceFileLine"] = argValue.entryLoadingUrl
-        super(XbrlDts, self).warning(*args, **kwargs)
+        super(XbrlTaxonomyModel, self).warning(*args, **kwargs)
 
 
-def create(*args: Any, **kwargs: Any) -> XbrlDts:
-    return cast(XbrlDts, modelXbrlCreate(*args, **kwargs))
+def create(*args: Any, **kwargs: Any) -> XbrlTaxonomyModel:
+    return cast(XbrlTaxonomyModel, modelXbrlCreate(*args, **kwargs))
