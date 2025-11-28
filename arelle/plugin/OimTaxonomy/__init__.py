@@ -373,6 +373,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
             #loadOIMTaxonomy(cntlr, error, warning, modelXbrl, xbrlTaxonomyObjects, "BakedInCoreObjects", loadingBakedInObjects=True, **kwargs)
             loadOIMTaxonomy(cntlr, error, warning, modelXbrl, os.path.join(RESOURCES_DIR, "xs-types.json"), "BakedInXbrlSpecObjects", loadingBakedInObjects=True, **kwargs)
             loadOIMTaxonomy(cntlr, error, warning, modelXbrl, os.path.join(RESOURCES_DIR, "xbrlSpec.json"), "BakedInXbrlSpecObjects", loadingBakedInObjects=True, **kwargs)
+            #loadOIMTaxonomy(cntlr, error, warning, modelXbrl, os.path.join(RESOURCES_DIR, "xbrl-objects.json"), "BakedInXbrlSpecObjects", loadingBakedInObjects=True, **kwargs)
             loadOIMTaxonomy(cntlr, error, warning, modelXbrl, os.path.join(RESOURCES_DIR, "types.json"), "BakedInXbrlSpecObjects", loadingBakedInObjects=True, **kwargs)
             loadOIMTaxonomy(cntlr, error, warning, modelXbrl, os.path.join(RESOURCES_DIR, "utr.json"), "BakedInXbrlSpecObjects", loadingBakedInObjects=True, **kwargs)
             loadOIMTaxonomy(cntlr, error, warning, modelXbrl, os.path.join(RESOURCES_DIR, "ref.json"), "BakedInXbrlSpecObjects", loadingBakedInObjects=True, **kwargs)
