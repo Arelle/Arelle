@@ -78,7 +78,7 @@
                 {
                     "name": "xbrl:timeSeriesCube",
                     "periodDimension": false,
-                    "entityDimension": false,
+                    "entityDimension": true,
                     "unitDimension": true,
                     "taxonomyDefinedDimension": true,
                     "allowedCubeDimensions" : [
@@ -506,6 +506,10 @@
             {
                 "name": "xbrl:iconLabel",
                 "dataType": "xbrli:emoji"
+            },
+            {
+                "name": "xbrl:errorMessage",
+                "dataType": "xs:string"
             }
         ],
         "labels" : [
@@ -1211,6 +1215,12 @@
                 "language": "en",
                 "relatedName": "xbrl:entityObject",
                 "value": "Entity Object"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrl:specificationErrorURI",
+                "value": "Spec Error URI"
             }
         ],
         "propertyTypes": [
@@ -1337,6 +1347,32 @@
                 "allowedObjects": [
                     "xbrl:abstractObject"
                 ]
+            },
+            {
+                "name": "xbrl:severity",
+                "dataType": "xs:string",
+                "definitional": true,
+                "allowedObjects": ["xbrl:memberObject"]
+            },
+            {
+                "name": "xbrl:conformanceTestFileName",
+                "dataType": "xs:string",
+                "allowedObjects": ["xbrl:referenceObject"]
+            },
+            {
+                "name": "xbrl:conformanceStatus",
+                "dataType": "xs:string",
+                "allowedObjects": ["xbrl:referenceObject"]
+            },
+            {
+                "name": "xbrl:specificationErrorURI",
+                "dataType": "xbrli:realURL",
+                "allowedObjects": ["xbrl:referenceObject"]
+            },
+            {
+                "name": "xbrl:validationLocation",
+                "dataType": "xs:string",
+                "allowedObjects": ["xbrl:memberObject"]
             }
         ],
         "referenceTypes": [
@@ -1410,6 +1446,14 @@
                 "requiredProperties" : [
                     "xbrl:semanticLink"
                 ]
+            },
+            {
+                "name": "xbrl:conformanceTestReference",
+                "allowedObjects": ["xbrl:memberObject"]
+            },
+            {
+                "name": "xbrl:specificationErrorReference",
+                "allowedObjects": ["xbrl:memberObject"]
             }
         ],
         "relationshipTypes": [
@@ -1636,6 +1680,20 @@
                 "cycles" : "none",
                 "sourceObjects" : ["xbrl:taxonomyObject", "xbrl:groupObject"],
                 "targetObjects" : ["xbrl:groupObject"]
+            },
+            {
+                "name": "xbrl:fact-footnote",
+                "uri": "http://xbrl.org/oim/fact-footnote",
+                "cycles" : "undirected",
+                "sourceObjects" : ["xbrl:factspaceObject"],
+                "targetObjects" : ["xbrl:footnoteObject"]
+            },
+            {
+                "name": "xbrl:fact-explanatoryFact",
+                "uri": "http://xbrl.org/oim/fact-explanatoryFact",
+                "cycles" : "undirected",
+                "sourceObjects" : ["xbrl:factspaceObject"],
+                "targetObjects" : ["xbrl:factspaceObject"]
             }
         ]
         

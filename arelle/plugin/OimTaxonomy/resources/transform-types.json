@@ -6,7 +6,7 @@
             "xbrl": "https://xbrl.org/2025",
             "xbrli":"https://xbrl.org/2025/instance",
             "xs": "http://www.w3.org/2001/XMLSchema",
-            "xbrltt":"https://xbrl.org/2025/transform-types/"  
+            "xbrltt":"https://xbrl.org/2025/transform-types"  
             },
         "documentNamespace":"xbrltt"
   },
