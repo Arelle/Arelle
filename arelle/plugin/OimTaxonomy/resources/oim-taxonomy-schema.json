@@ -77,38 +77,40 @@
                   },
                   "uniqueItems": true
                 },
-                "exportProfiles": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "name": { "$ref": "#/definitions/QName" },
-                      "taxonomyType": {
-                          "type": "string"
-                        },
+                "finalTaxonomy": {
+                  "type": "object",
+                  "description": "Defines those objects and object types that are considered final within the taxonomy, and cannot be extended by importing taxonomies.",
+                  "properties": {
+                    "name": { 
+                      "$ref": "#/definitions/QName",
+                      "description": "The QName that uniquely identifies the final taxonomy object."
+                    },
+                    "finalTaxonomyFlag": { 
+                      "type": "boolean",
+                      "description": "The boolean flag that indicates whether the taxonomy is final."
+                    },
+                    "finalObjectTypes": 
+                      {
+                          "type": "array",
+                          "items":{ "$ref": "#/definitions/QName" },
+                          "uniqueItems": true,
+                          "description": "Set of objects types that are considered final within the taxonomy. An importing taxonomy cannot include object types that are defined in this set."
+                      },
+                    "finalObjects": 
+                      {
+                          "type": "array",
+                          "items":{ "$ref": "#/definitions/QName" },
+                          "uniqueItems": true,
+                          "description": "Set of objects  that are considered final within the taxonomy. Can only include extendable objects that can be extended using the extend property such as domain objects, network objects and reference objects."
+                      },
                       "selections": {
                         "type": "array",
                         "items": { "$ref": "#/definitions/selectorObject" },
                         "uniqueItems": true
-                      },
-                      "exportObjects": {
-                        "type": "array",
-                        "items": { "$ref": "#/definitions/QName" },
-                        "uniqueItems": true
-                      },
-                      "exportObjectTypes": {
-                        "type": "array",
-                        "items": { "$ref": "#/definitions/QName" },
-                        "uniqueItems": true
-                      },
-                      "excludeLabels": {
-                        "type": "boolean"
                       }
-                    },
-                    "required": ["name"],
-                    "additionalProperties": false
                   },
-                  "uniqueItems": true
+                  "required": ["name"],
+                  "additionalProperties": false
                 },
                 "propertyTypes": {
                     "type": "array",
@@ -718,18 +720,51 @@
                     "type": "object",
                     "properties": {
                       "name": { "$ref": "#/definitions/SQName" },
-                      "factValues" : {
-                           "type": "array",
-                            "items": {
-                              "type": "object",
-                              "properties": {
-                                "name": { "$ref": "#/definitions/QName" },
-                                "value": { "type": "string" },
-                                "decimals": { "type": "number" }
-                                },
-                                "additionalProperties": false
-                              }
+                      "factValues": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "name": { "$ref": "#/definitions/QName" },
+                            "value": {
+                              "type": "string",
+                              "description": "Literal fact value, when not derived from valueSources."
                             },
+                            "decimals": {
+                              "type": "number",
+                              "description": "Number of decimal places for the fact value."
+                            },
+                            "language": {
+                              "type": "string",
+                              "pattern": "^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$",
+                              "description": "Language of the fact value (BCP 47)."
+                            },
+                            "valueSources": {
+                              "type": "array",
+                              "description": "Ordered set of factValueSource objects identifying where the values are obtained from content of an embedding or accompanying document file.",
+                              "items": { "$ref": "#/definitions/factValueSourceObject" },
+                              "minItems": 1,
+                              "uniqueItems": true
+                            },
+                            "valueAnchors": {
+                              "type": "array",
+                              "description": "Ordered set of factValueAnchor objects identifying corresponding content of an embedding document file for visual highlighting and mouse-over, typically when the value is provided directly in 'value'.",
+                              "items": { "$ref": "#/definitions/factValueAnchorObject" },
+                              "minItems": 1,
+                              "uniqueItems": true
+                            }
+                          },
+                          "additionalProperties": false,
+                          "allOf": [
+                            {
+                              "anyOf": [
+                                { "required": ["value"] },
+                                { "required": ["valueSources"] }
+                              ]
+                            }
+                          ]
+                        }
+                      },
                       "factDimensions": {
                         "type": "object",
                         "description": "Object mapping dimension QNames to their values for this fact.",
@@ -764,6 +799,25 @@
                     "additionalProperties": false
                   },
                   "uniqueItems": true
+                },
+                "footnotes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": { "$ref": "#/definitions/footnoteTypeQName" },
+                      "content": {"type": "string",
+                                  "description": "The content of the footnote."},
+                      "language": {
+                        "type": "string",
+                        "pattern": "^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$",
+                        "description": "[oimte:badlanguage] Language code (BCP 47)."
+                      }
+                    },
+                    "required": ["name", "content", "language"],
+                    "additionalProperties": false
+                  },
+                    "uniqueItems": true
                 },
                 "labelTypes": {
                   "type": "array",
@@ -1374,6 +1428,10 @@
           "$ref": "#/definitions/QName",
           "description": "QName that references a unit object defined in the taxonomy."
       },
+      "footnoteTypeQName": {
+          "$ref": "#/definitions/QName",
+          "description": "QName that references a footnoteType object defined in the taxonomy."
+      },
       "relationshipConstraint" :{
             "type": "string",
             "pattern": "^relationship\\.(source|target|property|properties)(?:\\.[A-Za-z_][A-Za-z0-9_]*(?::[A-Za-z_][A-Za-z0-9_]*)?)*\\s*(==|!=|>=|<=|>|<)\\s*[^=<>!()]+(?:\\s*(AND|OR|NOT)\\s*relationship\\.(source|target|property|properties)(?:\\.[A-Za-z_][A-Za-z0-9_]*(?::[A-Za-z_][A-Za-z0-9_]*)?)*\\s*(==|!=|>=|<=|>|<)\\s*[^=<>!()]+)*$",
@@ -1462,6 +1520,207 @@
             { "required": ["value"] }
           ],
           "additionalProperties": false
+        },
+        "factValueSourceObject": {
+          "type": "object",
+          "description": "Represents the source(s) of a fact value from a document file's content.",
+          "properties": {
+            "medium": {
+              "type": "string",
+              "description": "Optional medium hint (e.g. html, pdf, tabular); may also be specified at the model level."
+            },
+            "href": {
+              "type": "string",
+              "description": "For HTML: element containing the mapped inner text content (e.g. '#elt1')."
+            },
+            "formField": {
+              "type": "string",
+              "description": "For PDF: the field name of a PDF form field whose content contributes to the value."
+            },
+            "page": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "For PDF non-form text: the page number."
+            },
+            "mcid": {
+              "type": "string",
+              "description": "For PDF non-form structure text identified by MCID."
+            },
+            "elementId": {
+              "type": "string",
+              "description": "For PDF non-form text identified by structure element Id."
+            },
+            "tabularPath": {
+              "type": "string",
+              "description": "For tabular/workbook sources: a TabularPath expression."
+            },
+            "transformation": {
+              "$ref": "#/definitions/QName",
+              "description": "QName of a transformation applied to the source text."
+            },
+            "scale": {
+              "type": "integer",
+              "description": "Power of 10 to multiply the source numeric text (e.g. 3 for billions)."
+            },
+            "sign": {
+              "type": "string",
+              "description": "Sign of the value when not part of the transformation."
+            }
+          },
+          "additionalProperties": false,
+
+          "allOf": [
+            {
+              "oneOf": [
+                {
+                  "required": ["href"],
+                  "not": {
+                    "anyOf": [
+                      { "required": ["formField"] },
+                      { "required": ["page"] },
+                      { "required": ["mcid"] },
+                      { "required": ["elementId"] },
+                      { "required": ["tabularPath"] }
+                    ]
+                  }
+                },
+                {
+                  "required": ["formField"],
+                  "not": {
+                    "anyOf": [
+                      { "required": ["href"] },
+                      { "required": ["page"] },
+                      { "required": ["mcid"] },
+                      { "required": ["elementId"] },
+                      { "required": ["tabularPath"] }
+                    ]
+                  }
+                },
+                {
+                  "required": ["page"],
+                  "anyOf": [
+                    { "required": ["mcid"] },
+                    { "required": ["elementId"] }
+                  ],
+                  "not": {
+                    "anyOf": [
+                      { "required": ["href"] },
+                      { "required": ["formField"] },
+                      { "required": ["tabularPath"] }
+                    ]
+                  }
+                },
+                {
+                  "required": ["tabularPath"],
+                  "not": {
+                    "anyOf": [
+                      { "required": ["href"] },
+                      { "required": ["formField"] },
+                      { "required": ["page"] },
+                      { "required": ["mcid"] },
+                      { "required": ["elementId"] }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+
+        "factValueAnchorObject": {
+          "type": "object",
+          "description": "Specifies the source(s) of a fact value from a document file's content for tool visual actions (highlighting, mouse-over).",
+          "properties": {
+            "medium": {
+              "type": "string",
+              "description": "Optional medium hint (e.g. html, pdf, workbook); may also be specified at the model level."
+            },
+            "href": {
+              "type": "string",
+              "description": "For HTML: element containing the mapped inner text content (e.g. '#elt1')."
+            },
+            "formField": {
+              "type": "string",
+              "description": "For PDF: the field name of a PDF form field that contributes to the value."
+            },
+            "page": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "For PDF non-form text: the page number."
+            },
+            "mcid": {
+              "type": "string",
+              "description": "For PDF non-form structure text identified by MCID."
+            },
+            "elementId": {
+              "type": "string",
+              "description": "For PDF non-form text identified by structure element Id."
+            },
+
+            "tabularPath": {
+              "type": "string",
+              "description": "For workbook/tabular sources: a TabularPath expression."
+            }
+          },
+          "additionalProperties": false,
+
+          "allOf": [
+            {
+              "oneOf": [
+                {
+
+                  "required": ["href"],
+                  "not": {
+                    "anyOf": [
+                      { "required": ["formField"] },
+                      { "required": ["page"] },
+                      { "required": ["mcid"] },
+                      { "required": ["elementId"] },
+                      { "required": ["tabularPath"] }
+                    ]
+                  }
+                },
+                {
+                  "required": ["formField"],
+                  "not": {
+                    "anyOf": [
+                      { "required": ["href"] },
+                      { "required": ["page"] },
+                      { "required": ["mcid"] },
+                      { "required": ["elementId"] },
+                      { "required": ["tabularPath"] }
+                    ]
+                  }
+                },
+                {
+                  "required": ["page"],
+                  "anyOf": [
+                    { "required": ["mcid"] },
+                    { "required": ["elementId"] }
+                  ],
+                  "not": {
+                    "anyOf": [
+                      { "required": ["href"] },
+                      { "required": ["formField"] },
+                      { "required": ["tabularPath"] }
+                    ]
+                  }
+                },
+                {
+                  "required": ["tabularPath"],
+                  "not": {
+                    "anyOf": [
+                      { "required": ["href"] },
+                      { "required": ["formField"] },
+                      { "required": ["page"] },
+                      { "required": ["mcid"] },
+                      { "required": ["elementId"] }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
         }
       },
       "required" : ["documentInfo"],
