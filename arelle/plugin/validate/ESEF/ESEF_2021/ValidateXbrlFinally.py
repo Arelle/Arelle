@@ -343,7 +343,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                         _("Images included in the XHTML document SHOULD be base64 encoded: %(src)s."),
                                         modelObject=elt, src=src[:128])
                                     if dataURLParts and dataURLParts.mimeSubtype and dataURLParts.data:
-                                        checkImageContents(modelXbrl, elt, dataURLParts.mimeSubtype, False, dataURLParts.data, val.consolidated)
+                                        checkImageContents(modelXbrl, elt, dataURLParts.mimeSubtype, False, dataURLParts.data, val.consolidated)  # type: ignore[arg-type]
                                 else:
                                     if not dataURLParts.mimeSubtype:
                                         modelXbrl.error(f"{contentOtherThanXHTMLGuidance}.MIMETypeNotSpecified",
@@ -355,7 +355,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                             modelObject=elt, src=src[:128])
                                     # check for malicious image contents
                                     try: # allow embedded newlines
-                                        checkImageContents(modelXbrl, elt, dataURLParts.mimeSubtype, False, decodeBase64DataImage(dataURLParts.data), val.consolidated)
+                                        checkImageContents(modelXbrl, elt, dataURLParts.mimeSubtype, False, decodeBase64DataImage(dataURLParts.data), val.consolidated)  # type: ignore[arg-type]
                                         imgContents = None # deref, may be very large
                                     except binascii.Error as err:
                                         modelXbrl.error(f"{contentOtherThanXHTMLGuidance}.embeddedImageNotUsingBase64Encoding",
@@ -422,7 +422,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     if isinstance(elt, ModelInlineFootnote):
                         checkFootnote(elt, elt.value)
                     elif isinstance(elt, ModelResource) and elt.qname == XbrlConst.qnLinkFootnote:
-                        checkFootnote(elt, elt.value)
+                        checkFootnote(elt, elt.value) # type: ignore[attr-defined]
                     elif isinstance(elt, ModelInlineFact):
                         if elt.format is not None and elt.format.namespaceURI not in IXT_NAMESPACES:
                             transformRegistryErrors.add(elt)

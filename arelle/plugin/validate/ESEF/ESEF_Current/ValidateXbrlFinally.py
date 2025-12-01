@@ -505,7 +505,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     if isinstance(elt, ModelInlineFootnote):
                         checkFootnote(elt, elt.value)
                     elif isinstance(elt, ModelResource) and elt.qname == XbrlConst.qnLinkFootnote:
-                        checkFootnote(elt, elt.value)
+                        checkFootnote(elt, elt.value)  # type: ignore[attr-defined]
                     elif isinstance(elt, ModelInlineFact):
                         if elt.format is not None and elt.format.namespaceURI not in allowedTRnamespaces:
                             transformRegistryErrors.add(elt)
