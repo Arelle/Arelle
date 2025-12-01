@@ -39,13 +39,13 @@ jobs:
           name: ${{ inputs.github_artifact }}
 
       - name: Upload build to release
-        uses: softprops/action-gh-release@v2.4.2
+        uses: softprops/action-gh-release@v2.5.0
         with:
           fail_on_unmatched_files: true
           files: ${{ inputs.build_name }}
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v5.1.0
+        uses: aws-actions/configure-aws-credentials@v5.1.1
         with:
           role-to-assume: arn:aws:iam::494047596077:role/GitHubActionsArelleS3Upload
           aws-region: us-west-1
