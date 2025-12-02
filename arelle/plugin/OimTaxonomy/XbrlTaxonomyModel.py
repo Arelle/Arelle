@@ -11,7 +11,7 @@ from arelle.oim.Load import EMPTY_DICT
 from arelle.PythonUtil import OrderedSet
 from .XbrlConcept import XbrlConcept, XbrlDataType
 from .XbrlGroup import XbrlGroupContent
-from .XbrlReport import XbrlFact, XbrlFootnote, XbrlReport
+from .XbrlReport import XbrlFactspace, XbrlFootnote, XbrlReport
 from .XbrlTypes import XbrlTaxonomyModuleType, XbrlLayoutType, QNameKeyType, XbrlLabelType, XbrlPropertyType
 from .XbrlObject import XbrlObject, XbrlReferencableTaxonomyObject, XbrlTaxonomyTagObject, XbrlReportObject
 
@@ -33,9 +33,8 @@ class XbrlTaxonomyModel(ModelXbrl): # complete wrapper for ModelXbrl
     layouts: OrderedDict[QNameKeyType, XbrlLayoutType]
     xbrlObjects: list[XbrlObject] # not visible metadata
     # objects only present for XbrlReports
-    linkTypes: dict[str, AnyURI]
-    linkGroups: dict[str, AnyURI]
-    facts: dict[str, XbrlFact] # constant facts in taxonomy
+    factspaces: dict[str, XbrlFactspace] # constant factspaces in taxonomy
+    footnotes: dict[str, XbrlFootnote] # constant footnotes in taxonomy
     reports: OrderedDict[QNameKeyType, XbrlReport] = OrderedDict()
 
     @classmethod
@@ -118,7 +117,7 @@ class XbrlTaxonomyModel(ModelXbrl): # complete wrapper for ModelXbrl
     # dts-wide object accumulator properties
     def filterNamedObjects(self, _class, _type=None, _lang=None):
         if (issubclass(_class, XbrlReferencableTaxonomyObject) or # taxpmp,u-pwmed referemcab;e pbkect
-            (issubclass(_class, (XbrlFact,XbrlFootnote)) and isinstance(self, XbrlTaxonomyModel))):  # taxonomy-owned fact
+            (issubclass(_class, (XbrlFactspace,XbrlFootnote)) and isinstance(self, XbrlTaxonomyModel))):  # taxonomy-owned fact
             for obj in self.namedObjects.values():
                 if isinstance(obj, _class):
                     yield obj

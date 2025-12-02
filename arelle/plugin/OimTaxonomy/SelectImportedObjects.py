@@ -42,8 +42,8 @@ def eval(obj, whereObj):
         return v1 <= v2
 
 def selectImportedObjects(txmyMdl, newTxmy, impTxObj):
-    i0 = newTxmy.xbrlMdlObjIndex # object index range of imported objects
-    iL = newTxmy._lastMdlObjIndex
+    i0 = impTxObj._txmyModule.xbrlMdlObjIndex # object index range of imported objects
+    iL = impTxObj._txmyModule._lastMdlObjIndex
     selObjs = bitarray(iL - i0 + 1) # True if object is selected
     exclObjs = bitarray(iL - i0 + 1) # True if object is excluded
     hasSel = False # has anything selecting

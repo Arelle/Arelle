@@ -20,7 +20,7 @@ from .XbrlLabel import XbrlLabel, XbrlLabelType
 from .XbrlNetwork import XbrlNetwork, XbrlRelationship, XbrlRelationshipType, XbrlRelationshipConstraint
 from .XbrlProperty import XbrlProperty, XbrlPropertyType
 from .XbrlReference import XbrlReference, XbrlReferenceType
-from .XbrlReport import XbrlFact, XbrlFootnote
+from .XbrlReport import XbrlFactspace, XbrlFootnote
 from .XbrlTaxonomyModel import XbrlTaxonomyModel
 from .XbrlTransform import XbrlTransform
 from .XbrlUnit import XbrlUnit
@@ -44,7 +44,7 @@ class XbrlTaxonomyModule(XbrlTaxonomyObject):
     domains: OrderedSet[XbrlDomain] # (optional) ordered set of domain objects.
     domainRoots: OrderedSet[XbrlDomainRoot] # (optional) ordered set of domain root objects.
     entities: OrderedSet[XbrlEntity] # (optional) ordered set of entity objects.
-    factspaces: OrderedSet[XbrlFact] #  (optional) ordered set of fact objects.
+    factspaces: OrderedSet[XbrlFactspace] #  (optional) ordered set of factspace objects.
     footnotes: OrderedSet[XbrlFootnote] #  (optional) ordered set of footnote objects.
     groups: OrderedSet[XbrlGroup] #  (optional) ordered set of group objects.
     groupContents: OrderedSet[XbrlGroupContent] # ordered set of groupContent objects that link a group QName to a list of network or cube objects.
@@ -71,9 +71,9 @@ referencableObjectTypes = {
         qname("{https://xbrl.org/2025}xbrl:domainObject"): XbrlDomain,
         qname("{https://xbrl.org/2025}xbrl:domainRootObject"): XbrlDomainRoot,
         qname("{https://xbrl.org/2025}xbrl:entityObject"): XbrlEntity,
-        qname("{https://xbrl.org/2025}xbrl:fact"): XbrlFact,
+        qname("{https://xbrl.org/2025}xbrl:factspaceObject"): XbrlFactspace,
         qname("{https://xbrl.org/2025}xbrl:finalTaxonomyObject"): XbrlFinalTaxonomy,
-        qname("{https://xbrl.org/2025}xbrl:footnote"): XbrlFootnote,
+        qname("{https://xbrl.org/2025}xbrl:footnoteObject"): XbrlFootnote,
         qname("{https://xbrl.org/2025}xbrl:groupObject"): XbrlGroup,
         qname("{https://xbrl.org/2025}xbrl:groupTreeObject"): XbrlGroupTree,
         qname("{https://xbrl.org/2025}xbrl:networkObject"): XbrlNetwork,

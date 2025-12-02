@@ -73,7 +73,8 @@ def validateCubes(fact, txmyMdl):
                     break
             else: # taxonomy defined dim
                 dimObj = txmyMdl.namedObjects.get(dimName)
-                if (isinstance(dimObj, XbrlDimension) and dimObj.isExplicitDimension and
+                isTyped = bool(cubeDimObj.domainDataType)
+                if (isinstance(dimObj, XbrlDimension) and not isTyped and
                     fact.factDimensions.get(dimName) not in cubeDimObj.allowedMembers(txmyMdl)):
                     hasDims = False # skip this cube
                     break
