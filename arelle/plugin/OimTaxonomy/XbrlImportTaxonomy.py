@@ -35,6 +35,8 @@ class XbrlImportTaxonomy(XbrlTaxonomyObject):
     importObjects: set[QName] # (optional) A set of object QNames that should be imported from the taxonomyName location property. Only the objects defined in the include and any dependent objects are added to the dts. This property can only be used for taxonomy files using the OIM specification. The dependents of each object are defined in this specification.
     importObjectTypes: set[QName] # (optional) A set of object type QNames that should be imported from the taxonomyName location property. Examples include xbrl:conceptObject and xbrl:memberObject. All objects of the specified object types from the taxonomyName and any dependent objects will be imported. This property can only be used for taxonomy files using the OIM specification. The includeObjectTypes cannot include the label object.
     excludeLabels: Union[bool, DefaultFalse] # (optional) If set to true, any labels attached to the objects comprising the taxonomy model deriving from the taxonomyName property will be excluded from the taxonomy model. The default value is false.
+    
+    # _txmyModule: XbrlTaxonomyModule of the import
 
 class XbrlFinalTaxonomy(XbrlTaxonomyObject):
     taxonomy: XbrlTaxonomyModuleType

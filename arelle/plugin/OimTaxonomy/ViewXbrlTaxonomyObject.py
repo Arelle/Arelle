@@ -13,7 +13,7 @@ from .XbrlCube import XbrlCube, XbrlPeriodConstraint
 from .XbrlDimension import XbrlDomain
 from .XbrlGroup import XbrlGroup
 from .XbrlNetwork import XbrlNetwork
-from .XbrlReport import XbrlReport, XbrlFact
+from .XbrlReport import XbrlReport, XbrlFactspace
 from .XbrlObject import EMPTY_DICT, XbrlTaxonomyObject
 from .XbrlConst import qnStdLabel
 
@@ -38,7 +38,7 @@ def viewXbrlTaxonomyObject(xbrlTxmyMdl, objClass, tabWin, header, additionalView
             view.propNameTypes.append((propName, propType))
     # add label col if first col is name for Concepts pane
     if view.propNameTypes and view.propNameTypes[0][0] == "name":
-        if objClass.__name__ in ("XbrlConcept", "XbrlFact"):
+        if objClass.__name__ in ("XbrlConcept", "XbrlFactspace"):
             view.propNameTypes.insert(0, ("label", str))
         else:
             view.propNameTypes[0] = ("name", view.propNameTypes[0][1])
@@ -107,7 +107,7 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
              XbrlConst.xbrldt,
              XbrlConst.xhtml))
         for obj in self.xbrlTxmyMdl.filterNamedObjects(self.objClass, role, lang): # this is a yield generator
-            if isinstance(obj, XbrlFact):
+            if isinstance(obj, XbrlFactspace):
                 self.viewProps("", nodeNum, obj, False)
                 nodeNum += 1
                 continue

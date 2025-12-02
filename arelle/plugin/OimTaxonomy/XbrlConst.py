@@ -21,7 +21,8 @@ qnXsDuration = qname(xsd, "xs:duration")
 qnXsQName = qname(xsd, "xs:QName")
 
 qnXbrlConceptObj = qname(xbrl, "xbrl:conceptObject")
-qnXbrlEntityObj = qname(xbrl, "xbrl:entityObject")
+qnXbrlEntityObj = qname(xbrl, "xbrl:entityObject") 
+qnXbrlMemberObj = qname(xbrl, "xbrl:memberObject")
 qnXbrlUnitObj = qname(xbrl, "xbrl:unitObject")
 qnXbrlLabelObj = qname(xbrl, "xbrl:labelObject")
 qnXbrlReferenceObj = qname(xbrl, "xbrl:referenceObject")
@@ -37,11 +38,12 @@ objectsWithProperties = {
     qname(xbrl, "xbrl:cubeObject"),
     qname(xbrl, "xbrl:dimensionObject"),
     qname(xbrl, "xbrl:domainObject"),
+    qname(xbrl, "xbrl:domainRootObject"),
     qnXbrlEntityObj,
     qname(xbrl, "xbrl:groupObject"),
     qname(xbrl, "xbrl:networkObject"),
     qnXbrlLabelObj,
-    qname(xbrl, "xbrl:memberObject"),
+    qnXbrlMemberObj,
     qnXbrlReferenceObj,
     qname(xbrl, "xbrl:relationshipObject"),
     }

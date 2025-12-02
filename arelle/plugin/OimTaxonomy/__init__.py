@@ -60,7 +60,7 @@ from .XbrlLayout import XbrlLayout
 from .XbrlNetwork import XbrlNetwork, XbrlRelationship, XbrlRelationshipType
 from .XbrlProperty import XbrlProperty, XbrlPropertyType
 from .XbrlReference import XbrlReference, XbrlReferenceType
-from .XbrlReport import XbrlReport, XbrlFact
+from .XbrlReport import XbrlReport, XbrlFactspace, XbrlFootnote
 from .XbrlTransform import XbrlTransform
 from .XbrlUnit import XbrlUnit
 from .XbrlTaxonomyModel import XbrlTaxonomyModel, castToXbrlTaxonomyModel
@@ -502,7 +502,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                         elif isinstance(jsonValue, dict) and _keyClass is not None:
                             for iObj, (valKey, valVal) in enumerate(jsonValue.items()):
                                 if isinstance(_keyClass, type) and issubclass(_keyClass,QName):
-                                    if jsonKey == "dimensions" and objClass == XbrlFact:
+                                    if jsonKey == "dimensions" and objClass == XbrlFactspace:
                                         valKey = coreDimensionsByLocalname.get(valKey, valKey) # unprefixed core dimension localNames
                                     _valKey = qname(valKey, prefixNamespaces)
                                     if _valKey is None:
@@ -564,7 +564,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                 for propName in unexpectedJsonProps:
                     jsonEltsNotInObjClass.append(f"{'/'.join(pathParts + [propName])}={jsonObj.get(propName,'(absent)')}")
             if (isinstance(newObj, XbrlReferencableTaxonomyObject) or # most referencable taxonomy objects
-                (isinstance(newObj, XbrlFact) and isinstance(oimParentObj, XbrlTaxonomyModule))): # taxonomy-owned fact
+                (isinstance(newObj, (XbrlFactspace, XbrlFootnote)) and isinstance(oimParentObj, XbrlTaxonomyModule))): # taxonomy-owned fact
                 if keyValue in xbrlTxmyMdl.namedObjects:
                     namedObjectDuplicates[keyValue].add(newObj)
                     namedObjectDuplicates[keyValue].add(xbrlTxmyMdl.namedObjects[keyValue])
@@ -643,6 +643,8 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
             newReport._url = oimFile
             modelXbrl.profileActivity(f"Create report objects from {txFileBasename}", minTimeToShow=PROFILE_MIN_TIME)
         newTxmy._lastMdlObjIndex = len(xbrlTxmyMdl.xbrlObjects) - 1
+        schemaDoc._txmyModule = newTxmy
+
 
         if jsonEltsNotInObjClass:
             error("arelle:undeclaredOimTaxonomyJsonElements",
@@ -672,8 +674,9 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                             mappedUrl = PackageManager.mappedUrl(normalizedUri)
                         else:
                             mappedUrl = modelXbrl.modelManager.disclosureSystem.mappedUrl(normalizedUri)
-                        loadOIMTaxonomy(cntlr, error, warning, modelXbrl, mappedUrl, url,
-                                        importingTxmyObj=impTxObj)
+                        impSchemaDoc = loadOIMTaxonomy(cntlr, error, warning, modelXbrl, 
+                                                       mappedUrl, url, importingTxmyObj=impTxObj)
+                        impTxObj._txmyModule = impSchemaDoc._txmyModule
                         selectImportedObjects(xbrlTxmyMdl, newTxmy, impTxObj)
 
         modelXbrl.profileActivity(f"Load taxonomies imported from {txFileBasename}", minTimeToShow=PROFILE_MIN_TIME)
@@ -1153,8 +1156,8 @@ def oimTaxonomyViews(cntlr, xbrlTxmyMdl):
                              (XbrlNetwork, cntlr.tabWinTopRt, "XBRL Networks"),
                              (XbrlCube, cntlr.tabWinTopRt, "XBRL Cubes")
                             ))
-        if any(xbrlTxmyMdl.filterNamedObjects(XbrlFact)):
-            initialViews.append( (XbrlFact, cntlr.tabWinTopRt, "Taxonomy Facts") )
+        if any(xbrlTxmyMdl.filterNamedObjects(XbrlFactspace)):
+            initialViews.append( (XbrlFactspace, cntlr.tabWinTopRt, "Taxonomy Facts") )
         initialViews = tuple(initialViews)
         additionalViews = ((XbrlAbstract, cntlr.tabWinBtm, "XBRL Abstracts"),
                            (XbrlCubeType, cntlr.tabWinBtm, "XBRL Cube Types"),

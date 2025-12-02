@@ -13,7 +13,7 @@ from arelle.PythonUtil import attrdict, OrderedSet
 from arelle.oim.Load import EMPTY_DICT, csvPeriod
 from .XbrlAbstract import XbrlAbstract
 from .XbrlConcept import XbrlConcept, XbrlDataType, XbrlUnitType
-from .XbrlConst import xbrl, qnXbrlReferenceObj, qnXbrlLabelObj, qnXbrlConceptObj, qnXbrlEntityObj, qnXbrlUnitObj
+from .XbrlConst import xbrl, qnXbrlReferenceObj, qnXbrlLabelObj, qnXbrlConceptObj, qnXbrlMemberObj, qnXbrlEntityObj, qnXbrlUnitObj
 from .XbrlCube import (XbrlCube, XbrlCubeType, baseCubeTypes, XbrlCubeDimension,
                        periodCoreDim, conceptCoreDim, entityCoreDim, unitCoreDim, languageCoreDim, coreDimensions,
                     conceptDomainRoot, entityDomainRoot, unitDomainRoot, languageDomainRoot,
@@ -32,7 +32,7 @@ from .XbrlTaxonomyModule import XbrlTaxonomyModule, xbrlObjectTypes, referencabl
 from .XbrlUnit import XbrlUnit, parseUnitString
 from .XbrlConst import qnXsQName, qnXsDate, qnXsDateTime, qnXsDuration, objectsWithProperties
 from arelle.FunctionFn import true
-validateFact = None
+validateFactspace = None
 
 perCnstrtFmtStartEndPattern = re.compile(r".*@(start|end)")
 
@@ -478,7 +478,7 @@ def validateTaxonomy(txmyMdl, txmy, mdlLvlChecks):
         for iCubeDim, cubeDimObj in enumerate(cubeObj.cubeDimensions):
             assertObjectType(txmyMdl, cubeDimObj, XbrlCubeDimension)
             dimName = cubeDimObj.dimensionName
-            dimObj = txmyMdl.namedObjects[dimName]
+            dimObj = txmyMdl.namedObjects.get(dimName)
             isTyped = False
             if not isinstance(dimObj, XbrlDimension):
                 txmyMdl.error("oimte:invalidPropertyValue",
@@ -490,7 +490,7 @@ def validateTaxonomy(txmyMdl, txmy, mdlLvlChecks):
                 continue # not worth continuing, domain object missing root will be reported elsewhere
             cubeDimDT = cubeDimObj.domainDataType
             if cubeDimDT:
-                if isinstance(cubeDimDT, XbrlDataType):
+                if isinstance(txmyMdl.namedObjects.get(cubeDimDT), XbrlDataType):
                     isTyped = True
                 else:
                     txmyMdl.error("oimte:invalidPropertyValue",
@@ -554,16 +554,7 @@ def validateTaxonomy(txmyMdl, txmy, mdlLvlChecks):
                           _("Cube %(name)s dimension %(qname)s must not specify domain %(domain)s."),
                           xbrlObject=(cubeObj,cubeDimObj,dimObj), name=name, qname=dimName, domain=cubeDimObj.domainName)
             if dimName not in coreDimensions and isinstance(txmyMdl.namedObjects.get(dimName), XbrlDimension):
-                if isTyped:
-                    if dimObj.domainRoot:
-                        txmyMdl.error("oimte:invalidQNameReference",
-                                  _("Cube %(name)s typed dimension %(qname)s must not specify a domain root."),
-                                  xbrlObject=(cubeObj,cubeDimObj,dimObj), name=name, qname=dimName)
-                    if hasValidDomainName:
-                        txmyMdl.error("oimte:invalidCubeDimensionProperty",
-                                  _("Cube %(name)s typed dimension %(qname)s must not specify a domain %(domain)s."),
-                                  xbrlObject=(cubeObj,cubeDimObj,dimObj), name=name, qname=dimName, domain=cubeDimObj.domainName)
-                else: # explicit dim
+                if not isTyped: # explicit
                     domObj = txmyMdl.namedObjects.get(cubeDimObj.domainName)
                     if isinstance(domObj, XbrlDomain):
                         for relObj in domObj.relationships:
@@ -576,15 +567,15 @@ def validateTaxonomy(txmyMdl, txmy, mdlLvlChecks):
                                       _("Cube %(name)s explicit dimension domain root %(domRoot)s does not match dimension domainRoot %(dimRoot)s."),
                                       xbrlObject=(cubeObj,dimObj,relObj), name=name, qname=dimName, domRoot=domObj.root, dimRoot=dimObj.domainRoot)
             if not isTyped: # explicit dimension
-                if dimName in (periodCoreDim, languageCoreDim):
-                    txmyMdl.error("oimte:invalidCubeDimensionProperty",
-                              _("Cube %(name)s domainName property MUST NOT be used where the dimension domain root property has a QName value %(qname)s."),
-                              xbrlObject=cubeObj, name=name, qname=dimName)
                 if cubeDimObj.typedSort is not None:
                     txmyMdl.error("oimte:invalidCubeDimensionProperty",
                               _("Cube %(name)s typedSort property MUST not be used on an explicit dimension."),
                               xbrlObject=cubeObj, name=name)
             if dimName == periodCoreDim:
+                if cubeDimObj.domainName:
+                    txmyMdl.error("oimte:domainUsedOnPeriodDimension",
+                              _("Cube %(name)s domainName property MUST NOT be used where the dimension property has a QName value %(qname)s."),
+                              xbrlObject=cubeObj, name=name, qname=dimName)
                 for iPerConst, perConstObj in enumerate(cubeDimObj.periodConstraints):
                     if perConstObj.periodType not in ("instant", "duration", "none"):
                         txmyMdl.error("oimte:invalidPeriodRepresentation",
@@ -666,7 +657,7 @@ def validateTaxonomy(txmyMdl, txmy, mdlLvlChecks):
         if dtObj.unitType is not None:
             utObj = dtObj.unitType
             assertObjectType(txmyMdl, utObj, XbrlUnitType)
-            for utProp in ("dataTypeNumerator", "dataTypeDenominator", "dataTypeMutiplier"):
+            for utProp in ("dataTypeNumerator", "dataTypeDenominator", "dataTypeMultiplier"):
                 utPropQn = getattr(utObj, utProp)
                 if utPropQn and not isinstance(txmyMdl.namedObjects.get(utPropQn), XbrlDataType):
                     txmyMdl.error("oimte:invalidPropertyValue",
@@ -831,10 +822,10 @@ def validateTaxonomy(txmyMdl, txmy, mdlLvlChecks):
         name = domRtObj.name
         for allwdDomItemQn in domRtObj.allowedDomainItems:
             allwdDomItemObj = txmyMdl.namedObjects.get(allwdDomItemQn)
-            if allwdDomItemQn not in (xbrlMemberObj, qnXbrlConceptObj, qnXbrlEntityObj, qnXbrlUnitObj) and not isinstance(allwdDomItemObj, XbrlDataType):
+            if allwdDomItemQn not in (qnXbrlMemberObj, qnXbrlConceptObj, qnXbrlEntityObj, qnXbrlUnitObj) and not isinstance(allwdDomItemObj, XbrlDataType):
                 txmyMdl.error("oimte:invalidPropertyValue",
-                  _("DomainRoot %(name)s allowedDomainItem must be a member, xbrl object, or a dataType object %(allowedDomainITem)s."),
-                  xbrlObject=domRtObj, name=name, allowedDomainITem=allwdDomItemQn)
+                  _("DomainRoot %(name)s allowedDomainItem must be a member, xbrl object, or a dataType object %(allowedDomainItem)s."),
+                  xbrlObject=domRtObj, name=name, allowedDomainItem=allwdDomItemQn)
         validateProperties(txmyMdl, oimFile, txmy, domRtObj)
 
     # Entity Objects
@@ -861,12 +852,14 @@ def validateTaxonomy(txmyMdl, txmy, mdlLvlChecks):
         assertObjectType(txmyMdl, lblObj, XbrlLabel)
         relatedName = lblObj.relatedName
         relatedObj = None
-        if relatedName not in txmyMdl.namedObjects:
+        if relatedName in txmyMdl.namedObjects:
+            relatedObj = txmyMdl.namedObjects.get(relatedName)
+        elif relatedName in xbrlObjectTypes:
+            relatedObj = relatedName
+        else:
             txmyMdl.error("oimte:unresolvedRelatedName",
                       _("Label has invalid related object %(relatedName)s"),
                       xbrlObject=lblObj, relatedName=relatedName)
-        else:
-            relatedObj = txmyMdl.namedObjects.get(relatedName)
         lblTpObj = txmyMdl.namedObjects.get(lblObj.labelType)
         if isinstance(lblTpObj, XbrlLabelType):
             if lblTpObj.allowedObjects and relatedObj is not None and not any(
@@ -1137,11 +1130,11 @@ def validateTaxonomy(txmyMdl, txmy, mdlLvlChecks):
 
     # Facts in taxonomy
     if txmy.factspaces:
-        global validateFact
-        if validateFact is None:
-            from .ValidateReport import validateFact
-        for fact in txmy.factspaces:
-            validateFact(fact, txmy.name, txmy, txmyMdl)
+        global validateFactspace
+        if validateFactspace is None:
+            from .ValidateReport import validateFactspace
+        for factspace in txmy.factspaces:
+            validateFactspace(factspace, txmy.name, txmy, txmyMdl)
 
 def validateLayout(txmyMdl, layout):
     oimFile = str(layout.name)

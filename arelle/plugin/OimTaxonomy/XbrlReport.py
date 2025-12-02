@@ -39,11 +39,10 @@ class XbrlFactValue(XbrlObject):
     language: Optional[str] # (optional) The language of the fact value, specified using the BCP 47 standard language code (e.g., "en" for English, "fr" for French).
     valueSources: OrderedSet[XbrlFactValueSource] # (required if value not provided) An ordered set of factValueSource objects that identify where the values are obtained from content of an embedding or accompanying document file (html, pdf or tabular).
     valueAnchors: OrderedSet[XbrlFactValueAnchor] # (optional if valueSources not provided) An ordered set of factAnchor objects that identify corresponding content of an embedding document file (html, pdf or tabular) for cases where the value is provided in the value property instead of obtained from the content of document file. For example, non-transformable values, such as a QName value, may correspond to prose text in the document file. Used by tools to highlight and detect mouse-over correspondence between fact values and document text.
-    # language?
 
-class XbrlFact(XbrlReportObject):
+class XbrlFactspace(XbrlReportObject):
     parent: Union[XbrlReportType,XbrlTaxonomyModuleType]  # facts in taxonomy module are owned by the txmyMdl
-    name: QNameKeyType # (required) The name is a QName that uniquely identifies the abstract object.
+    name: QNameKeyType # (required) The name is a QName that uniquely identifies the factspace object.
     factValues: OrderedSet[XbrlFactValue]
     factDimensions: dict[QName, Any] # (required) A dimensions object with properties corresponding to the members of the {dimensions} property.
     _propertyMap: ClassVar[dict[type,dict[str, str]]] = {}
@@ -66,23 +65,21 @@ class XbrlTable(XbrlReportObject):
 class XbrlReport(XbrlReportObject):
     txmyMdl: XbrlTaxonomyModelType
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the abstract object.
-    linkTypes: OrderedDict[str, AnyURI]
-    linkGroups: OrderedDict[str, AnyURI]
-    facts: OrderedDict[QNameKeyType, XbrlFact]
+    factspaces: OrderedDict[QNameKeyType, XbrlFactspace]
     footnotes: OrderedDict[QNameKeyType, XbrlFootnote]
     tables: OrderedDict[QNameKeyType, XbrlTable] # CSV tables in the report
 
     @property
-    def factsByName(self):
+    def factspacesByName(self):
         try:
-            return self._factsByName
+            return self._factspacesByName
         except AttributeError:
-            self._factsByName = fbn = defaultdict(OrderedSet)
-            for fact in self.facts:
-                fbn[fact.name].add(fact)
-            return self._factsByName
+            self._factspacesByName = fbn = defaultdict(OrderedSet)
+            for factspace in self.factspaces:
+                fbn[factspace.name].add(factspace)
+            return self._factspacesByName
 
-XbrlFact._propertyMap[XbrlReport] = {
+XbrlFactspace._propertyMap[XbrlReport] = {
     # mapping for OIM report facts parented by XbrlReport object
     "name": "id", # name may be id in source input
     "factDimensions": "dimensions" # factDimensions may be dimensions in source input
