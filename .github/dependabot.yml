@@ -1,6 +1,8 @@
 version: 2
 updates:
   - package-ecosystem: "github-actions"
+    cooldown:
+      default-days: 1
     directory: "/"
     schedule:
       interval: weekly
@@ -12,6 +14,8 @@ updates:
       - dependency-name: "softprops/action-gh-release"
         versions: ["2.2.0"]
   - package-ecosystem: "github-actions"
+    cooldown:
+      default-days: 1
     directory: "/.github/actions/test_conformance_suite"
     schedule:
       interval: weekly
@@ -23,6 +27,8 @@ updates:
       - dependency-name: "softprops/action-gh-release"
         versions: ["2.2.0"]
   - package-ecosystem: pip
+    cooldown:
+      default-days: 1
     directory: "/"
     schedule:
       interval: weekly
@@ -33,6 +39,8 @@ updates:
     ignore:
       - dependency-name: "cx_Freeze"
   - package-ecosystem: nuget
+    cooldown:
+      default-days: 1
     directories:
       - /tests/integration_tests/ui_tests/ArelleGUITest
       - /tests/integration_tests/ui_tests/ArelleGUITest/ArelleGUITest
@@ -43,6 +51,8 @@ updates:
         patterns:
           - "*"
   - package-ecosystem: docker
+    cooldown:
+      default-days: 1
     directory: "/docker/"
     schedule:
       interval: weekly
