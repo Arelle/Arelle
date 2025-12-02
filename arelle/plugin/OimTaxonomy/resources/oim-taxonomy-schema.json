@@ -316,10 +316,21 @@
                             "items": { "$ref": "#/definitions/propertyObject"},
                             "description": "Additional properties associated with the cube.",
                             "uniqueItems": true
-                        }
+                        },
+                      "extendTargetName": { "$ref": "#/definitions/QName" }
                     },
-                        "required": ["name", "cubeDimensions"],
-                        "additionalProperties": false
+                      "oneOf": [
+                        { "required": ["name", "cubeDimensions"] },
+                        { "required": ["extendTargetName"] }
+                      ],
+                      "not": {
+                        "anyOf": [
+                            { "required": ["extendTargetName", "cubeDimensions"] },
+                            { "required": ["extendTargetName", "cubeType"] },
+                            { "required": ["extendTargetName", "name"] }
+                          ]
+                      },
+                      "additionalProperties": false
                     },
                     "uniqueItems": true
                 },
@@ -793,10 +804,26 @@
                             },
                         "additionalProperties": false,
                         "required": ["xbrl:concept"]
-                      }
+                      },
+                      "properties": {
+                        "type": "array",
+                        "items": { "$ref": "#/definitions/propertyObject" },
+                        "description": "Additional properties associated with the label.",
+                        "uniqueItems": true
+                      },
+                      "extendTargetName": { "$ref": "#/definitions/SQName"}
                     },
-                    "required": ["name", "factDimensions"],
-                    "additionalProperties": false
+                      "oneOf": [
+                        { "required": ["name", "factDimensions"] },
+                        { "required": ["extendTargetName"] }
+                      ],
+                      "not": {
+                        "anyOf": [
+                            { "required": ["extendTargetName", "factDimensions"] },
+                            { "required": ["extendTargetName", "name"] }
+                          ]
+                      },
+                      "additionalProperties": false
                   },
                   "uniqueItems": true
                 },

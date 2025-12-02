@@ -78,6 +78,15 @@
                 }
             },
             {
+                "name": "xbrli:excludedIntervalsSet",
+                "baseType": "xbrli:set",
+                "setType": {
+                    "dataTypesAllowed":["xs:string"],
+                    "uniqueValues":true,
+                    "orderedValues":false
+                }
+            },
+            {
                 "name" : "xbrli:domain",
                 "baseType" : "xs:string"
             },

@@ -1334,7 +1334,7 @@
             },
             {
                 "name": "xbrl:excludedIntervals",
-                "dataType": "xs:string",
+                "dataType": "xbrli:excludedIntervalsSet",
                 "definitional": false,
                 "allowedObjects": [
                     "xbrl:domainRootObject"
@@ -1373,6 +1373,11 @@
                 "name": "xbrl:validationLocation",
                 "dataType": "xs:string",
                 "allowedObjects": ["xbrl:memberObject"]
+            },
+            {
+                "name": "xbrl:requiresFactValue",
+                "dataType": "xs:boolean",
+                "allowedObjects": ["xbrl:factspaceObject"]
             }
         ],
         "referenceTypes": [
