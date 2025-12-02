@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0-windows</TargetFramework>
+    <TargetFramework>net10.0-windows</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
@@ -15,8 +15,7 @@
     <PackageReference Include="FlaUI.UIA3.Signed" Version="5.0.0" />
     <PackageReference Include="JUnitTestLogger" Version="1.1.0" />
     <PackageReference Include="JunitXml.TestLogger" Version="7.0.2" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
-    <PackageReference Include="Microsoft.Windows.Compatibility" Version="9.0.10" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <PackageReference Include="NUnit" Version="4.4.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="5.2.0" />
     <PackageReference Include="NUnit.Analyzers" Version="4.11.2">
