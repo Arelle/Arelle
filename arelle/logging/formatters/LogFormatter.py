@@ -7,6 +7,8 @@ import logging
 from collections import defaultdict
 from typing import Any
 
+from arelle import UrlUtil
+
 
 class LogFormatter(logging.Formatter):
     def __init__(self, fmt: str | None = None, datefmt: str | None = None) -> None:
@@ -39,7 +41,7 @@ def logRefsFileLines(refs: list[dict[str, Any]]) -> str:
     for ref in refs:
         href = ref.get("href")
         if href:
-            hrefWithoutFakeIxdsPrefix = href.rpartition("_IXDS#?#")[2]
+            hrefWithoutFakeIxdsPrefix = UrlUtil.stripIxdsSurrogatePrefix(href)
             fileLines[hrefWithoutFakeIxdsPrefix.partition("#")[0]].add(ref.get("sourceLine") or 0)
     return ", ".join(file + " " + ', '.join(str(line)
                                             for line in sorted(lines, key=lambda l: l)

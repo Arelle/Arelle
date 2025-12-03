@@ -140,7 +140,7 @@ from arelle.PluginManager import pluginClassMethods
 from arelle.PrototypeDtsObject import ArcPrototype, LocPrototype
 from arelle.PythonUtil import attrdict, isLegacyAbs
 from arelle.RuntimeOptions import RuntimeOptions
-from arelle.UrlUtil import isHttpUrl
+from arelle.UrlUtil import IXDS_DOC_SEPARATOR, IXDS_SURROGATE, isHttpUrl
 from arelle.utils.EntryPointDetection import filesourceEntrypointFiles
 from arelle.ValidateDuplicateFacts import DeduplicationType
 from arelle.ValidateFilingText import CDATApattern
@@ -156,8 +156,6 @@ from arelle.XmlValidate import NONE, VALID
 from arelle.XmlValidate import validate as xmlValidate
 
 DEFAULT_TARGET = "(default)"
-IXDS_SURROGATE = "_IXDS#?#" # surrogate (fake) file name for inline XBRL doc set (IXDS)
-IXDS_DOC_SEPARATOR = "#?#" # the files of the document set follow the above "surrogate" with these separators
 
 MINIMUM_IXDS_DOC_COUNT = 2 # make this 2 to cause single-documents to be processed without a document set object
 

@@ -12,6 +12,17 @@ from email.utils import parsedate
 from datetime import datetime
 from typing import overload
 
+IXDS_DOC_SEPARATOR = "#?#" # the files of the document set follow the "surrogate" with these separators
+IXDS_SURROGATE = f"_IXDS{IXDS_DOC_SEPARATOR}" # surrogate (fake) file name for inline XBRL doc set (IXDS)
+
+def stripIxdsSurrogatePrefix(path: str) -> str:
+    """If path contains IXDS surrogate prefix, strip it and return the rest."""
+    if path:
+        _, found, after = path.partition(IXDS_SURROGATE)
+        if found:
+            return after
+    return path
+
 def authority(url: str, includeScheme: bool=True) -> str:
     if url:
         authSep = url.find(':')
