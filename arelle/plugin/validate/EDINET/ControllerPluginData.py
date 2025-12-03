@@ -21,6 +21,7 @@ from . import Constants
 from .CoverItemRequirements import CoverItemRequirements
 from .DeiRequirements import DeiRequirements, DEI_LOCAL_NAMES
 from .FilingFormat import DocumentType, FilingFormat
+from .NamespaceConfig import NamespaceConfig
 from .ReportFolderType import ReportFolderType
 from .TableOfContentsBuilder import TableOfContentsBuilder
 from .UploadContents import UploadContents, UploadPathInfo
@@ -42,13 +43,13 @@ class ControllerPluginData(PluginData):
 
     def __init__(self, name: str):
         super().__init__(name)
+        self.namespaces = NamespaceConfig()
         self._deiValues = {}
         self._loadedModelXbrls = []
         self._manifestInstancesById = {}
         self._tocBuilder = TableOfContentsBuilder()
         self._usedFilepaths = set()
         self._uploadContents = None
-        self.jpcrpNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpcrp/2024-11-01/jpcrp_cor'
 
     def __hash__(self) -> int:
         return id(self)
