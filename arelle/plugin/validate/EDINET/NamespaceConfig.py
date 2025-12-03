@@ -41,7 +41,7 @@ class NamespaceConfig:
             "jptoo-pst_cor": self.jptooPst,
             "jptoo-toa_cor": self.jptooToa,
             "jptoo-ton_cor": self.jptooTon,
-            "jptoo-tor_cor": self.jptooPst,
+            "jptoo-tor_cor": self.jptooTor,
             "jptoo-wto_cor": self.jptooWto,
         }
 
