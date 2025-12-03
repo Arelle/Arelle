@@ -4,6 +4,7 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 from collections import defaultdict
+from collections.abc import Callable, Hashable, Iterable
 from dataclasses import dataclass
 from decimal import Decimal
 from functools import lru_cache
@@ -11,10 +12,9 @@ from pathlib import Path
 
 from lxml.etree import DTD, XML
 from operator import attrgetter
-from typing import Callable, Hashable, Iterable, cast
+from typing import cast
 
 import os
-import regex
 
 from arelle import XbrlConst
 from arelle.LinkbaseType import LinkbaseType
@@ -33,11 +33,11 @@ from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
 from .Constants import xhtmlDtdExtension, PROHIBITED_HTML_TAGS, PROHIBITED_HTML_ATTRIBUTES
 from .ControllerPluginData import ControllerPluginData
-from .CoverItemRequirements import CoverItemRequirements
 from .DeiRequirements import DeiRequirements, DEI_LOCAL_NAMES
 from .FilingFormat import FilingFormat, FILING_FORMATS, DocumentType, Ordinance
 from .FormType import FormType
 from .ManifestInstance import ManifestInstance
+from .NamespaceConfig import NamespaceConfig
 from .ReportFolderType import HTML_EXTENSIONS
 from .Statement import Statement, STATEMENTS, BalanceSheet, StatementInstance, StatementType
 from .UploadContents import UploadContents, UploadPathInfo
@@ -71,24 +71,7 @@ class UriReference:
 
 @dataclass
 class PluginValidationDataExtension(PluginData):
-    # Namespaces
-    jpcrpEsrNamespace: str
-    jpcrpNamespace: str
-    jpctlNamespace: str
-    jpcrpSbrNamespace: str
-    jpdeiNamespace: str
-    jpigpNamespace: str
-    jplvhNamespace: str
-    jppfsNamespace: str
-    jpspsEsrNamespace: str
-    jpspsSbrNamespace: str
-    jpspsNamespace: str
-    jptoiNamespace: str
-    jptooPstNamespace: str
-    jptooToaNamespace: str
-    jptooTonNamespace: str
-    jptooTorNamespace: str
-    jptooWtoNamespace: str
+    namespaces: NamespaceConfig
 
     accountingStandardsDeiQn: QName
     assetsIfrsQn: QName
@@ -107,73 +90,36 @@ class PluginValidationDataExtension(PluginData):
     deiItems: tuple[QName, ...]
     deiRequirementsPath: Path
 
-    _namespaceMap: dict[str, str]
     _uriReferences: list[UriReference]
 
     def __init__(self, name: str, validateXbrl: ValidateXbrl):
         super().__init__(name)
 
-        # Namespaces
-        self.jpcrpEsrNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jpcrp-esr/2024-11-01/jpcrp-esr_cor"
-        self.jpcrpNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpcrp/2024-11-01/jpcrp_cor'
-        self.jpcrpSbrNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jpcrp-sbr/2024-11-01/jpcrp-sbr_cor"
-        self.jpctlNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpctl/2024-11-01/jpctl_cor'
-        self.jpdeiNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpdei/2013-08-31/jpdei_cor'
-        self.jpigpNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jpigp/2024-11-01/jpigp_cor"
-        self.jplvhNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jplvh/2024-11-01/jplvh_cor"
-        self.jppfsNamespace = "http://disclosure.edinet-fsa.go.jp/taxonomy/jppfs/2024-11-01/jppfs_cor"
-        self.jpspsEsrNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpsps-esr/2024-11-01/jpsps-esr_cor'
-        self.jpspsSbrNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpsps-sbr/2024-11-01/jpsps-sbr_cor'
-        self.jpspsNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jpsps/2024-11-01/jpsps_cor'
-        self.jptoiNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jptoi/2024-11-01/jptoi_cor'
-        self.jptooPstNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jptoo-pst/2024-11-01/jptoo-pst_cor'
-        self.jptooToaNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jptoo-toa/2024-11-01/jptoo-toa_cor'
-        self.jptooTonNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jptoo-ton/2024-11-01/jptoo-ton_cor'
-        self.jptooTorNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jptoo-tor/2024-11-01/jptoo-tor_cor'
-        self.jptooWtoNamespace = 'http://disclosure.edinet-fsa.go.jp/taxonomy/jptoo-wto/2024-11-01/jptoo-wto_cor'
-        self._namespaceMap = {
-            "jpcrp-esr_cor": self.jpcrpEsrNamespace,
-            "jpcrp-sbr_cor": self.jpcrpSbrNamespace,
-            "jpcrp_cor": self.jpcrpNamespace,
-            "jpctl_cor": self.jpctlNamespace,
-            "jpdei_cor": self.jpdeiNamespace,
-            "jpigp_cor": self.jpigpNamespace,
-            "jplvh_cor": self.jplvhNamespace,
-            "jppfs_cor": self.jppfsNamespace,
-            "jpsps_cor": self.jpspsNamespace,
-            "jpsps-esr_cor": self.jpspsEsrNamespace,
-            "jpsps-sbr_cor": self.jpspsSbrNamespace,
-            "jptoi_cor": self.jptoiNamespace,
-            "jptoo-pst_cor": self.jptooPstNamespace,
-            "jptoo-toa_cor": self.jptooToaNamespace,
-            "jptoo-ton_cor": self.jptooTonNamespace,
-            "jptoo-tor_cor": self.jptooPstNamespace,
-            "jptoo-wto_cor": self.jptooWtoNamespace,
-        }
+        self.namespaces = NamespaceConfig()
 
         # QNames
-        self.accountingStandardsDeiQn = qname(self.jpdeiNamespace, 'AccountingStandardsDEI')
-        self.assetsIfrsQn = qname(self.jpigpNamespace, 'AssetsIFRS')
-        self.consolidatedOrNonConsolidatedAxisQn = qname(self.jppfsNamespace, 'ConsolidatedOrNonConsolidatedAxis')
-        self.categoriesOfDirectorsAndOtherOfficersAxisQn = qname(self.jpcrpNamespace, 'CategoriesOfDirectorsAndOtherOfficersAxis')
-        self.documentTypeDeiQn = qname(self.jpdeiNamespace, 'DocumentTypeDEI')
-        self.executiveOfficersMemberQn = qname(self.jpcrpNamespace, 'ExecutiveOfficersMember')
-        self.issuedSharesTotalNumberOfSharesEtcQn = qname(self.jpcrpNamespace, 'IssuedSharesTotalNumberOfSharesEtcTextBlock')
-        self.jpcrpEsrFilingDateCoverPageQn = qname(self.jpcrpEsrNamespace, 'FilingDateCoverPage')
-        self.jpcrpFilingDateCoverPageQn = qname(self.jpcrpNamespace, 'FilingDateCoverPage')
-        self.jpspsFilingDateCoverPageQn = qname(self.jpspsNamespace, 'FilingDateCoverPage')
-        self.nonConsolidatedMemberQn = qname(self.jppfsNamespace, "NonConsolidatedMember")
-        self.ratioOfFemaleDirectorsAndOtherOfficersQn = qname(self.jpcrpNamespace, "RatioOfFemaleDirectorsAndOtherOfficers")
+        self.accountingStandardsDeiQn = qname(self.namespaces.jpdei, 'AccountingStandardsDEI')
+        self.assetsIfrsQn = qname(self.namespaces.jpigp, 'AssetsIFRS')
+        self.consolidatedOrNonConsolidatedAxisQn = qname(self.namespaces.jppfs, 'ConsolidatedOrNonConsolidatedAxis')
+        self.categoriesOfDirectorsAndOtherOfficersAxisQn = qname(self.namespaces.jpcrp, 'CategoriesOfDirectorsAndOtherOfficersAxis')
+        self.documentTypeDeiQn = qname(self.namespaces.jpdei, 'DocumentTypeDEI')
+        self.executiveOfficersMemberQn = qname(self.namespaces.jpcrp, 'ExecutiveOfficersMember')
+        self.issuedSharesTotalNumberOfSharesEtcQn = qname(self.namespaces.jpcrp, 'IssuedSharesTotalNumberOfSharesEtcTextBlock')
+        self.jpcrpEsrFilingDateCoverPageQn = qname(self.namespaces.jpcrpEsr, 'FilingDateCoverPage')
+        self.jpcrpFilingDateCoverPageQn = qname(self.namespaces.jpcrp, 'FilingDateCoverPage')
+        self.jpspsFilingDateCoverPageQn = qname(self.namespaces.jpsps, 'FilingDateCoverPage')
+        self.nonConsolidatedMemberQn = qname(self.namespaces.jppfs, "NonConsolidatedMember")
+        self.ratioOfFemaleDirectorsAndOtherOfficersQn = qname(self.namespaces.jpcrp, "RatioOfFemaleDirectorsAndOtherOfficers")
 
         self.coverItemRequirementsPath = Path(__file__).parent / "resources" / "cover-item-requirements.json"
         self.coverPageTitleQns = (
-            qname(self.jpspsNamespace, "DocumentTitleAnnualSecuritiesReportCoverPage"),
-            qname(self.jpcrpNamespace, "DocumentTitleCoverPage"),
-            qname(self.jpcrpEsrNamespace, "DocumentTitleCoverPage"),
-            qname(self.jpspsNamespace, "DocumentTitleCoverPage"),
+            qname(self.namespaces.jpsps, "DocumentTitleAnnualSecuritiesReportCoverPage"),
+            qname(self.namespaces.jpcrp, "DocumentTitleCoverPage"),
+            qname(self.namespaces.jpcrpEsr, "DocumentTitleCoverPage"),
+            qname(self.namespaces.jpsps, "DocumentTitleCoverPage"),
         )
         self.deiItems = tuple(
-            qname(self.jpdeiNamespace, localName)
+            qname(self.namespaces.jpdei, localName)
             for localName in DEI_LOCAL_NAMES
         )
         self.deiRequirementsPath = Path(__file__).parent / "resources" / "dei-requirements.csv"
@@ -255,7 +201,9 @@ class PluginValidationDataExtension(PluginData):
                 tocBuilder.addDocument(modelDocument)
 
     def qname(self, prefix: str, localName: str) -> QName:
-        return qname(self._namespaceMap[prefix], localName)
+        ns = self.namespaces.get(prefix)
+        assert ns is not None, f"Unknown namespace prefix: {prefix}"
+        return qname(ns, localName)
 
     @lru_cache(1)
     def isCorporateForm(self, modelXbrl: ModelXbrl) -> bool:
@@ -265,7 +213,7 @@ class PluginValidationDataExtension(PluginData):
         return formType.isCorporateForm
 
     def isCorporateReport(self, modelXbrl: ModelXbrl) -> bool:
-        return self.jpcrpNamespace in modelXbrl.namespaceDocs
+        return self.namespaces.jpcrp in modelXbrl.namespaceDocs
 
     def isExtensionUri(self, uri: str, modelXbrl: ModelXbrl) -> bool:
         if uri.startswith(modelXbrl.uriDir):

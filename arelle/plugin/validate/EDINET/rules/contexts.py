@@ -84,7 +84,7 @@ def rule_EC8012W(
     EDINET.EC8012W: If a main financial statement element is present, a calculation linkbase file must be present.
     """
     if not any(
-            fact.qname.namespaceURI == pluginData.jppfsNamespace
+            fact.qname.namespaceURI == pluginData.namespaces.jppfs
             for fact in val.modelXbrl.facts
     ):
         return

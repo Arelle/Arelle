@@ -357,7 +357,7 @@ def rule_EC5623W(
     """
     EDINET.EC5623W: Instances using IFRS taxonomies must set the DEI "Accounting Standard" value to "IFRS".
     """
-    if pluginData.jpigpNamespace not in val.modelXbrl.prefixedNamespaces.values():
+    if pluginData.namespaces.jpigp not in val.modelXbrl.prefixedNamespaces.values():
         return
     errorFacts = [
         fact for fact in pluginData.iterValidNonNilFacts(val.modelXbrl, pluginData.accountingStandardsDeiQn)
@@ -715,7 +715,7 @@ def rule_EC8030W(
     usedConcepts = pluginData.getUsedConcepts(val.modelXbrl)
     relSet = val.modelXbrl.relationshipSet(tuple(LinkbaseType.PRESENTATION.getArcroles()))
     for concept in usedConcepts:
-        if concept.qname.namespaceURI == pluginData.jpdeiNamespace:
+        if concept.qname.namespaceURI == pluginData.namespaces.jpdei:
             continue
         if concept.qname.localName.endswith('DEI'):
             # Example: jpsps_cor:SecuritiesRegistrationStatementAmendmentFlagDeemedRegistrationStatementDEI
@@ -1737,7 +1737,7 @@ def rule_EC8050W(
     else:
         return
 
-    reportableSegmentsMemberQn = qname(pluginData.jpcrpNamespace, "ReportableSegmentsMember")
+    reportableSegmentsMemberQn = qname(pluginData.namespaces.jpcrp, "ReportableSegmentsMember")
 
     def _getConceptAndDescendantQNames(
             modelXbrl: ModelXbrl,

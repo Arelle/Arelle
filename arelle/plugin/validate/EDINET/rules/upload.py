@@ -1169,7 +1169,7 @@ def rule_EC8023W(
             continue
         if fact.localName != 'nonFraction':
             continue
-        if fact.qname.namespaceURI == pluginData.jpigpNamespace:
+        if fact.qname.namespaceURI == pluginData.namespaces.jpigp:
             continue
 
         precedingChar = None
