@@ -40,6 +40,7 @@ objectsWithProperties = {
     qname(xbrl, "xbrl:domainObject"),
     qname(xbrl, "xbrl:domainRootObject"),
     qnXbrlEntityObj,
+    qname(xbrl, "xbrl:factspaceObject"),
     qname(xbrl, "xbrl:groupObject"),
     qname(xbrl, "xbrl:networkObject"),
     qnXbrlLabelObj,
