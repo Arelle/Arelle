@@ -17,7 +17,7 @@ from typing import Any
 
 import regex as re
 
-from arelle import ValidateDuplicateFacts
+from arelle import UrlUtil, ValidateDuplicateFacts
 from arelle.ValidateFileSource import ValidateFileSource
 from arelle.logging.formatters.LogFormatter import logRefsFileLines
 from arelle.utils.EntryPointDetection import parseEntrypointFileInput
@@ -868,7 +868,8 @@ class CntlrWinMain (Cntlr.Cntlr):
             entrypointFiles = entrypointParseResult.entrypointFiles
             # check for archive files
             if filesource.isArchive:
-                if all(e.get("file") == filename for e in entrypointFiles):
+                filenameWithoutFakeIxdsPrefix = UrlUtil.stripIxdsSurrogatePrefix(filename)
+                if all(e.get("file") == filenameWithoutFakeIxdsPrefix for e in entrypointFiles):
                     entrypointFiles = []
                 if (
                     len(entrypointFiles) == 0 and
