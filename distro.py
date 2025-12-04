@@ -96,7 +96,11 @@ if os.path.exists("arelle/plugin/EDGAR"):
     includeLibs.append("pytz")
 
 if sys.platform == LINUX_PLATFORM:
-    guiExecutable = Executable(script="arelleGUI.py", target_name="arelleGUI")
+    guiExecutable = Executable(
+        script="arelleGUI.py",
+        base="gui",
+        target_name="arelleGUI",
+    )
     includeLibs.append("Crypto")
     includeLibs.append("Crypto.Cipher")
     includeLibs.append("Crypto.Cipher.AES")
@@ -111,7 +115,11 @@ if sys.platform == LINUX_PLATFORM:
         includeFiles.append(("/usr/local/lib/tcl8.6", "tcl8.6"))
         includeFiles.append(("/usr/local/lib/tk8.6", "tk8.6"))
 elif sys.platform == MACOS_PLATFORM:
-    guiExecutable = Executable(script="arelleGUI.py", target_name="arelleGUI")
+    guiExecutable = Executable(
+        script="arelleGUI.py",
+        base="gui",
+        target_name="arelleGUI",
+    )
     includeFiles.append(("arelle/scripts-macOS", "scripts"))
     options["bdist_mac"] = {
         "iconfile": "arelle/images/arelle.icns",
@@ -136,12 +144,12 @@ elif sys.platform == MACOS_PLATFORM:
 elif sys.platform == WINDOWS_PLATFORM:
     guiExecutable = Executable(
         script="arelleGUI.pyw",
-        base="Win32GUI",
+        base="gui",
         icon="arelle\\images\\arelle16x16and32x32.ico",
     )
     includeFiles.append(("arelle\\scripts-windows", "scripts"))
     if "arelle.webserver" in packages:
-        includeFiles.append("QuickBooks.qwc")
+        includeFiles.append(("QuickBooks.qwc", "QuickBooks.qwc"))
     # note cx_Oracle isn't included for unix builds because it is version and machine specific.
     includeLibs.append("cx_Oracle")
     includeLibs.append("pyodbc")
