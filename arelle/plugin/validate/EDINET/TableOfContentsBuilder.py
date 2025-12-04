@@ -7,7 +7,9 @@ from typing import Iterable
 
 from collections import defaultdict
 from jaconv import jaconv
+from lxml.etree import _Element
 
+from arelle import XbrlConst
 from arelle.ModelDocument import ModelDocument
 from arelle.ModelObject import ModelObject
 from arelle.typing import TypeGetText
@@ -96,6 +98,13 @@ TOC_NUMBER_SETS = {
 }
 SHALLOWEST_LEVEL = min(TOC_NUMBER_SETS.keys())
 DEEPEST_LEVEL = max(TOC_NUMBER_SETS.keys())
+
+PROHIBITED_BETWEEN_TAGS = frozenset({
+    XbrlConst.qnXhtmlDel.localName,
+    XbrlConst.qnXhtmlImg.localName,
+    XbrlConst.qnXhtmlDel.clarkNotation,
+    XbrlConst.qnXhtmlImg.clarkNotation,
+})
 
 
 class TableOfContentsBuilder:
@@ -230,44 +239,147 @@ class TableOfContentsBuilder:
         # First or new document, open document.
         if self._currentDocument is None:
             self._openDocument(elt.document)
-        text = elt.text or ""
-        openIndex = -1
-        closeIndex = -1
-        if "【" in text:
-            openIndex = text.index("【") + 1
-            # EDINET.EC2004E: Corner brackets (【) must not overlap.
-            if "【" in text[openIndex:]:
-                self._validations.append(Validation.error(
-                    codes='EDINET.EC2004E',
-                    msg=_("The opening bracket (【) is repeated. "
-                          "File name: '%(path)s' (line %(line)s). "
-                          "When viewed in a browser, it is not possible to display "
-                          "more than one table of contents item on one line. Please "
-                          "delete the brackets (【) in the relevant file."),
-                    path=elt.document.basename,
-                    line=elt.sourceline,
-                    modelObject=elt,
-                ))
-        if "】" in text:
-            closeIndex = text.index("】") - 1
-        if openIndex >= 0:
-            if closeIndex > openIndex:
-                number = text[:openIndex - 1].strip()
-                label = text[openIndex:closeIndex + 1]
-                self._tocSequence.append((number, label, elt))
-                self._tocEntryCount += 1
+
+        elementsInLabel: list[_Element] = []
+        elementsBetweenNumberandLabel: list[_Element] = []
+
+        number, label, tail = self._getTextParts(elt, elementsInLabel, elementsBetweenNumberandLabel)
+
+        textValue = ''.join(elt.textNodes())
+        if (
+                (label is None and ('【' in textValue or '】' in textValue)) or
+                (tail is not None and ('【' in tail or '】' in tail))
+        ):
+            self._validations.append(Validation.error(
+                codes='EDINET.EC2011E',
+                msg=_("\"【\" or \"】\" is used in the text. "
+                      "File name: '%(path)s' (line %(line)s). "
+                      "Corner brackets (【】) cannot be used in the main text "
+                      "except for the table of contents. Please delete the "
+                      "corner brackets (【】) in the relevant file."),
+                path=elt.document.basename,
+                line=elt.sourceline,
+                modelObject=elt,
+            ))
+
+        if label is None:
+            return
+
+        if len(elementsInLabel) > 0:
+            self._validations.append(Validation.error(
+                codes='EDINET.EC2008E',
+                msg=_("The table of contents label contains HTML tags. "
+                      "File name: '%(path)s' (line %(line)s). "
+                      "HTML tags are not allowed in table of contents labels. "
+                      "Please remove the HTML tags from the relevant file."),
+                path=elt.document.basename,
+                line=elt.sourceline,
+                modelObject=elt,
+            ))
+
+        if any(
+                e.tag in PROHIBITED_BETWEEN_TAGS
+                for e in elementsBetweenNumberandLabel
+        ):
+            self._validations.append(Validation.error(
+                codes='EDINET.EC2009E',
+                msg=_("An invalid tag is used between the table of contents number "
+                      "and the table of contents item. "
+                      "File name: '%(path)s' (line %(line)s). "
+                      "Please delete the tag (\"del\" or \"img\") used between the "
+                      "table of contents number and the table of contents item of "
+                      "the relevant file."),
+                path=elt.document.basename,
+                line=elt.sourceline,
+                modelObject=elt,
+            ))
+
+        if '【' in label[1:]:
+            self._validations.append(Validation.error(
+                codes='EDINET.EC2004E',
+                msg=_("The opening bracket (【) is repeated. "
+                      "File name: '%(path)s' (line %(line)s). "
+                      "When viewed in a browser, it is not possible to display "
+                      "more than one table of contents item on one line. Please "
+                      "delete the brackets (【) in the relevant file."),
+                path=elt.document.basename,
+                line=elt.sourceline,
+                modelObject=elt,
+            ))
+
+        if '】' not in label:
+            # EDINET.EC2007E: The table of contents entries must be enclosed in square brackets (】).
+            self._validations.append(Validation.error(
+                codes='EDINET.EC2007E',
+                msg=_("The table of contents entry is not closed with '】'. "
+                      "File name: '%(path)s' (line %(line)s). "
+                      "Add a closing bracket (】) to match the open bracket (【) "
+                      "in the table of contents entry for the file in question."),
+                path=elt.document.basename,
+                line=elt.sourceline,
+                modelObject=elt,
+            ))
+
+        self._tocSequence.append((number, label, elt))
+        self._tocEntryCount += 1
+
+    def _getTextParts(self, elt: ModelObject, elementsInLabel: list[_Element], elementsBetweenNumberandLabel: list[_Element]) -> tuple[str, str | None, str | None]:
+        """
+        Determines the TOC number, label, and tail of a given element (if set correctly)
+        based on the text nodes directly beneath the element.
+        Also captures misplaced elements in provided lists for error handling.
+        """
+        textParts = [(None, elt.text)] + [
+            (child, child.tail)
+            for child in elt.iterchildren()
+        ]
+
+        number = ''
+        label = None
+        tail = None
+        while len(textParts) > 0:
+            textElt, text = textParts.pop(0)
+
+            # If we're iterating over an element, check if it's misplaced
+            if textElt is not None:
+                if number and label is None:
+                    elementsBetweenNumberandLabel.append(textElt)
+                if label is not None and '】' not in label and tail is None:
+                    elementsInLabel.append(textElt)
+
+            # If no text, move on
+            if not text:
+                continue
+
+            if label is None:
+                # We're building the number
+                start, sep, end = text.partition('【')
+                if sep:
+                    number += start
+                    label = sep  # Start the label
+                    # Process the remainder of this text node next
+                    textParts.insert(0, (None, end))
+                else:
+                    number += start
+            elif tail is None:
+                # We're building the label
+                start, sep, end = text.partition('】')
+                if sep:
+                    label += start + sep
+                    tail = ''  # Start the tail
+                    # Process the remainder of this text node next
+                    textParts.insert(0, (None, end))
+                else:
+                    label += start
             else:
-                # EDINET.EC2007E: The table of contents entries must be enclosed in square brackets (】).
-                self._validations.append(Validation.error(
-                    codes='EDINET.EC2007E',
-                    msg=_("The table of contents entry is not closed with '】'. "
-                          "File name: '%(path)s' (line %(line)s). "
-                          "Add a closing bracket (】) to match the open bracket (【) "
-                          "in the table of contents entry for the file in question."),
-                    path=elt.document.basename,
-                    line=elt.sourceline,
-                    modelObject=elt,
-                ))
+                # We're building the tail
+                tail += text
+
+        return (
+            number.strip(),
+            label.strip() if label else label,
+            tail.strip() if tail else tail,
+        )
 
     def _isFloating(self) -> bool:
         return self._floatingLevel is not None or self._currentLevel >= DEEPEST_LEVEL
@@ -459,7 +571,6 @@ class TableOfContentsBuilder:
             if not self._isFloating():
                 # EDINET.EC2003E: The table of contents must be no longer than 384 bytes
                 # (equivalent to 128 full-width characters).
-                b = label.encode('utf-8')
                 if len(label.encode('utf-8')) > 384:
                     yield Validation.error(
                         codes='EDINET.EC2003E',
@@ -468,19 +579,6 @@ class TableOfContentsBuilder:
                               "Please modify the table of contents of the relevant "
                               "file so that it is within 384B (bytes) (equivalent to "
                               "128 full-width characters)."),
-                        path=elt.document.basename,
-                        line=elt.sourceline,
-                        modelObject=elt,
-                    )
-
-                # EDINET.EC2008E: Table of contents entries must not contain HTML tags.
-                if len(elt) > 0:
-                    yield Validation.error(
-                        codes='EDINET.EC2008E',
-                        msg=_("The table of contents contains HTML tags. "
-                              "File name: '%(path)s' (line %(line)s). "
-                              "HTML tags are not allowed in table of contents entries. "
-                              "Please remove the HTML tags from the relevant file."),
                         path=elt.document.basename,
                         line=elt.sourceline,
                         modelObject=elt,
