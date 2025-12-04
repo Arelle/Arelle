@@ -38,12 +38,7 @@ for sitePackagesDirectory in sitePackagesDirectories:
         continue
     packageDirectories.extend([os.path.join(sitePackagesDirectory, x) for x in os.listdir(sitePackagesDirectory)])
 
-# For each entry point discovered, find the pip package containing it
-# and stage for copying into the plugins build directory
-if sys.version_info < (3, 10):
-    entryPoints = [e for e in entry_points().get('arelle.plugin', [])]
-else:
-    entryPoints = list(entry_points(group='arelle.plugin'))
+entryPoints = list(entry_points(group='arelle.plugin'))
 for entryPoint in entryPoints:
     pluginUrl = entryPoint.load()()
     pluginDirectory = None

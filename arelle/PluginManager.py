@@ -856,11 +856,7 @@ class EntryPointRef:
         Retrieve all installed plugin entry points.
         :return: List of all discovered entry points.
         """
-        entryPoints: list[EntryPoint]
-        if sys.version_info < (3, 10):
-            entryPoints = [e for e in entry_points().get('arelle.plugin', [])]
-        else:
-            entryPoints = list(entry_points(group='arelle.plugin'))
+        entryPoints = list(entry_points(group='arelle.plugin'))
         entryPointRefs = []
         for entryPoint in entryPoints:
             entryPointRef = EntryPointRef.fromEntryPoint(entryPoint)
