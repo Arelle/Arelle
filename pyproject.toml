@@ -22,10 +22,11 @@ classifiers = [
     'Programming Language :: Python :: 3.11',
     'Programming Language :: Python :: 3.12',
     'Programming Language :: Python :: 3.13',
+    'Programming Language :: Python :: 3.14',
     'Operating System :: OS Independent',
     'Topic :: Text Processing :: Markup :: XML'
 ]
-requires-python = ">=3.10,<3.14"
+requires-python = ">=3.10<3.15"
 dependencies = [
     'bottle>=0.13,<0.14',
     'certifi',
@@ -111,7 +112,7 @@ markers = [
 [tool.mypy]
 # Warn when a # type: ignore comment does not specify any error codes
 enable_error_code = "ignore-without-code"
-python_version = "3.13"
+python_version = "3.14"
 show_error_codes = true
 strict = true
 # Others are not included in repo, but commonly copied into working directory by devs.

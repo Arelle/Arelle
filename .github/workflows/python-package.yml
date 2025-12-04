@@ -4,14 +4,14 @@ on:
   workflow_call:
     inputs:
       python_version:
-        default: '3.13.9'
+        default: '3.14.1'
         description: 'Python version to use'
         required: false
         type: string
   workflow_dispatch:
     inputs:
       python_version:
-        default: '3.13.9'
+        default: '3.14.1'
         description: 'Python version to use'
         required: true
         type: string
