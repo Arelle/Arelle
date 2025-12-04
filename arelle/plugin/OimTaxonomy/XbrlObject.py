@@ -3,11 +3,35 @@ See COPYRIGHT.md for copyright information.
 """
 from typing import GenericAlias, _UnionGenericAlias, Any, _GenericAlias, ClassVar, ForwardRef
 import os
+from arelle.ModelValue import QName
+from arelle.PythonUtil import OrderedSet
 from arelle.XmlValidate import INVALID, VALID
 from .XbrlConst import qnStdLabel
 XbrlTaxonomyObject = None # class forward reference
 
 EMPTY_DICT = {}
+DEREFERENCE_OBJECT = "dereferenceObject" # singleton to remove referenced object
+
+def deleteCollectionMembers(txmyMdl, deletions, collection=None):
+    if isinstance(collection, list):
+        for deletion in deletions:
+            while deletion in deletions:
+                collection.remove(deletion)
+    elif isinstance(collection, (set, OrderedSet)):
+        for deletion in deletions:
+            collection.discard(deletion)
+    # remove from taxonomy model indices
+    for deletion in deletions:
+        objQn = deletion
+        if hasattr(deletion, "name"):
+            objQn = deletion.name
+        if objQn in txmyMdl.namedObjects:
+            del txmyMdl.namedObjects[objQn]
+        if objQn in txmyMdl.tagObjects:
+            for tagObj in txmyMdl.tagObjects[objQn].copy():
+                if tagObj in deletions:
+                    txmyMdl.tagObjects[objQn].remove(tagObj)
+    deletions.clear() # dereference and prepare set for reuse
 
 class XbrlModelClass:
     @classmethod
@@ -136,6 +160,59 @@ class XbrlObject(XbrlModelClass):
                     val = f"({len(val)})"
                 propVals.append(f"{propName}: {val}")
         return f"{objName}[{', '.join(propVals)}]"
+
+    def referencedObjectsAction(self, txmyMdl, actionCallback):
+        objClass = type(self)
+        isTaxonomyObject = isinstance(self, XbrlTaxonomyObject)
+        objName = objClass.__name__[0].lower() + objClass.__name__[1:]
+        deRefs = set()
+        propVals = []
+        initialParentObjProp = True
+        referenceProperties = None
+        for propName, propType in self.propertyNameTypes():
+            if initialParentObjProp:
+                initialParentObjProp = False
+                if (isinstance(propType, str) or propType.__name__.startswith("Xbrl") or # skip taxonomy alias type
+                    (isinstance(propType, _UnionGenericAlias) and
+                     any((isinstance(t.__forward_arg__, str) or t.__forward_arg__.__name__.startswith("Xbrl")) for t in propType.__args__ if isinstance(t,ForwardRef)))): # Union of TypeAliases are ForwardArgs
+                    continue
+            if propType.__name__ == "QNameKeyType":
+                continue
+            if hasattr(self, propName):
+                val = getattr(self, propName)
+                if isTaxonomyObject: # for Taxonomy objects, not used by OIM Instance objects
+                    if propName == "properties":
+                        continue
+                if isinstance(propType, GenericAlias): # set, dict, etc
+                    propValueClass = propType.__args__[-1]
+                    if hasattr(propValueClass, "referencedObjectsAction"):
+                        if isinstance(val, dict):
+                            pass # unsure what to do TBD
+                        elif isinstance(val, (set, list, OrderedSet)):
+                            for v in val: # values are objects themseves vs QNames of  referencable objects
+                                obj = v
+                                if isinstance(v, QName):
+                                    if v in txmyMdl.namedObjects:
+                                        obj = txmyMdl.namedObjects[v]
+                                if isinstance(obj, XbrlObject):
+                                    if actionCallback(obj) is DEREFERENCE_OBJECT:
+                                        deRefs.add(obj)
+                                        if obj.__class__.__name__ == "XbrlLabel" and getattr(obj, "relatedName", None):
+                                            deRefs.add(obj.relatedName)
+                                        if isinstance(v, QName):
+                                            deRefs.add(v)
+                                if obj.__class__.__name__ == "XbrlLabel":
+                                    if actionCallback(obj) is DEREFERENCE_OBJECT:
+                                        deRefs.add(obj)
+                            deleteCollectionMembers(txmyMdl, deRefs, val)
+                elif isinstance(val, QName):
+                    obj = txmyMdl.namedObjects.get(val)
+                    if isinstance(obj, XbrlObject):
+                        if actionCallback(obj) is DEREFERENCE_OBJECT:
+                            deRefs.add(obj)
+                            setattr(self, propName, None)
+                    deleteCollectionMembers(txmyMdl, deRefs, val)
+
 
 class XbrlTaxonomyObject(XbrlObject):
     pass
