@@ -181,7 +181,15 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
                         )
 
                         allAnchorTypes = widerTypes | narrowerTypes
-                        invalidAnchorTypes = any(t != modelConcept.typeQname for t in allAnchorTypes)
+                        if esefDisclosureSystemYear == 2024:
+                            invalidAnchorTypes = any(t != modelConcept.typeQname for t in allAnchorTypes)
+                            msg = _("Issuers should anchor their extension elements to ESEF core taxonomy "
+                                    "elements sharing the same data type.")
+                        else:
+                            invalidAnchorTypes = any(not modelConcept.instanceOfType(t) for t in allAnchorTypes)
+                            msg = _("Issuers should anchor their extension elements to ESEF core taxonomy "
+                                    "elements with the same data type or a data type derived from the "
+                                    "anchor's data type.")
                         if invalidAnchorTypes:
                             anchorTypeParts = []
                             if widerTypes:
@@ -193,9 +201,7 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
                             anchorTypeStr = " ".join(anchorTypeParts)
                             val.modelXbrl.warning(
                                 "ESEF.1.4.1.differentExtensionDataType",
-                                _("Issuers should anchor their extension elements to ESEF core taxonomy "
-                                  "elements sharing the same data type. "
-                                  "Concept: %(qname)s type: %(type)s %(anchorTypes)s"),
+                                msg + _(" Concept: %(qname)s type: %(type)s %(anchorTypes)s"),
                                 modelObject=modelConcept,
                                 qname=modelConcept.qname,
                                 type=modelConcept.typeQname.clarkNotation,
