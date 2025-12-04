@@ -12,6 +12,7 @@ from arelle.Cntlr import Cntlr
 from arelle.DisclosureSystem import DisclosureSystem
 from arelle.FileSource import FileSource
 from arelle.ModelDocument import LoadingException, ModelDocument
+from arelle.ModelManager import ModelManager
 from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.utils.PluginData import PluginData
@@ -229,15 +230,16 @@ class ValidationPlugin:
             *args: Any,
             **kwargs: Any,
     ) -> None:
-        pluginData = self.newPluginData(
-            cntlr=cntlr,
-            validateXbrl=None
-        )
-        for rule in self._getValidations(cntlr.modelManager.disclosureSystem, pluginHook):
-            validations = rule(pluginData, cntlr, fileSource, *args, **kwargs)
-            if validations is not None:
-                for val in validations:
-                    cntlr.error(level=val.level.name, codes=val.codes, msg=val.msg, fileSource=fileSource, **val.args)
+        if self.disclosureSystemFromPluginSelected(cntlr.modelManager):
+            pluginData = self.newPluginData(
+                cntlr=cntlr,
+                validateXbrl=None
+            )
+            for rule in self._getValidations(cntlr.modelManager.disclosureSystem, pluginHook):
+                validations = rule(pluginData, cntlr, fileSource, *args, **kwargs)
+                if validations is not None:
+                    for val in validations:
+                        cntlr.error(level=val.level.name, codes=val.codes, msg=val.msg, fileSource=fileSource, **val.args)
 
     def _executeModelValidations(
         self,
@@ -263,9 +265,9 @@ class ValidationPlugin:
 
     def disclosureSystemFromPluginSelected(
         self,
-        model: ValidateXbrl | ModelXbrl,
+        model: ValidateXbrl | ModelManager | ModelXbrl,
     ) -> bool:
-        if isinstance(model, ValidateXbrl):
+        if isinstance(model, (ModelManager, ValidateXbrl)):
             disclosureSystem = model.disclosureSystem
         elif isinstance(model, ModelXbrl):
             disclosureSystem = model.modelManager.disclosureSystem
