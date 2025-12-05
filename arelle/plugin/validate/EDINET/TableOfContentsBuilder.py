@@ -240,10 +240,7 @@ class TableOfContentsBuilder:
         if self._currentDocument is None:
             self._openDocument(elt.document)
 
-        elementsInLabel: list[_Element] = []
-        elementsBetweenNumberandLabel: list[_Element] = []
-
-        number, label, tail = self._getTextParts(elt, elementsInLabel, elementsBetweenNumberandLabel)
+        number, label, tail, eltsInLabel, eltsBetweenNumAndLabel = self._getTextParts(elt)
 
         textValue = ''.join(elt.textNodes())
         if (
@@ -265,7 +262,7 @@ class TableOfContentsBuilder:
         if label is None:
             return
 
-        if len(elementsInLabel) > 0:
+        if len(eltsInLabel) > 0:
             self._validations.append(Validation.error(
                 codes='EDINET.EC2008E',
                 msg=_("The table of contents label contains HTML tags. "
@@ -279,7 +276,7 @@ class TableOfContentsBuilder:
 
         if any(
                 e.tag in PROHIBITED_BETWEEN_TAGS
-                for e in elementsBetweenNumberandLabel
+                for e in eltsBetweenNumAndLabel
         ):
             self._validations.append(Validation.error(
                 codes='EDINET.EC2009E',
@@ -323,12 +320,17 @@ class TableOfContentsBuilder:
         self._tocSequence.append((number, label, elt))
         self._tocEntryCount += 1
 
-    def _getTextParts(self, elt: ModelObject, elementsInLabel: list[_Element], elementsBetweenNumberandLabel: list[_Element]) -> tuple[str, str | None, str | None]:
+    def _getTextParts(
+            self,
+            elt: ModelObject
+    ) -> tuple[str, str | None, str | None, list[_Element], list[_Element]]:
         """
         Determines the TOC number, label, and tail of a given element (if set correctly)
         based on the text nodes directly beneath the element.
         Also captures misplaced elements in provided lists for error handling.
         """
+        eltsInLabel = []
+        eltsBetweenNumAndLabel = []
         textParts = [(None, elt.text)] + [
             (child, child.tail)
             for child in elt.iterchildren()
@@ -343,9 +345,9 @@ class TableOfContentsBuilder:
             # If we're iterating over an element, check if it's misplaced
             if textElt is not None:
                 if number and label is None:
-                    elementsBetweenNumberandLabel.append(textElt)
+                    eltsBetweenNumAndLabel.append(textElt)
                 if label is not None and '】' not in label and tail is None:
-                    elementsInLabel.append(textElt)
+                    eltsInLabel.append(textElt)
 
             # If no text, move on
             if not text:
@@ -379,6 +381,8 @@ class TableOfContentsBuilder:
             number.strip(),
             label.strip() if label else label,
             tail.strip() if tail else tail,
+            eltsInLabel,
+            eltsBetweenNumAndLabel,
         )
 
     def _isFloating(self) -> bool:
