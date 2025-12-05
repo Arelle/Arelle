@@ -10,8 +10,8 @@
         xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
     <variation id="invalid01" name="invalid01">
         <description>
-            A TOC element has a "del" tag between the number and label.
-            <!--valid08.zip with <del></del> between a TOC number and label.-->
+            Corner brackets exist in the main text.
+            <!--valid08.zip with corner bracket added in tail of TOC element as well as in body of non-TOC element.-->
         </description>
         <data>
             <instance readMeFirst="true">invalid01.zip</instance>
