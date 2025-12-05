@@ -164,21 +164,49 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
                     if modelConcept.isMonetary and not modelConcept.balance:
                         extMonetaryConceptsWithoutBalance.append(modelConcept)
                     if esefDisclosureSystemYear >= 2024:
-                        widerConcept = widerNarrowerRelSet.fromModelObject(modelConcept)
-                        narrowerConcept = widerNarrowerRelSet.toModelObject(modelConcept)
+                        widerRels = widerNarrowerRelSet.fromModelObject(modelConcept)
+                        narrowerRels = widerNarrowerRelSet.toModelObject(modelConcept)
 
-                        # Transform the qname to str for the later join()
-                        widerTypes = set(r.toModelObject.typeQname for r in widerConcept if r.toModelObject is not None)
-                        narrowerTypes = set(r.fromModelObject.typeQname for r in narrowerConcept if r.fromModelObject is not None)
+                        widerTypes = set(
+                            r.toModelObject.typeQname
+                            for r in widerRels
+                            if r.toModelObject is not None
+                            if r.toModelObject.typeQname is not None
+                        )
+                        narrowerTypes = set(
+                            r.fromModelObject.typeQname
+                            for r in narrowerRels
+                            if r.fromModelObject is not None
+                            if r.fromModelObject.typeQname is not None
+                        )
 
-                        if (narrowerTypes and narrowerTypes != {modelConcept.typeQname}) or (widerTypes and widerTypes != {modelConcept.typeQname}):
-                            widerNarrowerType = "{} {}".format(
-                                "Wider: {}".format(", ".join(t.clarkNotation for t in widerTypes)) if widerTypes else "",
-                                "Narrower: {}".format(", ".join(t.clarkNotation for t in narrowerTypes)) if narrowerTypes else ""
+                        allAnchorTypes = widerTypes | narrowerTypes
+                        if esefDisclosureSystemYear == 2024:
+                            invalidAnchorTypes = any(t != modelConcept.typeQname for t in allAnchorTypes)
+                            msg = _("Issuers should anchor their extension elements to ESEF core taxonomy "
+                                    "elements sharing the same data type.")
+                        else:
+                            invalidAnchorTypes = any(not modelConcept.instanceOfType(t) for t in allAnchorTypes)
+                            msg = _("Issuers should anchor their extension elements to ESEF core taxonomy "
+                                    "elements with the same data type or a data type derived from the "
+                                    "anchor's data type.")
+                        if invalidAnchorTypes:
+                            anchorTypeParts = []
+                            if widerTypes:
+                                widerStr = ", ".join(sorted(t.clarkNotation for t in widerTypes))
+                                anchorTypeParts.append(f"Wider: {widerStr}")
+                            if narrowerTypes:
+                                narrowerStr = ", ".join(sorted(t.clarkNotation for t in narrowerTypes))
+                                anchorTypeParts.append(f"Narrower: {narrowerStr}")
+                            anchorTypeStr = " ".join(anchorTypeParts)
+                            val.modelXbrl.warning(
+                                "ESEF.1.4.1.differentExtensionDataType",
+                                msg + _(" Concept: %(qname)s type: %(type)s %(anchorTypes)s"),
+                                modelObject=modelConcept,
+                                qname=modelConcept.qname,
+                                type=modelConcept.typeQname.clarkNotation,
+                                anchorTypes=anchorTypeStr
                             )
-                            val.modelXbrl.warning("ESEF.1.4.1.differentExtensionDataType",
-                                                _("Issuers should anchor their extension elements to ESEF core taxonomy elements sharing the same data type. Concept: %(qname)s type: %(type)s %(widerNarrowerType)s"),
-                                                modelObject=modelConcept, qname=modelConcept.qname, type=modelConcept.typeQname, widerNarrowerType=widerNarrowerType)
 
                     # check all lang's of standard label
                     hasStandardLabel = False
