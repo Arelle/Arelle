@@ -909,13 +909,10 @@ def setXmlns(modelDocument: etree._ElementTree | ModelDocument, prefix: str | No
         if root.tag == 'nsmap': # already have an xmlns-extension root element
             newmap = root.nsmap
             newmap[prefix] = namespaceURI
-            # 2022-09-16: for some reason prefix is encouraged to always be a str in lxml-stubs,
-            # but '' for default ns is not accepted by lxml nsmap arg and lxml produces and error
-            # see https://github.com/lxml/lxml-stubs/blob/0a9b6099dd39b298fd0ff897dbcd4fed632d8776/lxml-stubs/etree.pyi#L69
-            newroot = etree.Element('nsmap', nsmap=newmap)  # type: ignore[arg-type]  # above note
+            newroot = etree.Element('nsmap', nsmap=newmap)
             newroot.extend(root)
         else:  # new xmlns-extension root
-            newroot = etree.Element('nsmap', nsmap={prefix: namespaceURI})  # type: ignore[dict-item]  # above note
+            newroot = etree.Element('nsmap', nsmap={prefix: namespaceURI})
             comments = []
             comment = root.getprevious()
             while isinstance(comment, etree._Comment):

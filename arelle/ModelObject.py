@@ -256,7 +256,7 @@ class ModelObject(etree.ElementBase):
             return self._parentQname
         except AttributeError:
             parentObj = self.getparent()
-            self._parentQname = parentObj.elementQname if parentObj is not None else None  # type: ignore[attr-defined]
+            self._parentQname = parentObj.elementQname if parentObj is not None else None
             return self._parentQname
 
 
@@ -307,7 +307,7 @@ class ModelObject(etree.ElementBase):
         # Note 2022-09-09:
         # Mypy raises the following error. Not sure why this is the case, this returns a str not binary data?
         # On Python 3 formatting "b'abc'" with "{}" produces "b'abc'", not "abc"; use "{!r}" if this is desired behavior
-        return ', '.join(["{0}='{1}'".format(name, value) for name, value in self.items()]) # type: ignore[str-bytes-safe]
+        return ', '.join(["{0}='{1}'".format(name, value) for name, value in self.items()])
 
     def resolveUri(
         self,
@@ -397,7 +397,7 @@ class ModelObject(etree.ElementBase):
     def __repr__(self) -> str:
         return ("{0}[{1}, {2} line {3})".format(type(self).__name__, self.objectIndex, self.modelDocument.basename, self.sourceline))
 
-class ModelComment(etree.CommentBase): # type: ignore[misc]
+class ModelComment(etree.CommentBase):
     """ModelConcept is a custom proxy objects for etree.
     """
     def _init(self) -> None:
@@ -409,7 +409,7 @@ class ModelComment(etree.CommentBase): # type: ignore[misc]
     def init(self, modelDocument: ModelDocument) -> None:
         self.modelDocument = modelDocument
 
-class ModelProcessingInstruction(etree.PIBase): # type: ignore[misc]
+class ModelProcessingInstruction(etree.PIBase):
     """ModelProcessingInstruction is a custom proxy object for etree.
     """
     def _init(self) -> None:

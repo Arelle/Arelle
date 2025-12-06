@@ -160,14 +160,14 @@ class KnownNamespacesModelObjectClassLookup(etree.CustomElementClassLookup):
 
             return ModelComment
         elif node_type == "PI":
-            return etree.PIBase  # type: ignore[no-any-return]
+            return etree.PIBase
         elif node_type == "entity":
-            return etree.EntityBase  # type: ignore[no-any-return]
+            return etree.EntityBase
         # returning None delegates to fallback lookup classes
         return None
 
 
-class DiscoveringClassLookup(etree.PythonElementClassLookup):  # type: ignore[misc]
+class DiscoveringClassLookup(etree.PythonElementClassLookup):
     def __init__(self, modelXbrl: ModelXbrl, baseUrl: str | None, fallback: etree.ElementClassLookup | None = None) -> None:
         super(DiscoveringClassLookup, self).__init__(fallback)
         self.modelXbrl = modelXbrl
