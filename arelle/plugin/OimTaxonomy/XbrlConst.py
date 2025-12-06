@@ -20,23 +20,38 @@ qnXsDateTime = qname(xsd, "xs:dateTime")
 qnXsDuration = qname(xsd, "xs:duration")
 qnXsQName = qname(xsd, "xs:QName")
 
+qnXbrlConceptObj = qname(xbrl, "xbrl:conceptObject")
+qnXbrlEntityObj = qname(xbrl, "xbrl:entityObject")
+qnXbrlMemberObj = qname(xbrl, "xbrl:memberObject")
+qnXbrlImportTaxonomyObj = qname(xbrl, "xbrl:importTaxonomyObject")
+qnXbrlUnitObj = qname(xbrl, "xbrl:unitObject")
 qnXbrlLabelObj = qname(xbrl, "xbrl:labelObject")
+qnXbrlReferenceObj = qname(xbrl, "xbrl:referenceObject")
+
+qnBuiltInCoreObjectsTaxonomy = qname(xbrl, "xbrl:BuiltInCoreObjectsTaxonomy")
+
+qnErrorQname = qname(None, "InvalidQName")
 
 objectsWithProperties = {
     qname(xbrl, "xbrl:taxonomyObject"),
-    qname(xbrl, "xbrl:conceptObject"),
+    qnXbrlConceptObj,
     qname(xbrl, "xbrl:abstractObject"),
     qname(xbrl, "xbrl:cubeObject"),
     qname(xbrl, "xbrl:dimensionObject"),
     qname(xbrl, "xbrl:domainObject"),
-    qname(xbrl, "xbrl:entityObject"),
+    qname(xbrl, "xbrl:domainRootObject"),
+    qnXbrlEntityObj,
+    qname(xbrl, "xbrl:factspaceObject"),
     qname(xbrl, "xbrl:groupObject"),
     qname(xbrl, "xbrl:networkObject"),
     qnXbrlLabelObj,
-    qname(xbrl, "xbrl:memberObject"),
-    qname(xbrl, "xbrl:referenceObject"),
+    qnXbrlMemberObj,
+    qnXbrlReferenceObj,
     qname(xbrl, "xbrl:relationshipObject"),
     }
+
+unsupportedTypedDimensionDataTypes = set(
+    qname(xsd, n) for n in ("ENTITY", "ENTITIES", "ID", "IDREF", "IDREFS", "NMTOKEN", "NMTOKENS", "NOTATION"))
 
 xbrlTaxonomyObjects = {
     "documentInfo": {
@@ -51,7 +66,6 @@ xbrlTaxonomyObjects = {
         "name": "xbrl:BuiltInCoreObjectsTaxonomy",
         "frameworkName": "types",
         "version": "2025",
-        "resolved": False,
         "dataTypes": [
             {
                 "name": "xs:string",
