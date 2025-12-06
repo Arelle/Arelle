@@ -47,8 +47,10 @@
                     {"source": "oimte:OIMErrorRootDomain", "target": "oimte:invalidAllowDomainFactsPropertyOnConceptDimension", "order": 14.5},
                     {"source": "oimte:OIMErrorRootDomain", "target": "oimte:excludeCubeSelfReference", "order": 15},
                     {"source": "oimte:OIMErrorRootDomain", "target": "oimte:invalidDataTypeObject", "order": 16},
-                    {"source": "oimte:OIMErrorRootDomain", "target": "oimte:invalidDatatypeForEnumeration", "order": 17},
-                    {"source": "oimte:OIMErrorRootDomain", "target": "oimte:invalidDimensionConstraint", "order": 18},
+                    {"source": "oimte:OIMErrorRootDomain", "target": "oimte:invalidDataTypeForDomainRoot", "order": 16.5},
+                    {"source": "oimte:OIMErrorRootDomain", "target": "oimte:invalidDataTypeForEnumeration", "order": 17},
+                    {"source": "oimte:OIMErrorRootDomain", "target": "oimte:invalidPeriodConstraintDimension", "order": 18},
+                    {"source": "oimte:OIMErrorRootDomain", "target": "oimte:redundantTimeSpanProperty", "order": 18.5},
                     {"source": "oimte:OIMErrorRootDomain", "target": "oimte:invalidDimensionMember", "order": 19},
                     {"source": "oimte:OIMErrorRootDomain", "target": "oimte:invalidDomainRelationshipTarget", "order": 20},
                     {"source": "oimte:OIMErrorRootDomain", "target": "oimte:invalidDomainRoot", "order": 21},
@@ -69,6 +71,7 @@
                     {"source": "oimte:OIMErrorRootDomain", "target": "oimte:invalidProfileFramework", "order": 36},
                     {"source": "oimte:OIMErrorRootDomain", "target": "oimte:invalidPropertyValue", "order": 37},
                     {"source": "oimte:OIMErrorRootDomain", "target": "oimte:invalidTaxonomyDefinedDimension", "order": 38},
+                    {"source": "oimte:OIMErrorRootDomain", "target": "oimte:invalidCubeType", "order": 38.5},
                     {"source": "oimte:OIMErrorRootDomain", "target": "oimte:missingDomainRootSource", "order": 39},
                     {"source": "oimte:OIMErrorRootDomain", "target": "oimte:invalidConceptDomainRoot", "order": 40},
                     {"source": "oimte:OIMErrorRootDomain", "target": "oimte:invalidUnitDomainRoot", "order": 40.5},
@@ -155,6 +158,12 @@
                 ]
             },
             {
+                "name": "oimte:invalidCubeType",
+                "properties": [
+                    {"property": "xbrl:severity", "value": "error"}
+                ]
+            },
+            {
                 "name": "oimte:invalidCubeDimensionDomainName",
                 "properties": [
                     {"property": "xbrl:severity", "value": "error"}
@@ -203,7 +212,13 @@
                 ]
             },
             {
-                "name": "oimte:invalidDimensionConstraint",
+                "name": "oimte:invalidPeriodConstraintDimension",
+                "properties": [
+                    {"property": "xbrl:severity", "value": "error"}
+                ]
+            },
+            {
+                "name": "oimte:redundantTimeSpanProperty",
                 "properties": [
                     {"property": "xbrl:severity", "value": "error"}
                 ]
@@ -294,6 +309,12 @@
                 ]
             },
             {
+                "name": "oimte:invalidDataTypeForDomainRoot",
+                "properties": [
+                    {"property": "xbrl:severity", "value": "error"}
+                ]
+            },
+            {
                 "name": "oimte:invalidEmptySet",
                 "properties": [
                     {"property": "xbrl:severity", "value": "error"}
@@ -348,7 +369,7 @@
                 ]
             },
             {
-                "name": "oimte:invalidDatatypeForEnumeration",
+                "name": "oimte:invalidDataTypeForEnumeration",
                 "properties": [
                     {"property": "xbrl:severity", "value": "error"}
                 ]
@@ -605,6 +626,9 @@
                     {"source": "oimte:CubeDimensionErrors", "target": "oimte:dimensionNameNotDimensionObject", "order": 2},
                     {"source": "oimte:CubeDimensionErrors", "target": "oimte:invalidAllowDomainFactsPropertyOnConceptDimension", "order": 3},
                     {"source": "oimte:CubeDimensionErrors", "target": "oimte:domainUsedOnPeriodDimension", "order": 4},
+                    {"source": "oimte:CubeDimensionErrors", "target": "oimte:invalidPeriodConstraintDimension", "order":5},
+                    {"source": "oimte:CubeDimensionErrors", "target": "oimte:redundantTimeSpanProperty", "order":5.5},
+                    {"source": "oimte:CubeDimensionErrors", "target": "oimte:invalidDataTypeForDomainRoot", "order": 6},
                     {"source": "oimte:TaxonomyErrors", "target": "oimte:duplicateObjects", "order": 1},
                     {"source": "oimte:TaxonomyErrors", "target": "oimte:invalidQNameReference", "order": 2},
                     {"source": "oimte:TaxonomyErrors", "target": "oimte:invalidPropertyValue", "order": 3},
@@ -615,7 +639,7 @@
                     {"source": "oimte:PropertyErrors", "target": "oimte:intervalOnNonTimeSeriesDomain", "order": 3},
                     {"source": "oimte:PropertyErrors", "target": "oimte:disallowedObjectProperty", "order": 4},
                     {"source": "oimte:DimensionErrors", "target": "oimte:invalidTaxonomyDefinedDimension", "order": 1},
-                    {"source": "oimte:DimensionErrors", "target": "oimte:invalidDimensionConstraint", "order": 2},
+                    {"source": "oimte:DimensionErrors", "target": "oimte:invalidCubeType", "order": 2},
                     {"source": "oimte:DimensionErrors", "target": "oimte:inconsistentTaxonomyDefinedDimensionProperty", "order": 4},
                     {"source": "oimte:DomainErrors", "target": "oimte:missingDomainRootSource", "order": 1},
                     {"source": "oimte:DomainErrors", "target": "oimte:invalidDomainRoot", "order": 2},
@@ -641,7 +665,7 @@
                     {"source": "oimte:ReferenceErrors", "target": "oimte:invalidLanguage", "order": 4},
                     {"source": "oimte:DataTypeErrors", "target": "oimte:invalidDataTypeObject", "order": 2},
                     {"source": "oimte:ConceptErrors", "target": "oimte:invalidPeriodType", "order": 1},
-                    {"source": "oimte:ConceptErrors", "target": "oimte:invalidDatatypeForEnumeration", "order": 2},
+                    {"source": "oimte:ConceptErrors", "target": "oimte:invalidDataTypeForEnumeration", "order": 2},
                     {"source": "oimte:FactErrors", "target": "oimte:invalidFactMember", "order": 1},
                     {"source": "oimte:PropertyTypeErrors", "target": "oimte:invalidAllowedObject", "order": 1},
                     {"source": "oimte:DomainRootErrors", "target": "oimte:invalidDomainRootTarget", "order": 1},
@@ -703,6 +727,9 @@
                     {"source": "xbrl:cubeDimensionObject", "target": "oimte:dimensionNameNotDimensionObject", "order": 2},
                     {"source": "xbrl:cubeDimensionObject", "target": "oimte:invalidAllowDomainFactsPropertyOnConceptDimension", "order": 3},
                     {"source": "xbrl:cubeDimensionObject", "target": "oimte:domainUsedOnPeriodDimension", "order": 4},
+                    {"source": "xbrl:cubeDimensionObject", "target": "oimte:invalidPeriodConstraintDimension", "order": 5},
+                    {"source": "xbrl:cubeDimensionObject", "target": "oimte:redundantTimeSpanProperty", "order": 5.5},
+                    {"source": "xbrl:cubeDimensionObject", "target": "oimte:invalidDataTypeForDomainRoot", "order": 6},
                     {"source": "xbrl:taxonomyObject", "target": "oimte:duplicateObjects", "order": 1},
                     {"source": "xbrl:taxonomyObject", "target": "oimte:invalidQNameReference", "order": 2},
                     {"source": "xbrl:taxonomyObject", "target": "oimte:invalidPropertyValue", "order": 3},
@@ -714,7 +741,7 @@
                     {"source": "xbrl:propertyObject", "target": "oimte:intervalOnNonTimeSeriesDomain", "order": 3},
                     {"source": "xbrl:propertyObject", "target": "oimte:disallowedObjectProperty", "order": 4},
                     {"source": "xbrl:dimensionObject", "target": "oimte:invalidTaxonomyDefinedDimension", "order": 1},
-                    {"source": "xbrl:dimensionObject", "target": "oimte:invalidDimensionConstraint", "order": 2},
+                    {"source": "xbrl:dimensionObject", "target": "oimte:invalidCubeType", "order": 2},
                     {"source": "xbrl:dimensionObject", "target": "oimte:inconsistentTaxonomyDefinedDimensionProperty", "order": 4},
                     {"source": "xbrl:domainObject", "target": "oimte:missingDomainRootSource", "order": 1},
                     {"source": "xbrl:domainObject", "target": "oimte:invalidDomainRoot", "order": 2},
@@ -739,7 +766,7 @@
                     {"source": "xbrl:dataTypeObject", "target": "oimte:invalidQNameReference", "order": 1},
                     {"source": "xbrl:dataTypeObject", "target": "oimte:invalidDataTypeObject", "order": 2},
                     {"source": "xbrl:conceptObject", "target": "oimte:invalidPeriodType", "order": 1},
-                    {"source": "xbrl:conceptObject", "target": "oimte:invalidDatatypeForEnumeration", "order": 2},
+                    {"source": "xbrl:conceptObject", "target": "oimte:invalidDataTypeForEnumeration", "order": 2},
                     {"source": "xbrl:factspaceObject", "target": "oimte:invalidFactMember", "order": 1},
                     {"source": "xbrl:propertyTypeObject", "target": "oimte:invalidAllowedObject", "order": 1},
                     {"source": "xbrl:domainRootObject", "target": "oimte:invalidDomainRootTarget", "order": 1},
@@ -785,7 +812,7 @@
             {
                 "relatedName": "oimte:domainUsedOnPeriodDimension",
                 "language": "en",
-                "value": "The cube dimension property domainName is not valid when used on the period dimension in cube '{cubeName}'.",
+                "value": "The cube dimension property domainName or domainDataType is not valid when used on the period dimension in cube '{cubeName}'.",
                 "labelType": "xbrl:errorMessage"
             },
             {
@@ -885,6 +912,18 @@
                 "labelType": "xbrl:errorMessage"
             },
             {
+                "relatedName": "oimte:invalidCubeType",
+                "language": "en",
+                "value": "Invalid Cube Type",
+                "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "oimte:invalidCubeType",
+                "language": "en",
+                "value": "The dimension '{dimensionName}' references '{cubeTypeName}' in cubeTypes, but it is not a cubeType object.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
                 "relatedName": "oimte:invalidCubeDimensionDomainName",
                 "language": "en",
                 "value": "Invalid Cube Dimension Domain Name",
@@ -981,15 +1020,27 @@
                 "labelType": "xbrl:errorMessage"
             },
             {
-                "relatedName": "oimte:invalidDimensionConstraint",
+                "relatedName": "oimte:invalidPeriodConstraintDimension",
                 "language": "en",
-                "value": "Invalid Dimension Constraint",
+                "value": "Invalid Period Constraint",
                 "labelType": "xbrl:label"
             },
             {
-                "relatedName": "oimte:invalidDimensionConstraint",
+                "relatedName": "oimte:invalidPeriodConstraintDimension",
                 "language": "en",
                 "value": "The constraint on dimension '{dimensionName}' is invalid: {constraintDetails}.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "relatedName": "oimte:redundantTimeSpanProperty",
+                "language": "en",
+                "value": "Redundant timeSpan Property",
+                "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "oimte:redundantTimeSpanProperty",
+                "language": "en",
+                "value": "The timeSpan property must not be used with both the endDate and startDate properties in period constraint.",
                 "labelType": "xbrl:errorMessage"
             },
             {
@@ -1305,13 +1356,13 @@
                 "labelType": "xbrl:errorMessage"
             },
             {
-                "relatedName": "oimte:invalidDatatypeForEnumeration",
+                "relatedName": "oimte:invalidDataTypeForEnumeration",
                 "language": "en",
                 "value": "Invalid Datatype for Enumeration",
                 "labelType": "xbrl:label"
             },
             {
-                "relatedName": "oimte:invalidDatatypeForEnumeration",
+                "relatedName": "oimte:invalidDataTypeForEnumeration",
                 "language": "en",
                 "value": "The datatype '{dataType}' is not valid for concept '{conceptName}' with enumeration domain. Must be xs:QName.",
                 "labelType": "xbrl:errorMessage"
@@ -1521,6 +1572,18 @@
                 "labelType": "xbrl:errorMessage"
             },
             {
+                "relatedName": "oimte:invalidDataTypeForDomainRoot",
+                "language": "en",
+                "value": "Invalid Data Type for Domain Root",
+                "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "oimte:invalidDataTypeForDomainRoot",
+                "language": "en",
+                "value": "The datatype '{dataType}' is not valid for domain root '{domainRoot}' of domain '{domainName}'.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
                 "relatedName": "oimte:cannotExtendCompleteDomain",
                 "language": "en",
                 "value": "🚫",
@@ -1553,7 +1616,7 @@
             {
                 "relatedName": "oimte:domainUsedOnPeriodDimension",
                 "language": "en",
-                "value": "This error is generated when a cube uses a domainName property on the period dimension. The period dimension is built in typed dimension and does not support domain assignments, so including this property results in an error.",
+                "value": "This error is generated when a cube uses a domainName property or domainDataType on the period dimension. The period dimension is a built in typed dimension and does not support domain assignments, so including a domain property results in an error.",
                 "labelType": "xbrl:documentation"
             },
             {
@@ -1653,6 +1716,18 @@
                 "labelType": "xbrl:documentation"
             },
             {
+                "relatedName": "oimte:invalidCubeType",
+                "language": "en",
+                "value": "🚫",
+                "labelType": "xbrl:iconLabel"
+            },
+            {
+                "relatedName": "oimte:invalidCubeType",
+                "language": "en",
+                "value": "This error occurs when a dimension object specifies a cubeTypes array that contains a QName reference to an object that is not a cubeType. The cubeTypes property restricts which cube types can use the dimension, and all referenced objects must be valid cubeType objects defined in the taxonomy.",
+                "labelType": "xbrl:documentation"
+            },
+            {
                 "relatedName": "oimte:invalidCubeDimensionDomainName",
                 "language": "en",
                 "value": "🚫",
@@ -1749,15 +1824,27 @@
                 "labelType": "xbrl:documentation"
             },
             {
-                "relatedName": "oimte:invalidDimensionConstraint",
+                "relatedName": "oimte:invalidPeriodConstraintDimension",
                 "language": "en",
                 "value": "🚫",
                 "labelType": "xbrl:iconLabel"
             },
             {
-                "relatedName": "oimte:invalidDimensionConstraint",
+                "relatedName": "oimte:invalidPeriodConstraintDimension",
                 "language": "en",
-                "value": "This error is generated when a dimension has constraints that are invalid or contradictory. Dimension constraints define what values are allowed for a dimension, and these constraints must be consistent with the dimension's definition and the taxonomy's rules.",
+                "value": "This error is generated when a non period dimension has period constraints. Period constraints define what values are allowed for a dimension, and these constraints must only be defined for period dimensions.",
+                "labelType": "xbrl:documentation"
+            },
+            {
+                "relatedName": "oimte:redundantTimeSpanProperty",
+                "language": "en",
+                "value": "🚫",
+                "labelType": "xbrl:iconLabel"
+            },
+            {
+                "relatedName": "oimte:redundantTimeSpanProperty",
+                "language": "en",
+                "value": "This error is generated when the timeSpan property is used together with both the endDate and startDate properties in a period constraint. The timeSpan property defines a duration and should not be redundantly specified when both endpoints are already defined.",
                 "labelType": "xbrl:documentation"
             },
             {
@@ -2074,13 +2161,13 @@
                 "labelType": "xbrl:documentation"
             },
             {
-                "relatedName": "oimte:invalidDatatypeForEnumeration",
+                "relatedName": "oimte:invalidDataTypeForEnumeration",
                 "language": "en",
                 "value": "🚫",
                 "labelType": "xbrl:iconLabel"
             },
             {
-                "relatedName": "oimte:invalidDatatypeForEnumeration",
+                "relatedName": "oimte:invalidDataTypeForEnumeration",
                 "language": "en",
                 "value": "This error occurs when a property type has an enumeration domain specified but does not use xs:QName as its dataType. Property types with enumeration domains must have xs:QName dataType because enumeration members are referenced by their QNames within the taxonomy model.",
                 "labelType": "xbrl:documentation"
@@ -2398,6 +2485,18 @@
                 "labelType": "xbrl:documentation"
             },
             {
+                "relatedName": "oimte:invalidDataTypeForDomainRoot",
+                "language": "en",
+                "value": "🚫",
+                "labelType": "xbrl:iconLabel"
+            },
+            {
+                "relatedName": "oimte:invalidDataTypeForDomainRoot",
+                "language": "en",
+                "value": "This error occurs when a domainDataType property used on a cubeDimension object has a data type that is not defined in the allowedDomainItems array of the domain root object. The data types specified for the domain root must be compatible with the domainDataType assigned to the cube dimension. ",
+                "labelType": "xbrl:documentation"
+            },
+            {
                "relatedName": "xbrl:conformanceTestFileName",
                "language": "en",
                 "value": "Test File Name",
@@ -2635,6 +2734,18 @@
                 ]
             },
             {
+                "name": "oimte:invalidCubeTypeReference",
+                "relatedNames": [
+                    "oimte:invalidCubeType"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:conformanceTestFileName" ,"value":"DIMENSION-InvalidCubeTypeReference.json"},
+                    {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
+                ]
+            },
+            {
                 "name": "oimte:domainUsedOnPeriodDimensionReference",
                 "relatedNames": [
                     "oimte:domainUsedOnPeriodDimension",
@@ -2644,6 +2755,18 @@
                 "language": "en",
                 "properties": [
                     {"property":"xbrl:conformanceTestFileName" ,"value":"CUBE-DomainOnPeriodDImension.json"},
+                    {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
+                ]
+            },
+            {
+                "name": "oimte:domainDataTypeUsedOnPeriodDimensionReference",
+                "relatedNames": [
+                    "oimte:domainUsedOnPeriodDimension"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:conformanceTestFileName" ,"value":"CUBE-DomainDataTypeOnPeriodDimension.json"},
                     {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
                 ]
             },
@@ -2961,6 +3084,18 @@
                 ]
             },
             {
+                "name": "oimte:invalidQNamePeriodConceptNameReference",
+                "relatedNames": [
+                    "oimte:invalidQNameReference"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:conformanceTestFileName" ,"value":"CUBE-PeriodConstraintConceptNotConcept.json"},
+                    {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
+                ]
+            },
+            {
                 "name": "oimte:excludeCubeSelfReferencReference",
                 "relatedNames": [
                     "oimte:excludeCubeSelfReference"
@@ -3089,6 +3224,30 @@
                 "language": "en",
                 "properties": [
                     {"property":"xbrl:conformanceTestFileName" ,"value":"DOMAIN-UnitObjectInInvalidDomain.json"},
+                    {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
+                ]
+            },
+            {
+                "name": "oimte:invalidPeriodConstraintDimensionReference",
+                "relatedNames": [
+                    "oimte:invalidPeriodConstraintDimension"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:conformanceTestFileName" ,"value":"CUBE-PeriodConstraintOnNonPeriodDimension.json"},
+                    {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
+                ]
+            },  
+            {
+                "name": "oimte:invalidDataTypeForDomainRootReference",
+                "relatedNames": [
+                    "oimte:invalidDataTypeForDomainRoot"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:conformanceTestFileName" ,"value":"DIMENSION-InvalidDomainDataTypeReference.json"},
                     {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
                 ]
             }, 
@@ -3497,6 +3656,50 @@
                 "language": "en",
                 "properties": [
                     {"property":"xbrl:specificationErrorURI" ,"value":"https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-unitinnonunitdomain"}
+                ]
+            },
+            {
+                "name": "oimte:invalidPeriodConstraintDimensionSpecReference",
+                "relatedNames": [
+                    "oimte:invalidPeriodConstraintDimension"
+                ],
+                "referenceType": "xbrl:specificationErrorReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:specificationErrorURI" ,"value":"https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-invalidperiodconstraintdimension"}
+                ]
+            },
+            {
+                "name": "oimte:redundantTimeSpanPropertySpecReference",
+                "relatedNames": [
+                    "oimte:redundantTimeSpanProperty"
+                ],
+                "referenceType": "xbrl:specificationErrorReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:specificationErrorURI" ,"value":"https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-redundanttimespanproperty"}
+                ]
+            },
+            {
+                "name": "oimte:invalidCubeTypeSpecReference",
+                "relatedNames": [
+                    "oimte:invalidCubeType"
+                ],
+                "referenceType": "xbrl:specificationErrorReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:specificationErrorURI" ,"value":"https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-invalidcubetype"}
+                ]
+            },
+            {
+                "name": "oimte:invalidDataTypeForDomainRootSpecReference",
+                "relatedNames": [
+                    "oimte:invalidDataTypeForDomainRoot"
+                ],
+                "referenceType": "xbrl:specificationErrorReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:specificationErrorURI" ,"value":"https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-invaliddatatypefordomainroot"}
                 ]
             }
         ]
