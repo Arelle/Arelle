@@ -285,9 +285,8 @@ def escapedNode(
         for n,v in sorted(elt.items(), key=lambda item: item[0]):
             if n in uriAttrs:
                 v = resolveHtmlUri(elt, n, v).replace(" ", "%20") # %20 replacement needed for conformance test passing
-            # 2022-09-15: assuming n, v are always strings
-            s.append(' {0}="{1}"'.format(qname(elt, cast(str, n)),
-                cast(str, v).replace("&","&amp;").replace('"', '&quot;')))
+            s.append(' {0}="{1}"'.format(qname(elt, n),
+                v.replace("&","&amp;").replace('"', '&quot;')))
     if not start and empty:
         if selfClosable(elt):
             s.append('/')
@@ -401,9 +400,7 @@ def ancestors(
     ancestorLocalNames: str | tuple[str, ...] | None = None
 ) -> list[ModelObject]:
     if ancestorNamespaceURI is None and ancestorLocalNames is None:
-        return [
-            cast(ModelObject, ancestor) for ancestor in element.iterancestors()
-        ]
+        return list(element.iterancestors())
     ancestors = []
     wildNamespaceURI = not ancestorNamespaceURI or ancestorNamespaceURI == '*'
     treeElt = element.getparent()
@@ -635,13 +632,13 @@ def schemaBaseTypeDerivedFrom(
             return child.get("base")  # str | None
         elif child.tag == "{http://www.w3.org/2001/XMLSchema}union":
             return (child.get("memberTypes") or "").split() + [
-                    schemaBaseTypeDerivedFrom(cast(ModelObject, _child))
+                    schemaBaseTypeDerivedFrom(_child)
                     for _child in child.iterchildren(tag="{http://www.w3.org/2001/XMLSchema}simpleType")]  # list[str | QName | list[This func return] | None]
         elif child.tag in ("{http://www.w3.org/2001/XMLSchema}complexType",
                            "{http://www.w3.org/2001/XMLSchema}simpleType",
                            "{http://www.w3.org/2001/XMLSchema}complexContent",
                            "{http://www.w3.org/2001/XMLSchema}simpleContent"):
-            return schemaBaseTypeDerivedFrom(cast(ModelObject, child))
+            return schemaBaseTypeDerivedFrom(child)
     return None
 
 def schemaFacets(
@@ -936,9 +933,9 @@ def sortKey(
     if parentElement is not None:
         for childLocalName in childLocalNames if isinstance(childLocalNames,tuple) else (childLocalNames,):
             for child in parentElement.iterdescendants(tag="{{{0}}}{1}".format(childNamespaceUri,childLocalName)):
-                value = text(cast(ModelObject, child))
+                value = text(child)
                 if qnames:
-                    _value = prefixedNameToClarkNotation(cast(ModelObject, child), value)
+                    _value = prefixedNameToClarkNotation(child, value)
                     assert isinstance(_value, str)
                     value = _value
                 if childAttributeName is not None:
@@ -1255,7 +1252,7 @@ def writexml(
             else:
                 attrs["xmlns"] = ns
         for aTag,aValue in node.items():
-            ns, sep, localName = cast(str, aTag).partition('}')
+            ns, sep, localName = aTag.partition('}')
             if sep:
                 prefix = xmlnsprefix(node,ns[1:])
                 if prefix:
@@ -1264,7 +1261,7 @@ def writexml(
                     prefixedName = localName
             else:
                 prefixedName = ns
-            attrs[prefixedName] = cast(str, aValue)
+            attrs[prefixedName] = aValue
         aSortedNames = sorted(attrs.keys())
 
         # should attribute names be indented on separate lines?

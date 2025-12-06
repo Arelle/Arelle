@@ -268,9 +268,7 @@ def validate(
             presentAttributes = set()
         # validate attributes
         # find missing attributes for default values
-        for attrTag_, attrValue_ in elt.items():
-            attrTag: str = cast(str, attrTag_)
-            attrValue: str = cast(str, attrValue_)
+        for attrTag, attrValue in elt.items():
             qn = qnameClarkName(attrTag)
             #qn = qname(attrTag, noPrefixIsNoNamespace=True)
             baseXsdAttrType = None
