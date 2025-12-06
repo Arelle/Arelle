@@ -13,7 +13,7 @@ from arelle.PythonUtil import attrdict, OrderedSet
 from arelle.oim.Load import EMPTY_DICT, csvPeriod
 from .XbrlAbstract import XbrlAbstract
 from .XbrlConcept import XbrlConcept, XbrlDataType, XbrlUnitType
-from .XbrlConst import xbrl, qnXbrlReferenceObj, qnXbrlLabelObj, qnXbrlConceptObj, qnXbrlMemberObj, qnXbrlEntityObj, qnXbrlUnitObj
+from .XbrlConst import xbrl, qnXbrlReferenceObj, qnXbrlLabelObj, qnXbrlConceptObj, qnXbrlMemberObj, qnXbrlEntityObj, qnXbrlUnitObj, qnXbrlImportTaxonomyObj
 from .XbrlCube import (XbrlCube, XbrlCubeType, baseCubeTypes, XbrlCubeDimension,
                        periodCoreDim, conceptCoreDim, entityCoreDim, unitCoreDim, languageCoreDim, coreDimensions,
                     conceptDomainRoot, entityDomainRoot, unitDomainRoot, languageDomainRoot,
@@ -194,9 +194,9 @@ def validateTaxonomy(txmyMdl, txmy, mdlLvlChecks):
                           _("The exportProfile %(name)s objectType property MUST specify valid OIM object types, %(qname)s is not valid."),
                           xbrlObject=expPrflObj, name=name, qname=qnObjType)
         for iSel, selObj in enumerate(expPrflObj.selections):
-            if selObj.objectType not in xbrlObjectTypes.keys():
+            if selObj.objectType not in xbrlObjectTypes.keys() - {qnXbrlImportTaxonomyObj}:
                 txmyMdl.error("oimte:invalidSelectionObjectType",
-                          _("The exportProfile %(name)s selection[%(nbr)s] must identify a referencable taxonomy component object: %(qname)s."),
+                          _("The exportProfile %(name)s selection[%(nbr)s] must identify a referencable taxonomy component object, excluding importTaxonomyObjbject: %(qname)s."),
                           xbrlObject=expPrflObj, name=name, nbr=iSel, qname=selObj.objectType)
             for iWh, whereObj in enumerate(selObj.where):
                 if whereObj.property is None or whereObj.operator is None or whereObj.value is None:

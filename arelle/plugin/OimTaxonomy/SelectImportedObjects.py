@@ -5,7 +5,7 @@ See COPYRIGHT.md for copyright information.
 import regex as re
 from bitarray import bitarray
 from arelle.oim.Load import EMPTY_DICT
-from .XbrlConst import qnXbrlLabelObj
+from .XbrlConst import qnXbrlImportTaxonomyObj, qnXbrlLabelObj
 from .XbrlTaxonomyModule import xbrlObjectTypes, xbrlObjectQNames
 from .XbrlObject import DEREFERENCE_OBJECT
 
@@ -92,9 +92,9 @@ def selectImportedObjects(txmyMdl, newTxmy, impTxObj):
                           _("The importTaxonomy %(name)s importObject %(qname)s must identify an taxonomy object."),
                           xbrlObject=impTxObj, name=name, qname=impObjQn)
     for impObjTp in importObjectTypes:
-        if impObjTp not in xbrlObjectTypes.keys() - {qnXbrlLabelObj}:
+        if impObjTp not in xbrlObjectTypes.keys() - {qnXbrlImportTaxonomyObj}:
             txmyMdl.error("oimte:invalidImportedObjectType",
-                      _("The importTaxonomy %(name)s importObjectType %(qname)s must identify a referencable taxonomy component object, excluding labelObject."),
+                      _("The importTaxonomy %(name)s importObjectType %(qname)s must identify a referencable taxonomy component object, excluding importTaxonomyObj."),
                       xbrlObject=impTxObj, name=name, qname=impObjTp)
     if importObjectTypes:
         hasSel = True
