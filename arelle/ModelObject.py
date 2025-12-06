@@ -124,9 +124,9 @@ class ModelObject(etree.ElementBase):
         if parent is not None and hasattr(parent, "modelDocument"):
             self.init(parent.modelDocument)
 
-    def clear(self) -> None:
+    def clear(self, keep_tail: bool = False) -> None:
         self.__dict__.clear()  # delete local attributes
-        super(ModelObject, self).clear()  # delete children
+        super().clear(keep_tail)  # delete children
 
     def init(self, modelDocument: ModelDocument) -> None:
         self.modelDocument = modelDocument
