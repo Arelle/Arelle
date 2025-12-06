@@ -113,7 +113,7 @@ def jsonGet(tbl, key, default=None):
 def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwargs):
     global jsonschemaValidator
     from arelle import ModelDocument, ModelXbrl, XmlUtil
-    from arelle.ModelDocument import ModelDocumentReference
+    from arelle.ModelDocument import ModelDocument, ModelDocumentReference
     from arelle.ModelValue import qname
 
     _return = None # modelDocument or an exception
@@ -667,7 +667,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                 if impTxObj.taxonomyName and impTxObj.taxonomyName not in xbrlTxmyMdl.taxonomies:
                     # is it present in urlMapping?
                     for url in namespaceUrls.get(impTxObj.taxonomyName.prefix, ()):
-                        normalizedUri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(url, mappedUri)
+                        normalizedUri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(url, oimFile)
                         if modelXbrl.fileSource.isMappedUrl(normalizedUri):
                             mappedUrl = modelXbrl.fileSource.mappedUrl(normalizedUri)
                         elif PackageManager.isMappedUrl(normalizedUri):
@@ -676,8 +676,9 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                             mappedUrl = modelXbrl.modelManager.disclosureSystem.mappedUrl(normalizedUri)
                         impSchemaDoc = loadOIMTaxonomy(cntlr, error, warning, modelXbrl, 
                                                        mappedUrl, url, importingTxmyObj=impTxObj)
-                        impTxObj._txmyModule = impSchemaDoc._txmyModule
-                        selectImportedObjects(xbrlTxmyMdl, newTxmy, impTxObj)
+                        if isinstance(impSchemaDoc, ModelDocument): # if an exception object is returned, loading didn't succeed
+                            impTxObj._txmyModule = impSchemaDoc._txmyModule
+                            selectImportedObjects(xbrlTxmyMdl, newTxmy, impTxObj)
 
         modelXbrl.profileActivity(f"Load taxonomies imported from {txFileBasename}", minTimeToShow=PROFILE_MIN_TIME)
         xbrlTxmyMdl.namespaceDocs[taxonomyName.namespaceURI].append(schemaDoc)
