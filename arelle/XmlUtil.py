@@ -939,9 +939,9 @@ def sortKey(
                     assert isinstance(_value, str)
                     value = _value
                 if childAttributeName is not None:
-                    _list.append((child.tag, value, child.get(childAttributeName)))
+                    _list.append((cast(str, child.tag), value, child.get(childAttributeName)))
                 else:
-                    _list.append((child.tag, value, None))
+                    _list.append((cast(str, child.tag), value, None))
         _list.sort()
     return _list
 
@@ -1150,7 +1150,7 @@ def elementTagnamesPath(element: etree._Element | ModelObject | None) -> str:
     # returns clark notation absolute path without element sequences
     tagnamesPath: list[str] = []
     while (element is not None):
-        tagnamesPath.insert(0, element.tag)
+        tagnamesPath.insert(0, cast(str, element.tag))
         element = element.getparent()
     return "/".join(tagnamesPath)
 
@@ -1229,7 +1229,8 @@ def writexml(
             if skipInvalid and getattr(node, "xValid", VALID) == INVALID:
                 return
         else:
-            ns, sep, localName = node.tag.partition('}')
+            nodeTag = cast(str, node.tag)
+            ns, sep, localName = nodeTag.partition('}')
             if sep:
                 ns = ns[1:]
                 prefix = xmlnsprefix(node,ns)

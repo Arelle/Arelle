@@ -159,9 +159,10 @@ class ModelObject(etree.ElementBase):
         return emptySet
 
     def setNamespaceLocalName(self) -> None:
-        ns, sep, self._localName = self.tag.rpartition("}")
+        tag = cast(str, self.tag)
+        ns, sep, self._localName = tag.rpartition("}")
         if sep:
-            self._namespaceURI = ns[1:]
+            self._namespaceURI: str | None = ns[1:]
         else:
             self._namespaceURI = None
         if self.prefix:
