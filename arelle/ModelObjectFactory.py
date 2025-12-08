@@ -4,7 +4,7 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 from arelle.ModelObject import ModelObject, init as moduleObject_init
-from typing import Any, Optional, TYPE_CHECKING, Type
+from typing import Any, cast, Optional, TYPE_CHECKING, Type
 
 if TYPE_CHECKING:
     from arelle.ModelValue import QName
@@ -45,18 +45,18 @@ def parser(
         modelXbrl: ModelXbrl,
         baseUrl: str | None,
         target: None = None
-) -> tuple[etree.XMLParser, KnownNamespacesModelObjectClassLookup, DiscoveringClassLookup]:
+) -> tuple[etree.XMLParser[etree._Element], KnownNamespacesModelObjectClassLookup, DiscoveringClassLookup]:
     moduleObject_init()  # init ModelObject globals
-    _parser = etree.XMLParser(recover=True, huge_tree=True, target=target,
-                              resolve_entities=False)
+    _parser = etree.XMLParser(recover=True, huge_tree=True, target=target,  # type: ignore[call-overload]
+                               resolve_entities=False)
     return setParserElementClassLookup(_parser, modelXbrl, baseUrl)
 
 
 def setParserElementClassLookup(
-        _parser: etree.XMLParser,
+        _parser: etree.XMLParser[etree._Element],
         modelXbrl: ModelXbrl,
         baseUrl: str | None = None,
-) -> tuple[etree.XMLParser, KnownNamespacesModelObjectClassLookup, DiscoveringClassLookup]:
+) -> tuple[etree.XMLParser[etree._Element], KnownNamespacesModelObjectClassLookup, DiscoveringClassLookup]:
     classLookup = DiscoveringClassLookup(modelXbrl, baseUrl)
     nsNameLookup = KnownNamespacesModelObjectClassLookup(modelXbrl, fallback=classLookup)
     _parser.set_element_class_lookup(nsNameLookup)
@@ -91,7 +91,7 @@ class KnownNamespacesModelObjectClassLookup(etree.CustomElementClassLookup):
         self.modelXbrl = modelXbrl
         self.type: int | None = None
 
-    def lookup(self, node_type: str, document: etree._Document, ns: str | None, ln: str) -> Type[etree.ElementBase] | None:
+    def lookup(self, node_type: str, document: object, ns: str | None, ln: str | None) -> type[etree._Element] | None:
         # node_type is "element", "comment", "PI", or "entity"
         if node_type == "element":
             if ns == XbrlConst.xsd:
@@ -122,7 +122,7 @@ class KnownNamespacesModelObjectClassLookup(etree.CustomElementClassLookup):
             elif ns == XbrlConst.link:
                 if self.type is None:
                     self.type = LINKBASE
-                if modelObjectClass := LINK_LOCALNAME_TO_MODEL_CLASS.get(ln):
+                if ln is not None and (modelObjectClass := LINK_LOCALNAME_TO_MODEL_CLASS.get(ln)):
                     return modelObjectClass
             elif ns == "http://edgar/2009/conformance":
                 # don't force loading of test schema
@@ -154,7 +154,7 @@ class KnownNamespacesModelObjectClassLookup(etree.CustomElementClassLookup):
                     return ModelObject
 
             # match specific element types or substitution groups for types
-            return self.modelXbrl.matchSubstitutionGroup(qnameNsLocalName(ns, ln), elementSubstitutionModelClass)
+            return self.modelXbrl.matchSubstitutionGroup(qnameNsLocalName(ns, ln), elementSubstitutionModelClass)  # type: ignore[arg-type]
         elif node_type == "comment":
             from arelle.ModelObject import ModelComment
 
@@ -180,10 +180,11 @@ class DiscoveringClassLookup(etree.PythonElementClassLookup):
         if self.streamingOrSkipDTS and ModelFact is None:
             from arelle.ModelInstanceObject import ModelFact
 
-    def lookup(self, document: etree._Document, proxyElement: etree._Element) -> Type[ModelObject]:
+    def lookup(self, document: object, proxyElement: etree._Element) -> type[etree._Element] | None:
         # check if proxyElement's namespace is not known
         ns: str | None
-        ns, sep, ln = proxyElement.tag.partition("}")
+        tag = cast(str, proxyElement.tag)
+        ns, sep, ln = tag.partition("}")
         if sep:
             ns = ns[1:]
         else:
@@ -208,9 +209,9 @@ class DiscoveringClassLookup(etree.PythonElementClassLookup):
             # self.makeelementParentModelObject is set in streamingExtensions.py and ModelXbrl.createFact
             ancestor = proxyElement.getparent() or getattr(self.modelXbrl, "makeelementParentModelObject", None)
             while ancestor is not None:
-                tag = ancestor.tag  # not a modelObject yet, just parser prototype
-                if tag.startswith("{http://www.xbrl.org/2003/instance}") or tag.startswith("{http://www.xbrl.org/2003/linkbase}"):
-                    if tag == "{http://www.xbrl.org/2003/instance}xbrl":
+                ancestorTag = cast(str, ancestor.tag)  # not a modelObject yet, just parser prototype
+                if ancestorTag.startswith("{http://www.xbrl.org/2003/instance}") or ancestorTag.startswith("{http://www.xbrl.org/2003/linkbase}"):
+                    if ancestorTag == "{http://www.xbrl.org/2003/instance}xbrl":
                         # element not parented by context or footnoteLink
                         return ModelFact  # type: ignore[no-any-return]
                     else:
