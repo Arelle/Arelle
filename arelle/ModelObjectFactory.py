@@ -94,6 +94,7 @@ class KnownNamespacesModelObjectClassLookup(etree.CustomElementClassLookup):
     def lookup(self, node_type: str, document: object, ns: str | None, ln: str | None) -> type[etree._Element] | None:
         # node_type is "element", "comment", "PI", or "entity"
         if node_type == "element":
+            assert ln is not None, "element nodes must have a local name"
             if ns == XbrlConst.xsd:
                 if self.type is None:
                     self.type = SCHEMA
@@ -122,7 +123,7 @@ class KnownNamespacesModelObjectClassLookup(etree.CustomElementClassLookup):
             elif ns == XbrlConst.link:
                 if self.type is None:
                     self.type = LINKBASE
-                if ln is not None and (modelObjectClass := LINK_LOCALNAME_TO_MODEL_CLASS.get(ln)):
+                if modelObjectClass := LINK_LOCALNAME_TO_MODEL_CLASS.get(ln):
                     return modelObjectClass
             elif ns == "http://edgar/2009/conformance":
                 # don't force loading of test schema
@@ -154,7 +155,7 @@ class KnownNamespacesModelObjectClassLookup(etree.CustomElementClassLookup):
                     return ModelObject
 
             # match specific element types or substitution groups for types
-            return self.modelXbrl.matchSubstitutionGroup(qnameNsLocalName(ns, ln), elementSubstitutionModelClass)  # type: ignore[arg-type]
+            return self.modelXbrl.matchSubstitutionGroup(qnameNsLocalName(ns, ln), elementSubstitutionModelClass)
         elif node_type == "comment":
             from arelle.ModelObject import ModelComment
 
