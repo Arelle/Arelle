@@ -258,12 +258,7 @@ namespace ArelleGUITest
 
         static string GetClipboardText()
         {
-            string s = "";
-            Thread t = new(() => { s = System.Windows.Forms.Clipboard.GetText(); });
-            t.SetApartmentState(ApartmentState.STA);
-            t.Start();
-            t.Join();
-            return s;
+            return TextCopy.ClipboardService.GetText() ?? "";
         }
 
         const string PRESENTATION_STRUCTURE =
