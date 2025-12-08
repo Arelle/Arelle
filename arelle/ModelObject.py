@@ -305,9 +305,6 @@ class ModelObject(etree.ElementBase):
 
     @property
     def elementAttributesStr(self) -> str:
-        # Note 2022-09-09:
-        # Mypy raises the following error. Not sure why this is the case, this returns a str not binary data?
-        # On Python 3 formatting "b'abc'" with "{}" produces "b'abc'", not "abc"; use "{!r}" if this is desired behavior
         return ', '.join(["{0}='{1}'".format(name, value) for name, value in self.items()])
 
     def resolveUri(
