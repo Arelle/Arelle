@@ -27,6 +27,7 @@ from urllib.parse import quote, unquote, urlsplit, urlunsplit
 
 import certifi
 import regex as re
+import truststore
 from filelock import FileLock, Timeout
 
 from arelle.PythonUtil import isLegacyAbs
@@ -35,12 +36,6 @@ try:
     import ssl
 except ImportError:
     ssl = None
-
-try:
-    import truststore
-except ImportError:
-    # truststore requires Python > 3.9
-    truststore = None
 
 from arelle.FileSource import SERVER_WEB_CACHE, archiveFilenameParts
 from arelle.PluginManager import pluginClassMethods
@@ -282,8 +277,7 @@ class WebCache:
             self.http_auth_handler = proxyhandlers.HTTPBasicAuthHandler()
             proxyHandlers = [self.proxy_handler, self.proxy_auth_handler, self.http_auth_handler]
         if ssl:
-            # Attempt to load the default CA certificates from the OS using truststore if available, else fallback to OpenSSL's default context.
-            context = truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT) if truststore else ssl.create_default_context()
+            context = truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
             # Include certifi certificates (Mozilla’s carefully curated
             # collection) for systems with outdated certs.
             context.load_verify_locations(cafile=certifi.where())
