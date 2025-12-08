@@ -267,18 +267,18 @@ class ModelObject(ElementBase):
 
     @property
     def stringValue(self) -> str:    # "string value" of node, text of all Element descendants
-        return ''.join(self._textNodes(recurse=True))  # return text of Element descendants
+        return ''.join(self.textNodes(recurse=True))  # return text of Element descendants
 
     @property
     def textValue(self) -> str:  # xml axis text() differs from string value, no descendant element text
-        return ''.join(self._textNodes())  # no text nodes returns ''
+        return ''.join(self.textNodes())  # no text nodes returns ''
 
-    def _textNodes(self, recurse:bool = False) ->  Generator[str | Any, None, None]:
+    def textNodes(self, recurse:bool = False) ->  Generator[str | Any, None, None]:
         if self.text and getattr(self,"xValid", 0) != VALID_NO_CONTENT: # skip tuple whitespaces
                 yield self.text
         for c in self.iterchildren():
             if recurse and isinstance(c, ModelObject):
-                for nestedText in c._textNodes(recurse):
+                for nestedText in c.textNodes(recurse):
                     yield nestedText
             if c.tail and getattr(self,"xValid", 0) != VALID_NO_CONTENT: # skip tuple whitespaces
                 yield c.tail  # get tail of nested element, comment or processor nodes

@@ -3,21 +3,21 @@
 <testcase
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns="http://xbrl.org/2005/conformance"
-        name="EDINET.EC2008E"
-        description="EDINET.EC2008E: Table of contents entries must not contain HTML tags."
+        name="EDINET.EC2011E"
+        description="EDINET.EC2011E: Corner brackets (【】) cannot be used in the main text except for the table of contents."
         outpath=''
         owner="support@arelle.org"
         xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
     <variation id="invalid01" name="invalid01">
         <description>
-            A TOC element has HTML tags in its label.
-            <!--valid08.zip with content within brackets wrapped in <b> tag.-->
+            Corner brackets exist in the main text.
+            <!--valid08.zip with corner bracket added in tail of TOC element as well as in body of non-TOC element.-->
         </description>
         <data>
             <instance readMeFirst="true">invalid01.zip</instance>
         </data>
         <result>
-            <error>EDINET.EC2008E</error>
+            <error num="2">EDINET.EC2011E</error>
         </result>
     </variation>
 </testcase>

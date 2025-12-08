@@ -3,21 +3,21 @@
 <testcase
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns="http://xbrl.org/2005/conformance"
-        name="EDINET.EC2008E"
-        description="EDINET.EC2008E: Table of contents entries must not contain HTML tags."
+        name="EDINET.EC2009E"
+        description="EDINET.EC2009E: Table of contents entries must not contain 'del' or 'img' HTML tags between the number and label."
         outpath=''
         owner="support@arelle.org"
         xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
     <variation id="invalid01" name="invalid01">
         <description>
-            A TOC element has HTML tags in its label.
-            <!--valid08.zip with content within brackets wrapped in <b> tag.-->
+            A TOC element has a "del" tag between the number and label.
+            <!--valid08.zip with <del></del> between a TOC number and label.-->
         </description>
         <data>
             <instance readMeFirst="true">invalid01.zip</instance>
         </data>
         <result>
-            <error>EDINET.EC2008E</error>
+            <error>EDINET.EC2009E</error>
         </result>
     </variation>
 </testcase>
