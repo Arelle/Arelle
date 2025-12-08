@@ -116,6 +116,7 @@ class ModelObject(etree.ElementBase):
     xValueError: Exception | None
     xValid: int
     xlinkLabel: str
+    tag: str
     targetModelXbrl: ModelXbrl
 
     def _init(self) -> None:
@@ -159,7 +160,7 @@ class ModelObject(etree.ElementBase):
         return emptySet
 
     def setNamespaceLocalName(self) -> None:
-        tag = cast(str, self.tag)
+        tag = self.tag
         ns, sep, self._localName = tag.rpartition("}")
         if sep:
             self._namespaceURI: str | None = ns[1:]

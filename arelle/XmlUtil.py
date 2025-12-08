@@ -939,9 +939,9 @@ def sortKey(
                     assert isinstance(_value, str)
                     value = _value
                 if childAttributeName is not None:
-                    _list.append((cast(str, child.tag), value, child.get(childAttributeName)))
+                    _list.append((child.tag, value, child.get(childAttributeName)))
                 else:
-                    _list.append((cast(str, child.tag), value, None))
+                    _list.append((child.tag, value, None))
         _list.sort()
     return _list
 
