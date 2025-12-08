@@ -843,7 +843,7 @@ def copyIxFootnoteHtml(
         if contAt is not None:
             copyIxFootnoteHtml(contAt, tgtHtml, targetModelDocument, withText=withText, isContinChainElt=True, tgtStack=tgtStack, srcLevel=0)
 
-def addComment(parent: ModelObject, commentText: str) -> None:
+def addComment(parent: etree._Element, commentText: str) -> None:
     comment = str(commentText)
     if '--' in comment: # replace -- with - - (twice, in case more than 3 '-' together)
         comment = comment.replace('--', '- -').replace('--', '- -')
@@ -851,7 +851,7 @@ def addComment(parent: ModelObject, commentText: str) -> None:
     parent.append(child)
 
 def addProcessingInstruction(
-    parent: ModelObject,
+    parent: etree._Element,
     piTarget: str | bytes,
     piText: str,
     insertBeforeChildElements: bool = True,
