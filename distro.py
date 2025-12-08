@@ -106,15 +106,6 @@ if sys.platform == LINUX_PLATFORM:
     includeLibs.append("Crypto.Cipher")
     includeLibs.append("Crypto.Cipher.AES")
     includeFiles.append(("arelle/scripts-unix", "scripts"))
-    if os.path.exists("/etc/redhat-release"):
-        includeFiles.append(("/usr/lib64/libexslt.so.0", "libexslt.so"))
-        includeFiles.append(("/usr/lib64/libxml2.so", "libxml2.so"))
-        includeFiles.append(("/usr/lib64/libxml2.so.2", "libxml2.so.2"))
-        includeFiles.append(("/usr/lib64/libxslt.so.1", "libxslt.so"))
-        includeFiles.append(("/lib64/libz.so.1", "libz.so.1"))
-        includeFiles.append(("/usr/lib64/liblzma.so.5", "liblzma.so.5"))
-        includeFiles.append(("/usr/local/lib/tcl8.6", "tcl8.6"))
-        includeFiles.append(("/usr/local/lib/tk8.6", "tk8.6"))
 elif sys.platform == MACOS_PLATFORM:
     guiExecutable = Executable(
         script="arelleGUI.py",
