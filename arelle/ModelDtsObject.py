@@ -2015,6 +2015,7 @@ class ModelRelationship(ModelObject):
     @property
     def equivalenceHash(self): # not exact, use equivalenceKey if hashes are the same
         return hash((self.qname,
+                     self.arcrole,
                      self.linkQname,
                      self.linkrole,  # needed when linkrole=None merges multiple links
                      self.fromModelObject.objectIndex if isinstance(self.fromModelObject, ModelObject) else -1,
@@ -2028,6 +2029,7 @@ class ModelRelationship(ModelObject):
         """(tuple) -- Key to determine relationship equivalence per 2.1 spec"""
         # cannot be cached because this is unique per relationship
         return (self.qname,
+                self.arcrole,
                 self.linkQname,
                 self.linkrole,  # needed when linkrole=None merges multiple links
                 self.fromModelObject.objectIndex if isinstance(self.fromModelObject, ModelObject) else -1,
