@@ -89,6 +89,11 @@ def esefDisclosureSystemSelected(modelXbrl: ModelXbrl) -> bool:
     return getattr(modelXbrl.modelManager.disclosureSystem, ESEF_DISCLOSURE_SYSTEM_TEST_PROPERTY, False)
 
 
+def shouldRunEsefValidationRules(val: ValidateXbrl) -> bool:
+    if not val.validateDisclosureSystem:
+        return False
+    return esefDisclosureSystemSelected(val.modelXbrl)
+
 class ESEFPlugin(PluginHooks):
     @staticmethod
     def disclosureSystemTypes(
@@ -217,7 +222,7 @@ class ESEFPlugin(PluginHooks):
         *args: Any,
         **kwargs: Any,
     ) -> None:
-        if not esefDisclosureSystemSelected(val.modelXbrl) and val.validateDisclosureSystem:
+        if not shouldRunEsefValidationRules(val):
             return None
         modelXbrl = val.modelXbrl
         val.extensionImportedUrls = set()
@@ -282,7 +287,7 @@ class ESEFPlugin(PluginHooks):
         *args: Any,
         **kwargs: Any,
     ) -> None:
-        if not esefDisclosureSystemSelected(val.modelXbrl) and val.validateDisclosureSystem:
+        if not shouldRunEsefValidationRules(val):
             return None
         disclosureSystemYear = getDisclosureSystemYear(val.modelXbrl)
         if disclosureSystemYear == 2021:
@@ -295,7 +300,7 @@ class ESEFPlugin(PluginHooks):
         *args: Any,
         **kwargs: Any,
     ) -> None:
-        if not esefDisclosureSystemSelected(val.modelXbrl) and val.validateDisclosureSystem:
+        if not shouldRunEsefValidationRules(val):
             return None
         if val.unconsolidated:
             return None
@@ -338,7 +343,7 @@ class ESEFPlugin(PluginHooks):
         *args: Any,
         **kwargs: Any,
     ) -> None:
-        if not esefDisclosureSystemSelected(val.modelXbrl) and val.validateDisclosureSystem:
+        if not shouldRunEsefValidationRules(val):
             return None
         modelXbrl = val.modelXbrl
         if hasattr(val, 'priorFormulaOptionsRunIDs'):  # reset environment formula run IDs if they were saved
