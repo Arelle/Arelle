@@ -54,6 +54,20 @@ def get_all_scripts() -> list[Path]:
     """
     return [x for x in Path(TESTS_PATH).glob('**/*.py')]
 
+def get_frozen_build_scripts() -> list[Path]:
+    """
+    Returns absolute paths of runnable scripts based on the operating system.
+    :return: Tuple of runnable scripts.
+    """
+    return [p for p in get_all_scripts() if _for_frozen_build(p)]
+
+def _for_frozen_build(path: Path) -> bool:
+    if path.stem.startswith("python_api_"):
+        return False
+    if _is_private(path):
+        return False
+    return True
+
 def _is_private(path: Path) -> list[str]:
     return path.stem in FUNCTION_REGISTRY_TESTS
 

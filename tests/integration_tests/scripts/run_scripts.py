@@ -3,13 +3,12 @@ from __future__ import annotations
 import subprocess
 import sys
 from argparse import ArgumentParser, Namespace
-from pathlib import Path
 from typing import Any, TYPE_CHECKING, cast
 
 import pytest
 
 from tests.integration_tests.download_cache import download_and_apply_cache
-from tests.integration_tests.scripts.discover_tests import get_all_scripts
+from tests.integration_tests.scripts.discover_tests import get_all_scripts, get_frozen_build_scripts
 
 if TYPE_CHECKING:
     from _pytest.mark import ParameterSet
@@ -59,27 +58,24 @@ ARGUMENTS: list[dict[str, Any]] = [
 ]
 
 
-def _for_frozen_build(name: Path) -> bool:
-    if name.stem.startswith("python_api_"):
-        return False
-    return True
-
-
 def run_script_options(options: Namespace) -> list[ParameterSet]:
     assert options.arelle, '--arelle is required'
-    all_scripts = get_all_scripts()
     if options.all:
-        scripts = all_scripts
+        scripts = get_all_scripts()
         if options.download_cache:
             download_and_apply_cache(
                 ALL_SCRIPTS_ZIP,
                 version_id='CNTq_CLLvVEpcpxw9x4ipF76gD7zvZWD'
             )
     elif options.all_frozen_builds:
-        scripts = [s for s in all_scripts if _for_frozen_build(s)]
+        scripts = get_frozen_build_scripts()
     else:
         assert options.name, '--name or --all is required'
-        scripts = [s for s in all_scripts if s.stem in options.name.split(',')]
+        scripts = [
+            s
+            for s in get_all_scripts()
+            if s.stem in options.name.split(',')
+        ]
     all_results = []
     assert scripts, 'No scripts found'
     for script in scripts:
