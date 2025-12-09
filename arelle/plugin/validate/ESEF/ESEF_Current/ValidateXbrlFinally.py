@@ -582,9 +582,10 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     requiredToDisplayFacts.append(ixElt)
             if requiredToDisplayFacts:
                 modelXbrl.error("ESEF.2.4.1.factInHiddenSectionNotInReport",
-                    _("The ix:hidden section contains %(countUnreferenced)s fact(s) whose @id is not applied on any \"-esef-ix- hidden\" style: %(elements)s"),
+                    _("The ix:hidden section contains %(countUnreferenced)s fact(s) whose @id is not applied on any \"%(styleIxHiddenProperty)s\" style: %(elements)s"),
                     modelObject=requiredToDisplayFacts,
                     countUnreferenced=len(requiredToDisplayFacts),
+                    styleIxHiddenProperty=styleIxHiddenProperty,
                     elements=", ".join(sorted(set(str(f.qname) for f in requiredToDisplayFacts))))
             del eligibleForTransformHiddenFacts, hiddenEltIds, presentedHiddenEltIds, requiredToDisplayFacts
         elif modelDocument.type == ModelDocument.Type.INSTANCE:
