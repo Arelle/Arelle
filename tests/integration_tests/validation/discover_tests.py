@@ -8,7 +8,7 @@ from .conformance_suite_config import ConformanceSuiteConfig
 from .conformance_suite_configs import CI_CONFORMANCE_SUITE_CONFIGS
 from .conformance_suite_configurations.efm_current import config as efm_current
 from .conformance_suite_configurations.xbrl_2_1 import config as xbrl_2_1
-from .github import LINUX, MACOS, OS_CORES, WINDOWS
+from ..github import LINUX, MACOS, OS_CORES, WINDOWS
 
 
 ALL_PYTHON_VERSIONS = (

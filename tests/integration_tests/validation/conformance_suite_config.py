@@ -8,7 +8,7 @@ from functools import cached_property
 from pathlib import Path
 from typing import Literal
 
-from tests.integration_tests.validation.github import OS_CORES
+from tests.integration_tests.github import OS_CORES
 
 CONFORMANCE_SUITE_PATH_PREFIX = 'tests/resources/conformance_suites'
 
