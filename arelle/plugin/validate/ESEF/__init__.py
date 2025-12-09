@@ -76,7 +76,7 @@ def validateEntity(modelXbrl: ModelXbrl, filename:str, filesource: FileSource) -
         parser = XMLParser(load_dtd=True, resolve_entities=False)
         root = parse(file[0], parser=parser)
         if root.docinfo.internalDTD:
-            for entity in root.docinfo.internalDTD.iterentities():  # type: ignore[union-attr]
+            for entity in root.docinfo.internalDTD.iterentities():
                 modelXbrl.error(f"{contentOtherThanXHTMLGuidance}.maliciousCodePresent",
                                 _("Documents MUST NOT contain any malicious content. Dangerous XML entity found: %(element)s."),
                                 modelObject=filename, element=entity.name)

@@ -781,11 +781,11 @@ class XPathContext:
                     elif axis.endswith("-sibling"):
                         if isinstance(node, ModelObject):
                             targetNodes = [
-                                sibling  # type: ignore[misc]
+                                sibling
                                 for sibling in node.itersiblings(preceding=axis.startswith("preceding"))
                                 if (
-                                    (not ns or ns == sibling.namespaceURI or ns == "*")  # type: ignore[attr-defined]
-                                    and (localname == sibling.localName or localname == "*")  # type: ignore[attr-defined]
+                                    (not ns or ns == sibling.namespaceURI or ns == "*")
+                                    and (localname == sibling.localName or localname == "*")
                                 )
                             ]
                     elif axis == "preceding":

@@ -30,12 +30,6 @@ for arg in sys.argv[1:]:
         break
     prevArg = arg
 
-from arelle.BetaFeatures import BETA_OBJECT_MODEL_FEATURE, enableNewObjectModel
-
-# Model transition must be enabled before any other imports to avoid mixing base classes.
-if f"--{BETA_OBJECT_MODEL_FEATURE}" in sys.argv or f"--{BETA_OBJECT_MODEL_FEATURE.lower()}" in sys.argv:
-    enableNewObjectModel()
-
 from arelle import CntlrCmdLine, CntlrComServer
 
 if '--COMserver' in sys.argv:

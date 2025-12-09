@@ -268,9 +268,7 @@ def validate(
             presentAttributes = set()
         # validate attributes
         # find missing attributes for default values
-        for attrTag_, attrValue_ in elt.items():
-            attrTag: str = cast(str, attrTag_)
-            attrValue: str = cast(str, attrValue_)
+        for attrTag, attrValue in elt.items():
             qn = qnameClarkName(attrTag)
             #qn = qname(attrTag, noPrefixIsNoNamespace=True)
             baseXsdAttrType = None
@@ -702,8 +700,8 @@ class lxmlSchemaResolver(etree.Resolver):
                 if xml:
                     return self.resolve_string(xml, context, base_url=_url)
             else: # probably no active modelXbrl yet, such as when loading packages, use url
-                return self.resolve_filename(url, context)  # type: ignore[attr-defined]
-        return self.resolve_empty(context)  # type: ignore[attr-defined]
+                return self.resolve_filename(url, context)
+        return self.resolve_empty(context)
 
 def lxmlResolvingParser(cntlr: Cntlr, modelXbrl: ModelXbrl | None = None) -> etree.XMLParser:
     parser = etree.XMLParser(resolve_entities=False)
@@ -756,7 +754,7 @@ def lxmlSchemaValidate(modelDocument: ModelDocument, extraSchema : str | None = 
                 for key, val in docTree.getroot().nsmap.items()
                 if key
             }
-            for e in err.error_log:  # type: ignore[attr-defined]
+            for e in err.error_log:
                 if not any(s in e.message for s in (": The QName value", "is not a valid value of the atomic type 'xs:QName'")):
                     # do newer lxml validations have QName whitespace collapsing issue?
                     userFriendlyElementPath = ''

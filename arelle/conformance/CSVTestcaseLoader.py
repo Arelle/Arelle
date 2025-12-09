@@ -54,7 +54,7 @@ def loadCsvTestcase(
     if tuple(header) != CSV_TESTCASE_HEADER:
         # CSV doesn't have a recognized testcase header.
         raise CSVTestcaseException(f"CSV file {filepath} doesn't have test case header: {CSV_TESTCASE_HEADER}, first row {header}")
-    testcaseElement = etree.Element("testcase", nsmap=TESTCASE_NAMESPACES_BY_PREFIX)  # type: ignore[arg-type]
+    testcaseElement = etree.Element("testcase", nsmap=TESTCASE_NAMESPACES_BY_PREFIX)
     document = ModelDocument.create(
         modelXbrl,
         ModelDocument.Type.TESTCASE,

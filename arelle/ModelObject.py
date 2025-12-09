@@ -8,7 +8,6 @@ from lxml import etree
 from arelle import Locale
 from arelle import ModelValue
 from arelle.XmlValidateConst import VALID_NO_CONTENT
-from arelle.model import CommentBase, ElementBase, PIBase
 
 if TYPE_CHECKING:
     from arelle.ModelDocument import ModelDocument
@@ -21,7 +20,7 @@ if TYPE_CHECKING:
     from arelle.ModelInstanceObject import ModelInlineFootnote
     from arelle.ModelInstanceObject import ModelInlineFact
     from arelle.ModelInstanceObject import ModelDimensionValue
-    from arelle.ModelValue import qname, qnameEltPfxName, QName, TypeSValue, TypeXValue
+    from arelle.ModelValue import QName, TypeSValue, TypeXValue
 
 XmlUtil: Any = None
 
@@ -32,7 +31,7 @@ def init() -> None: # init globals
     if XmlUtil is None:
         from arelle import XmlUtil
 
-class ModelObject(ElementBase):
+class ModelObject(etree.ElementBase):
     """ModelObjects represent the XML elements within a document, and are implemented as custom
     lxml proxy objects.  Each modelDocument has a parser with the parser objects in ModelObjectFactory.py,
     to determine the type of model object to correspond to a proxied lxml XML element.
@@ -117,6 +116,7 @@ class ModelObject(ElementBase):
     xValueError: Exception | None
     xValid: int
     xlinkLabel: str
+    tag: str
     targetModelXbrl: ModelXbrl
 
     def _init(self) -> None:
@@ -125,9 +125,9 @@ class ModelObject(ElementBase):
         if parent is not None and hasattr(parent, "modelDocument"):
             self.init(parent.modelDocument)
 
-    def clear(self) -> None:
+    def clear(self, keep_tail: bool = False) -> None:
         self.__dict__.clear()  # delete local attributes
-        super(ModelObject, self).clear()  # delete children
+        super().clear(keep_tail)  # delete children
 
     def init(self, modelDocument: ModelDocument) -> None:
         self.modelDocument = modelDocument
@@ -160,9 +160,10 @@ class ModelObject(ElementBase):
         return emptySet
 
     def setNamespaceLocalName(self) -> None:
-        ns, sep, self._localName = self.tag.rpartition("}")
+        tag = self.tag
+        ns, sep, self._localName = tag.rpartition("}")
         if sep:
-            self._namespaceURI = ns[1:]
+            self._namespaceURI: str | None = ns[1:]
         else:
             self._namespaceURI = None
         if self.prefix:
@@ -257,7 +258,7 @@ class ModelObject(ElementBase):
             return self._parentQname
         except AttributeError:
             parentObj = self.getparent()
-            self._parentQname = parentObj.elementQname if parentObj is not None else None  # type: ignore[attr-defined]
+            self._parentQname = parentObj.elementQname if parentObj is not None else None
             return self._parentQname
 
 
@@ -305,10 +306,7 @@ class ModelObject(ElementBase):
 
     @property
     def elementAttributesStr(self) -> str:
-        # Note 2022-09-09:
-        # Mypy raises the following error. Not sure why this is the case, this returns a str not binary data?
-        # On Python 3 formatting "b'abc'" with "{}" produces "b'abc'", not "abc"; use "{!r}" if this is desired behavior
-        return ', '.join(["{0}='{1}'".format(name, value) for name, value in self.items()]) # type: ignore[str-bytes-safe]
+        return ', '.join(["{0}='{1}'".format(name, value) for name, value in self.items()])
 
     def resolveUri(
         self,
@@ -398,7 +396,7 @@ class ModelObject(ElementBase):
     def __repr__(self) -> str:
         return ("{0}[{1}, {2} line {3})".format(type(self).__name__, self.objectIndex, self.modelDocument.basename, self.sourceline))
 
-class ModelComment(CommentBase): # type: ignore[misc]
+class ModelComment(etree.CommentBase):
     """ModelConcept is a custom proxy objects for etree.
     """
     def _init(self) -> None:
@@ -410,7 +408,7 @@ class ModelComment(CommentBase): # type: ignore[misc]
     def init(self, modelDocument: ModelDocument) -> None:
         self.modelDocument = modelDocument
 
-class ModelProcessingInstruction(PIBase): # type: ignore[misc]
+class ModelProcessingInstruction(etree.PIBase):
     """ModelProcessingInstruction is a custom proxy object for etree.
     """
     def _init(self) -> None:

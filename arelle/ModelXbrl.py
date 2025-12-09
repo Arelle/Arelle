@@ -603,7 +603,7 @@ class ModelXbrl:
                         all([cDim.isEqualTo(dims[cDimQn]) for cDimQn, cDim in c.qnameDims.items()]))) and
                  # OCCs match for either dimensional or non-dimensional modle
                  all(
-                   all([sEqual(self, cOCCs[i], mOCCs[i]) for i in range(len(mOCCs))])  # type: ignore[arg-type]
+                   all([sEqual(self, cOCCs[i], mOCCs[i]) for i in range(len(mOCCs))])
                      if len(cOCCs) == len(mOCCs) else False
                         for cOCCs,mOCCs in ((c.nonDimValues(segAspect),segOCCs),
                                             (c.nonDimValues(scenAspect),scenOCCs)))

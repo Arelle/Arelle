@@ -285,9 +285,8 @@ def escapedNode(
         for n,v in sorted(elt.items(), key=lambda item: item[0]):
             if n in uriAttrs:
                 v = resolveHtmlUri(elt, n, v).replace(" ", "%20") # %20 replacement needed for conformance test passing
-            # 2022-09-15: assuming n, v are always strings
-            s.append(' {0}="{1}"'.format(qname(elt, cast(str, n)),
-                cast(str, v).replace("&","&amp;").replace('"', '&quot;')))
+            s.append(' {0}="{1}"'.format(qname(elt, n),
+                v.replace("&","&amp;").replace('"', '&quot;')))
     if not start and empty:
         if selfClosable(elt):
             s.append('/')
@@ -401,9 +400,7 @@ def ancestors(
     ancestorLocalNames: str | tuple[str, ...] | None = None
 ) -> list[ModelObject]:
     if ancestorNamespaceURI is None and ancestorLocalNames is None:
-        return [
-            cast(ModelObject, ancestor) for ancestor in element.iterancestors()
-        ]
+        return list(element.iterancestors())
     ancestors = []
     wildNamespaceURI = not ancestorNamespaceURI or ancestorNamespaceURI == '*'
     treeElt = element.getparent()
@@ -635,13 +632,13 @@ def schemaBaseTypeDerivedFrom(
             return child.get("base")  # str | None
         elif child.tag == "{http://www.w3.org/2001/XMLSchema}union":
             return (child.get("memberTypes") or "").split() + [
-                    schemaBaseTypeDerivedFrom(cast(ModelObject, _child))
+                    schemaBaseTypeDerivedFrom(_child)
                     for _child in child.iterchildren(tag="{http://www.w3.org/2001/XMLSchema}simpleType")]  # list[str | QName | list[This func return] | None]
         elif child.tag in ("{http://www.w3.org/2001/XMLSchema}complexType",
                            "{http://www.w3.org/2001/XMLSchema}simpleType",
                            "{http://www.w3.org/2001/XMLSchema}complexContent",
                            "{http://www.w3.org/2001/XMLSchema}simpleContent"):
-            return schemaBaseTypeDerivedFrom(cast(ModelObject, child))
+            return schemaBaseTypeDerivedFrom(child)
     return None
 
 def schemaFacets(
@@ -846,7 +843,7 @@ def copyIxFootnoteHtml(
         if contAt is not None:
             copyIxFootnoteHtml(contAt, tgtHtml, targetModelDocument, withText=withText, isContinChainElt=True, tgtStack=tgtStack, srcLevel=0)
 
-def addComment(parent: ModelObject, commentText: str) -> None:
+def addComment(parent: etree._Element, commentText: str) -> None:
     comment = str(commentText)
     if '--' in comment: # replace -- with - - (twice, in case more than 3 '-' together)
         comment = comment.replace('--', '- -').replace('--', '- -')
@@ -854,7 +851,7 @@ def addComment(parent: ModelObject, commentText: str) -> None:
     parent.append(child)
 
 def addProcessingInstruction(
-    parent: ModelObject,
+    parent: etree._Element,
     piTarget: str | bytes,
     piText: str,
     insertBeforeChildElements: bool = True,
@@ -909,13 +906,10 @@ def setXmlns(modelDocument: etree._ElementTree | ModelDocument, prefix: str | No
         if root.tag == 'nsmap': # already have an xmlns-extension root element
             newmap = root.nsmap
             newmap[prefix] = namespaceURI
-            # 2022-09-16: for some reason prefix is encouraged to always be a str in lxml-stubs,
-            # but '' for default ns is not accepted by lxml nsmap arg and lxml produces and error
-            # see https://github.com/lxml/lxml-stubs/blob/0a9b6099dd39b298fd0ff897dbcd4fed632d8776/lxml-stubs/etree.pyi#L69
-            newroot = etree.Element('nsmap', nsmap=newmap)  # type: ignore[arg-type]  # above note
+            newroot = etree.Element('nsmap', nsmap=newmap)
             newroot.extend(root)
         else:  # new xmlns-extension root
-            newroot = etree.Element('nsmap', nsmap={prefix: namespaceURI})  # type: ignore[dict-item]  # above note
+            newroot = etree.Element('nsmap', nsmap={prefix: namespaceURI})
             comments = []
             comment = root.getprevious()
             while isinstance(comment, etree._Comment):
@@ -939,9 +933,9 @@ def sortKey(
     if parentElement is not None:
         for childLocalName in childLocalNames if isinstance(childLocalNames,tuple) else (childLocalNames,):
             for child in parentElement.iterdescendants(tag="{{{0}}}{1}".format(childNamespaceUri,childLocalName)):
-                value = text(cast(ModelObject, child))
+                value = text(child)
                 if qnames:
-                    _value = prefixedNameToClarkNotation(cast(ModelObject, child), value)
+                    _value = prefixedNameToClarkNotation(child, value)
                     assert isinstance(_value, str)
                     value = _value
                 if childAttributeName is not None:
@@ -1156,7 +1150,7 @@ def elementTagnamesPath(element: etree._Element | ModelObject | None) -> str:
     # returns clark notation absolute path without element sequences
     tagnamesPath: list[str] = []
     while (element is not None):
-        tagnamesPath.insert(0, element.tag)
+        tagnamesPath.insert(0, cast(str, element.tag))
         element = element.getparent()
     return "/".join(tagnamesPath)
 
@@ -1235,7 +1229,8 @@ def writexml(
             if skipInvalid and getattr(node, "xValid", VALID) == INVALID:
                 return
         else:
-            ns, sep, localName = node.tag.partition('}')
+            nodeTag = cast(str, node.tag)
+            ns, sep, localName = nodeTag.partition('}')
             if sep:
                 ns = ns[1:]
                 prefix = xmlnsprefix(node,ns)
@@ -1258,7 +1253,7 @@ def writexml(
             else:
                 attrs["xmlns"] = ns
         for aTag,aValue in node.items():
-            ns, sep, localName = cast(str, aTag).partition('}')
+            ns, sep, localName = aTag.partition('}')
             if sep:
                 prefix = xmlnsprefix(node,ns[1:])
                 if prefix:
@@ -1267,7 +1262,7 @@ def writexml(
                     prefixedName = localName
             else:
                 prefixedName = ns
-            attrs[prefixedName] = cast(str, aValue)
+            attrs[prefixedName] = aValue
         aSortedNames = sorted(attrs.keys())
 
         # should attribute names be indented on separate lines?

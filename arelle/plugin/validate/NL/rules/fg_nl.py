@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Iterable
-from typing import Any, cast
+from typing import Any
 
 from lxml.etree import _Element
 
@@ -193,7 +193,6 @@ def rule_fg_nl_05(
                 continue
             usedPrefixes.add(elt.qname.prefix)
             for attrTag in elt.keys():
-                attrTag = cast(str, attrTag)
                 if attrTag.startswith("{"):
                     prefix = XmlUtil.clarkNotationToPrefixNsLocalname(elt, attrTag, isAttribute=True)[0]
                     if prefix:

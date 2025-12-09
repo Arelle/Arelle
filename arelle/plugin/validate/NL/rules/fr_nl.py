@@ -801,10 +801,10 @@ def rule_fr_nl_5_11(
                     styleProperty = styleValues[0].strip()
                     if styleProperty not in XHTML_ALLOWED_STYLES:
                         invalidStyles.add(styleProperty)
-            tag = qname(elt.tag).localName
+            tag = qname(cast(str, elt.tag)).localName
             parent = elt.getparent()
             if tag == 'li' and parent is not None:
-                parentTag = qname(parent.tag).localName
+                parentTag = qname(cast(str, parent.tag)).localName
                 if parentTag in XHTML_LIST_ITEM_TYPES:
                     typeAttr = elt.get('type')
                     if typeAttr not in XHTML_LIST_ITEM_TYPES[parentTag]:

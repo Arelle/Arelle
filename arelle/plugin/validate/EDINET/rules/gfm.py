@@ -556,7 +556,6 @@ def rule_gfm_1_2_25(
             XbrlConst.qnXbrliEndDate.clarkNotation,
             XbrlConst.qnXbrliInstant.clarkNotation
         ):
-            elt = cast(ModelObject, elt)
             dateText = XmlUtil.text(elt)
             if not GFM_CONTEXT_DATE_PATTERN.match(dateText):
                 errors.append(elt)

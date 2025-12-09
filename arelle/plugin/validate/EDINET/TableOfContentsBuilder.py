@@ -323,7 +323,7 @@ class TableOfContentsBuilder:
     def _getTextParts(
             self,
             elt: ModelObject
-    ) -> tuple[str, str | None, str | None, list[_Element], list[_Element]]:
+    ) -> tuple[str, str | None, str | None, list[ModelObject], list[ModelObject]]:
         """
         Determines the TOC number, label, and tail of a given element (if set correctly)
         based on the text nodes directly beneath the element.

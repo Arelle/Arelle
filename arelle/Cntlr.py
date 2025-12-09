@@ -166,7 +166,7 @@ class Cntlr:
             betaFeatures = {}
         self.betaFeatures = {
             b: betaFeatures.get(b, False)
-            for b in BETA_FEATURES_AND_DESCRIPTIONS.keys()
+            for b in BETA_FEATURES_AND_DESCRIPTIONS
         }
         self.errorManager = None
         self.hasWin32gui = False
