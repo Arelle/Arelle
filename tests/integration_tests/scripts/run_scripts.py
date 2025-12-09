@@ -9,6 +9,7 @@ from typing import Any, TYPE_CHECKING, cast
 import pytest
 
 from tests.integration_tests.download_cache import download_and_apply_cache
+from tests.integration_tests.scripts.discover_tests import get_all_scripts
 
 if TYPE_CHECKING:
     from _pytest.mark import ParameterSet
@@ -42,8 +43,8 @@ ARGUMENTS: list[dict[str, Any]] = [
     },
     {
         "name": "--name",
-        "action": "append",
-        "help": "Only run scripts whose name (stem) matches given name(s)."
+        "action": "store",
+        "help": "Only run scripts whose name (stem) matches given name(s), comma-delimited."
     },
     {
         "name": "--offline",
@@ -56,7 +57,6 @@ ARGUMENTS: list[dict[str, Any]] = [
         "help": "Directory to place temporary files and log output."
     },
 ]
-TESTS_PATH = './tests/integration_tests/scripts/tests'
 
 
 def _for_frozen_build(name: Path) -> bool:
@@ -65,17 +65,9 @@ def _for_frozen_build(name: Path) -> bool:
     return True
 
 
-def _get_all_scripts() -> list[Path]:
-    """
-    Returns absolute paths of runnable scripts based on the operating system.
-    :return: Tuple of runnable scripts.
-    """
-    return [x for x in Path(TESTS_PATH).glob('**/*.py')]
-
-
 def run_script_options(options: Namespace) -> list[ParameterSet]:
     assert options.arelle, '--arelle is required'
-    all_scripts = _get_all_scripts()
+    all_scripts = get_all_scripts()
     if options.all:
         scripts = all_scripts
         if options.download_cache:
@@ -86,9 +78,8 @@ def run_script_options(options: Namespace) -> list[ParameterSet]:
     elif options.all_frozen_builds:
         scripts = [s for s in all_scripts if _for_frozen_build(s)]
     else:
-        names = options.name
-        assert names, '--name or --all is required'
-        scripts = [s for s in all_scripts if s.stem in names]
+        assert options.name, '--name or --all is required'
+        scripts = [s for s in all_scripts if s.stem in options.name.split(',')]
     all_results = []
     assert scripts, 'No scripts found'
     for script in scripts:
@@ -126,7 +117,7 @@ def run() -> None:
         parser.add_argument(arg["name"], **arg_without_name)
     options = parser.parse_args(sys.argv[1:])
     if options.list:
-        for name in _get_all_scripts():
+        for name in get_all_scripts():
             print(name)
     else:
         results = run_script_options(options)
