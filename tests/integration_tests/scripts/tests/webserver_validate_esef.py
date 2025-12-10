@@ -52,7 +52,7 @@ download_assets(
 )
 package_paths = [str(a.full_local_path) for a in package_assets]
 
-contents = ''
+contents = b''
 port = 8100
 log_xml_bytes = None
 with run_arelle_webserver(arelle_command, port) as proc:

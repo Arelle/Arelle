@@ -11,7 +11,7 @@ from collections.abc import Iterable
 from contextlib import contextmanager
 from os import linesep
 from pathlib import Path
-from typing import cast, Any
+from typing import cast, Any, Generator
 
 import regex
 from lxml import etree
@@ -117,7 +117,7 @@ def run_arelle_webserver(
     plugins: list[str] | None = None,
     additional_args: list[str] | None = None,
     offline: bool = False,
-):
+) -> Generator[subprocess.Popen[bytes]]:
     additional_args = ["--webserver", f"localhost:{port}"] + (additional_args or [])
     args = _get_arelle_args(arelle_command, plugins, additional_args, offline)
     proc = None

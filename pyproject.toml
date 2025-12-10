@@ -390,7 +390,8 @@ module = [
     'arelle.plugin.xuleSaver',
     'arelle.utils.EntryPointDetection',
     'arelle.webserver.bottle',
-    'tests.*',
+    'tests.plugin.*',
+    'tests.unit_tests.*',
 ]
 ignore_errors = true
 
