@@ -15,7 +15,8 @@ errors = []
 this_file = Path(__file__)
 args = parse_args(
     this_file.stem,
-    "Confirm malformed UTR fires the expected errors.",
+    "Test against XBRL Formula 1.0 Function Registry conformance suite.",
+    # https://specifications.xbrl.org/work-product-index-formula-formula-1.0.html
 )
 arelle_command = args.arelle
 arelle_offline = args.offline
