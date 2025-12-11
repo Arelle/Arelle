@@ -1997,6 +1997,94 @@ def rule_gfm_1_8_5(
     hook=ValidationHook.XBRL_FINALLY,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
+def rule_gfm_1_8_9(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5700W: [GFM 1.8.9] Each ELR can have at most one effective arc with the role of http://xbrl.org/int/dim/arcrole/all.
+
+    GFM 1.8.9:  If the value of attribute xbrldt:targetRole on an effective definition relationship is
+    not empty, then that relationship must have at least one effective consecutive
+    relationship (as defined by the XBRL Dimensions 1.0 specification).
+    """
+    drsELRs = set()
+    for baseSetKey, baseSetModelLinks  in val.modelXbrl.baseSets.items():
+        arcrole, elr, linkqname, arcqname = baseSetKey
+        if elr and linkqname and arcqname and not arcrole.startswith("XBRL-"):
+            if arcrole == XbrlConst.all or arcrole == XbrlConst.notAll:
+                drsELRs.add(elr)
+    for ELR in drsELRs:
+        domainMemberRelationshipSet = val.modelXbrl.relationshipSet( XbrlConst.domainMember, ELR)
+        primaryItems = set()
+        for hypercubeArcrole in (XbrlConst.all, XbrlConst.notAll):
+            hypercubeRelationships = val.modelXbrl.relationshipSet(
+                hypercubeArcrole, ELR).fromModelObjects()
+            for hypercubeRels in hypercubeRelationships.values():
+                for hypercubeRel in hypercubeRels:
+                    hypercube = hypercubeRel.toModelObject
+                    fromConcept = hypercubeRel.fromModelObject
+                    primaryItems.add(fromConcept)
+                    toConcept = hypercubeRel.toModelObject
+                    dimELR = hypercubeRel.targetRole
+                    dimTargetRequired = (dimELR is not None)
+                    if not dimELR:
+                        dimELR = elr
+                    hypercubeDimRels = val.modelXbrl.relationshipSet(XbrlConst.hypercubeDimension, dimELR).fromModelObject(toConcept)
+                    if dimTargetRequired and len(hypercubeDimRels) == 0:
+                        yield Validation.warning(
+                            codes='EDINET.EC5700W.GFM.1.8.9',
+                            msg=_("Add the arc related to the xbrldt:targetRole attribute or remove the attribute. "
+                                  "Arcrole %(arcroleURI)s from %(fromConcept)s to %(toConcept)s."),
+                            modelObject=hypercubeRel,
+                            arcroleURI=hypercubeRel.arcrole,
+                            fromConcept=fromConcept.qname,
+                            toConcept=toConcept.qname,
+                        )
+                    for hypercubeDimRel in hypercubeDimRels:
+                        dim = hypercubeDimRel.toModelObject
+                        if not isinstance(dim, ModelConcept):
+                            continue
+                        domELR = hypercubeDimRel.targetRole
+                        domTargetRequired = (domELR is not None)
+                        if not domELR and dim.isExplicitDimension:
+                            domELR = dimELR
+                        dimDomRels = val.modelXbrl.relationshipSet(XbrlConst.dimensionDomain, domELR).fromModelObject(dim)
+                        if domTargetRequired and len(dimDomRels) == 0:
+                            yield Validation.warning(
+                                codes='EDINET.EC5700W.GFM.1.8.9',
+                                msg=_("Add the arc related to the xbrldt:targetRole attribute or remove the attribute. "
+                                      "Arcrole %(arcroleURI)s from %(fromConcept)s to %(toConcept)s."),
+                                modelObject=hypercubeDimRel,
+                                arcroleURI=hypercubeRel.arcrole,
+                                fromConcept=hypercube.qname,
+                                toConcept=dim.qname,
+                                )
+                    fromRelationships = domainMemberRelationshipSet.fromModelObjects()
+                    for relFrom, rels in fromRelationships.items():
+                        for rel in rels:
+                            fromMbr = rel.fromModelObject
+                            toMbr = rel.toModelObject
+                            toELR = rel.targetRole
+                            if isinstance(toMbr, ModelConcept) and toELR and len(
+                                    val.modelXbrl.relationshipSet(XbrlConst.domainMember, toELR).fromModelObject(toMbr)) == 0:
+                                        yield Validation.warning(
+                                            codes='EDINET.EC5700W.GFM.1.8.9',
+                                            msg=_("Add the arc related to the xbrldt:targetRole attribute or remove the attribute. "
+                                                      "Arcrole %(arcroleURI)s from %(fromConcept)s to %(toConcept)s."),
+                                            modelObject=rel,
+                                            arcroleURI=hypercubeRel.arcrole,
+                                            fromConcept=toMbr.qname,
+                                            toConcept=fromMbr.qname,
+                                        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
 def rule_gfm_1_8_10(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
