@@ -243,7 +243,9 @@ def _collect_test_case_paths(file_path: str, tree: etree._ElementTree, path_strs
 
 
 def _get_elems_by_local_name(tree: etree._ElementTree, local_name: str) -> list[etree._Element]:
-    return [tree.getroot()] if tree.getroot().tag.split('}')[-1] == local_name else tree.findall(f'{{*}}{local_name}')
+    tag = tree.getroot().tag
+    assert isinstance(tag, str)
+    return [tree.getroot()] if tag.split('}')[-1] == local_name else tree.findall(f'{{*}}{local_name}')
 
 
 def get_conformance_suite_arguments(config: ConformanceSuiteConfig, filename: str,
@@ -461,13 +463,14 @@ def save_timing_file(config: ConformanceSuiteConfig, results: list[ParameterSet]
     durations: dict[str, float] = defaultdict(float)
     for result in results:
         testcase_id = result.id
-        values = result.values[0]
+        assert isinstance(testcase_id, str)
+        values = cast(dict[str, Any], result.values[0])
         status = values.get('status')
         assert status, f'Test result has no status: {testcase_id}'
         if status == 'skip':
             continue
         assert testcase_id and testcase_id not in durations
-        duration = values.get('duration')  # type: ignore[union-attr]
+        duration = values.get('duration')
         if duration:
             durations[testcase_id] = duration
     if durations:

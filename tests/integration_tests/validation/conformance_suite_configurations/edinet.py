@@ -228,7 +228,7 @@ ADDITIONAL_INVALID_ERRORS = {
     },
 }
 
-EXPECTED_ADDITIONAL_TESTCASE_ERRORS = defaultdict(lambda: defaultdict(int))
+EXPECTED_ADDITIONAL_TESTCASE_ERRORS: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
 # Apply expected errors to valid testcases.
 for test_id, errors in VALID_EXPECTED_ERRORS.items():
     for k, v in errors.items():

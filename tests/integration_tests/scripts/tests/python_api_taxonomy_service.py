@@ -9,6 +9,7 @@ from shutil import rmtree
 
 from arelle.RuntimeOptions import RuntimeOptions
 from arelle.api.Session import Session
+from arelle.logging.handlers.StructuredMessageLogHandler import StructuredMessageLogHandler
 from arelle.plugin.validate import FERC
 from tests.integration_tests.integration_test_util import get_s3_uri
 from tests.integration_tests.scripts.script_util import parse_args, prepare_logfile
@@ -53,6 +54,8 @@ options = RuntimeOptions(
 )
 with Session() as session:
     session.run(options)
+    assert session._cntlr is not None
+    assert isinstance(session._cntlr.logHandler, StructuredMessageLogHandler)
     log_messages = session._cntlr.logHandler.messages
     with open(arelle_log_file, 'w') as f:
         json.dump(log_messages, f, ensure_ascii=False, indent=4)

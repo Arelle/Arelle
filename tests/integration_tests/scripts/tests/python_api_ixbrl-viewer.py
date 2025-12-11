@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import os
 import urllib.request
+from logging import LogRecord
 from pathlib import Path
 
 from arelle.RuntimeOptions import RuntimeOptions
@@ -38,9 +39,9 @@ urllib.request.urlretrieve(report_zip_url, samples_zip_path)
 
 
 class TestFilter(logging.Filter):
-    filtered_records = []
+    filtered_records: list[LogRecord] = []
 
-    def filter(self, record):
+    def filter(self, record: LogRecord) -> bool:
         if record.levelname == 'INFO':
             self.filtered_records.append(record)
             return False

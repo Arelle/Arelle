@@ -40,7 +40,7 @@ run_arelle(
     arelle_command,
     additional_args=[
         "--file",
-        excel_taxonomy_path,
+        str(excel_taxonomy_path),
     ],
     offline=arelle_offline,
     logFile=arelle_log_file,

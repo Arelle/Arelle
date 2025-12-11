@@ -6,7 +6,7 @@ import os.path
 import urllib.parse
 from collections import Counter, defaultdict
 from pathlib import PurePath
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, cast, Any
 
 import pytest
 import regex
@@ -39,7 +39,7 @@ def get_document_id(doc: ModelDocument.ModelDocument) -> str:
             checked_paths.add(basefile)
     # Try referenced documents
     ref_file_source = next(iter(file_source.referencedFileSources.values()), None)
-    ref_basefile: str = ref_file_source.basefile if ref_file_source is not None else None
+    ref_basefile: str | None = ref_file_source.basefile if ref_file_source is not None else None
     if ref_basefile is not None:
         ref_basefile = PurePath(ref_basefile).as_posix()
         if ref_basefile in parents:
@@ -124,13 +124,13 @@ def get_test_data(
                         marks.append(pytest.mark.xfail())
                     elif mv.status == 'skip':
                         continue  # don't report variations skipped due to shards
-                    expected_results = defaultdict(lambda: defaultdict(int))
+                    expected_results: Any = defaultdict(lambda: defaultdict(int))
                     if isinstance(mv.expected, str):
                         expected_results = mv.expected
                     else:
                         for error in mv.expected or []:
                             expected_results["ERROR"][str(error)] += 1
-                        if mv.modelXbrl.modelManager.formulaOptions.testcaseResultsCaptureWarnings:
+                        if mv.modelXbrl is not None and mv.modelXbrl.modelManager.formulaOptions.testcaseResultsCaptureWarnings:
                             for warning in mv.expectedWarnings or []:
                                 expected_results["WARNING"][str(warning)] += 1
                     # Arelle adds message code frequencies to the end, but conformance suites usually don't.
@@ -163,7 +163,7 @@ def get_test_data(
     finally:
         cntlr.modelManager.close()
         PackageManager.close()  # type: ignore[no-untyped-call]
-        PluginManager.close()  # type: ignore[no-untyped-call]
+        PluginManager.close()
 
 
 def collect_test_data(
