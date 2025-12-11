@@ -266,7 +266,7 @@
                                 "properties": {
                                   "periodType": {
                                     "type": "string",
-                                    "enum": ["instant", "duration", "none"],
+                                    "enum": ["instant", "duration"],
                                     "description": "Indicates if the period is instant or duration."
                                   },
                                   "timeSpan": {
@@ -278,13 +278,11 @@
                                     "type": "string",
                                     "description": "Duration of time with an end date."
                                   },
-                                  "monthDay": { "$ref": "#/definitions/dateResolutionObject" },
                                   "endDate": { "$ref": "#/definitions/dateResolutionObject" },
                                   "startDate": { "$ref": "#/definitions/dateResolutionObject" },
                                   "onOrAfter": { "$ref": "#/definitions/dateResolutionObject" },
                                   "onOrBefore": { "$ref": "#/definitions/dateResolutionObject" }
                                 },
-                                "required": ["periodType"],
                                 "additionalProperties": false
                               }
                             }

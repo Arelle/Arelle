@@ -481,8 +481,8 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                                     if eltClass in (QName, QNameKeyType, SQName, SQNameKeyType):
                                         listObj = qname(listObj, prefixNamespaces)
                                         if listObj is None:
-                                            error("oimte:invalidQName",
-                                                  _("QName is invalid: %(qname)s, jsonObj: %(path)s"),
+                                            error("oimte:objectNamespacePrefixNotDefined",
+                                                  _("QName has undefined prefix: %(qname)s, jsonObj: %(path)s"),
                                                   sourceFileLine=href, qname=jsonObj[propName], path=f"{'/'.join(pathParts + [f'{propName}[{iObj}]'])}")
                                             # must have None value for validation to work
                                         if propName == "relatedNames":
@@ -506,8 +506,8 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                                         valKey = coreDimensionsByLocalname.get(valKey, valKey) # unprefixed core dimension localNames
                                     _valKey = qname(valKey, prefixNamespaces)
                                     if _valKey is None:
-                                        error("oimte:invalidQName",
-                                              _("QName is invalid: %(qname)s, jsonObj: %(path)s"),
+                                        error("oimte:objectNamespacePrefixNotDefined",
+                                              _("QName has undefined prefix: %(qname)s, jsonObj: %(path)s"),
                                               sourceFileLine=href, qname=_valKey, path=f"{'/'.join(pathParts + [f'{propName}[{iObj}]'])}")
                                         # must have None value for validation to work
                                 elif isinstance(_keyClass, str):
@@ -535,8 +535,8 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                         if propType in (QName, QNameKeyType, SQName, SQNameKeyType, QNameAt):
                             jsonValue = qname(jsonValue, prefixNamespaces)
                             if jsonValue is None:
-                                error("xbrlte:invalidQName",
-                                      _("QName is invalid: %(qname)s, jsonObj: %(path)s"),
+                                error("oimte:objectNamespacePrefixNotDefined",
+                                      _("QName has undefined prefix: %(qname)s, jsonObj: %(path)s"),
                                       sourceFileLine=href, qname=jsonObj[propName], path=f"{'/'.join(pathParts + [propName])}")
                                 if optional:
                                     jsonValue = None
@@ -565,11 +565,12 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                     jsonEltsNotInObjClass.append(f"{'/'.join(pathParts + [propName])}={jsonObj.get(propName,'(absent)')}")
             if (isinstance(newObj, XbrlReferencableTaxonomyObject) or # most referencable taxonomy objects
                 (isinstance(newObj, (XbrlFactspace, XbrlFootnote)) and isinstance(oimParentObj, XbrlTaxonomyModule))): # taxonomy-owned fact
-                if keyValue in xbrlTxmyMdl.namedObjects:
-                    namedObjectDuplicates[keyValue].add(newObj)
-                    namedObjectDuplicates[keyValue].add(xbrlTxmyMdl.namedObjects[keyValue])
-                else:
-                    xbrlTxmyMdl.namedObjects[keyValue] = newObj
+                if keyValue is not None: # otherwise expect some error occured above
+                    if keyValue in xbrlTxmyMdl.namedObjects:
+                        namedObjectDuplicates[keyValue].add(newObj)
+                        namedObjectDuplicates[keyValue].add(xbrlTxmyMdl.namedObjects[keyValue])
+                    else:
+                        xbrlTxmyMdl.namedObjects[keyValue] = newObj
             elif isinstance(newObj, XbrlTaxonomyTagObject) and relatedNames:
                 for relatedQn in relatedNames:
                     xbrlTxmyMdl.tagObjects[relatedQn].append(newObj)
@@ -681,7 +682,8 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                             selectImportedObjects(xbrlTxmyMdl, newTxmy, impTxObj)
 
         modelXbrl.profileActivity(f"Load taxonomies imported from {txFileBasename}", minTimeToShow=PROFILE_MIN_TIME)
-        xbrlTxmyMdl.namespaceDocs[taxonomyName.namespaceURI].append(schemaDoc)
+        if taxonomyName is not None: # otherwise some error would have occured
+            xbrlTxmyMdl.namespaceDocs[taxonomyName.namespaceURI].append(schemaDoc)
 
         return schemaDoc
 

@@ -14,6 +14,22 @@ oimTaxonomyDocTypes = (
 
 xbrl = "https://xbrl.org/2025"
 
+reservedPrefixNamespaces = {
+    "xbrl": xbrl,
+    "xbrli": "https://xbrl.org/2025/instance",
+    "xbrli-2003": "https://xbrl.org/2003/instance",
+    "dtr-type": "http://www.xbrl.org/dtr/type/*",
+    "xs": "https://www.w3.org/2001/XMLSchema",
+    "enum2": "https://xbrl.org/2020/extensible-enumerations-2.0",
+    "oimce": "https://xbrl.org/2021/oim-common/error",
+    "oime": "http://www.xbrl.org/2021/oim/error",
+    "oimte": "https://xbrl.org/2025/oimtaxonomy/error",
+    "iso4217": "http://www.xbrl.org/2003/iso4217",
+    "utr": "https://xbrl.org/2025/utr",
+    "ref": "https://xbrl.org/2025/ref",
+    "xbrltt": "https://xbrl.org/2025/transform-types"
+    }
+
 qnStdLabel = qname(xbrl, "xbrli:label")
 qnXsDate = qname(xsd, "xs:date")
 qnXsDateTime = qname(xsd, "xs:dateTime")
