@@ -8,7 +8,7 @@ from arelle.ModelValue import QName, AnyURI
 from arelle.PythonUtil import OrderedSet
 from .XbrlAbstract import XbrlAbstract
 from .XbrlTypes import XbrlTaxonomyModuleType, QNameKeyType, DefaultTrue, DefaultFalse
-from .XbrlObject import XbrlObject, XbrlTaxonomyObject
+from .XbrlObject import XbrlObject, XbrlTaxonomyObject, XbrlReferencableTaxonomyObject
 
 class XbrlFilterCondition(XbrlObject):
     property: QName # (required) The name of the property to be used for filtering the objects. This is either a names object property or a QName property that identifies the property, such as periodType, xbrl:balance, etc.
@@ -38,7 +38,7 @@ class XbrlImportTaxonomy(XbrlTaxonomyObject):
     
     # _txmyModule: XbrlTaxonomyModule of the import
 
-class XbrlFinalTaxonomy(XbrlTaxonomyObject):
+class XbrlFinalTaxonomy(XbrlReferencableTaxonomyObject):
     taxonomy: XbrlTaxonomyModuleType
     name: QNameKeyType # (required) The name of the finalTaxonomy object.
     finalTaxonomyFlag: Union[bool, DefaultFalse] # (optional) If set to true, indicates that the taxonomy is final and cannot be extended by importing taxonomies. The default value is false. No objects can be added to the taxonomy except factspace objects, footnote objects and entity objects.

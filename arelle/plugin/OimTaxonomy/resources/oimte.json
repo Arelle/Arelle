@@ -42,7 +42,6 @@
                     {"source": "oimte:OIMErrorRootDomain", "target": "oimte:intervalOnNonTimeSeriesDomain", "order": 11},
                     {"source": "oimte:OIMErrorRootDomain", "target": "oimte:invalidAllowedObject", "order": 12},
                     {"source": "oimte:OIMErrorRootDomain", "target": "oimte:invalidCubeDimensionDomainName", "order": 13},
-                    {"source": "oimte:OIMErrorRootDomain", "target": "oimte:cubeDimensionWithInvalidProperty", "order": 14},
                     {"source": "oimte:OIMErrorRootDomain", "target": "oimte:domainUsedOnPeriodDimension", "order": 14.5},
                     {"source": "oimte:OIMErrorRootDomain", "target": "oimte:invalidAllowDomainFactsPropertyOnConceptDimension", "order": 14.5},
                     {"source": "oimte:OIMErrorRootDomain", "target": "oimte:excludeCubeSelfReference", "order": 15},
@@ -97,12 +96,6 @@
             }
         ],
         "members": [
-            {
-                "name": "oimte:cubeDimensionWithInvalidProperty",
-                "properties": [
-                    {"property": "xbrl:severity", "value": "error"}
-                ]
-            },
             {
                 "name": "oimte:domainUsedOnPeriodDimension",
                 "properties": [
@@ -613,7 +606,6 @@
                     "oimte:FinalTaxonomyErrors"
                 ],
                 "relationships": [
-                    {"source": "oimte:CubeErrors", "target": "oimte:cubeDimensionWithInvalidProperty", "order": 1},
                     {"source": "oimte:CubeErrors", "target": "oimte:noFactSpaceForFact", "order": 2},
                     {"source": "oimte:CubeErrors", "target": "oimte:factMissingFromCube", "order": 2.5},
                     {"source": "oimte:CubeErrors", "target": "oimte:invalidCubeDimensionDomainName", "order": 3},
@@ -714,7 +706,6 @@
                     "xbrl:finalTaxonomyObject"
                 ],
                 "relationships": [
-                    {"source": "xbrl:cubeObject", "target": "oimte:cubeDimensionWithInvalidProperty", "order": 1},
                     {"source": "xbrl:cubeObject", "target": "oimte:noFactSpaceForFact", "order": 2},
                     {"source": "xbrl:cubeObject", "target": "oimte:factMissingFromCube", "order": 2.5},
                     {"source": "xbrl:cubeObject", "target": "oimte:invalidCubeDimensionDomainName", "order": 3},
@@ -791,18 +782,6 @@
             }
         ],
         "labels": [
-            {
-                "relatedName": "oimte:cubeDimensionWithInvalidProperty",
-                "language": "en",
-                "value": "Invalid Cube Dimension Property",
-                "labelType": "xbrl:label"
-            },
-            {
-                "relatedName": "oimte:cubeDimensionWithInvalidProperty",
-                "language": "en",
-                "value": "The cube dimension property '{propertyName}' is not valid for dimension '{dimensionName}' in cube '{cubeName}'.",
-                "labelType": "xbrl:errorMessage"
-            },
              {
                 "relatedName": "oimte:domainUsedOnPeriodDimension",
                 "language": "en",
@@ -1593,18 +1572,6 @@
                 "relatedName": "oimte:cannotExtendCompleteDomain",
                 "language": "en",
                 "value": "This error is generated when an attempt is made to extend a domain that is marked as complete. A complete domain cannot be extended with additional relationships or members, so any such attempt results in this error.",
-                "labelType": "xbrl:documentation"
-            },
-            {
-                "relatedName": "oimte:cubeDimensionWithInvalidProperty",
-                "language": "en",
-                "value": "🚫",
-                "labelType": "xbrl:iconLabel"
-            },
-            {
-                "relatedName": "oimte:cubeDimensionWithInvalidProperty",
-                "language": "en",
-                "value": "This error is generated when a cube contains a property for a dimension that is not valid for that dimension type. For example, attempting to use 'typedDomainKey' on an explicit dimension, or using dimension-specific properties that don't apply to the dimension's configuration.",
                 "labelType": "xbrl:documentation"
             },
             {
@@ -3250,7 +3217,31 @@
                     {"property":"xbrl:conformanceTestFileName" ,"value":"DIMENSION-InvalidDomainDataTypeReference.json"},
                     {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
                 ]
-            }, 
+            },
+            {
+                "name": "oimte:redundantTimeSpanPropertyReference",
+                "relatedNames": [
+                    "oimte:redundantTimeSpanProperty"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:conformanceTestFileName" ,"value":"CUBE-PeriodConstraintRedundantTimeSpan.json"},
+                    {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
+                ]
+            },
+            {
+                "name": "oimte:validTimeSpanPropertyReference",
+                "relatedNames": [
+                    "oimte:redundantTimeSpanProperty"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:conformanceTestFileName" ,"value":"CUBE-PeriodConstraintValidTimeSpan.json"},
+                    {"property":"xbrl:conformanceStatus" ,"value":"✅ Pass"}
+                ]
+            },
             {
                 "name": "oimte:disallowedObjectPropertySpecReference",
                 "relatedNames": [
