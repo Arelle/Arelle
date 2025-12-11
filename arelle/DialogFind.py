@@ -186,7 +186,7 @@ class DialogFind(Toplevel):
         else:
             if not self.modelManager.modelXbrl or not docType in (
                  ModelDocument.Type.SCHEMA, ModelDocument.Type.LINKBASE, ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL,
-                 ModelDocument.Type.RSSFEED):
+                 ModelDocument.Type.RSSFEED, ModelDocument.Type.INLINEXBRLDOCUMENTSET):
                 messagebox.showerror(_("Find cannot be completed"),
                          _("Find requires an opened DTS or RSS Feed"), parent=self.parent)
                 return
