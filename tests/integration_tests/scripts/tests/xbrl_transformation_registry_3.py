@@ -65,5 +65,4 @@ errors += validate_log_text(arelle_report_file, expected_results=expected_result
 assert_result(errors)
 
 print("Cleaning up")
-os.unlink(suite_zip_path)
 rmtree(working_directory / 'xbrl_transformation_registry_3' / 'suite')
