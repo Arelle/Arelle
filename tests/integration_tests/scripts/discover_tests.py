@@ -56,7 +56,7 @@ def get_all_scripts() -> list[Path]:
 
 def get_frozen_build_scripts() -> list[Path]:
     """
-    Returns absolute paths of runnable scripts based on the operating system.
+    Returns absolute paths of scripts that frozen builds should be tested against.
     :return: Tuple of runnable scripts.
     """
     return [p for p in get_all_scripts() if _for_frozen_build(p)]
