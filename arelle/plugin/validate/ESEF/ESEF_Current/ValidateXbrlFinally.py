@@ -582,9 +582,10 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     requiredToDisplayFacts.append(ixElt)
             if requiredToDisplayFacts:
                 modelXbrl.error("ESEF.2.4.1.factInHiddenSectionNotInReport",
-                    _("The ix:hidden section contains %(countUnreferenced)s fact(s) whose @id is not applied on any \"-esef-ix- hidden\" style: %(elements)s"),
+                    _("The ix:hidden section contains %(countUnreferenced)s fact(s) whose @id is not applied on any \"%(styleIxHiddenProperty)s\" style: %(elements)s"),
                     modelObject=requiredToDisplayFacts,
                     countUnreferenced=len(requiredToDisplayFacts),
+                    styleIxHiddenProperty=styleIxHiddenProperty,
                     elements=", ".join(sorted(set(str(f.qname) for f in requiredToDisplayFacts))))
             del eligibleForTransformHiddenFacts, hiddenEltIds, presentedHiddenEltIds, requiredToDisplayFacts
         elif modelDocument.type == ModelDocument.Type.INSTANCE:
@@ -715,16 +716,21 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 if esefDisclosureSystemYear >= 2024:
                     if not f.id:
                         factsMissingId.append(f)
+                    errorMsg = _("Facts with datatype 'dtr-types:textBlockItemType' MUST use the 'escape' attribute set to 'true'.")
                     if isinstance(f, ModelInlineFact) and f.concept is not None and esefDisclosureSystemYear >= 2024:
                         if esefDisclosureSystemYear == 2024:
+                            errorMsg +=  _(" Facts with any other datatype MUST use the 'escape' attribute set to 'false'")
                             hasEscapeIssue = f.isEscaped != f.concept.isTextBlock
                         elif esefDisclosureSystemYear >= 2025:
                             hasEscapeIssue = not f.isEscaped and (
                                 f.concept.isTextBlock or
                                 (f.value and escapeWorthyStr.match(f.value)))
+                            if f.value and escapeWorthyStr.match(f.value):
+                                errorMsg = _("Facts containing special characters like '&' or '<' must be escaped")
                         if hasEscapeIssue:
+                            errorMsg += _(" - fact %(conceptName)s")
                             modelXbrl.error("ESEF.2.2.7.improperApplicationOfEscapeAttribute",
-                                              _("Facts with datatype 'dtr-types:textBlockItemType' MUST use the 'escape' attribute set to 'true'. Facts with any other datatype MUST use the 'escape' attribute set to 'false' - fact %(conceptName)s"),
+                                              errorMsg,
                                               modelObject=f, conceptName=f.concept.qname)
                     if f.effectiveValue in ["0", "-0"] and f.xValue != 0:
                         modelXbrl.warning("ESEF.2.2.5.roundedValueBelowScaleNotNull",
