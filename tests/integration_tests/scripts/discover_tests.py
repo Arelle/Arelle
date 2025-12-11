@@ -68,13 +68,13 @@ def _for_frozen_build(path: Path) -> bool:
         return False
     return True
 
-def _is_private(path: Path) -> list[str]:
+def _is_private(path: Path) -> bool:
     return path.stem in FUNCTION_REGISTRY_TESTS
 
-def _run_for_each_os(path: Path) -> list[str]:
+def _run_for_each_os(path: Path) -> bool:
     return path.stem not in FUNCTION_REGISTRY_TESTS
 
-def _run_for_each_version(path: Path) -> list[str]:
+def _run_for_each_version(path: Path) -> bool:
     return path.stem not in FUNCTION_REGISTRY_TESTS
 
 def main() -> None:

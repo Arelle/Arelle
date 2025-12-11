@@ -39,22 +39,22 @@ with zipfile.ZipFile(suite_zip_path, "r") as zip_ref:
 
 test_cases: dict[str, dict[regex.Pattern[str], int]] = {
     '01-unit-id-and-status-not-unique.xml': {
-        regex.compile(r'^\[arelleUtrLoader:entryDuplication'): 1.
+        regex.compile(r'^\[arelleUtrLoader:entryDuplication'): 1,
     },
     '02-simple-unit-item-type-missing.xml': {
-        regex.compile(r'^\[arelleUtrLoader:simpleDefMissingField'): 1.
+        regex.compile(r'^\[arelleUtrLoader:simpleDefMissingField'): 1,
     },
     '03-complex-unit-with-symbol.xml': {
-        regex.compile(r'^\[arelleUtrLoader:complexDefSymbol'): 1.
+        regex.compile(r'^\[arelleUtrLoader:complexDefSymbol'): 1,
     },
     '04-numerator-item-type-namespace-but-no-numerator-item-type.xml': {
-        regex.compile(r'^\[arelleUtrLoader:complexDefMissingField'): 1.
+        regex.compile(r'^\[arelleUtrLoader:complexDefMissingField'): 1,
     },
     '05-simple-unit-with-numerator-item-type.xml': {
-        regex.compile(r'^\[arelleUtrLoader:complexDefMissingField'): 1.
+        regex.compile(r'^\[arelleUtrLoader:complexDefMissingField'): 1,
     },
     '06-denominator-item-type-namespace-but-no-denominator-item-type.xml': {
-        regex.compile(r'^\[arelleUtrLoader:complexDefMissingField'): 1.
+        regex.compile(r'^\[arelleUtrLoader:complexDefMissingField'): 1,
     },
     '07-simple-unit-with-denominator-item-type.xml': {
         regex.compile(r'^\[arelleUtrLoader:complexDefMissingField'): 1,

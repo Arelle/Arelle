@@ -81,12 +81,12 @@ for report_file in eba_tablesets_report_files:
 
 
 class ButtonParser(html.parser.HTMLParser):
-    def __init__(self, table_files):
+    def __init__(self, table_files: list[str]) -> None:
         super().__init__()
         self.table_files = table_files
         self.found_buttons = {table_file: False for table_file in table_files}
 
-    def handle_starttag(self, tag, attrs):
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         if tag.lower() == "button":
             attrs_dict = dict(attrs)
             onclick = attrs_dict.get("onclick", "")
