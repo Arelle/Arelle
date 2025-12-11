@@ -14,8 +14,18 @@
             validationType="DBA"
     />
     <DisclosureSystem
+            names="arl-2025-preview"
+            description="Validates rules for ÅRL (Årsregnskabsloven), Danish Financial Statements Act"
+            validationType="DBA"
+    />
+    <DisclosureSystem
             names="arl-2024-multi-target-preview"
             description="Checks for 2024 multi-target rules"
+            validationType="DBA"
+    />
+    <DisclosureSystem
+            names="arl-2025-multi-target-preview"
+            description="Checks for 2025 multi-target rules"
             validationType="DBA"
     />
     <DisclosureSystem
