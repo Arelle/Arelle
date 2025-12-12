@@ -21,10 +21,12 @@ from tests.integration_tests.validation.conformance_suite_configurations.kvk_nt1
 from tests.integration_tests.validation.conformance_suite_configurations.kvk_nt17 import config as kvk_nt17
 from tests.integration_tests.validation.conformance_suite_configurations.kvk_nt18 import config as kvk_nt18
 from tests.integration_tests.validation.conformance_suite_configurations.kvk_nt19 import config as kvk_nt19
+from tests.integration_tests.validation.conformance_suite_configurations.kvk_nt20 import config as kvk_nt20
 from tests.integration_tests.validation.conformance_suite_configurations.nl_nt16 import config as nl_nt16
 from tests.integration_tests.validation.conformance_suite_configurations.nl_nt17 import config as nl_nt17
 from tests.integration_tests.validation.conformance_suite_configurations.nl_nt18 import config as nl_nt18
 from tests.integration_tests.validation.conformance_suite_configurations.nl_nt19 import config as nl_nt19
+from tests.integration_tests.validation.conformance_suite_configurations.nl_nt20 import config as nl_nt20
 from tests.integration_tests.validation.conformance_suite_configurations.nl_inline_2024 import config as nl_inline_2024
 from tests.integration_tests.validation.conformance_suite_configurations.nl_inline_2024_gaap_other import config as nl_inline_2024_gaap_other
 from tests.integration_tests.validation.conformance_suite_configurations.ros_current import config as ros_current
@@ -68,10 +70,12 @@ ALL_CONFORMANCE_SUITE_CONFIGS: tuple[ConformanceSuiteConfig, ...] = (
     kvk_nt17,
     kvk_nt18,
     kvk_nt19,
+    kvk_nt20,
     nl_nt16,
     nl_nt17,
     nl_nt18,
     nl_nt19,
+    nl_nt20,
     nl_inline_2024,
     nl_inline_2024_gaap_other,
     ros_current,

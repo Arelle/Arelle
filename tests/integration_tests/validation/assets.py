@@ -125,6 +125,13 @@ NL_PACKAGES: dict[str, list[ConformanceSuiteAssetConfig]] = {
         ),
         NL_BASE,
     ],
+    'NT20': [
+        ConformanceSuiteAssetConfig.public_taxonomy_package(
+            Path('NT20_20251128_Taxonomie_SBR.zip'),
+            public_download_url='https://www.sbr-nl.nl/sites/default/files/bestanden/taxonomie/NT20_20251128%20Taxonomie%20%28SBR%29.zip',
+        ),
+        NL_BASE,
+    ],
     'NL-INLINE-2024': [
         ConformanceSuiteAssetConfig.public_taxonomy_package(
             Path('kvk-2024_taxonomie.zip'),
