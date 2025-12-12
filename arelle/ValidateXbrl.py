@@ -428,7 +428,8 @@ class ValidateXbrl:
 
         if self.validateCalcs:
             modelXbrl.modelManager.showStatus(_("Validating instance calculations"))
-            ValidateXbrlCalcs.validate(modelXbrl, self.validateCalcs)
+            for val in ValidateXbrlCalcs.validate(modelXbrl, self.validateCalcs):
+                modelXbrl.validation(val)
             modelXbrl.profileStat(_("validateCalculations"))
 
         if self.validateUTR:

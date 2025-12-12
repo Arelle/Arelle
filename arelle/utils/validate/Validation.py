@@ -10,6 +10,7 @@ from typing import Any
 
 class Level(Enum):
     ERROR = "ERROR"
+    INCONSISTENCY = "INCONSISTENCY"
     WARNING = "WARNING"
 
 @dataclass(frozen=True)
@@ -35,6 +36,14 @@ class Validation:
         **kwargs: Any,
     ) -> Validation:
         return Validation(level=Level.ERROR, codes=codes, msg=msg, args=kwargs)
+
+    @staticmethod
+    def inconsistency(
+            codes: str | tuple[str, ...],
+            msg: str,
+            **kwargs: Any,
+    ) -> Validation:
+        return Validation(level=Level.INCONSISTENCY, codes=codes, msg=msg, args=kwargs)
 
     @staticmethod
     def warning(
