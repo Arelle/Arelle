@@ -53,9 +53,6 @@ openpyxl Copyright (c) 2010 openpyxl
 Pillow: Copyright © 2010-2022 by Alex Clark and contributors
 [License](https://github.com/python-pillow/Pillow/blob/main/LICENSE)
 
-pycountry: Copyright (c) 2008-2015 gocept gmbh & co. kg
-[License](https://pypi.org/project/gocept.country/)
-
 PyParsing: Copyright © 2003-2022 Paul McGuire.
 [License](https://github.com/pyparsing/pyparsing/blob/master/LICENSE)
 

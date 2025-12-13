@@ -50,6 +50,7 @@ Crypto = [
     'pycryptodome>=3,<4',
 ]
 DB = [
+    'cx_Oracle>=8,<9',
     'pg8000>=1,<2',
     'PyMySQL>=1,<2',
     'pyodbc>=4,<6',
@@ -64,8 +65,14 @@ EFM = [
 ESEF = [
     'tinycss2>=1,<2',
 ]
+GUI = [
+    'pywin32>=300,<400 ; sys_platform == "win32"',
+]
 ObjectMaker = [
     'graphviz>=0,<1',
+]
+Viewer = [
+    'ixbrl-viewer>=1,<2',
 ]
 WebServer = [
     'cheroot>=8,<12',
