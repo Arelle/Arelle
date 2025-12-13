@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="NL.FR-NL-1.02"
+        description="Characters MUST be from the Unicode ranges Basic Latin, Latin Supplement and Currency Symbols."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid-character" name="Invalid Character">
+        <description>
+            The instance document contains characters outside allowed Unicode ranges.
+        </description>
+        <data>
+            <instance readMeFirst="true">1-02-invalid.xbrl</instance>
+        </data>
+        <result>
+            <error>NL.FR-NL-1.02</error>
+        </result>
+    </variation>
+</testcase>

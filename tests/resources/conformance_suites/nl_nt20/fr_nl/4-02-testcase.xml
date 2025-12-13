@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="NL.FR-NL-4.02"
+        description="An XBRL instance document MUST NOT contain unused 'xbrli:unit' elements."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="unused-unit" name="Instance document MUST NOT contain unused xbrli:unit elements">
+        <description>
+            An XBRL instance document MUST NOT contain unused 'xbrli:unit' elements.
+        </description>
+        <data>
+            <instance readMeFirst="true">4-02-unused-unit.xbrl</instance>
+        </data>
+        <result>
+            <error>NL.FR-NL-4.02</error>
+        </result>
+    </variation>
+</testcase>
