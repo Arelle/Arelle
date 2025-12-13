@@ -68,6 +68,9 @@ ESEF = [
 ObjectMaker = [
     'graphviz>=0,<1',
 ]
+Viewer = [
+    'ixbrl-viewer>=1,<2',
+]
 WebServer = [
     'cheroot>=8,<12',
     'tornado>=6,<7',
