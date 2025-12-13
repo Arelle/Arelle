@@ -239,7 +239,7 @@ class ValidationPlugin:
                 validations = rule(pluginData, cntlr, fileSource, *args, **kwargs)
                 if validations is not None:
                     for val in validations:
-                        cntlr.error(level=val.level.name, codes=val.codes, msg=val.msg, fileSource=fileSource, **val.args)
+                        cntlr.validation(val, fileSource=fileSource)
 
     def _executeModelValidations(
         self,
@@ -261,7 +261,7 @@ class ValidationPlugin:
                 if validations is not None:
                     modelXbrl = validateXbrl.modelXbrl
                     for val in validations:
-                        modelXbrl.log(level=val.level.name, codes=val.codes, msg=val.msg, **val.args)
+                        modelXbrl.validation(val)
 
     def disclosureSystemFromPluginSelected(
         self,

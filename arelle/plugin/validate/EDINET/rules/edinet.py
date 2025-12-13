@@ -4,15 +4,14 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 from collections import defaultdict
-from collections.abc import Iterable
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterable
 
 import regex
 import unicodedata
 from jaconv import jaconv
 
-from arelle import XbrlConst, ValidateDuplicateFacts, XmlUtil
+from arelle import ValidateDuplicateFacts, ValidateXbrlCalcs, XbrlConst, XmlUtil
 from arelle.Cntlr import Cntlr
 from arelle.FileSource import FileSource
 from arelle.LinkbaseType import LinkbaseType
@@ -175,6 +174,59 @@ def rule_EC5002E(
                   "Please check the units and enter the correct information."),
             qname=fact.qname.clarkNotation,
             modelObject=fact,
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_calculations(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5611W: The calculated totals for the accounts in the main financial statements, when
+    using the appropriate combination of context and extended link roles, should be within the
+    range of differences due to rounding.
+    """
+    for _validation in ValidateXbrlCalcs.validate(
+        val.modelXbrl,
+        ValidateXbrlCalcs.ValidateCalcsMode.XBRL_v2_1
+    ):
+        if _validation.codes != "xbrl.5.2.5.2:calcInconsistency":
+            continue
+        contextId = _validation.args.get("contextID")
+        assert contextId is not None
+        linkrole = _validation.args.get("linkrole")
+        assert linkrole is not None
+        isSemiAnnualContext = 'Interim' in contextId
+        isSemiAnnualLinkRole = "SemiAnnual" in linkrole
+        if isSemiAnnualLinkRole != isSemiAnnualContext:
+            # Period of context and linkrole do not match.
+            continue
+        context = val.modelXbrl.contexts[contextId]
+        member = context.dimMemberQname(pluginData.consolidatedOrNonConsolidatedAxisQn, includeDefaults=True)
+        isConsolidatedContext = member != pluginData.nonConsolidatedMemberQn
+        isConsolidatedLinkRole = "Consolidated" in linkrole
+        if isConsolidatedLinkRole != isConsolidatedContext:
+            # Consolidated status of context and linkrole do not match.
+            continue
+        yield _validation.warning(
+            codes='EDINET.EC5611W',
+            msg=_("The value \"%(reportedSum)s\" of the total subject \"%(concept)s\" does not match the calculated value \"%(computedSum)s\" (number of items: %(count)s) of the calculation link. "
+                  "Please correct the settings of the relevant elements and calculation links "
+                  "<roleUri=%(linkrole)s> <contextID=%(contextID)s> <unit=%(unitID)s>."),
+            reportedSum=_validation.args.get("reportedSum"),
+            concept=_validation.args.get("concept"),
+            computedSum=_validation.args.get("computedSum"),
+            count=len(_validation.args.get("modelObject", [])) - 1,
+            linkrole=_validation.args.get("linkrole"),
+            contextID=_validation.args.get("contextID"),
+            unitID=_validation.args.get("unitID"),
+            modelObject=_validation.args.get("modelObject"),
         )
 
 

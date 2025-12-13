@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="EDINET.EC5611W"
+        description="EDINET.EC5611W: The calculated totals for the accounts in the main financial statements, when using the appropriate combination of context and extended link roles, should be within the range of differences due to rounding."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid01" name="invalid01">
+        <description>
+            A calculation has unequal reported versus computed values.
+            <!--valid05.zip with LossOnSalesOfSecuritiesNOE (InterimDuration_NonConsolidatedMember) modified (2,614 => 2,613). -->
+        </description>
+        <data>
+            <instance readMeFirst="true">invalid01.zip</instance>
+        </data>
+        <result>
+            <warning>EDINET.EC5611W</warning>
+            <warning>EDINET.EC8043W</warning> <!-- base filing -->
+            <warning>EDINET.EC8045W</warning> <!-- base filing -->
+        </result>
+    </variation>
+</testcase>
