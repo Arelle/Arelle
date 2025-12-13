@@ -67,7 +67,6 @@ includeLibs = [
     "openpyxl",
     "pg8000",
     "PIL",
-    "pycountry",
     "pymysql",
     "pyparsing",
     "rdflib",

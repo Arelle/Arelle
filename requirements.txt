@@ -10,7 +10,6 @@ lxml==6.0.2
 numpy==2.2.6 ; python_version == "3.10"
 numpy==2.3.5 ; python_version > "3.10"
 openpyxl==3.1.5
-pycountry==24.6.1
 pyparsing==3.2.5
 python-dateutil==2.9.0.post0
 regex==2025.11.3
