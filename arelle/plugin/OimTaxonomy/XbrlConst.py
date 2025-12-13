@@ -14,29 +14,60 @@ oimTaxonomyDocTypes = (
 
 xbrl = "https://xbrl.org/2025"
 
+reservedPrefixNamespaces = {
+    "xbrl": xbrl,
+    "xbrli": "https://xbrl.org/2025/instance",
+    "xbrli-2003": "https://xbrl.org/2003/instance",
+    "dtr-type": "http://www.xbrl.org/dtr/type/*",
+    "xs": "https://www.w3.org/2001/XMLSchema",
+    "enum2": "https://xbrl.org/2020/extensible-enumerations-2.0",
+    "oimce": "https://xbrl.org/2021/oim-common/error",
+    "oime": "http://www.xbrl.org/2021/oim/error",
+    "oimte": "https://xbrl.org/2025/oimtaxonomy/error",
+    "iso4217": "http://www.xbrl.org/2003/iso4217",
+    "utr": "https://xbrl.org/2025/utr",
+    "ref": "https://xbrl.org/2025/ref",
+    "xbrltt": "https://xbrl.org/2025/transform-types"
+    }
+
 qnStdLabel = qname(xbrl, "xbrli:label")
 qnXsDate = qname(xsd, "xs:date")
 qnXsDateTime = qname(xsd, "xs:dateTime")
 qnXsDuration = qname(xsd, "xs:duration")
 qnXsQName = qname(xsd, "xs:QName")
 
+qnXbrlConceptObj = qname(xbrl, "xbrl:conceptObject")
+qnXbrlEntityObj = qname(xbrl, "xbrl:entityObject")
+qnXbrlMemberObj = qname(xbrl, "xbrl:memberObject")
+qnXbrlImportTaxonomyObj = qname(xbrl, "xbrl:importTaxonomyObject")
+qnXbrlUnitObj = qname(xbrl, "xbrl:unitObject")
 qnXbrlLabelObj = qname(xbrl, "xbrl:labelObject")
+qnXbrlReferenceObj = qname(xbrl, "xbrl:referenceObject")
+
+qnBuiltInCoreObjectsTaxonomy = qname(xbrl, "xbrl:BuiltInCoreObjectsTaxonomy")
+
+qnErrorQname = qname(None, "InvalidQName")
 
 objectsWithProperties = {
     qname(xbrl, "xbrl:taxonomyObject"),
-    qname(xbrl, "xbrl:conceptObject"),
+    qnXbrlConceptObj,
     qname(xbrl, "xbrl:abstractObject"),
     qname(xbrl, "xbrl:cubeObject"),
     qname(xbrl, "xbrl:dimensionObject"),
     qname(xbrl, "xbrl:domainObject"),
-    qname(xbrl, "xbrl:entityObject"),
+    qname(xbrl, "xbrl:domainRootObject"),
+    qnXbrlEntityObj,
+    qname(xbrl, "xbrl:factspaceObject"),
     qname(xbrl, "xbrl:groupObject"),
     qname(xbrl, "xbrl:networkObject"),
     qnXbrlLabelObj,
-    qname(xbrl, "xbrl:memberObject"),
-    qname(xbrl, "xbrl:referenceObject"),
+    qnXbrlMemberObj,
+    qnXbrlReferenceObj,
     qname(xbrl, "xbrl:relationshipObject"),
     }
+
+unsupportedTypedDimensionDataTypes = set(
+    qname(xsd, n) for n in ("ENTITY", "ENTITIES", "ID", "IDREF", "IDREFS", "NMTOKEN", "NMTOKENS", "NOTATION"))
 
 xbrlTaxonomyObjects = {
     "documentInfo": {
@@ -51,7 +82,6 @@ xbrlTaxonomyObjects = {
         "name": "xbrl:BuiltInCoreObjectsTaxonomy",
         "frameworkName": "types",
         "version": "2025",
-        "resolved": False,
         "dataTypes": [
             {
                 "name": "xs:string",

@@ -3,6 +3,7 @@
     "title": "XBRL Taxonomy Model",
     "type": "object",
     "properties": {
+      "$schema": { "type": "string" },
       "documentInfo": {
         "type": "object",
         "properties": {
@@ -23,19 +24,23 @@
           "urlMapping": {
             "type": "object",
             "additionalProperties": {
-              "type": "string"
+              "type": "array",
+              "items": { "type": "string" },
+              "minItems": 1,
+              "uniqueItems": true
             }
+          },
+          "description": {
+            "type": "string"
           }
         },
-        "required": ["documentType", "namespaces"]
+        "required": ["documentType", "namespaces"],
+        "additionalProperties": false
       },
       "taxonomy": {
             "type": "object",
             "properties": {
                 "name": { "$ref": "#/definitions/QName" },
-                "resolved": {
-                    "type": "boolean"
-                },
                 "frameworkName": {
                     "type": "string"
                 },
@@ -47,25 +52,65 @@
                   "items": {
                     "type": "object",
                     "properties": {
-                      "taxonomyName": { "$ref": "#/definitions/QName" },
-                      "includeObjects": {
+                      "taxonomyName": { "$ref": "#/definitions/taxonomyQName" },
+                      "selections": {
                         "type": "array",
-                        "items": { "$ref": "#/definitions/QName" }
+                        "items": { "$ref": "#/definitions/selectorObject" },
+                        "uniqueItems": true
                       },
-                      "includeObjectTypes": {
+                      "importObjects": {
                         "type": "array",
-                        "items": { "$ref": "#/definitions/QName" }
+                        "items": { "$ref": "#/definitions/QName" },
+                        "uniqueItems": true
+                      },
+                      "importObjectTypes": {
+                        "type": "array",
+                        "items": { "$ref": "#/definitions/QName" },
+                        "uniqueItems": true
                       },
                       "excludeLabels": {
-                        "type": "boolean"
-                      },
-                      "followImport": {
                         "type": "boolean"
                       }
                     },
                     "required": ["taxonomyName"],
                     "additionalProperties": false
-                  }
+                  },
+                  "uniqueItems": true
+                },
+                "finalTaxonomy": {
+                  "type": "object",
+                  "description": "Defines those objects and object types that are considered final within the taxonomy, and cannot be extended by importing taxonomies.",
+                  "properties": {
+                    "name": { 
+                      "$ref": "#/definitions/QName",
+                      "description": "The QName that uniquely identifies the final taxonomy object."
+                    },
+                    "finalTaxonomyFlag": { 
+                      "type": "boolean",
+                      "description": "The boolean flag that indicates whether the taxonomy is final."
+                    },
+                    "finalObjectTypes": 
+                      {
+                          "type": "array",
+                          "items":{ "$ref": "#/definitions/QName" },
+                          "uniqueItems": true,
+                          "description": "Set of objects types that are considered final within the taxonomy. An importing taxonomy cannot include object types that are defined in this set."
+                      },
+                    "finalObjects": 
+                      {
+                          "type": "array",
+                          "items":{ "$ref": "#/definitions/QName" },
+                          "uniqueItems": true,
+                          "description": "Set of objects  that are considered final within the taxonomy. Can only include extendable objects that can be extended using the extend property such as domain objects, network objects and reference objects."
+                      },
+                      "selections": {
+                        "type": "array",
+                        "items": { "$ref": "#/definitions/selectorObject" },
+                        "uniqueItems": true
+                      }
+                  },
+                  "required": ["name"],
+                  "additionalProperties": false
                 },
                 "propertyTypes": {
                     "type": "array",
@@ -73,21 +118,39 @@
                       "type": "object",
                       "properties": {
                         "name": { "$ref": "#/definitions/QName" },
-                        "dataType": { "$ref": "#/definitions/QName" },
+                        "dataType": { "$ref": "#/definitions/dataTypeQName" },
+                        "enumerationDomain": { "$ref": "#/definitions/domainQName" },
                         "definitional": {
                           "type": "boolean"
                         },
                         "allowedObjects": {
                           "type": "array",
-                          "items":{ "$ref": "#/definitions/QName" }
+                          "items":{ "$ref": "#/definitions/QName" },
+                          "uniqueItems": true
                         },
                         "allowedAsLinkProperty": {
                           "type": "boolean"
                         }
                       },
                       "required": ["name", "dataType"],
-                      "additionalProperties": false
-                    }
+                      "additionalProperties": false,
+                      "allOf": [
+                        {
+                          "if": {
+                            "properties": {
+                              "enumerationDomain": { "type": "string" }
+                            },
+                            "required": ["enumerationDomain"]
+                          },
+                          "then": {
+                            "properties": {
+                              "dataType": { "const": "xs:QName" }
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "uniqueItems": true
                 },
                 "abstracts": {
                     "type": "array",
@@ -98,12 +161,14 @@
                              "properties": {
                                 "type": "array",
                                  "items": { "$ref": "#/definitions/propertyObject"},
-                                  "description": "Additional properties associated with the abstract."
+                                  "description": "Additional properties associated with the abstract.",
+                                  "uniqueItems": true
                               }
                         },
                         "required": ["name"],
                         "additionalProperties": false
-                    }
+                    },
+                    "uniqueItems": true
                 },
                 "members": {
                     "type": "array",
@@ -114,12 +179,14 @@
                              "properties": {
                                 "type": "array",
                                  "items": { "$ref": "#/definitions/propertyObject"},
-                                  "description": "Additional properties associated with the member."
+                                  "description": "Additional properties associated with the member.",
+                                  "uniqueItems": true
                               }
                         },
                         "required": ["name"],
                          "additionalProperties": false
-                    }
+                    },
+                    "uniqueItems": true
                 },
                 "concepts": {
                     "type": "array",
@@ -127,24 +194,43 @@
                       "type": "object",
                       "properties": {
                         "name": { "$ref": "#/definitions/QName" },
-                        "dataType": { "$ref": "#/definitions/QName" },
+                        "dataType": { "$ref": "#/definitions/dataTypeQName" },
                         "periodType": {
                           "type": "string",
                           "enum": ["instant", "duration", "none"]
                         },
-                        "enumerationDomain": { "$ref": "#/definitions/QName" },
+                        "enumerationDomain": { "$ref": "#/definitions/domainQName" },
                         "nillable": {
                           "type": "boolean"
                         },
                        "properties": {
                           "type": "array",
                             "items": { "$ref": "#/definitions/propertyObject"},
-                            "description": "Additional properties associated with the concept."
+                            "description": "Additional properties associated with the concept.",
+                            "uniqueItems": true
                         }
                       },
                       "required": ["name", "dataType", "periodType"],
-                      "additionalProperties": false
-                    }
+                      "additionalProperties": false,
+                      "allOf": [
+                        {
+                          "if": {
+                            "properties": {
+                              "enumerationDomain": { "type": "string" }
+                            },
+                            "required": ["enumerationDomain"]
+                          },
+                          "then": {
+                            "properties": {
+                              "dataType": { 
+                                    "enum": ["xs:QName", "xbrli:enumeration", "xbrli:enumerationSet"] 
+                                }
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "uniqueItems": true
                 },
                 "cubes": {
                     "type": "array",
@@ -152,15 +238,17 @@
                         "type": "object",
                         "properties": {
                       "name": { "$ref": "#/definitions/QName" },
-                      "cubeType": { "$ref": "#/definitions/QName" },
+                      "cubeType": { "$ref": "#/definitions/cubeTypeQName" },
                       "cubeDimensions": {
                         "type": "array",
                         "description": "Ordered set of cubeDimension objects used on the cube.",
                         "items": {
                           "type": "object",
                           "properties": {
-                            "dimensionName": { "$ref": "#/definitions/QName" },
-                            "domainName": { "$ref": "#/definitions/QName" },
+                            "dimensionName": { "$ref": "#/definitions/dimensionQName" },
+                            "domainName": { "$ref": "#/definitions/domainQName" },
+                            "domainDataType" : { "$ref": "#/definitions/dataTypeQName" },
+                            
                             "typedSort": {
                               "type": "string",
                               "enum": ["asc", "desc"],
@@ -178,7 +266,7 @@
                                 "properties": {
                                   "periodType": {
                                     "type": "string",
-                                    "enum": ["instant", "duration", "none"],
+                                    "enum": ["instant", "duration"],
                                     "description": "Indicates if the period is instant or duration."
                                   },
                                   "timeSpan": {
@@ -190,13 +278,11 @@
                                     "type": "string",
                                     "description": "Duration of time with an end date."
                                   },
-                                  "monthDay": { "$ref": "#/definitions/dateResolutionObject" },
                                   "endDate": { "$ref": "#/definitions/dateResolutionObject" },
                                   "startDate": { "$ref": "#/definitions/dateResolutionObject" },
                                   "onOrAfter": { "$ref": "#/definitions/dateResolutionObject" },
                                   "onOrBefore": { "$ref": "#/definitions/dateResolutionObject" }
                                 },
-                                "required": ["periodType"],
                                 "additionalProperties": false
                               }
                             }
@@ -204,17 +290,20 @@
                           "required": ["dimensionName"],
                           "additionalProperties": false
                         },
-                        "minItems": 1
+                        "minItems": 1,
+                        "uniqueItems": true
                       },
                       "cubeNetworks": {
                         "type": "array",
                         "description": "Ordered set of network object QNames related to the cube.",
-                        "items": { "$ref": "#/definitions/QName" }
+                        "items": { "$ref": "#/definitions/networkQName" },
+                        "uniqueItems": true
                       },
                       "excludeCubes": {
                         "type": "array",
                         "description": "Ordered set of cube object QNames to be excluded from the cube.",
-                        "items": { "$ref": "#/definitions/QName" }
+                        "items": { "$ref": "#/definitions/cubeQName" },
+                        "uniqueItems": true
                       },
                       "cubeComplete": {
                         "type": "boolean",
@@ -223,12 +312,25 @@
                       "properties": {
                           "type": "array",
                             "items": { "$ref": "#/definitions/propertyObject"},
-                            "description": "Additional properties associated with the cube."
-                        }
+                            "description": "Additional properties associated with the cube.",
+                            "uniqueItems": true
+                        },
+                      "extendTargetName": { "$ref": "#/definitions/QName" }
                     },
-                        "required": ["name", "cubeDimensions"],
-                        "additionalProperties": false
-                    }
+                      "oneOf": [
+                        { "required": ["name", "cubeDimensions"] },
+                        { "required": ["extendTargetName"] }
+                      ],
+                      "not": {
+                        "anyOf": [
+                            { "required": ["extendTargetName", "cubeDimensions"] },
+                            { "required": ["extendTargetName", "cubeType"] },
+                            { "required": ["extendTargetName", "name"] }
+                          ]
+                      },
+                      "additionalProperties": false
+                    },
+                    "uniqueItems": true
                 },
                 "dimensions": {
                   "type": "array",
@@ -236,25 +338,23 @@
                     "type": "object",
                     "properties": {
                       "name": { "$ref": "#/definitions/QName" },
-                      "domainDataType": { "$ref": "#/definitions/QName" },
-                      "domainRoot": { "$ref": "#/definitions/QName" },
+                      "domainRoot": { "$ref": "#/definitions/domainRootQName" },
                       "cubeTypes": {
                         "type": "array",
-                        "items": { "$ref": "#/definitions/QName" }
+                        "items": { "$ref": "#/definitions/cubeTypeQName" },
+                        "uniqueItems": true
                       },
                       "properties": {
                           "type": "array",
                             "items": { "$ref": "#/definitions/propertyObject"},
-                            "description": "Additional properties associated with the dimension."
+                            "description": "Additional properties associated with the dimension.",
+                            "uniqueItems": true
                         }
                     },
-                    "required": ["name"],
-                    "oneOf": [
-                        { "required": ["domainDataType"] },
-                        { "required": ["domainRoot"] }
-                      ],
+                    "required": ["name", "domainRoot"],
                     "additionalProperties": false
-                    }
+                    },
+                    "uniqueItems": true
                 },
                 "domains": {
                   "type": "array",
@@ -262,7 +362,7 @@
                   "type": "object",
                       "properties": {
                         "name": { "$ref": "#/definitions/QName" },
-                        "root": { "$ref": "#/definitions/QName" },
+                        "root": { "$ref": "#/definitions/domainRootQName" },
                         "relationships": {
                           "type": "array",
                           "items": {
@@ -272,13 +372,6 @@
                               "target": { "$ref": "#/definitions/QName" },
                               "order": {
                                 "type": "number"
-                              },
-                              "weight": {
-                                "type": "number"
-                              },
-                              "preferredlabel": { "$ref": "#/definitions/QName" },
-                              "usable": {
-                                "type": "boolean"
                               },
                              "properties": {
                                 "type": "array",
@@ -291,10 +384,15 @@
                           }
                         },
                         "extendTargetName": { "$ref": "#/definitions/QName" },
+                        "completeDomain" :{
+                          "type": "boolean",
+                          "description": "Indicates if all relationships in the domain are required to be defined."
+                        },
                         "properties": {
                           "type": "array",
                             "items": { "$ref": "#/definitions/propertyObject"},
-                            "description": "Additional properties associated with the relationship."
+                            "description": "Additional properties associated with the relationship.",
+                            "uniqueItems": true
                         }
                       },
                       "oneOf": [
@@ -308,7 +406,8 @@
                           ]
                       },
                       "additionalProperties": false
-                    }
+                    },
+                    "uniqueItems": true
                 },
                 "domainRoots": {
                     "type": "array",
@@ -316,15 +415,22 @@
                         "type": "object",
                         "properties": {
                             "name": { "$ref": "#/definitions/QName" },
+                            "allowedDomainItems": {
+                              "type": "array",
+                              "items": { "$ref": "#/definitions/QName" },
+                              "uniqueItems": true
+                            },
                             "properties": {
                                 "type": "array",
                                 "items": { "$ref": "#/definitions/propertyObject" },
-                                "description": "Additional properties associated with the label."
+                                "description": "Additional properties associated with the label.",
+                                "uniqueItems": true
                               }
                         },
                         "required": ["name"],
                         "additionalProperties": false
-                    }
+                    },
+                    "uniqueItems": true
                 },
                 "networks": {
                   "type": "array",
@@ -332,10 +438,11 @@
                   "type": "object",
                       "properties": {
                         "name": { "$ref": "#/definitions/QName" },
-                        "relationshipTypeName": { "$ref": "#/definitions/QName" },
+                        "relationshipTypeName": { "$ref": "#/definitions/relationshipTypeQName" },
                         "roots": {
                           "type": "array",
-                            "items": { "$ref": "#/definitions/QName" }
+                          "items": { "$ref": "#/definitions/QName" },
+                          "uniqueItems": true
                         },
                         "relationships": {
                           "type": "array",
@@ -347,22 +454,17 @@
                               "order": {
                                 "type": "number"
                               },
-                              "weight": {
-                                "type": "number"
-                              },
-                              "preferredLabel": { "$ref": "#/definitions/QName" },
-                              "useable": {
-                                "type": "boolean"
-                              },
                               "properties": {
                                   "type": "array",
                                   "items": { "$ref": "#/definitions/propertyObject" },
-                                  "description": "Additional properties associated with the label."
+                                  "description": "Additional properties associated with the label.",
+                                  "uniqueItems": true
                                 }
                           },
                           "required": ["source", "target"],
                           "additionalProperties": false
-                          }
+                          },
+                          "uniqueItems": true
                         },
                         "extendTargetName": { "$ref": "#/definitions/QName" },
                         "properties": {
@@ -382,7 +484,8 @@
                           ]
                       },
                       "additionalProperties": false
-                    }
+                    },
+                    "uniqueItems": true
                 },
                 "entities": {
                     "type": "array",
@@ -393,17 +496,20 @@
                             "properties": {
                               "type": "array",
                               "items": { "$ref": "#/definitions/propertyObject" },
-                              "description": "Additional properties associated with the label."
+                              "description": "Additional properties associated with the label.",
+                              "uniqueItems": true
                             }
                         },
                         "required": ["name"],
                         "additionalProperties": false
-                    }
+                    },
+                    "uniqueItems": true
                 },
                 "properties": {
                   "type": "array",
                   "items": { "$ref": "#/definitions/propertyObject" },
-                  "description": "Additional properties associated with the label."
+                  "description": "Additional properties associated with the label.",
+                  "uniqueItems": true
                 },
                 "units": {
                   "type": "array",
@@ -411,13 +517,22 @@
                     "type": "object",
                     "properties": {
                       "name": { "$ref": "#/definitions/QName" },
-                      "dataType": { "$ref": "#/definitions/QName" },
-                      "dataTypeNumerator": { "$ref": "#/definitions/QName" },
-                      "dataTypeDenominator": { "$ref": "#/definitions/QName" }
+                      "dataType": { "$ref": "#/definitions/dataTypeQName" },
+                      "stringRepresentations": { 
+                        "type": "array",
+                        "items": { 
+                          "type": "string",
+                           "pattern": ".*(\\*|/).*",
+                          "description": "String representation of the unit."
+                         },
+                        "description": "Ordered set of strings representing the string representations of the unit.",
+                        "uniqueItems": true
+                       }
                     },
                     "required": ["name", "dataType"],
                     "additionalProperties": false
-                  }
+                  },
+                    "uniqueItems": true
                 },
                 "groups": {
                   "type": "array",
@@ -437,22 +552,61 @@
                     },
                     "required": ["name"],
                      "additionalProperties": false
-                  }
+                  },
+                    "uniqueItems": true
                 },
                 "groupContents": {
                   "type": "array",
                   "items": {
                     "type": "object",
                     "properties": {
-                      "groupName": { "$ref": "#/definitions/QName" },
+                      "groupName": { "$ref": "#/definitions/groupQName" },
                       "relatedNames": {
                         "type": "array",
-                        "items": { "$ref": "#/definitions/QName" }
+                        "items": { "$ref": "#/definitions/QName" },
+                        "uniqueItems": true
                       }
                     },
                     "required": ["groupName", "relatedNames"],
                     "additionalProperties": false
-                  }
+                  },
+                  "uniqueItems": true
+                },
+                "groupTree": {
+                  "type": "object",
+                  "description": "Defines the hierarchical organization of groups within the taxonomy. Only one groupTree is allowed per taxonomy.",
+                  "properties": {
+                    "name": { 
+                      "$ref": "#/definitions/QName",
+                      "description": "The QName that uniquely identifies the groupTree object."
+                    },
+                    "relationships": {
+                      "type": "array",
+                      "description": "Ordered set of relationships organizing groups hierarchically using the xbrl:taxonomy-group relationship type. Source can be a taxonomy or group object, target must be a group object.",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "source": { 
+                            "$ref": "#/definitions/QName",
+                            "description": "QName of the source taxonomy or group object."
+                          },
+                          "target": { 
+                            "$ref": "#/definitions/QName",
+                            "description": "QName of the target group object."
+                          },
+                          "order": {
+                            "type": "number",
+                            "description": "Order of the relationship in the hierarchy."
+                          }
+                        },
+                        "required": ["source", "target"],
+                        "additionalProperties": false
+                      },
+                      "uniqueItems": true
+                    }
+                  },
+                  "required": ["name"],
+                  "additionalProperties": false
                 },
                 "relationshipTypes": {
                   "type": "array",
@@ -470,24 +624,41 @@
                       },
                       "allowedLinkProperties": {
                         "type": "array",
-                        "items": { "$ref": "#/definitions/QName" }
+                        "items": { "$ref": "#/definitions/QName" },
+                        "uniqueItems": true
                       },
                       "requiredLinkProperties": {
                         "type": "array",
-                        "items": { "$ref": "#/definitions/QName" }
+                        "items": { "$ref": "#/definitions/QName" },
+                        "uniqueItems": true
                       },
                       "sourceObjects": {
                         "type": "array",
-                        "items": { "$ref": "#/definitions/QName" }
+                        "items": { "$ref": "#/definitions/QName" },
+                        "uniqueItems": true
                       },
                       "targetObjects": {
                         "type": "array",
-                        "items": { "$ref": "#/definitions/QName" }
+                        "items": { "$ref": "#/definitions/QName" },
+                        "uniqueItems": true
+                      },
+                      "constraints": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "constraint": { "$ref": "#/definitions/relationshipConstraint" }
+                          },
+                          "required": ["constraint"],
+                          "additionalProperties": false
+                        },
+                        "description": "An array of constraint objects, each with a 'constraint' property containing a constraint expression string."
                       }
                     },
                     "required": ["name", "cycles"],
                      "additionalProperties": false
-                  }
+                  },
+                    "uniqueItems": true
                 },
                 "labels": {
                   "type": "array",
@@ -495,10 +666,11 @@
                     "type": "object",
                     "properties": {
                       "relatedName": { "$ref": "#/definitions/QName" },
-                      "labelType": { "$ref": "#/definitions/QName" },
+                      "labelType": { "$ref": "#/definitions/labelTypeQName" },
                       "language": {
                         "type": "string",
-                        "description": "Language code (BCP 47)."
+                        "pattern": "^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$",
+                        "description": "[oimte:badlanguage] Language code (BCP 47)."
                       },
                       "value": {
                         "type": "string",
@@ -507,12 +679,14 @@
                       "properties": {
                         "type": "array",
                         "items": { "$ref": "#/definitions/propertyObject" },
-                        "description": "Additional properties associated with the label."
+                        "description": "Additional properties associated with the label.",
+                        "uniqueItems": true
                       }
                     },
                     "required": ["relatedName", "labelType", "language", "value"],
                     "additionalProperties": false
-                  }
+                  },
+                    "uniqueItems": true
                 },
                 "references": {
                   "type": "array",
@@ -524,17 +698,20 @@
                         "relatedNames": {
                           "type": "array",
                           "items": { "$ref": "#/definitions/QName" },
-                          "description": "Ordered QNames the reference is associated with."
+                          "description": "Ordered QNames the reference is associated with.",
+                          "uniqueItems": true
                         },
-                        "referenceType": { "$ref": "#/definitions/QName" },
+                        "referenceType": { "$ref": "#/definitions/referenceTypeQName" },
                         "language": {
                           "type": "string",
+                          "pattern": "^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$",
                           "description": "Language code (BCP 47)."
                         },
                         "properties": {
                           "type": "array",
                           "items": { "$ref": "#/definitions/propertyObject" },
-                          "description": "Additional properties associated with the reference."
+                          "description": "Additional properties associated with the reference.",
+                          "uniqueItems": true
                         }
                       },
                       "oneOf": [
@@ -543,7 +720,129 @@
                       ],
                       
                       "additionalProperties": false
-                  }
+                  },
+                    "uniqueItems": true
+                },
+                "factspaces": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": { "$ref": "#/definitions/SQName" },
+                      "factValues": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "name": { "$ref": "#/definitions/QName" },
+                            "value": {
+                              "type": "string",
+                              "description": "Literal fact value, when not derived from valueSources."
+                            },
+                            "decimals": {
+                              "type": "number",
+                              "description": "Number of decimal places for the fact value."
+                            },
+                            "language": {
+                              "type": "string",
+                              "pattern": "^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$",
+                              "description": "Language of the fact value (BCP 47)."
+                            },
+                            "valueSources": {
+                              "type": "array",
+                              "description": "Ordered set of factValueSource objects identifying where the values are obtained from content of an embedding or accompanying document file.",
+                              "items": { "$ref": "#/definitions/factValueSourceObject" },
+                              "minItems": 1,
+                              "uniqueItems": true
+                            },
+                            "valueAnchors": {
+                              "type": "array",
+                              "description": "Ordered set of factValueAnchor objects identifying corresponding content of an embedding document file for visual highlighting and mouse-over, typically when the value is provided directly in 'value'.",
+                              "items": { "$ref": "#/definitions/factValueAnchorObject" },
+                              "minItems": 1,
+                              "uniqueItems": true
+                            }
+                          },
+                          "additionalProperties": false,
+                          "allOf": [
+                            {
+                              "anyOf": [
+                                { "required": ["value"] },
+                                { "required": ["valueSources"] }
+                              ]
+                            }
+                          ]
+                        }
+                      },
+                      "factDimensions": {
+                        "type": "object",
+                        "description": "Object mapping dimension QNames to their values for this fact.",
+                        "properties": {
+                          "xbrl:concept":{ "$ref": "#/definitions/conceptQName" },
+                          "xbrl:entity":{ "$ref": "#/definitions/SQName" },
+                          "xbrl:unit":{ "oneOf": [
+                                            {
+                                              "type": "string",
+                                              "pattern": ".*(\\*|/).*"
+                                            },
+                                            {
+                                              "$ref": "#/definitions/unitQName"
+                                            }
+                                          ]},
+                          "xbrl:period":{"type": "string"}
+                        },
+                         "patternProperties": {
+                              "^[A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z_][A-Za-z0-9_.-]*$": {
+                                "oneOf": [
+                                  { "type": "string" },
+                                  { "type": "number" },
+                                  { "type": "null" }
+                                ]
+                              }
+                            },
+                        "additionalProperties": false,
+                        "required": ["xbrl:concept"]
+                      },
+                      "properties": {
+                        "type": "array",
+                        "items": { "$ref": "#/definitions/propertyObject" },
+                        "description": "Additional properties associated with the label.",
+                        "uniqueItems": true
+                      },
+                      "extendTargetName": { "$ref": "#/definitions/SQName"}
+                    },
+                      "oneOf": [
+                        { "required": ["name", "factDimensions"] },
+                        { "required": ["extendTargetName"] }
+                      ],
+                      "not": {
+                        "anyOf": [
+                            { "required": ["extendTargetName", "factDimensions"] },
+                            { "required": ["extendTargetName", "name"] }
+                          ]
+                      },
+                      "additionalProperties": false
+                  },
+                  "uniqueItems": true
+                },
+                "footnotes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": { "$ref": "#/definitions/footnoteTypeQName" },
+                      "content": {"type": "string",
+                                  "description": "The content of the footnote."},
+                      "language": {
+                        "type": "string",
+                        "pattern": "^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$",
+                        "description": "[oimte:badlanguage] Language code (BCP 47)."
+                      }
+                    },
+                    "required": ["name", "content", "language"],
+                    "additionalProperties": false
+                  },
+                    "uniqueItems": true
                 },
                 "labelTypes": {
                   "type": "array",
@@ -556,16 +855,18 @@
                           "format": "uri",
                           "description": "URI for backward compatibility with XBRL 2.1 taxonomies."
                         },
-                        "dataType": { "$ref": "#/definitions/QName" },
+                        "dataType": { "$ref": "#/definitions/dataTypeQName" },
                         "allowedObjects": {
                           "type": "array",
                           "items": { "$ref": "#/definitions/QName" },
-                          "description": "Ordered set of object types that can use the labelType."
+                          "description": "Ordered set of object types that can use the labelType.",
+                          "uniqueItems": true
                         }
                       },
-                      "required": ["name"],
+                      "required": ["name","dataType"],
                       "additionalProperties": false
-                  }
+                  },
+                    "uniqueItems": true
                 },
                 "referenceTypes": {
                   "type": "array",
@@ -596,7 +897,8 @@
                       },
                       "required": ["name"],
                       "additionalProperties": false
-                  }
+                  },
+                    "uniqueItems": true
                 },
                 "cubeTypes": {
                     "type": "array",
@@ -604,7 +906,7 @@
                       "type": "object",
                       "properties": {
                         "name": { "$ref": "#/definitions/QName" },
-                        "baseCubeType": { "$ref": "#/definitions/QName" },
+                        "baseCubeType": { "$ref": "#/definitions/cubeTypeQName" },
                         "periodDimension": {
                           "type": "boolean",
                           "description": "Indicates if the period core dimension is included in the cube. Defaults to true."
@@ -627,20 +929,71 @@
                           "items": {
                             "type": "object",
                             "properties": {
-                              "dimensionName": { "$ref": "#/definitions/QName" },
+                              "dimensionName": { "$ref": "#/definitions/dimensionQName" },
                               "dimensionType": {
                                 "type": "string",
                                 "enum": ["typed", "explicit"],
                                 "description": "Indicates that the cube must have a typed or explicit dimension."
                               },
-                              "dimensionDataType": { "$ref": "#/definitions/QName" },
+                              "dimensionDataType": { "$ref": "#/definitions/dataTypeQName" },
                               "required": {
                                 "type": "boolean",
                                 "description": "True if the defined dimension is required on the cube. Defaults to false."
+                              },
+                              "allowedDimensionProperties": {
+                                "type": "array",
+                                "items": { "$ref": "#/definitions/QName" }
+                              },
+                              "requiredDimensionProperties": {
+                                "type": "array",
+                                "items": { "$ref": "#/definitions/QName" }
                               }
                             },
-                            "additionalProperties": false
+                            "additionalProperties": false,
+                            "allOf": [
+                              
+                              {
+                                "if": {
+                                  "properties": { "dimensionType": { "const": "explicit" } },
+                                  "required": ["dimensionType"]
+                                },
+                                "then": {
+                                  "not": { "required": ["dimensionDataType"] }
+                                }
+                              },
+                              
+                              {
+                                "if": {
+                                  "required": ["dimensionName"]
+                                },
+                                "then": {
+                                  "not": { "anyOf": [ { "required": ["dimensionType"] }, { "required": ["dimensionDataType"] } ] }
+                                }
+                              },
+                              
+                              {
+                                "if": {
+                                  "properties": { "dimensionType": { "const": "typed" } },
+                                  "required": ["dimensionType"]
+                                },
+                                "then": {
+                                  "required": ["dimensionDataType"]
+                                }
+                              },
+                              {
+                                "if": {
+                                  "required": ["dimensionDataType"]
+                                },
+                                "then": {
+                                  "required": ["dimensionType"]
+                                }
+                              }
+                            ]
                           }
+                        },
+                        "allowedCubeDimensionsClosed": {
+                          "type": "boolean",
+                          "description": "Indicates if the allowedCubeDimensions property is closed. If true then additional taxonomy defined dimensions cannot be added to the cube other than those defined in the allowed cube dimensions. Defaults to true."
                         },
                         "requiredCubeRelationships": {
                           "type": "array",
@@ -648,18 +1001,28 @@
                           "items": {
                             "type": "object",
                             "properties": {
-                              "relationshipTypeName": { "$ref": "#/definitions/QName" },
-                              "source": { "$ref": "#/definitions/QName" },
-                              "target": { "$ref": "#/definitions/QName" }
+                              "relationshipTypeName": { "$ref": "#/definitions/relationshipTypeQName"},
+                              "source": { "$ref": "#/definitions/QName"},
+                              "sourceDataType": { "$ref": "#/definitions/dataTypeQName"},
+                              "sourceObject": { "$ref": "#/definitions/QName"},
+                              "target": { "$ref": "#/definitions/QName"},
+                              "targetDataType": { "$ref": "#/definitions/dataTypeQName"},
+                              "targetObject": { "$ref": "#/definitions/QName"}
                             },
                             "required": ["relationshipTypeName"],
                             "additionalProperties": false
                           }
-                        } 
+                        },
+                        "requiredCubeProperties": {
+                            "type": "array",
+                            "items": { "$ref": "#/definitions/QName" },
+                            "uniqueItems": true
+                      }
                       },
                   "required": ["name"],
                   "additionalProperties": false
-                }
+                },
+                    "uniqueItems": true
                 },
                 "dataTypes": {
                     "type": "array",
@@ -667,7 +1030,7 @@
                       "type": "object",
                         "properties": {
                           "name": { "$ref": "#/definitions/QName" },
-                          "baseType": { "$ref": "#/definitions/QName" },
+                          "baseType": { "$ref": "#/definitions/dataTypeQName" },
                           "enumeration": {
                             "type": "array",
                             "description": "Ordered set of enumerated values of the datatype if applicable.",
@@ -719,22 +1082,68 @@
                             "description": "Array of regex patterns (XML regex). At least one must match.",
                             "items": { "type": "string" }
                           },
-                          "unitTypes": {
+                          "unitType": {
                             "type": "object",
                             "description": "UnitType object defining numerator, denominator, and multiplier datatypes.",
                             "properties": {
-                              "dataTypeNumerator": { "$ref": "#/definitions/QName" },
-                              "dataTypeDenominator": { "$ref": "#/definitions/QName" },
-                              "dataTypeMutiplier": { "$ref": "#/definitions/QName" }
+                              "dataTypeNumerator": { "$ref": "#/definitions/dataTypeQName" },
+                              "dataTypeDenominator": { "$ref": "#/definitions/dataTypeQName" },
+                              "dataTypeMultiplier": { "$ref": "#/definitions/dataTypeQName" }
                             },
+                            "additionalProperties": false
+                          },
+                          "setType": {
+                            "type": "object",
+                            "description": "SetType object defining constraints for set-based datatypes.",
+                            "properties": {
+                              "dataTypesAllowed": {
+                                "type": "array",
+                                "description": "Array of QNames specifying the datatypes allowed as members of the set.",
+                                "items": { "$ref": "#/definitions/dataTypeQName" },
+                                "minItems": 1
+                              },
+                              "uniqueValues": {
+                                "type": "boolean",
+                                "description": "If true, all values in the set must be unique."
+                              },
+                              "orderedValues": {
+                                "type": "boolean",
+                                "description": "If true, the set maintains insertion order."
+                              }
+                            },
+                            "required": ["dataTypesAllowed"],
                             "additionalProperties": false
                           }
                         },
                         "required": ["name", "baseType"],
                         "additionalProperties": false
-                      }
+                      },
+                    "uniqueItems": true
                 },
-                "tableTemplates": {
+                "transforms": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                       "properties": {
+                            "name": { "$ref": "#/definitions/QName" },
+                            "inputDataType": { "$ref": "#/definitions/dataTypeQName" },
+                            "outputDataType": { "$ref": "#/definitions/dataTypeQName" }
+                          },
+                          "required": ["name", "inputDataType", "outputDataType"],
+                          "additionalProperties": false
+                    },
+                    "uniqueItems": true
+                }
+            },
+            "required": ["name"],
+            "additionalProperties": false
+        },
+      "layout" :{
+        "type": "object",
+        "name": { "$ref": "#/definitions/QName" },
+        "taxonomyName": { "$ref": "#/definitions/taxonomyQName" },
+        "properties":{
+          "tableTemplates": {
                     "type": "array",
                       "items": {
                         "type": "object",
@@ -750,7 +1159,14 @@
                                   "additionalProperties": {
                                     "type": "string"
                                   }
-                                }
+                                },
+                                "propertyGroups": {
+                                  "type": "object",
+                                  "additionalProperties": {
+                                    "type": "string"
+                                  }
+                                },
+                                "decimals": { "type": "number" }
                               },
                               "additionalProperties": false
                             }
@@ -765,60 +1181,129 @@
                         },
                         "required": ["name", "columns"],
                         "additionalProperties": false
-                      }
-                },
-                "dataTables": {
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                        "properties": {
-                          "name": { "$ref": "#/definitions/QName" },
-                          "cubeName": { "$ref": "#/definitions/QName" },
-                          "xAxis": {
-                              "$ref": "#/definitions/axisObject"
-                            },
-                         "yAxis": {
-                              "$ref": "#/definitions/axisObject"
-                            },
-                         "zAxis": {
-                              "$ref": "#/definitions/axisObject"
-                            },
-                          "showRefs": {
-                            "type": "boolean",
-                            "description": "Indicates if column and row references are shown on the table."
-                          }
-                        },
-                        "required": ["name", "cubeName", "xAxis", "yAxis"],
-                        "additionalProperties": false
-                      }
-                },
-                "transforms": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                       "properties": {
-                            "name": { "$ref": "#/definitions/QName" },
-                            "inputDataType": { "$ref": "#/definitions/QName" },
-                            "outputDataType": { "$ref": "#/definitions/QName" }
-                          },
-                          "required": ["name", "inputDataType", "outputDataType"],
-                          "additionalProperties": false
+                      },
+                    "uniqueItems": true
+          },
+          "dataTables": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                  "properties": {
+                    "name": { "$ref": "#/definitions/QName" },
+                    "cubeName": { "$ref": "#/definitions/cubeQName" },
+                    "xAxis": {
+                        "$ref": "#/definitions/axisObject"
+                      },
+                    "yAxis": {
+                        "$ref": "#/definitions/axisObject"
+                      },
+                    "zAxis": {
+                        "$ref": "#/definitions/axisObject"
+                      },
+                    "showRefs": {
+                      "type": "boolean",
+                      "description": "Indicates if column and row references are shown on the table."
                     }
-                }
-            },
-            "required": ["name", "resolved"],
-            "additionalProperties": false
-        }
+                  },
+                  "required": ["name", "cubeName", "xAxis", "yAxis"],
+                  "additionalProperties": false
+                },
+                    "uniqueItems": true
+          }
+        },
+        "required": ["name", "taxonomyName"]
+      }
       },
     "definitions": {
       "propertyObject": {
       "type": "object",
       "properties": {
-        "property": { "$ref": "#/definitions/QName" },
+        "property": { "$ref": "#/definitions/propertyTypeQName" },
         "value": {}
       },
       "required": ["property", "value"],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": { "property": { "const": "xbrl:balance" } }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "string",
+                "enum": ["credit", "debit"]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "property": { "const": "xbrl:intervalOfMeasurement" } }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "string",
+                "pattern": "^P(?!$)(\\d+Y)?(\\d+M)?(\\d+D)?(T(\\d+H)?(\\d+M)?(\\d+S)?)?$",
+                "description": "An ISO 8601 duration (xs:duration), e.g. PT1H"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "property": { "const": "xbrl:timeSeriesType" } }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "string",
+                "enum": ["Raw", "Aggregated"]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "property": { "const": "xbrl:intervalConvention" } }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "string",
+                "enum": ["StartTime", "EndTime"]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "property": { "const": "xbrl:completeTimeSeries" } }
+          },
+          "then": {
+            "properties": {
+              "value": { "type": "boolean" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "property": { "const": "xbrl:excludedIntervals" } }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "oneOf": [
+                  { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+                  { "type": "string" }
+                ],
+                "description": "A list of excluded interval identifiers (e.g., RRULE/EXDATE strings) or a single string."
+              }
+            }
+          }
+        }
+]
       },
       "axisObject": {
         "type": "object",
@@ -836,6 +1321,7 @@
           },
           "language": {
             "type": "string",
+            "pattern": "^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$",
             "description": "Defines the language of the axisLabels using a valid BCP 47 [BCP47] language code."
           },
           "presentationNetwork": {
@@ -847,9 +1333,23 @@
         "additionalProperties": false,
         "allOf": [
           {
-            "not": {
-              "required": ["axisLabels", "presentationNetwork"],
-              "additionalProperties": false
+            "if": {
+              "required": ["axisLabels"]
+            },
+            "then": {
+              "not": {
+                "required": ["presentationNetwork"]
+              }
+            }
+          },
+          {
+            "if": {
+              "required": ["presentationNetwork"]
+            },
+            "then": {
+              "not": {
+                "required": ["axisLabels"]
+              }
             }
           }
         ]
@@ -893,11 +1393,127 @@
           "pattern": "^[A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z_][A-Za-z0-9_.-]*$",
           "description": "QName that uniquely identifies the object."
       },
+      "dataTypeQName": {
+          "$ref": "#/definitions/QName",
+          "description": "QName that references a dataType object. Must reference either a built-in XML Schema datatype (xs:*) or a custom dataType defined in the taxonomy."
+      },
+      "conceptQName": {
+          "$ref": "#/definitions/QName",
+          "description": "QName that references a concept object defined in the taxonomy."
+      },
+      "dimensionQName": {
+          "$ref": "#/definitions/QName",
+          "description": "QName that references a dimension object. May reference built-in dimensions (xbrl:concept, xbrl:period, xbrl:entity, xbrl:unit, xbrl:language, xbrl:noteId) or taxonomy-defined dimensions."
+      },
+      "domainQName": {
+          "$ref": "#/definitions/QName",
+          "description": "QName that references a domain object defined in the taxonomy."
+      },
+      "domainRootQName": {
+          "$ref": "#/definitions/QName",
+          "description": "QName that references a domainRoot object defined in the taxonomy."
+      },
+      "cubeQName": {
+          "$ref": "#/definitions/QName",
+          "description": "QName that references a cube object defined in the taxonomy."
+      },
+      "cubeTypeQName": {
+          "$ref": "#/definitions/QName",
+          "description": "QName that references a cubeType object defined in the taxonomy."
+      },
+      "networkQName": {
+          "$ref": "#/definitions/QName",
+          "description": "QName that references a network object defined in the taxonomy."
+      },
+      "relationshipTypeQName": {
+          "$ref": "#/definitions/QName",
+          "description": "QName that references a relationshipType object defined in the taxonomy."
+      },
+      "labelTypeQName": {
+          "$ref": "#/definitions/QName",
+          "description": "QName that references a labelType object defined in the taxonomy."
+      },
+      "referenceTypeQName": {
+          "$ref": "#/definitions/QName",
+          "description": "QName that references a referenceType object defined in the taxonomy."
+      },
+      "propertyTypeQName": {
+          "$ref": "#/definitions/QName",
+          "description": "QName that references a propertyType object defined in the taxonomy."
+      },
+      "groupQName": {
+          "$ref": "#/definitions/QName",
+          "description": "QName that references a group object defined in the taxonomy."
+      },
+      "taxonomyQName": {
+          "$ref": "#/definitions/QName",
+          "description": "QName that references a taxonomy object."
+      },
+      "unitQName": {
+          "$ref": "#/definitions/QName",
+          "description": "QName that references a unit object defined in the taxonomy."
+      },
+      "footnoteTypeQName": {
+          "$ref": "#/definitions/QName",
+          "description": "QName that references a footnoteType object defined in the taxonomy."
+      },
+      "relationshipConstraint" :{
+            "type": "string",
+            "pattern": "^relationship\\.(source|target|property|properties)(?:\\.[A-Za-z_][A-Za-z0-9_]*(?::[A-Za-z_][A-Za-z0-9_]*)?)*\\s*(==|!=|>=|<=|>|<)\\s*[^=<>!()]+(?:\\s*(AND|OR|NOT)\\s*relationship\\.(source|target|property|properties)(?:\\.[A-Za-z_][A-Za-z0-9_]*(?::[A-Za-z_][A-Za-z0-9_]*)?)*\\s*(==|!=|>=|<=|>|<)\\s*[^=<>!()]+)*$",
+            "description": "A constraint expression string as defined in the specification (oim-taxonomy.md), expressing boolean logic over properties of the source, target, and relationship."
+      },
       "SQName": {
           "type": "string",
           "pattern": "^[A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z0-9_.-]+$",
           "description": "QName that uniquely identifies the object."
       },
+      "selectorObject":{
+        "oneOf": [
+              {
+                "description": "Simple string selector (e.g., 'concepts where periodType = \"instant\"')",
+                "type": "string"
+              },
+              {
+                "description": "Structured selector object",
+                "type": "object",
+                "properties": {
+                  "objectType": {
+                    "type": "string",
+                    "description": "The type of object to select (e.g., 'concept', 'member', 'label')."
+                  },
+                  "where": {
+                    "type": "array",
+                    "description": "Array of filter conditions.",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "property": {
+                          "type": "string",
+                          "description": "Property name to filter on (e.g., 'periodType', 'balance', 'language')."
+                        },
+                        "operator": {
+                          "type": "string",
+                          "enum": ["==", "!=", "in", "not in", "contains", "not contains", ">", "<", ">=", "<="],
+                          "description": "Comparison operator."
+                        },
+                        "value": {
+                          "description": "Value to compare against. Can be string, number, boolean, or array.",
+                          "oneOf": [
+                            { "type": "string" },
+                            { "type": "number" },
+                            { "type": "boolean" },
+                            { "type": "array", "items": { "type": "string" } }
+                          ]
+                        }
+                      },
+                      "required": ["property", "operator", "value"]
+                    }
+                  }
+                },
+                "required": ["objectType", "where"]
+              }
+          ]
+        },
       "dateResolutionObject": {
           "type": "object",
           "description": "Gregorian date that recurs (dateResolution object).",
@@ -929,7 +1545,213 @@
             { "required": ["value"] }
           ],
           "additionalProperties": false
+        },
+        "factValueSourceObject": {
+          "type": "object",
+          "description": "Represents the source(s) of a fact value from a document file's content.",
+          "properties": {
+            "medium": {
+              "type": "string",
+              "description": "Optional medium hint (e.g. html, pdf, tabular); may also be specified at the model level."
+            },
+            "href": {
+              "type": "string",
+              "description": "For HTML: element containing the mapped inner text content (e.g. '#elt1')."
+            },
+            "formField": {
+              "type": "string",
+              "description": "For PDF: the field name of a PDF form field whose content contributes to the value."
+            },
+            "page": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "For PDF non-form text: the page number."
+            },
+            "mcid": {
+              "type": "string",
+              "description": "For PDF non-form structure text identified by MCID."
+            },
+            "elementId": {
+              "type": "string",
+              "description": "For PDF non-form text identified by structure element Id."
+            },
+            "tabularPath": {
+              "type": "string",
+              "description": "For tabular/workbook sources: a TabularPath expression."
+            },
+            "transformation": {
+              "$ref": "#/definitions/QName",
+              "description": "QName of a transformation applied to the source text."
+            },
+            "scale": {
+              "type": "integer",
+              "description": "Power of 10 to multiply the source numeric text (e.g. 3 for billions)."
+            },
+            "sign": {
+              "type": "string",
+              "description": "Sign of the value when not part of the transformation."
+            }
+          },
+          "additionalProperties": false,
+
+          "allOf": [
+            {
+              "oneOf": [
+                {
+                  "required": ["href"],
+                  "not": {
+                    "anyOf": [
+                      { "required": ["formField"] },
+                      { "required": ["page"] },
+                      { "required": ["mcid"] },
+                      { "required": ["elementId"] },
+                      { "required": ["tabularPath"] }
+                    ]
+                  }
+                },
+                {
+                  "required": ["formField"],
+                  "not": {
+                    "anyOf": [
+                      { "required": ["href"] },
+                      { "required": ["page"] },
+                      { "required": ["mcid"] },
+                      { "required": ["elementId"] },
+                      { "required": ["tabularPath"] }
+                    ]
+                  }
+                },
+                {
+                  "required": ["page"],
+                  "anyOf": [
+                    { "required": ["mcid"] },
+                    { "required": ["elementId"] }
+                  ],
+                  "not": {
+                    "anyOf": [
+                      { "required": ["href"] },
+                      { "required": ["formField"] },
+                      { "required": ["tabularPath"] }
+                    ]
+                  }
+                },
+                {
+                  "required": ["tabularPath"],
+                  "not": {
+                    "anyOf": [
+                      { "required": ["href"] },
+                      { "required": ["formField"] },
+                      { "required": ["page"] },
+                      { "required": ["mcid"] },
+                      { "required": ["elementId"] }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+
+        "factValueAnchorObject": {
+          "type": "object",
+          "description": "Specifies the source(s) of a fact value from a document file's content for tool visual actions (highlighting, mouse-over).",
+          "properties": {
+            "medium": {
+              "type": "string",
+              "description": "Optional medium hint (e.g. html, pdf, workbook); may also be specified at the model level."
+            },
+            "href": {
+              "type": "string",
+              "description": "For HTML: element containing the mapped inner text content (e.g. '#elt1')."
+            },
+            "formField": {
+              "type": "string",
+              "description": "For PDF: the field name of a PDF form field that contributes to the value."
+            },
+            "page": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "For PDF non-form text: the page number."
+            },
+            "mcid": {
+              "type": "string",
+              "description": "For PDF non-form structure text identified by MCID."
+            },
+            "elementId": {
+              "type": "string",
+              "description": "For PDF non-form text identified by structure element Id."
+            },
+
+            "tabularPath": {
+              "type": "string",
+              "description": "For workbook/tabular sources: a TabularPath expression."
+            }
+          },
+          "additionalProperties": false,
+
+          "allOf": [
+            {
+              "oneOf": [
+                {
+
+                  "required": ["href"],
+                  "not": {
+                    "anyOf": [
+                      { "required": ["formField"] },
+                      { "required": ["page"] },
+                      { "required": ["mcid"] },
+                      { "required": ["elementId"] },
+                      { "required": ["tabularPath"] }
+                    ]
+                  }
+                },
+                {
+                  "required": ["formField"],
+                  "not": {
+                    "anyOf": [
+                      { "required": ["href"] },
+                      { "required": ["page"] },
+                      { "required": ["mcid"] },
+                      { "required": ["elementId"] },
+                      { "required": ["tabularPath"] }
+                    ]
+                  }
+                },
+                {
+                  "required": ["page"],
+                  "anyOf": [
+                    { "required": ["mcid"] },
+                    { "required": ["elementId"] }
+                  ],
+                  "not": {
+                    "anyOf": [
+                      { "required": ["href"] },
+                      { "required": ["formField"] },
+                      { "required": ["tabularPath"] }
+                    ]
+                  }
+                },
+                {
+                  "required": ["tabularPath"],
+                  "not": {
+                    "anyOf": [
+                      { "required": ["href"] },
+                      { "required": ["formField"] },
+                      { "required": ["page"] },
+                      { "required": ["mcid"] },
+                      { "required": ["elementId"] }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
         }
       },
-    "required": ["documentInfo", "taxonomy"]
+      "required" : ["documentInfo"],
+      "anyOf": [
+        { "required": ["taxonomy"] },
+        { "required": ["layout"] }
+      ],
+       "additionalProperties": false
 }
