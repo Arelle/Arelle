@@ -21,12 +21,7 @@ from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
-from ..DisclosureSystems import (
-    DISCLOSURE_SYSTEM_NT16,
-    DISCLOSURE_SYSTEM_NT17,
-    DISCLOSURE_SYSTEM_NT18,
-    DISCLOSURE_SYSTEM_NT19,
-)
+from ..DisclosureSystems import NT_DISCLOSURE_SYSTEMS
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
@@ -44,12 +39,7 @@ INSTANCE_ELEMENT_ORDER = {
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NT16,
-        DISCLOSURE_SYSTEM_NT17,
-        DISCLOSURE_SYSTEM_NT18,
-        DISCLOSURE_SYSTEM_NT19,
-    ],
+    disclosureSystems=NT_DISCLOSURE_SYSTEMS,
 )
 def rule_fg_nl_03(
         pluginData: PluginValidationDataExtension,
@@ -96,12 +86,7 @@ def rule_fg_nl_03(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NT16,
-        DISCLOSURE_SYSTEM_NT17,
-        DISCLOSURE_SYSTEM_NT18,
-        DISCLOSURE_SYSTEM_NT19,
-    ],
+    disclosureSystems=NT_DISCLOSURE_SYSTEMS,
 )
 def rule_fg_nl_04(
         pluginData: PluginValidationDataExtension,
@@ -160,12 +145,7 @@ def rule_fg_nl_04(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NT16,
-        DISCLOSURE_SYSTEM_NT17,
-        DISCLOSURE_SYSTEM_NT18,
-        DISCLOSURE_SYSTEM_NT19,
-    ],
+    disclosureSystems=NT_DISCLOSURE_SYSTEMS,
 )
 def rule_fg_nl_05(
         pluginData: PluginValidationDataExtension,
@@ -229,12 +209,7 @@ def rule_fg_nl_05(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NT16,
-        DISCLOSURE_SYSTEM_NT17,
-        DISCLOSURE_SYSTEM_NT18,
-        DISCLOSURE_SYSTEM_NT19,
-    ],
+    disclosureSystems=NT_DISCLOSURE_SYSTEMS,
 )
 def rule_fg_nl_09(
         pluginData: PluginValidationDataExtension,
@@ -256,12 +231,7 @@ def rule_fg_nl_09(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NT16,
-        DISCLOSURE_SYSTEM_NT17,
-        DISCLOSURE_SYSTEM_NT18,
-        DISCLOSURE_SYSTEM_NT19,
-    ],
+    disclosureSystems=NT_DISCLOSURE_SYSTEMS,
 )
 def rule_fg_nl_11(
         pluginData: PluginValidationDataExtension,

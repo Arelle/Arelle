@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://xbrl.org/2005/conformance"
+  name="NL.BR-KVK-4.17"
+  description="All financial reporting periods must be shorter than 2 years"
+  outpath=''
+  owner="support@arelle.org"
+  xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+  <variation id="period-duration" name="Invalid Financial Reporting Period Duration">
+    <description>
+      The instance has invalid current and previous financial reporting periods.
+    </description>
+    <data>
+        <instance readMeFirst="true">4-17-invalid-period.xbrl</instance>
+    </data>
+    <result>
+      <error>NL.BR-KVK-4.17</error>
+    </result>
+  </variation>
+</testcase>

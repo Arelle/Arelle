@@ -19,12 +19,7 @@ from arelle.utils.validate.Validation import Validation
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.XmlValidate import INVALID
 
-from ..DisclosureSystems import (
-    DISCLOSURE_SYSTEM_NT16,
-    DISCLOSURE_SYSTEM_NT17,
-    DISCLOSURE_SYSTEM_NT18,
-    DISCLOSURE_SYSTEM_NT19,
-)
+from ..DisclosureSystems import NT_DISCLOSURE_SYSTEMS
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 if TYPE_CHECKING:
@@ -45,12 +40,7 @@ def _getReportingPeriodDateValue(modelXbrl: ModelXbrl, qname: QName) -> date | N
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NT16,
-        DISCLOSURE_SYSTEM_NT17,
-        DISCLOSURE_SYSTEM_NT18,
-        DISCLOSURE_SYSTEM_NT19,
-    ],
+    disclosureSystems=NT_DISCLOSURE_SYSTEMS,
 )
 def rule_br_kvk_2_04(
     pluginData: PluginValidationDataExtension,
@@ -123,12 +113,7 @@ def rule_br_kvk_2_04(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NT16,
-        DISCLOSURE_SYSTEM_NT17,
-        DISCLOSURE_SYSTEM_NT18,
-        DISCLOSURE_SYSTEM_NT19,
-    ],
+    disclosureSystems=NT_DISCLOSURE_SYSTEMS,
 )
 def rule_br_kvk_3_01(
         pluginData: PluginValidationDataExtension,
@@ -164,12 +149,7 @@ def rule_br_kvk_3_01(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NT16,
-        DISCLOSURE_SYSTEM_NT17,
-        DISCLOSURE_SYSTEM_NT18,
-        DISCLOSURE_SYSTEM_NT19,
-    ],
+    disclosureSystems=NT_DISCLOSURE_SYSTEMS,
 )
 def rule_br_kvk_4_07(
         pluginData: PluginValidationDataExtension,
@@ -197,12 +177,7 @@ def rule_br_kvk_4_07(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NT16,
-        DISCLOSURE_SYSTEM_NT17,
-        DISCLOSURE_SYSTEM_NT18,
-        DISCLOSURE_SYSTEM_NT19,
-    ],
+    disclosureSystems=NT_DISCLOSURE_SYSTEMS,
 )
 def rule_br_kvk_4_10(
         pluginData: PluginValidationDataExtension,
@@ -230,12 +205,7 @@ def rule_br_kvk_4_10(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NT16,
-        DISCLOSURE_SYSTEM_NT17,
-        DISCLOSURE_SYSTEM_NT18,
-        DISCLOSURE_SYSTEM_NT19,
-    ],
+    disclosureSystems=NT_DISCLOSURE_SYSTEMS,
 )
 def rule_br_kvk_4_12(
         pluginData: PluginValidationDataExtension,
@@ -268,12 +238,7 @@ def rule_br_kvk_4_12(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NT16,
-        DISCLOSURE_SYSTEM_NT17,
-        DISCLOSURE_SYSTEM_NT18,
-        DISCLOSURE_SYSTEM_NT19,
-    ],
+    disclosureSystems=NT_DISCLOSURE_SYSTEMS,
 )
 def rule_br_kvk_4_16(
         pluginData: PluginValidationDataExtension,
@@ -310,12 +275,7 @@ def rule_br_kvk_4_16(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NT16,
-        DISCLOSURE_SYSTEM_NT17,
-        DISCLOSURE_SYSTEM_NT18,
-        DISCLOSURE_SYSTEM_NT19,
-    ],
+    disclosureSystems=NT_DISCLOSURE_SYSTEMS,
 )
 def rule_br_kvk_4_17(
         pluginData: PluginValidationDataExtension,
@@ -343,12 +303,7 @@ def rule_br_kvk_4_17(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[
-        DISCLOSURE_SYSTEM_NT16,
-        DISCLOSURE_SYSTEM_NT17,
-        DISCLOSURE_SYSTEM_NT18,
-        DISCLOSURE_SYSTEM_NT19,
-    ],
+    disclosureSystems=NT_DISCLOSURE_SYSTEMS,
 )
 def rule_br_kvk_4_20(
         pluginData: PluginValidationDataExtension,
