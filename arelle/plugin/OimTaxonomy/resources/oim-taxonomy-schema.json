@@ -274,9 +274,10 @@
                                     "pattern": "^P(?!$)(\\d+Y)?(\\d+M)?(\\d+D)?(T(\\d+H)?(\\d+M)?(\\d+S)?)?$",
                                     "description": "Duration of time using XML duration type."
                                   },
-                                  "periodFormat": {
+                                  "periodPattern": {
                                     "type": "string",
-                                    "description": "Duration of time with an end date."
+                                    "pattern": "^(\\d{4}|YYYY)-(0[1-9]|1[0-2]|MM)-(0[1-9]|[12]\\d|3[01]|DD|eom)(T([01]\\d|2[0-4]|hh):([0-5]\\d|60|mm)(:([0-5]\\d|60|ss))?)?(/((\\d{4}|YYYY)-(0[1-9]|1[0-2]|MM)-(0[1-9]|[12]\\d|3[01]|DD|eom)(T([01]\\d|2[0-4]|hh):([0-5]\\d|60|mm)(:([0-5]\\d|60|ss))?)?))?$",
+                                    "description": "Pattern for a date (YYYY-MM-DD or YYYY-MM-DDThh:mm:ss) or duration (two dates separated by /). Date components can be literals (YYYY, MM, DD, hh, mm, ss) or valid integers (MM: 01-12, DD: 01-31, hh: 00-24, mm: 00-60, ss: 00-60). DD can also be 'eom' (end of month) representing 28, 29, 30, or 31."
                                   },
                                   "endDate": { "$ref": "#/definitions/dateResolutionObject" },
                                   "startDate": { "$ref": "#/definitions/dateResolutionObject" },

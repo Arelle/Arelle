@@ -153,7 +153,7 @@
         "domainRoots" : [
             {
                 "name": "xbrl:conceptDomain",
-                "allowedDomainItems" : ["xbrl:conceptObject"]
+                "allowedDomainItems" : ["xbrl:conceptObject", "xbrl:abstractObject"]
             },
             {
                 "name": "xbrl:periodDomain",

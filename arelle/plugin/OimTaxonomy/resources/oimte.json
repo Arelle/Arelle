@@ -55,6 +55,7 @@
                     {"source": "oimte:OIMErrorRootDomain", "target": "oimte:invalidDomainRoot", "order": 21},
                     {"source": "oimte:OIMErrorRootDomain", "target": "oimte:invalidDomainRootTarget", "order": 21.5},
                     {"source": "oimte:OIMErrorRootDomain", "target": "oimte:invalidDomainSource", "order": 22},
+                    {"source": "oimte:OIMErrorRootDomain", "target": "oimte:invalidDomainObject", "order": 22.1},
                     {"source": "oimte:OIMErrorRootDomain", "target": "oimte:invalidEntityDomainSource", "order": 22.5},
                     {"source": "oimte:OIMErrorRootDomain", "target": "oimte:invalidEntityDomainTarget", "order": 22.6},
                     {"source": "oimte:OIMErrorRootDomain", "target": "oimte:invalidUnitDomainSource", "order": 22.7},
@@ -72,6 +73,7 @@
                     {"source": "oimte:OIMErrorRootDomain", "target": "oimte:invalidTaxonomyDefinedDimension", "order": 38},
                     {"source": "oimte:OIMErrorRootDomain", "target": "oimte:invalidCubeType", "order": 38.5},
                     {"source": "oimte:OIMErrorRootDomain", "target": "oimte:missingDomainRootSource", "order": 39},
+                    {"source": "oimte:OIMErrorRootDomain", "target": "oimte:multipleDomainRoots", "order": 39.5},
                     {"source": "oimte:OIMErrorRootDomain", "target": "oimte:invalidConceptDomainRoot", "order": 40},
                     {"source": "oimte:OIMErrorRootDomain", "target": "oimte:invalidUnitDomainRoot", "order": 40.5},
                     {"source": "oimte:OIMErrorRootDomain", "target": "oimte:invalidLanguageDomainRoot", "order": 40.6},
@@ -522,6 +524,24 @@
                 "properties": [
                     {"property": "xbrl:severity", "value": "error"}
                 ]
+            },
+            {
+                "name": "oimte:duplicateObjectTypes",
+                "properties": [
+                    {"property": "xbrl:severity", "value": "error"}
+                ]
+            },
+            {
+                "name": "oimte:invalidDomainObject",
+                "properties": [
+                    {"property": "xbrl:severity", "value": "error"}
+                ]
+            },
+            {
+                "name": "oimte:multipleDomainRoots",
+                "properties": [
+                    {"property": "xbrl:severity", "value": "error"}
+                ]
             }
             
         ],
@@ -635,6 +655,7 @@
                     {"source": "oimte:DimensionErrors", "target": "oimte:inconsistentTaxonomyDefinedDimensionProperty", "order": 4},
                     {"source": "oimte:DomainErrors", "target": "oimte:missingDomainRootSource", "order": 1},
                     {"source": "oimte:DomainErrors", "target": "oimte:invalidDomainRoot", "order": 2},
+                    {"source": "oimte:DomainErrors", "target": "oimte:multipleDomainRoots", "order": 2.5},
                     {"source": "oimte:DomainErrors", "target": "oimte:invalidDomainTarget", "order": 3},
                     {"source": "oimte:DomainErrors", "target": "oimte:rootOfDomainNotADomainRootObject", "order": 4},
                     {"source": "oimte:DomainErrors", "target": "oimte:domainRootMismatchWithDomain", "order": 5},
@@ -643,6 +664,7 @@
                     {"source": "oimte:DomainErrors", "target": "oimte:invalidDimensionMember", "order": 8},
                     {"source": "oimte:DomainErrors", "target": "oimte:invalidDomainRelationshipTarget", "order": 9},
                     {"source": "oimte:DomainErrors", "target": "oimte:invalidDomainSource", "order": 10},
+                    {"source": "oimte:DomainErrors", "target": "oimte:invalidDomainObject", "order": 10.1},
                     {"source": "oimte:DomainErrors", "target": "oimte:invalidEntityDomainSource", "order": 10.5},
                     {"source": "oimte:DomainErrors", "target": "oimte:invalidEntityDomainTarget", "order": 10.6},
                     {"source": "oimte:DomainErrors", "target": "oimte:invalidUnitDomainSource", "order": 10.7},
@@ -735,6 +757,7 @@
                     {"source": "xbrl:dimensionObject", "target": "oimte:invalidCubeType", "order": 2},
                     {"source": "xbrl:dimensionObject", "target": "oimte:inconsistentTaxonomyDefinedDimensionProperty", "order": 4},
                     {"source": "xbrl:domainObject", "target": "oimte:missingDomainRootSource", "order": 1},
+                    {"source": "xbrl:domainObject", "target": "oimte:multipleDomainRoots", "order": 2},
                     {"source": "xbrl:domainObject", "target": "oimte:invalidDomainRoot", "order": 2},
                     {"source": "xbrl:domainObject", "target": "oimte:invalidDomainTarget", "order": 3},
                     {"source": "xbrl:domainObject", "target": "oimte:rootOfDomainNotADomainRootObject", "order": 4},
@@ -742,6 +765,7 @@
                     {"source": "xbrl:domainObject", "target": "oimte:unitInNonUnitDomain", "order": 5},
                     {"source": "xbrl:domainObject", "target": "oimte:invalidUnitDomainTarget", "order": 6},
                     {"source": "xbrl:domainObject", "target": "oimte:invalidDimensionMember", "order": 8},
+                    {"source": "xbrl:domainObject", "target": "oimte:invalidDomainObject", "order": 8.5},
                     {"source": "xbrl:domainObject", "target": "oimte:invalidDomainRelationshipTarget", "order": 9},
                     {"source": "xbrl:domainObject", "target": "oimte:invalidDomainSource", "order": 10},
                     {"source": "xbrl:domainObject", "target": "oimte:invalidEntityDomainSource", "order": 10.5},
@@ -1031,7 +1055,7 @@
             {
                 "relatedName": "oimte:missingDomainRootSource",
                 "language": "en",
-                "value": "The domain root '{domainRoot}' is not used as a source in any relationship within domain '{domainName}'.",
+                "value": "Domain '${domain.name}' declares root '${domain.root}' but this root object is never used as a source in any relationship. Every domain root must appear as the source of at least one relationship to define the domain's member hierarchy.",
                 "labelType": "xbrl:errorMessage"
             },
             {
@@ -1043,7 +1067,7 @@
             {
                 "relatedName": "oimte:invalidNetworkRoot",
                 "language": "en",
-                "value": "The declared root '{rootName}' of network '{networkName}' does not match the actual root nodes.",
+                "value": "The declared root '${network.root}' of network '${network.name}' does not match the actual root nodes.",
                 "labelType": "xbrl:errorMessage"
             },
             {
@@ -1055,7 +1079,7 @@
             {
                 "relatedName": "oimte:duplicateLabelObject",
                 "language": "en",
-                "value": "A label for '{relatedName}' with language '{language}' and label type '{labelType}' is already defined.",
+                "value": "A label for '${label.relatedName}' with language '${label.language}' and label type '${label.labelType}' is already defined.",
                 "labelType": "xbrl:errorMessage"
             },
             {
@@ -1560,6 +1584,30 @@
                 "relatedName": "oimte:invalidDataTypeForDomainRoot",
                 "language": "en",
                 "value": "The datatype '{dataType}' is not valid for domain root '{domainRoot}' of domain '{domainName}'.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "relatedName": "oimte:invalidDomainObject",
+                "language": "en",
+                "value": "Invalid Domain Object",
+                "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "oimte:invalidDomainObject",
+                "language": "en",
+                "value": "The relationship object '{objectName}' is not a valid domain object for domain '{domainName}'.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "relatedName": "oimte:multipleDomainRoots",
+                "language": "en",
+                "value": "Multiple Domain Roots",
+                "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "oimte:multipleDomainRoots",
+                "language": "en",
+                "value": "Multiple domain roots are defined for domain '${domain.name}', which is not allowed.",
                 "labelType": "xbrl:errorMessage"
             },
             {
@@ -2464,6 +2512,30 @@
                 "labelType": "xbrl:documentation"
             },
             {
+                "relatedName": "oimte:invalidDomainObject",
+                "language": "en",
+                "value": "🚫",
+                "labelType": "xbrl:iconLabel"
+            },
+            {
+                "relatedName": "oimte:invalidDomainObject",
+                "language": "en",
+                "value": "This error occurs when a domain object is used when its type is prohibited by the values defined in the allowedDomainItems property of the domain root object.",
+                "labelType": "xbrl:documentation"
+            },
+            {
+                "relatedName": "oimte:multipleDomainRoots",
+                "language": "en",
+                "value": "🚫",
+                "labelType": "xbrl:iconLabel"
+            },
+            {
+                "relatedName": "oimte:multipleDomainRoots",
+                "language": "en",
+                "value": "This error occurs when a domain object has multiple domain root objects defined. Each domain must have exactly one domain root object.",
+                "labelType": "xbrl:documentation"
+            },
+            {
                "relatedName": "xbrl:conformanceTestFileName",
                "language": "en",
                 "value": "Test File Name",
@@ -3243,6 +3315,42 @@
                 ]
             },
             {
+                "name": "oimte:invalidDomainObjectReference",
+                "relatedNames": [
+                    "oimte:invalidDomainObject"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:conformanceTestFileName" ,"value":"DOMAIN-AbstractInTaxonomyDefinedDimensionDomain.json"},
+                    {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
+                ]
+            },
+            {
+                "name": "oimte:missingDomainRootSourceReference",
+                "relatedNames": [
+                    "oimte:missingDomainRootSource"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:conformanceTestFileName" ,"value":"DOMAIN-DomainRootNotSourceInRelationship.json"},
+                    {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
+                ]
+            },
+            {
+                "name": "oimte:multipleDomainRootsReference",
+                "relatedNames": [
+                    "oimte:multipleDomainRoots"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:conformanceTestFileName" ,"value":"DOMAIN-MultipleDomainRoots.json"},
+                    {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
+                ]
+            },
+            {
                 "name": "oimte:disallowedObjectPropertySpecReference",
                 "relatedNames": [
                     "oimte:disallowedObjectProperty"
@@ -3250,7 +3358,7 @@
                 "referenceType": "xbrl:specificationErrorReference",
                 "language": "en",
                 "properties": [
-                    {"property":"xbrl:specificationErrorURI" ,"value":"https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oime-disallowedobjectproperty"}
+                    {"property":"xbrl:specificationErrorURI" ,"value":"https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-disallowedobjectproperty"}
                 ]
             },
             {
@@ -3692,7 +3800,51 @@
                 "properties": [
                     {"property":"xbrl:specificationErrorURI" ,"value":"https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-invaliddatatypefordomainroot"}
                 ]
+            },
+            {
+                "name": "oimte:invalidDomainObjectSpecReference",
+                "relatedNames": [
+                    "oimte:invalidDomainObject"
+                ],
+                "referenceType": "xbrl:specificationErrorReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:specificationErrorURI" ,"value":"https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-invaliddomainobject"}
+                ]
+            },
+            {
+                "name": "oimte:missingDomainRootSourceSpecReference",
+                "relatedNames": [
+                    "oimte:missingDomainRootSource"
+                ],
+                "referenceType": "xbrl:specificationErrorReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:specificationErrorURI" ,"value":"https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-missingdomainrootsource"}
+                ]
+            },
+            {
+                "name": "oimte:multipleDomainRootsSpecReference",
+                "relatedNames": [
+                    "oimte:multipleDomainRoots"
+                ],
+                "referenceType": "xbrl:specificationErrorReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:specificationErrorURI" ,"value":"https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-multipledomainroots"}
+                ]
+            },
+            {
+                "name": "oimte:conflictingPropertyValuesSpecReference",
+                "relatedNames": [
+                    "oimte:conflictingPropertyValues"
+                ],
+                "referenceType": "xbrl:specificationErrorReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:specificationErrorURI" ,"value":"https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-conflictingpropertyvalues"}
+                ]
             }
         ]
     }
-}
+} 
