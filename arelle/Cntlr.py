@@ -35,6 +35,7 @@ from arelle.logging.handlers.StructuredMessageLogHandler import StructuredMessag
 from arelle.SystemInfo import PlatformOS, getSystemWordSize, hasFileSystem, hasWebServer, isCGI, isGAE
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
+from arelle.utils.validate.Validation import Validation
 from arelle.WebCache import WebCache
 
 _: TypeGetText
@@ -297,6 +298,11 @@ class Cntlr:
 
         self.startLogging(logFileName, logFileMode, logFileEncoding, logFormat)
         self.errorManager = ErrorManager(self.modelManager, logging._checkLevel("INCONSISTENCY")) # type: ignore[attr-defined]
+
+    def validation(self, val: Validation, fileSource: FileSource | None = None) -> None:
+        """Same as `error`, but parameters passed in from Validation object
+        """
+        self.error(codes=val.codes, msg=val.msg, level=val.level.name, fileSource=fileSource, **val.args)
 
     def error(self, codes: Any, msg: str, level: str = "ERROR", fileSource: FileSource | None = None, **args: Any) -> None:
         if self.logger is None or self.errorManager is None:

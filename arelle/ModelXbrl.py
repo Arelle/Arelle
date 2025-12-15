@@ -26,6 +26,7 @@ from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateXbrlDimensions import isFactDimensionallyValid
 from arelle.XbrlConst import standardLabel
 from arelle.XbrlUtil import sEqual
+from arelle.utils.validate.Validation import Validation
 
 if TYPE_CHECKING:
     from datetime import date, datetime
@@ -1042,6 +1043,11 @@ class ModelXbrl:
         """
         """@messageCatalog=[]"""
         self.log('WARNING', codes, msg, **args)
+
+    def validation(self, val: Validation) -> None:
+        """Same as log, but parameters passed in from Validation object
+        """
+        self.log(level=val.level.name, codes=val.codes, msg=val.msg, **val.args)
 
     def log(self, level: str, codes: Any, msg: str, **args: Any) -> None:
         """Same as error(), but level passed in as argument
