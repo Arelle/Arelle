@@ -36,6 +36,7 @@ qnXsDateTime = qname(xsd, "xs:dateTime")
 qnXsDuration = qname(xsd, "xs:duration")
 qnXsQName = qname(xsd, "xs:QName")
 
+qnXbrlAbstractObj = qname(xbrl, "xbrl:abstractObject")
 qnXbrlConceptObj = qname(xbrl, "xbrl:conceptObject")
 qnXbrlEntityObj = qname(xbrl, "xbrl:entityObject")
 qnXbrlMemberObj = qname(xbrl, "xbrl:memberObject")
@@ -51,7 +52,7 @@ qnErrorQname = qname(None, "InvalidQName")
 objectsWithProperties = {
     qname(xbrl, "xbrl:taxonomyObject"),
     qnXbrlConceptObj,
-    qname(xbrl, "xbrl:abstractObject"),
+    qnXbrlAbstractObj,
     qname(xbrl, "xbrl:cubeObject"),
     qname(xbrl, "xbrl:dimensionObject"),
     qname(xbrl, "xbrl:domainObject"),

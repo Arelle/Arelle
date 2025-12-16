@@ -34,6 +34,7 @@ class XbrlTaxonomyModule(XbrlTaxonomyObject):
     frameworkName: Optional[str] # (optional) The framework name of the taxonomy such as "US-GAAP" that indicates the taxonomy broad taxonomy family. The framework name stays consistent between regular taxonomy releases of the same taxonomy domain.
     version: Optional[str] # (optional) Used to identify the version of the taxonomy such as the year of release.
     importedTaxonomies: OrderedSet[XbrlImportTaxonomy] # ordered set of importTaxonomy objects that can comprise QName of the taxonomy to be imported, an object type or a taxonomy object referenced by its QName.
+    finalTaxonomy: Optional[XbrlFinalTaxonomy] # (optional) A final taxonomy object that indicates those components of the taxonomy that are final and cannot be amended or added by an importing taxonomy.
     exportProfiles: OrderedSet[XbrlExportProfile] # (optional) ordered set of exportProfile objects.
     abstracts: OrderedSet[XbrlAbstract] # ordered set of abstract objects.
     concepts: OrderedSet[XbrlConcept] # ordered set of concept objects.
