@@ -9,17 +9,14 @@ import os.path
 import statistics
 import zipfile
 from collections import defaultdict
-from collections.abc import Callable, Generator
-from contextlib import AbstractContextManager, nullcontext
+from collections.abc import Generator
 from dataclasses import dataclass
 from heapq import heapreplace
 from pathlib import PurePosixPath, Path
 from typing import Any, TYPE_CHECKING, cast
-from unittest.mock import patch
 
 from lxml import etree
 
-from arelle.WebCache import WebCache
 from tests.integration_tests.integration_test_util import get_test_data
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig
 
@@ -27,7 +24,6 @@ if TYPE_CHECKING:
     from _pytest.mark import ParameterSet
 
 
-original_normalize_url_function = WebCache.normalizeUrl
 CONFORMANCE_SUITE_EXPECTED_RESOURCES_DIRECTORY = Path('tests/resources/conformance_suites_expected')
 CONFORMANCE_SUITE_TIMING_RESOURCES_DIRECTORY = Path('tests/resources/conformance_suites_timing')
 
@@ -36,15 +32,6 @@ CONFORMANCE_SUITE_TIMING_RESOURCES_DIRECTORY = Path('tests/resources/conformance
 class Shard:
     paths: dict[str, list[str]]
     plugins: frozenset[str]
-
-
-def normalize_url_function(config: ConformanceSuiteConfig) -> Callable[[WebCache, str, str | None], str]:
-    def normalize_url(self: WebCache, url: str, base: str | None = None) -> str:
-        assert config.url_replace is not None
-        if url.startswith(config.url_replace):
-            return url.replace(config.url_replace, f'{config.entry_point_root}/')
-        return cast(str, original_normalize_url_function(self, url, base))
-    return normalize_url
 
 
 def get_test_data_mp_wrapper(args_kws: tuple[list[Any], dict[str, Any]]) -> list[ParameterSet]:
@@ -365,19 +352,13 @@ def get_conformance_suite_test_results_with_shards(
             expected_failure_ids=frozenset(expected_failure_ids), testcase_filters=testcase_filters,
         )
         tasks.append(args)
-    url_context_manager: AbstractContextManager[Any]
-    if config.url_replace:
-        url_context_manager = patch('arelle.WebCache.WebCache.normalizeUrl', normalize_url_function(config))
-    else:
-        url_context_manager = nullcontext()
     if series:
-        with url_context_manager:
-            results = []
-            for args in tasks:
-                task_results = get_test_data_mp_wrapper(args)
-                results.extend(task_results)
+        results = []
+        for args in tasks:
+            task_results = get_test_data_mp_wrapper(args)
+            results.extend(task_results)
     else:
-        with url_context_manager, multiprocessing.Pool() as pool:
+        with multiprocessing.Pool() as pool:
             parallel_results = pool.map(get_test_data_mp_wrapper, tasks)
             results = [x for l in parallel_results for x in l]
     assert len(results) == len(all_testcase_filters),\
@@ -401,13 +382,7 @@ def get_conformance_suite_test_results_without_shards(
         expected_additional_testcase_errors=config.expected_additional_testcase_errors,
         expected_failure_ids=expected_failure_ids, testcase_filters=testcase_filters or [],
     )
-    url_context_manager: AbstractContextManager[Any]
-    if config.url_replace:
-        url_context_manager = patch('arelle.WebCache.WebCache.normalizeUrl', normalize_url_function(config))
-    else:
-        url_context_manager = nullcontext()
-    with url_context_manager:
-        return get_test_data(args, **kws)
+    return get_test_data(args, **kws)
 
 
 def load_timing_file(name: str) -> dict[str, float]:
