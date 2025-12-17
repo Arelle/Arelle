@@ -287,7 +287,7 @@ def rule_tm31(
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    DBA.TM31: gsd:DateOfApprovalOfAnnualReport must only be tagged once if tagged
+    DBA.TM31: sob:DateOfApprovalOfAnnualReport must only be tagged once if tagged
     """
     if pluginData.isAnnualReport(val.modelXbrl):
         dateFacts = val.modelXbrl.factsByQname.get(pluginData.dateOfApprovalOfAnnualReportQn, set())

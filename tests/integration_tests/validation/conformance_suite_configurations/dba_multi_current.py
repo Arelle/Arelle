@@ -5,6 +5,7 @@ config = ConformanceSuiteConfig(
     args=[
         '--disclosureSystem', 'arl-2025-multi-target-preview',
         '--baseTaxonomyValidation', 'none',
+        '--formula', 'none',
     ],
     assets=[
         ConformanceSuiteAssetConfig.local_conformance_suite(
