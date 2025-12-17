@@ -20,6 +20,7 @@
             <warning>EDINET.EC8015W</warning> <!-- from base sample filing -->
             <warning>EDINET.EC8050W</warning> <!-- from base sample filing -->
             <warning>EDINET.EC8060W</warning>
+            <warning>EDINET.EC8069W</warning> <!-- from base sample filing -->
             <error nonStandardErrorCodes="true">xbrldie:DefaultValueUsedInInstanceError</error>
         </result>
     </variation>

@@ -20,6 +20,7 @@
             <warning num="3">EDINET.EC8031W</warning> <!-- 1 schema file added with incorrect date x 3 'FilingDateInstant' contexts -->
             <warning>EDINET.EC8043W</warning> <!-- from base sample filing -->
             <warning>EDINET.EC8045W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8069W</warning> <!-- from base sample filing -->
         </result>
     </variation>
 </testcase>

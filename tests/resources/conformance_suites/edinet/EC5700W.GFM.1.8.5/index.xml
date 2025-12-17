@@ -20,6 +20,7 @@
             <error>EDINET.EC5700W.GFM.1.8.5</error>
             <warning>EDINET.EC8043W</warning>
             <warning>EDINET.EC8045W</warning>
+            <warning>EDINET.EC8069W</warning> <!-- from base sample filing -->
         </result>
     </variation>
 </testcase>

@@ -22,6 +22,7 @@ from arelle.ModelValue import QName, qname
 from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateDuplicateFacts import DuplicateType
 from arelle.ValidateXbrl import ValidateXbrl
+from arelle.XmlValidateConst import VALID
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
@@ -909,6 +910,61 @@ def rule_EC8034W(
                     label=modelLabel.id,
                     modelObject=modelLabel,
                 )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8069W(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8069W: If tagging IssuedSharesTotalNumberOfSharesEtcTextBlock, also tag using at least one of the following three elements:"
+    "Overview of the corporate governance system (company with auditors) [text block]" (CorporateGovernanceCompanyWithCorporateAuditorsTextBlock) ・
+    "Overview of the corporate governance system (company with audit and supervisory committee) [text block]" (CorporateGovernanceCompanyWithAuditAndSupervisoryCommitteeTextBlock)
+    "Overview of the corporate governance system (company with nominating committee, etc.) [text block]" (CorporateGovernanceCompanyWithNominatingAndOtherCommitteesTextBlock)
+
+    If a role indicating a disclosure of securities information and if IssuedSharesTotalNumberOfSharesEtcTextBlock is tagged and non-nil then the one or more of the above three elements must also be tagged and non-nil.
+    """
+    roleUris = (
+        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo24SecuritiesRegistrationStatement',
+        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo27SecuritiesRegistrationStatement',
+        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo3AnnualSecuritiesReport',
+        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo32AnnualSecuritiesReport',
+        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo4AnnualSecuritiesReport',
+        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo43QuarterlySecuritiesReport',
+        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo43SemiAnnualSecuritiesReport',
+        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo24SecuritiesRegistrationStatement',
+        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo27SecuritiesRegistrationStatement',
+        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo3AnnualSecuritiesReport',
+        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo32AnnualSecuritiesReport',
+        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo4AnnualSecuritiesReport',
+        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo43QuarterlySecuritiesReport',
+        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo43SemiAnnualSecuritiesReport'
+    )
+    if not hasPresentationalConceptsWithFacts(val.modelXbrl, roleUris):
+        return
+    if not pluginData.hasValidNonNilFact(val.modelXbrl, pluginData.issuedSharesTotalNumberOfSharesEtcQn):
+        return
+    if (
+            pluginData.hasValidNonNilFact(val.modelXbrl, pluginData.corporateGovernanceCompanyWithAuditAndSupervisoryCommitteeTextBlockQn) or
+            pluginData.hasValidNonNilFact(val.modelXbrl, pluginData.corporateGovernanceCompanyWithCorporateAuditorsTextBlockQn) or
+            pluginData.hasValidNonNilFact(val.modelXbrl, pluginData.corporateGovernanceCompanyWithNominatingAndOtherCommitteesTextBlockQn)
+    ):
+        return
+    totalStockShares = val.modelXbrl.factsByQname.get(pluginData.issuedSharesTotalNumberOfSharesEtcQn)
+    yield Validation.error(
+        codes='EDINET.EC8069W',
+        msg=_("If tagging IssuedSharesTotalNumberOfSharesEtcTextBlock, also tag using at least one of the following three elements: \n"
+              "'Overview of corporate governance system (company with auditors) [Text Block]' (CorporateGovernanceCompanyWithCorporateAuditorsTextBlock) \n"
+              "'Overview of corporate governance system (company with audit and supervisory committee) [Text Block]' (CorporateGovernanceCompanyWithAuditAndSupervisoryCommitteeTextBlock)\n"
+              "'Overview of corporate governance system (company with nominating committee, etc.) [Text Block]' (CorporateGovernanceCompanyWithNominatingAndOtherCommitteesTextBlock)\n"),
+        modelObject=totalStockShares
+    )
 
 
 @validation(
