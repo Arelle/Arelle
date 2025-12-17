@@ -1392,3 +1392,42 @@ def rule_fr92(
                         ),
                         modelObject=fact
                     )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=STAND_ALONE_DISCLOSURE_SYSTEMS,
+)
+def rule_fr107(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR107: There are dates in the accounting period where no accounting system is specified
+    """
+    # Registered Accounting Systems
+    startDatesFacts = val.modelXbrl.factsByQname.get(pluginData.startDateForUseOfDigitalStandardBookkeepingSystemQn, set())
+    endDatesFacts = val.modelXbrl.factsByQname.get(pluginData.endDateForUseOfDigitalStandardBookkeepingSystemQn, set())
+    bookkeepingSystemFacts = val.modelXbrl.factsByQname.get(pluginData.registrationNumberOfTheDigitalStandardBookkeepingSystemUsedQn, set())
+    if len(startDatesFacts) > 0 and len(endDatesFacts) > 0 and len(bookkeepingSystemFacts) < 1:
+        dateFacts = list(startDatesFacts).extend(endDatesFacts)
+        yield Validation.error(
+            codes='DBA.FR107',
+            msg=_("The date concepts of `StartDateForUseOfDigitalStandardBookkeepingSystem` and `EndDateForUseOfDigitalStandardBookkeepingSystem`"
+                  "are tagged without the concept of `RegistrationNumberOfTheDigitalStandardBookkeepingSystemUsed` being tagged."),
+            modelObject=dateFacts
+        )
+    # Non-Registered Accounting Systems
+    startDatesFacts = val.modelXbrl.factsByQname.get(pluginData.startDateForUseOfDigitalNonregisteredBookkeepingSystemQn, set())
+    endDatesFacts = val.modelXbrl.factsByQname.get(pluginData.endDateForUseOfDigitalNonregisteredBookkeepingSystemQn, set())
+    bookkeepingSystemFacts = val.modelXbrl.factsByQname.get(pluginData.typeOfDigitalNonregisteredBookkeepingSystemQn, set())
+    if len(startDatesFacts) > 0 and len(endDatesFacts) > 0 and len(bookkeepingSystemFacts) < 1:
+        dateFacts = list(startDatesFacts).extend(endDatesFacts)
+        yield Validation.error(
+            codes='DBA.FR107',
+            msg=_("The date concepts of `StartDateForUseOfDigitalNonregisteredBookkeepingSystem` and `EndDateForUseOfDigitalNonregisteredBookkeepingSystem`"
+                  "are tagged without the concept of `TypeOfDigitalNonregisteredBookkeepingSystem` being tagged."),
+            modelObject=dateFacts
+        )
