@@ -3,7 +3,7 @@ from tests.integration_tests.validation.conformance_suite_config import Conforma
 
 config = ConformanceSuiteConfig(
     args=[
-        '--disclosureSystem', 'arl-2022-preview',
+        '--disclosureSystem', 'arl-2025-preview',
         '--baseTaxonomyValidation', 'none',
     ],
     assets=[
@@ -11,9 +11,8 @@ config = ConformanceSuiteConfig(
             Path('dba'),
             entry_point=Path('index.xml'),
         ),
-        ConformanceSuiteAssetConfig.public_taxonomy_package(Path('ARL-XBRL20221001-20221117.zip')),
+        ConformanceSuiteAssetConfig.public_taxonomy_package(Path('XBRL20251001-20251120.zip')),
     ],
-    cache_version_id='gqg_wyX4Tx52sj4WljjDswZLJqH0zvaU',
     info_url='https://erhvervsstyrelsen.dk/vejledning-teknisk-vejledning-og-dokumentation-regnskab-20-taksonomier-aktuelle',
     name=PurePath(__file__).stem,
     plugins=frozenset({'validate/DBA'}),

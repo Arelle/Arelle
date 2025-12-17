@@ -10,7 +10,7 @@
         xmlns:xbrldi="http://xbrl.org/2006/xbrldi"
         xmlns:xbrli="http://www.xbrl.org/2003/instance"
         xmlns:xlink="http://www.w3.org/1999/xlink">
-    <link:schemaRef xlink:type="simple" xlink:href="http://archprod.service.eogs.dk/taxonomy/20221001/entryDanishGAAPBalanceSheetAccountFormIncomeStatementByNatureIncludingManagementsReviewStatisticsAndTax20221001.xsd"/>
+    <link:schemaRef xlink:type="simple" xlink:href="http://archprod.service.eogs.dk/taxonomy/20251001/entryDanishGAAPBalanceSheetAccountFormIncomeStatementByNatureIncludingManagementsReviewStatisticsAndTax20251001.xsd"/>
     <xbrli:context id="ID_0">
         <xbrli:entity>
             <xbrli:identifier scheme="http://www.dcca.dk/cvr">54399219</xbrli:identifier>
@@ -285,7 +285,7 @@
     <cmn:NameOfAuditFirm contextRef="ID_1" xml:lang="da">NameOfAuditFirm</cmn:NameOfAuditFirm>
     <cmn:TitleOfMemberOfExecutiveBoard contextRef="ID_2" xml:lang="da">Administrerende direktør</cmn:TitleOfMemberOfExecutiveBoard>
     <cmn:TitleOfMemberOfSupervisoryBoard contextRef="ID_3" xml:lang="da">Bestyrelsesformand</cmn:TitleOfMemberOfSupervisoryBoard>
-    <cmn:TypeOfAuditorAssistance contextRef="ID_0" xml:lang="da">Revisionspåtegning</cmn:TypeOfAuditorAssistance>
+    <cmn:TypeOfAuditorAssistance contextRef="ID_0" xml:lang="da">Independent Auditor’s Report</cmn:TypeOfAuditorAssistance>
     <fsa:AccountingPoliciesAreUnchangedFromPreviousPeriod contextRef="ID_0" xml:lang="da">true</fsa:AccountingPoliciesAreUnchangedFromPreviousPeriod>
     <fsa:AcquiredIntangibleAssets contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">8740000</fsa:AcquiredIntangibleAssets>
     <fsa:AcquiredIntangibleAssets contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">9800000</fsa:AcquiredIntangibleAssets>
