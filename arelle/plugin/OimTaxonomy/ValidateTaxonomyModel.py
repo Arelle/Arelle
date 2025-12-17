@@ -203,12 +203,16 @@ def validateTaxonomy(txmyMdl, txmy, mdlLvlChecks):
                 if finalTxObj.finalTaxonomyFlag:
                     if isinstance(obj, XbrlReferencableTaxonomyObject) and not isinstance(obj, (XbrlFactspace, XbrlFootnote, XbrlEntity)):
                         txmyMdl.error("oimte:invalidFinalTaxonomyModification",
-                                  _("The importTaxonomy %(taxonomyName)s cannot be extended by object %(qname)s due to finalTaxonomyFlag."),
+                                  _("The importTaxonomy %(taxonomyName)s cannot be extended by object %(qname)s due to a finalTaxonomyFlag."),
                                   xbrlObject=impTxObj, taxonomyName=impTxName, qname=obj.name)
                 elif finalTxObj.finalObjectTypes and xbrlObjectQNames[type(obj)] in finalTxObj.finalObjectTypes:
-                        txmyMdl.error("oimte:invalidFinalTaxonomyModification",
-                                  _("The importTaxonomy %(taxonomyName)s cannot be extended by object %(qname)s due to finalObjectTypes."),
-                                  xbrlObject=impTxObj, taxonomyName=impTxName, qname=obj.name)
+                    txmyMdl.error("oimte:invalidFinalTaxonomyModification",
+                              _("The importTaxonomy %(taxonomyName)s cannot be extended by object %(qname)s due to it's type, %(type)s, being in finalObjectTypes."),
+                              xbrlObject=impTxObj, taxonomyName=impTxName, qname=obj.name, type=xbrlObjectQNames[type(obj)] )
+                elif finalTxObj.finalObjects and getattr(obj, "extendTargetName", None) in finalTxObj.finalObjects:
+                    txmyMdl.error("oimte:invalidFinalTaxonomyModification",
+                              _("The importTaxonomy %(taxonomyName)s cannot be extended by object %(qname)s due to having %(name)s in finalObjects."),
+                              xbrlObject=impTxObj, taxonomyName=impTxName, qname=xbrlObjectQNames[type(obj)], name=obj.extendTargetName)
             txmy.referencedObjectsAction(txmyMdl, extendsFinalTaxonomy)
 
     expPrflCt = defaultdict(list)
@@ -970,16 +974,17 @@ def validateTaxonomy(txmyMdl, txmy, mdlLvlChecks):
                 txmyMdl.error("oimte:missingTargetObject",
                           _("The network extendTargetName %(name)s MUST be a valid network object in the taxonomy model"),
                           xbrlObject=ntwkObj, name=ntwkObj.name or ntwkObj.extendTargetName)
-            elif getattr(ntwkObj, "_extendResolved", False):
-                extendTargetObj = None # don't extend, already been extended
             else:
-                ntwkObj._extendResolved = True
-            relTypeObj = txmyMdl.namedObjects.get(ntwkObj.relationshipTypeName)
-            if not isinstance(relTypeObj, XbrlRelationshipType):
-                relTypeObj = None
-                txmyMdl.warning("oimte:missingQNameReference",
-                          _("The network %(name)s relationshipTypeName %(relationshipTypeName)s SHOULD specify a relationship type in the taxonomy model."),
-                          xbrlObject=ntwkObj, name=ntwkObj.name, relationshipTypeName=ntwkObj.relationshipTypeName)
+                relTypeObj = txmyMdl.namedObjects.get(extendTargetObj.relationshipTypeName)
+                if not isinstance(relTypeObj, XbrlRelationshipType):
+                    relTypeObj = None
+                    txmyMdl.warning("oimte:missingQNameReference",
+                              _("The network %(name)s relationshipTypeName %(relationshipTypeName)s SHOULD specify a relationship type in the taxonomy model."),
+                              xbrlObject=ntwkObj, name=ntwkObj.name, relationshipTypeName=ntwkObj.relationshipTypeName)
+                if getattr(ntwkObj, "_extendResolved", False):
+                    extendTargetObj = None # don't extend, already been extended
+                else:
+                    ntwkObj._extendResolved = True
         else:
             if not ntwkObj.name:
                 txmyMdl.error("oimte:missingRequiredProperty",
