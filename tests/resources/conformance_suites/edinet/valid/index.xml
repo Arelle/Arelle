@@ -61,6 +61,7 @@
         <result>
             <warning>EDINET.EC8015W</warning>
             <warning>EDINET.EC8050W</warning>
+            <warning>EDINET.EC8069W</warning>
         </result>
     </variation>
     <variation id="valid05" name="valid05">
@@ -76,6 +77,7 @@
         <result>
             <warning>EDINET.EC8043W</warning>
             <warning>EDINET.EC8045W</warning>
+            <warning>EDINET.EC8069W</warning>
         </result>
     </variation>
     <variation id="valid06" name="valid06">

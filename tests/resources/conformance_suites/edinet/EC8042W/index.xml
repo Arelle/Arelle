@@ -20,6 +20,7 @@
             <warning>EDINET.EC8042W</warning>
             <warning>EDINET.EC8043W</warning> <!-- from base sample filing -->
             <warning>EDINET.EC8045W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8069W</warning> <!-- from base sample filing -->
         </result>
     </variation>
 </testcase>

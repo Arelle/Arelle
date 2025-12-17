@@ -77,11 +77,15 @@ class PluginValidationDataExtension(PluginData):
     assetsIfrsQn: QName
     categoriesOfDirectorsAndOtherOfficersAxisQn: QName
     consolidatedOrNonConsolidatedAxisQn: QName
+    corporateGovernanceCompanyWithAuditAndSupervisoryCommitteeTextBlockQn: QName
+    corporateGovernanceCompanyWithCorporateAuditorsTextBlockQn: QName
+    corporateGovernanceCompanyWithNominatingAndOtherCommitteesTextBlockQn: QName
     documentTypeDeiQn: QName
     executiveOfficersMemberQn: QName
     jpcrpEsrFilingDateCoverPageQn: QName
     jpcrpFilingDateCoverPageQn: QName
     jpspsFilingDateCoverPageQn: QName
+    issuedSharesTotalNumberOfSharesEtcQn: QName
     nonConsolidatedMemberQn: QName
     ratioOfFemaleDirectorsAndOtherOfficersQn: QName
 
@@ -100,8 +104,11 @@ class PluginValidationDataExtension(PluginData):
         # QNames
         self.accountingStandardsDeiQn = qname(self.namespaces.jpdei, 'AccountingStandardsDEI')
         self.assetsIfrsQn = qname(self.namespaces.jpigp, 'AssetsIFRS')
-        self.consolidatedOrNonConsolidatedAxisQn = qname(self.namespaces.jppfs, 'ConsolidatedOrNonConsolidatedAxis')
         self.categoriesOfDirectorsAndOtherOfficersAxisQn = qname(self.namespaces.jpcrp, 'CategoriesOfDirectorsAndOtherOfficersAxis')
+        self.consolidatedOrNonConsolidatedAxisQn = qname(self.namespaces.jppfs, 'ConsolidatedOrNonConsolidatedAxis')
+        self.corporateGovernanceCompanyWithAuditAndSupervisoryCommitteeTextBlockQn = qname(self.namespaces.jpcrp, 'CorporateGovernanceCompanyWithAuditAndSupervisoryCommitteeTextBlock')
+        self.corporateGovernanceCompanyWithCorporateAuditorsTextBlockQn = qname(self.namespaces.jpcrp, 'CorporateGovernanceCompanyWithCorporateAuditorsTextBlock')
+        self.corporateGovernanceCompanyWithNominatingAndOtherCommitteesTextBlockQn = qname(self.namespaces.jpcrp, 'CorporateGovernanceCompanyWithNominatingAndOtherCommitteesTextBlock')
         self.documentTypeDeiQn = qname(self.namespaces.jpdei, 'DocumentTypeDEI')
         self.executiveOfficersMemberQn = qname(self.namespaces.jpcrp, 'ExecutiveOfficersMember')
         self.issuedSharesTotalNumberOfSharesEtcQn = qname(self.namespaces.jpcrp, 'IssuedSharesTotalNumberOfSharesEtcTextBlock')
