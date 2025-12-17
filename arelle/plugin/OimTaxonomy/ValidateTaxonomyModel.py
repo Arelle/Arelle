@@ -213,7 +213,14 @@ def validateTaxonomy(txmyMdl, txmy, mdlLvlChecks):
                     txmyMdl.error("oimte:invalidFinalTaxonomyModification",
                               _("The importTaxonomy %(taxonomyName)s cannot be extended by object %(qname)s due to having %(name)s in finalObjects."),
                               xbrlObject=impTxObj, taxonomyName=impTxName, qname=xbrlObjectQNames[type(obj)], name=obj.extendTargetName)
-            txmy.referencedObjectsAction(txmyMdl, extendsFinalTaxonomy)
+                elif finalTxObj.selections:
+                    for i, selObj in enumerate(impTxObj.selections):
+                        if xbrlObjectQNames[type(obj)] == selObj.objectType and (
+                            all((eval(obj, whereObj) for whereObj in selObj.where))):
+                            txmyMdl.error("oimte:invalidFinalTaxonomyModification",
+                                      _("The importTaxonomy %(taxonomyName)s cannot be extended by object %(qname)s due matching selection %(i)s."),
+                                      xbrlObject=impTxObj, taxonomyName=impTxName, qname=xbrlObjectQNames[type(obj)], i=i)
+                            break # selections are or'ed, don't need to try more            txmy.referencedObjectsAction(txmyMdl, extendsFinalTaxonomy)
 
     expPrflCt = defaultdict(list)
     for expPrflObj in txmy.exportProfiles:
