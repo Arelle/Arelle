@@ -15,7 +15,7 @@ def webCacheTransformUrl(cntlr: Cntlr, url: str | None, base: str | None = None)
     return url, False
 
 __pluginInfo__ = {
-    'name': 'LLR Conformance Suite URL Rewriter',
+    'name': 'LRR Conformance Suite URL Rewriter',
     'version': '1.0.0',
     'description': "Maps \"file:///c:/temp/conf/\" URLs to path within LRR conformance suite.",
     'license': 'Apache-2',
