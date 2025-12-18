@@ -11,5 +11,5 @@ config = ConformanceSuiteConfig(
     info_url='https://specifications.xbrl.org/work-product-index-registries-lrr-1.0.html',
     membership_url='https://www.xbrl.org/join',
     name=PurePath(__file__).stem,
-    url_replace='file:///c:/temp/conf/',
+    plugins=frozenset({'../../tests/plugin/lrrUrlRewriter.py'}),
 )

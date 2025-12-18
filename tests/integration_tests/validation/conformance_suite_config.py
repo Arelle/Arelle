@@ -199,7 +199,6 @@ class ConformanceSuiteConfig:
     plugins: frozenset[str] = frozenset()
     shards: int = 1
     strict_testcase_index: bool = True
-    url_replace: str | None = None
     required_locale_by_ids: dict[str, re.Pattern[str]] = field(default_factory=dict)
     test_case_result_options: Literal['match-all', 'match-any'] = 'match-all'
 
