@@ -1,10 +1,12 @@
 from pathlib import PurePath, Path
+
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig
 
 config = ConformanceSuiteConfig(
     args=[
         '--disclosureSystem', 'arl-2024-preview',
         '--baseTaxonomyValidation', 'none',
+        '--formula', 'none',
     ],
     assets=[
         ConformanceSuiteAssetConfig.local_conformance_suite(

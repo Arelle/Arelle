@@ -14,7 +14,7 @@ from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from arelle.XmlValidateConst import VALID
 from ..PluginValidationDataExtension import PluginValidationDataExtension
-from ..DisclosureSystems import ALL_DISCLOSURE_SYSTEMS
+from ..DisclosureSystems import ALL_DISCLOSURE_SYSTEMS, ARL_2022_PREVIEW
 
 _: TypeGetText
 
@@ -148,7 +148,7 @@ def rule_th10 (
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=ALL_DISCLOSURE_SYSTEMS
+    disclosureSystems=[ARL_2022_PREVIEW]
 )
 def rule_th14 (
         pluginData: PluginValidationDataExtension,

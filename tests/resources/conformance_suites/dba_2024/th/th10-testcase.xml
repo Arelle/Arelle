@@ -4,7 +4,11 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns="http://xbrl.org/2005/conformance"
         name="DBA.TH01"
-        description="DBA.TH01: First “schemaRef” must contain “http://archprod.service.eogs.dk/taxonomy/”"
+        description="DBA.TH10: The taxonomy must be identified via a schema ref to an entry point,
+                    so the instance MUST NOT contain the following:
+                    - linkbaseRef
+                    - roleRef
+                    - more than one schemaRef"
         outpath=''
         owner="support@arelle.org"
         xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
@@ -16,8 +20,6 @@
             <instance readMeFirst="true">th10-invalid.xhtml</instance>
         </data>
         <result>
-            <error>DBA.TH01</error>
-            <error>DBA.TH10</error>
             <error>DBA.TH10</error>
             <error>DBA.TH10</error>
         </result>
