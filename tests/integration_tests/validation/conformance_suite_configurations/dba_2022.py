@@ -8,7 +8,7 @@ config = ConformanceSuiteConfig(
     ],
     assets=[
         ConformanceSuiteAssetConfig.local_conformance_suite(
-            Path('dba'),
+            Path('dba_2022'),
             entry_point=Path('index.xml'),
         ),
         ConformanceSuiteAssetConfig.public_taxonomy_package(Path('ARL-XBRL20221001-20221117.zip')),
