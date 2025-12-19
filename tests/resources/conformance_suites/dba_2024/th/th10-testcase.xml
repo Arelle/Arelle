@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.TH01"
+        description="DBA.TH01: First “schemaRef” must contain “http://archprod.service.eogs.dk/taxonomy/”"
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid" name="Invalid">
+        <description>
+            First schemaRef is http://xbrl.fasb.org/us-gaap/2015/elts/us-gaap-2015-01-31.xsd.
+        </description>
+        <data>
+            <instance readMeFirst="true">th10-invalid.xhtml</instance>
+        </data>
+        <result>
+            <error>DBA.TH01</error>
+            <error>DBA.TH10</error>
+            <error>DBA.TH10</error>
+            <error>DBA.TH10</error>
+        </result>
+    </variation>
+</testcase>
