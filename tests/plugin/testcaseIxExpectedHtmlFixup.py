@@ -19,7 +19,7 @@ def variationInstanceLoaded(testcaseInstance, variationInstance, extraErrors, in
             if ixds.modelDocument.type not in (Type.INLINEXBRL, Type.INLINEXBRLDOCUMENTSET):
                 extraErrors.append( "NotAnIxbrlDocument" )
 
-def expectedInstanceLoaded(expectedInstance, outputInstanceToCompare):
+def compareInstanceLoaded(expectedInstance, outputInstanceToCompare):
     for f in expectedInstance.facts:
         if not f.isNumeric and f.text and "http://www.w3.org/1999/xhtml" in f.text:
             f.text = re.sub(r"""(<[^>]+)\s+xmlns=["']http://www.w3.org/1999/xhtml["']""",r"\1", f.text)
@@ -40,6 +40,6 @@ __pluginInfo__ = {
     'author': authorLabel,
     'copyright': copyrightLabel,
     # classes of mount points (required)
+    'CompareInstance.Loaded': compareInstanceLoaded,
     'TestcaseVariation.Validated': variationInstanceLoaded,
-    'TestcaseVariation.ExpectedInstance.Loaded': expectedInstanceLoaded,
 }

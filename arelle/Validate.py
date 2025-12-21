@@ -13,6 +13,7 @@ from collections import defaultdict, OrderedDict
 from arelle import (FileSource, ModelXbrl, ModelDocument, ModelVersReport, XbrlConst,
                ValidateXbrl, ValidateVersReport,
                ValidateInfoset, ViewFileRenderedLayout, UrlUtil)
+from arelle.CompareInstance import compareInstance
 from arelle.PythonUtil import isLegacyAbs
 from arelle.ValidateFileSource import ValidateFileSource
 from arelle.formula import ValidateFormula
@@ -623,96 +624,25 @@ class Validate:
                                     modelTestcaseVariation.resultXbrlInstanceUri is not None)
         if compareIxResultInstance:
             formulaOutputInstance = modelXbrl # compare modelXbrl to generated output instance
-            errMsgPrefix = "ix"
         else: # delete input instances before formula output comparision
             for inputDTSlist in inputDTSes.values():
                 for inputDTS in inputDTSlist:
                     inputDTS.close()
             del inputDTSes # dereference
-            errMsgPrefix = "formula"
         if resultIsXbrlInstance and formulaOutputInstance and formulaOutputInstance.modelDocument:
-            _matchExpectedResultIDs = not modelXbrlHasFormulae # formula restuls have inconsistent IDs
-            expectedInstance = ModelXbrl.load(self.modelXbrl.modelManager,
-                                        modelTestcaseVariation.resultXbrlInstanceUri,
-                                        _("loading expected result XBRL instance"),
-                                        base=baseForElement,
-                                        useFileSource=self.useFileSource,
-                                        errorCaptureLevel=errorCaptureLevel)
-            if expectedInstance.modelDocument is None:
-                self.modelXbrl.error("{}:expectedResultNotLoaded".format(errMsgPrefix),
-                    _("Testcase \"%(name)s\" %(id)s expected result instance not loaded: %(file)s"),
-                    modelXbrl=testcase, id=modelTestcaseVariation.id, name=modelTestcaseVariation.name,
-                    file=os.path.basename(modelTestcaseVariation.resultXbrlInstanceUri),
-                    messageCodes=("formula:expectedResultNotLoaded","ix:expectedResultNotLoaded"))
-                modelTestcaseVariation.status = "result not loadable"
-            else:   # compare facts
-                for pluginXbrlMethod in pluginClassMethods("TestcaseVariation.ExpectedInstance.Loaded"):
-                    pluginXbrlMethod(expectedInstance, formulaOutputInstance)
-                if len(expectedInstance.facts) != len(formulaOutputInstance.facts):
-                    formulaOutputInstance.error("{}:resultFactCounts".format(errMsgPrefix),
-                        _("Formula output %(countFacts)s facts, expected %(expectedFacts)s facts"),
-                        modelXbrl=modelXbrl, countFacts=len(formulaOutputInstance.facts),
-                        expectedFacts=len(expectedInstance.facts),
-                        messageCodes=("formula:resultFactCounts","ix:resultFactCounts"))
-                else:
-                    formulaOutputFootnotesRelSet = ModelRelationshipSet(formulaOutputInstance, "XBRL-footnotes")
-                    expectedFootnotesRelSet = ModelRelationshipSet(expectedInstance, "XBRL-footnotes")
-                    def factFootnotes(fact, footnotesRelSet):
-                        footnotes = {}
-                        footnoteRels = footnotesRelSet.fromModelObject(fact)
-                        if footnoteRels:
-                            # most process rels in same order between two instances, use labels to sort
-                            for i, footnoteRel in enumerate(sorted(footnoteRels,
-                                                                    key=lambda r: (r.fromLabel,r.toLabel))):
-                                modelObject = footnoteRel.toModelObject
-                                if isinstance(modelObject, ModelResource):
-                                    xml = collapseWhitespace(modelObject.viewText().strip())
-                                    footnotes["Footnote {}".format(i+1)] = xml #re.sub(r'\s+', ' ', collapseWhitespace(modelObject.stringValue))
-                                elif isinstance(modelObject, ModelFact):
-                                    footnotes["Footnoted fact {}".format(i+1)] = \
-                                        "{} context: {} value: {}".format(
-                                        modelObject.qname,
-                                        modelObject.contextID,
-                                        collapseWhitespace(modelObject.value))
-                        return footnotes
-                    for expectedInstanceFact in expectedInstance.facts:
-                        unmatchedFactsStack = []
-                        formulaOutputFact = formulaOutputInstance.matchFact(expectedInstanceFact, unmatchedFactsStack, deemP0inf=True, matchId=_matchExpectedResultIDs, matchLang=False)
-                        #formulaOutputFact = formulaOutputInstance.matchFact(expectedInstanceFact, unmatchedFactsStack, deemP0inf=True, matchId=True, matchLang=True)
-                        if formulaOutputFact is None:
-                            if unmatchedFactsStack: # get missing nested tuple fact, if possible
-                                missingFact = unmatchedFactsStack[-1]
-                            else:
-                                missingFact = expectedInstanceFact
-                            # is it possible to show value mismatches?
-                            expectedFacts = formulaOutputInstance.factsByQname.get(missingFact.qname)
-                            if expectedFacts and len(expectedFacts) == 1:
-                                formulaOutputInstance.error("{}:expectedFactMissing".format(errMsgPrefix),
-                                    _("Output missing expected fact %(fact)s, extracted value \"%(value1)s\", expected value  \"%(value2)s\""),
-                                    modelXbrl=missingFact, fact=missingFact.qname, value1=missingFact.xValue, value2=next(iter(expectedFacts)).xValue,
-                                    messageCodes=("formula:expectedFactMissing","ix:expectedFactMissing"))
-                            else:
-                                formulaOutputInstance.error("{}:expectedFactMissing".format(errMsgPrefix),
-                                    _("Output missing expected fact %(fact)s"),
-                                    modelXbrl=missingFact, fact=missingFact.qname,
-                                    messageCodes=("formula:expectedFactMissing","ix:expectedFactMissing"))
-                        else: # compare footnotes
-                            expectedInstanceFactFootnotes = factFootnotes(expectedInstanceFact, expectedFootnotesRelSet)
-                            formulaOutputFactFootnotes = factFootnotes(formulaOutputFact, formulaOutputFootnotesRelSet)
-                            if (len(expectedInstanceFactFootnotes) != len(formulaOutputFactFootnotes) or
-                                set(expectedInstanceFactFootnotes.values()) != set(formulaOutputFactFootnotes.values())):
-                                formulaOutputInstance.error("{}:expectedFactFootnoteDifference".format(errMsgPrefix),
-                                    _("Output expected fact %(fact)s expected footnotes %(footnotes1)s produced footnotes %(footnotes2)s"),
-                                    modelXbrl=(formulaOutputFact,expectedInstanceFact), fact=expectedInstanceFact.qname, footnotes1=sorted(expectedInstanceFactFootnotes.items()), footnotes2=sorted(formulaOutputFactFootnotes.items()),
-                                    messageCodes=("formula:expectedFactFootnoteDifference","ix:expectedFactFootnoteDifference"))
-
-                # for debugging uncomment next line to save generated instance document
-                # formulaOutputInstance.saveInstance(r"c:\temp\test-out-inst.xml")
-            expectedInstance.close()
-            del expectedInstance # dereference
-            self.determineTestStatus(modelTestcaseVariation, formulaOutputInstance.errors)
+            compareErrors = compareInstance(
+                modelManager=self.modelXbrl.modelManager,
+                originalInstance=modelXbrl,
+                targetInstance=formulaOutputInstance,
+                expectedInstanceUri=self.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(
+                    modelTestcaseVariation.resultXbrlInstanceUri,
+                    baseForElement
+                ),
+                errorCaptureLevel=errorCaptureLevel,
+                matchById=not modelXbrlHasFormulae
+            )
             formulaOutputInstance.close()
-            del formulaOutputInstance
+            self.determineTestStatus(modelTestcaseVariation, compareErrors)
         if compareIxResultInstance:
             for inputDTSlist in inputDTSes.values():
                 for inputDTS in inputDTSlist:
