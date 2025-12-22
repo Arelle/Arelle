@@ -13,7 +13,7 @@ openpyxl==3.1.5
 pyparsing==3.2.5
 python-dateutil==2.9.0.post0
 regex==2025.11.3
-tornado==6.5.3
+tornado==6.5.4
 truststore==0.10.4
 typing-extensions==4.15.0
 # plugins
