@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.FR33"
+        description="DBA.FR33: For groups in accounting classes C and D, either Statement of changes in equity [hierarchy:fsa:StatementOfChangesInEquity] must have a minimum of three fields filled in
+        or two fields in Information on equity [hierarchy:fsa:DisclosureOfEquity]."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid" name="Invalid">
+        <description>
+            Filing only has two fields from Statement of changes in equity and none from Information on equity.
+        </description>
+        <data>
+            <instance readMeFirst="true">fr33-invalid.xhtml</instance>
+        </data>
+        <result>
+            <error>DBA.FR33</error>
+        </result>
+    </variation>
+</testcase>

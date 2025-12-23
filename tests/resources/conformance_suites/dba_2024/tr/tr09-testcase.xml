@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.TR09"
+        description="DBA.TR09: All contexts must have the same identifier scheme and value."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid" name="Invalid">
+        <description>
+            One context has a different entity value
+        </description>
+        <data>
+            <instance readMeFirst="true">tr09-invalid.xhtml</instance>
+        </data>
+        <result>
+            <error>DBA.TR09</error>
+        </result>
+    </variation>
+</testcase>

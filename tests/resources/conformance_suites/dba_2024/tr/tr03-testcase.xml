@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.TR03"
+        description="DBA.TR03: gsd:IdentificationNumberCvrOfReportingEntity must have the CVR number specified in
+        gsd:IdentificationNumberCvrOfReportingEntity as the context entity identifier."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid" name="Invalid">
+        <description>
+            IdentificationNumberCvrOfReportingEntity value does not match the CVR in the context of IdentificationNumberCvrOfReportingEntity
+        </description>
+        <data>
+            <instance readMeFirst="true">tr03-invalid.xhtml</instance>
+        </data>
+        <result>
+            <error>DBA.TR03</error>
+        </result>
+    </variation>
+</testcase>
