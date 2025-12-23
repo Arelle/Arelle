@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.TR15"
+        description="DBA.TR15: If the context identifier scheme is http://standards.iso.org/iso/17442,
+        all context identifiers must be equal to the value of the field gsd:LegalEntityIdentifierOfReportingEntity."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid" name="Invalid">
+        <description>
+            Not all context identifiers must be equal to the value of the field gsd:LegalEntityIdentifierOfReportingEntity.
+        </description>
+        <data>
+            <instance readMeFirst="true">tr15-invalid.xhtml</instance>
+        </data>
+        <result>
+            <error>DBA.TR15</error>
+        </result>
+    </variation>
+</testcase>

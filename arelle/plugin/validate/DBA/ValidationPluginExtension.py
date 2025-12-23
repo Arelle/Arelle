@@ -385,6 +385,8 @@ class ValidationPluginExtension(ValidationPlugin):
                 qname(f'{{{NAMESPACE_FSA}}}TransferredToReserveForDevelopmentExpenditure'),
                 qname(f'{{{NAMESPACE_FSA}}}TransferredToReserveForEntrepreneurialCompany'),
             ]),
+            endDateForUseOfDigitalNonregisteredBookkeepingSystemQn=qname(f'{{{NAMESPACE_GSD}}}EndDateForUseOfDigitalNonregisteredBookkeepingSystem'),
+            endDateForUseOfDigitalStandardBookkeepingSystemQn=qname(f'{{{NAMESPACE_GSD}}}EndDateForUseOfDigitalStandardBookkeepingSystem'),
             employeeBenefitsExpenseQn=qname(f'{{{NAMESPACE_FSA}}}EmployeeBenefitsExpense'),
             equityQn=qname(f'{{{NAMESPACE_FSA}}}Equity'),
             extraordinaryCostsQn=qname(f'{{{NAMESPACE_FSA}}}ExtraordinaryCosts'),
@@ -460,6 +462,7 @@ class ValidationPluginExtension(ValidationPlugin):
             proposedDividendRecognisedInEquityQn=qname(f'{{{NAMESPACE_FSA}}}ProposedDividendRecognisedInEquity'),
             proposedExtraordinaryDividendRecognisedInLiabilitiesQn=qname(f'{{{NAMESPACE_FSA}}}ProposedExtraordinaryDividendRecognisedInLiabilities'),
             provisionsQn=qname(f'{{{NAMESPACE_FSA}}}Provisions'),
+            registrationNumberOfTheDigitalStandardBookkeepingSystemUsedQn=qname(f'{{{NAMESPACE_GSD}}}RegistrationNumberOfTheDigitalStandardBookkeepingSystemUsed'),
             registeredReportingPeriodDeviatingFromReportedReportingPeriodDueArbitraryDatesMemberQn=qname(f'{{{NAMESPACE_GSD}}}RegisteredReportingPeriodDeviatingFromReportedReportingPeriodDueArbitraryDatesMember'),
             reportingClassCLargeDanish='Regnskabsklasse C, stor virksomhed',
             reportingClassCLargeEnglish='Reporting class C, large enterprise',
@@ -482,6 +485,8 @@ class ValidationPluginExtension(ValidationPlugin):
             shorttermLiabilitiesOtherThanProvisionsQn=qname(f'{{{NAMESPACE_FSA}}}ShorttermLiabilitiesOtherThanProvisions'),
             signatureOfAuditorsDateQn=qname(f'{{{NAMESPACE_ARR}}}SignatureOfAuditorsDate'),
             soloMemberQn=qname(f'{{{NAMESPACE_CMN}}}SoloMember'),
+            startDateForUseOfDigitalNonregisteredBookkeepingSystemQn=qname(f'{{{NAMESPACE_GSD}}}StartDateForUseOfDigitalNonregisteredBookkeepingSystem'),
+            startDateForUseOfDigitalStandardBookkeepingSystemQn=qname(f'{{{NAMESPACE_GSD}}}StartDateForUseOfDigitalStandardBookkeepingSystem'),
             statementOfChangesInEquityQns=frozenset([
                 qname(f'{{{NAMESPACE_FSA}}}Equity'),
                 qname(f'{{{NAMESPACE_FSA}}}IncreaseDecreaseOfEquityThroughCorrectionsOfErrors'),
@@ -540,6 +545,7 @@ class ValidationPluginExtension(ValidationPlugin):
             typeOfAuditorAssistanceEnglish='Auditor\'s report on audited financial statements',
             typeOfAuditorAssistanceQn=qname(f'{{{NAMESPACE_CMN}}}TypeOfAuditorAssistance'),
             typeOfBasisForModifiedOpinionOnFinancialStatementsReviewQn=qname(f'{{{NAMESPACE_ARR}}}TypeOfBasisForModifiedOpinionOnFinancialStatementsReview'),
+            typeOfDigitalNonregisteredBookkeepingSystemQn=qname(f'{{{NAMESPACE_GSD}}}TypeOfDigitalNonregisteredBookkeepingSystem'),
             typeOfReportingPeriodDimensionQn=qname(f'{{{NAMESPACE_GSD}}}TypeOfReportingPeriodDimension'),
             wagesAndSalariesQn=qname(f'{{{NAMESPACE_FSA}}}WagesAndSalaries'),
         )

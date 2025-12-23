@@ -57,6 +57,8 @@ class PluginValidationDataExtension(PluginData):
     distributionOfResultsQns: frozenset[QName]
     employeeBenefitsExpenseQn: QName
     equityQn: QName
+    endDateForUseOfDigitalNonregisteredBookkeepingSystemQn: QName
+    endDateForUseOfDigitalStandardBookkeepingSystemQn: QName
     extraordinaryCostsQn: QName
     extraordinaryIncomeQn: QName
     extraordinaryResultBeforeTaxQn: QName
@@ -88,6 +90,7 @@ class PluginValidationDataExtension(PluginData):
     proposedDividendRecognisedInEquityQn: QName
     proposedExtraordinaryDividendRecognisedInLiabilitiesQn: QName
     provisionsQn: QName
+    registrationNumberOfTheDigitalStandardBookkeepingSystemUsedQn: QName
     registeredReportingPeriodDeviatingFromReportedReportingPeriodDueArbitraryDatesMemberQn: QName
     reportingClassCLargeDanish: str
     reportingClassCLargeEnglish: str
@@ -106,6 +109,8 @@ class PluginValidationDataExtension(PluginData):
     shorttermLiabilitiesOtherThanProvisionsQn: QName
     signatureOfAuditorsDateQn: QName
     soloMemberQn: QName
+    startDateForUseOfDigitalNonregisteredBookkeepingSystemQn: QName
+    startDateForUseOfDigitalStandardBookkeepingSystemQn: QName
     statementOfChangesInEquityQns: frozenset[QName]
     taxExpenseOnOrdinaryActivitiesQn: QName
     taxExpenseQn: QName
@@ -113,6 +118,7 @@ class PluginValidationDataExtension(PluginData):
     typeOfAuditorAssistanceEnglish: str
     typeOfAuditorAssistanceQn: QName
     typeOfBasisForModifiedOpinionOnFinancialStatementsReviewQn: QName
+    typeOfDigitalNonregisteredBookkeepingSystemQn: QName
     typeOfReportingPeriodDimensionQn: QName
     wagesAndSalariesQn: QName
 

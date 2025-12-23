@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.TR16"
+        description="DBA.TR16: Inline XBRL must contain xml:lang in the root of the InlineXBRL document."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid" name="Invalid">
+        <description>
+            xml:lang attribute is missing in the root of the InlineXBRL document.
+        </description>
+        <data>
+            <instance readMeFirst="true">tr16-invalid.xhtml</instance>
+        </data>
+        <result>
+            <error>DBA.TR16</error>
+        </result>
+    </variation>
+</testcase>

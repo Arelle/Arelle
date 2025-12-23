@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.TR19"
+        description="DBA.TR19: Duplicate facts must not have different content. Duplicate is defined by the following criteria:
+                     - same concept name
+                     - same period
+                     - same dimensions (including same identifier in typed dimension)
+                     - same language (xml:lang)
+                     - same unit."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid" name="Invalid">
+        <description>
+            Inventories is tagged twice with 2 different values for the same context, unit and language
+        </description>
+        <data>
+            <instance readMeFirst="true">tr19-invalid.xhtml</instance>
+        </data>
+        <result>
+            <error>DBA.TR19</error>
+        </result>
+    </variation>
+</testcase>

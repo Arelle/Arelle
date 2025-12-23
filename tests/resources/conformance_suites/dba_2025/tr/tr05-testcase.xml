@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.TR05"
+        description="DBA.TR05: gsd:ReportingPeriodStartDate must specify the same date as period startDate in the
+        context of gsd:IdentificationNumberCvrOfReportingEntity."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid" name="Invalid">
+        <description>
+            ReportingPeriodStartDate value does not match the PeriodStart value in the context of IdentificationNumberCvrOfReportingEntity
+        </description>
+        <data>
+            <instance readMeFirst="true">tr05-invalid.xhtml</instance>
+        </data>
+        <result>
+            <error>DBA.TR05</error>
+        </result>
+    </variation>
+</testcase>

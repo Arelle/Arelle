@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.FR34"
+        description="DBA.FR34: If Equity does not equal 0 more fields are required.  At least one field must be filled in on the balance sheet in addition to equity:
+        Assets, NoncurrentAssets, CurrentAssets, LongtermLiabilitiesOtherThanProvisions, ShorttermLiabilitiesOtherThanProvisions, LiabilitiesOtherThanProvisions, LiabilitiesAndEquity"
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid" name="Invalid">
+        <description>
+            Equity is tagged but none of the other elements are tagged.
+        </description>
+        <data>
+            <instance readMeFirst="true">fr34-invalid.xhtml</instance>
+        </data>
+        <result>
+            <error>DBA.FR34</error>
+            <error>DBA.FR57.Assets</error>
+            <error>DBA.FR57.LiabilitiesAndEquity</error>
+        </result>
+    </variation>
+</testcase>
