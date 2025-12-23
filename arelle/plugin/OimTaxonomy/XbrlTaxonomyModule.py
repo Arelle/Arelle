@@ -20,13 +20,13 @@ from .XbrlLabel import XbrlLabel, XbrlLabelType
 from .XbrlNetwork import XbrlNetwork, XbrlRelationship, XbrlRelationshipType, XbrlRelationshipConstraint
 from .XbrlProperty import XbrlProperty, XbrlPropertyType
 from .XbrlReference import XbrlReference, XbrlReferenceType
-from .XbrlReport import XbrlFactspace, XbrlFootnote
+from .XbrlReport import XbrlFactspace, XbrlFootnote, XbrlTableTemplate
 from .XbrlTaxonomyModel import XbrlTaxonomyModel
 from .XbrlTransform import XbrlTransform
 from .XbrlUnit import XbrlUnit
 from .XbrlTypes import QNameKeyType
 from .XbrlObject import XbrlTaxonomyObject
-from .XbrlLayout import XbrlLayout, XbrlTableTemplate, XbrlDataTable, XbrlAxis, XbrlAxisDimension
+from .XbrlLayout import XbrlLayout, XbrlDataTable, XbrlAxis, XbrlAxisDimension
 
 class XbrlTaxonomyModule(XbrlTaxonomyObject):
     txmyMdl: XbrlTaxonomyModel
@@ -47,6 +47,7 @@ class XbrlTaxonomyModule(XbrlTaxonomyObject):
     entities: OrderedSet[XbrlEntity] # (optional) ordered set of entity objects.
     factspaces: OrderedSet[XbrlFactspace] #  (optional) ordered set of factspace objects.
     footnotes: OrderedSet[XbrlFootnote] #  (optional) ordered set of footnote objects.
+    tableTemplates: OrderedSet[XbrlTableTemplate] # (optional) ordered set of tableTemplate objects.
     groups: OrderedSet[XbrlGroup] #  (optional) ordered set of group objects.
     groupContents: OrderedSet[XbrlGroupContent] # ordered set of groupContent objects that link a group QName to a list of network or cube objects.
     groupTree: Optional[XbrlGroupTree] # (optional) A groupTree object that defines the hierarchical organization of groups within the taxonomy. Unlike groupContents which links groups to networks and cubes, groupTree organizes the groups themselves into a tree structure. The taxonomy serves as the root by being referenced as the source in top-level relationships. Only one groupTree object is allowed per taxonomy.

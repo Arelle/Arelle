@@ -84,6 +84,7 @@
                     {"source": "oimte:OIMErrorRootDomain", "target": "oimte:referenceTypeRedefined", "order": 44},
                     {"source": "oimte:OIMErrorRootDomain", "target": "oimte:unitInNonUnitDomain", "order": 45},
                     {"source": "oimte:OIMErrorRootDomain", "target": "oimte:rootOfDomainNotADomainRootObject", "order": 48},
+                    {"source": "oimte:OIMErrorRootDomain", "target": "oimte:taxonomyNotFound", "order": 48.2},
                     {"source": "oimte:OIMErrorRootDomain", "target": "oimte:domainRootMismatchWithDomain", "order": 48.5},
                     {"source": "oimte:OIMErrorRootDomain", "target": "oimte:unknownIncludedObject", "order": 49},
                     {"source": "oimte:OIMErrorRootDomain", "target": "oimte:unresolvedRelatedName", "order": 50},
@@ -496,6 +497,12 @@
                 ]
             },
             {
+                "name": "oimte:taxonomyNotFound",
+                "properties": [
+                    {"property": "xbrl:severity", "value": "error"}
+                ]
+            },
+            {
                 "name": "oimte:invalidFinalTaxonomyModification",
                 "properties": [
                     {"property": "xbrl:severity", "value": "error"}
@@ -692,6 +699,7 @@
                     {"source": "oimte:ImportTaxonomyErrors", "target": "oimte:invalidImportObjectType", "order": 3},
                     {"source": "oimte:ImportTaxonomyErrors", "target": "oimte:groupTreeNotImportable", "order": 4},
                     {"source": "oimte:ImportTaxonomyErrors", "target": "oimte:invalidReferenceToImportTaxonomyObject", "order": 5},
+                    {"source": "oimte:ImportTaxonomyErrors", "target": "oimte:taxonomyNotFound", "order": 6},
                     {"source": "oimte:GroupTreeErrors", "target": "oimte:invalidTaxonomyGroupSource", "order": 1},
                     {"source": "oimte:GroupTreeErrors", "target": "oimte:invalidTaxonomyGroupTarget", "order": 2},
                     {"source": "oimte:JSONErrors", "target": "oimte:invalidJSONStructureMissingRequiredProperty", "order": 3},
@@ -1551,6 +1559,18 @@
                 "labelType": "xbrl:errorMessage"
             },
             {
+                "relatedName": "oimte:taxonomyNotFound",
+                "language": "en",
+                "value": "Taxonomy Not Found",
+                "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "oimte:taxonomyNotFound",
+                "language": "en",
+                "value": "The taxonomy '{taxonomyName}' could not be found or loaded.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
                 "relatedName": "oimte:invalidFinalTaxonomyObjectType",
                 "language": "en",
                 "value": "Extension Taxonomy Adds Final Object Type",
@@ -2320,6 +2340,18 @@
                 "labelType": "xbrl:documentation"
             },
             {
+                "relatedName": "oimte:taxonomyNotFound",
+                "language": "en",
+                "value": "🚫",
+                "labelType": "xbrl:iconLabel"
+            },
+            {
+                "relatedName": "oimte:taxonomyNotFound",
+                "language": "en",
+                "value": "The specified taxonomy could not be found. This error occurs when a reference is made to a taxonomy that does not exist or is not accessible.",
+                "labelType": "xbrl:documentation"
+            },
+            {
                 "relatedName": "oimte:intervalOnNonTimeSeriesDomain",
                 "language": "en",
                 "value": "🚫",
@@ -2355,6 +2387,7 @@
                 "value": "This error occurs when a taxonomy-group relationship type (xbrl:taxonomy-group) is used in a network object. The taxonomy-group relationship type is exclusively for use in the group tree object to define hierarchical organization of groups. Networks use other relationship types for their structures.",
                 "labelType": "xbrl:documentation"
             },
+            
             {
                 "relatedName": "oimte:invalidTaxonomyGroupSource",
                 "language": "en",
@@ -2725,6 +2758,18 @@
                 ]
             },
             {
+                "name": "oimte:invalidAllowDomainFactsPropertyOnConceptDimension2Reference",
+                "relatedNames": [
+                    "oimte:invalidAllowDomainFactsPropertyOnConceptDimension"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:conformanceTestFileName" ,"value":"CUBE-AllowDomainFactsOnConceptDimension.json"},
+                    {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
+                ]
+            },
+            {
                 "name": "oimte:cubeMissingConceptDimensionReference",
                 "relatedNames": [
                     "oimte:cubeMissingConceptDimension"
@@ -2733,6 +2778,18 @@
                 "language": "en",
                 "properties": [
                     {"property":"xbrl:conformanceTestFileName" ,"value":"CUBE-MissingConceptDimension.json"},
+                    {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
+                ]
+            },
+            {
+                "name": "oimte:cubeMissingConceptDimension2Reference",
+                "relatedNames": [
+                    "oimte:cubeMissingConceptDimension"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:conformanceTestFileName" ,"value":"CUBE-ConceptDimensionNotDefined.json"},
                     {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
                 ]
             },
@@ -2751,7 +2808,8 @@
             {
                 "name": "oimte:domainRootMismatchWithDomainReference",
                 "relatedNames": [
-                    "oimte:domainRootMismatchWithDomain"
+                    "oimte:domainRootMismatchWithDomain",
+                    "oimte:invalidDomainObject"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -2781,6 +2839,18 @@
                 "language": "en",
                 "properties": [
                     {"property":"xbrl:conformanceTestFileName" ,"value":"DIMENSION-InvalidCubeTypeReference.json"},
+                    {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
+                ]
+            },
+            {
+                "name": "oimte:invalidCubeTypeNoMatchReference",
+                "relatedNames": [
+                    "oimte:invalidCubeType"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:conformanceTestFileName" ,"value":"CUBE-DimensionCubeTypeDoesNotMatchCubeType.json"},
                     {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
                 ]
             },
@@ -2920,7 +2990,8 @@
             {
                 "name": "oimte:invalidDomainRootTargetReference",
                 "relatedNames": [
-                    "oimte:invalidDomainRootTarget"
+                    "oimte:invalidDomainRootTarget",
+                    "oimte:missingDomainRootSource"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -2978,21 +3049,10 @@
                 ]
             },
             {
-                "name": "oimte:invalidEntityDomainSourceReference",
-                "relatedNames": [
-                    "oimte:invalidEntityDomainSource"
-                ],
-                "referenceType": "xbrl:conformanceTestReference",
-                "language": "en",
-                "properties": [
-                    {"property":"xbrl:conformanceTestFileName" ,"value":"DOMAIN-InvalidEntityDomainSource.json"},
-                    {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
-                ]
-            },
-            {
                 "name": "oimte:invalidEntityDomainTargetReference",
                 "relatedNames": [
-                    "oimte:invalidEntityDomainTarget"
+                    "oimte:invalidEntityDomainTarget",
+                    "oimte:invalidDomainObject"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -3004,24 +3064,13 @@
             {
                 "name": "oimte:invalidUnitDomainTargetReference",
                 "relatedNames": [
-                    "oimte:invalidUnitDomainTarget"
+                    "oimte:invalidUnitDomainTarget",
+                    "oimte:invalidDomainObject"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
                 "properties": [
                     {"property":"xbrl:conformanceTestFileName" ,"value":"DOMAIN-UnitDomainWIthNonUnit.json"},
-                    {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
-                ]
-            },
-            {
-                "name": "oimte:invalidUnitDomainSourceReference",
-                "relatedNames": [
-                    "oimte:invalidUnitDomainSource"
-                ],
-                "referenceType": "xbrl:conformanceTestReference",
-                "language": "en",
-                "properties": [
-                    {"property":"xbrl:conformanceTestFileName" ,"value":"DOMAIN-InvalidUnitDomainSource.json"},
                     {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
                 ]
             },
@@ -3040,6 +3089,7 @@
             {
                 "name": "oimte:invalidDomainRelationshipTargetReference",
                 "relatedNames": [
+                    "oimte:invalidDomainObject",
                     "oimte:invalidDomainRelationshipTarget"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
@@ -3070,6 +3120,18 @@
                 "language": "en",
                 "properties": [
                     {"property":"xbrl:conformanceTestFileName" ,"value":"NAMESPACE-RestrictedPrefix.json"},
+                    {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
+                ]
+            },
+             {
+                "name": "oimte:invalidObjectNamespaceImportPrefixReference",
+                "relatedNames": [
+                    "oimte:invalidObjectNamespacePrefix"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:conformanceTestFileName" ,"value":"IMPORTTAXONOMY-PassThroughPrefixError.json"},
                     {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
                 ]
             },
@@ -3135,6 +3197,66 @@
                 ]
             },
             {
+                "name": "oimte:invalidQNamePeriodContextNameReference",
+                "relatedNames": [
+                    "oimte:invalidQNameReference"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:conformanceTestFileName" ,"value":"CUBE-PeriodConstraintContextNotConcept.json"},
+                    {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
+                ]
+            },
+            {
+                "name": "oimte:invalidQNameDataTypeNameReference",
+                "relatedNames": [
+                    "oimte:invalidQNameReference"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:conformanceTestFileName" ,"value":"CONCEPT-InvalidDataType.json"},
+                    {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
+                ]
+            },
+             {
+                "name": "oimte:invalidQNamePropertyTypeNameReference",
+                "relatedNames": [
+                    "oimte:invalidQNameReference"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:conformanceTestFileName" ,"value":"CONCEPT-PropertiesReferenceNonexistentPropertyType.json"},
+                    {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
+                ]
+            },
+            {
+                "name": "oimte:invalidQNameExcludeCubeReference",
+                "relatedNames": [
+                    "oimte:invalidQNameReference"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:conformanceTestFileName" ,"value":"CUBE-ExcludeCubeDoesNotExist.json"},
+                    {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
+                ]
+            },
+            {
+                "name": "oimte:invalidQNameCubeType2Reference",
+                "relatedNames": [
+                    "oimte:invalidQNameReference"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:conformanceTestFileName" ,"value":"CUBE-InappropriateCubeTypeReference.json"},
+                    {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
+                ]
+            },
+            {
                 "name": "oimte:excludeCubeSelfReferencReference",
                 "relatedNames": [
                     "oimte:excludeCubeSelfReference"
@@ -3179,6 +3301,42 @@
                 "language": "en",
                 "properties": [
                     {"property":"xbrl:conformanceTestFileName" ,"value":"IMPORTTAXONOMY-InvalidTextSelectionObjectType.json"},
+                    {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
+                ]
+            },
+            {
+                "name": "oimte:taxonomyNotFoundReference",
+                "relatedNames": [
+                    "oimte:taxonomyNotFound"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:conformanceTestFileName" ,"value":"IMPORTTAXONOMY-TaxonomyNotFound.json"},
+                    {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
+                ]
+            }, 
+            {
+                "name": "oimte:taxonomyNotFoundNoFileReference",
+                "relatedNames": [
+                    "oimte:taxonomyNotFound"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:conformanceTestFileName" ,"value":"IMPORTTAXONOMY-TaxonomyNotFoundNoFile.json"},
+                    {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
+                ]
+            }, 
+            {
+                "name": "oimte:taxonomyNotFoundNoQNameReference",
+                "relatedNames": [
+                    "oimte:taxonomyNotFound"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:conformanceTestFileName" ,"value":"IMPORTTAXONOMY-TaxonomyNotFoundNoQName.json"},
                     {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
                 ]
             }, 
@@ -3257,7 +3415,8 @@
             {
                 "name": "oimte:unitInNonUnitDomainReference",
                 "relatedNames": [
-                    "oimte:unitInNonUnitDomain"
+                    "oimte:unitInNonUnitDomain",
+                    "oimte:invalidDomainObject"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -3281,7 +3440,8 @@
             {
                 "name": "oimte:invalidDataTypeForDomainRootReference",
                 "relatedNames": [
-                    "oimte:invalidDataTypeForDomainRoot"
+                    "oimte:invalidDataTypeForDomainRoot",
+                    "oimte:invalidQNameReference"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -3339,6 +3499,32 @@
                 ]
             },
             {
+                "name": "oimte:missingDomainRootSource2Reference",
+                "relatedNames": [
+                    "oimte:missingDomainRootSource"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:conformanceTestFileName" ,"value":"DOMAIN-InvalidEntityDomainSource.json"},
+                    {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
+                ]
+            },
+            {
+                "name": "oimte:missingDomainRootSource4Reference",
+                "relatedNames": [
+                    "oimte:missingDomainRootSource",
+                    "oimte:invalidUnitDomainSource",
+                    "oimte:invalidDomainObject"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:conformanceTestFileName" ,"value":"DOMAIN-InvalidUnitDomainSource.json"},
+                    {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
+                ]
+            },
+            {
                 "name": "oimte:multipleDomainRootsReference",
                 "relatedNames": [
                     "oimte:multipleDomainRoots"
@@ -3347,6 +3533,18 @@
                 "language": "en",
                 "properties": [
                     {"property":"xbrl:conformanceTestFileName" ,"value":"DOMAIN-MultipleDomainRoots.json"},
+                    {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
+                ]
+            },
+            {
+                "name": "oimte:invalidImportObjectTypeReference",
+                "relatedNames": [
+                    "oimte:invalidImportObjectType"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:conformanceTestFileName" ,"value":"IMPORTTAXONOMY-InvalidObjectType.json"},
                     {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
                 ]
             },
@@ -3700,6 +3898,17 @@
                 "language": "en",
                 "properties": [
                     {"property":"xbrl:specificationErrorURI" ,"value":"https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-invalidreferencetoimporttaxonomyobject"}
+                ]
+            },
+            {
+                "name": "oimte:taxonomyNotFoundSpecReference",
+                "relatedNames": [
+                    "oimte:taxonomyNotFound"
+                ],
+                "referenceType": "xbrl:specificationErrorReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:specificationErrorURI" ,"value":"https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-taxonomynotfound"}
                 ]
             },
             {

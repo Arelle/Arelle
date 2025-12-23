@@ -13,7 +13,6 @@ from .XbrlConst import unsupportedTypedDimensionDataTypes
 from .XbrlConcept import XbrlConcept, XbrlDataType
 from .XbrlCube import conceptCoreDim, languageCoreDim, periodCoreDim, unitCoreDim, coreDimensions
 from .XbrlDimension import XbrlDimension, XbrlMember
-from .XbrlLayout import XbrlTableTemplate
 from .XbrlUnit import parseUnitString, XbrlUnit
 from .ValidateTaxonomyModel import validateValue
 from .ValidateCubes import validateCubes
@@ -158,6 +157,11 @@ def validateFactspace(factspace, reportQn, reportObj, txmyMdl):
     if not factspace._cubes:
         error("oimte:noFactSpaceForFact",
               _("Factspace %(name)s is not dimensionally valid in any cube."))
+    else:
+        for cubeObj in factspace._cubes:
+            if not hasattr(cubeObj, "_factspaces"):
+                cubeObj._factspaces = set()
+            cubeObj._factspaces.add(factspace)
 
 def validateTable(table, reportQn, reportObj, txmyMdl):
     # ensure template exists

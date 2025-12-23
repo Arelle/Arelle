@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING, cast, GenericAlias, Union, _GenericAlias, _Uni
 
 import os, io, json, cbor2, sys, time, traceback
 JSON_SCHEMA_VALIDATOR = "jsonschema" # select one of below JSON schema validator libraries (seriously different performance)
-JSON_SCHEMA_VALIDATOR = "fastjsonschema"
+#JSON_SCHEMA_VALIDATOR = "fastjsonschema"
 if JSON_SCHEMA_VALIDATOR == "jsonschema": # slow and thorough
     import jsonschema
     # finds all errors in source object
@@ -667,6 +667,8 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
             for impTxObj in newTxmy.importedTaxonomies:
                 if impTxObj.taxonomyName and impTxObj.taxonomyName not in xbrlTxmyMdl.taxonomies:
                     # is it present in urlMapping?
+                    url = None
+                    foundMismatchedNameReported = False
                     for url in namespaceUrls.get(impTxObj.taxonomyName.prefix, ()):
                         normalizedUri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(url, oimFile)
                         if modelXbrl.fileSource.isMappedUrl(normalizedUri):
@@ -677,9 +679,19 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                             mappedUrl = modelXbrl.modelManager.disclosureSystem.mappedUrl(normalizedUri)
                         impSchemaDoc = loadOIMTaxonomy(cntlr, error, warning, modelXbrl, 
                                                        mappedUrl, url, importingTxmyObj=impTxObj)
-                        if isinstance(impSchemaDoc, ModelDocument): # if an exception object is returned, loading didn't succeed
-                            impTxObj._txmyModule = impSchemaDoc._txmyModule
-                            selectImportedObjects(xbrlTxmyMdl, newTxmy, impTxObj)
+                        if isinstance(impSchemaDoc, ModelDocument): # if an exception object is returned, loading didn't succeed\
+                            if impSchemaDoc._txmyModule.name == impTxObj.taxonomyName:
+                                impTxObj._txmyModule = impSchemaDoc._txmyModule
+                                selectImportedObjects(xbrlTxmyMdl, newTxmy, impTxObj)
+                            else:
+                                xbrlTxmyMdl.error("oimte:taxonomyNotFound",
+                                                  _("Imported taxonomy for %(qname)s found at %(url)s has mismatching taxonomyName %(name)s."),
+                                                  xbrlObject=impTxObj, url=url, qname=impTxObj.taxonomyName, name= impSchemaDoc._txmyModule.name)
+                                foundMismatchedNameReported = True
+                    if not getattr(impTxObj, "_txmyModule", None) and not foundMismatchedNameReported:
+                        xbrlTxmyMdl.error("oimte:taxonomyNotFound",
+                                          _("Imported taxonomy for %(qname)s not found at %(url)s because the URL mapping namespace is incorrect."),
+                                          xbrlObject=impTxObj, url=url, qname=impTxObj.taxonomyName)
 
         modelXbrl.profileActivity(f"Load taxonomies imported from {txFileBasename}", minTimeToShow=PROFILE_MIN_TIME)
         if taxonomyName is not None: # otherwise some error would have occured

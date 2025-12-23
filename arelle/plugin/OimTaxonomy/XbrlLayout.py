@@ -3,20 +3,11 @@ See COPYRIGHT.md for copyright information.
 """
 
 from typing import TYPE_CHECKING, Optional, Union
-from decimal import Decimal
 
 from arelle.ModelValue import QName
 from arelle.PythonUtil import OrderedSet
 from .XbrlTypes import XbrlLayoutType, XbrlTaxonomyModuleType, QNameKeyType, DefaultFalse
 from .XbrlObject import XbrlTaxonomyObject, XbrlReferencableTaxonomyObject
-
-class XbrlTableTemplate(XbrlReferencableTaxonomyObject):
-    layout: XbrlLayoutType
-    name: QNameKeyType # (required) The name is a QName that uniquely identifies the transform object.
-    rowIdColumn: Optional[str] # (optional) An identifier specifying the name of the row ID column.
-    columns: dict # (required) A columns object. (See xbrl-csv specification)
-    dimensions: dict # (required) A dimensions object that defines table dimensions. (See xbrl-csv specification)
-    decimals: Optional[Decimal] # (optional) A decimals value
 
 class XbrlAxisDimension(XbrlTaxonomyObject):
     dimensionName: QName # (required) The QName of a dimension defined by the cubeName property.
@@ -44,5 +35,4 @@ class XbrlLayout(XbrlTaxonomyObject):
     txmyMdl: XbrlTaxonomyModuleType
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the layout object.
     taxonomyName: XbrlTaxonomyModuleType # (required) The name is a QName that identifies the taxonomy associated with the layout objects.
-    tableTemplates: OrderedSet[XbrlTableTemplate] # (optional) ordered set of tableTemplate objects.
     dataTables: OrderedSet[XbrlDataTable] # (optional) ordered set of dataTable objects.
