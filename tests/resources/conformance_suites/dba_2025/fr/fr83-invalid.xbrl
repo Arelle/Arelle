@@ -1,0 +1,546 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xbrli:xbrl
+        xmlns:arr="http://xbrl.dcca.dk/arr"
+        xmlns:cmn="http://xbrl.dcca.dk/cmn"
+        xmlns:fsa="http://xbrl.dcca.dk/fsa" xmlns:gsd="http://xbrl.dcca.dk/gsd"
+        xmlns:iso4217="http://www.xbrl.org/2003/iso4217"
+        xmlns:link="http://www.xbrl.org/2003/linkbase"
+        xmlns:mrv="http://xbrl.dcca.dk/mrv"
+        xmlns:sob="http://xbrl.dcca.dk/sob"
+        xmlns:xbrldi="http://xbrl.org/2006/xbrldi"
+        xmlns:xbrli="http://www.xbrl.org/2003/instance"
+        xmlns:xlink="http://www.w3.org/1999/xlink">
+    <link:schemaRef xlink:type="simple" xlink:href="http://archprod.service.eogs.dk/taxonomy/20251001/entryDanishGAAPBalanceSheetAccountFormIncomeStatementByNatureIncludingManagementsReviewStatisticsAndTax20251001.xsd"/>
+    <xbrli:context id="ID_0">
+        <xbrli:entity>
+            <xbrli:identifier scheme="http://www.dcca.dk/cvr">54399219</xbrli:identifier>
+        </xbrli:entity>
+        <xbrli:period>
+            <xbrli:startDate>2022-01-01</xbrli:startDate>
+            <xbrli:endDate>2022-12-31</xbrli:endDate>
+        </xbrli:period>
+    </xbrli:context>
+    <xbrli:context id="ID_3">
+        <xbrli:entity>
+            <xbrli:identifier scheme="http://www.dcca.dk/cvr">54399219</xbrli:identifier>
+        </xbrli:entity>
+        <xbrli:period>
+            <xbrli:startDate>2022-01-01</xbrli:startDate>
+            <xbrli:endDate>2022-12-31</xbrli:endDate>
+        </xbrli:period>
+        <xbrli:scenario>
+            <xbrldi:typedMember dimension="cmn:IdentificationOfMemberOfSupervisoryBoardDimension">
+                <cmn:memberOfBoardIdentifier>2</cmn:memberOfBoardIdentifier>
+            </xbrldi:typedMember>
+        </xbrli:scenario>
+    </xbrli:context>
+    <xbrli:context id="ID_4">
+        <xbrli:entity>
+            <xbrli:identifier scheme="http://www.dcca.dk/cvr">54399219</xbrli:identifier>
+        </xbrli:entity>
+        <xbrli:period>
+            <xbrli:startDate>2022-01-01</xbrli:startDate>
+            <xbrli:endDate>2022-12-31</xbrli:endDate>
+        </xbrli:period>
+        <xbrli:scenario>
+            <xbrldi:typedMember dimension="cmn:IdentificationOfMemberOfSupervisoryBoardDimension">
+                <cmn:memberOfBoardIdentifier>3</cmn:memberOfBoardIdentifier>
+            </xbrldi:typedMember>
+        </xbrli:scenario>
+    </xbrli:context>
+    <xbrli:context id="ID_5">
+        <xbrli:entity>
+            <xbrli:identifier scheme="http://www.dcca.dk/cvr">54399219</xbrli:identifier>
+        </xbrli:entity>
+        <xbrli:period>
+            <xbrli:startDate>2022-01-01</xbrli:startDate>
+            <xbrli:endDate>2022-12-31</xbrli:endDate>
+        </xbrli:period>
+        <xbrli:scenario>
+            <xbrldi:typedMember dimension="cmn:IdentificationOfMemberOfSupervisoryBoardDimension">
+                <cmn:memberOfBoardIdentifier>5</cmn:memberOfBoardIdentifier>
+            </xbrldi:typedMember>
+        </xbrli:scenario>
+    </xbrli:context>
+    <xbrli:context id="ID_6">
+        <xbrli:entity>
+            <xbrli:identifier scheme="http://www.dcca.dk/cvr">54399219</xbrli:identifier>
+        </xbrli:entity>
+        <xbrli:period>
+            <xbrli:startDate>2022-01-01</xbrli:startDate>
+            <xbrli:endDate>2022-12-31</xbrli:endDate>
+        </xbrli:period>
+        <xbrli:scenario>
+            <xbrldi:typedMember dimension="cmn:IdentificationOfMemberOfSupervisoryBoardDimension">
+                <cmn:memberOfBoardIdentifier>6</cmn:memberOfBoardIdentifier>
+            </xbrldi:typedMember>
+        </xbrli:scenario>
+    </xbrli:context>
+    <xbrli:context id="ID_7">
+        <xbrli:entity>
+            <xbrli:identifier scheme="http://www.dcca.dk/cvr">54399219</xbrli:identifier>
+        </xbrli:entity>
+        <xbrli:period>
+            <xbrli:startDate>2022-01-01</xbrli:startDate>
+            <xbrli:endDate>2022-12-31</xbrli:endDate>
+        </xbrli:period>
+        <xbrli:scenario>
+            <xbrldi:typedMember dimension="cmn:IdentificationOfMemberOfSupervisoryBoardDimension">
+                <cmn:memberOfBoardIdentifier>7</cmn:memberOfBoardIdentifier>
+            </xbrldi:typedMember>
+        </xbrli:scenario>
+    </xbrli:context>
+    <xbrli:context id="ID_2">
+        <xbrli:entity>
+            <xbrli:identifier scheme="http://www.dcca.dk/cvr">54399219</xbrli:identifier>
+        </xbrli:entity>
+        <xbrli:period>
+            <xbrli:startDate>2022-01-01</xbrli:startDate>
+            <xbrli:endDate>2022-12-31</xbrli:endDate>
+        </xbrli:period>
+        <xbrli:scenario>
+            <xbrldi:typedMember dimension="cmn:IdentificationOfMemberOfExecutiveBoardDimension">
+                <cmn:memberOfBoardIdentifier>4</cmn:memberOfBoardIdentifier>
+            </xbrldi:typedMember>
+        </xbrli:scenario>
+    </xbrli:context>
+    <xbrli:context id="ID_1">
+        <xbrli:entity>
+            <xbrli:identifier scheme="http://www.dcca.dk/cvr">54399219</xbrli:identifier>
+        </xbrli:entity>
+        <xbrli:period>
+            <xbrli:startDate>2022-01-01</xbrli:startDate>
+            <xbrli:endDate>2022-12-31</xbrli:endDate>
+        </xbrli:period>
+        <xbrli:scenario>
+            <xbrldi:typedMember dimension="cmn:IdentificationOfAuditorDimension">
+                <cmn:auditorIdentifier>RevPers1</cmn:auditorIdentifier>
+            </xbrldi:typedMember>
+        </xbrli:scenario>
+    </xbrli:context>
+    <xbrli:context id="ID_11">
+        <xbrli:entity>
+            <xbrli:identifier scheme="http://www.dcca.dk/cvr">54399219</xbrli:identifier>
+        </xbrli:entity>
+        <xbrli:period>
+            <xbrli:startDate>2022-01-01</xbrli:startDate>
+            <xbrli:endDate>2022-12-31</xbrli:endDate>
+        </xbrli:period>
+        <xbrli:scenario>
+            <xbrldi:explicitMember dimension="fsa:ClassesOfEquityDimension">fsa:ContributedCapitalMember</xbrldi:explicitMember>
+        </xbrli:scenario>
+    </xbrli:context>
+    <xbrli:context id="ID_14">
+        <xbrli:entity>
+            <xbrli:identifier scheme="http://www.dcca.dk/cvr">54399219</xbrli:identifier>
+        </xbrli:entity>
+        <xbrli:period>
+            <xbrli:startDate>2022-01-01</xbrli:startDate>
+            <xbrli:endDate>2022-12-31</xbrli:endDate>
+        </xbrli:period>
+        <xbrli:scenario>
+            <xbrldi:explicitMember dimension="fsa:ClassesOfEquityDimension">fsa:ProposedDividendRecognisedInEquityMember</xbrldi:explicitMember>
+        </xbrli:scenario>
+    </xbrli:context>
+    <xbrli:context id="ID_13">
+        <xbrli:entity>
+            <xbrli:identifier scheme="http://www.dcca.dk/cvr">54399219</xbrli:identifier>
+        </xbrli:entity>
+        <xbrli:period>
+            <xbrli:startDate>2022-01-01</xbrli:startDate>
+            <xbrli:endDate>2022-12-31</xbrli:endDate>
+        </xbrli:period>
+        <xbrli:scenario>
+            <xbrldi:explicitMember dimension="fsa:ClassesOfEquityDimension">fsa:RetainedEarningsMember</xbrldi:explicitMember>
+        </xbrli:scenario>
+    </xbrli:context>
+    <xbrli:context id="ID_12">
+        <xbrli:entity>
+            <xbrli:identifier scheme="http://www.dcca.dk/cvr">54399219</xbrli:identifier>
+        </xbrli:entity>
+        <xbrli:period>
+            <xbrli:startDate>2022-01-01</xbrli:startDate>
+            <xbrli:endDate>2022-12-31</xbrli:endDate>
+        </xbrli:period>
+        <xbrli:scenario>
+            <xbrldi:explicitMember dimension="fsa:ClassesOfEquityDimension">fsa:RevaluationReserveMember</xbrldi:explicitMember>
+        </xbrli:scenario>
+    </xbrli:context>
+    <xbrli:context id="ID_10">
+        <xbrli:entity>
+            <xbrli:identifier scheme="http://www.dcca.dk/cvr">54399219</xbrli:identifier>
+        </xbrli:entity>
+        <xbrli:period>
+            <xbrli:startDate>2021-01-01</xbrli:startDate>
+            <xbrli:endDate>2021-12-31</xbrli:endDate>
+        </xbrli:period>
+    </xbrli:context>
+    <xbrli:context id="ID_8">
+        <xbrli:entity>
+            <xbrli:identifier scheme="http://www.dcca.dk/cvr">54399219</xbrli:identifier>
+        </xbrli:entity>
+        <xbrli:period>
+            <xbrli:instant>2022-12-31</xbrli:instant>
+        </xbrli:period>
+    </xbrli:context>
+    <xbrli:context id="ID_16">
+        <xbrli:entity>
+            <xbrli:identifier scheme="http://www.dcca.dk/cvr">54399219</xbrli:identifier>
+        </xbrli:entity>
+        <xbrli:period>
+            <xbrli:instant>2022-01-01</xbrli:instant>
+        </xbrli:period>
+    </xbrli:context>
+    <xbrli:context id="ID_17">
+        <xbrli:entity>
+            <xbrli:identifier scheme="http://www.dcca.dk/cvr">54399219</xbrli:identifier>
+        </xbrli:entity>
+        <xbrli:period>
+            <xbrli:instant>2022-01-01</xbrli:instant>
+        </xbrli:period>
+        <xbrli:scenario>
+            <xbrldi:explicitMember dimension="fsa:ClassesOfEquityDimension">fsa:ContributedCapitalMember</xbrldi:explicitMember>
+        </xbrli:scenario>
+    </xbrli:context>
+    <xbrli:context id="ID_20">
+        <xbrli:entity>
+            <xbrli:identifier scheme="http://www.dcca.dk/cvr">54399219</xbrli:identifier>
+        </xbrli:entity>
+        <xbrli:period>
+            <xbrli:instant>2022-01-01</xbrli:instant>
+        </xbrli:period>
+        <xbrli:scenario>
+            <xbrldi:explicitMember dimension="fsa:ClassesOfEquityDimension">fsa:ProposedDividendRecognisedInEquityMember</xbrldi:explicitMember>
+        </xbrli:scenario>
+    </xbrli:context>
+    <xbrli:context id="ID_19">
+        <xbrli:entity>
+            <xbrli:identifier scheme="http://www.dcca.dk/cvr">54399219</xbrli:identifier>
+        </xbrli:entity>
+        <xbrli:period>
+            <xbrli:instant>2022-01-01</xbrli:instant>
+        </xbrli:period>
+        <xbrli:scenario>
+            <xbrldi:explicitMember dimension="fsa:ClassesOfEquityDimension">fsa:RetainedEarningsMember</xbrldi:explicitMember>
+        </xbrli:scenario>
+    </xbrli:context>
+    <xbrli:context id="ID_18">
+        <xbrli:entity>
+            <xbrli:identifier scheme="http://www.dcca.dk/cvr">54399219</xbrli:identifier>
+        </xbrli:entity>
+        <xbrli:period>
+            <xbrli:instant>2022-01-01</xbrli:instant>
+        </xbrli:period>
+        <xbrli:scenario>
+            <xbrldi:explicitMember dimension="fsa:ClassesOfEquityDimension">fsa:RevaluationReserveMember</xbrldi:explicitMember>
+        </xbrli:scenario>
+    </xbrli:context>
+    <xbrli:context id="ID_9">
+        <xbrli:entity>
+            <xbrli:identifier scheme="http://www.dcca.dk/cvr">54399219</xbrli:identifier>
+        </xbrli:entity>
+        <xbrli:period>
+            <xbrli:instant>2021-12-31</xbrli:instant>
+        </xbrli:period>
+    </xbrli:context>
+    <xbrli:context id="ID_15">
+        <xbrli:entity>
+            <xbrli:identifier scheme="http://www.dcca.dk/cvr">54399219</xbrli:identifier>
+        </xbrli:entity>
+        <xbrli:period>
+            <xbrli:instant>2021-01-01</xbrli:instant>
+        </xbrli:period>
+    </xbrli:context>
+    <xbrli:unit id="percent">
+        <xbrli:measure>xbrli:pure</xbrli:measure>
+    </xbrli:unit>
+    <xbrli:unit id="decimal">
+        <xbrli:measure>xbrli:pure</xbrli:measure>
+    </xbrli:unit>
+    <xbrli:unit id="DKK">
+        <xbrli:measure>iso4217:DKK</xbrli:measure>
+    </xbrli:unit>
+    <xbrli:unit id="Share">
+        <xbrli:measure>xbrli:shares</xbrli:measure>
+    </xbrli:unit>
+    <arr:AddresseeOfAuditorsReportOnAuditedFinancialStatements contextRef="ID_0" xml:lang="da"> AddresseeOfAuditorsReportOnAuditedFinancialStatements </arr:AddresseeOfAuditorsReportOnAuditedFinancialStatements>
+    <arr:DescriptionOfQualificationsOfAuditedFinancialStatements contextRef="ID_0" xml:lang="da"> DescriptionOfQualificationsOfAuditedFinancialStatements </arr:DescriptionOfQualificationsOfAuditedFinancialStatements>
+    <arr:OpinionOnAuditedFinancialStatements contextRef="ID_0" xml:lang="da">OpinionOnAuditedFinancialStatements </arr:OpinionOnAuditedFinancialStatements>
+    <arr:SignatureOfAuditorsDate contextRef="ID_0" xml:lang="da">2023-03-16</arr:SignatureOfAuditorsDate>
+    <arr:SignatureOfAuditorsPlace contextRef="ID_0" xml:lang="da">SignatureOfAuditorsPlace</arr:SignatureOfAuditorsPlace>
+    <arr:StatementOfAuditorsResponsibilityForAuditAndAuditPerformed contextRef="ID_0" xml:lang="da">StatementOfAuditorsResponsibilityForAuditAndAuditPerformed </arr:StatementOfAuditorsResponsibilityForAuditAndAuditPerformed>
+    <arr:StatementOfExecutiveAndSupervisoryBoardsResponsibilityForFinancialStatements contextRef="ID_0" xml:lang="da">StatementOfExecutiveAndSupervisoryBoardsResponsibilityForFinancialStatements </arr:StatementOfExecutiveAndSupervisoryBoardsResponsibilityForFinancialStatements>
+    <arr:StatementOnManagementsReviewAuditorsReportOnAuditedFinancialStatements contextRef="ID_0" xml:lang="da">StatementOnManagementsReviewAuditorsReportOnAuditedFinancialStatements </arr:StatementOnManagementsReviewAuditorsReportOnAuditedFinancialStatements>
+    <arr:TypeOfBasisForModifiedOpinionOnAuditedFinancialStatements contextRef="ID_0" xml:lang="da">Grundlag for konklusion</arr:TypeOfBasisForModifiedOpinionOnAuditedFinancialStatements>
+    <arr:TypeOfModifiedOpinionOnAuditedFinancialStatements contextRef="ID_0" xml:lang="da">Konklusion</arr:TypeOfModifiedOpinionOnAuditedFinancialStatements>
+    <cmn:IdentificationNumberCvrOfAuditFirm contextRef="ID_1" xml:lang="da">01010101</cmn:IdentificationNumberCvrOfAuditFirm>
+    <cmn:IdentificationNumberOfAuditor contextRef="ID_1" xml:lang="da">mne10101</cmn:IdentificationNumberOfAuditor>
+    <cmn:NameAndSurnameOfAuditor contextRef="ID_1" xml:lang="da">NameAndSurnameOfAuditor</cmn:NameAndSurnameOfAuditor>
+    <cmn:NameAndSurnameOfMemberOfExecutiveBoard contextRef="ID_2" xml:lang="da">NameAndSurnameOfMemberOfExecutiveBoard 1</cmn:NameAndSurnameOfMemberOfExecutiveBoard>
+    <cmn:NameAndSurnameOfMemberOfSupervisoryBoard contextRef="ID_3" xml:lang="da">NameAndSurnameOfMemberOfExecutiveBoard 2</cmn:NameAndSurnameOfMemberOfSupervisoryBoard>
+    <cmn:NameAndSurnameOfMemberOfSupervisoryBoard contextRef="ID_4" xml:lang="da">NameAndSurnameOfMemberOfExecutiveBoard 3</cmn:NameAndSurnameOfMemberOfSupervisoryBoard>
+    <cmn:NameAndSurnameOfMemberOfSupervisoryBoard contextRef="ID_5" xml:lang="da">NameAndSurnameOfMemberOfExecutiveBoard 4</cmn:NameAndSurnameOfMemberOfSupervisoryBoard>
+    <cmn:NameAndSurnameOfMemberOfSupervisoryBoard contextRef="ID_6" xml:lang="da">NameAndSurnameOfMemberOfExecutiveBoard 5</cmn:NameAndSurnameOfMemberOfSupervisoryBoard>
+    <cmn:NameAndSurnameOfMemberOfSupervisoryBoard contextRef="ID_7" xml:lang="da">NameAndSurnameOfMemberOfExecutiveBoard 6</cmn:NameAndSurnameOfMemberOfSupervisoryBoard>
+    <cmn:NameOfAuditFirm contextRef="ID_1" xml:lang="da">NameOfAuditFirm</cmn:NameOfAuditFirm>
+    <cmn:TitleOfMemberOfExecutiveBoard contextRef="ID_2" xml:lang="da">Administrerende direktør</cmn:TitleOfMemberOfExecutiveBoard>
+    <cmn:TitleOfMemberOfSupervisoryBoard contextRef="ID_3" xml:lang="da">Bestyrelsesformand</cmn:TitleOfMemberOfSupervisoryBoard>
+    <cmn:TypeOfAuditorAssistance contextRef="ID_0" xml:lang="da">Independent Auditor’s Report</cmn:TypeOfAuditorAssistance>
+    <fsa:AccountingPoliciesAreUnchangedFromPreviousPeriod contextRef="ID_0" xml:lang="da">true</fsa:AccountingPoliciesAreUnchangedFromPreviousPeriod>
+    <fsa:AcquiredIntangibleAssets contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">8740000</fsa:AcquiredIntangibleAssets>
+    <fsa:AcquiredIntangibleAssets contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">9800000</fsa:AcquiredIntangibleAssets>
+    <fsa:AdjustmentsForDeferredTaxCashFlow contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">48523000</fsa:AdjustmentsForDeferredTaxCashFlow>
+    <fsa:AdjustmentsForDeferredTaxCashFlow contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">1708000</fsa:AdjustmentsForDeferredTaxCashFlow>
+    <fsa:AdjustmentsOfHedgingInstrumentsAtFairValue contextRef="ID_11" xml:lang="da" unitRef="DKK" decimals="-3">0000</fsa:AdjustmentsOfHedgingInstrumentsAtFairValue>
+    <fsa:AdjustmentsOfHedgingInstrumentsAtFairValue contextRef="ID_12" xml:lang="da" unitRef="DKK" decimals="-3">18188000</fsa:AdjustmentsOfHedgingInstrumentsAtFairValue>
+    <fsa:AdjustmentsOfHedgingInstrumentsAtFairValue contextRef="ID_13" xml:lang="da" unitRef="DKK" decimals="-3">-18188000</fsa:AdjustmentsOfHedgingInstrumentsAtFairValue>
+    <fsa:AdjustmentsOfHedgingInstrumentsAtFairValue contextRef="ID_14" xml:lang="da" unitRef="DKK" decimals="-3">0000</fsa:AdjustmentsOfHedgingInstrumentsAtFairValue>
+    <fsa:Assets contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">8858363000</fsa:Assets>
+    <fsa:Assets contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">8160805000</fsa:Assets>
+    <fsa:AverageNumberOfEmployees contextRef="ID_0" xml:lang="da" unitRef="decimal" decimals="0">641</fsa:AverageNumberOfEmployees>
+    <fsa:AverageNumberOfEmployees contextRef="ID_10" xml:lang="da" unitRef="decimal" decimals="0">474</fsa:AverageNumberOfEmployees>
+    <fsa:CashAndCashEquivalents contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">331190000</fsa:CashAndCashEquivalents>
+    <fsa:CashAndCashEquivalents contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">18272000</fsa:CashAndCashEquivalents>
+    <fsa:CashAndCashEquivalentsConcerningCashflowStatement contextRef="ID_15" xml:lang="da" unitRef="DKK" decimals="-3">168580000</fsa:CashAndCashEquivalentsConcerningCashflowStatement>
+    <fsa:CashAndCashEquivalentsConcerningCashflowStatement contextRef="ID_16" xml:lang="da" unitRef="DKK" decimals="-3">300371000</fsa:CashAndCashEquivalentsConcerningCashflowStatement>
+    <fsa:CashAndCashEquivalentsConcerningCashflowStatement contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">513954000</fsa:CashAndCashEquivalentsConcerningCashflowStatement>
+    <fsa:CashAndCashEquivalentsConcerningCashflowStatement contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">300371000</fsa:CashAndCashEquivalentsConcerningCashflowStatement>
+    <fsa:CashFlowsFromUsedInFinancingActivities contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">-31335000</fsa:CashFlowsFromUsedInFinancingActivities>
+    <fsa:CashFlowsFromUsedInFinancingActivities contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">272565000</fsa:CashFlowsFromUsedInFinancingActivities>
+    <fsa:CashFlowsFromUsedInInvestingActivities contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">-75266000</fsa:CashFlowsFromUsedInInvestingActivities>
+    <fsa:CashFlowsFromUsedInInvestingActivities contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">-240807000</fsa:CashFlowsFromUsedInInvestingActivities>
+    <fsa:CashFlowsFromUsedInOperatingActivities contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">320184000</fsa:CashFlowsFromUsedInOperatingActivities>
+    <fsa:CashFlowsFromUsedInOperatingActivities contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">100033000</fsa:CashFlowsFromUsedInOperatingActivities>
+    <fsa:ClassOfReportingEntity contextRef="ID_0" xml:lang="da">Regnskabsklasse C, stor virksomhed</fsa:ClassOfReportingEntity>
+    <fsa:ConclusionOfLeaseObligations contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">-269269000</fsa:ConclusionOfLeaseObligations>
+    <fsa:ConclusionOfLeaseObligations contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">0000</fsa:ConclusionOfLeaseObligations>
+    <fsa:ContributedCapital contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">30000000</fsa:ContributedCapital>
+    <fsa:ContributedCapital contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">30000000</fsa:ContributedCapital>
+    <fsa:CurrentAssets contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">673498000</fsa:CurrentAssets>
+    <fsa:CurrentAssets contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">374421000</fsa:CurrentAssets>
+    <fsa:DateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod contextRef="ID_0">2023-05-09</fsa:DateOfExtraordinaryDividendDistributedAfterEndOfReportingPeriod>
+    <fsa:DecreaseIncreaseInInventories contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">1064000</fsa:DecreaseIncreaseInInventories>
+    <fsa:DecreaseIncreaseInInventories contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">797000</fsa:DecreaseIncreaseInInventories>
+    <fsa:DecreaseIncreaseInReceivables contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">-84430000</fsa:DecreaseIncreaseInReceivables>
+    <fsa:DecreaseIncreaseInReceivables contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">20401000</fsa:DecreaseIncreaseInReceivables>
+    <fsa:DecreaseIncreaseInTradePayables contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">-58397000</fsa:DecreaseIncreaseInTradePayables>
+    <fsa:DecreaseIncreaseInTradePayables contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">10907000</fsa:DecreaseIncreaseInTradePayables>
+    <fsa:DepositsLongtermInvestmentsAndReceivables contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">392000</fsa:DepositsLongtermInvestmentsAndReceivables>
+    <fsa:DepositsLongtermInvestmentsAndReceivables contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">389000</fsa:DepositsLongtermInvestmentsAndReceivables>
+    <fsa:DepreciationAmortisationExpenseAndImpairmentLossesOfPropertyPlantAndEquipmentAndIntangibleAssets contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">95025000</fsa:DepreciationAmortisationExpenseAndImpairmentLossesOfPropertyPlantAndEquipmentAndIntangibleAssets>
+    <fsa:DepreciationAmortisationExpenseAndImpairmentLossesOfPropertyPlantAndEquipmentAndIntangibleAssets contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">78769000</fsa:DepreciationAmortisationExpenseAndImpairmentLossesOfPropertyPlantAndEquipmentAndIntangibleAssets>
+    <fsa:DepreciationAmortisationExpenseAndImpairmentLossesOfPropertyPlantAndEquipmentAndIntangibleAssetsRecognisedInProfitOrLoss contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">95025000</fsa:DepreciationAmortisationExpenseAndImpairmentLossesOfPropertyPlantAndEquipmentAndIntangibleAssetsRecognisedInProfitOrLoss>
+    <fsa:DepreciationAmortisationExpenseAndImpairmentLossesOfPropertyPlantAndEquipmentAndIntangibleAssetsRecognisedInProfitOrLoss contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">78769000</fsa:DepreciationAmortisationExpenseAndImpairmentLossesOfPropertyPlantAndEquipmentAndIntangibleAssetsRecognisedInProfitOrLoss>
+    <fsa:DescriptionMethodsOfRecognitionAndMeasurementBasisForCashFlowsStatement contextRef="ID_0" xml:lang="da">Pengestrømsopgørelsen Pengestrømsopgørelsen viser selskabets pengestrømme for året opdelt på drifts-, investerings- og finansieringsaktivitet, årets forskydning i likvider samt selskabets likvider ved årets begyndelse og slutning. Pengestrøm fra driftsaktiviteten opgøres som årets resultat reguleret for ændring i driftskapitalen og ikke-kontante resultatposter som af- og nedskrivninger og hensatte forpligtelser. Driftskapitalen omfatter omsætningsaktiver minus kortfristede gældsforpligtelser - eksklusive de poster, der indgår i likvider. Pengestrøm fra investeringsaktiviteten omfatter pengestrømme fra køb og salg af immaterielle, materielle og finansielle anlægsaktiver. Pengestrøm fra finansieringsaktiviteten omfatter pengestrømme fra optagelse og tilbagebetaling af langfristede gældsforpligtelser samt ind- og udbetalinger til og fra selskabsdeltagerne. Likvider omfatter likvide beholdninger og kortfristede værdipapirer som uden hindring kan omsættes til likvide beholdninger. , Pengestrømsopgørelsen viser selskabets pengestrømme for året opdelt på drifts-, investerings- og finansieringsaktivitet, årets forskydning i likvider samt selskabets likvider ved årets begyndelse og slutning. Pengestrøm fra driftsaktiviteten opgøres som årets resultat reguleret for ændring i driftskapitalen og ikke-kontante resultatposter som af- og nedskrivninger og hensatte forpligtelser. Driftskapitalen omfatter omsætningsaktiver minus kortfristede gældsforpligtelser - eksklusive de poster, der indgår i likvider. Pengestrøm fra investeringsaktiviteten omfatter pengestrømme fra køb og salg af immaterielle, materielle og finansielle anlægsaktiver. Pengestrøm fra finansieringsaktiviteten omfatter pengestrømme fra optagelse og tilbagebetaling af langfristede gældsforpligtelser samt ind- og udbetalinger til og fra selskabsdeltagerne. </fsa:DescriptionMethodsOfRecognitionAndMeasurementBasisForCashFlowsStatement>
+    <fsa:DescriptionOfGeneralMattersRelatedToRecognitionMeasurementAndChangesInAccountingPolicies contextRef="ID_0" xml:lang="da">Generelt om indregning og måling Regnskabet er udarbejdet med udgangspunkt i det historiske kostprisprincip. Indtægter indregnes i resultatopgørelsen i takt med, at de indtjenes, herunder indregnes værdireguleringer af finansielle aktiver og forpligtelser, der måles til dagsværdi eller amortiseret kostpris. Endvidere indregnes i resultatopgørelsen alle omkostninger, der er afholdt for at opnå årets indtjening, herunder afskrivninger, nedskrivninger og hensatte forpligtelser samt tilbageførsler som følge af ændrede regnskabsmæssige skøn af beløb, der tidligere har været indregnet i resultatopgørelsen. Aktiver indregnes i balancen, når det er sandsynligt, at fremtidige økonomiske fordele vil tilflyde selskabet, og aktivets værdi kan måles pålideligt. Forpligtelser indregnes i balancen, når det er sandsynligt, at fremtidige økonomiske fordele vil fragå selskabet, og forpligtelsens værdi kan måles pålideligt. Ved første indregning måles aktiver og forpligtelser til kostpris. Efterfølgende måles aktiver og forpligtelser som beskrevet for hver enkelt regnskabspost nedenfor. Visse finansielle aktiver og forpligtelser måles til amortiseret kostpris, hvorved der indregnes en konstant effektiv rente over løbetiden. Amortiseret kostpris opgøres som oprindelig kostpris med fradrag af afdrag og tillæg/fradrag af den akkumulerede amortisering af forskellen mellem kostprisen og det nominelle beløb. Herved fordeles kurstab og -gevinst over løbetiden. Ved indregning og måling tages hensyn til gevinster, tab og risici, der fremkommer, inden årsrapporten aflægges, og som be- eller afkræfter forhold, der eksisterede på balancedagen. , Regnskabet er udarbejdet med udgangspunkt i det historiske kostprisprincip. Indtægter indregnes i resultatopgørelsen i takt med, at de indtjenes, herunder indregnes værdireguleringer af finansielle aktiver og forpligtelser, der måles til dagsværdi eller amortiseret kostpris. Endvidere indregnes i resultatopgørelsen alle omkostninger, der er afholdt for at opnå årets indtjening, herunder afskrivninger, nedskrivninger og hensatte forpligtelser samt tilbageførsler som følge af ændrede regnskabsmæssige skøn af beløb, der tidligere har været indregnet i resultatopgørelsen. Aktiver indregnes i balancen, når det er sandsynligt, at fremtidige økonomiske fordele vil tilflyde selskabet, og aktivets værdi kan måles pålideligt. Forpligtelser indregnes i balancen, når det er sandsynligt, at fremtidige økonomiske fordele vil fragå selskabet, og forpligtelsens værdi kan måles pålideligt. Ved første indregning måles aktiver og forpligtelser til kostpris. Efterfølgende måles aktiver og forpligtelser som beskrevet for hver enkelt regnskabspost nedenfor. Visse finansielle aktiver og forpligtelser måles til amortiseret kostpris, hvorved der indregnes en konstant effektiv rente over løbetiden. Amortiseret kostpris opgøres som oprindelig kostpris med fradrag af afdrag og tillæg/fradrag af den akkumulerede amortisering af forskellen mellem kostprisen og det nominelle beløb. Herved fordeles kurstab og -gevinst over løbetiden. Ved indregning og måling tages hensyn til gevinster, tab og risici, der fremkommer, inden årsrapporten aflægges, og som be- eller afkræfter forhold, der eksisterede på balancedagen. </fsa:DescriptionOfGeneralMattersRelatedToRecognitionMeasurementAndChangesInAccountingPolicies>
+    <fsa:DescriptionOfMethodsOfCurrentTaxReceivablesAndLiabilities contextRef="ID_0" xml:lang="da">Aktuelle skatteforpligtelser Aktuelle skatteforpligtelser og tilgodehavende aktuel skat indregnes i balancen som beregnet skat af årets forventede skattepligtige indkomst, reguleret for skat af tidligere års skattepligtige indkomster samt for betalte acontoskatter. , Aktuelle skatteforpligtelser og tilgodehavende aktuel skat indregnes i balancen som beregnet skat af årets forventede skattepligtige indkomst, reguleret for skat af tidligere års skattepligtige indkomster samt for betalte acontoskatter. </fsa:DescriptionOfMethodsOfCurrentTaxReceivablesAndLiabilities>
+    <fsa:DescriptionOfMethodsOfDividends contextRef="ID_0" xml:lang="da">Udbytte Forslag til udbytte for regnskabsåret indregnes som særskilt post under egenkapitalen. Forslag til udbytte indregnes som en forpligtelse på tidspunktet for vedtagelse på generalforsamlingen. </fsa:DescriptionOfMethodsOfDividends>
+    <fsa:DescriptionOfMethodsOfImpairmentLossesAndDepreciation contextRef="ID_0" xml:lang="da">Rettigheder 7-20 år , Der afskrives ikke på grunde. , Kunstværker som ikke erhverves som førstegangshandel måles til kostpris og afskrives ikke. Kunstværker indgår i posten, tekniske anlæg, driftsmateriel og inventar. Fortjeneste eller tab ved afhændelse af immaterielle og materielle anlægsaktiver opgøres som forskellen mellem salgspris med fradrag af salgsomkostninger og den regnskabsmæssige værdi på salgstidspunktet, og indregnes i resultatopgørelsen under andre driftsindtægter eller -omkostninger. , Bygninger 90 år , Af- og nedskrivninger på immaterielle og materielle anlægsaktiver er foretaget ud fra en løbende vurdering af aktivernes brugstid i selskabet. Anlægsaktiverne afskrives lineært på grundlag af kostprisen fratrukket scrapværdi, baseret på følgende vurdering af brugstider og restværdier: , Af- og nedskrivninger på immaterielle og materielle anlægsaktiver Af- og nedskrivninger på immaterielle og materielle anlægsaktiver er foretaget ud fra en løbende vurdering af aktivernes brugstid i selskabet. Anlægsaktiverne afskrives lineært på grundlag af kostprisen fratrukket scrapværdi, baseret på følgende vurdering af brugstider og restværdier: Brugstid Rettigheder 7-20 år Bygninger 90 år Andre anlæg, driftsmateriel og inventar 3-10 år Indretning af lejede lokaler 15-20 år Der afskrives ikke på grunde. Kunstværker som ikke erhverves som førstegangshandel måles til kostpris og afskrives ikke. Kunstværker indgår i posten, tekniske anlæg, driftsmateriel og inventar. Fortjeneste eller tab ved afhændelse af immaterielle og materielle anlægsaktiver opgøres som forskellen mellem salgspris med fradrag af salgsomkostninger og den regnskabsmæssige værdi på salgstidspunktet, og indregnes i resultatopgørelsen under andre driftsindtægter eller -omkostninger. , Andre anlæg, driftsmateriel og inventar 3-10 år , Brugstid Rettigheder 7-20 år Bygninger 90 år Andre anlæg, driftsmateriel og inventar 3-10 år Indretning af lejede lokaler 15-20 år Der afskrives ikke på grunde. , Indretning af lejede lokaler 15-20 år </fsa:DescriptionOfMethodsOfImpairmentLossesAndDepreciation>
+    <fsa:DescriptionOfMethodsOfInvestmentsAsCurrentAssets contextRef="ID_0" xml:lang="da">Værdipapirer Værdipapirer indregnet under omsætningsaktiver, omfatter værdipapirer optaget til handel på et reguleret marked, der måles til dagsværdien på balancedagen. Dagsværdien opgøres på grundlag af den senest noterede salgskurs. Årets ændring i værdipapirernes samlede kursværdi indregnes med ét beløb i resultatopgørelsens finansielle poster. , Værdipapirer indregnet under omsætningsaktiver, omfatter værdipapirer optaget til handel på et reguleret marked, der måles til dagsværdien på balancedagen. Dagsværdien opgøres på grundlag af den senest noterede salgskurs. Årets ændring i værdipapirernes samlede kursværdi indregnes med ét beløb i resultatopgørelsens finansielle poster. </fsa:DescriptionOfMethodsOfInvestmentsAsCurrentAssets>
+    <fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfAssetsAndLiabilities contextRef="ID_0" xml:lang="da">Balancen Immaterielle anlægsaktiver Rettigheder måles til kostpris med fradrag af akkumulerede af- og nedskrivninger. Materielle anlægsaktiver Materielle anlægsaktiver måles ved første indregning til kostpris og efterfølgende til kostpris med fradrag af akkumulerede af- og nedskrivninger. Der afskrives ikke på grunde. Afskrivningsgrundlaget opgøres under hensyntagen til aktivets restværdi efter afsluttet brugstid og reduceres med eventuelle nedskrivninger. Afskrivningsperioden og restværdien fastsættes på anskaffelsestidspunktet. Overstiger restværdien aktivets regnskabsmæssige værdi, ophører afskrivning. Ved ændring i afskrivningsperioden eller restværdien indregnes virkningen for afskrivninger fremadrettet som en ændring i regnskabsmæssigt skøn. Kostpris omfatter anskaffelsesprisen og omkostninger direkte tilknyttet anskaffelsen indtil det tidspunkt, hvor aktivet er klart til at blive taget i brug. For egen fremstillede aktiver omfatter kostprisen omkostninger til materialer, komponenter, underleverandører, direkte lønforbrug samt indirekte produktionsomkostninger. Kostprisen på et samlet aktiv opdeles i separate bestanddele, der afskrives hver for sig, hvis brugstiden på de enkelte bestanddele er forskellig. Kostprisen for egenproducerede anlægsaktiver omfatter løn- og materialeomkostninger mv., der direkte er medgået til produktionen samt en andel af de produktionsomkostninger, der indirekte kan henføres hertil. Desuden indregnes renteomkostninger på lån til finansiering af fremstillingen af sådanne aktiver, og som vedrører fremstillingsperioden, i kostprisen. På hotelejendomme indhentes hvert år ekstern vurdering, som danner grundlag for ledelsens vurdering af dagsværdi. Opskrivninger og tilbageførsler heraf med fradrag af udskudt skat indregnes direkte i egenkapitalen. Deposita Deposita måles til anskaffelsespris. Varebeholdninger Handelsvarer måles til kostpris, hvilket omfatter anskaffelsespris med tillæg af hjemtagelsesomkostninger. Tilgodehavender Tilgodehavender måles til amortiseret kostpris, hvilket sædvanligvis svarer til nominel værdi. Værdien reduceres med nedskrivning til imødegåelse af forventede tab. Periodeafgrænsningsposter, aktiver Periodeafgrænsningsposter indregnet under aktiver omfatter afholdte omkostninger vedrørende efterfølgende regnskabsår. Værdipapirer Værdipapirer indregnet under omsætningsaktiver, omfatter værdipapirer optaget til handel på et reguleret marked, der måles til dagsværdien på balancedagen. Dagsværdien opgøres på grundlag af den senest noterede salgskurs. Årets ændring i værdipapirernes samlede kursværdi indregnes med ét beløb i resultatopgørelsens finansielle poster. Likvider Likvider omfatter likvide beholdninger og kortfristede værdipapirer, som uden hindring kan omsættes til likvide beholdninger, og hvorpå der kun er ubetydelige risici for værdiændringer. Egenkapital Egenkapitalen omfatter virksomhedskapitalen og en række øvrige egenkapitalposter, der kan være lovbestemte eller fastsat i vedtægterne. Udbytte Forslag til udbytte for regnskabsåret indregnes som særskilt post under egenkapitalen. Forslag til udbytte indregnes som en forpligtelse på tidspunktet for vedtagelse på generalforsamlingen. Hensatte forpligtelser Udskudt skat Udskudt skat og årets regulering heraf opgøres som skatten af alle midlertidige forskelle mellem regnskabsmæssig og skattemæssig værdi af aktiver og forpligtelser opgjort på grundlag af den planlagte anvendelse af aktivet eller afvikling af forpligtelsen. Udskudte skatteaktiver, herunder skatteværdien af fremførselsberettigede skattemæssige underskud, indregnes med den værdi, hvortil de forventes at blive anvendt, enten ved udligning i skat af fremtidig indtjening eller ved modregning i udskudte skatteforpligtelser i selskaber inden for samme juridiske skatteenhed og jurisdiktion. Udskudt skat måles på grundlag af de skatteregler og skattesatser, der med balancedagens lovgivning vil være gældende, når den udskudte skat forventes udløst som aktuel skat. Ændring i udskudt skat som følge af ændringer i skattesatser indregnes i resultatopgørelsen. Aktuelle skatteforpligtelser Aktuelle skatteforpligtelser og tilgodehavende aktuel skat indregnes i balancen som beregnet skat af årets forventede skattepligtige indkomst, reguleret for skat af tidligere års skattepligtige indkomster samt for betalte acontoskatter. Gældsforpligtelser Fastforrentede lån som realkreditlån og lån hos kreditinstitutter indregnes ved låneoptagelsen til det modtagne provenu med fradrag af afholdte transaktionsomkostninger. I efterfølgende år måles lånene til amortiseret kostpris, hvilket svarer til nominel værdi i henhold til låneafvikling med kreditinstitutter. Anden gæld Andre gældsforpligtelser måles til amortiseret kostpris, hvilket sædvanligvis svarer til nominel værdi. Periodeafgrænsningsposter, passiver Periodeafgræsningsposter opført som forpligtelser udgøres af modtagne betalinger vedrørende indtægter i de efterfølgende regnskabsår. Eventualaktiver og -forpligtelser Eventualaktiver og -forpligtelser indregnes ikke i balancen, men oplyses alene i noterne. Pengestrømsopgørelsen Pengestrømsopgørelsen viser selskabets pengestrømme for året opdelt på drifts-, investerings- og finansieringsaktivitet, årets forskydning i likvider samt selskabets likvider ved årets begyndelse og slutning. Pengestrøm fra driftsaktiviteten opgøres som årets resultat reguleret for ændring i driftskapitalen og ikke-kontante resultatposter som af- og nedskrivninger og hensatte forpligtelser. Driftskapitalen omfatter omsætningsaktiver minus kortfristede gældsforpligtelser - eksklusive de poster, der indgår i likvider. Pengestrøm fra investeringsaktiviteten omfatter pengestrømme fra køb og salg af immaterielle, materielle og finansielle anlægsaktiver. Pengestrøm fra finansieringsaktiviteten omfatter pengestrømme fra optagelse og tilbagebetaling af langfristede gældsforpligtelser samt ind- og udbetalinger til og fra selskabsdeltagerne. Likvider omfatter likvide beholdninger og kortfristede værdipapirer som uden hindring kan omsættes til likvide beholdninger. </fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfAssetsAndLiabilities>
+    <fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfCashAndCashEquivalents contextRef="ID_0" xml:lang="da">Likvider Likvider omfatter likvide beholdninger og kortfristede værdipapirer, som uden hindring kan omsættes til likvide beholdninger, og hvorpå der kun er ubetydelige risici for værdiændringer., Likvider omfatter likvide beholdninger og kortfristede værdipapirer, som uden hindring kan omsættes til likvide beholdninger, og hvorpå der kun er ubetydelige risici for værdiændringer.</fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfCashAndCashEquivalents>
+    <fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfDeferredIncomeAssets contextRef="ID_0" xml:lang="da">Periodeafgrænsningsposter indregnet under aktiver omfatter afholdte omkostninger vedrørende efterfølgende regnskabsår. , Periodeafgrænsningsposter, aktiver Periodeafgrænsningsposter indregnet under aktiver omfatter afholdte omkostninger vedrørende efterfølgende regnskabsår. </fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfDeferredIncomeAssets>
+    <fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfDeferredIncomeLiabilities contextRef="ID_0" xml:lang="da">Periodeafgrænsningsposter, passiver Periodeafgræsningsposter opført som forpligtelser udgøres af modtagne betalinger vedrørende indtægter i de efterfølgende regnskabsår. , Periodeafgræsningsposter opført som forpligtelser udgøres af modtagne betalinger vedrørende indtægter i de efterfølgende regnskabsår. </fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfDeferredIncomeLiabilities>
+    <fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfEmployeeBenefitExpense contextRef="ID_0" xml:lang="da">Personaleomkostninger Personaleomkostninger omfatter lønninger og øvrige lønrelaterede omkostninger, herunder feriepenge og pensioner samt andre omkostninger til social sikring mv. til selskabets medarbejdere. I personaleomkostninger er fratrukket modtagne godtgørelser fra offentlige myndigheder. Andre personaleomkostninger indregnes under andre eksterne omkostninger. , Andre personaleomkostninger indregnes under andre eksterne omkostninger. , Personaleomkostninger omfatter lønninger og øvrige lønrelaterede omkostninger, herunder feriepenge og pensioner samt andre omkostninger til social sikring mv. til selskabets medarbejdere. I personaleomkostninger er fratrukket modtagne godtgørelser fra offentlige myndigheder. </fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfEmployeeBenefitExpense>
+    <fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfEquity contextRef="ID_0" xml:lang="da">Egenkapital Egenkapitalen omfatter virksomhedskapitalen og en række øvrige egenkapitalposter, der kan være lovbestemte eller fastsat i vedtægterne. , Egenkapital Egenkapitalen omfatter virksomhedskapitalen og en række øvrige egenkapitalposter, der kan være lovbestemte eller fastsat i vedtægterne. Udbytte Forslag til udbytte for regnskabsåret indregnes som særskilt post under egenkapitalen. Forslag til udbytte indregnes som en forpligtelse på tidspunktet for vedtagelse på generalforsamlingen. </fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfEquity>
+    <fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfExternalExpenses contextRef="ID_0" xml:lang="da">Andre eksterne omkostninger Andre eksterne omkostninger omfatter omkostninger til salg,reklame, administration, lokaler mv. , Eksterne omkostninger Omkostninger til råvarer og hjælpematerialer Omkostninger til råvarer og hjælpematerialer omfatter køb af varer og ydelser med henblik på videresalg heraf. Andre eksterne omkostninger Andre eksterne omkostninger omfatter omkostninger til salg,reklame, administration, lokaler mv. , Andre eksterne omkostninger omfatter omkostninger til salg,reklame, administration, lokaler mv. </fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfExternalExpenses>
+    <fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfFinanceIncomeAndExpenses contextRef="ID_0" xml:lang="da">Finansielle indtægter og omkostninger Finansielle indtægter og omkostninger indregnes i resultatopgørelsen med de beløb, der vedrører regnskabsåret. Finansielle poster omfatter renteindtægter og -omkostninger, finansielle omkostninger ved finansiel leasing, realiserede og urealiserede kursgevinster og -tab vedrørende værdipapirer, gæld og transaktioner i fremmed valuta, amortisering af realkreditlån samt tillæg og godtgørelser under acontoskatteordningen mv. , Finansielle indtægter og omkostninger indregnes i resultatopgørelsen med de beløb, der vedrører regnskabsåret. Finansielle poster omfatter renteindtægter og -omkostninger, finansielle omkostninger ved finansiel leasing, realiserede og urealiserede kursgevinster og -tab vedrørende værdipapirer, gæld og transaktioner i fremmed valuta, amortisering af realkreditlån samt tillæg og godtgørelser under acontoskatteordningen mv. </fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfFinanceIncomeAndExpenses>
+    <fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfIncomeStatementItems contextRef="ID_0" xml:lang="da">Resultatopgørelsen Nettoomsætning Indtægter ved salg af værelser, lokaleudlejning, restaurationsomsætning m.v. indregnes i resultatopgørelsen på tidspunktet for levering og risikoens overgang, såfremt indtægten kan opgøres pålideligt. Omsætningen opgøres efter fradrag af moms, afgifter og rabatter. Andre driftsindtægter Andre driftsindtægter omfatter regnskabsposter af sekundær karakter i forhold til selskabets hovedaktiviteter, herunder fortjeneste ved salg af immaterielle og materielle anlægsaktiver. Eksterne omkostninger Omkostninger til råvarer og hjælpematerialer Omkostninger til råvarer og hjælpematerialer omfatter køb af varer og ydelser med henblik på videresalg heraf. Andre eksterne omkostninger Andre eksterne omkostninger omfatter omkostninger til salg,reklame, administration, lokaler mv. Personaleomkostninger Personaleomkostninger omfatter lønninger og øvrige lønrelaterede omkostninger, herunder feriepenge og pensioner samt andre omkostninger til social sikring mv. til selskabets medarbejdere. I personaleomkostninger er fratrukket modtagne godtgørelser fra offentlige myndigheder. Andre personaleomkostninger indregnes under andre eksterne omkostninger. Af- og nedskrivninger på immaterielle og materielle anlægsaktiver Af- og nedskrivninger på immaterielle og materielle anlægsaktiver er foretaget ud fra en løbende vurdering af aktivernes brugstid i selskabet. Anlægsaktiverne afskrives lineært på grundlag af kostprisen fratrukket scrapværdi, baseret på følgende vurdering af brugstider og restværdier: Brugstid Rettigheder 7-20 år Bygninger 90 år Andre anlæg, driftsmateriel og inventar 3-10 år Indretning af lejede lokaler 15-20 år Der afskrives ikke på grunde. Kunstværker som ikke erhverves som førstegangshandel måles til kostpris og afskrives ikke. Kunstværker indgår i posten, tekniske anlæg, driftsmateriel og inventar. Fortjeneste eller tab ved afhændelse af immaterielle og materielle anlægsaktiver opgøres som forskellen mellem salgspris med fradrag af salgsomkostninger og den regnskabsmæssige værdi på salgstidspunktet, og indregnes i resultatopgørelsen under andre driftsindtægter eller -omkostninger. Andre driftsomkostninger Andre driftsomkostninger indeholder regnskabsposter af sekundær karakter i forhold til virksomhedens væsentlige aktiviteter, herunder tab ved salg af immaterielle og materielle anlægsaktiver. Finansielle indtægter og omkostninger Finansielle indtægter og omkostninger indregnes i resultatopgørelsen med de beløb, der vedrører regnskabsåret. Finansielle poster omfatter renteindtægter og -omkostninger, finansielle omkostninger ved finansiel leasing, realiserede og urealiserede kursgevinster og -tab vedrørende værdipapirer, gæld og transaktioner i fremmed valuta, amortisering af realkreditlån samt tillæg og godtgørelser under acontoskatteordningen mv. Skat af årets resultat Skat af årets resultat omfatter aktuel skat af årets forventede skattepligtige indkomst og årets regulering af udskudt skat med fradrag af den del af årets skat, der vedrører egenkapitalbevægelser. Aktuel og udskudt skat vedrørende egenkapitalbevægelser indregnes direkte i egenkapitalen. Selskabet er omfattet af de danske regler om tvungen sambeskatning af moderselskabet og de danske datterselskaber. Den danske selskabsskat fordeles mellem overskuds- og underskudsgivende danske selskaber i forhold til disses skattepligtige indkomst. Selskaber med skattemæssige underskud modtager sambeskatningsbidrag fra selskaber, som har kunnet anvende det aktuelle underskud (fuld fordeling). </fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfIncomeStatementItems>
+    <fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfIntangibleAssets contextRef="ID_0" xml:lang="da">Immaterielle anlægsaktiver Rettigheder måles til kostpris med fradrag af akkumulerede af- og nedskrivninger. , Rettigheder måles til kostpris med fradrag af akkumulerede af- og nedskrivninger. </fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfIntangibleAssets>
+    <fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfInventories contextRef="ID_0" xml:lang="da">Handelsvarer måles til kostpris, hvilket omfatter anskaffelsespris med tillæg af hjemtagelsesomkostninger. , Varebeholdninger Handelsvarer måles til kostpris, hvilket omfatter anskaffelsespris med tillæg af hjemtagelsesomkostninger. </fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfInventories>
+    <fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfInvestments contextRef="ID_0" xml:lang="da">Deposita Deposita måles til anskaffelsespris. , Deposita Deposita måles til anskaffelsespris. </fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfInvestments>
+    <fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfLiabilitiesOtherThanProvisions contextRef="ID_0" xml:lang="da">Andre gældsforpligtelser måles til amortiseret kostpris, hvilket sædvanligvis svarer til nominel værdi. , Gældsforpligtelser Fastforrentede lån som realkreditlån og lån hos kreditinstitutter indregnes ved låneoptagelsen til det modtagne provenu med fradrag af afholdte transaktionsomkostninger. I efterfølgende år måles lånene til amortiseret kostpris, hvilket svarer til nominel værdi i henhold til låneafvikling med kreditinstitutter. , Eventualaktiver og -forpligtelser Eventualaktiver og -forpligtelser indregnes ikke i balancen, men oplyses alene i noterne. , Anden gæld Andre gældsforpligtelser måles til amortiseret kostpris, hvilket sædvanligvis svarer til nominel værdi. , Fastforrentede lån som realkreditlån og lån hos kreditinstitutter indregnes ved låneoptagelsen til det modtagne provenu med fradrag af afholdte transaktionsomkostninger. I efterfølgende år måles lånene til amortiseret kostpris, hvilket svarer til nominel værdi i henhold til låneafvikling med kreditinstitutter. </fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfLiabilitiesOtherThanProvisions>
+    <fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfOtherOperatingIncome contextRef="ID_0" xml:lang="da">Andre driftsomkostninger indeholder regnskabsposter af sekundær karakter i forhold til virksomhedens væsentlige aktiviteter, herunder tab ved salg af immaterielle og materielle anlægsaktiver. , Andre driftsomkostninger Andre driftsomkostninger indeholder regnskabsposter af sekundær karakter i forhold til virksomhedens væsentlige aktiviteter, herunder tab ved salg af immaterielle og materielle anlægsaktiver. </fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfOtherOperatingIncome>
+    <fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfOtherOperatingIncomeAndExpenses contextRef="ID_0" xml:lang="da">Andre driftsindtægter omfatter regnskabsposter af sekundær karakter i forhold til selskabets hovedaktiviteter, herunder fortjeneste ved salg af immaterielle og materielle anlægsaktiver. , Andre driftsindtægter Andre driftsindtægter omfatter regnskabsposter af sekundær karakter i forhold til selskabets hovedaktiviteter, herunder fortjeneste ved salg af immaterielle og materielle anlægsaktiver. </fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfOtherOperatingIncomeAndExpenses>
+    <fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfPropertyPlantAndEquipment contextRef="ID_0" xml:lang="da">Materielle anlægsaktiver måles ved første indregning til kostpris og efterfølgende til kostpris med fradrag af akkumulerede af- og nedskrivninger. Der afskrives ikke på grunde. Afskrivningsgrundlaget opgøres under hensyntagen til aktivets restværdi efter afsluttet brugstid og reduceres med eventuelle nedskrivninger. Afskrivningsperioden og restværdien fastsættes på anskaffelsestidspunktet. Overstiger restværdien aktivets regnskabsmæssige værdi, ophører afskrivning. Ved ændring i afskrivningsperioden eller restværdien indregnes virkningen for afskrivninger fremadrettet som en ændring i regnskabsmæssigt skøn. Kostpris omfatter anskaffelsesprisen og omkostninger direkte tilknyttet anskaffelsen indtil det tidspunkt, hvor aktivet er klart til at blive taget i brug. For egen fremstillede aktiver omfatter kostprisen omkostninger til materialer, komponenter, underleverandører, direkte lønforbrug samt indirekte produktionsomkostninger. Kostprisen på et samlet aktiv opdeles i separate bestanddele, der afskrives hver for sig, hvis brugstiden på de enkelte bestanddele er forskellig. , På hotelejendomme indhentes hvert år ekstern vurdering, som danner grundlag for ledelsens vurdering af dagsværdi. Opskrivninger og tilbageførsler heraf med fradrag af udskudt skat indregnes direkte i egenkapitalen. , Materielle anlægsaktiver Materielle anlægsaktiver måles ved første indregning til kostpris og efterfølgende til kostpris med fradrag af akkumulerede af- og nedskrivninger. Der afskrives ikke på grunde. Afskrivningsgrundlaget opgøres under hensyntagen til aktivets restværdi efter afsluttet brugstid og reduceres med eventuelle nedskrivninger. Afskrivningsperioden og restværdien fastsættes på anskaffelsestidspunktet. Overstiger restværdien aktivets regnskabsmæssige værdi, ophører afskrivning. Ved ændring i afskrivningsperioden eller restværdien indregnes virkningen for afskrivninger fremadrettet som en ændring i regnskabsmæssigt skøn. Kostpris omfatter anskaffelsesprisen og omkostninger direkte tilknyttet anskaffelsen indtil det tidspunkt, hvor aktivet er klart til at blive taget i brug. For egen fremstillede aktiver omfatter kostprisen omkostninger til materialer, komponenter, underleverandører, direkte lønforbrug samt indirekte produktionsomkostninger. Kostprisen på et samlet aktiv opdeles i separate bestanddele, der afskrives hver for sig, hvis brugstiden på de enkelte bestanddele er forskellig. Kostprisen for egenproducerede anlægsaktiver omfatter løn- og materialeomkostninger mv., der direkte er medgået til produktionen samt en andel af de produktionsomkostninger, der indirekte kan henføres hertil. Desuden indregnes renteomkostninger på lån til finansiering af fremstillingen af sådanne aktiver, og som vedrører fremstillingsperioden, i kostprisen. På hotelejendomme indhentes hvert år ekstern vurdering, som danner grundlag for ledelsens vurdering af dagsværdi. Opskrivninger og tilbageførsler heraf med fradrag af udskudt skat indregnes direkte i egenkapitalen. , Kostprisen for egenproducerede anlægsaktiver omfatter løn- og materialeomkostninger mv., der direkte er medgået til produktionen samt en andel af de produktionsomkostninger, der indirekte kan henføres hertil. , Desuden indregnes renteomkostninger på lån til finansiering af fremstillingen af sådanne aktiver, og som vedrører fremstillingsperioden, i kostprisen. </fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfPropertyPlantAndEquipment>
+    <fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfProvisions contextRef="ID_0" xml:lang="da">Udskudt skat Udskudt skat og årets regulering heraf opgøres som skatten af alle midlertidige forskelle mellem regnskabsmæssig og skattemæssig værdi af aktiver og forpligtelser opgjort på grundlag af den planlagte anvendelse af aktivet eller afvikling af forpligtelsen. Udskudte skatteaktiver, herunder skatteværdien af fremførselsberettigede skattemæssige underskud, indregnes med den værdi, hvortil de forventes at blive anvendt, enten ved udligning i skat af fremtidig indtjening eller ved modregning i udskudte skatteforpligtelser i selskaber inden for samme juridiske skatteenhed og jurisdiktion. Udskudt skat måles på grundlag af de skatteregler og skattesatser, der med balancedagens lovgivning vil være gældende, når den udskudte skat forventes udløst som aktuel skat. Ændring i udskudt skat som følge af ændringer i skattesatser indregnes i resultatopgørelsen. , Hensatte forpligtelser Udskudt skat Udskudt skat og årets regulering heraf opgøres som skatten af alle midlertidige forskelle mellem regnskabsmæssig og skattemæssig værdi af aktiver og forpligtelser opgjort på grundlag af den planlagte anvendelse af aktivet eller afvikling af forpligtelsen. Udskudte skatteaktiver, herunder skatteværdien af fremførselsberettigede skattemæssige underskud, indregnes med den værdi, hvortil de forventes at blive anvendt, enten ved udligning i skat af fremtidig indtjening eller ved modregning i udskudte skatteforpligtelser i selskaber inden for samme juridiske skatteenhed og jurisdiktion. Udskudt skat måles på grundlag af de skatteregler og skattesatser, der med balancedagens lovgivning vil være gældende, når den udskudte skat forventes udløst som aktuel skat. Ændring i udskudt skat som følge af ændringer i skattesatser indregnes i resultatopgørelsen. </fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfProvisions>
+    <fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfReceivables contextRef="ID_0" xml:lang="da">Tilgodehavender Tilgodehavender måles til amortiseret kostpris, hvilket sædvanligvis svarer til nominel værdi. Værdien reduceres med nedskrivning til imødegåelse af forventede tab. , Tilgodehavender måles til amortiseret kostpris, hvilket sædvanligvis svarer til nominel værdi. Værdien reduceres med nedskrivning til imødegåelse af forventede tab. </fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfReceivables>
+    <fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfRevenue contextRef="ID_0" xml:lang="da">Indtægter ved salg af værelser, lokaleudlejning, restaurationsomsætning m.v. indregnes i resultatopgørelsen på tidspunktet for levering og risikoens overgang, såfremt indtægten kan opgøres pålideligt. Omsætningen opgøres efter fradrag af moms, afgifter og rabatter. , Nettoomsætning Indtægter ved salg af værelser, lokaleudlejning, restaurationsomsætning m.v. indregnes i resultatopgørelsen på tidspunktet for levering og risikoens overgang, såfremt indtægten kan opgøres pålideligt. Omsætningen opgøres efter fradrag af moms, afgifter og rabatter. </fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfRevenue>
+    <fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfTaxExpenses contextRef="ID_0" xml:lang="da">Skat af årets resultat omfatter aktuel skat af årets forventede skattepligtige indkomst og årets regulering af udskudt skat med fradrag af den del af årets skat, der vedrører egenkapitalbevægelser. Aktuel og udskudt skat vedrørende egenkapitalbevægelser indregnes direkte i egenkapitalen. Selskabet er omfattet af de danske regler om tvungen sambeskatning af moderselskabet og de danske datterselskaber. Den danske selskabsskat fordeles mellem overskuds- og underskudsgivende danske selskaber i forhold til disses skattepligtige indkomst. Selskaber med skattemæssige underskud modtager sambeskatningsbidrag fra selskaber, som har kunnet anvende det aktuelle underskud (fuld fordeling). , Skat af årets resultat Skat af årets resultat omfatter aktuel skat af årets forventede skattepligtige indkomst og årets regulering af udskudt skat med fradrag af den del af årets skat, der vedrører egenkapitalbevægelser. Aktuel og udskudt skat vedrørende egenkapitalbevægelser indregnes direkte i egenkapitalen. Selskabet er omfattet af de danske regler om tvungen sambeskatning af moderselskabet og de danske datterselskaber. Den danske selskabsskat fordeles mellem overskuds- og underskudsgivende danske selskaber i forhold til disses skattepligtige indkomst. Selskaber med skattemæssige underskud modtager sambeskatningsbidrag fra selskaber, som har kunnet anvende det aktuelle underskud (fuld fordeling). </fsa:DescriptionOfMethodsOfRecognitionAndMeasurementBasisOfTaxExpenses>
+    <fsa:DescriptionOfMethodsOfTranslationOfForeignCurrencies contextRef="ID_0" xml:lang="da">Omregning af fremmed valuta Transaktioner i fremmed valuta omregnes ved første indregning til transaktionsdagens kurs. Valutakursdifferencer, der opstår mellem transaktionsdagens kurs og kursen på betalingsdagen, indregnes i resultatopgørelsen som en finansiel post. Tilgodehavender, gæld og andre monetære aktiver og forpligtelser i fremmed valuta omregnes til balancedagens valutakurs. Realiserede og urealiserede valutakursgevinster og -tab indgår i resultatopgørelsen under finansielle poster. </fsa:DescriptionOfMethodsOfTranslationOfForeignCurrencies>
+    <fsa:DescriptionOfRawMaterialsAndConsumablesUsed contextRef="ID_0" xml:lang="da">Omkostninger til råvarer og hjælpematerialer Omkostninger til råvarer og hjælpematerialer omfatter køb af varer og ydelser med henblik på videresalg heraf. , Omkostninger til råvarer og hjælpematerialer omfatter køb af varer og ydelser med henblik på videresalg heraf. </fsa:DescriptionOfRawMaterialsAndConsumablesUsed>
+    <fsa:DisclosureOfAccountingPolicies contextRef="ID_0" xml:lang="da">Generelt Årsrapporten for Arp-Hansen Hotel Group A/S for 2022 er aflagt i overensstemmelse med årsregnskabslovens bestemmelser for store virksomheder i regnskabsklasse C. Den anvendte regnskabspraksis er uændret i forhold til tidligere år. Rapporteringsvaluta Årsrapporten er aflagt i danske kroner. Omregning af fremmed valuta Transaktioner i fremmed valuta omregnes ved første indregning til transaktionsdagens kurs. Valutakursdifferencer, der opstår mellem transaktionsdagens kurs og kursen på betalingsdagen, indregnes i resultatopgørelsen som en finansiel post. Tilgodehavender, gæld og andre monetære aktiver og forpligtelser i fremmed valuta omregnes til balancedagens valutakurs. Realiserede og urealiserede valutakursgevinster og -tab indgår i resultatopgørelsen under finansielle poster. Generelt Generelt om indregning og måling Regnskabet er udarbejdet med udgangspunkt i det historiske kostprisprincip. Indtægter indregnes i resultatopgørelsen i takt med, at de indtjenes, herunder indregnes værdireguleringer af finansielle aktiver og forpligtelser, der måles til dagsværdi eller amortiseret kostpris. Endvidere indregnes i resultatopgørelsen alle omkostninger, der er afholdt for at opnå årets indtjening, herunder afskrivninger, nedskrivninger og hensatte forpligtelser samt tilbageførsler som følge af ændrede regnskabsmæssige skøn af beløb, der tidligere har været indregnet i resultatopgørelsen. Aktiver indregnes i balancen, når det er sandsynligt, at fremtidige økonomiske fordele vil tilflyde selskabet, og aktivets værdi kan måles pålideligt. Forpligtelser indregnes i balancen, når det er sandsynligt, at fremtidige økonomiske fordele vil fragå selskabet, og forpligtelsens værdi kan måles pålideligt. Ved første indregning måles aktiver og forpligtelser til kostpris. Efterfølgende måles aktiver og forpligtelser som beskrevet for hver enkelt regnskabspost nedenfor. Visse finansielle aktiver og forpligtelser måles til amortiseret kostpris, hvorved der indregnes en konstant effektiv rente over løbetiden. Amortiseret kostpris opgøres som oprindelig kostpris med fradrag af afdrag og tillæg/fradrag af den akkumulerede amortisering af forskellen mellem kostprisen og det nominelle beløb. Herved fordeles kurstab og -gevinst over løbetiden. Ved indregning og måling tages hensyn til gevinster, tab og risici, der fremkommer, inden årsrapporten aflægges, og som be- eller afkræfter forhold, der eksisterede på balancedagen. Resultatopgørelsen Nettoomsætning Indtægter ved salg af værelser, lokaleudlejning, restaurationsomsætning m.v. indregnes i resultatopgørelsen på tidspunktet for levering og risikoens overgang, såfremt indtægten kan opgøres pålideligt. Omsætningen opgøres efter fradrag af moms, afgifter og rabatter. Andre driftsindtægter Andre driftsindtægter omfatter regnskabsposter af sekundær karakter i forhold til selskabets hovedaktiviteter, herunder fortjeneste ved salg af immaterielle og materielle anlægsaktiver. Eksterne omkostninger Omkostninger til råvarer og hjælpematerialer Omkostninger til råvarer og hjælpematerialer omfatter køb af varer og ydelser med henblik på videresalg heraf. Andre eksterne omkostninger Andre eksterne omkostninger omfatter omkostninger til salg,reklame, administration, lokaler mv. Personaleomkostninger Personaleomkostninger omfatter lønninger og øvrige lønrelaterede omkostninger, herunder feriepenge og pensioner samt andre omkostninger til social sikring mv. til selskabets medarbejdere. I personaleomkostninger er fratrukket modtagne godtgørelser fra offentlige myndigheder. Andre personaleomkostninger indregnes under andre eksterne omkostninger. Af- og nedskrivninger på immaterielle og materielle anlægsaktiver Af- og nedskrivninger på immaterielle og materielle anlægsaktiver er foretaget ud fra en løbende vurdering af aktivernes brugstid i selskabet. Anlægsaktiverne afskrives lineært på grundlag af kostprisen fratrukket scrapværdi, baseret på følgende vurdering af brugstider og restværdier: Brugstid Rettigheder 7-20 år Bygninger 90 år Andre anlæg, driftsmateriel og inventar 3-10 år Indretning af lejede lokaler 15-20 år Der afskrives ikke på grunde. Kunstværker som ikke erhverves som førstegangshandel måles til kostpris og afskrives ikke. Kunstværker indgår i posten, tekniske anlæg, driftsmateriel og inventar. Fortjeneste eller tab ved afhændelse af immaterielle og materielle anlægsaktiver opgøres som forskellen mellem salgspris med fradrag af salgsomkostninger og den regnskabsmæssige værdi på salgstidspunktet, og indregnes i resultatopgørelsen under andre driftsindtægter eller -omkostninger. Andre driftsomkostninger Andre driftsomkostninger indeholder regnskabsposter af sekundær karakter i forhold til virksomhedens væsentlige aktiviteter, herunder tab ved salg af immaterielle og materielle anlægsaktiver. Finansielle indtægter og omkostninger Finansielle indtægter og omkostninger indregnes i resultatopgørelsen med de beløb, der vedrører regnskabsåret. Finansielle poster omfatter renteindtægter og -omkostninger, finansielle omkostninger ved finansiel leasing, realiserede og urealiserede kursgevinster og -tab vedrørende værdipapirer, gæld og transaktioner i fremmed valuta, amortisering af realkreditlån samt tillæg og godtgørelser under acontoskatteordningen mv. Skat af årets resultat Skat af årets resultat omfatter aktuel skat af årets forventede skattepligtige indkomst og årets regulering af udskudt skat med fradrag af den del af årets skat, der vedrører egenkapitalbevægelser. Aktuel og udskudt skat vedrørende egenkapitalbevægelser indregnes direkte i egenkapitalen. Selskabet er omfattet af de danske regler om tvungen sambeskatning af moderselskabet og de danske datterselskaber. Den danske selskabsskat fordeles mellem overskuds- og underskudsgivende danske selskaber i forhold til disses skattepligtige indkomst. Selskaber med skattemæssige underskud modtager sambeskatningsbidrag fra selskaber, som har kunnet anvende det aktuelle underskud (fuld fordeling). Balancen Immaterielle anlægsaktiver Rettigheder måles til kostpris med fradrag af akkumulerede af- og nedskrivninger. Materielle anlægsaktiver Materielle anlægsaktiver måles ved første indregning til kostpris og efterfølgende til kostpris med fradrag af akkumulerede af- og nedskrivninger. Der afskrives ikke på grunde. Afskrivningsgrundlaget opgøres under hensyntagen til aktivets restværdi efter afsluttet brugstid og reduceres med eventuelle nedskrivninger. Afskrivningsperioden og restværdien fastsættes på anskaffelsestidspunktet. Overstiger restværdien aktivets regnskabsmæssige værdi, ophører afskrivning. Ved ændring i afskrivningsperioden eller restværdien indregnes virkningen for afskrivninger fremadrettet som en ændring i regnskabsmæssigt skøn. Kostpris omfatter anskaffelsesprisen og omkostninger direkte tilknyttet anskaffelsen indtil det tidspunkt, hvor aktivet er klart til at blive taget i brug. For egen fremstillede aktiver omfatter kostprisen omkostninger til materialer, komponenter, underleverandører, direkte lønforbrug samt indirekte produktionsomkostninger. Kostprisen på et samlet aktiv opdeles i separate bestanddele, der afskrives hver for sig, hvis brugstiden på de enkelte bestanddele er forskellig. Kostprisen for egenproducerede anlægsaktiver omfatter løn- og materialeomkostninger mv., der direkte er medgået til produktionen samt en andel af de produktionsomkostninger, der indirekte kan henføres hertil. Desuden indregnes renteomkostninger på lån til finansiering af fremstillingen af sådanne aktiver, og som vedrører fremstillingsperioden, i kostprisen. På hotelejendomme indhentes hvert år ekstern vurdering, som danner grundlag for ledelsens vurdering af dagsværdi. Opskrivninger og tilbageførsler heraf med fradrag af udskudt skat indregnes direkte i egenkapitalen. Deposita Deposita måles til anskaffelsespris. Varebeholdninger Handelsvarer måles til kostpris, hvilket omfatter anskaffelsespris med tillæg af hjemtagelsesomkostninger. Tilgodehavender Tilgodehavender måles til amortiseret kostpris, hvilket sædvanligvis svarer til nominel værdi. Værdien reduceres med nedskrivning til imødegåelse af forventede tab. Periodeafgrænsningsposter, aktiver Periodeafgrænsningsposter indregnet under aktiver omfatter afholdte omkostninger vedrørende efterfølgende regnskabsår. Værdipapirer Værdipapirer indregnet under omsætningsaktiver, omfatter værdipapirer optaget til handel på et reguleret marked, der måles til dagsværdien på balancedagen. Dagsværdien opgøres på grundlag af den senest noterede salgskurs. Årets ændring i værdipapirernes samlede kursværdi indregnes med ét beløb i resultatopgørelsens finansielle poster. Likvider Likvider omfatter likvide beholdninger og kortfristede værdipapirer, som uden hindring kan omsættes til likvide beholdninger, og hvorpå der kun er ubetydelige risici for værdiændringer. Egenkapital Egenkapitalen omfatter virksomhedskapitalen og en række øvrige egenkapitalposter, der kan være lovbestemte eller fastsat i vedtægterne. Udbytte Forslag til udbytte for regnskabsåret indregnes som særskilt post under egenkapitalen. Forslag til udbytte indregnes som en forpligtelse på tidspunktet for vedtagelse på generalforsamlingen. Hensatte forpligtelser Udskudt skat Udskudt skat og årets regulering heraf opgøres som skatten af alle midlertidige forskelle mellem regnskabsmæssig og skattemæssig værdi af aktiver og forpligtelser opgjort på grundlag af den planlagte anvendelse af aktivet eller afvikling af forpligtelsen. Udskudte skatteaktiver, herunder skatteværdien af fremførselsberettigede skattemæssige underskud, indregnes med den værdi, hvortil de forventes at blive anvendt, enten ved udligning i skat af fremtidig indtjening eller ved modregning i udskudte skatteforpligtelser i selskaber inden for samme juridiske skatteenhed og jurisdiktion. Udskudt skat måles på grundlag af de skatteregler og skattesatser, der med balancedagens lovgivning vil være gældende, når den udskudte skat forventes udløst som aktuel skat. Ændring i udskudt skat som følge af ændringer i skattesatser indregnes i resultatopgørelsen. Aktuelle skatteforpligtelser Aktuelle skatteforpligtelser og tilgodehavende aktuel skat indregnes i balancen som beregnet skat af årets forventede skattepligtige indkomst, reguleret for skat af tidligere års skattepligtige indkomster samt for betalte acontoskatter. Gældsforpligtelser Fastforrentede lån som realkreditlån og lån hos kreditinstitutter indregnes ved låneoptagelsen til det modtagne provenu med fradrag af afholdte transaktionsomkostninger. I efterfølgende år måles lånene til amortiseret kostpris, hvilket svarer til nominel værdi i henhold til låneafvikling med kreditinstitutter. Anden gæld Andre gældsforpligtelser måles til amortiseret kostpris, hvilket sædvanligvis svarer til nominel værdi. Periodeafgrænsningsposter, passiver Periodeafgræsningsposter opført som forpligtelser udgøres af modtagne betalinger vedrørende indtægter i de efterfølgende regnskabsår. Eventualaktiver og -forpligtelser Eventualaktiver og -forpligtelser indregnes ikke i balancen, men oplyses alene i noterne. Pengestrømsopgørelsen Pengestrømsopgørelsen viser selskabets pengestrømme for året opdelt på drifts-, investerings- og finansieringsaktivitet, årets forskydning i likvider samt selskabets likvider ved årets begyndelse og slutning. Pengestrøm fra driftsaktiviteten opgøres som årets resultat reguleret for ændring i driftskapitalen og ikke-kontante resultatposter som af- og nedskrivninger og hensatte forpligtelser. Driftskapitalen omfatter omsætningsaktiver minus kortfristede gældsforpligtelser - eksklusive de poster, der indgår i likvider. Pengestrøm fra investeringsaktiviteten omfatter pengestrømme fra køb og salg af immaterielle, materielle og finansielle anlægsaktiver. Pengestrøm fra finansieringsaktiviteten omfatter pengestrømme fra optagelse og tilbagebetaling af langfristede gældsforpligtelser samt ind- og udbetalinger til og fra selskabsdeltagerne. Likvider omfatter likvide beholdninger og kortfristede værdipapirer som uden hindring kan omsættes til likvide beholdninger. Forklaring af nøgletal Overskudsgrad = Driftsresultat (EBIT) x 100 Nettoomsætning Egenkapitalens forrentning (ROE) (%) = Årets resultat Gns. egenkapital Afkastningsgrad (%) = (Driftsresultat + Finansielle indtægter) X 100 Gns. aktiver Likviditetsgrad = Omsætningsaktiver i alt Kortfristede forpligtelser Soliditetsgrad (%) = Egenkapital i alt X 100 Passiver i alt </fsa:DisclosureOfAccountingPolicies>
+    <fsa:DisclosureOfAssetsOrLiabilitiesRecognizedAtFairValue contextRef="ID_0" xml:lang="da">21. Aktiver indregnet til dagsværdi efter §37 og §38 Årets urealise- Værdi ultimo rede tab indreg- indregnet i net i resultat- balancen opgørelsen Børsnoterede værdipapirer 182.764 10.415 </fsa:DisclosureOfAssetsOrLiabilitiesRecognizedAtFairValue>
+    <fsa:DisclosureOfContingentLiabilities contextRef="ID_0" xml:lang="da">18. Eventualforpligtelser Selskabet har indgået leje og leasingkontrakter for t.kr. 24.793 heraf forfalder t.kr. 14.593 inden for 12 måneder. Selskabet er sambeskattet med de øvrige selskaber i koncernen og hæfter solidarisk for de skatter, som vedrører sambeskatningen. Det samlede beløb fremgår af årsrapporten for Arp-Hansen Holding A/S, der er administrationsselskab i sambeskatningen. </fsa:DisclosureOfContingentLiabilities>
+    <fsa:DisclosureOfDeferredIncome contextRef="ID_0" xml:lang="da"> 2022 2021 17. Periodeafgrænsningsposter Skyldig bonus 2.340 1.550 Saldo ultimo 2.340 1.550 </fsa:DisclosureOfDeferredIncome>
+    <fsa:DisclosureOfEmployeeBenefitsExpense contextRef="ID_0" xml:lang="da">3. Personaleomkostninger Lønninger 314.086 213.074 Pensioner 22.024 15.614 Andre omkostninger til social sikring 7.394 4.961 Andre personaleomkostninger 240 106 343.744 233.755 Gennemsnitligt antal beskæftigede 641 474 Samlet vederlag til bestyrelse og direktion udgør t.kr. 20.708. </fsa:DisclosureOfEmployeeBenefitsExpense>
+    <fsa:DisclosureOfEquity contextRef="ID_0" xml:lang="da"> Virksomheds Reserve for Overført Udbytte for kapital opskrivninger resultat året I alt Egenkapital 1. januar 2022 30.000 1.701.548 1.283.805 0 3.015.353 Årets resultat 0 0 23.795 180.000 203.795 Årets opskrivninger 0 418.178 0 0 418.178 Udskudt skat af opskrivninger 0 -91.999 0 0 -91.999 Årets afskrivning på opskrivning 0 -18.188 18.188 0 0 Egenkapital 31. december 2022 30.000 2.009.539 1.325.788 180.000 3.545.327 </fsa:DisclosureOfEquity>
+    <fsa:DisclosureOfIntangibleAssets contextRef="ID_0" xml:lang="da">9. Rettigheder Kostpris primo 21.207 21.207 Kostpris ultimo 21.207 21.207 Af- og nedskrivninger primo -11.407 -10.347 Årets afskrivninger -1.060 -1.060 Af- og nedskrivninger ultimo -12.467 -11.407 Regnskabsmæssig værdi ultimo 8.740 9.800 </fsa:DisclosureOfIntangibleAssets>
+    <fsa:DisclosureOfLongtermLiabilities contextRef="ID_0" xml:lang="da">16. Langfristede gældsforpligtelser Forfald Forfald Forfald efter 1 år indenfor 1 år efter 5 år Gæld til realkreditinstitutter 3.988.430 125.927 3.376.772 Feriepengeforpligtelse 10.493 0 10.493 3.998.923 125.927 3.387.265 </fsa:DisclosureOfLongtermLiabilities>
+    <fsa:DisclosureOfMortgagesAndCollaterals contextRef="ID_0" xml:lang="da">19. Sikkerhedsstillelser og pantsætninger Til sikkerhed for gæld i realkreditinstitutter er der tinglyst ejerpantebreve på t.kr. 4.594.907, håndpant i ejerpantebreve nominelt t.kr. 236.897, samt skadesløsbreve nominelt t.kr. 16.811, med pant i grunde og bygninger, hvis regnskabsmæssige værdi pr. 31. december 2022 udgør t.kr. 7.941.961. Der er afgivet leje- og øvrige garantier for i alt t.kr. 30.152. </fsa:DisclosureOfMortgagesAndCollaterals>
+    <fsa:DisclosureOfOtherFinanceExpenses contextRef="ID_0" xml:lang="da">6. Finansielle omkostninger Finansielle omkostninger, der hidrører fra tilknyttede virksomheder 0 30 Andre finansielle omkostninger 55.707 39.935 55.707 39.965 </fsa:DisclosureOfOtherFinanceExpenses>
+    <fsa:DisclosureOfOtherFinanceIncome contextRef="ID_0" xml:lang="da">5. Finansielle indtægter Andre finansielle indtægter fra tilknyttede virksomheder 2.857 0 Andre finansielle indtægter 3.729 6.288 6.586 6.288 </fsa:DisclosureOfOtherFinanceIncome>
+    <fsa:DisclosureOfOtherOperatingExpenses contextRef="ID_0" xml:lang="da">4. Andre driftsomkostninger Driftstabserstatning, regulering 241 0 Slutafregning kompensation, Covid-19 2.751 0 2.992 0 </fsa:DisclosureOfOtherOperatingExpenses>
+    <fsa:DisclosureOfPropertyPlantAndEquipment contextRef="ID_0" xml:lang="da"> 11. Andre anlæg, driftsmateriel og inventar Kostpris primo 631.974 571.257 Tilgang i årets løb, herunder forbedringer 24.024 13.373 Afgang i årets løb -2.504 -7.746 Overførsler i året til andre poster 0 55.090 Kostpris ultimo 653.494 631.974 Af- og nedskrivninger primo -431.021 -394.775 Årets afskrivninger -50.715 -43.516 Tilbageførsel af af- og nedskrivninger på afhændede aktiver 2.466 7.270 Af- og nedskrivninger ultimo -479.270 -431.021 Regnskabsmæssig værdi ultimo 174.224 200.953 , 12. Indretning af lejede lokaler Kostpris primo 112.009 111.954 Tilgang i årets løb, herunder forbedringer 681 55 Kostpris ultimo 112.690 112.009 Af- og nedskrivninger primo -85.868 -79.925 Årets afskrivninger -5.906 -5.943 Af- og nedskrivninger ultimo -91.774 -85.868 Regnskabsmæssig værdi ultimo 20.916 26.141 , 13. Materielle anlægsaktiver under udførelse og forudbetalinger for materielle anlægsaktiver Kostpris primo 0 456.523 Tilgang i årets løb, herunder forbedringer 1.354 222.236 Overførsler i året til andre poster 0 -678.759 Kostpris ultimo 1.354 0 Regnskabsmæssig værdi ultimo 1.354 0 , 10. Grunde og bygninger Kostpris primo 5.581.527 4.950.215 Tilgang i årets løb, herunder forbedringer 49.304 7.723 Afgang i årets løb -22 -80 Overført fra materielle anlægsaktiver under opførelse 0 623.669 Kostpris ultimo 5.630.809 5.581.527 Opskrivninger primo 2.289.055 1.708.938 Årets opskrivninger 418.178 580.117 Opskrivninger ultimo 2.707.233 2.289.055 Af- og nedskrivninger primo -321.481 -293.300 Årets afskrivninger -37.344 -28.249 Tilbageførsel af af- og nedskrivninger på afhændede aktiver 22 68 Af- og nedskrivninger ultimo -358.803 -321.481 Regnskabsmæssig værdi ultimo 7.979.239 7.549.101 Nettoværdi af foretagne opskrivninger 5.402.907 5.367.629 Årets indregnede renter i kostprisen for aktiverne 0 6.116 </fsa:DisclosureOfPropertyPlantAndEquipment>
+    <fsa:DisclosureOfProvisions contextRef="ID_0" xml:lang="da"> 15. Hensættelser til udskudt skat, specificeret Udskudt skat primo 872.674 743.331 Øvrige reguleringer 0 9 Årets regulering resultatopgørelsen 48.523 1.708 Opskrivning ejendomme 91.999 127.626 Saldo ultimo 1.013.196 872.674 Udskudt skat vedrører: Immaterielle anlægsaktiver 1.923 2.156 Materielle anlægsaktiver 1.059.292 938.216 Omsætningsaktiver 1.891 1.734 Skattemæssigt underskud -49.910 -69.432 1.013.196 872.674 </fsa:DisclosureOfProvisions>
+    <fsa:DisclosureOfRelatedParties contextRef="ID_0" xml:lang="da"> 20. Nærtstående parter Arp-Hansen Hotel Group A/S´s nærtstående parter omfatter følgende: Selskabets hovedaktionær, Arp-Hansen Holding A/S, Nybrovej 75, 2820 place Selskabets bestyrelse Transaktioner med nærtstående parter: Bestyrelsen har modtaget vederlag, jf. note 3. </fsa:DisclosureOfRelatedParties>
+    <fsa:DisclosureOfRevenue contextRef="ID_0" xml:lang="da">1. Nettoomsætning Omsætning hotel og restaurant 1.372.235 610.487 Omsætning, anden 11.854 9.220 1.384.089 619.707 </fsa:DisclosureOfRevenue>
+    <fsa:DisclosureOfTheManagementsProposedDistributionOfProfitLoss contextRef="ID_0" xml:lang="da"> 8. Årets resultat Foreslået udbytte for regnskabsåret 180.000 0 Overført resultat 23.795 12.946 203.795 12.946 </fsa:DisclosureOfTheManagementsProposedDistributionOfProfitLoss>
+    <fsa:DissolutionOfPreviousYearsRevaluations contextRef="ID_11" xml:lang="da" unitRef="DKK" decimals="-3">0000</fsa:DissolutionOfPreviousYearsRevaluations>
+    <fsa:DissolutionOfPreviousYearsRevaluations contextRef="ID_12" xml:lang="da" unitRef="DKK" decimals="-3">-91999000</fsa:DissolutionOfPreviousYearsRevaluations>
+    <fsa:DissolutionOfPreviousYearsRevaluations contextRef="ID_13" xml:lang="da" unitRef="DKK" decimals="-3">0000</fsa:DissolutionOfPreviousYearsRevaluations>
+    <fsa:DissolutionOfPreviousYearsRevaluations contextRef="ID_14" xml:lang="da" unitRef="DKK" decimals="-3">0000</fsa:DissolutionOfPreviousYearsRevaluations>
+    <fsa:EmployeeBenefitsExpense contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">343744000</fsa:EmployeeBenefitsExpense>
+    <fsa:EmployeeBenefitsExpense contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">233755000</fsa:EmployeeBenefitsExpense>
+    <fsa:Equity contextRef="ID_17" xml:lang="da" unitRef="DKK" decimals="-3">-30000000</fsa:Equity>
+    <fsa:Equity contextRef="ID_18" xml:lang="da" unitRef="DKK" decimals="-3">-1701548000</fsa:Equity>
+    <fsa:Equity contextRef="ID_19" xml:lang="da" unitRef="DKK" decimals="-3">-1283805000</fsa:Equity>
+    <fsa:Equity contextRef="ID_20" xml:lang="da" unitRef="DKK" decimals="-3">0000</fsa:Equity>
+    <fsa:Equity contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">3545327000</fsa:Equity>
+    <fsa:Equity contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">3015353000</fsa:Equity>
+    <fsa:ExplanationOfEntitysDefinitionOfCashAndCashEquivalents contextRef="ID_0" xml:lang="da">Likvider omfatter likvide beholdninger og kortfristede værdipapirer som uden hindring kan omsættes til likvide beholdninger. </fsa:ExplanationOfEntitysDefinitionOfCashAndCashEquivalents>
+    <fsa:ExplanationOfPrepayments contextRef="ID_0" xml:lang="da">14. Periodeafgrænsningsposter Licenser og abonnementer 5.426 3.345 Øvrige periodeafgrænsningsposter 16.793 37.631 Saldo ultimo 22.219 40.976 </fsa:ExplanationOfPrepayments>
+    <fsa:FixturesFittingsToolsAndEquipment contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">174224000</fsa:FixturesFittingsToolsAndEquipment>
+    <fsa:FixturesFittingsToolsAndEquipment contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">200953000</fsa:FixturesFittingsToolsAndEquipment>
+    <fsa:GrossResult contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">752254000</fsa:GrossResult>
+    <fsa:GrossResult contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">360855000</fsa:GrossResult>
+    <fsa:HolidayAllowanceLiabilitiesLongterm contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">10493000</fsa:HolidayAllowanceLiabilitiesLongterm>
+    <fsa:HolidayAllowanceLiabilitiesLongterm contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">10216000</fsa:HolidayAllowanceLiabilitiesLongterm>
+    <fsa:InformationOnReportingClassOfEntity contextRef="ID_0" xml:lang="da">Årsrapporten for Arp-Hansen Hotel Group A/S for 2022 er aflagt i overensstemmelse med årsregnskabslovens bestemmelser for store virksomheder i regnskabsklasse C. </fsa:InformationOnReportingClassOfEntity>
+    <fsa:IntangibleAssets contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">8740000</fsa:IntangibleAssets>
+    <fsa:IntangibleAssets contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">9800000</fsa:IntangibleAssets>
+    <fsa:Inventories contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">2954000</fsa:Inventories>
+    <fsa:Inventories contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">1890000</fsa:Inventories>
+    <fsa:LandAndBuildings contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">7979239000</fsa:LandAndBuildings>
+    <fsa:LandAndBuildings contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">7549101000</fsa:LandAndBuildings>
+    <fsa:LeaseholdImprovements contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">20916000</fsa:LeaseholdImprovements>
+    <fsa:LeaseholdImprovements contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">26141000</fsa:LeaseholdImprovements>
+    <fsa:LiabilitiesAndEquity contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">8858363000</fsa:LiabilitiesAndEquity>
+    <fsa:LiabilitiesAndEquity contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">8160805000</fsa:LiabilitiesAndEquity>
+    <fsa:LiabilitiesOtherThanProvisions contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">4299840000</fsa:LiabilitiesOtherThanProvisions>
+    <fsa:LiabilitiesOtherThanProvisions contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">4272778000</fsa:LiabilitiesOtherThanProvisions>
+    <fsa:LongtermDebtToBanks contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">0000</fsa:LongtermDebtToBanks>
+    <fsa:LongtermDebtToBanks contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">269269000</fsa:LongtermDebtToBanks>
+    <fsa:LongtermInvestmentsAndReceivables contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">392000</fsa:LongtermInvestmentsAndReceivables>
+    <fsa:LongtermInvestmentsAndReceivables contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">389000</fsa:LongtermInvestmentsAndReceivables>
+    <fsa:LongtermLiabilitiesOtherThanProvisions contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">3998923000</fsa:LongtermLiabilitiesOtherThanProvisions>
+    <fsa:LongtermLiabilitiesOtherThanProvisions contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">4033362000</fsa:LongtermLiabilitiesOtherThanProvisions>
+    <fsa:LongtermMortgageDebt contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">3988430000</fsa:LongtermMortgageDebt>
+    <fsa:LongtermMortgageDebt contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">3753877000</fsa:LongtermMortgageDebt>
+    <fsa:NetIncreaseDecreaseInCashAndCashEquivalents contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">213583000</fsa:NetIncreaseDecreaseInCashAndCashEquivalents>
+    <fsa:NetIncreaseDecreaseInCashAndCashEquivalents contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">131791000</fsa:NetIncreaseDecreaseInCashAndCashEquivalents>
+    <fsa:NoncurrentAssets contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">8184865000</fsa:NoncurrentAssets>
+    <fsa:NoncurrentAssets contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">7786384000</fsa:NoncurrentAssets>
+    <fsa:OtherAdjustments contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">0000</fsa:OtherAdjustments>
+    <fsa:OtherAdjustments contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">9000</fsa:OtherAdjustments>
+    <fsa:OtherDisclosures contextRef="ID_0" xml:lang="da">2. Andre driftsindtægter Kompensationspakker 1.323 128.684 Driftstabserstatning 0 5.372 Avance ved salg af materielle anlægsaktiver 62 2.096 Saldo ultimo 1.385 136.152 </fsa:OtherDisclosures>
+    <fsa:OtherExternalExpenses contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">565268000</fsa:OtherExternalExpenses>
+    <fsa:OtherExternalExpenses contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">362332000</fsa:OtherExternalExpenses>
+    <fsa:OtherFinanceExpenses contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">55707000</fsa:OtherFinanceExpenses>
+    <fsa:OtherFinanceExpenses contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">39965000</fsa:OtherFinanceExpenses>
+    <fsa:OtherFinanceIncome contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">6586000</fsa:OtherFinanceIncome>
+    <fsa:OtherFinanceIncome contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">6288000</fsa:OtherFinanceIncome>
+    <fsa:OtherOperatingExpenses contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">2992000</fsa:OtherOperatingExpenses>
+    <fsa:OtherOperatingExpenses contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">0000</fsa:OtherOperatingExpenses>
+    <fsa:OtherOperatingIncome contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">1385000</fsa:OtherOperatingIncome>
+    <fsa:OtherOperatingIncome contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">136152000</fsa:OtherOperatingIncome>
+    <fsa:OtherShorttermReceivables contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">1887000</fsa:OtherShorttermReceivables>
+    <fsa:OtherShorttermReceivables contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">7433000</fsa:OtherShorttermReceivables>
+    <fsa:ProceedsFromSalesOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">100000</fsa:ProceedsFromSalesOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities>
+    <fsa:ProceedsFromSalesOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">2583000</fsa:ProceedsFromSalesOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities>
+    <fsa:ProfitLoss contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">203795000</fsa:ProfitLoss>
+    <fsa:ProfitLoss contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">12946000</fsa:ProfitLoss>
+    <fsa:ProfitLoss contextRef="ID_11" xml:lang="da" unitRef="DKK" decimals="-3">0000</fsa:ProfitLoss>
+    <fsa:ProfitLoss contextRef="ID_12" xml:lang="da" unitRef="DKK" decimals="-3">0000</fsa:ProfitLoss>
+    <fsa:ProfitLoss contextRef="ID_13" xml:lang="da" unitRef="DKK" decimals="-3">23795000</fsa:ProfitLoss>
+    <fsa:ProfitLoss contextRef="ID_14" xml:lang="da" unitRef="DKK" decimals="-3">180000000</fsa:ProfitLoss>
+    <fsa:ProfitLossFromOrdinaryActivitiesBeforeTax contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">261372000</fsa:ProfitLossFromOrdinaryActivitiesBeforeTax>
+    <fsa:ProfitLossFromOrdinaryActivitiesBeforeTax contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">14654000</fsa:ProfitLossFromOrdinaryActivitiesBeforeTax>
+    <fsa:ProfitLossFromOrdinaryOperatingActivities contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">310493000</fsa:ProfitLossFromOrdinaryOperatingActivities>
+    <fsa:ProfitLossFromOrdinaryOperatingActivities contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">48331000</fsa:ProfitLossFromOrdinaryOperatingActivities>
+    <fsa:ProfitOnRealisationsOfFixedAssets contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">62000</fsa:ProfitOnRealisationsOfFixedAssets>
+    <fsa:ProfitOnRealisationsOfFixedAssets contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">2096000</fsa:ProfitOnRealisationsOfFixedAssets>
+    <fsa:PropertyPlantAndEquipment contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">8175733000</fsa:PropertyPlantAndEquipment>
+    <fsa:PropertyPlantAndEquipment contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">7776195000</fsa:PropertyPlantAndEquipment>
+    <fsa:PropertyPlantAndEquipmentInProgressAndPrepaymentsForPropertyPlantAndEquipment contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">1354000</fsa:PropertyPlantAndEquipmentInProgressAndPrepaymentsForPropertyPlantAndEquipment>
+    <fsa:PropertyPlantAndEquipmentInProgressAndPrepaymentsForPropertyPlantAndEquipment contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">0000</fsa:PropertyPlantAndEquipmentInProgressAndPrepaymentsForPropertyPlantAndEquipment>
+    <fsa:ProposedDividendRecognisedInEquity contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">180000000</fsa:ProposedDividendRecognisedInEquity>
+    <fsa:ProposedDividendRecognisedInEquity contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">0000</fsa:ProposedDividendRecognisedInEquity>
+    <fsa:Provisions contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">1013196000</fsa:Provisions>
+    <fsa:Provisions contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">872674000</fsa:Provisions>
+    <fsa:ProvisionsForDeferredTax contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">1013196000</fsa:ProvisionsForDeferredTax>
+    <fsa:ProvisionsForDeferredTax contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">872674000</fsa:ProvisionsForDeferredTax>
+    <fsa:PurchaseOfInvestments contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">3000</fsa:PurchaseOfInvestments>
+    <fsa:PurchaseOfInvestments contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">3000</fsa:PurchaseOfInvestments>
+    <fsa:PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">75363000</fsa:PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities>
+    <fsa:PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">243387000</fsa:PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities>
+    <fsa:RaisingOfDebtToCreditInstitutions contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">0000</fsa:RaisingOfDebtToCreditInstitutions>
+    <fsa:RaisingOfDebtToCreditInstitutions contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">57189000</fsa:RaisingOfDebtToCreditInstitutions>
+    <fsa:RaisingOfDebtToGroupEnterprises contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">-80000000</fsa:RaisingOfDebtToGroupEnterprises>
+    <fsa:RaisingOfDebtToGroupEnterprises contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">0000</fsa:RaisingOfDebtToGroupEnterprises>
+    <fsa:RaisingOfMortgageDebt contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">440056000</fsa:RaisingOfMortgageDebt>
+    <fsa:RaisingOfMortgageDebt contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">250000000</fsa:RaisingOfMortgageDebt>
+    <fsa:RawMaterialsAndConsumables contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">2954000</fsa:RawMaterialsAndConsumables>
+    <fsa:RawMaterialsAndConsumables contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">1890000</fsa:RawMaterialsAndConsumables>
+    <fsa:RawMaterialsAndConsumablesUsed contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">67952000</fsa:RawMaterialsAndConsumablesUsed>
+    <fsa:RawMaterialsAndConsumablesUsed contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">32672000</fsa:RawMaterialsAndConsumablesUsed>
+    <fsa:RepaymentOfMortgageDebt contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">122122000</fsa:RepaymentOfMortgageDebt>
+    <fsa:RepaymentOfMortgageDebt contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">34624000</fsa:RepaymentOfMortgageDebt>
+    <fsa:RetainedEarnings contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">1325788000</fsa:RetainedEarnings>
+    <fsa:RetainedEarnings contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">1283805000</fsa:RetainedEarnings>
+    <fsa:RevaluationReserve contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">2009539000</fsa:RevaluationReserve>
+    <fsa:RevaluationReserve contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">1701548000</fsa:RevaluationReserve>
+    <fsa:Revaluations contextRef="ID_11" xml:lang="da" unitRef="DKK" decimals="-3">0000</fsa:Revaluations>
+    <fsa:Revaluations contextRef="ID_12" xml:lang="da" unitRef="DKK" decimals="-3">-418178000</fsa:Revaluations>
+    <fsa:Revaluations contextRef="ID_13" xml:lang="da" unitRef="DKK" decimals="-3">0000</fsa:Revaluations>
+    <fsa:Revaluations contextRef="ID_14" xml:lang="da" unitRef="DKK" decimals="-3">0000</fsa:Revaluations>
+    <fsa:SelectedElementsFromReportingClassC contextRef="ID_0" xml:lang="da">false</fsa:SelectedElementsFromReportingClassC>
+    <fsa:SharesIncludedAsCashAndCashEquivalents contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">182764000</fsa:SharesIncludedAsCashAndCashEquivalents>
+    <fsa:SharesIncludedAsCashAndCashEquivalents contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">282099000</fsa:SharesIncludedAsCashAndCashEquivalents>
+    <fsa:ShorttermDebtToBanks contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">69000</fsa:ShorttermDebtToBanks>
+    <fsa:ShorttermDebtToBanks contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">0000</fsa:ShorttermDebtToBanks>
+    <fsa:ShorttermDeferredIncome contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">2340000</fsa:ShorttermDeferredIncome>
+    <fsa:ShorttermDeferredIncome contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">1550000</fsa:ShorttermDeferredIncome>
+    <fsa:ShorttermInvestments contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">182764000</fsa:ShorttermInvestments>
+    <fsa:ShorttermInvestments contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">282099000</fsa:ShorttermInvestments>
+    <fsa:ShorttermLiabilitiesOtherThanProvisions contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">300917000</fsa:ShorttermLiabilitiesOtherThanProvisions>
+    <fsa:ShorttermLiabilitiesOtherThanProvisions contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">239416000</fsa:ShorttermLiabilitiesOtherThanProvisions>
+    <fsa:ShorttermPartOfLongtermLiabilitiesOtherThanProvisions contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">125927000</fsa:ShorttermPartOfLongtermLiabilitiesOtherThanProvisions>
+    <fsa:ShorttermPartOfLongtermLiabilitiesOtherThanProvisions contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">122546000</fsa:ShorttermPartOfLongtermLiabilitiesOtherThanProvisions>
+    <fsa:ShorttermPayablesToGroupEnterprises contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">0000</fsa:ShorttermPayablesToGroupEnterprises>
+    <fsa:ShorttermPayablesToGroupEnterprises contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">145000</fsa:ShorttermPayablesToGroupEnterprises>
+    <fsa:ShorttermPrepaymentsReceivedFromCustomers contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">35754000</fsa:ShorttermPrepaymentsReceivedFromCustomers>
+    <fsa:ShorttermPrepaymentsReceivedFromCustomers contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">36857000</fsa:ShorttermPrepaymentsReceivedFromCustomers>
+    <fsa:ShorttermReceivables contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">156590000</fsa:ShorttermReceivables>
+    <fsa:ShorttermReceivables contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">72160000</fsa:ShorttermReceivables>
+    <fsa:ShorttermReceivablesFromGroupEnterprises contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">101229000</fsa:ShorttermReceivablesFromGroupEnterprises>
+    <fsa:ShorttermReceivablesFromGroupEnterprises contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">0000</fsa:ShorttermReceivablesFromGroupEnterprises>
+    <fsa:ShorttermTaxPayables contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">9054000</fsa:ShorttermTaxPayables>
+    <fsa:ShorttermTaxPayables contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">0000</fsa:ShorttermTaxPayables>
+    <fsa:ShorttermTradePayables contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">82585000</fsa:ShorttermTradePayables>
+    <fsa:ShorttermTradePayables contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">49416000</fsa:ShorttermTradePayables>
+    <fsa:ShorttermTradeReceivables contextRef="ID_8" xml:lang="da" unitRef="DKK" decimals="-3">31255000</fsa:ShorttermTradeReceivables>
+    <fsa:ShorttermTradeReceivables contextRef="ID_9" xml:lang="da" unitRef="DKK" decimals="-3">23751000</fsa:ShorttermTradeReceivables>
+    <fsa:TaxExpense contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">57577000</fsa:TaxExpense>
+    <fsa:TaxExpense contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">1708000</fsa:TaxExpense>
+    <fsa:TransferredToFromRetainedEarnings contextRef="ID_0" xml:lang="da" unitRef="DKK" decimals="-3">-23795000</fsa:TransferredToFromRetainedEarnings>
+    <fsa:TransferredToFromRetainedEarnings contextRef="ID_10" xml:lang="da" unitRef="DKK" decimals="-3">-12946000</fsa:TransferredToFromRetainedEarnings>
+    <gsd:AddressOfSubmittingEnterprisePostcodeAndTown contextRef="ID_0" xml:lang="da">København K, 1304</gsd:AddressOfSubmittingEnterprisePostcodeAndTown>
+    <gsd:AddressOfSubmittingEnterpriseStreetAndNumber contextRef="ID_0" xml:lang="da">Adelgade 15</gsd:AddressOfSubmittingEnterpriseStreetAndNumber>
+    <gsd:DateOfFoundationOfReportingEntity contextRef="ID_0" xml:lang="da">1983-12-23</gsd:DateOfFoundationOfReportingEntity>
+    <gsd:DateOfGeneralMeeting contextRef="ID_0" xml:lang="da">2023-03-16</gsd:DateOfGeneralMeeting>
+    <gsd:EmailOfReportingEntity contextRef="ID_0" xml:lang="da">EmailOfReportingEntity@EmailOfReportingEntity</gsd:EmailOfReportingEntity>
+    <gsd:FaxNumberOfReportingEntity contextRef="ID_0" xml:lang="da">00000000</gsd:FaxNumberOfReportingEntity>
+    <gsd:HomepageOfReportingEntity contextRef="ID_0" xml:lang="da">HomepageOfReportingEntity</gsd:HomepageOfReportingEntity>
+    <gsd:IdentificationNumberCvrOfReportingEntity contextRef="ID_0" xml:lang="da">54399219</gsd:IdentificationNumberCvrOfReportingEntity>
+    <gsd:IdentificationNumberCvrOfSubmittingEnterprise contextRef="ID_0" xml:lang="da">00000000</gsd:IdentificationNumberCvrOfSubmittingEnterprise>
+    <gsd:InformationOnTypeOfSubmittedReport contextRef="ID_0" xml:lang="da">Årsrapport</gsd:InformationOnTypeOfSubmittedReport>
+    <gsd:NameAndSurnameOfChairmanOfGeneralMeeting contextRef="ID_0" xml:lang="da"> NameAndSurnameOfChairmanOfGeneralMeeting </gsd:NameAndSurnameOfChairmanOfGeneralMeeting>
+    <gsd:NameOfFinancialInstitution contextRef="ID_0" xml:lang="da">NameOfFinancialInstitution</gsd:NameOfFinancialInstitution>
+    <gsd:NameOfReportingEntity contextRef="ID_0" xml:lang="da">NameOfReportingEntity</gsd:NameOfReportingEntity>
+    <gsd:NameOfSubmittingEnterprise contextRef="ID_0" xml:lang="da">NameOfSubmittingEnterprise</gsd:NameOfSubmittingEnterprise>
+    <gsd:PrecedingReportingPeriodStartDate contextRef="ID_0" xml:lang="da">2021-01-01</gsd:PrecedingReportingPeriodStartDate>
+    <gsd:PredingReportingPeriodEndDate contextRef="ID_0" xml:lang="da">2021-12-31</gsd:PredingReportingPeriodEndDate>
+    <gsd:RegisteredOfficeOfReportingEntity contextRef="ID_0" xml:lang="da">111, place</gsd:RegisteredOfficeOfReportingEntity>
+    <gsd:ReportingPeriodEndDate contextRef="ID_0" xml:lang="da">2022-12-31</gsd:ReportingPeriodEndDate>
+    <gsd:ReportingPeriodStartDate contextRef="ID_0" xml:lang="da">2022-01-01</gsd:ReportingPeriodStartDate>
+    <gsd:TelephoneNumberOfReportingEntity contextRef="ID_0" xml:lang="da">00000000</gsd:TelephoneNumberOfReportingEntity>
+    <sob:ConfirmationThatAnnualReportIsPresentedInAccordanceWithRequirementsProvidedForByLegislationAnyStandardsAndRequirementsProvidedByArticlesOfAssociationOrByAgreement contextRef="ID_0" xml:lang="da">Årsrapporten aflægges i overensstemmelse med årsregnskabsloven. </sob:ConfirmationThatAnnualReportIsPresentedInAccordanceWithRequirementsProvidedForByLegislationAnyStandardsAndRequirementsProvidedByArticlesOfAssociationOrByAgreement>
+    <sob:ConfirmationThatFinancialStatementGivesTrueAndFairViewOfAssetsLiabilitiesEquityFinancialPositionAndResults contextRef="ID_0" xml:lang="da">Det er vores opfattelse, at årsregnskabet giver et retvisende billede af selskabets aktiver, passiver og finansielle stilling pr. 31. december 2022 samt af resultatet af selskabets aktiviteter og pengestrømme for regnskabsåret 1. januar 2022 - 31. december 2022. </sob:ConfirmationThatFinancialStatementGivesTrueAndFairViewOfAssetsLiabilitiesEquityFinancialPositionAndResults>
+    <sob:DateOfApprovalOfAnnualReport contextRef="ID_0" xml:lang="da">2023-03-16</sob:DateOfApprovalOfAnnualReport>
+    <sob:IdentificationOfApprovedAnnualReport contextRef="ID_0" xml:lang="da">Ledelsen har dags dato behandlet og godkendt årsrapporten for regnskabsåret 1. januar 2022 - 31. december 2022 for Arp-Hansen Hotel Group A/S. </sob:IdentificationOfApprovedAnnualReport>
+    <sob:ManagementsStatementAboutManagementsReview contextRef="ID_0" xml:lang="da">Ledelsesberetningen indeholder efter vores opfattelse en retvisende redegørelse for de forhold, beretningen omhandler. </sob:ManagementsStatementAboutManagementsReview>
+    <sob:PlaceOfSignatureOfStatement contextRef="ID_0" xml:lang="da">Gentofte</sob:PlaceOfSignatureOfStatement>
+    <sob:RecommendationForApprovalOfAnnualReportByGeneralMeeting contextRef="ID_0" xml:lang="da">Årsrapporten indstilles til generalforsamlingens godkendelse. </sob:RecommendationForApprovalOfAnnualReportByGeneralMeeting>
+    <sob:StatementByExecutiveAndSupervisoryBoards contextRef="ID_0" xml:lang="da"> StatementByExecutiveAndSupervisoryBoards </sob:StatementByExecutiveAndSupervisoryBoards>
+</xbrli:xbrl>

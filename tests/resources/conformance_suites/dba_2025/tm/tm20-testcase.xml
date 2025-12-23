@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.TM20"
+        description="DBA.TM20: ReportingPeriodEndDate with either no dimensionality or the dimension of
+        TypeOfReportingPeriodDimension:AllReportingPeriodsMember must only be tagged once."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid" name="Invalid">
+        <description>
+            ReportingPeriodEndDate appears twice, one with no dimensionality the other with the dimension of
+            TypeOfReportingPeriodDimension:AllReportingPeriodsMember
+        </description>
+        <data>
+            <instance readMeFirst="true">tm20-invalid.xhtml</instance>
+        </data>
+        <result>
+            <error>DBA.TM20</error>
+            <error>DBA.FR57.MarkingOfPeriod</error>
+        </result>
+    </variation>
+</testcase>
