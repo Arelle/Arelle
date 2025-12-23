@@ -14,8 +14,7 @@ from arelle.ModelValue import qname
 from .XbrlConcept import XbrlConcept
 from .XbrlCube import coreDimensionsByLocalname
 from .XbrlDimension import XbrlDimension
-from .XbrlReport import XbrlFactspace
-from .XbrlLayout import XbrlTableTemplate
+from .XbrlReport import XbrlFactspace, XbrlTableTemplate
 
 # Load CSV Table
 columnProperties = {"comment", "decimals", "dimensions", "propertyGroups", "parameterURL", "propertiesFrom"}

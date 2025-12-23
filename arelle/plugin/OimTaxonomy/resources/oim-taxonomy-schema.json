@@ -30,6 +30,15 @@
               "uniqueItems": true
             }
           },
+          "tableDataMapping": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": { "type": "string" },
+              "minItems": 1,
+              "uniqueItems": true
+            }
+          },
           "description": {
             "type": "string"
           }
@@ -676,12 +685,6 @@
                       "value": {
                         "type": "string",
                         "description": "Text of the label."
-                      },
-                      "properties": {
-                        "type": "array",
-                        "items": { "$ref": "#/definitions/propertyObject" },
-                        "description": "Additional properties associated with the label.",
-                        "uniqueItems": true
                       }
                     },
                     "required": ["relatedName", "labelType", "language", "value"],
@@ -741,9 +744,16 @@
                               "description": "Literal fact value, when not derived from valueSources."
                             },
                             "decimals": {
-                              "type": "number",
-                              "description": "Number of decimal places for the fact value."
-                            },
+                                          "oneOf": [
+                                              {
+                                                "type": "number"
+                                              },
+                                              { 
+                                                "type": "string",
+                                                "pattern": "INF" 
+                                              }
+                                        ]
+                                  },
                             "language": {
                               "type": "string",
                               "pattern": "^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$",
@@ -843,6 +853,106 @@
                     "required": ["name", "content", "language"],
                     "additionalProperties": false
                   },
+                    "uniqueItems": true
+                },
+                "tableTemplates": {
+                    "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": { "$ref": "#/definitions/QName" },
+                          "columns": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                                "properties": {
+                                    "columnName": { "type": "string" },
+                                    "factDimensions": {
+                                              "type": "object",
+                                              "description": "Object mapping dimension QNames to their values for this fact.",
+                                              "properties": {
+                                                "xbrl:concept":{ "oneOf": [
+                                                                  {
+                                                                    "$ref": "#/definitions/conceptQName"
+                                                                  },
+                                                                  {
+                                                                    "type": "string",
+                                                                    "pattern": "^\\$.*"
+                                                                  }
+                                                                ]},
+                                                "xbrl:entity":{ "oneOf": [
+                                                                  {
+                                                                    "$ref": "#/definitions/SQName"
+                                                                  },
+                                                                  {
+                                                                    "type": "string",
+                                                                    "pattern": "^\\$.*"
+                                                                  }
+                                                                ]},
+                                                "xbrl:unit":{ "oneOf": [
+                                                                  {
+                                                                    "type": "string",
+                                                                    "pattern": ".*(\\*|/).*"
+                                                                  },
+                                                                  {
+                                                                    "$ref": "#/definitions/unitQName"
+                                                                  },
+                                                                  {
+                                                                    "type": "string",
+                                                                    "pattern": "^\\$.*"
+                                                                  }
+                                                                ]},
+                                                "xbrl:period":{"type": "string"}
+                                              },
+                                              "patternProperties": {
+                                                    "^[A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z_][A-Za-z0-9_.-]*$": {
+                                                      "oneOf": [
+                                                        { "type": "string" },
+                                                        { "type": "number" },
+                                                        { "type": "null" }
+                                                      ]
+                                                    }
+                                                  },
+                                              "additionalProperties": false,
+                                              "required": ["xbrl:concept"]
+                                            },
+                                    "propertyGroups": {
+                                      "type": "object",
+                                      "additionalProperties": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "decimals": {
+                                          "oneOf": [
+                                              {
+                                                "type": "number"
+                                              },
+                                              { 
+                                                "type": "string",
+                                                "pattern": "INF" 
+                                              }
+                                        ]
+                                    },
+                                    "transformation" : {"$ref": "#/definitions/QName"} ,
+                                    "order": {
+                                      "type": "number",
+                                      "description": "Order of the columns in the table template."
+                                    }
+                                  },
+                              "additionalProperties": false
+                            }
+                          },
+                          "rowIdColumn": { "type": "string" },
+                          "factDimensions": {
+                            "type": "object",
+                            "additionalProperties": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "required": ["name", "columns"],
+                        "additionalProperties": false
+                      },
                     "uniqueItems": true
                 },
                 "labelTypes": {
@@ -1144,47 +1254,6 @@
         "name": { "$ref": "#/definitions/QName" },
         "taxonomyName": { "$ref": "#/definitions/taxonomyQName" },
         "properties":{
-          "tableTemplates": {
-                    "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "name": { "$ref": "#/definitions/QName" },
-                          "columns": {
-                            "type": "object",
-                            "additionalProperties": {
-                              "type": "object",
-                              "properties": {
-                                "dimensions": {
-                                  "type": "object",
-                                  "additionalProperties": {
-                                    "type": "string"
-                                  }
-                                },
-                                "propertyGroups": {
-                                  "type": "object",
-                                  "additionalProperties": {
-                                    "type": "string"
-                                  }
-                                },
-                                "decimals": { "type": "number" }
-                              },
-                              "additionalProperties": false
-                            }
-                          },
-                          "rowIdColumn": { "type": "string" },
-                          "dimensions": {
-                            "type": "object",
-                            "additionalProperties": {
-                              "type": "string"
-                            }
-                          }
-                        },
-                        "required": ["name", "columns"],
-                        "additionalProperties": false
-                      },
-                    "uniqueItems": true
-          },
           "dataTables": {
               "type": "array",
               "items": {

@@ -82,3 +82,11 @@ def validateCubes(fact, txmyMdl):
             usableCubes.append(cubeObj)
     return usableCubes
 
+def validateCompleteCube(txmyMdl, cubeObj):
+    # replace with vectorized search
+    factspaces = getattr(cubeObj, "_factspaces", None)
+    if not factspaces:
+        txmyMdl.error("oimte:factMissingFromCube",
+                     _("The complete cube %(name)s has no facts."),
+                      xbrlObject=cubeObj, name=cubeObj.name)
+

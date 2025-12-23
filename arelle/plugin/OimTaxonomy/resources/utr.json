@@ -15,11 +15,6 @@
         "frameworkName": "utr",
         "name": "utr:UnitsTaxonomyModule",
         "version": "2025",
-        "importedTaxonomies": [
-            {
-                "taxonomyName" :"iso4217:iso4217TaxonomyModule"
-            }
-        ],
         "units": [
             {
                 "dataType": "xbrli:area",

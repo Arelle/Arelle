@@ -13,10 +13,11 @@ oimTaxonomyDocTypes = (
     )
 
 xbrl = "https://xbrl.org/2025"
+xbrli = "https://xbrl.org/2025/instance"
 
 reservedPrefixNamespaces = {
     "xbrl": xbrl,
-    "xbrli": "https://xbrl.org/2025/instance",
+    "xbrli": xbrli,
     "xbrli-2003": "https://xbrl.org/2003/instance",
     "dtr-type": "http://www.xbrl.org/dtr/type/*",
     "xs": "https://www.w3.org/2001/XMLSchema",
@@ -44,6 +45,8 @@ qnXbrlImportTaxonomyObj = qname(xbrl, "xbrl:importTaxonomyObject")
 qnXbrlUnitObj = qname(xbrl, "xbrl:unitObject")
 qnXbrlLabelObj = qname(xbrl, "xbrl:labelObject")
 qnXbrlReferenceObj = qname(xbrl, "xbrl:referenceObject")
+
+qnXbrliSet = qname(xbrli, "xbrli:set")
 
 qnBuiltInCoreObjectsTaxonomy = qname(xbrl, "xbrl:BuiltInCoreObjectsTaxonomy")
 
