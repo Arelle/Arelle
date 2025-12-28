@@ -78,6 +78,12 @@ def bestDevice() -> torch.device:
         return torch.device("mps")
     return torch.device("cpu")
 
+DEVICE_DESCRIPTION = {
+    "cuda": "NVIDIA GPUs",
+    "mps":  "Apple Silicon GPUs",
+    "cpu":  "CPU vectorized math"
+    }
+
 # --------------------------------------------------------------------
 # Tokenization / vocabulary
 # --------------------------------------------------------------------
@@ -138,7 +144,6 @@ def buildXbrlVocab(txmyMdl: XbrlTaxonomyModel, valueTokensOffset: int) -> Tuple[
                     tokens.append( d )      # hasDimension for queries wildcarding dimension
             factTokens.add( (f, tuple(tokens) ) )
             # do we encode the fact's value?  or its hash?  or valueSource like html id or pdf form field id
-
 
     return OrderedSet(sorted(cubeTokens)), OrderedSet(sorted(factTokens)), valueTokens
 
@@ -273,17 +278,20 @@ def buildXbrlVectors(
     """
     # Device decision is centralized here
     device = bestDevice() if device_hint is None else torch.device(device_hint)
-    print("Using device:", device)
+    # print("Using device:", device)
 
     # offset tokens to be past largest xbrlMdlObjIndex in txmyMdl
     lenObjs = len(txmyMdl.xbrlObjects)
     valueTokensOffset = 10 ** math.ceil(math.log10( lenObjs ))
 
     cubeTokens, factTokens, valueTokens = buildXbrlVocab(txmyMdl, valueTokensOffset)
-    vocab_size = len(cubeTokens) + len(factTokens) + len(valueTokens)
-    print(f"Vocab size: {vocab_size}")
+    vocabSize = len(cubeTokens) + len(factTokens) + len(valueTokens)
+    # print(f"Vocab size: {vocabSize}")
+    txmyMdl.info("arelle:oimModelVectorSearch",
+                 _("Using %(device)s.  Vectorized vocabulary size %(vocabSize)s."),
+                 device=DEVICE_DESCRIPTION.get(device.type, "unrecognized device"), vocabSize=vocabSize)
 
-    embedder = XBRLEmbedder(vocab_size, embedDim, device=device)
+    embedder = XBRLEmbedder(vocabSize, embedDim, device=device)
 
     # --------- cube dimension vectors ----------
     cubeVecsList: List[torch.Tensor] = []
