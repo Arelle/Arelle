@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 _: TypeGetText
 
 
-def _factFootnotes(fact, footnotesRelSet):
+def _factFootnotes(fact: ModelFact, footnotesRelSet: ModelRelationshipSet) -> dict[str, str]:
     footnotes = {}
     footnoteRels = footnotesRelSet.fromModelObject(fact)
     if footnoteRels:
@@ -60,10 +60,10 @@ def _compareInstance(originalInstance: ModelXbrl, expectedInstance: ModelXbrl, t
                                     modelXbrl=originalInstance, countFacts=len(targetInstance.facts),
                                     expectedFacts=len(expectedInstance.facts))
         return
-    compareFootnotesRelSet = ModelRelationshipSet(targetInstance, "XBRL-footnotes")
-    expectedFootnotesRelSet = ModelRelationshipSet(expectedInstance, "XBRL-footnotes")
+    compareFootnotesRelSet = ModelRelationshipSet(targetInstance, "XBRL-footnotes")  # type: ignore[no-untyped-call]
+    expectedFootnotesRelSet = ModelRelationshipSet(expectedInstance, "XBRL-footnotes")  # type: ignore[no-untyped-call]
     for expectedInstanceFact in expectedInstance.facts:
-        unmatchedFactsStack = []
+        unmatchedFactsStack: list[ModelFact] = []
         compareFact = targetInstance.matchFact(expectedInstanceFact, unmatchedFactsStack, deemP0inf=True, matchId=matchById, matchLang=False)
         if compareFact is None:
             if unmatchedFactsStack: # get missing nested tuple fact, if possible
