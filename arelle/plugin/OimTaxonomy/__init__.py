@@ -64,8 +64,8 @@ from .XbrlReport import XbrlReport, XbrlFactspace, XbrlFootnote
 from .XbrlTransform import XbrlTransform
 from .XbrlUnit import XbrlUnit
 from .XbrlTaxonomyModel import XbrlTaxonomyModel, castToXbrlTaxonomyModel
-from .XbrlTaxonomyModule import XbrlTaxonomyModule
-from .XbrlObject import XbrlObject, XbrlReferencableTaxonomyObject, XbrlTaxonomyTagObject
+from .XbrlTaxonomyModule import XbrlTaxonomyModule, xbrlObjectTypes
+from .XbrlObject import XbrlObject, XbrlReferencableTaxonomyObject, XbrlTaxonomyTagObject, XbrlObjectType
 from .XbrlTypes import (XbrlTaxonomyModelType, XbrlTaxonomyModuleType, XbrlLayoutType, XbrlReportType, XbrlUnitTypeType,
                         QNameKeyType, SQNameKeyType, DefaultTrue, DefaultFalse, DefaultZero)
 from .ValidateTaxonomyModel import validateTaxonomyModel
@@ -370,6 +370,10 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                   sourceFileLine=href)
         # first OIM Taxonomy load Baked In objects
         if not xbrlTxmyMdl.namedObjects and not "loadingBakedInObjects" in kwargs:
+            # load object types (internally for now, switch to xbrl-objectTypes.json when covered by spec)
+            for objTypeQn in sorted(xbrlObjectTypes.keys()):
+                newObj = XbrlObjectType(xbrlMdlObjIndex=len(xbrlTxmyMdl.xbrlObjects), name=objTypeQn)
+                xbrlTxmyMdl.xbrlObjects.append(newObj)
             #loadOIMTaxonomy(cntlr, error, warning, modelXbrl, xbrlTaxonomyObjects, "BakedInCoreObjects", loadingBakedInObjects=True, **kwargs)
             loadOIMTaxonomy(cntlr, error, warning, modelXbrl, os.path.join(RESOURCES_DIR, "xs-types.json"), "BakedInXbrlSpecObjects", loadingBakedInObjects=True, **kwargs)
             loadOIMTaxonomy(cntlr, error, warning, modelXbrl, os.path.join(RESOURCES_DIR, "xbrlSpec.json"), "BakedInXbrlSpecObjects", loadingBakedInObjects=True, **kwargs)
@@ -1088,6 +1092,16 @@ def oimTaxonomyValidator(val, parameters):
     except Exception as ex:
         val.modelXbrl.error("arelleOIMloader:error",
                 "Error while validating, error %(errorType)s %(error)s\n traceback %(traceback)s",
+                modelObject=val.modelXbrl, errorType=ex.__class__.__name__, error=ex,
+                traceback=traceback.format_tb(sys.exc_info()[2]))
+    # try building searchable vocabulary
+    try:
+        from .VectorSearch import buildXbrlVectors
+        embedder, store = buildXbrlVectors(val.modelXbrl)
+        print("built vocab")
+    except Exception as ex:
+        val.modelXbrl.error("arelleOIMloader:error",
+                "Error while building searchable vocabulary, error %(errorType)s %(error)s\n traceback %(traceback)s",
                 modelObject=val.modelXbrl, errorType=ex.__class__.__name__, error=ex,
                 traceback=traceback.format_tb(sys.exc_info()[2]))
 

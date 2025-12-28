@@ -249,3 +249,11 @@ class XbrlTaxonomyTagObject(XbrlTaxonomyObject):
 
     def getProperty(self, propertyName, propertyType=None, language=None, defaultValue=None):
         return getattr(self, propertyName, defaultValue)
+
+class XbrlObjectType(XbrlObject):
+
+    def __init__(self,  *args: Any, **kwargs: Any) -> None:
+        super(XbrlObjectType, self).__init__(*args, **kwargs)
+        if "name" in kwargs:
+            self.name = kwargs["name"]
+
