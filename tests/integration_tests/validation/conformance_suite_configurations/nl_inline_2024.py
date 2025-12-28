@@ -176,6 +176,6 @@ config = ConformanceSuiteConfig(
     info_url='https://www.sbr-nl.nl/sbr-domeinen/handelsregister/uitbreiding-elektronische-deponering-handelsregister',
     name=PurePath(__file__).stem,
     plugins=frozenset({'validate/NL'}),
-    shards=8,
+    shards=2,
     test_case_result_options='match-all',
 )

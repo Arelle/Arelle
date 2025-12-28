@@ -17,5 +17,5 @@ config = ConformanceSuiteConfig(
     name=PurePath(__file__).stem,
     plugins=frozenset({'EDGAR/validate', 'inlineXbrlDocumentSet'}),
     test_case_result_options='match-any',
-    shards=64,
+    shards=16,
 )

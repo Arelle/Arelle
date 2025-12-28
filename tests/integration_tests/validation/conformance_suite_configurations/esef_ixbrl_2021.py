@@ -36,6 +36,6 @@ config = ConformanceSuiteConfig(
     info_url='https://www.esma.europa.eu/document/conformance-suite-2021',
     name=PurePath(__file__).stem,
     plugins=frozenset({'validate/ESEF'}),
-    shards=8,
+    shards=2,
     test_case_result_options='match-any',
 )

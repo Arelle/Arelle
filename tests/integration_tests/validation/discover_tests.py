@@ -54,17 +54,15 @@ def generate_config_entries(config: ConformanceSuiteConfig, os: str, python_vers
             shard=None,
         )
     else:
-        ncores = OS_CORES[os]
-        shard_range = [0] if minimal else range(0, config.shards, ncores)
-        for start in shard_range:
-            end = min(config.shards, start + ncores) - 1
+        shard_range = [0] if minimal else range(0, config.shards, 1)
+        for shard in shard_range:
             yield generate_config_entry(
                 name=config.name,
                 short_name=config.name,
                 os=os,
                 private=config.has_private_asset,
                 python_version=python_version,
-                shard=f'{start}-{end}',
+                shard=str(shard),
             )
 
 

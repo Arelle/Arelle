@@ -67,6 +67,6 @@ config = ConformanceSuiteConfig(
     name=PurePath(__file__).stem,
     plugins=frozenset({'validate/ESEF'}),
     preprocessing_func=_preprocessing_func,
-    shards=8,
+    shards=2,
     test_case_result_options='match-any',
 )

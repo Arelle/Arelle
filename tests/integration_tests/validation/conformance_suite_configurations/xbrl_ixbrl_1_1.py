@@ -29,5 +29,4 @@ config = ConformanceSuiteConfig(
     runtime_options={
         'packages': [os.path.join(CONFORMANCE_SUITE_PATH_PREFIX, EXTRACTED_PATH, 'inlineXBRL-1.1-conformanceSuite-2020-04-08/schemas/www.example.com.zip')],
     },
-    shards=4,
 )

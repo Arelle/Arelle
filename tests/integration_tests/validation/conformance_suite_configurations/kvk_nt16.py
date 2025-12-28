@@ -33,5 +33,5 @@ config = ConformanceSuiteConfig(
     info_url='https://sbr-nl.nl/sites/default/files/bestanden/taxonomie/SBR%20Filing%20Rules%20NT16%20-%2020210301_0.pdf',
     name=PurePath(__file__).stem,
     plugins=frozenset({'validate/NL'}),
-    shards=8,
+    shards=2,
 )

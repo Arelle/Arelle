@@ -53,6 +53,6 @@ config = ConformanceSuiteConfig(
             'keepFilingOpen': True, # Edgar normally closes the model in CntlrCmdLine.Filing.End
         },
     },
-    shards=40,
+    shards=10,
     test_case_result_options='match-any',
 )

@@ -259,6 +259,5 @@ config = ConformanceSuiteConfig(
     info_url='https://disclosure2.edinet-fsa.go.jp/weee0020.aspx',
     name=PurePath(__file__).stem,
     plugins=frozenset({'validate/EDINET', 'inlineXbrlDocumentSet'}),
-    shards=4,
     test_case_result_options='match-all',
 )

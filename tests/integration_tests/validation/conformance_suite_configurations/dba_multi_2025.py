@@ -17,5 +17,4 @@ config = ConformanceSuiteConfig(
     runtime_options={
         'formulaAction': 'none',
     },
-    shards=4,
 )

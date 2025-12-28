@@ -27,5 +27,4 @@ config = ConformanceSuiteConfig(
     runtime_options={
         'calcs': 'xbrl21',
     },
-    shards=3,
 )
