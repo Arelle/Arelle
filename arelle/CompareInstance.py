@@ -1,6 +1,8 @@
 """
 See COPYRIGHT.md for copyright information.
 """
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 from arelle.ModelDtsObject import ModelResource
