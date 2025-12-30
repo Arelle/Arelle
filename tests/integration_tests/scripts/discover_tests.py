@@ -16,9 +16,9 @@ ALL_PYTHON_VERSIONS = (
     '3.11',
     '3.12',
     '3.13',
-    '3.14.1',
+    '3.14.2',
 )
-LATEST_PYTHON_VERSION = '3.14.1'
+LATEST_PYTHON_VERSION = '3.14.2'
 PRIMARY_OPERATING_SYSTEM = LINUX
 FUNCTION_REGISTRY_TESTS = frozenset({
     'xbrl_formula_1_0_function_registry',

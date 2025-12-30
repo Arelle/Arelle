@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.FR87"
+        description="[DBA.FR87] CSS must be embedded in the inline XBRL document: link."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid" name="Invalid">
+        <description>
+            There is external CSS file linked in the inline XBRL document.
+        </description>
+        <data>
+            <instance readMeFirst="true">fr87-invalid.xhtml</instance>
+        </data>
+        <result>
+            <error>DBA.FR87</error>
+        </result>
+    </variation>
+</testcase>

@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig
 from tests.integration_tests.validation.conformance_suite_configurations.cipc_current import config as cipc_current
-from tests.integration_tests.validation.conformance_suite_configurations.dba_current import config as dba_current
-from tests.integration_tests.validation.conformance_suite_configurations.dba_multi_current import config as dba_multi_current
+from tests.integration_tests.validation.conformance_suite_configurations.dba_2022 import config as dba_2022
+from tests.integration_tests.validation.conformance_suite_configurations.dba_2024 import config as dba_2024
+from tests.integration_tests.validation.conformance_suite_configurations.dba_multi_2024 import config as dba_multi_2024
 from tests.integration_tests.validation.conformance_suite_configurations.dba_2025 import config as dba_2025
 from tests.integration_tests.validation.conformance_suite_configurations.dba_multi_2025 import config as dba_multi_2025
 from tests.integration_tests.validation.conformance_suite_configurations.edinet import config as edinet
@@ -53,8 +54,9 @@ from tests.integration_tests.validation.conformance_suite_configurations.xbrl_ut
 
 ALL_CONFORMANCE_SUITE_CONFIGS: tuple[ConformanceSuiteConfig, ...] = (
     cipc_current,
-    dba_current,
-    dba_multi_current,
+    dba_2022,
+    dba_2024,
+    dba_multi_2024,
     dba_2025,
     dba_multi_2025,
     edinet,
