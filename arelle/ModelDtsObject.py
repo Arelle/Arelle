@@ -1633,7 +1633,7 @@ class ModelResource(ModelObject):
         attribute, as if the attribute were not present.  When absent or un-declared, returns None."""
         return XmlUtil.ancestorOrSelfAttr(self, "{http://www.w3.org/XML/1998/namespace}lang") or None
 
-    def viewText(self, labelrole=None, lang=None):
+    def viewText(self, labelrole=None, lang=None) -> str:
         """(str) -- Text of contained (inner) text nodes except for any whose localName
         starts with URI, for label and reference parts displaying purposes.
         (Footnotes, which return serialized html content of footnote.)"""
