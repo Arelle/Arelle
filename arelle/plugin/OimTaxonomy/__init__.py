@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING, cast, GenericAlias, Union, _GenericAlias, _Uni
 
 import os, io, json, cbor2, sys, time, traceback
 JSON_SCHEMA_VALIDATOR = "jsonschema" # select one of below JSON schema validator libraries (seriously different performance)
-#JSON_SCHEMA_VALIDATOR = "fastjsonschema"
+JSON_SCHEMA_VALIDATOR = "fastjsonschema"
 if JSON_SCHEMA_VALIDATOR == "jsonschema": # slow and thorough
     import jsonschema
     # finds all errors in source object
@@ -69,7 +69,7 @@ from .XbrlObject import XbrlObject, XbrlReferencableTaxonomyObject, XbrlTaxonomy
 from .XbrlTypes import (XbrlTaxonomyModelType, XbrlTaxonomyModuleType, XbrlLayoutType, XbrlReportType, XbrlUnitTypeType,
                         QNameKeyType, SQNameKeyType, DefaultTrue, DefaultFalse, DefaultZero)
 from .ValidateTaxonomyModel import validateTaxonomyModel
-from .ValidateReport import validateReport
+from .ValidateReport import validateReport, validateDateResolutionConceptFacts
 from .SelectImportedObjects import selectImportedObjects
 from .ModelValueMore import SQName, QNameAt
 from .ViewXbrlTaxonomyObject import viewXbrlTaxonomyObject
@@ -681,7 +681,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                             mappedUrl = PackageManager.mappedUrl(normalizedUri)
                         else:
                             mappedUrl = modelXbrl.modelManager.disclosureSystem.mappedUrl(normalizedUri)
-                        impSchemaDoc = loadOIMTaxonomy(cntlr, error, warning, modelXbrl, 
+                        impSchemaDoc = loadOIMTaxonomy(cntlr, error, warning, modelXbrl,
                                                        mappedUrl, url, importingTxmyObj=impTxObj)
                         if isinstance(impSchemaDoc, ModelDocument): # if an exception object is returned, loading didn't succeed\
                             if impSchemaDoc._txmyModule.name == impTxObj.taxonomyName:
@@ -1086,22 +1086,22 @@ def oimTaxonomyValidator(val, parameters):
     if not isinstance(val.modelXbrl, XbrlTaxonomyModel): # if no OIM Taxonomy DTS give up
         return
     try:
+        # validate taxonomy model
         validateTaxonomyModel(val.modelXbrl)
+
+        # validate facts whose values represent dateResolution concepts first
+        validateDateResolutionConceptFacts(val.modelXbrl)
+
+        # build search vocabulary to support cube construction (after date resolution concepts validated)
+        from .VectorSearch import buildXbrlVectors
+        buildXbrlVectors(val.modelXbrl)
+
+        # validate facts whose values represent dateResolution concepts first
         for reportQn, reportObj in val.modelXbrl.reports.items():
             validateReport(reportQn, reportObj, val.modelXbrl)
     except Exception as ex:
         val.modelXbrl.error("arelleOIMloader:error",
                 "Error while validating, error %(errorType)s %(error)s\n traceback %(traceback)s",
-                modelObject=val.modelXbrl, errorType=ex.__class__.__name__, error=ex,
-                traceback=traceback.format_tb(sys.exc_info()[2]))
-    # try building searchable vocabulary
-    try:
-        from .VectorSearch import buildXbrlVectors
-        embedder, store = buildXbrlVectors(val.modelXbrl)
-        print("built vocab")
-    except Exception as ex:
-        val.modelXbrl.error("arelleOIMloader:error",
-                "Error while building searchable vocabulary, error %(errorType)s %(error)s\n traceback %(traceback)s",
                 modelObject=val.modelXbrl, errorType=ex.__class__.__name__, error=ex,
                 traceback=traceback.format_tb(sys.exc_info()[2]))
 

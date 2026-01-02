@@ -20,7 +20,8 @@ from .XbrlCube import (XbrlCube, XbrlCubeType, baseCubeTypes, XbrlCubeDimension,
                        periodCoreDim, conceptCoreDim, entityCoreDim, unitCoreDim, languageCoreDim, coreDimensions,
                     conceptDomainRoot, entityDomainRoot, unitDomainRoot, languageDomainRoot,
                     defaultCubeType, reportCubeType, timeSeriesCubeType,
-                    timeSeriesPropType, intervalOfMeasurementPropType, intervalConventionPropType, excludedIntervalsPropType)
+                    timeSeriesPropType, intervalOfMeasurementPropType, intervalConventionPropType, excludedIntervalsPropType,
+                    periodConstraintPeriodPattern)
 from .XbrlDimension import XbrlDimension, XbrlDomain, XbrlDomainRoot, XbrlMember, xbrlMemberObj
 from .XbrlEntity import XbrlEntity
 from .XbrlGroup import XbrlGroup, XbrlGroupContent
@@ -36,10 +37,9 @@ from .XbrlTaxonomyModule import XbrlTaxonomyModule, xbrlObjectTypes, referencabl
 from .XbrlUnit import XbrlUnit, parseUnitString
 from .XbrlConst import qnXsQName, qnXsDate, qnXsDateTime, qnXsDuration, objectsWithProperties
 from arelle.FunctionFn import true
-validateFactspace = None
+resolveFactspace = validateFactspace = None
 
 perCnstrtFmtStartEndPattern = re.compile(r".*@(start|end)")
-
 def validateTaxonomyModel(txmyMdl):
 
     mdlLvlChecks = attrdict(
@@ -51,7 +51,7 @@ def validateTaxonomyModel(txmyMdl):
     for layout in txmyMdl.layouts.values():
         validateLayout(txmyMdl, layout)
 
-    validateCompletedMode(txmyMdl)
+    validateCompletedModel(txmyMdl)
 
     # model lavel checks
     for lblKey, lblObjs in mdlLvlChecks.labelsCt.items():
@@ -137,14 +137,14 @@ def validateProperties(txmyMdl, oimFile, txmy, obj):
                 parentName = ""
             if propTypeObj is None:
                 txmyMdl.error("oimte:invalidQNameReference",
-                          _("%(parentObjName)s %(parentName)s property %(name)s has undefined dataType %(dataType)s"),
+                          _("%(parentObjName)s %(parentName)s property %(name)s has undefined propertyType %(propertyType)s"),
                           file=oimFile, parentObjName=objType(obj), parentName=parentName,
-                          name=propTypeQn, dataType=propTypeQn)
+                          name=propTypeQn, propertyType=propTypeQn)
             else:
                 txmyMdl.error("invalidObjectType",
-                          _("%(parentObjName)s %(parentName)s property %(name)s has invalid property type object %(dataType)s"),
+                          _("%(parentObjName)s %(parentName)s property %(name)s has invalid property type object %(propertyType)s"),
                           file=oimFile, parentObjName=objType(obj), parentName=parentName,
-                          name=propTypeQn, dataType=propTypeQn)
+                          name=propTypeQn, propertyType=propTypeQn)
         else: # have property type object
             if propTypeObj.allowedObjects:
                 if xbrlObjectQNames.get(type(obj)) not in propTypeObj.allowedObjects:
@@ -645,26 +645,22 @@ def validateTaxonomy(txmyMdl, txmy, mdlLvlChecks):
                                       _("Cube %(name)s period constraint timeSpan property MUST NOT be used with both the endDate and startDate properties."),
                                       xbrlObject=(cubeObj,cubeDimObj), name=name)
                         perConstObj._timeSpanValid, perConstObj._timeSpanValue = validateValue(txmyMdl, txmy, cubeObj, perConstObj.timeSpan, "duration" ,f"/cubeDimensions[{iCubeDim}]/periodConstraints[{iPerConst}]/timeSpan", "oimte:invalidPeriodRepresentation")
-                    if perConstObj.periodFormat:
-                        if perConstObj.timeSpan or perConstObj.endDate or perConstObj.startDate:
-                            txmyMdl.error("oimte:invalidPeriodRepresentation",
-                                      _("Cube %(name)s period constraint periodFormat property MUST NOT be used with the timeSpan, endDate or startDate properties."),
+                    if perConstObj.periodPattern:
+                        perStr, _sep, perAttr = perConstObj.periodPattern.partition("@")
+                        isInstPerPat = perAttr in ("start", "end")
+                        perConstObj._periodPatternDict = None
+                        if not isInstPerPat and (perConstObj.timeSpan or perConstObj.endDate or perConstObj.startDate):
+                            txmyMdl.error("oimte:redundantPeriodPatternProperty",
+                                      _("Cube %(name)s period constraint periodPattern property MUST NOT be used with the timeSpan, endDate or startDate properties if it represents a duration."),
                                       xbrlObject=(cubeObj,cubeDimObj), name=name)
-                        perStr, _sep, perAttr = perConstObj.periodFormat.partition("@")
-                        isoPer = csvPeriod(perStr, perAttr)
-                        if isoPer is None or isoPer == "referenceTargetNotDuration":
-                            txmyMdl.error("oimte:invalidPeriodRepresentation",
-                                      _("Cube %(name)s periodConstraint[%(perConstNbr)s] periodFormat property, %(periodFormat)s, MUST be a valid period format per xbrl-csv specification."),
-                                      xbrlObject=(cubeObj,cubeDimObj), name=name, perConstNbr=iPerConst, periodFormat=perConstObj.periodFormat)
-                            perConstObj._periodFormatValid = INVALID
-                            perConstObj._periodFormatValue = None
                         else:
-                            perConstObj._periodFormatValid = VALID
-                            perConstObj._periodFormatValue = timeInterval(isoPer)
-                    if perConstObj.periodType != "instant" and perConstObj.periodFormat and perCnstrtFmtStartEndPattern.match(perConstObj.periodFormat):
-                        txmyMdl.error("oimte:invalidPeriodRepresentation",
-                                  _("Cube %(name)s period constraint periodFormat the suffix of @start or @end MUST only be used with periodType of instant."),
-                                  xbrlObject=(cubeObj,cubeDimObj), name=name)
+                            m = periodConstraintPeriodPattern.match(perStr)
+                            if m:
+                                perConstObj._periodPatternDict = m.groupdict()
+                            else:
+                                txmyMdl.error("oimte:invalidPeriodRepresentation",
+                                          _("Cube %(name)s periodConstraint[%(perConstNbr)s] periodFormat property, %(periodPattern)s, MUST be a valid period pattern per xbrl-csv specification."),
+                                          xbrlObject=(cubeObj,cubeDimObj), name=name, perConstNbr=iPerConst, periodPattern=perConstObj.periodPattern)
                     if perConstObj.periodType == "instant" and (perConstObj.timeSpan or perConstObj.startDate):
                         txmyMdl.error("oimte:invalidPeriodRepresentation",
                               _("Cube %(name)s period constraint periodType instant MUST NOT define timeSpan or startDate."),
@@ -674,13 +670,17 @@ def validateTaxonomy(txmyMdl, txmy, mdlLvlChecks):
                         if dtResObj is not None:
                             if dtResObj.conceptName:
                                 cncpt = txmyMdl.namedObjects.get(dtResObj.conceptName)
-                                if not isinstance(cncpt, XbrlConcept) or not isinstance(txmyMdl.namedObjects.get(cncpt.dataType), XbrlDataType) or txmyMdl.namedObjects[cncpt.dataType].xsBaseType(txmyMdl) not in ("date", "dateTime"):
+                                if isinstance(cncpt, XbrlConcept) and isinstance(txmyMdl.namedObjects.get(cncpt.dataType), XbrlDataType) and txmyMdl.namedObjects[cncpt.dataType].xsBaseType(txmyMdl) in ("date", "dateTime"):
+                                    txmyMdl.dateResolutionConceptNames.add(dtResObj.conceptName)
+                                else:
                                     txmyMdl.error("oimte:invalidQNameReference",
                                               _("Cube %(name)s period constraint concept %(qname)s base type MUST be a date or dateTime."),
                                               xbrlObject=(cubeObj,cubeDimObj), name=name, qname=dtResObj.conceptName)
                             if dtResObj.context:
                                 cncpt = txmyMdl.namedObjects.get(dtResObj.context)
-                                if not cncpt or not isinstance(cncpt, XbrlConcept) or (dtResObj.context.atSuffix not in ("start","end")):
+                                if isinstance(cncpt, XbrlConcept) and (dtResObj.context.atSuffix in ("start","end")):
+                                    txmyMdl.dateResolutionConceptNames.add(dtResObj.context)
+                                else:
                                     txmyMdl.error("oimte:invalidQNameReference",
                                               _("Cube %(name)s period constraint concept %(qname)s base type MUST be a concept and any suffix MUST be start or end."),
                                               xbrlObject=(cubeObj,cubeDimObj), name=name, qname=dtResObj.context)
@@ -1215,14 +1215,13 @@ def validateTaxonomy(txmyMdl, txmy, mdlLvlChecks):
                         txmyMdl.error("oimte:missingQNameReference",
                                   _("The unit %(name)s measure %(measure)s must exist in the taxonomy model."),
                                   xbrlObject=unitObj, name=unitObj.name, measure=m)
-
     # Facts in taxonomy
     if txmy.factspaces:
-        global validateFactspace
-        if validateFactspace is None:
-            from .ValidateReport import validateFactspace
+        global resolveFactspace, validateFactspace
+        if resolveFactspace is None:
+            from .ValidateReport import resolveFactspace, validateFactspace
         for factspace in txmy.factspaces:
-            validateFactspace(factspace, txmy.name, txmy, txmyMdl)
+            resolveFactspace(txmyMdl, txmy, factspace)
 
 
 def validateLayout(txmyMdl, layout):
@@ -1262,7 +1261,34 @@ def validateLayout(txmyMdl, layout):
                           _("The importObjectTypes property MUST specify valid OIM object types, %(qname)s is not valid."),
                           xbrlObject=impTxObj, qname=qnObjType)
 
-def validateCompletedMode(txmyMdl):
+def validateCompletedModel(txmyMdl):
+    # Facts in taxonomy
+    if any(txmy.factspaces for txmy in txmyMdl.taxonomies.values()):
+
+        # build search vocabulary to support cube construction (after date resolution concepts validated)
+        from .VectorSearch import buildXbrlVectors, searchXbrl, searchXbrlBatchTopk, SEARCH_CUBES, SEARCH_FACTSPACES, SEARCH_BOTH
+        buildXbrlVectors(txmyMdl)
+
+        dateResolutionQuery = [(conceptCoreDim, qn) for qn in txmyMdl.dateResolutionConceptNames]
+
+        results = searchXbrl(txmyMdl, dateResolutionQuery, SEARCH_FACTSPACES, 5 * len(dateResolutionQuery)) # allow sufficient return scores
+        # print(f"first search item {dtResQuery[0]} results {[(r[0],r[1].name) for r in results]}")
+
+        # validate factspace objects whose scores indicates they represent dateResolution concepts first
+        txmyMdl.dateResolutionConceptFacts = defaultdict(list)
+        for score, f in results:
+            if score < 0.2:  # arbitrary, what should this be?
+                break
+            if isinstance(f, XbrlFactspace):
+                conceptQn = f.factDimensions.get(conceptCoreDim)
+                if conceptQn in txmyMdl.dateResolutionConceptNames:
+                    validateFactspace(txmyMdl, f)
+                    txmyMdl.dateResolutionConceptFacts[conceptQn].append(f)
+
+        # validate facts not of date resolution objects
+        for f in txmyMdl.filterNamedObjects(XbrlFactspace):
+            if f.factDimensions.get(conceptCoreDim) not in txmyMdl.dateResolutionConceptNames:
+                validateFactspace(txmyMdl, f)
     # check complete cubes
     for cubeObj in txmyMdl.filterNamedObjects(XbrlCube):
         if cubeObj.cubeComplete:
