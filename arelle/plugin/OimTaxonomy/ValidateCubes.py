@@ -2,43 +2,48 @@
 See COPYRIGHT.md for copyright information.
 '''
 
+from arelle.ModelValue import qname, QName
 from .XbrlCube import XbrlCube, conceptCoreDim, periodCoreDim, entityCoreDim, unitCoreDim
 from .XbrlDimension import XbrlDimension
+from .VectorSearch import buildXbrlVectors, searchXbrl, searchXbrlBatchTopk, SEARCH_CUBES, SEARCH_FACTSPACES, SEARCH_BOTH
 from arelle.XmlValidateConst import VALID, INVALID
 
 coreToFactDim = {conceptCoreDim: "concept", entityCoreDim: "entity", unitCoreDim: "unit"}
 
-def matchFactToCube(fact, cubeObj, txmyMdl):
+def matchFactToCube(txmyMdl, factspace, cubeObj):
     hasCoreDims = True
     hasDims = True
     for cubeDimObj in cubeObj.cubeDimensions:
         dimName = cubeDimObj.dimensionName
         if dimName in coreToFactDim:
             mems = cubeDimObj.allowedMembers(txmyMdl)
-            if mems and fact.factDimensions.get(unitCoreDim) not in mems:
+            if mems and factspace.factDimensions.get(dimName) not in mems:
                 hasDims = False # skip this cube
                 break
         elif dimName == periodCoreDim:
-            factPerVal = fact.factDimensions.get("_periodValue")
+            factPerVal = factspace.factDimensions.get("_periodValue")
             if factPerVal is None and not cubeDimObj.allowDomainFacts:
                 continue # skip forever/missing period and not allowDomainFacts
             hasAnyPerMatch = True
             for perConstObj in cubeDimObj.periodConstraints:
-                if ((perConstObj.periodType == "none" and timeInterval is not None) or
-                    (perConstObj.periodType == "instant" != timeInterval.isInstant)):
-                    continue # skip this perCnstrt
-                if (getattr(perConstObj, "_timeSpanValid", 0) == VALID and
+                #if perConstObj.conceptName:
+                #
+                # context = get facts
+                timeSpan = getattr(perConstObj, "_timeSpanValue", None)
+                #if ((perConstObj.periodType == "none" and timeSpan is not None) or
+                #    (perConstObj.periodType == "instant" != timeSpan.isInstant)):
+                #    continue # skip this perCnstrt
+                if (timeSpan is not None and
                     (factPerVal.start is None or factPerVal.end is None or
-                    factPerVal.start + perConstObj._timeSpanValue != factPerVal.end)):
+                    factPerVal.start + timeSpan != factPerVal.end)):
                     continue # skip this perCnstrt
-                if (getattr(perConstObj, "_periodFormatValid", 0) == VALID and
-                    perConstObj._periodFormatValue != factPerVal):
+                if perConstObj.periodPatternMatch(factPerVal) == False:
                     continue # skip this perCnstrt
                 hasPerMatch = True
                 for dtResProp in ("monthDay", "endDate", "startDate", "onOrAfter", "onOrBefore"):
                     dtResObj = getattr(perConstObj, dtResProp, None)
+                    resPerVals = ()
                     if dtResObj is not None:
-                        resPreVals = ()
                         if getattr(dtResObj, "_valueValid", 0) == VALID:
                             resPerVal = (dtResObj._valueValue,)
                         elif dtResObj.conceptName:
@@ -65,23 +70,32 @@ def matchFactToCube(fact, cubeObj, txmyMdl):
             if not hasAnyPerMatch:
                 hasDims = False # skip this cube
                 break
-        elif dimName not in fact.factDimensions:
+        elif dimName not in factspace.factDimensions:
             if not cubeDimObj.allowDomainFacts:
                 hasDims = False # skip this cube
                 break
         else: # taxonomy defined dim
             dimObj = txmyMdl.namedObjects.get(dimName)
             isTyped = bool(cubeDimObj.domainDataType)
+            if not isTyped:
+                dimMbrQn = qname(factspace.factDimensions.get(dimName), factspace.parent._prefixNamespaces)
             if (isinstance(dimObj, XbrlDimension) and not isTyped and
-                fact.factDimensions.get(dimName) not in cubeDimObj.allowedMembers(txmyMdl)):
+                dimMbrQn not in cubeDimObj.allowedMembers(txmyMdl)):
                 hasDims = False # skip this cube
                 break
     return hasDims
 
-def validateCubes(fact, txmyMdl):
+def validateCubes(txmyMdl, factspace):
+    # find likely cubes
+    cubeFitQuery = [(dimQn, value) for dimQn,value in factspace.factDimensions.items() if isinstance(dimQn, QName)]
+    results = searchXbrl(txmyMdl, cubeFitQuery, SEARCH_CUBES, 50) # allow sufficient return scores
+    print(f"Cube fit scores for factspace {factspace.name} {[(r[0],r[1].name) for r in results]}")
+
     usableCubes = []
-    for cubeObj in txmyMdl.filterNamedObjects(XbrlCube):
-        if matchFactToCube(fact, cubeObj, txmyMdl):
+    for score, cubeObj in results:
+        if score < .1 : # find right value here
+            break
+        if matchFactToCube(txmyMdl, factspace, cubeObj):
             usableCubes.append(cubeObj)
     return usableCubes
 

@@ -50,8 +50,16 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from arelle.ModelValue import QName
+
 from .XbrlCube import XbrlCube
+from .XbrlObject import XbrlReferencableTaxonomyObject, XbrlReportObject
+from .XbrlReport import XbrlFactspace
 from .XbrlTaxonomyModule import referencableObjectTypes
+
+SEARCH_CUBES = 1
+SEARCH_FACTSPACES = 2
+SEARCH_BOTH = 3
 
 # --------------------------------------------------------------------
 # Device selection
@@ -71,6 +79,19 @@ def bestDevice() -> torch.device:
       - matrix multiplications and embedding lookups are GPU-accelerated
         when hardware is available.
       - code remains portable with a single path.
+
+    One CUDA or one Apple Silicon GPU is chosen, no device index, list of devices, or replication.
+
+    For XBRL workloads, typical facts per filing (such as SEC) is 1k – 50k, typical dimensions is small,
+    and typical embedding dims are 32–256 (this may change for large N-CSRs).
+
+    A single modern GPU (or Apple M-series GPU) can do millions of exact similarity checks per millisecond.
+
+    Batched queries run in parallel on one GPU, not across GPUs.  The GPU parallelizes across facts,
+    across queries and across vector dimensions - within one GPU only.  This is exactly what
+    is needed for correctness and simplicity.  Multi-GPU would provide benefit only when indexing
+    across millions of filings at once.
+
     """
     if torch.cuda.is_available():
         return torch.device("cuda")
@@ -126,24 +147,23 @@ def buildXbrlVocab(txmyMdl: XbrlTaxonomyModel, valueTokensOffset: int) -> Tuple[
         cubeTokens.add( (c, tuple(tokens) ) )
 
     # from factspace
-    for reportQn, reportObj in txmyMdl.reports.items():
-        for factspace in reportObj.factspaces.values():
-            f = factspace.xbrlMdlObjIndex
-            tokens = []
-            for qn, value in factspace.dimensions.items():
-                dimObj = txmyMdl.namedObjects.get(qn)
-                if dimObj:
-                    d = dimObj.xbrlMdlObjIndex
-                    if isinstance(value, QName) and value in txmyMdl.namedObjects:
-                        m = txmyMdl.namedObjects[value].xbrlMdlObjIndex
-                    else:
-                        m = value
-                    v = ( d, m )
-                    t = valueTokens.add( v ) + valueTokensOffset
-                    tokens.append( t ) # dimension value for dimension value queries
-                    tokens.append( d )      # hasDimension for queries wildcarding dimension
-            factTokens.add( (f, tuple(tokens) ) )
-            # do we encode the fact's value?  or its hash?  or valueSource like html id or pdf form field id
+    for factspace in txmyMdl.filterNamedObjects(XbrlFactspace):
+        f = factspace.xbrlMdlObjIndex
+        tokens = []
+        for qn, value in factspace.factDimensions.items():
+            dimObj = txmyMdl.namedObjects.get(qn)
+            if dimObj:
+                d = dimObj.xbrlMdlObjIndex
+                if isinstance(value, QName) and value in txmyMdl.namedObjects:
+                    m = txmyMdl.namedObjects[value].xbrlMdlObjIndex
+                else:
+                    m = value
+                v = ( d, m )
+                t = valueTokens.add( v ) + valueTokensOffset
+                tokens.append( t ) # dimension value for dimension value queries
+                tokens.append( d )      # hasDimension for queries wildcarding dimension
+        factTokens.add( (f, tuple(tokens) ) )
+        # do we encode the fact's value?  or its hash?  or valueSource like html id or pdf form field id
 
     return OrderedSet(sorted(cubeTokens)), OrderedSet(sorted(factTokens)), valueTokens
 
@@ -205,17 +225,6 @@ class XBRLEmbedder(nn.Module):
         w = torch.tensor(weights, dtype=vecs.dtype, device=self.device)
         w = w / w.sum()
         return (vecs * w.unsqueeze(1)).sum(dim=0)
-
-
-# --------------------------------------------------------------------
-# Data structures for stored vectors
-# --------------------------------------------------------------------
-
-@dataclass
-class IndexEntry:
-    kind: Literal["taxonomy", "fact"]
-    key: str           # e.g. token string or "FACT::<idx>"
-    payload: dict      # original JSON or metadata
 
 
 @dataclass
@@ -285,13 +294,13 @@ def buildXbrlVectors(
     valueTokensOffset = 10 ** math.ceil(math.log10( lenObjs ))
 
     cubeTokens, factTokens, valueTokens = buildXbrlVocab(txmyMdl, valueTokensOffset)
-    vocabSize = len(cubeTokens) + len(factTokens) + len(valueTokens)
+    vocabSize = valueTokensOffset + len(valueTokens)
     # print(f"Vocab size: {vocabSize}")
     txmyMdl.info("arelle:oimModelVectorSearch",
                  _("Using %(device)s.  Vectorized vocabulary size %(vocabSize)s."),
                  device=DEVICE_DESCRIPTION.get(device.type, "unrecognized device"), vocabSize=vocabSize)
 
-    embedder = XBRLEmbedder(vocabSize, embedDim, device=device)
+    txmyMdl._xbrlEmbedder = embedder = XBRLEmbedder(vocabSize, embedDim, device=device)
 
     # --------- cube dimension vectors ----------
     cubeVecsList: List[torch.Tensor] = []
@@ -313,9 +322,9 @@ def buildXbrlVectors(
     factObjsList: List[int] = []
 
     # from facts
-    for f, tokens in range(len(factTokens)):
+    for f, tokens in factTokens:
         v = embedder.combine(tokens)
-        factObjsList.append(c)
+        factObjsList.append(f)
         factVecsList.append(v)
 
     factVecs = None
@@ -323,7 +332,7 @@ def buildXbrlVectors(
         factVecs = torch.stack(factVecsList, dim=0)     # (N_fact, D)
         factVecs = l2NormalizeRows(factVecs)           # normalization on device
 
-    store = XBRLVectorStore(
+    txmyMdl._xbrlVectorStore = store = XBRLVectorStore(
         device=device,
         embedDim=embedDim,
         cubeVecs=cubeVecs,
@@ -333,8 +342,6 @@ def buildXbrlVectors(
         valueTokensOffset=valueTokensOffset,
         valueTokens=valueTokens
     )
-
-    return embedder, store
 
 # --------------------------------------------------------------------
 # Query aspect encoder
@@ -347,7 +354,8 @@ def mapQueryAspects(
 ) -> List[int]:    # Map tokens to IDs, ignore unknown
     """
     queryAspects: list of model object indices and values, e.g.:
-        for concept: (xbrl:concept qname, exp:assets qname)
+        arguments may be objects or qnames of objects, and are mapped to mdlObjIndices
+        for concept: (xbrl:concept name, exp:assets qname)
         for dimension presence: (exp:dim qname, )
         for dimension value: (exp:dim qname, exp:mem qname or
                              (exp:dim qname, typed mem value)
@@ -355,24 +363,37 @@ def mapQueryAspects(
         for unit: (xbrl:unit qname, unit string value) ???
     """
 
+    store = txmyMdl._xbrlVectorStore
     aspectIds = []
     for queryAspect in queryAspects:
-        dimObj = txmyMdl.namedObjects.get( queryAspect[0] )
+        if not isinstance(queryAspect, (tuple,list)):
+            raise ValueError(f"Vector search query aspects must be tuple or list of aspect and value, as objects, object QNames or value (e.g. date or string).")
+        qa0 = queryAspect[0]
+        if isinstance(qa0, (XbrlReferencableTaxonomyObject,XbrlReportObject)):
+            dimObj = qa0
+        elif isinstance(qa0, QName):
+            dimObj = txmyMdl.namedObjects.get(qa0)
+        else:
+            raise ValueError(f"Vector search query aspects (first tuple/list item) must be an objects or object QNames, but not {qa0}.")
         if dimObj:
             d = dimObj.xbrlMdlObjIndex
             if len(queryAspect) > 1:
-                value = queryAspect[1]
-                if isinstance(value, QName) and value in txmyMdl.namedObjects:
-                    v = ( d, txmyMdl.namedObjects[value].xbrlMdlObjIndex )
-                elif v in store.valueTokens:
-                    v = ( d, value )
+                qa1 = queryAspect[1]
+                if isinstance(qa1, (XbrlReferencableTaxonomyObject,XbrlReportObject)):
+                    v = ( d, qa1.xbrlMdlObjIndex )
+                elif isinstance(qa1, QName) and qa1 in txmyMdl.namedObjects:
+                    v = ( d, txmyMdl.namedObjects[qa1].xbrlMdlObjIndex )
+                elif qa1 in store.valueTokens:
+                    v = ( d, qa1 )
+                else:
+                    continue
                 if v in store.valueTokens:
-                    v = store.valueTokens.index( value ) + store.valueTokenOffset
+                    v = store.valueTokens.index( v ) + store.valueTokensOffset
                 else:
                     continue
             else:
                 v = d
-                aspectIds.append( v )
+            aspectIds.append( v )
     return aspectIds
 
 # --------------------------------------------------------------------
@@ -382,17 +403,15 @@ def mapQueryAspects(
 def searchXbrl(
     txmyMdl: XbrlTaxonomyModel,
     queryAspects: List[Tuple[int, ...]],
-    embedder: XBRLEmbedder,
-    store: XBRLVectorStore,
-    domain: Literal["cubes", "factspaces", "both"] = "both",
-    topK: int = 5,
+    domain: Literal[SEARCH_CUBES, SEARCH_FACTSPACES, SEARCH_BOTH] = SEARCH_BOTH,
+    topK: int = 20,
 ) -> List[Tuple[float, IndexEntry]]:
     """
     queryAspects: see mapQueryAspects above
 
-    domain: "cubes" | "factspaces" | "both"
+    domain: SEARCH_CUBES, SEARCH_FACTSPACES or SEARCH_BOTH
 
-    Returns a list of (score, IndexEntry) sorted by descending cosine similarity.
+    Returns a list of (score, object) sorted by descending cosine similarity.
 
     VERY IMPORTANT:
       - This is an EXACT search.
@@ -402,10 +421,12 @@ def searchXbrl(
         XBRL scales we care about (thousands to low hundreds of thousands).
       - No approximate index, no risk of "missing" nearest neighbors.
     """
+    embedder = txmyMdl._xbrlEmbedder
+    store = txmyMdl._xbrlVectorStore
 
     aspectIds = mapQueryAspects(txmyMdl, queryAspects, store)
     if not aspectIds:
-        raise ValueError("None of the queryAspects exist in tok2id. Check token strings.")
+        raise ValueError("None of the queryAspects exist in the model. Check query contents.")
 
     # Encode query aspects into a vector on same device, normalize
     qVec = embedder.combine(aspectIds).to(store.device)
@@ -414,7 +435,7 @@ def searchXbrl(
     results: List[Tuple[float, IndexEntry]] = []
 
     # ---- taxonomy search (GPU hot path: matrix-vector dot) ----
-    if domain in ("cubes", "both") and store.cubeVecs is not None:
+    if domain in (SEARCH_CUBES, SEARCH_BOTH) and store.cubeVecs is not None:
         tv = store.cubeVecs  # (N_tax, D), already normalized, on device
         # EXACT cosine similarity via dot product on device
         sims = (tv @ qVec.T).squeeze(1)  # (N_tax,)
@@ -425,18 +446,18 @@ def searchXbrl(
             results.append((float(s), txmyMdl.xbrlObjects[cubeObjIndex]))
 
     # ---- fact search (same GPU hot path) ----
-    if domain in ("facts", "both") and store.factVecs is not None:
+    if domain in (SEARCH_FACTSPACES, SEARCH_BOTH) and store.factVecs is not None:
         fv = store.factVecs  # (N_fact, D), already normalized, on device
         sims = (fv @ qVec.T).squeeze(1)  # (N_fact,)
         k = min(topK, sims.shape[0])
         scores, idxs = torch.topk(sims, k)
         for s, idx in zip(scores.tolist(), idxs.tolist()):
-            factObjIndex = store.cubeObjsList[idx]
+            factObjIndex = store.factObjsList[idx]
             results.append((float(s), txmyMdl.xbrlObjects[factObjIndex]))
 
     # Merge+sort if both
     results.sort(key=lambda x: x[0], reverse=True)
-    if domain == "both":
+    if domain == SEARCH_BOTH:
         results = results[:topK]
 
     return results
@@ -493,19 +514,17 @@ def encodeQueriesMean(
     return F.normalize(Q, dim=1)
 
 
-def searchFactsBatchTopk(
+def searchXbrlBatchTopk(
     txmyMdl: XbrlTaxonomyModel,
     queriesAspects: List[List[str]],
-    embedder: XBRLEmbedder,
-    store: XBRLVectorStore,
-    domain: Literal["cubes", "factspaces"] = "factspace",
+    domain: Literal[SEARCH_CUBES, SEARCH_FACTSPACES] = SEARCH_FACTSPACES,
     top_k: int = 20,
     query_batch: int = 128,
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     """Exact batched search over facts: returns top-k per query.
 
     Inputs:
-      queries_aspects: List of queries; each query is a List[str] of aspect tokens.
+      queries_aspects: List of queries; each query is a List[tuples] of aspect tokens.
       top_k: number of matches per query
       query_batch: process queries in chunks to limit score matrix size
 
@@ -528,7 +547,10 @@ def searchFactsBatchTopk(
         For large N, keep query_batch modest (e.g., 64-256).
     """
 
-    if store.factVecs is None or not store.factEntries:
+    embedder = txmyMdl._xbrlEmbedder
+    store = txmyMdl._xbrlVectorStore
+
+    if store.factVecs is None or not store.factObjsList:
         raise ValueError("No fact vectors available in store.")
 
     # Convert each query’s aspect tokens -> token IDs; keep per-query lists
@@ -548,9 +570,9 @@ def searchFactsBatchTopk(
     allTopIdx = []
     allTopScores = []
 
-    if domain == "cubes":
+    if domain == SEARCH_CUBES:
         vecs = store.cubeVecs  # (N, D), already normalized, on device
-    else:
+    else: # SEARCH_FACTSPACES
         vecs = store.factVecs  # (N, D), already normalized, on device
     N = vecs.shape[0]
 

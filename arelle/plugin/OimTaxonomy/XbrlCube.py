@@ -3,16 +3,18 @@ See COPYRIGHT.md for copyright information.
 """
 
 from typing import TYPE_CHECKING, Optional, Union
+import regex as re
 
 from arelle.ModelValue import qname, QName, DateTime, YearMonthDayTimeDuration
 from arelle.PythonUtil import OrderedSet
+from arelle.oim.Load import EMPTY_DICT
 from .XbrlConst import xbrl
 from .XbrlDimension import XbrlDomain
 from .XbrlProperty import XbrlProperty
 from .XbrlTypes import XbrlTaxonomyModuleType, QNameKeyType, DefaultTrue, DefaultFalse
 from .ModelValueMore import QNameAt, SQName
 from .XbrlObject import XbrlTaxonomyObject, XbrlReferencableTaxonomyObject
-from arelle.FunctionFn import true
+from arelle.FunctionFn import true, false
 
 class XbrlDateResolution(XbrlTaxonomyObject):
     conceptName: Optional[QName] # (optional) Identifies the QName of a concept object that has a date fact value. The values of the concept object resolves to a set of dates. If no value exists in the report then the property is ignored, and no date constraint is enforced on the cube.
@@ -20,15 +22,36 @@ class XbrlDateResolution(XbrlTaxonomyObject):
     value: Optional[DateTime] # (optional) A literal date value representing the end date.
     timeShift: Optional[YearMonthDayTimeDuration] # (optional) Defines a time duration shift from the date derived form either the value, context or name properties. The duration of the time shift is defined using the XML duration type to define a duration of time. A negative operator is used to deduct the timeShift from the resolved date.
 
+periodConstraintPeriodPattern = re.compile(
+    r"^(?P<stDt>(?P<stYr>\d{4}|YYYY)-(?P<stMo>0[1-9]|1[0-2]|MM)-(?P<stDa>0[1-9]|[12]\d|3[01]|DD|eom))(T(?P<stHr>[01]\d|2[0-4]|hh):(?P<stMn>[0-5]\d|60|mm)(:(?P<stSc>[0-5]\d|60|ss))?)?(/((?P<EnDt>(?P<enYr>\d{4}|YYYY)-(?P<enMo>0[1-9]|1[0-2]|MM)-(?P<enDa>0[1-9]|[12]\d|3[01]|DD|eom))(T(?P<enHr>[01]\d|2[0-4]|hh):(?P<enMn>[0-5]\d|60|mm)(:(?P<enSc>[0-5]\d|60|ss))?)?))?")
+
 class XbrlPeriodConstraint(XbrlTaxonomyObject):
     periodType: str # (required) Used to indicate if the period is an instant or a duration.
     timeSpan: Optional[str] # (optional) Defines a duration of time using the XML duration type to define a duration of time. The duration of the time span maps to facts with the same duration.
-    periodFormat: Optional[str] # (optional) Defines a a duration of time with an end date. The period value defined in the taxonomy must resolve to a valid period format as defined in xbrl-csv specification.
-    monthDay: Optional[XbrlDateResolution] # (optional) Represents a Gregorian date that recurs such as 04-16. The date resolution object when used with this property returns the date without the year. The conceptName property of the dateResolution object can also use a datatype of monthDay.
+    periodPattern: Optional[str] # (optional) Defines a date or duration pattern that is used to select dates or durations.
     endDate: Optional[XbrlDateResolution] # (optional) Defines an end date for a duration fact and the date of an instant fact. Values can be provided as a literal date value, a fact with a date value, or the date context value of a date. A suffix of @start or @end may be added to any of the date formats, specifying the instant at the start or end end of the duration, respectively.
     startDate: Optional[XbrlDateResolution] # (optional) Defines a start date for a duration fact and the date of an instant fact. Values can be provided as a literal date value, a fact with a date value, or the date context value of a date. A suffix of @start or @end may be added to any of the date formats, specifying the instant at the start or end end of the duration, respectively.
     onOrAfter: Optional[XbrlDateResolution] # (optional) Defines a date where all instant facts on or after the date are included in the cube. For a duration fact any periods after or on the end date of the duration are included in the cube.
     onOrBefore: Optional[XbrlDateResolution] # (optional) Defines a date where all instant facts before or on the date are included in the cube. For a duration fact any periods before or on the end date are included in the cube.
+
+    def periodPatternMatch(self, perVal):
+        if not self.periodPattern or not self._periodPatternDict:
+            return None # no period pattern check
+        m = periodConstraintPeriodPattern.match(perVal)
+        if not m:
+            return False # period not processable to match, fail constraint
+        perValDict = m.groupdict()
+        for prop in ("stYr","stMo","stDa", "stHr", "stMn", "stSc", "enYr","enMo","enDa", "enHr", "enMn", "enSc"):
+            if not self._periodPatternDict[prop] in (None, "YYYY", "MM", "DD", "hh", "mm", "SS") and perValDict[prop] is not None:
+                if self._periodPatternDict[prop] == "eom":
+                    dt = datetime.strptime(perValDict[prop[:2]+"Dt"])
+                    if dt.day != calendar.monthrange(dt.year, dt.month)[1]:
+                        return False
+                else:
+                    if self._periodPatternDict[prop] != perValDict[prop]:
+                        return False
+        return True
+
 
 class XbrlCubeDimension(XbrlTaxonomyObject):
     dimensionName: QName # (required) The QName of the dimension object that is used to identify the dimension. For the core dimensions of concept, period, entity and unit, the core dimension QNames of xbrl:concept, xbrl:period, xbrl:entity, xbrl:unit and xbrl:language are used. The dimension object indicates if the dimension is typed or explicit.

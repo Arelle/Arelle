@@ -25,6 +25,7 @@ def castToXbrlTaxonomyModel(modelXbrl, isReport=False):
         modelXbrl.namedObjects: OrderedDict[QNameKeyType, XbrlReferencableTaxonomyObject] = OrderedDict() # not visible metadata
         modelXbrl.tagObjects: defaultdict[QName, list[XbrlReferencableTaxonomyObject]] = defaultdict(list) # labels and references
         modelXbrl.reports: OrderedDict[QNameKeyType, XbrlReport] = OrderedDict()
+        modelXbrl.dateResolutionConceptNames: OrderedSet[QName] = OrderedSet()
     return modelXbrl
 
 
@@ -50,6 +51,7 @@ class XbrlTaxonomyModel(ModelXbrl): # complete wrapper for ModelXbrl
         self.xbrlObjects: list[XbrlObject] = []
         self.namedObjects: OrderedDict[QNameKeyType, XbrlReferencableTaxonomyObject] = OrderedDict() # not visible metadata
         self.tagObjects: defaultdict[QName, list[XbrlReferencableTaxonomyObject]] = defaultdict(list) # labels and references
+        self.dateResolutionConceptNames: OrderedSet[QName] = OrderedSet()
 
 
     @property

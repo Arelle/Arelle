@@ -2698,6 +2698,18 @@
                 ]
             },
             {
+                "name": "oimte:disallowedObjectPropertyOnCubeReference",
+                "relatedNames": [
+                    "oimte:disallowedObjectProperty"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:conformanceTestFileName" ,"value":"CUBE-InvalidCubeProperty.json"},
+                    {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
+                ]
+            },
+            {
                 "name": "oimte:invalidCubeDimensionDomainNameReference",
                 "relatedNames": [
                     "oimte:invalidCubeDimensionDomainName"
@@ -2706,6 +2718,18 @@
                 "language": "en",
                 "properties": [
                     {"property":"xbrl:conformanceTestFileName" ,"value":"CUBE-InappropriateDomainReference.json"},
+                    {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
+                ]
+            },
+            {
+                "name": "oimte:invalidCubeDimensionDomainName2Reference",
+                "relatedNames": [
+                    "oimte:invalidCubeDimensionDomainName"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:conformanceTestFileName" ,"value":"CUBE-InappropriateExcludeCubeReference.json"},
                     {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
                 ]
             },
@@ -2794,6 +2818,18 @@
                 ]
             },
             {
+                "name": "oimte:cubeMissingConceptDimension3Reference",
+                "relatedNames": [
+                    "oimte:cubeMissingConceptDimension"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:conformanceTestFileName" ,"value":"CUBE-InappropriateDimensionReference.json"},
+                    {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
+                ]
+            },
+            {
                 "name": "oimte:factMissingFromCubeReference",
                 "relatedNames": [
                     "oimte:factMissingFromCube"
@@ -2827,6 +2863,18 @@
                 "language": "en",
                 "properties": [
                     {"property":"xbrl:conformanceTestFileName" ,"value":"CUBE-DimensionNotDimensionObject.json"},
+                    {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
+                ]
+            },
+             {
+                "name": "oimte:dimensionNameNotDimensionObject2Reference",
+                "relatedNames": [
+                    "oimte:dimensionNameNotDimensionObject"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {"property":"xbrl:conformanceTestFileName" ,"value":"CUBE-InappropriateDimensionReference.json"},
                     {"property":"xbrl:conformanceStatus" ,"value":"❌ Fail"}
                 ]
             },

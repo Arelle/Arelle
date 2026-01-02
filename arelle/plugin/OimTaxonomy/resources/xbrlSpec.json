@@ -28,6 +28,7 @@
                         "required" : true
                         }
                     ],
+                    "allowedCubeDimensionsClosed" : true,
                     "requiredCubeRelationships" : [
                         {
                         "sourceDataType":"xs:dateTime",
@@ -114,7 +115,23 @@
                             "dimensionDataType": "xs:token",
                             "required" : true
                         }
-                    ]
+                    ],
+                    "allowedCubeDimensionsClosed" : false
+                },
+                {
+                    "name": "xbrl:listingCube",
+                    "periodDimension": false,
+                    "entityDimension": false,
+                    "unitDimension": true,
+                    "taxonomyDefinedDimension": true,
+                    "allowedCubeDimensions" : [
+                        {
+                            "dimensionType": "typed",
+                            "dimensionDataType": "xs:token",
+                            "required" : true
+                        }
+                    ],
+                    "allowedCubeDimensionsClosed" : true
                 },
                 {
                     "name": "xbrl:reportCube",
