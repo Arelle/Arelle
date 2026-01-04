@@ -29,6 +29,13 @@ The saveOIMFactspaces plugin saves OIM Model Factspaces from Inline XBRL or othe
   Deduplication does not make sense for inline XBRL source documents as it would block saving of
   the inline value sources for the duplicate entries.
 
+- **Text block options**
+  Default is to provide valueSources to all ix:continuations
+  Option is to also capture inner text in value property
+
+  To specify in GUI operation provide a formula parameter named inlineText containing
+     "valueSources and value"
+
   To save an OIM instance with duplicate fact removed use the `--deduplicateOimFacts` argument with either `complete`,
   `consistent-pairs`, or `consistent-sets` as the value.
   For details on what eaxctly consitutes a duplicate fact and why there are multiple options read the
@@ -192,6 +199,7 @@ def saveOIMFactspace(
     modelXbrl: ModelXbrl,
     oimFile: str,
     outputZip: zipfile.ZipFile | None = None,
+    saveInlineTextValue: bool = False,
     # arguments to add extension features to OIM document
     extensionPrefixes: dict[str, str] | None = None,
     extensionReportObjects: dict[str, Any] | None = None,
@@ -414,10 +422,13 @@ def saveOIMFactspace(
         factspace["name"] = f"{prefix}:{fact.id or fact.objectIndex}"
         concept = fact.concept
         isNumeric = False
+        isTextBlock = False
         if concept is not None:
             factDims[str(qnConceptCoreDim)] = oimValue(concept.qname)
             if concept.type is not None and concept.type.isOimTextFactType and fact.xmlLang:
                 factDims[str(qnLangCoreDim)] = fact.xmlLang
+            if concept.isTextBlock:
+                isTextBlock = True
             isNumeric = concept.isNumeric
         if fact.isItem:
             factspace["factValues"] = factValues = []
@@ -438,11 +449,18 @@ def saveOIMFactspace(
                 if fact.sign:
                     vs["sign"] = fact.sign
                 valueSources.append(vs)
+                if isTextBlock and saveInlineTextValue:
+                    stringValues = [super(ModelFact,fact).stringValue]
                 contElt = getattr(fact, "_continuationElement", None)
                 while contElt is not None:
                     vs = {"href": f"{fact.modelDocument.basename}#{contElt.id}"}
                     valueSources.append(vs)
+                    if isTextBlock and saveInlineTextValue:
+                        stringValues.append(contElt.stringValue)
                     contElt = getattr(contElt, "_continuationElement", None)
+                if isTextBlock and saveInlineTextValue:
+                    factValue["value"] = "".join(stringValues)
+                    del stringValues # dereference big chunks of text
             else: #  non-inline fact
                 if fact.isNil:
                     _value = None
@@ -588,9 +606,15 @@ def SaveOIMFactspaceMenuCommand(cntlr: CntlrWinMain) -> None:
     cntlr.config["loadableOIMFactspaceDir"] = os.path.dirname(oimFile)
     cntlr.saveConfig()
 
+    # options
+    saveInlineTextValue = False
+    if "inlineText" in cntlr.modelManager.formulaOptions.parameterValues:
+        saveInlineTextValue = set(cntlr.modelManager.formulaOptions.parameterValues["inlineText"][1].split()
+            ) & {"value", "valueSources"} == {"value", "valueSources"}
+
     thread = threading.Thread(
         target=lambda _modelXbrl=cntlr.modelManager.modelXbrl, _oimFile=oimFile: saveOIMFactspace(
-            _modelXbrl, _oimFile, None
+            _modelXbrl, _oimFile, None, saveInlineTextValue
         )
     )
     thread.daemon = True
@@ -653,6 +677,13 @@ class SaveOIMFactspacePlugin(PluginHooks):
             choices=[a.value for a in ValidateDuplicateFacts.DeduplicationType],
             dest="deduplicateOimFacts",
             help=_("Remove duplicate facts when saving the OIM instance"))
+        parser.add_option(
+            "--inlineText",
+            action="store",
+            choices=["valueSources"
+                     "valueSources and value"],
+            dest="inlineText",
+            help=_("Option to capture text block inner text content in value property"))
 
     @staticmethod
     def cntlrCmdLineUtilityRun(
