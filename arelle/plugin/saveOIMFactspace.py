@@ -72,6 +72,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
+from lxml import etree
 from math import isinf, isnan
 from numbers import Number
 from optparse import OptionParser
@@ -107,7 +108,9 @@ from arelle.UrlUtil import relativeUri
 from arelle.utils.PluginData import PluginData
 from arelle.utils.PluginHooks import PluginHooks
 from arelle.ValidateXbrlCalcs import inferredDecimals
+from arelle.ValidateFilingText import elementsWithNoContent
 from arelle.Version import authorLabel, copyrightLabel
+from arelle.XmlValidateConst import VALID, NONE, UNVALIDATED
 
 if TYPE_CHECKING:
     from tkinter import Menu
@@ -121,6 +124,34 @@ if TYPE_CHECKING:
 _: TypeGetText
 
 PLUGIN_NAME = "Save OIM Factspace"
+
+tagsWithNoContent = set(f"{{http://www.w3.org/1999/xhtml}}{t}" for t in elementsWithNoContent)
+for t in ("schemaRef", "linkbaseRef", "roleRef", "arcroleRef", "loc", "arc"):
+    tagsWithNoContent.add(f"{{http://www.xbrl.org/2003/linkbase}}{t}")
+tagsWithNoContent.add("{http://www.xbrl.org/2013/inlineXBRL}relationship")
+
+
+def uncloseSelfClosedTags(doc):
+    doc.parser.set_element_class_lookup(None)  # modelXbrl class features are already closed now, block class lookup
+    for e in doc.xmlRootElement.iter():
+        # check if no text, no children and not self-closable element for EDGAR
+        if (e.text is None and (not e.getchildren())
+            and e.tag not in tagsWithNoContent):
+            e.text = ""  # prevents self-closing tag with etree.tostring for zip and dissem folders
+
+def serializeXml(xmlRootElement):
+    initialComment = b''  # tostring drops initial comments
+    node = xmlRootElement
+    while node.getprevious() is not None:
+        node = node.getprevious()
+        if isinstance(node, etree._Comment):
+            initialComment = etree.tostring(node, encoding="UTF-8") + b'\n' + initialComment
+    serXml = etree.tostring(xmlRootElement, encoding="UTF-8", xml_declaration=True, pretty_print=True)
+    if initialComment and serXml and serXml.startswith(b"<?"):
+        i = serXml.find(b"<html")
+        if i:
+            serXml = serXml[:i] + initialComment + serXml[i:]
+    return serXml
 
 oimErrorPattern = re.compile("oime|oimce|xbrlje|xbrlce")
 xbrl = "https://xbrl.org/2025"
@@ -505,6 +536,31 @@ def saveOIMFactspace(
                 factDims[str(qnUnitCoreDim)] = _sUnit
         return factspace
 
+    ixDocs = {}
+    editedIxDocs = {}
+    editedModelXbrls = set()
+    # add missing IDs to inline documents
+    for ixdsHtmlRootElt in getattr(modelXbrl, "ixdsHtmlElements", ()):
+        doc = ixdsHtmlRootElt.modelDocument
+        hasIdAssignedFact = False
+        for e in ixdsHtmlRootElt.iter(doc.ixNStag + "nonNumeric", doc.ixNStag + "nonFraction", doc.ixNStag + "fraction"):
+            if getattr(e, "xValid", 0) >= VALID and not e.id:  # id is optional on facts but required for ixviewer-plus and arelle inline viewers
+                id = f"ixv-{e.objectIndex}"
+                if id in doc.idObjects or id in modelXbrl.ixdsEltById:
+                    for i in range(1000):
+                        uid = f"{id}_{i}"
+                        if uid not in doc.idObjects and uid not in modelXbrl.ixdsEltById:
+                            id = uid
+                            break
+                e.set("id", id)
+                doc.idObjects[id] = e
+                modelXbrl.ixdsEltById[id] = e
+                hasIdAssignedFact = True
+        if hasIdAssignedFact:
+            editedIxDocs[doc.basename] = doc  # causes it to be rewritten out
+            editedModelXbrls.add(modelXbrl)
+        ixDocs[doc.basename] = doc
+
     # common metadata
     oimModel = {}  # top level of oim json output
     oimModel["documentInfo"] = oimDocInfo = {}
@@ -566,6 +622,24 @@ def saveOIMFactspace(
     if extensionReportFinalizeMethod:
         extensionReportFinalizeMethod(oimModel)
 
+    # strip ix: elements from modelDocuments
+    for ixDoc in ixDocs.values():
+        # remove ix:header
+        ixElts = [e for e in ixDoc.xmlRootElement.getroottree().iterfind(".//{http://www.xbrl.org/2013/inlineXBRL}header")]
+        for e in ixElts:
+            e.getparent().remove(e)
+
+        # convert remaining ix elements into spans
+        ixElts = [e for e in ixDoc.xmlRootElement.getroottree().iterfind(".//{http://www.xbrl.org/2013/inlineXBRL}*")]
+        for e in ixElts:
+            e.tag = "{http://www.w3.org/1999/xhtml}span"
+            unwantedAttributes = [a for a in e.attrib.keys() if a not in {"class","id","style"}]
+            for a in unwantedAttributes:
+                e.attrib.pop(a)
+
+        editedIxDocs[ixDoc.basename] = ixDoc
+        editedModelXbrls.add(modelXbrl)
+
     with io.StringIO() if outputZip else open(oimFile, "w", encoding="utf-8") as fh:
         fh.write(json.dumps(oimModel, indent=1))
         if outputZip:
@@ -574,6 +648,14 @@ def saveOIMFactspace(
     if not outputZip:
         modelXbrl.modelManager.cntlr.showStatus(_("Saved JSON OIM file {}").format(oimFile))
 
+    # resave edited documents
+    for reportedFile, doc in editedIxDocs.items():
+        uncloseSelfClosedTags(doc)
+        outPath = os.path.join(os.path.dirname(oimFile),
+                               f"{os.path.splitext(reportedFile)[0]}-edited{os.path.splitext(reportedFile)[1]}")
+        ix = serializeXml(doc.xmlRootElement)
+        with io.open(outPath, "wb") as fh:
+            fh.write(ix)
 
 
 def SaveOIMFactspaceMenuCommand(cntlr: CntlrWinMain) -> None:
