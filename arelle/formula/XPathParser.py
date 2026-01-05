@@ -32,7 +32,7 @@ from pyparsing import (
     ZeroOrMore,
     alphanums,
     alphas,
-    delimitedList as DelimitedList,
+    DelimitedList,
     nums,
     quoted_string,
 )
@@ -906,7 +906,7 @@ def initializeParser(modelManager: ModelManager) -> bool:
 
         modelManager.showStatus(_("initializing formula xpath2 grammar"))
         startedAt = time.time()
-        xpathExpr.parse_string("0", parseAll=True)
+        xpathExpr.parse_string("0", parse_all=True)
         modelManager.addToLog(
             format_string(
                 modelManager.locale,
@@ -1001,7 +1001,7 @@ def parse(
             assert element is not None
             exprStack.append(ProgHeader(modelObject, name, element, normalizedExpr, traceType))
 
-            L = xpathExpr.parse_string(normalizedExpr, parseAll=True)
+            L = xpathExpr.parse_string(normalizedExpr, parse_all=True)
 
             # modelXbrl.error( _("AST {0} {1}").format(name, L),
             #    "info", "formula:trace")
@@ -1166,7 +1166,7 @@ def codeModule(code: Iterable[Any]) -> str:
 
 def parser_unit_test() -> None:
     # initialize
-    xpathExpr.parse_string("0", parseAll=True)
+    xpathExpr.parse_string("0", parse_all=True)
 
     test1 = "3*7+5"
     test1a = "5+3*7"
@@ -1305,7 +1305,7 @@ def parser_unit_test() -> None:
         # try parsing the input string
         L: ParseResults | list[Any]
         try:
-            L = xpathExpr.parse_string(normalizeExpr(test), parseAll=True)
+            L = xpathExpr.parse_string(normalizeExpr(test), parse_all=True)
         except (ParseException, ParseSyntaxException) as err:
             L = ['Parse Failure', test, err]
 

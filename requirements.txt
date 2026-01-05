@@ -1,8 +1,8 @@
 # core modules
 bottle==0.13.4
-certifi==2025.11.12
+certifi==2026.1.4
 cheroot==11.1.2
-filelock==3.20.1
+filelock==3.20.2
 isodate==0.7.2
 jaconv==0.4.1
 jsonschema==4.25.1
@@ -27,6 +27,6 @@ pyodbc==5.3.0
 rdflib==7.5.0
 # other
 graphviz==0.21
-pillow==12.0.0
+pillow==12.1.0
 pywin32==311 ; sys_platform == "win32"
 tinycss2==1.5.1

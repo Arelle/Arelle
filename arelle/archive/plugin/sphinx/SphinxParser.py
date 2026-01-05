@@ -773,7 +773,7 @@ def compileSphinxGrammar( cntlr ):
     cntlr.showStatus(_("Compiling Sphinx Grammar"))
     from pyparsing import (
         Word, Keyword, Literal, CaselessLiteral, Combine, Opt, nums, Forward, ZeroOrMore,
-        StringEnd, ParserElement, quoted_string, delimitedList as DelimitedList, Suppress,
+        StringEnd, ParserElement, quoted_string, DelimitedList, Suppress,
         Regex, lineno
     )
 
@@ -989,7 +989,7 @@ def compileSphinxGrammar( cntlr ):
 
     startedAt = time.time()
     cntlr.modelManager.showStatus(_("initializing sphinx grammar"))
-    sphinxProg.parse_string( "// force initialization\n", parseAll=True )
+    sphinxProg.parse_string( "// force initialization\n", parse_all=True )
     from arelle.Locale import format_string
     logMessage("INFO", "info",
                format_string(cntlr.modelManager.locale,
@@ -1020,7 +1020,7 @@ def parse(cntlr, _logMessage, sphinxFiles):
         try:
             lastLoc = 0
             currentPackage = None
-            prog = sphinxGrammar.parse_string( sourceString, parseAll=True )
+            prog = sphinxGrammar.parse_string(sourceString, parse_all=True )
             xmlns.clear()  # dereference xmlns definitions
             prog.insert(0, astSourceFile(sphinxFile)) # keep the source file name
             sphinxProgs.append( prog )
