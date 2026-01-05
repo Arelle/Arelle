@@ -529,7 +529,7 @@ def blockCodes(actualErrors: list[ActualError], pattern: str) -> tuple[list[Actu
         results.append(actualError)
     return results, blockedCodes
 
-def getDiff(testcaseConstraintSet: TestcaseConstraintSet, actualErrorCounts: dict[tuple[str | QName, ErrorLevel], int] ) -> dict[tuple[str | QName, ErrorLevel], int]:
+def getDiff(testcaseConstraintSet: TestcaseConstraintSet, actualErrorCounts: dict[tuple[str, ErrorLevel], int] ) -> dict[tuple[str | QName, ErrorLevel], int]:
     diff = {}
     for constraint in testcaseConstraintSet.constraints:
         keyVal = constraint.qname or constraint.pattern
@@ -570,7 +570,7 @@ def buildResult(
     duration_seconds: float,
     additionalConstraints: list[tuple[str, list[TestcaseConstraint]]],
 ) -> TestcaseResult:
-    actualErrorCounts: dict[tuple[QName | str, ErrorLevel], int] = defaultdict(int)
+    actualErrorCounts: dict[tuple[str, ErrorLevel], int] = defaultdict(int)
     actualErrors, blockedErrors = blockCodes(actualErrors, testcaseVariation.blockedCodePattern)
     for actualError in actualErrors:
         actualErrorCounts[(actualError.code, actualError.level)] += 1
@@ -590,10 +590,11 @@ def buildResult(
         passed = any(d == 0 for d in diff.values())
     constraintResults = [
         TestcaseConstraintResult(
-            code=k,
-            diff=v
+            code=_code,
+            diff=_diff,
+            level=_level,
         )
-        for k, v in diff.items()
+        for (_code, _level), _diff in diff.items()
     ]
     return TestcaseResult(
         testcaseVariation=testcaseVariation,

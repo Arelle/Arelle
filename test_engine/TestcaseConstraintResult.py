@@ -10,8 +10,9 @@ from test_engine.ErrorLevel import ErrorLevel
 
 @dataclass(frozen=True)
 class TestcaseConstraintResult:
-    code: tuple[str | QName | None, ErrorLevel]
+    code: str | QName | None
     diff: int
+    level: ErrorLevel
 
     def __str__(self) -> str:
         if self.diff == 0:
@@ -20,5 +21,4 @@ class TestcaseConstraintResult:
             message = f'Missing {abs(self.diff)} expected'
         else:
             message = f'{self.diff} unexpected'
-        code, level = self.code
-        return f"{message} {level} \"{code or '(any)'}\""  # TODO: `code` is ending up as the string "None"
+        return f"{message} {self.level} \"{self.code or '(any)'}\""  # TODO: `code` is ending up as the string "None"
