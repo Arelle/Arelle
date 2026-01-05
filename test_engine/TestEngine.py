@@ -14,6 +14,7 @@ import re
 import time
 from urllib.parse import unquote
 
+from arelle import XbrlConst
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import QName
 from arelle.RuntimeOptions import RuntimeOptions
@@ -22,6 +23,7 @@ from arelle.api.Session import Session
 from test_engine.ActualError import ActualError
 from test_engine.ErrorLevel import ErrorLevel
 from test_engine.TestEngineOptions import TestEngineOptions
+from test_engine.TestcaseCompareContext import TestcaseCompareContext
 from test_engine.TestcaseConstraint import TestcaseConstraint
 from test_engine.TestcaseConstraintResult import TestcaseConstraintResult
 from test_engine.TestcaseConstraintSet import TestcaseConstraintSet
@@ -53,20 +55,6 @@ PROHIBITED_RUNTIME_OPTIONS = frozenset({
     'parameters',
     'validate',
 })
-
-
-def _hardcodedMatch(expected: str, actual: str) -> bool:
-    # TODO: Sourced from legacy testcase variation processor. Replace with config.
-    return (
-            (expected == "EFM.6.03.04" and actual.startswith("xmlSchema:")) or
-            (expected == "EFM.6.03.05" and (actual.startswith("xmlSchema:") or actual == "EFM.5.02.01.01")) or
-            (expected == "EFM.6.04.03" and (actual.startswith("xmlSchema:") or actual.startswith("utr:") or actual.startswith("xbrl.") or actual.startswith("xlink:"))) or
-            (expected == "EFM.6.05.35" and actual.startswith("utre:")) or
-            (expected == "html:syntaxError" and actual.startswith("lxml.SCHEMA")) or
-            (expected == "vere:invalidDTSIdentifier" and actual.startswith("xbrl")) or
-            (expected.startswith("EFM.") and actual.startswith(expected)) or
-            (expected.startswith("EXG.") and actual.startswith(expected))
-    )
 
 
 def parse_args() -> argparse.Namespace:
@@ -531,6 +519,21 @@ def blockCodes(actualErrors: list[ActualError], pattern: str) -> tuple[list[Actu
 
 def getDiff(testcaseConstraintSet: TestcaseConstraintSet, actualErrorCounts: dict[tuple[str, ErrorLevel], int] ) -> dict[tuple[str | QName, ErrorLevel], int]:
     diff = {}
+    compareContext = TestcaseCompareContext(
+        customComparePatterns=[
+            (r"^EFM\.6\.03\.04$", r"^xmlSchema:.*$"),
+            (r"^EFM\.6\.03\.05$", r"^(xmlSchema:.*|EFM\.5\.02\.01\.01)$"),
+            (r"^EFM\.6\.04\.03$", r"^(xmlSchema:.*|utr:.*|xbrl\..*|xlink:.*)$"),
+            (r"^EFM\.6\.05\.35$", r"^utre:.*$"),
+            (r"^html:syntaxError$", r"^lxml\.SCHEMA.*$"),
+            (r"^vere:invalidDTSIdentifier$", r"^xbrl.*$"),
+            # Generic prefix matches for the 'expected' side
+            (r"^EFM\..*$", r"^~.*$"),
+            (r"^EXG\..*$", r"^~.*$"),
+        ],
+        localNameMap=XbrlConst.errMsgNamespaceLocalNameMap,
+        prefixNamespaceUriMap=XbrlConst.errMsgPrefixNS,
+    )
     for constraint in testcaseConstraintSet.constraints:
         keyVal = constraint.qname or constraint.pattern
         assert keyVal is not None
@@ -540,11 +543,7 @@ def getDiff(testcaseConstraintSet: TestcaseConstraintSet, actualErrorCounts: dic
             actualError, level = actualKey
             if level != constraint.level:
                 continue
-            if (
-                    (isinstance(actualError, QName) and constraint.compareQname(actualError)) or
-                    (isinstance(actualError, str) and constraint.compareCode(actualError)) or
-                    (isinstance(actualError, str) and _hardcodedMatch(constraint.pattern or str(constraint.qname), actualError))
-            ):
+            if compareContext.compare(constraint, actualError):
                 if constraint.max is not None and count > constraint.max:
                     count = constraint.max
                 matchCount += count

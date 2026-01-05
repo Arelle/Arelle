@@ -2,10 +2,9 @@
 See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
-from dataclasses import dataclass
-from pathlib import Path
 
-from arelle import XbrlConst
+from dataclasses import dataclass
+
 from arelle.ModelValue import QName
 from test_engine.ErrorLevel import ErrorLevel
 
@@ -32,29 +31,3 @@ class TestcaseConstraint:
             if self.max is not None:
                 value += f" <={self.max}"
         return value
-
-    def compareCode(self, code: str) -> bool:
-        if code is None:
-            return False
-        if self.qname is not None:
-            if str(self.qname) == code:
-                return True
-            if self.qname.localName == code:
-                return True
-            if self.qname.localName == code.split('.')[-1]:
-                return True
-        if self.pattern is not None:
-            if self.pattern in code:
-                return True
-        prefix, sep, localName = code.partition(':')
-        namespaceUri = XbrlConst.errMsgPrefixNS.get(prefix)
-        localName = XbrlConst.errMsgNamespaceLocalNameMap.get(namespaceUri, {}).get(localName, localName)
-        qname = QName(prefix, namespaceUri, localName)
-        return self.compareQname(qname)
-
-    def compareQname(self, qname: QName) -> bool:
-        if self.qname is None or qname is None:
-            return False
-        if self.qname == qname:
-            return True
-        return False
