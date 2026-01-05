@@ -33,8 +33,9 @@ The saveOIMFactspaces plugin saves OIM Model Factspaces from Inline XBRL or othe
   Default is to provide valueSources to all ix:continuations
   Option is to also capture inner text in value property
 
-  To specify in GUI operation provide a formula parameter named inlineText containing
-     "valueSources and value"
+  To request inner text in GUI operation provide a formula parameter named inlineText containing
+     true
+  and in command line mode specify --inlineText
 
   To save an OIM instance with duplicate fact removed use the `--deduplicateOimFacts` argument with either `complete`,
   `consistent-pairs`, or `consistent-sets` as the value.
@@ -690,9 +691,8 @@ def SaveOIMFactspaceMenuCommand(cntlr: CntlrWinMain) -> None:
 
     # options
     saveInlineTextValue = False
-    if "inlineText" in cntlr.modelManager.formulaOptions.parameterValues:
-        saveInlineTextValue = set(cntlr.modelManager.formulaOptions.parameterValues["inlineText"][1].split()
-            ) & {"value", "valueSources"} == {"value", "valueSources"}
+    if "inlineText" in cntlr.modelManager.formulaOptions.parameterValues and cntlr.modelManager.formulaOptions.parameterValues.inlineText:
+        saveInlineTextValue = True
 
     thread = threading.Thread(
         target=lambda _modelXbrl=cntlr.modelManager.modelXbrl, _oimFile=oimFile: saveOIMFactspace(
@@ -708,15 +708,16 @@ def saveOimFiles(
     modelXbrl: ModelXbrl,
     oimFiles: list[str],
     responseZipStream: BinaryIO | None = None,
+    saveInlineTextValue: bool = False,
 ) -> None:
     try:
         if responseZipStream is None:
             for oimFile in oimFiles:
-                saveOIMFactspace(modelXbrl, oimFile, None)
+                saveOIMFactspace(modelXbrl, oimFile, None, saveInlineTextValue)
         else:
             with zipfile.ZipFile(responseZipStream, "a", zipfile.ZIP_DEFLATED, True) as _zip:
                 for oimFile in oimFiles:
-                    saveOIMFactspace(modelXbrl, oimFile, _zip)
+                    saveOIMFactspace(modelXbrl, oimFile, _zip, saveInlineTextValue)
             responseZipStream.seek(0)
     except Exception as ex:
         cntlr.addToLog(f"Exception saving OIM {ex}")
@@ -761,9 +762,7 @@ class SaveOIMFactspacePlugin(PluginHooks):
             help=_("Remove duplicate facts when saving the OIM instance"))
         parser.add_option(
             "--inlineText",
-            action="store",
-            choices=["valueSources"
-                     "valueSources and value"],
+            action="store_true",
             dest="inlineText",
             help=_("Option to capture text block inner text content in value property"))
 
@@ -818,7 +817,7 @@ class SaveOIMFactspacePlugin(PluginHooks):
             cntlr.addToLog("No XBRL instance has been loaded.")
             return
         if oimFile:
-            saveOimFiles(cntlr, modelXbrl, [oimFile], responseZipStream)
+            saveOimFiles(cntlr, modelXbrl, [oimFile], responseZipStream, options.inlineText)
         if allOimDirectory:
             oimDir = Path(allOimDirectory)
             try:
@@ -843,7 +842,7 @@ class SaveOIMFactspacePlugin(PluginHooks):
             if basefileStem is None:
                 basefileStem = Path(modelXbrl.modelDocument.basename).stem
             oimFiles = [str(oimDir.joinpath(basefileStem + ext)) for ext in (".csv", ".json")]
-            saveOimFiles(cntlr, modelXbrl, oimFiles, responseZipStream)
+            saveOimFiles(cntlr, modelXbrl, oimFiles, responseZipStream, options.inlineText)
 
     @staticmethod
     def testcaseVariationValidated(
