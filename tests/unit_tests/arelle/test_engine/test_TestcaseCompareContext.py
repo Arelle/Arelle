@@ -34,6 +34,7 @@ class TestTestcaseCompareContext:
         [
             ### BASIC
             ('Exact Match', ('A1', 'A1', True)),
+            ('Any Match', ('*', 'A1', True)),
             ('Mismatch', ('A1', 'A2', False)),
 
             ### QNAME

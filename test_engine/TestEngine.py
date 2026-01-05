@@ -198,7 +198,7 @@ def loadTestcaseIndex(index_path: str, testEngineOptions: TestEngineOptions) -> 
                             pass
                         elif e == 'invalid':
                             constraints.append(TestcaseConstraint(
-                                pattern='',  # matches any code
+                                pattern='*',  # matches any code
                                 min=1,
                             ))
                         elif isinstance(e, QName):

@@ -48,6 +48,8 @@ class TestcaseCompareContext:
         return False
 
     def compare(self, testcaseConstraint: TestcaseConstraint, actualError: str) -> bool:
+        if testcaseConstraint.pattern == "*":
+            return True
         if TestcaseCompareContext._compareCode(testcaseConstraint, actualError):
             return True
         qname = self.mapToQName(actualError)
