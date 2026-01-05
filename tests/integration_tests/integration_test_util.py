@@ -231,7 +231,7 @@ def get_test_engine_data(
                 # Arelle adds message code frequencies to the end, but conformance suites usually don't.
                 # Skip assertion results dictionaries.
                 actual = [
-                    re.sub(r' \(\d+\)$', '',  str(actualError.qname or actualError.code))
+                    re.sub(r' \(\d+\)$', '',  actualError.code)
                     for actualError in test_case_result.actualErrors
                 ]
                 param = pytest.param(

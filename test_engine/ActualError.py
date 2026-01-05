@@ -11,12 +11,10 @@ from test_engine.ErrorLevel import ErrorLevel
 
 @dataclass(frozen=True)
 class ActualError:
-    code: str | None
-    qname: QName | None
+    code: str
     level: ErrorLevel
 
     def __str__(self) -> str:
-        value = str(self.qname or self.code)
         if self.level:
-            value += f" [{self.level}]"
-        return value
+            return f"{self.code} [{self.level}]"
+        return self.code

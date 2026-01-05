@@ -324,8 +324,7 @@ def logFilename(name: str) -> str:
 
 def buildActualError(
         testEngineOptions: TestEngineOptions,
-        code: str | None,
-        qname: QName | None,
+        code: str,
         level: ErrorLevel,
 ) -> ActualError:
     if code is not None:
@@ -333,7 +332,6 @@ def buildActualError(
             code = re.sub(pattern, replacement, code)
     return ActualError(
         code=code,
-        qname=qname,
         level=level
     )
 
@@ -412,6 +410,7 @@ def runTestcaseVariation(
         for error in errors:
             if isinstance(error, dict):
                 for code, counts in error.items():
+                    assert isinstance(code, str)
                     satisfiedCount, notSatisfiedCount, okCount, warningCount, errorCount = counts
                     countMap = {
                         ErrorLevel.SATISIFED: satisfiedCount,
@@ -428,14 +427,19 @@ def runTestcaseVariation(
                             actualErrors.append(buildActualError(
                                 testEngineOptions=testEngineOptions,
                                 code=code,
-                                qname=None,
                                 level=level,
                             ))
                 continue
+            assert isinstance(error, str), f"Received actual error of unexpected type \"{type(error)}\"."
+            # if error is None:
+            #     print("Warning: Detected \"None\" actual error. Defaulted to \"ERROR\"")  # TODO
+            #     error = "ERROR"
+            # if isinstance(error, QName) or error is None:
+            #     print(f"Warning: Flattened actual error QName to string: {error.clarkNotation}")  # TODO
+            #     error = str(error)
             actualErrors.append(buildActualError(
                 testEngineOptions=testEngineOptions,
-                code=error if isinstance(error, str) else None,
-                qname=error if isinstance(error, QName) else None,
+                code=error,
                 level=ErrorLevel.ERROR,
             ))
         result = buildResult(
@@ -519,9 +523,8 @@ def blockCodes(actualErrors: list[ActualError], pattern: str) -> tuple[list[Actu
         return actualErrors, blockedCodes
     compiledPattern = re.compile(re.sub(r'\\(.)', r'\1', pattern))
     for actualError in actualErrors:
-        value = str(actualError.qname or actualError.code)
-        if compiledPattern.match(value):
-            blockedCodes[value] += 1
+        if compiledPattern.match(actualError.code):
+            blockedCodes[actualError.code] += 1
             continue
         results.append(actualError)
     return results, blockedCodes
@@ -570,7 +573,7 @@ def buildResult(
     actualErrorCounts: dict[tuple[QName | str, ErrorLevel], int] = defaultdict(int)
     actualErrors, blockedErrors = blockCodes(actualErrors, testcaseVariation.blockedCodePattern)
     for actualError in actualErrors:
-        actualErrorCounts[(actualError.qname or actualError.code or '', actualError.level)] += 1
+        actualErrorCounts[(actualError.code, actualError.level)] += 1
     appliedConstraints = list(testcaseVariation.testcaseConstraintSet.constraints)
     for filter, constraints in additionalConstraints:
         if fnmatch.fnmatch(testcaseVariation.fullId, f'*{filter}'):
