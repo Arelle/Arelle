@@ -738,13 +738,13 @@ class SaveOIMFactspacePlugin(PluginHooks):
         parser.add_option(
             "--SaveOIMFactspace",
             action="store",
-            dest="SaveOIMFactspace",
+            dest="saveOIMFactspace",
             help=_("Save Loadable OIM file (JSON, CSV or XLSX)"),
         )
         parser.add_option(
             "--SaveOIMFactspaceDirectory",
             action="store",
-            dest="SaveOIMFactspaceDirectory",
+            dest="saveOIMFactspaceDirectory",
             help=_("Directory to export all supported OIM formats (JSON and CSV)"),
         )
         parser.add_option(
