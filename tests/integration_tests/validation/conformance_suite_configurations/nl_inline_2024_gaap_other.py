@@ -19,10 +19,10 @@ config = ConformanceSuiteConfig(
         *NL_PACKAGES['NL-INLINE-2024'],
     ],
     base_taxonomy_validation='none',
-    disclosure_system='NL-INLINE-2024-GAAP-OTHER',
-    error_code_substitutions=[
-        (re.compile(r'NL\.NL-KVK.*\.'), '')
+    custom_compare_patterns=[
+        (r"^.*$", r"^NL.NL-KVK.*\.~$"),
     ],
+    disclosure_system='NL-INLINE-2024-GAAP-OTHER',
     expected_additional_testcase_errors={f"conformance-suite-2024-sbr-domein-handelsregister/tests/{s}": val for s, val in {
         'G5-1-3_1/index.xml:TC1_valid': {
             'noInlineXbrlTags': 1,

@@ -23,8 +23,6 @@ class TestcaseCompareContext:
                 return True
             if testcaseConstraint.qname.localName == code:
                 return True
-            if testcaseConstraint.qname.localName == code.split('.')[-1]:
-                return True
         if testcaseConstraint.pattern is not None:
             if testcaseConstraint.pattern in code:
                 return True
@@ -84,7 +82,6 @@ class TestcaseCompareContext:
     # self.qname is not None
         # str(self.qname) == code -> True
         # self.qname.localName == code -> True
-        # self.qname.localName == code.split('.')[-1] -> True
     # self.pattern is not None
         # self.pattern in code -> True ########
     # parse QName

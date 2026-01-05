@@ -208,8 +208,8 @@ class ConformanceSuiteConfig:
     capture_warnings: bool = True
     ci_enabled: bool = True
     compare_formula_output: bool = False
+    custom_compare_patterns: list[tuple[str, str]] = field(default_factory=list)
     disclosure_system: str | None = None
-    error_code_substitutions: list[tuple[re.Pattern[str], str]] = field(default_factory=list)
     expected_additional_testcase_errors: dict[str, dict[str, int]] = field(default_factory=dict)
     expected_failure_ids: frozenset[str] = frozenset()
     expected_missing_testcases: frozenset[str] = frozenset()

@@ -15,7 +15,7 @@ from test_engine.TestcaseConstraint import TestcaseConstraint
 class TestEngineOptions:
     additionalConstraints: list[tuple[str, list[TestcaseConstraint]]]
     compareFormulaOutput: bool
-    errorCodeSubstitutions: list[tuple[Pattern[str], str]]
+    customComparePatterns: list[tuple[str, str]]
     filters: list[str]
     ignoreLevels: frozenset[ErrorLevel]
     indexFile: str

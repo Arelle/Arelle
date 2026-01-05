@@ -17,7 +17,7 @@ from arelle import ModelDocument, PackageManager, PluginManager
 from arelle.Cntlr import Cntlr
 from arelle.CntlrCmdLine import parseAndRun
 from arelle.FileSource import archiveFilenameParts
-from test_engine import TestEngine
+from test_engine.TestEngine import TestEngine
 from test_engine.TestEngineOptions import TestEngineOptions
 
 if TYPE_CHECKING:
@@ -188,7 +188,8 @@ def get_test_engine_data(
     """
     if required_locale_by_ids is None:
         required_locale_by_ids = {}
-    test_case_results = TestEngine.run(test_engine_options)
+    test_engine = TestEngine(test_engine_options)
+    test_case_results = test_engine.run()
     id_prefix = f'{test_engine_options.name}::' if test_engine_options.name else ''
     try:
         system_locale = locale.setlocale(locale.LC_CTYPE)
