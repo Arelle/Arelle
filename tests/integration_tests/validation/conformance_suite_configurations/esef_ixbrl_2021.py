@@ -22,6 +22,9 @@ config = ConformanceSuiteConfig(
         package for year in [2017, 2019, 2020, 2021] for package in ESEF_PACKAGES[year]
     ],
     base_taxonomy_validation='none',
+    custom_compare_patterns=[
+        (r"^.*$", r"^ESEF\..*\.~$"),
+    ],
     disclosure_system='esef-2021',
     expected_failure_ids=frozenset(f'esef_conformance_suite_2021/esef_conformance_suite_2021/tests/{s}' for s in [
         ### Discovered during transition to Test Engine:

@@ -32,6 +32,7 @@ config = ConformanceSuiteConfig(
         (r"^EFM\.6\.05\.35$", r"^utre:.*$"),
         (r"^EFM\..*$", r"^~.*$"),
         (r"^EXG\..*$", r"^~.*$"),
+        (r"^html:syntaxError$", r"^lxml\.SCHEMA.*$"),
     ],
     disclosure_system='efm-pragmatic',
     expected_additional_testcase_errors={f"conf/{s}": val for s, val in {

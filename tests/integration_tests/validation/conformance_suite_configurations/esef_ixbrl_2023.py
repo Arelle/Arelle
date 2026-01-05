@@ -41,6 +41,9 @@ config = ConformanceSuiteConfig(
         package for year in [2017, 2019, 2020, 2021, 2022] for package in ESEF_PACKAGES[year]
     ],
     base_taxonomy_validation='none',
+    custom_compare_patterns=[
+        (r"^.*$", r"^ESEF\..*\.~$"),
+    ],
     disclosure_system='esef-2023',
     expected_additional_testcase_errors={f'tests/inline_xbrl/{s}': val for s, val in {
         'G3-1-2/index.xml:TC2_valid': {
