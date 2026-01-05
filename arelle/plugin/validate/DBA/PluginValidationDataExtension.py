@@ -153,6 +153,8 @@ class PluginValidationDataExtension(PluginData):
         for context in modelXbrl.contexts.values():
             if context.isInstantPeriod or context.isForeverPeriod:
                 continue  # Reporting period contexts can't be instant/forever contexts
+            if context.startDatetime is None or context.endDatetime is None:
+                continue  # Incomplete context
             if len(context.qnameDims) > 0:
                 if context.qnameDims.keys() != {self.consolidatedSoloDimensionQn}:
                     continue  # Context is dimensionalized with something other than consolidatedSoloDimensionQn
