@@ -1299,7 +1299,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
                  Literal, CaselessLiteral,
                  Combine, Opt, nums, Or, Forward, Group, ZeroOrMore, OneOrMore, StringEnd, alphanums,
                  ParserElement, quoted_string, dbl_quoted_string, sgl_quoted_string, QuotedString,
-                 delimitedList as DelimitedList, Suppress, Regex, FollowedBy,
+                 DelimitedList, Suppress, Regex, FollowedBy,
                  lineno, line, col)
 
     ParserElement.enable_packrat()
@@ -1684,7 +1684,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
 
     startedAt = time.time()
     cntlr.showStatus(_("initializing Formula Grammar"))
-    xfsProg.parse_string( "(: force initialization :)\n", parseAll=True )
+    xfsProg.parse_string( "(: force initialization :)\n", parse_all=True )
     initializing_time = "%.2f" % (time.time() - startedAt)
     logMessage("INFO", "info",
                _("Formula syntax grammar initialized in %(secs)s secs"),
@@ -1714,7 +1714,7 @@ def parse(cntlr, _logMessage, xfFiles, modelXbrl=None, debugParsing=False):
         try:
             lastLoc = 0
             currentPackage = None
-            xfsGrammar.parse_string( sourceString, parseAll=True )
+            xfsGrammar.parse_string( sourceString, parse_all=True )
         except (ParseException, ParseSyntaxException) as err:
             file = os.path.basename(xfsFile)
             codeLines = []
