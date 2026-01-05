@@ -34,11 +34,12 @@ class TestTestcaseCompareContext:
         [
             ### BASIC
             ('Exact Match', ('A1', 'A1', True)),
-            ('Contains Match', ('A1', 'A1B', True)),
             ('Mismatch', ('A1', 'A2', False)),
 
             ### QNAME
             ('QName: Exact Match', ('abc:localName', 'abc:localName', True)),
+            ('QName: Expected Local Name Match', ('localName', 'abc:localName', True)),
+            ('QName: Actual Local Name Match', ('abc:localName', 'localName', True)),
             ('QName: Mapped Prefix Match', ('abc:localName', 'abc2:localName', True)),
             ('QName: Mapped Prefix And Local Name Match', ('abc:localNameTo', 'abc2:localNameFrom', True)),
             ('QName: Local Name Mismatch', ('abc:localName', 'abc:localName2', False)),

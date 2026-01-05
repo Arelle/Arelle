@@ -24,31 +24,22 @@ class TestcaseCompareContext:
             if testcaseConstraint.qname.localName == code:
                 return True
         if testcaseConstraint.pattern is not None:
-            if testcaseConstraint.pattern in code:
+            if testcaseConstraint.pattern == code:
                 return True
         return False
 
     @staticmethod
     def _compareQname(testcaseConstraint: TestcaseConstraint, qname: QName) -> bool:
-        if testcaseConstraint.qname is None or qname is None:
+        if qname is None:
             return False
+        if testcaseConstraint.qname is None:
+            if testcaseConstraint.pattern == qname.localName:
+                return True
         if testcaseConstraint.qname == qname:
             return True
         return False
 
     def _compareCustomPatterns(self, expected: str, actual: str) -> bool:
-        mapping = [
-            (r"^EFM\.6\.03\.04$", r"^xmlSchema:.*$"),
-            (r"^EFM\.6\.03\.05$", r"^(xmlSchema:.*|EFM\.5\.02\.01\.01)$"),
-            (r"^EFM\.6\.04\.03$", r"^(xmlSchema:.*|utr:.*|xbrl\..*|xlink:.*)$"),
-            (r"^EFM\.6\.05\.35$", r"^utre:.*$"),
-            (r"^html:syntaxError$", r"^lxml\.SCHEMA.*$"),
-            (r"^vere:invalidDTSIdentifier$", r"^xbrl.*$"),
-            # Generic prefix matches for the 'expected' side
-            (r"^EFM\..*$", r"^~.*$"),
-            (r"^EXG\..*$", r"^~.*$"),
-        ]
-
         for expectedPattern, actualPattern in self.customComparePatterns:
             if re.fullmatch(expectedPattern, expected):
                 actualPattern = actualPattern.replace('~', expected)
@@ -56,9 +47,7 @@ class TestcaseCompareContext:
                     return True
         return False
 
-    def compare(self, testcaseConstraint: TestcaseConstraint, actualError: QName | str) -> bool:
-        if isinstance(actualError, QName):
-            return TestcaseCompareContext._compareQname(testcaseConstraint, actualError)
+    def compare(self, testcaseConstraint: TestcaseConstraint, actualError: str) -> bool:
         if TestcaseCompareContext._compareCode(testcaseConstraint, actualError):
             return True
         qname = self.mapToQName(actualError)
@@ -71,26 +60,3 @@ class TestcaseCompareContext:
         namespaceUri = self.prefixNamespaceUriMap.get(prefix)
         localName = self.localNameMap.get(namespaceUri, {}).get(localName, localName)
         return QName(prefix, namespaceUri, localName)
-
-# QName
-    # self.qname is None -> False
-    # qname is None -> False
-    # self.qname = qname -> True
-    # self.qname != qname -> False
-
-# str
-    # self.qname is not None
-        # str(self.qname) == code -> True
-        # self.qname.localName == code -> True
-    # self.pattern is not None
-        # self.pattern in code -> True ########
-    # parse QName
-        # self.qname is None -> False
-        # qname is None -> False
-        # self.qname = qname -> True
-        # self.qname = qname (mapped namespace URI, no localname) -> True
-        # self.qname = qname (mapped namespace URI, mapped localname) -> True
-        # self.qname != qname -> False
-    # Custom patterns ####
-
-    # No match ########
