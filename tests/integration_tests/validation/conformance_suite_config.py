@@ -8,6 +8,7 @@ from functools import cached_property
 from pathlib import Path
 from typing import Literal
 
+from arelle.testengine.ErrorLevel import ErrorLevel
 from tests.integration_tests.github import OS_CORES
 
 CONFORMANCE_SUITE_PATH_PREFIX = 'tests/resources/conformance_suites'
@@ -214,6 +215,7 @@ class ConformanceSuiteConfig:
     expected_additional_testcase_errors: dict[str, dict[str, int]] = field(default_factory=dict)
     expected_failure_ids: frozenset[str] = frozenset()
     expected_missing_testcases: frozenset[str] = frozenset()
+    ignore_levels: frozenset[ErrorLevel] = frozenset({ErrorLevel.OK, ErrorLevel.WARNING})
     membership_url: str | None = None
     plugins: frozenset[str] = frozenset()
     shards: int = 1

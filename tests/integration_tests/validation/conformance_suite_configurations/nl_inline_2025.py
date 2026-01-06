@@ -1,5 +1,6 @@
 from pathlib import PurePath, Path
 
+from arelle.testengine.ErrorLevel import ErrorLevel
 from tests.integration_tests.validation.assets import ESEF_PACKAGES, NL_PACKAGES, NL_INLINE_2024_PACKAGES_WITHOUT_IFRS
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig, AssetSource
 
@@ -276,6 +277,11 @@ config = ConformanceSuiteConfig(
         # Expects invalidInlineXbrl.  Instead, we depend on the underlying XML Schema and iXBRL validation errors.
         'RTS_Annex_III_Par_1/index.xml:TC2_invalid',
     ]),
+    ignore_levels=frozenset({
+        ErrorLevel.NOT_SATISFIED,
+        ErrorLevel.OK,
+        ErrorLevel.WARNING,
+    }),
     info_url='https://www.sbr-nl.nl/sbr-domeinen/handelsregister/uitbreiding-elektronische-deponering-handelsregister',
     name=PurePath(__file__).stem,
     plugins=frozenset({'validate/NL'}),
