@@ -42,12 +42,18 @@ PLUGIN_TRACE_LEVEL = logging.WARNING
 
 # plugin control is static to correspond to statically loaded modules
 pluginJsonFile = None
-pluginConfig: dict | None = None
+# The code in this module mostly assumes these values are not `NoneType` and
+# relies on try/except catching AttributeError, TypeError, etc. if they ever are.
+# Rather than add type casting or assertions throughout the code, we will ignore
+# the assignment type hint error here and rely on the initialization process to set
+# these values before use.
+pluginConfig: dict[str, Any] = None # type: ignore[assignment]
+_cntlr: Cntlr = None # type: ignore[assignment]
+
 pluginConfigChanged = False
 pluginTraceFileLogger = None
 modulePluginInfos = {}
 pluginMethodsForClasses = {}
-_cntlr = None
 _pluginBase = None
 EMPTYLIST = []
 _ERROR_MESSAGE_IMPORT_TEMPLATE = "Unable to load module {}"
