@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from functools import cached_property
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Any, Callable
 
 from arelle.testengine.ErrorLevel import ErrorLevel
 from tests.integration_tests.github import OS_CORES
@@ -217,6 +217,7 @@ class ConformanceSuiteConfig:
     ignore_levels: frozenset[ErrorLevel] = frozenset({ErrorLevel.OK, ErrorLevel.WARNING})
     membership_url: str | None = None
     plugins: frozenset[str] = frozenset()
+    preprocessing_func: Callable[[ConformanceSuiteConfig], None] | None = None
     shards: int = 1
     strict_testcase_index: bool = True
     required_locale_by_ids: dict[str, re.Pattern[str]] = field(default_factory=dict)

@@ -12,6 +12,18 @@ EXTRACTED_ZIP_PATH = EXTRACTED_PATH / 'uksef-conformance-suite-v2.0' / 'uksef-co
 EXTRACTED_EXTRACTED_PATH = Path(EXTRACTED_ZIP_PATH.parent) / EXTRACTED_ZIP_PATH.stem
 
 
+def _preprocessing_func(config: ConformanceSuiteConfig) -> None:
+    with open(f'tests/resources/conformance_suites/{EXTRACTED_EXTRACTED_PATH}/uksef-conformance-suite/tests/FRC/FRC_09/index.xml', 'r+') as f:
+        content = f.read()
+        # Test case references TC2_valid.zip, but actual file in suite has .xbri extension.
+        content = content.replace('TC2_valid.zip', 'TC2_valid.xbri')
+        # Test case references TC3_valid.zip, but actual file in suite has .xbri extension.
+        content = content.replace('TC3_valid.zip', 'TC3_valid.xbri')
+        f.seek(0)
+        f.write(content)
+        f.truncate()
+
+
 config = ConformanceSuiteConfig(
     args=[
         '--formula', 'none',
@@ -100,5 +112,6 @@ config = ConformanceSuiteConfig(
     info_url='https://www.frc.org.uk/library/standards-codes-policy/accounting-and-reporting/frc-taxonomies/frc-taxonomies-documentation-and-guidance/',
     name=PurePath(__file__).stem,
     plugins=frozenset({'inlineXbrlDocumentSet'}),
+    preprocessing_func=_preprocessing_func,
     shards=4,
 )
