@@ -659,10 +659,15 @@ euGroupTable = "http://www.eurofiling.info/xbrl/arcrole/group-table"
 widerNarrower = "http://www.esma.europa.eu/xbrl/esef/arcrole/wider-narrower"
 
 xdtSchemaErrorNS = "http://www.xbrl.org/2005/genericXmlSchemaError"
-errMsgPrefixNS = {  # err prefixes which are not declared, such as XPath's "err" prefix
+errMsgPrefixNS: dict[str | None, str] = {  # err prefixes which are not declared, such as XPath's "err" prefix
     "err": xpath2err,
     "xmlSchema": xdtSchemaErrorNS,
     "utre": "http://www.xbrl.org/2009/utr/errors",
+}
+errMsgNamespaceLocalNameMap: dict[str | None, dict[str, str]] = {
+    xdtSchemaErrorNS: {
+        "valueError": "XmlSchemaError",
+    }
 }
 
 # Filing Indicators

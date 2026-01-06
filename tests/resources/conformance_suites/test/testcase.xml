@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        xmlns:test="http://xbrl.org/2005/test"
+        name="testcase-name"
+        description="testcase-description"
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="valid" name="valid-name">
+        <description>valid-description</description>
+        <data>
+            <instance readMeFirst="true">valid-input.zip</instance>
+        </data>
+        <result expected="valid"/>
+    </variation>
+    <variation id="invalid" name="invalid-name">
+        <description>invalid-description</description>
+        <data>
+            <instance readMeFirst="true">invalid-input.zip</instance>
+        </data>
+        <result expected="invalid"/>
+    </variation>
+    <variation id="error" name="error-name">
+        <description>error-description</description>
+        <data>
+            <instance readMeFirst="true">error-input.zip</instance>
+        </data>
+        <result>
+            <error>ERROR</error>
+        </result>
+    </variation>
+    <variation id="warning" name="warning-name">
+        <description>warning-description</description>
+        <data>
+            <instance readMeFirst="true">warning-input.zip</instance>
+        </data>
+        <result>
+            <warning>WARNING</warning>
+        </result>
+    </variation>
+    <variation id="multiple" name="multiple-name">
+        <description>multiple-description</description>
+        <data>
+            <instance readMeFirst="true">multiple-input.zip</instance>
+        </data>
+        <result>
+            <error>ERROR1</error>
+            <error num="2">ERROR2</error>
+            <warning>WARNING1</warning>
+            <warning>WARNING2</warning>
+            <warning>WARNING2</warning>
+        </result>
+    </variation>
+    <variation id="non-standard-valid" name="non-standard-valid-name">
+        <description>non-standard-valid-description</description>
+        <data>
+            <instance readMeFirst="true">non-standard-valid-input.zip</instance>
+        </data>
+        <result expected="valid" nonStandardErrorCodes="true">
+            <error>ERROR</error>
+        </result>
+    </variation>
+    <variation id="non-standard-invalid" name="non-standard-invalid-name">
+        <description>non-standard-invalid-description</description>
+        <data>
+            <instance readMeFirst="true">non-standard-invalid-input.zip</instance>
+        </data>
+        <result expected="invalid" nonStandardErrorCodes="true">
+            <error>ERROR</error>
+        </result>
+    </variation>
+    <variation id="non-standard-error" name="non-standard-error-name">
+        <description>non-standard-error-description</description>
+        <data>
+            <instance readMeFirst="true">non-standard-error-input.zip</instance>
+        </data>
+        <result>
+            <error>ERROR1</error>
+            <error nonStandardErrorCodes="true">ERROR2</error>
+        </result>
+    </variation>
+    <variation id="qname" name="qname-name">
+        <description>qname-description</description>
+        <data>
+            <instance readMeFirst="true">qname-input.zip</instance>
+        </data>
+        <result>
+            <error>test:ERROR</error>
+        </result>
+    </variation>
+</testcase>
