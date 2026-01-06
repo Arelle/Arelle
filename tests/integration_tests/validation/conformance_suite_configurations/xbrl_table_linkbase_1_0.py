@@ -17,6 +17,7 @@ config = ConformanceSuiteConfig(
     ],
     info_url='https://specifications.xbrl.org/work-product-index-table-linkbase-table-linkbase-1.0.html',
     name=PurePath(__file__).stem,
+    plugins=frozenset({"tests/plugin/renderTable.py"}),
     shards=4,
     test_case_result_options='match-any',
 )
