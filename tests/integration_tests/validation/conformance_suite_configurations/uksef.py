@@ -8,15 +8,21 @@ from tests.integration_tests.validation.conformance_suite_config import (
 
 ZIP_PATH = Path('uksef-conformance-suite-v2.0.zip')
 EXTRACTED_PATH = Path(ZIP_PATH.stem)
+EXTRACTED_ZIP_PATH = EXTRACTED_PATH / 'uksef-conformance-suite-v2.0' / 'uksef-conformance-suite-v2.0.zip'
+EXTRACTED_EXTRACTED_PATH = Path(EXTRACTED_ZIP_PATH.parent) / EXTRACTED_ZIP_PATH.stem
+
+
 config = ConformanceSuiteConfig(
     args=[
         '--formula', 'none',
     ],
     assets=[
-        ConformanceSuiteAssetConfig.nested_conformance_suite(
-            ZIP_PATH,
-            EXTRACTED_PATH,
-            entry_point_root=EXTRACTED_PATH / 'uksef-conformance-suite-v2.0' / 'uksef-conformance-suite-v2.0.zip',
+        ConformanceSuiteAssetConfig.extracted_conformance_suite(
+            (
+                (ZIP_PATH, EXTRACTED_PATH),
+                (EXTRACTED_ZIP_PATH, EXTRACTED_EXTRACTED_PATH),
+            ),
+            entry_point_root=EXTRACTED_EXTRACTED_PATH,
             entry_point=Path('uksef-conformance-suite/index.xml'),
             public_download_url='https://www.frc.org.uk/documents/8116/uksef-conformance-suite-v2.0.zip',
             source=AssetSource.S3_PUBLIC,

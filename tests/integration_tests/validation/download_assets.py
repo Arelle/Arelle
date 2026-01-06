@@ -8,7 +8,7 @@ from pathlib import Path
 
 from tests.integration_tests.download_cache import apply_cache
 from tests.integration_tests.integration_test_util import get_s3_uri
-from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteAssetConfig, AssetType, AssetSource
+from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteAssetConfig, AssetType, AssetSource, CONFORMANCE_SUITE_PATH_PREFIX
 
 
 def _download_asset(asset: ConformanceSuiteAssetConfig, download_private: bool) -> bool:
@@ -94,9 +94,10 @@ def _extract_asset(asset: ConformanceSuiteAssetConfig) -> None:
     For each element in the sequence, the zip at the `from` path
     is extracted to the `to` directory.
     """
+    root_path = Path(CONFORMANCE_SUITE_PATH_PREFIX)
     for extract_from, extract_to in asset.extract_sequence:
-        extract_from = Path('tests/resources/conformance_suites') / extract_from
-        extract_to = Path('tests/resources/conformance_suites') / extract_to
+        extract_from = root_path / extract_from
+        extract_to = root_path / extract_to
         with zipfile.ZipFile(extract_from, 'r') as zip_ref:
             os.makedirs(extract_to, exist_ok=True)
             zip_ref.extractall(extract_to)
