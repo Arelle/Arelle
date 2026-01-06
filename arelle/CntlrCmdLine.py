@@ -48,6 +48,7 @@ from arelle import (
     XmlUtil,
 )
 from arelle.BetaFeatures import BETA_FEATURES_AND_DESCRIPTIONS
+from arelle.CompareInstance import compareInstance
 from arelle.Locale import format_string, setApplicationLocale, setDisableRTL
 from arelle.ModelFormulaObject import FormulaOptions
 from arelle.ModelValue import qname
@@ -211,6 +212,10 @@ def parseArgs(args):
                       action="store_true",
                       dest="validateXmlOim",
                       help=_("Enables OIM validation for XML and iXBRL documents. OIM only formats (json, csv) are always OIM validated."))
+    parser.add_option("--compareInstance", "--compareinstance", dest="compareInstance",
+                      help=_("Compare instance facts against the instance loaded from the given URI."))
+    parser.add_option("--compareFormulaOutput", "--compareformulaoutput", dest="compareFormulaOutput",
+                      help=_("Compare formula output facts against the instance loaded from the given URI."))
     parser.add_option("--reportPackage", "--reportPackage",
                       action="store_true",
                       dest="reportPackage",
@@ -1215,6 +1220,50 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                                         else _("formula validation only in %.2f secs"),
                                                         time.time() - startedAt),
                                                         messageCode="info", file=self.entrypointFile)
+
+                        if options.compareFormulaOutput:
+                            try:
+                                startedAt = time.time()
+                                modelXbrl = self.modelManager.modelXbrl
+                                compareInstance(
+                                    modelManager=modelXbrl.modelManager,
+                                    originalInstance=modelXbrl,
+                                    targetInstance=modelXbrl.formulaOutputInstance,
+                                    expectedInstanceUri=options.compareFormulaOutput,
+                                    errorCaptureLevel=self.errorManager._errorCaptureLevel,
+                                    matchById=False,  # formula restuls have inconsistent IDs
+                                )
+                                compareTime = time.time() - startedAt
+                                modelXbrl.profileStat(_("compare formula output"), compareTime)
+                            except ModelDocument.LoadingException:
+                                success = False
+                            except Exception as err:
+                                success = False
+                                self.addToLog(_("[Exception] Failed to load compare file: \n{0} \n{1}").format(
+                                    err,
+                                    traceback.format_tb(sys.exc_info()[2])))
+
+                        if options.compareInstance:
+                            try:
+                                startedAt = time.time()
+                                modelXbrl = self.modelManager.modelXbrl
+                                compareInstance(
+                                    modelManager=modelXbrl.modelManager,
+                                    originalInstance=modelXbrl,
+                                    targetInstance=modelXbrl,
+                                    expectedInstanceUri=options.compareInstance,
+                                    errorCaptureLevel=self.errorManager._errorCaptureLevel,
+                                    matchById=True,
+                                )
+                                compareTime = time.time() - startedAt
+                                modelXbrl.profileStat(_("compare"), compareTime)
+                            except ModelDocument.LoadingException:
+                                success = False
+                            except Exception as err:
+                                success = False
+                                self.addToLog(_("[Exception] Failed to load compare file: \n{0} \n{1}").format(
+                                    err,
+                                    traceback.format_tb(sys.exc_info()[2])))
 
                         if options.testReport:
                             ViewFileTests.viewTests(self.modelManager.modelXbrl, options.testReport, options.testReportCols)
