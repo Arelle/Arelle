@@ -201,6 +201,7 @@ def getFactsWithoutDimension(
         if fact is not None
         if fact.xValid >= VALID
         if fact.context is not None
+        if fact.context.endDatetime is not None
         if len(fact.context.qnameDims) == 0
         }
     return foundFacts
