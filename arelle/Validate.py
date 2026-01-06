@@ -387,7 +387,11 @@ class Validate:
                 if (filesource.isReportPackage or self.modelXbrl.modelManager.validateAllFilesAsReportPackages) and not _rptPkgIxdsOptions:
                     preLoadingErrorsCount = len(preLoadingErrors)
                     fileSourceValidator = ValidateFileSource(self.modelXbrl.modelManager.cntlr, filesource)
-                    fileSourceValidator.validate(self.modelXbrl.modelManager.validateAllFilesAsReportPackages, preLoadingErrors)
+                    fileSourceValidator.validate(
+                        self.modelXbrl.modelManager.validateAllFilesAsReportPackages,
+                        self.modelXbrl.modelManager.validateAllFilesAsTaxonomyPackages,
+                        errors=preLoadingErrors
+                    )
                     if len(preLoadingErrors) > preLoadingErrorsCount:
                         reportPackageErrors = True
                 if filesource and not filesource.selection and filesource.isArchive:
@@ -398,7 +402,11 @@ class Validate:
                         elif not filesource.isReportPackage:
                             entrypoints = filesourceEntrypointFiles(filesource)
                             fileSourceValidator = ValidateFileSource(self.modelXbrl.modelManager.cntlr, filesource)
-                            fileSourceValidator.validate(self.modelXbrl.modelManager.validateAllFilesAsReportPackages, preLoadingErrors)
+                            fileSourceValidator.validate(
+                                self.modelXbrl.modelManager.validateAllFilesAsReportPackages,
+                                self.modelXbrl.modelManager.validateAllFilesAsTaxonomyPackages,
+                                errors=preLoadingErrors
+                            )
                             if entrypoints:
                                 # resolve an IXDS in entrypoints
                                 for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ArchiveIxds"):
@@ -423,7 +431,11 @@ class Validate:
                         assert isinstance(filesource.basefile, str)
                         if entrypoints := filesourceEntrypointFiles(filesource):
                             fileSourceValidator = ValidateFileSource(self.modelXbrl.modelManager.cntlr, filesource)
-                            fileSourceValidator.validate(self.modelXbrl.modelManager.validateAllFilesAsReportPackages, preLoadingErrors)
+                            fileSourceValidator.validate(
+                                self.modelXbrl.modelManager.validateAllFilesAsReportPackages,
+                                self.modelXbrl.modelManager.validateAllFilesAsTaxonomyPackages,
+                                errors=preLoadingErrors
+                            )
                             for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ArchiveIxds"):
                                 pluginXbrlMethod(self, filesource, entrypoints)
                             for entrypoint in entrypoints:

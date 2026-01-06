@@ -70,6 +70,7 @@ class ModelManager:
         self.isLocaleSet = False
         self.baseTaxonomyValidationMode = ValidateBaseTaxonomiesMode.DISCLOSURE_SYSTEM
         self.validateAllFilesAsReportPackages = False
+        self.validateAllFilesAsTaxonomyPackages = False
         self.validateDuplicateFacts = ValidateDuplicateFacts.DuplicateType.NONE
         self.validateXmlOim = False
         self.setLocale()
