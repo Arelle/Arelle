@@ -24,6 +24,7 @@ class TestcaseVariation:
     name: str
     parameters: str
     read_first_uris: list[str]
+    report_count: int | None
     short_name: str
     status: str
     testcase_constraint_set: TestcaseConstraintSet

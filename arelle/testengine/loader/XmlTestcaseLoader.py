@@ -222,6 +222,7 @@ def _load_testcase_doc(doc: ModelDocument, test_engine_options: TestEngineOption
                 name=testcase_variation.name,
                 parameters=PARAMETER_SEPARATOR.join(parameters),
                 read_first_uris=testcase_variation.readMeFirstUris,
+                report_count=None,
                 short_name=short_name,
                 status=testcase_variation.status,
                 testcase_constraint_set=testcase_constraint_set,
