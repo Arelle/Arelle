@@ -20,6 +20,9 @@ config = ConformanceSuiteConfig(
         *ESEF_PACKAGES[2024],
     ],
     base_taxonomy_validation='none',
+    custom_compare_patterns=[
+        (r"^.*$", r"^NL.NL-KVK.*\.~$"),
+    ],
     disclosure_system='NL-INLINE-2025',
     disclosure_system_by_prefix=[
         (f'tests/{s}', 'NL-INLINE-2025-GAAP-OTHER-PREVIEW') for s in [

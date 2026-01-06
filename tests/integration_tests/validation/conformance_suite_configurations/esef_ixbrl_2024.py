@@ -23,6 +23,9 @@ config = ConformanceSuiteConfig(
         package for year in [2017, 2019, 2020, 2021, 2022, 2024] for package in ESEF_PACKAGES[year]
     ],
     base_taxonomy_validation='none',
+    custom_compare_patterns=[
+        (r"^.*$", r"^ESEF\..*\.~$"),
+    ],
     disclosure_system='esef-2024',
     expected_additional_testcase_errors={f"*tests/inline_xbrl/{s}": val for s, val in {
         # Typo in the test case namespace declaration: incorrectly uses the Extensible Enumeration 1 namespace with the

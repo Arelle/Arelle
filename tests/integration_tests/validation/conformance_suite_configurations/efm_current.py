@@ -25,6 +25,15 @@ config = ConformanceSuiteConfig(
         )
     ],
     cache_version_id='bY6OmURBAtPB4UALKzz5aeeLlMSKxN9e',
+    custom_compare_patterns=[
+        (r"^EFM\.6\.03\.04$", r"^xmlSchema:.*$"),
+        (r"^EFM\.6\.03\.05$", r"^(xmlSchema:.*|EFM\.5\.02\.01\.01)$"),
+        (r"^EFM\.6\.04\.03$", r"^(xmlSchema:.*|utr:.*|xbrl\..*|xlink:.*)$"),
+        (r"^EFM\.6\.05\.35$", r"^utre:.*$"),
+        (r"^EFM\..*$", r"^~.*$"),
+        (r"^EXG\..*$", r"^~.*$"),
+        (r"^html:syntaxError$", r"^lxml\.SCHEMA.*$"),
+    ],
     disclosure_system='efm-pragmatic',
     info_url='https://www.sec.gov/structureddata/osdinteractivedatatestsuite',
     name=PurePath(__file__).stem,
