@@ -189,9 +189,11 @@ class ConformanceSuiteConfig:
     additional_plugins_by_prefix: list[tuple[str, frozenset[str]]] = field(default_factory=list)
     args: list[str] = field(default_factory=list)
     assets: list[ConformanceSuiteAssetConfig] = field(default_factory=list)
+    base_taxonomy_validation: Literal['disclosureSystem', 'none', 'all', None] = None
     cache_version_id: str | None = None
     capture_warnings: bool = True
     ci_enabled: bool = True
+    disclosure_system: str | None = None
     expected_additional_testcase_errors: dict[str, dict[str, int]] = field(default_factory=dict)
     expected_failure_ids: frozenset[str] = frozenset()
     expected_missing_testcases: frozenset[str] = frozenset()

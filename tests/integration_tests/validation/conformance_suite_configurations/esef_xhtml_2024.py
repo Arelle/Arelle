@@ -7,10 +7,6 @@ from tests.integration_tests.validation.conformance_suite_config import (
 )
 
 config = ConformanceSuiteConfig(
-    args=[
-        '--disclosureSystem', 'esef-unconsolidated-2024',
-        '--baseTaxonomyValidation', 'none',
-    ],
     assets=[
         ConformanceSuiteAssetConfig.conformance_suite(
             Path('esef_conformance_suite_2024.zip'),
@@ -19,6 +15,8 @@ config = ConformanceSuiteConfig(
             source=AssetSource.S3_PUBLIC,
         ),
     ],
+    base_taxonomy_validation='none',
+    disclosure_system='esef-unconsolidated-2024',
     info_url='https://www.esma.europa.eu/document/esef-conformance-suite-2024',
     name=PurePath(__file__).stem,
     plugins=frozenset({'validate/ESEF'}),

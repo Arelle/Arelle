@@ -251,6 +251,10 @@ def get_conformance_suite_arguments(config: ConformanceSuiteConfig, filename: st
         '--testcaseResultOptions', config.test_case_result_options,
         '--validate',
     ]
+    if config.base_taxonomy_validation:
+        args.extend(['--baseTaxonomyValidation', config.base_taxonomy_validation])
+    if config.disclosure_system:
+        args.extend(['--disclosureSystem', config.disclosure_system])
     if config.package_paths:
         args.extend(['--packages', '|'.join(sorted(p.as_posix() for p in config.package_paths))])
     if plugins:

@@ -7,10 +7,6 @@ ZIP_PATH = Path('NT17_KVK_20221214 Berichten.zip')
 # needs to be extracted because arelle can't load a taxonomy package ZIP from within a ZIP
 EXTRACTED_PATH = Path(ZIP_PATH.stem)
 config = ConformanceSuiteConfig(
-    args=[
-        '--disclosureSystem', 'NT17',
-        '--baseTaxonomyValidation', 'none',
-    ],
     assets=[
         ConformanceSuiteAssetConfig.nested_conformance_suite(
             ZIP_PATH,
@@ -22,6 +18,8 @@ config = ConformanceSuiteConfig(
         ),
         *NL_PACKAGES['NT17'],
     ],
+    base_taxonomy_validation='none',
+    disclosure_system='NT17',
     info_url='https://www.sbr-nl.nl/sites/default/files/bestanden/taxonomie/SBR%20Filing%20Rules%20NT17%20-%2020220301__.pdf',
     name=PurePath(__file__).stem,
     plugins=frozenset({'validate/NL'}),

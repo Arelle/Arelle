@@ -6,10 +6,6 @@ from tests.integration_tests.validation.conformance_suite_config import (
 )
 
 config = ConformanceSuiteConfig(
-    args=[
-        '--disclosureSystem', 'esef-2021',
-        '--baseTaxonomyValidation', 'none',
-    ],
     assets=[
         ConformanceSuiteAssetConfig.conformance_suite(
             Path('esef_conformance_suite_2021.zip'),
@@ -20,6 +16,8 @@ config = ConformanceSuiteConfig(
     ] + [
         package for year in [2017, 2019, 2020, 2021] for package in ESEF_PACKAGES[year]
     ],
+    base_taxonomy_validation='none',
+    disclosure_system='esef-2021',
     info_url='https://www.esma.europa.eu/document/conformance-suite-2021',
     name=PurePath(__file__).stem,
     plugins=frozenset({'validate/ESEF'}),
