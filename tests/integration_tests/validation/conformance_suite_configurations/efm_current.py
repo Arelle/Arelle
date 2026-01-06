@@ -16,9 +16,6 @@ config = ConformanceSuiteConfig(
         '626-rendering-syntax',
         '902-sdr/efm/62421-sdr-multiple',
     ]],
-    args=[
-        '--disclosureSystem', 'efm-pragmatic',
-    ],
     assets=[
         ConformanceSuiteAssetConfig.conformance_suite(
             Path(CONFORMANCE_SUITE_ZIP_NAME),
@@ -28,6 +25,7 @@ config = ConformanceSuiteConfig(
         )
     ],
     cache_version_id='bY6OmURBAtPB4UALKzz5aeeLlMSKxN9e',
+    disclosure_system='efm-pragmatic',
     info_url='https://www.sec.gov/structureddata/osdinteractivedatatestsuite',
     name=PurePath(__file__).stem,
     plugins=frozenset({

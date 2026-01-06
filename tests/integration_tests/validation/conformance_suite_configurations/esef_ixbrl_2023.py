@@ -5,10 +5,6 @@ from tests.integration_tests.validation.conformance_suite_config import (
     ConformanceSuiteConfig, ConformanceSuiteAssetConfig, AssetSource
 )
 config = ConformanceSuiteConfig(
-    args=[
-        '--disclosureSystem', 'esef-2023',
-        '--baseTaxonomyValidation', 'none',
-    ],
     assets=[
         ConformanceSuiteAssetConfig.conformance_suite(
             Path('esef_conformance_suite_2023.zip'),
@@ -19,6 +15,8 @@ config = ConformanceSuiteConfig(
     ] + [
         package for year in [2017, 2019, 2020, 2021, 2022] for package in ESEF_PACKAGES[year]
     ],
+    base_taxonomy_validation='none',
+    disclosure_system='esef-2023',
     expected_failure_ids=frozenset(f'tests/inline_xbrl/{s}' for s in [
         # Test report uses older domain item type (http://www.xbrl.org/dtr/type/non-numeric) forbidden by ESEF.3.2.2.
         'G3-1-2/index.xml:TC2_valid',

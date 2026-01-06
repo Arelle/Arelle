@@ -10,7 +10,6 @@ ZIP_PATH = Path('uksef-conformance-suite-v2.0.zip')
 EXTRACTED_PATH = Path(ZIP_PATH.stem)
 config = ConformanceSuiteConfig(
     args=[
-        '--baseTaxonomyValidation', 'none',
         '--formula', 'none',
     ],
     assets=[
@@ -29,6 +28,7 @@ config = ConformanceSuiteConfig(
     ] + [
         package for year in [2022, 2024] for package in ESEF_PACKAGES[year]
     ],
+    base_taxonomy_validation='none',
     expected_additional_testcase_errors={f'uksef-conformance-suite/tests/FRC/{s}': val for s, val in {
         # Test case references TC2_valid.zip, but actual file in suite has .xbri extension.
         'FRC_09/index.xml:TC2_valid': {'IOerror': 1},

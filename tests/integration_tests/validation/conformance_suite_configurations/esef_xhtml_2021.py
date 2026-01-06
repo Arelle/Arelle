@@ -2,10 +2,6 @@ from pathlib import PurePath, Path
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig, AssetSource
 
 config = ConformanceSuiteConfig(
-    args=[
-        '--disclosureSystem', 'esef-unconsolidated-2021',
-        '--baseTaxonomyValidation', 'none',
-    ],
     assets=[
         ConformanceSuiteAssetConfig.conformance_suite(
             Path('esef_conformance_suite_2021.zip'),
@@ -14,6 +10,8 @@ config = ConformanceSuiteConfig(
             source=AssetSource.S3_PUBLIC,
         ),
     ],
+    base_taxonomy_validation='none',
+    disclosure_system='esef-unconsolidated-2021',
     info_url='https://www.esma.europa.eu/document/conformance-suite-2021',
     name=PurePath(__file__).stem,
     plugins=frozenset({'validate/ESEF'}),

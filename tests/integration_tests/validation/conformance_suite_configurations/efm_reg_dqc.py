@@ -3,9 +3,6 @@ from tests.integration_tests.validation.conformance_suite_config import Conforma
 
 
 config = ConformanceSuiteConfig(
-    args=[
-        '--disclosureSystem', 'efm-pragmatic',
-    ],
     assets=[
         ConformanceSuiteAssetConfig.conformance_suite(
             Path('efm_reg_dqc.zip'),
@@ -15,6 +12,7 @@ config = ConformanceSuiteConfig(
     ],
     cache_version_id='FR1AEVo5AdJcSAoSphxQbpGVsMLmXvIF',
     ci_enabled=False,
+    disclosure_system='efm-pragmatic',
     info_url='N/A',
     name=PurePath(__file__).stem,
     plugins=frozenset({'EDGAR/validate', 'inlineXbrlDocumentSet'}),
