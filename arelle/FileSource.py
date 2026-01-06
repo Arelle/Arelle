@@ -240,7 +240,10 @@ class FileSource:
 
     def logError(self, err: Exception) -> None:
         if self.cntlr:
-            self.cntlr.addToLog(_("[{0}] {1}").format(type(err).__name__, err))
+            self.cntlr.error(
+                "FileSourceError",
+                _("[{0}] {1}").format(type(err).__name__, err),
+            )
 
     def open(self, reloadCache: bool = False) -> None:
         if self.isValid and not self.isOpen:
@@ -385,7 +388,9 @@ class FileSource:
                 # load mappings
                 self.loadTaxonomyPackageMappings()
 
-    def loadTaxonomyPackageMappings(self, errors: list[str] = [], expectTaxonomyPackage: bool = False) -> None:
+    def loadTaxonomyPackageMappings(self, errors: list[str] | None = None, expectTaxonomyPackage: bool = False) -> None:
+        if errors is None:
+            errors = []
         if not self.mappedPaths and (self.taxonomyPackageMetadataFiles or expectTaxonomyPackage) and self.cntlr:
             if PackageManager.validateTaxonomyPackage(self.cntlr, self, errors=errors):
                 assert isinstance(self.baseurl, str)
