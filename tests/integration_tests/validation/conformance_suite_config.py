@@ -207,6 +207,7 @@ class ConformanceSuiteConfig:
     cache_version_id: str | None = None
     capture_warnings: bool = True
     ci_enabled: bool = True
+    compare_formula_output: bool = False
     disclosure_system: str | None = None
     expected_additional_testcase_errors: dict[str, dict[str, int]] = field(default_factory=dict)
     expected_failure_ids: frozenset[str] = frozenset()
