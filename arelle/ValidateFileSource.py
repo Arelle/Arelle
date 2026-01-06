@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from arelle import PluginManager
+from arelle import PluginManager, PackageManager
 from arelle.packages.report.ReportPackageValidator import ReportPackageValidator
 
 if TYPE_CHECKING:
@@ -19,7 +19,7 @@ class ValidateFileSource:
         self._cntrl = cntrl
         self._filesource = filesource
 
-    def validate(self, forceValidateAsReportPackages: bool = False, errors: list[str] | None = None) -> None:
+    def validate(self, forceValidateAsReportPackages: bool = False, forceValidateAsTaxonomyPackage: bool = False, errors: list[str] | None = None) -> None:
         for pluginXbrlMethod in PluginManager.pluginClassMethods("Validate.FileSource"):
             pluginXbrlMethod(self._cntrl, self._filesource)
 
@@ -36,3 +36,7 @@ class ValidateFileSource:
                     )
                 if errors is not None:
                     errors.append(code)
+        # Automatically validate a report package as a taxonomy package if a
+        # taxonomy package metadata file exists.
+        if forceValidateAsTaxonomyPackage or self._filesource.isTaxonomyPackage:
+            PackageManager.validateTaxonomyPackage(self._cntrl, self._filesource, errors=errors)
