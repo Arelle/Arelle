@@ -16,6 +16,14 @@ config = ConformanceSuiteConfig(
         ),
     ],
     expected_additional_testcase_errors={f"report-package-conformance/index.csv:{s}": val for s, val in {
+        # Invalid zip also fires FileSourceError.
+        "V-000-invalid-zip": {
+            "FileSourceError": 1,
+        },
+        # Triggers a scenario where the testcase variation runner performs taxonomy package validation twice.
+        "V-012-encrypted-zip": {
+            "tpe:invalidArchiveFormat": 1,
+        },
         # "Empty" iXBRL docs are missing schema required elements.
         "V-301-xbri-with-single-ixds": {
             # There are two documents in the package, empty1.xhtml and empty2.xhtml,
