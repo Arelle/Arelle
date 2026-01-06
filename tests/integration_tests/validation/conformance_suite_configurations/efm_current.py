@@ -42,6 +42,11 @@ config = ConformanceSuiteConfig(
         'inlineXbrlDocumentSet',
         'xule',
     }),
+    runtime_options={
+        'pluginOptions': {
+            'keepFilingOpen': True, # Edgar normally closes the model in CntlrCmdLine.Filing.End
+        },
+    },
     shards=40,
     test_case_result_options='match-any',
 )

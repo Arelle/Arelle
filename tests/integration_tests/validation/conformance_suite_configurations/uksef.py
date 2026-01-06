@@ -113,5 +113,8 @@ config = ConformanceSuiteConfig(
     name=PurePath(__file__).stem,
     plugins=frozenset({'inlineXbrlDocumentSet'}),
     preprocessing_func=_preprocessing_func,
+    runtime_options={
+        'formulaAction': 'none',
+    },
     shards=4,
 )
