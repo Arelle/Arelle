@@ -208,6 +208,7 @@ class ConformanceSuiteConfig:
     capture_warnings: bool = True
     ci_enabled: bool = True
     compare_formula_output: bool = False
+    custom_compare_patterns: list[tuple[str, str]] = field(default_factory=list)
     disclosure_system: str | None = None
     disclosure_system_by_prefix: list[tuple[str, str]] = field(default_factory=list)
     expected_additional_testcase_errors: dict[str, dict[str, int]] = field(default_factory=dict)
