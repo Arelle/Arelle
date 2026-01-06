@@ -17,6 +17,7 @@
             <instance readMeFirst="true">invalid01.zip</instance>
         </data>
         <result>
+            <error>FileNotLoadable</error> <!-- empty IXDS -->
             <error>EDINET.EC5032E</error>
             <warning>EDINET.EC8043W</warning> <!-- from base sample filing -->
             <warning>EDINET.EC8045W</warning> <!-- from base sample filing -->
