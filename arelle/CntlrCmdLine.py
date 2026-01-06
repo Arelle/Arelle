@@ -1038,8 +1038,10 @@ class CntlrCmdLine(Cntlr.Cntlr):
             fo.testcaseExpectedErrors = options.testcaseExpectedErrors
         if options.testcaseFilters:
             fo.testcaseFilters = options.testcaseFilters
+        errorCaptureLevel = None
         if options.testcaseResultsCaptureWarnings:
-            self.errorManager.setErrorCaptureLevel(logging._checkLevel("WARNING"))
+            errorCaptureLevel = logging._checkLevel("WARNING")
+            self.errorManager.setErrorCaptureLevel(errorCaptureLevel)
             fo.testcaseResultsCaptureWarnings = True
         if options.testcaseResultOptions:
             fo.testcaseResultOptions = options.testcaseResultOptions
@@ -1104,7 +1106,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             modelXbrl = None
             try:
                 if filesource:
-                    modelXbrl = self.modelManager.load(filesource, _("views loading"), entrypoint=_entrypoint)
+                    modelXbrl = self.modelManager.load(filesource, _("views loading"), entrypoint=_entrypoint, errorCaptureLevel=errorCaptureLevel)
                     if filesource.isArchive:
                         # Keep archive filesource potentially used by multiple reports open.
                         modelXbrl.closeFileSource = False
