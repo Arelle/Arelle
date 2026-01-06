@@ -21,6 +21,9 @@ config = ConformanceSuiteConfig(
         package for year in [2017, 2019, 2020, 2021, 2022] for package in ESEF_PACKAGES[year]
     ],
     base_taxonomy_validation='none',
+    custom_compare_patterns=[
+        (r"^.*$", r"^ESEF\..*\.~$"),
+    ],
     disclosure_system='esef-2023',
     expected_failure_ids=frozenset(f'tests/inline_xbrl/{s}' for s in [
         # Test report uses older domain item type (http://www.xbrl.org/dtr/type/non-numeric) forbidden by ESEF.3.2.2.

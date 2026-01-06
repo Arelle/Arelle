@@ -18,6 +18,9 @@ config = ConformanceSuiteConfig(
         *NL_PACKAGES['NL-INLINE-2024'],
     ],
     base_taxonomy_validation='none',
+    custom_compare_patterns=[
+        (r"^.*$", r"^NL.NL-KVK.*\.~$"),
+    ],
     disclosure_system='NL-INLINE-2024',
     expected_additional_testcase_errors={f"*tests/{s}": val for s, val in {
         'G3-1-3_1/index.xml:TC2_invalid': {
