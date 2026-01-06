@@ -207,6 +207,7 @@ class ConformanceSuiteConfig:
     cache_version_id: str | None = None
     capture_warnings: bool = True
     ci_enabled: bool = True
+    compare_formula_output: bool = False
     disclosure_system: str | None = None
     disclosure_system_by_prefix: list[tuple[str, str]] = field(default_factory=list)
     expected_additional_testcase_errors: dict[str, dict[str, int]] = field(default_factory=dict)
