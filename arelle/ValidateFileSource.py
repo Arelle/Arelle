@@ -36,7 +36,9 @@ class ValidateFileSource:
                     )
                     if errors is not None:
                         errors.append(code)
-        # Automatically validate a report package as a taxonomy package if a
+        # Automatically validates a report package as a taxonomy package if a
         # taxonomy package metadata file exists.
-        if forceValidateAsTaxonomyPackage or self._filesource.isTaxonomyPackage:
-            PackageManager.validateTaxonomyPackage(self._cntrl, self._filesource, errors=errors)
+        self._filesource.loadTaxonomyPackageMappings(
+            errors=errors,
+            expectTaxonomyPackage=forceValidateAsTaxonomyPackage
+        )

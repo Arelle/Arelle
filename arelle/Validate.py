@@ -391,7 +391,7 @@ class Validate:
                     fileSourceValidator = ValidateFileSource(self.modelXbrl.modelManager.cntlr, filesource)
                     fileSourceValidator.validate(
                         self.modelXbrl.modelManager.validateAllFilesAsReportPackages,
-                        self.modelXbrl.modelManager.validateAllFilesAsTaxonomyPackages,
+                        self.modelXbrl.modelManager.validateAllFilesAsTaxonomyPackages or expectTaxonomyPackage,
                         errors=preLoadingErrors
                     )
                     if len(preLoadingErrors) > preLoadingErrorsCount:

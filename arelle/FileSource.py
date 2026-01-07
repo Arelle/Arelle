@@ -389,16 +389,20 @@ class FileSource:
                 self.loadTaxonomyPackageMappings()
 
     def loadTaxonomyPackageMappings(self, errors: list[str] | None = None, expectTaxonomyPackage: bool = False) -> None:
+        # Only attempt to load taxonomy package mappings one time.
+        if self.mappedPaths is not None:
+            return
+        self.mappedPaths = {}
+
         if errors is None:
             errors = []
-        if not self.mappedPaths and (self.taxonomyPackageMetadataFiles or expectTaxonomyPackage) and self.cntlr:
+        if (self.isTaxonomyPackage or expectTaxonomyPackage) and self.cntlr:
             if PackageManager.validateTaxonomyPackage(self.cntlr, self, errors=errors):
                 assert isinstance(self.baseurl, str)
                 metadata = self.baseurl + os.sep + self.taxonomyPackageMetadataFiles[0]
                 self.taxonomyPackage = PackageManager.parsePackage(self.cntlr, self, metadata,
                                                                    os.sep.join(os.path.split(metadata)[:-1]) + os.sep,
                                                                    errors=errors)
-
                 assert self.taxonomyPackage is not None
                 self.mappedPaths = cast('dict[str, str]', self.taxonomyPackage.get("remappings"))
 
