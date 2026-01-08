@@ -5,7 +5,6 @@ from tests.integration_tests.validation.conformance_suite_config import (
 )
 
 ZIP_PATH = Path('inlineXBRL-1.1-conformanceSuite-2020-04-08.zip')
-# needs to be extracted because arelle can't load a taxonomy package ZIP from within a ZIP
 EXTRACTED_PATH = Path(ZIP_PATH.stem)
 config = ConformanceSuiteConfig(
     args=[

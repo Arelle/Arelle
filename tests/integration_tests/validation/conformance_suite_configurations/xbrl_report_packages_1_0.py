@@ -5,13 +5,17 @@ from tests.integration_tests.validation.conformance_suite_config import (
     ConformanceSuiteConfig,
 )
 
+ZIP_PATH = Path("report-package-conformance.zip")
+EXTRACTED_PATH = Path(ZIP_PATH.stem)
 config = ConformanceSuiteConfig(
     args=[
         "--reportPackage"
     ],
     assets=[
-        ConformanceSuiteAssetConfig.conformance_suite(
-            Path("report-package-conformance.zip"),
+        ConformanceSuiteAssetConfig.nested_conformance_suite(
+            ZIP_PATH,
+            EXTRACTED_PATH,
+            entry_point_root=EXTRACTED_PATH,
             entry_point=Path("report-package-conformance/index.csv"),
         ),
     ],
