@@ -577,7 +577,7 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
                             remappings[prefix] = remapping
                         else:
                             cntlr.error(
-                                codes="tpe:packageDuplicateMapping",
+                                codes="arelle:packageDuplicateMapping",
                                 msg=_("Package mapping duplicate rewrite start string %(rewriteStartString)s"),
                                 fileSource=filesource,
                                 rewriteStartString=prefix,
