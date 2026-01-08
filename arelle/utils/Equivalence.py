@@ -3,14 +3,12 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import (
     TYPE_CHECKING,
-    Any,
     Callable,
     TypeVar,
 )
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
-    from arelle.ModelXbrl import ModelXbrl
 
 T = TypeVar('T')
 K = TypeVar('K')
