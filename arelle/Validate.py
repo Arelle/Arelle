@@ -220,7 +220,8 @@ class Validate:
                                         modelObject=testcaseVariation,
                                         variationId=testcaseVariation.id)
 
-            self.modelXbrl.modelManager.cntlr.testcaseVariationReset()
+            # Clear errors added to the controller during testcase loading.
+            self.modelXbrl.modelManager.cntlr.errorManager.clear()
             for modelTestcaseVariation in testcaseVariations:
                 self._validateTestcaseVariation(testcase, modelTestcaseVariation)
 
