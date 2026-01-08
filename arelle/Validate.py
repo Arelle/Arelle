@@ -220,6 +220,9 @@ class Validate:
                     self.modelXbrl.info("info", "Skipped testcase variation %(variationId)s.",
                                         modelObject=testcaseVariation,
                                         variationId=testcaseVariation.id)
+
+            # Clear errors added to the controller during testcase loading.
+            self.modelXbrl.modelManager.cntlr.errorManager.clear()
             for modelTestcaseVariation in testcaseVariations:
                 self._validateTestcaseVariation(testcase, modelTestcaseVariation)
 
@@ -388,7 +391,11 @@ class Validate:
                 if (filesource.isReportPackage or self.modelXbrl.modelManager.validateAllFilesAsReportPackages) and not _rptPkgIxdsOptions:
                     preLoadingErrorsCount = len(preLoadingErrors)
                     fileSourceValidator = ValidateFileSource(self.modelXbrl.modelManager.cntlr, filesource)
-                    fileSourceValidator.validate(self.modelXbrl.modelManager.validateAllFilesAsReportPackages, preLoadingErrors)
+                    fileSourceValidator.validate(
+                        self.modelXbrl.modelManager.validateAllFilesAsReportPackages,
+                        self.modelXbrl.modelManager.validateAllFilesAsTaxonomyPackages or expectTaxonomyPackage,
+                        errors=preLoadingErrors
+                    )
                     if len(preLoadingErrors) > preLoadingErrorsCount:
                         reportPackageErrors = True
                 if filesource and not filesource.selection and filesource.isArchive:
@@ -399,7 +406,11 @@ class Validate:
                         elif not filesource.isReportPackage:
                             entrypoints = filesourceEntrypointFiles(filesource)
                             fileSourceValidator = ValidateFileSource(self.modelXbrl.modelManager.cntlr, filesource)
-                            fileSourceValidator.validate(self.modelXbrl.modelManager.validateAllFilesAsReportPackages, preLoadingErrors)
+                            fileSourceValidator.validate(
+                                self.modelXbrl.modelManager.validateAllFilesAsReportPackages,
+                                self.modelXbrl.modelManager.validateAllFilesAsTaxonomyPackages,
+                                errors=preLoadingErrors
+                            )
                             if entrypoints:
                                 # resolve an IXDS in entrypoints
                                 for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ArchiveIxds"):
@@ -424,7 +435,11 @@ class Validate:
                         assert isinstance(filesource.basefile, str)
                         if entrypoints := filesourceEntrypointFiles(filesource):
                             fileSourceValidator = ValidateFileSource(self.modelXbrl.modelManager.cntlr, filesource)
-                            fileSourceValidator.validate(self.modelXbrl.modelManager.validateAllFilesAsReportPackages, preLoadingErrors)
+                            fileSourceValidator.validate(
+                                self.modelXbrl.modelManager.validateAllFilesAsReportPackages,
+                                self.modelXbrl.modelManager.validateAllFilesAsTaxonomyPackages,
+                                errors=preLoadingErrors
+                            )
                             for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ArchiveIxds"):
                                 pluginXbrlMethod(self, filesource, entrypoints)
                             for entrypoint in entrypoints:
@@ -495,10 +510,6 @@ class Validate:
         for pluginXbrlMethod in pluginClassMethods("Validate.Complete"):
             pluginXbrlMethod(self.modelXbrl.modelManager.cntlr, filesource)
         errors = [error for model in loadedModels for error in model.errors]
-        for err in preLoadingErrors:
-            if err not in errors:
-                # include errors from models which failed to load.
-                errors.append(err)
         reportModelCount = len([
             model for model in loadedModels
             if model.modelDocument is not None and (model.fileSource.isReportPackage or not model.fileSource.isTaxonomyPackage)

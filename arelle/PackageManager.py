@@ -79,12 +79,13 @@ def _parseFile(cntlr, parser, filepath, file, schemaUrl):
         xsdTree = etree.parse(schemaUrl, parser=parser)
         etree.XMLSchema(xsdTree).assertValid(tree)
     else:
-        cntlr.addToLog(_("File could not be validated against the schema (%(schemaUrl)s) because the schema was not "
-                         "found in the cache and Arelle is configured to work offline."),
-                       messageArgs={"schemaUrl": schemaUrl},
-                       messageCode="tpe:workingOffline",
-                       file=filepath,
-                       level=logging.ERROR)
+        cntlr.error(
+            codes="tpe:workingOffline",
+            msg=_("File could not be validated against the schema (%(schemaUrl)s) because the schema was not "
+                  "found in the cache and Arelle is configured to work offline."),
+            schemaUrl=schemaUrl,
+            file=filepath
+        )
     return tree
 
 
@@ -131,11 +132,12 @@ def _parsePackageMetadata(
         metadataFileContent = filesource.file(metadataFile)[0] # URL in zip, plain file in file system or web
         tree = _parseFile(cntlr, parser, metadataFile, metadataFileContent, TP_XSD)
     except (etree.XMLSyntaxError, etree.DocumentInvalid, etree.XMLSchemaError) as err:
-        cntlr.addToLog(_("Taxonomy package file syntax error %(error)s"),
-                       messageArgs={"error": str(err)},
-                       messageCode="tpe:invalidMetaDataFile",
-                       file=os.path.basename(metadataFile),
-                       level=logging.ERROR)
+        cntlr.error(
+            codes="tpe:invalidMetaDataFile",
+            msg=_("Taxonomy package file syntax error %(error)s"),
+            fileSource=filesource,
+            error=str(err)
+        )
         errors.append("tpe:invalidMetaDataFile")
         return pkg
     except ArchiveFileIOError:
@@ -191,18 +193,24 @@ def _parsePackageMetadata(
                     langElts[xmlLang(m)].append(m)
                 for lang, elts in langElts.items():
                     if not lang:
-                        cntlr.addToLog(_("Multi-lingual element %(element)s has no in-scope xml:lang attribute"),
-                                       messageArgs={"element": eltName},
-                                       messageCode="tpe:missingLanguageAttribute",
-                                       refs=[{"href":os.path.basename(metadataFile), "sourceLine":m.sourceline} for m in elts],
-                                       level=logging.ERROR)
+                        cntlr.error(
+                            codes="tpe:missingLanguageAttribute",
+                            msg=_("Multi-lingual element %(element)s has no in-scope xml:lang attribute"),
+                            fileSource=filesource,
+                            element=eltName,
+                            modelObject=elts
+                        )
                         errors.append("tpe:missingLanguageAttribute")
                     elif len(elts) > 1:
-                        cntlr.addToLog(_("Multi-lingual element %(element)s has multiple (%(count)s) in-scope xml:lang %(lang)s elements"),
-                                       messageArgs={"element": eltName, "lang": lang, "count": len(elts)},
-                                       messageCode="tpe:duplicateLanguagesForElement",
-                                       refs=[{"href":os.path.basename(metadataFile), "sourceLine":m.sourceline} for m in elts],
-                                       level=logging.ERROR)
+                        cntlr.error(
+                            codes="tpe:duplicateLanguagesForElement",
+                            msg=_("Multi-lingual element %(element)s has multiple (%(count)s) in-scope xml:lang %(lang)s elements"),
+                            fileSource=filesource,
+                            element=eltName,
+                            lang=lang,
+                            count=len(elts),
+                            modelObject=elts
+                        )
                         errors.append("tpe:duplicateLanguagesForElement")
         del langElts # dereference
 
@@ -293,11 +301,13 @@ def _parseCatalog(
         _file = filesource.file(catalogFile)[0]
         rewriteTree = _parseFile(cntlr, parser, catalogFile, _file, CAT_XSD)
     except (etree.XMLSyntaxError, etree.DocumentInvalid) as err:
-        cntlr.addToLog(_("Catalog file syntax error %(error)s"),
-                        messageArgs={"error": str(err)},
-                        messageCode="tpe:invalidCatalogFile",
-                        file=os.path.basename(catalogFile),
-                        level=logging.ERROR)
+        cntlr.error(
+            codes="tpe:invalidCatalogFile",
+            msg=_("Catalog file syntax error %(error)s"),
+            fileSource=filesource,
+            error=str(err),
+            file=os.path.basename(catalogFile),
+        )
         errors.append("tpe:invalidCatalogFile")
     except ArchiveFileIOError:
         pass
@@ -324,11 +334,13 @@ def _parseCatalog(
                             _normedValue += os.sep
                         remappings[prefixValue] = _normedValue
                     else:
-                        cntlr.addToLog(_("Package catalog duplicate rewrite start string %(rewriteStartString)s"),
-                                    messageArgs={"rewriteStartString": prefixValue},
-                                    messageCode="tpe:multipleRewriteURIsForStartString",
-                                    file=os.path.basename(catalogFile),
-                                    level=logging.ERROR)
+                        cntlr.error(
+                            codes="tpe:multipleRewriteURIsForStartString",
+                            msg=_("Package catalog duplicate rewrite start string %(rewriteStartString)s"),
+                            fileSource=filesource,
+                            rewriteStartString=prefixValue,
+                            file=os.path.basename(catalogFile),
+                        )
                         errors.append("tpe:multipleRewriteURIsForStartString")
 
     return remappings
@@ -433,37 +445,40 @@ def packageNamesWithNewerFileDates():
             pass
     return names
 
-def validateTaxonomyPackage(cntlr, filesource, errors=[]) -> bool:
+def validateTaxonomyPackage(cntlr, filesource, errors: list | None = None) -> bool:
+        if errors is None:
+            errors = []
         numErrorsOnEntry = len(errors)
         for validator in TAXONOMY_PACKAGE_ABORTING_VALIDATIONS:
             if validation := validator(TAXONOMY_PACKAGE_TYPE, filesource):
-                cntlr.addToLog(
-                    validation.msg,
-                    messageCode=validation.codes,
-                    messageArgs=validation.args,
-                    file=filesource.urlBasename,
+                cntlr.error(
                     level=validation.level.name,
+                    codes=validation.codes,
+                    msg=validation.msg,
+                    fileSource=filesource,
+                    **validation.args
                 )
                 errors.append(validation.codes)
                 return False
         for validator in TAXONOMY_PACKAGE_NON_ABORTING_VALIDATIONS:
             if validation := validator(TAXONOMY_PACKAGE_TYPE, filesource):
-                cntlr.addToLog(
-                    validation.msg,
-                    messageCode=validation.codes,
-                    messageArgs=validation.args,
-                    file=filesource.urlBasename,
+                cntlr.error(
                     level=validation.level.name,
+                    codes=validation.codes,
+                    msg=validation.msg,
+                    fileSource=filesource,
+                    **validation.args
                 )
                 errors.append(validation.codes)
 
         _dir = filesource.dir or []
         if not any(f.endswith('/META-INF/taxonomyPackage.xml') for f in _dir):
             messageCode = "tpe:metadataFileNotFound"
-            cntlr.addToLog(_("Taxonomy package does not contain a metadata file */META-INF/taxonomyPackage.xml"),
-                           messageCode=messageCode,
-                           file=filesource.urlBasename,
-                           level=logging.ERROR)
+            cntlr.error(
+                codes=messageCode,
+                msg=_("Taxonomy package does not contain a metadata file */META-INF/taxonomyPackage.xml"),
+                fileSource=filesource,
+            )
             errors.append(messageCode)
         return len(errors) == numErrorsOnEntry
 
@@ -529,10 +544,12 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
                     packageFilePrefix = filesource.baseurl + os.sep +  packageFilePrefix
                     packages.append([packageFileUrl, packageFilePrefix, packageFile])
             else:
-                cntlr.addToLog(_("Taxonomy package is not a zip file."),
-                               messageCode="tpe:invalidArchiveFormat",
-                               file=os.path.basename(packageFilename),
-                               level=logging.ERROR)
+                cntlr.error(
+                    codes="tpe:invalidArchiveFormat",
+                    msg=_("Taxonomy package is not a zip file."),
+                    fileSource=filesource,
+                    file=os.path.basename(packageFilename),
+                )
                 errors.append("tpe:invalidArchiveFormat")
                 assert isinstance(filesource.url, str)
                 if (os.path.basename(filesource.url) in TAXONOMY_PACKAGE_FILE_NAMES or # individual manifest file
@@ -559,11 +576,13 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
                         if prefix not in remappings:
                             remappings[prefix] = remapping
                         else:
-                            cntlr.addToLog("Package mapping duplicate rewrite start string %(rewriteStartString)s",
-                                           messageArgs={"rewriteStartString": prefix},
-                                           messageCode="arelle.packageDuplicateMapping",
-                                           file=os.path.basename(URL),
-                                           level=logging.ERROR)
+                            cntlr.error(
+                                codes="arelle:packageDuplicateMapping",
+                                msg=_("Package mapping duplicate rewrite start string %(rewriteStartString)s"),
+                                fileSource=filesource,
+                                rewriteStartString=prefix,
+                                file=os.path.basename(URL),
+                            )
                             errors.append("arelle.packageDuplicateMapping")
             if not parsedPackage:
                 return None
@@ -615,13 +634,16 @@ def rebuildRemappings(cntlr):
                 if _url1 == _url2: # use full file names
                     _url1 = _packageURL
                     _url2 = _packageURL2
-                cntlr.addToLog(_("Packages overlap the same rewrite start string %(rewriteStartString)s")
-                               if _prefix == _prefix2 else
-                               _("Packages overlap rewrite start strings %(rewriteStartString)s and %(rewriteStartString2)s"),
-                               messageArgs={"rewriteStartString": _prefix, "rewriteStartString2": _prefix2},
-                               messageCode="arelle.packageRewriteOverlap",
-                               file=(_url1, _url2),
-                               level=logging.WARNING)
+                cntlr.error(
+                    codes="tpe:packageRewriteOverlap",
+                    level='WARNING',
+                    msg=_("Packages overlap the same rewrite start string %(rewriteStartString)s")
+                        if _prefix == _prefix2 else
+                        _("Packages overlap rewrite start strings %(rewriteStartString)s and %(rewriteStartString2)s"),
+                    rewriteStartString=_prefix,
+                    rewriteStartString2=_prefix2,
+                    file=(_url1, _url2),
+                )
 
 
 def isMappedUrl(url):

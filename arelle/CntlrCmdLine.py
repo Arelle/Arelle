@@ -220,6 +220,10 @@ def parseArgs(args):
                       action="store_true",
                       dest="reportPackage",
                       help=_("Ignore detected file type and validate all files as Report Packages."))
+    parser.add_option("--taxonomyPackage", "--taxonomypackage",
+                      action="store_true",
+                      dest="taxonomyPackage",
+                      help=_("Ignore detected file type and validate all files as Taxonomy Packages."))
     parser.add_option("--deduplicateFacts", "--deduplicatefacts",
                       choices=[a.value for a in ValidateDuplicateFacts.DeduplicationType],
                       dest="deduplicateFacts",
@@ -918,6 +922,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             duplicateType = duplicateTypeArg.duplicateType()
             self.modelManager.validateDuplicateFacts = duplicateType
         self.modelManager.validateAllFilesAsReportPackages = bool(options.reportPackage)
+        self.modelManager.validateAllFilesAsTaxonomyPackages = bool(options.taxonomyPackage)
         if options.utrUrl:  # override disclosureSystem utrUrl
             self.modelManager.disclosureSystem.utrUrl = [options.utrUrl]
             # can be set now because the utr is first loaded at validation time
@@ -1073,7 +1078,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             pluginXbrlMethod(self, options, filesource, _entrypointFiles, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
 
         if options.validate and filesource is not None:
-            ValidateFileSource(self, filesource).validate(options.reportPackage)
+            ValidateFileSource(self, filesource).validate(options.reportPackage, options.taxonomyPackage)
 
         if len(_entrypointFiles) == 0 and not options.packages:
             if options.entrypointFile:
@@ -1091,7 +1096,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 _entrypointFile = PackageManager.mappedUrl(_entrypointFile)
                 filesource = FileSource.openFileSource(_entrypointFile, self, sourceZipStream)
                 if options.validate:
-                    ValidateFileSource(self, filesource).validate(options.reportPackage)
+                    ValidateFileSource(self, filesource).validate(options.reportPackage, options.taxonomyPackage)
             self.entrypointFile = _entrypointFile
             timeNow = XmlUtil.dateunionValue(datetime.datetime.now())
             firstStartedAt = startedAt = time.time()

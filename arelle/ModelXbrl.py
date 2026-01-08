@@ -71,8 +71,6 @@ def load(modelManager: ModelManager, url: str | FileSourceClass, nextaction: str
    """
     if nextaction is None: nextaction = _("loading")
     modelXbrl = create(modelManager, errorCaptureLevel=errorCaptureLevel)
-    if "errors" in kwargs: # pre-load errors, such as from taxonomy package validation
-        modelXbrl.errors.extend(cast(str, kwargs.get("errors")))
     supplementalUrls = None
     if useFileSource is not None:
         modelXbrl.fileSource = useFileSource

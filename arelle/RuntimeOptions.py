@@ -132,6 +132,7 @@ class RuntimeOptions:
     skipLoading: Optional[bool] = None
     statusPipe: Optional[str] = None
     tableFile: Optional[str] = None
+    taxonomyPackage: Optional[bool] = None
     testReport: Optional[str] = None
     testReportCols: Optional[int] = None
     testcaseExpectedErrors: Optional[dict[str, list[str]]] = None

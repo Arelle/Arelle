@@ -236,6 +236,11 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.validateAllFilesAsReportPackages.trace("w", self.setValidateAllFilesAsReportPackages)
         validateMenu.add_checkbutton(label=_("Validate all files as Report Packages"), underline=0, variable=self.validateAllFilesAsReportPackages, onvalue=True, offvalue=False)
 
+        self.modelManager.validateAllFilesAsTaxonomyPackages = self.config.setdefault("validateAllFilesAsTaxonomyPackages", False)
+        self.validateAllFilesAsTaxonomyPackages = BooleanVar(value=self.modelManager.validateAllFilesAsTaxonomyPackages)
+        self.validateAllFilesAsTaxonomyPackages.trace("w", self.setValidateAllFilesAsTaxonomyPackages)
+        validateMenu.add_checkbutton(label=_("Validate all files as Taxonomy Packages"), underline=0, variable=self.validateAllFilesAsTaxonomyPackages, onvalue=True, offvalue=False)
+
         self.validateDuplicateFacts = None
         self.buildValidateDuplicateFactsMenu(validateMenu)
 
@@ -1212,7 +1217,10 @@ class CntlrWinMain (Cntlr.Cntlr):
                         pluginXbrlMethod(self, None, loadedModelXbrl)
                 if loadedModelXbrl.fileSource not in validatedFileSources:
                     validatedFileSources.add(loadedModelXbrl.fileSource)
-                    ValidateFileSource(self, loadedModelXbrl.fileSource).validate(self.modelManager.validateAllFilesAsReportPackages)
+                    ValidateFileSource(self, loadedModelXbrl.fileSource).validate(
+                        self.modelManager.validateAllFilesAsReportPackages,
+                        self.modelManager.validateAllFilesAsTaxonomyPackages
+                    )
 
                 for modelXbrl in [loadedModelXbrl] + getattr(loadedModelXbrl, "supplementalModelXbrls", []):
                     priorOutputInstance = modelXbrl.formulaOutputInstance
@@ -1526,6 +1534,12 @@ class CntlrWinMain (Cntlr.Cntlr):
     def setValidateAllFilesAsReportPackages(self, *args):
         self.modelManager.validateAllFilesAsReportPackages = self.validateAllFilesAsReportPackages.get()
         self.config["validateAllFilesAsReportPackages"] = self.modelManager.validateAllFilesAsReportPackages
+        self.saveConfig()
+        self.setValidateTooltipText()
+
+    def setValidateAllFilesAsTaxonomyPackages(self, *args):
+        self.modelManager.validateAllFilesAsTaxonomyPackages = self.validateAllFilesAsTaxonomyPackages.get()
+        self.config["validateAllFilesAsTaxonomyPackages"] = self.modelManager.validateAllFilesAsTaxonomyPackages
         self.saveConfig()
         self.setValidateTooltipText()
 
