@@ -33,9 +33,13 @@ The saveOIMFactspaces plugin saves OIM Model Factspaces from Inline XBRL or othe
   Default is to provide valueSources to all ix:continuations
   Option is to also capture inner text in value property
 
-  To request inner text in GUI operation provide a formula parameter named inlineText containing
-     true
-  and in command line mode specify --inlineText
+  To request inner text values for text blocks:
+      in GUI operation provide a formula parameter named inlineText containing true
+      in command line mode specify --inlineText
+  
+  To request xBRL-JSON instead of OIM Taxonomy factspaces
+      in GUI operation provide a formula parameter named oimJSON containing true
+      in command line mode specify --oimJSON
 
   To save an OIM instance with duplicate fact removed use the `--deduplicateOimFacts` argument with either `complete`,
   `consistent-pairs`, or `consistent-sets` as the value.
@@ -151,19 +155,20 @@ def serializeXml(xmlRootElement):
     if initialComment and serXml and serXml.startswith(b"<?"):
         i = serXml.find(b"<html")
         if i:
-            serXml = serXml[:i] + initialComment + serXml[i:]
+            endElt = serXml.find(b">",i)
+            htmlElt = serXml[i:endElt]
+            for prefix, ns in xmlRootElement.nsmap.items():
+                if ns != "http://www.w3.org/1999/xhtml":
+                    bPfx = prefix.encode("utf-8")
+                    bNs = ns.encode("utf-8")
+                    if prefix:
+                        htmlElt = re.sub(b"xmlns:"+bPfx+b"=['\"]"+bNs+b"['\"]\\s*", b"", htmlElt)
+                    else:
+                        htmlElt = re.sub(b"xmlns=['\"]"+bNs+b"['\"]\\s*", b"", htmlElt)
+            serXml = serXml[:i] + initialComment + htmlElt + serXml[endElt:]
     return serXml
 
-oimErrorPattern = re.compile("oime|oimce|xbrlje|xbrlce")
-xbrl = "https://xbrl.org/2025"
-qnConceptCoreDim = qname(xbrl, "xbrl:concept")
-qnLangCoreDim = qname(xbrl, "xbrl:language")
-qnPeriodCoreDim = qname(xbrl, "xbrl:period")
-qnEntityCoreDim = qname(xbrl, "xbrl:entity")
-qnUnitCoreDim = qname(xbrl, "xbrl:unit")
-
 reservedUriAliases = {
-    xbrl: "xbrl",
     XbrlConst.defaultLinkRole: "_",
     XbrlConst.factExplanatoryFact: "explanatoryFact",
     XbrlConst.factFootnote: "footnote",
@@ -232,6 +237,7 @@ def saveOIMFactspace(
     oimFile: str,
     outputZip: zipfile.ZipFile | None = None,
     saveInlineTextValue: bool = False,
+    saveOimJson: bool = False,
     # arguments to add extension features to OIM document
     extensionPrefixes: dict[str, str] | None = None,
     extensionReportObjects: dict[str, Any] | None = None,
@@ -242,6 +248,25 @@ def saveOIMFactspace(
 ) -> None:
     isJSON = oimFile.endswith(".json")
     isCBOR = oimFile.endswith(".cbor")
+    
+    if saveOimJson:
+        oimErrorPattern = re.compile("oime|oimce|xbrlje|xbrlce")
+        xbrl = "https://xbrl.org/2021"
+        reservedUriAliases[xbrl] = "xbrl"
+        qnConceptCoreDim = qname("concept", noPrefixIsNoNamespace=True)
+        qnLangCoreDim = qname("language", noPrefixIsNoNamespace=True)
+        qnPeriodCoreDim = qname("period", noPrefixIsNoNamespace=True)
+        qnEntityCoreDim = qname("entity", noPrefixIsNoNamespace=True)
+        qnUnitCoreDim = qname("unit", noPrefixIsNoNamespace=True)
+    else:
+        oimErrorPattern = re.compile("oime|oimce|xbrlje|xbrlce")
+        xbrl = "https://xbrl.org/2025"
+        reservedUriAliases[xbrl] = "xbrl"
+        qnConceptCoreDim = qname(xbrl, "xbrl:concept")
+        qnLangCoreDim = qname(xbrl, "xbrl:language")
+        qnPeriodCoreDim = qname(xbrl, "xbrl:period")
+        qnEntityCoreDim = qname(xbrl, "xbrl:entity")
+        qnUnitCoreDim = qname(xbrl, "xbrl:unit")
 
     namespacePrefixes = NamespacePrefixes({xbrl: "xbrl"})
     if extensionPrefixes:
@@ -402,110 +427,103 @@ def saveOIMFactspace(
         ):
             dtsReferences.add(refElt.get("{http://www.w3.org/1999/xlink}href").partition("#")[0])
     dtsReferences = sorted(dtsReferences)  # turn into list
-    footnotes = {}
+    footnoteObjects = {} # OIM Taxonomy objects
     factFootnoteRels = set()
     factFactFootnoteRels = set()
     footnoteNetworkNamePrefixes = [None, None]
+    footnoteFacts = set() # xBRL-JSON
+    
+    def getPrefix(obj: XbrlObject) -> str:
+        prefix = None
+        for refDoc in obj.modelDocument.referencesDocument.keys():
+            if refDoc.targetNamespace:
+                prefix = namespacePrefixes.getPrefix(refDoc.targetNamespace)
+                break
+        return prefix
 
     def factFootnotes(
         fact: ModelFact,
         factspace: dict[str, Any] | None = None,
     ):
+        footnotes = []
         oimLinks = {}
-        for footnoteRel in footnotesRelationshipSet.fromModelObject(fact):
-            srcPrefix = None
-            for refDoc in fact.modelDocument.referencesDocument.keys():
-                if refDoc.targetNamespace:
-                    srcPrefix = namespacePrefixes.getPrefix(refDoc.targetNamespace)
-                    break
-            toObj = footnoteRel.toModelObject
-            tgtPrefix = None
-            for refDoc in toObj.modelDocument.referencesDocument.keys():
-                if refDoc.targetNamespace:
-                    tgtPrefix = namespacePrefixes.getPrefix(refDoc.targetNamespace)
-                    break
-            srcName = f"{srcPrefix}:{fact.id}" if fact.id else f"{srcPrefix}:f{fact.objectIndex}"
-            tgtName = f"{tgtPrefix}:{toObj.id}" if toObj.id else f"{tgtPrefix}:f{toObj.objectIndex}"
-            relQns = (srcName, tgtName)
-            if isinstance(toObj, ModelFact): # fact-fact relationship
-                factFactFootnoteRels.add(relQns)
-                if srcPrefix and not footnoteNetworkNamePrefixes[1]:
-                    footnoteNetworkNamePrefixes[0] = srcPrefix
-            else: # text footnotes
+        if saveOimJson:
+            for footnoteRel in footnotesRelationshipSet.fromModelObject(fact):
+                srcId = fact.id if fact.id else f"f{fact.objectIndex}"
+                toObj = footnoteRel.toModelObject
+                # json
+                typePrefix = linkTypeAliases[footnoteRel.arcrole]
+                groupPrefix = groupAliases[footnoteRel.linkrole]
+                if typePrefix not in oimLinks:
+                    oimLinks[typePrefix] = {}
+                _link = oimLinks[typePrefix]
+                if groupPrefix not in _link:
+                    if isJSON:
+                        _link[groupPrefix] = []
+                    elif isCSVorXL:
+                        _link[groupPrefix] = {}
+                tgtId = toObj.id if toObj.id else f"f{toObj.objectIndex}"
+                if isJSON:
+                    tgtIdList = _link[groupPrefix]
+                    tgtIdList.append(tgtId)
+                elif isCSVorXL:
+                    # Footnote links in xBRL-CSV include the CSV table identifier.
+                    tgtIdList = _link[groupPrefix].setdefault(f"facts.r_{srcId}.value", [])
+                    tgtIdList.append(f"footnotes.r_{tgtId}.footnote")
                 footnote = {
-                    "name": tgtName,
-                    "content": toObj.viewText()
-                    }
-                if toObj.xmlLang:
-                    footnote["language"] = toObj.xmlLang
-                footnotes[tgtName] = footnote
-                factFootnoteRels.add(relQns)
-                if srcPrefix and not footnoteNetworkNamePrefixes[0]:
-                    footnoteNetworkNamePrefixes[0] = srcPrefix
+                    "group": footnoteRel.linkrole,
+                    "footnoteType": footnoteRel.arcrole,
+                }
+                if isinstance(toObj, ModelFact):
+                    footnote["factRef"] = tgtId
+                else:  # text footnotes
+                    footnote["id"] = tgtId
+                    footnote["footnote"] = toObj.viewText()
+                    if toObj.xmlLang:
+                        footnote["language"] = toObj.xmlLang
+                    footnoteFacts.add(toObj)
+                    footnotes.append(footnote)
+            if oimLinks:
+                _links = {
+                    typePrefix: {groupPrefix: idList for groupPrefix, idList in sorted(groups.items())}
+                    for typePrefix, groups in sorted(oimLinks.items())
+                }
+                if isJSON and factspace is not None:
+                    factspace["links"] = _links
+        else:
+            for footnoteRel in footnotesRelationshipSet.fromModelObject(fact):
+                srcPrefix = getPrefix(fact)
+                toObj = footnoteRel.toModelObject
+                tgtPrefix = getPrefix(toObj)
+                srcName = f"{srcPrefix}:{fact.id}" if fact.id else f"{srcPrefix}:f{fact.objectIndex}"
+                tgtName = f"{tgtPrefix}:{toObj.id}" if toObj.id else f"{tgtPrefix}:f{toObj.objectIndex}"
+                relQns = (srcName, tgtName)
+                if isinstance(toObj, ModelFact): # fact-fact relationship
+                    factFactFootnoteRels.add(relQns)
+                    if srcPrefix and not footnoteNetworkNamePrefixes[1]:
+                        footnoteNetworkNamePrefixes[0] = srcPrefix
+                else: # text footnotes
+                    footnote = {
+                        "name": tgtName,
+                        "content": toObj.viewText()
+                        }
+                    if toObj.xmlLang:
+                        footnote["language"] = toObj.xmlLang
+                    footnoteObjects[tgtName] = footnote
+                    factFootnoteRels.add(relQns)
+                    if srcPrefix and not footnoteNetworkNamePrefixes[0]:
+                        footnoteNetworkNamePrefixes[0] = srcPrefix
+        return footnotes
 
-    def factDimensions(fact: ModelFact) -> dict[str, Any]:
-        factspace = {}
+    def factDimensions(fact: ModelFact, factspaces, factspacesByDims) -> dict[str, Any]:
         factDims = {}
-        prefix = None
-        for refDoc in fact.modelDocument.referencesDocument.keys():
-            if refDoc.targetNamespace:
-                prefix = namespacePrefixes.getPrefix(refDoc.targetNamespace)
-                break
-        factspace["name"] = f"{prefix}:{fact.id or fact.objectIndex}"
         concept = fact.concept
         isNumeric = False
-        isTextBlock = False
         if concept is not None:
             factDims[str(qnConceptCoreDim)] = oimValue(concept.qname)
             if concept.type is not None and concept.type.isOimTextFactType and fact.xmlLang:
                 factDims[str(qnLangCoreDim)] = fact.xmlLang
-            if concept.isTextBlock:
-                isTextBlock = True
             isNumeric = concept.isNumeric
-        if fact.isItem:
-            factspace["factValues"] = factValues = []
-            factValue = {}
-            factValues.append(factValue)
-            if not fact.isNil and isNumeric:
-                _inferredDecimals = inferredDecimals(fact)
-            if isinstance(fact, ModelInlineFact):
-                factValue["valueSources"] = valueSources = []
-                vs = {
-                    "href": f"{fact.modelDocument.basename}#{fact.id if fact.id else fact.objectIndex}",
-                    "medium": "html"
-                }
-                if fact.format:
-                    vs["transformation"] = str(fact.format)
-                if fact.scale:
-                    vs["scale"] = fact.scale
-                if fact.sign:
-                    vs["sign"] = fact.sign
-                valueSources.append(vs)
-                if isTextBlock and saveInlineTextValue:
-                    stringValues = [super(ModelFact,fact).stringValue]
-                contElt = getattr(fact, "_continuationElement", None)
-                while contElt is not None:
-                    vs = {"href": f"{fact.modelDocument.basename}#{contElt.id}"}
-                    valueSources.append(vs)
-                    if isTextBlock and saveInlineTextValue:
-                        stringValues.append(contElt.stringValue)
-                    contElt = getattr(contElt, "_continuationElement", None)
-                if isTextBlock and saveInlineTextValue:
-                    factValue["value"] = "".join(stringValues)
-                    del stringValues # dereference big chunks of text
-            else: #  non-inline fact
-                if fact.isNil:
-                    _value = None
-                else:
-                    _value = oimValue(fact.xValue)
-                    factValue["value"] = str(_value)
-            if isNumeric:
-                _numValue = fact.xValue
-                if isinstance(_numValue, Decimal) and not isinf(_numValue) and not isnan(_numValue):
-                    _numValue = int(_numValue) if _numValue == _numValue.to_integral() else float(_numValue)
-                if not fact.isNil and not isinf(_inferredDecimals):  # accuracy omitted if infinite
-                    factValue["decimals"] = _inferredDecimals
-        factspace["factDimensions"] = factDims
         cntx = fact.context
         if cntx is not None:
             if cntx.entityIdentifierElement is not None and cntx.entityIdentifier != ENTITY_NA_QNAME:
@@ -535,7 +553,71 @@ def saveOIMFactspace(
                 _sUnit = _sMul
             if _sUnit != "xbrli:pure":
                 factDims[str(qnUnitCoreDim)] = _sUnit
+        if saveOimJson:
+            factspaces[f"{fact.id or fact.objectIndex}"] = factspace = {}
+            factspace["dimensions"] = factDims
+        else:
+            # build dims key
+            dimsKey = tuple(sorted(factDims.items(), key=lambda k:k[0]))
+            factspace = factspacesByDims.get(dimsKey)
+            if factspace is None or saveOimJson:
+                factspace = {}
+                factspace["name"] = f"{getPrefix(fact)}:fs_{fact.id or fact.objectIndex}"
+                factspace["factDimensions"] = factDims
+                factspace["factValues"] = []
+                factspacesByDims[dimsKey] = factspace
+                factspaces.append(factspace)
         return factspace
+    
+    def appendFactToFactspace(fact: ModelFact, factspace: dict[str, Any]) -> None:
+        if fact.concept is not None and fact.isItem:
+            if saveOimJson:
+                factValue = factspace
+                factValue["name"] = f"{getPrefix(fact)}:{fact.id or fact.objectIndex}"
+            else:
+                factValue = {}
+            if isinstance(fact, ModelInlineFact) and not any(True for e in fact.iterancestors("{http://www.xbrl.org/2013/inlineXBRL}hidden")):
+                factValue["valueSources"] = valueSources = []
+                vs = {
+                    "href": f"{fact.modelDocument.basename}#{fact.id if fact.id else fact.objectIndex}",
+                    "medium": "html"
+                }
+                if fact.format:
+                    vs["transformation"] = str(fact.format)
+                if fact.scale:
+                    vs["scale"] = fact.scale
+                if fact.sign:
+                    vs["sign"] = fact.sign
+                if fact.get("escape"):
+                    vs["escape"] = True
+                valueSources.append(vs)
+                if fact.concept.isTextBlock and saveInlineTextValue:
+                    stringValues = [super(ModelFact,fact).stringValue]
+                contElt = getattr(fact, "_continuationElement", None)
+                while contElt is not None:
+                    vs = {"href": f"{fact.modelDocument.basename}#{contElt.id}"}
+                    valueSources.append(vs)
+                    if fact.concept.isTextBlock and saveInlineTextValue:
+                        stringValues.append(contElt.stringValue)
+                    contElt = getattr(contElt, "_continuationElement", None)
+                if fact.concept.isTextBlock and saveInlineTextValue:
+                    factValue["value"] = "".join(stringValues)
+                    del stringValues # dereference big chunks of text
+            else: #  non-inline fact
+                if fact.isNil:
+                    _value = None
+                else:
+                    _value = oimValue(fact.xValue)
+                    factValue["value"] = str(_value)
+            if fact.concept.isNumeric and not fact.isNil:
+                _inferredDecimals = inferredDecimals(fact)
+                _numValue = fact.xValue
+                if isinstance(_numValue, Decimal) and not isinf(_numValue) and not isnan(_numValue):
+                    _numValue = int(_numValue) if _numValue == _numValue.to_integral() else float(_numValue)
+                if not fact.isNil and not isinf(_inferredDecimals):  # accuracy omitted if infinite
+                    factValue["decimals"] = _inferredDecimals
+        if not saveOimJson:
+            factspace["factValues"].append(factValue)
 
     ixDocs = {}
     editedIxDocs = {}
@@ -566,9 +648,17 @@ def saveOIMFactspace(
     oimModel = {}  # top level of oim json output
     oimModel["documentInfo"] = oimDocInfo = {}
     oimModel["taxonomy"] = {}
-    oimDocInfo["documentType"] = "https://xbrl.org/2025/taxonomy"
-    if isJSON:
-        oimDocInfo["features"] = oimFeatures = {}
+    if saveOimJson:
+        oimDocInfo["documentType"] = "https://xbrl.org/2021/xbrl-json"
+    else:
+        oimDocInfo["documentType"] = "https://xbrl.org/2025/taxonomy"
+    if saveOimJson:
+        if linkTypeAliases:
+            oimDocInfo["linkTypes"] = {a: u for u, a in sorted(linkTypeAliases.items(), key=operator.itemgetter(1))}
+        if groupAliases:
+            oimDocInfo["linkGroups"] = {a: u for u, a in sorted(groupAliases.items(), key=operator.itemgetter(1))}
+        oimDocInfo["taxonomy"] = dtsReferences
+        oimDocInfo["features"] = {"xbrl:canonicalValues": True}
     oimDocInfo["namespaces"] = namespacePrefixes.namespaces
     # oimDocInfo["taxonomy"] = dtsReferences
 
@@ -583,26 +673,42 @@ def saveOIMFactspace(
             factsToSave = [f for f in factsToSave if f not in duplicateFacts]
 
     # save JSON
-    oimModel["taxonomy"]["factspaces"] = factspaces = []
+    if saveOimJson:
+        oimModel["facts"] = factspaces = {}
+    else:
+        oimModel["taxonomy"]["factspaces"] = factspaces = []
+    factspacesByDims = {} # unique entry for mutli-valued factspaces
     # add in report level extension objects
     if extensionReportObjects:
         for extObjQName, extObj in extensionReportObjects.items():
             oimModel[extObjQName] = extObj
 
-    def saveJsonFacts(facts: list[ModelFact], factspaces: list[dict[str, Any]]) -> None:
+    def saveJsonFacts(facts: list[ModelFact]) -> None:
         for fact in facts:
-            factspace = factDimensions(fact)
+            factspace = factDimensions(fact, factspaces, factspacesByDims)
+            appendFactToFactspace(fact, factspace)
             # add in fact level extension objects
             if extensionFactPropertiesMethod:
                 extensionFactPropertiesMethod(fact, oimFact)
-            factspaces.append(factspace)
             factFootnotes(fact, factspace)
 
-    saveJsonFacts(factsToSave, factspaces)
+    saveJsonFacts(factsToSave)
 
     # add footnotes
-    if footnotes:
-        oimModel["taxonomy"]["footnotes"] = [f for f in footnotes.values()]
+    if saveOimJson and footnoteFacts:
+        # add footnotes as pseudo facts
+        for ftObj in footnoteFacts:
+            ftId = ftObj.id if ftObj.id else f"f{ftObj.objectIndex}"
+            factspaces[ftId] = fact = {}
+            fact["value"] = ftObj.viewText()
+            fact["dimensions"] = {
+                "concept": "xbrl:note",
+                "noteId": ftId,
+            }
+            if ftObj.xmlLang:
+                fact["dimensions"]["language"] = ftObj.xmlLang.lower()
+    elif footnoteObjects:
+        oimModel["taxonomy"]["footnotes"] = [f for f in footnoteObjects.values()]
         if factFootnoteRels:
             oimModel["taxonomy"]["networks"] = footnoteNetwork = {
                 "name": f"{footnoteNetworkNamePrefixes[0]}:FootnoteNetwork",
@@ -633,7 +739,11 @@ def saveOIMFactspace(
         # convert remaining ix elements into spans
         ixElts = [e for e in ixDoc.xmlRootElement.getroottree().iterfind(".//{http://www.xbrl.org/2013/inlineXBRL}*")]
         for e in ixElts:
-            e.tag = "{http://www.w3.org/1999/xhtml}span"
+            # is there a div child?
+            if any(True for f in e.iter("{http://www.w3.org/1999/xhtml}div")):
+                e.tag = "{http://www.w3.org/1999/xhtml}div" # must be div if any child div
+            else:
+                e.tag = "{http://www.w3.org/1999/xhtml}span"
             unwantedAttributes = [a for a in e.attrib.keys() if a not in {"class","id","style"}]
             for a in unwantedAttributes:
                 e.attrib.pop(a)
@@ -690,13 +800,15 @@ def SaveOIMFactspaceMenuCommand(cntlr: CntlrWinMain) -> None:
     cntlr.saveConfig()
 
     # options
-    saveInlineTextValue = False
-    if "inlineText" in cntlr.modelManager.formulaOptions.parameterValues and cntlr.modelManager.formulaOptions.parameterValues.inlineText:
+    saveInlineTextValue = saveOimJson = False
+    if "inlineText" in cntlr.modelManager.formulaOptions.parameterValues and cntlr.modelManager.formulaOptions.parameterValues["inlineText"][1]:
         saveInlineTextValue = True
+    if "oimJSON" in cntlr.modelManager.formulaOptions.parameterValues and cntlr.modelManager.formulaOptions.parameterValues["oimJSON"][1]:
+        saveOimJson = True
 
     thread = threading.Thread(
         target=lambda _modelXbrl=cntlr.modelManager.modelXbrl, _oimFile=oimFile: saveOIMFactspace(
-            _modelXbrl, _oimFile, None, saveInlineTextValue
+            _modelXbrl, _oimFile, None, saveInlineTextValue, saveOimJson
         )
     )
     thread.daemon = True
@@ -709,15 +821,16 @@ def saveOimFiles(
     oimFiles: list[str],
     responseZipStream: BinaryIO | None = None,
     saveInlineTextValue: bool = False,
+    saveOimJson: bool = False,
 ) -> None:
     try:
         if responseZipStream is None:
             for oimFile in oimFiles:
-                saveOIMFactspace(modelXbrl, oimFile, None, saveInlineTextValue)
+                saveOIMFactspace(modelXbrl, oimFile, None, saveInlineTextValue, saveOimJson)
         else:
             with zipfile.ZipFile(responseZipStream, "a", zipfile.ZIP_DEFLATED, True) as _zip:
                 for oimFile in oimFiles:
-                    saveOIMFactspace(modelXbrl, oimFile, _zip, saveInlineTextValue)
+                    saveOIMFactspace(modelXbrl, oimFile, _zip, saveInlineTextValue, saveOimJson)
             responseZipStream.seek(0)
     except Exception as ex:
         cntlr.addToLog(f"Exception saving OIM {ex}")
@@ -765,6 +878,11 @@ class SaveOIMFactspacePlugin(PluginHooks):
             action="store_true",
             dest="inlineText",
             help=_("Option to capture text block inner text content in value property"))
+        parser.add_option(
+            "--oimJSON",
+            action="store_true",
+            dest="oimJSON",
+            help=_("Option to save in OIM JSON format instead of OIM Taxonomy object format"))
 
     @staticmethod
     def cntlrCmdLineUtilityRun(
@@ -817,7 +935,7 @@ class SaveOIMFactspacePlugin(PluginHooks):
             cntlr.addToLog("No XBRL instance has been loaded.")
             return
         if oimFile:
-            saveOimFiles(cntlr, modelXbrl, [oimFile], responseZipStream, options.inlineText)
+            saveOimFiles(cntlr, modelXbrl, [oimFile], responseZipStream, options.inlineText, options.oimJSON)
         if allOimDirectory:
             oimDir = Path(allOimDirectory)
             try:
@@ -842,7 +960,7 @@ class SaveOIMFactspacePlugin(PluginHooks):
             if basefileStem is None:
                 basefileStem = Path(modelXbrl.modelDocument.basename).stem
             oimFiles = [str(oimDir.joinpath(basefileStem + ext)) for ext in (".csv", ".json")]
-            saveOimFiles(cntlr, modelXbrl, oimFiles, responseZipStream, options.inlineText)
+            saveOimFiles(cntlr, modelXbrl, oimFiles, responseZipStream, options.inlineText, options.oimJSON)
 
     @staticmethod
     def testcaseVariationValidated(

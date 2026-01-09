@@ -10,9 +10,9 @@ Model (OIM) Taxonomy Specification.
 
 Any import or direct opening of a JSON-specified taxonomy behaves the same as if loading from an xsd taxonomy or xml linkbases
 
-For debugging, saves the xsd objects loaded from the OIM taxonomy if
-  command line: specify --saveOIMschemafile
-  GUIL provide a formula parameter named saveOIMschemafile (value not null or false)x
+For XBRL 2.1 XML schema validation purposes, saves schema files in directory if 
+  command line: specify --saveXMLSchemaFiles {directoryName}
+  GUI: provide a formula parameter named saveXMLSchemaFiles (value is directory to save in)
 
 """
 
@@ -77,6 +77,7 @@ from .XbrlConst import xbrl, oimTaxonomyDocTypePattern, oimTaxonomyDocTypes, oim
 from .ParseSelectionWhereClause import parseSelectionWhereClause
 from .LoadCsvTable import csvTableRowFacts
 from .SaveModel import oimTaxonomySave
+from .SaveXmlSchema import saveXmlSchema
 
 from arelle.oim.Load import (DUPJSONKEY, DUPJSONVALUE, EMPTY_DICT, EMPTY_LIST, UrlInvalidPattern,
                              OIMException, NotOIMException)
@@ -87,8 +88,8 @@ OIMT_SCHEMA = os.path.join(RESOURCES_DIR, "oim-taxonomy-schema.json")
 PROFILE_MIN_TIME = 0.1
 
 saveOIMTaxonomySchemaFiles = False
-SAVE_OIM_SCHEMA_CMDLINE_PARAMETER = "--saveOIMschemafile"
-SAVE_OIM_SCHEMA_FORULA_PARAMETER = qname("saveOIMschemafile", noPrefixIsNoNamespace=True)
+SAVE_XML_SCHEMA_CMDLINE_PARAMETER = "--saveXMLSchemaFiles"
+SAVE_XML_SCHEMA_FORULA_PARAMETER = qname("saveXMLSchemaFiles", noPrefixIsNoNamespace=True)
 jsonschemaValidator = None
 
 xbrlTypeAliasClass = {
@@ -700,7 +701,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
         modelXbrl.profileActivity(f"Load taxonomies imported from {txFileBasename}", minTimeToShow=PROFILE_MIN_TIME)
         if taxonomyName is not None: # otherwise some error would have occured
             xbrlTxmyMdl.namespaceDocs[taxonomyName.namespaceURI].append(schemaDoc)
-
+            
         return schemaDoc
 
         ####################### convert to XML Taxonomy
@@ -1059,7 +1060,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
         # save schema files if specified
         if (saveOIMTaxonomySchemaFiles or
             modelXbrl.modelManager.formulaOptions.typedParameters(modelXbrl.prefixedNamespaces)
-            .get(SAVE_OIM_SCHEMA_FORULA_PARAMETER, ("",None))[1] not in (None, "", "false")):
+            .get(SAVE_XML_SCHEMA_FORMULA_PARAMETER, ("",None))[1] not in (None, "", "false")):
             schemaDoc.save(schemaDoc.filepath.replace(".json", "-json.xsd"))
 
         return schemaDoc
@@ -1148,17 +1149,22 @@ def oimTaxonomyLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
     return doc
 
 def optionsExtender(parser, *args, **kwargs):
-    parser.add_option(SAVE_OIM_SCHEMA_CMDLINE_PARAMETER,
-                      action="store_true",
-                      dest="saveOIMTaxonomySchemaFiles",
-                      help=_("Save each OIM taxonomy file an xsd named -json.xsd."))
+    parser.add_option(SAVE_XML_SCHEMA_CMDLINE_PARAMETER,
+                      action="store",
+                      dest="saveXMLSchemaFiles",
+                      help=_("Save OIM taxonomy namespaces to xsd files in specified directory."))
+
 def filingStart(self, options, *args, **kwargs):
-    global saveOIMTaxonomySchemaFiles
-    if options.saveOIMTaxonomySchemaFiles:
-        saveOIMTaxonomySchemaFiles = True
+    #global saveOIMTaxonomySchemaFiles
+    #if options.saveOIMTaxonomySchemaFiles:
+    #    saveOIMTaxonomySchemaFiles = True
+    pass
 
 def oimTaxonomyLoaded(cntlr, options, xbrlTxmyMdl, *args, **kwargs):
     # index groupContents
+    if not isinstance(xbrlTxmyMdl, XbrlTaxonomyModel):
+        return
+
     xbrlTxmyMdl.groupContents = defaultdict(OrderedSet)
     for txmy in xbrlTxmyMdl.taxonomies.values():
         for grpCnts in txmy.groupContents:
@@ -1172,6 +1178,18 @@ def oimTaxonomyLoaded(cntlr, options, xbrlTxmyMdl, *args, **kwargs):
                 for fact in rowFacts:
                     reportObj.facts[fact.name] = fact
 
+    
+    # save schema files if specified
+    saveXmlSchemaFiles = None
+    if options.saveXMLSchemaFiles:
+        saveXmlSchemaFiles = options.saveXMLSchemaFiles
+    else:
+        param = cntlr.modelManager.formulaOptions.typedParameters(xbrlTxmyMdl.prefixedNamespaces
+            ).get(SAVE_XML_SCHEMA_FORMULA_PARAMETER, ("",None))
+        if param is not None:
+            saveXmlSchemaFiles = param[1]
+    if saveXmlSchemaFiles:
+        saveXmlSchema(cntlr, xbrlTxmyMdl, saveXmlSchemaFiles)
 
 
 def oimTaxonomyViews(cntlr, xbrlTxmyMdl):
@@ -1203,6 +1221,7 @@ def oimTaxonomyViews(cntlr, xbrlTxmyMdl):
                            (XbrlUnit, cntlr.tabWinBtm, "XBRL Units"),)
         for view in initialViews:
             viewXbrlTaxonomyObject(xbrlTxmyMdl, *view, additionalViews)
+
         return True # block ordinary taxonomy views
     return False
 
