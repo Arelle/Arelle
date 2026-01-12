@@ -1,0 +1,131 @@
+{
+    "$schema": "../oim-taxonomy-schema.json",
+    "documentInfo": {
+        "documentType": "https://xbrl.org/2025/taxonomy",
+        "namespaces": {
+            "oime": "http://www.xbrl.org/2021/oim/error",
+            "xbrl": "https://xbrl.org/2025",
+            "xs": "http://www.w3.org/2001/XMLSchema"
+        },
+        "documentNamespace": "oime"
+    },
+    "xbrlModel": {
+        "name": "oime:ErrorsTaxonomy",
+        "version": "1.0",
+        "domainRoots": [
+            {
+                "name": "oime:OIMErrorRootDomain"
+            }
+        ],
+        "domains": [
+            {
+                "name": "oime:OIMErrorDomain",
+                "root": "oime:OIMErrorRootDomain",
+                "relationships": [
+                    {"source": "oime:OIMErrorRootDomain", "target": "oime:invalidJSON", "order": 2},
+                    {"source": "oime:OIMErrorRootDomain", "target": "oime:invalidJSONStructure", "order": 3}
+                    
+                ]
+            }
+        ],
+        "members": [
+            {
+                "name": "oime:invalidJSON",
+                "properties": [
+                    {"property": "xbrl:severity", "value": "error"}
+                ]
+            },
+            {
+                "name": "oime:invalidJSONStructure",
+                "properties": [
+                    {"property": "xbrl:severity", "value": "error"}
+                ]
+            }
+        ],
+        "abstracts": [
+            {
+                "name": "oime:JSONErrors"
+            }
+        ],
+        "networks": [
+            {
+                "name": "oime:ErrorsByObjectType",
+                "relationshipTypeName": "xbrl:parent-child",
+                "roots": [
+                    
+                    "oime:JSONErrors"
+                ],
+                "relationships": [
+                    {"source": "oime:JSONErrors", "target": "oime:invalidJSON", "order": 1},
+                    {"source": "oime:JSONErrors", "target": "oime:invalidJSONStructure", "order": 2}
+                    
+                ]
+            },
+            {
+                "name": "oime:ErrorsByBaseObjectType",
+                "relationshipTypeName": "xbrl:parent-child",
+                "roots": [
+                    "oime:JSONErrors"
+                ],
+                "relationships": [
+                    {"source": "oime:JSONErrors", "target": "oime:invalidJSON", "order": 1},
+                    {"source": "oime:JSONErrors", "target": "oime:invalidJSONStructure", "order": 2}
+                ]
+            }
+        ],
+        "labels": [
+            {
+                "relatedName": "oime:invalidJSON",
+                "language": "en",
+                "value": "Invalid JSON",
+                "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "oime:invalidJSON",
+                "language": "en",
+                "value": "The document is not valid JSON according to RFC 8259.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "relatedName": "oime:invalidJSONStructure",
+                "language": "en",
+                "value": "Invalid JSON Structure",
+                "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "oime:invalidJSONStructure",
+                "language": "en",
+                "value": "The JSON structure does not conform to the required schema: {details}.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "relatedName": "oime:invalidJSON",
+                "language": "en",
+                "value": "🚫",
+                "labelType": "xbrl:iconLabel"
+            },
+            {
+                "relatedName": "oime:invalidJSON",
+                "language": "en",
+                "value": "This error occurs when the taxonomy document is not valid JSON according to RFC 8259. The document must be well-formed JSON with proper syntax, including correct use of braces, brackets, quotes, commas, and escape sequences. The document must use UTF-8 encoding.",
+                "labelType": "xbrl:documentation"
+            },
+            {
+                "relatedName": "oime:invalidJSONStructure",
+                "language": "en",
+                "value": "🚫",
+                "labelType": "xbrl:iconLabel"
+            },
+            {
+                "relatedName": "oime:invalidJSONStructure",
+                "language": "en",
+                "value": "This error is generated when the JSON document's structure does not conform to the OIM Taxonomy schema requirements. Property values must match their specified JSON types (string, object, array, number). Required properties must be present. Values must conform to the specified model types, including proper lexical representations for XML Schema datatypes.",
+                "labelType": "xbrl:documentation"
+            }
+            
+        ],
+        "references": [
+            
+        ]
+    }
+}

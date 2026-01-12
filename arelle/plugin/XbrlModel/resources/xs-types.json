@@ -1,0 +1,716 @@
+{
+    "$schema": "../oim-taxonomy-schema.json",
+    "documentInfo": {
+        "documentType": "https://xbrl.org/2025/taxonomy",
+        "namespaces": {
+            "xbrl": "https://xbrl.org/2025",
+            "xs": "http://www.w3.org/2001/XMLSchema"
+        },
+        "documentNamespace": "xs"
+    },
+    "xbrlModel": {
+        "name": "xs:XMLSchemaTypes",
+        "frameworkName": "xml-schema-types",
+        "version": "2025",
+        "dataTypes": [
+            {
+                "name": "xs:anySimpleType",
+                "baseType": "xs:anySimpleType"
+            },
+            {
+                "name": "xs:string",
+                "baseType": "xs:anySimpleType"
+            },
+            {
+                "name": "xs:boolean",
+                "baseType": "xs:anySimpleType"
+            },
+            {
+                "name": "xs:decimal",
+                "baseType": "xs:anySimpleType"
+            },
+            {
+                "name": "xs:float",
+                "baseType": "xs:anySimpleType"
+            },
+            {
+                "name": "xs:double",
+                "baseType": "xs:anySimpleType"
+            },
+            {
+                "name": "xs:duration",
+                "baseType": "xs:anySimpleType"
+            },
+            {
+                "name": "xs:dateTime",
+                "baseType": "xs:anySimpleType"
+            },
+            {
+                "name": "xs:time",
+                "baseType": "xs:anySimpleType"
+            },
+            {
+                "name": "xs:date",
+                "baseType": "xs:anySimpleType"
+            },
+            {
+                "name": "xs:gYearMonth",
+                "baseType": "xs:anySimpleType"
+            },
+            {
+                "name": "xs:gYear",
+                "baseType": "xs:anySimpleType"
+            },
+            {
+                "name": "xs:gMonthDay",
+                "baseType": "xs:anySimpleType"
+            },
+            {
+                "name": "xs:gDay",
+                "baseType": "xs:anySimpleType"
+            },
+            {
+                "name": "xs:gMonth",
+                "baseType": "xs:anySimpleType"
+            },
+            {
+                "name": "xs:hexBinary",
+                "baseType": "xs:anySimpleType"
+            },
+            {
+                "name": "xs:base64Binary",
+                "baseType": "xs:anySimpleType"
+            },
+            {
+                "name": "xs:anyURI",
+                "baseType": "xs:anySimpleType"
+            },
+            {
+                "name": "xs:QName",
+                "baseType": "xs:anySimpleType"
+            },
+            {
+                "name": "xs:NOTATION",
+                "baseType": "xs:anySimpleType"
+            },
+            {
+                "name": "xs:normalizedString",
+                "baseType": "xs:string"
+            },
+            {
+                "name": "xs:token",
+                "baseType": "xs:normalizedString"
+            },
+            {
+                "name": "xs:language",
+                "baseType": "xs:token"
+            },
+            {
+                "name": "xs:NMTOKEN",
+                "baseType": "xs:token"
+            },
+            {
+                "name": "xs:NMTOKENS",
+                "baseType": "xs:NMTOKEN"
+            },
+            {
+                "name": "xs:Name",
+                "baseType": "xs:token"
+            },
+            {
+                "name": "xs:NCName",
+                "baseType": "xs:Name"
+            },
+            {
+                "name": "xs:ID",
+                "baseType": "xs:NCName"
+            },
+            {
+                "name": "xs:IDREF",
+                "baseType": "xs:NCName"
+            },
+            {
+                "name": "xs:IDREFS",
+                "baseType": "xs:IDREF"
+            },
+            {
+                "name": "xs:ENTITY",
+                "baseType": "xs:NCName"
+            },
+            {
+                "name": "xs:ENTITIES",
+                "baseType": "xs:ENTITY"
+            },
+            {
+                "name": "xs:integer",
+                "baseType": "xs:decimal"
+            },
+            {
+                "name": "xs:nonPositiveInteger",
+                "baseType": "xs:integer",
+                "maxInclusive": 0
+            },
+            {
+                "name": "xs:negativeInteger",
+                "baseType": "xs:nonPositiveInteger",
+                "maxInclusive": -1
+            },
+            {
+                "name": "xs:long",
+                "baseType": "xs:integer",
+                "minInclusive": -9223372036854775808,
+                "maxInclusive": 9223372036854775807
+            },
+            {
+                "name": "xs:int",
+                "baseType": "xs:long",
+                "minInclusive": -2147483648,
+                "maxInclusive": 2147483647
+            },
+            {
+                "name": "xs:short",
+                "baseType": "xs:int",
+                "minInclusive": -32768,
+                "maxInclusive": 32767
+            },
+            {
+                "name": "xs:byte",
+                "baseType": "xs:short",
+                "minInclusive": -128,
+                "maxInclusive": 127
+            },
+            {
+                "name": "xs:nonNegativeInteger",
+                "baseType": "xs:integer",
+                "minInclusive": 0
+            },
+            {
+                "name": "xs:unsignedLong",
+                "baseType": "xs:nonNegativeInteger",
+                "minInclusive": 0,
+                "maxInclusive": 18446744073709551615
+            },
+            {
+                "name": "xs:unsignedInt",
+                "baseType": "xs:unsignedLong",
+                "minInclusive": 0,
+                "maxInclusive": 4294967295
+            },
+            {
+                "name": "xs:unsignedShort",
+                "baseType": "xs:unsignedInt",
+                "minInclusive": 0,
+                "maxInclusive": 65535
+            },
+            {
+                "name": "xs:unsignedByte",
+                "baseType": "xs:unsignedShort",
+                "minInclusive": 0,
+                "maxInclusive": 255
+            },
+            {
+                "name": "xs:positiveInteger",
+                "baseType": "xs:nonNegativeInteger",
+                "minInclusive": 1
+            },
+            {
+                "name": "xs:dateTimeStamp",
+                "baseType": "xs:dateTime"
+            }
+        ],
+        "labels": [
+            {
+                "relatedName": "xs:string",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "String"
+            },
+            {
+                "relatedName": "xs:string",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The string datatype represents character strings in XML. The value space of string is the set of finite-length sequences of characters."
+            },
+            {
+                "relatedName": "xs:boolean",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Boolean"
+            },
+            {
+                "relatedName": "xs:boolean",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The boolean datatype represents the values of two-valued logic: true or false. Valid values are: true, false, 1 (for true), 0 (for false)."
+            },
+            {
+                "relatedName": "xs:decimal",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Decimal"
+            },
+            {
+                "relatedName": "xs:decimal",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The decimal datatype represents arbitrary precision decimal numbers. The value space of decimal is the set of numbers that can be represented by decimal numerals."
+            },
+            {
+                "relatedName": "xs:float",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Float"
+            },
+            {
+                "relatedName": "xs:float",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The float datatype represents IEEE single-precision 32-bit floating point numbers."
+            },
+            {
+                "relatedName": "xs:double",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Double"
+            },
+            {
+                "relatedName": "xs:double",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The double datatype represents IEEE double-precision 64-bit floating point numbers."
+            },
+            {
+                "relatedName": "xs:duration",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Duration"
+            },
+            {
+                "relatedName": "xs:duration",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The duration datatype represents a duration of time. The pattern for duration is PnYnMnDTnHnMnS, where nY represents the number of years, nM the number of months, nD the number of days, T is the date/time separator, nH the number of hours, nM the number of minutes and nS the number of seconds."
+            },
+            {
+                "relatedName": "xs:dateTime",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Date Time"
+            },
+            {
+                "relatedName": "xs:dateTime",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The dateTime datatype represents a specific instant of time. The pattern for dateTime is CCYY-MM-DDThh:mm:ss where CC represents the century, YY the year, MM the month and DD the day. The letter T is the date/time separator and hh, mm, ss represent hour, minute and second respectively."
+            },
+            {
+                "relatedName": "xs:time",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Time"
+            },
+            {
+                "relatedName": "xs:time",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The time datatype represents an instant of time that recurs every day. The pattern for time is hh:mm:ss.sss with optional following time zone indicator."
+            },
+            {
+                "relatedName": "xs:date",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Date"
+            },
+            {
+                "relatedName": "xs:date",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The date datatype represents a calendar date. The pattern for date is CCYY-MM-DD with optional time zone indicator."
+            },
+            {
+                "relatedName": "xs:gYearMonth",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Year Month"
+            },
+            {
+                "relatedName": "xs:gYearMonth",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The gYearMonth datatype represents a specific month in a specific year. The pattern for gYearMonth is CCYY-MM with optional time zone indicator."
+            },
+            {
+                "relatedName": "xs:gYear",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Year"
+            },
+            {
+                "relatedName": "xs:gYear",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The gYear datatype represents a specific Gregorian calendar year. The pattern for gYear is CCYY with optional time zone indicator."
+            },
+            {
+                "relatedName": "xs:gMonthDay",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Month Day"
+            },
+            {
+                "relatedName": "xs:gMonthDay",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The gMonthDay datatype represents a specific day that recurs every year. The pattern for gMonthDay is --MM-DD with optional time zone indicator."
+            },
+            {
+                "relatedName": "xs:gDay",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Day"
+            },
+            {
+                "relatedName": "xs:gDay",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The gDay datatype represents a day that recurs every month. The pattern for gDay is ---DD with optional time zone indicator."
+            },
+            {
+                "relatedName": "xs:gMonth",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Month"
+            },
+            {
+                "relatedName": "xs:gMonth",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The gMonth datatype represents a month that recurs every year. The pattern for gMonth is --MM with optional time zone indicator."
+            },
+            {
+                "relatedName": "xs:hexBinary",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Hexadecimal Binary"
+            },
+            {
+                "relatedName": "xs:hexBinary",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The hexBinary datatype represents arbitrary hex-encoded binary data."
+            },
+            {
+                "relatedName": "xs:base64Binary",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Base64 Binary"
+            },
+            {
+                "relatedName": "xs:base64Binary",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The base64Binary datatype represents Base64-encoded arbitrary binary data."
+            },
+            {
+                "relatedName": "xs:anyURI",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "URI"
+            },
+            {
+                "relatedName": "xs:anyURI",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The anyURI datatype represents a Uniform Resource Identifier (URI) reference."
+            },
+            {
+                "relatedName": "xs:QName",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Qualified Name"
+            },
+            {
+                "relatedName": "xs:QName",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The QName datatype represents XML qualified names. A QName consists of a namespace name and a local part."
+            },
+            {
+                "relatedName": "xs:NOTATION",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Notation"
+            },
+            {
+                "relatedName": "xs:NOTATION",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The NOTATION datatype represents a reference to a notation declared in the schema."
+            },
+            {
+                "relatedName": "xs:normalizedString",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Normalized String"
+            },
+            {
+                "relatedName": "xs:normalizedString",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The normalizedString datatype represents white space normalized strings. The value space of normalizedString is the set of strings that do not contain the carriage return, line feed nor tab characters."
+            },
+            {
+                "relatedName": "xs:token",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Token"
+            },
+            {
+                "relatedName": "xs:token",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The token datatype represents tokenized strings. The value space of token is the set of strings that do not contain the carriage return, line feed, nor tab characters, that have no leading or trailing spaces, and that have no internal sequences of two or more spaces."
+            },
+            {
+                "relatedName": "xs:language",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Language"
+            },
+            {
+                "relatedName": "xs:language",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The language datatype represents natural language identifiers as defined by RFC 3066."
+            },
+            {
+                "relatedName": "xs:NMTOKEN",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Name Token"
+            },
+            {
+                "relatedName": "xs:NMTOKEN",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The NMTOKEN datatype represents a single token, as used in XML. NMTOKEN values may consist of letters, digits, periods, hyphens, underscores, and colons."
+            },
+            {
+                "relatedName": "xs:Name",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Name"
+            },
+            {
+                "relatedName": "xs:Name",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The Name datatype represents XML Names. Name values must start with a letter, underscore, or colon and may contain letters, digits, hyphens, underscores, colons, and periods."
+            },
+            {
+                "relatedName": "xs:NCName",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Non-Colonized Name"
+            },
+            {
+                "relatedName": "xs:NCName",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The NCName datatype represents XML non-colonized Names. NCName values may not contain colons."
+            },
+            {
+                "relatedName": "xs:ID",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "ID"
+            },
+            {
+                "relatedName": "xs:ID",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The ID datatype represents the ID attribute type from XML 1.0. ID values must uniquely identify elements in an XML document."
+            },
+            {
+                "relatedName": "xs:IDREF",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "ID Reference"
+            },
+            {
+                "relatedName": "xs:IDREF",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The IDREF datatype represents a reference to an element that has an ID attribute."
+            },
+            {
+                "relatedName": "xs:ENTITY",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Entity"
+            },
+            {
+                "relatedName": "xs:ENTITY",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The ENTITY datatype represents a reference to an unparsed entity."
+            },
+            {
+                "relatedName": "xs:integer",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Integer"
+            },
+            {
+                "relatedName": "xs:integer",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The integer datatype represents a sequence of decimal digits with an optional leading sign (+ or -). The value space of integer is the infinite set {...,-2,-1,0,1,2,...}."
+            },
+            {
+                "relatedName": "xs:nonPositiveInteger",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Non-Positive Integer"
+            },
+            {
+                "relatedName": "xs:nonPositiveInteger",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The nonPositiveInteger datatype represents the infinite set of integers less than or equal to zero."
+            },
+            {
+                "relatedName": "xs:negativeInteger",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Negative Integer"
+            },
+            {
+                "relatedName": "xs:negativeInteger",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The negativeInteger datatype represents the infinite set of integers less than zero."
+            },
+            {
+                "relatedName": "xs:long",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Long"
+            },
+            {
+                "relatedName": "xs:long",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The long datatype represents a 64-bit signed integer with values from -9223372036854775808 to 9223372036854775807."
+            },
+            {
+                "relatedName": "xs:int",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Int"
+            },
+            {
+                "relatedName": "xs:int",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The int datatype represents a 32-bit signed integer with values from -2147483648 to 2147483647."
+            },
+            {
+                "relatedName": "xs:short",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Short"
+            },
+            {
+                "relatedName": "xs:short",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The short datatype represents a 16-bit signed integer with values from -32768 to 32767."
+            },
+            {
+                "relatedName": "xs:byte",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Byte"
+            },
+            {
+                "relatedName": "xs:byte",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The byte datatype represents an 8-bit signed integer with values from -128 to 127."
+            },
+            {
+                "relatedName": "xs:nonNegativeInteger",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Non-Negative Integer"
+            },
+            {
+                "relatedName": "xs:nonNegativeInteger",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The nonNegativeInteger datatype represents the infinite set of integers greater than or equal to zero."
+            },
+            {
+                "relatedName": "xs:unsignedLong",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Unsigned Long"
+            },
+            {
+                "relatedName": "xs:unsignedLong",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The unsignedLong datatype represents a 64-bit unsigned integer with values from 0 to 18446744073709551615."
+            },
+            {
+                "relatedName": "xs:unsignedInt",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Unsigned Int"
+            },
+            {
+                "relatedName": "xs:unsignedInt",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The unsignedInt datatype represents a 32-bit unsigned integer with values from 0 to 4294967295."
+            },
+            {
+                "relatedName": "xs:unsignedShort",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Unsigned Short"
+            },
+            {
+                "relatedName": "xs:unsignedShort",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The unsignedShort datatype represents a 16-bit unsigned integer with values from 0 to 65535."
+            },
+            {
+                "relatedName": "xs:unsignedByte",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Unsigned Byte"
+            },
+            {
+                "relatedName": "xs:unsignedByte",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The unsignedByte datatype represents an 8-bit unsigned integer with values from 0 to 255."
+            },
+            {
+                "relatedName": "xs:positiveInteger",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Positive Integer"
+            },
+            {
+                "relatedName": "xs:positiveInteger",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The positiveInteger datatype represents the infinite set of integers greater than zero."
+            }
+        ]
+    }
+}
