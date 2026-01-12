@@ -37,7 +37,7 @@ The saveOIMFactspaces plugin saves OIM Model Factspaces from Inline XBRL or othe
       in GUI operation provide a formula parameter named inlineText containing true
       in command line mode specify --inlineText
   
-  To request xBRL-JSON instead of OIM Taxonomy factspaces
+  To request xBRL-JSON instead of XbrlModel factspaces
       in GUI operation provide a formula parameter named oimJSON containing true
       in command line mode specify --oimJSON
 
@@ -647,7 +647,7 @@ def saveOIMFactspace(
     # common metadata
     oimModel = {}  # top level of oim json output
     oimModel["documentInfo"] = oimDocInfo = {}
-    oimModel["taxonomy"] = {}
+    oimModel["xbrlModel"] = {}
     if saveOimJson:
         oimDocInfo["documentType"] = "https://xbrl.org/2021/xbrl-json"
     else:

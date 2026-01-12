@@ -1,0 +1,171 @@
+"""
+See COPYRIGHT.md for copyright information.
+"""
+
+from typing import TYPE_CHECKING, Optional, Union
+import regex as re
+
+from arelle.ModelValue import qname, QName, DateTime, YearMonthDayTimeDuration
+from arelle.PythonUtil import OrderedSet
+from arelle.oim.Load import EMPTY_DICT
+from .XbrlConst import xbrl
+from .XbrlDimension import XbrlDomain
+from .XbrlProperty import XbrlProperty
+from .XbrlTypes import XbrlModuleType, QNameKeyType, DefaultTrue, DefaultFalse
+from .ModelValueMore import QNameAt, SQName
+from .XbrlObject import XbrlModelObject, XbrlReferencableModelObject
+from arelle.FunctionFn import true, false
+
+class XbrlDateResolution(XbrlModelObject):
+    conceptName: Optional[QName] # (optional) Identifies the QName of a concept object that has a date fact value. The values of the concept object resolves to a set of dates. If no value exists in the report then the property is ignored, and no date constraint is enforced on the cube.
+    context: Optional[QNameAt] # (optional) Identifies the QName of a concept object that has a value. The context of the fact values resolves to a set of dates. If no value exists in the report then the property is ignored. The context suffix must be either @end or @start. If an @ value is not provided then the suffix defaults to @end.
+    value: Optional[DateTime] # (optional) A literal date value representing the end date.
+    timeShift: Optional[YearMonthDayTimeDuration] # (optional) Defines a time duration shift from the date derived form either the value, context or name properties. The duration of the time shift is defined using the XML duration type to define a duration of time. A negative operator is used to deduct the timeShift from the resolved date.
+
+periodConstraintPeriodPattern = re.compile(
+    r"^(?P<stDt>(?P<stYr>\d{4}|YYYY)-(?P<stMo>0[1-9]|1[0-2]|MM)-(?P<stDa>0[1-9]|[12]\d|3[01]|DD|eom))(T(?P<stHr>[01]\d|2[0-4]|hh):(?P<stMn>[0-5]\d|60|mm)(:(?P<stSc>[0-5]\d|60|ss))?)?(/((?P<EnDt>(?P<enYr>\d{4}|YYYY)-(?P<enMo>0[1-9]|1[0-2]|MM)-(?P<enDa>0[1-9]|[12]\d|3[01]|DD|eom))(T(?P<enHr>[01]\d|2[0-4]|hh):(?P<enMn>[0-5]\d|60|mm)(:(?P<enSc>[0-5]\d|60|ss))?)?))?")
+
+class XbrlPeriodConstraint(XbrlModelObject):
+    periodType: str # (required) Used to indicate if the period is an instant or a duration.
+    timeSpan: Optional[str] # (optional) Defines a duration of time using the XML duration type to define a duration of time. The duration of the time span maps to facts with the same duration.
+    periodPattern: Optional[str] # (optional) Defines a date or duration pattern that is used to select dates or durations.
+    endDate: Optional[XbrlDateResolution] # (optional) Defines an end date for a duration fact and the date of an instant fact. Values can be provided as a literal date value, a fact with a date value, or the date context value of a date. A suffix of @start or @end may be added to any of the date formats, specifying the instant at the start or end end of the duration, respectively.
+    startDate: Optional[XbrlDateResolution] # (optional) Defines a start date for a duration fact and the date of an instant fact. Values can be provided as a literal date value, a fact with a date value, or the date context value of a date. A suffix of @start or @end may be added to any of the date formats, specifying the instant at the start or end end of the duration, respectively.
+    onOrAfter: Optional[XbrlDateResolution] # (optional) Defines a date where all instant facts on or after the date are included in the cube. For a duration fact any periods after or on the end date of the duration are included in the cube.
+    onOrBefore: Optional[XbrlDateResolution] # (optional) Defines a date where all instant facts before or on the date are included in the cube. For a duration fact any periods before or on the end date are included in the cube.
+
+    def periodPatternMatch(self, perVal):
+        if not self.periodPattern or not self._periodPatternDict:
+            return None # no period pattern check
+        m = periodConstraintPeriodPattern.match(perVal)
+        if not m:
+            return False # period not processable to match, fail constraint
+        perValDict = m.groupdict()
+        for prop in ("stYr","stMo","stDa", "stHr", "stMn", "stSc", "enYr","enMo","enDa", "enHr", "enMn", "enSc"):
+            if not self._periodPatternDict[prop] in (None, "YYYY", "MM", "DD", "hh", "mm", "SS") and perValDict[prop] is not None:
+                if self._periodPatternDict[prop] == "eom":
+                    dt = datetime.strptime(perValDict[prop[:2]+"Dt"])
+                    if dt.day != calendar.monthrange(dt.year, dt.month)[1]:
+                        return False
+                else:
+                    if self._periodPatternDict[prop] != perValDict[prop]:
+                        return False
+        return True
+
+
+class XbrlCubeDimension(XbrlModelObject):
+    dimensionName: QName # (required) The QName of the dimension object that is used to identify the dimension. For the core dimensions of concept, period, entity and unit, the core dimension QNames of xbrl:concept, xbrl:period, xbrl:entity, xbrl:unit and xbrl:language are used. The dimension object indicates if the dimension is typed or explicit.
+    domainName: Optional[QName] # (required if explicit dimension) The QName of the domain object that is used to identify the domain associated with the dimension. Only one domain can be associated with a dimension. The domain name cannot be provided for a typed dimension or the period core dimension.
+    domainDataType: Optional[QName] # (optional) The dimension QName that identifies the taxonomy defined dimension.
+    typedSort: Optional[str] # (optional if typed dimension) A string value that indicates the sort order of the typed dimension. The values can be either asc or desc. This indicates the viewing order of the values using a typed dimension. The typedSort property cannot be used with an explicit dimension. The typedSort can be used with the period dimension. The sort order is applied to each period constraint defined in periodConstraints. If there are two period constraints the first for instant and the second for duration and a typedSort of asc then all instant dates appear first ascending, then all duration dates appear second in ascending order.
+    allowDomainFacts: Union[bool, DefaultFalse] # (optional) A boolean value that indicates if facts not identified with the dimension are included in the cube. For typed and explicit dimensions the value defaults to false. A value of true for a typed or explicit dimension will include facts that don't use the dimension in the cube. For the period core dimension, forever facts or facts with no period dimension are included when this value is set to true. For units, this is a unit with no units such as a string or date. For the entity core dimension, it is fact values with no entity. This property cannot be used on the concept core dimension.
+    periodConstraints: set[XbrlPeriodConstraint] # (optional only for period core dimension) Defines an ordered set of periodConstraint objects to restrict fact values in a cube to fact values with a specified period.
+
+    def allowedMembers(self, txmyMdl):
+        try:
+            return self._allowedMembers
+        except AttributeError:
+            self._allowedMembers = mem = OrderedSet()
+            domObj = txmyMdl.namedObjects.get(self.domainName)
+            if isinstance(domObj, XbrlDomain):
+                if self.allowDomainFacts:
+                    mem.add(domObj.root)
+                for relObj in domObj.relationships:
+                    mem.add(relObj.target)
+            return self._allowedMembers
+
+class XbrlCube(XbrlReferencableModelObject):
+    module: XbrlModuleType
+    name: QNameKeyType # (required) The name property is a QName that uniquely identifies the cube object.
+    cubeType: Optional[QName] # (optional) The cubeType property identifies the type of data cube being represented. This must match a defined cubeType object or specification defined cube types of xbrl:eventCube, xbrl:positionCube, xbrl:referenceCube, xbrl:reportCube, xbrl:journalCube, xbrl:eventDetailsCube, xbrl:timeSeriesCube and xbrl:defaultCube. If no QName is provided the default is xbrl:reportCube.
+    cubeDimensions: OrderedSet[XbrlCubeDimension] # (required) An ordered set of cubeDimension objects that identify the dimensions and associated domains used on the cube.
+    cubeNetworks: OrderedSet[QName] # (optional) An ordered set of network object QNames that reference network objects that are directly related to the cube.
+    excludeCubes: OrderedSet[QName] # (optional) An ordered set of cube object QNames that remove the facts of the constraint cube from the facts of the defined cube.
+    cubeComplete: Optional[bool] # (optional) A boolean flag that indicates if all cells in the cube are required to have a value. If true then all cube cells must include a fact value. If a value is not provided for the cubeComplete property then the default is false.
+    properties: OrderedSet[XbrlProperty] # (optional) An ordered set of property objects Used to specify additional properties associated with the cube using the property object. Only immutable properties as defined in the propertyType object can be added to a cube.
+
+class XbrlAllowedCubeDimension(XbrlModelObject):
+    dimensionName: Optional[QName] # (optional) The dimension QName that identifies the taxonomy defined dimension.
+    dimensionType: Optional[str] # (optional) The dimension QName that identifies the taxonomy defined dimension.
+    dimensionDataType: Optional[QName] # (optional) The dimension QName that identifies the taxonomy defined dimension.
+    required: Union[bool, DefaultFalse] # (optional) The dimension QName that identifies the taxonomy defined dimension.
+    allowedDimensionProperties: OrderedSet[QName] # (optional) An ordered set of property type Qnames that may be associated with the cube dimension.
+    requiredDimensionProperties: OrderedSet[QName] # (optional) An ordered set of property type Qnames that at a minimum must be associated with the cube dimension.
+
+class XbrlRequiredCubeRelationship(XbrlModelObject):
+    relationshipTypeName: QName # (required) The relationship type QName of a relationship. This requires that at lease one of these relationship types exist on the cube.
+    source: Optional[QName] # (optional) The QName of the source object in the relationship, such as a concept QName.
+    sourceObject: Optional[QName] # (optional) The QName of the source object type in the relationship, such as xbrl:conceptObject. If the property is not defined then the relationship can be used with any source object type.
+    sourceDataType: Optional[QName] # (optional) The QName of the source object datype type in the relationship, such as xs:dateTime.
+    target: Optional[QName] # (optional) The QName of the target object type in the relationship, such as a dimension QName of xbrl:period.
+    targetObject: Optional[QName] # (optional) The QName of the target object type in the relationship, such as xbrl:dimensionObject. If the property is not defined then the relationship can be used with any source object type.
+    targetDataType: Optional[QName] # (optional) The QName of the target object datype type in the relationship, such as xs:dateTime.
+
+cubeTypePropertyDefaultValue = {
+    "baseCubeType": None,
+    "periodDimension": True,
+    "entityDimension": True,
+    "unitDimension": True,
+    "taxonomyDefinedDimension": True,
+    "allowedCubeDimensions": None, # must be none, if absent any taxonomy defined dimension is allowed
+    "requiredCubeRelationships": OrderedSet()
+    }
+class XbrlCubeType(XbrlReferencableModelObject):
+    module: XbrlModuleType
+    name: QNameKeyType # (required) The name is a QName that uniquely identifies the cube type object.
+    # Optional properties may be inherited so they don't default until checking inheritance chain
+    baseCubeType: Optional[QName] # (optional) Base cube type that the cube object is based on. Uses the QName of a cubeType object. The property only allows restriction rather than expansion of the baseCubeTape.
+    periodDimension: Optional[bool] # (optional) boolean to indicate if the period core dimension is included in the cube. Defaults to true if no baseCubeType.
+    entityDimension: Optional[bool] # (optional) boolean to indicate if the entity core dimension is included in the cube. Defaults to true if no baseCubeType.
+    unitDimension: Optional[bool] # (optional) boolean to indicate if the unit core dimension is included in the cube. Defaults to true if no baseCubeType.
+    taxonomyDefinedDimension: Optional[bool] # (optional) boolean to indicate if taxonomy defined dimensions are included in the cube. Defaults to true if no baseCubeType.
+    allowedCubeDimensions: Optional[OrderedSet[XbrlAllowedCubeDimension]] # (optional) An ordered set of allowedCubeDimension objects that are permitted to be used on the cube. If the property is not defined then any dimensions can be associated with the cube.
+    allowedCubeDimensionsClosed: Union[bool, DefaultTrue] # (optional) If the property is true then the cube can only include taxonomy defined dimensions that are defined in the allowedCubeDimensions set. If false the cube can include other taxonomy defined dimensions. The default value is true.
+    requiredCubeRelationships: OrderedSet[XbrlRequiredCubeRelationship] # (optional) An ordered set of requiredCubeRelationship objects that at a minimum must be associated with the cube.
+    requiredCubeProperties: OrderedSet[QName] # (optional) An ordered set of property type Qnames that at a minimum must be associated with the cube.
+
+    def effectivePropVal(self, propName, txmyMdl): # property effective value considering inheritance and default value if not on basemost cube type
+        val = getattr(self, propName, None)
+        if val is not None:
+            return val
+        else:
+            baseCubeType = txmyMdl.namedObjects.get(self.baseCubeType)
+            if isinstance(baseCubeType, XbrlCubeType):
+                return baseCubeType.effectivePropVal(propName, txmyMdl)
+            return cubeTypePropertyDefaultValue.get(propName)
+
+    def basemostCubeType(self, txmyMdl):
+        baseCubeType = txmyMdl.namedObjects.get(self.baseCubeType)
+        if isinstance(baseCubeType, XbrlCubeType):
+            return baseCubeType.basemostCubeType
+        return self.name
+
+eventCubeType = qname(xbrl, "xbrl:eventCube")
+positionCubeType = qname(xbrl, "xbrl:positionCube")
+referenceCubeType = qname(xbrl, "xbrl:referenceCube")
+reportCubeType = qname(xbrl, "xbrl:reportCube")
+journalCubeType = qname(xbrl, "xbrl:journalCube")
+eventDetailsCubeType = qname(xbrl, "xbrl:eventDetailsCube")
+timeSeriesCubeType = qname(xbrl, "xbrl:timeSeriesCube")
+defaultCubeType = qname(xbrl, "xbrl:defaultCube")
+baseCubeTypes = {eventCubeType, positionCubeType, referenceCubeType, reportCubeType, journalCubeType,
+                 eventDetailsCubeType, timeSeriesCubeType, defaultCubeType}
+timeSeriesPropType = qname(xbrl, "xbrl:timeSeriesType")
+intervalOfMeasurementPropType = qname(xbrl, "xbrl:intervalOfMeasurement")
+intervalConventionPropType = qname(xbrl, "xbrl:intervalConvention")
+excludedIntervalsPropType = qname(xbrl, "xbrl:excludedIntervals")
+
+periodCoreDim = qname(xbrl, "xbrl:period")
+conceptCoreDim = qname(xbrl, "xbrl:concept")
+entityCoreDim = qname(xbrl, "xbrl:entity")
+unitCoreDim = qname(xbrl, "xbrl:unit")
+languageCoreDim = qname(xbrl, "xbrl:language")
+
+coreDimensions = {periodCoreDim, conceptCoreDim, entityCoreDim, unitCoreDim, languageCoreDim}
+coreDimensionsByLocalname = dict((d.localName, d) for d in coreDimensions)
+
+conceptDomainRoot = qname(xbrl, "xbrl:conceptDomain")
+entityDomainRoot = qname(xbrl, "xbrl:entityDomain")
+unitDomainRoot = qname(xbrl, "xbrl:unitDomain")
+languageDomainRoot = qname(xbrl, "xbrl:languageDomain")
+
