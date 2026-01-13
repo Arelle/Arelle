@@ -101,6 +101,13 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
         calcRelSet = val.modelXbrl.relationshipSet(XbrlConst.summationItems)
         dimensionDefaults = val.modelXbrl.relationshipSet(dimensionDefault, DefaultDimensionLinkroles)
         labelsRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
+
+        if esefDisclosureSystemYear < 2023:
+            esefDomainItemTypes = qnDomainItemTypesBefore2023
+        elif esefDisclosureSystemYear == 2023 or esefTaxonomyYear < 2024:
+            esefDomainItemTypes = qnDomainItemTypes2023
+        else:
+            esefDomainItemTypes = qnDomainItemTypes2024
         if modelDocument.targetNamespace is not None:
             for modelConcept in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/2001/XMLSchema}element"):
                 if isinstance(modelConcept,ModelConcept):
@@ -120,12 +127,6 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
                             _("Each dimension in an issuer specific extension taxonomy MUST be assigned to a default member in the ELR with role URI http://www.esma.europa.eu/xbrl/role/core/ifrs-dim_role-990000 defined in esef_cor.xsd schema file. %(qname)s"),
                             modelObject=modelConcept, qname=modelConcept.qname)
 
-                    if esefDisclosureSystemYear < 2023:
-                        esefDomainItemTypes = qnDomainItemTypesBefore2023
-                    elif esefDisclosureSystemYear == 2023 or esefTaxonomyYear < 2024:
-                        esefDomainItemTypes = qnDomainItemTypes2023
-                    else:
-                        esefDomainItemTypes = qnDomainItemTypes2024
                     if modelConcept.isDomainMember and modelConcept in val.domainMembers and modelConcept.typeQname not in esefDomainItemTypes:
                         domainMembersWrongType.append(modelConcept)
                     if modelConcept.isPrimaryItem and not modelConcept.isAbstract:
