@@ -1307,7 +1307,7 @@
       "allOf": [
         {
           "if": {
-            "properties": { "property": { "const": "xbrl:balance" } }
+            "properties": { "property": { "const": "xbrla:balance" } }
           },
           "then": {
             "properties": {

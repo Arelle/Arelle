@@ -1000,12 +1000,6 @@
                 "value": "A unit domain groups unit definitions for use by concepts and facts. It allows taxonomies to declare a set of preferred or allowed units."
             },
             {
-                "relatedName": "xbrl:balance",
-                "labelType": "xbrl:documentation",
-                "language": "en",
-                "value": "A balance property indicates the accounting balance orientation (debit or credit) for a numeric concept, used in validation and mapping rules."
-            },
-            {
                 "relatedName": "xbrl:semanticLink",
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -1128,30 +1122,6 @@
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:instant-accrual",
-                "value": "Relationship type linking instant and accrual concepts used for mapping or validation between instant and duration concepts."
-            },
-            {
-                "labelType": "xbrl:documentation",
-                "language": "en",
-                "relatedName": "xbrl:instant-inflow",
-                "value": "Relationship type indicating an instant concept maps to a duration inflow concept."
-            },
-            {
-                "labelType": "xbrl:documentation",
-                "language": "en",
-                "relatedName": "xbrl:instant-outflow",
-                "value": "Relationship type indicating an instant concept maps to a duration outflow concept."
-            },
-            {
-                "labelType": "xbrl:documentation",
-                "language": "en",
-                "relatedName": "xbrl:instant-contra",
-                "value": "Relationship type indicating an instant concept is the contra (opposite sign) of a duration concept."
-            },
-            {
-                "labelType": "xbrl:documentation",
-                "language": "en",
                 "relatedName": "xbrl:concept-aggDimension",
                 "value": "Relationship type that links a concept to a dimension when the concept represents an aggregation over that dimension (aggregation specified on the relationship)."
             },
@@ -1241,14 +1211,6 @@
             }
         ],
         "propertyTypes": [
-            {
-                "name": "xbrl:balance",
-                "dataType": "xbrli:balanceType",
-                "definitional": true,
-                "allowedObjects": [
-                    "xbrl:conceptObject"
-                ]
-            },
             {
                 "name": "xbrl:semanticLink",
                 "dataType": "xs:anyURI",
@@ -1555,44 +1517,7 @@
                 "sourceObjects" : ["xbrl:conceptObject"],
                 "targetObjects" : ["xbrl:conceptObject"]
             },
-            {
-                "name": "xbrl:instant-accrual",
-                "uri": "http://xbrl.org/oim/instant-accrual",
-                "cycles" : "undirected",
-                "sourceObjects" : ["xbrl:conceptObject"],
-                "targetObjects" : ["xbrl:conceptObject"]
-            },
-            {
-                "name": "xbrl:instant-inflow",
-                "uri": "http://xbrl.org/oim/instant-inflow",
-                "cycles" : "undirected",
-                "sourceObjects" : ["xbrl:conceptObject"],
-                "targetObjects" : ["xbrl:conceptObject"],
-                "constraints": [
-                          {
-                              "constraint": "relationship.source.xbrli:dataType == relationship.target.xbrli:dataType AND relationship.source.property.xbrl:balance == relationship.target.property.xbrl:balance AND relationship.source.xbrli:periodType == instant AND relationship.target.xbrli:periodType == duration"
-                          }         
-                        ]
-            },
-            {
-                "name": "xbrl:instant-outflow",
-                "uri": "http://xbrl.org/oim/instant-outflow",
-                "cycles" : "none",
-                "sourceObjects" : ["xbrl:conceptObject"],
-                "targetObjects" : ["xbrl:conceptObject"],
-                 "constraints": [
-                          {
-                              "constraint": "relationship.source.xbrli:dataType == relationship.target.xbrli:dataType AND relationship.source.property.xbrl:balance != relationship.target.property.xbrl:balance AND relationship.source.xbrli:periodType == instant AND relationship.target.xbrli:periodType == duration"
-                          }         
-                        ]
-            },
-            {
-                "name": "xbrl:instant-contra",
-                "uri": "http://xbrl.org/oim/instant-contra",
-                "cycles" : "undirected",
-                "sourceObjects" : ["xbrl:conceptObject"],
-                "targetObjects" : ["xbrl:conceptObject"]
-            },
+            
             {
                 "name": "xbrl:propertyValue-object",
                 "uri": "http://xbrl.org/oim/propertyValue-object",
@@ -1698,7 +1623,6 @@
             },
             {
                 "name": "xbrl:taxonomy-group",
-                "uri": "https://xbrl.org/2025/arcrole/taxonomy-group",
                 "cycles" : "none",
                 "sourceObjects" : ["xbrl:taxonomyObject", "xbrl:groupObject"],
                 "targetObjects" : ["xbrl:groupObject"]

@@ -2705,7 +2705,7 @@
             {
                 "relatedName": "oimte:collectionTypeWithoutCollectionBaseType",
                 "language": "en",
-                "value": "This error occurs when a collection type is defined without a collectionBaseType property. Collection types must specify the type of items they contain using the collectionBaseType property to ensure that the collection is properly typed and can be validated against the expected item types.",
+                "value": "This error occurs when a collection type is defined with a baseType property that is not xbrli:collection.",
                 "labelType": "xbrl:documentation"
             },
             {
@@ -3761,9 +3761,9 @@
                 ]
             },
             {
-                "name": "oimte:unallowedDatatypeObjectReference",
+                "name": "oimte:unallowedDataTypeObjectReference",
                 "relatedNames": [
-                    "oimte:unallowedDatatypeObject"
+                    "oimte:unallowedDataTypeObject"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
