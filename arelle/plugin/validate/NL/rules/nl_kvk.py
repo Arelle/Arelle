@@ -19,6 +19,7 @@ from arelle.ModelObject import ModelObject
 from arelle.PrototypeDtsObject import PrototypeObject
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
+from arelle.utils.validate.Concepts import isExtensionUri, getExtensionConcepts
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.DetectScriptsInXhtml import containsScriptMarkers
 from arelle.utils.validate.ESEFImage import ImageValidationParameters, validateImage
@@ -28,6 +29,21 @@ from arelle.ValidateXbrl import ValidateXbrl
 from arelle.XbrlConst import parentChild, standardLabel
 from arelle.XmlValidateConst import VALID
 
+from ..Constants import (
+    ALLOWABLE_LANGUAGES,
+    DEFAULT_MEMBER_ROLE_URI,
+    DISALLOWED_IXT_NAMESPACES,
+    EFFECTIVE_KVK_GAAP_IFRS_ENTRYPOINT_FILES,
+    EFFECTIVE_KVK_GAAP_OTHER_ENTRYPOINT_FILES,
+    MAX_REPORT_PACKAGE_SIZE_MBS,
+    NON_DIMENSIONALIZED_LINE_ITEM_LINKROLES,
+    QN_DOMAIN_ITEM_TYPES,
+    STANDARD_TAXONOMY_URL_PREFIXES,
+    SUPPORTED_IMAGE_TYPES_BY_IS_FILE,
+    TAXONOMY_URLS_BY_YEAR,
+    XBRLI_IDENTIFIER_PATTERN,
+    XBRLI_IDENTIFIER_SCHEMA,
+)
 from ..DisclosureSystems import (
     DISCLOSURE_SYSTEM_NL_INLINE_2025,
     DISCLOSURE_SYSTEM_NL_INLINE_MULTI_TARGET,
@@ -37,21 +53,7 @@ from ..DisclosureSystems import (
     NL_INLINE_MULTI_TARGET_DISCLOSURE_SYSTEMS,
     NL_INLINE_OTHER_DISCLOSURE_SYSTEMS,
 )
-from ..PluginValidationDataExtension import (
-    ALLOWABLE_LANGUAGES,
-    DEFAULT_MEMBER_ROLE_URI,
-    DISALLOWED_IXT_NAMESPACES,
-    EFFECTIVE_KVK_GAAP_IFRS_ENTRYPOINT_FILES,
-    EFFECTIVE_KVK_GAAP_OTHER_ENTRYPOINT_FILES,
-    MAX_REPORT_PACKAGE_SIZE_MBS,
-    NON_DIMENSIONALIZED_LINE_ITEM_LINKROLES,
-    QN_DOMAIN_ITEM_TYPES,
-    SUPPORTED_IMAGE_TYPES_BY_IS_FILE,
-    TAXONOMY_URLS_BY_YEAR,
-    XBRLI_IDENTIFIER_PATTERN,
-    XBRLI_IDENTIFIER_SCHEMA,
-    PluginValidationDataExtension,
-)
+from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 if TYPE_CHECKING:
     from arelle.ModelValue import QName
@@ -1541,7 +1543,7 @@ def rule_nl_kvk_4_4_3_1(
     NL-KVK.4.4.3.1: The extension taxonomy MUST not modify (prohibit and/or override) default members assigned to dimensions by the KVK taxonomy
     """
     for modelLink in cast(list[ModelLink], val.modelXbrl.baseSets[XbrlConst.dimensionDefault, None, None, None]):
-        if not pluginData.isExtensionUri(modelLink.modelDocument.uri, val.modelXbrl):
+        if not isExtensionUri(modelLink.modelDocument.uri, val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):
             continue
         for linkChild in modelLink:
             if (
@@ -1551,7 +1553,7 @@ def rule_nl_kvk_4_4_3_1(
             ):
                 fromLabel = linkChild.get(XbrlConst.qnXlinkFrom.clarkNotation)
                 for fromResource in modelLink.labeledResources[fromLabel]:
-                    if not pluginData.isExtensionUri(fromResource.modelDocument.uri, val.modelXbrl):
+                    if not isExtensionUri(fromResource.modelDocument.uri, val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):
                         yield Validation.error(
                             codes='NL.NL-KVK.4.4.3.1.extensionTaxonomyOverridesDefaultMembers',
                              msg=_('A default member does not match the default member settings of the taxonomy. '
@@ -1695,7 +1697,7 @@ def rule_nl_kvk_4_4_5_2(
                 hasCoreLabel = False
                 hasExtensionLabel = False
                 for label in labels:
-                    if pluginData.isExtensionUri(label.modelDocument.uri, val.modelXbrl):
+                    if isExtensionUri(label.modelDocument.uri, val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):
                         hasExtensionLabel = True
                     else:
                         hasCoreLabel = True
@@ -1732,7 +1734,7 @@ def rule_nl_kvk_4_4_6_1(
                 if (object is None or
                         object.isAbstract or
                         object in conceptsUsed or
-                        not pluginData.isExtensionUri(rel.modelDocument.uri, val.modelXbrl)):
+                        not isExtensionUri(rel.modelDocument.uri, val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES)):
                     continue
                 if arcrole in (XbrlConst.parentChild, XbrlConst.summationItems):
                     unreportedLbLocs.add(rel.fromLocator)
@@ -1996,7 +1998,7 @@ def rule_nl_kvk_RTS_Annex_IV_Par_4_1(
         coreConcepts = []
         extensionConcepts = []
         for concept in concepts:
-            if pluginData.isExtensionUri(concept.modelDocument.uri, val.modelXbrl):
+            if isExtensionUri(concept.modelDocument.uri, val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):
                 extensionConcepts.append(concept)
             else:
                 coreConcepts.append(concept)
@@ -2031,7 +2033,7 @@ def rule_nl_kvk_RTS_Annex_IV_Par_4_2(
     NL-KVK.RTS_Annex_IV_Par_4_2: Extension elements must be equipped with an appropriate balance attribute.
     """
     errors = []
-    for concept in pluginData.getExtensionConcepts(val.modelXbrl):
+    for concept in getExtensionConcepts(val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):
         if concept.isMonetary and concept.balance is None:
             errors.append(concept)
     if len(errors) > 0:

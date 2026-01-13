@@ -84,6 +84,21 @@ NUMERIC_LABEL_ROLES = frozenset({
     'http://www.xbrl.org/2009/role/negatedTerseLabel',
 })
 
+STANDARD_TAXONOMY_URL_PREFIXES = frozenset((
+    'http://disclosure.edinet-fsa.go.jp/taxonomy/',
+    'https://disclosure.edinet-fsa.go.jp/taxonomy/',
+    'http://www.xbrl.org/20',
+    'https://www.xbrl.org/20',
+    'http://www.xbrl.org/lrr/',
+    'https://www.xbrl.org/lrr/',
+    'http://xbrl.org/20',
+    'https://xbrl.org/20',
+    'http://www.xbrl.org/dtr/',
+    'https://www.xbrl.org/dtr/',
+    'http://www.w3.org/1999/xlink',
+    'https://www.w3.org/1999/xlink'
+))
+
 PATTERN_CODE = r'(?P<code>[A-Za-z\d]+)'
 PATTERN_CONSOLIDATED = r'(?P<consolidated>c|n)'
 PATTERN_COUNT = r'(?P<count>\d{2})'
