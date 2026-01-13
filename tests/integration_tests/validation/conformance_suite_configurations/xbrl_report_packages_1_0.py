@@ -54,10 +54,11 @@ config = ConformanceSuiteConfig(
             entry_point=Path("index.csv"),
         ),
     ],
-    expected_additional_testcase_errors={f"report-package-conformance/index.csv:{s}": val for s, val in {
+    expected_additional_testcase_errors={f"index.csv:{s}": val for s, val in {
         # Invalid zip also fires FileSourceError.
         "V-000-invalid-zip": {
             "FileSourceError": 1,
+            "xmlSchema:syntax": 1,
         },
         "V-001-valid-taxonomy-package": {
             # Taxonomy package references non-existent "http://www.xbrl.org/sample-taxonomy/1.0/base.xsd"
@@ -80,16 +81,19 @@ config = ConformanceSuiteConfig(
         "V-209-xbr-without-reportPackage-json": ERRORS_REPORT_COUNT,
         # "Empty" iXBRL docs are missing schema required elements.
         "V-301-xbri-with-single-ixds": {
+            # "Empty" iXBRL docs are missing schema required elements.
             # There are two documents in the package, empty1.xhtml and empty2.xhtml,
             # each missing a title, so we must see two schema errors.
             "lxml.SCHEMAV_ELEMENT_CONTENT": 2,
             "ix11.14.1.2:missingResources": 1,
         },
         "V-302-xbri-with-single-html": {
+            # "Empty" iXBRL docs are missing schema required elements.
             "lxml.SCHEMAV_ELEMENT_CONTENT": 1,
             "ix11.14.1.2:missingResources": 1,
         },
         "V-303-xbri-with-single-htm": {
+            # "Empty" iXBRL docs are missing schema required elements.
             "lxml.SCHEMAV_ELEMENT_CONTENT": 1,
             "ix11.14.1.2:missingResources": 1,
         },

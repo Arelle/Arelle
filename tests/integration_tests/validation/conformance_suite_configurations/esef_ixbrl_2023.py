@@ -25,16 +25,24 @@ config = ConformanceSuiteConfig(
         (r"^.*$", r"^ESEF\..*\.~$"),
     ],
     disclosure_system='esef-2023',
+    expected_additional_testcase_errors={f'tests/inline_xbrl/{s}': val for s, val in {
+        'G3-1-2/index.xml:TC2_valid': {
+            'ESEF.3.2.2.domainMemberWrongDataType': 1,
+        },
+        'RTS_Annex_IV_Par_12_G2-2-4/index.xml:TC5_valid': {
+            'message:tech_duplicated_facts1': 2,
+        },
+    }.items()},
     expected_failure_ids=frozenset(f'tests/inline_xbrl/{s}' for s in [
-        # Test report uses older domain item type (http://www.xbrl.org/dtr/type/non-numeric) forbidden by ESEF.3.2.2.
-        'G3-1-2/index.xml:TC2_valid',
-        # These tests reference zip files, which do not exist in the conformance suite.
+        # disallowedReportPackageFileExtension not firing
         'G2-6-1_3/index.xml:TC2_invalid',
-        'G2-6-1_3/index.xml:TC3_invalid',
-        # The following test case fails because of the `tech_duplicated_facts1` formula, which incorrectly fires.
-        # It does not take into account the language attribute on the fact.
-        # Facts are not duplicates if their language attributes are different.
-        'RTS_Annex_IV_Par_12_G2-2-4/index.xml:TC5_valid',
+
+        ### Discovered during transition to Test Engine:
+        # Related to reportIncorrectlyPlacedInPackage not firing
+        'G2-6-2/index.xml:TC2_invalid',
+        # Related to missingOrInvalidTaxonomyPackage not firing
+        'RTS_Annex_III_Par_3_G3-1-3/index.xml:TC3_invalid',
+        'RTS_Annex_III_Par_3_G3-1-3/index.xml:TC5_invalid',
     ]),
     info_url='https://www.esma.europa.eu/document/esef-conformance-suite-2023',
     name=PurePath(__file__).stem,

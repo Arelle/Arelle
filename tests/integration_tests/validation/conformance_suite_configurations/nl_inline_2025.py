@@ -38,7 +38,7 @@ config = ConformanceSuiteConfig(
         'G6-1-3_3/index.xml',
         'G6-1-3_4/index.xml',
     ]],
-    expected_additional_testcase_errors={f"*tests/{s}": val for s, val in {
+    expected_additional_testcase_errors={f"tests/{s}": val for s, val in {
         'G3-1-3_1/index.xml:TC2_invalid': {
             'scenarioNotUsedInExtensionTaxonomy': 1,  # Also fails 4.2.1.1
         },
@@ -72,27 +72,11 @@ config = ConformanceSuiteConfig(
             'extensionTaxonomyLineItemNotLinkedToAnyHypercube': 1,
             'improperApplicationOfEscapeAttribute': 1,
             'NL.NL-KVK.3.2.8.1': 1,
-            # Expected once, returned twice as
-            # NL.NL-KVK.3.4.1.1.tupleElementUsed - ix:tuple present in iXBRL document
-            # NL.NL-KVK.4.2.0.1.tupleElementUsed - tuple defined in extension taxonomy
-            'tupleElementUsed': 1,
             'usableConceptsNotAppliedByTaggedFacts': 1,
             'usableConceptsNotIncludedInDefinitionLink': 1,
         },
-        'G3-5-1_5/index.xml:TC2_invalid': {
-            # This is the expected error, but we return two of them, slightly different.
-            'imageFormatNotSupported': 1,
-        },
         'G3-5-2_3/index.xml:TC2_invalid': {
             'missingLabelForRoleInReportLanguage': 1,
-        },
-        'G3-5-3_1/index.xml:TC2_invalid': {
-            'arelle:ixdsTargetNotDefined': 1,
-            'extensionTaxonomyWrongFilesStructure': 2,
-            'noInlineXbrlTags': 1,
-            # This test is looking at the usage of the target attribute and does not import the correct taxonomy urls
-            'requiredEntryPointNotImported': 1,
-            'incorrectKvkTaxonomyVersionUsed': 1,
         },
         'G3-6-3_1/index.xml:TC2_invalid': {
             # deconformancebvdeponeringsgegevens-2024-12-31-nl.html
@@ -112,9 +96,6 @@ config = ConformanceSuiteConfig(
         },
         'G4-1-1_1/index.xml:TC3_invalid': {
             'extensionConceptNoLabel': 1,
-        },
-        'G4-1-1_1/index.xml:TC4_invalid': {
-            'extensionTaxonomyWrongFilesStructure': 1,
         },
         'G4-1-1_1/index.xml:TC5_invalid': {
             'usableConceptsNotIncludedInPresentationLink': 1,
@@ -169,28 +150,6 @@ config = ConformanceSuiteConfig(
         'G5-1-3_2/index.xml:TC2_valid': {
             'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 5,
         },
-        'G6-1-3_1/index.xml:TC2_invalid': {
-            'defaultTargetAttributeNotUsed': 1,
-            'documentNameDoesNotFollowNamingConvention': 1,
-            'incorrectVersionEntryPointOtherGaapReferenced': 1,
-            'invalidIdentifier': 1,
-            'invalidIdentifierFormat': 1,
-        },
-        'G6-1-3_2/index.xml:TC2_invalid': {
-            'defaultTargetAttributeNotUsed': 1,
-            'documentNameDoesNotFollowNamingConvention': 1,
-            'invalidIdentifier': 1,
-            'invalidIdentifierFormat': 1,
-            'requiredEntryPointOtherNotReferenced': 1,
-        },
-        'G6-1-3_3/index.xml:TC2_invalid': {
-            'defaultTargetAttributeNotUsed': 1,
-            'documentNameDoesNotFollowNamingConvention': 1,
-            'incorrectVersionEntryPointOtherReferenced': 1,
-            'invalidIdentifier': 1,
-            'invalidIdentifierFormat': 1,
-            'requiredEntryPointOtherNotReferenced': 1,
-        },
         'G6-1-3_4/index.xml:TC1_valid': {
             'incorrectVersionEntryPointOtherReferenced': 1,
             'requiredEntryPointOtherNotReferenced': 1,
@@ -200,9 +159,6 @@ config = ConformanceSuiteConfig(
             'requiredEntryPointOtherNotReferenced': 1,
         },
         'G7-1-4_1/index.xml:TC1_valid': {
-            'arelle:nonIxdsDocument': 1,
-        },
-        'G7-1-4_1/index.xml:TC2_invalid': {
             'arelle:nonIxdsDocument': 1,
         },
         'G7-1-4_2/index.xml:TC1_valid': {
@@ -248,15 +204,11 @@ config = ConformanceSuiteConfig(
             'undefinedLanguageForTextFact': 1,
             'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 4,
         },
-        'RTS_Annex_IV_Par_6/index.xml:TC3_invalid': {
-            'extensionTaxonomyWrongFilesStructure': 1,
-        },
         'RTS_Annex_IV_Par_6/index.xml:TC4_invalid': {
             # filing_information-2024-12-31-en.html
             'kvkFilingDocumentNameDoesNotFollowNamingConvention': 1,
             'undefinedLanguageForTextFact': 1,
             'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 4,
-            'extensionTaxonomyWrongFilesStructure': 1,
         },
         'RTS_Annex_IV_Par_8_G4-4-5/index.xml:TC2_invalid': {
             # "https://www.nltaxonomie.nl/bw2-titel9/2025-12-31/bw2-titel9-cor-ref.xml#bw2-titel9_BW2_2024-01-01_364_1_ref"

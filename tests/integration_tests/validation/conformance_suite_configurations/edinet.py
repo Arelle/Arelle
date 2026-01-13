@@ -258,7 +258,7 @@ config = ConformanceSuiteConfig(
     ],
     base_taxonomy_validation='none',
     disclosure_system='EDINET',
-    expected_additional_testcase_errors={f"*{s}": val for s, val in EXPECTED_ADDITIONAL_TESTCASE_ERRORS.items()},
+    expected_additional_testcase_errors=EXPECTED_ADDITIONAL_TESTCASE_ERRORS,
     expected_failure_ids=frozenset([]),
     info_url='https://disclosure2.edinet-fsa.go.jp/weee0020.aspx',
     name=PurePath(__file__).stem,
