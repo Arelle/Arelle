@@ -4,12 +4,16 @@ on:
   workflow_dispatch:
   pull_request_target:
     paths:
-      - '.github/workflows/conformance-suites.yml'
-      - 'arelle/**'
-      - 'tests/**'
       - '**.py'
       - '**.pyw'
+      - '.github/actions/get_conformance_suites_matrix/**'
+      - '.github/actions/get_test_scripts_matrix/**'
+      - '.github/actions/test_conformance_suite/**'
+      - '.github/actions/test_script/**'
+      - '.github/workflows/integration-tests.yml'
+      - 'arelle/**'
       - 'requirements*.txt'
+      - 'tests/**'
 
 permissions: {}
 
