@@ -79,7 +79,7 @@ LineItemsNotQualifiedLinkroles = (
     "http://www.esma.europa.eu/xbrl/role/cor/esef_role-999999",
 )
 
-qnDomainItemTypes = frozenset((
+qnDomainItemTypesBefore2023 = frozenset((
     qname("{http://www.xbrl.org/dtr/type/non-numeric}nonnum:domainItemType"),
     qname("{http://www.xbrl.org/dtr/type/2020-01-21}nonnum:domainItemType"),
 ))

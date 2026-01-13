@@ -21,7 +21,7 @@ from ..Const import (
     filenamePatterns,
     filenameRegexes,
     linkbaseRefTypes,
-    qnDomainItemTypes,
+    qnDomainItemTypesBefore2023,
 )
 from ..Util import isExtension
 
@@ -111,7 +111,7 @@ def checkFilingDTS(
                         val.modelXbrl.error("ESEF.3.4.3.extensionTaxonomyDimensionNotAssignedDefaultMemberInDedicatedPlaceholder",
                             _("Each dimension in an issuer specific extension taxonomy MUST be assigned to a default member in the ELR with role URI http://www.esma.europa.eu/xbrl/role/core/ifrs-dim_role-990000 defined in esef_cor.xsd schema file. %(qname)s"),
                             modelObject=modelConcept, qname=modelConcept.qname)
-                    if modelConcept.isDomainMember and modelConcept in val.domainMembers and modelConcept.typeQname not in qnDomainItemTypes:
+                    if modelConcept.isDomainMember and modelConcept in val.domainMembers and modelConcept.typeQname not in qnDomainItemTypesBefore2023:
                         domainMembersWrongType.append(modelConcept)
                     if modelConcept.isPrimaryItem and not modelConcept.isAbstract:
                         if modelConcept not in val.primaryItems:

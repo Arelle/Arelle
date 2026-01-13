@@ -21,7 +21,7 @@ from ..Const import (
     filenamePatterns,
     filenameRegexes,
     linkbaseRefTypes,
-    qnDomainItemTypes,
+    qnDomainItemTypesBefore2023,
     qnDomainItemTypes2023,
     qnDomainItemTypes2024,
 )
@@ -121,7 +121,7 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
                             modelObject=modelConcept, qname=modelConcept.qname)
 
                     if esefDisclosureSystemYear < 2023:
-                        esefDomainItemTypes = qnDomainItemTypes
+                        esefDomainItemTypes = qnDomainItemTypesBefore2023
                     elif esefDisclosureSystemYear == 2023 or esefTaxonomyYear < 2024:
                         esefDomainItemTypes = qnDomainItemTypes2023
                     else:
