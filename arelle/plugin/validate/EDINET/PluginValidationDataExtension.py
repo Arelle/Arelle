@@ -31,7 +31,7 @@ from arelle.XhtmlValidate import htmlEltUriAttrs
 from arelle.XmlValidate import VALID
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
-from .Constants import xhtmlDtdExtension, PROHIBITED_HTML_TAGS, PROHIBITED_HTML_ATTRIBUTES
+from .Constants import xhtmlDtdExtension, PROHIBITED_HTML_TAGS, PROHIBITED_HTML_ATTRIBUTES, STANDARD_TAXONOMY_URL_PREFIXES
 from .ControllerPluginData import ControllerPluginData
 from .DeiRequirements import DeiRequirements, DEI_LOCAL_NAMES
 from .FilingFormat import FilingFormat, FILING_FORMATS, DocumentType, Ordinance
@@ -45,20 +45,6 @@ from .UploadContents import UploadContents, UploadPathInfo
 _: TypeGetText
 
 
-STANDARD_TAXONOMY_URL_PREFIXES = frozenset((
-    'http://disclosure.edinet-fsa.go.jp/taxonomy/',
-    'https://disclosure.edinet-fsa.go.jp/taxonomy/',
-    'http://www.xbrl.org/20',
-    'https://www.xbrl.org/20',
-    'http://www.xbrl.org/lrr/',
-    'https://www.xbrl.org/lrr/',
-    'http://xbrl.org/20',
-    'https://xbrl.org/20',
-    'http://www.xbrl.org/dtr/',
-    'https://www.xbrl.org/dtr/',
-    'http://www.w3.org/1999/xlink',
-    'https://www.w3.org/1999/xlink'
-))
 
 
 @dataclass(frozen=True)
@@ -234,17 +220,6 @@ class PluginValidationDataExtension(PluginData):
             return False
         return formType.isStockReport
 
-    @lru_cache(1)
-    def getExtensionConcepts(self, modelXbrl: ModelXbrl) -> list[ModelConcept]:
-        """
-        Returns a list of extension concepts in the DTS.
-        """
-        extensionConcepts = []
-        for concepts in modelXbrl.nameConcepts.values():
-            for concept in concepts:
-                if self.isExtensionUri(concept.document.uri, modelXbrl):
-                    extensionConcepts.append(concept)
-        return extensionConcepts
 
     @lru_cache(1)
     def getUsedConcepts(self, modelXbrl: ModelXbrl) -> set[ModelConcept]:

@@ -24,12 +24,13 @@ from arelle.ValidateXbrlCalcs import insignificantDigits
 from arelle.XbrlConst import qnXbrlScenario, qnXbrldiExplicitMember, xhtmlBaseIdentifier, xmlBaseIdentifier
 from arelle.XmlValidate import VALID
 from arelle.typing import TypeGetText
+from arelle.utils.validate.Concepts import getExtensionConcepts
 from arelle.utils.Contexts import getDuplicateContextGroups
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.Units import getDuplicateUnitGroups
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
-from ..Constants import JAPAN_LANGUAGE_CODES, NUMERIC_LABEL_ROLES, domainItemTypeQname, LC3_NAME_PATTERN, HALF_KANA
+from ..Constants import domainItemTypeQname, HALF_KANA, JAPAN_LANGUAGE_CODES, NUMERIC_LABEL_ROLES, LC3_NAME_PATTERN, STANDARD_TAXONOMY_URL_PREFIXES
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
@@ -940,7 +941,7 @@ def rule_gfm_1_3_18(
     Modify the element name so that it does not match the EDINET taxonomy, or use the element in the EDINET taxonomy and delete the
     element added in the submitter's taxonomy.
     """
-    for extensionConcept in pluginData.getExtensionConcepts(val.modelXbrl):
+    for extensionConcept in getExtensionConcepts(val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):
         name = extensionConcept.get("name")
         if name is not None:
             concepts = val.modelXbrl.nameConcepts.get(name, [])
@@ -971,7 +972,7 @@ def rule_gfm_1_3_19(
     should be set in the following format:{namespace prefix}_{element name}.
     """
     improperlyFormattedIds = set()
-    for concept in pluginData.getExtensionConcepts(val.modelXbrl):
+    for concept in getExtensionConcepts(val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):
         prefix = concept.qname.prefix or ""
         name = concept.qname.localName
         requiredId = f"{prefix}_{name}"
@@ -1027,7 +1028,7 @@ def rule_gfm_1_3_21(
     EDINET.EC5700W: [GFM 1.3.21] Remove the tuple definition.
     """
     tupleConcepts = [
-        concept for concept in pluginData.getExtensionConcepts(val.modelXbrl)
+        concept for concept in getExtensionConcepts(val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES)
         if concept.isTuple
     ]
     if len(tupleConcepts) > 0:
@@ -1052,7 +1053,7 @@ def rule_gfm_1_3_22(
     EDINET.EC5700W: [GFM 1.3.22] Do not set the xbrldt:typedDomainRef attribute on elements defined in submitter-specific taxonomies.
     """
     typedDomainConcepts = [
-        concept for concept in pluginData.getExtensionConcepts(val.modelXbrl)
+        concept for concept in getExtensionConcepts(val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES)
         if concept.isTypedDimension
     ]
 
@@ -1109,7 +1110,7 @@ def rule_gfm_1_3_25(
     GFM 1.3.25: The xsd:element substitutionGroup attribute must equal "xbrldt:dimensionItem" if
     and only if the name attribute ends with "Axis".
     """
-    for concept in pluginData.getExtensionConcepts(val.modelXbrl):
+    for concept in getExtensionConcepts(val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):
         if concept.qname.localName.endswith("Axis") != (concept.substitutionGroupQname == XbrlConst.qnXbrldtDimensionItem):
             yield Validation.warning(
                 codes='EDINET.EC5700W.GFM.1.3.25',
@@ -1136,7 +1137,7 @@ def rule_gfm_1_3_26(
     GFM 1.3.26: The xsd:element name attribute must ends with "Table" if and only if
     substitutionGroup attribute equals "xbrldt:hypercubeItem".
     """
-    for concept in pluginData.getExtensionConcepts(val.modelXbrl):
+    for concept in getExtensionConcepts(val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):
         if concept.qname.localName.endswith("Table") != (concept.substitutionGroupQname == XbrlConst.qnXbrldtHypercubeItem):
             yield Validation.warning(
                 codes='EDINET.EC5700W.GFM.1.3.26',
@@ -1161,7 +1162,7 @@ def rule_gfm_1_3_28(
     EDINET.EC5700W: [GFM 1.3.28] If the element name of an element extended by a submitter-specific taxonomy ends with "LineItems",
     set the abstract attribute to "true".
     """
-    for concept in pluginData.getExtensionConcepts(val.modelXbrl):
+    for concept in getExtensionConcepts(val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):
         if concept.qname.localName.endswith("LineItems") and not concept.isAbstract:
             yield Validation.warning(
                 codes='EDINET.EC5700W.GFM.1.3.28',
@@ -1189,7 +1190,7 @@ def rule_gfm_1_3_29(
     GFM 1.3.29: The xsd:element name attribute must end with "Domain" or "Member" if and only
     if the type attribute equals "nonnum:domainItemType".
     """
-    for concept in pluginData.getExtensionConcepts(val.modelXbrl):
+    for concept in getExtensionConcepts(val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):
         isConceptDomain = concept.type.isDomainItemType if concept.type is not None else False
         if ((concept.qname.localName.endswith("Domain") or concept.qname.localName.endswith("Member")) != isConceptDomain):
             yield Validation.warning(
