@@ -21,6 +21,11 @@ config = ConformanceSuiteConfig(
         ),
     ],
     capture_warnings=False,
+    expected_failure_ids=frozenset({
+        # test case variations which have xhtml documents which are not inline blissfully load as unrecognized plain xml,
+        # so this does not fail as expected.
+        "tests/header/FAIL-missing-header.xml:V-1701",
+    }),
     info_url='https://specifications.xbrl.org/work-product-index-inline-xbrl-inline-xbrl-1.1.html',
     name=PurePath(__file__).stem,
     plugins=frozenset({'inlineXbrlDocumentSet', '../../tests/plugin/testcaseIxExpectedHtmlFixup.py'}),

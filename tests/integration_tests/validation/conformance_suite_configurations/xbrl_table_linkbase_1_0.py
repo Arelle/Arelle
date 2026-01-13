@@ -15,6 +15,12 @@ config = ConformanceSuiteConfig(
             source=AssetSource.S3_PUBLIC,
         ),
     ],
+    expected_additional_testcase_errors={f'*/{s}': val for s, val in {
+        # xfie:invalidExplicitDimensionQName was previously silenced by the previous testcase variation runner
+        '6000-aspect-node/6640-aspect-node-explicit-dimension-filter/6640-aspect-node-explicit-dimension-filter-testcase.xml:v-03': {
+            'xfie:invalidExplicitDimensionQName': 1,
+        },
+    }.items()},
     info_url='https://specifications.xbrl.org/work-product-index-table-linkbase-table-linkbase-1.0.html',
     name=PurePath(__file__).stem,
     plugins=frozenset({"tests/plugin/renderTable.py"}),

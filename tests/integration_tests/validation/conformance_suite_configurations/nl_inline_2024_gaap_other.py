@@ -32,11 +32,6 @@ config = ConformanceSuiteConfig(
         'G5-1-3_2/index.xml:TC1_valid': {
             'noInlineXbrlTags': 1,
         },
-        'G5-1-3_2/index.xml:TC2_invalid': {
-            'documentNameDoesNotFollowNamingConvention': 1,
-            'noInlineXbrlTags': 1,
-            'requiredEntryPointOtherGaapNotReferenced': 1,
-        },
     }.items()},
     expected_failure_ids=frozenset(f"tests/{s}" for s in [
         # Conformance Suite Errors
@@ -46,6 +41,8 @@ config = ConformanceSuiteConfig(
         'G3-4-2_1/index.xml:TC2_invalid',  # Produces 'EFM.6.03.11' and 'NL.NL-KVK.3.4.2.1.htmlOrXmlBaseUsed'
         'RTS_Annex_IV_Par_2_G3-1-1_1/index.xml:TC2_invalid',  # Expects NonIdenticalIdentifier instead of nonIdenticalIdentifier (note the cap N)
 
+        ### Discovered during transition to Test Engine:
+        'G5-1-3_2/index.xml:TC2_invalid',  # Produces 'NL.NL-KVK.3.6.3.2', 'NL.NL-KVK.5.1.3.1' '"NL.NL-KVK.RTS_Art_6_a'
 
         # Wont Run
         'G3-1-2_1/index.xml:TC1_valid',  # Tested in NL-INLINE-2024

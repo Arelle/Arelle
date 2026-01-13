@@ -25,11 +25,18 @@ config = ConformanceSuiteConfig(
         (r"^.*$", r"^ESEF\..*\.~$"),
     ],
     disclosure_system='esef-2022',
+    expected_additional_testcase_errors={f'tests/{s}': val for s, val in {
+        'inline_xbrl/RTS_Annex_IV_Par_12_G2-2-4/index.xml:TC5_valid': {
+            'message:tech_duplicated_facts1': 2,
+        },
+    }.items()},
     expected_failure_ids=frozenset(f'tests/{s}' for s in [
-        # The following test cases fail because of the `tech_duplicated_facts1` formula which fires
-        # incorrectly because it does not take into account the language attribute on the fact.
-        # A fact can not be a duplicate fact if the language attributes are different.
-        'inline_xbrl/RTS_Annex_IV_Par_12_G2-2-4/index.xml:TC5_valid'
+        ### Discovered during transition to Test Engine:
+        # Related to reportIncorrectlyPlacedInPackage not firing
+        'inline_xbrl/G2-6-2/index.xml:TC2_invalid',
+        # Related to missingOrInvalidTaxonomyPackage not firing
+        'inline_xbrl/RTS_Annex_III_Par_3_G3-1-3/index.xml:TC3_invalid',
+        'inline_xbrl/RTS_Annex_III_Par_3_G3-1-3/index.xml:TC5_invalid',
     ]),
     info_url='https://www.esma.europa.eu/document/esef-conformance-suite-2022',
     name=PurePath(__file__).stem,

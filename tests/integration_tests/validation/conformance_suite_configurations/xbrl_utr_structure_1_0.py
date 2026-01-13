@@ -18,6 +18,13 @@ config = ConformanceSuiteConfig(
             source=AssetSource.S3_PUBLIC,
         ),
     ],
+    expected_additional_testcase_errors={
+        # utr-structure-conf-cr-2013-11-18.zip is considered a taxonomy package due to presence of "catalog.xml".
+        "*": {
+            "tpe:metadataDirectoryNotFound": 1,
+            "tpe:metadataFileNotFound": 1,
+        },
+    },
     info_url='https://specifications.xbrl.org/work-product-index-registries-units-registry-1.0.html',
     name=PurePath(__file__).stem,
     runtime_options={

@@ -52,19 +52,8 @@ config = ConformanceSuiteConfig(
         'G3-2-7_1/index.xml:TC7_invalid': {
             'missingRelevantPlaceholder': 1,
         },
-        'G3-5-1_5/index.xml:TC2_invalid': {
-            # This is the expected error, but we return two of them, slightly different.
-            'imageFormatNotSupported': 1,
-        },
         'G3-5-2_3/index.xml:TC2_invalid': {
             'missingLabelForRoleInReportLanguage': 1,
-        },
-        'G3-5-3_1/index.xml:TC2_invalid': {
-            'arelle:ixdsTargetNotDefined': 1,
-            'extensionTaxonomyWrongFilesStructure': 2,
-            # This test is looking at the usage of the target attribute and does not import the correct taxonomy urls
-            'requiredEntryPointNotImported': 1,
-            'incorrectKvkTaxonomyVersionUsed': 1,
         },
         'G3-6-3_3/index.xml:TC2_invalid': {
             # Testcase expects only 3.6.3.3, but has a filename that has invalid characters (3.6.3.3)
@@ -77,9 +66,6 @@ config = ConformanceSuiteConfig(
         },
         'G4-1-1_1/index.xml:TC3_invalid': {
             'extensionConceptNoLabel': 1,
-        },
-        'G4-1-1_1/index.xml:TC4_invalid': {
-            'extensionTaxonomyWrongFilesStructure': 1,
         },
         'G4-1-1_1/index.xml:TC5_invalid': {
             'usableConceptsNotIncludedInPresentationLink': 1,
@@ -143,13 +129,9 @@ config = ConformanceSuiteConfig(
             'undefinedLanguageForTextFact': 1,
             'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 5,
         },
-        'RTS_Annex_IV_Par_6/index.xml:TC3_invalid': {
-            'extensionTaxonomyWrongFilesStructure': 1,
-        },
         'RTS_Annex_IV_Par_6/index.xml:TC4_invalid': {
             'undefinedLanguageForTextFact': 1,
             'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 5,
-            'extensionTaxonomyWrongFilesStructure': 1,
         },
         'RTS_Art_6_a/index.xml:TC2_invalid': {
             'UsableConceptsNotAppliedByTaggedFacts': 1,

@@ -35,6 +35,12 @@ config = ConformanceSuiteConfig(
         (r"^html:syntaxError$", r"^lxml\.SCHEMA.*$"),
     ],
     disclosure_system='efm-pragmatic',
+    expected_additional_testcase_errors={f"conf/{s}": val for s, val in {
+        ### Discovered during transition to Test Engine:
+        "525-ix-syntax/efm/19-multiio/19-multiio-efm-testcase.xml:_204gd": {
+            "arelle:nonIxdsDocument": 2,
+        },
+    }.items()},
     info_url='https://www.sec.gov/structureddata/osdinteractivedatatestsuite',
     name=PurePath(__file__).stem,
     plugins=frozenset({

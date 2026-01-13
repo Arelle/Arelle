@@ -18,12 +18,13 @@ config = ConformanceSuiteConfig(
         ),
         *NL_PACKAGES['NT16'],
     ],
-    expected_failure_ids=frozenset([
-        # message:valueAssertion_ConsolidatedCashFlowStatementInsurance_PrtFST1SumOfChildrenParentDebit6
-        'testcase-kvk-rpt-jaarverantwoording-2021-all-entrypoints-valid.xml:V-30',
-    ]),
     base_taxonomy_validation='none',
     disclosure_system='NT16',
+    expected_additional_testcase_errors={
+        'testcase-kvk-rpt-jaarverantwoording-2021-all-entrypoints-valid.xml:V-30': {
+            'message:valueAssertion_ConsolidatedCashFlowStatementInsurance_PrtFST1SumOfChildrenParentDebit6': 2
+        }
+    },
     ignore_levels=frozenset({
         ErrorLevel.NOT_SATISFIED,
         ErrorLevel.OK,
