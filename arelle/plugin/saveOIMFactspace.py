@@ -657,10 +657,10 @@ def saveOIMFactspace(
             oimDocInfo["linkTypes"] = {a: u for u, a in sorted(linkTypeAliases.items(), key=operator.itemgetter(1))}
         if groupAliases:
             oimDocInfo["linkGroups"] = {a: u for u, a in sorted(groupAliases.items(), key=operator.itemgetter(1))}
-        oimDocInfo["taxonomy"] = dtsReferences
+        oimDocInfo["xbrlModel"] = dtsReferences
         oimDocInfo["features"] = {"xbrl:canonicalValues": True}
     oimDocInfo["namespaces"] = namespacePrefixes.namespaces
-    # oimDocInfo["taxonomy"] = dtsReferences
+    # oimDocInfo["xbrlModel"] = dtsReferences
 
     factsToSave = modelXbrl.facts
     pluginData = modelXbrl.modelManager.cntlr.getPluginData(PLUGIN_NAME)
@@ -676,7 +676,7 @@ def saveOIMFactspace(
     if saveOimJson:
         oimModel["facts"] = factspaces = {}
     else:
-        oimModel["taxonomy"]["factspaces"] = factspaces = []
+        oimModel["xbrlModel"]["factspaces"] = factspaces = []
     factspacesByDims = {} # unique entry for mutli-valued factspaces
     # add in report level extension objects
     if extensionReportObjects:
