@@ -1,0 +1,37 @@
+name: Test Script
+description: Runs pytest against test script using given inputs. Adds logs to workflow run.
+inputs:
+  name:
+    description: Name of the test script to run
+    required: true
+  python_version:
+    description: Python version to use
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Install Python 3
+      uses: actions/setup-python@v6.1.0
+      with:
+        cache: 'pip'
+        check-latest: true
+        python-version: ${{ inputs.python_version }}
+    - name: Install dependencies
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip setuptools wheel
+        pip install -r requirements-test.txt
+        pip install -r requirements-plugins.txt
+    - name: Run test scripts with pytest
+      shell: bash
+      run: |
+        pytest -s --disable-warnings --name="${{ inputs.name }}" --download-cache --offline --arelle="python arelleCmdLine.py" tests/integration_tests/scripts/test_scripts.py
+    - name: Upload log artifacts
+      if: always()
+      uses: actions/upload-artifact@v6.0.0
+      with:
+        name: ${{ inputs.name }} ${{ runner.os }} ${{ inputs.python_version }} logs
+        if-no-files-found: error
+        include-hidden-files: true
+        path: '.test/**/*.logfile.*'
