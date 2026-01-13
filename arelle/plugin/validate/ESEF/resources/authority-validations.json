@@ -31,7 +31,8 @@
         "authorityRequiredTaxonomyURLs: authority-required standard URL in addition to ESEF effectiveTaxonomyURLs",
         "standardTaxonomyURIs: set of taxonomy URIs which are deemed base taxonomies",
         "formulaMessagesAdditionalURLs: for base URL list of additional formula messages URLs to load out of DTS",
-        "formulaRunIDs: if not null, regex of formula IDs to run (or with negative lookahead regex, to suppress)"
+        "formulaRunIDs: if not null, regex of formula IDs to run (or with negative lookahead regex, to suppress)",
+        "dtrNamespaces: the permitted DTR namespaces, each mapped to its corresponding XSD URL"
     ],
     "default": {
         "name": "Default ESMA ESEF validations",
@@ -243,7 +244,10 @@
         "reportPackageMaxMB": "2000",
         "reportPackageMeasurement": "unzipped",
         "ixTargetUsage": "allowed",
-        "formulaRunIDs": "(?!con_IdentifierSchemeMustBeLEI|lei-identifier-scheme)"
+        "formulaRunIDs": "(?!con_IdentifierSchemeMustBeLEI|lei-identifier-scheme)",
+        "dtrNamespaces": {
+            "http://www.xbrl.org/dtr/type/2020-01-21": "https://www.xbrl.org/dtr/type/2020-01-21/types.xsd"
+        }
     },
     "DE": {
         "name": "Germany"
