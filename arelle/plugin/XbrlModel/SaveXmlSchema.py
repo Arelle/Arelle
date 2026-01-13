@@ -63,7 +63,7 @@ def saveXmlSchema(cntlr, txmyMdl, saveXMLSchemaFiles):
         for obj in txmyMdl.filterNamedObjects(objClass):
             if obj.name.namespaceURI not in STANDARD_NAMESPACES:
                 prefixNamespaces[obj.name.prefix] = obj.name.namespaceURI
-                txmyModules.add(obj.taxonomy)
+                txmyModules.add(obj.xbrlCompMdl)
 
     taxonomyFiles = dict((f"{pfx}.xsd", ns) for pfx, ns in sorted(prefixNamespaces.items()))
 
