@@ -6,11 +6,15 @@ from tests.integration_tests.validation.conformance_suite_config import (
     ConformanceSuiteConfig,
 )
 
+ZIP_PATH = Path('esef_conformance_suite_2024.zip')
+EXTRACTED_PATH = Path(ZIP_PATH.stem)
 config = ConformanceSuiteConfig(
     assets=[
-        ConformanceSuiteAssetConfig.conformance_suite(
-            Path('esef_conformance_suite_2024.zip'),
-            entry_point=Path('esef_conformance_suite_2024/index_pure_xhtml.xml'),
+        ConformanceSuiteAssetConfig.nested_conformance_suite(
+            ZIP_PATH,
+            EXTRACTED_PATH,
+            entry_point_root=EXTRACTED_PATH / 'esef_conformance_suite_2024',
+            entry_point=Path('index_pure_xhtml.xml'),
             public_download_url='https://www.esma.europa.eu/sites/default/files/2025-01/esef_conformance_suite_2024.zip',
             source=AssetSource.S3_PUBLIC,
         ),
