@@ -104,10 +104,13 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
 
         if esefDisclosureSystemYear < 2023:
             esefDomainItemTypes = qnDomainItemTypesBefore2023
+            xbrlReference322 = "http://www.xbrl.org/dtr/type/nonNumeric-2009-12-16.xsd"
         elif esefDisclosureSystemYear == 2023 or esefTaxonomyYear < 2024:
             esefDomainItemTypes = qnDomainItemTypes2023
+            xbrlReference322 = "https://www.xbrl.org/dtr/type/2020-01-21/types.xsd"
         else:
             esefDomainItemTypes = qnDomainItemTypes2024
+            xbrlReference322 = "https://www.xbrl.org/dtr/type/2022-03-31/types.xsd"
         if modelDocument.targetNamespace is not None:
             for modelConcept in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/2001/XMLSchema}element"):
                 if isinstance(modelConcept,ModelConcept):
@@ -252,13 +255,6 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
                 _("Extension taxonomy MUST NOT define typed dimensions: %(concepts)s."),
                 modelObject=typedDimsInExtTxmy, concepts=", ".join(str(c.qname) for c in typedDimsInExtTxmy))
         if domainMembersWrongType:
-            if esefDisclosureSystemYear < 2023:
-                xbrlReference322 = "http://www.xbrl.org/dtr/type/nonNumeric-2009-12-16.xsd"
-            elif esefDisclosureSystemYear == 2023 or esefTaxonomyYear < 2024:
-                xbrlReference322 = "https://www.xbrl.org/dtr/type/2020-01-21/types.xsd"
-            else:
-                xbrlReference322 = "https://www.xbrl.org/dtr/type/2022-03-31/types.xsd"
-
             val.modelXbrl.error("ESEF.3.2.2.domainMemberWrongDataType",
                 _("Domain members MUST have domainItemType data type as defined in \"%(xbrlReference)s\": concept %(concepts)s."),
                 modelObject=domainMembersWrongType, xbrlReference=xbrlReference322,
