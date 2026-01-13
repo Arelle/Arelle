@@ -147,6 +147,9 @@ def run_conformance_suites(
         download_assets(unique_assets, download_option == DOWNLOAD_OVERWRITE, download_cache, download_private)
     else:
         verify_assets(unique_assets)
+    for config in conformance_suite_configs:
+        if config.preprocessing_func is not None:
+            config.preprocessing_func(config)
     all_results = []
     if test_option:
         for config in conformance_suite_configs:
