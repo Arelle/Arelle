@@ -12,6 +12,7 @@ from arelle import ModelDocument as ModelDocumentFile, XbrlConst
 from arelle.ModelDocument import ModelDocument
 from arelle.ModelDtsObject import ModelConcept, ModelType
 from arelle.ModelObject import ModelObject
+from arelle.ModelValue import qname
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.XbrlConst import dimensionDefault, standardLabelRoles, xbrli
 from arelle.typing import TypeGetText
@@ -102,7 +103,10 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
         dimensionDefaults = val.modelXbrl.relationshipSet(dimensionDefault, DefaultDimensionLinkroles)
         labelsRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
 
-        if esefDisclosureSystemYear < 2023:
+        if (authorityDtrNamespaces := val.authParam.get("dtrNamespaces")) is not None:
+            esefDomainItemTypes = frozenset(qname(ns, "domainItemType") for ns in authorityDtrNamespaces.keys())
+            xbrlReference322 = next(iter(authorityDtrNamespaces.values()))
+        elif esefDisclosureSystemYear < 2023:
             esefDomainItemTypes = qnDomainItemTypesBefore2023
             xbrlReference322 = "http://www.xbrl.org/dtr/type/nonNumeric-2009-12-16.xsd"
         elif esefDisclosureSystemYear == 2023 or esefTaxonomyYear < 2024:
