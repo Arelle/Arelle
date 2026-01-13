@@ -43,19 +43,15 @@ config = ConformanceSuiteConfig(
         package for year in [2022, 2024] for package in ESEF_PACKAGES[year]
     ],
     base_taxonomy_validation='none',
-    expected_additional_testcase_errors={f'*tests/FRC/{s}': val for s, val in {
-        # Test case references TC2_valid.zip, but actual file in suite has .xbri extension.
+    expected_additional_testcase_errors={f'tests/FRC/{s}': val for s, val in {
+        # Invalid documentType https://xbrl.org/report-package/CR/2023-05-03/xbri
         'FRC_09/index.xml:TC2_valid': {
-            'FileSourceError': 1,
-            'tpe:invalidArchiveFormat': 1
+            'rpe:unsupportedReportPackageVersion': 1,
         },
-        # Test case references TC3_valid.zip, but actual file in suite has .xbri extension.
-        'FRC_09/index.xml:TC3_valid': {
-            'FileSourceError': 1,
-            'tpe:invalidArchiveFormat': 1
+        # Invalid documentType https://xbrl.org/report-package/CR/2023-05-03
+        'FRC_09/index.xml:TC4_valid': {
+            'rpe:unsupportedReportPackageVersion': 1,
         },
-        # Report package uses CR document type URI instead of rec URI.
-        'FRC_09/index.xml:TC4_valid': {'rpe:unsupportedReportPackageVersion': 1},
     }.items()},
     expected_failure_ids=frozenset({f'tests/FRC/{s}' for s in [
         # FRC XBRL Tagging Guide not yet implemented.
