@@ -64,7 +64,7 @@ runs:
     - name: Cat logs
       if: always()
       shell: bash
-      run: tail -n+1 conf-*log.txt
+      run: find conf-logs/ -type f -exec tail -n+1 {} +
     - id: build-artifact-name
       if: always()
       shell: bash
