@@ -1,11 +1,15 @@
 from pathlib import PurePath, Path
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig
 
+ZIP_PATH = Path("taxonomy-package-conformance.zip")
+EXTRACTED_PATH = Path(ZIP_PATH.stem)
 config = ConformanceSuiteConfig(
     assets=[
-        ConformanceSuiteAssetConfig.conformance_suite(
-            Path('taxonomy-package-conformance.zip'),
-            entry_point=Path('index.xml'),
+        ConformanceSuiteAssetConfig.nested_conformance_suite(
+            ZIP_PATH,
+            EXTRACTED_PATH,
+            entry_point_root=EXTRACTED_PATH,
+            entry_point=Path("index.xml"),
         ),
     ],
     info_url='https://specifications.xbrl.org/work-product-index-taxonomy-packages-taxonomy-packages-1.0.html',

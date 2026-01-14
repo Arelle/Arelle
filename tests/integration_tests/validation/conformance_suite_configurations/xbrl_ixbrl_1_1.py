@@ -5,7 +5,6 @@ from tests.integration_tests.validation.conformance_suite_config import (
 )
 
 ZIP_PATH = Path('inlineXBRL-1.1-conformanceSuite-2020-04-08.zip')
-# needs to be extracted because arelle can't load a taxonomy package ZIP from within a ZIP
 EXTRACTED_PATH = Path(ZIP_PATH.stem)
 config = ConformanceSuiteConfig(
     args=[
@@ -15,8 +14,8 @@ config = ConformanceSuiteConfig(
         ConformanceSuiteAssetConfig.nested_conformance_suite(
             ZIP_PATH,
             EXTRACTED_PATH,
-            entry_point_root=EXTRACTED_PATH,
-            entry_point=Path('inlineXBRL-1.1-conformanceSuite-2020-04-08/index.xml'),
+            entry_point_root=EXTRACTED_PATH / 'inlineXBRL-1.1-conformanceSuite-2020-04-08',
+            entry_point=Path('index.xml'),
             public_download_url='https://www.xbrl.org/2020/inlineXBRL-1.1-conformanceSuite-2020-04-08.zip',
             source=AssetSource.S3_PUBLIC,
         ),

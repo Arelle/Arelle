@@ -4,7 +4,6 @@ from tests.integration_tests.validation.assets import NL_PACKAGES
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig, AssetSource
 
 ZIP_PATH = Path('NT17_KVK_20221214 Berichten.zip')
-# needs to be extracted because arelle can't load a taxonomy package ZIP from within a ZIP
 EXTRACTED_PATH = Path(ZIP_PATH.stem)
 config = ConformanceSuiteConfig(
     assets=[
