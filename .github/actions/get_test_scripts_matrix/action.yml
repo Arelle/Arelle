@@ -1,0 +1,16 @@
+name: Get Test Scripts Matrix
+description: Find test scripts. Output matrix in JSON format.
+outputs:
+  matrix:
+    description: Matrix to use for initiating jobs.
+    value: ${{ steps.find.outputs.matrix }}
+
+runs:
+  using: composite
+  steps:
+    - id: find
+      shell: bash
+      run: |
+        echo 'matrix<<EOF' >> $GITHUB_OUTPUT
+        python -m tests.integration_tests.scripts.discover_tests | tee -a $GITHUB_OUTPUT
+        echo EOF >> $GITHUB_OUTPUT

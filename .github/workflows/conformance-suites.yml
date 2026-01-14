@@ -2,42 +2,31 @@ name: Run Xbrl Conformance Suites
 
 on:
   workflow_dispatch:
-  pull_request_target:
-    paths:
-      - '.github/workflows/conformance-suites.yml'
-      - 'arelle/**'
-      - 'tests/**'
-      - '**.py'
-      - '**.pyw'
-      - 'requirements*.txt'
 
 permissions: {}
 
 jobs:
-  find-tests:
+  find-conformance-suites:
     runs-on: ubuntu-24.04
     outputs:
-      matrix: ${{ steps.build-test-matrix.outputs.matrix }}
+      matrix: ${{ steps.build-conformance-suite-matrix.outputs.matrix }}
     steps:
       - uses: actions/checkout@v6.0.1
         with:
           persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
-      - id: build-test-matrix
-        run: |
-          echo 'matrix<<EOF' >> $GITHUB_OUTPUT
-          python -m tests.integration_tests.validation.discover_tests | tee -a $GITHUB_OUTPUT
-          echo EOF >> $GITHUB_OUTPUT
+      - id: build-conformance-suite-matrix
+        uses: ./.github/actions/get_conformance_suites_matrix
 
   run-conformance-suite:
     name: ${{ matrix.test.short_name }}${{ matrix.test.shard && format(':{0}', matrix.test.shard) || '' }} - ${{ matrix.test.os }} - ${{ matrix.test.python_version }}
-    needs: find-tests
+    needs: find-conformance-suites
     runs-on: ${{ matrix.test.os }}
     strategy:
       fail-fast: false
       matrix:
-        test: ${{ fromJson(needs.find-tests.outputs.matrix) }}
+        test: ${{ fromJson(needs.find-conformance-suites.outputs.matrix) }}
     environment: ${{ matrix.test.environment }}
     steps:
       - uses: actions/checkout@v6.0.1
