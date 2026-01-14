@@ -3,7 +3,7 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-from collections import defaultdict
+from collections import defaultdict, Counter
 
 import fnmatch
 import json
@@ -241,6 +241,10 @@ class TestEngine:
         for plugin in plugins:
             plugin_options |= dynamic_options.get('pluginOptions', {}) | DEFAULT_PLUGIN_OPTIONS.get(plugin, {})
 
+        for pattern, disclosure_system in self._test_engine_options.disclosure_system_by_id:
+            if fnmatch.fnmatch(testcase.full_id, pattern):
+                dynamic_options['disclosureSystemName'] = disclosure_system
+
         if testcase.calc_mode is not None:
             assert dynamic_options.get('calcs', testcase.calc_mode) == testcase.calc_mode, \
                 'Conflicting "calcs" values from testcase variation and user input.'
@@ -355,6 +359,14 @@ class TestEngine:
             results.append(result)
         return results
 
+    def _validate_testcase_set(self, testcase_set: TestcaseSet) -> None:
+        duplicate_ids = [
+            test_id
+            for test_id, count in Counter(t.full_id for t in testcase_set.testcases).items()
+            if count > 1
+        ]
+        assert not duplicate_ids, f'Testcase set contains duplicate IDs: {duplicate_ids}'
+
     def run(self, testcase_set: TestcaseSet | None = None) -> TestEngineResult:
         start_ts = time.perf_counter_ns()
 
@@ -364,8 +376,10 @@ class TestEngine:
         if testcase_set is None:
             testcase_set = load_testcase_index(self._test_engine_options.index_file)
         testcase_set = self._filter_testcase_set(testcase_set)
+        self._validate_testcase_set(testcase_set)
         testcases = testcase_set.testcases
         print(f'Loaded {len(testcases)} testcases from {self._test_engine_options.index_file}')
+
         test_realtime_ts = time.perf_counter_ns()
         if self._test_engine_options.parallel:
             processes = self._test_engine_options.processes or multiprocessing.cpu_count()

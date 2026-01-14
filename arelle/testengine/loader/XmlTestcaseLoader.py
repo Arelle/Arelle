@@ -179,6 +179,7 @@ def _load_testcase_doc(doc: ModelDocument, index_file: Path, testcases: list[Tes
         canonical_path = base_path.relative_to(root_dir).as_posix()
         for target in _iter_targets(variation):
             variation.ixdsTarget = target
+            assert variation.id, f'Test case contains variation with no ID: {variation.base}'
             assert TARGET_SUFFIX_SEPARATOR not in variation.id, \
                 f"The '{TARGET_SUFFIX_SEPARATOR}' character is used internally as a separator " + \
                 "and can not be included in a testcase ID."
