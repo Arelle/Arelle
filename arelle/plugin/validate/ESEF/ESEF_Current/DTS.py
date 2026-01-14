@@ -12,6 +12,7 @@ from arelle import ModelDocument as ModelDocumentFile, XbrlConst
 from arelle.ModelDocument import ModelDocument
 from arelle.ModelDtsObject import ModelConcept, ModelType
 from arelle.ModelObject import ModelObject
+from arelle.ModelValue import qname
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.XbrlConst import dimensionDefault, standardLabelRoles, xbrli
 from arelle.typing import TypeGetText
@@ -21,7 +22,7 @@ from ..Const import (
     filenamePatterns,
     filenameRegexes,
     linkbaseRefTypes,
-    qnDomainItemTypes,
+    qnDomainItemTypesBefore2023,
     qnDomainItemTypes2023,
     qnDomainItemTypes2024,
 )
@@ -101,6 +102,19 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
         calcRelSet = val.modelXbrl.relationshipSet(XbrlConst.summationItems)
         dimensionDefaults = val.modelXbrl.relationshipSet(dimensionDefault, DefaultDimensionLinkroles)
         labelsRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
+
+        if (authorityDtrNamespaces := val.authParam.get("dtrNamespaces")) is not None:
+            esefDomainItemTypes = frozenset(qname(ns, "domainItemType") for ns in authorityDtrNamespaces.keys())
+            xbrlReference322 = next(iter(authorityDtrNamespaces.values()))
+        elif esefDisclosureSystemYear < 2023:
+            esefDomainItemTypes = qnDomainItemTypesBefore2023
+            xbrlReference322 = "http://www.xbrl.org/dtr/type/nonNumeric-2009-12-16.xsd"
+        elif esefDisclosureSystemYear == 2023 or esefTaxonomyYear < 2024:
+            esefDomainItemTypes = qnDomainItemTypes2023
+            xbrlReference322 = "https://www.xbrl.org/dtr/type/2020-01-21/types.xsd"
+        else:
+            esefDomainItemTypes = qnDomainItemTypes2024
+            xbrlReference322 = "https://www.xbrl.org/dtr/type/2022-03-31/types.xsd"
         if modelDocument.targetNamespace is not None:
             for modelConcept in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/2001/XMLSchema}element"):
                 if isinstance(modelConcept,ModelConcept):
@@ -120,12 +134,6 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
                             _("Each dimension in an issuer specific extension taxonomy MUST be assigned to a default member in the ELR with role URI http://www.esma.europa.eu/xbrl/role/core/ifrs-dim_role-990000 defined in esef_cor.xsd schema file. %(qname)s"),
                             modelObject=modelConcept, qname=modelConcept.qname)
 
-                    if esefDisclosureSystemYear < 2023:
-                        esefDomainItemTypes = qnDomainItemTypes
-                    elif esefDisclosureSystemYear == 2023 or esefTaxonomyYear < 2024:
-                        esefDomainItemTypes = qnDomainItemTypes2023
-                    else:
-                        esefDomainItemTypes = qnDomainItemTypes2024
                     if modelConcept.isDomainMember and modelConcept in val.domainMembers and modelConcept.typeQname not in esefDomainItemTypes:
                         domainMembersWrongType.append(modelConcept)
                     if modelConcept.isPrimaryItem and not modelConcept.isAbstract:
@@ -251,13 +259,6 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
                 _("Extension taxonomy MUST NOT define typed dimensions: %(concepts)s."),
                 modelObject=typedDimsInExtTxmy, concepts=", ".join(str(c.qname) for c in typedDimsInExtTxmy))
         if domainMembersWrongType:
-            if esefDisclosureSystemYear < 2023:
-                xbrlReference322 = "http://www.xbrl.org/dtr/type/nonNumeric-2009-12-16.xsd"
-            elif esefDisclosureSystemYear == 2023 or esefTaxonomyYear < 2024:
-                xbrlReference322 = "https://www.xbrl.org/dtr/type/2020-01-21/types.xsd"
-            else:
-                xbrlReference322 = "https://www.xbrl.org/dtr/type/2022-03-31/types.xsd"
-
             val.modelXbrl.error("ESEF.3.2.2.domainMemberWrongDataType",
                 _("Domain members MUST have domainItemType data type as defined in \"%(xbrlReference)s\": concept %(concepts)s."),
                 modelObject=domainMembersWrongType, xbrlReference=xbrlReference322,
