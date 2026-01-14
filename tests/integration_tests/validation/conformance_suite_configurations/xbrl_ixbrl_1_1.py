@@ -7,9 +7,6 @@ from tests.integration_tests.validation.conformance_suite_config import (
 ZIP_PATH = Path('inlineXBRL-1.1-conformanceSuite-2020-04-08.zip')
 EXTRACTED_PATH = Path(ZIP_PATH.stem)
 config = ConformanceSuiteConfig(
-    args=[
-        '--packages', os.path.join(CONFORMANCE_SUITE_PATH_PREFIX, EXTRACTED_PATH, 'inlineXBRL-1.1-conformanceSuite-2020-04-08/schemas/www.example.com.zip'),
-    ],
     assets=[
         ConformanceSuiteAssetConfig.nested_conformance_suite(
             ZIP_PATH,

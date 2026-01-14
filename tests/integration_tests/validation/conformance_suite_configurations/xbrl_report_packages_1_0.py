@@ -43,9 +43,6 @@ ERRORS_TPE_METADATA = ERRORS_TPE_METADATA_DIRECTORY | ERRORS_TPE_METADATA_FILE
 ZIP_PATH = Path("report-package-conformance.zip")
 EXTRACTED_PATH = Path(ZIP_PATH.stem)
 config = ConformanceSuiteConfig(
-    args=[
-        "--reportPackage"
-    ],
     assets=[
         ConformanceSuiteAssetConfig.nested_conformance_suite(
             ZIP_PATH,

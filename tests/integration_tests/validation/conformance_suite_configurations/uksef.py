@@ -25,9 +25,6 @@ def _preprocessing_func(config: ConformanceSuiteConfig) -> None:
 
 
 config = ConformanceSuiteConfig(
-    args=[
-        '--formula', 'none',
-    ],
     assets=[
         ConformanceSuiteAssetConfig.extracted_conformance_suite(
             (

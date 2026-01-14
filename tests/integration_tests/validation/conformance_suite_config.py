@@ -202,7 +202,6 @@ class ConformanceSuiteConfig:
     info_url: str
     name: str
     additional_plugins_by_prefix: list[tuple[str, frozenset[str]]] = field(default_factory=list)
-    args: list[str] = field(default_factory=list)
     assets: list[ConformanceSuiteAssetConfig] = field(default_factory=list)
     base_taxonomy_validation: Literal['disclosureSystem', 'none', 'all', None] = None
     cache_version_id: str | None = None

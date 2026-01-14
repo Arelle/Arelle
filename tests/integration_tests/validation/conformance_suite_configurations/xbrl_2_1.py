@@ -7,9 +7,6 @@ from tests.integration_tests.validation.conformance_suite_config import (
 )
 
 config = ConformanceSuiteConfig(
-    args=[
-        '--calc', 'xbrl21',
-    ],
     assets=[
         ConformanceSuiteAssetConfig.conformance_suite(
             Path('XBRL-CONF-2025-07-16.zip'),

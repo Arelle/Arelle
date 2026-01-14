@@ -2,9 +2,6 @@ from pathlib import PurePath, Path
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig, AssetSource
 
 config = ConformanceSuiteConfig(
-    args=[
-        '--infoset',
-    ],
     assets=[
         ConformanceSuiteAssetConfig.conformance_suite(
             Path('XBRL-XDT-CONF-2025-09-09.zip'),
