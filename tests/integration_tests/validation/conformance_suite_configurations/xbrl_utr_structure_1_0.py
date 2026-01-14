@@ -6,10 +6,6 @@ from tests.integration_tests.validation.conformance_suite_config import (
 
 ZIP_PATH = 'utr/structure/utr-structure-conf-cr-2013-11-18.zip'
 config = ConformanceSuiteConfig(
-    args=[
-        '--utrUrl', os.path.join(CONFORMANCE_SUITE_PATH_PREFIX, ZIP_PATH, 'conf/utr-structure/utr-for-structure-conformance-tests.xml'),
-        '--utr',
-    ],
     assets=[
         ConformanceSuiteAssetConfig.conformance_suite(
             Path(ZIP_PATH),
