@@ -236,12 +236,6 @@ class ConformanceSuiteConfig:
             if p1.startswith(p2) or p2.startswith(p1)]
         assert not overlapping_prefixes, \
             f'Overlapping prefixes are not supported: {overlapping_prefixes}'
-        assert not (self.shards == 1 and self.additional_plugins_by_prefix), \
-            'Cannot specify additional_plugins_by_prefix with only one shard.'
-        plugin_combinations = len({plugins for _, plugins in self.additional_plugins_by_prefix}) + 1
-        assert plugin_combinations <= self.shards, \
-            'Too few shards to accommodate the number of plugin combinations:' \
-            f' combinations={plugin_combinations} shards={self.shards}'
         overlapping_expected_testcase_ids = self.expected_failure_ids.intersection(self.required_locale_by_ids)
         assert not overlapping_expected_testcase_ids, \
             f'Testcase IDs in both expected failures and required locales: {sorted(overlapping_expected_testcase_ids)}'
@@ -252,9 +246,6 @@ class ConformanceSuiteConfig:
             ci_core_counts = set(OS_CORES.values())
             assert any(self.shards % core_count == 0 for core_count in ci_core_counts), \
                 f'Shards setting not optimized for CI CPU cores: {self.shards}'
-        disclosure_systems = {ds for _, ds in self.disclosure_system_by_prefix} | {str(self.disclosure_system)}
-        assert self.shards >= len(disclosure_systems), \
-            f'Too few shards to accommodate disclosure systems: shards={self.shards} disclosure systems={sorted(disclosure_systems)}.'
 
     @property
     def runs_without_network(self) -> bool:

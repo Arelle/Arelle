@@ -9,12 +9,13 @@ from tests.integration_tests.validation.conformance_suite_config import (
 CONFORMANCE_SUITE_ZIP_NAME = 'efm-76-251010.zip'
 
 config = ConformanceSuiteConfig(
-    additional_plugins_by_prefix=[(f'conf/{t}', frozenset({'EDGAR/render'})) for t in [
+    additional_plugins_by_prefix=[(p, frozenset({'EDGAR/render'})) for p in [
         '612-presentation-syntax/612-09-presented-units-order/',
         '624-rendering/15-equity-changes/',
         '624-rendering/17-uncategorized-facts/',
         '626-rendering-syntax/',
-        '902-sdr/efm/62421-sdr-multiple/',
+        # Not actually included in conformance suite testcases index
+        # '902-sdr/efm/62421-sdr-multiple/',
     ]],
     assets=[
         ConformanceSuiteAssetConfig.conformance_suite(
