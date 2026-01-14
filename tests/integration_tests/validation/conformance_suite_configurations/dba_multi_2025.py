@@ -2,9 +2,6 @@ from pathlib import PurePath, Path
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig
 
 config = ConformanceSuiteConfig(
-    args=[
-        '--formula', 'none',
-    ],
     assets=[
         ConformanceSuiteAssetConfig.local_conformance_suite(
             Path('dba_multi_2025'),

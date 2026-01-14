@@ -5,10 +5,6 @@ from tests.integration_tests.validation.conformance_suite_config import (
 )
 
 config = ConformanceSuiteConfig(
-    args=[
-        '--utrUrl', os.path.join(CONFORMANCE_SUITE_PATH_PREFIX, 'utr/registry/utr.xml'),
-        '--utr',
-    ],
     assets=[
         ConformanceSuiteAssetConfig.conformance_suite(
             Path('utr/registry/utr-conf-cr-2013-05-17.zip'),

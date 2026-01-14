@@ -2,9 +2,6 @@ from pathlib import PurePath, Path
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig
 
 config = ConformanceSuiteConfig(
-    args=[
-        '--validateXmlOim',
-    ],
     assets=[
         ConformanceSuiteAssetConfig.conformance_suite(
             Path('oim-conformance-2023-04-19.zip'),

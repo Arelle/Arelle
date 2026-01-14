@@ -13,9 +13,6 @@ EXTRACTED_EXTRACTED_PATH = Path(EXTRACTED_ZIP_PATH.parent) / EXTRACTED_ZIP_PATH.
 
 
 config = ConformanceSuiteConfig(
-    args=[
-        '--formula', 'none',
-    ],
     assets=[
         ConformanceSuiteAssetConfig.extracted_conformance_suite(
             (
