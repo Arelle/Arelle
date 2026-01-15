@@ -44,5 +44,6 @@ jobs:
       - name: Test Script
         uses: ./.github/actions/test_script
         with:
+          artifact_name: ${{ matrix.test.private && 'private' || '' }} scripts ${{ matrix.test.os }} ${{ matrix.test.python_version }} logs
           name: ${{ matrix.test.name }}
           python_version: ${{ matrix.test.python_version }}

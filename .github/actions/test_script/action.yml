@@ -1,6 +1,10 @@
 name: Test Script
 description: Runs pytest against test script using given inputs. Adds logs to workflow run.
 inputs:
+  artifact_name:
+    default: 'logs'
+    description: Name of the logs artifact to upload
+    required: true
   name:
     description: Name of the test script to run
     required: true
@@ -31,7 +35,7 @@ runs:
       if: always()
       uses: actions/upload-artifact@v6.0.0
       with:
-        name: ${{ inputs.name }} ${{ runner.os }} ${{ inputs.python_version }} logs
+        name: ${{ inputs.artifact_name }}
         if-no-files-found: error
         include-hidden-files: true
         path: '.test/**/*.logfile.*'
