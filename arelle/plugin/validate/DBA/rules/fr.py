@@ -9,9 +9,12 @@ from collections.abc import Iterable
 from typing import Any, cast
 
 from arelle import ModelDocument
+from arelle.ModelInstanceObject import ModelFact
+from arelle.ModelValue import QName
 from arelle.XbrlConst import xhtml
 from arelle.typing import TypeGetText
 from arelle.ValidateXbrl import ValidateXbrl
+from arelle.utils.Contexts import ContextHashKey
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
@@ -1429,3 +1432,65 @@ def rule_fr107(
                   "are tagged without the concept of `TypeOfDigitalNonregisteredBookkeepingSystem` being tagged."),
             modelObject=startDatesFacts | endDatesFacts
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=STAND_ALONE_DISCLOSURE_SYSTEMS,
+)
+def rule_fr108(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR108: There are accounting systems whose periods overlap.
+    """
+
+    def findOverlappingPeriods(groupedFacts: dict[ContextHashKey, list[ModelFact]], startDateQnames: list[QName], endDateQnames: list[QName]) -> list[list[ModelFact]]:
+        periodsList: list[list[ModelFact]] = []
+        for facts in groupedFacts.values():
+            startDateFact = None
+            endDateFact = None
+            for fact in facts:
+                if fact.qname in startDateQnames:
+                    startDateFact = fact
+                elif fact.qname in endDateQnames:
+                    endDateFact = fact
+            if startDateFact is not None and endDateFact is not None:
+                periodsList.append([startDateFact, endDateFact])
+        sortedPeriodList = sorted(periodsList, key=lambda period: cast(datetime.date, period[0].xValue))
+        overlappingPeriods: list[list[ModelFact]] = []
+        for i in range(len(sortedPeriodList) - 1):
+            currentPeriod = sortedPeriodList[i]
+            nextPeriod = sortedPeriodList[i + 1]
+            currentEndDate = currentPeriod[1].xValue
+            nextStartDate = nextPeriod[0].xValue
+            if currentEndDate is not None and nextStartDate is not None and cast(datetime.date, currentEndDate) > cast(datetime.date, nextStartDate):
+                overlappingPeriods.append(currentPeriod + nextPeriod)
+        return overlappingPeriods
+
+    # Registered Accounting Systems
+    regStartDatesFacts = val.modelXbrl.factsByQname.get(pluginData.startDateForUseOfDigitalStandardBookkeepingSystemQn, set())
+    regEndDatesFacts = val.modelXbrl.factsByQname.get(pluginData.endDateForUseOfDigitalStandardBookkeepingSystemQn, set())
+    # Non-Registered Accounting Systems
+    nonRegStartDatesFacts = val.modelXbrl.factsByQname.get(pluginData.startDateForUseOfDigitalNonregisteredBookkeepingSystemQn, set())
+    nonRegEndDatesFacts = val.modelXbrl.factsByQname.get(pluginData.endDateForUseOfDigitalNonregisteredBookkeepingSystemQn, set())
+    if len(regStartDatesFacts) + len(nonRegStartDatesFacts) > 1 and len(regEndDatesFacts) + len(nonRegEndDatesFacts) > 1:
+        allDateFact = regStartDatesFacts.union(regEndDatesFacts).union(nonRegStartDatesFacts).union(nonRegEndDatesFacts)
+        allGroupedFacts = groupFactsByContextHash(allDateFact)
+        offendingPeriods = findOverlappingPeriods(
+            allGroupedFacts,
+            [pluginData.startDateForUseOfDigitalStandardBookkeepingSystemQn, pluginData.startDateForUseOfDigitalNonregisteredBookkeepingSystemQn],
+            [pluginData.endDateForUseOfDigitalStandardBookkeepingSystemQn, pluginData.endDateForUseOfDigitalNonregisteredBookkeepingSystemQn]
+        )
+        for periodFacts in offendingPeriods:
+            yield Validation.error(
+                codes='DBA.FR108',
+                msg=_("There are periods that overlap between accounting systems.\n"
+                      "For registered accounting systems the periods are defined by `StartDateForUseOfDigitalStandardBookkeepingSystem` and `EndDateForUseOfDigitalStandardBookkeepingSystem`. \n"
+                      "For non-registered accounting systems the periods are defined by `StartDateForUseOfDigitalNonregisteredBookkeepingSystem` and `EndDateForUseOfDigitalNonregisteredBookkeepingSystem`.\n"
+                      ),
+                modelObject=periodFacts
+            )
