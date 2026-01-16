@@ -16,8 +16,6 @@ from pathlib import Path
 from typing import Any
 
 from arelle.ModelDocument import LoadingException, ModelDocument
-from arelle.ModelXbrl import ModelXbrl
-from arelle.ValidateXbrl import ValidateXbrl
 from arelle.Version import authorLabel, copyrightLabel
 from .ValidationPluginExtension import ValidationPluginExtension
 from .rules import br_kvk, fg_nl, fr_kvk, fr_nl, nl_kvk
