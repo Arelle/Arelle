@@ -224,7 +224,7 @@ class ValidationPluginExtension(ValidationPlugin):
             kvkINamespace = 'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-cor'
             nlTypesNamespace = None
             rjNamespace = 'https://www.nltaxonomie.nl/rj/2024-12-31/rj-cor'
-            entrypointRoot = 'http://www.nltaxonomie.nl/kvk/2024-12-31/'
+            entrypointRoot = 'https://www.nltaxonomie.nl/kvk/2024-12-31/'
             entrypoints = {entrypointRoot + e for e in [
                 'kvk-annual-report-ifrs-ext.xsd',
                 'kvk-annual-report-nlgaap-ext.xsd',
@@ -235,7 +235,7 @@ class ValidationPluginExtension(ValidationPlugin):
             kvkINamespace = 'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-cor'
             nlTypesNamespace = None
             rjNamespace = 'https://www.nltaxonomie.nl/rj/2024-12-31/rj-cor'
-            entrypointRoot = 'http://www.nltaxonomie.nl/kvk/2024-12-31/'
+            entrypointRoot = 'https://www.nltaxonomie.nl/kvk/2024-12-31/'
             entrypoints = {entrypointRoot + e for e in [
                 'kvk-annual-report-other-gaap.xsd',
             ]}
