@@ -682,17 +682,7 @@ class Validate:
         hasAssertionResult = any(isinstance(e,dict) for e in _errors)
         expected = modelTestcaseVariation.expected
         expectedCount = modelTestcaseVariation.expectedCount
-        indexPath = modelTestcaseVariation.document.filepath
-        if self.useFileSource is not None and self.useFileSource.isZip:
-            baseZipFile = self.useFileSource.basefile
-            if indexPath.startswith(baseZipFile):
-                indexPath = indexPath[len(baseZipFile) + 1:]
-            indexPath = indexPath.replace("\\", "/")
-        variationIdPath = f'{indexPath}:{modelTestcaseVariation.id}'
-        userExpectedErrors = []
-        for userPattern, userErrors in testcaseExpectedErrors.items():
-            if fnmatch.fnmatch(variationIdPath, userPattern):
-                userExpectedErrors.extend(userErrors)
+        userExpectedErrors = modelTestcaseVariation.setUserExpectedErrors(testcaseExpectedErrors, self.useFileSource).copy()
         if userExpectedErrors:
             if expected is None:
                 expected = []
