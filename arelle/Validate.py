@@ -699,6 +699,8 @@ class Validate:
             elif isinstance(expected, str):
                 assert expected in {"valid", "invalid"}, f"unhandled expected value string '{expected}'"
                 expected = []
+            elif isinstance(expected, list):
+                expected = expected.copy()
             expected.extend(userExpectedErrors)
             if expectedCount is not None:
                 expectedCount += len(userExpectedErrors)
