@@ -770,7 +770,7 @@ class gYear:
         return self.year >= other.year
 
     def __bool__(self) -> bool:
-        return self.year != 0 != 0
+        return self.year != 0
 
     def __hash__(self) -> int:
         return self.year
