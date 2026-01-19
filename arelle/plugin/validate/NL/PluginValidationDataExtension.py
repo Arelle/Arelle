@@ -372,9 +372,11 @@ class PluginValidationDataExtension(PluginData):
                     if elr in elrsContainingDimensionalRelationships:
                         anchorsInDimensionalElrs[elr].add(anchoringRel)
 
-                if (fromObj.type != toObj.type and
-                        (not fromObj.type.isDerivedFrom(toObj.type.qname) or
-                         not toObj.type.isDerivedFrom(fromObj.type.qname))):
+                if not (
+                    fromObj.type == toObj.type
+                    or fromObj.type.isDerivedFrom(toObj.type.qname)
+                    or toObj.type.isDerivedFrom(fromObj.type.qname)
+                ):
                     extConceptsNotAnchoredToSameDerivedType.add(toObj)
         return AnchorData(
             anchorsInDimensionalElrs={x: frozenset(y) for x, y in anchorsInDimensionalElrs.items()},
