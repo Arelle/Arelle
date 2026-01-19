@@ -71,8 +71,8 @@ class ErrorManager:
         self._logCount.clear()
 
     def isLoggingEffectiveFor(self, logger: logging.Logger, **kwargs: Any) -> bool:  # args can be messageCode(s) and level
-        assert hasattr(logger, 'messageCodeFilter'), 'messageCodeFilter not set on controller logger.'
-        assert hasattr(logger, 'messageLevelFilter'), 'messageLevelFilter not set on controller logger.'
+        messageCodeFilter = getattr(logger, 'messageCodeFilter', None)
+        messageLevelFilter = getattr(logger, 'messageLevelFilter', None)
         if "messageCodes" in kwargs or "messageCode" in kwargs:
             if "messageCodes" in kwargs:
                 messageCodes = kwargs["messageCodes"]
@@ -80,11 +80,11 @@ class ErrorManager:
                 messageCodes = kwargs["messageCode"]
             messageCode = self._effectiveMessageCode(messageCodes)
             codeEffective = (messageCode and
-                             (not logger.messageCodeFilter or logger.messageCodeFilter.match(messageCode)))
+                             (not messageCodeFilter or messageCodeFilter.match(messageCode)))
         else:
             codeEffective = True
-        if "level" in kwargs and logger.messageLevelFilter:
-            levelEffective = logger.messageLevelFilter.match(kwargs["level"].lower())
+        if "level" in kwargs and messageLevelFilter:
+            levelEffective = messageLevelFilter.match(kwargs["level"].lower())
         else:
             levelEffective = True
         return bool(codeEffective and levelEffective)
@@ -103,10 +103,8 @@ class ErrorManager:
     ) -> None:
         """Same as error(), but level passed in as argument
         """
-        assert hasattr(logger, 'messageCodeFilter'), 'messageCodeFilter not set on controller logger.'
-        messageCodeFilter = getattr(logger, 'messageCodeFilter')
-        assert hasattr(logger, 'messageLevelFilter'), 'messageLevelFilter not set on controller logger.'
-        messageLevelFilter = getattr(logger, 'messageLevelFilter')
+        messageCodeFilter = getattr(logger, 'messageCodeFilter', None)
+        messageLevelFilter = getattr(logger, 'messageLevelFilter', None)
         # determine logCode
         messageCode = self._effectiveMessageCode(codes)
         if messageCode == "asrtNoLog":
