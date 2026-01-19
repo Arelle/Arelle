@@ -594,8 +594,9 @@ class PluginValidationDataExtension(PluginData):
     def getReportingPeriod(self, modelXbrl: ModelXbrl) -> str | None:
         reportingPeriodFacts = modelXbrl.factsByQname.get(self.financialReportingPeriodQn, set())
         for fact in reportingPeriodFacts:
-            if fact.xValid >= VALID:
-                return cast(str, fact.xValue)
+            if fact.xValid < VALID:
+                continue
+            return cast(str, fact.xValue)
         return None
 
     @lru_cache(1)
