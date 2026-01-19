@@ -696,7 +696,7 @@ class Validate:
         if userExpectedErrors:
             if expected is None:
                 expected = []
-            if isinstance(expected, str):
+            elif isinstance(expected, str):
                 assert expected in {"valid", "invalid"}, f"unhandled expected value string '{expected}'"
                 expected = []
             expected.extend(userExpectedErrors)
