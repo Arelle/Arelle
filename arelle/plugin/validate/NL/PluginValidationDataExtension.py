@@ -591,14 +591,17 @@ class PluginValidationDataExtension(PluginData):
         return self.checkInlineHTMLElements(modelXbrl).tupleElements
 
     @lru_cache(1)
-    def getReportingPeriod(self, modelXbrl: ModelXbrl) -> str | None:
+    def getReportingPeriod(self, modelXbrl: ModelXbrl) -> int | None:
         reportingPeriodFacts = modelXbrl.factsByQname.get(self.financialReportingPeriodQn, set())
         for fact in reportingPeriodFacts:
             if fact.xValid < VALID:
                 continue
             match v := fact.xValue:
                 case str():
-                    return v
+                    try:
+                        return int(v)
+                    except ValueError:
+                        pass
         return None
 
     @lru_cache(1)
