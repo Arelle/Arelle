@@ -3,7 +3,7 @@ from pathlib import PurePath, Path
 from tests.integration_tests.validation.assets import NL_PACKAGES
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig, AssetSource
 
-ZIP_PATH = Path('conformance-suite-2024-sbr-domein-handelsregister.zip')
+ZIP_PATH = Path('conformance-suite-2024-sbr-domein-handelsregister_update-20251231.zip')
 EXTRACTED_PATH = Path(ZIP_PATH.stem)
 config = ConformanceSuiteConfig(
     assets=[
@@ -12,7 +12,7 @@ config = ConformanceSuiteConfig(
             EXTRACTED_PATH,
             entry_point_root=EXTRACTED_PATH / 'conformance-suite-2024-sbr-domein-handelsregister',
             entry_point=Path('index.xml'),
-            public_download_url='https://www.sbr-nl.nl/sites/default/files/2025-04/conformance-suite-2024-sbr-domein-handelsregister.zip',
+            public_download_url='https://www.sbr-nl.nl/sites/default/files/2026-01/conformance-suite-2024-sbr-domein-handelsregister_update-20251231.zip',
             source=AssetSource.S3_PUBLIC,
         ),
         *NL_PACKAGES['NL-INLINE-2024'],
@@ -20,33 +20,43 @@ config = ConformanceSuiteConfig(
     base_taxonomy_validation='none',
     disclosure_system='NL-INLINE-2024-GAAP-OTHER',
     expected_additional_testcase_errors={f"*tests/{s}": val for s, val in {
+        'G3-3-1_2/index.xml:TC3_invalid': {
+            'requiredEntryPointOtherGaapNotReferenced': 1,
+        },
         'G3-4-1_1/index.xml:TC2_invalid': {
             'err:XPTY0004': 1,
             'NL.NL-KVK.3.2.8.1': 1,
             'requiredEntryPointOtherGaapNotReferenced': 1,
             'usableConceptsNotIncludedInDefinitionLink': 1,
         },
+        'G3-4-2_1/index.xml:TC2_invalid': {
+            'requiredEntryPointOtherGaapNotReferenced': 1,
+        },
         'G5-1-3_1/index.xml:TC1_valid': {
             'noInlineXbrlTags': 1,
+            'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 5,
         },
         'G5-1-3_1/index.xml:TC2_invalid': {
             'noInlineXbrlTags': 1,
+            'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 5,
         },
         'G5-1-3_2/index.xml:TC1_valid': {
             'noInlineXbrlTags': 1,
+            'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 5,
         },
         'G5-1-3_2/index.xml:TC2_invalid': {
             'documentNameDoesNotFollowNamingConvention': 1,
             'noInlineXbrlTags': 1,
             'requiredEntryPointOtherGaapNotReferenced': 1,
         },
+        'RTS_Annex_IV_Par_2_G3-1-1_1/index.xml:TC2_invalid': {
+            'message:valueKvKIdentifier': 13,
+            'requiredEntryPointOtherGaapNotReferenced': 1,
+        },
     }.items()},
     expected_failure_ids=frozenset(f"tests/{s}" for s in [
         # Conformance Suite Errors
-        'G3-3-1_2/index.xml:TC3_invalid',  # Expects an error code with a preceding double quote. G3-3-1_3 expects the same code without the typo.
         'G3-4-1_2/index.xml:TC2_invalid',  # Expects fractionElementUsed”.  Note the double quote at the end.
-        'G3-4-2_1/index.xml:TC2_invalid',  # Produces 'EFM.6.03.11' and 'NL.NL-KVK.3.4.2.1.htmlOrXmlBaseUsed'
-        'RTS_Annex_IV_Par_2_G3-1-1_1/index.xml:TC2_invalid',  # Expects NonIdenticalIdentifier instead of nonIdenticalIdentifier (note the cap N)
 
 
         # Wont Run
