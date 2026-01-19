@@ -596,7 +596,9 @@ class PluginValidationDataExtension(PluginData):
         for fact in reportingPeriodFacts:
             if fact.xValid < VALID:
                 continue
-            return cast(str, fact.xValue)
+            match v := fact.xValue:
+                case str():
+                    return v
         return None
 
     @lru_cache(1)
