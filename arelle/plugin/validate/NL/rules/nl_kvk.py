@@ -1089,8 +1089,12 @@ def rule_nl_kvk_4_1_2_2(
     """
     reportingPeriod = pluginData.getReportingPeriod(val.modelXbrl)
     extensionData = pluginData.getExtensionData(val.modelXbrl)
-    matches = extensionData.extensionImportedUrls & TAXONOMY_URLS_BY_YEAR.get(reportingPeriod or '', set())
-    if not reportingPeriod or not matches:
+    applicableVersionUsed = bool(
+        reportingPeriod
+        and (taxonomyUrls := TAXONOMY_URLS_BY_YEAR.get(reportingPeriod, set()))
+        and extensionData.extensionImportedUrls & taxonomyUrls
+    )
+    if not applicableVersionUsed:
         yield Validation.error(
             codes='NL.NL-KVK.4.1.2.2.incorrectKvkTaxonomyVersionUsed',
             msg=_('The extension taxonomy MUST import the applicable version of the taxonomy files prepared by KVK '
@@ -1794,8 +1798,12 @@ def rule_nl_kvk_5_1_3_2_and_6_1_3_2(
     """
     reportingPeriod = pluginData.getReportingPeriod(val.modelXbrl)
     uris = {doc[0].uri for doc in val.modelXbrl.namespaceDocs.values()}
-    matches = uris & TAXONOMY_URLS_BY_YEAR.get(reportingPeriod or '', set())
-    if not reportingPeriod or not matches:
+    applicableVersionUsed = bool(
+        reportingPeriod
+        and (taxonomyUrls := TAXONOMY_URLS_BY_YEAR.get(reportingPeriod, set()))
+        and uris & taxonomyUrls
+    )
+    if not applicableVersionUsed:
         base_code = '5.1.3.2.incorrectVersionEntryPointOtherGaapReferenced'
         if str(val.disclosureSystem.name) in DISCLOSURE_SYSTEM_NL_INLINE_MULTI_TARGET:
             base_code = '6.1.3.2.incorrectVersionEntryPointOtherReferenced'
