@@ -20,6 +20,8 @@ from .DisclosureSystems import (
 
     DISCLOSURE_SYSTEM_NL_INLINE_2024,
     DISCLOSURE_SYSTEM_NL_INLINE_2024_GAAP_OTHER,
+    DISCLOSURE_SYSTEM_NL_INLINE_2025,
+    DISCLOSURE_SYSTEM_NL_INLINE_2025_GAAP_OTHER,
 )
 from .PluginValidationDataExtension import PluginValidationDataExtension
 
@@ -218,7 +220,12 @@ class ValidationPluginExtension(ValidationPlugin):
                 'kvk-rpt-jaarverantwoording-2025-nlgaap-verzekeringsmaatschappijen.xsd',
                 'kvk-rpt-jaarverantwoording-2025-nlgaap-zorginstellingen.xsd',
             ]}
-        elif disclosureSystem == DISCLOSURE_SYSTEM_NL_INLINE_2024:
+        elif (
+            disclosureSystem == DISCLOSURE_SYSTEM_NL_INLINE_2024
+            or
+            disclosureSystem == DISCLOSURE_SYSTEM_NL_INLINE_2025
+            and not any(ns.startswith('https://www.nltaxonomie.nl/kvk/2025-12-31/') for ns in validateXbrl.modelXbrl.namespaceDocs.keys())
+        ):
             ifrsNamespace = 'https://xbrl.ifrs.org/taxonomy/2024-03-27/ifrs-full'
             jenvNamespace = 'https://www.nltaxonomie.nl/bw2-titel9/2024-12-31/bw2-titel9-cor'
             kvkINamespace = 'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-cor'
@@ -229,7 +236,12 @@ class ValidationPluginExtension(ValidationPlugin):
                 'kvk-annual-report-ifrs-ext.xsd',
                 'kvk-annual-report-nlgaap-ext.xsd',
             ]}
-        elif disclosureSystem == DISCLOSURE_SYSTEM_NL_INLINE_2024_GAAP_OTHER:
+        elif (
+            disclosureSystem == DISCLOSURE_SYSTEM_NL_INLINE_2024_GAAP_OTHER
+            or
+            disclosureSystem == DISCLOSURE_SYSTEM_NL_INLINE_2025_GAAP_OTHER
+            and not any(ns.startswith('https://www.nltaxonomie.nl/kvk/2025-12-31/') for ns in validateXbrl.modelXbrl.namespaceDocs.keys())
+        ):
             ifrsNamespace = 'https://xbrl.ifrs.org/taxonomy/2024-03-27/ifrs-full'
             jenvNamespace = 'https://www.nltaxonomie.nl/bw2-titel9/2024-12-31/bw2-titel9-cor'
             kvkINamespace = 'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-cor'
@@ -238,6 +250,28 @@ class ValidationPluginExtension(ValidationPlugin):
             entrypointRoot = 'http://www.nltaxonomie.nl/kvk/2024-12-31/'
             entrypoints = {entrypointRoot + e for e in [
                 'kvk-annual-report-other-gaap.xsd',
+            ]}
+        elif disclosureSystem == DISCLOSURE_SYSTEM_NL_INLINE_2025:
+            ifrsNamespace = 'https://xbrl.ifrs.org/taxonomy/2024-03-27/ifrs-full'
+            jenvNamespace = 'https://www.nltaxonomie.nl/bw2-titel9/2025-12-31/bw2-titel9-cor'
+            kvkINamespace = 'https://www.nltaxonomie.nl/kvk/2025-12-31/kvk-cor'
+            nlTypesNamespace = None
+            rjNamespace = 'https://www.nltaxonomie.nl/rj/2025-12-31/rj-cor'
+
+            entrypointRoot = 'https://www.nltaxonomie.nl/kvk/2025-12-31/'
+            entrypoints = {entrypointRoot + e for e in [
+                'kvk-annual-report-ifrs-ext.xsd',
+                'kvk-annual-report-nlgaap-ext.xsd',
+            ]}
+        elif disclosureSystem == DISCLOSURE_SYSTEM_NL_INLINE_2025_GAAP_OTHER:
+            ifrsNamespace = 'https://xbrl.ifrs.org/taxonomy/2024-03-27/ifrs-full'
+            jenvNamespace = 'https://www.nltaxonomie.nl/bw2-titel9/2025-12-31/bw2-titel9-cor'
+            kvkINamespace = 'https://www.nltaxonomie.nl/kvk/2025-12-31/kvk-cor'
+            nlTypesNamespace = None
+            rjNamespace = 'https://www.nltaxonomie.nl/rj/2025-12-31/rj-cor'
+            entrypointRoot = 'https://www.nltaxonomie.nl/kvk/2025-12-31/'
+            entrypoints = {entrypointRoot + e for e in [
+                'kvk-annual-report-other.xsd',
             ]}
         else:
             raise ValueError(f'Invalid NL disclosure system: {disclosureSystem}')

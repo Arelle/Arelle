@@ -19,7 +19,7 @@ from arelle.ModelDtsObject import ModelConcept, ModelRelationship
 from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelInlineFootnote, ModelUnit, ModelInlineFact
 from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelObject import ModelObject
-from arelle.ModelValue import QName
+from arelle.ModelValue import QName, gYear
 from arelle.ModelXbrl import ModelXbrl
 from arelle.typing import assert_type
 from arelle.utils.PluginData import PluginData
@@ -597,11 +597,17 @@ class PluginValidationDataExtension(PluginData):
             if fact.xValid < VALID:
                 continue
             match v := fact.xValue:
+                # {https://www.nltaxonomie.nl/bw2-titel9/2024-12-31/bw2-titel9-cor}FinancialReportingPeriod
+                # {http://www.xbrl.org/2003/instance}stringItemType
                 case str():
                     try:
                         return int(v)
                     except ValueError:
                         pass
+                # {https://www.nltaxonomie.nl/bw2-titel9/2025-12-31/bw2-titel9-cor}FinancialReportingPeriod
+                # {http://www.xbrl.org/2003/instance}gYearItemType
+                case gYear(year=y):
+                    return y
         return None
 
     @lru_cache(1)
