@@ -54,6 +54,7 @@ class RuntimeOptions:
     disclosureSystemName: Optional[str] = None
     DTSFile: Optional[str] = None
     entrypointFile: Optional[str] = None
+    expectedInstanceCount: Optional[int] = None
     factListCols: Optional[int] = None
     factTableCols: Optional[int] = None
     factTableFile: Optional[str] = None

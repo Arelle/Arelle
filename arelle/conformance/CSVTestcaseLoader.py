@@ -38,8 +38,8 @@ class CSVTestcaseException(Exception):
 
 
 def loadCsvTestcase(
-    modelXbrl: ModelXbrl,
-    filepath: str,
+        modelXbrl: ModelXbrl,
+        filepath: str,
 ) -> ModelDocument.ModelDocument | None:
     from arelle import ModelDocument
     if Path(filepath).suffix != ".csv":

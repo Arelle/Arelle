@@ -16,6 +16,7 @@ class Testcase:
     calc_mode: str | None
     compare_instance_uri: Path | None
     description: str
+    expected_instance_count: int | None
     full_id: str
     inline_target: str | None
     local_id: str

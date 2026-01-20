@@ -87,7 +87,7 @@ def validateTopLevelDirectories(
     packageType: PackageType,
     filesource: FileSource,
 ) -> Validation | None:
-    topLevelDirectories = PackageUtils.getPackageTopLevelDirectories(filesource)
+    topLevelDirectories = PackageUtils.getPackageTopLevelDirectoriesFromFileSource(filesource)
     numTopLevelDirectories = len(topLevelDirectories)
     if numTopLevelDirectories == 0:
         return Validation.error(
