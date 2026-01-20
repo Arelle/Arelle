@@ -3,7 +3,7 @@ from pathlib import PurePath, Path
 from tests.integration_tests.validation.assets import NL_PACKAGES
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig, AssetSource
 
-ZIP_PATH = Path('conformance-suite-2024-sbr-domein-handelsregister.zip')
+ZIP_PATH = Path('conformance-suite-2024-sbr-domein-handelsregister_update-20251231.zip')
 EXTRACTED_PATH = Path(ZIP_PATH.stem)
 config = ConformanceSuiteConfig(
     assets=[
@@ -12,7 +12,7 @@ config = ConformanceSuiteConfig(
             EXTRACTED_PATH,
             entry_point_root=EXTRACTED_PATH / 'conformance-suite-2024-sbr-domein-handelsregister',
             entry_point=Path('index.xml'),
-            public_download_url='https://www.sbr-nl.nl/sites/default/files/2025-04/conformance-suite-2024-sbr-domein-handelsregister.zip',
+            public_download_url='https://www.sbr-nl.nl/sites/default/files/2026-01/conformance-suite-2024-sbr-domein-handelsregister_update-20251231.zip',
             source=AssetSource.S3_PUBLIC,
         ),
         *NL_PACKAGES['NL-INLINE-2024'],
@@ -72,11 +72,6 @@ config = ConformanceSuiteConfig(
             # This test is looking at the usage of the target attribute and does not import the correct taxonomy urls
             'requiredEntryPointNotImported': 1,
             'incorrectKvkTaxonomyVersionUsed': 1,
-        },
-        'G3-6-3_3/index.xml:TC2_invalid': {
-            # Testcase expects only 3.6.3.3, but has a filename that has invalid characters (3.6.3.3)
-            # AND {base} with > 20 characters (3.6.3.1)
-            'baseComponentInDocumentNameExceedsTwentyCharacters': 1,
         },
         'G3-7-1_1/index.xml:TC2_invalid': {
             'message:valueKvKIdentifier': 13,
@@ -139,6 +134,9 @@ config = ConformanceSuiteConfig(
         'RTS_Annex_IV_Par_1_G3-1-4_2/index.xml:TC2_invalid': {
             'message:valueKvKIdentifier': 13,
         },
+        'RTS_Annex_IV_Par_2_G3-1-1_1/index.xml:TC2_invalid': {
+            'message:valueKvKIdentifier': 13,
+        },
         'RTS_Annex_IV_Par_2_G3-1-1_2/index.xml:TC2_invalid': {
             'message:lei-identifier-format': 105,
             'message:valueKvKIdentifierScheme': 105,
@@ -174,11 +172,9 @@ config = ConformanceSuiteConfig(
     }.items()},
     expected_failure_ids=frozenset(f"tests/{s}" for s in [
         # Conformance Suite Errors
-        'G3-3-1_2/index.xml:TC3_invalid',  # Expects an error code with a preceding double quote. G3-3-1_3 expects the same code without the typo.
         'G3-4-1_2/index.xml:TC2_invalid',  # Expects fractionElementUsed”.  Note the double quote at the end.
         'G4-2-0_2/index.xml:TC2_invalid',  # Expects fractionElementUsed”.  Note the double quote at the end.
         'G4-4-1_1/index.xml:TC2_invalid',  # Expects IncorrectSummationItemArcroleUsed.  Note the capital first character.
-        'RTS_Annex_IV_Par_2_G3-1-1_1/index.xml:TC2_invalid',  # Expects NonIdenticalIdentifier instead of nonIdenticalIdentifier (note the cap N)
 
 
         # Not Implemented
