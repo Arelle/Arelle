@@ -3,12 +3,17 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 
+import fnmatch
 import os, io, logging
 from collections import defaultdict
+from typing import TYPE_CHECKING
 
 from arelle import XmlUtil, XbrlConst, ModelValue
 from arelle.ModelObject import ModelObject
 from arelle.PluginManager import pluginClassMethods
+
+if TYPE_CHECKING:
+    from arelle import FileSource
 
 TXMY_PKG_SRC_ELTS = ("metadata", "catalog", "taxonomy")
 
@@ -36,6 +41,8 @@ def testcaseVariationsByTarget(testcaseVariations):
             yield modelTestcaseVariation
 
 class ModelTestcaseVariation(ModelObject):
+    userExpectedErrors: list[dict[str, int]]
+
     def init(self, modelDocument):
         super(ModelTestcaseVariation, self).init(modelDocument)
         self.status = ""
@@ -43,6 +50,7 @@ class ModelTestcaseVariation(ModelObject):
         self.actual = []
         self.assertions = None
         self.ixdsTarget = None
+        self.userExpectedErrors = []
 
     @property
     def id(self):
@@ -453,3 +461,18 @@ class ModelTestcaseVariation(ModelObject):
 
     def __repr__(self):
         return ("modelTestcaseVariation[{0}]{1})".format(self.objectId(),self.propertyView))
+
+    def setUserExpectedErrors(self, testcaseExpectedErrors: dict[str, dict[str, int]], useFileSource: FileSource | None) -> list[dict[str, int]]:
+        indexPath = self.document.filepath
+        if useFileSource is not None and useFileSource.isZip:
+            baseZipFile = useFileSource.basefile
+            if indexPath.startswith(baseZipFile):
+                indexPath = indexPath[len(baseZipFile) + 1:]
+            indexPath = indexPath.replace("\\", "/")
+        variationIdPath = f'{indexPath}:{self.id}'
+        userExpectedErrors = []
+        for userPattern, userErrors in testcaseExpectedErrors.items():
+            if fnmatch.fnmatch(variationIdPath, userPattern):
+                userExpectedErrors.extend(userErrors)
+        self.userExpectedErrors = userExpectedErrors
+        return userExpectedErrors

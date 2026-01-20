@@ -96,6 +96,7 @@ def get_test_data(
         results: list[ParameterSet] = []
         test_cases_with_no_variations = set()
         test_cases_with_unrecognized_type = {}
+        skipped_test_cases = set()
         model_document = cntlr.modelManager.modelXbrl.modelDocument
         test_cases: list[ModelDocument.ModelDocument] = []
         if strict_testcase_index and model_document.type == ModelDocument.Type.TESTCASESINDEX:
@@ -119,16 +120,19 @@ def get_test_data(
             else:
                 for mv in test_case.testcaseVariations:
                     test_id = f'{test_case_file_id}:{mv.id}'
+                    if mv.status == 'skip':
+                        skipped_test_cases.add(test_id)
+                        continue  # don't report variations skipped due to shards
                     marks = []
                     if isExpectedFailure(test_id, expected_failure_ids, required_locale_by_ids, system_locale):
                         marks.append(pytest.mark.xfail())
-                    elif mv.status == 'skip':
-                        continue  # don't report variations skipped due to shards
                     expected_results: Any = defaultdict(lambda: defaultdict(int))
                     if isinstance(mv.expected, str):
                         expected_results = mv.expected
                     else:
                         for error in mv.expected or []:
+                            expected_results["ERROR"][str(error)] += 1
+                        for error in mv.userExpectedErrors:
                             expected_results["ERROR"][str(error)] += 1
                         if mv.modelXbrl is not None and mv.modelXbrl.modelManager.formulaOptions.testcaseResultsCaptureWarnings:
                             for warning in mv.expectedWarnings or []:
@@ -153,7 +157,7 @@ def get_test_data(
         nonunique_test_ids = {test_id: count for test_id, count in test_id_frequencies.items() if count > 1}
         if nonunique_test_ids:
             raise Exception(f'Some test IDs are not unique.  Frequencies of nonunique test IDs: {nonunique_test_ids}.')
-        nonexistent_expected_failure_ids = expected_failure_ids - test_id_frequencies.keys()
+        nonexistent_expected_failure_ids = expected_failure_ids - skipped_test_cases - test_id_frequencies.keys()
         if nonexistent_expected_failure_ids:
             raise Exception(f"Some expected failure IDs don't match any test cases: {sorted(nonexistent_expected_failure_ids)}.")
         nonexistent_required_locale_testcase_ids = required_locale_by_ids.keys() - test_id_frequencies.keys()
