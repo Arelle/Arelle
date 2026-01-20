@@ -276,18 +276,17 @@ class PluginValidationDataExtension(PluginData):
             ixTupleTag = ixNStag + "tuple"
             for elt in ixdsHtmlRootElt.iterdescendants(ixFootnoteTag, ixFractionTag, ixTupleTag):
                 if isinstance(elt, ModelInlineFootnote):
-                    if elt.textValue is not None:
-                        if not any(isinstance(rel.fromModelObject, ModelFact)
-                                    for rel in footnotesRelationshipSet.toModelObject(elt)):
-                            orphanedFootnotes.add(elt)
-                        if elt.xmlLang not in factLangs:
-                            noMatchLangFootnotes.add(elt)
-                        if elt.xmlLang is not None:
-                            for rel in footnotesRelationshipSet.toModelObject(elt):
-                                if rel.fromModelObject is not None:
-                                    fromObj = cast(ModelObject, rel.fromModelObject)
-                                    lang = cast(str, elt.xmlLang)
-                                    factLangFootnotes[fromObj].add(lang)
+                    if not any(isinstance(rel.fromModelObject, ModelFact)
+                                for rel in footnotesRelationshipSet.toModelObject(elt)):
+                        orphanedFootnotes.add(elt)
+                    if elt.xmlLang not in factLangs:
+                        noMatchLangFootnotes.add(elt)
+                    if elt.xmlLang is not None:
+                        for rel in footnotesRelationshipSet.toModelObject(elt):
+                            if rel.fromModelObject is not None:
+                                fromObj = cast(ModelObject, rel.fromModelObject)
+                                lang = cast(str, elt.xmlLang)
+                                factLangFootnotes[fromObj].add(lang)
                 if elt.tag == ixTupleTag:
                     tupleElements.add(elt)
                 if elt.tag == ixFractionTag:
