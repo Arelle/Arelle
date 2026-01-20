@@ -20,6 +20,12 @@ config = ConformanceSuiteConfig(
     base_taxonomy_validation='none',
     disclosure_system='NL-INLINE-2024-GAAP-OTHER',
     expected_additional_testcase_errors={f"*tests/{s}": val for s, val in {
+        'G3-4-1_1/index.xml:TC2_invalid': {
+            'err:XPTY0004': 1,
+            'NL.NL-KVK.3.2.8.1': 1,
+            'requiredEntryPointOtherGaapNotReferenced': 1,
+            'usableConceptsNotIncludedInDefinitionLink': 1,
+        },
         'G5-1-3_1/index.xml:TC1_valid': {
             'noInlineXbrlTags': 1,
         },
@@ -38,7 +44,6 @@ config = ConformanceSuiteConfig(
     expected_failure_ids=frozenset(f"tests/{s}" for s in [
         # Conformance Suite Errors
         'G3-3-1_2/index.xml:TC3_invalid',  # Expects an error code with a preceding double quote. G3-3-1_3 expects the same code without the typo.
-        'G3-4-1_1/index.xml:TC2_invalid',  # Produces: [err:XPTY0004] Variable set Het entity identifier scheme dat bij dit feit hoort MOET het standaard KVK identifier scheme zijn
         'G3-4-1_2/index.xml:TC2_invalid',  # Expects fractionElementUsed”.  Note the double quote at the end.
         'G3-4-2_1/index.xml:TC2_invalid',  # Produces 'EFM.6.03.11' and 'NL.NL-KVK.3.4.2.1.htmlOrXmlBaseUsed'
         'RTS_Annex_IV_Par_2_G3-1-1_1/index.xml:TC2_invalid',  # Expects NonIdenticalIdentifier instead of nonIdenticalIdentifier (note the cap N)

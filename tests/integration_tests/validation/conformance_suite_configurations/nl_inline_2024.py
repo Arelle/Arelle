@@ -48,6 +48,17 @@ config = ConformanceSuiteConfig(
         'G3-2-7_1/index.xml:TC7_invalid': {
             'missingRelevantPlaceholder': 1,
         },
+        'G3-4-1_1/index.xml:TC2_invalid': {
+            'err:XPTY0004': 1,
+            'extensionTaxonomyLineItemNotLinkedToAnyHypercube': 1,
+            'NL.NL-KVK.3.2.8.1': 1,
+            # Expected once, returned twice as
+            # NL.NL-KVK.3.4.1.1.tupleElementUsed - ix:tuple present in iXBRL document
+            # NL.NL-KVK.4.2.0.1.tupleElementUsed - tuple defined in extension taxonomy
+            'tupleElementUsed': 1,
+            'UsableConceptsNotAppliedByTaggedFacts': 1,
+            'usableConceptsNotIncludedInDefinitionLink': 1,
+        },
         'G3-5-1_5/index.xml:TC2_invalid': {
             # This is the expected error, but we return two of them, slightly different.
             'imageFormatNotSupported': 1,
@@ -164,7 +175,6 @@ config = ConformanceSuiteConfig(
     expected_failure_ids=frozenset(f"tests/{s}" for s in [
         # Conformance Suite Errors
         'G3-3-1_2/index.xml:TC3_invalid',  # Expects an error code with a preceding double quote. G3-3-1_3 expects the same code without the typo.
-        'G3-4-1_1/index.xml:TC2_invalid',  # Produces: [err:XPTY0004] Variable set Het entity identifier scheme dat bij dit feit hoort MOET het standaard KVK identifier scheme zijn
         'G3-4-1_2/index.xml:TC2_invalid',  # Expects fractionElementUsed”.  Note the double quote at the end.
         'G4-2-0_2/index.xml:TC2_invalid',  # Expects fractionElementUsed”.  Note the double quote at the end.
         'G4-4-1_1/index.xml:TC2_invalid',  # Expects IncorrectSummationItemArcroleUsed.  Note the capital first character.

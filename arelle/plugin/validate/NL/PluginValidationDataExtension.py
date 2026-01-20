@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any, cast, Iterable
 
 import regex as re
-from lxml.etree import _Comment, _ElementTree, _Entity, _ProcessingInstruction, _Element
+from lxml.etree import _Comment, _ElementTree, _Entity, _ProcessingInstruction, _Element, XPath
 
 from arelle import XbrlConst
 from arelle.LinkbaseType import LinkbaseType
@@ -25,10 +25,17 @@ from arelle.typing import assert_type
 from arelle.utils.PluginData import PluginData
 from arelle.utils.validate.Concepts import isExtensionUri, getExtensionConcepts
 from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
-from arelle.XbrlConst import ixbrl11, xhtmlBaseIdentifier, xmlBaseIdentifier
+from arelle.XbrlConst import ixbrl11
 from arelle.XmlValidate import lexicalPatterns
 from arelle.XmlValidateConst import VALID
 from .Constants import NON_DIMENSIONALIZED_LINE_ITEM_LINKROLES, STANDARD_TAXONOMY_URL_PREFIXES, STYLE_CSS_HIDDEN_PATTERN, STYLE_IX_HIDDEN_PATTERN, UNTRANSFORMABLE_TYPES
+
+
+baseXPath = XPath(
+    './/*[self::xhtml:base or @xml:base]',
+    namespaces={'xhtml': XbrlConst.xhtml, 'xml': XbrlConst.xml},
+    smart_strings=False,
+)
 
 
 @dataclass(frozen=True)
@@ -271,32 +278,27 @@ class PluginValidationDataExtension(PluginData):
         orphanedFootnotes = set()
         for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
             ixNStag = str(getattr(ixdsHtmlRootElt.modelDocument, "ixNStag", ixbrl11))
-            ixTupleTag = ixNStag + "tuple"
+            ixFootnoteTag = ixNStag + "footnote"
             ixFractionTag = ixNStag + "fraction"
-            for elts in modelXbrl.ixdsEltById.values():   # type: ignore[attr-defined]
-                for elt in elts:
-                    if isinstance(elt, ModelInlineFootnote):
-                        if elt.textValue is not None:
-                            if not any(isinstance(rel.fromModelObject, ModelFact)
-                                       for rel in footnotesRelationshipSet.toModelObject(elt)):
-                                orphanedFootnotes.add(elt)
-                            if elt.xmlLang not in factLangs:
-                                noMatchLangFootnotes.add(elt)
-                            if elt.xmlLang is not None:
-                                for rel in footnotesRelationshipSet.toModelObject(elt):
-                                    if rel.fromModelObject is not None:
-                                        fromObj = cast(ModelObject, rel.fromModelObject)
-                                        lang = cast(str, elt.xmlLang)
-                                        factLangFootnotes[fromObj].add(lang)
-                    if elt.tag == ixTupleTag:
-                        tupleElements.add(elt)
-                    if elt.tag == ixFractionTag:
-                        fractionElements.add(elt)
-            for elt in ixdsHtmlRootElt.iter():
-                if elt.get(xmlBaseIdentifier) is not None:
-                    baseElements.add(elt)
-                if elt.tag == xhtmlBaseIdentifier:
-                    baseElements.add(elt)
+            ixTupleTag = ixNStag + "tuple"
+            for elt in ixdsHtmlRootElt.iterdescendants(ixFootnoteTag, ixFractionTag, ixTupleTag):
+                if isinstance(elt, ModelInlineFootnote):
+                    if not any(isinstance(rel.fromModelObject, ModelFact)
+                                for rel in footnotesRelationshipSet.toModelObject(elt)):
+                        orphanedFootnotes.add(elt)
+                    if elt.xmlLang not in factLangs:
+                        noMatchLangFootnotes.add(elt)
+                    if elt.xmlLang is not None:
+                        for rel in footnotesRelationshipSet.toModelObject(elt):
+                            if rel.fromModelObject is not None:
+                                fromObj = cast(ModelObject, rel.fromModelObject)
+                                lang = cast(str, elt.xmlLang)
+                                factLangFootnotes[fromObj].add(lang)
+                if elt.tag == ixTupleTag:
+                    tupleElements.add(elt)
+                if elt.tag == ixFractionTag:
+                    fractionElements.add(elt)
+            baseElements.update(baseXPath(ixdsHtmlRootElt))
         factLangFootnotes.default_factory = None
         assert_type(factLangFootnotes, defaultdict[ModelObject, set[str]])
         return InlineHTMLData(
