@@ -193,7 +193,7 @@ class ValidateXbrl:
                                 modelObject=cycleFound[1:pathEndsAt], cycle=cycleFound[0], path=path,
                                 arcrole=arcrole, linkrole=ELR, linkname=linkqname, arcname=arcqname,
                                 messageCodes=("xbrlgene:violatedCyclesConstraint", "xbrl.5.1.4.3:cycles",
-                                            # from XbrlCoinst.standardArcroleCyclesAllowed
+                                            # from XbrlConst.standardArcroleCyclesAllowed
                                             "xbrl.5.2.4.2", "xbrl.5.2.5.2", "xbrl.5.2.6.2.1", "xbrl.5.2.6.2.1", "xbrl.5.2.6.2.3", "xbrl.5.2.6.2.4"))
                             break
 

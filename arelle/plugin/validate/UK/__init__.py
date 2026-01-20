@@ -130,7 +130,7 @@ ALLOWED_IMG_MIME_TYPES = (
 )
 
 
-def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
+def disclosureSystemTypes(disclosureSystem, *args, **kwargs):
     # return ((disclosure system name, variable name), ...)
     return (("HMRC", "UKplugin"),)
 
@@ -203,7 +203,6 @@ def validateXbrlFinally(val, *args, **kwargs):
             if scheme == "http://www.companieshouse.gov.uk/":
                 companyReferenceNumberContexts[identifier].append(c1.id)
         atLeastOneFacts = defaultdict(set)
-        uniqueFacts = {}  # key = (qname, context hash, unit hash, lang)
         mandatoryFacts = defaultdict(set)
         mandatoryGDV = defaultdict(set)
         factForConceptContextUnitHash = defaultdict(list)
@@ -246,9 +245,7 @@ def validateXbrlFinally(val, *args, **kwargs):
         def checkFacts(facts):
             for f in facts:
                 cntx = f.context
-                unit = f.unit
                 if (f.isNil or getattr(f,"xValid", 0) >= 4) and cntx is not None and f.concept is not None and f.concept.type is not None:
-                    factNamespaceURI = f.qname.namespaceURI
                     factLocalName = f.qname.localName
                     if factLocalName in MANDATORY_ITEMS[val.txmyType]:
                         mandatoryFacts[factLocalName].add(f)
@@ -550,7 +547,7 @@ __pluginInfo__ = {
     'author': authorLabel,
     'copyright': copyrightLabel,
     # classes of mount points (required)
-    'DisclosureSystem.Types': dislosureSystemTypes,
+    'DisclosureSystem.Types': disclosureSystemTypes,
     'DisclosureSystem.ConfigURL': disclosureSystemConfigURL,
 
     'Validate.XBRL.Start': validateXbrlStart,

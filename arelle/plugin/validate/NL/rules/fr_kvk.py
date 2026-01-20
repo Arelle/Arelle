@@ -6,16 +6,12 @@ from __future__ import annotations
 from collections.abc import Iterable
 from typing import Any
 
-from arelle import ModelDocument, XbrlConst
-from arelle.ModelDtsObject import ModelResource
-from arelle.ModelInstanceObject import ModelInlineFootnote
+from arelle import ModelDocument
 from arelle.ValidateXbrl import ValidateXbrl
-from arelle.ModelObject import ModelObject
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
-from lxml.etree import _Element
 from ..DisclosureSystems import NT_DISCLOSURE_SYSTEMS
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 

@@ -317,7 +317,7 @@ class ModelXbrl:
         self.uuid: str = uuid.uuid1().urn
         self.namespaceDocs: defaultdict[str, list[ModelDocumentClass]] = defaultdict(list)
         self.urlDocs: dict[str, ModelDocumentClass] = {}
-        self.urlUnloadableDocs: dict[bool, str] = {}  # if entry is True, entry is blocked and unloadable, False means loadable but warned
+        self.urlUnloadableDocs: dict[str, bool] = {}  # if entry is True, entry is blocked and unloadable, False means loadable but warned
         self.errorCaptureLevel: int = (errorCaptureLevel or logging._checkLevel("INCONSISTENCY"))  # type: ignore[attr-defined]
         self.errorManager = ErrorManager(self.modelManager, self.errorCaptureLevel)
         self.arcroleTypes: defaultdict[str, list[ModelRoleType]] = defaultdict(list)
