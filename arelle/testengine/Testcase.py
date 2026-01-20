@@ -22,5 +22,6 @@ class Testcase:
     name: str
     parameters: str
     read_first_uris: list[str]
+    report_count: int | None
     status: str
     constraint_set: ConstraintSet

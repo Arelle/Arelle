@@ -30,6 +30,7 @@ from arelle.testengine.TestcaseResult import TestcaseResult
 from arelle.testengine.Testcase import Testcase
 from arelle.testengine.TestcaseSet import TestcaseSet
 from arelle.testengine.Utils import norm_path
+from arelle.testengine.loader.CsvTestcaseLoader import CsvTestcaseLoader
 from arelle.testengine.loader.TestcaseLoader import TestcaseLoader
 from arelle.testengine.loader.XmlTestcaseLoader import XmlTestcaseLoader
 
@@ -59,7 +60,8 @@ PROHIBITED_RUNTIME_OPTIONS = frozenset({
 })
 TARGET_SUFFIX_SEPARATOR = '|'
 TESTCASE_LOADERS: list[TestcaseLoader] = [
-    XmlTestcaseLoader()
+    XmlTestcaseLoader(),
+    CsvTestcaseLoader(),
 ]
 
 
@@ -263,6 +265,7 @@ class TestEngine:
             if self._test_engine_options.log_directory else None,
             parameters=testcase.parameters,
             parameterSeparator=PARAMETER_SEPARATOR,
+            reportCount=testcase.report_count,
             **dynamic_options
         )
         runtime_options_json = json.dumps({k: v for k, v in vars(runtime_options).items() if v is not None}, indent=4, sort_keys=True)
