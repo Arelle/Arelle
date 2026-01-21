@@ -26,7 +26,7 @@ config = ConformanceSuiteConfig(
         )
     ],
     cache_version_id='bY6OmURBAtPB4UALKzz5aeeLlMSKxN9e',
-    ci_config=CiConfig(shard_count=10),
+    ci_config=CiConfig(shard_count=15),
     custom_compare_patterns=[
         (r"^EFM\.6\.03\.04$", r"^xmlSchema:.*$"),
         (r"^EFM\.6\.03\.05$", r"^(xmlSchema:.*|EFM\.5\.02\.01\.01)$"),
