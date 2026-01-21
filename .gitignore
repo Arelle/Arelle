@@ -48,7 +48,7 @@ obj/
 runtime_options.json
 tests/resources/conformance_suites/*
 !tests/resources/conformance_suites/cipc/
-!tests/resources/conformance_suites/dba/
+!tests/resources/conformance_suites/dba_*
 !tests/resources/conformance_suites/edinet/
 !tests/resources/conformance_suites/hmrc/
 !tests/resources/conformance_suites/nl_*/
