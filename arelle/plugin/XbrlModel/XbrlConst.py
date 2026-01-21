@@ -59,7 +59,7 @@ objectsWithProperties = {
     qname(xbrl, "xbrl:cubeObject"),
     qname(xbrl, "xbrl:dimensionObject"),
     qname(xbrl, "xbrl:domainObject"),
-    qname(xbrl, "xbrl:domainRootObject"),
+    qname(xbrl, "xbrl:domainClassObject"),
     qnXbrlEntityObj,
     qname(xbrl, "xbrl:factspaceObject"),
     qname(xbrl, "xbrl:groupObject"),

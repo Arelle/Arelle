@@ -426,7 +426,7 @@
                 "baseType": "xs:string"
             },
             {
-                "name": "xbrli:domainRootQName",
+                "name": "xbrli:domainClassQName",
                 "baseType": "xs:QName"
             },
             {
@@ -488,6 +488,10 @@
             {
                 "name": "xbrli:realURL",
                 "baseType": "xs:anyURI"
+            },
+            {
+                "name": "xbrli:linkToMarkdownFormat",
+                "baseType": "xbrli:realURL"
             }
         ],
         "units": [
@@ -962,14 +966,14 @@
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrli:domainRootQName",
-                "value": "Domain Root QName"
+                "relatedName": "xbrli:domainClassQName",
+                "value": "Domain Class QName"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrli:domainRootQName",
-                "value": "A QName that references a domainRoot object defined in the taxonomy."
+                "relatedName": "xbrli:domainClassQName",
+                "value": "A QName that references a domainClass object defined in the taxonomy."
             },
             {
                 "labelType": "xbrl:label",

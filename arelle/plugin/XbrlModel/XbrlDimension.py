@@ -15,7 +15,7 @@ from .XbrlObject import XbrlReferencableModelObject
 class XbrlDimension(XbrlReferencableModelObject):
     module: XbrlModuleType
     name: QNameKeyType # (required) Optional[The]QName [of]the [dimension]object.
-    domainRoot: QName # (required) The QName of the domain root object for the dimension. All dimensions, whether typed or explicit, must reference a domain root.
+    domainClass: QName # (required) The QName of the domain root object for the dimension. All dimensions, whether typed or explicit, must reference a domain root.
     cubeTypes: OrderedSet[QName] # (optional) Optional[an]ordered Optional[set]of Optional[QNames]that Optional[indicate]the Optional[cube]type Optional[the]dimension Optional[can]only Optional[apply]to. Optional[Must]be Optional[a]QName Optional[value]defined Optional[by]built Optional[in]cube Optional[types]or Optional[taxonomy]defined Optional[cube]types. Optional[For]example xbrl:eventCube, xbrl:referenceCube etc. Optional[If]not Optional[defined]the Optional[dimension]can Optional[be]applied Optional[to]any Optional[cube]type.
     properties: OrderedSet[XbrlProperty] # (optional) Optional[an]ordered Optional[set]of Optional[property]objects Optional[used]to Optional[specify]additional Optional[properties]associated Optional[with]the Optional[dimension]using Optional[the]property object. Optional[Only]immutable Optional[properties]as Optional[defined]in Optional[the]propertyType Optional[object]can Optional[be]added Optional[to]a dimension.
 
@@ -29,7 +29,7 @@ class XbrlDomain(XbrlReferencableModelObject, XbrlRelationshipSet):
     completeDomain: Union[bool, DefaultFalse] # (optional) If set to true, the domain is considered complete, meaning that it includes all relationships and members necessary for the domain. If set to false, the domain may be incomplete, and additional relationships or members may be added by an extension taxonomy. The default value is false.
     properties: OrderedSet[XbrlProperty] # (optional) Optional[an]ordered Optional[set]of Optional[property]objects Optional[used]to Optional[specify]additional Optional[properties]associated Optional[with]the Optional[domain]using Optional[the]property object. Optional[Only]immutable Optional[properties]as Optional[defined]in Optional[the]propertyType Optional[object]can Optional[be]added Optional[to]a domain.
 
-class XbrlDomainRoot(XbrlReferencableModelObject):
+class XbrlDomainClass(XbrlReferencableModelObject):
     module: XbrlModuleType
     name: QNameKeyType # (required) The QName that uniquely identifies the domain root object.
     allowedDomainItems: OrderedSet[QName] # Optional[set]of Optional[QNames]that Optional[indicate]the Optional[cube]type Optional[the]dimension Optional[can]only Optional[apply]to. Optional[Must]be Optional[a]QName Optional[value]defined Optional[by]built Optional[in]cube Optional[types]or Optional[taxonomy]defined Optional[cube]types. Optional[For]example xbrl:eventCube, xbrl:referenceCube etc. Optional[If]not Optional[defined]the Optional[dimension]can Optional[be]applied Optional[to]any Optional[cube]type.

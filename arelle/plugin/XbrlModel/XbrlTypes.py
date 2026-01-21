@@ -2,7 +2,7 @@
 See COPYRIGHT.md for copyright information.
 """
 
-from typing_extensions import TypeAlias
+from typing_extensions import TypeAlias, List
 from arelle.ModelValue import QName
 
 XbrlLabelType: TypeAlias = "XbrlLabel"
@@ -24,4 +24,7 @@ class DefaultTrue: # a bool which if absent defaults to true
 class DefaultFalse: # a bool which if absent defaults to false
     pass
 class DefaultZero: # a number which if absent defaults to zero
+    pass
+
+class OptionalList(List): # list of objects like OrderedSet which is present and empty when no objects
     pass

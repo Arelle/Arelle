@@ -1,0 +1,154 @@
+{
+    "$schema": "../oim-taxonomy-schema.json",
+    "documentInfo": {
+        "documentType": "https://xbrl.org/2025/taxonomy",
+        "namespaces": {
+            "specDoc": "https://xbrl.org/2025/oimtaxonomy/documentation",
+            "oime": "http://www.xbrl.org/2021/oim/error",
+            "xbrl": "https://xbrl.org/2025",
+            "xs": "http://www.w3.org/2001/XMLSchema"
+        },
+        "documentNamespace": "specDoc"
+    },
+    "xbrlModel": {
+        "name": "specDoc:DocumentationTaxonomy",
+        "version": "2025",
+        "references": [
+            {
+                "name": "specDoc:importModelProcessing",
+                "relatedNames": [
+                    "xbrl:importTaxonomyObject"
+                ],
+                "referenceType": "specDoc:ProcessingModel",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "ref:documentationLinkMD",
+                        "value": "../documentation/IMPORT_ALGORITHM.md"
+                    }
+                ]
+            },
+            {
+                "name": "specDoc:importModelProcessing2",
+                "relatedNames": [
+                    "xbrl:importTaxonomyObject"
+                ],
+                "referenceType": "specDoc:ProcessingModel",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "ref:documentationLinkMD",
+                        "value": "../documentation/SELECTIVE_IMPORT_OBJECTS_IMPLEMENTATION.md"
+                    }
+                ]
+            },
+            {
+                "name": "specDoc:domainClassRationale",
+                "relatedNames": [
+                    "xbrl:domainClassObject"
+                ],
+                "referenceType": "specDoc:ObjectRationale",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "ref:documentationLinkMD",
+                        "value": "../documentation/DOMAIN_CLASS.md"
+                    }
+                ]
+            },
+            {
+                "name": "specDoc:domainRationale",
+                "relatedNames": [
+                    "xbrl:domainObject"
+                ],
+                "referenceType": "specDoc:ObjectRationale",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "ref:documentationLinkMD",
+                        "value": "../documentation/DOMAIN_OBJECT.md "
+                    }
+                ]
+            },
+            {
+                "name": "specDoc:cubeTypeRationale",
+                "relatedNames": [
+                    "xbrl:cubeTypeObject"
+                ],
+                "referenceType": "specDoc:ObjectRationale",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "ref:documentationLinkMD",
+                        "value": "../documentation/CUBE_TYPE.md "
+                    }
+                ]
+            }
+
+        ],
+        "labels": [
+            {
+                "relatedName": "specDoc:ObjectRationale",
+                "language": "en",
+                "value": "Object Rationale: This reference type is used to provide documentation for the rationale behind the definition of an object in the taxonomy. It can be used to explain why a particular object was defined in a certain way, or to provide additional context for the object. This can be helpful for users of the taxonomy to understand the reasoning behind the design decisions made in the taxonomy.",
+                "labelType": "xbrl:documentation"
+            },
+            {
+                "relatedName": "specDoc:ObjectRationale",
+                "language": "en",
+                "value": "Object Rationale",
+                "labelType": "xbrl:label"
+            }
+        ],
+        "referenceTypes": [
+            {
+                "name": "specDoc:ProcessingModel",
+                "requiredProperties": [
+                    "ref:documentationLinkMD"
+                ]
+            },
+            {
+                "name": "specDoc:ObjectRationale",
+                "requiredProperties": [
+                    "ref:documentationLinkMD"
+                ]
+            }
+        ],
+        "networks": [
+            {
+                "name": "specDoc:modelObjectsList",
+                "relationshipTypeName": "xbrl:parent-child",
+                "roots": [
+                    "xbrl:abstractObject",
+                    "xbrl:conceptObject",
+                    "xbrl:cubeDimensionObject",
+                    "xbrl:cubeObject",
+                    "xbrl:cubeTypeObject",
+                    "xbrl:dataTypeObject",
+                    "xbrl:dimensionObject",
+                    "xbrl:domainClassObject",
+                    "xbrl:domainObject",
+                    "xbrl:entityObject",
+                    "xbrl:factspaceObject",
+                    "xbrl:finalTaxonomyObject",
+                    "xbrl:footnoteObject",
+                    "xbrl:groupContentObject",
+                    "xbrl:groupObject",
+                    "xbrl:groupTreeObject",
+                    "xbrl:importTaxonomyObject",
+                    "xbrl:labelObject",
+                    "xbrl:labelTypeObject",
+                    "xbrl:memberObject",
+                    "xbrl:networkObject",
+                    "xbrl:propertyObject",
+                    "xbrl:propertyTypeObject",
+                    "xbrl:referenceObject",
+                    "xbrl:referenceTypeObject",
+                    "xbrl:relationshipObject",
+                    "xbrl:unitObject",
+                    "xbrl:xbrlModelObject"
+                ]
+            }
+        ]
+    }
+}

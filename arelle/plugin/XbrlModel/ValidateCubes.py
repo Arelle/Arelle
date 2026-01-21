@@ -10,13 +10,13 @@ from arelle.XmlValidateConst import VALID, INVALID
 
 coreToFactDim = {conceptCoreDim: "concept", entityCoreDim: "entity", unitCoreDim: "unit"}
 
-def matchFactToCube(txmyMdl, factspace, cubeObj):
+def matchFactToCube(compMdl, factspace, cubeObj):
     hasCoreDims = True
     hasDims = True
     for cubeDimObj in cubeObj.cubeDimensions:
         dimName = cubeDimObj.dimensionName
         if dimName in coreToFactDim:
-            mems = cubeDimObj.allowedMembers(txmyMdl)
+            mems = cubeDimObj.allowedMembers(compMdl)
             if mems and factspace.factDimensions.get(dimName) not in mems:
                 hasDims = False # skip this cube
                 break
@@ -48,11 +48,11 @@ def matchFactToCube(txmyMdl, factspace, cubeObj):
                             resPerVal = (dtResObj._valueValue,)
                         elif dtResObj.conceptName:
                             resPerVal = set(f.dimensions.get("_periodValue")
-                                            for f in txmyMdl.factsByName.get(dtResObj.conceptName, ())
+                                            for f in compMdl.factsByName.get(dtResObj.conceptName, ())
                                             if "_periodValue" in f.dimensions)
                         elif dtResObj.context:
                             resPerVal = set(f.dimensions.get("_periodValue")[dtResObj.context.atSuffix == "end"]
-                                            for f in txmyMdl.factsByName.get(dtResObj.conceptName, ())
+                                            for f in compMdl.factsByName.get(dtResObj.conceptName, ())
                                             if "_periodValue" in f.dimensions)
                     if getattr(dtResObj, "_timeShiftValid", 0) == VALID:
                         timeShift = dtResObj._timeShiftValue
@@ -75,35 +75,35 @@ def matchFactToCube(txmyMdl, factspace, cubeObj):
                 hasDims = False # skip this cube
                 break
         else: # taxonomy defined dim
-            dimObj = txmyMdl.namedObjects.get(dimName)
+            dimObj = compMdl.namedObjects.get(dimName)
             isTyped = bool(cubeDimObj.domainDataType)
             if not isTyped:
                 dimMbrQn = qname(factspace.factDimensions.get(dimName), factspace.parent._prefixNamespaces)
             if (isinstance(dimObj, XbrlDimension) and not isTyped and
-                dimMbrQn not in cubeDimObj.allowedMembers(txmyMdl)):
+                dimMbrQn not in cubeDimObj.allowedMembers(compMdl)):
                 hasDims = False # skip this cube
                 break
     return hasDims
 
-def validateCubes(txmyMdl, factspace):
+def validateCubes(compMdl, factspace):
     # find likely cubes
     cubeFitQuery = [(dimQn, value) for dimQn,value in factspace.factDimensions.items() if isinstance(dimQn, QName)]
-    results = searchXbrl(txmyMdl, cubeFitQuery, SEARCH_CUBES, 50) # allow sufficient return scores
+    results = searchXbrl(compMdl, cubeFitQuery, SEARCH_CUBES, 50) # allow sufficient return scores
     print(f"Cube fit scores for factspace {factspace.name} {[(r[0],r[1].name) for r in results]}")
 
     usableCubes = []
     for score, cubeObj in results:
         if score < .1 : # find right value here
             break
-        if matchFactToCube(txmyMdl, factspace, cubeObj):
+        if matchFactToCube(compMdl, factspace, cubeObj):
             usableCubes.append(cubeObj)
     return usableCubes
 
-def validateCompleteCube(txmyMdl, cubeObj):
+def validateCompleteCube(compMdl, cubeObj):
     # replace with vectorized search
     factspaces = getattr(cubeObj, "_factspaces", None)
     if not factspaces:
-        txmyMdl.error("oimte:factMissingFromCube",
+        compMdl.error("oimte:factMissingFromCube",
                      _("The complete cube %(name)s has no facts."),
                       xbrlObject=cubeObj, name=cubeObj.name)
 

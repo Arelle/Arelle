@@ -61,7 +61,7 @@ class XbrlDataType(XbrlReferencableModelObject):
     unitType: Optional[XbrlUnitType] # (optional) Defines a unitType object For example xbrli:flow has unit datatypes of xbrli:volume and xbrli:time
     allowedObjects: set[QName] # (optional) Set of object type QNames that the data type can be used with. If no value is provided the property can be used with any object. The value provided is a set of model component objects.
 
-    def xsBaseType(self, txmyMdl, visitedTypes=None): # find base types thru dataType hierarchy
+    def xsBaseType(self, compMdl, visitedTypes=None): # find base types thru dataType hierarchy
         try:
             return self._xsBaseType
         except AttributeError:
@@ -75,18 +75,18 @@ class XbrlDataType(XbrlReferencableModelObject):
             #    return self._xsBaseType
             elif self not in visitedTypes:
                 visitedTypes.add(self)
-                baseTypeObj = txmyMdl.namedObjects.get(self.baseType)
+                baseTypeObj = compMdl.namedObjects.get(self.baseType)
                 if isinstance(baseTypeObj, XbrlDataType):
-                    self._xsBaseType = baseTypeObj.xsBaseType(txmyMdl, visitedTypes)
+                    self._xsBaseType = baseTypeObj.xsBaseType(compMdl, visitedTypes)
                     return self._xsBaseType
                 visitedTypes.remove(self)
             self._xsBaseType = None
             return None
 
-    def isNumeric(self, txmyMdl):
-        return isNumericXsdType(self.xsBaseType(txmyMdl))
+    def isNumeric(self, compMdl):
+        return isNumericXsdType(self.xsBaseType(compMdl))
 
-    def instanceOfType(self, qnTypes, txmyMdl, visitedTypes=None):
+    def instanceOfType(self, qnTypes, compMdl, visitedTypes=None):
         if isinstance(qnTypes, (tuple,list,set)):
             if self.name in qnTypes:
                 return True
@@ -95,9 +95,9 @@ class XbrlDataType(XbrlReferencableModelObject):
         if not visitedTypes: visitedTypes = set() # might be a loop
         if self not in visitedTypes:
             visitedTypes.add(self)
-            baseTypeObj = txmyMdl.namedObjects.get(self.baseType)
+            baseTypeObj = compMdl.namedObjects.get(self.baseType)
             if isinstance(baseTypeObj, XbrlDataType):
-                if baseTypeObj.instanceOfType(qnTypes, txmyMdl, visitedTypes):
+                if baseTypeObj.instanceOfType(qnTypes, compMdl, visitedTypes):
                     return True
             visitedTypes.remove(self)
         return False

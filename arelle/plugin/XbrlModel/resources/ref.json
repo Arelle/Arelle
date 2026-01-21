@@ -198,6 +198,14 @@
                 "allowedObjects": [
                     "xbrl:referenceObject"
                 ]
+            },
+            {
+                "name": "ref:documentationLinkMD",
+                "dataType": "xbrli:linkToMarkdownFormat",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:referenceObject"
+                ]
             }
         ],
         "labels": [

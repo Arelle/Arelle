@@ -12,18 +12,18 @@
     "xbrlModel": {
         "name": "oime:ErrorsTaxonomy",
         "version": "1.0",
-        "domainRoots": [
+        "domainClasses": [
             {
-                "name": "oime:OIMErrorRootDomain"
+                "name": "oime:OIMErrorClassDomain"
             }
         ],
         "domains": [
             {
                 "name": "oime:OIMErrorDomain",
-                "root": "oime:OIMErrorRootDomain",
+                "root": "oime:OIMErrorClassDomain",
                 "relationships": [
-                    {"source": "oime:OIMErrorRootDomain", "target": "oime:invalidJSON", "order": 2},
-                    {"source": "oime:OIMErrorRootDomain", "target": "oime:invalidJSONStructure", "order": 3}
+                    {"source": "oime:OIMErrorClassDomain", "target": "oime:invalidJSON", "order": 2},
+                    {"source": "oime:OIMErrorClassDomain", "target": "oime:invalidJSONStructure", "order": 3}
                     
                 ]
             }

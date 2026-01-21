@@ -647,11 +647,11 @@ def saveOIMFactspace(
     # common metadata
     oimModel = {}  # top level of oim json output
     oimModel["documentInfo"] = oimDocInfo = {}
-    oimModel["xbrlModel"] = {}
     if saveOimJson:
         oimDocInfo["documentType"] = "https://xbrl.org/2021/xbrl-json"
     else:
         oimDocInfo["documentType"] = "https://xbrl.org/2025/taxonomy"
+        oimModel["xbrlModel"] = {}
     if saveOimJson:
         if linkTypeAliases:
             oimDocInfo["linkTypes"] = {a: u for u, a in sorted(linkTypeAliases.items(), key=operator.itemgetter(1))}
