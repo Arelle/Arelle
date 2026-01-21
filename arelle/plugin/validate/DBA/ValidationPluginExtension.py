@@ -460,6 +460,7 @@ class ValidationPluginExtension(ValidationPlugin):
             nameOfReportingEntityQn=qname(f'{{{NAMESPACE_GSD}}}NameOfReportingEntity'),
             nameOfSubmittingEnterpriseQn=qname(f'{{{NAMESPACE_GSD}}}NameOfSubmittingEnterprise'),
             otherEmployeeExpenseQn=qname(f'{{{NAMESPACE_FSA}}}OtherEmployeeExpense'),
+            otherRenderingOfReportedValueMemberQn=qname(f'{{{NAMESPACE_CMN}}}OtherRenderingOfReportedValueMember'),
             positiveProfitThreshold=1000,
             postemploymentBenefitExpenseQn=qname(f'{{{NAMESPACE_FSA}}}PostemploymentBenefitExpense'),
             precedingReportingPeriodEndDateQn=qname(f'{{{NAMESPACE_GSD}}}PredingReportingPeriodEndDate'),  # Typo in taxonomy
@@ -470,6 +471,7 @@ class ValidationPluginExtension(ValidationPlugin):
             provisionsQn=qname(f'{{{NAMESPACE_FSA}}}Provisions'),
             registrationNumberOfTheDigitalStandardBookkeepingSystemUsedQn=qname(f'{{{NAMESPACE_GSD}}}RegistrationNumberOfTheDigitalStandardBookkeepingSystemUsed'),
             registeredReportingPeriodDeviatingFromReportedReportingPeriodDueArbitraryDatesMemberQn=qname(f'{{{NAMESPACE_GSD}}}RegisteredReportingPeriodDeviatingFromReportedReportingPeriodDueArbitraryDatesMember'),
+            reportedValueOtherRenderingOfReportedValueDimensionQn=qname(f'{{{NAMESPACE_CMN}}}ReportedValueOtherRenderingOfReportedValueDimension'),
             reportingClassCLargeDanish='Regnskabsklasse C, stor virksomhed',
             reportingClassCLargeEnglish='Reporting class C, large enterprise',
             reportingClassCLargeLowercaseDanish='regnskabsklasse C, stor virksomhed',

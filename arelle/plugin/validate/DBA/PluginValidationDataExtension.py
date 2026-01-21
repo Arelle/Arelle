@@ -89,6 +89,7 @@ class PluginValidationDataExtension(PluginData):
     nameOfReportingEntityQn: QName
     nameOfSubmittingEnterpriseQn: QName
     otherEmployeeExpenseQn: QName
+    otherRenderingOfReportedValueMemberQn: QName
     positiveProfitThreshold: float
     postemploymentBenefitExpenseQn: QName
     precedingReportingPeriodEndDateQn: QName
@@ -99,6 +100,7 @@ class PluginValidationDataExtension(PluginData):
     provisionsQn: QName
     registrationNumberOfTheDigitalStandardBookkeepingSystemUsedQn: QName
     registeredReportingPeriodDeviatingFromReportedReportingPeriodDueArbitraryDatesMemberQn: QName
+    reportedValueOtherRenderingOfReportedValueDimensionQn: QName
     reportingClassCLargeDanish: str
     reportingClassCLargeEnglish: str
     reportingClassCLargeLowercaseDanish: str
@@ -142,6 +144,16 @@ class PluginValidationDataExtension(PluginData):
         contextFactMap: dict[str, dict[QName, ModelFact]] = defaultdict(dict)
         for fact in modelXbrl.facts:
             contextFactMap[fact.contextID][fact.qname] = fact
+        return contextFactMap
+
+    @lru_cache(1)
+    def factsByContextId(self, modelXbrl: ModelXbrl) -> dict[str, set[ModelFact]]:
+        """
+        :return: A mapping of context ID to the set of facts associated with that context.
+        """
+        contextFactMap: dict[str, set[ModelFact]] = defaultdict(set)
+        for fact in modelXbrl.facts:
+            contextFactMap[fact.contextID].add(fact)
         return contextFactMap
 
     def getCurrentAndPreviousReportingPeriodContexts(self, modelXbrl: ModelXbrl) -> list[ModelContext]:

@@ -3,9 +3,12 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
+from collections import defaultdict
+
 import datetime
 import decimal
 from collections.abc import Iterable
+from lxml import etree
 from typing import Any, cast
 
 from arelle import ModelDocument
@@ -1257,7 +1260,7 @@ def rule_fr87(
             ixTags = set(ixNStag + ln for ln in ("nonNumeric", "nonFraction", "references", "relationship"))
         ixTargets = set()
         for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
-            for elt in ixdsHtmlRootElt.iter():
+            for elt in ixdsHtmlRootElt.iter(etree.Element):
                 eltTag = elt.tag
                 if eltTag in ixTags:
                     ixTargets.add( elt.get("target") )
@@ -1547,3 +1550,88 @@ def rule_fr108(
                       ),
                 modelObject=periodFacts
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=STAND_ALONE_DISCLOSURE_SYSTEMS,
+)
+def rule_fr118(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR118: Fields that appear in the other rendering dimension
+    must also appear in the reported dimension with a different scale.
+    """
+    dimensionQn = pluginData.reportedValueOtherRenderingOfReportedValueDimensionQn
+    otherRenderingMemberQn = pluginData.otherRenderingOfReportedValueMemberQn
+
+    # Find "other rendering" contexts and map reported value contexts for matching later
+    otherRenderingContextsMap = defaultdict(list)
+    reportedValueContextsMap = defaultdict(list)
+    for contextId, context in val.modelXbrl.contexts.items():
+        # An "other rendering" and "reported value" context match if they are effectively duplicate contexts
+        # when ignoring the "other rendering" dimension member
+        key = (
+            context.periodHash,
+            context.entityIdentifierHash,
+            tuple(
+                (dimConcept, dimMember)
+                for dimConcept, dimMember in sorted(context.scenDimValues.items(), key=lambda item: item[0].localName)
+                if dimConcept.qname != dimensionQn
+            )
+        )
+        if context.dimMemberQname(dimensionQn) == otherRenderingMemberQn:
+            otherRenderingContextsMap[key].append(context)
+        else:
+            reportedValueContextsMap[key].append(context)
+
+    if not otherRenderingContextsMap:
+        # No "other reporting" contexts, nothing to validate
+        return
+
+    factsByContextId = pluginData.factsByContextId(val.modelXbrl)
+
+    invalidFacts: list[ModelFact] = []
+    for key, otherRenderingContexts in otherRenderingContextsMap.items():
+        for otherRenderingContext in otherRenderingContexts:
+            if otherRenderingContext.id is None:
+                continue
+            # Map "other rendering" facts by (qname, unitID) for quick lookup
+            # We'll remove matched facts from this map as we find them
+            otherRenderingFactsMap: dict[tuple[QName, str], set[ModelFact]] = defaultdict(set)
+            otherRenderingFacts = factsByContextId.get(otherRenderingContext.id, set())
+            for otherRenderingFact in otherRenderingFacts:
+                otherRenderingFactsMap[(otherRenderingFact.qname, otherRenderingFact.unitID)].add(otherRenderingFact)
+
+            # Iterate over each "reported value" context, matched by a key that indicates that are effectively
+            # duplicate contexts except for the "other rendering" dimension member
+            for reportedValueContext in reportedValueContextsMap.get(key, []):
+                if reportedValueContext.id is None:
+                    continue
+                reportedValueFacts = factsByContextId.get(reportedValueContext.id, set())
+                for reportedValueFact in reportedValueFacts:
+                    fact_key = (reportedValueFact.qname, reportedValueFact.unitID)
+                    if fact_key not in otherRenderingFactsMap:
+                        continue
+                    matchingOtherRenderingFacts = {
+                        _fact
+                        for _fact in otherRenderingFactsMap.get(fact_key, set())
+                        if _fact.scaleInt != reportedValueFact.scaleInt  # type: ignore[attr-defined]
+                    }
+                    otherRenderingFactsMap[fact_key] -= matchingOtherRenderingFacts
+
+            # Any remaining "other rendering" facts have not been matched
+            # with a "reported value" fact with a different scale
+            for __, otherRenderingFacts in otherRenderingFactsMap.items():
+                invalidFacts.extend(otherRenderingFacts)
+
+    if invalidFacts:
+        yield Validation.warning(
+            codes='DBA.FR118',
+            msg=_("Fields that appear in the other rendering dimension must also appear in the reported dimension with a different scale."),
+            modelObject=invalidFacts,
+        )

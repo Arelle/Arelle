@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.FR118"
+        description="DBA.FR118: Fields that appear in the rendering dimension must also appear in the other dimension."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid" name="Invalid">
+        <description>
+            Other rendering facts either do not have a corresponding reported fact, or the reported fact has a different scale value.
+            <!-- Duplicated ctx-1 (ctx-1b) with OtherRenderingOfReportedValueMember -->
+            <!-- Added GrossProfitLoss with ctx-1b and different scale (valid) -->
+            <!-- Duplicated ctx-3 (ctx-3b) with OtherRenderingOfReportedValueMember -->
+            <!-- Added GrossProfitLoss with ctx-3b and same scale (invalid) -->
+            <!-- Added WagesAndSalaries with ctx-3b and deleted WageSalaries with ctx-3 (invalid) -->
+        </description>
+        <data>
+            <instance readMeFirst="true">fr118-invalid.xhtml</instance>
+        </data>
+        <result>
+            <error>DBA.FR118</error>
+            <error>DBA.FR75</error> <!-- WagesAndSalaries removed -->
+        </result>
+    </variation>
+</testcase>

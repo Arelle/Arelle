@@ -1672,15 +1672,6 @@
                             <span class="fc1 sc0"> </span>
                         </div>
                     </div>
-                    <div class="c x27 y6a w1b h26">
-                        <div class="t m0 x29 h22 y57 ff3 fs8 fc0 sc0 ls0 ws0">
-                            <span style="letter-spacing: 0px;">
-                                -
-                                <ix:nonFraction format="ixt:num-dot-decimal" decimals="-3" scale="3" name="fsa:WagesAndSalaries" contextRef="ctx-3" unitRef="dkk">66,733</ix:nonFraction>
-                            </span>
-                            <span class="fc1 sc0"> </span>
-                        </div>
-                    </div>
                     <div class="c x9 y126 w18 h27">
                         <div class="t m0 x0 h11 y5a ff3 fs6 fc0 sc0 ls0 ws0">Depreciation of<span class="_ _0"></span> intangible and tangible assets<span class="_ _0"></span> <span class="_ _18"> </span><span class="fc1 sc0"> </span></div>
                     </div>
@@ -6501,10 +6492,12 @@
                 </div>
                 <div class="pi"></div>
             </div>
-
-            <!-- FR118: Different scale, valid -->
-            <ix:nonFraction format="ixt:num-dot-decimal" decimals="-2" scale="2" name="fsa:GrossProfitLoss" contextRef="ctx-fr118" unitRef="dkk">750,290</ix:nonFraction>
-            <ix:nonFraction format="ixt:num-dot-decimal" decimals="-1" scale="1" name="fsa:GrossProfitLoss" contextRef="ctx-fr118" unitRef="dkk">7,502,900</ix:nonFraction>
+            <!-- Different scale, valid -->
+            <ix:nonFraction format="ixt:num-dot-decimal" decimals="-2" scale="2" name="fsa:GrossProfitLoss" contextRef="ctx-1b" unitRef="dkk">750,290</ix:nonFraction>
+            <!-- Same scale, invalid -->
+            <ix:nonFraction format="ixt:num-dot-decimal" decimals="-3" scale="3" name="fsa:GrossProfitLoss" contextRef="ctx-3b" unitRef="dkk">52,172</ix:nonFraction>
+            <!-- No reported counterpart, invalid -->
+            <ix:nonFraction format="ixt:num-dot-decimal" decimals="-3" scale="3" name="fsa:WagesAndSalaries" contextRef="ctx-3b" unitRef="dkk">66,733</ix:nonFraction>
         </div>
         <div class="loading-indicator"></div>
         <div style="display:none;">
@@ -6807,13 +6800,25 @@
                             </xbrldi:typedMember>
                         </xbrli:scenario>
                     </xbrli:context>
-                    <xbrli:context id="ctx-fr118">
+                    <xbrli:context id="ctx-1b">
                         <xbrli:entity>
                             <xbrli:identifier scheme="http://www.dcca.dk/cvr">32570119</xbrli:identifier>
                         </xbrli:entity>
                         <xbrli:period>
                             <xbrli:startDate>2023-01-01</xbrli:startDate>
                             <xbrli:endDate>2023-12-31</xbrli:endDate>
+                        </xbrli:period>
+                        <xbrli:scenario>
+                            <xbrldi:explicitMember dimension="cmn:ReportedValueOtherRenderingOfReportedValueDimension">cmn:OtherRenderingOfReportedValueMember</xbrldi:explicitMember>
+                        </xbrli:scenario>
+                    </xbrli:context>
+                    <xbrli:context id="ctx-3b">
+                        <xbrli:entity>
+                            <xbrli:identifier scheme="http://www.dcca.dk/cvr">32570119</xbrli:identifier>
+                        </xbrli:entity>
+                        <xbrli:period>
+                            <xbrli:startDate>2022-01-01</xbrli:startDate>
+                            <xbrli:endDate>2022-12-31</xbrli:endDate>
                         </xbrli:period>
                         <xbrli:scenario>
                             <xbrldi:explicitMember dimension="cmn:ReportedValueOtherRenderingOfReportedValueDimension">cmn:OtherRenderingOfReportedValueMember</xbrldi:explicitMember>
