@@ -60,7 +60,7 @@ config = ConformanceSuiteConfig(
             # NL.NL-KVK.3.4.1.1.tupleElementUsed - ix:tuple present in iXBRL document
             # NL.NL-KVK.4.2.0.1.tupleElementUsed - tuple defined in extension taxonomy
             'tupleElementUsed': 1,
-            'UsableConceptsNotAppliedByTaggedFacts': 1,
+            'usableConceptsNotAppliedByTaggedFacts': 1,
             'usableConceptsNotIncludedInDefinitionLink': 1,
         },
         'G3-5-1_5/index.xml:TC2_invalid': {
@@ -106,7 +106,7 @@ config = ConformanceSuiteConfig(
             # Test imports https://www.nltaxonomie.nl/kvk/2024-03-31/kvk-annual-report-nlgaap-ext.xsd which is the draft taxonomy and not the final
             'requiredEntryPointNotImported': 1,
             'missingRelevantPlaceholder': 1,
-            'UsableConceptsNotAppliedByTaggedFacts': 1,  # Also fails 4.4.6.1
+            'usableConceptsNotAppliedByTaggedFacts': 1,  # Also fails 4.4.6.1
             'extensionTaxonomyLineItemNotLinkedToAnyHypercube': 10,
         },
         'G4-2-0_1/index.xml:TC2_invalid': {
@@ -178,7 +178,7 @@ config = ConformanceSuiteConfig(
             'extensionTaxonomyWrongFilesStructure': 1,
         },
         'RTS_Art_6_a/index.xml:TC2_invalid': {
-            'UsableConceptsNotAppliedByTaggedFacts': 1,
+            'usableConceptsNotAppliedByTaggedFacts': 1,
             'incorrectKvkTaxonomyVersionUsed': 1,
             'message:existsAtLeastOnce_ChamberOfCommerceRegistrationNumber': 1,
             'message:existsAtLeastOnce_FinancialReportingPeriod': 1,
@@ -196,6 +196,8 @@ config = ConformanceSuiteConfig(
         'G3-4-1_2/index.xml:TC2_invalid',  # Expects fractionElementUsed”.  Note the double quote at the end.
         'G4-2-0_2/index.xml:TC2_invalid',  # Expects fractionElementUsed”.  Note the double quote at the end.
         'G4-4-1_1/index.xml:TC2_invalid',  # Expects IncorrectSummationItemArcroleUsed.  Note the capital first character.
+        'G4-4-6_1/index.xml:TC2_invalid',  # Expects UsableConceptsNotAppliedByTaggedFacts.  Note the capital first character.
+        'G4-4-6_1/index.xml:TC3_invalid',  # Expects UsableConceptsNotAppliedByTaggedFacts.  Note the capital first character.
         'RTS_Annex_III_Par_1/index.xml:TC3_invalid',  # Expects invalidInlineXbrl, but this is valid.
         'RTS_Annex_IV_Par_12_G3-2-4_1/index.xml:TC4_invalid',  # Expects inconsistentDuplicateNonnumericFactInInlineXbrlDocumentSet, should be inconsistentDuplicateNumericFactInInlineXbrlDocument.
 

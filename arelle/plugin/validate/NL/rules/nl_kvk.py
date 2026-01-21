@@ -1745,8 +1745,7 @@ def rule_nl_kvk_4_4_6_1(
                     unreportedLbLocs.add(rel.fromLocator)
     if len(unreportedLbLocs) > 0:
         yield Validation.warning(
-            # Subtitle is capitalized inconsistently here because it matches the conformance suite. This may change in the future.
-            codes='NL.NL-KVK.4.4.6.1.UsableConceptsNotAppliedByTaggedFacts',
+            codes='NL.NL-KVK.4.4.6.1.usableConceptsNotAppliedByTaggedFacts',
             modelObject=unreportedLbLocs,
             msg=_('Concept was found but not reported on any facts. '
                   'Remove any unused concepts or ensure concept is applied to applicable facts.'),
