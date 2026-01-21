@@ -50,8 +50,7 @@ from .XbrlAbstract import XbrlAbstract
 from .XbrlConcept import XbrlConcept, XbrlDataType, XbrlUnitType
 from .XbrlConst import qnErrorQname
 from .XbrlCube import (XbrlCube, XbrlCubeDimension, XbrlPeriodConstraint, XbrlDateResolution,
-                       XbrlCubeType, XbrlAllowedCubeDimension, XbrlRequiredCubeRelationship,
-                       coreDimensionsByLocalname)
+                       XbrlCubeType, coreDimensionsByLocalname)
 from .XbrlDimension import XbrlDimension
 from .XbrlEntity import XbrlEntity
 from .XbrlGroup import XbrlGroup, XbrlGroupContent, XbrlGroupTree
@@ -67,7 +66,7 @@ from .XbrlModel import XbrlCompiledModel, castToXbrlCompiledModel
 from .XbrlModule import XbrlModule, xbrlObjectTypes
 from .XbrlObject import XbrlObject, XbrlReferencableModelObject, XbrlTaxonomyTagObject, XbrlObjectType
 from .XbrlTypes import (XbrlTaxonomyModelType, XbrlModuleType, XbrlLayoutType, XbrlReportType, XbrlUnitTypeType,
-                        QNameKeyType, SQNameKeyType, DefaultTrue, DefaultFalse, DefaultZero)
+                        QNameKeyType, SQNameKeyType, DefaultTrue, DefaultFalse, DefaultZero, OptionalList)
 from .ValidateXbrlModel import validateCompiledModel
 from .ValidateReport import validateReport, validateDateResolutionConceptFacts
 from .SelectImportedObjects import selectImportedObjects
@@ -273,7 +272,9 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                         errCode = "oimte:invalidPropertyValue"
                     elif p_last == "language" and " does not match " in msg:
                         errCode = "oimte:invalidLanguage"
-                    elif p_beforeLast == "dimensions" and " valid under each of {'required': ['domainRoot']}, {'required': ['domainDataType']}" in msg:
+                    elif p_last == "coreDimensions" and "unique elements" in msg:
+                        errCode = "oimte:duplicateCoreDimension"
+                    elif p_beforeLast == "dimensions" and " valid under each of {'required': ['domainClass']}, {'required': ['domainDataType']}" in msg:
                         errCode = "oimte:invalidDimensionObject"
                     else:
                         errCode = "oimte:invalidJSONStructure",
@@ -304,6 +305,8 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                     errCode = "oimte:invalidPropertyValue"
                 elif p_last == "language" and " must match " in msg:
                     errCode = "oimte:invalidLanguage"
+                elif p_last == "coreDimensions" and " unique items" in msg:
+                    errCode = "oimte:duplicateCoreDimension"
                 elif p_beforeLast == "dimensions" and isinstance(ex.rule_definition, list) and all(k == "required" for o in ex.rule_definition for k in o.keys()):
                     errCode = "oimte:invalidDimensionObject"
                 else:
@@ -452,7 +455,9 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                 if jsonKey in jsonObj:
                     unexpectedJsonProps.remove(jsonKey)
                     jsonValue = jsonObj[jsonKey]
-                    if isinstance(propType, GenericAlias) or (isinstance(propType, _UnionGenericAlias) and isinstance(propType.__args__[0], GenericAlias) and propType.__args__[0].__origin__ == OrderedSet):
+                    if (isinstance(propType, GenericAlias) or 
+                        (isinstance(propType, _UnionGenericAlias) and isinstance(propType.__args__[0], GenericAlias) and propType.__args__[0].__origin__ == OrderedSet) or 
+                        (isinstance(propType, _GenericAlias) and propType.__origin__ in (list, set, OrderedSet))):
                         # for Optional OrderedSets where the jsonValue exists, handle as propType, _keyClass and eltClass
                         if isinstance(propType.__args__[0], GenericAlias) and len(propType.__args__[0].__args__) == 1 and propType.__args__[0].__origin__ == OrderedSet:
                             # handle as non-optional OrderedSet
@@ -461,6 +466,12 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                             setattr(newObj, propName, collectionProp) # fresh new dict or OrderedSet (even if no contents for it)
                             _keyClass = None
                             eltClass = propType.__args__[0].__args__[0]
+                        elif isinstance(propType, _GenericAlias) and propType.__origin__ in (list, set, OrderedSet):
+                            propClass = propType.__origin__
+                            collectionProp = propClass()
+                            setattr(newObj, propName, collectionProp) # fresh new dict or OrderedSet (even if no contents for it)
+                            _keyClass = None
+                            eltClass = propType.__args__[0]
                         elif len(propType.__args__) == 2: # dict
                             _keyClass = propType.__args__[0] # class of key such as QNameKey
                             eltClass = propType.__args__[1] # class of collection elements such as XbrlConcept
@@ -604,6 +615,9 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                     elif isinstance(ownrPropType, _UnionGenericAlias) and ownrPropType.__args__[-1] == type(None): # optional nested object
                         keyClass = None
                         objClass = ownrPropType.__args__[0]
+                    elif isinstance(ownrPropType, _GenericAlias): # e.g. OptionalList
+                        keyClass = None
+                        objClass = ownrPropType.__args__[0]
                     else: # parent      is just an object field, not a  collection
                         objClass = ownrPropType # e.g just a Concept but no owning collection
                     if get_origin(objClass) is Union: # union of structured class or string such as select
@@ -637,8 +651,18 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                             ownrProp.add(newObj)
                         else:
                             setattr(oimParentObj, pathParts[-1], newObj)
+                    elif isinstance(ownrPropType, _GenericAlias):
+                        if issubclass(ownrPropType.__origin__, (set, OrderedSet)):
+                            ownrProp.add(newObj)
+                        elif issubclass(ownrPropType.__origin__, list):
+                            ownrProp.append(newObj)
                     return newObj
             return None
+        if "xbrlModel" not in moduleFileObj:
+            error("oimce:unsupportedDocumentType",
+                  _("Missing /xbrlModel object"),
+                  file=moduleFile)
+            return {}
 
         newModule = createModelObjects("xbrlModel", moduleFileObj["xbrlModel"], xbrlCompMdl, ["", "xbrlModel"])
         modelXbrl.profileActivity(f"Create taxonomy objects from {moduleFileBasename}", minTimeToShow=PROFILE_MIN_TIME)

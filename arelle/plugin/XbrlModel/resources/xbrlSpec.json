@@ -16,129 +16,11 @@
         "version": "2025",
         "cubeTypes" :[
                 {
-                    "name": "xbrl:eventCube",
-                    "periodDimension": false,
-                    "entityDimension": false,
-                    "unitDimension": false,
-                    "taxonomyDefinedDimension": true,
-                    "allowedCubeDimensions" : [
-                        {
-                        "dimensionType": "typed",
-                        "dimensionDataType": "xs:token",
-                        "required" : true
-                        }
-                    ],
-                    "allowedCubeDimensionsClosed" : true,
-                    "requiredCubeRelationships" : [
-                        {
-                        "sourceDataType":"xs:dateTime",
-                        "relationshipTypeName": "xbrl:concept-refDimension",
-                        "target": "xbrl:period"
-                        }
-                    ]
-                },
-                {
-                    "name": "xbrl:eventDetailsCube",
-                    "periodDimension": false,
-                    "entityDimension": false,
-                    "unitDimension": false,
-                    "taxonomyDefinedDimension": true,
-                    "allowedCubeDimensions" : [
-                        {
-                            "dimensionType": "typed",
-                            "dimensionDataType": "xs:token",
-                            "required" : true
-                        }
-                    ],
-                    "requiredCubeRelationships" : [
-                        {
-                            "sourceObject": "xbrl:conceptObject",
-                            "relationshipTypeName": "xbrl:concept-refDimension",
-                            "targetObject" : "xbrl:dimensionObject"
-                        }
-                    ]
-                },
-                {
-                    "name": "xbrl:journalCube",
-                    "baseCubeType": "xbrl:eventDetailsCube"
-                },
-                {
-                    "name": "xbrl:referenceCube",
-                    "periodDimension": false,
-                    "entityDimension": false,
-                    "unitDimension": false,
-                    "taxonomyDefinedDimension": true,
-                    "allowedCubeDimensions" : [
-                        {
-                            "dimensionType": "typed",
-                            "dimensionDataType": "xs:token",
-                            "required" : true
-                        }
-                    ]
-                },
-                {
-                    "name": "xbrl:timeSeriesCube",
-                    "periodDimension": false,
-                    "entityDimension": true,
-                    "unitDimension": true,
-                    "taxonomyDefinedDimension": true,
-                    "allowedCubeDimensions" : [
-                        {
-                            "dimensionType": "typed",
-                            "dimensionDataType": "xs:dateTime",
-                            "required" : true,
-                            "allowedDimensionProperties": [
-                                "xbrl:intervalOfMeasurement",
-                                "xbrl:timeSeriesType",
-                                "xbrl:aggregation",
-                                "xbrl:intervalConvention",
-                                "xbrl:completeTimeSeries",
-                                "xbrl:excludedIntervals"
-                            ],
-                            "requiredDimensionProperties": [
-                                "xbrl:intervalOfMeasurement",
-                                 "xbrl:timeSeriesType"
-                            ]
-                        }   
-                    ],
-                    "allowedCubeDimensionsClosed" : false
-                },
-                {
-                    "name": "xbrl:positionCube",
-                    "periodDimension": true,
-                    "entityDimension": true,
-                    "unitDimension": true,
-                    "taxonomyDefinedDimension": true,
-                    "allowedCubeDimensions" : [
-                        {
-                            "dimensionType": "typed",
-                            "dimensionDataType": "xs:token",
-                            "required" : true
-                        }
-                    ],
-                    "allowedCubeDimensionsClosed" : false
-                },
-                {
-                    "name": "xbrl:listingCube",
-                    "periodDimension": false,
-                    "entityDimension": false,
-                    "unitDimension": true,
-                    "taxonomyDefinedDimension": true,
-                    "allowedCubeDimensions" : [
-                        {
-                            "dimensionType": "typed",
-                            "dimensionDataType": "xs:token",
-                            "required" : true
-                        }
-                    ],
-                    "allowedCubeDimensionsClosed" : true
-                },
-                {
                     "name": "xbrl:reportCube",
-                    "periodDimension": true,
-                    "entityDimension": true,
-                    "unitDimension": true,
-                    "taxonomyDefinedDimension": true
+                    "coreDimensions": ["xbrl:concept", "xbrl:period", "xbrl:unit", "xbrl:entity","xbrl:language"],
+                    "cubeDimensionConstraints" : {
+                        "closed" : false
+                    }
                 },
                 {
                     "name": "xbrl:defaultCube"
@@ -148,26 +30,26 @@
         "dimensions": [
             {
                 "name": "xbrl:concept",
-                "domainRoot": "xbrl:conceptDomain"
+                "domainClass": "xbrl:conceptDomain"
             },
             {
                 "name": "xbrl:unit",
-                "domainRoot": "xbrl:unitDomain"
+                "domainClass": "xbrl:unitDomain"
             },
             {
                 "name": "xbrl:period",
-                "domainRoot": "xbrl:periodDomain"
+                "domainClass": "xbrl:periodDomain"
             },
             {
                 "name": "xbrl:entity",
-                "domainRoot": "xbrl:entityDomain"
+                "domainClass": "xbrl:entityDomain"
             },
             {
                 "name": "xbrl:language",
-                "domainRoot": "xbrl:languageDomain"
+                "domainClass": "xbrl:languageDomain"
             }
         ],
-        "domainRoots" : [
+        "domainClasses" : [
             {
                 "name": "xbrl:conceptDomain",
                 "allowedDomainItems" : ["xbrl:conceptObject", "xbrl:abstractObject"]
@@ -1062,42 +944,6 @@
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:eventCube",
-                "value": "Cube type for single-event facts identified by a typed dimension; does not include standard period/entity/unit core dimensions."
-            },
-            {
-                "labelType": "xbrl:documentation",
-                "language": "en",
-                "relatedName": "xbrl:eventDetailsCube",
-                "value": "Cube type for event detail records that reference concept-to-dimension relationships for richer typed dimensions."
-            },
-            {
-                "labelType": "xbrl:documentation",
-                "language": "en",
-                "relatedName": "xbrl:journalCube",
-                "value": "A specialization of eventDetailsCube intended for journal or ledger style event records."
-            },
-            {
-                "labelType": "xbrl:documentation",
-                "language": "en",
-                "relatedName": "xbrl:referenceCube",
-                "value": "Cube type used for reference or lookup data where facts act as descriptions rather than periodic measurements."
-            },
-            {
-                "labelType": "xbrl:documentation",
-                "language": "en",
-                "relatedName": "xbrl:timeSeriesCube",
-                "value": "Cube type optimized for time-series data; requires a typed date/time dimension and typically includes the unit core-dimension."
-            },
-            {
-                "labelType": "xbrl:documentation",
-                "language": "en",
-                "relatedName": "xbrl:positionCube",
-                "value": "Cube type for position-style facts that typically include period, entity and unit core dimensions."
-            },
-            {
-                "labelType": "xbrl:documentation",
-                "language": "en",
                 "relatedName": "xbrl:reportCube",
                 "value": "Cube type representing a report or statement where period and entity core dimensions are expected."
             },
@@ -1164,8 +1010,8 @@
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:domainRootObject",
-                "value": "Domain Root Object"
+                "relatedName": "xbrl:domainClassObject",
+                "value": "Domain Class Object"
             },
             {
                 "labelType": "xbrl:label",
@@ -1243,7 +1089,7 @@
                     "xbrl:relationshipObject",
                     "xbrl:conceptObject",
                     "xbrl:dimensionObject",
-                    "xbrl:domainRootObject"
+                    "xbrl:domainClassObject"
                 ]
             },
             {
@@ -1284,7 +1130,7 @@
                 "dataType": "xs:duration",
                 "definitional": false,
                 "allowedObjects": [
-                    "xbrl:domainRootObject"
+                    "xbrl:domainClassObject"
                 ]
             },
             {
@@ -1292,7 +1138,7 @@
                 "dataType": "xbrli:timeSeriesDataType",
                 "definitional": false,
                 "allowedObjects": [
-                    "xbrl:domainRootObject"
+                    "xbrl:domainClassObject"
                 ]
             },
             {
@@ -1300,7 +1146,7 @@
                 "dataType": "xbrli:intervalConventionType",
                 "definitional": false,
                 "allowedObjects": [
-                    "xbrl:domainRootObject"
+                    "xbrl:domainClassObject"
                 ]
             },
             {
@@ -1308,7 +1154,7 @@
                 "dataType": "xs:boolean",
                 "definitional": false,
                 "allowedObjects": [
-                    "xbrl:domainRootObject"
+                    "xbrl:domainClassObject"
                 ]
             },
             {
@@ -1316,7 +1162,7 @@
                 "dataType": "xbrli:excludedIntervalsSet",
                 "definitional": false,
                 "allowedObjects": [
-                    "xbrl:domainRootObject"
+                    "xbrl:domainClassObject"
                 ]
             },
             {
@@ -1451,7 +1297,7 @@
                     "xbrl:abstractObject",
                     "xbrl:memberObject", 
                     "xbrl:domainObject",
-                    "xbrl:domainRootObject", 
+                    "xbrl:domainClassObject", 
                     "xbrl:dimensionObject", 
                     "xbrl:cubeObject", 
                     "xbrl:entityObject",  
@@ -1463,7 +1309,7 @@
                     "xbrl:abstractObject",
                     "xbrl:memberObject", 
                     "xbrl:domainObject",
-                    "xbrl:domainRootObject",
+                    "xbrl:domainClassObject",
                     "xbrl:dimensionObject", 
                     "xbrl:cubeObject", 
                     "xbrl:entityObject",  
@@ -1536,7 +1382,7 @@
                             "xbrl:groupObject",
                             "xbrl:cubeObject",
                             "xbrl:domainObject",
-                            "xbrl:domainRootObject",
+                            "xbrl:domainClassObject",
                             "xbrl:relationshipObject",
                             "xbrl:labelObject",
                             "xbrl:referenceObject"
@@ -1580,7 +1426,7 @@
                     "xbrl:abstractObject",
                     "xbrl:memberObject", 
                     "xbrl:domainObject",
-                    "xbrl:domainRootObject", 
+                    "xbrl:domainClassObject", 
                     "xbrl:dimensionObject",
                     "xbrl:cubeObject"
                 ],
@@ -1588,7 +1434,7 @@
                     "xbrl:abstractObject",
                     "xbrl:memberObject", 
                     "xbrl:domainObject",
-                    "xbrl:domainRootObject", 
+                    "xbrl:domainClassObject", 
                     "xbrl:dimensionObject",
                     "xbrl:cubeObject"
                 ]

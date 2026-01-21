@@ -15,6 +15,6 @@ class LegMdlXbrl(XbrlCompiledModel):
 
     @property
     def dimensionDefaultConcepts(self):
-        return dict((dim, dim.domainRoot)
+        return dict((dim, dim.domainClass)
                     for dim in self.filterNamedObjects(XbrlDimension)
                     if dim.isExplicitDimension )

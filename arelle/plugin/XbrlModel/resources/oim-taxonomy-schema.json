@@ -190,6 +190,12 @@
                         "type": "object",
                         "properties": {
                             "name": { "$ref": "#/definitions/QName" },
+                            "domainClasses": {
+                                "type": "array",
+                                "items": { "$ref": "#/definitions/domainClassQName" },
+                                "uniqueItems": true,
+                                "description": "Ordered set of QNames that reference domain class objects that are associated with the member. This allows the member to be used in multiple dimensions that reference different domain classes."
+                            },
                              "properties": {
                                 "type": "array",
                                  "items": { "$ref": "#/definitions/propertyObject"},
@@ -353,7 +359,7 @@
                     "type": "object",
                     "properties": {
                       "name": { "$ref": "#/definitions/QName" },
-                      "domainRoot": { "$ref": "#/definitions/domainRootQName" },
+                      "domainClass": { "$ref": "#/definitions/domainClassQName" },
                       "cubeTypes": {
                         "type": "array",
                         "items": { "$ref": "#/definitions/cubeTypeQName" },
@@ -366,7 +372,7 @@
                             "uniqueItems": true
                         }
                     },
-                    "required": ["name", "domainRoot"],
+                    "required": ["name", "domainClass"],
                     "additionalProperties": false
                     },
                     "uniqueItems": true
@@ -377,7 +383,7 @@
                   "type": "object",
                       "properties": {
                         "name": { "$ref": "#/definitions/QName" },
-                        "root": { "$ref": "#/definitions/domainRootQName" },
+                        "root": { "$ref": "#/definitions/domainClassQName" },
                         "relationships": {
                           "type": "array",
                           "items": {
@@ -424,12 +430,13 @@
                     },
                     "uniqueItems": true
                 },
-                "domainRoots": {
+                "domainClasses": {
                     "type": "array",
                     "items": {
                         "type": "object",
                         "properties": {
                             "name": { "$ref": "#/definitions/QName" },
+                            "baseDomainClass": { "$ref": "#/definitions/domainClassQName" },
                             "allowedDomainItems": {
                               "type": "array",
                               "items": { "$ref": "#/definitions/QName" },
@@ -1023,121 +1030,174 @@
                       "properties": {
                         "name": { "$ref": "#/definitions/QName" },
                         "baseCubeType": { "$ref": "#/definitions/cubeTypeQName" },
-                        "periodDimension": {
-                          "type": "boolean",
-                          "description": "Indicates if the period core dimension is included in the cube. Defaults to true."
-                        },
-                        "entityDimension": {
-                          "type": "boolean",
-                          "description": "Indicates if the entity core dimension is included in the cube. Defaults to true."
-                        },
-                        "unitDimension": {
-                          "type": "boolean",
-                          "description": "Indicates if the unit core dimension is included in the cube. Defaults to true."
-                        },
-                        "taxonomyDefinedDimension": {
-                          "type": "boolean",
-                          "description": "Indicates if xbrlModel defined dimensions are included in the cube. Defaults to true."
-                        },
-                        "allowedCubeDimensions": {
+                        "coreDimensions": {
                           "type": "array",
-                          "description": "Ordered set of allowedCubeDimension objects permitted to be used on the cube.",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "dimensionName": { "$ref": "#/definitions/dimensionQName" },
-                              "dimensionType": {
-                                "type": "string",
-                                "enum": ["typed", "explicit"],
-                                "description": "Indicates that the cube must have a typed or explicit dimension."
-                              },
-                              "dimensionDataType": { "$ref": "#/definitions/dataTypeQName" },
-                              "required": {
-                                "type": "boolean",
-                                "description": "True if the defined dimension is required on the cube. Defaults to false."
-                              },
-                              "allowedDimensionProperties": {
-                                "type": "array",
-                                "items": { "$ref": "#/definitions/QName" }
-                              },
-                              "requiredDimensionProperties": {
-                                "type": "array",
-                                "items": { "$ref": "#/definitions/QName" }
+                          "items": { "$ref": "#/definitions/dimensionQName" },
+                          "uniqueItems": true,
+                          "description": "Array of core dimension QNames that are allowed in cubes of this type. Only xbrl:concept, xbrl:period, xbrl:entity, xbrl:unit, and xbrl:language are valid. Concept is always assumed."
+                        },
+                        "cubeDimensionConstraints": {
+                          "type": "object",
+                          "description": "Defines constraints on taxonomy-defined dimensions for this cube type.",
+                          "properties": {
+                            "allowed": {
+                              "type": "array",
+                              "description": "Array of allowed dimensions. Can be simple QNames (for explicit dimensions) or constraint objects (for typed dimensions or dimensions with property constraints).",
+                              "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "dimensionName": { "$ref": "#/definitions/dimensionQName" },
+                                      "type": {
+                                        "type": "string",
+                                        "enum": ["typed", "explicit"],
+                                        "description": "Whether this is a typed or explicit dimension constraint."
+                                      },
+                                      "dataType": { 
+                                        "$ref": "#/definitions/dataTypeQName",
+                                        "description": "Required if type is 'typed'. The data type for typed dimension members."
+                                      },
+                                      "required": {
+                                        "type": "boolean",
+                                        "description": "If true, this dimension must appear in cubes of this type. Defaults to false."
+                                      },
+                                      "dimensionProperties": {
+                                        "type": "object",
+                                        "description": "Property constraints for this dimension.",
+                                        "properties": {
+                                          "allowed": {
+                                            "type": "array",
+                                            "items": { "$ref": "#/definitions/propertyTypeQName" },
+                                            "description": "Property types that may be used on members of this dimension."
+                                          },
+                                          "required": {
+                                            "type": "array",
+                                            "items": { "$ref": "#/definitions/propertyTypeQName" },
+                                            "description": "Property types that must be present on members of this dimension."
+                                          }
+                                        },
+                                        "additionalProperties": false
+                                      }
+                                    },
+                                    "additionalProperties": false,
+                                    "allOf": [
+                                      {
+                                        "if": {
+                                          "properties": { "type": { "const": "typed" } },
+                                          "required": ["type"]
+                                        },
+                                        "then": {
+                                          "required": ["dataType"]
+                                        }
+                                      },
+                                      {
+                                        "if": {
+                                          "properties": { "type": { "const": "explicit" } },
+                                          "required": ["type"]
+                                        },
+                                        "then": {
+                                          "not": { "required": ["dataType"] }
+                                        }
+                                      }
+                                    ]
                               }
                             },
-                            "additionalProperties": false,
-                            "allOf": [
-                              
-                              {
-                                "if": {
-                                  "properties": { "dimensionType": { "const": "explicit" } },
-                                  "required": ["dimensionType"]
-                                },
-                                "then": {
-                                  "not": { "required": ["dimensionDataType"] }
-                                }
-                              },
-                              
-                              {
-                                "if": {
-                                  "required": ["dimensionName"]
-                                },
-                                "then": {
-                                  "not": { "anyOf": [ { "required": ["dimensionType"] }, { "required": ["dimensionDataType"] } ] }
-                                }
-                              },
-                              
-                              {
-                                "if": {
-                                  "properties": { "dimensionType": { "const": "typed" } },
-                                  "required": ["dimensionType"]
-                                },
-                                "then": {
-                                  "required": ["dimensionDataType"]
-                                }
-                              },
-                              {
-                                "if": {
-                                  "required": ["dimensionDataType"]
-                                },
-                                "then": {
-                                  "required": ["dimensionType"]
-                                }
+                            "closed": {
+                              "type": "boolean",
+                              "description": "If true, only dimensions listed in 'allowed' may be used. If false, other dimensions may be added. Defaults to true."
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "cubeRelationships": {
+                          "type": "object",
+                          "description": "Defines constraints on relationships that must or may appear in cubes of this type.",
+                          "properties": {
+                            "required": {
+                              "type": "array",
+                              "description": "Relationships that must be present. Can be simple relationship type QNames or constraint objects.",
+                              "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "type": { "$ref": "#/definitions/relationshipTypeQName" },
+                                      "source": {
+                                        "type": "object",
+                                        "description": "Constraints on the source of the relationship.",
+                                        "properties": {
+                                          "qname": { "$ref": "#/definitions/QName" },
+                                          "objectType": { "$ref": "#/definitions/QName" },
+                                          "dataType": { "$ref": "#/definitions/dataTypeQName" }
+                                        },
+                                        "additionalProperties": false
+                                      },
+                                      "target": {
+                                        "type": "object",
+                                        "description": "Constraints on the target of the relationship.",
+                                        "properties": {
+                                          "qname": { "$ref": "#/definitions/QName" },
+                                          "objectType": { "$ref": "#/definitions/QName" },
+                                          "dataType": { "$ref": "#/definitions/dataTypeQName" }
+                                        },
+                                        "additionalProperties": false
+                                      }
+                                    },
+                                    "required": ["type"],
+                                    "additionalProperties": false
                               }
-                            ]
-                          }
-                        },
-                        "allowedCubeDimensionsClosed": {
-                          "type": "boolean",
-                          "description": "Indicates if the allowedCubeDimensions property is closed. If true then additional taxonomy defined dimensions cannot be added to the cube other than those defined in the allowed cube dimensions. Defaults to true."
-                        },
-                        "requiredCubeRelationships": {
-                          "type": "array",
-                          "description": "Ordered set of requiredCubeRelationship objects that must be associated with the cube.",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "relationshipTypeName": { "$ref": "#/definitions/relationshipTypeQName"},
-                              "source": { "$ref": "#/definitions/QName"},
-                              "sourceDataType": { "$ref": "#/definitions/dataTypeQName"},
-                              "sourceObject": { "$ref": "#/definitions/QName"},
-                              "target": { "$ref": "#/definitions/QName"},
-                              "targetDataType": { "$ref": "#/definitions/dataTypeQName"},
-                              "targetObject": { "$ref": "#/definitions/QName"}
                             },
-                            "required": ["relationshipTypeName"],
-                            "additionalProperties": false
-                          }
+                            "allowed": {
+                              "type": "array",
+                              "description": "Relationships that may be present. Same structure as 'required'.",
+                              "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "type": { "$ref": "#/definitions/relationshipTypeQName" },
+                                      "source": {
+                                        "type": "object",
+                                        "properties": {
+                                          "qname": { "$ref": "#/definitions/QName" },
+                                          "objectType": { "$ref": "#/definitions/QName" },
+                                          "dataType": { "$ref": "#/definitions/dataTypeQName" }
+                                        },
+                                        "additionalProperties": false
+                                      },
+                                      "target": {
+                                        "type": "object",
+                                        "properties": {
+                                          "qname": { "$ref": "#/definitions/QName" },
+                                          "objectType": { "$ref": "#/definitions/QName" },
+                                          "dataType": { "$ref": "#/definitions/dataTypeQName" }
+                                        },
+                                        "additionalProperties": false
+                                      }
+                                    },
+                                    "required": ["type"],
+                                    "additionalProperties": false
+                              }
+                            }
+                          },
+                          "additionalProperties": false
                         },
-                        "requiredCubeProperties": {
-                            "type": "array",
-                            "items": { "$ref": "#/definitions/QName" },
-                            "uniqueItems": true
-                      }
+                        "cubeProperties": {
+                          "type": "object",
+                          "description": "Defines constraints on properties that must or may appear on cubes of this type.",
+                          "properties": {
+                            "required": {
+                              "type": "array",
+                              "items": { "$ref": "#/definitions/propertyTypeQName" },
+                              "description": "Property types that must be present on cubes of this type."
+                            },
+                            "allowed": {
+                              "type": "array",
+                              "items": { "$ref": "#/definitions/propertyTypeQName" },
+                              "description": "Property types that may be present on cubes of this type."
+                            }
+                          },
+                          "additionalProperties": false
+                        }
                       },
-                  "required": ["name"],
-                  "additionalProperties": false
-                },
+                      "required": ["name"],
+                      "additionalProperties": false
+                    },
                     "uniqueItems": true
                 },
                 "dataTypes": {
@@ -1490,9 +1550,9 @@
           "$ref": "#/definitions/QName",
           "description": "QName that references a domain object defined in the xbrlModel."
       },
-      "domainRootQName": {
+      "domainClassQName": {
           "$ref": "#/definitions/QName",
-          "description": "QName that references a domainRoot object defined in the xbrlModel."
+          "description": "QName that references a domainClass object defined in the xbrlModel."
       },
       "cubeQName": {
           "$ref": "#/definitions/QName",

@@ -35,7 +35,7 @@
                 "dataType": "xs:duration",
                 "definitional": false,
                 "allowedObjects": [
-                    "xbrl:domainRootObject"
+                    "xbrl:domainClassObject"
                 ]
             },
             {
@@ -43,7 +43,7 @@
                 "dataType": "xbrli:timeSeriesDataType",
                 "definitional": false,
                 "allowedObjects": [
-                    "xbrl:domainRootObject"
+                    "xbrl:domainClassObject"
                 ]
             },
             {
@@ -51,7 +51,7 @@
                 "dataType": "xbrli:intervalConventionType",
                 "definitional": false,
                 "allowedObjects": [
-                    "xbrl:domainRootObject"
+                    "xbrl:domainClassObject"
                 ]
             },
             {
@@ -59,7 +59,7 @@
                 "dataType": "xs:boolean",
                 "definitional": false,
                 "allowedObjects": [
-                    "xbrl:domainRootObject"
+                    "xbrl:domainClassObject"
                 ]
             },
             {
@@ -67,7 +67,7 @@
                 "dataType": "xbrli:excludedIntervalsSet",
                 "definitional": false,
                 "allowedObjects": [
-                    "xbrl:domainRootObject"
+                    "xbrl:domainClassObject"
                 ]
             }
         ],
@@ -114,46 +114,52 @@
         "cubeTypes" :[
                 {
                     "name": "xbrla:eventCube",
-                    "periodDimension": false,
-                    "entityDimension": false,
-                    "unitDimension": false,
-                    "taxonomyDefinedDimension": true,
-                    "allowedCubeDimensions" : [
+                    "coreDimensions": ["xbrl:concept"],
+                    "cubeDimensionConstraints" : {
+                     "allowed": [
                         {
-                        "dimensionType": "typed",
-                        "dimensionDataType": "xs:token",
+                        "type": "typed",
+                        "dataType": "xs:token",
                         "required" : true
                         }
                     ],
-                    "allowedCubeDimensionsClosed" : true,
-                    "requiredCubeRelationships" : [
-                        {
-                        "sourceDataType":"xs:dateTime",
-                        "relationshipTypeName": "xbrl:concept-refDimension",
-                        "target": "xbrl:period"
-                        }
-                    ]
+                    "closed" : true
+                    },
+                    "cubeRelationships" : {
+                        "required": [
+                             {
+                                "type": "xbrl:concept-refDimension",
+                                "source": {
+                                    "dataType": "xs:dateTime"
+                                },
+                                "target": {
+                                    "qname": "xbrl:period"
+                                }
+                            }
+                        ]
+                    }
                 },
                 {
                     "name": "xbrla:eventDetailsCube",
-                    "periodDimension": false,
-                    "entityDimension": false,
-                    "unitDimension": false,
-                    "taxonomyDefinedDimension": true,
-                    "allowedCubeDimensions" : [
+                    "coreDimensions": ["xbrl:concept"],
+                    "cubeDimensionConstraints" : {
+                     "allowed": [
                         {
-                            "dimensionType": "typed",
-                            "dimensionDataType": "xs:token",
-                            "required" : true
+                        "type": "typed",
+                        "dataType": "xs:token",
+                        "required" : true
                         }
                     ],
-                    "requiredCubeRelationships" : [
+                    "closed" : true
+                    },
+                    "cubeRelationships" : {
+                        "required" :[
                         {
-                            "sourceObject": "xbrl:conceptObject",
-                            "relationshipTypeName": "xbrl:concept-refDimension",
-                            "targetObject" : "xbrl:dimensionObject"
+                            "type": "xbrl:concept-refDimension",
+                            "source": {"dataType" : "xs:token"},
+                            "target" : {"objectType" : "xbrl:dimensionObject"}
                         }
-                    ]
+                    ]}
                 },
                 {
                     "name": "xbrla:journalCube",
@@ -161,74 +167,73 @@
                 },
                 {
                     "name": "xbrla:referenceCube",
-                    "periodDimension": false,
-                    "entityDimension": false,
-                    "unitDimension": false,
-                    "taxonomyDefinedDimension": true,
-                    "allowedCubeDimensions" : [
+                    "coreDimensions": ["xbrl:concept"],
+                    "cubeDimensionConstraints" : {
+                     "allowed": [
                         {
-                            "dimensionType": "typed",
-                            "dimensionDataType": "xs:token",
-                            "required" : true
+                        "type": "typed",
+                        "dataType": "xs:token",
+                        "required" : true
                         }
-                    ]
+                    ],
+                    "closed" : true
+                    }
                 },
                 {
                     "name": "xbrla:timeSeriesCube",
-                    "periodDimension": false,
-                    "entityDimension": true,
-                    "unitDimension": true,
-                    "taxonomyDefinedDimension": true,
-                    "allowedCubeDimensions" : [
-                        {
-                            "dimensionType": "typed",
-                            "dimensionDataType": "xs:dateTime",
-                            "required" : true,
-                            "allowedDimensionProperties": [
-                                "xbrla:intervalOfMeasurement",
-                                "xbrla:timeSeriesType",
-                                "xbrl:aggregation",
-                                "xbrla:intervalConvention",
-                                "xbrla:completeTimeSeries",
-                                "xbrla:excludedIntervals"
-                            ],
-                            "requiredDimensionProperties": [
-                                "xbrla:intervalOfMeasurement",
-                                "xbrla:timeSeriesType"
-                            ]
-                        }   
-                    ],
-                    "allowedCubeDimensionsClosed" : false
+                    "coreDimensions": ["xbrl:concept", "xbrl:unit", "xbrl:entity"],
+                    "cubeDimensionConstraints" : {
+                        "allowed": [
+                            {
+                                "type": "typed",
+                                "dataType": "xs:dateTime",
+                                "required" : true,
+                                "dimensionProperties": {
+                                    "allowed" : [
+                                        "xbrla:intervalOfMeasurement",
+                                        "xbrla:timeSeriesType",
+                                        "xbrl:aggregation",
+                                        "xbrla:intervalConvention",
+                                        "xbrla:completeTimeSeries",
+                                        "xbrla:excludedIntervals"
+                                    ],
+                                    "required": [
+                                        "xbrla:intervalOfMeasurement",
+                                        "xbrla:timeSeriesType"
+                                    ]
+                                }
+                            }
+                        ],
+                        "closed": true
+                    }
                 },
                 {
                     "name": "xbrla:positionCube",
-                    "periodDimension": true,
-                    "entityDimension": true,
-                    "unitDimension": true,
-                    "taxonomyDefinedDimension": true,
-                    "allowedCubeDimensions" : [
-                        {
-                            "dimensionType": "typed",
-                            "dimensionDataType": "xs:token",
-                            "required" : true
-                        }
-                    ],
-                    "allowedCubeDimensionsClosed" : false
+                    "coreDimensions": ["xbrl:concept", "xbrl:period", "xbrl:unit", "xbrl:entity"],
+                    "cubeDimensionConstraints" : {
+                        "allowed": [
+                            {
+                                "type": "typed",
+                                "dataType": "xs:token",
+                                "required" : true
+                            }
+                        ],
+                        "closed": false
+                    }
                 },
                 {
                     "name": "xbrla:listingCube",
-                    "periodDimension": false,
-                    "entityDimension": false,
-                    "unitDimension": true,
-                    "taxonomyDefinedDimension": true,
-                    "allowedCubeDimensions" : [
+                    "coreDimensions": ["xbrl:concept", "xbrl:unit"],
+                    "cubeDimensionConstraints" : {
+                    "allowed": [
                         {
-                            "dimensionType": "typed",
-                            "dimensionDataType": "xs:token",
+                            "type": "typed",
+                            "dataType": "xs:token",
                             "required" : true
                         }
                     ],
-                    "allowedCubeDimensionsClosed" : true
+                    "closed" : true
+                     }
                 }
         ],
         "labels":[
@@ -297,6 +302,42 @@
                 "language": "en",
                 "relatedName": "xbrla:instant-contra",
                 "value": "Relationship type indicating an instant concept is the contra (opposite sign) of a duration concept."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrla:eventCube",
+                "value": "Cube type for single-event facts identified by a typed dimension; does not include standard period/entity/unit core dimensions."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrla:eventDetailsCube",
+                "value": "Cube type for event detail records that reference concept-to-dimension relationships for richer typed dimensions."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrla:journalCube",
+                "value": "A specialization of eventDetailsCube intended for journal or ledger style event records."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrla:referenceCube",
+                "value": "Cube type used for reference or lookup data where facts act as descriptions rather than periodic measurements."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrla:timeSeriesCube",
+                "value": "Cube type optimized for time-series data; requires a typed date/time dimension and typically includes the unit core-dimension."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrla:positionCube",
+                "value": "Cube type for position-style facts that typically include period, entity and unit core dimensions."
             }
         ]
     }

@@ -2,8 +2,9 @@
 See COPYRIGHT.md for copyright information.
 """
 
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Optional, Union, List
 import regex as re
+from collections.abc import Iterable
 
 from arelle.ModelValue import qname, QName, DateTime, YearMonthDayTimeDuration
 from arelle.PythonUtil import OrderedSet
@@ -84,58 +85,90 @@ class XbrlCube(XbrlReferencableModelObject):
     cubeComplete: Optional[bool] # (optional) A boolean flag that indicates if all cells in the cube are required to have a value. If true then all cube cells must include a fact value. If a value is not provided for the cubeComplete property then the default is false.
     properties: OrderedSet[XbrlProperty] # (optional) An ordered set of property objects Used to specify additional properties associated with the cube using the property object. Only immutable properties as defined in the propertyType object can be added to a cube.
 
-class XbrlAllowedCubeDimension(XbrlModelObject):
+class XbrlDimensionPropertiesConstraint(XbrlModelObject):
+    allowed: OrderedSet[QName] # (optional) An ordered set of property type QNames that can be used on the dimension.
+    required: OrderedSet[QName] # (optional) An ordered set of property type QNames that must be used on the dimension.
+
+class XbrlDimensionConstraint(XbrlModelObject):
     dimensionName: Optional[QName] # (optional) The dimension QName that identifies the taxonomy defined dimension.
-    dimensionType: Optional[str] # (optional) The dimension QName that identifies the taxonomy defined dimension.
-    dimensionDataType: Optional[QName] # (optional) The dimension QName that identifies the taxonomy defined dimension.
-    required: Union[bool, DefaultFalse] # (optional) The dimension QName that identifies the taxonomy defined dimension.
-    allowedDimensionProperties: OrderedSet[QName] # (optional) An ordered set of property type Qnames that may be associated with the cube dimension.
-    requiredDimensionProperties: OrderedSet[QName] # (optional) An ordered set of property type Qnames that at a minimum must be associated with the cube dimension.
+    type: Optional[str] # (optional) The dimension QName that identifies the taxonomy defined dimension.
+    dataType: Optional[QName] # (optional) The dimension QName that identifies the taxonomy defined dimension.
+    required: Optional[bool] # (optional) The dimension QName that identifies the taxonomy defined dimension.
+    dimensionProperties: Optional[XbrlDimensionPropertiesConstraint] # (optional) Defines constraints on dimension properties defining those properties that are allowed.
 
-class XbrlRequiredCubeRelationship(XbrlModelObject):
-    relationshipTypeName: QName # (required) The relationship type QName of a relationship. This requires that at lease one of these relationship types exist on the cube.
-    source: Optional[QName] # (optional) The QName of the source object in the relationship, such as a concept QName.
-    sourceObject: Optional[QName] # (optional) The QName of the source object type in the relationship, such as xbrl:conceptObject. If the property is not defined then the relationship can be used with any source object type.
-    sourceDataType: Optional[QName] # (optional) The QName of the source object datype type in the relationship, such as xs:dateTime.
-    target: Optional[QName] # (optional) The QName of the target object type in the relationship, such as a dimension QName of xbrl:period.
-    targetObject: Optional[QName] # (optional) The QName of the target object type in the relationship, such as xbrl:dimensionObject. If the property is not defined then the relationship can be used with any source object type.
-    targetDataType: Optional[QName] # (optional) The QName of the target object datype type in the relationship, such as xs:dateTime.
+class XbrlDimensionsAllowed(XbrlModelObject):
+    allowed: OrderedSet[XbrlDimensionConstraint] # (optional) An ordered set of dimension constraint objects. (xbrl:dimensionConstraintObject) The dimension constraint defines the constraints on dimensions that can be included in cubes of this type.
+    closed: Optional[bool] # (optional) If true, only dimensions listed in allowed can be used. If false, other taxonomy-defined dimensions are permitted. Defaults to false.
 
-cubeTypePropertyDefaultValue = {
-    "baseCubeType": None,
-    "periodDimension": True,
-    "entityDimension": True,
-    "unitDimension": True,
-    "taxonomyDefinedDimension": True,
-    "allowedCubeDimensions": None, # must be none, if absent any taxonomy defined dimension is allowed
-    "requiredCubeRelationships": OrderedSet()
-    }
+class XbrlVertexConstraint(XbrlModelObject):
+    qname: Optional[QName] # (optional) Specific source or target QName
+    objectType: Optional[QName] # (optional) Source or target object type QName (e.g., xbrl:conceptObject)
+    dataType: Optional[QName] # (optional) Source or target data type QName
+
+    def __eq__(self, other):
+        if not isinstance(other, XbrlVertexConstraint):
+            return NotImplemented
+        return self.qname == other.qname and self.objectType == other.objectType and self.dataType == other.dataType
+
+class XbrlCubeRelationshipConstraint(XbrlModelObject):
+    type: Optional[QName] # (optional) The relationship type QName
+    source: Optional[XbrlVertexConstraint] # (optional) Constraints on the relationship source. Use the xbrl:vertexConstraintObject to define the constraints on the source of the relationship.
+    target: Optional[XbrlVertexConstraint] # (optional) Constraints on the relationship target. Use the xbrl:vertexConstraintObject to define the constraints on the target of the relationship.
+
+    def __eq__(self, other):
+        if not isinstance(other, XbrlCubeRelationshipConstraint):
+            return NotImplemented
+        return self.type == other.type and self.source == other.source and self.target == self.target
+
+
+class XbrlCubeRelationshipAllowed(XbrlModelObject):
+    required: List[XbrlCubeRelationshipConstraint] # (optional)An ordered set of cube relationships constraint objects (xbrl:cubeRelationshipConstraintObject) that must be present.
+    allowed: List[XbrlCubeRelationshipConstraint] # (optional) An ordered set of cube relationships constraint objects (xbrl:cubeRelationshipConstraintObject) that are permitted, using the same format as required.
+
+class XbrlCubePropertiesConstraint(XbrlModelObject):
+    required: OrderedSet[QName] # (optional) An ordered set of property type QNames that must be associated with cubes of this type.
+    allowed: OrderedSet[QName] # (optional) An ordered set of property type QNames that are permitted on cubes of this type. If not specified, any property type defined in the taxonomy can be used.
+
 class XbrlCubeType(XbrlReferencableModelObject):
     module: XbrlModuleType
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the cube type object.
     # Optional properties may be inherited so they don't default until checking inheritance chain
     baseCubeType: Optional[QName] # (optional) Base cube type that the cube object is based on. Uses the QName of a cubeType object. The property only allows restriction rather than expansion of the baseCubeTape.
-    periodDimension: Optional[bool] # (optional) boolean to indicate if the period core dimension is included in the cube. Defaults to true if no baseCubeType.
-    entityDimension: Optional[bool] # (optional) boolean to indicate if the entity core dimension is included in the cube. Defaults to true if no baseCubeType.
-    unitDimension: Optional[bool] # (optional) boolean to indicate if the unit core dimension is included in the cube. Defaults to true if no baseCubeType.
-    taxonomyDefinedDimension: Optional[bool] # (optional) boolean to indicate if taxonomy defined dimensions are included in the cube. Defaults to true if no baseCubeType.
-    allowedCubeDimensions: Optional[OrderedSet[XbrlAllowedCubeDimension]] # (optional) An ordered set of allowedCubeDimension objects that are permitted to be used on the cube. If the property is not defined then any dimensions can be associated with the cube.
-    allowedCubeDimensionsClosed: Union[bool, DefaultTrue] # (optional) If the property is true then the cube can only include taxonomy defined dimensions that are defined in the allowedCubeDimensions set. If false the cube can include other taxonomy defined dimensions. The default value is true.
-    requiredCubeRelationships: OrderedSet[XbrlRequiredCubeRelationship] # (optional) An ordered set of requiredCubeRelationship objects that at a minimum must be associated with the cube.
-    requiredCubeProperties: OrderedSet[QName] # (optional) An ordered set of property type Qnames that at a minimum must be associated with the cube.
+    coreDimensions: OrderedSet[QName] # (optional) An ordered set of core dimension QNames that are permitted to be included in the cube.
+    cubeDimensionConstraints: Optional[XbrlDimensionsAllowed] # (optional) An object that defines constraints on taxonomy-defined dimensions that can be included in the cube.
+    cubeRelationships: Optional[XbrlCubeRelationshipAllowed] # (optional) An object that defines constraints on relationships that can be associated with the cube.
+    cubeProperties: Optional[XbrlCubePropertiesConstraint] # (optional) An object that defines constraints on properties that can be associated with the cube.
 
-    def effectivePropVal(self, propName, txmyMdl): # property effective value considering inheritance and default value if not on basemost cube type
-        val = getattr(self, propName, None)
-        if val is not None:
-            return val
-        else:
-            baseCubeType = txmyMdl.namedObjects.get(self.baseCubeType)
-            if isinstance(baseCubeType, XbrlCubeType):
-                return baseCubeType.effectivePropVal(propName, txmyMdl)
-            return cubeTypePropertyDefaultValue.get(propName)
+    def effectivePropVal(self, compMdl, *propNames): # property effective value considering inheritance and default value if not on basemost cube type
+        obj = self
+        accumVal = None # accumulate OrderedSet contents inherited
+        for propName in propNames: # e.g. (cuubeDimensions, closed)
+            val = getattr(obj, propName, None)
+            if isinstance(val, XbrlModelObject):
+                obj = val
+            elif isinstance(val, Iterable):
+                if val: # e.g. nonempty OrderedSet
+                    #accumVal = val # add these to inherited set contents
+                    #break
+                    return val # TBD: ensure there is no need to accumulate among the base items
+            elif val is not None: # not an iterable and has a non-None value such as boolean False or int 0
+                return val
+        # check if there's a base type with a value
+        baseCubeType = compMdl.namedObjects.get(self.baseCubeType)
+        if isinstance(baseCubeType, XbrlCubeType):
+            baseEffectiveVal = baseCubeType.effectivePropVal(compMdl, propName)
+            if accumVal is not None and isinstance(baseEffectiveVal, Iterable):
+                return accumVal | baseEffectiveVal
+            return baseEffectiveVal
+        if accumVal:
+            return accumVal
+        # no base type so return this object's default value
+        if propNames[-1] in ("baseCubeType", "closed"): # scalars
+            return None
+        return set() # set object
 
-    def basemostCubeType(self, txmyMdl):
-        baseCubeType = txmyMdl.namedObjects.get(self.baseCubeType)
+    def basemostCubeType(self, compMdl):
+        baseCubeType = compMdl.namedObjects.get(self.baseCubeType)
         if isinstance(baseCubeType, XbrlCubeType):
             return baseCubeType.basemostCubeType
         return self.name
@@ -164,8 +197,8 @@ languageCoreDim = qname(xbrl, "xbrl:language")
 coreDimensions = {periodCoreDim, conceptCoreDim, entityCoreDim, unitCoreDim, languageCoreDim}
 coreDimensionsByLocalname = dict((d.localName, d) for d in coreDimensions)
 
-conceptDomainRoot = qname(xbrl, "xbrl:conceptDomain")
-entityDomainRoot = qname(xbrl, "xbrl:entityDomain")
-unitDomainRoot = qname(xbrl, "xbrl:unitDomain")
-languageDomainRoot = qname(xbrl, "xbrl:languageDomain")
+conceptDomainClass = qname(xbrl, "xbrl:conceptDomain")
+entityDomainClass = qname(xbrl, "xbrl:entityDomain")
+unitDomainClass = qname(xbrl, "xbrl:unitDomain")
+languageDomainClass = qname(xbrl, "xbrl:languageDomain")
 

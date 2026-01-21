@@ -12,8 +12,8 @@ from .XbrlImportTaxonomy import XbrlImportTaxonomy, XbrlExportProfile, XbrlFinal
 from .XbrlProperty import XbrlProperty
 from .XbrlAbstract import XbrlAbstract
 from .XbrlConcept import XbrlConcept, XbrlDataType, XbrlUnitType
-from .XbrlCube import XbrlCube, XbrlCubeType, XbrlCubeDimension, XbrlPeriodConstraint, XbrlDateResolution, XbrlAllowedCubeDimension, XbrlRequiredCubeRelationship
-from .XbrlDimension import XbrlDimension, XbrlDomain, XbrlDomainRoot, XbrlMember
+from .XbrlCube import XbrlCube, XbrlCubeType, XbrlCubeDimension, XbrlPeriodConstraint, XbrlDateResolution
+from .XbrlDimension import XbrlDimension, XbrlDomain, XbrlDomainClass, XbrlMember
 from .XbrlEntity import XbrlEntity
 from .XbrlGroup import XbrlGroup, XbrlGroupContent, XbrlGroupTree
 from .XbrlLabel import XbrlLabel, XbrlLabelType
@@ -44,7 +44,7 @@ class XbrlModule(XbrlModelObject):
     dataTypes: OrderedSet[XbrlDataType] # ordered set of dataType objects.
     dimensions: OrderedSet[XbrlDimension] # ordered set of dimension objects.
     domains: OrderedSet[XbrlDomain] # (optional) ordered set of domain objects.
-    domainRoots: OrderedSet[XbrlDomainRoot] # (optional) ordered set of domain root objects.
+    domainClasses: OrderedSet[XbrlDomainClass] # (optional) ordered set of domain root objects.
     entities: OrderedSet[XbrlEntity] # (optional) ordered set of entity objects.
     factspaces: OrderedSet[XbrlFactspace] #  (optional) ordered set of factspace objects.
     footnotes: OrderedSet[XbrlFootnote] #  (optional) ordered set of footnote objects.
@@ -72,7 +72,7 @@ referencableObjectTypes = {
         qname("{https://xbrl.org/2025}xbrl:cubeObject"): XbrlCube,
         qname("{https://xbrl.org/2025}xbrl:dimensionObject"): XbrlDimension,
         qname("{https://xbrl.org/2025}xbrl:domainObject"): XbrlDomain,
-        qname("{https://xbrl.org/2025}xbrl:domainRootObject"): XbrlDomainRoot,
+        qname("{https://xbrl.org/2025}xbrl:domainClassObject"): XbrlDomainClass,
         qname("{https://xbrl.org/2025}xbrl:entityObject"): XbrlEntity,
         qname("{https://xbrl.org/2025}xbrl:factspaceObject"): XbrlFactspace,
         qname("{https://xbrl.org/2025}xbrl:finalTaxonomyObject"): XbrlFinalTaxonomy,
@@ -105,8 +105,6 @@ nonReferencableObjectTypes = {
         qname("{https://xbrl.org/2025}xbrl:relationshipConstraintObject"): XbrlRelationshipConstraint,
         qname("{https://xbrl.org/2025}xbrl:labelObject"): XbrlLabel,
         qname("{https://xbrl.org/2025}xbrl:propertyObject"): XbrlProperty,
-        qname("{https://xbrl.org/2025}xbrl:allowedCubeDimensionObject"): XbrlAllowedCubeDimension,
-        qname("{https://xbrl.org/2025}xbrl:requiredCubeRelationshipObject"): XbrlRequiredCubeRelationship,
         qname("{https://xbrl.org/2025}xbrl:axisObject"): XbrlAxis,
         qname("{https://xbrl.org/2025}xbrl:axisDimensionObject"): XbrlAxisDimension,
     }

@@ -90,7 +90,7 @@
                         "required": true
                     },
                     {
-                        "name": "xbrl:dimensionObjectDomainRoot",
+                        "name": "xbrl:dimensionObjectDomainClass",
                         "dataType": "xs:QName",
                         "required": false
                     },
@@ -135,20 +135,20 @@
                 ]
             },
             {
-                "name": "xbrl:domainRootObject",
+                "name": "xbrl:domainClassObject",
                 "properties": [
                     {
-                        "name": "xbrl:domainRootObjectName",
+                        "name": "xbrl:domainClassObjectName",
                         "dataType": "xs:QName",
                         "required": true
                     },
                     {
-                        "name": "xbrl:domainRootObjectType",
+                        "name": "xbrl:domainClassObjectType",
                         "dataType": "xs:string",
                         "required": true
                     },
                     {
-                        "name": "xbrl:domainRootObjectProperties",
+                        "name": "xbrl:domainClassObjectProperties",
                         "dataType": "xbrl:orderedSet",
                         "setContents": "xbrl:propertyObject",
                         "required": false
