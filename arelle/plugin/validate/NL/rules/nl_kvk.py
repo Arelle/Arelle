@@ -46,7 +46,6 @@ from ..Constants import (
 )
 from ..DisclosureSystems import (
     DISCLOSURE_SYSTEM_NL_INLINE_2025,
-    DISCLOSURE_SYSTEM_NL_INLINE_MULTI_TARGET,
     ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
     NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
     NL_INLINE_GAAP_OTHER_DISCLOSURE_SYSTEMS,
@@ -1773,7 +1772,7 @@ def rule_nl_kvk_5_1_3_1_and_6_1_3_1(
     matches = uris & EFFECTIVE_KVK_GAAP_OTHER_ENTRYPOINT_FILES
     if not matches:
         base_code = '5.1.3.1.requiredEntryPointOtherGaapNotReferenced'
-        if str(val.disclosureSystem.name) in DISCLOSURE_SYSTEM_NL_INLINE_MULTI_TARGET:
+        if str(val.disclosureSystem.name) in NL_INLINE_MULTI_TARGET_DISCLOSURE_SYSTEMS:
             base_code = '6.1.3.1.requiredEntryPointOtherNotReferenced'
         yield Validation.error(
             codes=f'NL.NL-KVK.{base_code}',
@@ -1805,7 +1804,7 @@ def rule_nl_kvk_5_1_3_2_and_6_1_3_2(
     )
     if not applicableVersionUsed:
         base_code = '5.1.3.2.incorrectVersionEntryPointOtherGaapReferenced'
-        if str(val.disclosureSystem.name) in DISCLOSURE_SYSTEM_NL_INLINE_MULTI_TARGET:
+        if str(val.disclosureSystem.name) in NL_INLINE_MULTI_TARGET_DISCLOSURE_SYSTEMS:
             base_code = '6.1.3.2.incorrectVersionEntryPointOtherReferenced'
         yield Validation.error(
             codes=f'NL.NL-KVK.{base_code}',
