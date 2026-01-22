@@ -89,7 +89,8 @@ STANDARD_TAXONOMY_URL_PREFIXES = frozenset((
     'http://xbrl.org/2020/extensible-enumerations-2.0',
     'https://xbrl.org/2020/extensible-enumerations-2.0',
     'http://www.w3.org/1999/xlink',
-    'https://www.w3.org/1999/xlink'
+    'https://www.w3.org/1999/xlink',
+    'https://www.esma.europa.eu/taxonomy/',
 ))
 
 SUPPORTED_IMAGE_TYPES_BY_IS_FILE = {

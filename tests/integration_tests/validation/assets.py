@@ -175,4 +175,39 @@ NL_PACKAGES: dict[str, list[ConformanceSuiteAssetConfig]] = {
         ),
         LEI_2020_07_02,
     ],
+    'NL-INLINE-2025': [
+        ConformanceSuiteAssetConfig.public_taxonomy_package(
+            Path('kvk-2025_taxonomie.zip'),
+            public_download_url='https://www.sbr-nl.nl/sites/default/files/2025-12/kvk-2025_taxonomie.zip',
+        ),
+        ConformanceSuiteAssetConfig.public_taxonomy_package(
+            Path('rj-2025_taxonomie.zip'),
+            public_download_url='https://www.sbr-nl.nl/sites/default/files/2025-12/rj-2025_taxonomie.zip',
+        ),
+        ConformanceSuiteAssetConfig.public_taxonomy_package(
+            Path('bw2-titel9-2025_taxonomie.zip'),
+            public_download_url='https://www.sbr-nl.nl/sites/default/files/2025-12/bw2-titel9-2025_taxonomie.zip',
+        ),
+        ConformanceSuiteAssetConfig.public_taxonomy_package(
+            Path('ncgc-2025_taxonomie.zip'),
+            public_download_url='https://www.sbr-nl.nl/sites/default/files/2025-12/ncgc-2025_taxonomie.zip',
+        ),
+        ConformanceSuiteAssetConfig.public_taxonomy_package(
+            Path('ifrs-2024_taxonomie.zip'),
+            public_download_url='https://www.sbr-nl.nl/sites/default/files/2025-12/ifrs-2024_taxonomie.zip',
+        ),
+        ConformanceSuiteAssetConfig.public_taxonomy_package(
+            Path('wnt-2025_taxonomie.zip'),
+            public_download_url='https://www.sbr-nl.nl/sites/default/files/2025-01/wnt-2024_taxonomie.zip',
+        ),
+        ConformanceSuiteAssetConfig.public_taxonomy_package(
+            Path('ww-2025_taxonomie.zip'),
+            public_download_url='https://www.sbr-nl.nl/sites/default/files/2025-12/2025-122/ww-2025_taxonomie.zip',
+        ),
+        ConformanceSuiteAssetConfig.public_taxonomy_package(
+            Path('IFRSAT-2024-03-27_29.08.24.zip'),
+            public_download_url='https://www.ifrs.org/content/dam/ifrs/standards/taxonomy/ifrs-taxonomies/IFRSAT-2024-03-27_29.08.24.zip',
+        ),
+        LEI_2020_07_02,
+    ],
 }
