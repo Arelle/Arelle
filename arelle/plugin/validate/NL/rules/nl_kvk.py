@@ -1771,11 +1771,11 @@ def rule_nl_kvk_5_1_3_1_and_6_1_3_1(
     uris = {doc.uri for docs in val.modelXbrl.namespaceDocs.values() for doc in docs}
     matches = uris & EFFECTIVE_KVK_GAAP_OTHER_ENTRYPOINT_FILES
     if not matches:
-        base_code = '5.1.3.1.requiredEntryPointOtherGaapNotReferenced'
+        code = 'NL.NL-KVK.5.1.3.1.requiredEntryPointOtherGaapNotReferenced'
         if str(val.disclosureSystem.name) in NL_INLINE_MULTI_TARGET_DISCLOSURE_SYSTEMS:
-            base_code = '6.1.3.1.requiredEntryPointOtherNotReferenced'
+            code = 'NL.NL-KVK.6.1.3.1.requiredEntryPointOtherNotReferenced'
         yield Validation.error(
-            codes=f'NL.NL-KVK.{base_code}',
+            codes=code,
             msg=_('The extension taxonomy must import the entry point of the taxonomy files prepared by KVK.'),
             modelObject=val.modelXbrl.modelDocument
         )
@@ -1803,11 +1803,11 @@ def rule_nl_kvk_5_1_3_2_and_6_1_3_2(
         and uris & taxonomyUrls
     )
     if not applicableVersionUsed:
-        base_code = '5.1.3.2.incorrectVersionEntryPointOtherGaapReferenced'
+        code = 'NL.NL-KVK.5.1.3.2.incorrectVersionEntryPointOtherGaapReferenced'
         if str(val.disclosureSystem.name) in NL_INLINE_MULTI_TARGET_DISCLOSURE_SYSTEMS:
-            base_code = '6.1.3.2.incorrectVersionEntryPointOtherReferenced'
+            code = 'NL.NL-KVK.6.1.3.2.incorrectVersionEntryPointOtherReferenced'
         yield Validation.error(
-            codes=f'NL.NL-KVK.{base_code}',
+            codes=code,
             msg=_('The report MUST import the applicable version of the taxonomy files prepared by KVK '
                   'for the reported financial reporting period. Verify the taxonomy version and make sure '
                   'that FinancialReportingPeriod are tagged correctly.'),
