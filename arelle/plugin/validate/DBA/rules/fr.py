@@ -23,7 +23,9 @@ from . import errorOnDateFactComparison, getFactsWithDimension, getFactsGroupedB
     minimumRequiredFactsFound, consolidatedDimensionExists
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 from ..ValidationPluginExtension import DANISH_CURRENCY_ID, ROUNDING_MARGIN, PERSONNEL_EXPENSE_THRESHOLD, REQUIRED_DISCLOSURE_OF_EQUITY_FACTS, REQUIRED_STATEMENT_OF_CHANGES_IN_EQUITY_FACTS
-from ..DisclosureSystems import ARL_MULTI_TARGET_DISCLOSURE_SYSTEMS, STAND_ALONE_DISCLOSURE_SYSTEMS, ARL_DISCLOSURE_SYSTEMS, ARL_2022_PREVIEW, ARL_2024_PREVIEW, ARL_2024_MULTI_TARGET_PREVIEW
+from ..DisclosureSystems import (ARL_MULTI_TARGET_DISCLOSURE_SYSTEMS, STAND_ALONE_DISCLOSURE_SYSTEMS,
+                                 ARL_DISCLOSURE_SYSTEMS, ARL_2022_PREVIEW, ARL_2024_PREVIEW,
+                                 ARL_2024_MULTI_TARGET_PREVIEW, ARL_2025_PREVIEW, ARL_2025_MULTI_TARGET_PREVIEW)
 
 _: TypeGetText
 
@@ -508,8 +510,8 @@ def rule_fr53(
                 pluginData.auditedFinancialStatementsEnglish,
                 pluginData.auditedExtendedReviewDanish,
                 pluginData.auditedExtendedReviewEnglish,
-                pluginData.independentAuditorsReportDanish,
-                pluginData.independentAuditorsReportEnglish,
+                pluginData.independentAuditorsReportReviewDanish,
+                pluginData.independentAuditorsReportReviewEnglish,
                 pluginData.auditedAssuranceReportsDanish,
                 pluginData.auditedAssuranceReportsEnglish
             ]:
@@ -1367,28 +1369,52 @@ def rule_fr92(
 
     The auditor's signature date must be provided when (fsa:TypeOfAuditorAssistance) is
     tagged with one of the following values:
-    - (Revisionspåtegning)  / (Auditor's report on audited financial statements)
-    - (Erklæring om udvidet gennemgang) / (Auditor's report on extended review)
-    - (Den uafhængige revisors erklæringer (review)) / (The independent auditor's reports (Review))
-    - (Andre erklæringer med sikkerhed) / (The independent auditor's reports (Other assurance Reports))
-    - (Andre erklæringer uden sikkerhed) / (Auditor's reports (Other non-assurance reports))
+
+        2022 and 2024 Values:
+            - (Revisionspåtegning)  / (Auditor's report on audited financial statements)
+            - (Erklæring om udvidet gennemgang) / (Auditor's report on extended review)
+            - (Den uafhængige revisors erklæringer (review)) / (The independent auditor's reports (Review))
+            - (Andre erklæringer med sikkerhed) / (The independent auditor's reports (Other assurance Reports))
+            - (Andre erklæringer uden sikkerhed) / (Auditor's reports (Other non-assurance reports))
+
+        2025+ Values:
+            - (Den uafhængige revisors erklæring) / (Independent Auditor’s Report)
+            - (Den uafhængige revisors erklæring om udvidet gennemgang) / (Independent Practitioner’s Extended Review Report)
+            - (Den uafhængige revisors reviewerklæring) / (Independent Practitioner’s Review Report)
+            - (Andre erklæringer med sikkerhed) / (The independent auditor's reports (Other assurance Reports))
+            - (Andre erklæringer uden sikkerhed) / (Auditor's reports (Other non-assurance reports))
     """
     modelXbrl = val.modelXbrl
+    if val.disclosureSystem.name in [ARL_2022_PREVIEW, ARL_2024_PREVIEW, ARL_2024_MULTI_TARGET_PREVIEW]:
+        validFactValues = [
+            pluginData.auditedFinancialStatementsDanish,
+            pluginData.auditedFinancialStatementsEnglish,
+            pluginData.auditedExtendedReviewDanish,
+            pluginData.auditedExtendedReviewEnglish,
+            pluginData.independentAuditorsReportReviewDanish,
+            pluginData.independentAuditorsReportReviewEnglish,
+            pluginData.auditedAssuranceReportsDanish,
+            pluginData.auditedAssuranceReportsEnglish,
+            pluginData.auditedNonAssuranceReportsDanish,
+            pluginData.auditedNonAssuranceReportsEnglish,
+        ]
+    else:
+        validFactValues = [
+            pluginData.independentAuditorsReportDanish,
+            pluginData.independentAuditorsReportEnglish,
+            pluginData.independentPractitionersExtendedReviewReportDanish,
+            pluginData.independentPractitionersExtendedReviewReportEnglish,
+            pluginData.independentPractitionersReviewReportDanish,
+            pluginData.independentPractitionersReviewReportEnglish,
+            pluginData.auditedAssuranceReportsDanish,
+            pluginData.auditedAssuranceReportsEnglish,
+            pluginData.auditedNonAssuranceReportsDanish,
+            pluginData.auditedNonAssuranceReportsEnglish,
+        ]
     facts = modelXbrl.factsByQname.get(pluginData.typeOfAuditorAssistanceQn, set())
     for fact in facts:
         if fact.xValid >= VALID:
-            if fact.xValue in [
-                pluginData.auditedFinancialStatementsDanish,
-                pluginData.auditedFinancialStatementsEnglish,
-                pluginData.auditedExtendedReviewDanish,
-                pluginData.auditedExtendedReviewEnglish,
-                pluginData.independentAuditorsReportDanish,
-                pluginData.independentAuditorsReportEnglish,
-                pluginData.auditedAssuranceReportsDanish,
-                pluginData.auditedAssuranceReportsEnglish,
-                pluginData.auditedNonAssuranceReportsDanish,
-                pluginData.auditedNonAssuranceReportsEnglish,
-            ]:
+            if fact.xValue in validFactValues:
                 signature_facts = modelXbrl.factsByQname.get(pluginData.signatureOfAuditorsDateQn, set())
                 if len(signature_facts) == 0:
                     yield Validation.error(
