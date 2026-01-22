@@ -385,9 +385,9 @@ def rule_nl_kvk_3_2_7_1 (
     """
     improperlyEscapedFacts = []
     for fact in val.modelXbrl.facts:
-        if isinstance(fact, ModelInlineFact) and  fact.concept is not None and fact.isEscaped != fact.concept.isTextBlock:
+        if isinstance(fact, ModelInlineFact) and fact.concept is not None and fact.isEscaped != fact.concept.isTextBlock:
             improperlyEscapedFacts.append(fact)
-    if len(improperlyEscapedFacts) >0:
+    if len(improperlyEscapedFacts) > 0:
         yield Validation.error(
             codes='NL.NL-KVK.3.2.7.1.improperApplicationOfEscapeAttribute',
             msg=_('Ensure that any block-tagged facts of type textBlockItemType are assigned @escape="true", '
@@ -1269,7 +1269,7 @@ def rule_nl_kvk_4_2_2_2(
             codes='NL.NL-KVK.4.2.2.2.domainMemberWrongDataType',
             modelObject=domainMembersWrongType,
             msg=_('Domain members must have domainItemType data type as defined in "https://www.xbrl.org/dtr/type/2022-03-31/types.xsd".'
-                  'Update to follow appropriate Data Type Registry.  '))
+                  'Update to follow appropriate Data Type Registry.'))
 
 
 @validation(
@@ -2068,7 +2068,7 @@ def rule_nl_kvk_RTS_Annex_IV_Par_4_3(
     extensionData = pluginData.getExtensionData(val.modelXbrl)
     extensionConcepts = extensionData.extensionConcepts
     labelsRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
-    missingLabels =  []
+    missingLabels = []
     missingReportingLabels = []
     noStandardLabels = []
     for concept in extensionConcepts:
@@ -2078,7 +2078,7 @@ def rule_nl_kvk_RTS_Annex_IV_Par_4_3(
                 missingLabels.append(concept)
             for labelRel in labelRels:
                 label = cast(ModelResource, labelRel.toModelObject)
-                if  label.role == XbrlConst.standardLabel:
+                if label.role == XbrlConst.standardLabel:
                     missingReportingLabels.append(concept)
                 else:
                     noStandardLabels.append(label)

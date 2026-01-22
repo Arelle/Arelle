@@ -86,7 +86,7 @@ def get_test_shards(config: ConformanceSuiteConfig) -> list[Shard]:
                 disclosure_system = candidate_disclosure_system
                 break
         testcase_runtime = approximate_relative_timing.get(testcase_path, 1)
-        avg_variation_runtime = testcase_runtime/(len(variation_ids))  # compatability for testcase-level timing
+        avg_variation_runtime = testcase_runtime/(len(variation_ids))  # compatibility for testcase-level timing
         for variation_id in variation_ids:
             variation_runtime = approximate_relative_timing.get(f'{testcase_path}:{variation_id}', avg_variation_runtime)
             paths_by_args[(disclosure_system, path_plugins_frozen)].append(PathInfo(
@@ -324,10 +324,10 @@ def get_conformance_suite_test_results(
 def get_conformance_suite_test_results_with_shards(
         config: ConformanceSuiteConfig,
         shards: list[int],
-        build_cache: bool = False,
-        log_to_file: bool = False,
-        offline: bool = False,
-        series: bool = False) -> list[ParameterSet]:
+        build_cache: bool,
+        log_to_file: bool,
+        offline: bool,
+        series: bool) -> list[ParameterSet]:
     tasks = []
     all_testcase_filters = []
     for shard_id in shards:
@@ -356,18 +356,18 @@ def get_conformance_suite_test_results_with_shards(
             if test_id in test_paths.get(test_path, []):
                 expected_failure_ids.add(expected_failure_id)
 
-        testcase_filters = sorted([
+        shard_testcase_filters = sorted([
             f'*{os.path.sep}{path}:{vid}'
             for path, vids in test_paths.items()
             for vid in vids
         ])
-        all_testcase_filters.extend(testcase_filters)
+        all_testcase_filters.extend(shard_testcase_filters)
         filename = config.entry_point_path.as_posix()
         args = get_conformance_suite_arguments(
             config=config, filename=filename, disclosure_system=disclosure_system, additional_plugins=additional_plugins,
             build_cache=build_cache, offline=offline, log_to_file=log_to_file, shard=shard_id,
             expected_additional_testcase_errors=config.expected_additional_testcase_errors,
-            expected_failure_ids=frozenset(expected_failure_ids), testcase_filters=testcase_filters,
+            expected_failure_ids=frozenset(expected_failure_ids), testcase_filters=shard_testcase_filters,
         )
         tasks.append(args)
     if series:
