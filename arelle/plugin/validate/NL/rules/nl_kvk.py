@@ -45,8 +45,8 @@ from ..Constants import (
     XBRLI_IDENTIFIER_SCHEMA,
 )
 from ..DisclosureSystems import (
-    DISCLOSURE_SYSTEM_NL_INLINE_2025,
     ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
+    NL_INLINE_DISCLOSURE_SYSTEMS_2025_AND_NEWER,
     NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
     NL_INLINE_GAAP_OTHER_DISCLOSURE_SYSTEMS,
     NL_INLINE_MULTI_TARGET_DISCLOSURE_SYSTEMS,
@@ -1340,7 +1340,7 @@ def rule_nl_kvk_4_3_1_1(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=DISCLOSURE_SYSTEM_NL_INLINE_2025,
+    disclosureSystems=NL_INLINE_DISCLOSURE_SYSTEMS_2025_AND_NEWER,
 )
 def rule_nl_kvk_4_3_1_2(
         pluginData: PluginValidationDataExtension,
