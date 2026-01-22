@@ -199,7 +199,10 @@ def _collect_zip_test_case_variation_ids(zip_file: zipfile.ZipFile, test_case_pa
             tree = etree.parse(f)
         for variation in tree.findall('{*}variation'):
             variation_id = variation.get('id')
-            assert variation_id and variation_id not in variation_ids
+            assert variation_id, \
+                f'Test case contains variation with no ID: {test_case_path}'
+            assert variation_id not in variation_ids, \
+                f'Test case contains multiple variations with the same ID: {test_case_path}, {variation_ids}'
             variation_ids.add(variation_id)
         testcase_variation_map[test_case_path] = sorted(variation_ids)
     return testcase_variation_map
@@ -220,7 +223,10 @@ def _collect_dir_test_case_variation_ids(file_path_prefix: str, test_case_paths:
         tree = etree.parse(full_path)
         for variation in tree.findall('{*}variation'):
             variation_id = variation.get('id')
-            assert variation_id and variation_id not in variation_ids
+            assert variation_id, \
+                f'Test case contains variation with no ID: {test_case_path}'
+            assert variation_id not in variation_ids, \
+                f'Test case contains multiple variations with the same ID: {test_case_path}, {variation_ids}'
             variation_ids.add(variation_id)
         testcase_variation_map[test_case_path] = sorted(variation_ids)
     return testcase_variation_map
