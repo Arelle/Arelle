@@ -50,6 +50,7 @@ NON_DIMENSIONALIZED_LINE_ITEM_LINKROLES = frozenset((
     'https://www.nltaxonomie.nl/kvk/role/lineitems-nondimensional-usage',
 ))
 
+# Order chronologically.
 TAXONOMY_URLS_BY_YEAR = {
     2024: {
         'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-nlgaap-ext.xsd',

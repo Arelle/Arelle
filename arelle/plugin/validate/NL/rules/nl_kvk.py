@@ -3,7 +3,10 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-from collections import defaultdict
+from collections import (
+    defaultdict,
+    deque,
+)
 from collections.abc import Iterable
 from datetime import date
 from typing import TYPE_CHECKING, Any, cast
@@ -45,6 +48,7 @@ from ..Constants import (
     XBRLI_IDENTIFIER_SCHEMA,
 )
 from ..DisclosureSystems import (
+    DISCLOSURE_SYSTEM_YEARS,
     ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
     NL_INLINE_DISCLOSURE_SYSTEMS_2025_AND_NEWER,
     NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
@@ -1087,19 +1091,19 @@ def rule_nl_kvk_4_1_2_2(
     NL-KVK.4.1.2.2: The legal entity's extension taxonomy MUST import the applicable version of
                     the taxonomy files prepared by KVK.
     """
-    reportingPeriod = pluginData.getReportingPeriod(val.modelXbrl)
     extensionData = pluginData.getExtensionData(val.modelXbrl)
-    applicableVersionUsed = bool(
-        reportingPeriod
-        and (taxonomyUrls := TAXONOMY_URLS_BY_YEAR.get(reportingPeriod, set()))
-        and extensionData.extensionImportedUrls & taxonomyUrls
-    )
-    if not applicableVersionUsed:
+    disclosureSystemYear = DISCLOSURE_SYSTEM_YEARS.get(val.disclosureSystem.name) if val.disclosureSystem.name else None
+    # FAQ 2.2.5
+    # [...] one of the three most recent KVK taxonomy versions may be used for filings.
+    deq = deque(
+        (urls for year, urls in TAXONOMY_URLS_BY_YEAR.items() if disclosureSystemYear is None or year <= disclosureSystemYear),
+        maxlen=3)
+    taxonomyUrls = set().union(*deq)
+    if extensionData.extensionImportedUrls.isdisjoint(taxonomyUrls):
         yield Validation.error(
             codes='NL.NL-KVK.4.1.2.2.incorrectKvkTaxonomyVersionUsed',
             msg=_('The extension taxonomy MUST import the applicable version of the taxonomy files prepared by KVK '
-                  'for the reported financial reporting period. Verify the taxonomy version and make sure '
-                  'that FinancialReportingPeriod are tagged correctly.'),
+                  'for the reported financial reporting period. Verify the taxonomy version.'),
             modelObject=val.modelXbrl.modelDocument
         )
 
@@ -1795,22 +1799,22 @@ def rule_nl_kvk_5_1_3_2_and_6_1_3_2(
     NL-KVK.5.1.3.2 and NL-KVK.6.1.3.2: The legal entity's report MUST import the applicable version of
                     the taxonomy files prepared by KVK.
     """
-    reportingPeriod = pluginData.getReportingPeriod(val.modelXbrl)
     uris = {doc.uri for docs in val.modelXbrl.namespaceDocs.values() for doc in docs}
-    applicableVersionUsed = bool(
-        reportingPeriod
-        and (taxonomyUrls := TAXONOMY_URLS_BY_YEAR.get(reportingPeriod, set()))
-        and uris & taxonomyUrls
-    )
-    if not applicableVersionUsed:
+    disclosureSystemYear = DISCLOSURE_SYSTEM_YEARS.get(val.disclosureSystem.name) if val.disclosureSystem.name else None
+    # FAQ 2.2.5
+    # [...] one of the three most recent KVK taxonomy versions may be used for filings.
+    deq = deque(
+        (urls for year, urls in TAXONOMY_URLS_BY_YEAR.items() if disclosureSystemYear is None or year <= disclosureSystemYear),
+        maxlen=3)
+    taxonomyUrls = set().union(*deq)
+    if uris.isdisjoint(taxonomyUrls):
         code = 'NL.NL-KVK.5.1.3.2.incorrectVersionEntryPointOtherGaapReferenced'
         if val.disclosureSystem.name in NL_INLINE_MULTI_TARGET_DISCLOSURE_SYSTEMS:
             code = 'NL.NL-KVK.6.1.3.2.incorrectVersionEntryPointOtherReferenced'
         yield Validation.error(
             codes=code,
-            msg=_('The report MUST import the applicable version of the taxonomy files prepared by KVK '
-                  'for the reported financial reporting period. Verify the taxonomy version and make sure '
-                  'that FinancialReportingPeriod are tagged correctly.'),
+            msg=_('The report MUST import the applicable version of the taxonomy files prepared by KVK. '
+                  'Verify the taxonomy version.'),
             modelObject=val.modelXbrl.modelDocument
         )
 

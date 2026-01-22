@@ -179,7 +179,6 @@ config = ConformanceSuiteConfig(
         },
         'RTS_Art_6_a/index.xml:TC2_invalid': {
             'usableConceptsNotAppliedByTaggedFacts': 1,
-            'incorrectKvkTaxonomyVersionUsed': 1,
             'message:existsAtLeastOnce_ChamberOfCommerceRegistrationNumber': 1,
             'message:existsAtLeastOnce_FinancialReportingPeriod': 1,
             'message:existsAtLeastOnce_FinancialReportingPeriodEndDate': 1,
