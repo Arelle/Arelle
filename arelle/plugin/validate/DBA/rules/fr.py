@@ -1337,8 +1337,8 @@ def rule_fr89(
             yield Validation.error(
                 codes='DBA.FR89',
                 msg=_("TypeOfAuditorAssistance should be {} or {} when {} is tagged with the value of {}.").format(
-                    pluginData.auditedFinancialStatementsDanish,
-                    pluginData.auditedFinancialStatementsEnglish,
+                    validAuditorFactValues[0],
+                    validAuditorFactValues[1],
                     pluginData.classOfReportingEntityQn.localName,
                     classFacts[0].xValue
                 ),
