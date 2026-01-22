@@ -17,6 +17,7 @@ from typing import Any, TYPE_CHECKING, cast
 
 from lxml import etree
 
+from arelle.conformance.Constants import CONFORMANCE_SUITE_ID_OVERRIDES
 from tests.integration_tests.integration_test_util import get_test_data
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig
 
@@ -198,7 +199,7 @@ def _collect_zip_test_case_variation_ids(zip_file: zipfile.ZipFile, test_case_pa
         with zip_file.open(test_case_path) as f:
             tree = etree.parse(f)
         for variation in tree.findall('{*}variation'):
-            variation_id = variation.get('id')
+            variation_id = _get_variation_id(variation, test_case_path)
             assert variation_id, \
                 f'Test case contains variation with no ID: {test_case_path}'
             assert variation_id not in variation_ids, \
@@ -215,6 +216,18 @@ def _collect_dir_test_cases(file_path_prefix: str, file_path: str, path_strs: li
         _collect_dir_test_cases(file_path_prefix, test_case_index, path_strs)
 
 
+read_me_first_uris_xpath = etree.XPath("./conf:data/conf:taxonomyPackage[@readMeFirst='true']/text()", namespaces={'conf': 'http://xbrl.org/2008/conformance'})
+def _get_variation_id(variation: etree._Element, path: str) -> str:
+    variation_id = variation.get('id')
+    assert isinstance(variation_id, str)
+    for overrides in CONFORMANCE_SUITE_ID_OVERRIDES:
+        if overrides.pathContainsString in path:
+            for override in overrides.overrides:
+                if path.endswith(override.pathSuffix) and variation_id == override.oldId and read_me_first_uris_xpath(variation) == override.readMeFirstUris:
+                    return override.newId
+    return variation_id
+
+
 def _collect_dir_test_case_variation_ids(file_path_prefix: str, test_case_paths: list[str]) -> dict[str, list[str]]:
     testcase_variation_map: dict[str, list[str]] = {}
     for test_case_path in sorted(test_case_paths):
@@ -222,7 +235,7 @@ def _collect_dir_test_case_variation_ids(file_path_prefix: str, test_case_paths:
         full_path = os.path.join(file_path_prefix, test_case_path)
         tree = etree.parse(full_path)
         for variation in tree.findall('{*}variation'):
-            variation_id = variation.get('id')
+            variation_id = _get_variation_id(variation, full_path)
             assert variation_id, \
                 f'Test case contains variation with no ID: {test_case_path}'
             assert variation_id not in variation_ids, \
