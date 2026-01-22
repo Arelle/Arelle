@@ -13,6 +13,7 @@ from .XbrlProperty import XbrlProperty
 from .XbrlTypes import XbrlModuleType, QNameKeyType, DefaultTrue, DefaultFalse
 from .XbrlObject import XbrlModelObject, XbrlReferencableModelObject
 from arelle.FunctionFn import true
+xbrlObjectQNames = None
 
 class XbrlConcept(XbrlReferencableModelObject):
     module: XbrlModuleType
@@ -82,6 +83,18 @@ class XbrlDataType(XbrlReferencableModelObject):
                 visitedTypes.remove(self)
             self._xsBaseType = None
             return None
+
+    def isAllowedFor(self, obj): # obj may be a QName or instance of object
+        global xbrlObjectQNames
+        if xbrlObjectQNames is None:
+            from .XbrlModule import xbrlObjectQNames
+        if not self.allowedObjects:
+            return True
+        if isinstance(obj, QName):
+            qn = obj
+        else:
+            qn = xbrlObjectQNames.get(type(obj))
+        return qn in self.allowedObjects
 
     def isNumeric(self, compMdl):
         return isNumericXsdType(self.xsBaseType(compMdl))

@@ -44,6 +44,7 @@ qnXbrlMemberObj = qname(xbrl, "xbrl:memberObject")
 qnXbrlImportTaxonomyObj = qname(xbrl, "xbrl:importTaxonomyObject")
 qnXbrlUnitObj = qname(xbrl, "xbrl:unitObject")
 qnXbrlLabelObj = qname(xbrl, "xbrl:labelObject")
+qnXbrlPropertyObj = qname(xbrl, "xbrl:propertyObject")
 qnXbrlReferenceObj = qname(xbrl, "xbrl:referenceObject")
 
 qnXbrliCollection = qname(xbrli, "xbrli:collection")
