@@ -1285,18 +1285,35 @@ def rule_fr89(
     """
     DBA.FR89: If ClassOfReportingEntity is one of the following values:
 
-    Regnskabsklasse C, mellemstor virksomhed // Reporting class C, medium-size enterprise
-    Regnskabsklasse C, stor virksomhed // Reporting class C, large enterprise
-    Regnskabsklasse D // Reporting class D
-    Then TypeOfAuditorAssistance should be: Revisionspåtegning // Auditor's report on audited financial statements
+    2022 or 2024 Values:
+        Regnskabsklasse C, mellemstor virksomhed // Reporting class C, medium-size enterprise
+        Regnskabsklasse C, stor virksomhed // Reporting class C, large enterprise
+        Regnskabsklasse D // Reporting class D
+        Then TypeOfAuditorAssistance should be: Revisionspåtegning // Auditor's report on audited financial statements
+
+    2025+ Values:
+        Regnskabsklasse C, mellemstor virksomhed // Reporting class C, medium-size enterprise
+        regnskabsklasse C, mellemstor virksomhed // reporting class C, medium-size enterprise
+        Regnskabsklasse C, stor virksomhed // Reporting class C, large enterprise
+        regnskabsklasse C, stor virksomhed // reporting class C, large enterprise
+        Regnskabsklasse D // Reporting class D
+        regnskabsklasse D // reporting class D
+        Then TypeOfAuditorAssistance should be: Den uafhængige revisors erklæring // Independent Auditor’s Report
     """
     if pluginData.isAnnualReport(val.modelXbrl):
-        auditorFacts = val.modelXbrl.factsByQname.get(pluginData.typeOfAuditorAssistanceQn, set())
-        for auditorFact in auditorFacts:
-            if auditorFact.xValid >= VALID and auditorFact.xValue in [
+        if val.disclosureSystem.name in [ARL_2022_PREVIEW, ARL_2024_PREVIEW, ARL_2024_MULTI_TARGET_PREVIEW]:
+            validAuditorFactValues = [
                 pluginData.auditedFinancialStatementsDanish,
                 pluginData.auditedFinancialStatementsEnglish
-            ]:
+            ]
+        else:
+            validAuditorFactValues = [
+                pluginData.independentAuditorsReportDanish,
+                pluginData.independentAuditorsReportEnglish,
+            ]
+        auditorFacts = val.modelXbrl.factsByQname.get(pluginData.typeOfAuditorAssistanceQn, set())
+        for auditorFact in auditorFacts:
+            if auditorFact.xValid >= VALID and auditorFact.xValue in validAuditorFactValues:
                 return
         classFacts = []
         facts = val.modelXbrl.factsByQname.get(pluginData.classOfReportingEntityQn, set())
@@ -1304,10 +1321,16 @@ def rule_fr89(
             if fact.xValid >= VALID and fact.xValue in [
                 pluginData.reportingClassCLargeDanish,
                 pluginData.reportingClassCLargeEnglish,
+                pluginData.reportingClassCLargeLowercaseDanish,
+                pluginData.reportingClassCLargeLowercaseEnglish,
                 pluginData.reportingClassCMediumDanish,
                 pluginData.reportingClassCMediumEnglish,
+                pluginData.reportingClassCMediumLowercaseDanish,
+                pluginData.reportingClassCMediumLowercaseEnglish,
                 pluginData.reportingClassDDanish,
-                pluginData.reportingClassDEnglish
+                pluginData.reportingClassDEnglish,
+                pluginData.reportingClassDLowercaseDanish,
+                pluginData.reportingClassDLowercaseEnglish
             ]:
                 classFacts.append(fact)
         if len(classFacts) > 0:

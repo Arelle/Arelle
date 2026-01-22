@@ -100,10 +100,16 @@ class PluginValidationDataExtension(PluginData):
     registeredReportingPeriodDeviatingFromReportedReportingPeriodDueArbitraryDatesMemberQn: QName
     reportingClassCLargeDanish: str
     reportingClassCLargeEnglish: str
+    reportingClassCLargeLowercaseDanish: str
+    reportingClassCLargeLowercaseEnglish: str
     reportingClassCMediumDanish: str
     reportingClassCMediumEnglish: str
+    reportingClassCMediumLowercaseDanish: str
+    reportingClassCMediumLowercaseEnglish: str
     reportingClassDDanish: str
     reportingClassDEnglish: str
+    reportingClassDLowercaseDanish: str
+    reportingClassDLowercaseEnglish: str
     reportingPeriodEndDateQn: QName
     reportingPeriodStartDateQn: QName
     reportingResponsibilitiesOnApprovedAuditorsReportAuditQn: QName
