@@ -455,11 +455,6 @@
                     },
                     {
                         "source": "oimte:OIMErrorClassDomain",
-                        "target": "oimte:invalidCubeTypeRestriction",
-                        "order": 61.2
-                    },
-                    {
-                        "source": "oimte:OIMErrorClassDomain",
                         "target": "oimte:coreDimensionsExpansion",
                         "order": 61.3
                     },
@@ -1332,15 +1327,6 @@
                 ]
             },
             {
-                "name": "oimte:invalidCubeTypeRestriction",
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
                 "name": "oimte:coreDimensionsExpansion",
                 "properties": [
                     {
@@ -1991,11 +1977,6 @@
                     },
                     {
                         "source": "oimte:CubeTypeErrors",
-                        "target": "oimte:invalidCubeTypeRestriction",
-                        "order": 12
-                    },
-                    {
-                        "source": "oimte:CubeTypeErrors",
                         "target": "oimte:coreDimensionsExpansion",
                         "order": 13
                     },
@@ -2520,11 +2501,6 @@
                         "source": "xbrl:cubeTypeObject",
                         "target": "oimte:invalidPropertyTypeReference",
                         "order": 11
-                    },
-                    {
-                        "source": "xbrl:cubeTypeObject",
-                        "target": "oimte:invalidCubeTypeRestriction",
-                        "order": 12
                     },
                     {
                         "source": "xbrl:cubeTypeObject",
@@ -3714,30 +3690,6 @@
                 "labelType": "xbrl:documentation"
             },
             {
-                "relatedName": "oimte:invalidCubeTypeRestriction",
-                "language": "en",
-                "value": "Invalid Cube Type Restriction",
-                "labelType": "xbrl:label"
-            },
-            {
-                "relatedName": "oimte:invalidCubeTypeRestriction",
-                "language": "en",
-                "value": "The derived cubeType '{cubeTypeName}' with baseCubeType '{baseCubeTypeName}' defines constraints that are expansions rather than restrictions of the base cube type.",
-                "labelType": "xbrl:errorMessage"
-            },
-            {
-                "relatedName": "oimte:invalidCubeTypeRestriction",
-                "language": "en",
-                "value": "🚫",
-                "labelType": "xbrl:iconLabel"
-            },
-            {
-                "relatedName": "oimte:invalidCubeTypeRestriction",
-                "language": "en",
-                "value": "This error occurs when a derived cubeType with a baseCubeType attempts to expand rather than restrict the base type's constraints. Derived cube types must only apply more restrictive constraints, following the restriction-only inheritance principle.",
-                "labelType": "xbrl:documentation"
-            },
-            {
                 "relatedName": "oimte:coreDimensionsExpansion",
                 "language": "en",
                 "value": "Core Dimensions Expansion",
@@ -3974,7 +3926,7 @@
             {
                 "relatedName": "oimte:invalidRelationshipConstraintRelaxation",
                 "language": "en",
-                "value": "This error occurs when a derived cubeType relaxes the source or target constraints of a relationship type that was constrained in the base cube type. For example, moving a required relationship to allowed, or broadening source/target specifications.",
+                "value": "This error occurs when a derived cubeType relaxes the source or target constraints of a relationship type that was constrained in the base cube type. For example, moving a required relationship to allowed, or broadening source/target specifications. The error does not occur if the  derived cube type has no cubeRelationships objects defined.",
                 "labelType": "xbrl:documentation"
             },
             {
@@ -6736,24 +6688,6 @@
                 ]
             },
             {
-                "name": "oimte:invalidCubeTypeRestrictionConformanceReference",
-                "relatedNames": [
-                    "oimte:invalidCubeTypeRestriction"
-                ],
-                "referenceType": "xbrl:conformanceTestReference",
-                "language": "en",
-                "properties": [
-                    {
-                        "property": "xbrl:conformanceTestFileName",
-                        "value": "CUBETYPE-invalidCubeTypeRestriction.json"
-                    },
-                    {
-                        "property": "xbrl:conformanceStatus",
-                        "value": "❌ Fail"
-                    }
-                ]
-            },
-            {
                 "name": "oimte:coreDimensionsExpansionConformanceReference",
                 "relatedNames": [
                     "oimte:coreDimensionsExpansion"
@@ -7774,20 +7708,6 @@
                     {
                         "property": "xbrl:specificationErrorURI",
                         "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-invalidpropertytypereference"
-                    }
-                ]
-            },
-            {
-                "name": "oimte:invalidCubeTypeRestrictionSpecReference",
-                "relatedNames": [
-                    "oimte:invalidCubeTypeRestriction"
-                ],
-                "referenceType": "xbrl:specificationErrorReference",
-                "language": "en",
-                "properties": [
-                    {
-                        "property": "xbrl:specificationErrorURI",
-                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-invalidcubetyperestriction"
                     }
                 ]
             },

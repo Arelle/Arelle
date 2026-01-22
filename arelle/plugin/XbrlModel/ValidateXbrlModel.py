@@ -277,11 +277,16 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
             compMdl.error("oime:invalidPropertyValue",
                       _("Concept %(name)s has invalid period type %(perType)s"),
                       xbrlObject=cncpt, name=cncpt.name, perType=perType)
-        dataTypeQn = getattr(cncpt, "dataType", None)
-        if dataTypeQn not in compMdl.namedObjects or not isinstance(compMdl.namedObjects[dataTypeQn], XbrlDataType):
+        dtQn = getattr(cncpt, "dataType", None)
+        dtObj = compMdl.namedObjects.get(dtQn)
+        if not isinstance(dtObj, XbrlDataType):
             compMdl.error("oimte:invalidQNameReference",
                       _("Concept %(name)s has invalid dataType %(dataType)s"),
-                      xbrlObject=cncpt, name=cncpt.name, dataType=dataTypeQn)
+                      xbrlObject=cncpt, name=cncpt.name, dataType=dtQn)
+        elif not dtObj.isAllowedFor(cncpt):
+            compMdl.error("oimte:unallowedDataTypeObject",
+                      _("Concept %(name)s is not allowed for dataType %(dataType)s"),
+                      xbrlObject=cncpt, name=cncpt.name, dataType=dtQn)
         enumDomQn = getattr(cncpt, "enumerationDomain", None)
         if enumDomQn and (enumDomQn not in compMdl.namedObjects or not isinstance(compMdl.namedObjects[enumDomQn], XbrlDomain)):
             compMdl.error("oime:invalidEnumerationDomainObject",
@@ -1142,6 +1147,10 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
             compMdl.error("oimte:missingQNameReference",
                       _("The propertyType %(name)s dataType %(qname)s MUST be a valid dataType object in the taxonomy model"),
                       xbrlObject=propTpObj, name=propTpObj.name, qname=propTpObj.dataType)
+        elif not dataTypeObj.isAllowedFor(propTpObj):
+            compMdl.error("oimte:unallowedDataTypeObject",
+                      _("The propertyType %(name)s is not allowed for dataType %(qname)s"),
+                      xbrlObject=propTpObj, name=propTpObj.name, qname=propTpObj.dataType)
         elif propTpObj.enumerationDomain:
             if dataTypeObj.xsBaseType(compMdl) != "QName":
                 compMdl.error("oimte:missingQNameReference",
@@ -1231,6 +1240,10 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
             compMdl.error("oimte:invalidDataTypeObject",
                       _("The labelType %(name)s dataType %(qname)s MUST be a valid dataType object in the taxonomy model"),
                       xbrlObject=lblObj, name=lblObj.name, qname=lblObj.dataType)
+        elif not dataTypeObj.isAllowedFor(lblObj):
+            compMdl.error("oimte:unallowedDataTypeObject",
+                      _("The labelType %(name)s is not allowed for dataType %(qname)s"),
+                      xbrlObject=lblObj, name=lblObj.name, qname=lblObj.dataType)
         if lblObj.allowedObjects is not None:
             if not lblObj.allowedObjects:
                 compMdl.error("oimte:invalidEmptySet",
@@ -1271,10 +1284,16 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
         name = unitObj.name
         dtQn = getattr(unitObj, "dataType", None)
         if dtQn:
-            if not isinstance(compMdl.namedObjects.get(dtQn), XbrlDataType):
+            dtObj = compMdl.namedObjects.get(dtQn)
+            if not isinstance(dtObj, XbrlDataType):
                 compMdl.error("oimte:unknownDataType",
                           _("The unit %(name)s dataType %(qname)s MUST be a dataType object."),
                           xbrlObject=unitObj, name=unitObj.name, qname=dtQn)
+            elif not dtObj.isAllowedFor(unitObj):
+                compMdl.error("oimte:unallowedDataTypeObject",
+                              _("The unit %(name)s is not allowed for dataType %(dataType)s."),
+                          xbrlObject=unitObj, name=unitObj.name, dataType=dtQn)
+
         unitObj._unitsMeasures = [parseUnitString(uStr, unitObj, module, compMdl) for uStr in unitObj.stringRepresentations]
         for uMeas in unitObj._unitsMeasures:
             if any(m == name for md in uMeas for m in md):
