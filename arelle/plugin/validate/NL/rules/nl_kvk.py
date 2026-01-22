@@ -1772,7 +1772,7 @@ def rule_nl_kvk_5_1_3_1_and_6_1_3_1(
     matches = uris & EFFECTIVE_KVK_GAAP_OTHER_ENTRYPOINT_FILES
     if not matches:
         code = 'NL.NL-KVK.5.1.3.1.requiredEntryPointOtherGaapNotReferenced'
-        if str(val.disclosureSystem.name) in NL_INLINE_MULTI_TARGET_DISCLOSURE_SYSTEMS:
+        if val.disclosureSystem.name in NL_INLINE_MULTI_TARGET_DISCLOSURE_SYSTEMS:
             code = 'NL.NL-KVK.6.1.3.1.requiredEntryPointOtherNotReferenced'
         yield Validation.error(
             codes=code,
@@ -1804,7 +1804,7 @@ def rule_nl_kvk_5_1_3_2_and_6_1_3_2(
     )
     if not applicableVersionUsed:
         code = 'NL.NL-KVK.5.1.3.2.incorrectVersionEntryPointOtherGaapReferenced'
-        if str(val.disclosureSystem.name) in NL_INLINE_MULTI_TARGET_DISCLOSURE_SYSTEMS:
+        if val.disclosureSystem.name in NL_INLINE_MULTI_TARGET_DISCLOSURE_SYSTEMS:
             code = 'NL.NL-KVK.6.1.3.2.incorrectVersionEntryPointOtherReferenced'
         yield Validation.error(
             codes=code,
