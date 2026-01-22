@@ -1691,7 +1691,7 @@ def rule_nl_kvk_4_4_5_2(
             conceptLangRoleLabels[(label.xmlLang, label.role)].append(labelRel.toModelObject)
         for (lang, labelRole), labels in conceptLangRoleLabels.items():
             if concept in extensionConcepts and len(labels) > 1:
-                yield Validation.error(
+                yield Validation.warning(
                     codes='NL.NL-KVK.4.4.5.2.taxonomyElementDuplicateLabels',
                     msg=_('A concept was found with more than one label role for related language. '
                           'Update to only one combination. Language: %(lang)s, Role: %(labelRole)s, Concept: %(concept)s.'),
@@ -1707,7 +1707,7 @@ def rule_nl_kvk_4_4_5_2(
                         hasCoreLabel = True
                 if hasCoreLabel and hasExtensionLabel:
                     labels_files = ['"%s": %s' % (l.text, l.modelDocument.basename) for l in labels]
-                    yield Validation.error(
+                    yield Validation.warning(
                         codes='NL.NL-KVK.4.4.5.2.taxonomyElementDuplicateLabels',
                         msg=_("An extension taxonomy defines a standard label for a concept "
                               "already labeled by the base taxonomy. Language: %(lang)s, "
