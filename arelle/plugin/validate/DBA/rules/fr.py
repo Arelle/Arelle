@@ -23,7 +23,7 @@ from . import errorOnDateFactComparison, getFactsWithDimension, getFactsGroupedB
     minimumRequiredFactsFound, consolidatedDimensionExists
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 from ..ValidationPluginExtension import DANISH_CURRENCY_ID, ROUNDING_MARGIN, PERSONNEL_EXPENSE_THRESHOLD, REQUIRED_DISCLOSURE_OF_EQUITY_FACTS, REQUIRED_STATEMENT_OF_CHANGES_IN_EQUITY_FACTS
-from ..DisclosureSystems import ARL_MULTI_TARGET_DISCLOSURE_SYSTEMS, STAND_ALONE_DISCLOSURE_SYSTEMS, ARL_DISCLOSURE_SYSTEMS
+from ..DisclosureSystems import ARL_MULTI_TARGET_DISCLOSURE_SYSTEMS, STAND_ALONE_DISCLOSURE_SYSTEMS, ARL_DISCLOSURE_SYSTEMS, ARL_2022_PREVIEW, ARL_2024_PREVIEW, ARL_2024_MULTI_TARGET_PREVIEW
 
 _: TypeGetText
 
@@ -477,7 +477,11 @@ def rule_fr52(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=ARL_DISCLOSURE_SYSTEMS,
+    disclosureSystems=[
+        ARL_2022_PREVIEW,
+        ARL_2024_PREVIEW,
+        ARL_2024_MULTI_TARGET_PREVIEW,
+    ],
 )
 def rule_fr53(
         pluginData: PluginValidationDataExtension,
