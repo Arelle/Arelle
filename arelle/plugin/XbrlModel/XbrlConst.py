@@ -39,6 +39,7 @@ qnXsQName = qname(xsd, "xs:QName")
 
 qnXbrlAbstractObj = qname(xbrl, "xbrl:abstractObject")
 qnXbrlConceptObj = qname(xbrl, "xbrl:conceptObject")
+qnXbrlDimensionObj = qname(xbrl, "xbrl:dimensionObject")
 qnXbrlEntityObj = qname(xbrl, "xbrl:entityObject")
 qnXbrlMemberObj = qname(xbrl, "xbrl:memberObject")
 qnXbrlImportTaxonomyObj = qname(xbrl, "xbrl:importTaxonomyObject")
