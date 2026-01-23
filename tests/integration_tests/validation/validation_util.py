@@ -330,26 +330,25 @@ def get_conformance_suite_test_results_with_shards(
         series: bool) -> list[ParameterSet]:
     tasks = []
     all_testcase_filters = []
+    test_shards = get_test_shards(config)
+    all_test_paths = {path for test_shard in test_shards for path in test_shard.paths}
+    unrecognized_additional_error_ids = {
+        pattern
+        for pattern in {
+            _id.rsplit(':', 1)[0]
+            for _id in config.expected_additional_testcase_errors.keys()
+        }
+        if not any(fnmatch.fnmatch(test_path, pattern) for test_path in all_test_paths)
+    }
+    assert not unrecognized_additional_error_ids, f'Unrecognized expected additional error IDs: {unrecognized_additional_error_ids}'
+    unrecognized_expected_failure_ids = {_id.rsplit(':', 1)[0] for _id in config.expected_failure_ids} - all_test_paths
+    assert not unrecognized_expected_failure_ids, f'Unrecognized expected failure IDs: {unrecognized_expected_failure_ids}'
+
     for shard_id in shards:
-        test_shards = get_test_shards(config)
         shard = test_shards[shard_id]
         test_paths = shard.paths
         disclosure_system = shard.disclosure_system
         additional_plugins = shard.plugins
-        all_test_paths = {path for test_shard in test_shards for path in test_shard.paths}
-
-        unrecognized_additional_error_ids = {
-            pattern
-            for pattern in {
-                _id.rsplit(':', 1)[0]
-                for _id in config.expected_additional_testcase_errors.keys()
-            }
-            if not any(fnmatch.fnmatch(test_path, pattern) for test_path in all_test_paths)
-        }
-        assert not unrecognized_additional_error_ids, f'Unrecognized expected additional error IDs: {unrecognized_additional_error_ids}'
-
-        unrecognized_expected_failure_ids = {_id.rsplit(':', 1)[0] for _id in config.expected_failure_ids} - all_test_paths
-        assert not unrecognized_expected_failure_ids, f'Unrecognized expected failure IDs: {unrecognized_expected_failure_ids}'
         expected_failure_ids = set()
         for expected_failure_id in config.expected_failure_ids:
             test_path, test_id = expected_failure_id.rsplit(':', 1)
