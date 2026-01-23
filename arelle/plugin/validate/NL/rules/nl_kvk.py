@@ -49,8 +49,10 @@ from ..Constants import (
 )
 from ..DisclosureSystems import (
     DISCLOSURE_SYSTEM_YEARS,
+    DISCLOSURE_SYSTEM_NL_INLINE_2024_GAAP_OTHER,
     ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
     NL_INLINE_DISCLOSURE_SYSTEMS_2025_AND_NEWER,
+    NL_INLINE_GAAP_OTHER_DISCLOSURE_SYSTEMS_2025_AND_NEWER,
     NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
     NL_INLINE_GAAP_OTHER_DISCLOSURE_SYSTEMS,
     NL_INLINE_MULTI_TARGET_DISCLOSURE_SYSTEMS,
@@ -1775,8 +1777,12 @@ def rule_nl_kvk_5_1_3_1_and_6_1_3_1(
     uris = {doc.uri for docs in val.modelXbrl.namespaceDocs.values() for doc in docs}
     matches = uris & EFFECTIVE_KVK_GAAP_OTHER_ENTRYPOINT_FILES
     if not matches:
-        code = 'NL.NL-KVK.5.1.3.1.requiredEntryPointOtherGaapNotReferenced'
-        if val.disclosureSystem.name in NL_INLINE_MULTI_TARGET_DISCLOSURE_SYSTEMS:
+        if val.disclosureSystem.name == DISCLOSURE_SYSTEM_NL_INLINE_2024_GAAP_OTHER:
+            code = 'NL.NL-KVK.5.1.3.1.requiredEntryPointOtherGaapNotReferenced'
+        elif val.disclosureSystem.name in NL_INLINE_GAAP_OTHER_DISCLOSURE_SYSTEMS_2025_AND_NEWER:
+            code = 'NL.NL-KVK.5.1.3.1.requiredEntryPointOtherNotReferenced'
+        else:
+            # NL_INLINE_MULTI_TARGET_DISCLOSURE_SYSTEMS
             code = 'NL.NL-KVK.6.1.3.1.requiredEntryPointOtherNotReferenced'
         yield Validation.error(
             codes=code,
@@ -1808,8 +1814,12 @@ def rule_nl_kvk_5_1_3_2_and_6_1_3_2(
         maxlen=3)
     taxonomyUrls = set().union(*deq)
     if uris.isdisjoint(taxonomyUrls):
-        code = 'NL.NL-KVK.5.1.3.2.incorrectVersionEntryPointOtherGaapReferenced'
-        if val.disclosureSystem.name in NL_INLINE_MULTI_TARGET_DISCLOSURE_SYSTEMS:
+        if val.disclosureSystem.name == DISCLOSURE_SYSTEM_NL_INLINE_2024_GAAP_OTHER:
+            code = 'NL.NL-KVK.5.1.3.2.incorrectVersionEntryPointOtherGaapReferenced'
+        elif val.disclosureSystem.name in NL_INLINE_GAAP_OTHER_DISCLOSURE_SYSTEMS_2025_AND_NEWER:
+            code = 'NL.NL-KVK.5.1.3.2.incorrectVersionEntryPointOtherReferenced'
+        else:
+            # NL_INLINE_MULTI_TARGET_DISCLOSURE_SYSTEMS
             code = 'NL.NL-KVK.6.1.3.2.incorrectVersionEntryPointOtherReferenced'
         yield Validation.error(
             codes=code,
