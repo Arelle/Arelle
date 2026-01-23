@@ -851,10 +851,28 @@ def rule_fr59(
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    DBA.FR59: When the annual report contains an audit report, which is when TypeOfAuditorAssistance = Revisionspåtegning / Auditor's report on audited financial statements, then the concept
-    arr:DescriptionOfQualificationsOfAuditedFinancialStatements must be filled in.
+    DBA.FR59: arr:DescriptionOfQualificationsOfAuditedFinancialStatements must be filled in
+              when cmn:TypeOfAuditorAssistance has one of the following values:
+
+              2022 or 2024 Values:
+                - Revisionspåtegning
+                - Auditor's report on audited financial statements
+
+              2025+ Values:
+                - Den uafhængige revisors erklæring
+                - Independent Auditor’s Report
     """
     modelXbrl = val.modelXbrl
+    if val.disclosureSystem.name in [ARL_2022_PREVIEW, ARL_2024_PREVIEW, ARL_2024_MULTI_TARGET_PREVIEW]:
+        validAuditorFactValues = [
+            pluginData.auditedFinancialStatementsDanish,
+            pluginData.auditedFinancialStatementsEnglish
+        ]
+    else:
+        validAuditorFactValues = [
+            pluginData.independentAuditorsReportDanish,
+            pluginData.independentAuditorsReportEnglish,
+        ]
     noDimensionDescriptionFacts = []
     consolidatedDescriptionFacts = []
     descriptionFacts = modelXbrl.factsByQname.get(pluginData.descriptionOfQualificationsOfAuditedFinancialStatementsQn, set())
@@ -868,7 +886,7 @@ def rule_fr59(
     consolidatedIndicatorFacts = []
     auditorFacts = modelXbrl.factsByQname.get(pluginData.typeOfAuditorAssistanceQn, set())
     for aFact in auditorFacts:
-        if aFact.xValid >= VALID and aFact.xValue in [pluginData.auditedFinancialStatementsDanish, pluginData.auditedFinancialStatementsEnglish]:
+        if aFact.xValid >= VALID and aFact.xValue in validAuditorFactValues:
             if not aFact.context.scenDimValues:
                 noDimensionIndicatorFacts.append(aFact)
             if pluginData.consolidatedSoloDimensionQn in [dim.qname for dim in aFact.context.scenDimValues.keys()]:

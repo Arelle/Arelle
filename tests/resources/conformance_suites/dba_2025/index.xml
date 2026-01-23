@@ -16,7 +16,7 @@
     <testcase uri='fr/fr56-testcase.xml' />
     <testcase uri='fr/fr57-testcase.xml' />
     <testcase uri='fr/fr58-testcase.xml' />
-<!--    <testcase uri='fr/fr59-testcase.xml' we need to figure out what is going on with this rule for 2025/>-->
+    <testcase uri='fr/fr59-testcase.xml'/>
     <testcase uri='fr/fr63-testcase.xml' />
     <testcase uri='fr/fr71-testcase.xml' />
     <testcase uri='fr/fr72-testcase.xml' />
