@@ -10,7 +10,7 @@ Model (OIM) Taxonomy Specification.
 
 Any import or direct opening of a JSON-specified taxonomy behaves the same as if loading from an xsd taxonomy or xml linkbases
 
-For XBRL 2.1 XML schema validation purposes, saves schema files in directory if 
+For XBRL 2.1 XML schema validation purposes, saves schema files in directory if
   command line: specify --saveXMLSchemaFiles {directoryName}
   GUI: provide a formula parameter named saveXMLSchemaFiles (value is directory to save in)
 
@@ -19,6 +19,8 @@ For XBRL 2.1 XML schema validation purposes, saves schema files in directory if
 from typing import TYPE_CHECKING, cast, GenericAlias, Union, _GenericAlias, _UnionGenericAlias, get_origin, ClassVar, ForwardRef
 
 import os, io, json, cbor2, sys, time, traceback
+from _ast import Or
+from pip._vendor.distlib.util import OR
 JSON_SCHEMA_VALIDATOR = "jsonschema" # select one of below JSON schema validator libraries (seriously different performance)
 JSON_SCHEMA_VALIDATOR = "fastjsonschema"
 if JSON_SCHEMA_VALIDATOR == "jsonschema": # slow and thorough
@@ -442,7 +444,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
             unexpectedJsonProps = set(jsonObj.keys())
             propertyMap = getattr(objClass, "_propertyMap", EMPTY_DICT).get(type(oimParentObj), EMPTY_DICT)
             for propName, propType in objClass.propertyNameTypes():
-                if isinstance(propType, GenericAlias):
+                if isinstance(propType, GenericAlias) or (isinstance(propType, _GenericAlias) and propType.__origin__ == list):
                     propClass = propType.__origin__ # collection type such as OrderedSet, dict
                     collectionProp = propClass()
                     setattr(newObj, propName, collectionProp) # fresh new dict or OrderedSet (even if no contents for it)
@@ -455,8 +457,8 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                 if jsonKey in jsonObj:
                     unexpectedJsonProps.remove(jsonKey)
                     jsonValue = jsonObj[jsonKey]
-                    if (isinstance(propType, GenericAlias) or 
-                        (isinstance(propType, _UnionGenericAlias) and isinstance(propType.__args__[0], GenericAlias) and propType.__args__[0].__origin__ == OrderedSet) or 
+                    if (isinstance(propType, GenericAlias) or
+                        (isinstance(propType, _UnionGenericAlias) and isinstance(propType.__args__[0], GenericAlias) and propType.__args__[0].__origin__ == OrderedSet) or
                         (isinstance(propType, _GenericAlias) and propType.__origin__ in (list, set, OrderedSet))):
                         # for Optional OrderedSets where the jsonValue exists, handle as propType, _keyClass and eltClass
                         if isinstance(propType.__args__[0], GenericAlias) and len(propType.__args__[0].__args__) == 1 and propType.__args__[0].__origin__ == OrderedSet:
@@ -572,8 +574,8 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                        propType.__args__[-1] in (type(None), DefaultTrue, DefaultFalse, DefaultZero)):
                           setattr(newObj, propName, {type(None): None, DefaultTrue: True, DefaultFalse: False, DefaultZero:0}[propType.__args__[-1]]) # use first of union for prop value creation
                 else: # absent json element
-                    if not propClass in (dict, set, OrderedSet, OrderedDict):
-
+                    if not (propClass in (dict, set, OrderedSet, OrderedDict) or
+                            (isinstance(propClass, _GenericAlias) and propClass.__origin__ == list)):
                         jsonEltsReqdButMissing.append(f"{'/'.join(pathParts + [propName])}")
                         setattr(newObj, propName, None) # not defaultable but set to None anyway
             if unexpectedJsonProps:
@@ -725,7 +727,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
         modelXbrl.profileActivity(f"Load taxonomies imported from {moduleFileBasename}", minTimeToShow=PROFILE_MIN_TIME)
         if xbrlModelName is not None: # otherwise some error would have occured
             xbrlCompMdl.namespaceDocs[xbrlModelName.namespaceURI].append(schemaDoc)
-            
+
         return schemaDoc
 
         ####################### convert to XML Taxonomy
@@ -1202,7 +1204,7 @@ def xbrlModelLoaded(cntlr, options, xbrlCompMdl, *args, **kwargs):
                 for fact in rowFacts:
                     reportObj.facts[fact.name] = fact
 
-    
+
     # save schema files if specified
     saveXmlSchemaFiles = None
     if options is not None and  options.saveXMLSchemaFiles:
