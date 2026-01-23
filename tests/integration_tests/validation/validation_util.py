@@ -64,9 +64,9 @@ def get_test_shards(config: ConformanceSuiteConfig) -> list[Shard]:
     @dataclass(frozen=True)
     class PathInfo:
         path: tuple[str, str]
-        plugins: tuple[str, ...]
+        plugins: frozenset[str]
         runtime: float
-    paths_by_args: dict[tuple[str, ...], list[PathInfo]] = defaultdict(list)
+    paths_by_args: dict[frozenset[str], list[PathInfo]] = defaultdict(list)
     approximate_relative_timing = load_timing_file(config.name)
     empty_testcase_paths: set[str] = set()
     for testcase_path, variation_ids in testcase_variation_map.items():
@@ -77,21 +77,22 @@ def get_test_shards(config: ConformanceSuiteConfig) -> list[Shard]:
         for prefix, additional_plugins in config.additional_plugins_by_prefix:
             if testcase_path.startswith(prefix):
                 path_plugins.update(additional_plugins)
+        path_plugins_frozen = frozenset(path_plugins)
         testcase_runtime = approximate_relative_timing.get(testcase_path, 1)
         avg_variation_runtime = testcase_runtime/(len(variation_ids))  # compatability for testcase-level timing
         for variation_id in variation_ids:
             variation_runtime = approximate_relative_timing.get(f'{testcase_path}:{variation_id}', avg_variation_runtime)
-            paths_by_args[tuple(path_plugins)].append(PathInfo(
+            paths_by_args[path_plugins_frozen].append(PathInfo(
                 path=(testcase_path, variation_id),
-                plugins=tuple(path_plugins),
+                plugins=path_plugins_frozen,
                 runtime=variation_runtime,
             ))
     paths_in_runtime_order: list[PathInfo] = sorted((path for paths in paths_by_args.values() for path in paths),
         key=lambda path: path.runtime, reverse=True)
-    runtime_by_args: dict[tuple[str, ...], float] = {args: sum(path.runtime for path in paths)
+    runtime_by_args: dict[frozenset[str], float] = {args: sum(path.runtime for path in paths)
         for args, paths in paths_by_args.items()}
     total_runtime = sum(runtime_by_args.values())
-    shards_by_args: dict[tuple[str, ...], list[tuple[float, list[tuple[str, str]]]]] = {}
+    shards_by_args: dict[frozenset[str], list[tuple[float, list[tuple[str, str]]]]] = {}
     remaining_shards = config.shards
     for i, (args, _) in enumerate(paths_by_args.items()):
         n_shards = (remaining_shards
@@ -105,13 +106,13 @@ def get_test_shards(config: ConformanceSuiteConfig) -> list[Shard]:
         shard_runtime, shard = shards_for_args[0]
         shard.append(path.path)
         heapreplace(shards_for_args, (shard_runtime + path.runtime, shard))
-    assert shards_by_args.keys() == {()} | {tuple(plugins) for _, plugins in config.additional_plugins_by_prefix}
+    assert shards_by_args.keys() == {frozenset()} | {plugins for _, plugins in config.additional_plugins_by_prefix}
     shards = _build_shards(shards_by_args)
     _verify_shards(shards, testcase_variation_map, empty_testcase_paths)
     return shards
 
 
-def _build_shards(shards_by_args: dict[tuple[str, ...], list[tuple[float, list[tuple[str, str]]]]]) -> list[Shard]:
+def _build_shards(shards_by_args: dict[frozenset[str], list[tuple[float, list[tuple[str, str]]]]]) -> list[Shard]:
     # Sort shards by runtime so CI nodes are more likely to pick shards with similar runtimes.
     time_ordered_shards = sorted(
         (runtime, args, paths)
@@ -125,7 +126,7 @@ def _build_shards(shards_by_args: dict[tuple[str, ...], list[tuple[float, list[t
             shard_paths[path].append(vid)
         shards.append(Shard(
             paths=shard_paths,
-            plugins=frozenset(plugin_group)
+            plugins=plugin_group
         ))
     return shards
 
