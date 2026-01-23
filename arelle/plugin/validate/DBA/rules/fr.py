@@ -124,17 +124,33 @@ def rule_fr24(
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    DBA.FR24: When cmn:TypeOfAuditorAssistance is "Revisionspåtegning" or "Auditor's report on audited financial statements"
-    then arr:DescriptionOfQualificationsOfAuditedFinancialStatements must not contain the following text:
-        - 'har ikke givet anledning til forbehold'
-        - 'has not given rise to reservations'
+    DBA.FR24: arr:DescriptionOfQualificationsOfAuditedFinancialStatements must not contain the following text:
+            - 'har ikke givet anledning til forbehold'
+            - 'has not given rise to reservations'
+        when cmn:TypeOfAuditorAssistance has one of the following values:
+
+        2022 or 2024 Values:
+            - Revisionspåtegning
+            - Auditor's report on audited financial statements
+
+        2025+ Values:
+            - Den uafhængige revisors erklæring
+            - Independent Auditor’s Report
     """
     modelXbrl = val.modelXbrl
+    if val.disclosureSystem.name in [ARL_2022_PREVIEW, ARL_2024_PREVIEW, ARL_2024_MULTI_TARGET_PREVIEW]:
+        validAuditorFactValues = [
+            pluginData.auditedFinancialStatementsDanish,
+            pluginData.auditedFinancialStatementsEnglish
+        ]
+    else:
+        validAuditorFactValues = [
+            pluginData.independentAuditorsReportDanish,
+            pluginData.independentAuditorsReportEnglish,
+        ]
     type_of_auditors_assistance_facts = modelXbrl.factsByQname.get(pluginData.typeOfAuditorAssistanceQn, set())
     for auditor_fact in type_of_auditors_assistance_facts:
-        if (auditor_fact.xValid >= VALID and
-                (auditor_fact.xValue == pluginData.auditedFinancialStatementsDanish or
-                 auditor_fact.xValue == pluginData.auditedFinancialStatementsEnglish)):
+        if auditor_fact.xValid >= VALID and auditor_fact.xValue in validAuditorFactValues:
             description_facts = modelXbrl.factsByQname.get(pluginData.descriptionOfQualificationsOfAuditedFinancialStatementsQn, set())
             for description_fact in description_facts:
                 if description_fact.xValid >= VALID:
@@ -143,8 +159,12 @@ def rule_fr24(
                             yield Validation.error(
                                 codes="DBA.FR24",
                                 msg=_("The value of DescriptionOfQualificationsOfAuditedFinancialStatements must not "
-                                      "contain the text: \'{}\', when TypeOfAuditorAssistance is set to \'Revisionspåtegning\' "
-                                      "or \'Auditor's report on audited financial statements\'").format(text),
+                                      "contain the text: \'{}\', when TypeOfAuditorAssistance is set to \'{}\' "
+                                      "or \'{}\'").format(
+                                    text,
+                                    validAuditorFactValues[0],
+                                    validAuditorFactValues[1]
+                                ),
                                 modelObject=description_fact
                             )
 
