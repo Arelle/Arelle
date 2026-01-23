@@ -31,6 +31,7 @@ CONFORMANCE_SUITE_TIMING_RESOURCES_DIRECTORY = Path('tests/resources/conformance
 @dataclass(frozen=True)
 class Shard:
     paths: dict[str, list[str]]
+    disclosure_system: str | None
     plugins: frozenset[str]
 
 
@@ -64,9 +65,10 @@ def get_test_shards(config: ConformanceSuiteConfig) -> list[Shard]:
     @dataclass(frozen=True)
     class PathInfo:
         path: tuple[str, str]
+        disclosure_system: str | None
         plugins: frozenset[str]
         runtime: float
-    paths_by_args: dict[frozenset[str], list[PathInfo]] = defaultdict(list)
+    paths_by_args: dict[tuple[str | None, frozenset[str]], list[PathInfo]] = defaultdict(list)
     approximate_relative_timing = load_timing_file(config.name)
     empty_testcase_paths: set[str] = set()
     for testcase_path, variation_ids in testcase_variation_map.items():
@@ -78,21 +80,27 @@ def get_test_shards(config: ConformanceSuiteConfig) -> list[Shard]:
             if testcase_path.startswith(prefix):
                 path_plugins.update(additional_plugins)
         path_plugins_frozen = frozenset(path_plugins)
+        disclosure_system = config.disclosure_system
+        for prefix, candidate_disclosure_system in config.disclosure_system_by_prefix:
+            if testcase_path.startswith(prefix):
+                disclosure_system = candidate_disclosure_system
+                break
         testcase_runtime = approximate_relative_timing.get(testcase_path, 1)
         avg_variation_runtime = testcase_runtime/(len(variation_ids))  # compatability for testcase-level timing
         for variation_id in variation_ids:
             variation_runtime = approximate_relative_timing.get(f'{testcase_path}:{variation_id}', avg_variation_runtime)
-            paths_by_args[path_plugins_frozen].append(PathInfo(
+            paths_by_args[(disclosure_system, path_plugins_frozen)].append(PathInfo(
                 path=(testcase_path, variation_id),
+                disclosure_system=disclosure_system,
                 plugins=path_plugins_frozen,
                 runtime=variation_runtime,
             ))
     paths_in_runtime_order: list[PathInfo] = sorted((path for paths in paths_by_args.values() for path in paths),
         key=lambda path: path.runtime, reverse=True)
-    runtime_by_args: dict[frozenset[str], float] = {args: sum(path.runtime for path in paths)
+    runtime_by_args: dict[tuple[str | None, frozenset[str]], float] = {args: sum(path.runtime for path in paths)
         for args, paths in paths_by_args.items()}
     total_runtime = sum(runtime_by_args.values())
-    shards_by_args: dict[frozenset[str], list[tuple[float, list[tuple[str, str]]]]] = {}
+    shards_by_args: dict[tuple[str | None, frozenset[str]], list[tuple[float, list[tuple[str, str]]]]] = {}
     remaining_shards = config.shards
     for i, (args, _) in enumerate(paths_by_args.items()):
         n_shards = (remaining_shards
@@ -102,17 +110,20 @@ def get_test_shards(config: ConformanceSuiteConfig) -> list[Shard]:
         shards_by_args[args] = [(0, []) for _ in range(n_shards)]
     assert remaining_shards == 0
     for path in paths_in_runtime_order:
-        shards_for_args = shards_by_args[path.plugins]
+        shards_for_args = shards_by_args[(path.disclosure_system, path.plugins)]
         shard_runtime, shard = shards_for_args[0]
         shard.append(path.path)
         heapreplace(shards_for_args, (shard_runtime + path.runtime, shard))
-    assert shards_by_args.keys() == {frozenset()} | {plugins for _, plugins in config.additional_plugins_by_prefix}
+    if config.additional_plugins_by_prefix and not config.disclosure_system_by_prefix:
+        assert shards_by_args.keys() == {(config.disclosure_system, frozenset())} | {(config.disclosure_system, plugins) for _, plugins in config.additional_plugins_by_prefix}
+    elif not config.additional_plugins_by_prefix and config.disclosure_system_by_prefix:
+        assert shards_by_args.keys() == {(config.disclosure_system, frozenset())} | {(ds, frozenset()) for _, ds in config.disclosure_system_by_prefix}
     shards = _build_shards(shards_by_args)
     _verify_shards(shards, testcase_variation_map, empty_testcase_paths)
     return shards
 
 
-def _build_shards(shards_by_args: dict[frozenset[str], list[tuple[float, list[tuple[str, str]]]]]) -> list[Shard]:
+def _build_shards(shards_by_args: dict[tuple[str | None, frozenset[str]], list[tuple[float, list[tuple[str, str]]]]]) -> list[Shard]:
     # Sort shards by runtime so CI nodes are more likely to pick shards with similar runtimes.
     time_ordered_shards = sorted(
         (runtime, args, paths)
@@ -120,13 +131,14 @@ def _build_shards(shards_by_args: dict[frozenset[str], list[tuple[float, list[tu
         for runtime, paths in runtime_paths
     )
     shards = []
-    for _, plugin_group, paths in time_ordered_shards:
+    for _, (disclosure_system, plugins), paths in time_ordered_shards:
         shard_paths = defaultdict(list)
         for path, vid in paths:
             shard_paths[path].append(vid)
         shards.append(Shard(
             paths=shard_paths,
-            plugins=plugin_group
+            disclosure_system=disclosure_system,
+            plugins=plugins
         ))
     return shards
 
@@ -236,7 +248,7 @@ def _get_elems_by_local_name(tree: etree._ElementTree, local_name: str) -> list[
     return [tree.getroot()] if tag.split('}')[-1] == local_name else tree.findall(f'{{*}}{local_name}')
 
 
-def get_conformance_suite_arguments(config: ConformanceSuiteConfig, filename: str,
+def get_conformance_suite_arguments(config: ConformanceSuiteConfig, filename: str, disclosure_system: str | None,
         additional_plugins: frozenset[str], build_cache: bool, offline: bool, log_to_file: bool,
         expected_additional_testcase_errors: dict[str, dict[str, int]],
         expected_failure_ids: frozenset[str], shard: int | None,
@@ -254,8 +266,8 @@ def get_conformance_suite_arguments(config: ConformanceSuiteConfig, filename: st
     ]
     if config.base_taxonomy_validation:
         args.extend(['--baseTaxonomyValidation', config.base_taxonomy_validation])
-    if config.disclosure_system:
-        args.extend(['--disclosureSystem', config.disclosure_system])
+    if disclosure_system:
+        args.extend(['--disclosureSystem', disclosure_system])
     if config.package_paths:
         args.extend(['--packages', '|'.join(sorted(p.as_posix() for p in config.package_paths))])
     if plugins:
@@ -322,6 +334,7 @@ def get_conformance_suite_test_results_with_shards(
         test_shards = get_test_shards(config)
         shard = test_shards[shard_id]
         test_paths = shard.paths
+        disclosure_system = shard.disclosure_system
         additional_plugins = shard.plugins
         all_test_paths = {path for test_shard in test_shards for path in test_shard.paths}
 
@@ -351,7 +364,7 @@ def get_conformance_suite_test_results_with_shards(
         all_testcase_filters.extend(testcase_filters)
         filename = config.entry_point_path.as_posix()
         args = get_conformance_suite_arguments(
-            config=config, filename=filename, additional_plugins=additional_plugins,
+            config=config, filename=filename, disclosure_system=disclosure_system, additional_plugins=additional_plugins,
             build_cache=build_cache, offline=offline, log_to_file=log_to_file, shard=shard_id,
             expected_additional_testcase_errors=config.expected_additional_testcase_errors,
             expected_failure_ids=frozenset(expected_failure_ids), testcase_filters=testcase_filters,
@@ -378,11 +391,13 @@ def get_conformance_suite_test_results_without_shards(
         offline: bool = False,
         testcase_filters: list[str] | None = None,
 ) -> list[ParameterSet]:
+    assert not config.disclosure_system_by_prefix
+    disclosure_system = config.disclosure_system
     additional_plugins = frozenset().union(*(plugins for _, plugins in config.additional_plugins_by_prefix))
     filename = config.entry_point_path.as_posix()
     expected_failure_ids = config.expected_failure_ids
     args, kws = get_conformance_suite_arguments(
-        config=config, filename=filename, additional_plugins=additional_plugins,
+        config=config, filename=filename, additional_plugins=additional_plugins, disclosure_system=disclosure_system,
         build_cache=build_cache, offline=offline, log_to_file=log_to_file, shard=None,
         expected_additional_testcase_errors=config.expected_additional_testcase_errors,
         expected_failure_ids=expected_failure_ids, testcase_filters=testcase_filters or [],
