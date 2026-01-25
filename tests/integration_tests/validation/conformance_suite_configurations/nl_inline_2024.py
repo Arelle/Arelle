@@ -196,13 +196,14 @@ config = ConformanceSuiteConfig(
         'G3-4-1_2/index.xml:TC2_invalid',  # Expects fractionElementUsed”.  Note the double quote at the end.
         'G4-2-0_2/index.xml:TC2_invalid',  # Expects fractionElementUsed”.  Note the double quote at the end.
         'G4-4-1_1/index.xml:TC2_invalid',  # Expects IncorrectSummationItemArcroleUsed.  Note the capital first character.
+        'RTS_Annex_III_Par_1/index.xml:TC3_invalid',  # Expects invalidInlineXbrl, but this is valid.
+        'RTS_Annex_IV_Par_12_G3-2-4_1/index.xml:TC4_invalid',  # Expects inconsistentDuplicateNonnumericFactInInlineXbrlDocumentSet, should be inconsistentDuplicateNumericFactInInlineXbrlDocument.
 
+        # Expects invalidInlineXbrl.  Instead, we depend on the underlying XML Schema and iXBRL validation errors.
+        'RTS_Annex_III_Par_1/index.xml:TC2_invalid',
 
         # Not Implemented
         'RTS_Annex_II_Par_1/index.xml:TC3_invalid',
-        'RTS_Annex_III_Par_1/index.xml:TC2_invalid',
-        'RTS_Annex_III_Par_1/index.xml:TC3_invalid',
-        'RTS_Annex_IV_Par_12_G3-2-4_1/index.xml:TC4_invalid',
         'RTS_Annex_IV_Par_14_G3-5-1_1/index.xml:TC2_invalid',
     ]),
     info_url='https://www.sbr-nl.nl/sbr-domeinen/handelsregister/uitbreiding-elektronische-deponering-handelsregister',
