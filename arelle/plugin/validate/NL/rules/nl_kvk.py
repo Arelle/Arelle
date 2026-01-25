@@ -1855,7 +1855,7 @@ def rule_nl_kvk_7_1_4_2(
     factsInError = []
     articleFacts = val.modelXbrl.factsByQname.get(pluginData.AnnualReportOfForeignGroupHeadForExemptionUnderArticle403Qn, set())
     for fact in articleFacts:
-        if fact is not None and fact.xValid >= VALID and fact.xValue == 'False':
+        if fact is not None and fact.xValid >= VALID and fact.xValue is False:
             factsInError.append(fact)
     if len(factsInError) > 0:
         yield Validation.error(
