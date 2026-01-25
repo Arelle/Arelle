@@ -9,7 +9,7 @@ from arelle.Version import authorLabel, copyrightLabel
 from arelle import XbrlConst
 from collections import OrderedDict
 
-jsonDocumentType = "https://xbrl.org/PWD/2023-05-17/cti"
+jsonDocumentType = "https://xbrl.org/2025/taxonomy"
 jsonTxmyVersion = "1.0"
 primaryLang = "en"
 
@@ -41,22 +41,22 @@ def saveOIMTaxonomy(dts, jsonFile):
     oimTxmy["documentInfo"] = docInfo = OrderedDict()
     docInfo["documentType"] = jsonDocumentType
     docInfo["namespaces"] = namespaces = []
-    oimTxmy["taxonomy"] = txmy = OrderedDict()
+    oimTxmy["xbrlModel"] = xbrlMdl = OrderedDict()
 
     # provide consistent order to taxonomy properties and objects
-    txmy["name"] = os.path.splitext(extensionSchemaDoc.basename)[0]
-    txmy["namespace"] = extensionSchemaDoc.targetNamespace
-    txmy["version"] = jsonTxmyVersion
-    txmy["entryPoint"] = os.path.basename(jsonFile)
-    txmy["importedTaxonomies"] = imports = []
-    txmy["concepts"] = concepts = []
-    txmy["cubes"] = cubes = []
-    txmy["domains"] = domains = []
-    txmy["networks"] = networks = []
-    txmy["relationships"] = relationships = []
-    txmy["labels"] = labels = []
+    xbrlMdl["name"] = os.path.splitext(extensionSchemaDoc.basename)[0]
+    xbrlMdl["namespace"] = extensionSchemaDoc.targetNamespace
+    xbrlMdl["version"] = jsonTxmyVersion
+    xbrlMdl["modelForm"] = "compiled" # all namespaces crammed together
+    xbrlMdl["importedTaxonomies"] = imports = []
+    xbrlMdl["abstracts"] = abstracts = []
+    xbrlMdl["concepts"] = concepts = []
+    xbrlMdl["cubes"] = cubes = []
+    xbrlMdl["domains"] = domains = []
+    xbrlMdl["networks"] = networks = []
+    xbrlMdl["labels"] = labels = []
     sharedLabelRefs = {}
-    txmy["references"] = references = []
+    xbrlMdl["references"] = references = []
 
     # taxonomy object
     extensionLinkbaseDocs = {doc
@@ -64,22 +64,29 @@ def saveOIMTaxonomy(dts, jsonFile):
                              if "href" in docReference.referenceTypes and docReference.referringModelObject.elementQname == XbrlConst.qnLinkLinkbaseRef}
     extensionLinkbaseDocs.add(extensionSchemaDoc)
 
+    if any(c.balance for c in dts.qnameConcepts.values()):
+        imports.append({
+            "xbrlModelName": "xbrla:AccountingModel"})
+
     labelsRelationshipSet = dts.relationshipSet(XbrlConst.conceptLabel)
     for concept in sorted(set(dts.qnameConcepts.values()), key=lambda c:c.name): # may be twice if unqualified, with and without namespace
         if concept.modelDocument == extensionSchemaDoc:
             c = OrderedDict()
-            concepts.append(c)
             c["name"] = str(concept.qname)
-            if concept.typeQname: # may be absent
-                c["dataType"] = str(concept.typeQname)
-            if concept.substitutionGroupQname:
-                c["substitutionGroup"] = str(concept.substitutionGroupQname)
-            if concept.periodType:
-                c["periodType"] = concept.periodType
-            if concept.balance:
-                c["balance"] = concept.balance
-            c["abstract"] = str(concept.abstract).lower()
-            c["nillable"] = str(concept.nillable).lower()
+            if concept.isAbstract:
+                abstracts.append(c)
+            elif not (concept.isPrimaryItem or concept.isDomainMember):
+                concepts.append(c)
+                if concept.typeQname: # may be absent
+                    c["dataType"] = str(concept.typeQname)
+                if concept.periodType:
+                    c["periodType"] = concept.periodType
+                if concept.balance:
+                    c["properties"] = []
+                    c["properties"].append({
+                        "property": "xbrla:balance",
+                        "value": concept.balance})
+                c["nillable"] = str(concept.nillable).lower()
         conceptLabels = dict(((lbl.role, lbl.xmlLang), lbl)
                              for rel in labelsRelationshipSet.fromModelObject(concept)
                              for lbl in (rel.toModelObject,)
@@ -107,24 +114,11 @@ def saveOIMTaxonomy(dts, jsonFile):
             if roleType.modelDocument == extensionSchemaDoc:
                 name = f"{extensionPrefix}:_{os.path.basename(roleURI)}_"
                 definition = roleType.definition
-                # define network concept (not in XBRL 2.1
-                c = OrderedDict((("name", name),
-                                 ("dataType","dtr:networkItemType"),
-                                 ("periodType", "duration"),
-                                 ("substitutionGroup", "xbrli:item"),
-                                 ("abstract", True),
-                                 ("nillable", True)))
-                concepts.append(c)
-                networks.append( OrderedDict((
+                ntwk = OrderedDict((
                     ("networkURI", roleType.roleURI),
-                    ("name", name))))
+                    ("name", name)))
+                networks.append( ntwk )
                 networkOrder += 1
-                relationships.append( OrderedDict((
-                    ("source", "xbrli:networkConcept"),
-                    ("target", name),
-                    ("order", networkOrder),
-                    ("networkURI", "https://www.xbrl.org/Network"),
-                    ("relationshipType", "root-child"))))
                 if definition:
                     labels.append( OrderedDict((
                         ("relatedId", [name]),
@@ -190,7 +184,7 @@ def saveOIMTaxonomy(dts, jsonFile):
     # domains
 
     # tree walk recursive function
-    def treeWalk(depth, concept, arcrole, relSet, visited):
+    def treeWalk(depth, concept, arcrole, relSet, ntwk, visited):
         if concept is not None:
             if concept not in visited:
                 visited.add(concept)
@@ -200,15 +194,14 @@ def saveOIMTaxonomy(dts, jsonFile):
                         namespacesInUse.add(concept.qname.namespaceURI)
                         namespacesInUse.add(toConcept.qname.namespaceURI)
                         if rel.modelDocument in extensionLinkbaseDocs:
-                            relationships.append( OrderedDict((
+                            ntwk["relationships"].append( OrderedDict((
                                 ("source", str(concept.qname)),
                                 ("target", str(toConcept.qname)),
                                 ("order", rel.order),
-                                ("networkURI", rel.linkrole),
-                                ("relationshipType", os.path.basename(rel.arcrole))) +
-                                ((("weight", rel.weight),) if rel.weight is not None else ())
-                                ) )
-                        row = treeWalk(depth + 1, toConcept, arcrole, relSet, visited)
+                                ) ))
+                            if arcrole in XbrlConst.summationItems:
+                                ntwk["properties"] = [{"weight":rel.weight}]
+                        treeWalk(depth + 1, toConcept, arcrole, relSet, ntwk, visited)
                 visited.remove(concept)
 
     # use presentation relationships for conceptsWs
@@ -230,9 +223,15 @@ def saveOIMTaxonomy(dts, jsonFile):
             for roledefinition, linkroleUri in linkroleUris:
                 # elr relationships for tree walk
                 linkRelationshipSet = dts.relationshipSet(arcrole, linkroleUri)
+                ntwk = OrderedDict((
+                    ("name", f"{extensionPrefix}:_{os.path.basename(linkroleUri)}_"),
+                    ("relationshipTypeName", "xbrl:parent-child" if arcrole == XbrlConst.parentChild else "xbrl:summation-item"),
+                    ("roots", []),
+                    ("relationships", [])))
+                networks.append(ntwk)
                 for rootConcept in linkRelationshipSet.rootConcepts:
-                    # is root child required?
-                    treeWalk(0, rootConcept, arcrole, linkRelationshipSet, set())
+                    ntwk["roots"].append(str(rootConcept.qname))
+                    treeWalk(0, rootConcept, arcrole, linkRelationshipSet, ntwk, set())
 
     for ns in sorted(namespacesInUse, key=lambda ns: namespacePrefixes[ns]):
         namespaces.append(OrderedDict((("prefix", namespacePrefixes[ns]),
