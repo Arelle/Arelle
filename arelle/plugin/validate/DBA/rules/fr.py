@@ -180,17 +180,32 @@ def rule_fr25(
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    DBA.FR25: When cmn:TypeOfAuditorAssistance is "Erklæring om udvidet gennemgang" or "Auditor's report on extended review"
-    then arr:DescriptionOfQualificationsOfFinancialStatementsExtendedReview must not contain the following text:
-        - 'har ikke givet anledning til forbehold'
-        - 'has not given rise to reservations'
+    DBA.FR25: arr:DescriptionOfQualificationsOfFinancialStatementsExtendedReview must not contain the following text:
+            - 'har ikke givet anledning til forbehold'
+            - 'has not given rise to reservations'
+        When cmn:TypeOfAuditorAssistance has the following values:
+
+        2022 or 2024 Values:
+            - Erklæring om udvidet gennemgang
+            - Auditor's report on extended review
+        2025+ Values:
+            - Den uafhængige revisors erklæring om udvidet gennemgang
+            - Independent Practitioner’s Extended Review Report
     """
     modelXbrl = val.modelXbrl
+    if val.disclosureSystem.name in [ARL_2022_PREVIEW, ARL_2024_PREVIEW, ARL_2024_MULTI_TARGET_PREVIEW]:
+        validAuditorFactValues = [
+            pluginData.auditedExtendedReviewDanish,
+            pluginData.auditedExtendedReviewEnglish
+        ]
+    else:
+        validAuditorFactValues = [
+            pluginData.independentPractitionersExtendedReviewReportDanish,
+            pluginData.independentPractitionersExtendedReviewReportEnglish,
+        ]
     type_of_auditors_assistance_facts = modelXbrl.factsByQname.get(pluginData.typeOfAuditorAssistanceQn, set())
     for auditor_fact in type_of_auditors_assistance_facts:
-        if (auditor_fact.xValid >= VALID and
-                (auditor_fact.xValue == pluginData.auditedExtendedReviewDanish or
-                 auditor_fact.xValue == pluginData.auditedExtendedReviewEnglish)):
+        if auditor_fact.xValid >= VALID and auditor_fact.xValue in validAuditorFactValues:
             description_facts = modelXbrl.factsByQname.get(pluginData.descriptionOfQualificationsOfFinancialStatementsExtendedReviewQn, set())
             for description_fact in description_facts:
                 if description_fact.xValid >= VALID:
@@ -199,8 +214,11 @@ def rule_fr25(
                             yield Validation.error(
                                 codes="DBA.FR25",
                                 msg=_("The value of DescriptionOfQualificationsOfFinancialStatementsExtendedReview must not "
-                                      "contain the text: \'{}\', when TypeOfAuditorAssistance is set to \'Erklæring om udvidet "
-                                      "gennemgang\' or \'Auditor's report on extended review\'").format(text),
+                                      "contain the text: \'{}\', when TypeOfAuditorAssistance is set to \'{}\' or \'{}\'").format(
+                                    text,
+                                    validAuditorFactValues[0],
+                                    validAuditorFactValues[1]
+                                ),
                                 modelObject=description_fact
                             )
 
