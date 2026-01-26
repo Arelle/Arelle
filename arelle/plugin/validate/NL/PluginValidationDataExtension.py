@@ -375,7 +375,7 @@ class PluginValidationDataExtension(PluginData):
                         anchorsInDimensionalElrs[elr].add(anchoringRel)
 
                 if not (
-                    fromObj.type == toObj.type
+                    fromObj.type.qname == toObj.type.qname
                     or fromObj.type.isDerivedFrom(toObj.type.qname)
                     or toObj.type.isDerivedFrom(fromObj.type.qname)
                 ):
