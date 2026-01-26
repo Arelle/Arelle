@@ -1769,7 +1769,7 @@ def rule_nl_kvk_5_1_3_1_and_6_1_3_1(
         - https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-other-gaap.xsd
         - https://www.nltaxonomie.nl/kvk/2025-12-31/kvk-annual-report-other.xsd
     """
-    uris = {doc[0].uri for doc in val.modelXbrl.namespaceDocs.values()}
+    uris = {doc.uri for docs in val.modelXbrl.namespaceDocs.values() for doc in docs}
     matches = uris & EFFECTIVE_KVK_GAAP_OTHER_ENTRYPOINT_FILES
     if not matches:
         base_code = '5.1.3.1.requiredEntryPointOtherGaapNotReferenced'
@@ -1797,7 +1797,7 @@ def rule_nl_kvk_5_1_3_2_and_6_1_3_2(
                     the taxonomy files prepared by KVK.
     """
     reportingPeriod = pluginData.getReportingPeriod(val.modelXbrl)
-    uris = {doc[0].uri for doc in val.modelXbrl.namespaceDocs.values()}
+    uris = {doc.uri for docs in val.modelXbrl.namespaceDocs.values() for doc in docs}
     applicableVersionUsed = bool(
         reportingPeriod
         and (taxonomyUrls := TAXONOMY_URLS_BY_YEAR.get(reportingPeriod, set()))
