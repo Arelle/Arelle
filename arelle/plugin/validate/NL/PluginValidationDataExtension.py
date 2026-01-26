@@ -375,9 +375,17 @@ class PluginValidationDataExtension(PluginData):
                         anchorsInDimensionalElrs[elr].add(anchoringRel)
 
                 if not (
+                    # Reporting Manual 4.3.1
+                    # exact data type match
                     fromObj.type.qname == toObj.type.qname
-                    or fromObj.type.isDerivedFrom(toObj.type.qname)
+                    # extension element uses a derived type of the taxonomy element's type
                     or toObj.type.isDerivedFrom(fromObj.type.qname)
+                    # extension element uses an XBRL base type of the taxonomy element's derived type
+                    or (
+                        toObj.type.qname.namespaceURI == XbrlConst.xbrli and
+                        toObj.type.qname.localName in XbrlConst.baseXbrliTypes and
+                        fromObj.type.isDerivedFrom(toObj.type.qname)
+                    )
                 ):
                     extConceptsNotAnchoredToSameDerivedType.add(toObj)
         return AnchorData(
