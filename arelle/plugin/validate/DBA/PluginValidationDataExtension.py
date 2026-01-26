@@ -69,6 +69,12 @@ class PluginValidationDataExtension(PluginData):
     identificationNumberCvrOfReportingEntityQn: QName
     independentAuditorsReportDanish: str
     independentAuditorsReportEnglish: str
+    independentAuditorsReportReviewDanish: str
+    independentAuditorsReportReviewEnglish: str
+    independentPractitionersExtendedReviewReportDanish: str
+    independentPractitionersExtendedReviewReportEnglish: str
+    independentPractitionersReviewReportDanish: str
+    independentPractitionersReviewReportEnglish: str
     informationOnTypeOfSubmittedReportQn: QName
     legalEntityIdentifierOfReportingEntityQn: QName
     liabilitiesQn: QName
@@ -94,10 +100,16 @@ class PluginValidationDataExtension(PluginData):
     registeredReportingPeriodDeviatingFromReportedReportingPeriodDueArbitraryDatesMemberQn: QName
     reportingClassCLargeDanish: str
     reportingClassCLargeEnglish: str
+    reportingClassCLargeLowercaseDanish: str
+    reportingClassCLargeLowercaseEnglish: str
     reportingClassCMediumDanish: str
     reportingClassCMediumEnglish: str
+    reportingClassCMediumLowercaseDanish: str
+    reportingClassCMediumLowercaseEnglish: str
     reportingClassDDanish: str
     reportingClassDEnglish: str
+    reportingClassDLowercaseDanish: str
+    reportingClassDLowercaseEnglish: str
     reportingPeriodEndDateQn: QName
     reportingPeriodStartDateQn: QName
     reportingResponsibilitiesOnApprovedAuditorsReportAuditQn: QName
@@ -114,8 +126,6 @@ class PluginValidationDataExtension(PluginData):
     statementOfChangesInEquityQns: frozenset[QName]
     taxExpenseOnOrdinaryActivitiesQn: QName
     taxExpenseQn: QName
-    typeOfAuditorAssistanceDanish: str
-    typeOfAuditorAssistanceEnglish: str
     typeOfAuditorAssistanceQn: QName
     typeOfBasisForModifiedOpinionOnFinancialStatementsReviewQn: QName
     typeOfDigitalNonregisteredBookkeepingSystemQn: QName

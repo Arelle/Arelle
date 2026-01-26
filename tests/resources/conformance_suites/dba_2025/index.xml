@@ -13,7 +13,6 @@
     <testcase uri='fr/fr41-testcase.xml' />
     <testcase uri='fr/fr48-testcase.xml' />
     <testcase uri='fr/fr52-testcase.xml' />
-<!--    <testcase uri='fr/fr53-testcase.xml' we need to figure out what is going on with this rule for 2025/>-->
     <testcase uri='fr/fr56-testcase.xml' />
     <testcase uri='fr/fr57-testcase.xml' />
     <testcase uri='fr/fr58-testcase.xml' />
@@ -26,11 +25,11 @@
     <testcase uri='fr/fr75-testcase.xml' />
     <testcase uri='fr/fr77-testcase.xml' />
     <testcase uri='fr/fr81-testcase.xml' />
-<!--    <testcase uri='fr/fr83-testcase.xml' This fails because of FR89. we need to figure out what is going on with that rule for 2025/>-->
+    <testcase uri='fr/fr83-testcase.xml' />
     <testcase uri='fr/fr87-testcase.xml' />
     <testcase uri='fr/fr89-testcase.xml' />
     <testcase uri='fr/fr91-testcase.xml' />
-<!--    <testcase uri='fr/fr92-testcase.xml' we need to figure out what is going on with this rule for 2025/>-->
+    <testcase uri='fr/fr92-testcase.xml' />
     <testcase uri='fr/fr107-testcase.xml' />
     <testcase uri='fr/fr108-testcase.xml' />
     <testcase uri='fr/valid-testcase.xml' />
@@ -38,7 +37,6 @@
     <testcase uri='th/th05-testcase.xml' />
     <testcase uri='th/th06-testcase.xml' />
     <testcase uri='th/th10-testcase.xml' />
-<!--    <testcase uri='th/th14-testcase.xml' we need to figure out what is going on with this rule for 2025/>-->
     <testcase uri='tm/tm12-testcase.xml' />
     <testcase uri='tm/tm13-testcase.xml' />
     <testcase uri='tm/tm16-testcase.xml' />
