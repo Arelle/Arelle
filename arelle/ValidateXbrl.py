@@ -19,7 +19,7 @@ from arelle.ModelXbrl import ModelXbrl
 from arelle.PluginManager import pluginClassMethods
 from arelle.ValidateXbrlCalcs import inferredDecimals
 from arelle.XbrlConst import (ixbrlAll, dtrNoDecimalsItemTypes, dtrPrefixedContentItemTypes, dtrPrefixedContentTypes,
-                              dtrSQNameItemTypes, dtrSQNameTypes,  dtrSQNamesItemTypes, dtrSQNamesTypes)
+                              dtrSQNameItemTypes, dtrSQNameTypes,  dtrSQNamesItemTypes, dtrSQNamesTypes, baseXbrliTypes)
 from arelle.XhtmlValidate import ixMsgCode
 from arelle.XmlValidateConst import VALID
 from collections import defaultdict
@@ -46,18 +46,6 @@ xlinkShowValues = {None, "new", "replace", "embed", "other", "none"}
 xlinkLabelAttributes = {"{http://www.w3.org/1999/xlink}label", "{http://www.w3.org/1999/xlink}from", "{http://www.w3.org/1999/xlink}to"}
 periodTypeValues = {"instant","duration"}
 balanceValues = {None, "credit","debit"}
-baseXbrliTypes = {
-        "decimalItemType", "floatItemType", "doubleItemType", "integerItemType",
-        "nonPositiveIntegerItemType", "negativeIntegerItemType", "longItemType", "intItemType",
-        "shortItemType", "byteItemType", "nonNegativeIntegerItemType", "unsignedLongItemType",
-        "unsignedIntItemType", "unsignedShortItemType", "unsignedByteItemType",
-        "positiveIntegerItemType", "monetaryItemType", "sharesItemType", "pureItemType",
-        "fractionItemType", "stringItemType", "booleanItemType", "hexBinaryItemType",
-        "base64BinaryItemType", "anyURIItemType", "QNameItemType", "durationItemType",
-        "dateTimeItemType", "timeItemType", "dateItemType", "gYearMonthItemType",
-        "gYearItemType", "gMonthDayItemType", "gDayItemType", "gMonthItemType",
-        "normalizedStringItemType", "tokenItemType", "languageItemType", "NameItemType", "NCNameItemType"
-      }
 
 
 class ValidateXbrl:
