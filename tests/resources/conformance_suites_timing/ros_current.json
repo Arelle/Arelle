@@ -1,10 +1,10 @@
 {
-    "main/ros19-testcase.xml:invalid": 0.9927733181936438,
-    "main/ros20-testcase.xml:invalid-mismatch": 1.0047859591781914,
-    "main/ros20-testcase.xml:invalid-missing": 1.0011246068008766,
-    "main/ros20-testcase.xml:invalid-two": 0.9944620232772963,
-    "main/valid-testcase.xml:Valid_101": 1.0022058818905768,
-    "main/valid-testcase.xml:Valid_ifrs": 1.004648210659415,
-    "<mean>": 5.664300472166967,
-    "<stdev>": 0.02927254794829428
+    "main/ros19-testcase.xml:invalid": 1.098007267480485,
+    "main/ros20-testcase.xml:invalid-mismatch": 1.1804250770178752,
+    "main/ros20-testcase.xml:invalid-missing": 1.084530465605972,
+    "main/ros20-testcase.xml:invalid-two": 1.178735292656255,
+    "main/valid-testcase.xml:Valid_101": 0.6949411583465023,
+    "main/valid-testcase.xml:Valid_ifrs": 0.76336073889291,
+    "<mean>": 10.326979226666667,
+    "<stdev>": 2.216379419466985
 }
