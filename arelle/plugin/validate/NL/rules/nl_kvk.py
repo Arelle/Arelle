@@ -784,13 +784,14 @@ def rule_nl_kvk_3_5_3_1(
     """
     NL-KVK.3.5.3.1: The default target attribute MUST be used for the annual report content.
     """
-    targetElements = pluginData.getTargetElements(val.modelXbrl)
-    if targetElements:
-        yield Validation.error(
-            codes='NL.NL-KVK.3.5.3.1.defaultTargetAttributeNotUsed',
-            msg=_('Target attribute must not be used for the annual report content.'),
-            modelObject=targetElements
-        )
+    elementsByTarget = pluginData.getElementsByTarget(val.modelXbrl)
+    for target, targetElements in elementsByTarget.items():
+        if target is not None and targetElements:
+            yield Validation.error(
+                codes='NL.NL-KVK.3.5.3.1.defaultTargetAttributeNotUsed',
+                msg=_('Target attribute must not be used for the annual report content.'),
+                modelObject=targetElements
+            )
 
 
 @validation(
@@ -1828,13 +1829,12 @@ def rule_nl_kvk_6_1_3_3(
     NL-KVK.6.1.3.3: The target attribute “filing-information” MUST be used for the content of the required elements
                     for filing with the Business Register
     """
-    targetElements = {elt.get("target") for elt in pluginData.getTargetElements(val.modelXbrl)}
-    if len(targetElements) > 2 or 'filing-information' not in targetElements or 'default' not in targetElements:
+    elementsByTarget = pluginData.getElementsByTarget(val.modelXbrl)
+    if len(elementsByTarget.keys()) > 2 or not elementsByTarget.get('filing-information') or not elementsByTarget.get(None):
         yield Validation.error(
             codes='NL.NL-KVK.6.1.3.3.requiredTargetAttributeNotUsed',
             msg=_('The target attribute `filing-information` MUST be used for the content of the required '
                   'elements for filing with the Business Register.'),
-            modelObject=targetElements
         )
 
 
