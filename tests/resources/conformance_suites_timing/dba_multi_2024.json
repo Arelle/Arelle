@@ -1,8 +1,8 @@
 {
-    "tr/tr15-testcase.xml:invalid": 0.9940947794970544,
-    "tr/tr16-testcase.xml:invalid": 0.9525726700596078,
-    "tr/tr17-testcase.xml:invalid": 0.991971938927051,
-    "tr/valid-testcase.xml:valid-ixbrl-001": 1.0613606115162868,
-    "<mean>": 2.0339294690020324,
-    "<stdev>": 0.09181862656038497
+    "tr/tr15-testcase.xml:invalid": 0.9964274367911755,
+    "tr/tr16-testcase.xml:invalid": 0.9994818398227059,
+    "tr/tr17-testcase.xml:invalid": 1.002334311494939,
+    "tr/valid-testcase.xml:valid-ixbrl-001": 1.0017564118911797,
+    "<mean>": 7.950176761,
+    "<stdev>": 0.021315613837961184
 }
