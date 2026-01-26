@@ -1,6 +1,6 @@
 from pathlib import PurePath, Path
 
-from tests.integration_tests.validation.assets import ESEF_PACKAGES, NL_PACKAGES
+from tests.integration_tests.validation.assets import ESEF_PACKAGES, NL_PACKAGES, NL_INLINE_2024_PACKAGES_WITHOUT_IFRS
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig, AssetSource
 
 ZIP_PATH = Path('conformance-suite-2025-sbr-domein-handelsregister.zip')
@@ -15,7 +15,7 @@ config = ConformanceSuiteConfig(
             public_download_url='https://www.sbr-nl.nl/sites/default/files/2026-01/conformance-suite-2025-sbr-domein-handelsregister.zip',
             source=AssetSource.S3_PUBLIC,
         ),
-        *NL_PACKAGES['NL-INLINE-2024'],
+        *NL_INLINE_2024_PACKAGES_WITHOUT_IFRS,
         *NL_PACKAGES['NL-INLINE-2025'],
         *ESEF_PACKAGES[2024],
     ],

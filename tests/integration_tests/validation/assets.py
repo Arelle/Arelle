@@ -95,6 +95,48 @@ ESEF_PACKAGES: dict[int, list[ConformanceSuiteAssetConfig]] = {
     ],
 }
 
+# IFRS 2024 is used in both 2024 and 2025, but available from different URLs, so not necessarily always identical.
+# Exclude IFRS so that we can combine this with 2025.
+NL_INLINE_2024_PACKAGES_WITHOUT_IFRS = [
+    ConformanceSuiteAssetConfig.public_taxonomy_package(
+        Path('kvk-2024_taxonomie.zip'),
+        public_download_url='https://www.sbr-nl.nl/sites/default/files/2025-01/kvk-2024_taxonomie.zip',
+    ),
+    ConformanceSuiteAssetConfig.public_taxonomy_package(
+        Path('rj-2024_taxonomie.zip'),
+        public_download_url='https://www.sbr-nl.nl/sites/default/files/2025-01/rj-2024_taxonomie.zip',
+    ),
+    ConformanceSuiteAssetConfig.public_taxonomy_package(
+        Path('bw2-titel9_taxonomie.zip'),
+        public_download_url='https://www.sbr-nl.nl/sites/default/files/2025-01/bw2-titel9_taxonomie.zip',
+    ),
+    ConformanceSuiteAssetConfig.public_taxonomy_package(
+        Path('ncgc-2022_taxonomie.zip'),
+        public_download_url='https://www.sbr-nl.nl/sites/default/files/2025-01/ncgc-2022_taxonomie.zip',
+    ),
+    ConformanceSuiteAssetConfig.public_taxonomy_package(
+        Path('wnt-2024_taxonomie.zip'),
+        public_download_url='https://www.sbr-nl.nl/sites/default/files/2025-01/wnt-2024_taxonomie.zip',
+    ),
+    ConformanceSuiteAssetConfig.public_taxonomy_package(
+        Path('IFRSAT-2024-03-27_29.08.24.zip'),
+        public_download_url='https://www.ifrs.org/content/dam/ifrs/standards/taxonomy/ifrs-taxonomies/IFRSAT-2024-03-27_29.08.24.zip',
+    ),
+    ConformanceSuiteAssetConfig.public_taxonomy_package(
+        Path('KVK_taxonomie_2024_draft.zip'),
+        public_download_url='',
+    ),
+    ConformanceSuiteAssetConfig.public_taxonomy_package(
+        Path('JenV_taxonomie_2024_draft.zip'),
+        public_download_url='',
+    ),
+    ConformanceSuiteAssetConfig.public_taxonomy_package(
+        Path('RJ_taxonomie_2024_draft.zip'),
+        public_download_url='',
+    ),
+    LEI_2020_07_02,
+]
+
 NL_BASE = ConformanceSuiteAssetConfig.public_taxonomy_package(Path('nltaxonomie-nl-20240326.zip'))
 NL_PACKAGES: dict[str, list[ConformanceSuiteAssetConfig]] = {
     'NT16': [
@@ -132,48 +174,11 @@ NL_PACKAGES: dict[str, list[ConformanceSuiteAssetConfig]] = {
         ),
         NL_BASE,
     ],
-    'NL-INLINE-2024': [
-        ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('kvk-2024_taxonomie.zip'),
-            public_download_url='https://www.sbr-nl.nl/sites/default/files/2025-01/kvk-2024_taxonomie.zip',
-        ),
-        ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('rj-2024_taxonomie.zip'),
-            public_download_url='https://www.sbr-nl.nl/sites/default/files/2025-01/rj-2024_taxonomie.zip',
-        ),
-        ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('bw2-titel9_taxonomie.zip'),
-            public_download_url='https://www.sbr-nl.nl/sites/default/files/2025-01/bw2-titel9_taxonomie.zip',
-        ),
-        ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('ncgc-2022_taxonomie.zip'),
-            public_download_url='https://www.sbr-nl.nl/sites/default/files/2025-01/ncgc-2022_taxonomie.zip',
-        ),
+    'NL-INLINE-2024': NL_INLINE_2024_PACKAGES_WITHOUT_IFRS + [
         ConformanceSuiteAssetConfig.public_taxonomy_package(
             Path('ifrs-2024_taxonomie.zip'),
             public_download_url='https://www.sbr-nl.nl/sites/default/files/2025-01/ifrs-2024_taxonomie.zip',
         ),
-        ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('wnt-2024_taxonomie.zip'),
-            public_download_url='https://www.sbr-nl.nl/sites/default/files/2025-01/wnt-2024_taxonomie.zip',
-        ),
-        ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('IFRSAT-2024-03-27_29.08.24.zip'),
-            public_download_url='https://www.ifrs.org/content/dam/ifrs/standards/taxonomy/ifrs-taxonomies/IFRSAT-2024-03-27_29.08.24.zip',
-        ),
-        ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('KVK_taxonomie_2024_draft.zip'),
-            public_download_url='',
-        ),
-        ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('JenV_taxonomie_2024_draft.zip'),
-            public_download_url='',
-        ),
-        ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('RJ_taxonomie_2024_draft.zip'),
-            public_download_url='',
-        ),
-        LEI_2020_07_02,
     ],
     'NL-INLINE-2025': [
         ConformanceSuiteAssetConfig.public_taxonomy_package(
