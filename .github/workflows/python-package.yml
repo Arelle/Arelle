@@ -23,11 +23,11 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout arelle
-        uses: actions/checkout@v6.0.1
+        uses: actions/checkout@v6.0.2
         with:
           fetch-depth: 0
       - name: Install Python
-        uses: actions/setup-python@v6.1.0
+        uses: actions/setup-python@v6.2.0
         with:
           cache: 'pip'
           check-latest: true
