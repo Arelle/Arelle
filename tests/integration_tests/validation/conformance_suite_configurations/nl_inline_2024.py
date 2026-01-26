@@ -18,6 +18,10 @@ config = ConformanceSuiteConfig(
         *NL_PACKAGES['NL-INLINE-2024'],
     ],
     base_taxonomy_validation='none',
+    disclosure_system_by_prefix=[(f'tests/{s}', 'NL-INLINE-2024-GAAP-OTHER') for s in [
+        'G5-1-3_1/index.xml',
+        'G5-1-3_2/index.xml',
+    ]],
     disclosure_system='NL-INLINE-2024',
     expected_additional_testcase_errors={f"*tests/{s}": val for s, val in {
         'G3-1-3_1/index.xml:TC2_invalid': {
@@ -119,6 +123,23 @@ config = ConformanceSuiteConfig(
         'G4-4-2_4/index.xml:TC2_invalid': {
             'usableConceptsNotIncludedInDefinitionLink': 1,
         },
+        'G5-1-3_1/index.xml:TC1_valid': {
+            'noInlineXbrlTags': 1,
+            'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 5,
+        },
+        'G5-1-3_1/index.xml:TC2_invalid': {
+            'noInlineXbrlTags': 1,
+            'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 5,
+        },
+        'G5-1-3_2/index.xml:TC1_valid': {
+            'noInlineXbrlTags': 1,
+            'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 5,
+        },
+        'G5-1-3_2/index.xml:TC2_invalid': {
+            'documentNameDoesNotFollowNamingConvention': 1,
+            'noInlineXbrlTags': 1,
+            'requiredEntryPointOtherGaapNotReferenced': 1,
+        },
         'RTS_Annex_II_Par_1_RTS_Annex_IV_par_7/index.xml:TC2_valid': {
             'undefinedLanguageForTextFact': 1,
             'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 5,
@@ -178,10 +199,6 @@ config = ConformanceSuiteConfig(
 
 
         # Not Implemented
-        'G5-1-3_1/index.xml:TC1_valid',  # Must be run with different disclosure system for GAAP Other
-        'G5-1-3_1/index.xml:TC2_invalid',  # Must be run with different disclosure system for GAAP Other
-        'G5-1-3_2/index.xml:TC1_valid',  # Must be run with different disclosure system for GAAP Other
-        'G5-1-3_2/index.xml:TC2_invalid',  # Must be run with different disclosure system for GAAP Other
         'RTS_Annex_II_Par_1/index.xml:TC3_invalid',
         'RTS_Annex_III_Par_1/index.xml:TC2_invalid',
         'RTS_Annex_III_Par_1/index.xml:TC3_invalid',
