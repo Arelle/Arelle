@@ -314,6 +314,8 @@ def saveOIMTaxonomy(dts, jsonFile):
                     axis = dataTable.get(hdrsElt.get("axis","") + "Axis")
                     if axis is None:
                         continue
+                    if "axisLabels" not in axis:
+                        axis["axisLabels"] = [] # z axis entry id only provided when there is a z axis
                     axisLbls = axis["axisLabels"]
                     for grpElt in hdrsElt.iterchildren("{http://xbrl.org/2014/table/model}group"):
                         rollupSpan = None
@@ -355,9 +357,23 @@ def saveOIMTaxonomy(dts, jsonFile):
                                     factDims = axisFactDims[factDimCol]
                                     for i, constrtElt in enumerate(cellElt.iterchildren("{http://xbrl.org/2014/table/model}constraint")):
                                         aspect = constrtElt.findtext("{http://xbrl.org/2014/table/model}aspect")
-                                        value = constrtElt.findtext("{http://xbrl.org/2014/table/model}value")
+                                        if aspect == "period":
+                                            inst = start = end = None
+                                            for e in constrtElt.iter("{http://www.xbrl.org/2003/instance}*"):
+                                                if e.tag.endswith("instant"): inst = e.text
+                                                elif e.tag.endswith("startDate"): start = e.text
+                                                elif e.tag.endswith("endDate"): end = e.text
+                                            if inst:
+                                                value = f"{inst}/{inst}"
+                                            elif start and end:
+                                                value = f"{start}/{end}"
+                                            else:
+                                                value = None
+                                        else:
+                                            value = constrtElt.findtext("{http://xbrl.org/2014/table/model}value")
                                         if aspect and value:
                                             if aspect == "concept": aspect = "xbrl:concept"
+                                            elif aspect == "period": aspect = "xbrl:period"
                                             factDims[aspect] = value
                                     factDimCol += 1
 
