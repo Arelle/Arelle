@@ -4,7 +4,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns="http://xbrl.org/2005/conformance"
         name="DBA.TR17"
-        description="DBA.TR17: Inline XBRL must not contain HTML <base> element or the 'xml:base' attribute."
+        description="DBA.TR17: Inline XBRL must not contain HTML `base` element or the 'xml:base' attribute."
         outpath=''
         owner="support@arelle.org"
         xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">

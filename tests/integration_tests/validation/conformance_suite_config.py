@@ -227,12 +227,12 @@ class ConformanceSuiteConfig:
     disclosure_system_by_prefix: list[tuple[str, str]] = field(default_factory=list)
     expected_additional_testcase_errors: dict[str, dict[str, int]] = field(default_factory=dict)
     expected_failure_ids: frozenset[str] = frozenset()
+    expected_load_errors: frozenset[str] = field(default_factory=frozenset)
     expected_missing_testcases: frozenset[str] = frozenset()
     ignore_levels: frozenset[ErrorLevel] = frozenset({ErrorLevel.OK})
     membership_url: str | None = None
     plugins: frozenset[str] = frozenset()
     preprocessing_func: Callable[[ConformanceSuiteConfig, TestcaseSet], TestcaseSet] | None = None
-    strict_testcase_index: bool = True
     runtime_options: dict[str, Any] = field(default_factory=dict)
     required_locale_by_ids: dict[str, re.Pattern[str]] = field(default_factory=dict)
     test_case_result_options: Literal['match-all', 'match-any'] = 'match-all'

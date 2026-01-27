@@ -175,6 +175,9 @@ config = ConformanceSuiteConfig(
         'RTS_Annex_II_Par_1/index.xml:TC3_invalid',
         'RTS_Annex_IV_Par_14_G3-5-1_1/index.xml:TC2_invalid',
     ]),
+    expected_load_errors=frozenset([
+        "Testcase document contained no testcases: */tests/G3-7-1_2/index.xml"
+    ]),
     ignore_levels=frozenset({
         ErrorLevel.NOT_SATISFIED,
         ErrorLevel.OK,

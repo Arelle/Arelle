@@ -276,6 +276,11 @@ config = ConformanceSuiteConfig(
         # Expects invalidInlineXbrl.  Instead, we depend on the underlying XML Schema and iXBRL validation errors.
         'RTS_Annex_III_Par_1/index.xml:TC2_invalid',
     ]),
+    expected_load_errors=frozenset([
+        "Testcase document contained no testcases: */tests/G3-7-1_2/index.xml",
+        "Testcase document contained no testcases: */tests/G7-2-1_1/index.xml",
+        "Testcase document contained no testcases: */tests/G7-2-1_2/index.xml",
+    ]),
     ignore_levels=frozenset({
         ErrorLevel.NOT_SATISFIED,
         ErrorLevel.OK,

@@ -8,7 +8,6 @@ from pathlib import Path
 
 from arelle.testengine.TestcaseSet import TestcaseSet
 
-TESTCASE_LOADER_ERROR_PREFIX = "TESTCASE_LOADER"
 
 class TestcaseLoader(ABC):
 
