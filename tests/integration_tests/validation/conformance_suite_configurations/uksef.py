@@ -2,7 +2,7 @@ from pathlib import Path, PurePath
 
 from tests.integration_tests.validation.assets import ESEF_PACKAGES
 from tests.integration_tests.validation.conformance_suite_config import (
-    AssetSource, ConformanceSuiteConfig, ConformanceSuiteAssetConfig
+    AssetSource, ConformanceSuiteConfig, ConformanceSuiteAssetConfig, CiConfig
 )
 
 
@@ -40,6 +40,7 @@ config = ConformanceSuiteConfig(
         package for year in [2022, 2024] for package in ESEF_PACKAGES[year]
     ],
     base_taxonomy_validation='none',
+    ci_config=CiConfig(fast=False),
     expected_additional_testcase_errors={f'tests/FRC/{s}': val for s, val in {
         # Invalid documentType https://xbrl.org/report-package/CR/2023-05-03/xbri
         'FRC_09/index.xml:TC2_valid': {
@@ -104,5 +105,4 @@ config = ConformanceSuiteConfig(
     runtime_options={
         'formulaAction': 'none',
     },
-    shards=4,
 )

@@ -3,7 +3,7 @@ from pathlib import Path, PurePath
 from tests.integration_tests.validation.conformance_suite_config import (
     AssetSource,
     ConformanceSuiteAssetConfig,
-    ConformanceSuiteConfig,
+    ConformanceSuiteConfig, CiConfig,
 )
 
 config = ConformanceSuiteConfig(
@@ -15,6 +15,7 @@ config = ConformanceSuiteConfig(
             source=AssetSource.S3_PUBLIC,
         ),
     ],
+    ci_config=CiConfig(fast=False),
     expected_additional_testcase_errors={f"Common/{s}": val for s, val in {
         # 202.02b in the absence of source/target constraints, an empty href doesn't pose a problem
         # 202-02b-HrefResolutionCounterExample-custom.xml Expected: valid, Actual: arelle:hrefWarning
@@ -27,5 +28,4 @@ config = ConformanceSuiteConfig(
     runtime_options={
         'calcs': 'xbrl21',
     },
-    shards=3,
 )

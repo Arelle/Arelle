@@ -1,7 +1,7 @@
 import os
 from pathlib import PurePath, Path
 from tests.integration_tests.validation.conformance_suite_config import (
-    CONFORMANCE_SUITE_PATH_PREFIX, ConformanceSuiteConfig, ConformanceSuiteAssetConfig, AssetSource
+    CONFORMANCE_SUITE_PATH_PREFIX, ConformanceSuiteConfig, ConformanceSuiteAssetConfig, AssetSource, CiConfig
 )
 
 ZIP_PATH = Path('inlineXBRL-1.1-conformanceSuite-2020-04-08.zip')
@@ -18,6 +18,7 @@ config = ConformanceSuiteConfig(
         ),
     ],
     capture_warnings=False,
+    ci_config=CiConfig(fast=False),
     expected_failure_ids=frozenset({
         # test case variations which have xhtml documents which are not inline blissfully load as unrecognized plain xml,
         # so this does not fail as expected.
@@ -29,5 +30,4 @@ config = ConformanceSuiteConfig(
     runtime_options={
         'packages': [os.path.join(CONFORMANCE_SUITE_PATH_PREFIX, EXTRACTED_PATH, 'inlineXBRL-1.1-conformanceSuite-2020-04-08/schemas/www.example.com.zip')],
     },
-    shards=4,
 )

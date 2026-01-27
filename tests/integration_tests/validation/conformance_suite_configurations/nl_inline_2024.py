@@ -2,7 +2,7 @@ from pathlib import PurePath, Path
 
 from arelle.testengine.ErrorLevel import ErrorLevel
 from tests.integration_tests.validation.assets import NL_PACKAGES
-from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig, AssetSource
+from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig, AssetSource, CiConfig
 
 ZIP_PATH = Path('conformance-suite-2024-sbr-domein-handelsregister_update-20251231.zip')
 EXTRACTED_PATH = Path(ZIP_PATH.stem)
@@ -19,6 +19,7 @@ config = ConformanceSuiteConfig(
         *NL_PACKAGES['NL-INLINE-2024'],
     ],
     base_taxonomy_validation='none',
+    ci_config=CiConfig(shard_count=2),
     custom_compare_patterns=[
         (r"^.*$", r"^NL.NL-KVK.*\.~$"),
     ],
@@ -197,6 +198,5 @@ config = ConformanceSuiteConfig(
     info_url='https://www.sbr-nl.nl/sbr-domeinen/handelsregister/uitbreiding-elektronische-deponering-handelsregister',
     name=PurePath(__file__).stem,
     plugins=frozenset({'validate/NL'}),
-    shards=8,
     test_case_result_options='match-all',
 )

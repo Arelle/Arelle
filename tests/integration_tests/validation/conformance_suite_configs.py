@@ -103,5 +103,5 @@ ALL_CONFORMANCE_SUITE_CONFIGS: tuple[ConformanceSuiteConfig, ...] = (
     xbrl_utr_registry_1_0,
     xbrl_utr_structure_1_0,
 )
-CI_CONFORMANCE_SUITE_CONFIGS = tuple(c for c in ALL_CONFORMANCE_SUITE_CONFIGS if c.ci_enabled)
+CI_CONFORMANCE_SUITE_CONFIGS = tuple(c for c in ALL_CONFORMANCE_SUITE_CONFIGS if c.ci_config.enabled)
 PUBLIC_CONFORMANCE_SUITE_CONFIGS = tuple(c for c in ALL_CONFORMANCE_SUITE_CONFIGS if c.entry_point_asset.public_download_url)

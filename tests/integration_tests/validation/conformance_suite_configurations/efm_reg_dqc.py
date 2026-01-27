@@ -1,6 +1,5 @@
 from pathlib import PurePath, Path
-from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig, AssetSource
-
+from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig, AssetSource, CiConfig
 
 config = ConformanceSuiteConfig(
     assets=[
@@ -11,11 +10,10 @@ config = ConformanceSuiteConfig(
         )
     ],
     cache_version_id='FR1AEVo5AdJcSAoSphxQbpGVsMLmXvIF',
-    ci_enabled=False,
+    ci_config=CiConfig(enabled=False, shard_count=16),
     disclosure_system='efm-pragmatic',
     info_url='N/A',
     name=PurePath(__file__).stem,
     plugins=frozenset({'EDGAR/validate', 'inlineXbrlDocumentSet'}),
     test_case_result_options='match-any',
-    shards=64,
 )

@@ -76,7 +76,7 @@ def main() -> None:
     config_names_seen: set[str] = set()
     private = False
     for config in CI_CONFORMANCE_SUITE_CONFIGS:
-        if config.shards == 1:
+        if config.ci_config.fast:
             config_names_seen.add(config.name)
             private |= config.has_private_asset
     for os in [LINUX, MACOS, WINDOWS]:
