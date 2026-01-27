@@ -24,6 +24,7 @@ from .DisclosureSystems import (
     DISCLOSURE_SYSTEM_NL_INLINE_2025_GAAP_OTHER,
 
     DISCLOSURE_SYSTEM_NL_INLINE_MULTI_TARGET,
+    ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
 from .PluginValidationDataExtension import PluginValidationDataExtension
 
@@ -282,6 +283,34 @@ class ValidationPluginExtension(ValidationPlugin):
             ]}
         else:
             raise ValueError(f'Invalid NL disclosure system: {disclosureSystem}')
+        if disclosureSystem in ALL_NL_INLINE_DISCLOSURE_SYSTEMS:
+            assert rjNamespace
+            namespaces = {
+                'bw2-titel9': jenvNamespace,
+                'kvk': kvkINamespace,
+                'rj': rjNamespace,
+            }
+            mandatoryFactQNames = frozenset(
+                qname(value=s, name=namespaces, noPrefixIsNoNamespace=False, castException=ValueError, prefixException=ValueError) for s in [
+                    'bw2-titel9:ChamberOfCommerceRegistrationNumber',
+                    'bw2-titel9:LegalEntityName',
+                    'bw2-titel9:LegalEntityLegalForm',
+                    'bw2-titel9:LegalEntityRegisteredOffice',
+                    'kvk:LegalEntitySize',
+                    'bw2-titel9:FinancialReportingPeriodEndDate',
+                    'bw2-titel9:FinancialReportingPeriod',
+                    'rj:FinancialStatementsConsolidated',
+                    'kvk:AuditorsReportFinancialStatementsPresent',
+                    'bw2-titel9:DocumentAdoptionStatus',
+
+                    # conditionally mandatory
+                    'bw2-titel9:DocumentAdoptionDate',
+                    'kvk:AnnualReportOfForeignGroupHeadForExemptionUnderArticle403',
+                    'kvk:AnnualReportOfForeignGroupHeadForExemptionUnderArticle408',
+                ]
+            )
+        else:
+            mandatoryFactQNames = None
         permissibleMandatoryFactsRootAbstracts=frozenset([
             qname(kvkINamespace, 'AnnualReportFilingInformationTitle'),
         ]) if kvkINamespace else frozenset()
@@ -302,6 +331,7 @@ class ValidationPluginExtension(ValidationPlugin):
             financialReportingPeriodPreviousEndDateQn=qname(jenvNamespace, 'FinancialReportingPeriodPreviousEndDate'),
             formattedExplanationItemTypeQn=qname(nlTypesNamespace, 'formattedExplanationItemType') if nlTypesNamespace else None,
             ifrsIdentifier = 'https://xbrl.ifrs.org',
+            mandatoryFactQNames=mandatoryFactQNames,
             permissibleGAAPRootAbstracts=permissibleMandatoryFactsRootAbstracts | frozenset([
                 qname(jenvNamespace, 'BalanceSheetTitle'),
                 qname(jenvNamespace, 'IncomeStatementTitle'),
