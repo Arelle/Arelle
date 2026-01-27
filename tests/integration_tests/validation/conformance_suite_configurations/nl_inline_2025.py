@@ -274,8 +274,6 @@ config = ConformanceSuiteConfig(
         'G3-2-7_1/index.xml:TC7_valid',
 
         # Not Implemented
-        'G3-6-3_6/index.xml:TC3_invalid',
-        'G3-6-3_6/index.xml:TC4_invalid',
         'G3-6-3_7/index.xml:TC2_invalid',
         'G7-1-4_1/index.xml:TC2_invalid',
         'RTS_Annex_II_Par_1/index.xml:TC3_invalid',
