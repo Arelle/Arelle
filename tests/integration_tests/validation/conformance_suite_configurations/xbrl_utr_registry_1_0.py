@@ -26,4 +26,8 @@ config = ConformanceSuiteConfig(
     ],
     info_url='https://specifications.xbrl.org/work-product-index-registries-units-registry-1.0.html',
     name=PurePath(__file__).stem,
+    runtime_options={
+        'utrUrl': os.path.join(CONFORMANCE_SUITE_PATH_PREFIX, 'utr/registry/utr.xml'),
+        'utrValidate': True,
+    },
 )

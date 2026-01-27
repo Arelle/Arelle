@@ -15,5 +15,8 @@ config = ConformanceSuiteConfig(
     membership_url='https://www.xbrl.org/join',
     name=PurePath(__file__).stem,
     plugins=frozenset({'../../tests/plugin/testcaseCalc11ValidateSetup.py'}),
+    runtime_options={
+        "validateXmlOim": True,
+    },
     test_case_result_options='match-any',
 )
