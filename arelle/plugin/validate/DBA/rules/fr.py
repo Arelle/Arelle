@@ -11,9 +11,10 @@ from collections.abc import Iterable
 from lxml import etree
 from typing import Any, cast
 
-from arelle import ModelDocument
+from arelle import ModelDocument, ValidateDuplicateFacts
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelValue import QName
+from arelle.ValidateDuplicateFacts import DuplicateType
 from arelle.XbrlConst import xhtml
 from arelle.typing import TypeGetText
 from arelle.ValidateXbrl import ValidateXbrl
@@ -1549,6 +1550,38 @@ def rule_fr108(
                       "For non-registered accounting systems the periods are defined by `StartDateForUseOfDigitalNonregisteredBookkeepingSystem` and `EndDateForUseOfDigitalNonregisteredBookkeepingSystem`.\n"
                       ),
                 modelObject=periodFacts
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=STAND_ALONE_DISCLOSURE_SYSTEMS,
+)
+def rule_fr116(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    FR116: It is not permitted to declare numeric fields with multiple values in the same period.
+    """
+    dimensionQn = pluginData.reportedValueOtherRenderingOfReportedValueDimensionQn
+    otherRenderingMemberQn = pluginData.otherRenderingOfReportedValueMemberQn
+    duplicateFactSets = ValidateDuplicateFacts.getDuplicateFactSetsWithType(val.modelXbrl.facts, DuplicateType.INCOMPLETE)
+    for duplicateFactSet in duplicateFactSets:
+        if not duplicateFactSet.areNumeric:
+            continue
+        reportedValueFacts = {
+            fact
+            for fact in duplicateFactSet.facts
+            if fact.context is None or fact.context.dimMemberQname(dimensionQn) != otherRenderingMemberQn
+        }
+        if len(reportedValueFacts) > 1:
+            yield Validation.warning(
+                codes='DBA.FR116',
+                msg=_("It is not permitted to declare numeric fields with multiple values in the same period."),
+                modelObject=reportedValueFacts,
             )
 
 
