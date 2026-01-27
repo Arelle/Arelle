@@ -27,5 +27,8 @@ config = ConformanceSuiteConfig(
     }.items()},
     info_url='https://specifications.xbrl.org/work-product-index-group-base-spec-base-spec.html',
     name=PurePath(__file__).stem,
+    runtime_options={
+        'calcs': 'xbrl21',
+    },
     shards=3,
 )

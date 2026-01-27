@@ -17,4 +17,7 @@ config = ConformanceSuiteConfig(
     info_url='https://erhvervsstyrelsen.dk/vejledning-teknisk-vejledning-og-dokumentation-regnskab-20-taksonomier-aktuelle',
     name=PurePath(__file__).stem,
     plugins=frozenset({'validate/DBA'}),
+    runtime_options={
+        'formulaAction': 'none',
+    },
 )

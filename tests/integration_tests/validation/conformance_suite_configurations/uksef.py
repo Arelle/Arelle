@@ -100,5 +100,8 @@ config = ConformanceSuiteConfig(
     info_url='https://www.frc.org.uk/library/standards-codes-policy/accounting-and-reporting/frc-taxonomies/frc-taxonomies-documentation-and-guidance/',
     name=PurePath(__file__).stem,
     plugins=frozenset({'inlineXbrlDocumentSet'}),
+    runtime_options={
+        'formulaAction': 'none',
+    },
     shards=4,
 )
