@@ -1,11 +1,33 @@
 from pathlib import PurePath, Path
 
 from arelle.testengine.ErrorLevel import ErrorLevel
+from arelle.testengine.TestcaseSet import TestcaseSet
 from tests.integration_tests.validation.assets import ESEF_PACKAGES, NL_PACKAGES, NL_INLINE_2024_PACKAGES_WITHOUT_IFRS
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig, AssetSource, CiConfig
+from tests.integration_tests.validation.preprocessing_util import swap_id
 
 ZIP_PATH = Path('conformance-suite-2025-sbr-domein-handelsregister.zip')
 EXTRACTED_PATH = Path(ZIP_PATH.stem)
+
+
+def _preprocessing_func(config: ConformanceSuiteConfig, testcase_set: TestcaseSet) -> TestcaseSet:
+    id_swaps: dict[tuple[str, tuple[str, ...]], str] = {
+        ('tests/G4-2-2_2/index.xml:TC3_invalid', ('TC4_invalid.xbri',)):  'tests/G4-2-2_2/index.xml:TC4_valid',
+        ('tests/G5-1-3_2/index.xml:TC1_valid', ('TC2_valid.xbri',)):  'tests/G5-1-3_2/index.xml:TC2_valid',
+    }
+    testcases = [
+        swap_id(testcase, id_swaps)
+        for testcase in testcase_set.testcases
+    ]
+    assert not id_swaps, \
+        f'Some ID replacements were not applied: {id_swaps}'
+    return TestcaseSet(
+        load_errors=testcase_set.load_errors,
+        skipped_testcases=testcase_set.skipped_testcases,
+        testcases=testcases,
+    )
+
+
 config = ConformanceSuiteConfig(
     assets=[
         ConformanceSuiteAssetConfig.nested_conformance_suite(
@@ -262,5 +284,6 @@ config = ConformanceSuiteConfig(
     info_url='https://www.sbr-nl.nl/sbr-domeinen/handelsregister/uitbreiding-elektronische-deponering-handelsregister',
     name=PurePath(__file__).stem,
     plugins=frozenset({'validate/NL'}),
+    preprocessing_func=_preprocessing_func,
     test_case_result_options='match-all',
 )
