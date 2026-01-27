@@ -12,6 +12,9 @@ config = ConformanceSuiteConfig(
     base_taxonomy_validation='none',
     ci_config=CiConfig(fast=True),
     disclosure_system='arl-2024-multi-target-preview',
+    expected_load_errors=frozenset([
+        "Opening and ending tag mismatch: base line 7 and testcase, tr17-testcase.xml, line 23, column 12",
+    ]),
     info_url='https://erhvervsstyrelsen.dk/vejledning-teknisk-vejledning-og-dokumentation-regnskab-20-taksonomier-aktuelle',
     name=PurePath(__file__).stem,
     plugins=frozenset({'validate/DBA'}),

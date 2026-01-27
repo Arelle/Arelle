@@ -12,7 +12,7 @@ from arelle.testengine.Constraint import Constraint
 from arelle.testengine.ConstraintSet import ConstraintSet
 from arelle.testengine.Testcase import Testcase
 from arelle.testengine.TestcaseSet import TestcaseSet
-from arelle.testengine.loader.TestcaseLoader import TestcaseLoader, TESTCASE_LOADER_ERROR_PREFIX
+from arelle.testengine.loader.TestcaseLoader import TestcaseLoader
 
 REQUIRED_HEADERS = (
     "input",
@@ -51,10 +51,10 @@ class CsvTestcaseLoader(TestcaseLoader):
             header = next(reader)
             missing_headers = sorted(set(REQUIRED_HEADERS) - set(header))
             if missing_headers:
-                load_errors.append(f"{TESTCASE_LOADER_ERROR_PREFIX}: CSV file {index_file} is missing required header(s): {missing_headers}")
+                load_errors.append(f"CSV file {index_file} is missing required header(s): {missing_headers}")
             unsupported_headers = sorted(set(header) - set(SUPPORTED_HEADERS))
             if unsupported_headers:
-                load_errors.append(f"{TESTCASE_LOADER_ERROR_PREFIX}: CSV file {index_file} has unsupported header(s): {unsupported_headers}")
+                load_errors.append(f"CSV file {index_file} has unsupported header(s): {unsupported_headers}")
             items = []
             for row in reader:
                 item = {}

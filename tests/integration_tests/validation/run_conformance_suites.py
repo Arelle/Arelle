@@ -5,12 +5,12 @@ from collections import defaultdict, Counter
 
 import sys
 from argparse import ArgumentParser, Namespace
+from dataclasses import replace
 from pathlib import Path
 from typing import Any, TYPE_CHECKING
 
 from arelle.testengine.TestEngine import load_testcase_index
 from arelle.testengine.TestcaseSet import TestcaseSet
-from arelle.testengine.loader.TestcaseLoader import TESTCASE_LOADER_ERROR_PREFIX
 from tests.integration_tests.validation.conformance_suite_config import (
     ConformanceSuiteConfig, ConformanceSuiteAssetConfig
 )
@@ -160,14 +160,16 @@ def run_conformance_suites(
     else:
         verify_assets(unique_assets)
     all_results = []
-    preload_errors: defaultdict[str, list[str]] = defaultdict(list)
+    preload_errors: dict[str, list[str]] = {}
     for config in conformance_suite_configs:
-        testcase_set = preload_testcase_set(config, preload_errors)
+        testcase_set = preload_testcase_set(config)
+        if testcase_set.load_errors:
+            preload_errors[config.name] = testcase_set.load_errors
         if not test_option:
             continue
-        assert not preload_errors, \
-            (f"Conformance suite misconfigurations for '{config.name}' detected "
-             f"during preloading of testcases: {preload_errors[config.name]}")
+        assert not testcase_set.load_errors, \
+            (f"Errors were encountered while loading the '{config.name}' "
+             f"conformance suite: {testcase_set.load_errors}")
         shards: list[int] = []
         config_shard_count = shard_count or config.ci_config.shard_count
         full_run = True
@@ -217,52 +219,64 @@ def get_nonexistent_test_ids(expected_test_ids : frozenset[str], actual_test_ids
 
 
 
-def preload_testcase_set(config: ConformanceSuiteConfig, errors: defaultdict[str, list[str]]) -> TestcaseSet:
+def preload_testcase_set(config: ConformanceSuiteConfig) -> TestcaseSet:
     testcase_set = load_testcase_index(config.entry_point_path)
 
     if config.preprocessing_func is not None:
         testcase_set = config.preprocessing_func(config, testcase_set)
+
+    load_errors = list(testcase_set.load_errors)
 
     all_test_ids = [t.full_id for t in testcase_set.testcases]
 
     test_id_frequencies = Counter(all_test_ids)
     nonunique_test_ids = {test_id: count for test_id, count in sorted(test_id_frequencies.items()) if count > 1}
     if nonunique_test_ids:
-        errors[config.name].append(f"Some test IDs are not unique.  Frequencies of nonunique test IDs: {nonunique_test_ids}.")
+        load_errors.append(f"Some test IDs are not unique.  Frequencies of nonunique test IDs: {nonunique_test_ids}.")
 
     unique_test_ids = frozenset(all_test_ids)
 
     nonexistent_expected_failure_ids = get_nonexistent_test_ids(config.expected_failure_ids, unique_test_ids)
     if nonexistent_expected_failure_ids:
-        errors[config.name].append(f"Some expected failure IDs don't match any test cases: {sorted(nonexistent_expected_failure_ids)}.")
+        load_errors.append(f"Some expected failure IDs don't match any test cases: {sorted(nonexistent_expected_failure_ids)}.")
 
     nonexistent_expected_additional_testcase_errors = get_nonexistent_test_ids(frozenset(config.expected_additional_testcase_errors), unique_test_ids)
     if nonexistent_expected_additional_testcase_errors:
-        errors[config.name].append(f"Some additional error IDs don't match any test cases: {sorted(nonexistent_expected_additional_testcase_errors)}")
+        load_errors.append(f"Some additional error IDs don't match any test cases: {sorted(nonexistent_expected_additional_testcase_errors)}")
 
     nonexistent_required_locale_testcase_ids = get_nonexistent_test_ids(frozenset(config.required_locale_by_ids), unique_test_ids)
     if nonexistent_required_locale_testcase_ids:
-        errors[config.name].append(f"Some required locale IDs don't match any test cases: {sorted(nonexistent_required_locale_testcase_ids)}.")
+        load_errors.append(f"Some required locale IDs don't match any test cases: {sorted(nonexistent_required_locale_testcase_ids)}.")
 
     nonexistent_additional_plugin_prefixes = get_nonexistent_test_ids(frozenset(f"{p}*" for p, __ in config.additional_plugins_by_prefix), unique_test_ids)
     if nonexistent_additional_plugin_prefixes:
-        errors[config.name].append(f"Some additional plugin prefix patterns don't match any test cases: {sorted(nonexistent_additional_plugin_prefixes)}")
+        load_errors.append(f"Some additional plugin prefix patterns don't match any test cases: {sorted(nonexistent_additional_plugin_prefixes)}")
 
     nonexistent_disclosure_system_prefixes = get_nonexistent_test_ids(frozenset(f"{p}*" for p, __ in config.disclosure_system_by_prefix), unique_test_ids)
     if nonexistent_disclosure_system_prefixes:
-        errors[config.name].append(f"Some disclosure system prefix patterns don't match any test cases: {sorted(nonexistent_disclosure_system_prefixes)}")
+        load_errors.append(f"Some disclosure system prefix patterns don't match any test cases: {sorted(nonexistent_disclosure_system_prefixes)}")
 
-    testcase_loader_errors = [
-        error
-        for error in testcase_set.load_errors
-        if error.startswith(TESTCASE_LOADER_ERROR_PREFIX)
-    ]
-    if testcase_loader_errors:
-        errors[config.name].extend(testcase_loader_errors)
-    if config.strict_testcase_index:
-        if 'IOerror' in testcase_set.load_errors:
-            errors[config.name].append("One or more testcases were not found.")
-    return testcase_set
+    filtered_load_errors = []
+    matched_expected_load_errors = set()
+    for load_error in load_errors:
+        load_error = load_error.replace('\\', '/')
+        if load_error in config.expected_load_errors:
+            matched_expected_load_errors.add(load_error)
+            continue
+        matched = False
+        for pattern in config.expected_load_errors:
+            if fnmatch.fnmatch(load_error, pattern):
+                matched_expected_load_errors.add(pattern)
+                matched = True
+                break
+        if not matched:
+            filtered_load_errors.append(load_error)
+
+    nonexistent_expected_load_errors = config.expected_load_errors - matched_expected_load_errors
+    if nonexistent_expected_load_errors:
+        load_errors.append(f"Some expected load errors don't match any actual load errors: {sorted(nonexistent_expected_load_errors)}")
+
+    return replace(testcase_set, load_errors=filtered_load_errors)
 
 
 def run_conformance_suites_options(options: Namespace) -> list[ParameterSet]:

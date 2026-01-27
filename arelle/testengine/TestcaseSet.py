@@ -11,6 +11,6 @@ from arelle.testengine.Testcase import Testcase
 
 @dataclass(frozen=True)
 class TestcaseSet:
-    load_errors: list[Any]
+    load_errors: list[str]
     skipped_testcases: list[Testcase]
     testcases: list[Testcase]

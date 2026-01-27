@@ -3,9 +3,10 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Iterable, Any
-from urllib.parse import unquote, urlparse
+from urllib.parse import urlparse
 from urllib.request import url2pathname
 
 from arelle.Cntlr import Cntlr
@@ -14,13 +15,13 @@ from arelle.ModelTestcaseObject import ModelTestcaseVariation
 from arelle.ModelValue import QName
 from arelle.RuntimeOptions import RuntimeOptions
 from arelle.api.Session import Session
+from arelle.logging.handlers.LogToBufferHandler import LogToBufferHandler
 from arelle.testengine.Constraint import Constraint
 from arelle.testengine.ConstraintSet import ConstraintSet
 from arelle.testengine.ErrorLevel import ErrorLevel
-from arelle.testengine.TestEngineOptions import TestEngineOptions
 from arelle.testengine.Testcase import Testcase
 from arelle.testengine.TestcaseSet import TestcaseSet
-from arelle.testengine.loader.TestcaseLoader import TestcaseLoader, TESTCASE_LOADER_ERROR_PREFIX
+from arelle.testengine.loader.TestcaseLoader import TestcaseLoader
 
 CALC_MODES_MAP: dict[str | None, str] = {
     'truncate': 'truncation',
@@ -252,23 +253,28 @@ class XmlTestcaseLoader(TestcaseLoader):
             keepOpen=True,
         )
         with Session() as session:
+            log_handler = LogToBufferHandler()
             session.run(
                 runtime_options,
+                logHandler=log_handler,
             )
-            load_errors: list[Any] = []
+            log_json = json.loads(log_handler.getJson(clearLogBuffer=True))
+            load_errors: list[Any] = [
+                log['message']['text']
+                for log in log_json['log']
+                if log['level'].lower() == 'error'
+            ]
             assert isinstance(session._cntlr, Cntlr)
-            load_errors.extend(session._cntlr.errors)
             models = session.get_models()
             testcases: list[Testcase] = []
             for model in models:
-                load_errors.extend(model.errors)
                 for doc in model.urlDocs.values():
                     is_testcase_doc = doc.type in (ModelDocumentType.TESTCASE, ModelDocumentType.REGISTRYTESTCASE)
                     if _load_testcase_doc(doc, index_file, testcases):
                         if not is_testcase_doc:
-                            load_errors.append(f"{TESTCASE_LOADER_ERROR_PREFIX}: Document of unknown type ({doc.type}) contained testcases: {doc.uri}")
+                            load_errors.append(f"Document of unknown type ({doc.type}) contained testcases: {Path(doc.uri).as_posix()}")
                     elif is_testcase_doc:
-                        load_errors.append(f"T{TESTCASE_LOADER_ERROR_PREFIX}: Testcase document contained no testcases: {doc.uri}")
+                        load_errors.append(f"Testcase document contained no testcases: {Path(doc.uri).as_posix()}")
             return TestcaseSet(
                 load_errors=load_errors,
                 skipped_testcases=[],

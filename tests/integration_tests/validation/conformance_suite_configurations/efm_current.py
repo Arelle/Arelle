@@ -43,6 +43,19 @@ config = ConformanceSuiteConfig(
             "arelle:nonIxdsDocument": 2,
         },
     },
+    expected_load_errors=frozenset([
+        "Testcase document contained no testcases: */conf/605-instance-syntax/605-45-cover-page-facts-general-case/605-45-cover-page-facts-general-case-testcase.xml",
+        "Testcase document contained no testcases: */conf/609-linkbase-syntax/609-10-general-namespace-specific-custom-arc-restrictions/609-10-general-namespace-specific-custom-arc-restrictions-testcase.xml",
+        "Testcase document contained no testcases: */conf/612-presentation-syntax/612-06-presentation-single-root/612-06-presentation-single-root-testcase.xml",
+        "Testcase document contained no testcases: */conf/612-presentation-syntax/612-07-period-type-preferred-label-mismatch/612-07-period-type-preferred-label-mismatch-testcase.xml",
+        "Testcase document contained no testcases: */conf/612-presentation-syntax/612-08-axis-requires-domain-child/612-08-axis-requires-domain-child-testcase.xml",
+        "Testcase document contained no testcases: */conf/625-rr-rendering/01-embedding-commands/gd/01-embedding-commands-gd-testcase.xml",
+        "Testcase document contained no testcases: */conf/626-rendering-syntax/626-04-embedding-command-syntax/626-04-embedding-command-syntax-testcase.xml",
+        "Testcase document contained no testcases: */conf/626-rendering-syntax/626-05-embedding-missing-rows-or-columns/626-05-embedding-missing-rows-or-columns-testcase.xml",
+        "Testcase document contained no testcases: */conf/626-rendering-syntax/626-06-embedding-incomplete-ordering-axes/626-06-embedding-incomplete-ordering-axes-testcase.xml",
+        "Testcase document contained no testcases: */conf/626-rendering-syntax/626-08-too-many-annual-return-facts/626-08-too-many-annual-return-facts-testcase.xml",
+        "Testcase document contained no testcases: */conf/626-rendering-syntax/626-09-Primary-Axis-On-Rows/626-09-primary-axis-on-rows-testcase.xml"
+    ]),
     info_url='https://www.sec.gov/structureddata/osdinteractivedatatestsuite',
     name=PurePath(__file__).stem,
     plugins=frozenset({
