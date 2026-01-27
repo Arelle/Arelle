@@ -23,7 +23,7 @@ jobs:
     outputs:
       matrix: ${{ steps.build-conformance-suite-matrix.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
         with:
           persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha }}
@@ -36,7 +36,7 @@ jobs:
     outputs:
       matrix: ${{ steps.build-test-script-matrix.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
         with:
           persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha }}
@@ -54,7 +54,7 @@ jobs:
         test: ${{ fromJson(needs.find-conformance-suites.outputs.matrix) }}
     environment: ${{ matrix.test.environment }}
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
         with:
           persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha }}
@@ -84,7 +84,7 @@ jobs:
         test: ${{ fromJson(needs.find-test-scripts.outputs.matrix) }}
     environment: ${{ matrix.test.environment }}
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
         with:
           persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha }}

@@ -31,6 +31,8 @@ class ErxlLoc:
         self.namespace = namespace
 
 class DisclosureSystem:
+    name: str | None
+
     def __init__(self, modelManager):
         self.modelManager = modelManager
         self.clear()
@@ -166,6 +168,7 @@ class DisclosureSystem:
                             names = namesStr.split("|")
                             if name in names:
                                 self.names = names
+                                assert isinstance(self.names[0], str)
                                 self.name = self.names[0]
                                 self.validationType = dsElt.get("validationType")
                                 self.exclusiveTypesPattern = compileAttrPattern(dsElt,"exclusiveTypesPattern", patternIfNoAttr=None)

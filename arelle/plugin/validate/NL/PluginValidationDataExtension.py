@@ -375,9 +375,17 @@ class PluginValidationDataExtension(PluginData):
                         anchorsInDimensionalElrs[elr].add(anchoringRel)
 
                 if not (
-                    fromObj.type == toObj.type
-                    or fromObj.type.isDerivedFrom(toObj.type.qname)
+                    # Reporting Manual 4.3.1
+                    # exact data type match
+                    fromObj.type.qname == toObj.type.qname
+                    # extension element uses a derived type of the taxonomy element's type
                     or toObj.type.isDerivedFrom(fromObj.type.qname)
+                    # extension element uses an XBRL base type of the taxonomy element's derived type
+                    or (
+                        toObj.type.qname.namespaceURI == XbrlConst.xbrli and
+                        toObj.type.qname.localName in XbrlConst.baseXbrliTypes and
+                        fromObj.type.isDerivedFrom(toObj.type.qname)
+                    )
                 ):
                     extConceptsNotAnchoredToSameDerivedType.add(toObj)
         return AnchorData(
@@ -630,15 +638,15 @@ class PluginValidationDataExtension(PluginData):
         return reportXmlLang
 
     @lru_cache(1)
-    def getTargetElements(self, modelXbrl: ModelXbrl) -> list[ModelObject]:
-        targetElements = []
+    def getElementsByTarget(self, modelXbrl: ModelXbrl) -> dict[str | None, list[ModelObject]]:
+        elementsByTarget = defaultdict(list)
         for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
             ixNStag = str(getattr(ixdsHtmlRootElt.modelDocument, "ixNStag", ixbrl11))
             ixTags = (ixNStag + ln for ln in ("nonNumeric", "nonFraction", "references", "relationship"))
             for elt in ixdsHtmlRootElt.iter(*ixTags):
-                if elt.get("target"):
-                    targetElements.append(elt)
-        return targetElements
+                elementsByTarget[elt.get("target")].append(elt)
+        elementsByTarget.default_factory = None
+        return elementsByTarget
 
 
     @lru_cache(1)

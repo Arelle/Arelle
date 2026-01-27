@@ -17,6 +17,7 @@ from typing import Any, TYPE_CHECKING, cast
 
 from lxml import etree
 
+from arelle.conformance.Constants import CONFORMANCE_SUITE_ID_OVERRIDES
 from tests.integration_tests.integration_test_util import get_test_data
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig
 
@@ -31,6 +32,7 @@ CONFORMANCE_SUITE_TIMING_RESOURCES_DIRECTORY = Path('tests/resources/conformance
 @dataclass(frozen=True)
 class Shard:
     paths: dict[str, list[str]]
+    disclosure_system: str | None
     plugins: frozenset[str]
 
 
@@ -64,9 +66,10 @@ def get_test_shards(config: ConformanceSuiteConfig) -> list[Shard]:
     @dataclass(frozen=True)
     class PathInfo:
         path: tuple[str, str]
-        plugins: tuple[str, ...]
+        disclosure_system: str | None
+        plugins: frozenset[str]
         runtime: float
-    paths_by_plugins: dict[tuple[str, ...], list[PathInfo]] = defaultdict(list)
+    paths_by_args: dict[tuple[str | None, frozenset[str]], list[PathInfo]] = defaultdict(list)
     approximate_relative_timing = load_timing_file(config.name)
     empty_testcase_paths: set[str] = set()
     for testcase_path, variation_ids in testcase_variation_map.items():
@@ -77,55 +80,66 @@ def get_test_shards(config: ConformanceSuiteConfig) -> list[Shard]:
         for prefix, additional_plugins in config.additional_plugins_by_prefix:
             if testcase_path.startswith(prefix):
                 path_plugins.update(additional_plugins)
+        path_plugins_frozen = frozenset(path_plugins)
+        disclosure_system = config.disclosure_system
+        for prefix, candidate_disclosure_system in config.disclosure_system_by_prefix:
+            if testcase_path.startswith(prefix):
+                disclosure_system = candidate_disclosure_system
+                break
         testcase_runtime = approximate_relative_timing.get(testcase_path, 1)
-        avg_variation_runtime = testcase_runtime/(len(variation_ids))  # compatability for testcase-level timing
+        avg_variation_runtime = testcase_runtime/(len(variation_ids))  # compatibility for testcase-level timing
         for variation_id in variation_ids:
             variation_runtime = approximate_relative_timing.get(f'{testcase_path}:{variation_id}', avg_variation_runtime)
-            paths_by_plugins[tuple(path_plugins)].append(PathInfo(
+            paths_by_args[(disclosure_system, path_plugins_frozen)].append(PathInfo(
                 path=(testcase_path, variation_id),
-                plugins=tuple(path_plugins),
+                disclosure_system=disclosure_system,
+                plugins=path_plugins_frozen,
                 runtime=variation_runtime,
             ))
-    paths_in_runtime_order: list[PathInfo] = sorted((path for paths in paths_by_plugins.values() for path in paths),
+    paths_in_runtime_order: list[PathInfo] = sorted((path for paths in paths_by_args.values() for path in paths),
         key=lambda path: path.runtime, reverse=True)
-    runtime_by_plugins: dict[tuple[str, ...], float] = {plugins: sum(path.runtime for path in paths)
-        for plugins, paths in paths_by_plugins.items()}
-    total_runtime = sum(runtime_by_plugins.values())
-    shards_by_plugins: dict[tuple[str, ...], list[tuple[float, list[tuple[str, str]]]]] = {}
+    runtime_by_args: dict[tuple[str | None, frozenset[str]], float] = {args: sum(path.runtime for path in paths)
+        for args, paths in paths_by_args.items()}
+    total_runtime = sum(runtime_by_args.values())
+    shards_by_args: dict[tuple[str | None, frozenset[str]], list[tuple[float, list[tuple[str, str]]]]] = {}
     remaining_shards = config.shards
-    for i, (plugins, _) in enumerate(paths_by_plugins.items()):
+    for i, (args, _) in enumerate(paths_by_args.items()):
         n_shards = (remaining_shards
-            if i == len(paths_by_plugins) - 1
-            else 1 + round(runtime_by_plugins[plugins] / total_runtime * (config.shards - len(paths_by_plugins))))
+            if i == len(paths_by_args) - 1
+            else 1 + round(runtime_by_args[args] / total_runtime * (config.shards - len(paths_by_args))))
         remaining_shards -= n_shards
-        shards_by_plugins[plugins] = [(0, []) for _ in range(n_shards)]
+        shards_by_args[args] = [(0, []) for _ in range(n_shards)]
     assert remaining_shards == 0
     for path in paths_in_runtime_order:
-        shards_for_plugins = shards_by_plugins[path.plugins]
-        shard_runtime, shard = shards_for_plugins[0]
+        shards_for_args = shards_by_args[(path.disclosure_system, path.plugins)]
+        shard_runtime, shard = shards_for_args[0]
         shard.append(path.path)
-        heapreplace(shards_for_plugins, (shard_runtime + path.runtime, shard))
-    assert shards_by_plugins.keys() == {()} | {tuple(plugins) for _, plugins in config.additional_plugins_by_prefix}
-    shards = _build_shards(shards_by_plugins)
+        heapreplace(shards_for_args, (shard_runtime + path.runtime, shard))
+    if config.additional_plugins_by_prefix and not config.disclosure_system_by_prefix:
+        assert shards_by_args.keys() == {(config.disclosure_system, frozenset())} | {(config.disclosure_system, plugins) for _, plugins in config.additional_plugins_by_prefix}
+    elif not config.additional_plugins_by_prefix and config.disclosure_system_by_prefix:
+        assert shards_by_args.keys() == {(config.disclosure_system, frozenset())} | {(ds, frozenset()) for _, ds in config.disclosure_system_by_prefix}
+    shards = _build_shards(shards_by_args)
     _verify_shards(shards, testcase_variation_map, empty_testcase_paths)
     return shards
 
 
-def _build_shards(shards_by_plugins: dict[tuple[str, ...], list[tuple[float, list[tuple[str, str]]]]]) -> list[Shard]:
+def _build_shards(shards_by_args: dict[tuple[str | None, frozenset[str]], list[tuple[float, list[tuple[str, str]]]]]) -> list[Shard]:
     # Sort shards by runtime so CI nodes are more likely to pick shards with similar runtimes.
     time_ordered_shards = sorted(
-        (runtime, plugin_group, paths)
-        for plugin_group, runtime_paths in shards_by_plugins.items()
+        (runtime, args, paths)
+        for args, runtime_paths in shards_by_args.items()
         for runtime, paths in runtime_paths
     )
     shards = []
-    for _, plugin_group, paths in time_ordered_shards:
+    for _, (disclosure_system, plugins), paths in time_ordered_shards:
         shard_paths = defaultdict(list)
         for path, vid in paths:
             shard_paths[path].append(vid)
         shards.append(Shard(
             paths=shard_paths,
-            plugins=frozenset(plugin_group)
+            disclosure_system=disclosure_system,
+            plugins=plugins
         ))
     return shards
 
@@ -185,8 +199,11 @@ def _collect_zip_test_case_variation_ids(zip_file: zipfile.ZipFile, test_case_pa
         with zip_file.open(test_case_path) as f:
             tree = etree.parse(f)
         for variation in tree.findall('{*}variation'):
-            variation_id = variation.get('id')
-            assert variation_id and variation_id not in variation_ids
+            variation_id = _get_variation_id(variation, test_case_path)
+            assert variation_id, \
+                f'Test case contains variation with no ID: {test_case_path}'
+            assert variation_id not in variation_ids, \
+                f'Test case contains multiple variations with the same ID: {test_case_path}, {variation_ids}'
             variation_ids.add(variation_id)
         testcase_variation_map[test_case_path] = sorted(variation_ids)
     return testcase_variation_map
@@ -199,6 +216,18 @@ def _collect_dir_test_cases(file_path_prefix: str, file_path: str, path_strs: li
         _collect_dir_test_cases(file_path_prefix, test_case_index, path_strs)
 
 
+read_me_first_uris_xpath = etree.XPath("./conf:data/conf:taxonomyPackage[@readMeFirst='true']/text()", namespaces={'conf': 'http://xbrl.org/2008/conformance'})
+def _get_variation_id(variation: etree._Element, path: str) -> str:
+    variation_id = variation.get('id')
+    assert isinstance(variation_id, str)
+    for overrides in CONFORMANCE_SUITE_ID_OVERRIDES:
+        if overrides.pathContainsString in path:
+            for override in overrides.overrides:
+                if path.endswith(override.pathSuffix) and variation_id == override.oldId and read_me_first_uris_xpath(variation) == override.readMeFirstUris:
+                    return override.newId
+    return variation_id
+
+
 def _collect_dir_test_case_variation_ids(file_path_prefix: str, test_case_paths: list[str]) -> dict[str, list[str]]:
     testcase_variation_map: dict[str, list[str]] = {}
     for test_case_path in sorted(test_case_paths):
@@ -206,8 +235,11 @@ def _collect_dir_test_case_variation_ids(file_path_prefix: str, test_case_paths:
         full_path = os.path.join(file_path_prefix, test_case_path)
         tree = etree.parse(full_path)
         for variation in tree.findall('{*}variation'):
-            variation_id = variation.get('id')
-            assert variation_id and variation_id not in variation_ids
+            variation_id = _get_variation_id(variation, full_path)
+            assert variation_id, \
+                f'Test case contains variation with no ID: {test_case_path}'
+            assert variation_id not in variation_ids, \
+                f'Test case contains multiple variations with the same ID: {test_case_path}, {variation_ids}'
             variation_ids.add(variation_id)
         testcase_variation_map[test_case_path] = sorted(variation_ids)
     return testcase_variation_map
@@ -235,7 +267,7 @@ def _get_elems_by_local_name(tree: etree._ElementTree, local_name: str) -> list[
     return [tree.getroot()] if tag.split('}')[-1] == local_name else tree.findall(f'{{*}}{local_name}')
 
 
-def get_conformance_suite_arguments(config: ConformanceSuiteConfig, filename: str,
+def get_conformance_suite_arguments(config: ConformanceSuiteConfig, filename: str, disclosure_system: str | None,
         additional_plugins: frozenset[str], build_cache: bool, offline: bool, log_to_file: bool,
         expected_additional_testcase_errors: dict[str, dict[str, int]],
         expected_failure_ids: frozenset[str], shard: int | None,
@@ -253,8 +285,8 @@ def get_conformance_suite_arguments(config: ConformanceSuiteConfig, filename: st
     ]
     if config.base_taxonomy_validation:
         args.extend(['--baseTaxonomyValidation', config.base_taxonomy_validation])
-    if config.disclosure_system:
-        args.extend(['--disclosureSystem', config.disclosure_system])
+    if disclosure_system:
+        args.extend(['--disclosureSystem', disclosure_system])
     if config.package_paths:
         args.extend(['--packages', '|'.join(sorted(p.as_posix() for p in config.package_paths))])
     if plugins:
@@ -311,49 +343,49 @@ def get_conformance_suite_test_results(
 def get_conformance_suite_test_results_with_shards(
         config: ConformanceSuiteConfig,
         shards: list[int],
-        build_cache: bool = False,
-        log_to_file: bool = False,
-        offline: bool = False,
-        series: bool = False) -> list[ParameterSet]:
+        build_cache: bool,
+        log_to_file: bool,
+        offline: bool,
+        series: bool) -> list[ParameterSet]:
     tasks = []
     all_testcase_filters = []
+    test_shards = get_test_shards(config)
+    all_test_paths = {path for test_shard in test_shards for path in test_shard.paths}
+    unrecognized_additional_error_ids = {
+        pattern
+        for pattern in {
+            _id.rsplit(':', 1)[0]
+            for _id in config.expected_additional_testcase_errors.keys()
+        }
+        if not any(fnmatch.fnmatch(test_path, pattern) for test_path in all_test_paths)
+    }
+    assert not unrecognized_additional_error_ids, f'Unrecognized expected additional error IDs: {unrecognized_additional_error_ids}'
+    unrecognized_expected_failure_ids = {_id.rsplit(':', 1)[0] for _id in config.expected_failure_ids} - all_test_paths
+    assert not unrecognized_expected_failure_ids, f'Unrecognized expected failure IDs: {unrecognized_expected_failure_ids}'
+
     for shard_id in shards:
-        test_shards = get_test_shards(config)
         shard = test_shards[shard_id]
         test_paths = shard.paths
+        disclosure_system = shard.disclosure_system
         additional_plugins = shard.plugins
-        all_test_paths = {path for test_shard in test_shards for path in test_shard.paths}
-
-        unrecognized_additional_error_ids = {
-            pattern
-            for pattern in {
-                _id.rsplit(':', 1)[0]
-                for _id in config.expected_additional_testcase_errors.keys()
-            }
-            if not any(fnmatch.fnmatch(test_path, pattern) for test_path in all_test_paths)
-        }
-        assert not unrecognized_additional_error_ids, f'Unrecognized expected additional error IDs: {unrecognized_additional_error_ids}'
-
-        unrecognized_expected_failure_ids = {_id.rsplit(':', 1)[0] for _id in config.expected_failure_ids} - all_test_paths
-        assert not unrecognized_expected_failure_ids, f'Unrecognized expected failure IDs: {unrecognized_expected_failure_ids}'
         expected_failure_ids = set()
         for expected_failure_id in config.expected_failure_ids:
             test_path, test_id = expected_failure_id.rsplit(':', 1)
             if test_id in test_paths.get(test_path, []):
                 expected_failure_ids.add(expected_failure_id)
 
-        testcase_filters = sorted([
+        shard_testcase_filters = sorted([
             f'*{os.path.sep}{path}:{vid}'
             for path, vids in test_paths.items()
             for vid in vids
         ])
-        all_testcase_filters.extend(testcase_filters)
+        all_testcase_filters.extend(shard_testcase_filters)
         filename = config.entry_point_path.as_posix()
         args = get_conformance_suite_arguments(
-            config=config, filename=filename, additional_plugins=additional_plugins,
+            config=config, filename=filename, disclosure_system=disclosure_system, additional_plugins=additional_plugins,
             build_cache=build_cache, offline=offline, log_to_file=log_to_file, shard=shard_id,
             expected_additional_testcase_errors=config.expected_additional_testcase_errors,
-            expected_failure_ids=frozenset(expected_failure_ids), testcase_filters=testcase_filters,
+            expected_failure_ids=frozenset(expected_failure_ids), testcase_filters=shard_testcase_filters,
         )
         tasks.append(args)
     if series:
@@ -377,11 +409,13 @@ def get_conformance_suite_test_results_without_shards(
         offline: bool = False,
         testcase_filters: list[str] | None = None,
 ) -> list[ParameterSet]:
+    assert not config.disclosure_system_by_prefix
+    disclosure_system = config.disclosure_system
     additional_plugins = frozenset().union(*(plugins for _, plugins in config.additional_plugins_by_prefix))
     filename = config.entry_point_path.as_posix()
     expected_failure_ids = config.expected_failure_ids
     args, kws = get_conformance_suite_arguments(
-        config=config, filename=filename, additional_plugins=additional_plugins,
+        config=config, filename=filename, additional_plugins=additional_plugins, disclosure_system=disclosure_system,
         build_cache=build_cache, offline=offline, log_to_file=log_to_file, shard=None,
         expected_additional_testcase_errors=config.expected_additional_testcase_errors,
         expected_failure_ids=expected_failure_ids, testcase_filters=testcase_filters or [],

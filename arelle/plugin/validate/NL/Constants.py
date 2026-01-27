@@ -50,6 +50,7 @@ NON_DIMENSIONALIZED_LINE_ITEM_LINKROLES = frozenset((
     'https://www.nltaxonomie.nl/kvk/role/lineitems-nondimensional-usage',
 ))
 
+# Order chronologically.
 TAXONOMY_URLS_BY_YEAR = {
     2024: {
         'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-nlgaap-ext.xsd',
@@ -88,7 +89,8 @@ STANDARD_TAXONOMY_URL_PREFIXES = frozenset((
     'http://xbrl.org/2020/extensible-enumerations-2.0',
     'https://xbrl.org/2020/extensible-enumerations-2.0',
     'http://www.w3.org/1999/xlink',
-    'https://www.w3.org/1999/xlink'
+    'https://www.w3.org/1999/xlink',
+    'https://www.esma.europa.eu/taxonomy/',
 ))
 
 SUPPORTED_IMAGE_TYPES_BY_IS_FILE = {

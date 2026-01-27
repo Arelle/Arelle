@@ -208,6 +208,7 @@ class ConformanceSuiteConfig:
     capture_warnings: bool = True
     ci_enabled: bool = True
     disclosure_system: str | None = None
+    disclosure_system_by_prefix: list[tuple[str, str]] = field(default_factory=list)
     expected_additional_testcase_errors: dict[str, dict[str, int]] = field(default_factory=dict)
     expected_failure_ids: frozenset[str] = frozenset()
     expected_missing_testcases: frozenset[str] = frozenset()
@@ -246,6 +247,9 @@ class ConformanceSuiteConfig:
             ci_core_counts = set(OS_CORES.values())
             assert any(self.shards % core_count == 0 for core_count in ci_core_counts), \
                 f'Shards setting not optimized for CI CPU cores: {self.shards}'
+        disclosure_systems = {ds for _, ds in self.disclosure_system_by_prefix} | {str(self.disclosure_system)}
+        assert self.shards >= len(disclosure_systems), \
+            f'Too few shards to accommodate disclosure systems: shards={self.shards} disclosure systems={sorted(disclosure_systems)}.'
 
     @property
     def runs_without_network(self) -> bool:
