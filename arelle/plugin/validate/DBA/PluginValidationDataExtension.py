@@ -7,6 +7,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 
 import regex
+from functools import lru_cache
 
 from arelle.ModelInstanceObject import ModelContext, ModelFact
 from arelle.ModelValue import QName
@@ -88,6 +89,7 @@ class PluginValidationDataExtension(PluginData):
     nameOfReportingEntityQn: QName
     nameOfSubmittingEnterpriseQn: QName
     otherEmployeeExpenseQn: QName
+    otherRenderingOfReportedValueMemberQn: QName
     positiveProfitThreshold: float
     postemploymentBenefitExpenseQn: QName
     precedingReportingPeriodEndDateQn: QName
@@ -98,6 +100,7 @@ class PluginValidationDataExtension(PluginData):
     provisionsQn: QName
     registrationNumberOfTheDigitalStandardBookkeepingSystemUsedQn: QName
     registeredReportingPeriodDeviatingFromReportedReportingPeriodDueArbitraryDatesMemberQn: QName
+    reportedValueOtherRenderingOfReportedValueDimensionQn: QName
     reportingClassCLargeDanish: str
     reportingClassCLargeEnglish: str
     reportingClassCLargeLowercaseDanish: str
@@ -132,15 +135,26 @@ class PluginValidationDataExtension(PluginData):
     typeOfReportingPeriodDimensionQn: QName
     wagesAndSalariesQn: QName
 
-    _contextFactMap: dict[str, dict[QName, ModelFact]] | None = None
-    _reportingPeriodContexts: list[ModelContext] | None = None
+    # Identity hash for caching.
+    def __hash__(self) -> int:
+        return id(self)
 
+    @lru_cache(1)
     def contextFactMap(self, modelXbrl: ModelXbrl) -> dict[str, dict[QName, ModelFact]]:
-        if self._contextFactMap is None:
-            self._contextFactMap = defaultdict(dict)
-            for fact in modelXbrl.facts:
-                self._contextFactMap[fact.contextID][fact.qname] = fact
-        return self._contextFactMap
+        contextFactMap: dict[str, dict[QName, ModelFact]] = defaultdict(dict)
+        for fact in modelXbrl.facts:
+            contextFactMap[fact.contextID][fact.qname] = fact
+        return contextFactMap
+
+    @lru_cache(1)
+    def factsByContextId(self, modelXbrl: ModelXbrl) -> dict[str, set[ModelFact]]:
+        """
+        :return: A mapping of context ID to the set of facts associated with that context.
+        """
+        contextFactMap: dict[str, set[ModelFact]] = defaultdict(set)
+        for fact in modelXbrl.facts:
+            contextFactMap[fact.contextID].add(fact)
+        return contextFactMap
 
     def getCurrentAndPreviousReportingPeriodContexts(self, modelXbrl: ModelXbrl) -> list[ModelContext]:
         """
@@ -153,12 +167,11 @@ class PluginValidationDataExtension(PluginData):
             return contexts[-2:]
         return contexts
 
+    @lru_cache(1)
     def getReportingPeriodContexts(self, modelXbrl: ModelXbrl) -> list[ModelContext]:
         """
         :return: A sorted list of contexts that match "reporting period" criteria.
         """
-        if self._reportingPeriodContexts is not None:
-            return self._reportingPeriodContexts
         contexts = []
         for context in modelXbrl.contexts.values():
             if context.isInstantPeriod or context.isForeverPeriod:
@@ -171,8 +184,7 @@ class PluginValidationDataExtension(PluginData):
                 if context.dimMemberQname(self.consolidatedSoloDimensionQn) != self.consolidatedMemberQn:
                     continue  # Context is dimensionalized with the correct dimension but not member
             contexts.append(context)
-        self._reportingPeriodContexts = sorted(contexts, key=lambda c: c.endDatetime)
-        return self._reportingPeriodContexts
+        return sorted(contexts, key=lambda c: c.endDatetime)
 
     def isAnnualReport(self, modelXbrl: ModelXbrl) -> bool:
         """

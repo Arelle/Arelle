@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Iterable
+from lxml import etree
 from typing import Any
 
 from arelle import ModelDocument, ModelValue
@@ -216,7 +217,7 @@ def rule_tr12(
     for doc in modelXbrl.urlDocs.values():
         if doc.type == ModelDocument.Type.INLINEXBRL:
             for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
-                for elt in ixdsHtmlRootElt.iter():
+                for elt in ixdsHtmlRootElt.iter(etree.Element):
                     if containsScriptMarkers(elt) is not None:
                         yield Validation.error(
                             codes='DBA.TR12',
