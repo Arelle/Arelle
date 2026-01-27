@@ -4,7 +4,7 @@ from tests.integration_tests.validation.assets import ESEF_PACKAGES, LEI_2020_07
 from tests.integration_tests.validation.conformance_suite_config import (
     AssetSource,
     ConformanceSuiteAssetConfig,
-    ConformanceSuiteConfig,
+    ConformanceSuiteConfig, CiConfig,
 )
 
 ZIP_PATH = Path('esef_conformance_suite_2024.zip')
@@ -23,6 +23,7 @@ config = ConformanceSuiteConfig(
         package for year in [2017, 2019, 2020, 2021, 2022, 2024] for package in ESEF_PACKAGES[year]
     ],
     base_taxonomy_validation='none',
+    ci_config=CiConfig(shard_count=2),
     custom_compare_patterns=[
         (r"^.*$", r"^ESEF\..*\.~$"),
     ],
@@ -57,6 +58,5 @@ config = ConformanceSuiteConfig(
     info_url='https://www.esma.europa.eu/document/esef-conformance-suite-2024',
     name=PurePath(__file__).stem,
     plugins=frozenset({'validate/ESEF'}),
-    shards=8,
     test_case_result_options='match-any',
 )

@@ -197,6 +197,19 @@ class ConformanceSuiteAssetConfig:
         )
 
 
+@dataclass
+class CiConfig:
+    enabled: bool = True
+    fast: bool = True
+    shard_count: int = 1
+
+    def __post_init__(self) -> None:
+        assert self.shard_count > 0, \
+            'Shard count must be a positive integer.'
+        if self.shard_count > 1:
+            self.fast = False
+
+
 @dataclass(frozen=True)
 class ConformanceSuiteConfig:
     info_url: str
@@ -206,7 +219,7 @@ class ConformanceSuiteConfig:
     base_taxonomy_validation: Literal['disclosureSystem', 'none', 'all', None] = None
     cache_version_id: str | None = None
     capture_warnings: bool = True
-    ci_enabled: bool = True
+    ci_config: CiConfig = field(default_factory=CiConfig)
     compare_formula_output: bool = False
     custom_compare_patterns: list[tuple[str, str]] = field(default_factory=list)
     disclosure_system: str | None = None
@@ -217,7 +230,6 @@ class ConformanceSuiteConfig:
     ignore_levels: frozenset[ErrorLevel] = frozenset({ErrorLevel.OK})
     membership_url: str | None = None
     plugins: frozenset[str] = frozenset()
-    shards: int = 1
     strict_testcase_index: bool = True
     runtime_options: dict[str, Any] = field(default_factory=dict)
     required_locale_by_ids: dict[str, re.Pattern[str]] = field(default_factory=dict)
@@ -241,10 +253,6 @@ class ConformanceSuiteConfig:
         overlapping_expected_failure_testcase_ids = self.expected_failure_ids.intersection(self.expected_additional_testcase_errors.keys())
         assert not overlapping_expected_failure_testcase_ids, \
             f'Testcase IDs in both expected failures and expected additional errors: {sorted(overlapping_expected_failure_testcase_ids)}'
-        if self.shards > 1:
-            ci_core_counts = set(OS_CORES.values())
-            assert any(self.shards % core_count == 0 for core_count in ci_core_counts), \
-                f'Shards setting not optimized for CI CPU cores: {self.shards}'
 
     @property
     def runs_without_network(self) -> bool:
@@ -280,3 +288,7 @@ class ConformanceSuiteConfig:
             for asset in self.assets
             if asset.type == AssetType.TAXONOMY_PACKAGE
         }
+
+    @property
+    def shards(self) -> int:
+        return self.ci_config.shard_count

@@ -3,7 +3,7 @@ from pathlib import Path, PurePath
 from tests.integration_tests.validation.conformance_suite_config import (
     AssetSource,
     ConformanceSuiteAssetConfig,
-    ConformanceSuiteConfig,
+    ConformanceSuiteConfig, CiConfig,
 )
 
 CONFORMANCE_SUITE_ZIP_NAME = 'efm-76-251010.zip'
@@ -26,6 +26,7 @@ config = ConformanceSuiteConfig(
         )
     ],
     cache_version_id='bY6OmURBAtPB4UALKzz5aeeLlMSKxN9e',
+    ci_config=CiConfig(shard_count=10),
     custom_compare_patterns=[
         (r"^EFM\.6\.03\.04$", r"^xmlSchema:.*$"),
         (r"^EFM\.6\.03\.05$", r"^(xmlSchema:.*|EFM\.5\.02\.01\.01)$"),
@@ -54,6 +55,5 @@ config = ConformanceSuiteConfig(
             'keepFilingOpen': True, # Edgar normally closes the model in CntlrCmdLine.Filing.End
         },
     },
-    shards=40,
     test_case_result_options='match-any',
 )

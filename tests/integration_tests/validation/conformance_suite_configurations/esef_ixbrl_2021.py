@@ -2,7 +2,7 @@ from pathlib import PurePath, Path
 
 from tests.integration_tests.validation.assets import ESEF_PACKAGES
 from tests.integration_tests.validation.conformance_suite_config import (
-    ConformanceSuiteConfig, ConformanceSuiteAssetConfig, AssetSource
+    ConformanceSuiteConfig, ConformanceSuiteAssetConfig, AssetSource, CiConfig
 )
 
 ZIP_PATH = Path('esef_conformance_suite_2021.zip')
@@ -21,6 +21,7 @@ config = ConformanceSuiteConfig(
         package for year in [2017, 2019, 2020, 2021] for package in ESEF_PACKAGES[year]
     ],
     base_taxonomy_validation='none',
+    ci_config=CiConfig(shard_count=2),
     custom_compare_patterns=[
         (r"^.*$", r"^ESEF\..*\.~$"),
     ],
@@ -36,6 +37,5 @@ config = ConformanceSuiteConfig(
     info_url='https://www.esma.europa.eu/document/conformance-suite-2021',
     name=PurePath(__file__).stem,
     plugins=frozenset({'validate/ESEF'}),
-    shards=8,
     test_case_result_options='match-any',
 )

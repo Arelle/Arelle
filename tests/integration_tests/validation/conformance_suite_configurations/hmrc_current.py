@@ -1,5 +1,5 @@
 from pathlib import PurePath, Path
-from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig
+from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig, CiConfig
 
 config = ConformanceSuiteConfig(
     assets=[
@@ -25,10 +25,10 @@ config = ConformanceSuiteConfig(
         ),
     ],
     base_taxonomy_validation='none',
+    ci_config=CiConfig(fast=False),
     disclosure_system='hmrc',
     info_url='https://www.gov.uk/government/organisations/hm-revenue-customs',
     name=PurePath(__file__).stem,
     plugins=frozenset({'validate/UK'}),
-    shards=4,
     test_case_result_options='match-any',
 )
