@@ -1,15 +1,34 @@
 from pathlib import Path, PurePath
 
+from arelle.testengine.TestcaseSet import TestcaseSet
 from tests.integration_tests.validation.assets import ESEF_PACKAGES
 from tests.integration_tests.validation.conformance_suite_config import (
     AssetSource, ConformanceSuiteConfig, ConformanceSuiteAssetConfig, CiConfig
 )
-
+from tests.integration_tests.validation.preprocessing_util import swap_read_first_uri
 
 ZIP_PATH = Path('uksef-conformance-suite-v2.0.zip')
 EXTRACTED_PATH = Path(ZIP_PATH.stem)
 EXTRACTED_ZIP_PATH = EXTRACTED_PATH / 'uksef-conformance-suite-v2.0' / 'uksef-conformance-suite-v2.0.zip'
 EXTRACTED_EXTRACTED_PATH = Path(EXTRACTED_ZIP_PATH.parent) / EXTRACTED_ZIP_PATH.stem
+
+
+def _preprocessing_func(config: ConformanceSuiteConfig, testcase_set: TestcaseSet) -> TestcaseSet:
+    read_first_uri_swaps: dict[tuple[str, tuple[str, ...]], tuple[str, ...]] = {
+        ('tests/FRC/FRC_09/index.xml:TC2_valid', ('TC2_valid.zip',)):  ('TC2_valid.xbri',),
+        ('tests/FRC/FRC_09/index.xml:TC3_valid', ('TC3_valid.zip',)):  ('TC3_valid.xbri',),
+    }
+    testcases = [
+        swap_read_first_uri(testcase, read_first_uri_swaps)
+        for testcase in testcase_set.testcases
+    ]
+    assert not read_first_uri_swaps, \
+        f'Some URI replacements were not applied: {read_first_uri_swaps}'
+    return TestcaseSet(
+        load_errors=testcase_set.load_errors,
+        skipped_testcases=testcase_set.skipped_testcases,
+        testcases=testcases,
+    )
 
 
 config = ConformanceSuiteConfig(
@@ -102,6 +121,7 @@ config = ConformanceSuiteConfig(
     info_url='https://www.frc.org.uk/library/standards-codes-policy/accounting-and-reporting/frc-taxonomies/frc-taxonomies-documentation-and-guidance/',
     name=PurePath(__file__).stem,
     plugins=frozenset({'inlineXbrlDocumentSet'}),
+    preprocessing_func=_preprocessing_func,
     runtime_options={
         'formulaAction': 'none',
     },

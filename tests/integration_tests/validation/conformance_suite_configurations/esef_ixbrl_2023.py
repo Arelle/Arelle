@@ -1,12 +1,34 @@
 from pathlib import PurePath, Path
 
+from arelle.testengine.TestcaseSet import TestcaseSet
 from tests.integration_tests.validation.assets import ESEF_PACKAGES
 from tests.integration_tests.validation.conformance_suite_config import (
     ConformanceSuiteConfig, ConformanceSuiteAssetConfig, AssetSource, CiConfig
 )
+from tests.integration_tests.validation.preprocessing_util import swap_read_first_uri
 
 ZIP_PATH = Path('esef_conformance_suite_2023.zip')
 EXTRACTED_PATH = Path(ZIP_PATH.stem)
+
+
+def _preprocessing_func(config: ConformanceSuiteConfig, testcase_set: TestcaseSet) -> TestcaseSet:
+    read_first_uri_swaps: dict[tuple[str, tuple[str, ...]], tuple[str, ...]] = {
+        ('tests/inline_xbrl/G2-6-1_3/index.xml:TC2_invalid', ('TC2_invalid.zip',)):  ('TC2_invalid.xbr',),
+        ('tests/inline_xbrl/G2-6-1_3/index.xml:TC3_invalid', ('TC3_invalid.zip',)):  ('TC3_invalid.xbri',),
+    }
+    testcases = [
+        swap_read_first_uri(testcase, read_first_uri_swaps)
+        for testcase in testcase_set.testcases
+    ]
+    assert not read_first_uri_swaps, \
+        f'Some URI replacements were not applied: {read_first_uri_swaps}'
+    return TestcaseSet(
+        load_errors=testcase_set.load_errors,
+        skipped_testcases=testcase_set.skipped_testcases,
+        testcases=testcases,
+    )
+
+
 config = ConformanceSuiteConfig(
     assets=[
         ConformanceSuiteAssetConfig.nested_conformance_suite(
@@ -48,5 +70,6 @@ config = ConformanceSuiteConfig(
     info_url='https://www.esma.europa.eu/document/esef-conformance-suite-2023',
     name=PurePath(__file__).stem,
     plugins=frozenset({'validate/ESEF'}),
+    preprocessing_func=_preprocessing_func,
     test_case_result_options='match-any',
 )

@@ -219,6 +219,10 @@ def get_nonexistent_test_ids(expected_test_ids : frozenset[str], actual_test_ids
 
 def preload_testcase_set(config: ConformanceSuiteConfig, errors: defaultdict[str, list[str]]) -> TestcaseSet:
     testcase_set = load_testcase_index(config.entry_point_path)
+
+    if config.preprocessing_func is not None:
+        testcase_set = config.preprocessing_func(config, testcase_set)
+
     all_test_ids = [t.full_id for t in testcase_set.testcases]
 
     test_id_frequencies = Counter(all_test_ids)
