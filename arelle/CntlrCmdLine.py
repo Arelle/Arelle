@@ -220,6 +220,8 @@ def parseArgs(args):
                       action="store_true",
                       dest="reportPackage",
                       help=_("Ignore detected file type and validate all files as Report Packages."))
+    parser.add_option("--reportCount", "--reportcount", dest="reportCount",
+                      help=_("Emits an error if the actual count of loaded reports does not match the provided number."))
     parser.add_option("--taxonomyPackage", "--taxonomypackage",
                       action="store_true",
                       dest="taxonomyPackage",
@@ -1038,8 +1040,10 @@ class CntlrCmdLine(Cntlr.Cntlr):
             fo.testcaseExpectedErrors = options.testcaseExpectedErrors
         if options.testcaseFilters:
             fo.testcaseFilters = options.testcaseFilters
+        errorCaptureLevel = None
         if options.testcaseResultsCaptureWarnings:
-            self.errorManager.setErrorCaptureLevel(logging._checkLevel("WARNING"))
+            errorCaptureLevel = logging._checkLevel("WARNING")
+            self.errorManager.setErrorCaptureLevel(errorCaptureLevel)
             fo.testcaseResultsCaptureWarnings = True
         if options.testcaseResultOptions:
             fo.testcaseResultOptions = options.testcaseResultOptions
@@ -1104,7 +1108,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             modelXbrl = None
             try:
                 if filesource:
-                    modelXbrl = self.modelManager.load(filesource, _("views loading"), entrypoint=_entrypoint)
+                    modelXbrl = self.modelManager.load(filesource, _("views loading"), entrypoint=_entrypoint, errorCaptureLevel=errorCaptureLevel)
                     if filesource.isArchive:
                         # Keep archive filesource potentially used by multiple reports open.
                         modelXbrl.closeFileSource = False
@@ -1357,6 +1361,19 @@ class CntlrCmdLine(Cntlr.Cntlr):
         if options.validate:
             for pluginXbrlMethod in PluginManager.pluginClassMethods("Validate.Complete"):
                 pluginXbrlMethod(self, filesource)
+
+        if options.reportCount is not None:
+            reportCount = len([
+                model for model in self.modelManager.loadedModelXbrls
+                if model.modelDocument is not None and (model.fileSource.isReportPackage or not model.fileSource.isTaxonomyPackage)
+            ])
+            if reportCount != options.reportCount:
+                self.error(
+                    "arelle:reportCount",
+                    _("Expected %(expected)s report(s), but loaded %(actual)s."),
+                    expected=options.reportCount,
+                    actual=reportCount,
+                )
 
         if filesource is not None and not options.keepOpen:
             # Archive filesource potentially used by multiple reports may still be open.

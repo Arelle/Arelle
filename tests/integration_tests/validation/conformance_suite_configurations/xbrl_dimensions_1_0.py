@@ -10,10 +10,10 @@ config = ConformanceSuiteConfig(
             source=AssetSource.S3_PUBLIC,
         ),
     ],
-    args=[
-        '--infoset',
-    ],
     info_url='https://specifications.xbrl.org/work-product-index-group-dimensions-dimensions.html',
     name=PurePath(__file__).stem,
+    runtime_options={
+        'infosetValidate': True,
+    },
     test_case_result_options='match-any',
 )

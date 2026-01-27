@@ -9,7 +9,6 @@ from collections import defaultdict
 from typing import TYPE_CHECKING
 
 from arelle import XmlUtil, XbrlConst, ModelValue
-from arelle.conformance.Constants import CONFORMANCE_SUITE_ID_OVERRIDES
 from arelle.ModelObject import ModelObject
 from arelle.PluginManager import pluginClassMethods
 
@@ -58,11 +57,6 @@ class ModelTestcaseVariation(ModelObject):
         # if there is a real ID, use it
         id = super(ModelTestcaseVariation, self).id
         if id is not None:
-            for overrides in CONFORMANCE_SUITE_ID_OVERRIDES:
-                if overrides.pathContainsString in self.modelDocument.filepath:
-                    for override in overrides.overrides:
-                        if self.modelDocument.filepath.endswith(override.pathSuffix) and id == override.oldId and self.readMeFirstUris == override.readMeFirstUris:
-                            return override.newId
             return id
         # no ID, use the object ID so it isn't None
         return self.objectId()

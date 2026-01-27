@@ -3,8 +3,8 @@
 <testcase
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns="http://xbrl.org/2005/conformance"
-        name="EDINET.EC5700W.GFM.1.10.3"
-        description="EDINET.EC5700W.GFM.1.10.3"
+        name="EDINET.EC5700W.GFM.1.10.12"
+        description="EDINET.EC5700W.GFM.1.10.12"
         outpath=''
         owner="support@arelle.org"
         xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
@@ -18,7 +18,11 @@
         </data>
         <result>
             <warning>EDINET.EC5700W.GFM.1.10.12</warning>
-            <error num="18">EDINET.EC1002E</error> <!--Targets assigned on cover page items-->
+            <warning num="11">EDINET.EC8029W</warning>
+            <error num="36">EDINET.EC1002E</error> <!--Targets assigned on cover page items-->
+            <error num="3">EDINET.EC2005E</error> <!--Targets assigned on cover page items-->
+            <error num="3">EDINET.EC3002E</error> <!--Targets assigned on cover page items-->
+            <error num="6">EDINET.EC3005E</error> <!--Targets assigned on cover page items-->
         </result>
     </variation>
 </testcase>
