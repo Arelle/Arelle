@@ -1098,7 +1098,7 @@ def rule_nl_kvk_4_1_2_2(
     # FAQ 2.2.5
     # [...] one of the three most recent KVK taxonomy versions may be used for filings.
     deq = deque(
-        (urls for year, urls in TAXONOMY_URLS_BY_YEAR.items() if disclosureSystemYear is None or year <= disclosureSystemYear),
+        (urls for year, urls in TAXONOMY_URLS_BY_YEAR if disclosureSystemYear is None or year <= disclosureSystemYear),
         maxlen=3)
     taxonomyUrls = set().union(*deq)
     if extensionData.extensionImportedUrls.isdisjoint(taxonomyUrls):
@@ -1810,7 +1810,7 @@ def rule_nl_kvk_5_1_3_2_and_6_1_3_2(
     # FAQ 2.2.5
     # [...] one of the three most recent KVK taxonomy versions may be used for filings.
     deq = deque(
-        (urls for year, urls in TAXONOMY_URLS_BY_YEAR.items() if disclosureSystemYear is None or year <= disclosureSystemYear),
+        (urls for year, urls in TAXONOMY_URLS_BY_YEAR if disclosureSystemYear is None or year <= disclosureSystemYear),
         maxlen=3)
     taxonomyUrls = set().union(*deq)
     if uris.isdisjoint(taxonomyUrls):
