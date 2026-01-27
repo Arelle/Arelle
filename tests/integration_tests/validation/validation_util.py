@@ -17,6 +17,7 @@ from typing import Any, TYPE_CHECKING, cast
 
 from lxml import etree
 
+from arelle.conformance.Constants import CONFORMANCE_SUITE_ID_OVERRIDES
 from tests.integration_tests.integration_test_util import get_test_data
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig
 
@@ -86,7 +87,7 @@ def get_test_shards(config: ConformanceSuiteConfig) -> list[Shard]:
                 disclosure_system = candidate_disclosure_system
                 break
         testcase_runtime = approximate_relative_timing.get(testcase_path, 1)
-        avg_variation_runtime = testcase_runtime/(len(variation_ids))  # compatability for testcase-level timing
+        avg_variation_runtime = testcase_runtime/(len(variation_ids))  # compatibility for testcase-level timing
         for variation_id in variation_ids:
             variation_runtime = approximate_relative_timing.get(f'{testcase_path}:{variation_id}', avg_variation_runtime)
             paths_by_args[(disclosure_system, path_plugins_frozen)].append(PathInfo(
@@ -198,8 +199,11 @@ def _collect_zip_test_case_variation_ids(zip_file: zipfile.ZipFile, test_case_pa
         with zip_file.open(test_case_path) as f:
             tree = etree.parse(f)
         for variation in tree.findall('{*}variation'):
-            variation_id = variation.get('id')
-            assert variation_id and variation_id not in variation_ids
+            variation_id = _get_variation_id(variation, test_case_path)
+            assert variation_id, \
+                f'Test case contains variation with no ID: {test_case_path}'
+            assert variation_id not in variation_ids, \
+                f'Test case contains multiple variations with the same ID: {test_case_path}, {variation_ids}'
             variation_ids.add(variation_id)
         testcase_variation_map[test_case_path] = sorted(variation_ids)
     return testcase_variation_map
@@ -212,6 +216,18 @@ def _collect_dir_test_cases(file_path_prefix: str, file_path: str, path_strs: li
         _collect_dir_test_cases(file_path_prefix, test_case_index, path_strs)
 
 
+read_me_first_uris_xpath = etree.XPath("./conf:data/conf:taxonomyPackage[@readMeFirst='true']/text()", namespaces={'conf': 'http://xbrl.org/2008/conformance'})
+def _get_variation_id(variation: etree._Element, path: str) -> str:
+    variation_id = variation.get('id')
+    assert isinstance(variation_id, str)
+    for overrides in CONFORMANCE_SUITE_ID_OVERRIDES:
+        if overrides.pathContainsString in path:
+            for override in overrides.overrides:
+                if path.endswith(override.pathSuffix) and variation_id == override.oldId and read_me_first_uris_xpath(variation) == override.readMeFirstUris:
+                    return override.newId
+    return variation_id
+
+
 def _collect_dir_test_case_variation_ids(file_path_prefix: str, test_case_paths: list[str]) -> dict[str, list[str]]:
     testcase_variation_map: dict[str, list[str]] = {}
     for test_case_path in sorted(test_case_paths):
@@ -219,8 +235,11 @@ def _collect_dir_test_case_variation_ids(file_path_prefix: str, test_case_paths:
         full_path = os.path.join(file_path_prefix, test_case_path)
         tree = etree.parse(full_path)
         for variation in tree.findall('{*}variation'):
-            variation_id = variation.get('id')
-            assert variation_id and variation_id not in variation_ids
+            variation_id = _get_variation_id(variation, full_path)
+            assert variation_id, \
+                f'Test case contains variation with no ID: {test_case_path}'
+            assert variation_id not in variation_ids, \
+                f'Test case contains multiple variations with the same ID: {test_case_path}, {variation_ids}'
             variation_ids.add(variation_id)
         testcase_variation_map[test_case_path] = sorted(variation_ids)
     return testcase_variation_map
@@ -324,50 +343,49 @@ def get_conformance_suite_test_results(
 def get_conformance_suite_test_results_with_shards(
         config: ConformanceSuiteConfig,
         shards: list[int],
-        build_cache: bool = False,
-        log_to_file: bool = False,
-        offline: bool = False,
-        series: bool = False) -> list[ParameterSet]:
+        build_cache: bool,
+        log_to_file: bool,
+        offline: bool,
+        series: bool) -> list[ParameterSet]:
     tasks = []
     all_testcase_filters = []
+    test_shards = get_test_shards(config)
+    all_test_paths = {path for test_shard in test_shards for path in test_shard.paths}
+    unrecognized_additional_error_ids = {
+        pattern
+        for pattern in {
+            _id.rsplit(':', 1)[0]
+            for _id in config.expected_additional_testcase_errors.keys()
+        }
+        if not any(fnmatch.fnmatch(test_path, pattern) for test_path in all_test_paths)
+    }
+    assert not unrecognized_additional_error_ids, f'Unrecognized expected additional error IDs: {unrecognized_additional_error_ids}'
+    unrecognized_expected_failure_ids = {_id.rsplit(':', 1)[0] for _id in config.expected_failure_ids} - all_test_paths
+    assert not unrecognized_expected_failure_ids, f'Unrecognized expected failure IDs: {unrecognized_expected_failure_ids}'
+
     for shard_id in shards:
-        test_shards = get_test_shards(config)
         shard = test_shards[shard_id]
         test_paths = shard.paths
         disclosure_system = shard.disclosure_system
         additional_plugins = shard.plugins
-        all_test_paths = {path for test_shard in test_shards for path in test_shard.paths}
-
-        unrecognized_additional_error_ids = {
-            pattern
-            for pattern in {
-                _id.rsplit(':', 1)[0]
-                for _id in config.expected_additional_testcase_errors.keys()
-            }
-            if not any(fnmatch.fnmatch(test_path, pattern) for test_path in all_test_paths)
-        }
-        assert not unrecognized_additional_error_ids, f'Unrecognized expected additional error IDs: {unrecognized_additional_error_ids}'
-
-        unrecognized_expected_failure_ids = {_id.rsplit(':', 1)[0] for _id in config.expected_failure_ids} - all_test_paths
-        assert not unrecognized_expected_failure_ids, f'Unrecognized expected failure IDs: {unrecognized_expected_failure_ids}'
         expected_failure_ids = set()
         for expected_failure_id in config.expected_failure_ids:
             test_path, test_id = expected_failure_id.rsplit(':', 1)
             if test_id in test_paths.get(test_path, []):
                 expected_failure_ids.add(expected_failure_id)
 
-        testcase_filters = sorted([
+        shard_testcase_filters = sorted([
             f'*{os.path.sep}{path}:{vid}'
             for path, vids in test_paths.items()
             for vid in vids
         ])
-        all_testcase_filters.extend(testcase_filters)
+        all_testcase_filters.extend(shard_testcase_filters)
         filename = config.entry_point_path.as_posix()
         args = get_conformance_suite_arguments(
             config=config, filename=filename, disclosure_system=disclosure_system, additional_plugins=additional_plugins,
             build_cache=build_cache, offline=offline, log_to_file=log_to_file, shard=shard_id,
             expected_additional_testcase_errors=config.expected_additional_testcase_errors,
-            expected_failure_ids=frozenset(expected_failure_ids), testcase_filters=testcase_filters,
+            expected_failure_ids=frozenset(expected_failure_ids), testcase_filters=shard_testcase_filters,
         )
         tasks.append(args)
     if series:

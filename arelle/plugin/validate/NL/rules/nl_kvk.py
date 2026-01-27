@@ -3,7 +3,10 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-from collections import defaultdict
+from collections import (
+    defaultdict,
+    deque,
+)
 from collections.abc import Iterable
 from datetime import date
 from typing import TYPE_CHECKING, Any, cast
@@ -45,9 +48,11 @@ from ..Constants import (
     XBRLI_IDENTIFIER_SCHEMA,
 )
 from ..DisclosureSystems import (
-    DISCLOSURE_SYSTEM_NL_INLINE_2025,
-    DISCLOSURE_SYSTEM_NL_INLINE_MULTI_TARGET,
+    DISCLOSURE_SYSTEM_YEARS,
+    DISCLOSURE_SYSTEM_NL_INLINE_2024_GAAP_OTHER,
     ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
+    NL_INLINE_DISCLOSURE_SYSTEMS_2025_AND_NEWER,
+    NL_INLINE_GAAP_OTHER_DISCLOSURE_SYSTEMS_2025_AND_NEWER,
     NL_INLINE_GAAP_IFRS_DISCLOSURE_SYSTEMS,
     NL_INLINE_GAAP_OTHER_DISCLOSURE_SYSTEMS,
     NL_INLINE_MULTI_TARGET_DISCLOSURE_SYSTEMS,
@@ -385,9 +390,9 @@ def rule_nl_kvk_3_2_7_1 (
     """
     improperlyEscapedFacts = []
     for fact in val.modelXbrl.facts:
-        if isinstance(fact, ModelInlineFact) and  fact.concept is not None and fact.isEscaped != fact.concept.isTextBlock:
+        if isinstance(fact, ModelInlineFact) and fact.concept is not None and fact.isEscaped != fact.concept.isTextBlock:
             improperlyEscapedFacts.append(fact)
-    if len(improperlyEscapedFacts) >0:
+    if len(improperlyEscapedFacts) > 0:
         yield Validation.error(
             codes='NL.NL-KVK.3.2.7.1.improperApplicationOfEscapeAttribute',
             msg=_('Ensure that any block-tagged facts of type textBlockItemType are assigned @escape="true", '
@@ -785,13 +790,14 @@ def rule_nl_kvk_3_5_3_1(
     """
     NL-KVK.3.5.3.1: The default target attribute MUST be used for the annual report content.
     """
-    targetElements = pluginData.getTargetElements(val.modelXbrl)
-    if targetElements:
-        yield Validation.error(
-            codes='NL.NL-KVK.3.5.3.1.defaultTargetAttributeNotUsed',
-            msg=_('Target attribute must not be used for the annual report content.'),
-            modelObject=targetElements
-        )
+    elementsByTarget = pluginData.getElementsByTarget(val.modelXbrl)
+    for target, targetElements in elementsByTarget.items():
+        if target is not None and targetElements:
+            yield Validation.error(
+                codes='NL.NL-KVK.3.5.3.1.defaultTargetAttributeNotUsed',
+                msg=_('Target attribute must not be used for the annual report content.'),
+                modelObject=targetElements
+            )
 
 
 @validation(
@@ -1087,19 +1093,19 @@ def rule_nl_kvk_4_1_2_2(
     NL-KVK.4.1.2.2: The legal entity's extension taxonomy MUST import the applicable version of
                     the taxonomy files prepared by KVK.
     """
-    reportingPeriod = pluginData.getReportingPeriod(val.modelXbrl)
     extensionData = pluginData.getExtensionData(val.modelXbrl)
-    applicableVersionUsed = bool(
-        reportingPeriod
-        and (taxonomyUrls := TAXONOMY_URLS_BY_YEAR.get(reportingPeriod, set()))
-        and extensionData.extensionImportedUrls & taxonomyUrls
-    )
-    if not applicableVersionUsed:
+    disclosureSystemYear = DISCLOSURE_SYSTEM_YEARS.get(val.disclosureSystem.name) if val.disclosureSystem.name else None
+    # FAQ 2.2.5
+    # [...] one of the three most recent KVK taxonomy versions may be used for filings.
+    deq = deque(
+        (urls for year, urls in TAXONOMY_URLS_BY_YEAR.items() if disclosureSystemYear is None or year <= disclosureSystemYear),
+        maxlen=3)
+    taxonomyUrls = set().union(*deq)
+    if extensionData.extensionImportedUrls.isdisjoint(taxonomyUrls):
         yield Validation.error(
             codes='NL.NL-KVK.4.1.2.2.incorrectKvkTaxonomyVersionUsed',
             msg=_('The extension taxonomy MUST import the applicable version of the taxonomy files prepared by KVK '
-                  'for the reported financial reporting period. Verify the taxonomy version and make sure '
-                  'that FinancialReportingPeriod are tagged correctly.'),
+                  'for the reported financial reporting period. Verify the taxonomy version.'),
             modelObject=val.modelXbrl.modelDocument
         )
 
@@ -1269,7 +1275,7 @@ def rule_nl_kvk_4_2_2_2(
             codes='NL.NL-KVK.4.2.2.2.domainMemberWrongDataType',
             modelObject=domainMembersWrongType,
             msg=_('Domain members must have domainItemType data type as defined in "https://www.xbrl.org/dtr/type/2022-03-31/types.xsd".'
-                  'Update to follow appropriate Data Type Registry.  '))
+                  'Update to follow appropriate Data Type Registry.'))
 
 
 @validation(
@@ -1340,7 +1346,7 @@ def rule_nl_kvk_4_3_1_1(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=DISCLOSURE_SYSTEM_NL_INLINE_2025,
+    disclosureSystems=NL_INLINE_DISCLOSURE_SYSTEMS_2025_AND_NEWER,
 )
 def rule_nl_kvk_4_3_1_2(
         pluginData: PluginValidationDataExtension,
@@ -1746,8 +1752,7 @@ def rule_nl_kvk_4_4_6_1(
                     unreportedLbLocs.add(rel.fromLocator)
     if len(unreportedLbLocs) > 0:
         yield Validation.warning(
-            # Subtitle is capitalized inconsistently here because it matches the conformance suite. This may change in the future.
-            codes='NL.NL-KVK.4.4.6.1.UsableConceptsNotAppliedByTaggedFacts',
+            codes='NL.NL-KVK.4.4.6.1.usableConceptsNotAppliedByTaggedFacts',
             modelObject=unreportedLbLocs,
             msg=_('Concept was found but not reported on any facts. '
                   'Remove any unused concepts or ensure concept is applied to applicable facts.'),
@@ -1769,14 +1774,18 @@ def rule_nl_kvk_5_1_3_1_and_6_1_3_1(
         - https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-other-gaap.xsd
         - https://www.nltaxonomie.nl/kvk/2025-12-31/kvk-annual-report-other.xsd
     """
-    uris = {doc[0].uri for doc in val.modelXbrl.namespaceDocs.values()}
+    uris = {doc.uri for docs in val.modelXbrl.namespaceDocs.values() for doc in docs}
     matches = uris & EFFECTIVE_KVK_GAAP_OTHER_ENTRYPOINT_FILES
     if not matches:
-        base_code = '5.1.3.1.requiredEntryPointOtherGaapNotReferenced'
-        if str(val.disclosureSystem.name) in DISCLOSURE_SYSTEM_NL_INLINE_MULTI_TARGET:
-            base_code = '6.1.3.1.requiredEntryPointOtherNotReferenced'
+        if val.disclosureSystem.name == DISCLOSURE_SYSTEM_NL_INLINE_2024_GAAP_OTHER:
+            code = 'NL.NL-KVK.5.1.3.1.requiredEntryPointOtherGaapNotReferenced'
+        elif val.disclosureSystem.name in NL_INLINE_GAAP_OTHER_DISCLOSURE_SYSTEMS_2025_AND_NEWER:
+            code = 'NL.NL-KVK.5.1.3.1.requiredEntryPointOtherNotReferenced'
+        else:
+            # NL_INLINE_MULTI_TARGET_DISCLOSURE_SYSTEMS
+            code = 'NL.NL-KVK.6.1.3.1.requiredEntryPointOtherNotReferenced'
         yield Validation.error(
-            codes=f'NL.NL-KVK.{base_code}',
+            codes=code,
             msg=_('The extension taxonomy must import the entry point of the taxonomy files prepared by KVK.'),
             modelObject=val.modelXbrl.modelDocument
         )
@@ -1796,22 +1805,26 @@ def rule_nl_kvk_5_1_3_2_and_6_1_3_2(
     NL-KVK.5.1.3.2 and NL-KVK.6.1.3.2: The legal entity's report MUST import the applicable version of
                     the taxonomy files prepared by KVK.
     """
-    reportingPeriod = pluginData.getReportingPeriod(val.modelXbrl)
-    uris = {doc[0].uri for doc in val.modelXbrl.namespaceDocs.values()}
-    applicableVersionUsed = bool(
-        reportingPeriod
-        and (taxonomyUrls := TAXONOMY_URLS_BY_YEAR.get(reportingPeriod, set()))
-        and uris & taxonomyUrls
-    )
-    if not applicableVersionUsed:
-        base_code = '5.1.3.2.incorrectVersionEntryPointOtherGaapReferenced'
-        if str(val.disclosureSystem.name) in DISCLOSURE_SYSTEM_NL_INLINE_MULTI_TARGET:
-            base_code = '6.1.3.2.incorrectVersionEntryPointOtherReferenced'
+    uris = {doc.uri for docs in val.modelXbrl.namespaceDocs.values() for doc in docs}
+    disclosureSystemYear = DISCLOSURE_SYSTEM_YEARS.get(val.disclosureSystem.name) if val.disclosureSystem.name else None
+    # FAQ 2.2.5
+    # [...] one of the three most recent KVK taxonomy versions may be used for filings.
+    deq = deque(
+        (urls for year, urls in TAXONOMY_URLS_BY_YEAR.items() if disclosureSystemYear is None or year <= disclosureSystemYear),
+        maxlen=3)
+    taxonomyUrls = set().union(*deq)
+    if uris.isdisjoint(taxonomyUrls):
+        if val.disclosureSystem.name == DISCLOSURE_SYSTEM_NL_INLINE_2024_GAAP_OTHER:
+            code = 'NL.NL-KVK.5.1.3.2.incorrectVersionEntryPointOtherGaapReferenced'
+        elif val.disclosureSystem.name in NL_INLINE_GAAP_OTHER_DISCLOSURE_SYSTEMS_2025_AND_NEWER:
+            code = 'NL.NL-KVK.5.1.3.2.incorrectVersionEntryPointOtherReferenced'
+        else:
+            # NL_INLINE_MULTI_TARGET_DISCLOSURE_SYSTEMS
+            code = 'NL.NL-KVK.6.1.3.2.incorrectVersionEntryPointOtherReferenced'
         yield Validation.error(
-            codes=f'NL.NL-KVK.{base_code}',
-            msg=_('The report MUST import the applicable version of the taxonomy files prepared by KVK '
-                  'for the reported financial reporting period. Verify the taxonomy version and make sure '
-                  'that FinancialReportingPeriod are tagged correctly.'),
+            codes=code,
+            msg=_('The report MUST import the applicable version of the taxonomy files prepared by KVK. '
+                  'Verify the taxonomy version.'),
             modelObject=val.modelXbrl.modelDocument
         )
 
@@ -1830,13 +1843,12 @@ def rule_nl_kvk_6_1_3_3(
     NL-KVK.6.1.3.3: The target attribute “filing-information” MUST be used for the content of the required elements
                     for filing with the Business Register
     """
-    targetElements = {elt.get("target") for elt in pluginData.getTargetElements(val.modelXbrl)}
-    if len(targetElements) > 2 or 'filing-information' not in targetElements or 'default' not in targetElements:
+    elementsByTarget = pluginData.getElementsByTarget(val.modelXbrl)
+    if len(elementsByTarget.keys()) > 2 or not elementsByTarget.get('filing-information') or not elementsByTarget.get(None):
         yield Validation.error(
             codes='NL.NL-KVK.6.1.3.3.requiredTargetAttributeNotUsed',
             msg=_('The target attribute `filing-information` MUST be used for the content of the required '
                   'elements for filing with the Business Register.'),
-            modelObject=targetElements
         )
 
 
@@ -1857,7 +1869,7 @@ def rule_nl_kvk_7_1_4_2(
     factsInError = []
     articleFacts = val.modelXbrl.factsByQname.get(pluginData.AnnualReportOfForeignGroupHeadForExemptionUnderArticle403Qn, set())
     for fact in articleFacts:
-        if fact is not None and fact.xValid >= VALID and fact.xValue == 'False':
+        if fact is not None and fact.xValid >= VALID and fact.xValue is False:
             factsInError.append(fact)
     if len(factsInError) > 0:
         yield Validation.error(
@@ -2068,7 +2080,7 @@ def rule_nl_kvk_RTS_Annex_IV_Par_4_3(
     extensionData = pluginData.getExtensionData(val.modelXbrl)
     extensionConcepts = extensionData.extensionConcepts
     labelsRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
-    missingLabels =  []
+    missingLabels = []
     missingReportingLabels = []
     noStandardLabels = []
     for concept in extensionConcepts:
@@ -2078,7 +2090,7 @@ def rule_nl_kvk_RTS_Annex_IV_Par_4_3(
                 missingLabels.append(concept)
             for labelRel in labelRels:
                 label = cast(ModelResource, labelRel.toModelObject)
-                if  label.role == XbrlConst.standardLabel:
+                if label.role == XbrlConst.standardLabel:
                     missingReportingLabels.append(concept)
                 else:
                     noStandardLabels.append(label)

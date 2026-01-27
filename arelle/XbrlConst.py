@@ -776,6 +776,19 @@ def isIntegerXsdType(xsdType: str) -> bool:
     }
 
 
+baseXbrliTypes = {
+    "decimalItemType", "floatItemType", "doubleItemType", "integerItemType",
+    "nonPositiveIntegerItemType", "negativeIntegerItemType", "longItemType", "intItemType",
+    "shortItemType", "byteItemType", "nonNegativeIntegerItemType", "unsignedLongItemType",
+    "unsignedIntItemType", "unsignedShortItemType", "unsignedByteItemType",
+    "positiveIntegerItemType", "monetaryItemType", "sharesItemType", "pureItemType",
+    "fractionItemType", "stringItemType", "booleanItemType", "hexBinaryItemType",
+    "base64BinaryItemType", "anyURIItemType", "QNameItemType", "durationItemType",
+    "dateTimeItemType", "timeItemType", "dateItemType", "gYearMonthItemType",
+    "gYearItemType", "gMonthDayItemType", "gDayItemType", "gMonthItemType",
+    "normalizedStringItemType", "tokenItemType", "languageItemType", "NameItemType", "NCNameItemType"
+}
+
 standardLabelRoles = {
     "http://www.xbrl.org/2003/role/label",
     "http://www.xbrl.org/2003/role/terseLabel",
