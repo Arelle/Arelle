@@ -980,6 +980,44 @@ def rule_nl_kvk_3_6_3_5(
 
 
 @validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=NL_INLINE_DISCLOSURE_SYSTEMS_2025_AND_NEWER,
+)
+def rule_nl_kvk_3_6_3_6(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.3.6.3.6: The separate Inline XBRL document for filing purposes MUST include no more than
+        one non-dimensional context and no dimensional contexts.
+    """
+    filingInformationDocument = pluginData.getFilingInformationDocument(val.modelXbrl)
+    nonDimensionalContexts = []
+    dimensionalContexts = []
+    for context in val.modelXbrl.contexts.values():
+        if context.modelDocument != filingInformationDocument:
+            continue
+        if context.hasScenario or context.hasSegment:
+            dimensionalContexts.append(context)
+        else:
+            nonDimensionalContexts.append(context)
+    if len(nonDimensionalContexts) > 1:
+        yield Validation.error(
+            codes='NL.NL-KVK.3.6.3.6.dimensionalContextOrMultipleNonDimensionalContextsReportedInKvkFilingDocument',
+            modelObject=nonDimensionalContexts,
+            msg=_('The separate document that contains mandatory facts includes multiple non-dimensional contexts.'
+                  ' It should have at most one.'))
+    if dimensionalContexts:
+        yield Validation.error(
+            codes='NL.NL-KVK.3.6.3.6.dimensionalContextOrMultipleNonDimensionalContextsReportedInKvkFilingDocument',
+            modelObject=dimensionalContexts,
+            msg=_('The separate document that contains mandatory facts includes facts with dimensions.'
+                  ' Facts in this document should not use dimensions.'))
+
+
+@validation(
     hook=ValidationHook.FINALLY,
     disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
