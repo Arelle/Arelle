@@ -1018,6 +1018,32 @@ def rule_nl_kvk_3_6_3_6(
 
 
 @validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=NL_INLINE_DISCLOSURE_SYSTEMS_2025_AND_NEWER,
+)
+def rule_nl_kvk_3_6_3_7(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.3.6.3.7: The separate Inline XBRL document for filing purposes MUST NOT report any units.
+    """
+    filingInformationDocument = pluginData.getFilingInformationDocument(val.modelXbrl)
+    units = []
+    for unit in val.modelXbrl.units.values():
+        if unit.modelDocument == filingInformationDocument:
+            units.append(unit)
+    if units:
+        yield Validation.error(
+            codes='NL.NL-KVK.3.6.3.7.unitsReportedInKvkFilingDocument',
+            modelObject=units,
+            msg=_('The separate document that includes mandatory facts includes facts with reported units.'
+                  ' This file should not include facts with reported units.'))
+
+
+@validation(
     hook=ValidationHook.FINALLY,
     disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
