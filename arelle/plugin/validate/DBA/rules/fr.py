@@ -1620,7 +1620,7 @@ def rule_fr116(
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    FR116: It is not permitted to declare numeric fields with multiple values in the same period.
+    DBA.FR116: It is not permitted to declare numeric fields with multiple values in the same period.
     """
     dimensionQn = pluginData.reportedValueOtherRenderingOfReportedValueDimensionQn
     otherRenderingMemberQn = pluginData.otherRenderingOfReportedValueMemberQn
@@ -1639,6 +1639,31 @@ def rule_fr116(
                 msg=_("It is not permitted to declare numeric fields with multiple values in the same period."),
                 modelObject=reportedValueFacts,
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=STAND_ALONE_DISCLOSURE_SYSTEMS,
+)
+def rule_fr117(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR117: The rendering dimension may only be used for numeric fields.
+    """
+    dimensionQn = pluginData.reportedValueOtherRenderingOfReportedValueDimensionQn
+    otherRenderingMemberQn = pluginData.otherRenderingOfReportedValueMemberQn
+    facts = val.modelXbrl.factsByDimMemQname(dimensionQn, otherRenderingMemberQn)
+    invalidFacts = [fact for fact in facts if not fact.isNumeric]
+    if len(invalidFacts) > 0:
+        yield Validation.warning(
+            codes='DBA.FR117',
+            msg=_("The rendering dimension may only be used for numeric fields."),
+            modelObject=invalidFacts,
+        )
 
 
 @validation(
@@ -1693,8 +1718,10 @@ def rule_fr118(
             # Map "other rendering" facts by (qname, unitID) for quick lookup
             # We'll remove matched facts from this map as we find them
             otherRenderingFactsMap: dict[tuple[QName, str], set[ModelFact]] = defaultdict(set)
-            otherRenderingFacts = factsByContextId.get(otherRenderingContext.id, set())
-            for otherRenderingFact in otherRenderingFacts:
+            for otherRenderingFact in factsByContextId.get(otherRenderingContext.id, set()):
+                if not otherRenderingFact.isNumeric:
+                    # Validated by FR117
+                    continue
                 otherRenderingFactsMap[(otherRenderingFact.qname, otherRenderingFact.unitID)].add(otherRenderingFact)
 
             # Iterate over each "reported value" context, matched by a key that indicates that are effectively
