@@ -949,6 +949,35 @@ def rule_nl_kvk_3_6_3_4(
                   ' Ensure the file name follows the "kvk-{date}-{lang}.{extension}" pattern.'
                   ' Invalid filename: %(filename)s'))
 
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=NL_INLINE_DISCLOSURE_SYSTEMS_2025_AND_NEWER,
+)
+def rule_nl_kvk_3_6_3_5(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.3.6.3.5: The separate Inline XBRL document for filing purposes MUST reference only the
+        mandatory elements listed in Annex II point 3 of the RTS of the SBR-domain Business Register.
+    """
+    filingInformationDocument = pluginData.getFilingInformationDocument(val.modelXbrl)
+    misplacedElements = []
+    assert pluginData.mandatoryFactQNames
+    nonMandatoryFactQNames = val.modelXbrl.factsByQname.keys() - pluginData.mandatoryFactQNames
+    for qname in nonMandatoryFactQNames:
+        for fact in val.modelXbrl.factsByQname.get(qname, set()):
+            if fact.modelDocument == filingInformationDocument:
+                misplacedElements.append(fact)
+    if misplacedElements:
+        yield Validation.error(
+            codes='NL.NL-KVK.3.6.3.5.elementsReferencedInKvkFilingDocumentNotLimitedToMandatoryElements',
+            modelObject=misplacedElements,
+            msg=_('The separate document that contains mandatory facts includes facts beyond the mandatory facts.'
+                  ' This document should only contain the mandatory facts.'))
+
 
 @validation(
     hook=ValidationHook.FINALLY,

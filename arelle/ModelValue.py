@@ -35,14 +35,17 @@ def qname(value: ModelObject | str | QName, name: str | ModelObject | None = Non
 def qname(value: ModelObject, name: QName, noPrefixIsNoNamespace: bool) -> QName: ...
 
 @overload
+def qname(value: str, name: dict[str, str], noPrefixIsNoNamespace: bool, castException: type[Exception], prefixException: type[Exception]) -> QName: ...
+
+@overload
 def qname(value: ModelObject | str | QName | Any | None, name: str | ModelObject | dict[str, str] | dict[str | None, str] | None) -> QName | None : ...
 
 def qname(
     value: ModelObject | str | QName | Any | None,
     name: str | QName | ModelObject | dict[str, str] | dict[str | None, str] | None = None,
     noPrefixIsNoNamespace: bool = False,
-    castException: Exception | None = None,
-    prefixException: Exception | None = None,
+    castException: Exception | type[Exception] | None = None,
+    prefixException: Exception | type[Exception] | None = None,
 ) -> QName | None:
     # either value can be an etree ModelObject element: if no name then qname is element tag quanem
     #     if name provided qname uses element as xmlns reference and name as prefixed name

@@ -254,6 +254,7 @@ config = ConformanceSuiteConfig(
     expected_failure_ids=frozenset(f"tests/{s}" for s in [
         # Conformance Suite Errors
         'G3-4-1_2/index.xml:TC2_invalid',  # Expects fractionElementUsed”.  Note the double quote at the end.
+        'G3-6-3_5/index.xml:TC2_invalid',  # Expects kvkFilingDocumentNameDoesNotFollowNamingConvention, should be elementsReferencedInKvkFilingDocumentNotLimitedToMandatoryElements.
         'G4-2-0_2/index.xml:TC2_invalid',  # Expects fractionElementUsed”.  Note the double quote at the end.
         'G4-3-1_2/index.xml:TC1_valid',  # Expects valid, but incompatibleDataTypeAnchoringRelationship is appropriate for noDecimalsMonetaryItemType in different DTR versions.
         'G4-4-1_1/index.xml:TC2_invalid',  # Expects IncorrectSummationItemArcroleUsed.  Note the capital first character.
@@ -273,7 +274,6 @@ config = ConformanceSuiteConfig(
         'G3-2-7_1/index.xml:TC7_valid',
 
         # Not Implemented
-        'G3-6-3_5/index.xml:TC2_invalid',
         'G3-6-3_6/index.xml:TC3_invalid',
         'G3-6-3_6/index.xml:TC4_invalid',
         'G3-6-3_7/index.xml:TC2_invalid',

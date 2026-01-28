@@ -154,6 +154,7 @@ class PluginValidationDataExtension(PluginData):
     financialReportingPeriodPreviousEndDateQn: QName
     formattedExplanationItemTypeQn: QName | None
     ifrsIdentifier: str
+    mandatoryFactQNames: frozenset[QName] | None
     permissibleGAAPRootAbstracts: frozenset[QName]
     permissibleIFRSRootAbstracts: frozenset[QName]
     textFormattingSchemaPath: str
@@ -517,6 +518,18 @@ class PluginValidationDataExtension(PluginData):
         match = filenamePattern.match(filename)
         if match:
             return match.groupdict()
+        return None
+
+    @lru_cache(1)
+    def getFilingInformationDocument(self, modelXbrl: ModelXbrl) -> ModelDocument | None:
+        ixdsDocUrls = getattr(modelXbrl, "ixdsDocUrls", [])
+        if len(ixdsDocUrls) <= 1:
+            return None
+        for ixdsDocUrl in ixdsDocUrls:
+            doc = modelXbrl.urlDocs[ixdsDocUrl]
+            filenameParts = self.getFilenameParts(doc.basename, self.getFilenameFormatPattern())
+            if filenameParts and filenameParts['base'] == 'kvk':
+                return doc
         return None
 
     @lru_cache(1)
