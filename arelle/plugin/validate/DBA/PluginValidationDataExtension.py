@@ -3,8 +3,10 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
+import datetime
 from collections import defaultdict
 from dataclasses import dataclass
+from typing import cast
 
 import regex
 from functools import lru_cache
@@ -12,6 +14,7 @@ from functools import lru_cache
 from arelle.ModelInstanceObject import ModelContext, ModelFact
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import ModelXbrl
+from .rules import groupFactsByContextHash
 from arelle.utils.PluginData import PluginData
 from arelle.XmlValidateConst import VALID
 
@@ -166,6 +169,36 @@ class PluginValidationDataExtension(PluginData):
         if len(contexts) > 2:
             return contexts[-2:]
         return contexts
+
+    def getBookkeepingPeriods(self, modelXbrl: ModelXbrl) -> list[list[ModelFact]]:
+        """
+        :return: A sorted list of lists of facts that match "bookkeeping period" criteria.
+        The first element in each list is the start date fact and the second element is the end date fact.
+        """
+        periodsList: list[list[ModelFact]] = []
+        startDateQnames = [self.startDateForUseOfDigitalStandardBookkeepingSystemQn, self.startDateForUseOfDigitalNonregisteredBookkeepingSystemQn]
+        endDateQnames = [self.endDateForUseOfDigitalStandardBookkeepingSystemQn, self.endDateForUseOfDigitalNonregisteredBookkeepingSystemQn]
+        regStartDatesFacts = modelXbrl.factsByQname.get(self.startDateForUseOfDigitalStandardBookkeepingSystemQn, set())
+        regEndDatesFacts = modelXbrl.factsByQname.get(self.endDateForUseOfDigitalStandardBookkeepingSystemQn, set())
+        # Non-Registered Accounting Systems
+        nonRegStartDatesFacts = modelXbrl.factsByQname.get(self.startDateForUseOfDigitalNonregisteredBookkeepingSystemQn, set())
+        nonRegEndDatesFacts = modelXbrl.factsByQname.get(self.endDateForUseOfDigitalNonregisteredBookkeepingSystemQn, set())
+        allDateFacts = regStartDatesFacts.union(regEndDatesFacts).union(nonRegStartDatesFacts).union(nonRegEndDatesFacts)
+        if len(allDateFacts) == 0:
+            return []
+        allGroupedFacts = groupFactsByContextHash(allDateFacts)
+        for facts in allGroupedFacts.values():
+            startDateFact = None
+            endDateFact = None
+            for fact in facts:
+                if fact.qname in startDateQnames:
+                    startDateFact = fact
+                elif fact.qname in endDateQnames:
+                    endDateFact = fact
+            if startDateFact is not None and endDateFact is not None:
+                periodsList.append([startDateFact, endDateFact])
+        sortedPeriodList = sorted(periodsList, key=lambda period: cast(datetime.date, period[0].xValue))
+        return sortedPeriodList
 
     @lru_cache(1)
     def getReportingPeriodContexts(self, modelXbrl: ModelXbrl) -> list[ModelContext]:
