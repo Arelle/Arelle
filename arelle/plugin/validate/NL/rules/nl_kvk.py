@@ -4,6 +4,7 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 from collections import (
+    Counter,
     defaultdict,
     deque,
 )
@@ -911,6 +912,43 @@ def rule_nl_kvk_3_6_3_3(
                   'Update filing naming to review unallowed characters. '
                   'Invalid filenames: %(invalidBasenames)s'))
 
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=NL_INLINE_DISCLOSURE_SYSTEMS_2025_AND_NEWER,
+)
+def rule_nl_kvk_3_6_3_4(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.3.6.3.4: The filename of the separate Inline XBRL document for filing purposes MUST
+        match the "kvk-{date}-{lang}.{extension}" pattern.
+    """
+    if len(getattr(val.modelXbrl, "ixdsDocUrls", [])) <= 1:
+        return
+    if not val.modelXbrl.factsByQname:
+        return
+    linkrole = 'https://www.nltaxonomie.nl/kvk/role/annual-report-filing-information'
+    filingInformationQNames = {o.qname for o in val.modelXbrl.relationshipSet(XbrlConst.parentChild, linkrole).toModelObjects()}
+    # [filing information facts] - [non-filing information facts]
+    filingInformationScoreByDocument: Counter[ModelDocument.ModelDocument] = Counter()
+    for qname, facts in val.modelXbrl.factsByQname.items():
+        points = 1 if qname in filingInformationQNames else -1
+        for fact in facts:
+            filingInformationScoreByDocument[fact.modelDocument] += points
+    likelyFilingInformationDocument, __ = filingInformationScoreByDocument.most_common(1)[0]
+    filename = likelyFilingInformationDocument.basename
+    filenameParts = pluginData.getFilenameParts(filename, pluginData.getFilenameFormatPattern())
+    if not filenameParts or filenameParts['base'] != 'kvk':
+        yield Validation.error(
+            codes='NL.NL-KVK.3.6.3.4.kvkFilingDocumentNameDoesNotFollowNamingConvention',
+            filename=filename,
+            msg=_('The separate document that contains mandatory facts does not match the required file naming.'
+                  ' Ensure the file name follows the "kvk-{date}-{lang}.{extension}" pattern.'
+                  ' Invalid filename: %(filename)s'))
+
 
 @validation(
     hook=ValidationHook.FINALLY,
@@ -1098,7 +1136,7 @@ def rule_nl_kvk_4_1_2_2(
     # FAQ 2.2.5
     # [...] one of the three most recent KVK taxonomy versions may be used for filings.
     deq = deque(
-        (urls for year, urls in TAXONOMY_URLS_BY_YEAR.items() if disclosureSystemYear is None or year <= disclosureSystemYear),
+        (urls for year, urls in TAXONOMY_URLS_BY_YEAR if disclosureSystemYear is None or year <= disclosureSystemYear),
         maxlen=3)
     taxonomyUrls = set().union(*deq)
     if extensionData.extensionImportedUrls.isdisjoint(taxonomyUrls):
@@ -1810,7 +1848,7 @@ def rule_nl_kvk_5_1_3_2_and_6_1_3_2(
     # FAQ 2.2.5
     # [...] one of the three most recent KVK taxonomy versions may be used for filings.
     deq = deque(
-        (urls for year, urls in TAXONOMY_URLS_BY_YEAR.items() if disclosureSystemYear is None or year <= disclosureSystemYear),
+        (urls for year, urls in TAXONOMY_URLS_BY_YEAR if disclosureSystemYear is None or year <= disclosureSystemYear),
         maxlen=3)
     taxonomyUrls = set().union(*deq)
     if uris.isdisjoint(taxonomyUrls):

@@ -520,8 +520,8 @@ class PluginValidationDataExtension(PluginData):
         return None
 
     @lru_cache(1)
-    def getIxdsDocBasenames(self, modelXbrl: ModelXbrl) -> set[str]:
-        return set(Path(url).name for url in getattr(modelXbrl, "ixdsDocUrls", []))
+    def getIxdsDocBasenames(self, modelXbrl: ModelXbrl) -> tuple[str, ...]:
+        return tuple(sorted(set(Path(url).name for url in getattr(modelXbrl, "ixdsDocUrls", []))))
 
     @lru_cache(1)
     def getExtensionData(self, modelXbrl: ModelXbrl) -> ExtensionData:

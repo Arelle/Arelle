@@ -67,6 +67,18 @@ config = ConformanceSuiteConfig(
             'requiredEntryPointNotImported': 1,
             'incorrectKvkTaxonomyVersionUsed': 1,
         },
+        'G3-6-3_1/index.xml:TC2_invalid': {
+            # deconformancebvdeponeringsgegevens-2024-12-31-nl.html
+            'kvkFilingDocumentNameDoesNotFollowNamingConvention': 1,
+        },
+        'G3-6-3_2/index.xml:TC2_invalid': {
+            # formulier-deponeren-kvk.html
+            'kvkFilingDocumentNameDoesNotFollowNamingConvention': 1,
+        },
+        'G3-6-3_3/index.xml:TC2_invalid': {
+            # kvk()-2024-12-31-nl.html
+            'kvkFilingDocumentNameDoesNotFollowNamingConvention': 1,
+        },
         'G3-7-1_1/index.xml:TC2_invalid': {
             'message:valueKvKIdentifier': 13,
             'nonIdenticalIdentifier': 1,
@@ -84,6 +96,8 @@ config = ConformanceSuiteConfig(
             'usableConceptsNotIncludedInPresentationLink': 1,
         },
         'G4-1-2_1/index.xml:TC2_valid': {
+            # filing_information-2024-12-31-en.html
+            'kvkFilingDocumentNameDoesNotFollowNamingConvention': 1,
             'undefinedLanguageForTextFact': 1,
             'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 4,
         },
@@ -168,10 +182,14 @@ config = ConformanceSuiteConfig(
             'targetXBRLDocumentWithFormulaErrors': 1,
         },
         'RTS_Annex_II_Par_1_RTS_Annex_IV_par_7/index.xml:TC2_valid': {
+            # filing_information-2024-12-31-en.html
+            'kvkFilingDocumentNameDoesNotFollowNamingConvention': 1,
             'undefinedLanguageForTextFact': 1,
             'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 4,
         },
         'RTS_Annex_II_Par_1_RTS_Annex_IV_par_7/index.xml:TC4_invalid': {
+            # filing_information-2024-12-31-en.html
+            'kvkFilingDocumentNameDoesNotFollowNamingConvention': 1,
             'undefinedLanguageForTextFact': 1,
             'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 4,
         },
@@ -193,6 +211,8 @@ config = ConformanceSuiteConfig(
             'extensionTaxonomyWrongFilesStructure': 1,
         },
         'RTS_Annex_IV_Par_6/index.xml:TC2_valid': {
+            # filing_information-2024-12-31-en.html
+            'kvkFilingDocumentNameDoesNotFollowNamingConvention': 1,
             'undefinedLanguageForTextFact': 1,
             'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 4,
         },
@@ -200,6 +220,8 @@ config = ConformanceSuiteConfig(
             'extensionTaxonomyWrongFilesStructure': 1,
         },
         'RTS_Annex_IV_Par_6/index.xml:TC4_invalid': {
+            # filing_information-2024-12-31-en.html
+            'kvkFilingDocumentNameDoesNotFollowNamingConvention': 1,
             'undefinedLanguageForTextFact': 1,
             'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 4,
             'extensionTaxonomyWrongFilesStructure': 1,
@@ -251,7 +273,6 @@ config = ConformanceSuiteConfig(
         'G3-2-7_1/index.xml:TC7_valid',
 
         # Not Implemented
-        'G3-6-3_4/index.xml:TC2_invalid',
         'G3-6-3_5/index.xml:TC2_invalid',
         'G3-6-3_6/index.xml:TC3_invalid',
         'G3-6-3_6/index.xml:TC4_invalid',

@@ -51,18 +51,18 @@ NON_DIMENSIONALIZED_LINE_ITEM_LINKROLES = frozenset((
 ))
 
 # Order chronologically.
-TAXONOMY_URLS_BY_YEAR = {
-    2024: {
+TAXONOMY_URLS_BY_YEAR = (
+    (2024, {
         'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-nlgaap-ext.xsd',
         'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-ifrs-ext.xsd',
         'https://www.nltaxonomie.nl/kvk/2024-12-31/kvk-annual-report-other-gaap.xsd',
-    },
-    2025: {
+    }),
+    (2025, {
         'https://www.nltaxonomie.nl/kvk/2025-12-31/kvk-annual-report-nlgaap-ext.xsd',
         'https://www.nltaxonomie.nl/kvk/2025-12-31/kvk-annual-report-ifrs-ext.xsd',
         'https://www.nltaxonomie.nl/kvk/2025-12-31/kvk-annual-report-other.xsd',
-    }
-}
+    }),
+)
 
 QN_DOMAIN_ITEM_TYPES = frozenset((
     qname("{http://www.xbrl.org/dtr/type/2022-03-31}nonnum:domainItemType"),
