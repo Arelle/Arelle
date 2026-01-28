@@ -1665,8 +1665,9 @@ def rule_fr118(
         # An "other rendering" and "reported value" context match if they are effectively duplicate contexts
         # when ignoring the "other rendering" dimension member
         key = (
-            context.periodHash,
-            context.entityIdentifierHash,
+            context.startDatetime,
+            context.endDatetime,
+            context.entityIdentifier,
             tuple(
                 (dimConcept, dimMember)
                 for dimConcept, dimMember in sorted(context.scenDimValues.items(), key=lambda item: item[0].localName)
