@@ -1,0 +1,345 @@
+{
+    "$schema": "../oim-taxonomy-schema.json",
+    "documentInfo": {
+        "documentType": "https://xbrl.org/2025/taxonomy",
+        "namespaces": {
+            "xbrl": "https://xbrl.org/2025",
+            "xbrla": "http://xbrl.org/accounting",
+            "xbrli":"https://xbrl.org/2025/instance",
+            "xs": "http://www.w3.org/2001/XMLSchema",
+            "utr": "https://xbrl.org/2025/utr"
+            },
+        "documentNamespace":"xbrla"
+    },
+    "xbrlModel": {
+        "name": "xbrla:AccountingModel",
+        "dataTypes": [
+            {   
+                "name": "xbrla:balanceType",
+                "baseType": "xs:string",
+                "enumeration": ["debit", "credit"],
+                "allowedObjects": ["xbrl:propertyObject"]
+            }
+        ],
+        "propertyTypes":[
+            {
+                "name": "xbrla:balance",
+                "dataType": "xbrla:balanceType",
+                "definitional": true,
+                "allowedObjects": [
+                    "xbrl:conceptObject"
+                ]
+            },
+            {
+                "name": "xbrla:intervalOfMeasurement",
+                "dataType": "xs:duration",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:domainClassObject"
+                ]
+            },
+            {
+                "name": "xbrla:timeSeriesType",
+                "dataType": "xbrli:timeSeriesDataType",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:domainClassObject"
+                ]
+            },
+            {
+                "name": "xbrla:intervalConvention",
+                "dataType": "xbrli:intervalConventionType",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:domainClassObject"
+                ]
+            },
+            {
+                "name": "xbrla:completeTimeSeries",
+                "dataType": "xs:boolean",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:domainClassObject"
+                ]
+            },
+            {
+                "name": "xbrla:excludedIntervals",
+                "dataType": "xbrli:excludedIntervalsSet",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:domainClassObject"
+                ]
+            }
+        ],
+        "relationshipTypes" : [
+            {
+                "name": "xbrla:instant-accrual",
+                "uri": "http://xbrl.org/oim/instant-accrual",
+                "cycles" : "undirected",
+                "sourceObjects" : ["xbrl:conceptObject"],
+                "targetObjects" : ["xbrl:conceptObject"]
+            },
+            {
+                "name": "xbrla:instant-inflow",
+                "uri": "http://xbrl.org/oim/instant-inflow",
+                "cycles" : "undirected",
+                "sourceObjects" : ["xbrl:conceptObject"],
+                "targetObjects" : ["xbrl:conceptObject"],
+                "constraints": [
+                          {
+                              "constraint": "relationship.source.xbrli:dataType == relationship.target.xbrli:dataType AND relationship.source.property.xbrla:balance == relationship.target.property.xbrla:balance AND relationship.source.xbrli:periodType == instant AND relationship.target.xbrli:periodType == duration"
+                          }         
+                        ]
+            },
+            {
+                "name": "xbrla:instant-outflow",
+                "uri": "http://xbrl.org/oim/instant-outflow",
+                "cycles" : "none",
+                "sourceObjects" : ["xbrl:conceptObject"],
+                "targetObjects" : ["xbrl:conceptObject"],
+                 "constraints": [
+                          {
+                              "constraint": "relationship.source.xbrli:dataType == relationship.target.xbrli:dataType AND relationship.source.property.xbrla:balance != relationship.target.property.xbrla:balance AND relationship.source.xbrli:periodType == instant AND relationship.target.xbrli:periodType == duration"
+                          }         
+                        ]
+            },
+            {
+                "name": "xbrla:instant-contra",
+                "uri": "http://xbrl.org/oim/instant-contra",
+                "cycles" : "undirected",
+                "sourceObjects" : ["xbrl:conceptObject"],
+                "targetObjects" : ["xbrl:conceptObject"]
+            }
+        ],
+        "cubeTypes" :[
+                {
+                    "name": "xbrla:eventCube",
+                    "coreDimensions": ["xbrl:concept"],
+                    "cubeDimensionConstraints" : {
+                     "allowed": [
+                        {
+                        "type": "typed",
+                        "dataType": "xs:token",
+                        "required" : true
+                        }
+                    ],
+                    "closed" : true
+                    },
+                    "cubeRelationships" : {
+                        "required": [
+                             {
+                                "type": "xbrl:concept-refDimension",
+                                "source": {
+                                    "dataType": "xs:dateTime"
+                                },
+                                "target": {
+                                    "qname": "xbrl:period"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "xbrla:eventDetailsCube",
+                    "coreDimensions": ["xbrl:concept"],
+                    "cubeDimensionConstraints" : {
+                     "allowed": [
+                        {
+                        "type": "typed",
+                        "dataType": "xs:token",
+                        "required" : true
+                        }
+                    ],
+                    "closed" : true
+                    },
+                    "cubeRelationships" : {
+                        "required" :[
+                        {
+                            "type": "xbrl:concept-refDimension",
+                            "source": {"dataType" : "xs:token"},
+                            "target" : {"objectType" : "xbrl:dimensionObject"}
+                        }
+                    ]}
+                },
+                {
+                    "name": "xbrla:journalCube",
+                    "baseCubeType": "xbrla:eventDetailsCube"
+                },
+                {
+                    "name": "xbrla:referenceCube",
+                    "coreDimensions": ["xbrl:concept"],
+                    "cubeDimensionConstraints" : {
+                     "allowed": [
+                        {
+                        "type": "typed",
+                        "dataType": "xs:token",
+                        "required" : true
+                        }
+                    ],
+                    "closed" : true
+                    }
+                },
+                {
+                    "name": "xbrla:timeSeriesCube",
+                    "coreDimensions": ["xbrl:concept", "xbrl:unit", "xbrl:entity"],
+                    "cubeDimensionConstraints" : {
+                        "allowed": [
+                            {
+                                "type": "typed",
+                                "dataType": "xs:dateTime",
+                                "required" : true,
+                                "dimensionProperties": {
+                                    "allowed" : [
+                                        "xbrla:intervalOfMeasurement",
+                                        "xbrla:timeSeriesType",
+                                        "xbrl:aggregation",
+                                        "xbrla:intervalConvention",
+                                        "xbrla:completeTimeSeries",
+                                        "xbrla:excludedIntervals"
+                                    ],
+                                    "required": [
+                                        "xbrla:intervalOfMeasurement",
+                                        "xbrla:timeSeriesType"
+                                    ]
+                                }
+                            }
+                        ],
+                        "closed": true
+                    }
+                },
+                {
+                    "name": "xbrla:positionCube",
+                    "coreDimensions": ["xbrl:concept", "xbrl:period", "xbrl:unit", "xbrl:entity"],
+                    "cubeDimensionConstraints" : {
+                        "allowed": [
+                            {
+                                "type": "typed",
+                                "dataType": "xs:token",
+                                "required" : true
+                            }
+                        ],
+                        "closed": false
+                    }
+                },
+                {
+                    "name": "xbrla:listingCube",
+                    "coreDimensions": ["xbrl:concept", "xbrl:unit"],
+                    "cubeDimensionConstraints" : {
+                    "allowed": [
+                        {
+                            "type": "typed",
+                            "dataType": "xs:token",
+                            "required" : true
+                        }
+                    ],
+                    "closed" : true
+                     }
+                }
+        ],
+        "labels":[
+        {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrla:intervalConvention",
+                "value": "Interval based on start or end time"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrla:intervalOfMeasurement",
+                "value": "Measurement time interval"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrla:intervalOfMeasurement",
+                "value": "A property that defines the frequency interval where data is sampled for use in a time series. If the data measurement is performed every day then the frequency of measurement will be a day. For an aggregated time series type this represents the interval over which all measurements are made and an aggregated value such as maximum, minimum, average, median etc are reported. For a raw time series this represents the interval between each measurement. The datetime dimension on a time series cube must include this property."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrla:completeTimeSeries",
+                "value": "A boolean property that defines if the dimension used for a time series must have a value for every interval.  If true then every interval of the time series must have a fact. If false the time series does not have to be complete. If the property is not defined the default value is false."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrla:completeTimeSeries",
+                "value": "Time series is complete"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrla:timeSeriesType",
+                "value": "Time series type (Aggregated or Raw)"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrla:timeSeriesType",
+                "value": "A string property that defines if the dimension used for a time series is raw data or aggregated data. The value of the property must be either Raw or Aggregated.  If no value is provided the default is Aggregated."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrla:instant-accrual",
+                "value": "Relationship type linking instant and accrual concepts used for mapping or validation between instant and duration concepts."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrla:instant-inflow",
+                "value": "Relationship type indicating an instant concept maps to a duration inflow concept."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrla:instant-outflow",
+                "value": "Relationship type indicating an instant concept maps to a duration outflow concept."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrla:instant-contra",
+                "value": "Relationship type indicating an instant concept is the contra (opposite sign) of a duration concept."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrla:eventCube",
+                "value": "Cube type for single-event facts identified by a typed dimension; does not include standard period/entity/unit core dimensions."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrla:eventDetailsCube",
+                "value": "Cube type for event detail records that reference concept-to-dimension relationships for richer typed dimensions."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrla:journalCube",
+                "value": "A specialization of eventDetailsCube intended for journal or ledger style event records."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrla:referenceCube",
+                "value": "Cube type used for reference or lookup data where facts act as descriptions rather than periodic measurements."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrla:timeSeriesCube",
+                "value": "Cube type optimized for time-series data; requires a typed date/time dimension and typically includes the unit core-dimension."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrla:positionCube",
+                "value": "Cube type for position-style facts that typically include period, entity and unit core dimensions."
+            }
+        ]
+    }
+
+}

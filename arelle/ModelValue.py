@@ -9,6 +9,8 @@ from fractions import Fraction
 from arelle.UrlUtil import isValidUriReference
 
 import arelle.ModelObject
+from numpy.ma.tests.test_subclassing import assert_startswith
+from pyparsing.core import AtLineStart
 
 if TYPE_CHECKING:
     from arelle.ModelObject import ModelObject
@@ -991,6 +993,33 @@ class IsoDuration(isodate.Duration): # type: ignore[misc]
         return cast(str, super(IsoDuration, self).__str__()) # textual words form of duration
     def __str__(self) -> str:
         return cast(str, self.sourceValue)
+
+def timeInterval(str):
+    start, _sep, end = str.rpartition("/")
+    if not start:
+        start = None
+    else:
+        start = dateTime(start)
+    end = dateTime(end)
+    return TimeInterval(start, end)
+
+class TimeInterval:
+    def __init__(self, start, end):
+        self.start = start
+        self.end = end
+
+    @property
+    def isInstant(self):
+        return self.start is None
+
+    @property
+    def isDuration(self):
+        return self.start is not None
+
+    def __repr__(self):
+        if self.start:
+            return f"{self.start}/{self.end}"
+        return f"{self.end}"
 
 class InvalidValue(str):
     def __new__(cls, value: str) -> InvalidValue:
