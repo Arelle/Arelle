@@ -42,9 +42,31 @@ config = ConformanceSuiteConfig(
             'extensionTaxonomyLineItemNotLinkedToAnyHypercube': 1,
             'usableConceptsNotIncludedInDefinitionLink': 1,
         },
+        'G3-2-7_1/index.xml:TC1_valid': {
+            'missingRelevantPlaceholder': 1,
+        },
+        'G3-2-7_1/index.xml:TC2_valid': {
+            'missingRelevantPlaceholder': 1,
+        },
+        'G3-2-7_1/index.xml:TC3_invalid': {
+            'missingRelevantPlaceholder': 1,
+        },
+        'G3-2-7_1/index.xml:TC4_invalid': {
+            'missingRelevantPlaceholder': 1,
+        },
+        'G3-2-7_1/index.xml:TC5_invalid': {
+            'missingRelevantPlaceholder': 1,
+        },
+        'G3-2-7_1/index.xml:TC6_valid': {
+            'missingRelevantPlaceholder': 1,
+        },
+        'G3-2-7_1/index.xml:TC7_valid': {
+            'missingRelevantPlaceholder': 1,
+        },
         'G3-4-1_1/index.xml:TC2_invalid': {
             'err:XPTY0004': 1,
             'extensionTaxonomyLineItemNotLinkedToAnyHypercube': 1,
+            'improperApplicationOfEscapeAttribute': 1,
             'NL.NL-KVK.3.2.8.1': 1,
             # Expected once, returned twice as
             # NL.NL-KVK.3.4.1.1.tupleElementUsed - ix:tuple present in iXBRL document
@@ -107,6 +129,7 @@ config = ConformanceSuiteConfig(
         'G4-1-2_2/index.xml:TC3_invalid': {
             'anchoringRelationshipsForConceptsDefinedInElrContainingDimensionalRelationships': 1,
             'extensionTaxonomyLineItemNotLinkedToAnyHypercube': 10,
+            'improperApplicationOfEscapeAttribute': 1,
             'incorrectSummationItemArcroleUsed': 1,
             'missingRelevantPlaceholder': 1,
             'requiredEntryPointNotImported': 1,
@@ -263,15 +286,6 @@ config = ConformanceSuiteConfig(
         'G5-1-3_2/index.xml:TC3_invalid',  # Expects incorrectVersionEntryPointOtherGaapReferenced, should be incorrectVersionEntryPointOtherReferenced.
         'RTS_Annex_III_Par_1/index.xml:TC3_invalid',  # Expects invalidInlineXbrl, but this is valid.
         'RTS_Annex_IV_Par_12_G3-2-4_1/index.xml:TC4_invalid',  # Expects inconsistentDuplicateNonnumericFactInInlineXbrlDocumentSet, should be inconsistentDuplicateNumericFactInInlineXbrlDocument.
-
-        # Not Implemented: improperApplicationOfEscapeAttribute
-        'G3-2-7_1/index.xml:TC1_valid',
-        'G3-2-7_1/index.xml:TC2_valid',
-        'G3-2-7_1/index.xml:TC3_invalid',
-        'G3-2-7_1/index.xml:TC4_invalid',
-        'G3-2-7_1/index.xml:TC5_invalid',
-        'G3-2-7_1/index.xml:TC6_valid',
-        'G3-2-7_1/index.xml:TC7_valid',
 
         # Not Implemented
         'G7-1-4_1/index.xml:TC2_invalid',

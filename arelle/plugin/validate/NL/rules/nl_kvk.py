@@ -388,16 +388,41 @@ def rule_nl_kvk_3_2_7_1 (
     """
     NL-KVK.3.2.7.1: Ensure that any block-tagged facts of type textBlockItemType are assigned @escape="true",
     while other data types (e.g., xbrli:stringItemType) are assigned @escape="false".
+
+    Starting in 2025, non-textBlockItemType facts containing special characters like '&' or '<' must also
+    be assigned @escape="true"
     """
+    disclosureSystemYear = DISCLOSURE_SYSTEM_YEARS.get(val.disclosureSystem.name) if val.disclosureSystem.name else None
+    escapeWorthyStr = regex.compile(r".*[<&]")
     improperlyEscapedFacts = []
-    for fact in val.modelXbrl.facts:
-        if isinstance(fact, ModelInlineFact) and fact.concept is not None and fact.isEscaped != fact.concept.isTextBlock:
-            improperlyEscapedFacts.append(fact)
+    facts = [
+        fact
+        for fact in val.modelXbrl.facts
+        if isinstance(fact, ModelInlineFact) and fact.concept is not None
+    ]
+    if disclosureSystemYear is None or disclosureSystemYear < 2025:
+        msg = _('Ensure that any block-tagged facts of type textBlockItemType are assigned @escape="true", '
+                'while other data types (e.g., xbrli:stringItemType) are assigned @escape="false".')
+        for fact in facts:
+            if fact.isEscaped != fact.concept.isTextBlock:
+                improperlyEscapedFacts.append(fact)
+    else:
+        msg = _('Ensure that any block-tagged facts of type textBlockItemType or facts '
+                'containing special characters like \'&\' or \'<\' are assigned @escape="true". '
+                'All other facts are assigned @escape="false".')
+        for fact in facts:
+            if not fact.isEscaped and (
+                fact.concept.isTextBlock or
+                len(fact) > 0 or
+                (
+                    fact.text and escapeWorthyStr.match(fact.text)
+                )
+            ):
+                improperlyEscapedFacts.append(fact)
     if len(improperlyEscapedFacts) > 0:
         yield Validation.error(
             codes='NL.NL-KVK.3.2.7.1.improperApplicationOfEscapeAttribute',
-            msg=_('Ensure that any block-tagged facts of type textBlockItemType are assigned @escape="true", '
-                  'while other data types (e.g., xbrli:stringItemType) are assigned @escape="false".'),
+            msg=msg,
             modelObject = improperlyEscapedFacts
         )
 
