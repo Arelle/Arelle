@@ -2432,17 +2432,21 @@ def rule_nl_kvk_RTS_Art_6_a(
     NL-KVK.RTS_Art_6_a: Legal entities shall embed markups in the annual reports
     in XHTML format using the Inline XBRL specifications
     """
-    for modelDocument in val.modelXbrl.urlDocs.values():
-        if modelDocument.type != ModelDocument.Type.INLINEXBRL:
-            continue
-        factElements = list(modelDocument.xmlRootElement.iterdescendants(
-            modelDocument.ixNStag + "nonNumeric",
-            modelDocument.ixNStag + "nonFraction",
-            modelDocument.ixNStag + "fraction"
-        ))
-        if len(factElements) == 0:
-            yield Validation.error(
-                codes='NL.NL-KVK.RTS_Art_6_a.noInlineXbrlTags',
-                msg=_('Annual report is using xhtml extension, but there are no inline mark up tags identified.'),
-                modelObject=modelDocument,
-            )
+    inlineDocs = {
+        doc
+        for doc in val.modelXbrl.urlDocs.values()
+        if doc.type == ModelDocument.Type.INLINEXBRL
+    }
+    if len(inlineDocs) == 0:
+        return
+    factElements = [
+        fact
+        for fact in val.modelXbrl.facts
+        if fact.modelDocument in inlineDocs
+    ]
+    if len(factElements) == 0:
+        yield Validation.error(
+            codes='NL.NL-KVK.RTS_Art_6_a.noInlineXbrlTags',
+            msg=_('Annual report is using one or more files with an xhtml extension, but non have inline mark up tags.'),
+            modelObject=inlineDocs,
+        )

@@ -63,6 +63,7 @@ config = ConformanceSuiteConfig(
         'G3-5-3_1/index.xml:TC2_invalid': {
             'arelle:ixdsTargetNotDefined': 1,
             'extensionTaxonomyWrongFilesStructure': 2,
+            'noInlineXbrlTags': 1,
             # This test is looking at the usage of the target attribute and does not import the correct taxonomy urls
             'requiredEntryPointNotImported': 1,
             'incorrectKvkTaxonomyVersionUsed': 1,
@@ -130,19 +131,15 @@ config = ConformanceSuiteConfig(
             'usableConceptsNotIncludedInDefinitionLink': 1,
         },
         'G5-1-3_1/index.xml:TC1_valid': {
-            'noInlineXbrlTags': 1,
             'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 4,
         },
         'G5-1-3_1/index.xml:TC2_invalid': {
-            'noInlineXbrlTags': 1,
             'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 4,
         },
         'G5-1-3_2/index.xml:TC1_valid': {
-            'noInlineXbrlTags': 1,
             'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 4,
         },
         'G5-1-3_2/index.xml:TC2_valid': {
-            'noInlineXbrlTags': 1,
             'taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport': 5,
         },
         'G6-1-3_1/index.xml:TC2_invalid': {
@@ -234,21 +231,9 @@ config = ConformanceSuiteConfig(
         'RTS_Annex_IV_Par_11_G4-2-2_1/index.xml:TC3_invalid': {
             'incompatibleDataTypeAnchoringRelationship': 1,
         },
+        # New variation for 2025
         'RTS_Art_6_a/index.xml:TC2_valid': {
-            'noInlineXbrlTags': 1,
             'usableConceptsNotAppliedByTaggedFacts': 1,
-        },
-        'RTS_Art_6_a/index.xml:TC3_invalid': {
-            'usableConceptsNotAppliedByTaggedFacts': 1,
-            'message:existsAtLeastOnce_ChamberOfCommerceRegistrationNumber': 1,
-            'message:existsAtLeastOnce_FinancialReportingPeriod': 1,
-            'message:existsAtLeastOnce_FinancialReportingPeriodEndDate': 1,
-            'message:existsAtLeastOnce_LegalEntityLegalForm': 1,
-            'message:existsAtLeastOnce_LegalEntityName': 1,
-            'message:existsAtLeastOnce_LegalEntityRegisteredOffice': 1,
-            'message:existsOnlyOnce_AuditorsReportFinancialStatementsPresent': 1,
-            'message:existsOnlyOnce_DocumentAdoptionStatus': 1,
-            'message:existsOnlyOnce_FinancialStatementsConsolidated': 1,
         },
     }.items()},
     expected_failure_ids=frozenset(f"tests/{s}" for s in [
@@ -263,6 +248,7 @@ config = ConformanceSuiteConfig(
         'G5-1-3_2/index.xml:TC3_invalid',  # Expects incorrectVersionEntryPointOtherGaapReferenced, should be incorrectVersionEntryPointOtherReferenced.
         'RTS_Annex_III_Par_1/index.xml:TC3_invalid',  # Expects invalidInlineXbrl, but this is valid.
         'RTS_Annex_IV_Par_12_G3-2-4_1/index.xml:TC4_invalid',  # Expects inconsistentDuplicateNonnumericFactInInlineXbrlDocumentSet, should be inconsistentDuplicateNumericFactInInlineXbrlDocument.
+        'RTS_Art_6_a/index.xml:TC3_invalid',  # Expects noInlineXbrlTags, but kvk-2025-12-31-nl.xhtml has a hidden nonNumeric fact.
 
         # Not Implemented: improperApplicationOfEscapeAttribute
         'G3-2-7_1/index.xml:TC1_valid',
