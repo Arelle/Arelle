@@ -228,7 +228,7 @@ class ConformanceSuiteConfig:
     expected_additional_testcase_errors: dict[str, dict[str, int]] = field(default_factory=dict)
     expected_failure_ids: frozenset[str] = frozenset()
     expected_load_errors: frozenset[str] = field(default_factory=frozenset)
-    ignore_levels: frozenset[ErrorLevel] = frozenset({ErrorLevel.OK, ErrorLevel.WARNING})
+    ignore_levels: frozenset[ErrorLevel] = frozenset({ErrorLevel.OK})
     membership_url: str | None = None
     plugins: frozenset[str] = frozenset()
     preprocessing_func: Callable[[ConformanceSuiteConfig, TestcaseSet], TestcaseSet] | None = None
