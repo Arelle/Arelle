@@ -67,6 +67,8 @@ def get_frozen_build_scripts() -> list[Path]:
 def _for_frozen_build(path: Path) -> bool:
     if path.stem.startswith("python_api_"):
         return False
+    if _is_no_ci(path):
+        return False
     if _is_private(path):
         return False
     return True
