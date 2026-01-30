@@ -408,8 +408,7 @@ def rule_nl_kvk_3_2_7_1 (
                 improperlyEscapedFacts.append(fact)
     else:
         msg = _('Ensure that any block-tagged facts of type textBlockItemType or facts '
-                'containing special characters like \'&\' or \'<\' are assigned @escape="true". '
-                'All other facts are assigned @escape="false".')
+                'containing special characters like \'&\' or \'<\' are assigned @escape="true".')
         for fact in facts:
             if not fact.isEscaped and (
                 fact.concept.isTextBlock or
