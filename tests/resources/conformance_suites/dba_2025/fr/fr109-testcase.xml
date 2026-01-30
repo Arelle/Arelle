@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="DBA.FR109"
+        description="DBA.FR109: There are accounting systems whose periods overlap"
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid-109a" name="Invalid-109a">
+        <description>
+            There are two periods. The start of one period, (StartDateForUseOfDigitalStandardBookkeepingSystem), is before the start of the reporting period and the second period ends,
+            (EndDateForUseOfDigitalStandardBookkeepingSystem), after the end of the reporting period, thus overlapping the reporting period.
+        </description>
+        <data>
+            <instance readMeFirst="true">fr109a-invalid.xhtml</instance>
+        </data>
+        <result>
+            <error>DBA.FR109</error>
+        </result>
+    </variation>
+    <variation id="invalid-109b" name="Invalid-109b">
+        <description>
+            This tests detection of non-standard reporting periods.
+            There are two periods. The start of one period, (StartDateForUseOfDigitalStandardBookkeepingSystem), is before the start of the reporting period and the second period ends,
+            (EndDateForUseOfDigitalStandardBookkeepingSystem), after the end of the reporting period, thus overlapping the reporting period.
+
+            The reporting period is defined using the RegisteredReportingPeriodDeviatingFromReportedReportingPeriodDueArbitraryDatesMember
+        </description>
+        <data>
+            <instance readMeFirst="true">fr109b-invalid.xhtml</instance>
+        </data>
+        <result>
+            <error>DBA.FR109</error>
+        </result>
+    </variation>
+</testcase>
