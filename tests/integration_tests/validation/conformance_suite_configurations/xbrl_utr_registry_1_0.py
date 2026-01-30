@@ -5,10 +5,6 @@ from tests.integration_tests.validation.conformance_suite_config import (
 )
 
 config = ConformanceSuiteConfig(
-    args=[
-        '--utrUrl', os.path.join(CONFORMANCE_SUITE_PATH_PREFIX, 'utr/registry/utr.xml'),
-        '--utr',
-    ],
     assets=[
         ConformanceSuiteAssetConfig.conformance_suite(
             Path('utr/registry/utr-conf-cr-2013-05-17.zip'),
@@ -26,4 +22,8 @@ config = ConformanceSuiteConfig(
     ],
     info_url='https://specifications.xbrl.org/work-product-index-registries-units-registry-1.0.html',
     name=PurePath(__file__).stem,
+    runtime_options={
+        'utrUrl': os.path.join(CONFORMANCE_SUITE_PATH_PREFIX, 'utr/registry/utr.xml'),
+        'utrValidate': True,
+    },
 )

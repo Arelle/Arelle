@@ -47,4 +47,5 @@ jobs:
           name: ${{ matrix.test.name }}
           python_version: ${{ matrix.test.python_version }}
           shard: ${{ matrix.test.shard }}
+          shard_count: ${{ matrix.test.shard_count }}
           short_name: ${{ matrix.test.short_name }}

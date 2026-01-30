@@ -1,7 +1,7 @@
 from collections import defaultdict
 from pathlib import PurePath, Path
 
-from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig
+from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig, CiConfig
 
 VALID_EXPECTED_ERRORS = {
     "valid/index.xml:valid01": {
@@ -257,12 +257,12 @@ config = ConformanceSuiteConfig(
         ),
     ],
     base_taxonomy_validation='none',
+    ci_config=CiConfig(fast=False),
     disclosure_system='EDINET',
-    expected_additional_testcase_errors={f"*{s}": val for s, val in EXPECTED_ADDITIONAL_TESTCASE_ERRORS.items()},
+    expected_additional_testcase_errors=EXPECTED_ADDITIONAL_TESTCASE_ERRORS,
     expected_failure_ids=frozenset([]),
     info_url='https://disclosure2.edinet-fsa.go.jp/weee0020.aspx',
     name=PurePath(__file__).stem,
     plugins=frozenset({'validate/EDINET', 'inlineXbrlDocumentSet'}),
-    shards=4,
     test_case_result_options='match-all',
 )
