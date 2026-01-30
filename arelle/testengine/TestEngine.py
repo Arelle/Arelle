@@ -12,6 +12,7 @@ import os
 import re
 import time
 from pathlib import Path
+from typing import Any
 
 from arelle import XbrlConst
 from arelle.ModelValue import QName
@@ -91,7 +92,7 @@ def _build_entrypoint_uris(uris: list[Path]) -> list[str]:
     return [norm_path(uri) for uri in uris]
 
 
-def _collect_errors(session: Session) -> list[str | dict]:
+def _collect_errors(session: Session) -> list[Any]:
     errors = []
     assert session._cntlr is not None
     errors.extend(session._cntlr.errors)
