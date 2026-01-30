@@ -167,6 +167,14 @@ config = ConformanceSuiteConfig(
             'invalidIdentifierFormat': 1,
             'requiredEntryPointOtherNotReferenced': 1,
         },
+        'G6-1-3_4/index.xml:TC1_valid': {
+            'incorrectVersionEntryPointOtherReferenced': 1,
+            'requiredEntryPointOtherNotReferenced': 1,
+        },
+        'G6-1-3_4/index.xml:TC2_invalid': {
+            'incorrectVersionEntryPointOtherReferenced': 1,
+            'requiredEntryPointOtherNotReferenced': 1,
+        },
         'G7-1-4_1/index.xml:TC1_valid': {
             'arelle:nonIxdsDocument': 1,
         },
@@ -285,8 +293,6 @@ config = ConformanceSuiteConfig(
         'G6-1-3_2/index.xml:TC2_invalid',
         'G6-1-3_3/index.xml:TC1_valid',
         'G6-1-3_3/index.xml:TC2_invalid',
-        'G6-1-3_4/index.xml:TC1_valid',
-        'G6-1-3_4/index.xml:TC2_invalid',
 
         # Expects invalidInlineXbrl.  Instead, we depend on the underlying XML Schema and iXBRL validation errors.
         'RTS_Annex_III_Par_1/index.xml:TC2_invalid',

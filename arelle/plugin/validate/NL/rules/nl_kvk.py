@@ -925,6 +925,8 @@ def rule_nl_kvk_3_6_3_4(
     """
     NL-KVK.3.6.3.4: The filename of the separate Inline XBRL document for filing purposes MUST
         match the "kvk-{date}-{lang}.{extension}" pattern.
+
+    See NL-KVK.6.1.3.4 for multi-target version.
     """
     if len(getattr(val.modelXbrl, "ixdsDocUrls", [])) <= 1:
         return
@@ -1981,6 +1983,36 @@ def rule_nl_kvk_6_1_3_3(
             msg=_('The target attribute `filing-information` MUST be used for the content of the required '
                   'elements for filing with the Business Register.'),
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=NL_INLINE_MULTI_TARGET_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_6_1_3_4(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.6.1.3.4: The filename of the separate Inline XBRL document for filing purposes MUST
+        match the "kvk-{date}-{lang}.{extension}" pattern.
+
+    See NL-KVK.3.6.3.4 for non-multi-target version.
+    """
+    filingInformationElts = pluginData.getElementsByTarget(val.modelXbrl).get('filing-information', [])
+    likelyFilingInformationDocuments = set(elt.modelDocument for elt in filingInformationElts)
+    for doc in likelyFilingInformationDocuments:
+        filename = doc.basename
+        filenameParts = pluginData.getFilenameParts(filename, pluginData.getFilenameFormatPattern())
+        if not filenameParts or filenameParts['base'] != 'kvk':
+            yield Validation.error(
+                codes='NL.NL-KVK.6.1.3.4.kvkFilingDocumentNameDoesNotFollowNamingConvention',
+                filename=filename,
+                msg=_('The separate document that contains mandatory facts does not match the required file naming.'
+                      ' Ensure the file name follows the "kvk-{date}-{lang}.{extension}" pattern.'
+                      ' Invalid filename: %(filename)s'))
 
 
 @validation(
