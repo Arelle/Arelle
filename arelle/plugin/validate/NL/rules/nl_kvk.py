@@ -412,10 +412,8 @@ def rule_nl_kvk_3_2_7_1 (
         for fact in facts:
             if not fact.isEscaped and (
                 fact.concept.isTextBlock or
-                len(fact) > 0 or
-                (
-                    fact.text and escapeWorthyStr.match(fact.text)
-                )
+                len(fact) > 0 or # Has child XML elements
+                (fact.text and escapeWorthyStr.match(fact.text)) # Has special characters
             ):
                 improperlyEscapedFacts.append(fact)
     if len(improperlyEscapedFacts) > 0:
