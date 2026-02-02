@@ -1,0 +1,1150 @@
+{
+    "documentInfo": {
+        "documentType": "https://xbrl.org/2025/taxonomy",
+        "documentNamespace": "https://xbrl.org/2025/taxonomy/meta",
+        "namespaces": {
+            "xbrl": "https://xbrl.org/2025",
+            "xbrli": "https://xbrl.org/2025/instance",
+            "xs": "https://www.w3.org/2001/XMLSchema"
+        }
+    },
+    "xbrl": {
+        "name": "xbrl:xbrlObjectsMetaTaxonomy",
+        "version": "1.0",
+        "objectTypes": [
+            {
+                "name": "xbrl:conceptObject",
+                "properties": [
+                    {
+                        "name": "xbrl:conceptObjectName",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:conceptObjectDataType",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:conceptObjectPeriodType",
+                        "dataType": "xbrli:periodType",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:conceptObjectEnumerationDomain",
+                        "dataType": "xs:QName",
+                        "required": false
+                    },
+                    {
+                        "name": "xbrl:conceptObjectNillable",
+                        "dataType": "xs:boolean",
+                        "required": false
+                    },
+                    {
+                        "name": "xbrl:conceptObjectProperties",
+                        "dataType": "xbrl:orderedSet",
+                        "setContents": "xbrl:propertyObject",
+                        "required": false
+                    }
+                ]
+            },
+            {
+                "name": "xbrl:cubeObject",
+                "properties": [
+                    {
+                        "name": "xbrl:cubeObjectName",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:cubeObjectDimensions",
+                        "dataType": "xbrl:orderedSet",
+                        "setContents": "xbrl:cubeDimensionObject",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:cubeObjectType",
+                        "dataType": "xs:QName",
+                        "required": false
+                    },
+                    {
+                        "name": "xbrl:cubeObjectExcludedCubes",
+                        "dataType": "xbrl:set",
+                        "setContents": "xs:QName",
+                        "required": false
+                    },
+                    {
+                        "name": "xbrl:cubeObjectProperties",
+                        "dataType": "xbrl:orderedSet",
+                        "setContents": "xbrl:propertyObject",
+                        "required": false
+                    }
+                ]
+            },
+            {
+                "name": "xbrl:dimensionObject",
+                "properties": [
+                    {
+                        "name": "xbrl:dimensionObjectName",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:dimensionObjectDomainClass",
+                        "dataType": "xs:QName",
+                        "required": false
+                    },
+                    {
+                        "name": "xbrl:dimensionObjectDomainDataType",
+                        "dataType": "xs:QName",
+                        "required": false
+                    },
+                    {
+                        "name": "xbrl:dimensionObjectProperties",
+                        "dataType": "xbrl:orderedSet",
+                        "setContents": "xbrl:propertyObject",
+                        "required": false
+                    }
+                ]
+            },
+            {
+                "name": "xbrl:domainObject",
+                "properties": [
+                    {
+                        "name": "xbrl:domainObjectName",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:domainObjectRoot",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:domainObjectRelationships",
+                        "dataType": "xbrl:orderedSet",
+                        "setContents": "xbrl:relationshipObject",
+                        "required": false
+                    },
+                    {
+                        "name": "xbrl:domainObjectProperties",
+                        "dataType": "xbrl:orderedSet",
+                        "setContents": "xbrl:propertyObject",
+                        "required": false
+                    }
+                ]
+            },
+            {
+                "name": "xbrl:domainClassObject",
+                "properties": [
+                    {
+                        "name": "xbrl:domainClassObjectName",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:domainClassObjectType",
+                        "dataType": "xs:string",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:domainClassObjectProperties",
+                        "dataType": "xbrl:orderedSet",
+                        "setContents": "xbrl:propertyObject",
+                        "required": false
+                    }
+                ]
+            },
+            {
+                "name": "xbrl:memberObject",
+                "properties": [
+                    {
+                        "name": "xbrl:memberObjectName",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:memberObjectProperties",
+                        "dataType": "xbrl:orderedSet",
+                        "setContents": "xbrl:propertyObject",
+                        "required": false
+                    }
+                ]
+            },
+            {
+                "name": "xbrl:networkObject",
+                "properties": [
+                    {
+                        "name": "xbrl:networkObjectName",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:networkObjectRelationshipTypeName",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:networkObjectRoots",
+                        "dataType": "xbrl:orderedSet",
+                        "setContents": "xs:QName",
+                        "required": false
+                    },
+                    {
+                        "name": "xbrl:networkObjectRelationships",
+                        "dataType": "xbrl:orderedSet",
+                        "setContents": "xbrl:relationshipObject",
+                        "required": false
+                    },
+                    {
+                        "name": "xbrl:networkObjectProperties",
+                        "dataType": "xbrl:orderedSet",
+                        "setContents": "xbrl:propertyObject",
+                        "required": false
+                    }
+                ]
+            },
+            {
+                "name": "xbrl:unitObject",
+                "properties": [
+                    {
+                        "name": "xbrl:unitObjectName",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:unitObjectDataType",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:unitObjectStringRepresentations",
+                        "dataType": "xbrl:orderedSet",
+                        "setContents": "xs:string",
+                        "required": false
+                    },
+                    {
+                        "name": "xbrl:unitObjectProperties",
+                        "dataType": "xbrl:orderedSet",
+                        "setContents": "xbrl:propertyObject",
+                        "required": false
+                    }
+                ]
+            },
+            {
+                "name": "xbrl:abstractObject",
+                "properties": [
+                    {
+                        "name": "xbrl:abstractObjectName",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:abstractObjectProperties",
+                        "dataType": "xbrl:orderedSet",
+                        "setContents": "xbrl:propertyObject",
+                        "required": false
+                    }
+                ]
+            },
+            {
+                "name": "xbrl:entityObject",
+                "properties": [
+                    {
+                        "name": "xbrl:entityObjectName",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:entityObjectProperties",
+                        "dataType": "xbrl:orderedSet",
+                        "setContents": "xbrl:propertyObject",
+                        "required": false
+                    }
+                ]
+            },
+            {
+                "name": "xbrl:labelObject",
+                "properties": [
+                    {
+                        "name": "xbrl:labelObjectRelatedName",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:labelObjectLabelType",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:labelObjectLanguage",
+                        "dataType": "xs:language",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:labelObjectValue",
+                        "dataType": "xs:string",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:labelObjectProperties",
+                        "dataType": "xbrl:orderedSet",
+                        "setContents": "xbrl:propertyObject",
+                        "required": false
+                    }
+                ]
+            },
+            {
+                "name": "xbrl:referenceObject",
+                "properties": [
+                    {
+                        "name": "xbrl:referenceObjectRelatedNames",
+                        "dataType": "xbrl:orderedSet",
+                        "setContents": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:referenceObjectReferenceType",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:referenceObjectName",
+                        "dataType": "xs:QName",
+                        "required": false
+                    },
+                    {
+                        "name": "xbrl:referenceObjectExtendTargetName",
+                        "dataType": "xs:QName",
+                        "required": false
+                    },
+                    {
+                        "name": "xbrl:referenceObjectLanguage",
+                        "dataType": "xs:language",
+                        "required": false
+                    },
+                    {
+                        "name": "xbrl:referenceObjectProperties",
+                        "dataType": "xbrl:orderedSet",
+                        "setContents": "xbrl:propertyObject",
+                        "required": false
+                    }
+                ]
+            },
+            {
+                "name": "xbrl:propertyTypeObject",
+                "properties": [
+                    {
+                        "name": "xbrl:propertyTypeObjectName",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:propertyTypeObjectDataType",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:propertyTypeObjectAllowedObjects",
+                        "dataType": "xbrl:set",
+                        "setContents": "xs:QName",
+                        "required": false
+                    },
+                    {
+                        "name": "xbrl:propertyTypeObjectEnumerationDomain",
+                        "dataType": "xs:QName",
+                        "required": false
+                    }
+                ]
+            },
+            {
+                "name": "xbrl:dataTypeObject",
+                "properties": [
+                    {
+                        "name": "xbrl:dataTypeObjectName",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:dataTypeObjectBaseType",
+                        "dataType": "xs:QName",
+                        "required": false
+                    }
+                ]
+            },
+            {
+                "name": "xbrl:cubeTypeObject",
+                "properties": [
+                    {
+                        "name": "xbrl:cubeTypeObjectName",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:cubeTypeObjectDimensions",
+                        "dataType": "xbrl:orderedSet",
+                        "setContents": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:cubeTypeObjectRelatedConcepts",
+                        "dataType": "xbrl:set",
+                        "setContents": "xs:QName",
+                        "required": false
+                    }
+                ]
+            },
+            {
+                "name": "xbrl:groupObject",
+                "properties": [
+                    {
+                        "name": "xbrl:groupObjectName",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:groupObjectContents",
+                        "dataType": "xbrl:orderedSet",
+                        "setContents": "xbrl:groupContentObject",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:groupObjectProperties",
+                        "dataType": "xbrl:orderedSet",
+                        "setContents": "xbrl:propertyObject",
+                        "required": false
+                    }
+                ]
+            },
+            {
+                "name": "xbrl:groupContentObject",
+                "properties": [
+                    {
+                        "name": "xbrl:groupContentObjectType",
+                        "dataType": "xs:string",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:groupContentObjectValue",
+                        "dataType": "xbrl:any",
+                        "required": true
+                    }
+                ]
+            },
+            {
+                "name": "xbrl:groupTreeObject",
+                "properties": [
+                    {
+                        "name": "xbrl:groupTreeObjectRoot",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:groupTreeObjectChildren",
+                        "dataType": "xbrl:orderedSet",
+                        "setContents": "xbrl:groupTreeObject",
+                        "required": false
+                    }
+                ]
+            },
+            {
+                "name": "xbrl:relationshipObject",
+                "properties": [
+                    {
+                        "name": "xbrl:relationshipObjectSource",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:relationshipObjectTarget",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:relationshipObjectOrder",
+                        "dataType": "xs:decimal",
+                        "required": false
+                    },
+                    {
+                        "name": "xbrl:relationshipObjectProperties",
+                        "dataType": "xbrl:orderedSet",
+                        "setContents": "xbrl:propertyObject",
+                        "required": false
+                    }
+                ]
+            },
+            {
+                "name": "xbrl:relationshipTypeObject",
+                "properties": [
+                    {
+                        "name": "xbrl:relationshipTypeObjectName",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:relationshipTypeObjectUri",
+                        "dataType": "xs:anyURI",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:relationshipTypeObjectCycles",
+                        "dataType": "xs:string",
+                        "required": false
+                    },
+                    {
+                        "name": "xbrl:relationshipTypeObjectSourceObjects",
+                        "dataType": "xbrl:set",
+                        "setContents": "xs:QName",
+                        "required": false
+                    },
+                    {
+                        "name": "xbrl:relationshipTypeObjectTargetObjects",
+                        "dataType": "xbrl:set",
+                        "setContents": "xs:QName",
+                        "required": false
+                    },
+                    {
+                        "name": "xbrl:relationshipTypeObjectAllowedLinkProperties",
+                        "dataType": "xbrl:set",
+                        "setContents": "xs:QName",
+                        "required": false
+                    },
+                    {
+                        "name": "xbrl:relationshipTypeObjectRequiredLinkProperties",
+                        "dataType": "xbrl:set",
+                        "setContents": "xs:QName",
+                        "required": false
+                    }
+                ]
+            },
+            {
+                "name": "xbrl:referenceTypeObject",
+                "properties": [
+                    {
+                        "name": "xbrl:referenceTypeObjectName",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:referenceTypeObjectUri",
+                        "dataType": "xs:anyURI",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:referenceTypeObjectAllowedObjects",
+                        "dataType": "xbrl:set",
+                        "setContents": "xs:QName",
+                        "required": false
+                    },
+                    {
+                        "name": "xbrl:referenceTypeObjectOrderedProperties",
+                        "dataType": "xbrl:orderedSet",
+                        "setContents": "xs:QName",
+                        "required": false
+                    },
+                    {
+                        "name": "xbrl:referenceTypeObjectRequiredProperties",
+                        "dataType": "xbrl:set",
+                        "setContents": "xs:QName",
+                        "required": false
+                    }
+                ]
+            },
+            {
+                "name": "xbrl:labelTypeObject",
+                "properties": [
+                    {
+                        "name": "xbrl:labelTypeObjectName",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:labelTypeObjectUri",
+                        "dataType": "xs:anyURI",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:labelTypeObjectDataType",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:labelTypeObjectAllowedObjects",
+                        "dataType": "xbrl:set",
+                        "setContents": "xs:QName",
+                        "required": false
+                    }
+                ]
+            },
+            {
+                "name": "xbrl:cubeDimensionObject",
+                "properties": [
+                    {
+                        "name": "xbrl:cubeDimensionObjectDimension",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:cubeDimensionObjectDomainName",
+                        "dataType": "xs:QName",
+                        "required": false
+                    },
+                    {
+                        "name": "xbrl:cubeDimensionObjectDefaultMember",
+                        "dataType": "xs:QName",
+                        "required": false
+                    },
+                    {
+                        "name": "xbrl:cubeDimensionObjectAllowDomainFacts",
+                        "dataType": "xs:boolean",
+                        "required": false
+                    },
+                    {
+                        "name": "xbrl:cubeDimensionObjectMemberSort",
+                        "dataType": "xs:string",
+                        "required": false
+                    }
+                ]
+            },
+            {
+                "name": "xbrl:propertyObject",
+                "properties": [
+                    {
+                        "name": "xbrl:propertyObjectProperty",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:propertyObjectValue",
+                        "dataType": "xs:anyType",
+                        "required": true
+                    }
+                ]
+            },
+            {
+                "name": "xbrl:transformObject",
+                "properties": [
+                    {
+                        "name": "xbrl:transformObjectName",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:transformObjectInputType",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:transformObjectOutputType",
+                        "dataType": "xs:QName",
+                        "required": true
+                    }
+                ]
+            },
+            {
+                "name": "xbrl:factspaceObject",
+                "properties": [
+                    {
+                        "name": "xbrl:factspaceObjectName",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:factspaceObjectFactValues",
+                        "dataType": "xbrl:orderedSet",
+                        "setContents": "xbrl:factValueObject",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:factspaceObjectFactDimensions",
+                        "dataType": "xbrl:orderedSet",
+                        "setContents": "xbrl:factDimensionObject",
+                        "required": false
+                    }
+                ]
+            },
+            {
+                "name": "xbrl:factDimensionObject",
+                "properties": [
+                    {
+                        "name": "xbrl:factDimensionObjectDimension",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:factDimensionObjectValue",
+                        "dataType": "xs:anyType",
+                        "required": true
+                    }
+                ]
+            },
+            {
+                "name": "xbrl:factValueObject",
+                "properties": [
+                    {
+                        "name": "xbrl:factValueObjectConcept",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:factValueObjectValue",
+                        "dataType": "xs:anyType",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:factValueObjectDimensions",
+                        "dataType": "xbrl:orderedSet",
+                        "setContents": "xbrl:factDimensionObject",
+                        "required": false
+                    }
+                ]
+            },
+            {
+                "name": "xbrl:importTaxonomyObject",
+                "properties": [
+                    {
+                        "name": "xbrl:importTaxonomyObjectXbrlModelName",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:importTaxonomyObjectProfiles",
+                        "dataType": "xbrl:set",
+                        "setContents": "xs:QName",
+                        "required": false
+                    },
+                    {
+                        "name": "xbrl:importTaxonomyObjectSelections",
+                        "dataType": "xbrl:set",
+                        "setContents": "xs:string",
+                        "required": false
+                    },
+                    {
+                        "name": "xbrl:importTaxonomyObjectImportObjects",
+                        "dataType": "xbrl:set",
+                        "setContents": "xs:QName",
+                        "required": false
+                    },
+                    {
+                        "name": "xbrl:importTaxonomyObjectImportObjectTypes",
+                        "dataType": "xbrl:set",
+                        "setContents": "xs:QName",
+                        "required": false
+                    },
+                    {
+                        "name": "xbrl:importTaxonomyObjectExcludeLabels",
+                        "dataType": "xs:boolean",
+                        "required": false
+                    }
+                ]
+            },
+            {
+                "name": "xbrl:exportProfileObject",
+                "properties": [
+                    {
+                        "name": "xbrl:exportProfileObjectName",
+                        "dataType": "xs:QName",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:exportProfileObjectFrameworkName",
+                        "dataType": "xs:string",
+                        "required": true
+                    },
+                    {
+                        "name": "xbrl:exportProfileObjectExportObjects",
+                        "dataType": "xbrl:set",
+                        "setContents": "xs:QName",
+                        "required": false
+                    },
+                    {
+                        "name": "xbrl:exportProfileObjectExportObjectTypes",
+                        "dataType": "xbrl:set",
+                        "setContents": "xs:QName",
+                        "required": false
+                    },
+                    {
+                        "name": "xbrl:exportProfileObjectSelections",
+                        "dataType": "xbrl:set",
+                        "setContents": "xs:string",
+                        "required": false
+                    }
+                ]
+            }
+        ],
+        "labels": [
+            {
+                "relatedName": "xbrl:conceptObject",
+                "labelType": "xbrl:label",
+                "language": "en",
+                "value": "Concept Object"
+            },
+            {
+                "relatedName": "xbrl:conceptObject",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "A concept object represents a reportable fact in the taxonomy. Concepts define the semantic meaning of facts that can be reported in an XBRL instance document."
+            },
+            {
+                "relatedName": "xbrl:conceptObjectName",
+                "labelType": "xbrl:label",
+                "language": "en",
+                "value": "Name"
+            },
+            {
+                "relatedName": "xbrl:conceptObjectName",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "The QName that uniquely identifies the concept within the taxonomy."
+            },
+            {
+                "relatedName": "xbrl:conceptObjectDataType",
+                "labelType": "xbrl:label",
+                "language": "en",
+                "value": "Data Type"
+            },
+            {
+                "relatedName": "xbrl:conceptObjectDataType",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "The QName of the data type that defines the value space and constraints for facts using this concept."
+            },
+            {
+                "relatedName": "xbrl:conceptObjectPeriodType",
+                "labelType": "xbrl:label",
+                "language": "en",
+                "value": "Period Type"
+            },
+            {
+                "relatedName": "xbrl:conceptObjectPeriodType",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "Indicates whether the concept represents an instant in time or a duration period. Valid values are 'instant' or 'duration'."
+            },
+            {
+                "relatedName": "xbrl:conceptObjectEnumerationDomain",
+                "labelType": "xbrl:label",
+                "language": "en",
+                "value": "Enumeration Domain"
+            },
+            {
+                "relatedName": "xbrl:conceptObjectEnumerationDomain",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "Optional QName reference to a domain that defines the allowed enumeration values for this concept."
+            },
+            {
+                "relatedName": "xbrl:conceptObjectNillable",
+                "labelType": "xbrl:label",
+                "language": "en",
+                "value": "Nillable"
+            },
+            {
+                "relatedName": "xbrl:conceptObjectNillable",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "Boolean indicating whether facts using this concept can have a nil value to represent explicitly missing or not applicable data."
+            },
+            {
+                "relatedName": "xbrl:conceptObjectProperties",
+                "labelType": "xbrl:label",
+                "language": "en",
+                "value": "Properties"
+            },
+            {
+                "relatedName": "xbrl:conceptObjectProperties",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "An ordered set of additional property objects that provide extended metadata about the concept."
+            },
+            {
+                "relatedName": "xbrl:cubeObject",
+                "labelType": "xbrl:label",
+                "language": "en",
+                "value": "Cube Object"
+            },
+            {
+                "relatedName": "xbrl:cubeObject",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "A cube object defines a multidimensional factspace that specifies which dimensions and members are included for organizing and constraining facts."
+            },
+            {
+                "relatedName": "xbrl:dimensionObject",
+                "labelType": "xbrl:label",
+                "language": "en",
+                "value": "Dimension Object"
+            },
+            {
+                "relatedName": "xbrl:dimensionObject",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "A dimension object defines an axis along which facts can be categorized, either using a domain of explicit members or a typed data value."
+            },
+            {
+                "relatedName": "xbrl:networkObject",
+                "labelType": "xbrl:label",
+                "language": "en",
+                "value": "Network Object"
+            },
+            {
+                "relatedName": "xbrl:networkObject",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "A network object defines a set of relationships between taxonomy objects, organized by a specific relationship type such as presentation, calculation, or definition linkbases."
+            },
+            {
+                "relatedName": "xbrl:labelObject",
+                "labelType": "xbrl:label",
+                "language": "en",
+                "value": "Label Object"
+            },
+            {
+                "relatedName": "xbrl:labelObject",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "A label object provides human-readable text for taxonomy objects in a specific language and label role."
+            },
+            {
+                "relatedName": "xbrl:groupObject",
+                "labelType": "xbrl:label",
+                "language": "en",
+                "value": "Group Object"
+            },
+            {
+                "relatedName": "xbrl:groupObject",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "A group object organizes networks and cubes into logical groupings for presentation purposes, such as financial statement sections."
+            },
+            {
+                "relatedName": "xbrl:groupContentObject",
+                "labelType": "xbrl:label",
+                "language": "en",
+                "value": "Group Content Object"
+            },
+            {
+                "relatedName": "xbrl:groupContentObject",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "A group content object links a group to a set of networks or cubes that belong to that group."
+            },
+            {
+                "relatedName": "xbrl:groupTreeObject",
+                "labelType": "xbrl:label",
+                "language": "en",
+                "value": "Group Tree Object"
+            },
+            {
+                "relatedName": "xbrl:groupTreeObject",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "A group tree object defines the hierarchical organization of groups within the taxonomy through parent-child relationships."
+            },
+            {
+                "relatedName": "xbrl:relationshipObject",
+                "labelType": "xbrl:label",
+                "language": "en",
+                "value": "Relationship Object"
+            },
+            {
+                "relatedName": "xbrl:relationshipObject",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "A relationship object defines a directed connection between a source and target taxonomy object, with optional ordering and properties."
+            },
+            {
+                "relatedName": "xbrl:relationshipTypeObject",
+                "labelType": "xbrl:label",
+                "language": "en",
+                "value": "Relationship Type Object"
+            },
+            {
+                "relatedName": "xbrl:relationshipTypeObject",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "A relationship type object defines the rules and constraints for a specific type of relationship, including allowed source/target objects and link properties."
+            },
+            {
+                "relatedName": "xbrl:referenceTypeObject",
+                "labelType": "xbrl:label",
+                "language": "en",
+                "value": "Reference Type Object"
+            },
+            {
+                "relatedName": "xbrl:referenceTypeObject",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "A reference type object defines the structure and constraints for a specific type of reference to external documentation."
+            },
+            {
+                "relatedName": "xbrl:labelTypeObject",
+                "labelType": "xbrl:label",
+                "language": "en",
+                "value": "Label Type Object"
+            },
+            {
+                "relatedName": "xbrl:labelTypeObject",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "A label type object defines a specific role or type of label, such as standard label, documentation, or verbose label."
+            },
+            {
+                "relatedName": "xbrl:cubeDimensionObject",
+                "labelType": "xbrl:label",
+                "language": "en",
+                "value": "Cube Dimension Object"
+            },
+            {
+                "relatedName": "xbrl:cubeDimensionObject",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "A cube dimension object specifies how a dimension is used within a cube, including domain restrictions, default members, and sorting behavior."
+            },
+            {
+                "relatedName": "xbrl:propertyObject",
+                "labelType": "xbrl:label",
+                "language": "en",
+                "value": "Property Object"
+            },
+            {
+                "relatedName": "xbrl:propertyObject",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "A property object represents a name-value pair that provides additional metadata for taxonomy objects."
+            },
+            {
+                "relatedName": "xbrl:transformObject",
+                "labelType": "xbrl:label",
+                "language": "en",
+                "value": "Transform Object"
+            },
+            {
+                "relatedName": "xbrl:transformObject",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "A transform object defines a data transformation function that converts values from one data type to another."
+            },
+            {
+                "relatedName": "xbrl:factspaceObject",
+                "labelType": "xbrl:label",
+                "language": "en",
+                "value": "Factspace Object"
+            },
+            {
+                "relatedName": "xbrl:factspaceObject",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "A factspace object defines a specific point in a cube's multidimensional space by specifying values for each dimension."
+            },
+            {
+                "relatedName": "xbrl:importTaxonomyObject",
+                "labelType": "xbrl:label",
+                "language": "en",
+                "value": "Import Taxonomy Object"
+            },
+            {
+                "relatedName": "xbrl:importTaxonomyObject",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "An import taxonomy object specifies another taxonomy to be imported, with optional filtering of objects and profiles."
+            },
+            {
+                "relatedName": "xbrl:exportProfileObject",
+                "labelType": "xbrl:label",
+                "language": "en",
+                "value": "Export Profile Object"
+            },
+            {
+                "relatedName": "xbrl:exportProfileObject",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "An export profile object defines a subset of taxonomy objects that can be selectively imported by other taxonomies."
+            },
+            {
+                "relatedName": "xbrl:factDimensionObject",
+                "labelType": "xbrl:label",
+                "language": "en",
+                "value": "Fact Dimension Object"
+            },
+            {
+                "relatedName": "xbrl:factDimensionObject",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "A fact dimension object represents a single dimension-value pair within a factspace, specifying a dimension and its corresponding value."
+            },
+            {
+                "relatedName": "xbrl:factDimensionObjectDimension",
+                "labelType": "xbrl:label",
+                "language": "en",
+                "value": "Dimension"
+            },
+            {
+                "relatedName": "xbrl:factDimensionObjectDimension",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "The QName of the dimension being specified in this fact dimension."
+            },
+            {
+                "relatedName": "xbrl:factDimensionObjectValue",
+                "labelType": "xbrl:label",
+                "language": "en",
+                "value": "Value"
+            },
+            {
+                "relatedName": "xbrl:factDimensionObjectValue",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "The value for this dimension, which can be of any type depending on the dimension definition."
+            },
+            {
+                "relatedName": "xbrl:factValueObject",
+                "labelType": "xbrl:label",
+                "language": "en",
+                "value": "Fact Value Object"
+            },
+            {
+                "relatedName": "xbrl:factValueObject",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "A fact value object represents a single fact within a factspace, containing the concept, value, and optional dimension specifications."
+            },
+            {
+                "relatedName": "xbrl:factValueObjectConcept",
+                "labelType": "xbrl:label",
+                "language": "en",
+                "value": "Concept"
+            },
+            {
+                "relatedName": "xbrl:factValueObjectConcept",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "The QName of the concept for this fact value."
+            },
+            {
+                "relatedName": "xbrl:factValueObjectValue",
+                "labelType": "xbrl:label",
+                "language": "en",
+                "value": "Value"
+            },
+            {
+                "relatedName": "xbrl:factValueObjectValue",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "The actual value of the fact, which can be of any type depending on the concept's data type."
+            },
+            {
+                "relatedName": "xbrl:factValueObjectDimensions",
+                "labelType": "xbrl:label",
+                "language": "en",
+                "value": "Dimensions"
+            },
+            {
+                "relatedName": "xbrl:factValueObjectDimensions",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "An ordered set of fact dimension objects that specify the dimensional context for this fact value."
+            }
+        ]
+    }
+}
