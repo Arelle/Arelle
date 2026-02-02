@@ -34,6 +34,7 @@ config = ConformanceSuiteConfig(
         'G6-1-3_3/index.xml',
         'G6-1-3_4/index.xml',
     ]],
+    
     expected_additional_testcase_errors={f"*tests/{s}": val for s, val in {
         'G3-1-3_1/index.xml:TC2_invalid': {
             'scenarioNotUsedInExtensionTaxonomy': 1,  # Also fails 4.2.1.1
