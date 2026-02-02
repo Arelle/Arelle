@@ -9,7 +9,7 @@ import datetime
 import decimal
 from collections.abc import Iterable
 from lxml import etree
-from typing import Any, cast
+from typing import Any, cast, Set
 
 from arelle import ModelDocument, ValidateDuplicateFacts
 from arelle.ModelInstanceObject import ModelFact
@@ -1576,6 +1576,62 @@ def rule_fr108(
                           ),
                     modelObject=currentPeriod + nextPeriod
                 )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=STAND_ALONE_DISCLOSURE_SYSTEMS,
+)
+def rule_fr109(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    DBA.FR109: There are one or more accounting systems whose period is outside the accounting period.
+
+    For consolidated reports the accounting period to use is marked with AllReportingPeriodsMember.
+    For reports that use floating accounting periods, the accounting period to use is marked with RegisteredReportingPeriodDeviatingFromReportedReportingPeriodDueArbitraryDatesMember.
+    """
+    def findFact(factSet: Set[ModelFact], qname: QName) -> ModelFact | None:
+        for fact in factSet:
+          if fact is not None and fact.xValid >= VALID and fact.qname == qname:
+            return fact
+        return None
+
+    accountingPeriodStartFact = None
+    accountingPeriodEndFact = None
+    allReportingMemberFacts = val.modelXbrl.factsByDimMemQname(pluginData.typeOfReportingPeriodDimensionQn, pluginData.allReportingPeriodsMemberQn)
+    if len(allReportingMemberFacts) >1:
+        accountingPeriodStartFact = findFact(allReportingMemberFacts, pluginData.reportingPeriodStartDateQn)
+        accountingPeriodEndFact = findFact(allReportingMemberFacts, pluginData.reportingPeriodEndDateQn)
+    if accountingPeriodStartFact is None or accountingPeriodEndFact is None:
+        accountingPeriodStartFact = None
+        accountingPeriodEndFact = None
+    deviatingReportingMemberFacts = val.modelXbrl.factsByDimMemQname(pluginData.typeOfReportingPeriodDimensionQn, pluginData.registeredReportingPeriodDeviatingFromReportedReportingPeriodDueArbitraryDatesMemberQn)
+    if len(deviatingReportingMemberFacts) >1:
+        accountingPeriodStartFact = findFact(deviatingReportingMemberFacts, pluginData.reportingPeriodStartDateQn)
+        accountingPeriodEndFact = findFact(deviatingReportingMemberFacts, pluginData.reportingPeriodEndDateQn)
+    if accountingPeriodStartFact is None or accountingPeriodEndFact is None:
+        accountingPeriodStartFact = None
+        accountingPeriodEndFact = None
+    accountingPeriodStartFacts = getFactsWithoutDimension(val, pluginData.reportingPeriodStartDateQn)
+    if len(accountingPeriodStartFacts) >1:
+        accountingPeriodStartFact =   next(iter(accountingPeriodStartFacts), None)
+        accountingPeriodEndFacts = getFactsWithoutDimension(val, pluginData.reportingPeriodEndDateQn)
+        if len(accountingPeriodEndFacts) >1:
+            accountingPeriodEndFact =   next(iter(accountingPeriodStartFacts), None)
+    if accountingPeriodStartFact is None or accountingPeriodEndFact is None:
+        return
+    allGroupedFacts = pluginData.getBookkeepingPeriods(val.modelXbrl)
+    if len(allGroupedFacts) > 0:
+        if (allGroupedFacts[0][0].xValue is not None and cast(datetime.date, allGroupedFacts[0][0].xValue) < cast(datetime.date, accountingPeriodStartFact.xValue)) or (allGroupedFacts[-1][1].xValue is not None and cast(datetime.date, allGroupedFacts[-1][1].xValue) > cast(datetime.date, accountingPeriodEndFact.xValue)):
+            yield Validation.error(
+                codes='DBA.FR109',
+                msg=_("There are accounting systems whose period is outside the accounting period."),
+                modelObject=[accountingPeriodStartFact, accountingPeriodEndFact, allGroupedFacts[0][0], allGroupedFacts[-1][1]]
+            )
 
 
 @validation(
