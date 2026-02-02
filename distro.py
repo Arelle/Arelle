@@ -57,6 +57,7 @@ includeLibs = [
     "gzip",
     "isodate",
     "jaconv",
+    "jsonschema",
     "lxml._elementpath",
     "lxml.etree",
     "lxml.html",
