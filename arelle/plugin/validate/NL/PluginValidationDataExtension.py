@@ -533,6 +533,12 @@ class PluginValidationDataExtension(PluginData):
         return None
 
     @lru_cache(1)
+    def getFilingInformationFacts(self, modelXbrl: ModelXbrl) -> tuple[ModelFact, ...]:
+        filingInformationDocument = self.getFilingInformationDocument(modelXbrl)
+        facts = tuple(fact for fact in modelXbrl.facts if fact.modelDocument == filingInformationDocument)
+        return facts
+
+    @lru_cache(1)
     def getIxdsDocBasenames(self, modelXbrl: ModelXbrl) -> tuple[str, ...]:
         return tuple(sorted(set(Path(url).name for url in getattr(modelXbrl, "ixdsDocUrls", []))))
 
