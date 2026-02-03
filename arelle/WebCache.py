@@ -351,10 +351,11 @@ class WebCache:
                 scheme, sep, pathpart = normedPath.partition("://")
                 pathpart = pathpart.replace('\\','/')
                 endingSep = '/' if pathpart[-1] == '/' else ''  # normpath drops ending directory separator
-                return scheme + "://" + posixpath.normpath(pathpart) + endingSep
-            normedPath = os.path.normpath(normedPath)
-            if normedPath.startswith(self.cacheDir):
-                normedPath = self.cacheFilepathToUrl(normedPath)
+                normedPath = scheme + "://" + posixpath.normpath(pathpart) + endingSep
+            else:
+                normedPath = os.path.normpath(normedPath)
+                if normedPath.startswith(self.cacheDir):
+                    normedPath = self.cacheFilepathToUrl(normedPath)
         return normedPath
 
     def encodeForFilename(self, pathpart):
