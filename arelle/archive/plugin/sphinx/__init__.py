@@ -74,7 +74,7 @@ def sphinxFilesOpenMenuEntender(cntlr, menu, *args, **kwargs):
                     _("[exception] Sphinx Compiling Exception: %(error)s \n%(traceback)s") %
                     {"error": ex,
                      "exc_info": True,
-                     "traceback": traceback.format_tb(sys.exc_info()[2])})
+                     "traceback": traceback.format_exc()})
         import threading
         thread = threading.Thread(target=backgroundParseSphinxFiles)
         thread.daemon = True
@@ -106,7 +106,7 @@ def sphinxToLBMenuEntender(cntlr, menu, *args, **kwargs):
                     _("[exception] Sphinx Compiling Exception: %(error)s \n%(traceback)s") %
                     {"error": ex,
                      "exc_info": True,
-                     "traceback": traceback.format_tb(sys.exc_info()[2])})
+                     "traceback": traceback.format_exc()})
         import threading
         thread = threading.Thread(target=backgroundSphinxGenerateFormula)
         thread.daemon = True

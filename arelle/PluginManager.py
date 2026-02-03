@@ -508,7 +508,7 @@ def moduleModuleInfo(
             return moduleInfo
         except Exception as err:
             _msg = _("Exception obtaining plug-in module info: {moduleFilename}\n{error}\n{traceback}").format(
-                    error=err, moduleFilename=moduleFilename, traceback=traceback.format_tb(sys.exc_info()[2]))
+                    error=err, moduleFilename=moduleFilename, traceback=traceback.format_exc())
             logPluginTrace(_msg, logging.ERROR)
     return None
 
@@ -628,7 +628,7 @@ def loadModule(moduleInfo: dict[str, Any], packagePrefix: str="") -> None:
             _cntlr.addToLog(message=_ERROR_MESSAGE_IMPORT_TEMPLATE.format(name), level=logging.ERROR)
 
             _msg = _("Exception loading plug-in {name}: {error}\n{traceback}").format(
-                    name=name, error=err, traceback=traceback.format_tb(sys.exc_info()[2]))
+                    name=name, error=err, traceback=traceback.format_exc())
             logPluginTrace(_msg, logging.ERROR)
 
 

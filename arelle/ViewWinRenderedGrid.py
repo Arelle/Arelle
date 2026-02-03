@@ -304,7 +304,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             self.modelXbrl.error(f"exception: {type(err).__name__}",
                 "Table Linkbase GUI rendering exception: %(error)s at %(traceback)s",
                 modelXbrl=self.modelXbrl, error=err,
-                traceback=traceback.format_tb(sys.exc_info()[2]))
+                traceback=traceback.format_exc())
 
         self.modelXbrl.profileStat("viewTable_" + os.path.basename(viewTblELR), time.time() - startedAt)
 

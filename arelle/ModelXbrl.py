@@ -1015,7 +1015,7 @@ class ModelXbrl:
         except (IndexError, ValueError, AttributeError)as err:
             self.modelManager.addToLog(_("Exception viewing properties {0} {1} at {2}").format(
                             modelObject,
-                            err, traceback.format_tb(sys.exc_info()[2])))
+                            err, traceback.format_exc()))
 
     # isLoggingEffectiveFor( messageCodes= messageCode= level= )
     def isLoggingEffectiveFor(self, **kwargs: Any) -> bool:  # args can be messageCode(s) and level

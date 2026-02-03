@@ -2829,7 +2829,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             error("arelleOIMloader:error",
                     "Error while %(action)s, error %(error)s\n traceback %(traceback)s",
                     modelObject=modelXbrl, action=currentAction, error=ex,
-                    traceback=traceback.format_tb(sys.exc_info()[2]))
+                    traceback=traceback.format_exc())
 
     # Reset modified status of model so user is not prompted for changes triggered by this loading operation.
     _return.isModified = False

@@ -927,7 +927,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
             error("arelleOIMloader:error",
                     "Error while %(action)s, error %(errorType)s %(error)s\n traceback %(traceback)s",
                     modelObject=modelXbrl, action=currentAction, errorType=ex.__class__.__name__, error=ex,
-                    traceback=traceback.format_tb(sys.exc_info()[2]))
+                    traceback=traceback.format_exc())
 
     global lastFilePath, lastFilePath
     lastFilePath = None
@@ -943,7 +943,7 @@ def oimTaxonomyValidator(val, parameters):
         val.modelXbrl.error("arelleOIMloader:error",
                 "Error while validating, error %(errorType)s %(error)s\n traceback %(traceback)s",
                 modelObject=val.modelXbrl, errorType=ex.__class__.__name__, error=ex,
-                traceback=traceback.format_tb(sys.exc_info()[2]))
+                traceback=traceback.format_exc())
 
 lastFilePath = None
 lastFilePathIsOIM = False

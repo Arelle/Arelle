@@ -121,7 +121,7 @@ def xbrlDBmenuEntender(cntlr, menu, *args, **kwargs):
                     {"exception": ex.__class__.__name__,
                      "error": str(ex),
                      "exc_info": True,
-                     "traceback": traceback.format_tb(sys.exc_info()[2])})
+                     "traceback": traceback.format_exc()})
                 cntlr.config["xbrlDBconnection"] = (host, port, user, password, db, timeout, '') # forget type
                 cntlr.saveConfig()
         import threading

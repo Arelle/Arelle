@@ -1113,7 +1113,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             except Exception as err:
                 self.addToLog(_("Entry point loading Failed to complete request: \n{0} \n{1}").format(
                             err,
-                            traceback.format_tb(sys.exc_info()[2])),
+                            traceback.format_exc()),
                               messageCode="Exception",
                               level=logging.ERROR)
                 success = False    # loading errors, don't attempt to utilize loaded DTS
@@ -1187,7 +1187,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     success = False
                     self.addToLog(_("[Exception] Failed to load diff file: \n{0} \n{1}").format(
                                 err,
-                                traceback.format_tb(sys.exc_info()[2])))
+                                traceback.format_exc()))
             if success:
                 try:
                     for modelXbrl in [self.modelManager.modelXbrl] + getattr(self.modelManager.modelXbrl, "supplementalModelXbrls", []):
@@ -1246,7 +1246,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                 success = False
                                 self.addToLog(_("[Exception] Failed to load compare file: \n{0} \n{1}").format(
                                     err,
-                                    traceback.format_tb(sys.exc_info()[2])))
+                                    traceback.format_exc()))
 
                         if options.compareInstance:
                             try:
@@ -1268,7 +1268,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                 success = False
                                 self.addToLog(_("[Exception] Failed to load compare file: \n{0} \n{1}").format(
                                     err,
-                                    traceback.format_tb(sys.exc_info()[2])))
+                                    traceback.format_exc()))
 
                         if options.testReport:
                             ViewFileTests.viewTests(self.modelManager.modelXbrl, options.testReport, options.testReportCols)
@@ -1315,7 +1315,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 except Exception as err:
                     self.addToLog(_("[Exception] Failed to complete request: \n{0} \n{1}").format(
                                     err,
-                                    traceback.format_tb(sys.exc_info()[2])),
+                                    traceback.format_exc()),
                                   messageCode=err.__class__.__name__,
                                   file=options.entrypointFile,
                                   level=logging.CRITICAL)

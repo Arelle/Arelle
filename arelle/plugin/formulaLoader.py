@@ -1763,7 +1763,7 @@ def parse(cntlr, _logMessage, xfFiles, modelXbrl=None, debugParsing=False):
                 xfsFile=xfsFile,
                 sourceFileLines=((file,lineno(lastLoc,sourceString)),),
                 error=str(err), exc_info=True)
-            print(traceback.format_tb(sys.exc_info()[2]))
+            traceback.print_exc()
             successful = False
 
         cntlr.showStatus("Compiled formula files {0}".format({True:"successful",

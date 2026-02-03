@@ -353,7 +353,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
 
         except Exception as err:
             fatalLoadingErrors.append("Exception: {error}, Excel sheet: {excelSheet} row: {excelRow}, Traceback: {traceback}"
-                                      .format(error=err, excelSheet=dtsSheet, excelRow=iRow, traceback=traceback.format_tb(sys.exc_info()[2])))
+                                      .format(error=err, excelSheet=dtsSheet, excelRow=iRow, traceback=traceback.format_exc()))
     # remove any imported linkbaseRefs that are also generated
     for thisDoc in genDocs.values():
         linkbaseRefsToRemove = [i
@@ -907,7 +907,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
 
             except Exception as err:
                 fatalLoadingErrors.append("Excel sheet: {excelSheet}, row: {excelRow}, error: {error}, Traceback: {traceback}"
-                                   .format(error=err, excelSheet=importSheetName, excelRow=iRow, traceback=traceback.format_tb(sys.exc_info()[2])))            # uncomment to debug raise
+                                   .format(error=err, excelSheet=importSheetName, excelRow=iRow, traceback=traceback.format_exc()))            # uncomment to debug raise
 
         if not headerCols:
             if not conceptsWs:
