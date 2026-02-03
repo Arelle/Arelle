@@ -194,7 +194,7 @@ class ModelManager:
         except Exception as err:
             self.addToLog(_("[exception] Validation exception: {0} at {1}").format(
                            err,
-                           traceback.format_tb(sys.exc_info()[2])))
+                           traceback.format_exc()))
 
     def compareDTSes(self, versReportFile, writeReportFile=True):
         """Compare two most recently loaded DTSes, saving versioning report in to the file name provided.

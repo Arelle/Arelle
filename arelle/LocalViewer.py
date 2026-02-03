@@ -57,7 +57,7 @@ class LocalViewer:
         except Exception as ex:
             self.cntlr.addToLog(_("{} exception: http://localhost:{} \nException: {} \nTraceback: {}").format(
                 self.title, self.port,
-                ex, traceback.format_tb(sys.exc_info()[2])), messageCode="localViewer:exception",level=logging.DEBUG)
+                ex, traceback.format_exc()), messageCode="localViewer:exception",level=logging.DEBUG)
 
     def get(self, file=None, relpath=None):
         self.cntlr.addToLog("http://localhost:{}/{}".format(self.port,file), messageCode="localViewer:get",level=logging.DEBUG)
@@ -67,4 +67,4 @@ class LocalViewer:
             raise # re-raise, such as to support redirects
         except Exception as ex:
             self.cntlr.addToLog(_("{} exception: file: {} \nException: {} \nTraceback: {}").format(
-                self.title, file, ex, traceback.format_tb(sys.exc_info()[2])), messageCode="localViewer:exception",level=logging.DEBUG)
+                self.title, file, ex, traceback.format_exc()), messageCode="localViewer:exception",level=logging.DEBUG)

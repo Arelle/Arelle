@@ -118,7 +118,7 @@ if __name__ == "__main__":
                               line))
         except Exception as ex:
             print(ex)
-            print("traceback {}".format(traceback.format_tb(sys.exc_info()[2])))
+            print("traceback {}".format(traceback.format_exc()))
     os.makedirs(arelleSrcPath + os.sep + "doc", exist_ok=True)
     with io.open(arelleSrcPath + os.sep + "doc" + os.sep + "messagesCatalog.xml", 'wt', encoding='utf-8') as f:
         f.write(

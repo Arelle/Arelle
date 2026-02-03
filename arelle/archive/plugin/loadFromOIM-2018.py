@@ -1173,7 +1173,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
             error("arelleOIMloader:error",
                     "Error while %(action)s, error %(error)s\ntraceback %(traceback)s",
                     modelObject=modelXbrl, action=currentAction, error=ex,
-                    traceback=traceback.format_tb(sys.exc_info()[2]))
+                    traceback=traceback.format_exc())
 
     if priorCWD:
         os.chdir(priorCWD) # restore prior current working directory            startingErrorCount = len(modelXbrl.errors)

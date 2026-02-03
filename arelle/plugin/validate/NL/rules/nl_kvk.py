@@ -144,7 +144,7 @@ def rule_nl_kvk_3_1_2_1(
     NL-KVK.3.1.2.1: xbrli:startDate, xbrli:endDate, xbrli:instant formatted as yyyy-mm-dd without time.
     """
     contextsWithPeriodTime = pluginData.getContextsWithPeriodTime(val.modelXbrl)
-    if len(contextsWithPeriodTime) !=0:
+    if len(contextsWithPeriodTime) != 0:
         yield Validation.error(
             codes='NL.NL-KVK-3.1.2.1.periodWithTimeContent',
             msg=_('xbrli:startDate, xbrli:endDate, xbrli:instant must be formatted as yyyy-mm-dd without time'),
@@ -166,7 +166,7 @@ def rule_nl_kvk_3_1_2_2(
     NL-KVK.3.1.2.1: xbrli:startDate, xbrli:endDate, xbrli:instant format to be formatted as yyyy-mm-dd without time zone.
     """
     contextsWithPeriodTimeZone = pluginData.getContextsWithPeriodTimeZone(val.modelXbrl)
-    if len(contextsWithPeriodTimeZone) !=0:
+    if len(contextsWithPeriodTimeZone) != 0:
             yield Validation.error(
                 codes='NL.NL-KVK-3.1.2.2.periodWithTimeZone',
                 msg=_('xbrli:startDate, xbrli:endDate, xbrli:instant must be formatted as yyyy-mm-dd without time zone'),
@@ -188,7 +188,7 @@ def rule_nl_kvk_3_1_3_1 (
     NL-KVK.3.1.3.1: xbrli:segment must not be used in contexts.
     """
     contextsWithSegments = pluginData.getContextsWithSegments(val.modelXbrl)
-    if len(contextsWithSegments) !=0:
+    if len(contextsWithSegments) != 0:
         yield Validation.error(
             codes='NL.NL-KVK-3.1.3.1.segmentUsed',
             msg=_('xbrli:segment must not be used in contexts.'),
@@ -210,7 +210,7 @@ def rule_nl_kvk_3_1_3_2 (
     NL-KVK.3.1.3.2: xbrli:scenario must only contain content defined in XBRL Dimensions specification.
     """
     contextsWithImproperContent = pluginData.getContextsWithImproperContent(val.modelXbrl)
-    if len(contextsWithImproperContent) !=0:
+    if len(contextsWithImproperContent) != 0:
         yield Validation.error(
             codes='NL.NL-KVK-3.1.3.2.scenarioContainsNotAllowedContent',
             msg=_('xbrli:scenario must only contain content defined in XBRL Dimensions specification.'),

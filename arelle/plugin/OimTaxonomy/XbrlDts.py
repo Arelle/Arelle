@@ -106,7 +106,7 @@ class XbrlDts(ModelXbrl): # complete wrapper for ModelXbrl
         except (IndexError, ValueError, AttributeError)as err:
             self.modelManager.addToLog(_("Exception viewing properties {0} {1} at {2}").format(
                             xbrlObj,
-                            err, traceback.format_tb(sys.exc_info()[2])))
+                            err, traceback.format_exc()))
 
     # dts-wide object accumulator properties
     def filterNamedObjects(self, _class, _type=None, _lang=None):

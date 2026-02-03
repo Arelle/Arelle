@@ -980,7 +980,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             msg = _("Exception loading {0}: {1}, at {2}").format(
                      filesource.url,
                      err,
-                     traceback.format_tb(sys.exc_info()[2]))
+                     traceback.format_exc())
             # not sure if message box can be shown from background thread
             # tkinter.messagebox.showwarning(_("Exception loading"),msg, parent=self.parent)
             self.addToLog(msg);
@@ -1118,7 +1118,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             msg = _("Exception preparing {0}: {1}, at {2}").format(
                      currentAction,
                      err,
-                     traceback.format_tb(sys.exc_info()[2]))
+                     traceback.format_exc())
             tkinter.messagebox.showwarning(_("Exception preparing view"),msg, parent=self.parent)
             self.addToLog(msg);
         if not isSupplementalModelXbrl:
@@ -1158,7 +1158,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             msg = _("Exception {0}: {1}, at {2}").format(
                      currentAction,
                      err,
-                     traceback.format_tb(sys.exc_info()[2]))
+                     traceback.format_exc())
             tkinter.messagebox.showwarning(_("Exception preparing view"),msg, parent=self.parent)
             self.addToLog(msg);
         self.showStatus(_("Ready..."), 2000)
@@ -1228,7 +1228,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                     try:
                         Validate.validate(modelXbrl)
                     except Exception as err:
-                        self.addToLog(_("[exception] Validation exception: {0} at {1}").format(err, traceback.format_tb(sys.exc_info()[2])))
+                        self.addToLog(_("[exception] Validation exception: {0} at {1}").format(err, traceback.format_exc()))
                     self.addToLog(format_string(self.modelManager.locale, _("validated in %.2f secs: %s"), (time.time() - startedAt, modelXbrl.displayUri)))
                     if not modelXbrl.isClosed and (priorOutputInstance or modelXbrl.formulaOutputInstance):
                         self.uiThreadQueue.put((self.showFormulaOutputInstance, [priorOutputInstance, modelXbrl.formulaOutputInstance]))
@@ -1801,11 +1801,8 @@ class TkinterCallWrapper:
             raise SystemExit(msg)
         except Exception:
             # this was tkinter's standard coding: self.widget._report_exception()
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            msg = ''.join(traceback.format_exception_only(exc_type, exc_value))
-            tracebk = ''.join(traceback.format_tb(exc_traceback, limit=30))
             tkinter.messagebox.showerror(_("Exception"),
-                                         _("{0}\nCall trace\n{1}").format(msg, tracebk))
+                                         _("{0}\n").format(traceback.format_exc(limit=30)))
 
 
 
@@ -1851,10 +1848,7 @@ def main():
                 os.system(f'/usr/bin/osascript -e \'tell app "Finder" to set frontmost of process "{processName}" to true\'')
             application.mainloop()
         except Exception: # unable to start Tk or other fatal error
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            msg = ''.join(traceback.format_exception_only(exc_type, exc_value))
-            tracebk = ''.join(traceback.format_tb(exc_traceback, limit=7))
-            logMsg = "{}\nCall Trace\n{}\nEnvironment {}".format(msg, tracebk, os.environ)
+            logMsg = "{}\nEnvironment {}".format(traceback.format_exc(limit=7), os.environ)
             #print(logMsg, file=sys.stderr)
             if syslog is not None:
                 syslog.openlog("Arelle")

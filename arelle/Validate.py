@@ -112,7 +112,7 @@ class Validate:
                     _("Testcase validation exception: %(error)s, testcase: %(testcase)s"),
                     modelXbrl=self.modelXbrl,
                     testcase=self.modelXbrl.modelDocument.basename, error=err,
-                    #traceback=traceback.format_tb(sys.exc_info()[2]),
+                    #traceback=traceback.format_exc(),
                     exc_info=True)
         elif self.modelXbrl.modelDocument.type == Type.VERSIONINGREPORT:
             try:
@@ -122,7 +122,7 @@ class Validate:
                     _("Versioning report exception: %(error)s, testcase: %(reportFile)s"),
                     modelXbrl=self.modelXbrl,
                     reportFile=self.modelXbrl.modelDocument.basename, error=err,
-                    #traceback=traceback.format_tb(sys.exc_info()[2]),
+                    #traceback=traceback.format_exc(),
                     exc_info=True)
         elif self.modelXbrl.modelDocument.type == Type.RSSFEED:
             self.validateRssFeed()
@@ -136,7 +136,7 @@ class Validate:
                     modelXbrl=self.modelXbrl,
                     instance=self.modelXbrl.modelDocument.basename if hasattr(self.modelXbrl, "modelDocument") and hasattr(self.modelXbrl.modelDocument, "basename") else "(closed)",
                     error=err,
-                    # traceback=traceback.format_tb(sys.exc_info()[2]),
+                    # traceback=traceback.format_exc(),
                     exc_info=True)
         self.close()
 
