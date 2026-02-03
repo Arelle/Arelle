@@ -74,7 +74,7 @@ def validateFileSource(*args: Any, **kwargs: Any) -> None:
     return validationPlugin.validateFileSource(*args, **kwargs)
 
 
-def validateFinally(*args: Any, **kwargs: Any) -> None:
+def validateFormulaFinished(*args: Any, **kwargs: Any) -> None:
     return validationPlugin.validateFinally(*args, **kwargs)
 
 
@@ -105,5 +105,5 @@ __pluginInfo__ = {
     "Validate.FileSource": validateFileSource,
     "Validate.XBRL.Finally": validateXbrlFinally,
     "Validate.XBRL.Start": validateXbrlStart,
-    "ValidateFormula.Finished": validateFinally,
+    "ValidateFormula.Finished": validateFormulaFinished,
 }
