@@ -79,6 +79,7 @@ LINK_LOCALNAME_TO_MODEL_CLASS = {
     for q in [
         XbrlConst.qnLinkCalculationArc,
         XbrlConst.qnLinkDefinitionArc,
+        XbrlConst.qnLinkLabelArc,
         XbrlConst.qnLinkPresentationArc,
         XbrlConst.qnLinkReferenceArc,
     ]
