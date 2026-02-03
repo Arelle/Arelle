@@ -155,6 +155,7 @@ class PluginValidationDataExtension(PluginData):
     formattedExplanationItemTypeQn: QName | None
     ifrsIdentifier: str
     mandatoryFactQNames: frozenset[QName] | None
+    nonDimensionalLineItemsQName: QName | None
     permissibleGAAPRootAbstracts: frozenset[QName]
     permissibleIFRSRootAbstracts: frozenset[QName]
     textFormattingSchemaPath: str

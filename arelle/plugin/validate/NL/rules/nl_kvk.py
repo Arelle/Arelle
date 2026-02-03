@@ -1068,6 +1068,46 @@ def rule_nl_kvk_3_6_3_7(
 
 
 @validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_prohibited_dimension_use(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.prohibitedUseOfDimensions: Dimension use is prohibited on elements under kvk:NonDimensionalLineItems.
+    """
+    assert pluginData.nonDimensionalLineItemsQName is not None
+    nonDimensionalLineItemsElement = val.modelXbrl.qnameConcepts.get(pluginData.nonDimensionalLineItemsQName)
+    if nonDimensionalLineItemsElement is None:
+        return
+    linkrole = 'https://www.nltaxonomie.nl/kvk/role/lineitems-nondimensional-usage'
+    relationshipSet = val.modelXbrl.relationshipSet(XbrlConst.domainMember, linkrole)
+    nonDimensionalLineItems = set()
+    def collect(startElement: ModelObject) -> None:
+        if startElement.qname in nonDimensionalLineItems:
+            return
+        nonDimensionalLineItems.add(startElement.qname)
+        for rel in relationshipSet.fromModelObject(startElement):
+            collect(rel.toModelObject)
+    collect(nonDimensionalLineItemsElement)
+    invalidDimensionUseFacts = []
+    for qname in nonDimensionalLineItems:
+        for fact in val.modelXbrl.factsByQname[qname]:
+            if fact.context.hasScenario or fact.context.hasSegment:
+                invalidDimensionUseFacts.append(fact)
+    if invalidDimensionUseFacts:
+        yield Validation.error(
+            codes='NL.NL-KVK.prohibitedUseOfDimensions',
+            msg=_("The filing uses dimensions on some elements for which dimension use is prohibited."),
+            modelObject=invalidDimensionUseFacts,
+        )
+
+
+@validation(
     hook=ValidationHook.FINALLY,
     disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
 )
