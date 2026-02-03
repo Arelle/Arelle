@@ -160,6 +160,7 @@ class WebCache:
         else:
             self.cachedUrlCheckTimes = {}
         self.cachedUrlCheckTimesModified = False
+        self._normalizeUrlCache = {}
 
     @property
     def timeout(self):
@@ -321,6 +322,9 @@ class WebCache:
         return filepath
 
     def normalizeUrl(self, url: str | None, base: str | None = None) -> Any:
+        cacheKey = (url, base)
+        if result := self._normalizeUrlCache.get(cacheKey):
+            return result
         if url:
             url = url.removeprefix("file://")
             url = url.removeprefix("file:\\")
@@ -356,6 +360,7 @@ class WebCache:
                 normedPath = os.path.normpath(normedPath)
                 if normedPath.startswith(self.cacheDir):
                     normedPath = self.cacheFilepathToUrl(normedPath)
+        self._normalizeUrlCache[cacheKey] = normedPath
         return normedPath
 
     def encodeForFilename(self, pathpart):
