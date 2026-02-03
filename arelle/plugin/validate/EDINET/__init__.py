@@ -104,6 +104,6 @@ __pluginInfo__ = {
     "Validate.Complete": validateComplete,
     "Validate.FileSource": validateFileSource,
     "Validate.XBRL.Finally": validateXbrlFinally,
-    'Validate.XBRL.Start': validateXbrlStart,
+    "Validate.XBRL.Start": validateXbrlStart,
     "ValidateFormula.Finished": validateFinally,
 }
