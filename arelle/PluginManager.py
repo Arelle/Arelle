@@ -317,8 +317,9 @@ def getModuleFilename(moduleURL: str, reload: bool, normalize: bool, base: str |
 
 def parsePluginInfo(moduleURL: str, moduleFilename: str, entryPoint: EntryPoint | None) -> dict | None:
     moduleDir, moduleName = os.path.split(moduleFilename)
-    f = arelle.FileSource.openFileStream(_cntlr, moduleFilename)
-    tree = ast.parse(f.read(), filename=moduleFilename)
+    with arelle.FileSource.openFileStream(_cntlr, moduleFilename) as f:
+        contents = f.read()
+        tree = ast.parse(contents, filename=moduleFilename)
     constantStrings = {}
     functionDefNames = set()
     methodDefNamesByClass = defaultdict(set)
@@ -334,7 +335,6 @@ def parsePluginInfo(moduleURL: str, moduleFilename: str, entryPoint: EntryPoint 
                 continue
             if attr == "__pluginInfo__":
                 isPlugin = True
-                f.close()
                 classMethods = []
                 importURLs = []
                 for i, key in enumerate(item.value.keys):
@@ -411,7 +411,6 @@ def parsePluginInfo(moduleURL: str, moduleFilename: str, entryPoint: EntryPoint 
                 if isinstance(classItem, ast.FunctionDef):
                     methodDefNamesByClass[item.name].add(classItem.name)
     moduleInfo["moduleImports"] = moduleImports
-    f.close()
     return moduleInfo if isPlugin else None
 
 
