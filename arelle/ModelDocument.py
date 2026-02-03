@@ -879,6 +879,10 @@ class ModelDocument:
             dummyRootElement = self.parser.makeelement("{http://dummy}dummy") # may fail for streaming
             for modelObject in self.xmlRootElement.iter():
                 modelObject.__dict__.clear() # clear python variables of modelObjects (not lxml)
+            # Clearing namespace declarations results in substantial namespace fixup work for descendant elements.
+            # Clear children before the root, the likely contributor of namespace declarations.
+            for modelObject in self.xmlRootElement:
+                modelObject.clear()
             self.xmlRootElement.clear() # clear entire lxml subtree
             self.parserLookupName.__dict__.clear()
             self.parserLookupClass.__dict__.clear()

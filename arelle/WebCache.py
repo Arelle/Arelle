@@ -160,6 +160,7 @@ class WebCache:
         else:
             self.cachedUrlCheckTimes = {}
         self.cachedUrlCheckTimesModified = False
+        self._normalizeUrlCache = {}
 
     @property
     def timeout(self):
@@ -321,9 +322,12 @@ class WebCache:
         return filepath
 
     def normalizeUrl(self, url: str | None, base: str | None = None) -> Any:
+        cacheKey = (url, base)
+        if result := self._normalizeUrlCache.get(cacheKey):
+            return result
         if url:
-            if url.startswith("file://"): url = url[7:]
-            elif url.startswith("file:\\"): url = url[6:]
+            url = url.removeprefix("file://")
+            url = url.removeprefix("file:\\")
         if url and not (isHttpUrl(url) or isLegacyAbs(url)):
             if base is not None and not isHttpUrl(base) and '%' in url:
                 url = unquote(url)
@@ -337,8 +341,8 @@ class WebCache:
                     normedPath = os.path.normpath(os.path.join(os.path.dirname(base),url))
             else: # includes base == '' (for forcing relative path)
                 normedPath = url
-            if normedPath.startswith("file://"): normedPath = normedPath[7:]
-            elif normedPath.startswith("file:\\"): normedPath = normedPath[6:]
+            normedPath = normedPath.removeprefix("file://")
+            normedPath = normedPath.removeprefix("file:\\")
 
             # no base, not normalized, must be relative to current working directory
             if base is None and not isLegacyAbs(url):
@@ -351,10 +355,12 @@ class WebCache:
                 scheme, sep, pathpart = normedPath.partition("://")
                 pathpart = pathpart.replace('\\','/')
                 endingSep = '/' if pathpart[-1] == '/' else ''  # normpath drops ending directory separator
-                return scheme + "://" + posixpath.normpath(pathpart) + endingSep
-            normedPath = os.path.normpath(normedPath)
-            if normedPath.startswith(self.cacheDir):
-                normedPath = self.cacheFilepathToUrl(normedPath)
+                normedPath = scheme + "://" + posixpath.normpath(pathpart) + endingSep
+            else:
+                normedPath = os.path.normpath(normedPath)
+                if normedPath.startswith(self.cacheDir):
+                    normedPath = self.cacheFilepathToUrl(normedPath)
+        self._normalizeUrlCache[cacheKey] = normedPath
         return normedPath
 
     def encodeForFilename(self, pathpart):
