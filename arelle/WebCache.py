@@ -322,8 +322,8 @@ class WebCache:
 
     def normalizeUrl(self, url: str | None, base: str | None = None) -> Any:
         if url:
-            if url.startswith("file://"): url = url[7:]
-            elif url.startswith("file:\\"): url = url[6:]
+            url = url.removeprefix("file://")
+            url = url.removeprefix("file:\\")
         if url and not (isHttpUrl(url) or isLegacyAbs(url)):
             if base is not None and not isHttpUrl(base) and '%' in url:
                 url = unquote(url)
@@ -337,8 +337,8 @@ class WebCache:
                     normedPath = os.path.normpath(os.path.join(os.path.dirname(base),url))
             else: # includes base == '' (for forcing relative path)
                 normedPath = url
-            if normedPath.startswith("file://"): normedPath = normedPath[7:]
-            elif normedPath.startswith("file:\\"): normedPath = normedPath[6:]
+            normedPath = normedPath.removeprefix("file://")
+            normedPath = normedPath.removeprefix("file:\\")
 
             # no base, not normalized, must be relative to current working directory
             if base is None and not isLegacyAbs(url):
