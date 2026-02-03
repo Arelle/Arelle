@@ -319,6 +319,8 @@ def parsePluginInfo(moduleURL: str, moduleFilename: str, entryPoint: EntryPoint 
     moduleDir, moduleName = os.path.split(moduleFilename)
     with arelle.FileSource.openFileStream(_cntlr, moduleFilename) as f:
         contents = f.read()
+        if '__pluginInfo__' not in contents:
+            return None
         tree = ast.parse(contents, filename=moduleFilename)
     constantStrings = {}
     functionDefNames = set()
