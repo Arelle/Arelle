@@ -332,6 +332,7 @@ class ValidationPluginExtension(ValidationPlugin):
             formattedExplanationItemTypeQn=qname(nlTypesNamespace, 'formattedExplanationItemType') if nlTypesNamespace else None,
             ifrsIdentifier = 'https://xbrl.ifrs.org',
             mandatoryFactQNames=mandatoryFactQNames,
+            nonDimensionalLineItemsQName=qname(kvkINamespace, 'NonDimensionalLineItems') if kvkINamespace else None,
             permissibleGAAPRootAbstracts=permissibleMandatoryFactsRootAbstracts | frozenset([
                 qname(jenvNamespace, 'BalanceSheetTitle'),
                 qname(jenvNamespace, 'IncomeStatementTitle'),
