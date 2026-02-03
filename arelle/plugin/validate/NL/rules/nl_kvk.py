@@ -1018,25 +1018,35 @@ def rule_nl_kvk_3_6_3_6(
         one non-dimensional context and no dimensional contexts.
     """
     filingInformationDocument = pluginData.getFilingInformationDocument(val.modelXbrl)
-    nonDimensionalContexts = []
-    dimensionalContexts = []
+    nonDimensionalContexts = set()
+    dimensionalContexts = set()
     for context in val.modelXbrl.contexts.values():
         if context.modelDocument != filingInformationDocument:
             continue
         if context.hasScenario or context.hasSegment:
-            dimensionalContexts.append(context)
+            dimensionalContexts.add(context)
         else:
-            nonDimensionalContexts.append(context)
+            nonDimensionalContexts.add(context)
+
+    # Include contexts used on filing information facts, even if they're not defined in the filing information document.
+    filingInformationFacts = pluginData.getFilingInformationFacts(val.modelXbrl)
+    for fact in filingInformationFacts:
+        context = fact.context
+        if context.hasScenario or context.hasSegment:
+            dimensionalContexts.add(context)
+        else:
+            nonDimensionalContexts.add(context)
+
     if len(nonDimensionalContexts) > 1:
         yield Validation.error(
             codes='NL.NL-KVK.3.6.3.6.dimensionalContextOrMultipleNonDimensionalContextsReportedInKvkFilingDocument',
-            modelObject=nonDimensionalContexts,
+            modelObject=sorted(nonDimensionalContexts, key=lambda c: c.id or 'unknown'),
             msg=_('The separate document that contains mandatory facts includes multiple non-dimensional contexts.'
                   ' It should have at most one.'))
     if dimensionalContexts:
         yield Validation.error(
             codes='NL.NL-KVK.3.6.3.6.dimensionalContextOrMultipleNonDimensionalContextsReportedInKvkFilingDocument',
-            modelObject=dimensionalContexts,
+            modelObject=sorted(dimensionalContexts, key=lambda c: c.id or 'unknown'),
             msg=_('The separate document that contains mandatory facts includes facts with dimensions.'
                   ' Facts in this document should not use dimensions.'))
 
@@ -1055,14 +1065,21 @@ def rule_nl_kvk_3_6_3_7(
     NL-KVK.3.6.3.7: The separate Inline XBRL document for filing purposes MUST NOT report any units.
     """
     filingInformationDocument = pluginData.getFilingInformationDocument(val.modelXbrl)
-    units = []
+    units = set()
     for unit in val.modelXbrl.units.values():
         if unit.modelDocument == filingInformationDocument:
-            units.append(unit)
+            units.add(unit)
+
+    # Include units used on filing information facts, even if they're not defined in the filing information document.
+    filingInformationFacts = pluginData.getFilingInformationFacts(val.modelXbrl)
+    for fact in filingInformationFacts:
+        if fact.unit is not None:
+            units.add(fact.unit)
+
     if units:
         yield Validation.error(
             codes='NL.NL-KVK.3.6.3.7.unitsReportedInKvkFilingDocument',
-            modelObject=units,
+            modelObject=sorted(units, key=lambda u: u.id or 'unknown'),
             msg=_('The separate document that includes mandatory facts includes facts with reported units.'
                   ' This file should not include facts with reported units.'))
 
