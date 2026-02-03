@@ -110,6 +110,7 @@ class ModelObject(etree.ElementBase):
     _namespaceURI: str | None
     _hashSEqual: int
     _hashXpathEqual: int
+    _prefixedName: str
     sValue: TypeSValue
     xAttributes: dict[str, ModelAttribute]
     xValue: TypeXValue
@@ -166,10 +167,6 @@ class ModelObject(etree.ElementBase):
             self._namespaceURI: str | None = ns[1:]
         else:
             self._namespaceURI = None
-        if self.prefix:
-            self._prefixedName = self.prefix + ":" + self.localName
-        else:
-            self._prefixedName = self.localName
 
     def getStripped(self, attrName: str) -> str | None:
         attrValue = self.get(attrName)
@@ -190,7 +187,10 @@ class ModelObject(etree.ElementBase):
         try:
             return self._prefixedName
         except AttributeError:
-            self.setNamespaceLocalName()
+            if self.prefix:
+                self._prefixedName = self.prefix + ":" + self.localName
+            else:
+                self._prefixedName = self.localName
             return self._prefixedName
 
     @property
