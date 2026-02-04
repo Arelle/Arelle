@@ -1,7 +1,7 @@
 {
     "$schema": "../oim-taxonomy-schema.json",
     "documentInfo": {
-        "documentType": "https://xbrl.org/2025/taxonomy",
+        "documentType": "https://xbrl.org/2026/model",
         "namespaces": {
             "specDoc": "https://xbrl.org/2025/oimtaxonomy/documentation",
             "oime": "http://www.xbrl.org/2021/oim/error",
@@ -83,6 +83,48 @@
                         "value": "../documentation/CUBE_TYPE.md "
                     }
                 ]
+            },
+            {
+                "name": "specDoc:factMapRationale",
+                "relatedNames": [
+                    "xbrl:factMapObject"
+                ],
+                "referenceType": "specDoc:ObjectRationale",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "ref:documentationLinkMD",
+                        "value": "../documentation/FACTMAP_OBJECT.md"
+                    }
+                ]
+            },
+            {
+                "name": "specDoc:factMapProcessing",
+                "relatedNames": [
+                    "xbrl:factMapObject"
+                ],
+                "referenceType": "specDoc:ProcessingModel",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "ref:documentationLinkMD",
+                        "value": "../documentation/FACTMAP_PROCESSING.md"
+                    }
+                ]
+            },
+            {
+                "name": "specDoc:modelTypeRationale",
+                "relatedNames": [
+                    "xbrl:modelTypeObject"
+                ],
+                "referenceType": "specDoc:ObjectRationale",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "ref:documentationLinkMD",
+                        "value": "../documentation/MODELTYPE_OBJECT.md"
+                    }
+                ]
             }
 
         ],
@@ -119,34 +161,157 @@
                 "name": "specDoc:modelObjectsList",
                 "relationshipTypeName": "xbrl:parent-child",
                 "roots": [
-                    "xbrl:abstractObject",
-                    "xbrl:conceptObject",
-                    "xbrl:cubeDimensionObject",
-                    "xbrl:cubeObject",
-                    "xbrl:cubeTypeObject",
-                    "xbrl:dataTypeObject",
-                    "xbrl:dimensionObject",
-                    "xbrl:domainClassObject",
-                    "xbrl:domainObject",
-                    "xbrl:entityObject",
-                    "xbrl:factspaceObject",
-                    "xbrl:finalTaxonomyObject",
-                    "xbrl:footnoteObject",
-                    "xbrl:groupContentObject",
-                    "xbrl:groupObject",
-                    "xbrl:groupTreeObject",
-                    "xbrl:importTaxonomyObject",
-                    "xbrl:labelObject",
-                    "xbrl:labelTypeObject",
-                    "xbrl:memberObject",
-                    "xbrl:networkObject",
-                    "xbrl:propertyObject",
-                    "xbrl:propertyTypeObject",
-                    "xbrl:referenceObject",
-                    "xbrl:referenceTypeObject",
-                    "xbrl:relationshipObject",
-                    "xbrl:unitObject",
                     "xbrl:xbrlModelObject"
+                ],
+                "relationships": [
+                    {
+                        "source": "xbrl:xbrlModelObject",
+                        "target": "xbrl:importTaxonomyObject",
+                        "order": 31
+                    },
+                    {
+                        "source": "xbrl:xbrlModelObject",
+                        "target": "xbrl:finalTaxonomyObject",
+                        "order": 32
+                    },
+                    {
+                        "source": "xbrl:xbrlModelObject",
+                        "target": "xbrl:modelTypeObject",
+                        "order": 21
+                    },
+                    {
+                        "source": "xbrl:xbrlModelObject",
+                        "target": "xbrl:conceptObject",
+                        "order": 10
+                    },
+                    {
+                        "source": "xbrl:xbrlModelObject",
+                        "target": "xbrl:abstractObject",
+                        "order": 11
+                    },
+                    {
+                        "source": "xbrl:xbrlModelObject",
+                        "target": "xbrl:memberObject",
+                        "order": 12
+                    },
+                    {
+                        "source": "xbrl:xbrlModelObject",
+                        "target": "xbrl:dimensionObject",
+                        "order": 13
+                    },
+                    {
+                        "source": "xbrl:xbrlModelObject",
+                        "target": "xbrl:domainObject",
+                        "order": 14
+                    },
+                    {
+                        "source": "xbrl:xbrlModelObject",
+                        "target": "xbrl:domainClassObject",
+                        "order": 15
+                    },
+                    {
+                        "source": "xbrl:xbrlModelObject",
+                        "target": "xbrl:cubeObject",
+                        "order": 16
+                    },
+                    {
+                        "source": "xbrl:cubeObject",
+                        "target": "xbrl:cubeDimensionObject"
+                    },
+                    {
+                        "source": "xbrl:xbrlModelObject",
+                        "target": "xbrl:cubeTypeObject",
+                        "order": 23
+                    },
+                    {
+                        "source": "xbrl:xbrlModelObject",
+                        "target": "xbrl:networkObject",
+                        "order": 17
+                    },
+                    {
+                        "source": "xbrl:networkObject",
+                        "target": "xbrl:relationshipObject"
+                    },
+                    {
+                        "source": "xbrl:xbrlModelObject",
+                        "target": "xbrl:groupObject",
+                        "order": 18
+                    },
+                    {
+                        "source": "xbrl:xbrlModelObject",
+                        "target": "xbrl:groupContentObject",
+                        "order": 18.5
+                    },
+                    {
+                        "source": "xbrl:xbrlModelObject",
+                        "target": "xbrl:groupTreeObject",
+                        "order": 19
+                    },
+                    {
+                        "source": "xbrl:xbrlModelObject",
+                        "target": "xbrl:labelObject",
+                        "order": 19.3
+                    },
+                    {
+                        "source": "xbrl:xbrlModelObject",
+                        "target": "xbrl:labelTypeObject",
+                        "order": 24
+                    },
+                    {
+                        "source": "xbrl:xbrlModelObject",
+                        "target": "xbrl:referenceObject",
+                        "order": 19.6
+                    },
+                    {
+                        "source": "xbrl:xbrlModelObject",
+                        "target": "xbrl:referenceTypeObject",
+                        "order": 25
+                    },
+                    {
+                        "source": "xbrl:xbrlModelObject",
+                        "target": "xbrl:propertyObject",
+                        "order": 19.9
+                    },
+                    {
+                        "source": "xbrl:xbrlModelObject",
+                        "target": "xbrl:propertyTypeObject",
+                        "order": 28
+                    },
+                    {
+                        "source": "xbrl:xbrlModelObject",
+                        "target": "xbrl:dataTypeObject",
+                        "order": 22
+                    },
+                    {
+                        "source": "xbrl:xbrlModelObject",
+                        "target": "xbrl:unitObject",
+                        "order": 5
+                    },
+                    {
+                        "source": "xbrl:xbrlModelObject",
+                        "target": "xbrl:entityObject",
+                        "order": 7
+                    },
+                    {
+                        "source": "xbrl:xbrlModelObject",
+                        "target": "xbrl:factObject",
+                        "order": 1
+                    },
+                    {
+                        "source": "xbrl:xbrlModelObject",
+                        "target": "xbrl:footnoteObject",
+                        "order": 4
+                    },
+                    {
+                        "source": "xbrl:xbrlModelObject",
+                        "target": "xbrl:factMapObject",
+                        "order": 2
+                    },
+                    {
+                        "source": "xbrl:xbrlModelObject",
+                        "target": "xbrl:factSourceObject",
+                        "order": 3
+                    }
                 ]
             }
         ]

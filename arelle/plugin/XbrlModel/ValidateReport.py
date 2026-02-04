@@ -13,64 +13,66 @@ from .XbrlConst import unsupportedTypedDimensionDataTypes
 from .XbrlConcept import XbrlConcept, XbrlDataType
 from .XbrlCube import conceptCoreDim, languageCoreDim, periodCoreDim, unitCoreDim, coreDimensions
 from .XbrlDimension import XbrlDimension, XbrlMember
-from .XbrlReport import XbrlFactspace
+from .XbrlReport import XbrlFact
 from .XbrlUnit import parseUnitString, XbrlUnit
 from .ValidateXbrlModel import validateValue
 from .ValidateCubes import validateCubes
 
 dimPropPattern = re.compile(r"^_[A-Za-z0-9]+$")
 
-def resolveFactspace(txmyMdl, txmyObj, factspace):
-    # resolve QNames and other container-dependent values in factspace
-    name = factspace.name
-    cQn = factspace.factDimensions.get(conceptCoreDim)
+def resolveFact(txmyMdl, txmyObj, fact):
+    # resolve QNames and other container-dependent values in fact
+    name = fact.name
+    cQn = fact.factDimensions.get(conceptCoreDim)
     if isinstance(cQn, str) and ":" in cQn:
-        cQn = factspace.factDimensions[conceptCoreDim] = qname(cQn, txmyObj._prefixNamespaces)
+        cQn = fact.factDimensions[conceptCoreDim] = qname(cQn, txmyObj._prefixNamespaces)
     cObj = txmyMdl.namedObjects.get(cQn)
     if cObj is None or not isinstance(cObj, XbrlConcept):
-        error("oime:missingConceptDimension", _("The concept core dimension MUST be present on factspace: %(name)s and must be a taxonomy concept."))
+        txmyMdl.error("oime:missingConceptDimension", 
+                      _("The concept core dimension MUST be present on fact: %(name)s and must be a taxonomy concept."),
+                      xbrlObject=fact, name=fact.name)
         return
     cDataType = txmyMdl.namedObjects.get(cObj.dataType)
     if cDataType is None or not isinstance(cDataType, XbrlDataType):
         # presume this error would have been reported on validating loaded taxonomy model
         return
-    for factValue in factspace.factValues:
+    for factValue in fact.factValues:
         _valid, _value = validateValue(txmyMdl, txmyObj, factValue, factValue.value, cDataType, f"/value", "oime:invalidFactValue")
-        factspace._valid = _valid
-        factspace._value = _value
+        fact._valid = _valid
+        fact._value = _value
         if factValue.language and concept.type.isOimTextFactType:
             if not factValue.language.islower():
                 txmyMdl.error("xbrlje:invalidLanguageCodeCase",
-                              _("Language MUST be lower case: \"%(lang)s\", factspace %(name)s, concept %(concept)s."),
-                              concept=cQn, lang=factValue.language)
+                              _("Language MUST be lower case: \"%(lang)s\", fact %(name)s, concept %(concept)s."),
+                              xbrlObject=fact, name=fact.name, lang=factValue.language)
 
     if not name:
-        error("oime:missingFactId", _("The name (name) MUST be present on factspace."))
+        error("oime:missingFactId", _("The name (name) MUST be present on fact."))
 
-    uStr = factspace.factDimensions.get(unitCoreDim)
+    uStr = fact.factDimensions.get(unitCoreDim)
     if isinstance(uStr, str):
         if cDataType.isNumeric(txmyMdl):
             if uStr == "xbrli:pure":
                 txmyMdl.error("oime:illegalPureUnit",
                               _("Unit MUST NOT have single numerator measure xbrli:pure with no denominators: %(unit)s"),
-                              unit=uStr)
+                              xbrlObject=fact, unit=uStr)
             elif not UnitPattern.match( PrefixedQName.sub(UnitPrefixedQNameSubstitutionChar, uStr) ):
                 txmyMdl.error("oimce:invalidUnitStringRepresentation",
-                              _("Unit string representation is lexically invalid, %(unit)s, factspace id %(name)s"),
-                              unit=uStr)
+                              _("Unit string representation is lexically invalid, %(unit)s, fact id %(name)s"),
+                              xbrlObject=fact, unit=uStr)
             else:
-                factspace.factDimensions[unitCoreDim] = parseUnitString(uStr, factspace, txmyObj, txmyMdl)
+                fact.factDimensions[unitCoreDim] = parseUnitString(uStr, fact, txmyObj, txmyMdl)
         else:
             txmyMdl.error("oime:misplacedUnitDimension",
                           _("The unit core dimension MUST NOT be present on non-numeric facts: %(concept)s, unit %(unit)s."),
-                          concept=cQn, unit=uStr)
+                          xbrlObject=fact, concept=cQn, unit=uStr)
     updateDimVals = {} # compiled values
-    for dimName, dimVal in factspace.factDimensions.items():
+    for dimName, dimVal in fact.factDimensions.items():
         if not isinstance(dimName, QName):
             if not dimPropPattern.match(dimName):
                 txmyMdl.error("oime:unknownDimension",
                               _("Factspace %(name)s taxonomy-defined dimension QName not be resolved with available DTS: %(qname)s."),
-                              qname=dimName)
+                              xbrlObject=fact, qname=dimName)
         '''
         if isinstance(dimName, QName):
             dimObj = txmyMdl.namedObjects.get(dimName)
@@ -81,7 +83,7 @@ def resolveFactspace(txmyMdl, txmyObj, factspace):
                                   qname=dimName)
                 elif dimObj.isExplicitDimension:
                     if initialValidation and isinstance(dimVal, str) and ":" in dimVal:
-                        memQn = factspace.factDimensions[dimName] = qname(dimVal, txmyObj._prefixNamespaces)
+                        memQn = fact.factDimensions[dimName] = qname(dimVal, txmyObj._prefixNamespaces)
                         if memQn:
                             updateDimVals[dimName] = memQn
                     else: # already compiled into QName
@@ -112,8 +114,8 @@ def resolveFactspace(txmyMdl, txmyObj, factspace):
                     #                  xbrlObject=obj, type=dimConcept.typedDomainElement.baseXsdType, concept=dimConcept, value=dimVal)
                     if initialValidation:
                         _valid, _value = validateValue(txmyMdl, txmyObj, dimObj, dimVal, domDataTypeObj, f"/value", "oime:invalidDimensionValue")
-                        if _valid < VALID and factspace._valid >= VALID:
-                            factspace._valid = _valid # invalidate dimensionally invalid factspace
+                        if _valid < VALID and fact._valid >= VALID:
+                            fact._valid = _valid # invalidate dimensionally invalid fact
                         if _valid >= VALID:
                             updateDimVals[dimName] = _value
             elif dimName == unitCoreDim:
@@ -130,51 +132,51 @@ def resolveFactspace(txmyMdl, txmyObj, factspace):
                                           unitDataType=unitObj.dataType, factDataType=cObj.dataType)
         '''
     for dimName, dimVal in updateDimVals.items():
-        factspace.factDimensions[dimName] = dimVal
+        fact.factDimensions[dimName] = dimVal
 
-def validateFactspace(txmyMdl, factspace):
+def validateFactPosition(txmyMdl, fact):
     def error(code, msg, **kwargs):
-         txmyMdl.error(code, msg, xbrlObject=factspace, name=getattr(factspace,"name"), **kwargs)
-    cQn = factspace.factDimensions.get(conceptCoreDim)
+         txmyMdl.error(code, msg, xbrlObject=fact, name=getattr(fact,"name"), **kwargs)
+    cQn = fact.factDimensions.get(conceptCoreDim)
     cObj = txmyMdl.namedObjects.get(cQn)
     if cObj is None or not isinstance(cObj, XbrlConcept):
         return
 
-    factspace._cubes = None # cubes which factspace complies with
+    fact._cubes = None # cubes which fact complies with
 
     # if period is provided statically, validate and then fit to cubes.
 
-    if periodCoreDim in factspace.factDimensions:
-        per = factspace.factDimensions[periodCoreDim]
+    if periodCoreDim in fact.factDimensions:
+        per = fact.factDimensions[periodCoreDim]
         if isinstance(per, str):
             if not PeriodPattern.match(per):
                 error("oimce:invalidPeriodRepresentation",
-                              _("The factspace %(name)s, concept %(element)s has a lexically invalid period dateTime %(periodError)s"),
+                              _("The fact %(name)s, concept %(element)s has a lexically invalid period dateTime %(periodError)s"),
                               element=cQn, periodError=per)
                 return
             _start, _sep, _end = per.rpartition('/')
             if ((cObj.periodType == "duration" and (not _start or _start == _end)) or
                   (cObj.periodType == "instant" and _start and _start != _end)):
                 error("oime:invalidPeriodDimension",
-                              _("Invalid period for %(periodType)s factspace %(name)s period %(period)s."),
+                              _("Invalid period for %(periodType)s fact %(name)s period %(period)s."),
                               name=name, periodType=cObj.periodType, period=per)
-                return # skip creating factspace because context would be bad
-            per = factspace.factDimensions["_periodValue"] = timeInterval(per)
+                return # skip creating fact because context would be bad
+            per = fact.factDimensions["_periodValue"] = timeInterval(per)
     elif cObj.periodType != "none":
         error("oime:missingPeriodDimension",
-                       _("Missing period for %(periodType)s factspace %(name)s."),
+                       _("Missing period for %(periodType)s fact %(name)s."),
                        periodType=cObj.periodType)
 
-    # find cubes which factspace is valid for
-    factspace._cubes = validateCubes(txmyMdl, factspace)
-    if not factspace._cubes:
+    # find cubes which fact is valid for
+    fact._cubes = validateCubes(txmyMdl, fact)
+    if not fact._cubes:
         error("oimte:noFactSpaceForFact",
               _("Factspace %(name)s is not dimensionally valid in any cube."))
     else:
-        for cubeObj in factspace._cubes:
+        for cubeObj in fact._cubes:
             if not hasattr(cubeObj, "_factspaces"):
                 cubeObj._factspaces = set()
-            cubeObj._factspaces.add(factspace)
+            cubeObj._factspaces.add(fact)
 
 def validateTable(reportObj, txmyMdl, table):
     # ensure template exists
@@ -194,7 +196,7 @@ def validateDateResolutionConceptFacts(txmyMdl):
     # validate facts whose values represent dateResolution concepts first
     for qn in txmyMdl.dateResolutionConceptNames:
         f = txmyMdl.namedObjects.get(qn)
-        if isinstance(f, XbrlFactspace):
+        if isinstance(f, XbrlFact):
             validateFact(f, reportQn, reportObj, txmyMdl)
 
 def validateReport(txmyMdl, reportObj):

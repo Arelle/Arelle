@@ -85,7 +85,10 @@ class ViewRenderedLayout(ViewFile.View):
                         groupElt = etree.SubElement(hdrsElt, self.tableModelQName("group"))
                         groupElt.append(etree.Comment(f"Breakdown node file: {lytMdlGroup.srcFile}, line {lytMdlGroup.srcLine}"))
                         if lytMdlGroup.label:
-                            etree.SubElement(groupElt, self.tableModelQName("label")).text=lytMdlGroup.label
+                            labelTxt, role, lang = lytMdlGroup.label
+                            if role or lang:
+                                groupElt.append(etree.Comment(f"Label role: {role or 'label'}, lang: {lang}"))
+                            etree.SubElement(groupElt, self.tableModelQName("label")).text=labelTxt
                         for lytMdlHeader in lytMdlGroup.lytMdlHeaders:
                             if all(lytMdlCell.isOpenAspectEntrySurrogate for lytMdlCell in lytMdlHeader.lytMdlCells):
                                 continue # skip header with only open aspect entry surrogates
@@ -103,7 +106,7 @@ class ViewRenderedLayout(ViewFile.View):
                                     cellElt.append(etree.Comment(f"Cell id {lytMdlCell.id}"))
                                 for label, role, lang in lytMdlCell.labels:
                                     if role or lang:
-                                        cellElt.append(etree.Comment(f"Label role: {role}, lang {lang}"))
+                                        cellElt.append(etree.Comment(f"Label role: {role or 'label'}, lang: {lang}"))
                                     labelElt = etree.SubElement(cellElt, self.tableModelQName("label")).text = label
                                 for lytMdlConstraint in lytMdlCell.lytMdlConstraints:
                                     attrib = None

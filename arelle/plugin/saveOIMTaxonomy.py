@@ -5,12 +5,15 @@ saveOIMTaxonomy.py is a plug-in that saves an extension taxonomy in the json OIM
 See COPYRIGHT.md for copyright information.
 '''
 import os, io, json
+import regex as re
+from lxml import etree
 from arelle.ModelValue import qname
 from arelle.Version import authorLabel, copyrightLabel
 from arelle import XbrlConst
 from collections import OrderedDict
+from arelle.FunctionFn import lang
 
-jsonDocumentType = "https://xbrl.org/2025/taxonomy"
+jsonDocumentType = "https://xbrl.org/2026/model"
 jsonTxmyVersion = "1.0"
 primaryLang = "en"
 
@@ -32,9 +35,10 @@ def saveOIMTaxonomy(dts, jsonFile):
             if ("href" in docReference.referenceTypes and doc.targetNamespace in namespacePrefixes and
                 os.path.isabs(dts.modelDocument.uri) == os.path.isabs(doc.uri) and os.path.commonpath((dts.modelDocument.uri, doc.uri))):
                 extensionSchemaDoc = doc
-                extensionPrefix = namespacePrefixes[extensionSchemaDoc.targetNamespace]
-                namespacesInUse.add(extensionSchemaDoc.targetNamespace)
                 break
+    if extensionSchemaDoc:
+        extensionPrefix = namespacePrefixes[extensionSchemaDoc.targetNamespace]
+        namespacesInUse.add(extensionSchemaDoc.targetNamespace)
     if extensionSchemaDoc is None:
         dts.info("error:saveLoadableOIMTaxonomy",
          _("Unable to identify extension taxonomy."),
@@ -60,6 +64,7 @@ def saveOIMTaxonomy(dts, jsonFile):
     xbrlMdl["domainClasses"] = domainClasses = []
     xbrlMdl["networks"] = networks = []
     xbrlMdl["labels"] = labels = []
+    xbrlMdl["labelTypes"] = labelTypes = []
     sharedLabelRefs = {}
     xbrlMdl["references"] = references = []
 
@@ -127,7 +132,7 @@ def saveOIMTaxonomy(dts, jsonFile):
                             rels.append( OrderedDict((
                                 ("source", str(priItem.qname)),
                                 ("target", str(domObj.qname)),
-                                ("order", domRel.order))) )
+                                ("order", int(domRel.order)))) )
                     domainClasses.append( OrderedDict((
                         ("name", domClsName),) ) )
                     # dimension domains
@@ -157,7 +162,7 @@ def saveOIMTaxonomy(dts, jsonFile):
                                     domRels.append( OrderedDict((
                                         ("source", str(dimObj.qname)),
                                         ("target", str(domObj.qname)),
-                                        ("order", domRel.order))) )
+                                        ("order", int(domRel.order)))) )
                                     domMemConcepts.add(domObj)
                                     for memRel in dts.relationshipSet(XbrlConst.domainMember, domRel.consecutiveLinkrole).fromModelObject(dimObj):
                                         memObj = memRel.toModelObject
@@ -185,7 +190,7 @@ def saveOIMTaxonomy(dts, jsonFile):
                     if toConcept is not None:
                         namespacesInUse.add(concept.qname.namespaceURI)
                         namespacesInUse.add(toConcept.qname.namespaceURI)
-                        if rel.modelDocument in extensionLinkbaseDocs:
+                        if True: # rel.modelDocument in extensionLinkbaseDocs:
                             ntwk["relationships"].append( OrderedDict((
                                 ("source", str(concept.qname)),
                                 ("target", str(toConcept.qname)),
@@ -197,7 +202,7 @@ def saveOIMTaxonomy(dts, jsonFile):
                 visited.remove(concept)
 
     # use presentation relationships for conceptsWs
-    for arcrole in (XbrlConst.parentChild,) + XbrlConst.summationItems:
+    for arcrole in (XbrlConst.parentChild,XbrlConst.domainMember) + XbrlConst.summationItems:
         # sort URIs by definition
         linkroleUris = []
         relationshipSet = dts.relationshipSet(arcrole)
@@ -252,8 +257,8 @@ def saveOIMTaxonomy(dts, jsonFile):
                              if lbl is not None)
         for _key, label in sorted(conceptLabels.items(), key=lambda i:i[0]):
             labelDupKey = (label.xmlLang, label.role, label.textValue)
-            if labelDupKey in sharedLabelRefs:
-                sharedLabelRefs[labelDupKey]["relatedId"].append(str(concept.qname))
+            if labelDupKey in sharedLabelRefs and False: # no more shared labels
+                sharedLabelRefs[labelDupKey]["relatedName"].append(str(concept.qname))
             else:
                 l = OrderedDict((
                     ("relatedName", str(concept.qname)),
@@ -267,6 +272,7 @@ def saveOIMTaxonomy(dts, jsonFile):
     # table linkbase
     if dts.hasTableRendering:
         # generate layout model
+        tableLabelCustomRoles = set()
         from arelle.ViewFileRenderedLayout import ViewRenderedLayout
         from arelle.rendering.RenderingLayout import layoutTable
         from lxml import etree
@@ -279,15 +285,22 @@ def saveOIMTaxonomy(dts, jsonFile):
             ("xbrlModelName", xbrlMdl["name"]),
             ("dataTables", dataTables)))
         # xml layout etree is in view.tblElt
-        def lblObj(text=None,span=1,rollup=False):
-            if span < 2:
-                if rollup:
-                    return {"rollup": True}
-                else:
-                    return {"value":text}
+        def lblObj(text=None,span=1, rollup=False, role=None, lang=None):
+            lbl = OrderedDict()
             if rollup:
-                return OrderedDict((("rollup",True),("span",span)))
-            return OrderedDict((("value",text),("span",span)))
+                lbl["rollup"] = True
+            else:
+                if lang: 
+                    lbl["language"] = lang
+                lbl["value"] = text
+                if role: 
+                    lbl["labelType"] = f"{'xbrl' if role == 'label' else extensionPrefix}:{role}"
+                    if role != "label" and role not in tableLabelCustomRoles:
+                        tableLabelCustomRoles.add(role)
+                        labelTypes.append({"name": f"{extensionPrefix}:{role}","dataType": "xs:string"})
+            if span >= 2:
+                lbl["span"] = span
+            return lbl
         for tblSet in view.tblElt.iterchildren():
             tblName = None
             for tblSetCmnt in tblSet.iterchildren(etree.Comment):
@@ -349,7 +362,13 @@ def saveOIMTaxonomy(dts, jsonFile):
                                         axisLbls[firstLbl + i].append(lblObj(rollup=True,span=rollupSpan))
                                     rollupSpan = None
                                 for i, lblElt in enumerate(cellElt.iterchildren("{http://xbrl.org/2014/table/model}label")):
-                                    axisLbls[firstLbl + i].append(lblObj(lblElt.text,span))
+                                    commentElt = lblElt.getprevious()
+                                    if isinstance(commentElt, etree._Comment):
+                                        lblRoleLang = re.match("Label role: ([^,]+), lang: (.*)$", commentElt.text)
+                                        role = lang = None
+                                        if lblRoleLang:
+                                            role, lang = lblRoleLang.groups()
+                                    axisLbls[firstLbl + i].append(lblObj(text=lblElt.text, span=span, role=role, lang=lang))
                                 for s in range(span):
                                     axisFactDims = axis.setdefault("factDimensions", [])
                                     if factDimCol + 1 > len(axisFactDims):

@@ -5,7 +5,7 @@ See COPYRIGHT.md for copyright information.
 from arelle.ModelValue import qname, QName
 from .XbrlCube import XbrlCube, conceptCoreDim, periodCoreDim, entityCoreDim, unitCoreDim
 from .XbrlDimension import XbrlDimension
-from .VectorSearch import buildXbrlVectors, searchXbrl, searchXbrlBatchTopk, SEARCH_CUBES, SEARCH_FACTSPACES, SEARCH_BOTH
+from .VectorSearch import buildXbrlVectors, searchXbrl, searchXbrlBatchTopk, SEARCH_CUBES, SEARCH_FACTPOSITIONS, SEARCH_BOTH
 from arelle.XmlValidateConst import VALID, INVALID
 
 coreToFactDim = {conceptCoreDim: "concept", entityCoreDim: "entity", unitCoreDim: "unit"}

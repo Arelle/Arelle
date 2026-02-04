@@ -1,7 +1,7 @@
 {
     "documentInfo": {
-        "documentType": "https://xbrl.org/2025/taxonomy",
-        "documentNamespace": "https://xbrl.org/2025/taxonomy/meta",
+        "documentType": "https://xbrl.org/2026/model",
+        "documentNamespace": "https://xbrl.org/2026/model/meta",
         "namespaces": {
             "xbrl": "https://xbrl.org/2025",
             "xbrli": "https://xbrl.org/2025/instance",
@@ -642,21 +642,21 @@
                 ]
             },
             {
-                "name": "xbrl:factspaceObject",
+                "name": "xbrl:factObject",
                 "properties": [
                     {
-                        "name": "xbrl:factspaceObjectName",
+                        "name": "xbrl:factObjectName",
                         "dataType": "xs:QName",
                         "required": true
                     },
                     {
-                        "name": "xbrl:factspaceObjectFactValues",
+                        "name": "xbrl:factObjectFactValues",
                         "dataType": "xbrl:orderedSet",
                         "setContents": "xbrl:factValueObject",
                         "required": true
                     },
                     {
-                        "name": "xbrl:factspaceObjectFactDimensions",
+                        "name": "xbrl:factObjectFactDimensions",
                         "dataType": "xbrl:orderedSet",
                         "setContents": "xbrl:factDimensionObject",
                         "required": false
@@ -867,7 +867,7 @@
                 "relatedName": "xbrl:cubeObject",
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "value": "A cube object defines a multidimensional factspace that specifies which dimensions and members are included for organizing and constraining facts."
+                "value": "A cube object defines a multidimensional fact that specifies which dimensions and members are included for organizing and constraining facts."
             },
             {
                 "relatedName": "xbrl:dimensionObject",
@@ -1026,16 +1026,16 @@
                 "value": "A transform object defines a data transformation function that converts values from one data type to another."
             },
             {
-                "relatedName": "xbrl:factspaceObject",
+                "relatedName": "xbrl:factObject",
                 "labelType": "xbrl:label",
                 "language": "en",
                 "value": "Factspace Object"
             },
             {
-                "relatedName": "xbrl:factspaceObject",
+                "relatedName": "xbrl:factObject",
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "value": "A factspace object defines a specific point in a cube's multidimensional space by specifying values for each dimension."
+                "value": "A fact object defines a specific point in a cube's multidimensional space by specifying values for each dimension."
             },
             {
                 "relatedName": "xbrl:importTaxonomyObject",
@@ -1071,7 +1071,7 @@
                 "relatedName": "xbrl:factDimensionObject",
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "value": "A fact dimension object represents a single dimension-value pair within a factspace, specifying a dimension and its corresponding value."
+                "value": "A fact dimension object represents a single dimension-value pair within a fact, specifying a dimension and its corresponding value."
             },
             {
                 "relatedName": "xbrl:factDimensionObjectDimension",
@@ -1107,7 +1107,7 @@
                 "relatedName": "xbrl:factValueObject",
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "value": "A fact value object represents a single fact within a factspace, containing the concept, value, and optional dimension specifications."
+                "value": "A fact value object represents a single fact within a fact, containing the concept, value, and optional dimension specifications."
             },
             {
                 "relatedName": "xbrl:factValueObjectConcept",

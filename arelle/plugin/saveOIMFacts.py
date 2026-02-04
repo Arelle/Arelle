@@ -37,7 +37,7 @@ The saveOIMFactspaces plugin saves OIM Model Factspaces from Inline XBRL or othe
       in GUI operation provide a formula parameter named inlineText containing true
       in command line mode specify --inlineText
   
-  To request xBRL-JSON instead of XbrlModel factspaces
+  To request xBRL-JSON instead of XbrlModel factPositions
       in GUI operation provide a formula parameter named oimJSON containing true
       in command line mode specify --oimJSON
 
@@ -74,6 +74,7 @@ import os
 import threading
 import zipfile
 from collections.abc import Iterable
+from collections import OrderedDict
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
@@ -108,6 +109,7 @@ from arelle.ModelValue import (
     qname,
     tzinfoStr,
 )
+from arelle.PythonUtil import OrderedSet
 from arelle.typing import TypeGetText
 from arelle.UrlUtil import relativeUri
 from arelle.utils.PluginData import PluginData
@@ -128,7 +130,7 @@ if TYPE_CHECKING:
 
 _: TypeGetText
 
-PLUGIN_NAME = "Save OIM Factspace"
+PLUGIN_NAME = "Save OIM FactPositions"
 
 tagsWithNoContent = set(f"{{http://www.w3.org/1999/xhtml}}{t}" for t in elementsWithNoContent)
 for t in ("schemaRef", "linkbaseRef", "roleRef", "arcroleRef", "loc", "arc"):
@@ -232,7 +234,7 @@ class NamespacePrefixes:
         return prefix
 
 
-def saveOIMFactspace(
+def saveOIMFacts(
     modelXbrl: ModelXbrl,
     oimFile: str,
     outputZip: zipfile.ZipFile | None = None,
@@ -367,6 +369,9 @@ def saveOIMFactspace(
             hasUnits = True
         if fact.modelTupleFacts:
             hasTuple = True
+        if isinstance(fact, ModelInlineFact) and not any(True for e in fact.iterancestors("{http://www.xbrl.org/2013/inlineXBRL}hidden")):
+            if fact.format:
+                namespacePrefixes.addNamespace(fact.format.namespaceURI, fact.format.prefix)
     if hasTuple:
         modelXbrl.error(
             "arelleOIMsaver:tuplesNotAllowed", "Tuples are not allowed in an OIM document", modelObject=modelXbrl
@@ -427,6 +432,18 @@ def saveOIMFactspace(
         ):
             dtsReferences.add(refElt.get("{http://www.w3.org/1999/xlink}href").partition("#")[0])
     dtsReferences = sorted(dtsReferences)  # turn into list
+
+    extensionPrefix = ""
+    importedTaxonomies = OrderedSet()
+    if modelXbrl.modelDocument.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET, ModelDocument.Type.LINKBASE):
+        for doc, docReference in modelXbrl.modelDocument.referencesDocument.items():
+            if ("href" in docReference.referenceTypes and doc.targetNamespace in namespacePrefixes and
+                os.path.isabs(modelXbrl.modelDocument.uri) == os.path.isabs(doc.uri) and os.path.commonpath((modelXbrl.modelDocument.uri, doc.uri))):
+                extensionPrefix = namespacePrefixes.getPrefix(doc.targetNamespace)
+                if doc.type == ModelDocument.Type.SCHEMA:
+                    importedTaxonomies.add(doc.basename)
+                break
+
     footnoteObjects = {} # OIM Taxonomy objects
     factFootnoteRels = set()
     factFactFootnoteRels = set()
@@ -443,7 +460,7 @@ def saveOIMFactspace(
 
     def factFootnotes(
         fact: ModelFact,
-        factspace: dict[str, Any] | None = None,
+        newFact: dict[str, Any] | None = None,
     ):
         footnotes = []
         oimLinks = {}
@@ -488,8 +505,8 @@ def saveOIMFactspace(
                     typePrefix: {groupPrefix: idList for groupPrefix, idList in sorted(groups.items())}
                     for typePrefix, groups in sorted(oimLinks.items())
                 }
-                if isJSON and factspace is not None:
-                    factspace["links"] = _links
+                if isJSON and newFact is not None:
+                    newFact["links"] = _links
         else:
             for footnoteRel in footnotesRelationshipSet.fromModelObject(fact):
                 srcPrefix = getPrefix(fact)
@@ -515,7 +532,7 @@ def saveOIMFactspace(
                         footnoteNetworkNamePrefixes[0] = srcPrefix
         return footnotes
 
-    def factDimensions(fact: ModelFact, factspaces, factspacesByDims) -> dict[str, Any]:
+    def factDimensions(fact: ModelFact, factPositions, factspacesByDims) -> dict[str, Any]:
         factDims = {}
         concept = fact.concept
         isNumeric = False
@@ -554,28 +571,28 @@ def saveOIMFactspace(
             if _sUnit != "xbrli:pure":
                 factDims[str(qnUnitCoreDim)] = _sUnit
         if saveOimJson:
-            factspaces[f"{fact.id or fact.objectIndex}"] = factspace = {}
-            factspace["dimensions"] = factDims
+            facts[f"{fact.id or fact.objectIndex}"] = fact = {}
+            fact["dimensions"] = factDims
         else:
             # build dims key
             dimsKey = tuple(sorted(factDims.items(), key=lambda k:k[0]))
-            factspace = factspacesByDims.get(dimsKey)
-            if factspace is None or saveOimJson:
-                factspace = {}
-                factspace["name"] = f"{getPrefix(fact)}:fs_{fact.id or fact.objectIndex}"
-                factspace["factDimensions"] = factDims
-                factspace["factValues"] = []
-                factspacesByDims[dimsKey] = factspace
-                factspaces.append(factspace)
-        return factspace
+            fact = factsByDims.get(dimsKey)
+            if fact is None or saveOimJson:
+                fact = {}
+                fact["name"] = f"{getPrefix(fact)}:fs_{fact.id or fact.objectIndex}"
+                fact["factDimensions"] = factDims
+                fact["factValues"] = []
+                factsByDims[dimsKey] = fact
+                facts.append(fact)
+        return fact
     
-    def appendFactToFactspace(fact: ModelFact, factspace: dict[str, Any]) -> None:
+    def appendFactToFactspace(fact: ModelFact, newFact: dict[str, Any]) -> None:
         if fact.concept is not None and fact.isItem:
             if saveOimJson:
-                factValue = factspace
+                factValue = newFact
                 factValue["name"] = f"{getPrefix(fact)}:{fact.id or fact.objectIndex}"
             else:
-                factValue = {}
+                factValue = {"name": f"{getPrefix(fact)}:{fact.id or fact.objectIndex}_val"}
             if isinstance(fact, ModelInlineFact) and not any(True for e in fact.iterancestors("{http://www.xbrl.org/2013/inlineXBRL}hidden")):
                 factValue["valueSources"] = valueSources = []
                 vs = {
@@ -584,8 +601,8 @@ def saveOIMFactspace(
                 }
                 if fact.format:
                     vs["transformation"] = str(fact.format)
-                if fact.scale:
-                    vs["scale"] = fact.scale
+                if fact.scaleInt:
+                    vs["scale"] = fact.scaleInt
                 if fact.sign:
                     vs["sign"] = fact.sign
                 if fact.get("escape"):
@@ -594,7 +611,9 @@ def saveOIMFactspace(
                 if fact.concept.isTextBlock and saveInlineTextValue:
                     stringValues = [super(ModelFact,fact).stringValue]
                 contElt = getattr(fact, "_continuationElement", None)
+                iCont = 0
                 while contElt is not None:
+                    iCont += 1
                     vs = {"href": f"{fact.modelDocument.basename}#{contElt.id}"}
                     valueSources.append(vs)
                     if fact.concept.isTextBlock and saveInlineTextValue:
@@ -617,7 +636,7 @@ def saveOIMFactspace(
                 if not fact.isNil and not isinf(_inferredDecimals):  # accuracy omitted if infinite
                     factValue["decimals"] = _inferredDecimals
         if not saveOimJson:
-            factspace["factValues"].append(factValue)
+            newFact["factValues"].append(factValue)
 
     ixDocs = {}
     editedIxDocs = {}
@@ -651,7 +670,15 @@ def saveOIMFactspace(
         oimDocInfo["documentType"] = "https://xbrl.org/2021/xbrl-json"
     else:
         oimDocInfo["documentType"] = "https://xbrl.org/2025/taxonomy"
-        oimModel["xbrlModel"] = {}
+        oimModel["xbrlModel"] = {
+            "name": f"{extensionPrefix}:{os.path.splitext(modelXbrl.modelDocument.basename)[0]}"
+            }
+        if importedTaxonomies:
+            oimDocInfo["urlMapping"] = OrderedDict()
+            oimModel["xbrlModel"]["importedTaxonomies"] = []
+        for txmyBasename in importedTaxonomies:
+            oimDocInfo["urlMapping"][extensionPrefix] = [txmyBasename]
+            oimModel["xbrlModel"]["importedTaxonomies"].append({"xbrlModelName":f"{extensionPrefix}:{os.path.splitext(txmyBasename)[0]}"})
     if saveOimJson:
         if linkTypeAliases:
             oimDocInfo["linkTypes"] = {a: u for u, a in sorted(linkTypeAliases.items(), key=operator.itemgetter(1))}
@@ -674,10 +701,10 @@ def saveOIMFactspace(
 
     # save JSON
     if saveOimJson:
-        oimModel["facts"] = factspaces = {}
+        oimModel["facts"] = newFacts = {}
     else:
-        oimModel["xbrlModel"]["factspaces"] = factspaces = []
-    factspacesByDims = {} # unique entry for mutli-valued factspaces
+        oimModel["xbrlModel"]["facts"] = newFacts = []
+    newFactsByDims = {} # unique entry for mutli-valued newFact
     # add in report level extension objects
     if extensionReportObjects:
         for extObjQName, extObj in extensionReportObjects.items():
@@ -685,12 +712,12 @@ def saveOIMFactspace(
 
     def saveJsonFacts(facts: list[ModelFact]) -> None:
         for fact in facts:
-            factspace = factDimensions(fact, factspaces, factspacesByDims)
-            appendFactToFactspace(fact, factspace)
+            newFact = factDimensions(fact, newFacts, newFactsByDims)
+            appendFactToFactspace(fact, newFact)
             # add in fact level extension objects
             if extensionFactPropertiesMethod:
-                extensionFactPropertiesMethod(fact, oimFact)
-            factFootnotes(fact, factspace)
+                extensionFactPropertiesMethod(fact, newFact)
+            factFootnotes(fact, newFact)
 
     saveJsonFacts(factsToSave)
 
@@ -699,7 +726,7 @@ def saveOIMFactspace(
         # add footnotes as pseudo facts
         for ftObj in footnoteFacts:
             ftId = ftObj.id if ftObj.id else f"f{ftObj.objectIndex}"
-            factspaces[ftId] = fact = {}
+            newFacts[ftId] = fact = {}
             fact["value"] = ftObj.viewText()
             fact["dimensions"] = {
                 "concept": "xbrl:note",
@@ -787,7 +814,7 @@ def SaveOIMFactspaceMenuCommand(cntlr: CntlrWinMain) -> None:
         # get file name into which to save log file while in foreground thread
     oimFile = cntlr.uiFileDialog(
         "save",
-        title=_("arelle - Save OIM fFACTSPACE"),
+        title=_("arelle - Save OIM FactPositions"),
         initialdir=cntlr.config.setdefault("loadableOIMFactspaceDir", "."),
         filetypes=[(_("JSON file .json"), "*.json"), (_("CBOR file .cbor"), "*.cbor")],
         defaultextension=".json",
@@ -807,7 +834,7 @@ def SaveOIMFactspaceMenuCommand(cntlr: CntlrWinMain) -> None:
         saveOimJson = True
 
     thread = threading.Thread(
-        target=lambda _modelXbrl=cntlr.modelManager.modelXbrl, _oimFile=oimFile: saveOIMFactspace(
+        target=lambda _modelXbrl=cntlr.modelManager.modelXbrl, _oimFile=oimFile: saveOIMFacts(
             _modelXbrl, _oimFile, None, saveInlineTextValue, saveOimJson
         )
     )
@@ -826,11 +853,11 @@ def saveOimFiles(
     try:
         if responseZipStream is None:
             for oimFile in oimFiles:
-                saveOIMFactspace(modelXbrl, oimFile, None, saveInlineTextValue, saveOimJson)
+                saveOIMFacts(modelXbrl, oimFile, None, saveInlineTextValue, saveOimJson)
         else:
             with zipfile.ZipFile(responseZipStream, "a", zipfile.ZIP_DEFLATED, True) as _zip:
                 for oimFile in oimFiles:
-                    saveOIMFactspace(modelXbrl, oimFile, _zip, saveInlineTextValue, saveOimJson)
+                    saveOIMFacts(modelXbrl, oimFile, _zip, saveInlineTextValue, saveOimJson)
             responseZipStream.seek(0)
     except Exception as ex:
         cntlr.addToLog(f"Exception saving OIM {ex}")
@@ -852,7 +879,7 @@ class SaveOIMFactspacePlugin(PluginHooks):
         parser.add_option(
             "--SaveOIMFactspace",
             action="store",
-            dest="saveOIMFactspace",
+            dest="saveOIMFacts",
             help=_("Save Loadable OIM file (JSON, CSV or XLSX)"),
         )
         parser.add_option(
@@ -920,7 +947,7 @@ class SaveOIMFactspacePlugin(PluginHooks):
         **kwargs: Any,
     ) -> None:
         # extend XBRL-loaded run processing for this option
-        oimFile = cast(Optional[str], getattr(options, "saveOIMFactspace", None))
+        oimFile = cast(Optional[str], getattr(options, "saveOIMFacts", None))
         allOimDirectory = cast(Optional[str], getattr(options, "saveOIMFactspaceDirectory", None))
         if (oimFile or allOimDirectory) and (
             modelXbrl is None
@@ -942,7 +969,7 @@ class SaveOIMFactspacePlugin(PluginHooks):
                 oimDir.mkdir(parents=True, exist_ok=True)
             except OSError as err:
                 cntlr.addToLog(
-                    _("Unable to save OIM factspace into requested directory: {}, {}").format(allOimDirectory, err.strerror)
+                    _("Unable to save OIM factPosition into requested directory: {}, {}").format(allOimDirectory, err.strerror)
                 )
                 return
             assert modelXbrl.modelDocument is not None
@@ -983,24 +1010,24 @@ class SaveOIMFactspacePlugin(PluginHooks):
             and not any(oimErrorPattern.match(error) for error in testInstanceDTS.errors if error is not None)
         ):  # no OIM errors
             try:
-                saveOIMFactspace(testInstanceDTS, testInstanceDTS.modelDocument.uri + oimFileSuffix)
+                saveOIMFacts(testInstanceDTS, testInstanceDTS.modelDocument.uri + oimFileSuffix)
             except Exception as ex:
                 testcaseDTS.modelManager.cntlr.addToLog(f"Exception saving OIM {ex}")
 
     @staticmethod
-    def saveOIMFactspaceSave(
+    def saveOIMFactSave(
         modelXbrl: ModelXbrl,
         oimFile: str,
         *args: Any,
         **kwargs: Any,
     ) -> None:
-        return saveOIMFactspace(modelXbrl, oimFile, *args, **kwargs)
+        return saveOIMFacts(modelXbrl, oimFile, *args, **kwargs)
 
 
 __pluginInfo__ = {
     "name": PLUGIN_NAME,
     "version": "1.3",
-    "description": "This plug-in saves a loaded XBRL instance as an XBRL OIM factspace.",
+    "description": "This plug-in saves a loaded XBRL instance as an XBRL OIM factPositions.",
     "license": "Apache-2",
     "author": authorLabel,
     "copyright": copyrightLabel,
@@ -1010,5 +1037,5 @@ __pluginInfo__ = {
     "CntlrCmdLine.Utility.Run": SaveOIMFactspacePlugin.cntlrCmdLineUtilityRun,
     "CntlrCmdLine.Xbrl.Run": SaveOIMFactspacePlugin.cntlrCmdLineXbrlRun,
     "TestcaseVariation.Validated": SaveOIMFactspacePlugin.testcaseVariationValidated,
-    "SaveOIMFactspace.Save": SaveOIMFactspacePlugin.saveOIMFactspaceSave,
+    "SaveOIMFactspace.Save": SaveOIMFactspacePlugin.saveOIMFactSave,
 }

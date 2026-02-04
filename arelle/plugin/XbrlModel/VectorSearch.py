@@ -54,11 +54,11 @@ from arelle.ModelValue import QName
 
 from .XbrlCube import XbrlCube
 from .XbrlObject import XbrlReferencableModelObject, XbrlReportObject
-from .XbrlReport import XbrlFactspace
+from .XbrlReport import XbrlFact
 from .XbrlModule import referencableObjectTypes
 
 SEARCH_CUBES = 1
-SEARCH_FACTSPACES = 2
+SEARCH_FACTPOSITIONS = 2
 SEARCH_BOTH = 3
 
 # --------------------------------------------------------------------
@@ -146,11 +146,11 @@ def buildXbrlVocab(txmyMdl: XbrlCompiledModel, valueTokensOffset: int) -> Tuple[
                         tokens.append( t ) # dimension value for dimension value queries
         cubeTokens.add( (c, tuple(tokens) ) )
 
-    # from factspace
-    for factspace in txmyMdl.filterNamedObjects(XbrlFactspace):
-        f = factspace.xbrlMdlObjIndex
+    # from factPosition
+    for factPosition in txmyMdl.filterNamedObjects(XbrlFact):
+        f = factPosition.xbrlMdlObjIndex
         tokens = []
-        for qn, value in factspace.factDimensions.items():
+        for qn, value in factPosition.factDimensions.items():
             dimObj = txmyMdl.namedObjects.get(qn)
             if dimObj:
                 d = dimObj.xbrlMdlObjIndex
@@ -403,13 +403,13 @@ def mapQueryAspects(
 def searchXbrl(
     txmyMdl: XbrlCompiledModel,
     queryAspects: List[Tuple[int, ...]],
-    domain: Literal[SEARCH_CUBES, SEARCH_FACTSPACES, SEARCH_BOTH] = SEARCH_BOTH,
+    domain: Literal[SEARCH_CUBES, SEARCH_FACTPOSITIONS, SEARCH_BOTH] = SEARCH_BOTH,
     topK: int = 20,
 ) -> List[Tuple[float, IndexEntry]]:
     """
     queryAspects: see mapQueryAspects above
 
-    domain: SEARCH_CUBES, SEARCH_FACTSPACES or SEARCH_BOTH
+    domain: SEARCH_CUBES, SEARCH_FACTPOSITIONS or SEARCH_BOTH
 
     Returns a list of (score, object) sorted by descending cosine similarity.
 
@@ -446,7 +446,7 @@ def searchXbrl(
             results.append((float(s), txmyMdl.xbrlObjects[cubeObjIndex]))
 
     # ---- fact search (same GPU hot path) ----
-    if domain in (SEARCH_FACTSPACES, SEARCH_BOTH) and store.factVecs is not None:
+    if domain in (SEARCH_FACTPOSITIONS, SEARCH_BOTH) and store.factVecs is not None:
         fv = store.factVecs  # (N_fact, D), already normalized, on device
         sims = (fv @ qVec.T).squeeze(1)  # (N_fact,)
         k = min(topK, sims.shape[0])
@@ -517,7 +517,7 @@ def encodeQueriesMean(
 def searchXbrlBatchTopk(
     txmyMdl: XbrlCompiledModel,
     queriesAspects: List[List[str]],
-    domain: Literal[SEARCH_CUBES, SEARCH_FACTSPACES] = SEARCH_FACTSPACES,
+    domain: Literal[SEARCH_CUBES, SEARCH_FACTPOSITIONS] = SEARCH_FACTPOSITIONS,
     top_k: int = 20,
     query_batch: int = 128,
 ) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -572,7 +572,7 @@ def searchXbrlBatchTopk(
 
     if domain == SEARCH_CUBES:
         vecs = store.cubeVecs  # (N, D), already normalized, on device
-    else: # SEARCH_FACTSPACES
+    else: # SEARCH_FACTPOSITIONS
         vecs = store.factVecs  # (N, D), already normalized, on device
     N = vecs.shape[0]
 

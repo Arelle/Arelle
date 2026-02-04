@@ -11,7 +11,7 @@ from arelle.oim.Load import EMPTY_DICT
 from arelle.PythonUtil import OrderedSet
 from .XbrlConcept import XbrlConcept, XbrlDataType
 from .XbrlGroup import XbrlGroupContent
-from .XbrlReport import XbrlFactspace, XbrlFootnote, XbrlReport
+from .XbrlReport import XbrlFact, XbrlFootnote, XbrlReport
 from .XbrlTypes import XbrlModuleType, XbrlLayoutType, QNameKeyType, XbrlLabelType, XbrlPropertyType
 from .XbrlObject import XbrlObject, XbrlReferencableModelObject, XbrlTaxonomyTagObject, XbrlReportObject
 
@@ -19,7 +19,6 @@ def castToXbrlCompiledModel(modelXbrl, isReport=False):
     if not isinstance(modelXbrl, XbrlCompiledModel) and isinstance(modelXbrl, ModelXbrl):
         modelXbrl.__class__ = XbrlCompiledModel
         modelXbrl.xbrlModels: OrderedDict[QNameKeyType, XbrlModuleType] = OrderedDict()
-        modelXbrl.layouts: OrderedDict[QNameKeyType, XbrlLayoutType] = OrderedDict()
         modelXbrl.dtsObjectIndex = 0
         modelXbrl.xbrlObjects: list[XbrlObject] = []
         modelXbrl.namedObjects: OrderedDict[QNameKeyType, XbrlReferencableModelObject] = OrderedDict() # not visible metadata
@@ -31,10 +30,9 @@ def castToXbrlCompiledModel(modelXbrl, isReport=False):
 
 class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
     xbrlModels: OrderedDict[QNameKeyType, XbrlModuleType]
-    layouts: OrderedDict[QNameKeyType, XbrlLayoutType]
     xbrlObjects: list[XbrlObject] # not visible metadata
     # objects only present for XbrlReports
-    factspaces: dict[str, XbrlFactspace] # constant factspaces in taxonomy
+    factspaces: dict[str, XbrlFact] # constant factspaces in taxonomy
     footnotes: dict[str, XbrlFootnote] # constant footnotes in taxonomy
     reports: OrderedDict[QNameKeyType, XbrlReport] = OrderedDict()
 
@@ -118,7 +116,7 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
     # dts-wide object accumulator properties
     def filterNamedObjects(self, _class, _type=None, _lang=None):
         if (issubclass(_class, XbrlReferencableModelObject) or # taxpmp,u-pwmed referemcab;e pbkect
-            (issubclass(_class, (XbrlFactspace,XbrlFootnote)) and isinstance(self, XbrlCompiledModel))):  # taxonomy-owned fact
+            (issubclass(_class, (XbrlFact,XbrlFootnote)) and isinstance(self, XbrlCompiledModel))):  # taxonomy-owned fact
             for obj in self.namedObjects.values():
                 if isinstance(obj, _class):
                     yield obj
@@ -142,7 +140,7 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
             argValue = kwargs["xbrlObject"]
             if isinstance(argValue, (tuple,list,set,OrderedSet)):
                 kwargs["sourceFileLines"] = [a.entryLoadingUrl for a in argValue if a is not None]
-            else:
+            elif isinstance(argValue, XbrlObject):
                 kwargs["sourceFileLine"] = argValue.entryLoadingUrl
         elif "modelObject" in kwargs:
             modelObject = kwargs["modelObject"]
