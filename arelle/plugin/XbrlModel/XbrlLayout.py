@@ -2,26 +2,25 @@
 See COPYRIGHT.md for copyright information.
 """
 
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Optional, Union, List, Any
 
 from arelle.ModelValue import QName
 from arelle.PythonUtil import OrderedSet
 from .XbrlTypes import XbrlLayoutType, XbrlModuleType, QNameKeyType, DefaultFalse
 from .XbrlObject import XbrlModelObject, XbrlReferencableModelObject
 
-class XbrlAxisDimension(XbrlModelObject):
-    dimensionName: QName # (required) The QName of a dimension defined by the cubeName property.
-    showTotal: Union[bool, DefaultFalse] # (optional) Indicates if the total of the dimension is shown in the axis. This is the value associated with the dimension absent. If no value is provided the default is false. The concept dimension defaults to false and cannot be set to true.
-    showAncestorColumns: Union[bool, DefaultFalse] # (optional) Define members on an explicit dimension that are not leaf values that are included on the axis. If not provided only leaf members on the axis will show.
-    totalLocation: Optional[str] # (optional) Indicates if the total is at the start or at the end when shown on the axis. The default value is end. The totalLocation attribute can only have a value of start or end.
-    periodAlign: OrderedSet[str] # (optional) the period align attribute can only be used with the period dimension. This attribute is used to align time values of facts in a dimension rather than being created as seperate columns or rows. The values @start and @end are used to indicate if instant values are aligned with duration values. These values are used to support roll-forwards in a datatgrid and will align duration values and instant values with the same start and end dates.
+class XbrlAxisLabel(XbrlModelObject):
+    labelType: Optional[QName] # (required when rollup not specified) A QName representing the label type of the label. This can be a taxonomy defined label type or a standard XBRL label type defined in specification.
+    language: Optional[str] # (required when rollup not specified) Defines the language of the label using a valid BCP 47 [BCP47] language code.
+    value: Optional[str] # (required when rollup and valueSource are not specified) The text of the label.
+    valueSource: Optional[QName] # (required when rollup and value are not specified) Specifies a dimension or domain which provides a network for axis members and the corresponding object label type to use as a label.
+    rollup: Union[bool, DefaultFalse] # (optional) When true specifies that the preceding axis labels array value is spanned, or continued, into the corresponding position in this axis labels item (e.g. no separator). Absent if false.
+    span: Optional[int] # (optional) The number of items in the axis to be spanned by the label if greater than 1.
 
 class XbrlAxis(XbrlModelObject):
     layout: XbrlLayoutType
-    dimensionNames: OrderedSet[XbrlAxisDimension] # (required) The axis dimension objects that define the dimensions associated with the axis.
-    axisLabels: OrderedSet[str] # (optional) Defines a set of strings that are used as the axis labels. Cannot be used with the presentationNetwork property.
-    language: Optional[str] # (optional) Defines the language of the axisLabels using a valid BCP 47 [BCP47] language code.
-    presentationNetwork: Optional[QName] # (optional) Defines a QName of a network with a relationshipType of xbrl:parent-child that is used to control the order of items on the axis and the labels that are used
+    axisLabels: OrderedSet[XbrlAxisLabel] # (optional) Defines a set of strings that are used as the axis labels. Cannot be used with the presentationNetwork property.
+    axisDimensions: List[dict[QName, Any]] # (required) An array of factDimension objects, each containing dimensions for a each item in the axis. An item may be a fully specified factDimension object or one containing a member type and network for the case of cube networks or concept networks.
 
 class XbrlDataTable(XbrlReferencableModelObject):
     layout: XbrlLayoutType
@@ -29,7 +28,7 @@ class XbrlDataTable(XbrlReferencableModelObject):
     cubeName: QName # (required) The name is a QName that identifies the cube associated with the data table.
     xAxis: XbrlAxis # (required) An axis object that identifies an ordered set of axis and the behaviour of the dimension when mapped to the X axis of the table.
     yAxis: XbrlAxis # (required) An axis object that identifies an ordered set of axis and the behaviour of the dimension when mapped to the Y axis of the table.
-    zAxis: XbrlAxis # (optional) An axis object that identifies an ordered set of axis and the behaviour of the dimension when mapped to the Z axis of the table.
+    zAxis: Optional[XbrlAxis] # (optional) An axis object that identifies an ordered set of axis and the behaviour of the dimension when mapped to the Z axis of the table.
 
 class XbrlLayout(XbrlModelObject):
     txmyMdl: XbrlModuleType

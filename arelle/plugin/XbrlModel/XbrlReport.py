@@ -7,7 +7,7 @@ from collections import defaultdict, OrderedDict
 from decimal import Decimal
 from arelle.ModelValue import QName, AnyURI
 from arelle.PythonUtil import OrderedSet
-from .XbrlTypes import XbrlTaxonomyModelType,XbrlModuleType, XbrlReportType, QNameKeyType, DefaultFalse
+from .XbrlTypes import XbrlTaxonomyModelType,XbrlModuleType, XbrlReportType, QNameKeyType, DefaultFalse, OptionalList
 from .XbrlObject import XbrlObject, XbrlReportObject
 from .XbrlProperty import XbrlProperty
 from .XbrlUnit import  parseUnitString
@@ -23,6 +23,7 @@ class XbrlFactValueSource(XbrlObject):
     transformation: Optional[QName] # (optional for html/pdf) identifes a transformation for the document file text, such as conversion from dates in some locale format. Not relevant for workbook cells with number or date formats specified.
     scale: Optional[int] # (optional) identifies a power of 10 to multiply source text number (such as when in billions in the source document_
     sign: Optional[str] # (optional) identifies a sign when not part of transformation of value. Not relevant for workbook cells with number or date formats specified.
+    escape: Union[bool, DefaultFalse] # (optional) If the escape attribute is true then value is the escaped representation for media with markup, e.g. html or pdf, otherwise the concatenation in document order of all descendant text content. If no value is provided the attribute defaults to false.
 
 class XbrlFactValueAnchor(XbrlObject):
     medium: Optional[str] # (optional) The document medium, which may be implied when the taxonomy (report) object is encapsulated in a document file: html, pdf, tabular.
@@ -41,7 +42,7 @@ class XbrlFactValue(XbrlObject):
     valueSources: OrderedSet[XbrlFactValueSource] # (required if value not provided) An ordered set of factValueSource objects that identify where the values are obtained from content of an embedding or accompanying document file (html, pdf or tabular).
     valueAnchors: OrderedSet[XbrlFactValueAnchor] # (optional if valueSources not provided) An ordered set of factAnchor objects that identify corresponding content of an embedding document file (html, pdf or tabular) for cases where the value is provided in the value property instead of obtained from the content of document file. For example, non-transformable values, such as a QName value, may correspond to prose text in the document file. Used by tools to highlight and detect mouse-over correspondence between fact values and document text.
 
-class XbrlFactspace(XbrlReportObject):
+class XbrlFact(XbrlReportObject):
     parent: Union[XbrlReportType,XbrlModuleType]  # facts in taxonomy module are owned by the txmyMdl
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the factspace object.
     factValues: OrderedSet[XbrlFactValue]
@@ -54,33 +55,60 @@ class XbrlFootnote(XbrlReportObject):
     content: Optional[str] # (required) The content of the footnote.
     language: Optional[str] # ((optional) The language of the footnote text, specified using the BCP 47 standard language code (e.g., "en" for English, "fr" for French).
 
-class XbrlTableTemplate(XbrlReportObject):
+class XbrlFactValue(XbrlObject):
+    fromNamespace: AnyURI # (required) The fromNamespace property is the original namespace that is being redirected.
+    toNamespace: AnyURI # (required) The toNamespace property is the new namespace that the fromNamespace is being redirected to.
+
+class XbrlFactSource(XbrlReportObject):
     parent: Union[XbrlReportType,XbrlModuleType]  # table templates in taxonomy module are owned by the txmyMdl
-    name: QNameKeyType # (required) The name is a QName that uniquely identifies the transform object.
+    name: QNameKeyType # (required) The name is a QName that uniquely identifies the factSource object.
+    factMapName: QName # (required) The fact map name is a QName that references a factMap object defined in the taxonomy model.
+    namespaceMaps: OptionalList[XbrlFactValue] # (optional) An array of namespaceMap objects that maps the namespace of the model defined in a datasource to the namespace of an updated model. This MUST only used with an XBRL data source.
+    properties: OrderedSet[XbrlProperty] # (optional) an ordered set of property objects used to specify additional properties associated with the factSource using the property object.
+
+class XbrlTableTemplate(XbrlObject):
     rowIdColumn: Optional[str] # (optional) An identifier specifying the name of the row ID column.
     columns: dict # (required) A columns object. (See xbrl-csv specification)
     factDimensions: dict[QName, Any] # (required) A dimensions object that defines table dimensions. (See xbrl-csv specification)
     decimals: Optional[Decimal] # (optional) A decimals val
     extendTargetName: Optional[QName] # (required if no name property) Names the tableTemplate object that is appended to. The items in the table template with this property are appended to the end of the columns target table template object. This property cannot be used in conjunction with the name and rowIdColumn property.
 
+class XbrlJSONTemplateMap(XbrlObject):
+    factDimensions: dict[QName, Any] # (required) A factDimensions object that defines map dimensions.
+    valuePath: str # (required) A JSONPath expression that identifies the location of the fact values in the JSON data.
+    decimals: Optional[int] # (optional) A decimals value.
+
+class XbrlXMLTemplateMap(XbrlObject):
+    factDimensions: dict[QName, Any] # (required) A factDimensions object that defines map dimensions.
+    valuePath: str # (required) A JSONPath expression that identifies the location of the fact values in the JSON data.
+    decimals: Optional[int] # (optional) A decimals value.
+    namespaceMap: Optional[XbrlFactValue] # (optional) A namespace mapping object that defines the namespace prefixes used in the XPath expression.
+
+class XbrlFactMap(XbrlReportObject):
+    parent: Union[XbrlReportType,XbrlModuleType]  # table templates in taxonomy module are owned by the txmyMdl
+    name: QNameKeyType # (required) The name is a QName that uniquely identifies the fact map object.
+    tableTemplate: Optional[XbrlTableTemplate] # optional) Defines a fact map based on data in a tabular format such as CSV or spreadsheet.
+    jsonTemplateMap: Optional[XbrlJSONTemplateMap] # optional) Defines a fact map based on data in a JSON format. The JSON template object uses JSONPath to identify fact values in the JSON data.
+    xmlTemplateMap: Optional[XbrlXMLTemplateMap] # (optional) Defines a fact map based on data in an XML format. The XML template object uses xpath to identify fact values in the XML data.
+
 class XbrlReport(XbrlReportObject):
     txmyMdl: XbrlTaxonomyModelType
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the abstract object.
-    factspaces: OrderedDict[QNameKeyType, XbrlFactspace]
+    factPositions: OrderedDict[QNameKeyType, XbrlFact]
     footnotes: OrderedDict[QNameKeyType, XbrlFootnote]
-    tableTemplates: OrderedSet[XbrlTableTemplate] # (optional) ordered set of tableTemplate objects.
+    factSources: OrderedSet[XbrlFactSource] # (optional) ordered set of tableTemplate objects.
 
     @property
-    def factspacesByName(self):
+    def factsByName(self):
         try:
-            return self._factspacesByName
+            return self._factPositionsByName
         except AttributeError:
-            self._factspacesByName = fbn = defaultdict(OrderedSet)
-            for factspace in self.factspaces:
-                fbn[factspace.name].add(factspace)
-            return self._factspacesByName
+            self._factsByName = fbn = defaultdict(OrderedSet)
+            for fact in self.facts:
+                fbn[fact.name].add(fact)
+            return self._factsByName
 
-XbrlFactspace._propertyMap[XbrlReport] = {
+XbrlFact._propertyMap[XbrlReport] = {
     # mapping for OIM report facts parented by XbrlReport object
     "name": "id", # name may be id in source input
     "factDimensions": "dimensions" # factDimensions may be dimensions in source input

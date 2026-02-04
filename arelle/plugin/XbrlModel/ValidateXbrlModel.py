@@ -30,17 +30,17 @@ from .XbrlEntity import XbrlEntity
 from .XbrlGroup import XbrlGroup, XbrlGroupContent
 from .XbrlImportTaxonomy import XbrlImportTaxonomy, XbrlExportProfile, XbrlFinalTaxonomy
 from .XbrlLabel import XbrlLabel, XbrlLabelType, preferredLabel
-from .XbrlLayout import XbrlLayout, XbrlDataTable
+from .XbrlLayout import XbrlLayout, XbrlDataTable, XbrlAxis
 from .XbrlNetwork import XbrlNetwork, XbrlRelationship, XbrlRelationshipType
 from .XbrlObject import XbrlReferencableModelObject
 from .XbrlProperty import XbrlPropertyType
 from .XbrlReference import XbrlReference, XbrlReferenceType
-from .XbrlReport import XbrlFactspace, XbrlFootnote, XbrlTableTemplate
+from .XbrlReport import XbrlFact, XbrlFootnote, XbrlTableTemplate
 from .XbrlModule import XbrlModule, xbrlObjectTypes, referencableObjectTypes, xbrlObjectQNames
 from .XbrlUnit import XbrlUnit, parseUnitString
 from .XbrlConst import qnXsQName, qnXsDate, qnXsDateTime, qnXsDuration, objectsWithProperties
 from arelle.FunctionFn import true
-resolveFactspace = validateFactspace = None
+resolveFact = validateFactPosition = None
 
 perCnstrtFmtStartEndPattern = re.compile(r".*@(start|end)")
 def validateCompiledModel(compMdl):
@@ -51,8 +51,6 @@ def validateCompiledModel(compMdl):
 
     for module in compMdl.xbrlModels.values():
         validateXbrlModule(compMdl, module, mdlLvlChecks)
-    for layout in compMdl.layouts.values():
-        validateLayout(compMdl, layout)
 
     validateCompletedModel(compMdl)
 
@@ -213,7 +211,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
             def extendsFinalTaxonomy(obj):
                 # check for extended objects
                 if finalTxObj.finalTaxonomyFlag:
-                    if isinstance(obj, XbrlReferencableModelObject) and not isinstance(obj, (XbrlFactspace, XbrlFootnote, XbrlEntity)):
+                    if isinstance(obj, XbrlReferencableModelObject) and not isinstance(obj, (XbrlFact, XbrlFootnote, XbrlEntity)):
                         compMdl.error("oimte:invalidFinalTaxonomyModification",
                                   _("The importTaxonomy %(moduleName)s cannot be extended by object %(qname)s due to a finalTaxonomyFlag."),
                                   xbrlObject=impTxObj, moduleName=impMdlName, qname=obj.name)
@@ -1323,19 +1321,22 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                   _("The unit %(name)s measure %(measure)s must exist in the taxonomy model."),
                                   xbrlObject=unitObj, name=unitObj.name, measure=m)
     # Facts in taxonomy
-    if module.factspaces:
-        global resolveFactspace, validateFactspace
-        if resolveFactspace is None:
-            from .ValidateReport import resolveFactspace, validateFactspace
-        for factspace in module.factspaces:
-            resolveFactspace(compMdl, module, factspace)
+    if module.facts:
+        global resolveFact, validateFactPosition
+        if resolveFact is None:
+            from .ValidateReport import resolveFact, validateFactPosition
+        for factPosition in module.facts:
+            resolveFact(compMdl, module, factPosition)
 
+    # Layouts in XbrlModel
+    for layout in module.layouts:
+        assertObjectType(compMdl, layout, XbrlLayout)
 
-def validateLayout(compMdl, layout):
-    oimFile = str(layout.name)
+        for dataTbl in layout.dataTables:
+            assertObjectType(compMdl, dataTbl, XbrlDataTable)
 
-    # Taxonomy object
-    assertObjectType(compMdl, layout, XbrlLayout)
+            for axisName, axis in (("xAxis", dataTbl.xAxis), ("yAxis", dataTbl.yAxis), ("zAxis", dataTbl.zAxis)):
+                assertObjectType(compMdl, axis, XbrlAxis)
 
     for tblTmpl in module.tableTemplates:
         assertObjectType(compMdl, tblTmpl, XbrlTableTemplate)
@@ -1348,60 +1349,40 @@ def validateLayout(compMdl, layout):
                               _("The table template dimension %(dimension)s is missing from the table template columns."),
                               xbrlObject=tblTmpl, dimension=dim)
 
-    for dataTbl in module.dataTables:
-        assertObjectType(compMdl, dataTbl, XbrlDataTable)
-
-        for axisName, axis in (("xAxis", dataTbl.xAxis), ("yAxis", dataTbl.yAxis), ("zAxis", dataTbl.zAxis)):
-            assertObjectType(compMdl, axis, XbrlAxis)
-            dimsOnThisAxis = {} # qnames of axis dimensions and counts on axis
-            for axisDimName in axis.dimensionNames:
-                if axisDimName.dimensionName in (conceptCoreDim, unitCoreDim, periodCoreDim) and axisDimName.showTotal:
-                    compMdl.error("oimte:invalidShowTotalValue",
-                              _("For dimension $(dimension)s, showTotal MUST be absent or false,"),
-                              xbrlObject=dataTbl, dimension=axisDimName.dimensionName)
-                dimsOnThisAxis[axisDimName.dimensionName] = dimsOnThisAxis.get(axisDimName.dimensionName,0) + 1
-            if any(d.value() > 1 for d in dimsOnThisAxis.values()):
-                compMdl.error("oimte:multipleDimensionsForPresentationNetwork",
-                          _("The axes %(axes)s on dataTable %(dataTable)s have more than one of the same dimension."),
-                          xbrlObject=dataTbl, axes=", ".join(str(d) for d,c in dimsOnThisAxis.items() if c > 1))
-                compMdl.error("oimte:invalidObjectType",
-                          _("The importObjectTypes property MUST specify valid OIM object types, %(qname)s is not valid."),
-                          xbrlObject=impTxObj, qname=qnObjType)
-
 def validateCompletedModel(compMdl):
     # Facts in taxonomy
-    if any(module.factspaces for module in compMdl.xbrlModels.values()):
+    if any(module.facts for module in compMdl.xbrlModels.values()):
 
         # build search vocabulary to support cube construction (after date resolution concepts validated)
-        from .VectorSearch import buildXbrlVectors, searchXbrl, searchXbrlBatchTopk, SEARCH_CUBES, SEARCH_FACTSPACES, SEARCH_BOTH
+        from .VectorSearch import buildXbrlVectors, searchXbrl, searchXbrlBatchTopk, SEARCH_CUBES, SEARCH_FACTPOSITIONS, SEARCH_BOTH
         buildXbrlVectors(compMdl)
 
         dateResolutionQuery = [(conceptCoreDim, qn) for qn in compMdl.dateResolutionConceptNames]
 
         if dateResolutionQuery:
 
-            results = searchXbrl(compMdl, dateResolutionQuery, SEARCH_FACTSPACES, 5 * len(dateResolutionQuery)) # allow sufficient return scores
+            results = searchXbrl(compMdl, dateResolutionQuery, SEARCH_FACTPOSITIONS, 5 * len(dateResolutionQuery)) # allow sufficient return scores
             # print(f"first search item {dtResQuery[0]} results {[(r[0],r[1].name) for r in results]}")
 
-            # validate factspace objects whose scores indicates they represent dateResolution concepts first
+            # validate factPosition objects whose scores indicates they represent dateResolution concepts first
             compMdl.dateResolutionConceptFacts = defaultdict(list)
             for score, f in results:
                 if score < 0.2:  # arbitrary, what should this be?
                     break
-                if isinstance(f, XbrlFactspace):
+                if isinstance(f, XbrlFact):
                     conceptQn = f.factDimensions.get(conceptCoreDim)
                     if conceptQn in compMdl.dateResolutionConceptNames:
-                        validateFactspace(compMdl, f)
+                        validateFactPosition(compMdl, f)
                         compMdl.dateResolutionConceptFacts[conceptQn].append(f)
 
             # validate facts not of date resolution objects
-            for f in compMdl.filterNamedObjects(XbrlFactspace):
+            for f in compMdl.filterNamedObjects(XbrlFact):
                 if f.factDimensions.get(conceptCoreDim) not in compMdl.dateResolutionConceptNames:
-                    validateFactspace(compMdl, f)
+                    validateFactPosition(compMdl, f)
         else:
             # validate all facts
-            for f in compMdl.filterNamedObjects(XbrlFactspace):
-                validateFactspace(compMdl, f)
+            for f in compMdl.filterNamedObjects(XbrlFact):
+                validateFactPosition(compMdl, f)
 
     # check complete cubes
     for cubeObj in compMdl.filterNamedObjects(XbrlCube):

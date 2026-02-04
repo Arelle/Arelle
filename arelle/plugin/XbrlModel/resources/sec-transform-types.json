@@ -1,0 +1,52 @@
+{
+  "$schema": "../oim-taxonomy-schema.json",
+  "documentInfo": {
+      "documentType": "https://xbrl.org/2026/model",
+        "namespaces": {
+            "xbrl": "https://xbrl.org/2025",
+            "xbrli":"https://xbrl.org/2025/instance",
+            "xs": "http://www.w3.org/2001/XMLSchema",
+            "ixt-sec":"https://xbrl.org/2025/transform-types" ,
+            "dei":"http://xbrl.sec.gov/dei/2025" 
+            },
+        "documentNamespace":"ixt-sec"
+  },
+  "xbrlModel": {
+      "name": "ixt-sec:TransformsTaxonomyModule",
+      "frameworkName": "transforms",
+      "version": "2025",
+      "dataTypes": [
+        {
+            "name": "ixt-sec:boolballotboxType",
+            "baseType": "xs:string",
+            "enumeration": ["☐","&#9744;", "☑","&#9745;","☒", "&#9746;"]
+        }
+      ],
+      "labels": [
+            {
+                "relatedName": "ixt-sec:boolballotbox",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "Transforms boolean ballot box values to boolean true/false. A value of '☑' or '☒' is considered true, while '☐' is considered false."
+            },
+            {
+                "relatedName": "ixt-sec:exchnameen",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "Transforms exchange full English names to their corresponding short names. The conversion matrix is as follows : The New York Stock Exchange -> NYSE; New York Stock Exchange LLC -> NYSE; NASDAQ Global Select Market -> NASDAQ; The Nasdaq Stock Market LLC -> NASDAQ; BOX Exchange LLC -> BOX;Nasdaq BX, Inc. -> BX; Cboe C2 Exchange, Inc. -> C2; Cboe Exchange, Inc. -> CBOE; Chicago Stock Exchange, Inc. -> CHX; Cboe BYX Exchange, Inc. -> CboeBYX; Cboe BZX Exchange, Inc. -> CboeBZX; Cboe EDGA Exchange, Inc. -> CboeEDGA; Cboe EDGX Exchange, Inc. -> CboeEDGX; Nasdaq GEMX, LLC -> GEMX"
+            }
+      ],
+      "transforms":[
+        {
+            "name": "ixt-sec:boolballotbox",
+            "inputDataType": "ixt-sec:boolballotboxType",
+            "outputDataType": "xs:boolean"
+        },
+        {
+            "name" : "ixt-sec:exchnameen",
+            "inputDataType": "xs:string",
+            "outputDataType": "dei:edgarExchangeCodeItemType"
+        }
+      ]
+}
+}

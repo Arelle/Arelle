@@ -19,8 +19,6 @@ For XBRL 2.1 XML schema validation purposes, saves schema files in directory if
 from typing import TYPE_CHECKING, cast, GenericAlias, Union, _GenericAlias, _UnionGenericAlias, get_origin, ClassVar, ForwardRef
 
 import os, io, json, cbor2, sys, time, traceback
-from _ast import Or
-from pip._vendor.distlib.util import OR
 JSON_SCHEMA_VALIDATOR = "jsonschema" # select one of below JSON schema validator libraries (seriously different performance)
 JSON_SCHEMA_VALIDATOR = "fastjsonschema"
 if JSON_SCHEMA_VALIDATOR == "jsonschema": # slow and thorough
@@ -42,7 +40,7 @@ from decimal import Decimal
 from arelle.ModelDocument import load, Type,  create as createModelDocument
 from arelle.ModelValue import qname, QName
 from arelle.PythonUtil import SEQUENCE_TYPES, OrderedSet
-from arelle.Version import authorLabel, copyrightLabel
+#from arelle.Version import authorLabel, copyrightLabel
 from arelle.XmlUtil import setXmlns
 from arelle import ModelDocument, PackageManager, UrlUtil, XmlValidate
 
@@ -61,7 +59,7 @@ from .XbrlLayout import XbrlLayout
 from .XbrlNetwork import XbrlNetwork, XbrlRelationship, XbrlRelationshipType
 from .XbrlProperty import XbrlProperty, XbrlPropertyType
 from .XbrlReference import XbrlReference, XbrlReferenceType
-from .XbrlReport import XbrlReport, XbrlFactspace, XbrlFootnote
+from .XbrlReport import XbrlReport, XbrlFact, XbrlFootnote, XbrlFactSource, XbrlFactMap
 from .XbrlTransform import XbrlTransform
 from .XbrlUnit import XbrlUnit
 from .XbrlModel import XbrlCompiledModel, castToXbrlCompiledModel
@@ -520,7 +518,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                         elif isinstance(jsonValue, dict) and _keyClass is not None:
                             for iObj, (valKey, valVal) in enumerate(jsonValue.items()):
                                 if isinstance(_keyClass, type) and issubclass(_keyClass,QName):
-                                    if jsonKey == "dimensions" and objClass == XbrlFactspace:
+                                    if jsonKey == "dimensions" and objClass == XbrlFact:
                                         valKey = coreDimensionsByLocalname.get(valKey, valKey) # unprefixed core dimension localNames
                                     _valKey = qname(valKey, prefixNamespaces)
                                     if _valKey is None:
@@ -542,6 +540,8 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                                 setattr(newObj, propName, collectionProp) # fresh new dict or OrderedSet (even if no contents for it)
                         createModelObjects(propName, listObj, newObj, pathParts + [f'{propName}[{iObj}]'])
                     elif isinstance(propType, _UnionGenericAlias) and propType.__args__[-1] == type(None) and isinstance(jsonValue,dict): # optional embdded object
+                        createModelObjects(propName, jsonValue, newObj, pathParts + [propName]) # object property
+                    elif isinstance(propType, type) and issubclass(propType, XbrlObject) and isinstance(jsonValue,dict): # mandatory embdded object
                         createModelObjects(propName, jsonValue, newObj, pathParts + [propName]) # object property
                     else:
                         optional = False
@@ -576,13 +576,14 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                 else: # absent json element
                     if not (propClass in (dict, set, OrderedSet, OrderedDict) or
                             (isinstance(propClass, _GenericAlias) and propClass.__origin__ == list)):
-                        jsonEltsReqdButMissing.append(f"{'/'.join(pathParts + [propName])}")
+                        if propClass != OptionalList: # OptionalList is null if completely absent, not an empty list
+                            jsonEltsReqdButMissing.append(f"{'/'.join(pathParts + [propName])}")
                         setattr(newObj, propName, None) # not defaultable but set to None anyway
             if unexpectedJsonProps:
                 for propName in unexpectedJsonProps:
                     jsonEltsNotInObjClass.append(f"{'/'.join(pathParts + [propName])}={jsonObj.get(propName,'(absent)')}")
             if (isinstance(newObj, XbrlReferencableModelObject) or # most referencable taxonomy objects
-                (isinstance(newObj, (XbrlFactspace, XbrlFootnote)) and isinstance(oimParentObj, XbrlModule))): # taxonomy-owned fact
+                (isinstance(newObj, (XbrlFact, XbrlFootnote, XbrlFactSource, XbrlFactMap)) and isinstance(oimParentObj, XbrlModule))): # taxonomy-owned fact
                 if keyValue is not None: # otherwise expect some error occured above
                     if keyValue in xbrlCompMdl.namedObjects:
                         namedObjectDuplicates[keyValue].add(newObj)
@@ -603,6 +604,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
             if ownrPropType is not None:
                 ownrProp = getattr(oimParentObj, objName, None) # owner collection or property
                 if ownrPropType is not None:
+                    keyClass = None
                     if isinstance(ownrPropType, GenericAlias):
                         ownrPropClass = ownrPropType.__origin__ # collection type such as OrderedSet, dict
                         if len(ownrPropType.__args__) == 2: # dict
@@ -612,13 +614,10 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                             keyClass = None
                             objClass = ownrPropType.__args__[0]
                     elif isinstance(ownrPropType, _UnionGenericAlias) and isinstance(ownrPropType.__args__[0], GenericAlias) and ownrPropType.__args__[-1] == type(None): # optional embdded list of objects like allowedCubeDimensions
-                        keyClass = None
                         objClass = ownrPropType.__args__[0].__args__[0]
                     elif isinstance(ownrPropType, _UnionGenericAlias) and ownrPropType.__args__[-1] == type(None): # optional nested object
-                        keyClass = None
                         objClass = ownrPropType.__args__[0]
                     elif isinstance(ownrPropType, _GenericAlias): # e.g. OptionalList
-                        keyClass = None
                         objClass = ownrPropType.__args__[0]
                     else: # parent      is just an object field, not a  collection
                         objClass = ownrPropType # e.g just a Concept but no owning collection
@@ -658,6 +657,8 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                             ownrProp.add(newObj)
                         elif issubclass(ownrPropType.__origin__, list):
                             ownrProp.append(newObj)
+                    elif isinstance(ownrPropType, type) and issubclass(ownrPropType, XbrlObject):
+                        setattr(oimParentObj, jsonKey, newObj)
                     return newObj
             return None
         if "xbrlModel" not in moduleFileObj:
@@ -1229,8 +1230,8 @@ def xbrlModelViews(cntlr, xbrlCompMdl):
                              (XbrlNetwork, cntlr.tabWinTopRt, "XBRL Networks"),
                              (XbrlCube, cntlr.tabWinTopRt, "XBRL Cubes")
                             ))
-        if any(xbrlCompMdl.filterNamedObjects(XbrlFactspace)):
-            initialViews.append( (XbrlFactspace, cntlr.tabWinTopRt, "Taxonomy Facts") )
+        if any(xbrlCompMdl.filterNamedObjects(XbrlFact)):
+            initialViews.append( (XbrlFact, cntlr.tabWinTopRt, "Taxonomy Facts") )
         initialViews = tuple(initialViews)
         additionalViews = ((XbrlAbstract, cntlr.tabWinBtm, "XBRL Abstracts"),
                            (XbrlCubeType, cntlr.tabWinBtm, "XBRL Cube Types"),
@@ -1256,8 +1257,8 @@ __pluginInfo__ = {
     'version': '1.2',
     'description': "This plug-in implements XBRL model modules loaded from JSON.",
     'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    'author': 'Herm Fischer',
+    'copyright': 'Exbee Ltd',
     # classes of mount points (required)
     'CntlrCmdLine.Options': optionsExtender,
     'CntlrCmdLine.Filing.Start': filingStart,

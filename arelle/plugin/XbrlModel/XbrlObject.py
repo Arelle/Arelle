@@ -36,7 +36,14 @@ def deleteCollectionMembers(txmyMdl, deletions, collection=None):
 class XbrlModelClass:
     @classmethod
     def propertyNameTypes(cls):
+        initialParentObjProp = True
         for propName, propType in getattr(cls, "__annotations__", EMPTY_DICT).items():
+            if initialParentObjProp:
+                initialParentObjProp = False
+                if (isinstance(propType, str) or propType.__name__.startswith("Xbrl") or # skip taxonomy alias type
+                    (isinstance(propType, _UnionGenericAlias) and
+                     any((isinstance(t.__forward_arg__, str) or t.__forward_arg__.__name__.startswith("Xbrl")) for t in propType.__args__ if isinstance(t,ForwardRef)))): # Union of TypeAliases are ForwardArgs
+                    continue
             if not isinstance(propType, _GenericAlias) or propType.__origin__ != ClassVar:
                 yield propName, propType
 
@@ -93,10 +100,11 @@ class XbrlObject(XbrlModelClass):
                         continue
                     if propName in ("name", "groupName") and val and issubclass(objClass, XbrlReferencableModelObject):
                         # insert label first if any
-                        label = self.xbrlCompMdl.labelValue(val, qnStdLabel, fallbackToName=False)
-                        if label:
-                            propVals.append( ("label", label) )
-                        referenceProperties = self.xbrlCompMdl.referenceProperties(val, None)
+                        if self.xbrlCompMdl is not None:
+                            label = self.xbrlCompMdl.labelValue(val, qnStdLabel, fallbackToName=False)
+                            if label:
+                                propVals.append( ("label", label) )
+                            referenceProperties = self.xbrlCompMdl.referenceProperties(val, None)
                 elif propName == "factDimensions" and isinstance(val, dict):
                     for propKey, propVal in val.items():
                         propVals.append( (str(propKey), str(propVal) ) )
@@ -232,7 +240,7 @@ class XbrlReferencableModelObject(XbrlModelObject):
         return None
 
     def getProperty(self, propertyName, propertyType=None, language=None, defaultValue=None):
-        if propertyName == "label" and hasattr(self, "name"):
+        if propertyName == "label" and hasattr(self, "name") and self.xbrlCompMdl is not None:
             return self.xbrlCompMdl.labelValue(self.name, propertyType or qnStdLabel, language)
         return getattr(self, propertyName, defaultValue)
 

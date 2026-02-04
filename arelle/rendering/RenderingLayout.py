@@ -99,6 +99,8 @@ def layoutTable(view, table = None):
                                 lytMdlHdrs = LytMdlHeaders(lytMdlTbl, axis)
                                 for brkdownNode in breakdownNodes:
                                     label = brkdownNode.defnMdlNode.genLabel(lang=view.lang, strip=True)
+                                    if label is not None:
+                                        label = (label, None, view.lang)
                                     lytMdlGrp = LytMdlGroup(lytMdlHdrs, label, brkdownNode.defnMdlNode.modelDocument.basename, brkdownNode.defnMdlNode.sourceline)
                                     brkdownNodeLytMdlGrp[brkdownNode] = lytMdlGrp
                         zStrctNodes = []
@@ -255,7 +257,7 @@ def layoutAxis(view, leftCol, topRow, rowBelow, parentStrctNode, strctNodes, ren
                 if not isRollUpCell:
                     lytMdlCell.id = strctNode.defnMdlNode.id
                     if label:
-                        lytMdlCell.labels.append((label, None, None))
+                        lytMdlCell.labels.append((label, None, view.lang))
                         if label == OPEN_ASPECT_ENTRY_SURROGATE:
                             lytMdlCell.isOpenAspectEntrySurrogate = True
                     for role in HdrNonStdRoles:

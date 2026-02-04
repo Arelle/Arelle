@@ -14,7 +14,7 @@ from arelle.ModelValue import qname
 from .XbrlConcept import XbrlConcept
 from .XbrlCube import coreDimensionsByLocalname
 from .XbrlDimension import XbrlDimension
-from .XbrlReport import XbrlFactspace, XbrlTableTemplate
+from .XbrlReport import XbrlFact, XbrlTableTemplate
 
 # Load CSV Table
 columnProperties = {"comment", "decimals", "dimensions", "propertyGroups", "parameterURL", "propertiesFrom"}
@@ -402,13 +402,13 @@ def csvTableRowFacts(table, txmyMdl, error, warning, reportUrl): # yields facts 
                             error("xbrlce:invalidDecimalsValue",
                                   _("Table %(table)s row %(row)s column %(column)s has invalid decimals \"%(decimals)s\", from %(source)s, url: %(url)s"),
                                   table=tableId, row=rowIndex+1, column=colName, decimals=dimValue, url=tableUrl, source=dimSource)
-                factspaceObj = XbrlFactspace(xbrlMdlObjIndex=len(txmyMdl.xbrlObjects))
-                txmyMdl.xbrlObjects.append(factspaceObj)
-                factspaceObj.report = table.report
-                factspaceObj.name = qname(factId, prefixNamespaces)
-                factspaceObj.value = fact.get("value")
-                factspaceObj.decimals = None
-                factspaceObj.factDimensions = {}
+                factPositionObj = XbrlFact(xbrlMdlObjIndex=len(txmyMdl.xbrlObjects))
+                txmyMdl.xbrlObjects.append(factPositionObj)
+                factPositionObj.report = table.report
+                factPositionObj.name = qname(factId, prefixNamespaces)
+                factPositionObj.value = fact.get("value")
+                factPositionObj.decimals = None
+                factPositionObj.factDimensions = {}
                 dimensionsUsed = set()
                 cObj = None
                 for dim, val in fact["dimensions"].items():
@@ -434,15 +434,15 @@ def csvTableRowFacts(table, txmyMdl, error, warning, reportUrl): # yields facts 
                             continue
                         if dim == "concept":
                             cObj = txmyMdl.namedObjects.get(val)
-                    factspaceObj.factDimensions[coreDimensionsByLocalname.get(dim,dim)] = val
+                    factPositionObj.factDimensions[coreDimensionsByLocalname.get(dim,dim)] = val
                 if isinstance(cObj, XbrlConcept):
                     if "language" in fact["dimensions"] and cObj.isOimTextFactType(txmyMdl):
                         dimensionsUsed.add("language")
 
                     if cObj.isNumeric(txmyMdl):
-                        factspaceObj.decimals = fact.get("decimals")
+                        factPositionObj.decimals = fact.get("decimals")
 
-                rowFactObjs.append(factspaceObj)
+                rowFactObjs.append(factPositionObj)
 
                 for dimName, dimSource in factDimensionSourceCol.items():
                     if dimName in dimensionsUsed:

@@ -93,12 +93,12 @@ class XbrlDimensionConstraint(XbrlModelObject):
     dimensionName: Optional[QName] # (optional) The dimension QName that identifies the taxonomy defined dimension.
     type: Optional[str] # (optional) The dimension QName that identifies the taxonomy defined dimension.
     dataType: Optional[QName] # (optional) The dimension QName that identifies the taxonomy defined dimension.
-    required: Optional[bool] # (optional) The dimension QName that identifies the taxonomy defined dimension.
+    required: Union[bool, DefaultFalse] # (optional) The dimension QName that identifies the taxonomy defined dimension.
     dimensionProperties: Optional[XbrlDimensionPropertiesConstraint] # (optional) Defines constraints on dimension properties defining those properties that are allowed.
 
 class XbrlDimensionsAllowed(XbrlModelObject):
     allowed: OrderedSet[XbrlDimensionConstraint] # (optional) An ordered set of dimension constraint objects. (xbrl:dimensionConstraintObject) The dimension constraint defines the constraints on dimensions that can be included in cubes of this type.
-    closed: Optional[bool] # (optional) If true, only dimensions listed in allowed can be used. If false, other taxonomy-defined dimensions are permitted. Defaults to false.
+    closed: Union[bool, DefaultFalse] # (optional) If true, only dimensions listed in allowed can be used. If false, other taxonomy-defined dimensions are permitted. Defaults to false.
 
 class XbrlVertexConstraint(XbrlModelObject):
     qname: Optional[QName] # (optional) Specific source or target QName
@@ -110,6 +110,9 @@ class XbrlVertexConstraint(XbrlModelObject):
             return NotImplemented
         return self.qname == other.qname and self.objectType == other.objectType and self.dataType == other.dataType
 
+    def __hash__(self):
+        return hash( (hash(self.qname), hash(self.objectType), hash(self.dataType)) )
+
 class XbrlCubeRelationshipConstraint(XbrlModelObject):
     type: Optional[QName] # (optional) The relationship type QName
     source: Optional[XbrlVertexConstraint] # (optional) Constraints on the relationship source. Use the xbrl:vertexConstraintObject to define the constraints on the source of the relationship.
@@ -120,10 +123,12 @@ class XbrlCubeRelationshipConstraint(XbrlModelObject):
             return NotImplemented
         return self.type == other.type and self.source == other.source and self.target == self.target
 
+    def __hash__(self):
+        return hash( (hash(self.type), hash(self.source), hash(self.target)) )
 
 class XbrlCubeRelationshipAllowed(XbrlModelObject):
-    required: List[XbrlCubeRelationshipConstraint] # (optional)An ordered set of cube relationships constraint objects (xbrl:cubeRelationshipConstraintObject) that must be present.
-    allowed: List[XbrlCubeRelationshipConstraint] # (optional) An ordered set of cube relationships constraint objects (xbrl:cubeRelationshipConstraintObject) that are permitted, using the same format as required.
+    required: OrderedSet[XbrlCubeRelationshipConstraint] # (optional)An ordered set of cube relationships constraint objects (xbrl:cubeRelationshipConstraintObject) that must be present.
+    allowed: OrderedSet[XbrlCubeRelationshipConstraint] # (optional) An ordered set of cube relationships constraint objects (xbrl:cubeRelationshipConstraintObject) that are permitted, using the same format as required.
 
 class XbrlCubePropertiesConstraint(XbrlModelObject):
     required: OrderedSet[QName] # (optional) An ordered set of property type QNames that must be associated with cubes of this type.

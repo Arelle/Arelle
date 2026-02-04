@@ -1,7 +1,7 @@
 {
     "$schema": "../oim-taxonomy-schema.json",
     "documentInfo": {
-        "documentType": "https://xbrl.org/2025/taxonomy",
+        "documentType": "https://xbrl.org/2026/model",
         "namespaces": {
             "xbrl": "https://xbrl.org/2025",
             "xs": "http://www.w3.org/2001/XMLSchema"

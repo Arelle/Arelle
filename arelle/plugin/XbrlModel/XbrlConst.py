@@ -7,9 +7,9 @@ from arelle.XbrlConst import xsd
 
 # MERGE TO arelle.XbrlConst when promoting plugin to infrastructure
 
-oimTaxonomyDocTypePattern = re.compile(r"\s*\{.*\"documentType\"\s*:\s*\"https://xbrl.org/[0-9]{4}/taxonomy\"", flags=re.DOTALL)
+oimTaxonomyDocTypePattern = re.compile(r"\s*\{.*\"documentType\"\s*:\s*\"https://xbrl.org/[0-9]{4}/model\"", flags=re.DOTALL)
 oimTaxonomyDocTypes = (
-        "https://xbrl.org/2025/taxonomy",
+        "https://xbrl.org/2026/model",
     )
 
 xbrl = "https://xbrl.org/2025"
@@ -55,7 +55,7 @@ qnBuiltInCoreObjectsTaxonomy = qname(xbrl, "xbrl:BuiltInCoreObjectsTaxonomy")
 qnErrorQname = qname(None, "InvalidQName")
 
 objectsWithProperties = {
-    qname(xbrl, "xbrl:taxonomyObject"),
+    qname(xbrl, "xbrl:xbrlModelObject"),
     qnXbrlConceptObj,
     qnXbrlAbstractObj,
     qname(xbrl, "xbrl:cubeObject"),
@@ -63,7 +63,7 @@ objectsWithProperties = {
     qname(xbrl, "xbrl:domainObject"),
     qname(xbrl, "xbrl:domainClassObject"),
     qnXbrlEntityObj,
-    qname(xbrl, "xbrl:factspaceObject"),
+    qname(xbrl, "xbrl:factObject"),
     qname(xbrl, "xbrl:groupObject"),
     qname(xbrl, "xbrl:networkObject"),
     qnXbrlLabelObj,

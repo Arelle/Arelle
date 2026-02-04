@@ -1,7 +1,7 @@
 {
     "$schema": "../oim-taxonomy-schema.json",
     "documentInfo": {
-        "documentType": "https://xbrl.org/2025/taxonomy",
+        "documentType": "https://xbrl.org/2026/model",
         "namespaces": {
             "oimte": "https://xbrl.org/2025/oimtaxonomy/error",
             "oime": "http://www.xbrl.org/2021/oim/error",
@@ -215,6 +215,26 @@
                     },
                     {
                         "source": "oimte:OIMErrorClassDomain",
+                        "target": "oimte:factValueDataTypeMismatch",
+                        "order": 28.5
+                    },
+                    {
+                        "source": "oimte:OIMErrorClassDomain",
+                        "target": "oimte:hrefIDNotFound",
+                        "order": 28.6
+                    },
+                    {
+                        "source": "oimte:OIMErrorClassDomain",
+                        "target": "oimte:ambiguousFileReference",
+                        "order": 28.65
+                    },
+                    {
+                        "source": "oimte:OIMErrorClassDomain",
+                        "target": "oimte:unknownFactTransformation",
+                        "order": 28.7
+                    },
+                    {
+                        "source": "oimte:OIMErrorClassDomain",
                         "target": "oimte:invalidImportObjectType",
                         "order": 29
                     },
@@ -242,11 +262,6 @@
                         "source": "oimte:OIMErrorClassDomain",
                         "target": "oimte:invalidPeriodType",
                         "order": 35
-                    },
-                    {
-                        "source": "oimte:OIMErrorClassDomain",
-                        "target": "oimte:invalidProfileFramework",
-                        "order": 36
                     },
                     {
                         "source": "oimte:OIMErrorClassDomain",
@@ -342,11 +357,6 @@
                         "source": "oimte:OIMErrorClassDomain",
                         "target": "oimte:unresolvedRelatedName",
                         "order": 50
-                    },
-                    {
-                        "source": "oimte:OIMErrorClassDomain",
-                        "target": "oimte:taxonomyGroupInNetwork",
-                        "order": 51
                     },
                     {
                         "source": "oimte:OIMErrorClassDomain",
@@ -658,6 +668,7 @@
             },
             {
                 "name": "oimte:duplicateDimensionsInCube",
+                "domainClasses": ["oimte:OIMErrorClassDomain"],
                 "properties": [
                     {
                         "property": "xbrl:severity",
@@ -667,6 +678,7 @@
             },
             {
                 "name": "oimte:invalidObjectType",
+                "domainClasses": ["oimte:OIMErrorClassDomain"],
                 "properties": [
                     {
                         "property": "xbrl:severity",
@@ -877,15 +889,6 @@
                 ]
             },
             {
-                "name": "oimte:invalidProfileFramework",
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
                 "name": "oimte:unknownIncludedObject",
                 "properties": [
                     {
@@ -941,6 +944,42 @@
             },
             {
                 "name": "oimte:invalidFactMember",
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatch",
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:hrefIDNotFound",
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:ambiguousFileReference",
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:unknownFactTransformation",
                 "properties": [
                     {
                         "property": "xbrl:severity",
@@ -1030,15 +1069,6 @@
                 ]
             },
             {
-                "name": "oimte:taxonomyGroupInNetwork",
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
                 "name": "oimte:invalidTaxonomyGroupSource",
                 "properties": [
                     {
@@ -1085,6 +1115,24 @@
             },
             {
                 "name": "oimte:invalidObjectNamespacePrefix",
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:disallowedObjectModelType",
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:missingRequiredModelTypeProperty",
                 "properties": [
                     {
                         "property": "xbrl:severity",
@@ -1736,11 +1784,6 @@
                         "order": 1
                     },
                     {
-                        "source": "oimte:NetworkErrors",
-                        "target": "oimte:taxonomyGroupInNetwork",
-                        "order": 2
-                    },
-                    {
                         "source": "oimte:LabelErrors",
                         "target": "oimte:duplicateLabelObject",
                         "order": 1
@@ -1806,6 +1849,16 @@
                         "order": 1
                     },
                     {
+                        "source": "oimte:FactErrors",
+                        "target": "oimte:factValueDataTypeMismatch",
+                        "order": 1
+                    },
+                    {
+                        "source": "oimte:FactErrors",
+                        "target": "oimte:hrefIDNotFound",
+                        "order": 1
+                    },
+                    {
                         "source": "oimte:PropertyTypeErrors",
                         "target": "oimte:invalidAllowedObject",
                         "order": 1
@@ -1834,11 +1887,6 @@
                         "source": "oimte:DomainClassErrors",
                         "target": "oimte:invalidLanguageDomainClass",
                         "order": 5
-                    },
-                    {
-                        "source": "oimte:ImportTaxonomyErrors",
-                        "target": "oimte:invalidProfileFramework",
-                        "order": 1
                     },
                     {
                         "source": "oimte:ImportTaxonomyErrors",
@@ -2039,7 +2087,7 @@
                     "xbrl:cubeObject",
                     "xbrl:cubeTypeObject",
                     "xbrl:cubeDimensionObject",
-                    "xbrl:taxonomyObject",
+                    "xbrl:xbrlModelObject",
                     "xbrl:propertyObject",
                     "xbrl:dimensionObject",
                     "xbrl:domainObject",
@@ -2048,13 +2096,15 @@
                     "xbrl:referenceObject",
                     "xbrl:dataTypeObject",
                     "xbrl:conceptObject",
-                    "xbrl:factspaceObject",
+                    "xbrl:factObject",
                     "xbrl:propertyTypeObject",
+                    "xbrl:modelTypeObject",
                     "xbrl:domainClassObject",
                     "xbrl:importTaxonomyObject",
                     "xbrl:groupTreeObject",
-                    "oimte:JSONErrors",
-                    "xbrl:finalTaxonomyObject"
+                    "xbrl:finalTaxonomyObject",
+                    "oimte:DocumentInfoErrors",
+                    "oimte:JSONErrors"
                 ],
                 "relationships": [
                     {
@@ -2133,32 +2183,32 @@
                         "order": 6
                     },
                     {
-                        "source": "xbrl:taxonomyObject",
+                        "source": "xbrl:xbrlModelObject",
                         "target": "oimte:duplicateObjects",
                         "order": 1
                     },
                     {
-                        "source": "xbrl:taxonomyObject",
+                        "source": "xbrl:xbrlModelObject",
                         "target": "oimte:invalidQNameReference",
                         "order": 2
                     },
                     {
-                        "source": "xbrl:taxonomyObject",
+                        "source": "xbrl:xbrlModelObject",
                         "target": "oimte:invalidPropertyValue",
                         "order": 3
                     },
                     {
-                        "source": "xbrl:taxonomyObject",
+                        "source": "xbrl:xbrlModelObject",
                         "target": "oimte:invalidObjectType",
                         "order": 5
                     },
                     {
-                        "source": "xbrl:taxonomyObject",
+                        "source": "xbrl:xbrlModelObject",
                         "target": "oimte:invalidEmptySet",
                         "order": 6
                     },
                     {
-                        "source": "xbrl:taxonomyObject",
+                        "source": "xbrl:xbrlModelObject",
                         "target": "oimte:invalidLanguage",
                         "order": 3
                     },
@@ -2283,11 +2333,6 @@
                         "order": 1
                     },
                     {
-                        "source": "xbrl:networkObject",
-                        "target": "oimte:taxonomyGroupInNetwork",
-                        "order": 2
-                    },
-                    {
                         "source": "xbrl:labelObject",
                         "target": "oimte:duplicateLabelObject",
                         "order": 1
@@ -2338,14 +2383,45 @@
                         "order": 2
                     },
                     {
-                        "source": "xbrl:factspaceObject",
+                        "source": "xbrl:factObject",
                         "target": "oimte:invalidFactMember",
                         "order": 1
                     },
                     {
+                        "source": "xbrl:factObject",
+                        "target": "oimte:factValueDataTypeMismatch",
+                        "order": 2
+                    },
+                    {
+                        "source": "xbrl:factObject",
+                        "target": "oimte:hrefIDNotFound",
+                        "order": 3
+                    },
+                    {
+                        "source": "xbrl:factObject",
+                        "target": "oimte:unknownFactTransformation",
+                        "order": 4
+                    },
+                    	
+                    {
                         "source": "xbrl:propertyTypeObject",
                         "target": "oimte:invalidAllowedObject",
                         "order": 1
+                    },
+                    {
+                        "source": "xbrl:modelTypeObject",
+                        "target": "oimte:disallowedObjectModelType",
+                        "order": 1
+                    },
+                    {
+                        "source": "xbrl:modelTypeObject",
+                        "target": "oimte:missingRequiredModelTypeProperty",
+                        "order": 2
+                    },
+                    {
+                        "source": "xbrl:modelTypeObject",
+                        "target": "oimte:invalidEmptySet",
+                        "order": 3
                     },
                     {
                         "source": "xbrl:domainClassObject",
@@ -2374,11 +2450,6 @@
                     },
                     {
                         "source": "xbrl:importTaxonomyObject",
-                        "target": "oimte:invalidProfileFramework",
-                        "order": 1
-                    },
-                    {
-                        "source": "xbrl:importTaxonomyObject",
                         "target": "oimte:unknownIncludedObject",
                         "order": 2
                     },
@@ -2396,6 +2467,11 @@
                         "source": "xbrl:importTaxonomyObject",
                         "target": "oimte:invalidReferenceToImportTaxonomyObject",
                         "order": 4
+                    },
+                    {
+                        "source": "xbrl:importTaxonomyObject",
+                        "target": "oimte:taxonomyNotFound",
+                        "order": 6
                     },
                     {
                         "source": "xbrl:groupTreeObject",
@@ -2556,6 +2632,26 @@
                         "source": "xbrl:cubeTypeObject",
                         "target": "oimte:missingRequiredDimensionProperty",
                         "order": 23
+                    },
+                     {
+                        "source": "oimte:DocumentInfoErrors",
+                        "target": "oimte:objectNamespacePrefixNotDefined",
+                        "order": 5
+                    },
+                    {
+                        "source": "oimte:DocumentInfoErrors",
+                        "target": "oimte:invalidObjectNamespacePrefix",
+                        "order": 6
+                    },
+                    {
+                        "source": "oimte:DocumentInfoErrors",
+                        "target": "oimte:objectNamespaceMismatch",
+                        "order": 7
+                    },
+                    {
+                        "source": "oimte:DocumentInfoErrors",
+                        "target": "oimte:documentNamespaceHasNoPrefix",
+                        "order": 8
                     }
                 ]
             }
@@ -3066,18 +3162,6 @@
                 "labelType": "xbrl:errorMessage"
             },
             {
-                "relatedName": "oimte:invalidProfileFramework",
-                "language": "en",
-                "value": "Invalid Profile Framework",
-                "labelType": "xbrl:label"
-            },
-            {
-                "relatedName": "oimte:invalidProfileFramework",
-                "language": "en",
-                "value": "The profile framework '{profileFramework}' does not match the imported taxonomy framework '{taxonomyFramework}'.",
-                "labelType": "xbrl:errorMessage"
-            },
-            {
                 "relatedName": "oimte:unknownIncludedObject",
                 "language": "en",
                 "value": "Unknown Included Object",
@@ -3124,6 +3208,102 @@
                 "language": "en",
                 "value": "The datatype '{dataType}' is not valid for concept '{conceptName}' with enumeration domain. Must be xs:QName.",
                 "labelType": "xbrl:errorMessage"
+            },
+            {
+                "relatedName": "oimte:factValueDataTypeMismatch",
+                "language": "en",
+                "value": "Fact Value Data Type Mismatch",
+                "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "oimte:factValueDataTypeMismatch",
+                "language": "en",
+                "value": "The fact '{factName}' has value '{value}' which does not match the data type '{dataType}' of concept '{conceptName}'.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "relatedName": "oimte:factValueDataTypeMismatch",
+                "language": "en",
+                "value": "🚫",
+                "labelType": "xbrl:iconLabel"
+            },
+            {
+                "relatedName": "oimte:factValueDataTypeMismatch",
+                "language": "en",
+                "value": "This error occurs when a fact value does not conform to the data type of its associated concept. For example, a date value used with a monetary concept, or a text value used with a numeric concept. The fact value must be valid according to the concept's data type definition.",
+                "labelType": "xbrl:documentation"
+            },
+            {
+                "relatedName": "oimte:hrefIDNotFound",
+                "language": "en",
+                "value": "Source ID Not Found",
+                "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "oimte:hrefIDNotFound",
+                "language": "en",
+                "value": "The element with ID '{elementID}' was not found in document '{document}'.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "relatedName": "oimte:hrefIDNotFound",
+                "language": "en",
+                "value": "🚫",
+                "labelType": "xbrl:iconLabel"
+            },
+            {
+                "relatedName": "oimte:hrefIDNotFound",
+                "language": "en",
+                "value": "This error occurs when a fact value source specifies references an element ID that does not exist in the source document. The id attribute must specify a valid element ID in the referenced HTML or XML document. If the specified ID is not found, this error is generated.",
+                "labelType": "xbrl:documentation"
+            },
+            {
+                "relatedName": "oimte:ambiguousFileReference",
+                "language": "en",
+                "value": "Ambiguous File Reference",
+                "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "oimte:ambiguousFileReference",
+                "language": "en",
+                "value": "The factValueSource or factValueAnchor object does not specify a 'source' attribute, and the sourceMapping object contains multiple files. When multiple source files are defined, the 'source' attribute must be provided to identify which file to use.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "relatedName": "oimte:ambiguousFileReference",
+                "language": "en",
+                "value": "🚫",
+                "labelType": "xbrl:iconLabel"
+            },
+            {
+                "relatedName": "oimte:ambiguousFileReference",
+                "language": "en",
+                "value": "This error occurs when a factValueSource or factValueAnchor object specifies an 'id' property to reference content in a source document, but does not include a 'source' attribute to identify which document file to use. If the sourceMapping object in documentInfo contains only one file, that file is used by default. However, if sourceMapping contains multiple files (e.g., multiple HTML or PDF files), the 'source' attribute becomes mandatory to disambiguate which file contains the referenced ID. Without this disambiguation, the system cannot determine the correct source document, and this error is raised.",
+                "labelType": "xbrl:documentation"
+            },
+            {
+                "relatedName": "oimte:unknownFactTransformation",
+                "language": "en",
+                "value": "Unknown Fact Transformation",
+                "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "oimte:unknownFactTransformation",
+                "language": "en",
+                "value": "The transformation '{transformationName}' specified for fact '{factName}' is not defined in the transform types model.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "relatedName": "oimte:unknownFactTransformation",
+                "language": "en",
+                "value": "🚫",
+                "labelType": "xbrl:iconLabel"
+            },
+            {
+                "relatedName": "oimte:unknownFactTransformation",
+                "language": "en",
+                "value": "This error occurs when a fact value source specifies a transformation attribute that is not recognized or defined in the transform types model. All transformations used in value sources must be defined as members in the transform types model. If a transformation name is misspelled or not supported, this error is generated.",
+                "labelType": "xbrl:documentation"
             },
             {
                 "relatedName": "oimte:invalidDimensionMember",
@@ -3246,6 +3426,54 @@
                 "labelType": "xbrl:errorMessage"
             },
             {
+                "relatedName": "oimte:disallowedObjectModelType",
+                "language": "en",
+                "value": "Disallowed Object Model Type",
+                "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "oimte:disallowedObjectModelType",
+                "language": "en",
+                "value": "Object type '{objectType}' is not allowed in modelType '{modelType}'. The object '{firstObjectName}' violates the allowedObjects constraint. This constraint only applies to objects in the document namespace when modelForm is 'module' or undefined.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "relatedName": "oimte:disallowedObjectModelType",
+                "language": "en",
+                "value": "🚫",
+                "labelType": "xbrl:iconLabel"
+            },
+            {
+                "relatedName": "oimte:disallowedObjectModelType",
+                "language": "en",
+                "value": "This error occurs when an xbrlModel with a modelType attribute contains object types that are not in the modelType's allowedObjects array. The constraint only applies to objects defined in the same namespace as the xbrlModel's documentNamespace when modelForm is 'module' or undefined. Objects included via importTaxonomy are not subject to this constraint.",
+                "labelType": "xbrl:documentation"
+            },
+            {
+                "relatedName": "oimte:missingRequiredModelTypeProperty",
+                "language": "en",
+                "value": "Missing Required Model Type Property",
+                "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "oimte:missingRequiredModelTypeProperty",
+                "language": "en",
+                "value": "The xbrlModel is missing required property '{requiredProperty}' for modelType '{modelType}'. All properties defined in the modelType's requiredProperties array must be present on the xbrlModel.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "relatedName": "oimte:missingRequiredModelTypeProperty",
+                "language": "en",
+                "value": "🚫",
+                "labelType": "xbrl:iconLabel"
+            },
+            {
+                "relatedName": "oimte:missingRequiredModelTypeProperty",
+                "language": "en",
+                "value": "This error occurs when an xbrlModel with a modelType attribute does not define all properties specified in the modelType's requiredProperties array. Each property listed in requiredProperties must be included as a property of the xbrlModel for the model to be valid according to the modelType specification.",
+                "labelType": "xbrl:documentation"
+            },
+            {
                 "relatedName": "oimte:cannotExtendCompleteDomain",
                 "language": "en",
                 "value": "Cannot Extend Complete Domain",
@@ -3332,13 +3560,13 @@
             {
                 "relatedName": "oimte:taxonomyNotFound",
                 "language": "en",
-                "value": "Taxonomy Not Found",
+                "value": "Model Not Found",
                 "labelType": "xbrl:label"
             },
             {
                 "relatedName": "oimte:taxonomyNotFound",
                 "language": "en",
-                "value": "The taxonomy '{taxonomyName}' could not be found or loaded.",
+                "value": "The model '{modelName}' could not be found or loaded.",
                 "labelType": "xbrl:errorMessage"
             },
             {
@@ -3494,7 +3722,7 @@
             {
                 "relatedName": "oimte:invalidDimensionReference",
                 "language": "en",
-                "value": "This error occurs when a dimension constraint's dimensionName property references a QName that does not resolve to a valid dimension object in the taxonomy. All dimension references must point to existing dimension definitions.",
+                "value": "This error occurs when a dimension constraint's dimensionName property references a QName that does not resolve to a valid dimension object in the model. All dimension references must point to existing dimension definitions.",
                 "labelType": "xbrl:documentation"
             },
             {
@@ -3566,7 +3794,7 @@
             {
                 "relatedName": "oimte:invalidRelationshipTypeReference",
                 "language": "en",
-                "value": "This error occurs when a cubeRelationship constraint references a relationship type QName that does not resolve to a valid relationshipType object in the taxonomy. All relationship type references must point to existing relationship type definitions.",
+                "value": "This error occurs when a cubeRelationship constraint references a relationship type QName that does not resolve to a valid relationshipType object in the model. All relationship type references must point to existing relationship type definitions.",
                 "labelType": "xbrl:documentation"
             },
             {
@@ -3590,7 +3818,7 @@
             {
                 "relatedName": "oimte:invalidSourceQName",
                 "language": "en",
-                "value": "This error occurs when a cubeRelationship constraint's source.qname property does not resolve to a valid QName in the taxonomy. The source QName must reference an existing model component object.",
+                "value": "This error occurs when a cubeRelationship constraint's source.qname property does not resolve to a valid QName in the model. The source QName must reference an existing model component object.",
                 "labelType": "xbrl:documentation"
             },
             {
@@ -3614,7 +3842,7 @@
             {
                 "relatedName": "oimte:invalidSourceObjectType",
                 "language": "en",
-                "value": "This error occurs when a cubeRelationship constraint's source.objectType property does not resolve to a valid model component object type. The objectType must reference a recognized model component type in the taxonomy.",
+                "value": "This error occurs when a cubeRelationship constraint's source.objectType property does not resolve to a valid model component object type. The objectType must reference a recognized model component type in the model.",
                 "labelType": "xbrl:documentation"
             },
             {
@@ -3638,7 +3866,7 @@
             {
                 "relatedName": "oimte:invalidTargetQName",
                 "language": "en",
-                "value": "This error occurs when a cubeRelationship constraint's target.qname property does not resolve to a valid QName in the taxonomy. The target QName must reference an existing model component object.",
+                "value": "This error occurs when a cubeRelationship constraint's target.qname property does not resolve to a valid QName in the model. The target QName must reference an existing model component object.",
                 "labelType": "xbrl:documentation"
             },
             {
@@ -3662,7 +3890,7 @@
             {
                 "relatedName": "oimte:invalidTargetObjectType",
                 "language": "en",
-                "value": "This error occurs when a cubeRelationship constraint's target.objectType property does not resolve to a valid model component object type. The objectType must reference a recognized model component type in the taxonomy.",
+                "value": "This error occurs when a cubeRelationship constraint's target.objectType property does not resolve to a valid model component object type. The objectType must reference a recognized model component type in the model.",
                 "labelType": "xbrl:documentation"
             },
             {
@@ -3686,7 +3914,7 @@
             {
                 "relatedName": "oimte:invalidPropertyTypeReference",
                 "language": "en",
-                "value": "This error occurs when a cubeProperties constraint references a property type QName that does not resolve to a valid propertyType object in the taxonomy. All property type references must point to existing property type definitions.",
+                "value": "This error occurs when a cubeProperties constraint references a property type QName that does not resolve to a valid propertyType object in the model. All property type references must point to existing property type definitions.",
                 "labelType": "xbrl:documentation"
             },
             {
@@ -4482,18 +4710,6 @@
                 "labelType": "xbrl:documentation"
             },
             {
-                "relatedName": "oimte:invalidProfileFramework",
-                "language": "en",
-                "value": "🚫",
-                "labelType": "xbrl:iconLabel"
-            },
-            {
-                "relatedName": "oimte:invalidProfileFramework",
-                "language": "en",
-                "value": "This error is generated when an import profile specifies a framework name that does not match the framework of the taxonomy being imported. Framework compatibility is essential for ensuring that imported taxonomies can be properly integrated and that their semantics are preserved.",
-                "labelType": "xbrl:documentation"
-            },
-            {
                 "relatedName": "oimte:unknownIncludedObject",
                 "language": "en",
                 "value": "🚫",
@@ -4538,7 +4754,7 @@
             {
                 "relatedName": "oimte:invalidDataTypeForEnumeration",
                 "language": "en",
-                "value": "This error occurs when a property type has an enumeration domain specified but does not use xs:QName as its dataType. Property types with enumeration domains must have xs:QName dataType because enumeration members are referenced by their QNames within the taxonomy model.",
+                "value": "This error occurs when a property type has an enumeration domain specified but does not use xs:QName as its dataType. Property types with enumeration domains must have xs:QName dataType because enumeration members are referenced by their QNames within the model.",
                 "labelType": "xbrl:documentation"
             },
             {
@@ -4574,7 +4790,7 @@
             {
                 "relatedName": "oimte:invalidFactMember",
                 "language": "en",
-                "value": "This error occurs when a fact uses a dimension member that is not valid according to the taxonomy constraints. The member must be part of the dimension's domain (for explicit dimensions) or must conform to the dimension's datatype (for typed dimensions). The fact's dimensional coordinates must be valid.",
+                "value": "This error occurs when a fact uses a dimension member that is not valid according to the model constraints. The member must be part of the dimension's domain (for explicit dimensions) or must conform to the dimension's datatype (for typed dimensions). The fact's dimensional coordinates must be valid.",
                 "labelType": "xbrl:documentation"
             },
             {
@@ -4634,7 +4850,7 @@
             {
                 "relatedName": "oimte:invalidJSONStructureMissingRequiredProperty",
                 "language": "en",
-                "value": "This error occurs when a required property defined by the OIM Taxonomy specification is missing from a taxonomy object. All required properties must be present for each object type to ensure the taxonomy is valid and complete according to the specification.",
+                "value": "This error occurs when a required property defined by the XBRL model specification is missing from a model object. All required properties must be present for each object type to ensure the model is valid and complete according to the specification.",
                 "labelType": "xbrl:documentation"
             },
             {
@@ -4646,7 +4862,7 @@
             {
                 "relatedName": "oimte:invalidJSONStructureInvalidPropertyDefined",
                 "language": "en",
-                "value": "This error occurs when an object in the taxonomy defines a property that is not recognized or allowed by the OIM Taxonomy schema. Only properties defined in the specification should be present on each object type. Extra or misspelled properties indicate a structural issue with the taxonomy.",
+                "value": "This error occurs when an object in the model defines a property that is not recognized or allowed by the schema. Only properties defined in the specification should be present on each object type. Extra or misspelled properties indicate a structural issue with the model.",
                 "labelType": "xbrl:documentation"
             },
             {
@@ -4682,7 +4898,7 @@
             {
                 "relatedName": "oimte:taxonomyNotFound",
                 "language": "en",
-                "value": "The specified taxonomy could not be found. This error occurs when a reference is made to a taxonomy that does not exist or is not accessible.",
+                "value": "The specified model  could not be found. This error occurs when a reference is made to a model that does not exist or is not accessible.",
                 "labelType": "xbrl:documentation"
             },
             {
@@ -4695,30 +4911,6 @@
                 "relatedName": "oimte:intervalOnNonTimeSeriesDomain",
                 "language": "en",
                 "value": "The oimte:intervalOfMeasurement property on a non-date/time domain MUST be treated as an error.",
-                "labelType": "xbrl:documentation"
-            },
-            {
-                "relatedName": "oimte:taxonomyGroupInNetwork",
-                "language": "en",
-                "value": "Taxonomy Group in Network",
-                "labelType": "xbrl:label"
-            },
-            {
-                "relatedName": "oimte:taxonomyGroupInNetwork",
-                "language": "en",
-                "value": "The taxonomy-group relationship type '{relationshipType}' cannot be used in network objects. This relationship type is only valid for the group tree object.",
-                "labelType": "xbrl:errorMessage"
-            },
-            {
-                "relatedName": "oimte:taxonomyGroupInNetwork",
-                "language": "en",
-                "value": "🚫",
-                "labelType": "xbrl:iconLabel"
-            },
-            {
-                "relatedName": "oimte:taxonomyGroupInNetwork",
-                "language": "en",
-                "value": "This error occurs when a taxonomy-group relationship type (xbrl:taxonomy-group) is used in a network object. The taxonomy-group relationship type is exclusively for use in the group tree object to define hierarchical organization of groups. Networks use other relationship types for their structures.",
                 "labelType": "xbrl:documentation"
             },
             {
@@ -6886,6 +7078,60 @@
                 ]
             },
             {
+                "name": "oimte:disallowedObjectModelTypeConformanceReference",
+                "relatedNames": [
+                    "oimte:disallowedObjectModelType"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "MODELTYPE-invalidInstance.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:missingRequiredModelTypePropertyConformanceReference",
+                "relatedNames": [
+                    "oimte:missingRequiredModelTypeProperty"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "MODELTYPE-RequiredProperty.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatchConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FACT-ValueDataTypeMismatch.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    }
+                ]
+            },
+            {
                 "name": "oimte:disallowedObjectPropertySpecReference",
                 "relatedNames": [
                     "oimte:disallowedObjectProperty"
@@ -7862,6 +8108,48 @@
                     {
                         "property": "xbrl:specificationErrorURI",
                         "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-missingrequireddimensionproperty"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:disallowedObjectModelTypeSpecReference",
+                "relatedNames": [
+                    "oimte:disallowedObjectModelType"
+                ],
+                "referenceType": "xbrl:specificationErrorReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-disallowedobjectmodeltype"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:missingRequiredModelTypePropertySpecReference",
+                "relatedNames": [
+                    "oimte:missingRequiredModelTypeProperty"
+                ],
+                "referenceType": "xbrl:specificationErrorReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-missingrequiredmodeltypeproperty"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatchSpecReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:specificationErrorReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-factvaluedatatypemismatch"
                     }
                 ]
             }
