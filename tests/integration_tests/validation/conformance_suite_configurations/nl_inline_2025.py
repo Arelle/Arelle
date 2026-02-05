@@ -66,7 +66,6 @@ config = ConformanceSuiteConfig(
         'G3-4-1_1/index.xml:TC2_invalid': {
             'err:XPTY0004': 1,
             'extensionTaxonomyLineItemNotLinkedToAnyHypercube': 1,
-            'improperApplicationOfEscapeAttribute': 1,
             'NL.NL-KVK.3.2.8.1': 1,
             # Expected once, returned twice as
             # NL.NL-KVK.3.4.1.1.tupleElementUsed - ix:tuple present in iXBRL document
@@ -130,7 +129,6 @@ config = ConformanceSuiteConfig(
         'G4-1-2_2/index.xml:TC3_invalid': {
             'anchoringRelationshipsForConceptsDefinedInElrContainingDimensionalRelationships': 1,
             'extensionTaxonomyLineItemNotLinkedToAnyHypercube': 10,
-            'improperApplicationOfEscapeAttribute': 1,
             'incorrectSummationItemArcroleUsed': 1,
             'missingRelevantPlaceholder': 1,
             'requiredEntryPointNotImported': 1,
@@ -280,6 +278,9 @@ config = ConformanceSuiteConfig(
         'RTS_Annex_III_Par_1/index.xml:TC3_invalid',  # Expects invalidInlineXbrl, but this is valid.
         'RTS_Annex_IV_Par_12_G3-2-4_1/index.xml:TC4_invalid',  # Expects inconsistentDuplicateNonnumericFactInInlineXbrlDocumentSet, should be inconsistentDuplicateNumericFactInInlineXbrlDocument.
         'RTS_Art_6_a/index.xml:TC3_invalid',  # Expects noInlineXbrlTags, but kvk-2025-12-31-nl.xhtml has a hidden nonNumeric fact.
+
+        # Conformance Suite Uncertainty
+        'G3-2-7_1/index.xml:TC3_invalid',  # Expects improperApplicationOfEscapeAttribute, but we tentatively assume they intended to match ESEF.
 
         # Not Implemented
         'G7-1-4_1/index.xml:TC2_invalid',
