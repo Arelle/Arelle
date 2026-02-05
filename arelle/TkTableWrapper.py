@@ -127,7 +127,7 @@ class Table(tkinter.Widget):
             if not tktable_lib:
                 plat = PlatformOS.getPlatformOS()
                 machine = platform.machine()
-                lib_dir = Path(__file__).parent / "resources" / "libs" / "Tktable2.11"
+                lib_dir = Path(__file__).parent / "resources" / "libs" / "TkTable"
                 if plat == PlatformOS.MACOS:
                     if machine == "arm64":
                         lib_dir = lib_dir / "macos-arm64"
