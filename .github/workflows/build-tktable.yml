@@ -1,0 +1,141 @@
+name: Build TkTable
+on:
+  workflow_dispatch:
+    inputs:
+      tktable_tag:
+        default: 'tktable-2-12-1'
+        description: 'TkTable git tag to build (e.g. tktable-2-12-1)'
+        required: true
+        type: string
+
+permissions: {}
+
+jobs:
+  build-macos-arm64:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v6.0.2
+        with:
+          repository: bohagan1/TkTable
+          ref: ${{ inputs.tktable_tag }}
+          path: TkTable
+      - name: Install Tcl/Tk
+        run: brew install tcl-tk@8
+      - name: Build
+        run: |
+          cd TkTable
+          TCL_DIR=$(brew --prefix tcl-tk@8)/lib
+          ./configure --with-tcl=$TCL_DIR --with-tk=$TCL_DIR
+          make
+      - name: Collect artifacts
+        run: |
+          mkdir -p output
+          cp TkTable/*.dylib output/
+          cp TkTable/pkgIndex.tcl output/
+          cp TkTable/library/tkTable.tcl output/
+      - uses: actions/upload-artifact@v6.0.0
+        with:
+          name: tktable-macos-arm64
+          path: output/
+
+  build-macos-x86_64:
+    runs-on: macos-15-intel
+    steps:
+      - uses: actions/checkout@v6.0.2
+        with:
+          repository: bohagan1/TkTable
+          ref: ${{ inputs.tktable_tag }}
+          path: TkTable
+      - name: Install Tcl/Tk
+        run: brew install tcl-tk@8
+      - name: Build
+        run: |
+          cd TkTable
+          TCL_DIR=$(brew --prefix tcl-tk@8)/lib
+          ./configure --with-tcl=$TCL_DIR --with-tk=$TCL_DIR
+          make
+      - name: Collect artifacts
+        run: |
+          mkdir -p output
+          cp TkTable/*.dylib output/
+          cp TkTable/pkgIndex.tcl output/
+          cp TkTable/library/tkTable.tcl output/
+      - uses: actions/upload-artifact@v6.0.0
+        with:
+          name: tktable-macos-x86_64
+          path: output/
+
+  build-linux-x86_64:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6.0.2
+        with:
+          repository: bohagan1/TkTable
+          ref: ${{ inputs.tktable_tag }}
+          path: TkTable
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y build-essential tcl-dev tk-dev
+      - name: Build
+        run: |
+          cd TkTable
+          ./configure
+          make
+      - name: Collect artifacts
+        run: |
+          mkdir -p output
+          cp TkTable/*.so output/
+          cp TkTable/pkgIndex.tcl output/
+          cp TkTable/library/tkTable.tcl output/
+      - uses: actions/upload-artifact@v6.0.0
+        with:
+          name: tktable-linux-x86_64
+          path: output/
+
+  build-windows-x86_64:
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@v6.0.2
+        with:
+          repository: tcltk/tcl
+          ref: core-8-6-17
+          path: tcl-src
+      - uses: actions/checkout@v6.0.2
+        with:
+          repository: tcltk/tk
+          ref: core-8-6-17
+          path: tk-src
+      - uses: actions/checkout@v6.0.2
+        with:
+          repository: bohagan1/TkTable
+          ref: ${{ inputs.tktable_tag }}
+          path: TkTable
+      - uses: ilammy/msvc-dev-cmd@v1.13.0
+        with:
+          arch: x64
+      - name: Build Tcl
+        shell: cmd
+        run: |
+          cd tcl-src\win
+          nmake /f makefile.vc release INSTALLDIR=%CD%\..\..\tcl-install
+          nmake /f makefile.vc install INSTALLDIR=%CD%\..\..\tcl-install
+      - name: Build Tk
+        shell: cmd
+        run: |
+          cd tk-src\win
+          nmake /f makefile.vc release INSTALLDIR=%CD%\..\..\tcl-install TCLDIR=%CD%\..\..\tcl-src
+          nmake /f makefile.vc install INSTALLDIR=%CD%\..\..\tcl-install TCLDIR=%CD%\..\..\tcl-src
+      - name: Build TkTable
+        shell: cmd
+        run: |
+          cd TkTable\win
+          nmake /f makefile.vc INSTALLDIR=%CD%\..\..\tcl-install TCLDIR=%CD%\..\..\tcl-src TKDIR=%CD%\..\..\tk-src
+          nmake /f makefile.vc install INSTALLDIR=%CD%\..\..\tcl-install TCLDIR=%CD%\..\..\tcl-src TKDIR=%CD%\..\..\tk-src
+      - name: Collect artifacts
+        run: |
+          mkdir output -ErrorAction SilentlyContinue
+          $tktableDir = Get-ChildItem -Path "tcl-install\lib" -Directory -Filter "Tktable*" | Select-Object -First 1
+          Copy-Item "$($tktableDir.FullName)\*" output\
+      - uses: actions/upload-artifact@v6.0.0
+        with:
+          name: tktable-win-x86_64
+          path: output/
