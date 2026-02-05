@@ -202,7 +202,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
         self.viewFrame.clearGrid()
 
         layoutTable(self)
-        
+
         lytMdlTblMdl = self.lytMdlTblMdl
         if len(lytMdlTblMdl.lytMdlTableSets) == 0 or len(lytMdlTblMdl.lytMdlTableSets[0].lytMdlTables) == 0:
             if TRACE_TK: print("no table to display")
@@ -400,7 +400,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                                        #objectId=xStrctNode.objectId(),
                                                        hasTopBorder=not lytMdlCell.rollup,
                                                        hasBottomBorder = (
-                                                           iHdr >= len(lytMdlGrp.lytMdlHeaders) - 1 or 
+                                                           iHdr >= len(lytMdlGrp.lytMdlHeaders) - 1 or
                                                            not any(nxtHdrCell.rollup
                                                                    for nxtHdrCell in lytMdlGrp.lytMdlHeaders[iHdr+1].lytMdlCells))
                                                        )
@@ -429,7 +429,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                                        #objectId=yStrctNode.objectId(),
                                                        hasLeftBorder = not lytMdlCell.rollup,
                                                        hasRightBorder = (
-                                                           iHdr >= len(lytMdlGrp.lytMdlHeaders) - 1 or 
+                                                           iHdr >= len(lytMdlGrp.lytMdlHeaders) - 1 or
                                                            not any(nxtHdrCell.rollup
                                                                    for nxtHdrCell in lytMdlGrp.lytMdlHeaders[iHdr+1].lytMdlCells))
                                                        #width=3 if lytMdlCell.rollup else None
@@ -486,7 +486,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                         value = v
                         objectId = f.objectId()
                     else:
-                        cellAspectValues = dict((c.aspect, c.value) 
+                        cellAspectValues = dict((c.aspect, c.value)
                                                 for aC in (self.zConstraints, self.xConstraints[xColNum], self.yConstraints[yRowNum])
                                                 for c in aC)
                         fp = FactPrototype(self, cellAspectValues)
