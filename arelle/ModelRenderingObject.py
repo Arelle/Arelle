@@ -124,6 +124,8 @@ class LytMdlCell:
     def labelXmlText(self, iLabel, default=""):
         if iLabel < len(self.labels):
             return self.labels[iLabel][0]
+        elif len(self.labels) == 0 and len(self.lytMdlConstraints) > 0:
+            return " ".join(str(c) for c in self.lytMdlConstraints)
         return default
     def __repr__(self):
         return (f"LytMdlCell[{self.labels}]")
@@ -135,6 +137,18 @@ class LytMdlConstraint:
         lytMdlCell.lytMdlConstraints.append(self)
     def __repr__(self):
         return (f"LytMdlConstraint[{self.aspect}]")
+    def __str__(self):
+        # value to use in html and GUI representations
+        if self.value is not None:
+            if isinstance(self.value, QName):
+                return str(self.value)
+            if hasattr(self.value, "value"):
+                return self.value.value
+            elif hasattr(self.value, "stringValue"):
+                return XmlUtil.innerTextList(self.value)
+            return str(self.value)
+        if isinstance(self.aspect, QName):
+            return str(self.aspect)
 class LytMdlBodyCells:
     def __init__(self, lytMdlParent, axis):
         self.lytMdlParent = lytMdlParent
@@ -954,6 +968,9 @@ class DefnMdlDefinitionNode(ModelFormulaResource):
     @property
     def definitionLabelsView(self):
         return defnMdlLabelsView(self)
+    @property
+    def parentChildOrder(self):
+        return None
 class DefnMdlClosedDefinitionNode(DefnMdlDefinitionNode):
     strctMdlRollupType = ROLLUP_FOR_CLOSED_DEFINITION_NODE
     def init(self, modelDocument):
