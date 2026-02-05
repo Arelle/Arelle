@@ -35,8 +35,8 @@ def deleteCollectionMembers(txmyMdl, deletions, collection=None):
 
 class XbrlModelClass:
     @classmethod
-    def propertyNameTypes(cls):
-        initialParentObjProp = True
+    def propertyNameTypes(cls, skipParentProperty=False):
+        initialParentObjProp = skipParentProperty # true when the parent (xbrlModel or report) is to be skipped
         for propName, propType in getattr(cls, "__annotations__", EMPTY_DICT).items():
             if initialParentObjProp:
                 initialParentObjProp = False

@@ -1506,7 +1506,7 @@
                                       "$ref": "#/definitions/axisObject"
                                     }
                                 },
-                                "required": ["name", "cubeName", "xAxis", "yAxis"],
+                                "required": ["name", "xAxis", "yAxis"],
                                 "additionalProperties": false
                               },
                                   "uniqueItems": true
@@ -1614,51 +1614,157 @@
       "axisObject": {
         "type": "object",
         "properties": {
-          "axisDimensions": {
+          "axisHeaders": {
             "type": "array",
-            "description": "Array of factDimension objects that define the dimensions associated each position on the axis.",
-            "items": { "type": "object" },
+            "description": "Array of axis header objects that define the dimensions and labels for the axis.",
+            "items": { "$ref": "#/definitions/axisHeaderObject" },
             "minItems": 1
           },
-          "axisLabels": {
-            "type": "array",
-            "description": "Set of strings used as axis labels. Cannot be used with presentationNetwork.",
-            "items": { "$ref": "#/definitions/axisLabelObject" }
+          "axisLabelsGroup": {
+            "type": "object",
+            "description": "Optional grouping of axis labels with valueArray and/or range specifications.",
+            "properties": {
+              "valueArray": {
+                "type": "array",
+                "description": "Array of string values to use as axis labels.",
+                "items": { "type": "string" }
+              },
+              "range": {
+                "type": "object",
+                "description": "Range specification for generating axis labels.",
+                "properties": {
+                  "dataType": {
+                    "type": "string",
+                    "description": "The data type of the range values."
+                  },
+                  "interval": {
+                    "type": "string",
+                    "description": "The interval between range values."
+                  },
+                  "startValue": {
+                    "type": "string",
+                    "description": "The starting value of the range."
+                  },
+                  "stopValue": {
+                    "type": "string",
+                    "description": "The ending value of the range."
+                  },
+                  "order": {
+                    "type": "string",
+                    "enum": ["ascending", "descending"],
+                    "description": "The order of the range values."
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
           }
         },
-        "required": ["axisDimensions"],
+        "required": ["axisHeaders"],
         "additionalProperties": false
       },
-      "axisLabelObject": {
+      "axisHeaderObject": {
         "type": "object",
         "properties": {
+          "dimensionName": {
+            "$ref": "#/definitions/QName",
+            "description": "The name of the dimension for this axis header."
+          },
           "labelType": {
             "$ref": "#/definitions/QName",
-            "description": "Indicates if the total of the dimension is shown in the axis."
+            "description": "The label type to use for displaying axis members."
           },
           "language": {
             "type": "string",
             "pattern": "^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$",
-            "description": "Defines the language of the axisLabels using a valid BCP 47 [BCP47] language code."
+            "description": "Defines the language of the labels using a valid BCP 47 [BCP47] language code."
           },
-          "value": {
-            "type": "string",
-            "description": "Defines the text of the label."
+          "axisMembers": {
+            "type": "array",
+            "description": "Array of member QNames to display on this axis.",
+            "items": { "$ref": "#/definitions/QName" }
           },
-          "valueSource": {
+          "axisNetwork": {
             "$ref": "#/definitions/QName",
-            "description": "Specifies a dimension or domain which provides a network for axis members and the corresponding object label type to use as a label."
+            "description": "The network QName that defines the hierarchy of axis members."
           },
-          "rollup": {
+          "dimensionOptional": {
             "type": "boolean",
-            "description": "When true specifies that the preceding axis labels array value is spanned, or continued, into the corresponding position in this axis labels item (e.g. no separator). Absent if false."
+            "description": "Indicates whether the dimension is optional."
           },
-          "span": {
-            "type": "integer",
-            "minimum": 1,
-            "description": "The number of items in the axis to be spanned by the label if greater than 1."
+          "totalLocation": {
+            "type": "string",
+            "enum": ["start", "end", "none"],
+            "description": "Specifies where totals should be displayed relative to the dimension members."
+          },
+          "groupDuplicateLabels": {
+            "type": "boolean",
+            "description": "If true, duplicate labels on the axis will be grouped together."
+          },
+          "labelTransform": {
+            "$ref": "#/definitions/QName",
+            "description": "The transform to apply to dimension labels."
+          },
+          "typedLabel": {
+            "type": "object",
+            "description": "Configuration for typed dimension labels. Either use 'range' alone, or 'use' with optional 'transform', but not both patterns together.",
+            "oneOf": [
+              {
+                "description": "Range-only pattern: range is used by itself without use or transform.",
+                "properties": {
+                  "range": {
+                    "type": "object",
+                    "description": "Range specification for typed label values.",
+                    "properties": {
+                      "dataType": {
+                        "type": "string",
+                        "description": "The data type of the range values."
+                      },
+                      "interval": {
+                        "type": "string",
+                        "description": "The interval between range values."
+                      },
+                      "startValue": {
+                        "type": "string",
+                        "description": "The starting value of the range."
+                      },
+                      "stopValue": {
+                        "type": "string",
+                        "description": "The ending value of the range."
+                      },
+                      "order": {
+                        "type": "string",
+                        "enum": ["ascending", "descending"],
+                        "description": "The order of the range values."
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "required": ["range"],
+                "additionalProperties": false
+              },
+              {
+                "description": "Use/transform pattern: use is required, transform is optional, range is not allowed.",
+                "properties": {
+                  "use": {
+                    "type": "string",
+                    "enum": ["value", "formattedValue"],
+                    "description": "How to use the typed value. Must be either 'value' or 'formattedValue'."
+                  },
+                  "transform": {
+                    "$ref": "#/definitions/QName",
+                    "description": "The transform to apply to typed values. Can only be defined if 'use' is defined."
+                  }
+                },
+                "required": ["use"],
+                "additionalProperties": false
+              }
+            ]
           }
         },
+        "required": ["dimensionName"],
         "additionalProperties": false
       },
       "QName": {

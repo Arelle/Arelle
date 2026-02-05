@@ -89,10 +89,6 @@
                 }
             },
             {
-                "name" : "xbrli:domain",
-                "baseType" : "xs:string"
-            },
-            {
                 "name" : "xbrli:escaped",
                 "baseType" : "xs:string"
             },
@@ -571,12 +567,6 @@
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The enumerationSet type is a set equivalent of the enumeration type. Its format is intended to be equivalent to a set of enumeration types."
-            },
-            {
-                "relatedName" : "xbrli:domain",
-                "language" : "en",
-                "labelType" : "xbrl:documentation",
-                "value" : "The domain member item type indicates that an element is a domain member."
             },
             {
                 "relatedName" : "xbrli:escaped",
@@ -1106,7 +1096,6 @@
             {
                 "name": "xbrli:ITARequirementReference",
                 "relatedNames": [
-                    "xbrli:domain",
                     "xbrli:escaped",
                     "xbrli:xmlNodes",
                     "xbrli:xml",
@@ -1161,7 +1150,6 @@
             {
                 "name": "xbrli:RecStatusReference",
                 "relatedNames": [
-                    "xbrli:domain",
                     "xbrli:escaped",
                     "xbrli:xmlNodes",
                     "xbrli:xml",
