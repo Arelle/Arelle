@@ -299,7 +299,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     elif esefDisclosureSystemYear >= 2025:
                         m = reportBasenameRegex.match(_baseName)
                         if not m:
-                            modelXbrl.error("ESEF.2.6.3.incorrectNamingConventionReportPackageReportFile",
+                            modelXbrl.warning("ESEF.2.6.3.incorrectNamingConventionReportPackageReportFile",
                                 _("Inline XBRL document filename SHOULD match %(pattern)s"),
                                 modelObject=doc, fileName=doc.basename, pattern=reportBasenamePattern)
                 else: # non-consolidated
