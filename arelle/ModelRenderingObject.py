@@ -968,6 +968,9 @@ class DefnMdlDefinitionNode(ModelFormulaResource):
     @property
     def definitionLabelsView(self):
         return defnMdlLabelsView(self)
+    @property
+    def parentChildOrder(self):
+        return None
 class DefnMdlClosedDefinitionNode(DefnMdlDefinitionNode):
     strctMdlRollupType = ROLLUP_FOR_CLOSED_DEFINITION_NODE
     def init(self, modelDocument):
