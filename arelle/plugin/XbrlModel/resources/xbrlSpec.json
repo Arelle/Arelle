@@ -62,7 +62,8 @@
                     "xbrl:factObject",
                     "xbrl:footnoteObject",
                     "xbrl:entityObject",
-                    "xbrl:unitObject"
+                    "xbrl:unitObject",
+                    "xbrl:importTaxonomyObject"
             ]
             }
         ],

@@ -82,7 +82,7 @@ def viewXbrlTaxonomyObject(xbrlCompMdl, objClass, tabWin, header, additionalView
     view.menuAddLabelRoles(usedLabelroles=
         (("1Name",XbrlConst.conceptNameLabelRole),
          ("2Standard Label", qnStdLabel)) +
-        tuple((f"3{t}", t) for t in sorted(xbrlCompMdl.labelTypes) if t != qnStdLabel))
+        tuple((f"3{t}", t) for t in sorted((lt for lt in xbrlCompMdl.labelTypes if lt)) if t != qnStdLabel))
     view.menuAddNameStyle()
     view.menuAddViews(addClose=False, additionalViews=additionalViews, additionalViewMethod=viewXbrlTaxonomyObject)
 

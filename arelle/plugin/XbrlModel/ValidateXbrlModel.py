@@ -1335,8 +1335,10 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
         for dataTbl in layout.dataTables:
             assertObjectType(compMdl, dataTbl, XbrlDataTable)
 
-            for axisName, axis in (("xAxis", dataTbl.xAxis), ("yAxis", dataTbl.yAxis), ("zAxis", dataTbl.zAxis)):
+            for axisName, axis in (("xAxis", dataTbl.xAxis), ("yAxis", dataTbl.yAxis)):
                 assertObjectType(compMdl, axis, XbrlAxis)
+            if dataTbl.zAxis is not None:
+                assertObjectType(compMdl, dataTbl.zAxis, XbrlAxis)
 
     for tblTmpl in module.tableTemplates:
         assertObjectType(compMdl, tblTmpl, XbrlTableTemplate)

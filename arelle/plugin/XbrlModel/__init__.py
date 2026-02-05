@@ -635,7 +635,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                         classCountProp = f"_{objClass.__name__}Count"
                         classIndex = getattr(oimParentObj, classCountProp, 0)
                         setattr(newObj, "_classIndex", classIndex)
-                        setattr(oimParentObj, classCountProp,classIndex+1)
+                        setattr(oimParentObj, classCountProp, classIndex+1)
                     else:
                         newObj = objClass() # e.g. XbrlProperty
                     keyValue = createModelObject(jsonObj, oimParentObj, keyClass, objClass, newObj, pathParts)
@@ -661,6 +661,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                         setattr(oimParentObj, jsonKey, newObj)
                     return newObj
             return None
+
         if "xbrlModel" not in moduleFileObj:
             error("oimce:unsupportedDocumentType",
                   _("Missing /xbrlModel object"),

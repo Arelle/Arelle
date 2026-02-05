@@ -7,6 +7,7 @@ from arelle.ModelValue import QName
 
 XbrlLabelType: TypeAlias = "XbrlLabel"
 XbrlLayoutType: TypeAlias = "XbrlLayout"
+XbrlDataTableType: TypeAlias = "XbrlDataTable"
 XbrlPropertyType: TypeAlias = "XbrlProperty"
 XbrlTaxonomyModelType: TypeAlias = "XbrlCompiledModel"
 XbrlModuleType: TypeAlias = "XbrlModule"

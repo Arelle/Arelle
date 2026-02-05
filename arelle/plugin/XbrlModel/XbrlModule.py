@@ -26,7 +26,7 @@ from .XbrlTransform import XbrlTransform
 from .XbrlUnit import XbrlUnit
 from .XbrlTypes import XbrlModuleType, QNameKeyType
 from .XbrlObject import XbrlModelObject, XbrlReferencableModelObject
-from .XbrlLayout import XbrlLayout, XbrlDataTable, XbrlAxis, XbrlAxisLabel
+from .XbrlLayout import XbrlLayout, XbrlDataTable, XbrlAxis, XbrlAxisHeader
 
 class XbrlModelType(XbrlReferencableModelObject):
     module: XbrlModuleType
@@ -121,7 +121,7 @@ nonReferencableObjectTypes = {
         qname("{https://xbrl.org/2025}xbrl:labelObject"): XbrlLabel,
         qname("{https://xbrl.org/2025}xbrl:propertyObject"): XbrlProperty,
         qname("{https://xbrl.org/2025}xbrl:axisObject"): XbrlAxis,
-        qname("{https://xbrl.org/2025}xbrl:axisLabelObject"): XbrlAxisLabel,
+        qname("{https://xbrl.org/2025}xbrl:axisHeaderObject"): XbrlAxisHeader,
     }
 xbrlObjectTypes = referencableObjectTypes | nonReferencableObjectTypes
 xbrlObjectQNames = dict((v,k) for k,v in xbrlObjectTypes.items())
