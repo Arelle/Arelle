@@ -101,7 +101,7 @@ class Session:
         """
         if self._cntlr is None:
             return []
-        return self._cntlr.modelManager.loadedModelXbrls
+        return self._cntlr.modelManager.loadedModelXbrls.copy()
 
     def run(
         self,
