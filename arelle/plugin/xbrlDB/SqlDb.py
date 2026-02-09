@@ -53,12 +53,12 @@ try:
     # requires NLS_LANG to be UTF-8
     os.environ["NLS_LANG"] = ".UTF8"
     os.environ['ORA_NCHAR_LITERAL_REPLACE'] = 'TRUE'
-    import cx_Oracle
+    import oracledb
     hasOracle = True
-    oracleConnect = cx_Oracle.connect
-    oracleDatabaseError = cx_Oracle.DatabaseError
-    oracleInterfaceError = cx_Oracle.InterfaceError
-    oracleNCLOB = cx_Oracle.NCLOB
+    oracleConnect = oracledb.connect
+    oracleDatabaseError = oracledb.DatabaseError
+    oracleInterfaceError = oracledb.InterfaceError
+    oracleNCLOB = oracledb.NCLOB
 except ImportError:
     # also requires "Oracle Instant Client"
     hasOracle = False

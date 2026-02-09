@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=80.9,<82", "wheel>=0.45,<1", "setuptools_scm[toml]>=9.2,<10"]
+requires = ["setuptools>=80.9,<83", "wheel>=0.45,<1", "setuptools_scm[toml]>=9.2,<10"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -50,7 +50,7 @@ Crypto = [
     'pycryptodome>=3,<4',
 ]
 DB = [
-    'cx_Oracle>=8,<9',
+    'oracledb>=3,<4',
     'pg8000>=1,<2',
     'PyMySQL>=1,<2',
     'pyodbc>=4,<6',

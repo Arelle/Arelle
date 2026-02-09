@@ -66,6 +66,7 @@ includeLibs = [
     "numpy.lib.format",
     "numpy",
     "openpyxl",
+    "oracledb",
     "pg8000",
     "PIL",
     "pymysql",
@@ -145,8 +146,6 @@ elif sys.platform == WINDOWS_PLATFORM:
     includeFiles.append(("arelle\\scripts-windows", "scripts"))
     if "arelle.webserver" in packages:
         includeFiles.append(("QuickBooks.qwc", "QuickBooks.qwc"))
-    # note cx_Oracle isn't included for unix builds because it is version and machine specific.
-    includeLibs.append("cx_Oracle")
     includeLibs.append("pyodbc")
     includeLibs.append("requests")
     includeLibs.append("requests_negotiate_sspi")
