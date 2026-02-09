@@ -1489,12 +1489,22 @@
                       "type": "object",
                       "name": { "$ref": "#/definitions/QName" },
                       "properties":{
+                        "tableConstruction": {
+                          "type": "string",
+                          "enum": ["topDown", "leftRight"],
+                          "description": "Specifies how multiple tables in the dataTables array should be joined together. 'topDown' stacks tables vertically, 'leftRight' places them horizontally."
+                        },
                         "dataTables": {
                             "type": "array",
                             "items": {
                               "type": "object",
                                 "properties": {
                                   "name": { "$ref": "#/definitions/QName" },
+                                  "tableType": {
+                                    "type": "string",
+                                    "enum": ["gridLayout", "cubeLayout"],
+                                    "description": "Specifies the layout type for the table. 'gridLayout' uses explicit grid positioning with tablePoints, 'cubeLayout' uses traditional cube-based rendering."
+                                  },
                                   "cubeName": { "$ref": "#/definitions/cubeQName" },
                                   "xAxis": {
                                       "$ref": "#/definitions/axisObject"
@@ -1504,9 +1514,14 @@
                                     },
                                   "zAxis": {
                                       "$ref": "#/definitions/axisObject"
-                                    }
+                                    },
+                                  "tablePoints": {
+                                    "type": "array",
+                                    "description": "Array of table point objects that map dimension member pairs to specific grid cells. Used with gridLayout tableType.",
+                                    "items": { "$ref": "#/definitions/tablePointObject" }
+                                  }
                                 },
-                                "required": ["name", "xAxis", "yAxis"],
+                                "required": ["name", "tableType", "xAxis", "yAxis"],
                                 "additionalProperties": false
                               },
                                   "uniqueItems": true
@@ -1631,12 +1646,8 @@
               },
               "range": {
                 "type": "object",
-                "description": "Range specification for generating axis labels.",
+                "description": "Range specification for generating axis labels based on an xs:integer data type.",
                 "properties": {
-                  "dataType": {
-                    "type": "string",
-                    "description": "The data type of the range values."
-                  },
                   "interval": {
                     "type": "string",
                     "description": "The interval between range values."
@@ -1649,6 +1660,14 @@
                     "type": "string",
                     "description": "The ending value of the range."
                   },
+                  "prefix": {
+                    "type": "string",
+                    "description": "A string prefix to prepend to each generated label."
+                  },
+                  "suffix": {
+                    "type": "string",
+                    "description": "A string suffix to append to each generated label."
+                  },
                   "order": {
                     "type": "string",
                     "enum": ["ascending", "descending"],
@@ -1659,9 +1678,29 @@
               }
             },
             "additionalProperties": false
+          },
+          "gridAxis": {
+            "type": "object",
+            "description": "Grid axis configuration for aligning dimension pairs with rows and columns in grid layouts.",
+            "properties": {
+              "axisItems": {
+                "type": "array",
+                "description": "Array of individual axis items that define specific dimension member pairs.",
+                "items": { "$ref": "#/definitions/axisItemObject" }
+              },
+              "axisGroups": {
+                "type": "array",
+                "description": "Array of axis groups that organize dimension member pairs into logical groupings.",
+                "items": { "$ref": "#/definitions/axisGroupObject" }
+              }
+            },
+            "additionalProperties": false
           }
         },
-        "required": ["axisHeaders"],
+        "anyOf": [
+          { "required": ["axisHeaders"] },
+          { "required": ["gridAxis"] }
+        ],
         "additionalProperties": false
       },
       "axisHeaderObject": {
@@ -1717,10 +1756,6 @@
                     "type": "object",
                     "description": "Range specification for typed label values.",
                     "properties": {
-                      "dataType": {
-                        "type": "string",
-                        "description": "The data type of the range values."
-                      },
                       "interval": {
                         "type": "string",
                         "description": "The interval between range values."
@@ -1765,6 +1800,110 @@
           }
         },
         "required": ["dimensionName"],
+        "additionalProperties": false
+      },
+      "axisItemObject": {
+        "type": "object",
+        "description": "Defines a single axis item with dimension member pairs for grid positioning. Contains an axisId and a dimensions object with dimension-member pairs.",
+        "properties": {
+          "axisId": {
+            "type": "string",
+            "description": "Identifier for this axis item (e.g., 'C0030', 'R0100')."
+          },
+          "dimensions": {
+            "type": "object",
+            "description": "Object mapping dimension QNames to their member values for this axis item. Similar to fact dimensions but without requiring xbrl:concept.",
+            "properties": {
+              "xbrl:concept":{ "$ref": "#/definitions/conceptQName" },
+              "xbrl:entity":{ "$ref": "#/definitions/SQName" },
+              "xbrl:unit":{ "oneOf": [
+                                {
+                                  "type": "string",
+                                  "pattern": ".*(\\*|/).*"
+                                },
+                                {
+                                  "$ref": "#/definitions/unitQName"
+                                }
+                              ]},
+              "xbrl:period":{"type": "string"}
+            },
+            "patternProperties": {
+              "^[A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z_][A-Za-z0-9_.-]*$": {
+                "oneOf": [
+                  { "type": "string" },
+                  { "type": "number" },
+                  { "type": "null" }
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "required": ["axisId", "dimensions"],
+        "additionalProperties": false
+      },
+      "axisGroupObject": {
+        "type": "object",
+        "description": "Groups axis items by dimension and network, specifying which axis IDs belong to this group.",
+        "properties": {
+          "dimensionName": {
+            "$ref": "#/definitions/dimensionQName",
+            "description": "The dimension name for this axis group."
+          },
+          "axisNetwork": {
+            "$ref": "#/definitions/QName",
+            "description": "The network or domain QName that defines the structure of axis members in this group."
+          },
+          "axisIds": {
+            "type": "array",
+            "description": "Array of axis identifiers (e.g., 'R0100', 'R0110') that belong to this group.",
+            "items": { "type": "string" }
+          },
+          "axisStart" : {
+            "type": "integer",
+            "description": "Optional axis ID that indicates the start location of the group on the axis. This is used for positioning the group on the axis. If not provided the group starts at the first position on the grid or a default value of 1."
+          }
+        },
+        "required": ["dimensionName"],
+        "additionalProperties": false
+      },
+      "tablePointObject": {
+        "type": "object",
+        "description": "Maps dimension member pairs to specific grid cell coordinates in gridLayout tables.",
+        "properties": {
+          "gridCoordinates": {
+            "type": "object",
+            "description": "Grid coordinates identifying the cell location in the table.",
+            "properties": {
+              "xAxis": {
+                "type": "string",
+                "description": "The x-axis (column) coordinate in the grid."
+              },
+              "yAxis": {
+                "type": "string",
+                "description": "The y-axis (row) coordinate in the grid."
+              },
+              "zAxis": {
+                "type": "string",
+                "description": "The z-axis coordinate in the grid (optional)."
+              }
+            },
+              "anyOf": [
+                { "required": ["xAxis"] },
+                { "required": ["yAxis"] },
+                { "required": ["zAxis"] }
+              ],
+            "additionalProperties": false
+          },
+          "dimensions": {
+            "type": "object",
+            "description": "Map of dimension names to member names for this grid cell. Each property name is a dimension QName and its value is a member QName.",
+            "additionalProperties": {
+              "$ref": "#/definitions/QName"
+            }
+          }
+        },
+        "required": ["gridCoordinates", "dimensions"],
         "additionalProperties": false
       },
       "QName": {
