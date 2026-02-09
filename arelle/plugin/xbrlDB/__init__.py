@@ -332,8 +332,7 @@ __pluginInfo__ = {
     'license': 'Apache-2 (Arelle plug-in), BSD license (pg8000 library)',
     'author': authorLabel,
     'copyright': f'{copyrightLabel} \n'
-                'uses: cx_Oracle Copyright (c) 2007-2012, Anthony Tuininga. All rights reserved (Oracle DB), \n'
-                '           (and)Copyright (c) 2001-2007, Computronix (Canada) Ltd., Edmonton, Alberta, Canada. All rights reserved, \n'
+                'uses: oracledb Copyright (c) 2016, 2025 Oracle and/or its affiliates., \n'
                 '      pg8000, Copyright (c) 2007-2009, Mathieu Fenniak (Postgres DB), \n'
                 '      pyodbc, no copyright, Michael Kleehammer (MS SQL), \n'
                 '      PyMySQL, Copyright (c) 2010, 2013 PyMySQL contributors (MySQL DB), and\n'

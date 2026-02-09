@@ -20,7 +20,7 @@ typing-extensions==4.15.0
 # security plugin
 pycryptodome==3.23.0
 # xbrlDB plugin
-cx_Oracle==8.3.0
+oracledb==3.4.2
 pg8000==1.31.5
 PyMySQL==1.1.2
 pyodbc==5.3.0

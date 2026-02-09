@@ -50,7 +50,7 @@ Crypto = [
     'pycryptodome>=3,<4',
 ]
 DB = [
-    'cx_Oracle>=8,<9',
+    'oracledb>=3,<4',
     'pg8000>=1,<2',
     'PyMySQL>=1,<2',
     'pyodbc>=4,<6',
