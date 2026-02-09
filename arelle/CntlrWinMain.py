@@ -1808,28 +1808,17 @@ class TkinterCallWrapper:
 
 def main():
     # this is the entry called by arelleGUI.pyw for windows
-    if getattr(sys, 'frozen', False):
-        if sys.platform in ("darwin", "linux"): # Use frozen tcl, tk and TkTable libraries
-            _resourcesDir = os.path.join(Cntlr.resourcesDir(), "lib")
-            for _tcltk in ("tcl", "tk", "Tktable"):
-                for _tcltkVer in ("8.5", "8.6", "2.11"): # Tktable ver is 2.11
-                    _d = _resourcesDir
-                    while len(_d) > 3: # stop at root directory
-                        _tcltkDir = os.path.join(_d, _tcltk + _tcltkVer)
-                        if os.path.exists(_tcltkDir):
-                            os.environ[_tcltk.upper() + "_LIBRARY"] = _tcltkDir
-                            break
-                        _d = os.path.dirname(_d)
-        elif sys.platform == 'win32': # windows requires fake stdout/stderr because no write/flush (e.g., EDGAR/render LocalViewer pybottle)
-            class dummyFrozenStream:
-                def __init__(self): pass
-                def write(self,data): pass
-                def read(self,data): pass
-                def flush(self): pass
-                def close(self): pass
-            sys.stdout = dummyFrozenStream()
-            sys.stderr = dummyFrozenStream()
-            sys.stdin = dummyFrozenStream()
+    if getattr(sys, 'frozen', False) and sys.platform == 'win32':
+        # windows requires fake stdout/stderr because no write/flush (e.g., EDGAR/render LocalViewer pybottle)
+        class dummyFrozenStream:
+            def __init__(self): pass
+            def write(self,data): pass
+            def read(self,data): pass
+            def flush(self): pass
+            def close(self): pass
+        sys.stdout = dummyFrozenStream()
+        sys.stderr = dummyFrozenStream()
+        sys.stdin = dummyFrozenStream()
 
     global restartMain
     while restartMain:
