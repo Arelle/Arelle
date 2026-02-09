@@ -45,7 +45,7 @@ jobs:
           files: ${{ inputs.build_name }}
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v5.1.1
+        uses: aws-actions/configure-aws-credentials@v6.0.0
         with:
           role-to-assume: arn:aws:iam::494047596077:role/GitHubActionsArelleS3Upload
           aws-region: us-west-1
