@@ -53,7 +53,6 @@ def saveOIMTaxonomy(dts, jsonFile):
 
     # provide consistent order to taxonomy properties and objects
     xbrlMdl["name"] = f"{extensionPrefix}:{os.path.splitext(extensionSchemaDoc.basename)[0]}"
-    xbrlMdl["namespace"] = extensionSchemaDoc.targetNamespace
     xbrlMdl["version"] = jsonTxmyVersion
     xbrlMdl["modelForm"] = "compiled" # all namespaces crammed together
     xbrlMdl["importedTaxonomies"] = imports = []

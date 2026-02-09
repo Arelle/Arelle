@@ -64,7 +64,10 @@
                     "xbrl:entityObject",
                     "xbrl:unitObject",
                     "xbrl:importTaxonomyObject"
-            ]
+                    ],
+                "requiredProperties": [
+                    "xbrl:reportDate"
+                ]
             }
         ],
         "dimensions": [
@@ -1516,6 +1519,11 @@
             },
             {
                 "name": "xbrl:reportDate",
+                "dataType": "xs:dateTime",
+                "allowedObjects": ["xbrl:xbrlModelObject"]
+            },
+            {
+                "name": "xbrl:reportFilingDate",
                 "dataType": "xs:dateTime",
                 "allowedObjects": ["xbrl:xbrlModelObject"]
             }

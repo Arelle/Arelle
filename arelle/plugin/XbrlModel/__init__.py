@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING, cast, GenericAlias, Union, _GenericAlias, _Uni
 
 import os, io, json, cbor2, sys, time, traceback
 JSON_SCHEMA_VALIDATOR = "jsonschema" # select one of below JSON schema validator libraries (seriously different performance)
-JSON_SCHEMA_VALIDATOR = "fastjsonschema"
+#JSON_SCHEMA_VALIDATOR = "fastjsonschema"
 if JSON_SCHEMA_VALIDATOR == "jsonschema": # slow and thorough
     import jsonschema
     # finds all errors in source object
