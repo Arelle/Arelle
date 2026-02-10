@@ -1189,7 +1189,7 @@ def rule_EC8023W(
 
         if fact.sign == '-' :
             if precedingChar != negativeChar:
-                yield Validation.error(
+                yield Validation.warning(
                     codes='EDINET.EC8023W',
                     msg=_("In an inline XBRL file, if the sign attribute of the ix:nonFraction "
                           "element is set to \"-\" (minus), you must set \"△\" immediately "
@@ -1198,7 +1198,7 @@ def rule_EC8023W(
                 )
         else:
             if precedingChar == negativeChar:
-                yield Validation.error(
+                yield Validation.warning(
                     codes='EDINET.EC8023W',
                     msg=_("In an inline XBRL file, if the sign attribute of the ix:nonFraction "
                           "element is not set to \"-\" (minus), there is no need to set \"△\" "

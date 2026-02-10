@@ -18,7 +18,7 @@
         </data>
         <result>
             <error num="2">EDINET.EC5700W.GFM.1.8.4</error>
-            <error num="2">EDINET.EC8023W</error>
+            <warning num="2">EDINET.EC8023W</warning>
             <warning>EDINET.EC2002W</warning>
             <warning>EDINET.EC8015W</warning> <!-- from base sample filing -->
             <warning>EDINET.EC8027W</warning>
