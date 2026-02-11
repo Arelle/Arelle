@@ -907,7 +907,7 @@ def rule_EC1009R(
         if path.suffix not in HTML_EXTENSIONS:
             continue
         if size > 2_500_000:
-            yield Validation.warning(
+            yield Validation.info(
                 codes='EDINET.EC1009R',
                 msg=_("The HTML file size exceeds the maximum limit. "
                       "File name: '%(path)s'. "
