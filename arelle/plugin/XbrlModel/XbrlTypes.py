@@ -26,6 +26,7 @@ class DefaultFalse: # a bool which if absent defaults to false
     pass
 class DefaultZero: # a number which if absent defaults to zero
     pass
-
+class DefaultOne: # a number which if absent defaults to one
+    pass
 class OptionalList(List): # list of objects like OrderedSet which is present and empty when no objects
     pass

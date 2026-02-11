@@ -66,7 +66,7 @@ from .XbrlModel import XbrlCompiledModel, castToXbrlCompiledModel
 from .XbrlModule import XbrlModule, xbrlObjectTypes
 from .XbrlObject import XbrlObject, XbrlReferencableModelObject, XbrlTaxonomyTagObject, XbrlObjectType
 from .XbrlTypes import (XbrlTaxonomyModelType, XbrlModuleType, XbrlLayoutType, XbrlReportType, XbrlUnitTypeType,
-                        QNameKeyType, SQNameKeyType, DefaultTrue, DefaultFalse, DefaultZero, OptionalList)
+                        QNameKeyType, SQNameKeyType, DefaultTrue, DefaultFalse, DefaultZero, DefaultOne, OptionalList)
 from .ValidateXbrlModel import validateCompiledModel
 from .ValidateReport import validateReport, validateDateResolutionConceptFacts
 from .SelectImportedObjects import selectImportedObjects
@@ -571,8 +571,8 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                       (isinstance(propType, _UnionGenericAlias) and any(t.__forward_arg__ in oimParentTypes for t in propType.__args__ if isinstance(t,ForwardRef)))): # Union of TypeAliases are ForwardArgs
                     setattr(newObj, propName, oimParentObj)
                 elif (((get_origin(propType) is Union) or isinstance(get_origin(propType), type(Union))) and # Optional[ ] type
-                       propType.__args__[-1] in (type(None), DefaultTrue, DefaultFalse, DefaultZero)):
-                          setattr(newObj, propName, {type(None): None, DefaultTrue: True, DefaultFalse: False, DefaultZero:0}[propType.__args__[-1]]) # use first of union for prop value creation
+                       propType.__args__[-1] in (type(None), DefaultTrue, DefaultFalse, DefaultZero, DefaultOne)):
+                          setattr(newObj, propName, {type(None): None, DefaultTrue: True, DefaultFalse: False, DefaultZero:0, DefaultOne:1}[propType.__args__[-1]]) # use first of union for prop value creation
                 else: # absent json element
                     if not (propClass in (dict, set, OrderedSet, OrderedDict) or
                             (isinstance(propClass, _GenericAlias) and propClass.__origin__ == list)):

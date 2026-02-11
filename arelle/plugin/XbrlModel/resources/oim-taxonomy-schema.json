@@ -1695,6 +1695,12 @@
               }
             },
             "additionalProperties": false
+          },
+          "gridHeaders": {
+            "type": "array",
+            "description": "Array of grid header objects that define additional header rows or columns for grid layouts, providing labels and structure beyond axisIds.",
+            "items": { "$ref": "#/definitions/gridHeaderObject" },
+            "minItems": 1
           }
         },
         "anyOf": [
@@ -1865,6 +1871,49 @@
           }
         },
         "required": ["dimensionName"],
+        "additionalProperties": false
+      },
+      "gridHeaderObject": {
+        "type": "object",
+        "description": "Defines a header row or column cell in a grid layout, providing label information and positioning for grid headers.",
+        "properties": {
+          "label": {
+            "type": "string",
+            "description": "The text label to display in the header cell."
+          },
+          "memberQName": {
+            "$ref": "#/definitions/QName",
+            "description": "Optional QName reference to a taxonomy member whose label should be used."
+          },
+          "labelType": {
+            "$ref": "#/definitions/QName",
+            "description": "The label type to use when resolving the label from memberQName."
+          },
+          "language": {
+            "type": "string",
+            "pattern": "^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$",
+            "description": "Language code for the label (BCP 47 format)."
+          },
+          "axisNumber": {
+            "type": "integer",
+            "description": "Axis number that this header spans or applies to."
+          },
+          "labelLevel": {
+            "type": "integer",
+            "description": "Hierarchical level of this header (0, 1, 2, etc.) for multi-level headers.",
+            "minimum": 0
+          },
+          "span": {
+            "type": "integer",
+            "description": "Number of columns or rowsthis header cell should span.",
+            "minimum": 1
+          },
+          "rollUpLocation": {
+            "type": "string",
+            "enum": ["start", "end", "none"],
+            "description": "Indicates where the span starts or ends relative to the axis number. The default is 'start', meaning the header applies to the axis number and the following axes. If 'end', the header applies to the preceding axes up to and including the axis number."
+          }
+        },
         "additionalProperties": false
       },
       "tablePointObject": {
