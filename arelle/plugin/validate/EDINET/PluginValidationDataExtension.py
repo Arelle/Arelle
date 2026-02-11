@@ -10,6 +10,7 @@ from decimal import Decimal
 from functools import lru_cache
 from pathlib import Path
 
+import regex
 from lxml.etree import DTD, XML
 from operator import attrgetter
 from typing import cast
@@ -454,6 +455,10 @@ class PluginValidationDataExtension(PluginData):
         if filingFormat is None:
             return None
         return filingFormat.formType
+
+    def getIllegalCharactersPattern(self, modelXbrl: ModelXbrl) -> regex.Pattern[str]:
+        controllerPluginData = ControllerPluginData.get(modelXbrl.modelManager.cntlr, self.name)
+        return controllerPluginData.getIllegalCharactersPattern()
 
     @lru_cache(1)
     def getManifestInstance(self, modelXbrl: ModelXbrl) -> ManifestInstance | None:
