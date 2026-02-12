@@ -279,7 +279,8 @@
     "GB": {
         "name": "United Kingdom",
         "comment": "Pertains to country code GB ESEF Guidance",
-        "comment2": "See UKFRC for UK filings to FRC using UKSEF"
+        "comment2": "See UKFRC for UK filings to FRC using UKSEF",
+        "permitOnlyTextBlockEscape": true
     },
     "HR": {
         "name": "Croatia"
