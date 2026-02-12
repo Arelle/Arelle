@@ -25,7 +25,6 @@
         "reportFileNameRegex: regex to correspond, in same manner as filenameRegexes in Consts.py",
         "extensionElementsAnchoring: \"non-abstract\" or \"include abstract\"",
         "additionalMandatoryTags: qnames of tags additionally required by authority when prefixed schema is imported",
-        "dimension-default-arc-ELRs",
         "outdatedTaxonomyURLs: imported standard URLs now outdated",
         "effectiveTaxonomyURLs: current imported standard URLs of which one must be specified",
         "authorityRequiredTaxonomyURLs: authority-required standard URL in addition to ESEF effectiveTaxonomyURLs",
@@ -51,7 +50,6 @@
         "reportFileNamePattern": null,
         "reportFileNameRegex": null,
         "extensionElementsAnchoring": "non-abstract",
-        "dimension-default-arc-ELRs": null,
         "standardTaxonomyURIs": [
             "http://www.esma.europa.eu/",
             "https://www.esma.europa.eu/",
@@ -323,7 +321,6 @@
         "reportFileNamePattern": "{base}-{date}.xhtml",
         "reportFileNameRegex": "(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}[.]xhtml$",
         "extensionElementsAnchoring": "include abstract",
-        "dimension-default-arc-ELRs": "990000 only",
         "LC3AllowCapitalsInWord": false
     },
     "NO": {
