@@ -31,7 +31,8 @@
         "standardTaxonomyURIs: set of taxonomy URIs which are deemed base taxonomies",
         "formulaMessagesAdditionalURLs: for base URL list of additional formula messages URLs to load out of DTS",
         "formulaRunIDs: if not null, regex of formula IDs to run (or with negative lookahead regex, to suppress)",
-        "dtrNamespaces: the permitted DTR namespaces, each mapped to its corresponding XSD URL"
+        "dtrNamespaces: the permitted DTR namespaces, each mapped to its corresponding XSD URL",
+        "permitOnlyTextBlockEscape: whether to allow the escape attribute only on text blocks (like ESEF 2024), as opposed to on other types such as strings (like ESEF 2025)"
     ],
     "default": {
         "name": "Default ESMA ESEF validations",
