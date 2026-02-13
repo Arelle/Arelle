@@ -17,7 +17,6 @@
             <instance readMeFirst="true">invalid01.zip</instance>
         </data>
         <result>
-            <error>EDINET.EC5003E</error>  <!-- also triggered by prohibited character -->
             <warning>EDINET.EC8015W</warning> <!-- from base sample filing -->
             <warning>EDINET.EC8065W</warning> <!-- from base sample filing -->
             <warning>EDINET.EC8067W</warning> <!-- from base sample filing -->
