@@ -43,14 +43,6 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
     filenamePattern = filenameRegex = None
     esefDisclosureSystemYear = getDisclosureSystemYear(val.modelXbrl)
     anchorAbstractExtensionElements = esefDisclosureSystemYear < 2023 and val.authParam["extensionElementsAnchoring"] == "include abstract"
-    allowCapsInLc3Words = val.authParam["LC3AllowCapitalsInWord"]
-
-    def lc3wordAdjust(word: str) -> str:
-        if allowCapsInLc3Words:
-            return word.title()
-        elif len(word) > 1:
-            return word[0].upper() + word[1:]
-        return word
 
     esefTaxonomyYear = esefDisclosureSystemYear # if the taxonomy isn't recognised, take the disclosure system
     for url in val.modelXbrl.namespaceDocs.keys():
