@@ -87,9 +87,9 @@ class ControllerPluginData(PluginData):
             for line in file:
                 part = line.strip().split(' ')[0]
                 assert 2 <= len(part) <= 6, f"Invalid line in allowed character sheet: {line}"
-                _bytes = bytes.fromhex(part)
-                assert _bytes not in allowedCharacters, f"Duplicate byte in allowed character sheet: {line}"
-                allowedCharacters.add(_bytes.decode())
+                char = bytes.fromhex(part).decode()
+                assert char not in allowedCharacters, f"Duplicate character in allowed character sheet: {line}"
+                allowedCharacters.add(char)
         return regex.compile(f'[^{regex.escape("".join(allowedCharacters))}]')
 
     def getManifestInstances(self) -> list[ManifestInstance]:
