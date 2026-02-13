@@ -26,8 +26,12 @@ jobs:
       - uses: actions/checkout@v6.0.2
         with:
           persist-credentials: false
-          ref: ${{ github.event.pull_request.head.sha }}
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
+      # pull_request_target runs in the context of the base repository, so we need to
+      # merge the head branch to test the correct code for the PR.
+      - uses: ./.github/actions/merge
+        with:
+          commit_sha: ${{ github.event.pull_request.head.sha }}
+          repository_full_name: ${{ github.event.pull_request.head.repo.full_name }}
       - id: build-conformance-suite-matrix
         uses: ./.github/actions/get_conformance_suites_matrix
 
@@ -39,8 +43,10 @@ jobs:
       - uses: actions/checkout@v6.0.2
         with:
           persist-credentials: false
-          ref: ${{ github.event.pull_request.head.sha }}
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
+      - uses: ./.github/actions/merge
+        with:
+          commit_sha: ${{ github.event.pull_request.head.sha }}
+          repository_full_name: ${{ github.event.pull_request.head.repo.full_name }}
       - id: build-test-script-matrix
         uses: ./.github/actions/get_test_scripts_matrix
 
@@ -57,8 +63,10 @@ jobs:
       - uses: actions/checkout@v6.0.2
         with:
           persist-credentials: false
-          ref: ${{ github.event.pull_request.head.sha }}
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
+      - uses: ./.github/actions/merge
+        with:
+          commit_sha: ${{ github.event.pull_request.head.sha }}
+          repository_full_name: ${{ github.event.pull_request.head.repo.full_name }}
       - name: Configure AWS Credentials
         if: ${{ matrix.test.environment == 'integration-tests' }}
         uses: aws-actions/configure-aws-credentials@v6.0.0
@@ -87,8 +95,10 @@ jobs:
       - uses: actions/checkout@v6.0.2
         with:
           persist-credentials: false
-          ref: ${{ github.event.pull_request.head.sha }}
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
+      - uses: ./.github/actions/merge
+        with:
+          commit_sha: ${{ github.event.pull_request.head.sha }}
+          repository_full_name: ${{ github.event.pull_request.head.repo.full_name }}
       - name: Configure AWS Credentials
         if: ${{ matrix.test.environment == 'integration-tests' }}
         uses: aws-actions/configure-aws-credentials@v6.0.0
