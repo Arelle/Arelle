@@ -984,6 +984,7 @@ def rule_EC8073E(
     axisConcept = val.modelXbrl.qnameConcepts.get(pluginData.categoriesOfDirectorsAndOtherOfficersAxisQn)
     if axisConcept is None:
         return
+    illegalCharactersPattern = pluginData.getIllegalCharactersPattern(val.modelXbrl)
     defRelSet = val.modelXbrl.relationshipSet(tuple(LinkbaseType.DEFINITION.getArcroles()))
     labelRelSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
     for rel in defRelSet.fromModelObject(axisConcept):
@@ -992,7 +993,7 @@ def rule_EC8073E(
         for labelRel in labelRelSet.fromModelObject(rel.toModelObject):
             if labelRel.toModelObject is None or labelRel.toModelObject.textValue is None:
                 continue
-            illegalChars = HALF_KANA.intersection(set(labelRel.toModelObject.textValue))
+            illegalChars = set(illegalCharactersPattern.findall(labelRel.toModelObject.textValue))
             if any(illegalChars):
                 yield Validation.error(
                     codes='EDINET.EC8073E',
