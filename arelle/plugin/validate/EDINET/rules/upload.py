@@ -1119,7 +1119,7 @@ def rule_EC5003E(
 
     TODO: Consolidate with NL.FR-NL-1.02 (which currently only checks text content)
     """
-    if not fileSource.dir:
+    if not fileSource.dir or not isinstance(fileSource.baseurl, str):
         return
     illegalCharactersPattern = pluginData.getIllegalCharactersPattern()
     filepaths = [
@@ -1129,7 +1129,7 @@ def rule_EC5003E(
     for filepath in filepaths:
         if filepath.suffix not in HTML_EXTENSIONS:
             continue
-        file, __ = fileSource.file(str(filepath))
+        file = fileSource.file(str(filepath))[0]
         with file as f:
             for lineNumber, line in enumerate(f, start=1):
                 illegalChars = set(illegalCharactersPattern.findall(line))
