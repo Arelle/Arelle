@@ -131,6 +131,7 @@ class RuntimeOptions:
     skipDTS: Optional[bool] = None
     skipLoading: Optional[bool] = None
     statusPipe: Optional[str] = None
+    renderedTableLinkbaseFile: Optional[str] = None
     tableFile: Optional[str] = None
     taxonomyPackage: Optional[bool] = None
     testReport: Optional[str] = None
@@ -194,6 +195,6 @@ class RuntimeOptions:
                 self.factsFile, self.factListCols, self.factTableFile, self.factTableCols,
                 self.relationshipCols, self.conceptsFile, self.preFile, self.tableFile, self.calFile,
                 self.dimFile, self.anchFile, self.formulaeFile, self.viewArcrole, self.viewFile,
-                self.roleTypesFile, self.arcroleTypesFile
+                self.roleTypesFile, self.arcroleTypesFile, self.renderedTableLinkbaseFile
         )):
             raise RuntimeOptionsException('Incorrect arguments with webserver')

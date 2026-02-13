@@ -396,5 +396,6 @@ class ViewRenderedGrid(ViewFile.View):
                         zTbl += 1
                         self.xlsxRow += 1 # add blank row between z tables
                 self.xlsxRow += 1 # add blank row between tables in tableset
-            self.setColWidths((numCols - 1) * [12])
-            self.xlsxWs.merge_cells(range_string='%s%s:%s%s' % (utils.get_column_letter(1), titleXlsRow, utils.get_column_letter(numCols - 1), titleXlsRow))
+            if numCols > 1:
+                self.setColWidths((numCols - 1) * [12])
+                self.xlsxWs.merge_cells(range_string='%s%s:%s%s' % (utils.get_column_letter(1), titleXlsRow, utils.get_column_letter(numCols - 1), titleXlsRow))
