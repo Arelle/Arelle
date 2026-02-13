@@ -1020,32 +1020,19 @@ def rule_EC8073W_EC8074W(
     EDINET.EC8073W: Prohibited characters are used in Japanese labels for descendents of ExecutiveOfficersMember
     EDINET.EC8074W: Prohibited characters are used in English labels for descendents of ExecutiveOfficersMember
     """
-    def getIllegalCharsJapanese(textValue: str) -> set[str]:
-        """Check for prohibited characters in Japanese labels."""
-        return set(HALF_KANA.intersection(set(textValue)))
-
-    def getIllegalCharsEnglish(textValue: str) -> set[str]:
-        """Check for prohibited characters in English labels."""
-        illegalChars = set()
-        for char in textValue:
-            if char in HALF_KANA:
-                illegalChars.add(char)
-                continue
-            codePoint = ord(char)
-            if 0xA1 <= codePoint <= 0xBF:
-                # Exclude symbols
-                illegalChars.add(char)
-            elif codePoint in (0xD7, 0xF7):
-                # Exclude multiplication and division symbols
-                illegalChars.add(char)
-            elif codePoint > 0xFF:
-                # Characters beyond Latin-1
-                illegalChars.add(char)
-        return illegalChars
-
     memberConcept = val.modelXbrl.qnameConcepts.get(pluginData.executiveOfficersMemberQn)
     if memberConcept is None:
         return
+
+    # Pattern breakdown:
+    # \u0020-\u007E : Basic Latin (Alphanumeric + Symbols)
+    # \u00C0-\u00D6 : Latin-1 Letters (Part 1)
+    # \u00D8-\u00F6 : Latin-1 Letters (Part 2)
+    # \u00F8-\u00FF : Latin-1 Letters (Part 3)
+    # Note: U+00D7 is '×' and U+00F7 is '÷', which are symbols.
+    illegalEnglishCharactersPattern = regex.compile(r'[^\u0020-\u007E\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF]')
+    illegalJapaneseCharactersPattern = pluginData.getIllegalCharactersPattern(val.modelXbrl)
+
     defRelSet = val.modelXbrl.relationshipSet(tuple(LinkbaseType.DEFINITION.getArcroles()))
     labelRelSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
     conceptsLabelsToCheck = {memberConcept}.union(
@@ -1059,7 +1046,7 @@ def rule_EC8073W_EC8074W(
 
             # Check Japanese labels
             if label.xmlLang in JAPAN_LANGUAGE_CODES:
-                illegalChars = getIllegalCharsJapanese(label.textValue)
+                illegalChars = set(illegalJapaneseCharactersPattern.findall(label.textValue))
                 if illegalChars:
                     yield Validation.warning(
                         codes='EDINET.EC8073W',
@@ -1073,7 +1060,7 @@ def rule_EC8073W_EC8074W(
 
             # Check English labels
             elif label.xmlLang == 'en':
-                illegalChars = getIllegalCharsEnglish(label.textValue)
+                illegalChars = set(illegalEnglishCharactersPattern.findall(label.textValue))
                 if illegalChars:
                     yield Validation.warning(
                         codes='EDINET.EC8074W',
