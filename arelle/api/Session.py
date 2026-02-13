@@ -6,6 +6,7 @@ The `arelle.api` module is the supported method for integrating Arelle into othe
 from __future__ import annotations
 
 import logging
+import sys
 import threading
 from types import TracebackType
 from typing import Any, BinaryIO, TypeVar
@@ -17,6 +18,8 @@ from arelle.ModelXbrl import ModelXbrl
 from arelle.RuntimeOptions import RuntimeOptions
 
 _session_lock = threading.Lock()
+# Due to global state that is left over after a session run, a single Python process should not run more than one session.
+_process_clean = True
 
 # typing.Self can be used once Python 3.10 support is dropped.
 Self = TypeVar("Self", bound="Session")
@@ -38,9 +41,17 @@ class Session:
     - Threading.Thread with Session.run()
     """
 
-    def __init__(self) -> None:
+    def __init__(self, **kwargs: Any) -> None:
         self._cntlr: CntlrCmdLine | None = None
         self._thread_id = threading.get_ident()
+        global _process_clean
+        if not kwargs.get('ignore_multiprocessing_warning') and not _process_clean:
+            print(("Due to global state in Arelle, more than one Session should not be executed in a single process.\n"
+                   "\tFor multiprocessing, use `maxtasksperchild=1` to ensure a clean process for each session.\n"
+                   "\tUsing `SessionPool` is the recommended multiprocessing approach.\n"
+                   "\tSet `ignore_multiprocessing_warning=True` to silence this error, but be aware that doing so may "
+                   "lead to unpredictable behavior."), file=sys.stderr)
+        _process_clean = False
 
     def _check_thread(self) -> None:
         """Ensure session is only used from the thread that created it."""
@@ -101,7 +112,7 @@ class Session:
         """
         if self._cntlr is None:
             return []
-        return self._cntlr.modelManager.loadedModelXbrls
+        return self._cntlr.modelManager.loadedModelXbrls.copy()
 
     def run(
         self,
