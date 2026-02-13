@@ -61,6 +61,8 @@ def viewRenderedGrid(modelXbrl, tabWin, lang=None):
     if not view.table.isInitialized: # unable to load or initialize tktable
         return None
 
+    modelXbrl.modelManager.addToLog(_("Loading experimental table linkbase viewer"))
+
     view.blockMenuEvents = 1
 
     menu = view.contextMenu()
@@ -231,7 +233,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                 numZtbls = self.lytMdlTable.numBodyCells("z") or 1 # must have at least 1 z entry
                 self.zHdrElts = [OrderedDict() for i in range(numZtbls)]
                 self.zAspectChoices = OrderedDict()
-                for lytMdlZGrp in lytMdlZHdrs.lytMdlGroups:
+                for lytMdlZGrp in lytMdlZHdrGroups:
                     for lytMdlZHdr in lytMdlZGrp.lytMdlHeaders:
                         zRow = 0
                         if all(lytMdlCell.isOpenAspectEntrySurrogate for lytMdlCell in lytMdlZHdr.lytMdlCells):
@@ -268,7 +270,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                 dataRow = len(lytMdlZHdrs.lytMdlGroups)
                 if dataRow > self.numZHdrs:
                     self.numZHdrs = dataRow
-            for lytMdlYGrp in self.lytMdlTable.lytMdlAxisHeaders("y").lytMdlGroups:
+            for lytMdlYGrp in getattr(self.lytMdlTable.lytMdlAxisHeaders("y"), "lytMdlGroups", []):
                 for lytMdlYHdr in lytMdlYGrp.lytMdlHeaders:
                     self.numYHdrCols +=  lytMdlYHdr.maxNumLabels
                     dataRow = 0
@@ -278,7 +280,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                         dataRow += lytMdlYCell.span
                     if dataRow > self.dataRows:
                         self.dataRows = dataRow
-            for lytMdlXGrp in self.lytMdlTable.lytMdlAxisHeaders("x").lytMdlGroups:
+            for lytMdlXGrp in getattr(self.lytMdlTable.lytMdlAxisHeaders("x"), "lytMdlGroups", []):
                 for lytMdlXHdr in lytMdlXGrp.lytMdlHeaders:
                     self.numXHdrRows += lytMdlXHdr.maxNumLabels
                     dataCol = 0
@@ -382,6 +384,8 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
 
     def xAxis(self, leftCol, topRow):
         lytMdlXHdrs = self.lytMdlTable.lytMdlAxisHeaders("x")
+        if lytMdlXHdrs is None:
+            return
         firstColHdr = True
         yValue = topRow
         for lytMdlGrp in lytMdlXHdrs.lytMdlGroups:
@@ -412,6 +416,8 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
 
     def yAxis(self, leftCol, row):
         lytMdlYHdrs = self.lytMdlTable.lytMdlAxisHeaders("y")
+        if lytMdlYHdrs is None:
+            return
         xValue = leftCol
         for lytMdlGrp in lytMdlYHdrs.lytMdlGroups:
             for iHdr, lytMdlHdr in enumerate(lytMdlGrp.lytMdlHeaders):
@@ -464,9 +470,11 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
         return bgColor;
 
     def bodyCells(self, leftCol, topRow):
-        lytMdlZBodyCell = self.lytMdlTable.lytMdlBodyChildren[0] # examples only show one z cell despite number of tables
-        if not lytMdlZBodyCell.lytMdlBodyChildren:
+        if not self.lytMdlTable.lytMdlBodyChildren:
             return False # no body cells
+        lytMdlZBodyCell = self.lytMdlTable.lytMdlBodyChildren[0] # examples only show one z cell despite number of tables
+        if self.zTbl >= len(lytMdlZBodyCell.lytMdlBodyChildren):
+            return False # no body cells for selected z table
         lytMdlYBodyCell = lytMdlZBodyCell.lytMdlBodyChildren[self.zTbl]
         yRowNum = topRow
         for lytMdlXBodyCell in lytMdlYBodyCell.lytMdlBodyChildren:

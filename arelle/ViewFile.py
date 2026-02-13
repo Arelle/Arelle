@@ -176,7 +176,7 @@ class View:
             self.xlsxColWrapText = colColWrapText
 
     def setAutoFilter(self, autoFilter):
-        # list with True for columns to be word wrapped in every row including heading
+        # set whether auto-filter is enabled for the worksheet
         if self.type == XLSX:
             self.autoFilter = autoFilter
 

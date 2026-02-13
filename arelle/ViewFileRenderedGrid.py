@@ -46,7 +46,7 @@ headerOmittedRollupAspects  = {
 
 
 def viewRenderedGrid(modelXbrl, outfile, lang=None, viewTblELR=None, sourceView=None, diffToFile=False, cssExtras="", table=None):
-    modelXbrl.modelManager.showStatus(_("saving rendered tagle"))
+    modelXbrl.modelManager.showStatus(_("saving rendered table"))
     view = ViewRenderedGrid(modelXbrl, outfile, lang, cssExtras)
 
     if sourceView is not None:
@@ -95,7 +95,7 @@ class ViewRenderedGrid(ViewFile.View):
         self.ignoreDimValidity = nonTkBooleanVar(value=True)
         self.openBreakdownLines = 0 # layout model conformance suite requires no open entry lines
     def viewReloadDueToMenuAction(self, *args):
-        self.view()
+        self.view(self.lytMdlTblMdl)
 
     def view(self, lytMdlTblMdl):
         if self.type == HTML:
@@ -129,7 +129,7 @@ class ViewRenderedGrid(ViewFile.View):
                     lytMdlZHdrGroups = lytMdlZHdrs.lytMdlGroups
                     numZtbls = lytMdlTable.numBodyCells("z") or 1 # must have at least 1 z entry
                     zHdrElts = [OrderedDict() for i in range(numZtbls)]
-                    for lytMdlZGrp in lytMdlZHdrs.lytMdlGroups:
+                    for lytMdlZGrp in lytMdlZHdrGroups:
                         for lytMdlZHdr in lytMdlZGrp.lytMdlHeaders:
                             zRow = 0
                             if all(lytMdlCell.isOpenAspectEntrySurrogate for lytMdlCell in lytMdlZHdr.lytMdlCells):
@@ -144,20 +144,23 @@ class ViewRenderedGrid(ViewFile.View):
                     zHdrElts = [{}]
                     numZtbls = 1
                 zTbl = 0
+                if not lytMdlTable.lytMdlBodyChildren:
+                    continue
                 lytMdlZBodyCell = lytMdlTable.lytMdlBodyChildren[0] # examples only show one z cell despite number of tables
                 for lytMdlYBodyCell in lytMdlZBodyCell.lytMdlBodyChildren:
                     zTableRow = etree.SubElement(self.tblElt, "{http://www.w3.org/1999/xhtml}tr")
                     zRowCell = etree.SubElement(zTableRow, "{http://www.w3.org/1999/xhtml}td")
                     zCellTable = etree.SubElement(zRowCell, "{http://www.w3.org/1999/xhtml}table",
                                                   attrib={"border":"1", "cellspacing":"0", "cellpadding":"4", "style":"font-size:8pt;"})
-                    lytMdlXHdrs = lytMdlTable.lytMdlAxisHeaders("x")
-                    lytMdlYHdrs = lytMdlTable.lytMdlAxisHeaders("y")
+                    lytMdlXGroups = getattr(lytMdlTable.lytMdlAxisHeaders("x"), "lytMdlGroups", [])
+                    lytMdlYGroups = getattr(lytMdlTable.lytMdlAxisHeaders("y"), "lytMdlGroups", [])
                     nbrXcolHdrs = lytMdlTable.headerDepth("x")
                     nbrYrowHdrs = lytMdlTable.headerDepth("y")
                     # build y row headers
                     numYrows = lytMdlTable.numBodyCells("y")
                     yRowHdrs = [[] for i in range(numYrows)] # list of list of row header elements for each row
-                    for lytMdlYGrp in lytMdlYHdrs.lytMdlGroups:
+
+                    for lytMdlYGrp in lytMdlYGroups:
                         for lytMdlYHdr in lytMdlYGrp.lytMdlHeaders:
                             yRow = 0
                             if all(lytMdlCell.isOpenAspectEntrySurrogate for lytMdlCell in lytMdlYHdr.lytMdlCells):
@@ -178,7 +181,7 @@ class ViewRenderedGrid(ViewFile.View):
                                     yRowHdrs[yRow].append(rowHdrElt)
                                 yRow += lytMdlYCell.span
                     firstColHdr = True
-                    for lytMdlGroup in lytMdlXHdrs.lytMdlGroups:
+                    for lytMdlGroup in lytMdlXGroups:
                         for lytMdlHeader in lytMdlGroup.lytMdlHeaders:
                             if all(lytMdlCell.isOpenAspectEntrySurrogate for lytMdlCell in lytMdlHeader.lytMdlCells):
                                 continue # skip header with only open aspect entry surrogate
@@ -260,7 +263,7 @@ class ViewRenderedGrid(ViewFile.View):
                     params = ["parameter = value"]
                     for name, value in lytMdlTable.strctMdlTable.tblParamValues.items():
                         params.append(f"{name} = {value}")
-                    self.xlsxWs.cell(row=self.xlsxRow+1, column=iCol+1).value = "\n".join(params)
+                    self.xlsxWs.cell(row=self.xlsxRow+1, column=1).value = "\n".join(params)
                     self.xlsxRow += 1
                 # each Z is a separate table in the outer table
                 lytMdlZHdrs = lytMdlTable.lytMdlAxisHeaders("z")
@@ -268,7 +271,7 @@ class ViewRenderedGrid(ViewFile.View):
                     lytMdlZHdrGroups = lytMdlZHdrs.lytMdlGroups
                     numZtbls = lytMdlTable.numBodyCells("z") or 1 # must have at least 1 z entry
                     zHdrLbls = [[] for i in range(numZtbls)]
-                    for lytMdlZGrp in lytMdlZHdrs.lytMdlGroups:
+                    for lytMdlZGrp in lytMdlZHdrGroups:
                         for lytMdlZHdr in lytMdlZGrp.lytMdlHeaders:
                             zRow = 0
                             if all(lytMdlCell.isOpenAspectEntrySurrogate for lytMdlCell in lytMdlZHdr.lytMdlCells):
@@ -281,16 +284,16 @@ class ViewRenderedGrid(ViewFile.View):
                     zHdrLbls = [[]]
                     numZtbls = 1
                 zTbl = 0
+                if not lytMdlTable.lytMdlBodyChildren:
+                    continue
                 lytMdlZBodyCell = lytMdlTable.lytMdlBodyChildren[0] # examples only show one z cell despite number of tables
                 for lytMdlYBodyCell in lytMdlZBodyCell.lytMdlBodyChildren:
-                    lytMdlXHdrs = lytMdlTable.lytMdlAxisHeaders("x")
-                    lytMdlYHdrs = lytMdlTable.lytMdlAxisHeaders("y")
-                    nbrXcolHdrs = lytMdlTable.headerDepth("x")
-                    nbrYrowHdrs = lytMdlTable.headerDepth("y")
+                    lytMdlXGroups = getattr(lytMdlTable.lytMdlAxisHeaders("x"), "lytMdlGroups", [])
+                    lytMdlYGroups = getattr(lytMdlTable.lytMdlAxisHeaders("y"), "lytMdlGroups", [])
                     # build y row headers
                     numYrows = lytMdlTable.numBodyCells("y")
                     yRowHdrs = [[] for i in range(numYrows)] # list of list of row header elements for each row
-                    for lytMdlYGrp in lytMdlYHdrs.lytMdlGroups:
+                    for lytMdlYGrp in lytMdlYGroups:
                         for lytMdlYHdr in lytMdlYGrp.lytMdlHeaders:
                             yRow = 0
                             if all(lytMdlCell.isOpenAspectEntrySurrogate for lytMdlCell in lytMdlYHdr.lytMdlCells):
@@ -321,7 +324,7 @@ class ViewRenderedGrid(ViewFile.View):
                     if v:
                         zHdrCell.value = v
                         zHdrCell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
-                    for lytMdlGroup in lytMdlXHdrs.lytMdlGroups:
+                    for lytMdlGroup in lytMdlXGroups:
                         for lytMdlHeader in lytMdlGroup.lytMdlHeaders:
                             if all(lytMdlCell.isOpenAspectEntrySurrogate for lytMdlCell in lytMdlHeader.lytMdlCells):
                                 continue # skip header with only open aspect entry surrogate
@@ -345,53 +348,53 @@ class ViewRenderedGrid(ViewFile.View):
                     if yHdrCols > 1:
                         self.xlsxWs.merge_cells(range_string='%s%s:%s%s' % (utils.get_column_letter(1), yFirstHdrRow, utils.get_column_letter(yHdrCols), self.xlsxRow))
                     yRowNum = 0
-                    rowspans = len(yRowHdrs[yRowNum]) * [0] # remaining rowspan per row col
+                    rowspans = yHdrCols * [0] # remaining rowspan per row col
                     for lytMdlXBodyCell in lytMdlYBodyCell.lytMdlBodyChildren:
-                        if True: # not any(lytMdlCell.isOpenAspectEntrySurrogate for lytMdlCell in lytMdlXBodyCell.lytMdlBodyChildren):
-                            self.xlsxRow += 1
-                            xlsxCol = 1
-                            if yRowNum < len(yRowHdrs):
-                                for i, rowHdrElt in enumerate(yRowHdrs[yRowNum]):
-                                    while xlsxCol-1 < len(rowspans) and rowspans[xlsxCol-1] > 0:
-                                        rowspans[xlsxCol-1] -= 1
-                                        xlsxCol += 1
-                                    rowspan = rowHdrElt.get("rowspan", 1)
-                                    c = self.xlsxWs.cell(row=self.xlsxRow, column=xlsxCol)
-                                    v = rowHdrElt.get("text")
-                                    c.value = v
-                                    c.alignment = Alignment(horizontal=rowHdrElt.get("align", "left" if xlsxCol == 1 or not v.isnumeric() else "center"),
-                                                            vertical="center", wrap_text=True)
-                                    c.fill = PatternFill(patternType=fills.FILL_SOLID, fgColor=Color("EEEEEE"))
-                                    c.border = yRowHdrBorder
-                                    if rowspan > 1:
-                                        rowspans[xlsxCol-1] = rowspan - 1
-                                        self.xlsxWs.merge_cells(range_string='%s%s:%s%s' % (utils.get_column_letter(xlsxCol), self.xlsxRow, utils.get_column_letter(xlsxCol), self.xlsxRow + rowspan - 1))
+                        self.xlsxRow += 1
+                        xlsxCol = 1
+                        if yRowNum < len(yRowHdrs):
+                            for i, rowHdrElt in enumerate(yRowHdrs[yRowNum]):
+                                while xlsxCol-1 < len(rowspans) and rowspans[xlsxCol-1] > 0:
+                                    rowspans[xlsxCol-1] -= 1
                                     xlsxCol += 1
-                            for lytMdlCell in lytMdlXBodyCell.lytMdlBodyChildren:
-                                if lytMdlCell.isOpenAspectEntrySurrogate:
-                                    xlsxCol += 1
-                                    continue
-                                justify = "left"
-                                for f, v, justify in lytMdlCell.facts:
-                                    break; # sets justify to first fact
-                                if len(lytMdlCell.facts) == 0:
-                                    v = None
-                                elif len(lytMdlCell.facts) == 1:
-                                    v = lytMdlCell.facts[0][1]
-                                else:
-                                    v = "\n".join(v for f, v, justify in lytMdlCell.facts)
+                                rowspan = rowHdrElt.get("rowspan", 1)
                                 c = self.xlsxWs.cell(row=self.xlsxRow, column=xlsxCol)
-                                if v is not None:
-                                    c.value = v
-                                    c.alignment = Alignment(horizontal=justify, vertical="top", wrap_text=True)
-                                c.border = thinBorder
+                                v = rowHdrElt.get("text")
+                                c.value = v
+                                c.alignment = Alignment(horizontal=rowHdrElt.get("align", "left" if xlsxCol == 1 or not (v and v.isnumeric()) else "center"),
+                                                        vertical="center", wrap_text=True)
+                                c.fill = PatternFill(patternType=fills.FILL_SOLID, fgColor=Color("EEEEEE"))
+                                c.border = yRowHdrBorder
+                                if rowspan > 1:
+                                    rowspans[xlsxCol-1] = rowspan - 1
+                                    self.xlsxWs.merge_cells(range_string='%s%s:%s%s' % (utils.get_column_letter(xlsxCol), self.xlsxRow, utils.get_column_letter(xlsxCol), self.xlsxRow + rowspan - 1))
                                 xlsxCol += 1
-                            if xlsxCol > numCols:
-                                numCols = xlsxCol
+                        for lytMdlCell in lytMdlXBodyCell.lytMdlBodyChildren:
+                            if lytMdlCell.isOpenAspectEntrySurrogate:
+                                xlsxCol += 1
+                                continue
+                            v = None
+                            justify = "left"
+                            for f, v, justify in lytMdlCell.facts:
+                                break # sets justify to first fact
+                            if len(lytMdlCell.facts) == 0:
+                                v = None
+                            elif len(lytMdlCell.facts) == 1:
+                                v = lytMdlCell.facts[0][1]
+                            else:
+                                v = "\n".join(v for f, v, justify in lytMdlCell.facts)
+                            c = self.xlsxWs.cell(row=self.xlsxRow, column=xlsxCol)
+                            if v is not None:
+                                c.value = v
+                                c.alignment = Alignment(horizontal=justify, vertical="top", wrap_text=True)
+                            c.border = thinBorder
+                            xlsxCol += 1
+                        if xlsxCol > numCols:
+                            numCols = xlsxCol
                         yRowNum += 1
                     if zTbl < len(lytMdlZBodyCell.lytMdlBodyChildren) - 1:
                         zTbl += 1
                         self.xlsxRow += 1 # add blank row between z tables
                 self.xlsxRow += 1 # add blank row between tables in tableset
-            self.setColWidths((numCols) * [12])
+            self.setColWidths((numCols - 1) * [12])
             self.xlsxWs.merge_cells(range_string='%s%s:%s%s' % (utils.get_column_letter(1), titleXlsRow, utils.get_column_letter(numCols - 1), titleXlsRow))
