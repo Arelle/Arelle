@@ -153,7 +153,7 @@ class RuntimeOptions:
     validateHMRC: Optional[bool] = None
     validateTestcaseSchema: Optional[bool] = None
     versReportFile: Optional[str | FileNamedStringIO] = None
-    viewArcrole: Optional[bool] = None
+    viewArcrole: Optional[str] = None
     viewFile: Optional[str | FileNamedStringIO] = None
     webserver: Optional[str] = None
     xdgConfigHome: Optional[str] = None
