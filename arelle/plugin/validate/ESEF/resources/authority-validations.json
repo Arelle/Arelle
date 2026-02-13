@@ -25,14 +25,14 @@
         "reportFileNameRegex: regex to correspond, in same manner as filenameRegexes in Consts.py",
         "extensionElementsAnchoring: \"non-abstract\" or \"include abstract\"",
         "additionalMandatoryTags: qnames of tags additionally required by authority when prefixed schema is imported",
-        "dimension-default-arc-ELRs",
         "outdatedTaxonomyURLs: imported standard URLs now outdated",
         "effectiveTaxonomyURLs: current imported standard URLs of which one must be specified",
         "authorityRequiredTaxonomyURLs: authority-required standard URL in addition to ESEF effectiveTaxonomyURLs",
         "standardTaxonomyURIs: set of taxonomy URIs which are deemed base taxonomies",
         "formulaMessagesAdditionalURLs: for base URL list of additional formula messages URLs to load out of DTS",
         "formulaRunIDs: if not null, regex of formula IDs to run (or with negative lookahead regex, to suppress)",
-        "dtrNamespaces: the permitted DTR namespaces, each mapped to its corresponding XSD URL"
+        "dtrNamespaces: the permitted DTR namespaces, each mapped to its corresponding XSD URL",
+        "permitOnlyTextBlockEscape: whether to allow the escape attribute only on text blocks (like ESEF 2024), as opposed to on other types such as strings (like ESEF 2025)"
     ],
     "default": {
         "name": "Default ESMA ESEF validations",
@@ -51,7 +51,6 @@
         "reportFileNamePattern": null,
         "reportFileNameRegex": null,
         "extensionElementsAnchoring": "non-abstract",
-        "dimension-default-arc-ELRs": null,
         "standardTaxonomyURIs": [
             "http://www.esma.europa.eu/",
             "https://www.esma.europa.eu/",
@@ -280,7 +279,8 @@
     "GB": {
         "name": "United Kingdom",
         "comment": "Pertains to country code GB ESEF Guidance",
-        "comment2": "See UKFRC for UK filings to FRC using UKSEF"
+        "comment2": "See UKFRC for UK filings to FRC using UKSEF",
+        "permitOnlyTextBlockEscape": true
     },
     "HR": {
         "name": "Croatia"
@@ -320,10 +320,7 @@
         "reportPackageMaxMB": "100",
         "reportPackageMeasurement": "unzipped",
         "extensionAbstractContexts": "allowed",
-        "reportFileNamePattern": "{base}-{date}.xhtml",
-        "reportFileNameRegex": "(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}[.]xhtml$",
         "extensionElementsAnchoring": "include abstract",
-        "dimension-default-arc-ELRs": "990000 only",
         "LC3AllowCapitalsInWord": false
     },
     "NO": {

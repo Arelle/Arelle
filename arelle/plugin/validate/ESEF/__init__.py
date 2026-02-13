@@ -80,7 +80,7 @@ def validateEntity(modelXbrl: ModelXbrl, filename:str, filesource: FileSource) -
                 modelXbrl.error(f"{contentOtherThanXHTMLGuidance}.maliciousCodePresent",
                                 _("Documents MUST NOT contain any malicious content. Dangerous XML entity found: %(element)s."),
                                 modelObject=filename, element=entity.name)
-    except (UnicodeDecodeError, XMLSyntaxError) as e:
+    except (UnicodeDecodeError, XMLSyntaxError):
         # probably a image or a directory
         pass
 

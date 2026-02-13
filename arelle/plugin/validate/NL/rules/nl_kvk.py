@@ -1222,7 +1222,7 @@ def rule_nl_kvk_4_1_1_1(
     if len(missingFiles) > 0:
         yield Validation.error(
             codes='NL.NL-KVK.4.1.1.1.extensionTaxonomyWrongFilesStructure',
-            msg=_('The extension taxonomy is missing one or more required components: %(missingFiles)s '
+            msg=_('The extension taxonomy is missing one or more required components: %(missingFiles)s. '
                   'Review to ensure that the schema file, presentation, calculation, '
                   'and definition linkbases are included and not empty. '
                   'A label linkbase is also required if extension elements are present.'),

@@ -709,6 +709,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
         langsUsedByTextFacts = set()
 
         factsMissingId = []
+        permitOnlyTextBlockEscape = val.authParam.get("permitOnlyTextBlockEscape", False)
         for qn, facts in modelXbrl.factsByQname.items():
             if qn in mandatory:
                 reportedMandatory.add(qn)
@@ -718,7 +719,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                         factsMissingId.append(f)
                     errorMsg = _("Facts with datatype 'dtr-types:textBlockItemType' MUST use the 'escape' attribute set to 'true'.")
                     if isinstance(f, ModelInlineFact) and f.concept is not None and esefDisclosureSystemYear >= 2024:
-                        if esefDisclosureSystemYear == 2024:
+                        if esefDisclosureSystemYear == 2024 or permitOnlyTextBlockEscape:
                             errorMsg +=  _(" Facts with any other datatype MUST use the 'escape' attribute set to 'false'")
                             hasEscapeIssue = f.isEscaped != f.concept.isTextBlock
                         elif esefDisclosureSystemYear >= 2025:
