@@ -29,6 +29,10 @@ on:
         description: Optional selection of shards to run (e.g. "0", "0-3")
         required: false
         type: string
+      shard_count:
+        description: Optional override of shard count
+        required: false
+        type: string
 
 jobs:
   run-conformance-suite:
@@ -52,3 +56,4 @@ jobs:
           name: ${{ inputs.name }}
           python_version: ${{ inputs.python_version }}
           shard: ${{ inputs.shard }}
+          shard_count: ${{ inputs.shard_count }}

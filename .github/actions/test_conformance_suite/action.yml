@@ -10,6 +10,9 @@ inputs:
   shard:
     description: Optional selection of shards to run (e.g. "0", "0-3")
     required: false
+  shard_count:
+    description: Optional override of shard count
+    required: false
   short_name:
     description: Optional shortened version of name for compact display (defaults to `name`)
     required: false
@@ -59,12 +62,14 @@ runs:
         --download-missing \
         --download-private \
         --download-cache \
-        --name=${{ inputs.name }}${{ inputs.shard && format(' --shard={0}', inputs.shard) || '' }} \
+        --name=${{ inputs.name }} \
+        ${{ inputs.shard && format(' --shard={0}', inputs.shard) || '' }} \
+        ${{ inputs.shard_count && format(' --shard-count={0}', inputs.shard_count) || '' }} \
         tests/integration_tests/validation/test_conformance_suites.py
     - name: Cat logs
       if: always()
       shell: bash
-      run: tail -n+1 conf-*log.txt
+      run: find conf-logs/ -type f -exec tail -n+1 {} +
     - id: build-artifact-name
       if: always()
       shell: bash

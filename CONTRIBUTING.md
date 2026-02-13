@@ -171,7 +171,7 @@ Include a license at the top of new Python files ([example][python-license-examp
 
 #### Python Coding Style
 
-Stick to the [PEP8 guidelines][pep-0008] and use `mixedCase` for variable and function
-names.
+Stick to the [PEP8 guidelines][pep-0008]. 
+The project historically uses `mixedCase` which needs to be retained for backwards compatibility due to external code integrations, but new features can use current best practices.
 
 [pep-0008]: https://www.python.org/dev/peps/pep-0008/

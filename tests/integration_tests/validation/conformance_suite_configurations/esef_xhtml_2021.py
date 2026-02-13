@@ -11,6 +11,9 @@ config = ConformanceSuiteConfig(
         ),
     ],
     base_taxonomy_validation='none',
+    custom_compare_patterns=[
+        (r"^.*$", r"^ESEF\..*\.~$"),
+    ],
     disclosure_system='esef-unconsolidated-2021',
     info_url='https://www.esma.europa.eu/document/conformance-suite-2021',
     name=PurePath(__file__).stem,

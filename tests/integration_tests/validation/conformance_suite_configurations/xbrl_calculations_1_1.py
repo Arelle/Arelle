@@ -2,9 +2,6 @@ from pathlib import PurePath, Path
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig
 
 config = ConformanceSuiteConfig(
-    args=[
-        "--validateXmlOim",
-    ],
     assets=[
         ConformanceSuiteAssetConfig.conformance_suite(
             Path('calculation-1.1-conformance-2023-12-20.zip'),
@@ -15,5 +12,8 @@ config = ConformanceSuiteConfig(
     membership_url='https://www.xbrl.org/join',
     name=PurePath(__file__).stem,
     plugins=frozenset({'../../tests/plugin/testcaseCalc11ValidateSetup.py'}),
+    runtime_options={
+        "validateXmlOim": True,
+    },
     test_case_result_options='match-any',
 )
