@@ -74,7 +74,7 @@ class LytMdlTable:
     def headerDepth(self, axis, includeOpenAspectEntrySurrogates=False):
         # number of column header rows or number, row header columns, etc
         return sum(lytMdlHeader.maxNumLabels
-                   for lytMdlGroup in self.lytMdlAxisHeaders(axis).lytMdlGroups
+                   for lytMdlGroup in getattr(self.lytMdlAxisHeaders(axis), "lytMdlGroups", [])
                    for lytMdlHeader in lytMdlGroup.lytMdlHeaders
                    if includeOpenAspectEntrySurrogates or
                       not all(lytMdlCell.isOpenAspectEntrySurrogate
@@ -83,7 +83,7 @@ class LytMdlTable:
         return max((sum(lytMdlCell.span
                         for lytMdlHdr in lytMdlGrp.lytMdlHeaders
                         for lytMdlCell in lytMdlHdr.lytMdlCells)
-                    for lytMdlGrp in self.lytMdlAxisHeaders(axis).lytMdlGroups))
+                    for lytMdlGrp in getattr(self.lytMdlAxisHeaders(axis), "lytMdlGroups", [])))
     def __repr__(self):
         return ("LytMdlTable[]")
 class LytMdlHeaders:
@@ -111,7 +111,8 @@ class LytMdlHeader:
         self.lytMdlCells = []
     @property
     def maxNumLabels(self):
-        return max(len(lytMdlCell.labels) for lytMdlCell in self.lytMdlCells)
+        return max(len(lytMdlCell.labels) or len(lytMdlCell.lytMdlConstraints)
+                   for lytMdlCell in self.lytMdlCells)
     def __repr__(self):
         return ("LytMdlHeader[]")
 class LytMdlCell:
@@ -122,10 +123,10 @@ class LytMdlCell:
         self.rollup = self.id = self.isOpenAspectEntrySurrogate = None
         self.lytMdlConstraints = []
     def labelXmlText(self, iLabel, default=""):
-        if iLabel < len(self.labels):
+        if self.labels and iLabel < len(self.labels):
             return self.labels[iLabel][0]
-        elif len(self.labels) == 0 and len(self.lytMdlConstraints) > 0:
-            return " ".join(str(c) for c in self.lytMdlConstraints)
+        if self.lytMdlConstraints and iLabel < len(self.lytMdlConstraints):
+            return self.lytMdlConstraints[iLabel].label
         return default
     def __repr__(self):
         return (f"LytMdlCell[{self.labels}]")
@@ -133,7 +134,7 @@ class LytMdlConstraint:
     def __init__(self, lytMdlCell, tag):
         self.lytMdlParentCell = lytMdlCell
         self.tag = tag
-        self.aspect = self.value = None
+        self.aspect = self.value = self.label = None
         lytMdlCell.lytMdlConstraints.append(self)
     def __repr__(self):
         return (f"LytMdlConstraint[{self.aspect}]")

@@ -41,6 +41,7 @@ from arelle import (
     ViewFileFactTable,
     ViewFileFormulae,
     ViewFileRelationshipSet,
+    ViewFileRenderedGrid,
     ViewFileRoleTypes,
     ViewFileRssFeed,
     ViewFileTests,
@@ -294,6 +295,8 @@ def parseArgs(args):
                       help=_("Write presentation linkbase into FILE"))
     parser.add_option("--table", "--csvTable", action="store", dest="tableFile",
                       help=_("Write table linkbase into FILE"))
+    parser.add_option("--renderedTableLinkbase", action="store", dest="renderedTableLinkbaseFile",
+                      help=_("Write rendered table linkbase grid into FILE (format determined by extension: .html, .xlsx)"))
     parser.add_option("--cal", "--csvCal", action="store", dest="calFile",
                       help=_("Write calculation linkbase into FILE"))
     parser.add_option("--dim", "--csvDim", action="store", dest="dimFile",
@@ -1290,6 +1293,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
                             ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.preFile, "Presentation Linkbase", XbrlConst.parentChild, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)
                         if options.tableFile:
                             ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.tableFile, "Table Linkbase", "Table-rendering", labelrole=options.labelRole, lang=options.labelLang)
+                        if options.renderedTableLinkbaseFile and modelXbrl.hasTableRendering:
+                            ViewFileRenderedGrid.viewRenderedGrid(modelXbrl, options.renderedTableLinkbaseFile, lang=options.labelLang)
                         if options.calFile:
                             ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.calFile, "Calculation Linkbase", XbrlConst.summationItems, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)
                         if options.dimFile:

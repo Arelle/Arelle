@@ -86,6 +86,7 @@ class View:
             self.xlsxWs = self.xlsxWb.create_sheet(title=rootElementName)
             self.xlsxRow = 0
             self.xlsxColWrapText = [] # bool true if col is always wrap text
+            self.autoFilter = True # auto-filter table
         elif self.type == HTML:
             if style == "rendering":
                 html = io.StringIO(
@@ -173,6 +174,11 @@ class View:
         # list with True for columns to be word wrapped in every row including heading
         if self.type == XLSX:
             self.xlsxColWrapText = colColWrapText
+
+    def setAutoFilter(self, autoFilter):
+        # set whether auto-filter is enabled for the worksheet
+        if self.type == XLSX:
+            self.autoFilter = autoFilter
 
     def addRow(self, cols, asHeader=False, treeIndent=0, colSpan=1, xmlRowElementName=None, xmlRowEltAttr=None, xmlRowText=None, xmlCol0skipElt=False, xmlColElementNames=None, lastColSpan=None, arcRole=None):
         if asHeader and len(cols) > self.numHdrCols:
@@ -323,8 +329,9 @@ class View:
             if not isinstance(self.outfile, FileNamedStringIO):
                 self.csvFile.close()
         elif self.type == XLSX:
-            # add filtering
-            self.xlsxWs.auto_filter.ref = 'A1:{}{}'.format(utils.get_column_letter(self.xlsxWs.max_column), len(self.xlsxWs['A']))
+            if self.autoFilter:
+                # add filtering
+                self.xlsxWs.auto_filter.ref = 'A1:{}{}'.format(utils.get_column_letter(self.xlsxWs.max_column), len(self.xlsxWs['A']))
             self.xlsxWb.save(self.outfile)
         elif self.type != NOOUT and not noWrite:
             fileType = TYPENAMES[self.type]
