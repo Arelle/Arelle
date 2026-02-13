@@ -11,20 +11,20 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Fetch Remote SHA
+    - name: Fetch and Merge Remote SHA
       shell: bash
+      env:
+        REPO: ${{ inputs.repository_full_name }}
+        SHA: ${{ inputs.commit_sha }}
       run: |
         git config user.name "github-actions"
         git config user.email "github-actions@github.com"
         
-        echo "Fetching from ${{ inputs.repository_full_name }}..."
-        git fetch https://github.com/${{ inputs.repository_full_name }}.git ${{ inputs.commit_sha }}
+        echo "Fetching from $REPO at $SHA..."
+        git fetch --quiet "https://github.com/$REPO.git" "$SHA"
 
-    - name: Merge
-      shell: bash
-      run: |
-        echo "Merging SHA ${{ inputs.commit_sha }}..."
-        git merge FETCH_HEAD || {
+        git merge FETCH_HEAD --no-edit || {
           echo "::error::Merge conflict detected."
-          exit 1
+          git merge --abort
+          exit 1s
         }
