@@ -318,8 +318,6 @@
         "reportPackageMaxMB": "100",
         "reportPackageMeasurement": "unzipped",
         "extensionAbstractContexts": "allowed",
-        "reportFileNamePattern": "{base}-{date}.xhtml",
-        "reportFileNameRegex": "(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}[.]xhtml$",
         "extensionElementsAnchoring": "include abstract",
         "LC3AllowCapitalsInWord": false
     },
