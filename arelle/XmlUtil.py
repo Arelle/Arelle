@@ -807,7 +807,10 @@ def copyIxFootnoteHtml(
 ) -> None:
     if tgtStack is None:
         tgtStack = [[tgtHtml, "text"]] # stack of current targetStack element, and current text attribute
-    if not (isinstance(srcXml,ModelObject) and srcXml.localName == "exclude" and srcXml.namespaceURI in ixbrlAll):
+    isExclude = False
+    if isinstance(srcXml,ModelObject):
+        isExclude = srcXml.localName == "exclude" and srcXml.namespaceURI in ixbrlAll
+    if not isExclude:
         tgtStackLen = len(tgtStack)
         if withText:
             _tx = srcXml.text
