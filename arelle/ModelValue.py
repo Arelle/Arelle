@@ -20,7 +20,6 @@ if TYPE_CHECKING:
     from arelle.XmlValidate import XsdPattern
 
 import regex as re
-XmlUtil = None
 
 @overload
 def qname(value: ModelObject | str | QName) -> QName: ...

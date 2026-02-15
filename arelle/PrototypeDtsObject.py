@@ -67,9 +67,6 @@ class LinkPrototype(PrototypeObject):      # behaves like a ModelLink for relati
     def iterchildren(self):
         return iter(self.childElements)
 
-    def __getitem(self, key):
-        return self.attributes[key]
-
 class LocPrototype(PrototypeObject):
     def __init__(self, modelDocument, parent, label, locObject, role=None, sourceElement=None):
         super(LocPrototype, self).__init__(modelDocument, sourceElement)
@@ -107,9 +104,6 @@ class LocPrototype(PrototypeObject):
 
     def get(self, key, default=None):
         return self.attributes.get(key, default)
-
-    def __getitem(self, key):
-        return self.attributes[key]
 
 class ArcPrototype(PrototypeObject):
     def __init__(self, modelDocument, parent, qname, fromLabel, toLabel, linkrole, arcrole, order="1", sourceElement=None):
@@ -152,9 +146,6 @@ class ArcPrototype(PrototypeObject):
 
     def items(self):
         return self.attributes.items()
-
-    def __getitem(self, key):
-        return self.attributes[key]
 
 class DocumentPrototype():
     def __init__(self, modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDiscovered=False, isIncluded=None, namespace=None, reloadCache=False, **kwargs):
