@@ -1596,6 +1596,8 @@ class ModelLink(ModelObject):
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
     """
+    labeledResources: dict[str, list[ModelObject]]
+
     def init(self, modelDocument):
         super(ModelLink, self).init(modelDocument)
         self.labeledResources = defaultdict(list)

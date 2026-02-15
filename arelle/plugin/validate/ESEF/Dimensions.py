@@ -141,6 +141,8 @@ def checkFilingDimensions(
                     linkChild.get("{http://www.w3.org/1999/xlink}type") == "arc" and
                     linkChild.get("{http://www.w3.org/1999/xlink}arcrole") == XbrlConst.dimensionDefault):
                     fromLabel = linkChild.get("{http://www.w3.org/1999/xlink}from")
+                    if fromLabel is None:
+                        continue
                     for fromResource in modelLink.labeledResources[fromLabel]:
                         if not isExtension(val, fromResource):
                             val.modelXbrl.error("ESEF.3.4.3.extensionTaxonomyOverridesDefaultMembers",

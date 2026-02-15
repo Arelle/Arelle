@@ -1773,6 +1773,8 @@ def rule_nl_kvk_4_4_3_1(
                     and linkChild.get(XbrlConst.qnXlinkArcRole.clarkNotation) == XbrlConst.dimensionDefault
             ):
                 fromLabel = linkChild.get(XbrlConst.qnXlinkFrom.clarkNotation)
+                if fromLabel is None:
+                    continue
                 for fromResource in modelLink.labeledResources[fromLabel]:
                     if not isExtensionUri(fromResource.modelDocument.uri, val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):
                         yield Validation.error(
