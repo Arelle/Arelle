@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any, cast
 from lxml import etree
 from arelle import Locale
 from arelle import ModelValue
+from arelle import XmlUtil
 from arelle.XmlValidateConst import VALID_NO_CONTENT
 from arelle.typing import ModelDocumentBase, ModelObjectBase
 
@@ -23,14 +24,7 @@ if TYPE_CHECKING:
     from arelle.ModelInstanceObject import ModelDimensionValue
     from arelle.ModelValue import QName, TypeSValue, TypeXValue
 
-XmlUtil: Any = None
-
 emptySet: set[Any] = set()
-
-def init() -> None: # init globals
-    global XmlUtil
-    if XmlUtil is None:
-        from arelle import XmlUtil
 
 class ModelObject(etree.ElementBase, ModelObjectBase):
     """ModelObjects represent the XML elements within a document, and are implemented as custom
