@@ -29,6 +29,7 @@ from arelle.utils.Contexts import getDuplicateContextGroups
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.Units import getDuplicateUnitGroups
 from arelle.utils.validate.Decorator import validation
+from arelle.utils.validate.Document import checkDocumentEncoding
 from arelle.utils.validate.Validation import Validation
 from ..Constants import domainItemTypeQname, HALF_KANA, JAPAN_LANGUAGE_CODES, NUMERIC_LABEL_ROLES, LC3_NAME_PATTERN, STANDARD_TAXONOMY_URL_PREFIXES
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
@@ -2218,21 +2219,20 @@ def rule_charsets(
     EDINET.EC5700W: [GFM 1.10.4] The document encoding must be set in both the XML document declaration and the HTML
     meta element for content type.
     """
+    invalidEncodings = checkDocumentEncoding(val, ['utf-8', 'utf-8-sig'], STANDARD_TAXONOMY_URL_PREFIXES)
+    for modelDocument in invalidEncodings:
+        yield Validation.error(
+            codes='EDINET.EC5000E',
+            msg=_("The encoding is not UTF-8. "
+                  "File name: '%(path)s'. "
+                  "Please change the encoding of the relevant file to UTF-8."),
+            path=modelDocument.uri,
+            modelObject=modelDocument,
+            )
+
     for modelDocument in val.modelXbrl.urlDocs.values():
         if pluginData.isStandardTaxonomyUrl(modelDocument.uri, val.modelXbrl):
             continue
-
-        if modelDocument.type != ModelDocument.Type.INLINEXBRLDOCUMENTSET:
-            if modelDocument.documentEncoding is None or modelDocument.documentEncoding.lower() not in ('utf-8', 'utf-8-sig'):
-                yield Validation.error(
-                    codes='EDINET.EC5000E',
-                    msg=_("The encoding is not UTF-8. "
-                          "File name: '%(path)s'. "
-                          "Please change the encoding of the relevant file to UTF-8."),
-                    path=modelDocument.uri,
-                    modelObject=modelDocument,
-                )
-
         # TODO: Consolidate wtih NL.FR-NL-1.02
         for elt in modelDocument.xmlRootElement.iter():
             if isinstance(elt, ModelComment):
