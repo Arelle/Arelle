@@ -1736,10 +1736,10 @@ class ModelRelationship(ModelObject):
     """
     _equivalenceHash: int | None
 
-    def __init__(self, modelDocument, arcElement, fromModelObject, toModelObject):
+    def __init__(self, modelDocument, arcElement, fromModelObject, toModelObject, linkrole=None):
         # copy model object properties from arcElement
         self.arcElement = arcElement
-        self.linkrole = arcElement.getparent().get("{http://www.w3.org/1999/xlink}role")
+        self.linkrole = linkrole if linkrole is not None else arcElement.getparent().get("{http://www.w3.org/1999/xlink}role")
         self.init(modelDocument)
         self.fromModelObject = fromModelObject
         self.toModelObject = toModelObject

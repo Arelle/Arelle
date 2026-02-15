@@ -24,6 +24,7 @@ def create(modelXbrl, arcrole, linkrole=None, linkqname=None, arcqname=None, inc
 def ineffectiveArcs(baseSetModelLinks, arcrole, arcqname=None):
     hashEquivalentRels = defaultdict(list)
     for modelLink in baseSetModelLinks:
+        modelLinkrole = modelLink.role
         for linkChild in modelLink:
             if (isinstance(linkChild,(ModelObject,PrototypeObject)) and
                 linkChild.get("{http://www.w3.org/1999/xlink}type") == "arc" and
@@ -33,7 +34,7 @@ def ineffectiveArcs(baseSetModelLinks, arcrole, arcqname=None):
                 toLabel = linkChild.get("{http://www.w3.org/1999/xlink}to")
                 for fromResource in modelLink.labeledResources[fromLabel]:
                     for toResource in modelLink.labeledResources[toLabel]:
-                        modelRel = ModelRelationship(modelLink.modelDocument, linkChild, fromResource.dereference(), toResource.dereference())
+                        modelRel = ModelRelationship(modelLink.modelDocument, linkChild, fromResource.dereference(), toResource.dereference(), linkrole=modelLinkrole)
                         hashEquivalentRels[modelRel.equivalenceHash].append(modelRel)
     # determine ineffective relationships
     ineffectives = []
@@ -165,6 +166,7 @@ class ModelRelationshipSet:
                           (linkqname is None or linkqname == linkEltQname)):
                         arcs.append(linkChild)
 
+            modelLinkrole = modelLink.role
             # build network
             for arcElement in arcs:
                 fromLabel = arcElement.get("{http://www.w3.org/1999/xlink}from")
@@ -175,7 +177,7 @@ class ModelRelationshipSet:
                     for toResource in modelLink.labeledResources[toLabel]:
                         if not isinstance(toResource,(ModelResource,LocPrototype)):
                             continue
-                        modelRel = ModelRelationship(modelLink.modelDocument, arcElement, fromResource.dereference(), toResource.dereference())
+                        modelRel = ModelRelationship(modelLink.modelDocument, arcElement, fromResource.dereference(), toResource.dereference(), linkrole=modelLinkrole)
                         modelRelEquivalenceHash = modelRel.equivalenceHash
                         if modelRelEquivalenceHash not in relationships:
                             relationships[modelRelEquivalenceHash] = modelRel
