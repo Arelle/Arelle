@@ -1085,10 +1085,15 @@ class ModelType(ModelNamableTerm):
     @property
     def qnameDerivedFrom(self):
         """(QName) -- the type that this type is derived from"""
-        typeOrUnion = XmlUtil.schemaBaseTypeDerivedFrom(self)
-        if isinstance(typeOrUnion,list): # union
-            return [self.schemaNameQname(t) for t in typeOrUnion]
-        return self.schemaNameQname(typeOrUnion)
+        try:
+            return self._qnameDerivedFrom
+        except AttributeError:
+            typeOrUnion = XmlUtil.schemaBaseTypeDerivedFrom(self)
+            if isinstance(typeOrUnion,list): # union
+                self._qnameDerivedFrom = [self.schemaNameQname(t) for t in typeOrUnion]
+            else:
+                self._qnameDerivedFrom = self.schemaNameQname(typeOrUnion)
+            return self._qnameDerivedFrom
 
     @property
     def typeDerivedFrom(self):
