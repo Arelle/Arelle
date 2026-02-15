@@ -59,13 +59,17 @@ validation.
 """
 from __future__ import annotations
 from collections import defaultdict
-import os, sys
-from lxml import etree
 import decimal
-from arelle import (XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue, XmlValidate)
-from arelle.XmlValidateConst import UNVALIDATED, VALID
+import os, sys
+from arelle import (
+    Locale,
+    ModelValue,
+    XbrlConst,
+    XbrlUtil,
+    XmlUtil,
+    XmlValidate,
+)
 from arelle.ModelObject import ModelObject
-from arelle.ModelValue import QName
 
 ModelFact = None
 

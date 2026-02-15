@@ -1,11 +1,11 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-from arelle import XmlUtil, XbrlConst
-from arelle.ModelValue import QName
-import arelle.XmlValidate
-from collections import defaultdict
 import decimal, os
+from collections import defaultdict
+
+from arelle import XbrlConst
+import arelle.XmlValidate
 ModelDocument = None
 
 class PrototypeObject():
