@@ -6,10 +6,11 @@ from collections import defaultdict
 
 from arelle.ModelDocumentType import ModelDocumentType
 from arelle import XbrlConst
+from arelle.typing import LocPrototypeBase, PrototypeElementTreeBase, PrototypeObjectBase
 import arelle.XmlValidate
 ModelDocument = None
 
-class PrototypeObject():
+class PrototypeObject(PrototypeObjectBase):
     def __init__(self, modelDocument, sourceElement=None):
         self.modelDocument = modelDocument
         self.sourceElement = sourceElement
@@ -68,7 +69,7 @@ class LinkPrototype(PrototypeObject):      # behaves like a ModelLink for relati
     def iterchildren(self):
         return iter(self.childElements)
 
-class LocPrototype(PrototypeObject):
+class LocPrototype(PrototypeObject, LocPrototypeBase):
     def __init__(self, modelDocument, parent, label, locObject, role=None, sourceElement=None):
         super(LocPrototype, self).__init__(modelDocument, sourceElement)
         self._parent = parent
@@ -178,7 +179,7 @@ class DocumentPrototype():
     def clear(self):
         self.__dict__.clear() # dereference here, not an lxml object, don't use superclass clear()
 
-class PrototypeElementTree(): # equivalent to _ElementTree for parenting root element in non-lxml situations
+class PrototypeElementTree(PrototypeElementTreeBase): # equivalent to _ElementTree for parenting root element in non-lxml situations
     def __init__(self, rootElement):
         self.rootElement = rootElement
 

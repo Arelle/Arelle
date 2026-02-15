@@ -7,9 +7,8 @@ import regex as re
 from lxml import etree
 
 from arelle.XbrlConst import ixbrlAll, qnLinkFootnote, xhtml, xml, xsd
-from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname, QName, tzinfoStr
-from arelle.PrototypeDtsObject import PrototypeElementTree, PrototypeObject
+from arelle.typing import ModelObjectBase, PrototypeElementTreeBase, PrototypeObjectBase
 from arelle.XmlValidateConst import VALID, INVALID
 from typing import Any, TextIO, TYPE_CHECKING, cast
 from collections.abc import Callable, Collection, Sequence, Generator, Mapping
@@ -18,6 +17,8 @@ if TYPE_CHECKING:
     from arelle.ModelInstanceObject import ModelContext
     from arelle.ModelInstanceObject import ModelUnit
     from arelle.ModelDocument import ModelDocument
+    from arelle.ModelObject import ModelObject
+    from arelle.PrototypeDtsObject import PrototypeElementTree, PrototypeObject
 
 
 htmlEltUriAttrs: dict[str, Collection[str]] | None = None
@@ -63,7 +64,7 @@ def targetNamespace(element: ModelObject) -> str | None:
     while treeElt is not None:
         if treeElt.localName == "schema" and treeElt.namespaceURI == xsd and treeElt.get("targetNamespace"):
             return treeElt.get("targetNamespace")
-        treeElt = cast(ModelObject, treeElt.getparent())
+        treeElt = cast('ModelObject', treeElt.getparent())
     return None
 
 def schemaLocation(element: etree._Element, namespace: str, returnElement: bool = False) -> etree._Element | str | None:
@@ -180,7 +181,7 @@ def childText(
 def textNotStripped(element: ModelObject | PrototypeObject | None) -> str:
     # Note 2022-09-27
     # PrototypeObject has no textValue property
-    if element is None or isinstance(element, PrototypeObject):
+    if element is None or isinstance(element, PrototypeObjectBase):
         return ""
     return element.textValue  # allows embedded comment nodes, returns '' if None
 
@@ -236,7 +237,7 @@ def innerTextNodes(
         if element.text:
             yield escapedText(element.text) if ixEscape else element.text
         for child in element.iterchildren():
-            if isinstance(child,ModelObject) and (
+            if isinstance(child,ModelObjectBase) and (
                not ixExclude or
                not ((child.localName == "exclude" or ixExclude == "tuple") and child.namespaceURI in ixbrlAll)):
                 firstChild = True
@@ -321,7 +322,7 @@ def parentId(
     while element is not None:
         if element.namespaceURI == parentNamespaceURI and element.localName == parentLocalName:
             return element.get("id")
-        element = cast(ModelObject, element.getparent())
+        element = cast('ModelObject', element.getparent())
     return None
 
 def hasChild(
@@ -346,7 +347,7 @@ def hasAncestor(
     ancestorLocalNames: str | tuple[str, ...]
 ) -> bool:
     treeElt = element.getparent()
-    while isinstance(treeElt,ModelObject):
+    while isinstance(treeElt,ModelObjectBase):
         if treeElt.namespaceURI == ancestorNamespaceURI:
             if isinstance(ancestorLocalNames,tuple):
                 if treeElt.localName in ancestorLocalNames:
@@ -365,7 +366,7 @@ def ancestor(
     wildNamespaceURI = not ancestorNamespaceURI or ancestorNamespaceURI == '*'
     if not isinstance(ancestorLocalNames,tuple): ancestorLocalNames = (ancestorLocalNames ,)
     wildLocalName = ancestorLocalNames == ('*',)
-    while isinstance(treeElt,ModelObject):
+    while isinstance(treeElt,ModelObjectBase):
         if wildNamespaceURI or treeElt.elementNamespaceURI == ancestorNamespaceURI:
             if treeElt.localName in ancestorLocalNames or wildLocalName:
                 return treeElt
@@ -384,7 +385,8 @@ def parent(
         p = element.getparent()
     if parentNamespaceURI or parentLocalNames:
         wildNamespaceURI = not parentNamespaceURI or parentNamespaceURI == '*'
-        if isinstance(p,ModelObject):
+        if isinstance(p,ModelObjectBase):
+            p = cast('ModelObject', p)
             if wildNamespaceURI or p.elementNamespaceURI == parentNamespaceURI:
                 if isinstance(parentLocalNames,tuple):
                     if p.localName in parentLocalNames:
@@ -392,7 +394,7 @@ def parent(
                 elif p.localName == parentLocalNames:
                     return p
         return None
-    return cast(ModelObject, p)
+    return cast('ModelObject', p)
 
 def ancestors(
     element: ModelObject,
@@ -404,7 +406,7 @@ def ancestors(
     ancestors = []
     wildNamespaceURI = not ancestorNamespaceURI or ancestorNamespaceURI == '*'
     treeElt = element.getparent()
-    while isinstance(treeElt,ModelObject):
+    while isinstance(treeElt,ModelObjectBase):
         if wildNamespaceURI or treeElt.elementNamespaceURI == ancestorNamespaceURI:
             if isinstance(ancestorLocalNames,tuple):
                 if treeElt.localName in ancestorLocalNames:
@@ -416,11 +418,11 @@ def ancestors(
 
 def ancestorOrSelfAttr(element: ModelObject, attrClarkName: str) -> str | None:
     treeElt = element
-    while isinstance(treeElt,ModelObject):
+    while isinstance(treeElt,ModelObjectBase):
         attr = treeElt.get(attrClarkName)
         if attr is not None:
             return attr
-        treeElt = cast(ModelObject, treeElt.getparent())
+        treeElt = cast('ModelObject', treeElt.getparent())
     return None
 
 def childAttr(
@@ -459,14 +461,16 @@ def children(
         childNamespaceURIs = (childNamespaceURIs,)
     if childNamespaceURIs is None:
         childNamespaceURIs = tuple() # empty tuple to support `in` operator
-    if isinstance(element,ModelObject):
+    if isinstance(element,ModelObjectBase):
         for child in (getattr(element, 'ixIter')() if ixTarget and hasattr(element, "ixIter") else
                       element.iterchildren()):
-            if (isinstance(child,ModelObject) and
-                (wildNamespaceURI or (child.qname.namespaceURI if ixTarget else child.elementNamespaceURI) in childNamespaceURIs) and
+            if not isinstance(child, ModelObjectBase):
+                continue
+            child = cast('ModelObject', child)
+            if ((wildNamespaceURI or (child.qname.namespaceURI if ixTarget else child.elementNamespaceURI) in childNamespaceURIs) and
                 (wildLocalName or (child.qname.localName if ixTarget else child.localName) in childLocalNames)):
                 children.append(child)
-    elif isinstance(element, (etree._ElementTree,PrototypeElementTree)): # document root
+    elif isinstance(element, (etree._ElementTree,PrototypeElementTreeBase)): # document root
         child = cast(Any, element.getroot())
         if (wildNamespaceURI or child.elementNamespaceURI in childNamespaceURIs) and \
            (wildLocalName or child.localName in childLocalNames):
@@ -496,13 +500,13 @@ def lastChild(
 
 def previousSiblingElement(element: ModelObject) -> ModelObject | None:
     for result in element.itersiblings(preceding=True):
-        if isinstance(result,ModelObject):
+        if isinstance(result,ModelObjectBase):
             return result
     return None
 
 def nextSiblingElement(element: ModelObject) -> ModelObject | None:
     for result in element.itersiblings(preceding=False):
-        if isinstance(result,ModelObject):
+        if isinstance(result,ModelObjectBase):
             return result
     return None
 
@@ -547,26 +551,28 @@ def descendants(
     wildLocalName = descendantLocalNames == ('*',)
     wildNamespaceURI = not descendantNamespaceURI or descendantNamespaceURI == '*'
     if isinstance(
-        element, (ModelObject, etree._ElementTree, PrototypeElementTree, PrototypeObject)
+        element, (ModelObjectBase, etree._ElementTree, PrototypeElementTreeBase, PrototypeObjectBase)
     ):
         for child in (
             getattr(element, "ixIter")()
             if ixTarget and hasattr(element, "ixIter")
             else element.iterdescendants()
-            if isinstance(element, ModelObject)
+            if isinstance(element, ModelObjectBase)
             # Note 2022-09-27 PrototypeObject has no iter(), ModelObject however has.
             else element.iter()  # type: ignore[union-attr]
         ):
             _childNamespaceURI = getattr(child, 'elementNamespaceURI', None)
             _childLocalName = getattr(child, 'localName', None)
-            if isinstance(child, (ModelObject, PrototypeObject)) and ixTarget:
+            if isinstance(child, (ModelObjectBase, PrototypeObjectBase)) and ixTarget:
+                child = cast('ModelObject | PrototypeObject', child)
                 childQname: QName | None = getattr(child, 'qname', None)
                 if childQname:
                     _childNamespaceURI = childQname.namespaceURI
                     _childLocalName = childQname.localName
-            if (isinstance(child,(ModelObject,PrototypeObject)) and
+            if (isinstance(child,(ModelObjectBase,PrototypeObjectBase)) and
                 (wildNamespaceURI or _childNamespaceURI == descendantNamespaceURI) and
                 (wildLocalName or _childLocalName in descendantLocalNames)):
+                child = cast('ModelObject | PrototypeObject', child)
                 if attrName:
                     if child.get(attrName) == attrValue or (attrValue == "*" and child.get(attrName) is not None):
                         descendants.append(child)
@@ -582,7 +588,7 @@ def isDescendantOf(element: ModelObject, ancestorElement: ModelObject) -> bool:
     while element is not None:
         if element == ancestorElement:
             return True
-        element = cast(ModelObject, element.getparent())
+        element = cast('ModelObject', element.getparent())
     return False
 
 def schemaDescendantsNames(
@@ -593,7 +599,7 @@ def schemaDescendantsNames(
 ) -> set[QName | None]:
     if qnames is None: qnames = set()
     for child in element.iterdescendants(tag="{{{0}}}{1}".format(descendantNamespaceURI,descendantLocalName)):
-        if isinstance(child,ModelObject):
+        if isinstance(child,ModelObjectBase):
             if child.get("name"):
                 # need to honor attribute/element form default
                 qnames.add(qname(targetNamespace(element), child.get("name")))
@@ -608,7 +614,7 @@ def schemaDescendant(
     name: str
 ) -> ModelObject | None:
     for child in element.iterdescendants(tag="{{{0}}}{1}".format(descendantNamespaceURI,descendantLocalName)):
-        if isinstance(child,ModelObject):
+        if isinstance(child,ModelObjectBase):
             # need to honor attribute/element form default
             if descendantLocalName == "attribute":
                 if child.get("name") == (name.localName if isinstance(name,QName) else name):
@@ -788,12 +794,13 @@ def copyNodes(parent: ModelObject, elts: Sequence[ModelObject] | ModelObject) ->
                 if text:
                     copyElt.text = text
         for childNode in origElt:
-            if isinstance(childNode,ModelObject):
+            if isinstance(childNode,ModelObjectBase):
+                childNode = cast('ModelObject', childNode)
                 copyNodes(copyElt,childNode)
 
 def copyChildren(parent: ModelObject, elt: ModelObject) -> None:
     for childNode in elt:
-        if isinstance(childNode,ModelObject):
+        if isinstance(childNode,ModelObjectBase):
             copyNodes(parent, childNode)
 
 def copyIxFootnoteHtml(
@@ -808,7 +815,8 @@ def copyIxFootnoteHtml(
     if tgtStack is None:
         tgtStack = [[tgtHtml, "text"]] # stack of current targetStack element, and current text attribute
     isExclude = False
-    if isinstance(srcXml,ModelObject):
+    if isinstance(srcXml,ModelObjectBase):
+        srcXml = cast('ModelObject', srcXml)
         isExclude = srcXml.localName == "exclude" and srcXml.namespaceURI in ixbrlAll
     if not isExclude:
         tgtStackLen = len(tgtStack)
@@ -819,7 +827,8 @@ def copyIxFootnoteHtml(
                 assert isinstance(tgtNode, str)
                 setattr(tgtElt, tgtNode, (getattr(tgtElt, tgtNode) or "") + _tx)
         for srcChild in srcXml.iterchildren():
-            if isinstance(srcChild,ModelObject):
+            if isinstance(srcChild,ModelObjectBase):
+                srcChild = cast('ModelObject', srcChild)
                 if not srcChild.namespaceURI in ixbrlAll:
                     # ensure xhtml has an xmlns
                     if targetModelDocument is not None and srcChild.namespaceURI == xhtml and xhtml not in tgtHtml.nsmap.values():
@@ -832,7 +841,7 @@ def copyIxFootnoteHtml(
                     tgtStack[-1][1] = "tail"
                 else:
                     copyIxFootnoteHtml(srcChild, tgtHtml, targetModelDocument, withText=withText, isContinChainElt=False, tgtStack=tgtStack, srcLevel=srcLevel+1)
-        if not (isinstance(srcXml,ModelObject) and srcXml.namespaceURI in ixbrlAll):
+        if not (isinstance(srcXml,ModelObjectBase) and cast('ModelObject', srcXml).namespaceURI in ixbrlAll):
             del tgtStack[tgtStackLen:]
             tgtStack[-1][1] = "tail"
     if withText and srcLevel > 0: # don't take tail of entry level ix:footnote or ix:continuatino
@@ -1225,7 +1234,8 @@ def writexml(
                 else:
                     writer.write('<?xml version="1.0"?>\n')
                 parentNsmap = {}
-        if isinstance(node,ModelObject):
+        if isinstance(node,ModelObjectBase):
+            node = cast('ModelObject', node)
             tag = node.prefixedName
             isXmlElement = node.namespaceURI != xhtml
             isFootnote = node.qname == qnLinkFootnote

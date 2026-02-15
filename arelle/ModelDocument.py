@@ -25,6 +25,7 @@ from arelle.XhtmlValidate import ixMsgCode
 from arelle.XmlValidateConst import VALID
 from arelle.XmlValidate import validate as xmlValidate, lxmlSchemaValidate
 from arelle.ModelTestcaseObject import ModelTestcaseVariation
+from arelle.typing import ModelDocumentBase
 
 # Used and exported.
 from arelle.ModelDocumentType import ModelDocumentType as _Type
@@ -550,7 +551,7 @@ fractionParts = {"{http://www.xbrl.org/2003/instance}numerator",
 
 
 
-class ModelDocument:
+class ModelDocument(ModelDocumentBase):
     """
     .. class:: ModelDocument(modelXbrl, type, uri, filepath, xmlDocument)
 

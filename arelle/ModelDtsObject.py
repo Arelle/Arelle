@@ -70,8 +70,8 @@ from arelle import (
     XmlValidate,
 )
 from arelle.ModelObject import ModelObject
+from arelle.typing import ModelFactBase, ModelResourceBase
 
-ModelFact = None
 
 class ModelRoleType(ModelObject):
     """
@@ -1611,7 +1611,7 @@ class ModelLink(ModelObject):
     def role(self):
         return self.get("{http://www.w3.org/1999/xlink}role")
 
-class ModelResource(ModelObject):
+class ModelResource(ModelObject, ModelResourceBase):
     """
     .. class:: ModelResource(modelDocument)
 
@@ -1682,11 +1682,8 @@ class ModelLocator(ModelResource):
 
     @property
     def propertyView(self):
-        global ModelFact
-        if ModelFact is None:
-            from arelle.ModelInstanceObject import ModelFact
         hrefObj = self.dereference()
-        if isinstance(hrefObj,(ModelFact,ModelConcept)):
+        if isinstance(hrefObj,(ModelFactBase,ModelConcept)):
             return (("href", hrefObj.qname ), )
         elif isinstance(hrefObj, ModelResource):
             return (("href", hrefObj.viewText()),)

@@ -45,6 +45,7 @@ from arelle.XmlValidateConst import UNVALIDATED, INVALID, VALID
 from arelle.XmlValidate import validate as xmlValidate
 from arelle.XmlUtil import collapseWhitespace
 from arelle.PrototypeInstanceObject import DimValuePrototype
+from arelle.typing import ModelFactBase
 from math import isnan, isinf
 from arelle.ModelObject import ModelObject
 from decimal import Decimal, InvalidOperation
@@ -130,7 +131,7 @@ class NewFactItemOptions():
         return XmlUtil.datetimeValue(self.endDate, addOneDay=True)
 
 
-class ModelFact(ModelObject):
+class ModelFact(ModelObject, ModelFactBase):
     """
     .. class:: ModelFact(modelDocument)
 

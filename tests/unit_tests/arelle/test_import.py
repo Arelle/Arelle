@@ -7,7 +7,6 @@ import pytest
 KNOWN_FAILURES = frozenset([
     'arelle.CntlrProfiler',
     'arelle.FunctionXfi',
-    'arelle.PrototypeDtsObject',
     'arelle.ViewCsvRelationshipSet',
     'arelle.archive.LoadSavePreLbCsv',
     'arelle.archive.SaveTableToExelle',

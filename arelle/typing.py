@@ -46,3 +46,11 @@ class LocaleDict(TypedDict):
     decimal_point: str  # '.'
     thousands_sep: str  # ','
     grouping: list[int]  # [3, 3, 0]
+
+class ModelDocumentBase: pass
+class ModelFactBase: pass
+class ModelObjectBase: pass
+class ModelResourceBase: pass
+class LocPrototypeBase: pass
+class PrototypeElementTreeBase: pass
+class PrototypeObjectBase: pass
