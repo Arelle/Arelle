@@ -1602,14 +1602,12 @@ class ModelLink(ModelObject):
     :type modelDocument: ModelDocument
     """
     labeledResources: dict[str, list[ModelObject]]
+    role: str
 
     def init(self, modelDocument):
         super(ModelLink, self).init(modelDocument)
         self.labeledResources = defaultdict(list)
-
-    @property
-    def role(self):
-        return self.get("{http://www.w3.org/1999/xlink}role")
+        self.role = self.get("{http://www.w3.org/1999/xlink}role")
 
 class ModelResource(ModelObject, ModelResourceBase):
     """
