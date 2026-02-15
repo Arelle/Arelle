@@ -97,7 +97,7 @@ def arcToConceptQname(arcElement):
     else:
         return modelRelationship.toModelObject.qname
 
-def checkDTS(val: ValidateXbrl, modelDocument: ModelDocument.ModelDocument, checkedModelDocuments: set[ModelDocument.ModelDocument]) -> None:
+def checkDTS(val: ValidateXbrl, modelDocument: ModelDocument, checkedModelDocuments: set[ModelDocument]) -> None:
     checkedModelDocuments.add(modelDocument)
     for referencedDocument in modelDocument.referencesDocument.keys():
         if referencedDocument not in checkedModelDocuments:
@@ -1429,7 +1429,7 @@ def checkIxContinuationChain(val, elt, chain=None):
                     chain.append(elt)
                 checkIxContinuationChain(val, contAt, chain)
 
-def _isExtensionTaxonomyDocument(val: ValidateXbrl, modelDocument: ModelDocument.ModelDocument) -> bool:
+def _isExtensionTaxonomyDocument(val: ValidateXbrl, modelDocument: ModelDocument) -> bool:
     if modelDocument.uri.startswith(val.modelXbrl.uriDir):
         # document uri in same subtree as entry doocument.
         return True
@@ -1437,7 +1437,7 @@ def _isExtensionTaxonomyDocument(val: ValidateXbrl, modelDocument: ModelDocument
     # check if document in entry submission's package.
     return val.modelXbrl.fileSource.isOpen and modelDocument.filepath.startswith(val.modelXbrl.fileSource.baseurl)
 
-def _shouldValidateBaseTaxonomyDoc(val: ValidateXbrl, modelDocument: ModelDocument.ModelDocument) -> bool:
+def _shouldValidateBaseTaxonomyDoc(val: ValidateXbrl, modelDocument: ModelDocument) -> bool:
     baseTaxonomyValidationMode = val.modelXbrl.modelManager.baseTaxonomyValidationMode
     if baseTaxonomyValidationMode == ValidateBaseTaxonomiesMode.NONE:
         return False

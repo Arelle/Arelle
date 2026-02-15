@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Any, cast
 import regex
 from lxml.etree import Element
 
-from arelle import ModelDocument, XbrlConst, XmlUtil
+from arelle import XbrlConst, XmlUtil
 from arelle.ModelDocumentType import ModelDocumentType
 from arelle.LinkbaseType import LinkbaseType
 from arelle.ModelDtsObject import ModelConcept, ModelLink, ModelResource, ModelType
@@ -63,6 +63,7 @@ from ..DisclosureSystems import (
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 if TYPE_CHECKING:
+    from arelle.ModelDocument import ModelDocument
     from arelle.ModelValue import QName
     from arelle.ModelXbrl import ModelXbrl
 
@@ -957,7 +958,7 @@ def rule_nl_kvk_3_6_3_4(
     linkrole = 'https://www.nltaxonomie.nl/kvk/role/annual-report-filing-information'
     filingInformationQNames = {o.qname for o in val.modelXbrl.relationshipSet(XbrlConst.parentChild, linkrole).toModelObjects()}
     # [filing information facts] - [non-filing information facts]
-    filingInformationScoreByDocument: Counter[ModelDocument.ModelDocument] = Counter()
+    filingInformationScoreByDocument: Counter[ModelDocument] = Counter()
     for qname, facts in val.modelXbrl.factsByQname.items():
         points = 1 if qname in filingInformationQNames else -1
         for fact in facts:
