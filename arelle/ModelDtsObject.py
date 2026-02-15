@@ -1739,6 +1739,8 @@ class ModelRelationship(ModelObject):
 
         Value of xlink:role attribute of parent extended link element
     """
+    _equivalenceHash: int | None
+
     def __init__(self, modelDocument, arcElement, fromModelObject, toModelObject):
         # copy model object properties from arcElement
         self.arcElement = arcElement
@@ -1746,6 +1748,7 @@ class ModelRelationship(ModelObject):
         self.init(modelDocument)
         self.fromModelObject = fromModelObject
         self.toModelObject = toModelObject
+        self._equivalenceHash = None
 
     def clear(self):
         self.__dict__.clear() # dereference here, not an lxml object, don't use superclass clear()
@@ -2035,15 +2038,19 @@ class ModelRelationship(ModelObject):
 
     @property
     def equivalenceHash(self): # not exact, use equivalenceKey if hashes are the same
-        return hash((self.qname,
-                     self.arcrole,
-                     self.linkQname,
-                     self.linkrole,  # needed when linkrole=None merges multiple links
-                     self.fromModelObject.objectIndex if isinstance(self.fromModelObject, ModelObject) else -1,
-                     self.toModelObject.objectIndex if isinstance(self.toModelObject, ModelObject) else -1,
-                     self.order,
-                     self.weight,
-                     self.preferredLabel))
+        if self._equivalenceHash is None:
+            self._equivalenceHash = hash((
+                self.qname,
+                self.arcrole,
+                self.linkQname,
+                self.linkrole,  # needed when linkrole=None merges multiple links
+                self.fromModelObject.objectIndex if isinstance(self.fromModelObject, ModelObject) else -1,
+                self.toModelObject.objectIndex if isinstance(self.toModelObject, ModelObject) else -1,
+                self.order,
+                self.weight,
+                self.preferredLabel,
+            ))
+        return self._equivalenceHash
 
     @property
     def equivalenceKey(self):
