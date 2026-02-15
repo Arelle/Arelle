@@ -1,5 +1,5 @@
 """
-:mod:`arelle.ModelDtsObjuect`
+:mod:`arelle.ModelDtsObject`
 ~~~~~~~~~~~~~~~~~~~
 
 .. module:: arelle.ModelDtsObject
