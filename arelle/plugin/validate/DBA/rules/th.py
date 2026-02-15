@@ -3,7 +3,7 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-from arelle import ModelDocument
+from arelle.ModelDocumentType import ModelDocumentType
 from collections.abc import Iterable
 from typing import Any
 
@@ -34,7 +34,7 @@ def rule_th01(
     """
     modelXbrl = val.modelXbrl
     for doc in modelXbrl.urlDocs.values():
-        if doc.type == ModelDocument.Type.INLINEXBRL:
+        if doc.type == ModelDocumentType.INLINEXBRL:
             for refDoc, docRef in doc.referencesDocument.items():
                 if docRef.referringModelObject.localName == "schemaRef":
                     href = refDoc.uri
@@ -117,7 +117,7 @@ def rule_th10 (
     roleRefModelObjects = []
     schemaRefModelObjects = []
     for doc in val.modelXbrl.urlDocs.values():
-        if doc.type == ModelDocument.Type.INLINEXBRL:
+        if doc.type == ModelDocumentType.INLINEXBRL:
             for refDoc, docRef in doc.referencesDocument.items():
                 if docRef.referringModelObject.localName == "linkbaseRef":
                     linkbaseRefModelObjects.append(docRef.referringModelObject)

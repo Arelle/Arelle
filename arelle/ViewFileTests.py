@@ -1,7 +1,8 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-from arelle import ModelDocument, ViewFile
+from arelle import ViewFile
+from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ViewUtil import sortCountExpected
 import os
 
@@ -57,7 +58,7 @@ class ViewTests(ViewFile.View):
                         self.cols.append("Index.{}".format(nestedDepth))
                         self.xlsxDocNames.append("")
                     for referencedDocument in doc.referencesDocument.keys():
-                        if referencedDocument.type == ModelDocument.Type.TESTCASESINDEX:
+                        if referencedDocument.type == ModelDocumentType.TESTCASESINDEX:
                             determineNestedIndexDepth(referencedDocument, nestedDepth + 1)
                 determineNestedIndexDepth(modelDocument, 0)
                 self.cols += ["Testcase", "Id"]
@@ -69,7 +70,7 @@ class ViewTests(ViewFile.View):
             self.setColWidths([COL_WIDTHS.get(col, 8) for col in self.cols])
             self.addRow(self.cols, asHeader=True)
 
-        if modelDocument.type in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.REGISTRY):
+        if modelDocument.type in (ModelDocumentType.TESTCASESINDEX, ModelDocumentType.REGISTRY):
             cols = []
             attr = {}
             if self.type in (ViewFile.XLSX, ViewFile.CSV):
@@ -93,14 +94,14 @@ class ViewTests(ViewFile.View):
             testcases = []
             for referencedDocument, _ref in sorted(modelDocument.referencesDocument.items(),
                                              key=lambda i:i[1].referringModelObject.objectIndex if i[1] else 0):
-                if referencedDocument.type in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.REGISTRY):
+                if referencedDocument.type in (ModelDocumentType.TESTCASESINDEX, ModelDocumentType.REGISTRY):
                     self.viewTestcaseIndexElement(referencedDocument, modelDocument, nestedDepth+1)
                 else:
                     testcases.append((referencedDocument.uri, referencedDocument.objectId()))
             testcases.sort()
             for testcaseTuple in testcases:
                 self.viewTestcase(self.modelXbrl.modelObject(testcaseTuple[1]), 1)
-        elif modelDocument.type in (ModelDocument.Type.TESTCASE, ModelDocument.Type.REGISTRYTESTCASE):
+        elif modelDocument.type in (ModelDocumentType.TESTCASE, ModelDocumentType.REGISTRYTESTCASE):
             self.viewTestcase(modelDocument, 0)
         else:
             pass

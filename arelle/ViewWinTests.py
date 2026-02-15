@@ -7,7 +7,8 @@ try:
 except ImportError:
     from ttk import *
 import os
-from arelle import (ViewWinTree, ModelDocument, XmlUtil)
+from arelle import (ViewWinTree, XmlUtil)
+from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ViewUtil import sortCountExpected
 
 def viewTests(modelXbrl, tabWin):
@@ -34,17 +35,17 @@ def viewTests(modelXbrl, tabWin):
     view.treeView.heading("actual",  text="Actual")
     view.isTransformRegistry = False
     modelDocument = modelXbrl.modelDocument
-    if modelXbrl.modelDocument.type in (ModelDocument.Type.REGISTRY, ModelDocument.Type.REGISTRYTESTCASE):
+    if modelXbrl.modelDocument.type in (ModelDocumentType.REGISTRY, ModelDocumentType.REGISTRYTESTCASE):
         if modelXbrl.modelDocument.xmlRootElement.namespaceURI == "http://xbrl.org/2011/conformance-rendering/transforms":
             view.treeView["displaycolumns"] = ("status", "call", "test", "expected", "actual")
             view.isTransformRegistry = True
         else:
             view.treeView["displaycolumns"] = ("name", "readMeFirst", "status", "call", "test", "expected", "actual")
-    elif modelXbrl.modelDocument.type == ModelDocument.Type.XPATHTESTSUITE:
+    elif modelXbrl.modelDocument.type == ModelDocumentType.XPATHTESTSUITE:
         view.treeView["displaycolumns"] = ("name", "readMeFirst", "status", "call", "test", "expected", "actual")
     else:
         # check if infoset needed
-        if modelDocument.type in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.REGISTRY):
+        if modelDocument.type in (ModelDocumentType.TESTCASESINDEX, ModelDocumentType.REGISTRY):
             hasInfoset = any(getattr(refDoc, "outpath", None)  for refDoc in modelDocument.referencesDocument)
         else:
             hasInfoset = bool(getattr(modelDocument, "outpath", None))
@@ -69,7 +70,7 @@ class ViewTests(ViewWinTree.ViewTree):
 
     def viewTestcaseIndexElement(self, modelDocument, parentNode, parentNodeText=None):
         self.id += 1
-        if modelDocument.type in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.REGISTRY):
+        if modelDocument.type in (ModelDocumentType.TESTCASESINDEX, ModelDocumentType.REGISTRY):
             nodeText = os.path.basename(modelDocument.uri)
             if nodeText == parentNodeText: # may be same name, index.xml, use directory name instead
                 nodeText = os.path.basename(os.path.dirname(modelDocument.uri))
@@ -80,16 +81,16 @@ class ViewTests(ViewWinTree.ViewTree):
             testcases = []
             for referencedDocument, _ref in sorted(modelDocument.referencesDocument.items(),
                                                    key=lambda i:i[1].referringModelObject.objectIndex if i[1] else 0):
-                if referencedDocument.type in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.REGISTRY):
+                if referencedDocument.type in (ModelDocumentType.TESTCASESINDEX, ModelDocumentType.REGISTRY):
                     self.viewTestcaseIndexElement(referencedDocument, node, nodeText)
                 else:
                     testcases.append((referencedDocument.uri, referencedDocument.objectId()))
             testcases.sort()
             for i, testcaseTuple in enumerate(testcases):
                 self.viewTestcase(self.modelXbrl.modelObject(testcaseTuple[1]), node, i)
-        elif modelDocument.type in (ModelDocument.Type.TESTCASE, ModelDocument.Type.REGISTRYTESTCASE):
+        elif modelDocument.type in (ModelDocumentType.TESTCASE, ModelDocumentType.REGISTRYTESTCASE):
             self.viewTestcase(modelDocument, parentNode, 1)
-        elif modelDocument.type == ModelDocument.Type.XPATHTESTSUITE:
+        elif modelDocument.type == ModelDocumentType.XPATHTESTSUITE:
             for i, elt in enumerate(modelDocument.xmlRootElement.iterchildren(tag="{http://www.w3.org/2005/02/query-test-XQTSCatalog}test-group")):
                 self.viewTestGroup(elt, parentNode, i)
         else:

@@ -1,7 +1,8 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-from arelle import ModelDocument, ViewFile
+from arelle import ViewFile
+from arelle.ModelDocumentType import ModelDocumentType
 import os
 
 def viewRssFeed(modelXbrl, outfile, cols):
@@ -30,7 +31,7 @@ class ViewRssFeed(ViewFile.View):
             self.cols = ["Company Name", "Accession Number", "Form", "Filing Date", "CIK", "Status", "Period", "Yr End", "Results"]
         self.addRow(self.cols, asHeader=True)
 
-        if modelDocument.type == ModelDocument.Type.RSSFEED:
+        if modelDocument.type == ModelDocumentType.RSSFEED:
             for rssItem in modelDocument.rssItems:
                 cols = []
                 for col in self.cols:

@@ -4,7 +4,7 @@ See COPYRIGHT.md for copyright information.
 
 from __future__ import annotations
 import regex as re
-from arelle import ModelDocument
+from arelle.ModelDocumentType import ModelDocumentType
 from dataclasses import dataclass
 from arelle.ModelXbrl import ModelXbrl
 from arelle.utils.PluginData import PluginData
@@ -80,10 +80,10 @@ class PluginValidationDataExtension(PluginData):
         unexpectedTaxonomyReferences = set()
         numIxDocs = 0
         for doc in modelXbrl.urlDocs.values():
-            if doc.type == ModelDocument.Type.INLINEXBRL:
+            if doc.type == ModelDocumentType.INLINEXBRL:
                 numIxDocs += 1
                 for referencedDoc in doc.referencesDocument.keys():
-                    if referencedDoc.type == ModelDocument.Type.SCHEMA:
+                    if referencedDoc.type == ModelDocumentType.SCHEMA:
                         if referencedDoc.uri in TAXONOMY_REFERENCES:
                             filingTypes.add(referencedDoc.uri)
                         else:

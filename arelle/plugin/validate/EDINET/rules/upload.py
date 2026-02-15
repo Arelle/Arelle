@@ -13,7 +13,7 @@ import regex
 from arelle import UrlUtil, XbrlConst
 from arelle.Cntlr import Cntlr
 from arelle.FileSource import FileSource
-from arelle.ModelDocument import Type as ModelDocumentType
+from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
 from arelle.ModelObject import ModelObject
 from arelle.typing import TypeGetText

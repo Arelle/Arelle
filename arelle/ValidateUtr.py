@@ -4,7 +4,7 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 from lxml import etree
-from arelle import ModelDocument
+from arelle.ModelDocumentType import ModelDocumentType
 from collections import defaultdict
 
 from arelle.ModelValue import QName
@@ -145,7 +145,7 @@ class ValidateUtr:
 
     def validateFacts(self):
         modelXbrl = self.modelXbrl
-        if modelXbrl.modelDocument.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET):
+        if modelXbrl.modelDocument.type in (ModelDocumentType.INSTANCE, ModelDocumentType.INLINEXBRL, ModelDocumentType.INLINEXBRLDOCUMENTSET):
             modelXbrl.modelManager.cntlr.showStatus(_("Validating for Unit Type Registry").format())
             utrInvalidFacts = []
             for f in modelXbrl.facts:

@@ -16,6 +16,7 @@ import regex
 from lxml.etree import Element
 
 from arelle import ModelDocument, XbrlConst, XmlUtil
+from arelle.ModelDocumentType import ModelDocumentType
 from arelle.LinkbaseType import LinkbaseType
 from arelle.ModelDtsObject import ModelConcept, ModelLink, ModelResource, ModelType
 from arelle.ModelInstanceObject import ModelInlineFact
@@ -2547,7 +2548,7 @@ def rule_nl_kvk_RTS_Art_6_a(
     inlineDocs = {
         doc
         for doc in val.modelXbrl.urlDocs.values()
-        if doc.type == ModelDocument.Type.INLINEXBRL
+        if doc.type == ModelDocumentType.INLINEXBRL
     }
     if len(inlineDocs) == 0:
         return

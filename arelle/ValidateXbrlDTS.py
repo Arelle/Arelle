@@ -4,8 +4,9 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 from enum import Enum, auto
 from typing import TYPE_CHECKING
-from arelle import (ModelDocument, ModelDtsObject, HtmlUtil, UrlUtil, XmlUtil, XbrlUtil, XbrlConst,
+from arelle import (ModelDtsObject, HtmlUtil, UrlUtil, XmlUtil, XbrlUtil, XbrlConst,
                     XmlValidate)
+from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ModelRelationshipSet import baseSetRelationship
 from arelle.ModelObject import ModelObject, ModelComment
 from arelle.ModelValue import qname
@@ -16,6 +17,7 @@ from collections import defaultdict
 import regex as re
 
 if TYPE_CHECKING:
+    from arelle.ModelDocument import ModelDocument
     from arelle.ValidateXbrl import ValidateXbrl
 
 
@@ -102,7 +104,7 @@ def checkDTS(val: ValidateXbrl, modelDocument: ModelDocument.ModelDocument, chec
             checkDTS(val, referencedDocument, checkedModelDocuments)
 
     # skip processing versioning report here
-    if modelDocument.type == ModelDocument.Type.VERSIONINGREPORT:
+    if modelDocument.type == ModelDocumentType.VERSIONINGREPORT:
         return
 
     # skip processing if skipDTS requested
@@ -110,7 +112,7 @@ def checkDTS(val: ValidateXbrl, modelDocument: ModelDocument.ModelDocument, chec
         return
 
     # skip system schemas
-    if modelDocument.type == ModelDocument.Type.SCHEMA:
+    if modelDocument.type == ModelDocumentType.SCHEMA:
         if XbrlConst.isStandardNamespace(modelDocument.targetNamespace):
             return
         val.hasLinkRole = val.hasLinkPart = val.hasContextFragment = val.hasAbstractItem = \
@@ -119,11 +121,11 @@ def checkDTS(val: ValidateXbrl, modelDocument: ModelDocument.ModelDocument, chec
 
 
     # check for linked up hrefs
-    isInstance = (modelDocument.type == ModelDocument.Type.INSTANCE or
-                  modelDocument.type == ModelDocument.Type.INLINEXBRL)
+    isInstance = (modelDocument.type == ModelDocumentType.INSTANCE or
+                  modelDocument.type == ModelDocumentType.INLINEXBRL)
     if not hasattr(val, "ixdsRoleRefURIs"):
         val.ixdsRoleRefURIs = val.ixdsArcroleRefURIs = {} # in case no ixds
-    if modelDocument.type == ModelDocument.Type.INLINEXBRL:
+    if modelDocument.type == ModelDocumentType.INLINEXBRL:
         if not val.validateIXDS: # set up IXDS validation
             val.validateIXDS = True
             val.ixdsDocs = []
@@ -147,7 +149,7 @@ def checkDTS(val: ValidateXbrl, modelDocument: ModelDocument.ModelDocument, chec
                 modelObject=hrefElt,
                 elementHref=hrefElt.get("{http://www.w3.org/1999/xlink}href"))
         else:
-            if hrefedDoc.type != ModelDocument.Type.UnknownNonXML:
+            if hrefedDoc.type != ModelDocumentType.UnknownNonXML:
                 if hrefId:
                     if hrefId in hrefedDoc.idObjects:
                         hrefedElt = hrefedDoc.idObjects[hrefId]
@@ -181,8 +183,8 @@ def checkDTS(val: ValidateXbrl, modelDocument: ModelDocument.ModelDocument, chec
                 if hrefElt.localName == "linkbaseRef":
                     # check linkbaseRef target
                     if (hrefedDoc is None or
-                        hrefedDoc.type < ModelDocument.Type.firstXBRLtype or  # range of doc types that can have linkbase
-                        hrefedDoc.type > ModelDocument.Type.lastXBRLtype or
+                        hrefedDoc.type < ModelDocumentType.firstXBRLtype or  # range of doc types that can have linkbase
+                        hrefedDoc.type > ModelDocumentType.lastXBRLtype or
                         hrefedElt.namespaceURI != XbrlConst.link or hrefedElt.localName != "linkbase"):
                         val.modelXbrl.error("xbrl.4.3.2:linkbaseRefHref",
                             _("LinkbaseRef %(linkbaseHref)s does not identify an link:linkbase element"),
@@ -212,7 +214,7 @@ def checkDTS(val: ValidateXbrl, modelDocument: ModelDocument.ModelDocument, chec
                                         role=role, link=linkNode.prefixedName)
                 elif hrefElt.localName == "schemaRef":
                     # check schemaRef target
-                    if (hrefedDoc.type != ModelDocument.Type.SCHEMA or
+                    if (hrefedDoc.type != ModelDocumentType.SCHEMA or
                         hrefedElt.namespaceURI != XbrlConst.xsd or hrefedElt.localName != "schema"):
                         val.modelXbrl.error("xbrl.4.2.2:schemaRefHref",
                             _("SchemaRef %(schemaRef)s does not identify an xsd:schema element"),
@@ -268,16 +270,16 @@ def checkDTS(val: ValidateXbrl, modelDocument: ModelDocument.ModelDocument, chec
                     ''' is this ever needed???
                     else: # generic link or other non-2.1 link element
                         if (hrefElt.modelDocument.inDTS and
-                            ModelDocument.Type.firstXBRLtype <= hrefElt.modelDocument.type <= ModelDocument.Type.lastXBRLtype and # is a discovered linkbase
-                            not ModelDocument.Type.firstXBRLtype <= hrefedDoc.type <= ModelDocument.Type.lastXBRLtype): # must discover schema or linkbase
+                            ModelDocumentType.firstXBRLtype <= hrefElt.modelDocument.type <= ModelDocumentType.lastXBRLtype and # is a discovered linkbase
+                            not ModelDocumentType.firstXBRLtype <= hrefedDoc.type <= ModelDocumentType.lastXBRLtype): # must discover schema or linkbase
                             val.modelXbrl.error("xbrl.3.2.3:linkLocTarget",
                                 _("Locator %(xlinkLabel)s on link:loc in a discovered linkbase does not target a schema or linkbase"),
                                 modelObject=(hrefedElt, hrefedDoc),
                                 xlinkLabel=hrefElt.get("{http://www.w3.org/1999/xlink}label"))
                     '''
                     # non-standard link holds standard loc, href must be discovered document
-                    if (hrefedDoc.type < ModelDocument.Type.firstXBRLtype or  # range of doc types that can have linkbase
-                        hrefedDoc.type > ModelDocument.Type.lastXBRLtype or
+                    if (hrefedDoc.type < ModelDocumentType.firstXBRLtype or  # range of doc types that can have linkbase
+                        hrefedDoc.type > ModelDocumentType.lastXBRLtype or
                         not hrefedDoc.inDTS):
                         val.modelXbrl.error("xbrl.3.5.3.7.2:instanceLocInDTS",
                             _("Loc's href %(locHref)s does not identify an element in an XBRL document discovered as part of the DTS"),
@@ -307,7 +309,7 @@ def checkDTS(val: ValidateXbrl, modelDocument: ModelDocument.ModelDocument, chec
 
             checkElements(val, modelDocument, modelDocument.xmlDocument)
 
-            if (modelDocument.type == ModelDocument.Type.INLINEXBRL and
+            if (modelDocument.type == ModelDocumentType.INLINEXBRL and
                 val.validateGFM and
                 (val.documentTypeEncoding.lower() != 'utf-8' or val.metaContentTypeEncoding.lower() != 'utf-8')):
                 val.modelXbrl.error("GFM.1.10.4",
@@ -336,7 +338,7 @@ def checkDTS(val: ValidateXbrl, modelDocument: ModelDocument.ModelDocument, chec
     val.conceptNames = None
 
 def checkElements(val, modelDocument, parent):
-    isSchema = modelDocument.type == ModelDocument.Type.SCHEMA
+    isSchema = modelDocument.type == ModelDocumentType.SCHEMA
     if isinstance(parent, ModelObject):
         parentXlinkType = parent.get("{http://www.w3.org/1999/xlink}type")
         isInstance = parent.namespaceURI == XbrlConst.xbrli and parent.localName == "xbrl"
@@ -368,7 +370,7 @@ def checkElements(val, modelDocument, parent):
             val.inSchemaTop = True
 
     parentIsAppinfo = False
-    if modelDocument.type == ModelDocument.Type.INLINEXBRL:
+    if modelDocument.type == ModelDocumentType.INLINEXBRL:
         if isinstance(parent,ModelObject): # element
             if (parent.localName == "meta" and parent.namespaceURI == XbrlConst.xhtml and
                 (parent.get("http-equiv") or "").lower() == "content-type"):
@@ -378,7 +380,7 @@ def checkElements(val, modelDocument, parent):
             val.metaContentTypeEncoding = ""
 
     instanceOrder = 0
-    if modelDocument.type == ModelDocument.Type.SCHEMA:
+    if modelDocument.type == ModelDocumentType.SCHEMA:
         ncnameTests = (("id","xml.3.3.1:idMustBeUnique", val.elementIDs),
                        ("name","xbrl.5.1.1:conceptName", val.conceptNames))
     else:
@@ -700,7 +702,7 @@ def checkElements(val, modelDocument, parent):
                         val.modelXbrl.error("SBR.NL.2.2.0.06",
                                 'Schema element is not prefixed: "%(element)s"',
                                 modelObject=elt, element=elt.qname)
-            elif modelDocument.type == ModelDocument.Type.LINKBASE:
+            elif modelDocument.type == ModelDocumentType.LINKBASE:
                 if elt.localName == "linkbase":
                     XmlValidate.validate(val.modelXbrl, elt)
                 if val.validateSBRNL and not elt.prefix:
@@ -922,7 +924,7 @@ def checkElements(val, modelDocument, parent):
                 else:
                     instanceOrder = expectedSequence
 
-            if modelDocument.type == ModelDocument.Type.UnknownXML:
+            if modelDocument.type == ModelDocumentType.UnknownXML:
                 if elt.localName == "xbrl" and elt.namespaceURI == XbrlConst.xbrli:
                     if elt.getparent() is not None:
                         val.modelXbrl.error("xbrl.4:xbrlRootElement",
@@ -936,7 +938,7 @@ def checkElements(val, modelDocument, parent):
                             parent=elt.parentQname,
                             modelObject=elt)
 
-            if modelDocument.type == ModelDocument.Type.INLINEXBRL and elt.namespaceURI in XbrlConst.ixbrlAll:
+            if modelDocument.type == ModelDocumentType.INLINEXBRL and elt.namespaceURI in XbrlConst.ixbrlAll:
                 if elt.localName == "footnote":
                     if val.validateGFM:
                         if elt.get("{http://www.w3.org/1999/xlink}arcrole") != XbrlConst.factFootnote:

@@ -8,7 +8,8 @@ References:
 - [HMRC CT Inline XBRL Style Guide](https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/434588/xbrl-style-guide.pdf)
 """
 import os
-from arelle import ModelDocument, XmlUtil
+from arelle import XmlUtil
+from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ModelValue import qname, dateTime, DATE, dateUnionEqual
 from arelle.ValidateDuplicateFacts import getDuplicateFactSets
 from arelle.ValidateXbrlCalcs import insignificantDigits
@@ -194,7 +195,7 @@ def validateXbrlFinally(val, *args, **kwargs):
     modelXbrl.profileActivity()
     modelXbrl.modelManager.showStatus(_statusMsg)
 
-    if modelDocument.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
+    if modelDocument.type in (ModelDocumentType.INSTANCE, ModelDocumentType.INLINEXBRL):
         labelHasNegativeTermPattern = re.compile(r".*[(].*\w.*[)].*")
 
         companyReferenceNumberContexts = defaultdict(list)
@@ -414,7 +415,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                 "Inconsistent duplicate fact values %(fact)s: %(values)s.",
                 modelObject=duplicateFactSet.facts, fact=f0.qname, values=", ".join(f'"{f.value}"' for f in duplicateFactSet))
 
-    if modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL:
+    if modelXbrl.modelDocument.type == ModelDocumentType.INLINEXBRL:
         rootElt = modelXbrl.modelDocument.xmlRootElement
         if rootElt.tag in ("html", "xhtml") or not rootElt.tag.startswith("{http://www.w3.org/1999/xhtml}"):
             modelXbrl.error("HMRC.SG.3.3",

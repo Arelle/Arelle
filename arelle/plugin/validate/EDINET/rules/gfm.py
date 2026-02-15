@@ -10,7 +10,8 @@ from typing import Any, cast, Iterable
 
 import regex
 
-from arelle import ModelDocument, UrlUtil, XbrlConst, XmlUtil
+from arelle import UrlUtil, XbrlConst, XmlUtil
+from arelle.ModelDocumentType import ModelDocumentType
 from arelle.HtmlUtil import attrValue
 from arelle.LinkbaseType import LinkbaseType
 from arelle.ModelDtsObject import ModelConcept, ModelResource
@@ -135,7 +136,7 @@ def rule_gfm_1_1_6(
     if not hasattr(val, 'hasExtensionSchema'):
         val.hasExtensionSchema = False
     for modelDocument in val.modelXbrl.urlDocs.values():
-        if pluginData.isExtensionUri(modelDocument.uri, val.modelXbrl) and modelDocument.type == ModelDocument.Type.SCHEMA:
+        if pluginData.isExtensionUri(modelDocument.uri, val.modelXbrl) and modelDocument.type == ModelDocumentType.SCHEMA:
             val.hasExtensionSchema = True
             break
     if not val.hasExtensionSchema:
@@ -747,7 +748,7 @@ def rule_gfm_1_3_2(
     to that namespace.
     """
     for document in val.modelXbrl.urlDocs.values():
-        if not pluginData.isExtensionUri(document.uri, val.modelXbrl) or not document.type == ModelDocument.Type.SCHEMA:
+        if not pluginData.isExtensionUri(document.uri, val.modelXbrl) or not document.type == ModelDocumentType.SCHEMA:
             continue
         for refDoc in document.referencesDocument.values():
             if 'import' not in refDoc.referenceTypes:
@@ -2222,7 +2223,7 @@ def rule_charsets(
         if pluginData.isStandardTaxonomyUrl(modelDocument.uri, val.modelXbrl):
             continue
 
-        if modelDocument.type != ModelDocument.Type.INLINEXBRLDOCUMENTSET:
+        if modelDocument.type != ModelDocumentType.INLINEXBRLDOCUMENTSET:
             if modelDocument.documentEncoding is None or modelDocument.documentEncoding.lower() not in ('utf-8', 'utf-8-sig'):
                 yield Validation.error(
                     codes='EDINET.EC5000E',
@@ -2255,7 +2256,7 @@ def rule_charsets(
                     modelObject=elt,
                 )
 
-        if modelDocument.type != ModelDocument.Type.INLINEXBRL:
+        if modelDocument.type != ModelDocumentType.INLINEXBRL:
             continue
 
         xmlDeclaredEncoding = None

@@ -7,7 +7,8 @@ try:
 except ImportError:
     from ttk import *
 import os
-from arelle import ModelDocument, ViewWinTree
+from arelle import ViewWinTree
+from arelle.ModelDocumentType import ModelDocumentType
 
 def viewDTS(modelXbrl, tabWin, altTabWin=None):
     view = ViewDTS(modelXbrl, tabWin)
@@ -29,7 +30,7 @@ class ViewDTS(ViewWinTree.ViewTree):
 
 
     def viewDtsElement(self, modelDocument, parentNode, n, parents, siblings):
-        if modelDocument.type == ModelDocument.Type.INLINEXBRLDOCUMENTSET:
+        if modelDocument.type == ModelDocumentType.INLINEXBRLDOCUMENTSET:
             if modelDocument.entrypoint is not None and "id" in modelDocument.entrypoint:
                 text = f"{modelDocument.entrypoint['id']} (IXDS)"
             else:

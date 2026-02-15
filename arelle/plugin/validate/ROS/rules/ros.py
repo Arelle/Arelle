@@ -16,7 +16,7 @@ from arelle.ValidateXbrl import ValidateXbrl
 from collections import defaultdict
 from math import isnan
 from lxml.etree import _Comment, _ElementTree, _Entity, _ProcessingInstruction
-from arelle import ModelDocument
+from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ModelInstanceObject import ModelInlineFact, ModelUnit
 from arelle.ModelValue import qname
 from arelle.ModelXbrl import ModelXbrl
@@ -43,7 +43,7 @@ def checkFileEncoding(modelXbrl: ModelXbrl) -> None:
 
 def checkFileExtensions(modelXbrl: ModelXbrl) -> None:
     for doc in modelXbrl.urlDocs.values():
-        if doc.type == ModelDocument.Type.INLINEXBRL:
+        if doc.type == ModelDocumentType.INLINEXBRL:
             _baseName, _baseExt = os.path.splitext(doc.basename)
             if _baseExt not in (".xhtml", ".html", ".htm", ".ixbrl", ".xml", ".xhtml"):
                 modelXbrl.error("ROS.fileNameExtension",
@@ -74,11 +74,11 @@ def rule_main(
     _statusMsg = _("validating {0} filing rules").format(val.disclosureSystem.name)
     modelXbrl.profileActivity()
     modelXbrl.modelManager.showStatus(_statusMsg)
-    if modelDocument.type == ModelDocument.Type.INSTANCE:
+    if modelDocument.type == ModelDocumentType.INSTANCE:
         modelXbrl.error("ROS:instanceMustBeInlineXBRL",
                         _("ROS expects inline XBRL instances."),
                         modelObject=modelXbrl)
-    if modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET):
+    if modelDocument.type in (ModelDocumentType.INLINEXBRL, ModelDocumentType.INLINEXBRLDOCUMENTSET):
         checkFileExtensions(modelXbrl)
         checkFileEncoding(modelXbrl)
         for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements: # ix root elements for all ix docs in IXDS

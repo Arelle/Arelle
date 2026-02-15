@@ -11,16 +11,18 @@ from typing import TYPE_CHECKING, cast, Any
 import pytest
 import regex
 
-from arelle import ModelDocument, PackageManager, PluginManager
+from arelle import PackageManager, PluginManager
+from arelle.ModelDocumentType import ModelDocumentType
 from arelle.Cntlr import Cntlr
 from arelle.CntlrCmdLine import parseAndRun
 from arelle.FileSource import archiveFilenameParts
 
 if TYPE_CHECKING:
     from _pytest.mark import ParameterSet
+    from arelle.ModelDocument import ModelDocument
 
 
-def get_document_id(doc: ModelDocument.ModelDocument) -> str:
+def get_document_id(doc: ModelDocument) -> str:
     """
     Given a ModelDocument, attempt to find a basepath that can be used to generate a user-friendly document ID
     :param doc:
@@ -61,7 +63,7 @@ def get_document_id(doc: ModelDocument.ModelDocument) -> str:
                      f'None of the checked paths ({checked_paths}) were parents of \"{doc.filepath}\".')
 
 
-def get_document_id_from_basepath(doc: ModelDocument.ModelDocument, basepath: str) -> str:
+def get_document_id_from_basepath(doc: ModelDocument, basepath: str) -> str:
     return PurePath(doc.filepath).relative_to(basepath).as_posix()
 
 
@@ -98,8 +100,8 @@ def get_test_data(
         test_cases_with_unrecognized_type = {}
         skipped_test_cases = set()
         model_document = cntlr.modelManager.modelXbrl.modelDocument
-        test_cases: list[ModelDocument.ModelDocument] = []
-        if strict_testcase_index and model_document.type == ModelDocument.Type.TESTCASESINDEX:
+        test_cases: list[ModelDocument] = []
+        if strict_testcase_index and model_document.type == ModelDocumentType.TESTCASESINDEX:
             model_errors = sorted(cntlr.modelManager.modelXbrl.errors)
             assert 'IOerror' not in model_errors, f'One or more testcases referenced by testcases index "{model_document.filepath}" were not found.'
         collect_test_data(
@@ -113,7 +115,7 @@ def get_test_data(
         )
         for test_case in sorted(test_cases, key=lambda doc: doc.uri):
             test_case_file_id = get_document_id(test_case)
-            if test_case.type not in (ModelDocument.Type.TESTCASE, ModelDocument.Type.REGISTRYTESTCASE):
+            if test_case.type not in (ModelDocumentType.TESTCASE, ModelDocumentType.REGISTRYTESTCASE):
                 test_cases_with_unrecognized_type[test_case_file_id] = test_case.type
             if not getattr(test_case, "testcaseVariations", None):
                 test_cases_with_no_variations.add(test_case_file_id)
@@ -176,10 +178,10 @@ def collect_test_data(
         required_locale_by_ids: dict[str, regex.Pattern[str]],
         system_locale: str,
         results: list[ParameterSet],
-        model_document: ModelDocument.ModelDocument,
-        test_cases: list[ModelDocument.ModelDocument],
+        model_document: ModelDocument,
+        test_cases: list[ModelDocument],
 ) -> None:
-    if model_document.type == ModelDocument.Type.TESTCASESINDEX:
+    if model_document.type == ModelDocumentType.TESTCASESINDEX:
         for child_document in model_document.referencesDocument.keys():
             collect_test_data(
                 cntlr=cntlr,
@@ -190,9 +192,9 @@ def collect_test_data(
                 model_document=child_document,
                 test_cases=test_cases,
             )
-    elif model_document.type == ModelDocument.Type.REGISTRY:
+    elif model_document.type == ModelDocumentType.REGISTRY:
         test_cases.extend(model_document.referencesDocument.keys())
-    elif model_document.type in (ModelDocument.Type.TESTCASE, ModelDocument.Type.REGISTRYTESTCASE):
+    elif model_document.type in (ModelDocumentType.TESTCASE, ModelDocumentType.REGISTRYTESTCASE):
         test_cases.append(model_document)
     else:
         raise Exception('Unhandled model document type: {}'.format(model_document.type))

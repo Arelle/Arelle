@@ -6,7 +6,8 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Any, Iterable
 
-from arelle import XbrlConst, ModelDocument
+from arelle import XbrlConst
+from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ModelDtsObject import ModelResource, ModelConcept
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
@@ -225,7 +226,7 @@ def rule_frta_4_2_4(
                                   must not appear on element and attribute declarations.
     """
     for modelDocument in val.modelXbrl.urlDocs.values():
-        if pluginData.isStandardTaxonomyUrl(modelDocument.uri, val.modelXbrl) or not modelDocument.type == ModelDocument.Type.SCHEMA:
+        if pluginData.isStandardTaxonomyUrl(modelDocument.uri, val.modelXbrl) or not modelDocument.type == ModelDocumentType.SCHEMA:
             continue
         rootElt = modelDocument.xmlRootElement
         if rootElt.get('elementFormDefault') != 'qualified' or rootElt.get('attributeFormDefault') != 'unqualified':
@@ -261,7 +262,7 @@ def rule_frta_4_2_7(
     EDINET.EC5710W: [FRTA.4.2.7] A label linkbase should only contain labels defined in a single language.
     """
     for modelDocument in val.modelXbrl.urlDocs.values():
-        if pluginData.isStandardTaxonomyUrl(modelDocument.uri, val.modelXbrl) or not modelDocument.type == ModelDocument.Type.LINKBASE:
+        if pluginData.isStandardTaxonomyUrl(modelDocument.uri, val.modelXbrl) or not modelDocument.type == ModelDocumentType.LINKBASE:
             continue
         usedLangs = {
             elt.get(XbrlConst.qnXmlLang.clarkNotation)
@@ -290,7 +291,7 @@ def rule_frta_4_2_11(
     EDINET.EC5710W: [FRTA.4.2.11] Every schema in a DTS must define a non-empty targetNamespace attribute value
     """
     for modelDocument in val.modelXbrl.urlDocs.values():
-        if pluginData.isStandardTaxonomyUrl(modelDocument.uri, val.modelXbrl) or not modelDocument.type == ModelDocument.Type.SCHEMA:
+        if pluginData.isStandardTaxonomyUrl(modelDocument.uri, val.modelXbrl) or not modelDocument.type == ModelDocumentType.SCHEMA:
             continue
         rootElt = modelDocument.xmlRootElement
         if rootElt.get('targetNamespace') is None or rootElt.get('targetNamespace') == "":
