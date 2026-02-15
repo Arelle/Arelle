@@ -69,6 +69,7 @@ from arelle import (
     XmlUtil,
     XmlValidate,
 )
+from arelle.LinkRelationships import LinkRelationships
 from arelle.ModelObject import ModelObject
 from arelle.typing import ModelFactBase, ModelResourceBase
 
@@ -1592,7 +1593,7 @@ class ModelEnumeration(ModelNamableTerm):
     def value(self):
         return self.get("value")
 
-class ModelLink(ModelObject):
+class ModelLink(ModelObject, LinkRelationships):
     """
     .. class:: ModelLink(modelDocument)
 
@@ -1608,6 +1609,7 @@ class ModelLink(ModelObject):
         super(ModelLink, self).init(modelDocument)
         self.labeledResources = defaultdict(list)
         self.role = self.get("{http://www.w3.org/1999/xlink}role")
+        self.initRelationships()
 
 class ModelResource(ModelObject, ModelResourceBase):
     """

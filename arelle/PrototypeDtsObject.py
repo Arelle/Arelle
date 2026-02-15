@@ -4,6 +4,7 @@ See COPYRIGHT.md for copyright information.
 import decimal, os
 from collections import defaultdict
 
+from arelle import LinkRelationships
 from arelle.ModelDocumentType import ModelDocumentType
 from arelle import XbrlConst
 from arelle.typing import LocPrototypeBase, PrototypeElementTreeBase, PrototypeObjectBase
@@ -40,7 +41,7 @@ class PrototypeObject(PrototypeObjectBase):
             for e in elt.iterdescendants():
                 yield e
 
-class LinkPrototype(PrototypeObject):      # behaves like a ModelLink for relationship prototyping
+class LinkPrototype(PrototypeObject, LinkRelationships.LinkRelationships):      # behaves like a ModelLink for relationship prototyping
     def __init__(self, modelDocument, parent, qname, role, sourceElement=None):
         super(LinkPrototype, self).__init__(modelDocument, sourceElement)
         self._parent = parent
@@ -56,6 +57,7 @@ class LinkPrototype(PrototypeObject):      # behaves like a ModelLink for relati
         if role:
             self.attributes["{http://www.w3.org/1999/xlink}role"] = role
         self.labeledResources = defaultdict(list)
+        self.initRelationships()
 
     def clear(self):
         self.__dict__.clear() # dereference here, not an lxml object, don't use superclass clear()
