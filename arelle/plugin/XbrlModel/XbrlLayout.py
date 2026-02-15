@@ -14,6 +14,8 @@ class XbrlAxisLabelGroupRange(XbrlModelObject):
     interval: str # (required) The interval between range values
     startValue: str # (required) The starting value of the range
     stopValue: Optional[str] # (optional) The ending value of the range
+    prefix: Optional[str] # (optional) A string prefix to prepend to each generated label
+    suffix: Optional[str] # (optional) A string suffix to append to each generated label
     order: str # (required) The order of the range values ("ascending" or "descending")
 
 class XbrlAxisTypedLabel(XbrlModelObject):
@@ -66,9 +68,9 @@ class XbrlAxis(XbrlModelObject):
     gridAxis: Optional[XbrlGridAxis] # (optional) Grid axis configuration for aligning dimension pairs with rows and columns in grid layouts. 
 
 class XbrlGridCoordinate(XbrlModelObject):
-    xAxis: str # (required) The x-axis (column) coordinate in the grid.
-    yAxis: str # (required) The y-axis (row) coordinate in the grid.
-    zAxis: Optional[str] # (optional) The z-axis coordinate in the grid.
+    xAxis: int # (required) The x-axis (column) coordinate in the grid.
+    yAxis: int # (required) The y-axis (row) coordinate in the grid.
+    zAxis: Optional[int] # (optional) The z-axis coordinate in the grid.
 
 class XbrlTablePoint(XbrlModelObject):
     dataTable: XbrlDataTableType

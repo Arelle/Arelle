@@ -1,5 +1,5 @@
 """
-See COPYRIGHT.md for copyright information.
+See XbrlModel/COPYRIGHT.md for copyright information.
 
 ## Overview
 
@@ -1029,8 +1029,8 @@ __pluginInfo__ = {
     "version": "1.3",
     "description": "This plug-in saves a loaded XBRL instance as an XBRL OIM factPositions.",
     "license": "Apache-2",
-    "author": authorLabel,
-    "copyright": copyrightLabel,
+    'author': 'Herm Fischer',
+    'copyright': 'Exbee Ltd',
     # classes of mount points (required)
     "CntlrWinMain.Menu.Tools": SaveOIMFactspacePlugin.cntlrWinMainMenuTools,
     "CntlrCmdLine.Options": SaveOIMFactspacePlugin.cntlrCmdLineOptions,

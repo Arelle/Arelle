@@ -28,7 +28,7 @@ from .XbrlCube import (XbrlCube, XbrlCubeType, baseCubeTypes, XbrlCubeDimension,
 from .XbrlDimension import XbrlDimension, XbrlDomain, XbrlDomainClass, XbrlMember, xbrlMemberObj
 from .XbrlEntity import XbrlEntity
 from .XbrlGroup import XbrlGroup, XbrlGroupContent
-from .XbrlImportTaxonomy import XbrlImportTaxonomy, XbrlExportProfile, XbrlFinalTaxonomy
+from .XbrlImportTaxonomy import XbrlImportTaxonomy, XbrlFinalTaxonomy
 from .XbrlLabel import XbrlLabel, XbrlLabelType, preferredLabel
 from .XbrlLayout import XbrlLayout, XbrlDataTable, XbrlAxis
 from .XbrlNetwork import XbrlNetwork, XbrlRelationship, XbrlRelationshipType
@@ -232,43 +232,6 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                       xbrlObject=impTxObj, moduleName=impMdlName, qname=xbrlObjectQNames[type(obj)], i=i)
                             break # selections are or'ed, don't need to try more
             module.referencedObjectsAction(compMdl, extendsFinalTaxonomy)
-
-    expPrflCt = defaultdict(list)
-    for expPrflObj in module.exportProfiles:
-        assertObjectType(compMdl, expPrflObj, XbrlExportProfile)
-        name = expPrflObj.name
-        for expObjQn in expPrflObj.exportObjects:
-            if expObjQn not in compMdl.namedObjects:
-                compMdl.error("oimte:invalidExportObject",
-                          _("The exportProfile %(name)s exportObject %(qname)s must identify an taxonomy object."),
-                          xbrlObject=expPrflObj, name=name, qname=expObjQn)
-        for qnObjType in expPrflObj.exportObjectTypes:
-            if qnObjType not in xbrlObjectTypes:
-                compMdl.error("oimte:invalidExportObjectType",
-                          _("The exportProfile %(name)s objectType property MUST specify valid OIM object types, %(qname)s is not valid."),
-                          xbrlObject=expPrflObj, name=name, qname=qnObjType)
-        for iSel, selObj in enumerate(expPrflObj.selections):
-            if selObj.objectType not in xbrlObjectTypes.keys() - {qnXbrlImportTaxonomyObj}:
-                compMdl.error("oimte:invalidSelectionObjectType",
-                          _("The exportProfile %(name)s selection[%(nbr)s] must identify a referencable taxonomy component object, excluding importTaxonomyObjbject: %(qname)s."),
-                          xbrlObject=expPrflObj, name=name, nbr=iSel, qname=selObj.objectType)
-            for iWh, whereObj in enumerate(selObj.where):
-                if whereObj.property is None or whereObj.operator is None or whereObj.value is None:
-                    compMdl.error("oimte:invalidSelection",
-                              _("The exportProfile %(name)s selection[%(nbr)s] is incomplete."),
-                              xbrlObject=expPrflObj, name=name, nbr=iSel)
-                else:
-                    if whereObj.property.namespaceURI is None: # object property
-                        if whereObj.property.localName not in getattr(xbrlObjectTypes[selObj.objectType], "__annotations__", EMPTY_DICT):
-                            compMdl.error("oimte:invalidSelectorOperator",
-                                      _("The exportProfile %(name)s selection[%(selNbr)s]/where[%(whNbr)s] property %(qname)s does not exist for object %(objType)s."),
-                                      xbrlObject=expPrflObj, name=name, selNbr=iSel, whNbr=iWh, qname=whereObj.property, objType=selObj.objectType)
-        expPrflCt[expPrflObj.name].append(expPrflObj)
-    for expPrfName, objs in expPrflCt.items():
-        if len(objs) > 1:
-            compMdl.error("oimte:duplicateObjects",
-                      _("These exportProfiles are duplicated: %(name)s"),
-                      xbrlObject=objs, name=expPrfName)
 
     # Concept Objects
     for cncpt in module.concepts:

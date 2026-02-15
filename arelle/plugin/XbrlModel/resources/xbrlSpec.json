@@ -24,6 +24,10 @@
                 },
                 {
                     "name": "xbrl:defaultCube"
+                },
+                {
+                    "name": "xbrl:negativeCube",
+                    "baseCubeType": "xbrl:reportCube"
                 }
 
         ],
@@ -991,6 +995,18 @@
                 "value": "Cube type representing a report or statement where period and entity core dimensions are expected."
             },
             {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrl:negativeCube",
+                "value": "Negative Cube Type"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:negativeCube",
+                "value": "Cube type used for negative assertions and exclusions in validation rules. Based on xbrl:reportCube, it specifies dimensional combinations that should NOT appear in a report or are prohibited in certain contexts. Negative cubes are commonly used in taxonomy validation to define forbidden fact patterns or to express constraints on what dimensional combinations are invalid."
+            },
+            {
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "relatedName": "xbrl:language",
@@ -1097,6 +1113,30 @@
                 "language": "en",
                 "relatedName": "xbrl:entityObject",
                 "value": "Entity Object"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrl:taxonomy",
+                "value": "Taxonomy Model Type"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:taxonomy",
+                "value": "The taxonomy model type defines the structure and metadata for an XBRL taxonomy. Taxonomies contain concepts, dimensions, cubes, relationships, networks, labels, references, and other objects that define the reporting framework. A taxonomy provides the semantic framework that defines what can be reported and how it should be structured."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrl:report",
+                "value": "Report Model Type"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:report",
+                "value": "The report model type represents an XBRL instance document or report containing actual fact data. Reports contain facts, footnotes, entities, and units that provide the actual reported information according to the rules defined in one or more taxonomies. Each report must specify a report date and typically references one or more taxonomies that define the valid reporting structures and concepts."
             },
             {
                 "labelType": "xbrl:label",
@@ -1647,15 +1687,7 @@
                 "allowedLinkProperties" : ["xbrl:weight", "xbrl:order"],
                 "requiredLinkProperties" : ["xbrl:weight"],
                 "sourceObjects" : ["xbrl:conceptObject"],
-                "targetObjects" : ["xbrl:conceptObject"],
-                "constraints": [
-                                  {
-                                      "constraint": "relationship.source.xbrli:dataType == relationship.target.xbrli:dataType AND relationship.source.property.xbrli:balance != relationship.target.property.xbrli:balance AND relationship.source.xbrli:periodType == relationship.target.xbrli:periodType AND relationship.property.weight == -1"
-                                  },
-                                  {
-                                      "constraint": "relationship.source.xbrli:dataType == relationship.target.xbrli:dataType  AND relationship.source.property.xbrli:balance  == relationship.target.property.xbrli:balance AND relationship.source.xbrli:periodType == relationship.target.xbrli:periodType AND relationship.property.weight == 1"
-                                  }         
-                              ]
+                "targetObjects" : ["xbrl:conceptObject"]
             },
             {
                 "name": "xbrl:class-subclass",
@@ -1663,12 +1695,7 @@
                 "cycles" : "none",
                 "allowedLinkProperties" : ["xbrl:order"],
                 "sourceObjects" : ["xbrl:conceptObject"],
-                "targetObjects" : ["xbrl:conceptObject"],
-                "constraints": [
-                          {
-                              "constraint": "relationship.source.xbrli:dataType == relationship.target.xbrli:dataType AND relationship.source.properties <= relationship.target.properties AND relationship.source.xbrli:periodType == relationship.target.xbrli:periodType"
-                          }         
-                        ]
+                "targetObjects" : ["xbrl:conceptObject"]
             },
             {
                 "name": "xbrl:general-special",
