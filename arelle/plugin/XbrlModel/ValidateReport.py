@@ -127,7 +127,7 @@ def resolveFact(txmyMdl, txmyObj, fact):
                                           _("Factspace %(name)s unit dimension QName not be resolved to an xbrl Unit object with available DTS: %(qname)s."),
                                           qname=dimName)
                         elif not cDataType.instanceOfType(unitObj.dataType, txmyMdl):
-                            txmyMdl.error("oimte:invalidPropertyValue",
+                            txmyMdl.error("oime:invalidPropertyValue",
                                           _("Factspace %(name)s unit dimension data type %(unitDataType)s does not correspond to concept data type %(factDataType)s."),
                                           unitDataType=unitObj.dataType, factDataType=cObj.dataType)
         '''

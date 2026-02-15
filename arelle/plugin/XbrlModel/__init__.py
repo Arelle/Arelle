@@ -214,7 +214,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                     '''
             return _dict
 
-        errPrefix = "xbrlte"
+        errPrefix = "oime"
         try:
             if isinstance(moduleFile, dict) and moduleFile.get("documentInfo",{}).get("documentType") in oimTaxonomyDocTypes:
                 moduleFileObj = moduleFile
@@ -269,7 +269,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                         p_last = p
                     msg = err.message
                     if p_last == "allowedAsLinkProperty" and " is not of type " in msg:
-                        errCode = "oimte:invalidPropertyValue"
+                        errCode = "oime:invalidPropertyValue"
                     elif p_last == "language" and " does not match " in msg:
                         errCode = "oimte:invalidLanguage"
                     elif p_last == "coreDimensions" and "unique elements" in msg:
@@ -277,7 +277,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                     elif p_beforeLast == "dimensions" and " valid under each of {'required': ['domainClass']}, {'required': ['domainDataType']}" in msg:
                         errCode = "oimte:invalidDimensionObject"
                     else:
-                        errCode = "oimte:invalidJSONStructure",
+                        errCode = "oime:invalidJSONStructure",
                     error(errCode,
                           _("Error: %(error)s, jsonObj: %(path)s"),
                           sourceFileLine=href, error=msg, path="".join(path))
@@ -302,7 +302,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                     p_last = p
                 msg = ex.message
                 if p_last == "allowedAsLinkProperty" and " must be boolean" in msg:
-                    errCode = "oimte:invalidPropertyValue"
+                    errCode = "oime:invalidPropertyValue"
                 elif p_last == "language" and " must match " in msg:
                     errCode = "oimte:invalidLanguage"
                 elif p_last == "coreDimensions" and " unique items" in msg:
@@ -318,7 +318,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
             try:
                 jsonschemaValidator.validate(moduleFileObj)
             except Exception as ex: # jsonschema_rs.alidationError as ex:
-                error("oimte:invalidJSONStructure",
+                error("oime:invalidJSONStructure",
                       _("Error: %(error)s"),
                       sourceFileLine=href, error=str(ex))
         modelXbrl.profileActivity(f"Json schema validation {moduleFileBasename}", minTimeToShow=PROFILE_MIN_TIME)

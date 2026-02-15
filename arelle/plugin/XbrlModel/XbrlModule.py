@@ -8,7 +8,7 @@ from collections import OrderedDict
 from arelle.ModelValue import qname, QName, AnyURI
 from arelle.PythonUtil import OrderedSet
 from .ModelValueMore import SQName
-from .XbrlImportTaxonomy import XbrlImportTaxonomy, XbrlExportProfile, XbrlFinalTaxonomy
+from .XbrlImportTaxonomy import XbrlImportTaxonomy, XbrlFinalTaxonomy
 from .XbrlProperty import XbrlProperty
 from .XbrlAbstract import XbrlAbstract
 from .XbrlConcept import XbrlConcept, XbrlDataType, XbrlUnitType
@@ -44,7 +44,6 @@ class XbrlModule(XbrlModelObject):
     modelType: Optional[QName]
     importedTaxonomies: OrderedSet[XbrlImportTaxonomy] # ordered set of importTaxonomy objects that can comprise QName of the taxonomy to be imported, an object type or a taxonomy object referenced by its QName.
     finalTaxonomy: Optional[XbrlFinalTaxonomy] # (optional) A final taxonomy object that indicates those components of the taxonomy that are final and cannot be amended or added by an importing taxonomy.
-    exportProfiles: OrderedSet[XbrlExportProfile] # (optional) ordered set of exportProfile objects.
     abstracts: OrderedSet[XbrlAbstract] # ordered set of abstract objects.
     concepts: OrderedSet[XbrlConcept] # ordered set of concept objects.
     cubes: OrderedSet[XbrlCube] # ordered set of cube objects.
@@ -78,8 +77,7 @@ class XbrlModule(XbrlModelObject):
 
 referencableObjectTypes = {
         qname("{https://xbrl.org/2025}xbrl:xbrlModelObject"): XbrlModule,
-        qname("{https://xbrl.org/2025}xbrl:exportProfileObject"): XbrlExportProfile,
-        qname("{https://xbrl.org/2025}xbrl:conceptObject"): XbrlConcept,
+         qname("{https://xbrl.org/2025}xbrl:conceptObject"): XbrlConcept,
         qname("{https://xbrl.org/2025}xbrl:abstractObject"): XbrlAbstract,
         qname("{https://xbrl.org/2025}xbrl:cubeObject"): XbrlCube,
         qname("{https://xbrl.org/2025}xbrl:dimensionObject"): XbrlDimension,

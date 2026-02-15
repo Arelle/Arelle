@@ -2,7 +2,7 @@
 '''
 saveOIMTaxonomy.py is a plug-in that saves an extension taxonomy in the json OIM taxonomy format
 
-See COPYRIGHT.md for copyright information.
+See XbrlModel/COPYRIGHT.md for copyright information.
 '''
 import os, io, json
 import regex as re
@@ -462,8 +462,8 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': "This plug-in saves an OIM Taxonomy.",
     'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    'author': 'Herm Fischer',
+    'copyright': 'Exbee Ltd',
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': saveOIMTaxonomyMenuEntender,
     'CntlrCmdLine.Options': saveOIMTaxonomyCommandLineOptionExtender,

@@ -1845,7 +1845,7 @@
             "additionalProperties": false
           }
         },
-        "required": ["axisId", "dimensions"],
+        "required": ["dimensions"],
         "additionalProperties": false
       },
       "axisGroupObject": {
@@ -1925,15 +1925,15 @@
             "description": "Grid coordinates identifying the cell location in the table.",
             "properties": {
               "xAxis": {
-                "type": "string",
+                "type": "integer",
                 "description": "The x-axis (column) coordinate in the grid."
               },
               "yAxis": {
-                "type": "string",
+                "type": "integer",
                 "description": "The y-axis (row) coordinate in the grid."
               },
               "zAxis": {
-                "type": "string",
+                "type": "integer",
                 "description": "The z-axis coordinate in the grid (optional)."
               }
             },
