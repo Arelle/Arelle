@@ -73,7 +73,7 @@ def assertObjectType(compMdl, obj, objType):
                   _("This %(thisType)s object was included where an %(expectedType)s object was expected."),
                   xbrlObject=obj, thisType=obj.__class__.__name__, expectedType=objType.__name__)
 
-def validateQNameReference(compMdl, contextObj, propName, objType, oimFile=None, qnDefault=None):
+def validateQNameReference(compMdl, contextObj, propName, objType, msgCode=None, qnDefault=None):
     """Validate a QName reference and return resolved object or raise error.
     
     Args:
@@ -81,7 +81,7 @@ def validateQNameReference(compMdl, contextObj, propName, objType, oimFile=None,
         contextObj: object containing the reference (for error context)
         propName: property name where reference appears (for error message)
         objType: expected type of resolved object (XbrlConcept, XbrlDimension, etc.)
-        oimFile: optional file for error context
+        msgCode: optional message code for error, default is "oimte:invalidQNameReference"
     
     Returns:
         Resolved object if valid and correct type, None if error raised
@@ -100,7 +100,7 @@ def validateQNameReference(compMdl, contextObj, propName, objType, oimFile=None,
     resolvedObj = compMdl.namedObjects.get(qnRef)
     
     if not resolvedObj:
-        compMdl.error("oimte:invalidQNameReference",
+        compMdl.error(msgCode or "oimte:invalidQNameReference",
                       _("%(parentType)s %(parentName)s property %(propName)s references undefined QName '%(qnRef)s'"),
                       xbrlObject=contextObj, parentType=type(contextObj).__name__, 
                       parentName=getattr(contextObj, 'name', '?'), propName=propName, qnRef=qnRef)
@@ -108,7 +108,7 @@ def validateQNameReference(compMdl, contextObj, propName, objType, oimFile=None,
     
     # Check resolved object is correct type
     if not isinstance(resolvedObj, objType):
-        compMdl.error("oimte:invalidQNameReference",
+        compMdl.error(msgCode or "oimte:invalidQNameReference",
                       _("%(parentType)s %(parentName)s property %(propName)s references '%(qnRef)s' which is %(actualType)s, expected %(expectedType)s"),
                       xbrlObject=contextObj, parentType=type(contextObj).__name__, 
                       parentName=getattr(contextObj, 'name', '?'), propName=propName, 
@@ -219,9 +219,9 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
     if module.modelType:
         modelTpObj = validateQNameReference(compMdl, module, "modelType", XbrlModelType)
         if modelTpObj:
-            if modelTpObj.allowedProperties:
+            if modelTpObj.allowedObjects:
                 allowedMdObjTypes = set(xbrlObjectTypes.get(qn) for qn in modelTpObj.allowedObjects if qn in xbrlObjectTypes)
-                disallowedProps = modelTpObj.allowedProperties - set(p.property for p in module.properties)
+                disallowedProps = modelTpObj.allowedObjects - set(p.property for p in module.properties)
                 if disallowedProps:
                     compMdl.error("oimte:disallowedModelProperties",
                               _("The modelType %(moduleType)s does not allow properties %(propNames)s."),
@@ -266,7 +266,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
         for qnObjType in impTxObj.importObjectTypes:
             if qnObjType in xbrlObjectTypes:
                 if xbrlObjectTypes[qnObjType] == XbrlLabel:
-                    compMdl.error("oimte:invalidObjectType",
+                    compMdl.error("oimte:invalidImportObjectType",
                               _("The importObjectTypes property MUST not include the label object."),
                               xbrlObject=impTxObj)
             else:
@@ -491,6 +491,8 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
         assertObjectType(compMdl, cubeObj, XbrlCube)
         name = cubeObj.name
         cubeType = compMdl.namedObjects.get(cubeObj.cubeType or reportCubeType)
+        if cubeType is None:
+            print("DEBUG: cubeType not found for cube", cubeObj.cubeType, "in cube", name)
         isTimeSeriesCubeType = cubeType and cubeType.name == timeSeriesCubeType
         ntwks = set()
         for ntwrkQn in cubeObj.cubeNetworks:
@@ -513,7 +515,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                 # specific cubeType dimension property validations
                 tsProps = {timeSeriesPropType, intervalOfMeasurementPropType, intervalConventionPropType, excludedIntervalsPropType} & set(p.property for p in dimObj.properties)
                 if tsProps:
-                    if cubeType.name != timeSeriesCubeType:
+                    if cubeType and cubeType.name != timeSeriesCubeType:
                         compMdl.error("oimte:timeSeriesTypeOnNonTimeSeriesDimension" if timeSeriesPropType in tsProps else
                                       "oimte:intervalConventionOnNonTimeSeriesDimension" if intervalConventionPropType in tsProps else
                                       "oimte:intervalOfMeasurementOnNonTimeSeriesDimension",
@@ -854,7 +856,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                 compMdl.error("oimte:invalidCubeType",
                           _("The dimension cubeType QName %(name)s MUST be a valid cubeType object in the taxonomy model"),
                           xbrlObject=dimObj, name=cubeTypeQn)
-        domRtObj = validateQNameReference(compMdl, dimObj, "domainClass", XbrlDomainClass)
+        domRtObj = validateQNameReference(compMdl, dimObj, "domainClass", XbrlDomainClass, msgCode="oimte:invalidDomainClass")
         if (dimObj.domainClass in (conceptDomainClass, entityDomainClass, unitDomainClass, languageDomainClass) and
                                    (dimObj.name.namespaceURI != xbrl or not dimObj.domainClass.localName.startswith(dimObj.name.localName))):
             compMdl.error(f"oimte:invalid{dimObj.domainClass.localName[:-6].title()}DomainClass",
@@ -901,7 +903,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
             compMdl.error("oimte:missingRequiredProperty",
                       _("The domain object MUST have either a name or an extendTargetName, not neither."),
                       xbrlObject=domObj)
-        domRtObj = validateQNameReference(compMdl, domObj, "root", XbrlDomainClass, qnDefault=extendedDomClassQn)
+        domRtObj = validateQNameReference(compMdl, domObj, "root", XbrlDomainClass, qnDefault=extendedDomClassQn, msgCode="oimte:invalidDomainClass")
         if not domRtObj:
             continue
         domRtQn = domRtObj.name
