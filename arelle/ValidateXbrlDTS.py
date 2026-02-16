@@ -13,7 +13,7 @@ from arelle.ModelValue import qname
 from arelle.PluginManager import pluginClassMethods
 from arelle.XhtmlValidate import ixMsgCode
 from lxml import etree
-from collections import defaultdict
+from collections import defaultdict, deque
 import regex as re
 
 if TYPE_CHECKING:
@@ -1468,21 +1468,66 @@ def checkNamespaceSchemaConnectivity(val: ValidateXbrl) -> None:
         if len(uris) <= 1:
             continue
         schemaDocs = {val.modelXbrl.urlDocs[uri] for uri in uris}
-        includedSchemas = {
-            refDoc
-            for schema in schemaDocs
-            for refDoc, docRef in schema.referencesDocument.items()
-            if "include" in docRef.referenceTypes and refDoc in schemaDocs
-        }
-        topLevelSchemas = schemaDocs - includedSchemas
+        # Two data structures are built from xs:include relationships:
+        #
+        # includeNeighbors: undirected adjacency list for connectivity.
+        #   If A includes B, both A->B and B->A are recorded so the walk can
+        #   discover connected components regardless of include direction.
+        #
+        # includedSchemas: directed "is included" set for top-level detection.
+        #   Only the target of an include (refDoc) is added. A schema in
+        #   this set is NOT top-level because some other schema includes it.
+        includeNeighbors: defaultdict[ModelDocument, set[ModelDocument]] = defaultdict(set)
+        includedSchemas: set[ModelDocument] = set()
+        for schema in schemaDocs:
+            for refDoc, docRef in schema.referencesDocument.items():
+                if "include" in docRef.referenceTypes and refDoc in schemaDocs:
+                    includeNeighbors[schema].add(refDoc)
+                    includeNeighbors[refDoc].add(schema)
+                    includedSchemas.add(refDoc)
+        # Walk the undirected graph to find connected components,
+        # then count top-level schemas (not included by anything) in each.
+        #
+        # Examples:
+        #   N2->N1         : 1 component, 1 top-level (N2)          -> valid
+        #   N2->N1<-N3     : 1 component, 2 top-levels (N2, N3)     -> error
+        #   N4->N5->N6->N4 : 1 component, 0 top-levels (circular)   -> valid
+        #   A<->B, C<->D   : 2 components, 0 top-levels each        -> error
+        visited: set[ModelDocument] = set()
+        topLevelCount = 0
+        topLevelSchemas: set[ModelDocument] = set()
+        for schema in schemaDocs:
+            if schema in visited:
+                continue
+            component: set[ModelDocument] = set()
+            queue = deque([schema])
+            while queue:
+                current = queue.popleft()
+                if current in visited:
+                    continue
+                visited.add(current)
+                component.add(current)
+                queue.extend(includeNeighbors[current] - visited)
+            componentTopLevelSchemas = component - includedSchemas
+            # Circular components (e.g. N4<->N5) have zero top-level
+            # schemas since every schema is included. max(..., 1)
+            # treats the whole cycle as one valid group.
+            topLevelCount += max(len(componentTopLevelSchemas), 1)
+            # Collect top-level schemas for the error message. For
+            # circular components, fall back to the whole component
+            # since there is no meaningful top-level subset.
+            topLevelSchemas |= componentTopLevelSchemas or component
         # Multiple URIs mapping to the same document (via dedup) count as
         # additional top-level entries since they represent separate loads
         # not connected by xs:include.
-        topLevelUriCount = len(uris) - len(schemaDocs - topLevelSchemas)
+        topLevelUriCount = (len(uris) - len(schemaDocs)) + topLevelCount
         if topLevelUriCount > 1:
-            val.modelXbrl.error("xbrl:multipleTopLevelSchemasForNamespace",
+            val.modelXbrl.error(
+                "xbrl:multipleTopLevelSchemasForNamespace",
                 _("Multiple top-level schemas found for namespace %(namespace)s: %(schemas)s. "
-                  "All schemas for a namespace must be connected by xs:include links with at most one top-level schema."),
+                  "All schemas for a namespace must be connected by xs:include links "
+                  "with at most one top-level schema."),
                 modelObject=list(topLevelSchemas),
                 namespace=targetNamespace,
-                schemas=", ".join(sorted(uris)))
+                schemas=", ".join(sorted(uris)),
+            )
