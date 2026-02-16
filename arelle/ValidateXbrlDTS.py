@@ -1446,3 +1446,43 @@ def _shouldValidateBaseTaxonomyDoc(val: ValidateXbrl, modelDocument: ModelDocume
     if baseTaxonomyValidationMode == ValidateBaseTaxonomiesMode.DISCLOSURE_SYSTEM:
         return modelDocument.uri not in getattr(val.disclosureSystem, "standardTaxonomiesDict", {})
     raise ValueError(f"Invalid base taxonomy validation mode: {baseTaxonomyValidationMode}")
+
+
+def checkNamespaceSchemaConnectivity(val: ValidateXbrl) -> None:
+    """
+    Validates that for each targetNamespace with multiple schemas,
+    there is at most one top-level schema (not included by other schemas).
+
+    XBRL 2.1 Section 3.2 requirement (2025 revision).
+    """
+
+    # Iterate urlDocs rather than namespaceDocs because the schema dedup
+    # in ModelDocument.load() can map multiple URIs to the same ModelDocument.
+    # We need to count distinct URIs to detect schemas loaded from separate
+    # paths (e.g., local linkbase ref vs HTTP xsi:schemaLocation).
+    schemaUrisByNamespace: defaultdict[str, list[str]] = defaultdict(list)
+    for uri, doc in val.modelXbrl.urlDocs.items():
+        if doc.type == ModelDocumentType.SCHEMA and doc.targetNamespace:
+            schemaUrisByNamespace[doc.targetNamespace].append(uri)
+    for targetNamespace, uris in schemaUrisByNamespace.items():
+        if len(uris) <= 1:
+            continue
+        schemaDocs = {val.modelXbrl.urlDocs[uri] for uri in uris}
+        includedSchemas = {
+            refDoc
+            for schema in schemaDocs
+            for refDoc, docRef in schema.referencesDocument.items()
+            if "include" in docRef.referenceTypes and refDoc in schemaDocs
+        }
+        topLevelSchemas = schemaDocs - includedSchemas
+        # Multiple URIs mapping to the same document (via dedup) count as
+        # additional top-level entries since they represent separate loads
+        # not connected by xs:include.
+        topLevelUriCount = len(uris) - len(schemaDocs - topLevelSchemas)
+        if topLevelUriCount > 1:
+            val.modelXbrl.error("xbrl:multipleTopLevelSchemasForNamespace",
+                _("Multiple top-level schemas found for namespace %(namespace)s: %(schemas)s. "
+                  "All schemas for a namespace must be connected by xs:include links with at most one top-level schema."),
+                modelObject=list(topLevelSchemas),
+                namespace=targetNamespace,
+                schemas=", ".join(sorted(uris)))
