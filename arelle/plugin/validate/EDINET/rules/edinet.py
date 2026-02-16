@@ -28,7 +28,7 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from arelle.utils.validate.ValidationUtil import hasPresentationalConceptsWithFacts
-from ..Constants import AccountingStandard, HALF_KANA, JAPAN_LANGUAGE_CODES, REPORT_ELR_URI_PATTERN, REPORT_ELR_ID_PATTERN
+from ..Constants import AccountingStandard, JAPAN_LANGUAGE_CODES, REPORT_ELR_URI_PATTERN, REPORT_ELR_ID_PATTERN
 from ..ControllerPluginData import ControllerPluginData
 from ..DeiRequirements import DeiItemStatus
 from ..DisclosureSystems import DISCLOSURE_SYSTEM_EDINET

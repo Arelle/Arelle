@@ -207,17 +207,3 @@ INDIVIDUAL_CONTEXT_ID_PATTERN = regex.compile(rf'^{PATTERN_CONTEXT_RELATIVE_PERI
 
 # Accepted language codes for Japan
 JAPAN_LANGUAGE_CODES = frozenset({'ja', 'jp', 'ja-jp', 'JA', 'JP', 'JA-JP'})
-
-# Half Kana characters taken from JACONV library
-# We define it here because the JACONV library does not allow the constant to be imported
-HALF_KANA = frozenset({'ｧ', 'ｱ', 'ｨ', 'ｲ', 'ｩ', 'ｳ', 'ｪ', 'ｴ', 'ｫ', 'ｵ',
-                       'ｶ', 'ｶﾞ', 'ｷ', 'ｷﾞ', 'ｸ', 'ｸﾞ', 'ｹ', 'ｹﾞ', 'ｺ',
-                       'ｺﾞ', 'ｻ', 'ｻﾞ', 'ｼ', 'ｼﾞ', 'ｽ', 'ｽﾞ', 'ｾ', 'ｾﾞ',
-                       'ｿ', 'ｿﾞ', 'ﾀ', 'ﾀﾞ', 'ﾁ', 'ﾁﾞ', 'ｯ', 'ﾂ', 'ﾂﾞ',
-                       'ﾃ', 'ﾃﾞ', 'ﾄ', 'ﾄﾞ', 'ﾅ', 'ﾆ', 'ﾇ', 'ﾈ', 'ﾉ', 'ﾊ',
-                       'ﾊﾞ', 'ﾊﾟ', 'ﾋ', 'ﾋﾞ', 'ﾋﾟ', 'ﾌ', 'ﾌﾞ', 'ﾌﾟ', 'ﾍ',
-                       'ﾍﾞ', 'ﾍﾟ', 'ﾎ', 'ﾎﾞ', 'ﾎﾟ', 'ﾏ', 'ﾐ', 'ﾑ', 'ﾒ',
-                       'ﾓ', 'ｬ', 'ﾔ', 'ｭ', 'ﾕ', 'ｮ', 'ﾖ', 'ﾗ', 'ﾘ', 'ﾙ',
-                       'ﾚ', 'ﾛ', 'ﾜ', 'ｦ', 'ﾝ', 'ｰ',
-                       'ヮ', 'ヰ', 'ヱ', 'ヵ', 'ヶ', 'ｳﾞ', 'ヽ', 'ヾ', '･',
-                       '｢', '｣', '｡', '､'})
