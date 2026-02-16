@@ -83,11 +83,11 @@ class ControllerPluginData(PluginData):
     @lru_cache(1)
     def getIllegalCharactersPattern(self) -> regex.Pattern[str]:
         allowedCharacters = set()
-        with open(self._allowedCharacterSheetPath, 'r') as file:
+        with open(self._allowedCharacterSheetPath, 'r', encoding='utf-8') as file:
             for line in file:
                 part = line.strip().split(' ')[0]
                 assert 2 <= len(part) <= 6, f"Invalid line in allowed character sheet: {line}"
-                char = bytes.fromhex(part).decode()
+                char = bytes.fromhex(part).decode(encoding='utf-8')
                 assert char not in allowedCharacters, f"Duplicate character in allowed character sheet: {line}"
                 allowedCharacters.add(char)
         return regex.compile(f'[^{regex.escape("".join(allowedCharacters))}]')
