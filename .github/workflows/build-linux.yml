@@ -87,7 +87,7 @@ jobs:
       - name: Docker setup buildx
         uses: docker/setup-buildx-action@v3.12.0
       - name: Docker build
-        uses: docker/build-push-action@v6.18.0
+        uses: docker/build-push-action@v6.19.2
         with:
           build-args: |
             "OPENSSL_VERSION=${{ inputs.openssl_version }}"
