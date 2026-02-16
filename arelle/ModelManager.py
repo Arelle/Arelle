@@ -216,7 +216,7 @@ class ModelManager:
             return modelVersReport
         return None
 
-    def close(self, modelXbrl=None):
+    def close(self, modelXbrl=None) -> None:
         """Closes the specified or most recently loaded modelXbrl
 
         :param modelXbrl: Specific ModelXbrl to be closed (defaults to last opened ModelXbrl)

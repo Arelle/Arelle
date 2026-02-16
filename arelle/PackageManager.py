@@ -409,8 +409,10 @@ def save(cntlr: Cntlr) -> None:
         packagesConfigChanged = False
 
 def close():  # close all loaded methods
-    packagesConfig.clear()
-    packagesMappings.clear()
+    if packagesConfig:
+        packagesConfig.clear()
+    if packagesMappings:
+        packagesMappings.clear()
     global webCache
     webCache = None
 

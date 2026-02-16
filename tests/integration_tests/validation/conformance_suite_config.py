@@ -6,8 +6,10 @@ from dataclasses import dataclass, field
 from enum import Enum
 from functools import cached_property
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Any, Callable
 
+from arelle.testengine.ErrorLevel import ErrorLevel
+from arelle.testengine.TestcaseSet import TestcaseSet
 from tests.integration_tests.github import OS_CORES
 
 CONFORMANCE_SUITE_PATH_PREFIX = 'tests/resources/conformance_suites'
@@ -196,26 +198,42 @@ class ConformanceSuiteAssetConfig:
         )
 
 
+@dataclass
+class CiConfig:
+    enabled: bool = True
+    fast: bool = True
+    shard_count: int = 1
+
+    def __post_init__(self) -> None:
+        assert self.shard_count > 0, \
+            'Shard count must be a positive integer.'
+        if self.shard_count > 1:
+            self.fast = False
+
+
 @dataclass(frozen=True)
 class ConformanceSuiteConfig:
     info_url: str
     name: str
     additional_plugins_by_prefix: list[tuple[str, frozenset[str]]] = field(default_factory=list)
-    args: list[str] = field(default_factory=list)
     assets: list[ConformanceSuiteAssetConfig] = field(default_factory=list)
     base_taxonomy_validation: Literal['disclosureSystem', 'none', 'all', None] = None
     cache_version_id: str | None = None
     capture_warnings: bool = True
-    ci_enabled: bool = True
+    ci_config: CiConfig = field(default_factory=CiConfig)
+    compare_formula_output: bool = False
+    custom_compare_patterns: list[tuple[str, str]] = field(default_factory=list)
     disclosure_system: str | None = None
     disclosure_system_by_prefix: list[tuple[str, str]] = field(default_factory=list)
     expected_additional_testcase_errors: dict[str, dict[str, int]] = field(default_factory=dict)
     expected_failure_ids: frozenset[str] = frozenset()
+    expected_load_errors: frozenset[str] = field(default_factory=frozenset)
     expected_missing_testcases: frozenset[str] = frozenset()
+    ignore_levels: frozenset[ErrorLevel] = frozenset({ErrorLevel.OK})
     membership_url: str | None = None
     plugins: frozenset[str] = frozenset()
-    shards: int = 1
-    strict_testcase_index: bool = True
+    preprocessing_func: Callable[[ConformanceSuiteConfig, TestcaseSet], TestcaseSet] | None = None
+    runtime_options: dict[str, Any] = field(default_factory=dict)
     required_locale_by_ids: dict[str, re.Pattern[str]] = field(default_factory=dict)
     test_case_result_options: Literal['match-all', 'match-any'] = 'match-all'
 
@@ -231,25 +249,12 @@ class ConformanceSuiteConfig:
             if p1.startswith(p2) or p2.startswith(p1)]
         assert not overlapping_prefixes, \
             f'Overlapping prefixes are not supported: {overlapping_prefixes}'
-        assert not (self.shards == 1 and self.additional_plugins_by_prefix), \
-            'Cannot specify additional_plugins_by_prefix with only one shard.'
-        plugin_combinations = len({plugins for _, plugins in self.additional_plugins_by_prefix}) + 1
-        assert plugin_combinations <= self.shards, \
-            'Too few shards to accommodate the number of plugin combinations:' \
-            f' combinations={plugin_combinations} shards={self.shards}'
         overlapping_expected_testcase_ids = self.expected_failure_ids.intersection(self.required_locale_by_ids)
         assert not overlapping_expected_testcase_ids, \
             f'Testcase IDs in both expected failures and required locales: {sorted(overlapping_expected_testcase_ids)}'
         overlapping_expected_failure_testcase_ids = self.expected_failure_ids.intersection(self.expected_additional_testcase_errors.keys())
         assert not overlapping_expected_failure_testcase_ids, \
             f'Testcase IDs in both expected failures and expected additional errors: {sorted(overlapping_expected_failure_testcase_ids)}'
-        if self.shards > 1:
-            ci_core_counts = set(OS_CORES.values())
-            assert any(self.shards % core_count == 0 for core_count in ci_core_counts), \
-                f'Shards setting not optimized for CI CPU cores: {self.shards}'
-        disclosure_systems = {ds for _, ds in self.disclosure_system_by_prefix} | {str(self.disclosure_system)}
-        assert self.shards >= len(disclosure_systems), \
-            f'Too few shards to accommodate disclosure systems: shards={self.shards} disclosure systems={sorted(disclosure_systems)}.'
 
     @property
     def runs_without_network(self) -> bool:
@@ -285,3 +290,7 @@ class ConformanceSuiteConfig:
             for asset in self.assets
             if asset.type == AssetType.TAXONOMY_PACKAGE
         }
+
+    @property
+    def shards(self) -> int:
+        return self.ci_config.shard_count

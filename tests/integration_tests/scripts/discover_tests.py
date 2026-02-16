@@ -26,6 +26,9 @@ FUNCTION_REGISTRY_TESTS = frozenset({
     'xbrl_transformation_registry_4',
     'xbrl_transformation_registry_5',
 })
+NO_CI_TESTS = frozenset([
+    'conformance_suite_configs'
+])
 TESTS_PATH = './tests/integration_tests/scripts/tests'
 
 
@@ -64,9 +67,14 @@ def get_frozen_build_scripts() -> list[Path]:
 def _for_frozen_build(path: Path) -> bool:
     if path.stem.startswith("python_api_"):
         return False
+    if _is_no_ci(path):
+        return False
     if _is_private(path):
         return False
     return True
+
+def _is_no_ci(path: Path) -> bool:
+    return path.stem in NO_CI_TESTS
 
 def _is_private(path: Path) -> bool:
     return path.stem in FUNCTION_REGISTRY_TESTS
@@ -81,6 +89,8 @@ def main() -> None:
     output: list[Entry] = []
     groups = defaultdict(list)
     for path in get_all_scripts():
+        if _is_no_ci(path):
+            continue
         systems = ALL_OPERATING_SYSTEMS if _run_for_each_os(path) else [PRIMARY_OPERATING_SYSTEM]
         versions = ALL_PYTHON_VERSIONS if  _run_for_each_version(path) else [LATEST_PYTHON_VERSION]
         private = _is_private(path)

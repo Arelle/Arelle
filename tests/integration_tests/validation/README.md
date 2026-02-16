@@ -25,6 +25,8 @@ python -m tests.integration_tests.validation.run_conformance_suites --help
   --public              Select all public conformance suites
   --series              Run shards in series
   --shard SHARD         comma separated list of 0-indexed shards to run
+  --shard-count SHARD_COUNT
+                        number of shards to split suite into
   --test                Run selected conformance suite tests
   --testcase-filter TESTCASE_FILTER
                         Filter test cases (see --testcaseFilter)

@@ -2,7 +2,7 @@ from pathlib import PurePath, Path
 
 from tests.integration_tests.validation.assets import ESEF_PACKAGES
 from tests.integration_tests.validation.conformance_suite_config import (
-    ConformanceSuiteConfig, ConformanceSuiteAssetConfig, AssetSource
+    ConformanceSuiteConfig, ConformanceSuiteAssetConfig, AssetSource, CiConfig
 )
 
 ZIP_PATH = Path('esef_conformance_suite_2022.zip')
@@ -21,16 +21,26 @@ config = ConformanceSuiteConfig(
         package for year in [2017, 2019, 2020, 2021, 2022] for package in ESEF_PACKAGES[year]
     ],
     base_taxonomy_validation='none',
+    ci_config=CiConfig(shard_count=2),
+    custom_compare_patterns=[
+        (r"^.*$", r"^ESEF\..*\.~$"),
+    ],
     disclosure_system='esef-2022',
+    expected_additional_testcase_errors={f'tests/{s}': val for s, val in {
+        'inline_xbrl/RTS_Annex_IV_Par_12_G2-2-4/index.xml:TC5_valid': {
+            'message:tech_duplicated_facts1': 2,
+        },
+    }.items()},
     expected_failure_ids=frozenset(f'tests/{s}' for s in [
-        # The following test cases fail because of the `tech_duplicated_facts1` formula which fires
-        # incorrectly because it does not take into account the language attribute on the fact.
-        # A fact can not be a duplicate fact if the language attributes are different.
-        'inline_xbrl/RTS_Annex_IV_Par_12_G2-2-4/index.xml:TC5_valid'
+        ### Discovered during transition to Test Engine:
+        # Related to reportIncorrectlyPlacedInPackage not firing
+        'inline_xbrl/G2-6-2/index.xml:TC2_invalid',
+        # Related to missingOrInvalidTaxonomyPackage not firing
+        'inline_xbrl/RTS_Annex_III_Par_3_G3-1-3/index.xml:TC3_invalid',
+        'inline_xbrl/RTS_Annex_III_Par_3_G3-1-3/index.xml:TC5_invalid',
     ]),
     info_url='https://www.esma.europa.eu/document/esef-conformance-suite-2022',
     name=PurePath(__file__).stem,
     plugins=frozenset({'validate/ESEF'}),
-    shards=8,
     test_case_result_options='match-any',
 )

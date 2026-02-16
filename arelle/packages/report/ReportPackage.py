@@ -27,9 +27,9 @@ def pathsContainReportsDirectory(paths: set[str], topLevelDir: str) -> bool:
     return any(path.startswith(reportDirectory) for path in paths)
 
 def getReportPackageTopLevelDirectory(filesource: FileSource) -> str | None:
-    packageEntries = set(filesource.dir or [])
+    packageEntries = PackageUtils.getPackageEntries(filesource)
     potentialTopLevelReportDirs = set()
-    for topLevelDir in PackageUtils.getPackageTopLevelDirectories(filesource):
+    for topLevelDir in PackageUtils.getPackageTopLevelDirectories(packageEntries):
         if (
             f"{topLevelDir}/{Const.REPORT_PACKAGE_FILE}" in packageEntries or
             pathsContainReportsDirectory(packageEntries, topLevelDir)
@@ -44,7 +44,7 @@ def getReportPackageJsonFile(filesource: FileSource, stld: str | None) -> str | 
     if not isinstance(filesource.fs, zipfile.ZipFile):
         return None
     # Match against original unsanitized file names and all their backslash glory.
-    packageOriginalFileNames = [f.orig_filename for f in filesource.fs.infolist()]
+    packageOriginalFileNames = [PackageUtils.getSafePath(f.orig_filename) for f in filesource.fs.infolist()]
     expectedFutureReportPackageJsonPath = Const.REPORT_PACKAGE_FILE
     expectedReportPackageJsonPath = f"{stld}/{Const.REPORT_PACKAGE_FILE}"
     futureReportPackageJsonPathPartialMatches = []

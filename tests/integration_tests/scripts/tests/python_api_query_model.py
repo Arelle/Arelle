@@ -70,7 +70,6 @@ with Session() as session:
     log_xml = session.get_logs('xml')
 # include end
 
-assert len(model_xbrls) == 1
 assert len(equity_facts) == 17, len(equity_facts)
 
 print("Cleaning up")

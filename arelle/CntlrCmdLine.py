@@ -221,6 +221,8 @@ def parseArgs(args):
                       action="store_true",
                       dest="reportPackage",
                       help=_("Ignore detected file type and validate all files as Report Packages."))
+    parser.add_option("--expectedInstanceCount", "--expectedinstancecount", dest="expectedInstanceCount",
+                      help=_("Emits an error if the actual count of loaded reports does not match the provided number."))
     parser.add_option("--taxonomyPackage", "--taxonomypackage",
                       action="store_true",
                       dest="taxonomyPackage",
@@ -1364,6 +1366,25 @@ class CntlrCmdLine(Cntlr.Cntlr):
         if options.validate:
             for pluginXbrlMethod in PluginManager.pluginClassMethods("Validate.Complete"):
                 pluginXbrlMethod(self, filesource)
+
+        if options.expectedInstanceCount is not None:
+            expectedInstanceCount = len([
+                model for model in self.modelManager.loadedModelXbrls
+                if model.modelDocument is not None and (
+                        model.modelDocument.type in (
+                            ModelDocument.Type.INSTANCE,
+                            ModelDocument.Type.INLINEXBRL,
+                            ModelDocument.Type.INLINEXBRLDOCUMENTSET
+                        )
+                )
+            ])
+            if expectedInstanceCount != options.expectedInstanceCount:
+                self.error(
+                    "arelle:expectedInstanceCount",
+                    _("Expected %(expected)s instance(s), but loaded %(actual)s."),
+                    expected=options.expectedInstanceCount,
+                    actual=expectedInstanceCount,
+                )
 
         if filesource is not None and not options.keepOpen:
             # Archive filesource potentially used by multiple reports may still be open.
