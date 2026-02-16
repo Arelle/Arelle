@@ -26,5 +26,5 @@ runs:
         git merge FETCH_HEAD --no-edit || {
           echo "::error::Merge conflict detected."
           git merge --abort
-          exit 1s
+          exit 1
         }
