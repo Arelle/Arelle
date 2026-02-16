@@ -1,0 +1,30 @@
+name: 'Merge'
+description: 'Fetches and merges a specific SHA from a fork or branch'
+inputs:
+  commit_sha:
+    description: 'The specific commit SHA to merge'
+    required: true
+  repository_full_name:
+    description: 'The full name of the repository to fetch from (e.g., owner/repo)'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Fetch and Merge Remote SHA
+      shell: bash
+      env:
+        REPO: ${{ inputs.repository_full_name }}
+        SHA: ${{ inputs.commit_sha }}
+      run: |
+        git config user.name "github-actions"
+        git config user.email "github-actions@github.com"
+        
+        echo "Fetching from $REPO at $SHA..."
+        git fetch --quiet "https://github.com/$REPO.git" "$SHA"
+
+        git merge FETCH_HEAD --no-edit || {
+          echo "::error::Merge conflict detected."
+          git merge --abort
+          exit 1
+        }

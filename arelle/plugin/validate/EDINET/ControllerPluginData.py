@@ -10,6 +10,8 @@ from functools import lru_cache
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import regex
+
 from arelle.Cntlr import Cntlr
 from arelle.FileSource import FileSource
 from arelle.ModelValue import QName, TypeXValue
@@ -34,6 +36,7 @@ _: TypeGetText
 
 @dataclass
 class ControllerPluginData(PluginData):
+    _allowedCharacterSheetPath: Path
     _deiValues: dict[str, TypeXValue]
     _loadedModelXbrls: list[ModelXbrl]
     _manifestInstancesById: dict[str, ManifestInstance]
@@ -44,6 +47,8 @@ class ControllerPluginData(PluginData):
     def __init__(self, name: str):
         super().__init__(name)
         self.namespaces = NamespaceConfig()
+        # Contents sourced from Section 4-1 of https://disclosure2dl.edinet-fsa.go.jp/guide/static/disclosure/download/ESE140104.pdf
+        self._allowedCharacterSheetPath = Path(__file__).parent / "resources" / "allowed-character-sheet.txt"
         self._deiValues = {}
         self._loadedModelXbrls = []
         self._manifestInstancesById = {}
@@ -74,6 +79,18 @@ class ControllerPluginData(PluginData):
 
     def getDeiValue(self, localName: str) -> TypeXValue:
         return self._deiValues.get(localName)
+
+    @lru_cache(1)
+    def getIllegalCharactersPattern(self) -> regex.Pattern[str]:
+        allowedCharacters = set()
+        with open(self._allowedCharacterSheetPath, 'r', encoding='utf-8') as file:
+            for line in file:
+                part = line.strip().split(' ')[0]
+                assert 2 <= len(part) <= 6, f"Invalid line in allowed character sheet: {line}"
+                char = bytes.fromhex(part).decode(encoding='utf-8')
+                assert char not in allowedCharacters, f"Duplicate character in allowed character sheet: {line}"
+                allowedCharacters.add(char)
+        return regex.compile(f'[^{regex.escape("".join(allowedCharacters))}]')
 
     def getManifestInstances(self) -> list[ManifestInstance]:
         """
