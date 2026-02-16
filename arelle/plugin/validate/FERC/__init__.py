@@ -26,7 +26,8 @@ Filers can only submit an instance so EFM DTS checks are not needed.
 """
 import os
 import regex as re
-from arelle import ModelDocument, ValidateFilingText, XmlUtil
+from arelle import ValidateFilingText, XmlUtil
+from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFact, ModelInlineFootnote
 from arelle.ModelObject import ModelObject
 from arelle.PrototypeDtsObject import LinkPrototype, LocPrototype, ArcPrototype
@@ -66,14 +67,14 @@ def validateXbrlFinally(val, *args, **kwargs):
     modelXbrl.profileActivity()
     modelXbrl.modelManager.showStatus(_statusMsg)
 
-    isInlineXbrl = modelXbrl.modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET)
+    isInlineXbrl = modelXbrl.modelDocument.type in (ModelDocumentType.INLINEXBRL, ModelDocumentType.INLINEXBRLDOCUMENTSET)
     requiredFactLang = disclosureSystem.defaultXmlLang.lower() if disclosureSystem.defaultXmlLang else disclosureSystem.defaultXmlLang
 
     # inline doc set has multiple instance names to check
-    if modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRLDOCUMENTSET:
+    if modelXbrl.modelDocument.type == ModelDocumentType.INLINEXBRLDOCUMENTSET:
         instanceNames = [ixDoc.basename
                          for ixDoc in modelXbrl.modelDocument.referencesDocument.keys()
-                         if ixDoc.type == ModelDocument.Type.INLINEXBRL]
+                         if ixDoc.type == ModelDocumentType.INLINEXBRL]
         xbrlInstRoots = modelXbrl.ixdsHtmlElements
     else: # single instance document to check is the entry point document
         instanceNames = [modelXbrl.modelDocument.basename]
@@ -87,7 +88,7 @@ def validateXbrlFinally(val, *args, **kwargs):
         _linkEltIter = (linkPrototype
                         for linkKey, links in modelXbrl.baseSets.items()
                         for linkPrototype in links
-                        if linkPrototype.modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET)
+                        if linkPrototype.modelDocument.type in (ModelDocumentType.INLINEXBRL, ModelDocumentType.INLINEXBRLDOCUMENTSET)
                         and linkKey[1] and linkKey[2] and linkKey[3]  # fully specified roles
                         and linkKey[0] != "XBRL-footnotes")
     else:

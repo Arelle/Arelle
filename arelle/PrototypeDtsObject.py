@@ -4,11 +4,13 @@ See COPYRIGHT.md for copyright information.
 import decimal, os
 from collections import defaultdict
 
+from arelle.ModelDocumentType import ModelDocumentType
 from arelle import XbrlConst
+from arelle.typing import LocPrototypeBase, PrototypeElementTreeBase, PrototypeObjectBase
 import arelle.XmlValidate
 ModelDocument = None
 
-class PrototypeObject():
+class PrototypeObject(PrototypeObjectBase):
     def __init__(self, modelDocument, sourceElement=None):
         self.modelDocument = modelDocument
         self.sourceElement = sourceElement
@@ -67,7 +69,7 @@ class LinkPrototype(PrototypeObject):      # behaves like a ModelLink for relati
     def iterchildren(self):
         return iter(self.childElements)
 
-class LocPrototype(PrototypeObject):
+class LocPrototype(PrototypeObject, LocPrototypeBase):
     def __init__(self, modelDocument, parent, label, locObject, role=None, sourceElement=None):
         super(LocPrototype, self).__init__(modelDocument, sourceElement)
         self._parent = parent
@@ -149,21 +151,18 @@ class ArcPrototype(PrototypeObject):
 
 class DocumentPrototype():
     def __init__(self, modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDiscovered=False, isIncluded=None, namespace=None, reloadCache=False, **kwargs):
-        global ModelDocument
-        if ModelDocument is None:
-            from arelle import ModelDocument
         self.modelXbrl = modelXbrl
         self.skipDTS = modelXbrl.skipDTS
         self.modelDocument = self
         if referringElement is not None:
             if referringElement.localName == "schemaRef":
-                self.type = ModelDocument.Type.SCHEMA
+                self.type = ModelDocumentType.SCHEMA
             elif referringElement.localName == "linkbaseRef":
-                self.type = ModelDocument.Type.LINKBASE
+                self.type = ModelDocumentType.LINKBASE
             else:
-                self.type = ModelDocument.Type.UnknownXML
+                self.type = ModelDocumentType.UnknownXML
         else:
-            self.type = ModelDocument.Type.UnknownXML
+            self.type = ModelDocumentType.UnknownXML
         normalizedUri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(uri, base)
         self.filepath = modelXbrl.modelManager.cntlr.webCache.getfilename(normalizedUri, filenameOnly=True)
         self.uri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(self.filepath)
@@ -180,7 +179,7 @@ class DocumentPrototype():
     def clear(self):
         self.__dict__.clear() # dereference here, not an lxml object, don't use superclass clear()
 
-class PrototypeElementTree(): # equivalent to _ElementTree for parenting root element in non-lxml situations
+class PrototypeElementTree(PrototypeElementTreeBase): # equivalent to _ElementTree for parenting root element in non-lxml situations
     def __init__(self, rootElement):
         self.rootElement = rootElement
 

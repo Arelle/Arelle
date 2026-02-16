@@ -5,9 +5,10 @@ import os, threading, time, logging, sys, traceback
 from collections import OrderedDict, defaultdict
 from tkinter import Menu, BooleanVar, font as tkFont
 from arelle.ModelFormulaObject import Aspect, aspectModels, aspectModelAspect
-from arelle import (ViewWinTkTable, ModelDocument, ModelDtsObject, ModelInstanceObject, XbrlConst,
+from arelle import (ViewWinTkTable, ModelDtsObject, ModelInstanceObject, XbrlConst,
                     ModelXbrl, Locale, FunctionXfi,
                     ValidateXbrlDimensions, ViewFileRenderedGrid, ViewFileRenderedLayout, ViewFileRenderedStructure)
+from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ModelValue import qname, QName
 from arelle.rendering.RenderingResolution import RENDER_UNITS_PER_CHAR
 from arelle.rendering.RenderingLayout import layoutTable
@@ -707,7 +708,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
         if self.modelXbrl is not None:
             modelXbrl =  self.modelXbrl
             # make sure we handle an instance
-            if modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE:
+            if modelXbrl.modelDocument.type == ModelDocumentType.INSTANCE:
                 tbl = self.table
                 # get coordinates of last currently operated cell
                 coordinates = tbl.getCurrentCellCoordinates()
@@ -729,7 +730,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
     def updateInstanceFromFactPrototypes(self):
         # Only update the model if it already exists
         if self.modelXbrl is not None \
-           and self.modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE:
+           and self.modelXbrl.modelDocument.type == ModelDocumentType.INSTANCE:
             instance = self.modelXbrl
             cntlr =  instance.modelManager.cntlr
             newCntx = ModelXbrl.AUTO_LOCATE_ELEMENT
@@ -875,7 +876,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
         # newFilename = None # only used when a new instance must be created
 
         self.updateInstanceFromFactPrototypes()
-        if self.modelXbrl.modelDocument.type != ModelDocument.Type.INSTANCE and newFilename is None:
+        if self.modelXbrl.modelDocument.type != ModelDocumentType.INSTANCE and newFilename is None:
             newFilename = self.modelXbrl.modelManager.cntlr.fileSave(view=self, fileType="xbrl")
             if not newFilename:
                 return  # saving cancelled
@@ -887,7 +888,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
 
     def backgroundSaveInstance(self, newFilename=None, onSaved=None):
         cntlr = self.modelXbrl.modelManager.cntlr
-        if newFilename and self.modelXbrl.modelDocument.type != ModelDocument.Type.INSTANCE:
+        if newFilename and self.modelXbrl.modelDocument.type != ModelDocumentType.INSTANCE:
             self.modelXbrl.modelManager.showStatus(_("creating new instance {0}").format(os.path.basename(newFilename)))
             self.modelXbrl.modelManager.cntlr.waitForUiThreadQueue() # force status update
             self.modelXbrl.createInstance(newFilename) # creates an instance as this modelXbrl's entrypoint

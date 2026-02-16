@@ -95,7 +95,8 @@ dtsWsHeaders = (
     )
 
 def saveLoadableExcel(dts, excelFile):
-    from arelle import ModelDocument, XmlUtil
+    from arelle import XmlUtil
+    from arelle.ModelDocumentType import ModelDocumentType
     from openpyxl import Workbook, cell
     from openpyxl.styles import Font, PatternFill, Border, Alignment, Color, fills, Side
     from openpyxl.worksheet.dimensions import ColumnDimension
@@ -112,7 +113,7 @@ def saveLoadableExcel(dts, excelFile):
     conceptsWsHeaders = None
     cellFontArgs = None
     for doc in dts.urlDocs.values():
-        if doc.type == ModelDocument.Type.SCHEMA and doc.inDTS:
+        if doc.type == ModelDocumentType.SCHEMA and doc.inDTS:
             for i in range(len(headersStyles)):
                 if re.match(headersStyles[i][0], doc.targetNamespace):
                     cellFontArgs = headersStyles[i][1] # use as arguments to Font()
@@ -168,9 +169,9 @@ def saveLoadableExcel(dts, excelFile):
     dtsRow = 3
     # identify extension schema
     extensionSchemaDoc = None
-    if dts.modelDocument.type == ModelDocument.Type.SCHEMA:
+    if dts.modelDocument.type == ModelDocumentType.SCHEMA:
         extensionSchemaDoc = dts.modelDocument
-    elif dts.modelDocument.type == ModelDocument.Type.INSTANCE:
+    elif dts.modelDocument.type == ModelDocumentType.INSTANCE:
         for doc, docReference in dts.modelDocument.referencesDocument.items():
             if "href" in docReference.referenceTypes:
                 extensionSchemaDoc = doc
@@ -201,7 +202,7 @@ def saveLoadableExcel(dts, excelFile):
     dtsRow += 1
 
     for doc, docReference in extensionSchemaDoc.referencesDocument.items():
-        if "href" in docReference.referenceTypes and doc.type == ModelDocument.Type.LINKBASE:
+        if "href" in docReference.referenceTypes and doc.type == ModelDocumentType.LINKBASE:
             linkbaseType = ""
             role = docReference.referringModelObject.get("{http://www.w3.org/1999/xlink}role") or ""
             if role.startswith("http://www.xbrl.org/2003/role/") and role.endswith("LinkbaseRef"):

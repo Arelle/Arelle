@@ -6,7 +6,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from typing import Any
 
-from arelle import ModelDocument
+from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
@@ -37,7 +37,7 @@ def rule_fr_kvk_1_01(
     """
     modelXbrl = val.modelXbrl
     for doc in modelXbrl.urlDocs.values():
-        if doc.type == ModelDocument.Type.INSTANCE:
+        if doc.type == ModelDocumentType.INSTANCE:
             if not doc.basename.endswith('.xbrl'):
                 yield Validation.error(
                     codes='NL.FR-KVK-1.01',
@@ -62,7 +62,7 @@ def rule_fr_kvk_2_01(
     """
     modelXbrl = val.modelXbrl
     for doc in modelXbrl.urlDocs.values():
-        if doc.type == ModelDocument.Type.INSTANCE:
+        if doc.type == ModelDocumentType.INSTANCE:
             lang = doc.xmlRootElement.get('{http://www.w3.org/XML/1998/namespace}lang')
             if lang not in ACCEPTED_LANGUAGES:
                 yield Validation.error(
@@ -90,7 +90,7 @@ def rule_fr_kvk_2_02(
     modelXbrl = val.modelXbrl
     lang = None
     for doc in modelXbrl.urlDocs.values():
-        if doc.type == ModelDocument.Type.INSTANCE:
+        if doc.type == ModelDocumentType.INSTANCE:
             lang = doc.xmlRootElement.get('{http://www.w3.org/XML/1998/namespace}lang')
     for fact in modelXbrl.facts:
         if fact.xmlLang and fact.xmlLang != lang:
@@ -121,7 +121,7 @@ def rule_fr_kvk_2_03(
     """
     modelXbrl = val.modelXbrl
     for doc in modelXbrl.urlDocs.values():
-        if doc.type == ModelDocument.Type.INSTANCE:
+        if doc.type == ModelDocumentType.INSTANCE:
             for refDoc, docRef in doc.referencesDocument.items():
                 if "href" not in docRef.referenceTypes:
                     continue

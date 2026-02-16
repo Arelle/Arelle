@@ -8,7 +8,8 @@ from collections.abc import Iterable
 from lxml import etree
 from typing import Any
 
-from arelle import ModelDocument, ModelValue
+from arelle import ModelValue
+from arelle.ModelDocumentType import ModelDocumentType
 from arelle.typing import TypeGetText
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.utils.PluginHooks import ValidationHook
@@ -215,7 +216,7 @@ def rule_tr12(
     """
     modelXbrl = val.modelXbrl
     for doc in modelXbrl.urlDocs.values():
-        if doc.type == ModelDocument.Type.INLINEXBRL:
+        if doc.type == ModelDocumentType.INLINEXBRL:
             for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
                 for elt in ixdsHtmlRootElt.iter(etree.Element):
                     if containsScriptMarkers(elt) is not None:
@@ -244,7 +245,7 @@ def rule_tr11(
     _xhtmlNsLen = len(_xhtmlNs)
     modelXbrl = val.modelXbrl
     modelDocument = modelXbrl.modelDocument
-    if modelDocument is not None and modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET):
+    if modelDocument is not None and modelDocument.type in (ModelDocumentType.INLINEXBRL, ModelDocumentType.INLINEXBRLDOCUMENTSET):
         for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
             for elt in ixdsHtmlRootElt.iter(f'{_xhtmlNs}img'):
                 imagesToCheck.add(elt.get("src","").strip())
@@ -295,7 +296,7 @@ def rule_tr16(
     """
     modelXbrl = val.modelXbrl
     for doc in modelXbrl.urlDocs.values():
-        if doc.type == ModelDocument.Type.INLINEXBRL:
+        if doc.type == ModelDocumentType.INLINEXBRL:
             lang = doc.xmlRootElement.get('{http://www.w3.org/XML/1998/namespace}lang')
             if not lang:
                 yield Validation.error(
@@ -325,7 +326,7 @@ def rule_tr17(
     modelXbrl = val.modelXbrl
 
     for doc in modelXbrl.urlDocs.values():
-        if doc.type == ModelDocument.Type.INLINEXBRL:
+        if doc.type == ModelDocumentType.INLINEXBRL:
             for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
                 for elt in ixdsHtmlRootElt.iter():
                     if elt.tag == _xhtmlNs + "base":

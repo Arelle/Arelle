@@ -7,7 +7,9 @@ from typing import TYPE_CHECKING, Any, cast
 from lxml import etree
 from arelle import Locale
 from arelle import ModelValue
+from arelle import XmlUtil
 from arelle.XmlValidateConst import VALID_NO_CONTENT
+from arelle.typing import ModelDocumentBase, ModelObjectBase
 
 if TYPE_CHECKING:
     from arelle.ModelDocument import ModelDocument
@@ -22,16 +24,9 @@ if TYPE_CHECKING:
     from arelle.ModelInstanceObject import ModelDimensionValue
     from arelle.ModelValue import QName, TypeSValue, TypeXValue
 
-XmlUtil: Any = None
-
 emptySet: set[Any] = set()
 
-def init() -> None: # init globals
-    global XmlUtil
-    if XmlUtil is None:
-        from arelle import XmlUtil
-
-class ModelObject(etree.ElementBase):
+class ModelObject(etree.ElementBase, ModelObjectBase):
     """ModelObjects represent the XML elements within a document, and are implemented as custom
     lxml proxy objects.  Each modelDocument has a parser with the parser objects in ModelObjectFactory.py,
     to determine the type of model object to correspond to a proxied lxml XML element.
@@ -342,8 +337,7 @@ class ModelObject(etree.ElementBase):
 
                 assert dtsModelXbrl is not None
                 doc = dtsModelXbrl.urlDocs.get(normalizedUrl)
-        import arelle.ModelDocument
-        if isinstance(doc, arelle.ModelDocument.ModelDocument):
+        if isinstance(doc, ModelDocumentBase):
             if id is None:
                 return cast(ModelObject, doc)
             elif id in doc.idObjects:

@@ -3,7 +3,7 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 
-from arelle.ModelObject import ModelObject, init as moduleObject_init
+from arelle.ModelObject import ModelObject
 from typing import Any, cast, Optional, TYPE_CHECKING, Type
 
 if TYPE_CHECKING:
@@ -46,7 +46,6 @@ def parser(
         baseUrl: str | None,
         target: None = None
 ) -> tuple[etree.XMLParser[etree._Element], KnownNamespacesModelObjectClassLookup, DiscoveringClassLookup]:
-    moduleObject_init()  # init ModelObject globals
     _parser = etree.XMLParser(recover=True, huge_tree=True, target=target,  # type: ignore[call-overload]
                                resolve_entities=False)
     return setParserElementClassLookup(_parser, modelXbrl, baseUrl)

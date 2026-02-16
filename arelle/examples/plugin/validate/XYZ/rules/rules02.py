@@ -4,10 +4,10 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 from collections.abc import Iterable
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 from arelle import XbrlConst
-from arelle.ModelDocument import ModelDocument, Type as ModelDocumentType
+from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
@@ -15,6 +15,9 @@ from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from ..DisclosureSystems import DISCLOSURE_SYSTEM_2022
 from ..PluginValidationDataExtension import PluginValidationDataExtension
+
+if TYPE_CHECKING:
+    from arelle.ModelDocument import ModelDocument
 
 _: TypeGetText
 

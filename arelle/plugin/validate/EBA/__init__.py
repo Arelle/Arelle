@@ -6,7 +6,8 @@ EBA (2.3), EIOPA (2.0.0) Filing Rules Validation
 import os, sys
 import regex as re
 from arelle import PluginManager
-from arelle import ModelDocument, XbrlConst, XmlUtil, UrlUtil, LeiUtil
+from arelle import XbrlConst, XmlUtil, UrlUtil, LeiUtil
+from arelle.ModelDocumentType import ModelDocumentType
 from arelle.HashUtil import md5hash, Md5Sum
 from arelle.ModelDtsObject import ModelConcept, ModelType, ModelLocator, ModelResource
 from arelle.ModelFormulaObject import Aspect
@@ -79,7 +80,7 @@ def validateSetup(val, parameters=None, *args, **kwargs):
 
     val.isEIOPAfullVersion = val.isEIOPA_2_0_1 = False
     modelDocument = val.modelXbrl.modelDocument
-    if modelDocument.type == ModelDocument.Type.INSTANCE:
+    if modelDocument.type == ModelDocumentType.INSTANCE:
         for doc, docRef in modelDocument.referencesDocument.items():
             if "href" in docRef.referenceTypes:
                 if docRef.referringModelObject.localName == "schemaRef":
@@ -539,7 +540,7 @@ def final(val):
     modelXbrl.profileActivity()
     modelXbrl.modelManager.showStatus(_statusMsg)
 
-    if modelDocument.type == ModelDocument.Type.INSTANCE and (val.validateEBA or val.validateEIOPA):
+    if modelDocument.type == ModelDocumentType.INSTANCE and (val.validateEBA or val.validateEIOPA):
 
         if not modelDocument.uri.endswith(".xbrl"):
             modelXbrl.warning("EBA.1.1",

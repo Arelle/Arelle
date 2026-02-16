@@ -13,7 +13,8 @@ from typing import Any, cast
 import regex as re
 from lxml.etree import _Comment, _Element, _ElementTree, _Entity, _ProcessingInstruction
 
-from arelle import LeiUtil, ModelDocument, XbrlConst
+from arelle import LeiUtil, XbrlConst
+from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelDtsObject import ModelResource
 from arelle.ModelInstanceObject import ModelContext
@@ -143,7 +144,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
     esefStatementsOfMonetaryDeclaration = set(qname(_ifrsNs, n) for n in esefStatementsOfMonetaryDeclarationNames)
     esefMandatoryElements2020 = set(qname(_ifrsNs, n) for n in esefMandatoryElementNames2020)
 
-    if modelDocument.type == ModelDocument.Type.INSTANCE and not val.unconsolidated:
+    if modelDocument.type == ModelDocumentType.INSTANCE and not val.unconsolidated:
         modelXbrl.error("ESEF.I.1.instanceShallBeInlineXBRL",
                         _("RTS on ESEF requires inline XBRL instances."),
                         modelObject=modelXbrl)
@@ -168,10 +169,10 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
               ": missing %(missingFiles)s"),
             modelObject=modelXbrl, missingFiles=", ".join(missingFiles))
 
-    #if modelDocument.type == ModelDocument.Type.INLINEXBRLDOCUMENTSET:
+    #if modelDocument.type == ModelDocumentType.INLINEXBRLDOCUMENTSET:
     #    # reports only under reports, none elsewhere
     #    modelXbrl.fileSource.dir
-    if modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET, ModelDocument.Type.INSTANCE, ModelDocument.Type.UnknownXML):
+    if modelDocument.type in (ModelDocumentType.INLINEXBRL, ModelDocumentType.INLINEXBRLDOCUMENTSET, ModelDocumentType.INSTANCE, ModelDocumentType.UnknownXML):
         footnotesRelationshipSet = modelXbrl.relationshipSet("XBRL-footnotes")
         orphanedFootnotes = set()
         noLangFootnotes = set()
@@ -198,7 +199,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
         # check file name of each inline document (which might be below a top-level IXDS)
         ixdsDocDirs: set[str] = set()
         for doc in modelXbrl.urlDocs.values():
-            if doc.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.UnknownXML):
+            if doc.type in (ModelDocumentType.INLINEXBRL, ModelDocumentType.UnknownXML):
                 _baseName, _baseExt = os.path.splitext(doc.basename)
                 if _baseExt not in (".xhtml",".html"):
                     if val.consolidated:
@@ -271,7 +272,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
         styleIxHiddenProperty = val.authParam.get("styleIxHiddenProperty")
         if styleIxHiddenProperty:
             styleIxHiddenPattern = re.compile(rf"(.*[^\w]|^){styleIxHiddenProperty}\s*:\s*([\w.-]+).*")
-        if modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET, ModelDocument.Type.UnknownXML):
+        if modelDocument.type in (ModelDocumentType.INLINEXBRL, ModelDocumentType.INLINEXBRLDOCUMENTSET, ModelDocumentType.UnknownXML):
             hiddenEltIds = {}
             presentedHiddenEltIds = defaultdict(list)
             eligibleForTransformHiddenFacts = []
@@ -487,7 +488,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     countUnreferenced=len(requiredToDisplayFacts),
                     elements=", ".join(sorted(set(str(f.qname) for f in requiredToDisplayFacts))))
             del eligibleForTransformHiddenFacts, hiddenEltIds, presentedHiddenEltIds, requiredToDisplayFacts
-        elif modelDocument.type == ModelDocument.Type.INSTANCE:
+        elif modelDocument.type == ModelDocumentType.INSTANCE:
             for uncast_elt in modelDocument.xmlRootElement.iter():
                 elt = cast(Any, uncast_elt)
 

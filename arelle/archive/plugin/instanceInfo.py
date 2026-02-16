@@ -11,7 +11,7 @@ import regex as re
 from math import isnan
 from collections import defaultdict
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
-from arelle import ModelDocument
+from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ModelInstanceObject import ModelFact
 from arelle.Version import authorLabel, copyrightLabel
 from arelle.XbrlConst import xhtml
@@ -37,7 +37,7 @@ def showInfo(cntlr, options, modelXbrl, _entrypoint, *args, **kwargs):
     cntlr.addToLog("Heap memory before loading {:,}".format(memoryAtStartup), messageCode="info", level=logging.DEBUG)
     cntlr.addToLog("Heap memory after loading {:,}".format(cntlr.memoryUsed), messageCode="info", level=logging.DEBUG)
     cntlr.addToLog("Time to load {:.2f} seconds".format(time.time() - timeAtStart), messageCode="info", level=logging.DEBUG)
-    isInlineXbrl = modelXbrl.modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET)
+    isInlineXbrl = modelXbrl.modelDocument.type in (ModelDocumentType.INLINEXBRL, ModelDocumentType.INLINEXBRLDOCUMENTSET)
     if isInlineXbrl:
         instanceType = "inline XBRL, number of documents {}".format(len(modelXbrl.ixdsHtmlElements))
     else:

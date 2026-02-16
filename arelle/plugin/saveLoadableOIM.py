@@ -79,7 +79,8 @@ from openpyxl.cell.cell import WriteOnlyCell
 from openpyxl.styles import Alignment, Color, PatternFill, fills
 from openpyxl.worksheet.dimensions import ColumnDimension
 
-from arelle import ModelDocument, ValidateDuplicateFacts, XbrlConst
+from arelle import ValidateDuplicateFacts, XbrlConst
+from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ModelInstanceObject import ModelContext, ModelFact
 from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelValue import (
@@ -777,7 +778,7 @@ def saveLoadableOIMMenuCommand(cntlr: CntlrWinMain) -> None:
         or cntlr.modelManager.modelXbrl is None
         or cntlr.modelManager.modelXbrl.modelDocument is None
         or cntlr.modelManager.modelXbrl.modelDocument.type
-        not in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET)
+        not in (ModelDocumentType.INSTANCE, ModelDocumentType.INLINEXBRL, ModelDocumentType.INLINEXBRLDOCUMENTSET)
     ):
         cntlr.addToLog(
             messageCode="arelleOIMsaver",
@@ -908,9 +909,9 @@ class SaveLoadableOIMPlugin(PluginHooks):
             or modelXbrl.modelDocument is None
             or modelXbrl.modelDocument.type
             not in {
-                ModelDocument.Type.INSTANCE,
-                ModelDocument.Type.INLINEXBRL,
-                ModelDocument.Type.INLINEXBRLDOCUMENTSET,
+                ModelDocumentType.INSTANCE,
+                ModelDocumentType.INLINEXBRL,
+                ModelDocumentType.INLINEXBRLDOCUMENTSET,
             }
         ):
             cntlr.addToLog("No XBRL instance has been loaded.")
@@ -931,7 +932,7 @@ class SaveLoadableOIMPlugin(PluginHooks):
             if hasattr(modelXbrl, "ixdsTarget"):
                 ixdsTarget = modelXbrl.ixdsTarget
                 for doc in modelXbrl.modelDocument.referencesDocument:
-                    if doc.type in {ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INSTANCE}:
+                    if doc.type in {ModelDocumentType.INLINEXBRL, ModelDocumentType.INSTANCE}:
                         instanceFilename = Path(doc.uri)
                         if ixdsTarget is not None:
                             basefileStem = f"{instanceFilename.stem}.{ixdsTarget}"
@@ -960,7 +961,7 @@ class SaveLoadableOIMPlugin(PluginHooks):
             and testInstanceDTS is not None
             and testInstanceDTS.modelDocument is not None
             and testInstanceDTS.modelDocument.type
-            in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET)
+            in (ModelDocumentType.INSTANCE, ModelDocumentType.INLINEXBRL, ModelDocumentType.INLINEXBRLDOCUMENTSET)
             and not any(oimErrorPattern.match(error) for error in testInstanceDTS.errors if error is not None)
         ):  # no OIM errors
             try:

@@ -4,16 +4,20 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 from collections import defaultdict
+from typing import TYPE_CHECKING
 
 import regex as re
 
-from arelle import ModelDocument, XbrlConst
-from arelle.ModelDocument import ModelDocument as ModelDocumentClass
+from arelle import XbrlConst
+from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ModelDtsObject import ModelResource
 from arelle.ModelObject import ModelObject
 from arelle.ModelXbrl import ModelXbrl
 from arelle.typing import TypeGetText
 from arelle.XmlValidateConst import VALID
+
+if TYPE_CHECKING:
+    from arelle.ModelDocument import ModelDocument
 
 _: TypeGetText
 
@@ -132,23 +136,23 @@ def validateOIM(modelXbrl: ModelXbrl) -> None:
                             modelObject=elt, qname=elt.qname if isinstance(elt, ModelObject) else elt.tag,
                             base=elt.get("{http://www.w3.org/XML/1998/namespace}base"))
         # todo: multi-document inline instances
-        if modelDocument.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET):
+        if modelDocument.type in (ModelDocumentType.INSTANCE, ModelDocumentType.INLINEXBRL, ModelDocumentType.INLINEXBRLDOCUMENTSET):
             for doc in modelDocument.referencesDocument.keys():
-                if doc.type == ModelDocument.Type.LINKBASE:
+                if doc.type == ModelDocumentType.LINKBASE:
                     modelXbrl.error("xbrlxe:unsupportedLinkbaseReference",
                                         _("Linkbase reference not allowed from instance document."),
                                         modelObject=(modelXbrl.modelDocument,doc))
 
 def _docInSchemaRefedDTS(
-        thisDoc: ModelDocumentClass,
-        roleTypeDoc: ModelDocumentClass,
-        visited: set[ModelDocumentClass] | None = None) -> bool:
+        thisDoc: ModelDocument,
+        roleTypeDoc: ModelDocument,
+        visited: set[ModelDocument] | None = None) -> bool:
     if visited is None:
         visited = set()
     visited.add(thisDoc)
     nonDiscoveringXmlInstanceElements = {XbrlConst.qnLinkRoleRef, XbrlConst.qnLinkArcroleRef}
     for doc, docRef in thisDoc.referencesDocument.items():
-        if thisDoc.type != ModelDocument.Type.INSTANCE or docRef.referringModelObject.qname not in nonDiscoveringXmlInstanceElements:
+        if thisDoc.type != ModelDocumentType.INSTANCE or docRef.referringModelObject.qname not in nonDiscoveringXmlInstanceElements:
             if doc == roleTypeDoc or (doc not in visited and _docInSchemaRefedDTS(doc, roleTypeDoc, visited)):
                 return True
     visited.remove(thisDoc)

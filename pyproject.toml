@@ -176,6 +176,7 @@ module = [
     'arelle.InstanceAspectsEvaluator',
     'arelle.LocalViewer',
     'arelle.ModelDocument',
+    'arelle.ModelDocumentType',
     'arelle.ModelDtsObject',
     'arelle.ModelFormulaObject',
     'arelle.ModelInstanceObject',

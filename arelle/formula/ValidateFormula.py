@@ -8,7 +8,8 @@ from threading import Timer
 
 import regex as re
 
-from arelle import FunctionXs, ModelDocument, ModelXbrl, ValidateXbrlDimensions, XbrlConst, XmlUtil
+from arelle import FunctionXs, ModelXbrl, ValidateXbrlDimensions, XbrlConst, XmlUtil
+from arelle.ModelDocumentType import ModelDocumentType
 from arelle.Aspect import Aspect, aspectModels
 from arelle.ModelFormulaObject import (
     ModelAspectCover,
@@ -755,7 +756,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
         schemaRefs = [
             val.modelXbrl.modelDocument.relativeUri(referencedDoc.uri)
             for referencedDoc in val.modelXbrl.modelDocument.referencesDocument.keys()
-            if referencedDoc.type == ModelDocument.Type.SCHEMA
+            if referencedDoc.type == ModelDocumentType.SCHEMA
         ]
 
     outputXbrlInstance = None
@@ -771,7 +772,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
             uri = uri + ".xml"
             namedInstance = ModelXbrl.create(
                 val.modelXbrl.modelManager,
-                newDocumentType=ModelDocument.Type.INSTANCE,
+                newDocumentType=ModelDocumentType.INSTANCE,
                 url=uri,
                 schemaRefs=schemaRefs,
                 isEntry=True,

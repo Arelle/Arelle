@@ -39,11 +39,13 @@ from typing import Any, TYPE_CHECKING
 from lxml import etree
 from arelle import XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue
 from arelle.Aspect import Aspect
+from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals, roundValue, rangeValue, ValidateCalcsMode
 from arelle.XmlValidateConst import UNVALIDATED, INVALID, VALID
 from arelle.XmlValidate import validate as xmlValidate
 from arelle.XmlUtil import collapseWhitespace
 from arelle.PrototypeInstanceObject import DimValuePrototype
+from arelle.typing import ModelFactBase
 from math import isnan, isinf
 from arelle.ModelObject import ModelObject
 from decimal import Decimal, InvalidOperation
@@ -53,7 +55,6 @@ from arelle.HashUtil import md5hash, Md5Sum
 if TYPE_CHECKING:
     from datetime import date
 
-Type = None
 utrEntries = None
 utrSymbol = None
 POSINF = float("inf")
@@ -130,7 +131,7 @@ class NewFactItemOptions():
         return XmlUtil.datetimeValue(self.endDate, addOneDay=True)
 
 
-class ModelFact(ModelObject):
+class ModelFact(ModelObject, ModelFactBase):
     """
     .. class:: ModelFact(modelDocument)
 
@@ -1725,9 +1726,6 @@ class ModelInlineXbrliXbrl(ModelObject):
 
     def ixIter(self, childOnly=False):
         """(ModelObject) -- generator of child elements of the inline target instance document"""
-        global Type
-        if Type is None:
-            from arelle.ModelDocument import Type
         modelXbrl = self.modelXbrl
         # roleRef and arcroleRef (of each inline document)
         for sourceRefs in (modelXbrl.targetRoleRefs, modelXbrl.targetArcroleRefs):
@@ -1759,7 +1757,7 @@ class ModelInlineXbrliXbrl(ModelObject):
                 arcrole, linkrole, linkqname, arcqname = linkKey
                 if (linkrole and linkqname and arcqname and  # fully specified roles
                     arcrole != "XBRL-footnotes" and
-                    any(lP.modelDocument.type == Type.INLINEXBRL for lP in linkPrototypes)):
+                    any(lP.modelDocument.type == ModelDocumentType.INLINEXBRL for lP in linkPrototypes)):
                     for linkPrototype in linkPrototypes:
                         if linkPrototype not in _ftLinks[linkrole]:
                             _ftLinks[linkrole].append(linkPrototype)

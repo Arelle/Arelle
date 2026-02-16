@@ -9,7 +9,7 @@ from typing import Any
 
 from lxml.etree import _Element
 
-from arelle import ModelDocument
+from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname, qnameEltPfxName
@@ -52,7 +52,7 @@ def rule_fg_nl_03(
     """
     standardNamespaceMap: dict[str, set[str]] = defaultdict(set)
     for modelDocument in val.modelXbrl.urlDocs.values():
-        if modelDocument.type == ModelDocument.Type.INSTANCE:
+        if modelDocument.type == ModelDocumentType.INSTANCE:
             continue
         for element in modelDocument.targetXbrlElementTree.iter():
             for prefix, namespace in element.nsmap.items():
@@ -61,7 +61,7 @@ def rule_fg_nl_03(
 
     warningsMap: dict[tuple[str, str], list[_Element]] = defaultdict(list)
     for modelDocument in val.modelXbrl.urlDocs.values():
-        if modelDocument.type != ModelDocument.Type.INSTANCE:
+        if modelDocument.type != ModelDocumentType.INSTANCE:
             continue
         for element in modelDocument.targetXbrlElementTree.iter():
             for prefix, namespace in element.nsmap.items():
@@ -107,7 +107,7 @@ def rule_fg_nl_04(
     """
     errors = defaultdict(list)
     for doc in val.modelXbrl.urlDocs.values():
-        if doc.type != ModelDocument.Type.INSTANCE:
+        if doc.type != ModelDocumentType.INSTANCE:
             continue
         # Tracks the lower "bound" of the element order starting with the first element.
         boundName = next(iter(INSTANCE_ELEMENT_ORDER))
@@ -162,7 +162,7 @@ def rule_fg_nl_05(
     contextsByDocument = modelXbrl.contextsByDocument()
 
     for doc in modelXbrl.urlDocs.values():
-        if doc.type != ModelDocument.Type.INSTANCE:
+        if doc.type != ModelDocumentType.INSTANCE:
             continue
         root = doc.xmlRootElement
         prefixes = set(k for k in root.nsmap.keys() if k)

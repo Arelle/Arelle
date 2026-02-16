@@ -46,7 +46,8 @@ from arelle.FunctionIxt import ixtNamespaces, ixtNamespaceFunctions
 from arelle.ModelFormulaObject import Trace
 from arelle.Version import authorLabel, copyrightLabel
 from arelle.XmlUtil import setXmlns
-from arelle import ModelDocument, ModelXbrl, ValidateXbrl, XbrlConst
+from arelle import ModelXbrl, ValidateXbrl, XbrlConst
+from arelle.ModelDocumentType import ModelDocumentType
 from arelle.formula import XPathContext, XPathParser
 
 class TransformTester:
@@ -55,7 +56,7 @@ class TransformTester:
 
         # setup tester
         xml = "<rootElement/>"
-        self.modelXbrl = ModelXbrl.create(cntlr.modelManager, ModelDocument.Type.UnknownNonXML, initialXml=xml, isEntry=True)
+        self.modelXbrl = ModelXbrl.create(cntlr.modelManager, ModelDocumentType.UnknownNonXML, initialXml=xml, isEntry=True)
         self.validator = ValidateXbrl.ValidateXbrl(self.modelXbrl)
         self.validator.validate(self.modelXbrl)  # required to set up
         cntlr.showStatus(_("Initializing Formula Grammar"))

@@ -16,15 +16,15 @@ primaryLang = "en"
 excludeImportNamespaces = {XbrlConst.xbrli, XbrlConst.xbrldt}
 
 def saveOIMTaxonomy(dts, jsonFile):
-    from arelle import ModelDocument
+    from arelle.ModelDocumentType import ModelDocumentType
 
     # identify extension schema
     namespacePrefixes = dict((ns, prefix) for prefix, ns in dts.prefixedNamespaces.items())
     namespacesInUse = set()
     extensionSchemaDoc = None
-    if dts.modelDocument.type == ModelDocument.Type.SCHEMA:
+    if dts.modelDocument.type == ModelDocumentType.SCHEMA:
         extensionSchemaDoc = dts.modelDocument
-    elif dts.modelDocument.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET):
+    elif dts.modelDocument.type in (ModelDocumentType.INSTANCE, ModelDocumentType.INLINEXBRL, ModelDocumentType.INLINEXBRLDOCUMENTSET):
         for doc, docReference in dts.modelDocument.referencesDocument.items():
             if "href" in docReference.referenceTypes:
                 extensionSchemaDoc = doc

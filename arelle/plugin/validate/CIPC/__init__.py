@@ -13,7 +13,8 @@ Taxonomy packages:
 import os
 import regex as re
 from lxml.etree import _ElementTree, _Comment, _ProcessingInstruction, _Entity
-from arelle import ModelDocument, XbrlConst
+from arelle import XbrlConst
+from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ModelDtsObject import ModelResource
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFact, ModelInlineFootnote
 from arelle.ModelObject import ModelObject
@@ -82,11 +83,11 @@ def validateXbrlFinally(val, *args, **kwargs):
     modelXbrl.modelManager.showStatus(_statusMsg)
 
 
-    if modelDocument.type == ModelDocument.Type.INSTANCE:
+    if modelDocument.type == ModelDocumentType.INSTANCE:
         modelXbrl.error("cipc:instanceMustBeInlineXBRL",
                         _("CIPC expects inline XBRL instances."),
                         modelObject=modelXbrl)
-    if modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INSTANCE):
+    if modelDocument.type in (ModelDocumentType.INLINEXBRL, ModelDocumentType.INSTANCE):
         footnotesRelationshipSet = modelXbrl.relationshipSet("XBRL-footnotes")
         orphanedFootnotes = set()
         nonEnglishFootnotes = set()
@@ -110,7 +111,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                 for rel in footnotesRelationshipSet.toModelObject(elt)):
                 footnoteRoleErrors.add(elt)
 
-        if modelDocument.type == ModelDocument.Type.INLINEXBRL:
+        if modelDocument.type == ModelDocumentType.INLINEXBRL:
             _baseName, _baseExt = os.path.splitext(modelDocument.basename)
             if _baseExt not in (".xhtml",) or not namePattern.match(_baseName):
                 modelXbrl.warning("cipc:fileNameMalformed",
@@ -157,7 +158,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                                 booleanFactsWithEmptyContent.add(elt)
                         else:
                             transformRegistryErrors.add(elt)
-        elif modelDocument.type == ModelDocument.Type.INSTANCE:
+        elif modelDocument.type == ModelDocumentType.INSTANCE:
             for elt in modelDocument.xmlRootElement.iter():
                 if elt.qname == XbrlConst.qnLinkFootnote: # for now assume no private elements extend link:footnote
                     checkFootnote(elt, elt.stringValue)
@@ -166,7 +167,7 @@ def validateXbrlFinally(val, *args, **kwargs):
         # identify type of filer (FAS, Full IFES, IFRS for SMES)
         reportingModules = [reportingModulePattern.match(referencedDoc.uri).group(1)
                             for referencedDoc in modelDocument.referencesDocument.keys()
-                            if referencedDoc.type == ModelDocument.Type.SCHEMA
+                            if referencedDoc.type == ModelDocumentType.SCHEMA
                             if reportingModulePattern.match(referencedDoc.uri)]
 
         if len(reportingModules) != 1 or reportingModules[0] not in cipcModules:

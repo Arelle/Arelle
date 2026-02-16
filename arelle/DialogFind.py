@@ -9,7 +9,8 @@ except ImportError:
 import regex as re
 from arelle.UiUtil import gridHdr, gridCell, gridCombobox, label, checkbox, radiobutton
 from arelle.CntlrWinTooltip import ToolTip
-from arelle import ModelDocument, XmlUtil
+from arelle import XmlUtil
+from arelle.ModelDocumentType import ModelDocumentType
 from arelle.formula import XPathContext, XPathParser
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelInstanceObject import ModelFact
@@ -179,19 +180,19 @@ class DialogFind(Toplevel):
 
         docType = self.modelManager.modelXbrl.modelDocument.type if self.modelManager.modelXbrl else None
         if self.options["messagesLog"]:
-            if docType == ModelDocument.Type.RSSFEED and self.options["exprType"] == "xpath":
+            if docType == ModelDocumentType.RSSFEED and self.options["exprType"] == "xpath":
                 messagebox.showerror(_("Find cannot be completed"),
                          _("XPath matching is not available for searching messages, please choose text or regular expression.  "), parent=self)
                 return
         else:
             if not self.modelManager.modelXbrl or not docType in (
-                 ModelDocument.Type.SCHEMA, ModelDocument.Type.LINKBASE, ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL,
-                 ModelDocument.Type.RSSFEED, ModelDocument.Type.INLINEXBRLDOCUMENTSET):
+                 ModelDocumentType.SCHEMA, ModelDocumentType.LINKBASE, ModelDocumentType.INSTANCE, ModelDocumentType.INLINEXBRL,
+                 ModelDocumentType.RSSFEED, ModelDocumentType.INLINEXBRLDOCUMENTSET):
                 messagebox.showerror(_("Find cannot be completed"),
                          _("Find requires an opened DTS or RSS Feed"), parent=self.parent)
                 return
 
-            if docType == ModelDocument.Type.RSSFEED and self.options["exprType"] == "xpath":
+            if docType == ModelDocumentType.RSSFEED and self.options["exprType"] == "xpath":
                 messagebox.showerror(_("Find cannot be completed"),
                          _("XPath matching is not available for an RSS Feed, please choose text or regular expression.  "), parent=self)
                 return
@@ -269,7 +270,7 @@ class DialogFind(Toplevel):
                 for lineNumber, line in enumerate(logViewLines):
                     if pattern.search(line):
                         objsFound.add(lineNumber)
-            elif self.modelXbrl.modelDocument.type == ModelDocument.Type.RSSFEED:
+            elif self.modelXbrl.modelDocument.type == ModelDocumentType.RSSFEED:
                 for rssItem in self.modelXbrl.modelDocument.items:
                     if any(pattern.search(str(value)) for name, value in rssItem.propertyView):
                         objsFound.add(rssItem)
