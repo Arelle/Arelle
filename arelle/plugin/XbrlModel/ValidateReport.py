@@ -37,7 +37,7 @@ def resolveFact(txmyMdl, txmyObj, fact):
         # presume this error would have been reported on validating loaded taxonomy model
         return
     for factValue in fact.factValues:
-        _valid, _value = validateValue(txmyMdl, txmyObj, factValue, factValue.value, cDataType, f"/value", "oime:invalidFactValue")
+        _valid, _value = validateValue(txmyMdl, txmyObj, factValue, factValue.value, cDataType, f"/value", "oimte:factValueDataTypeMismatch")
         fact._valid = _valid
         fact._value = _value
         if factValue.language and concept.type.isOimTextFactType:

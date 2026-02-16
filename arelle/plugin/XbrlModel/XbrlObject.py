@@ -164,7 +164,9 @@ class XbrlObject(XbrlModelClass):
                     continue
             if hasattr(self, propName):
                 val = getattr(self, propName)
-                if isinstance(propType, GenericAlias): # set, dict, etc
+                if val is None:
+                    val = "(none)"
+                elif isinstance(propType, GenericAlias): # set, dict, etc
                     val = f"({len(val)})"
                 propVals.append(f"{propName}: {val}")
         return f"{objName}[{', '.join(propVals)}]"

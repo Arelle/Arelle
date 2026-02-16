@@ -403,7 +403,16 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                 prefixNamespaces[prefix] = ns
                 setXmlns(schemaDoc, prefix, ns)
         if "documentNamespace" in documentInfo:
-            schemaDoc.targetNamespace = prefixNamespaces.get(documentInfo["documentNamespace"])
+            pfx = documentInfo["documentNamespace"]
+            # must be a prefix or URL in namespaces
+            if pfx in prefixNamespaces:
+                schemaDoc.targetNamespace = prefixNamespaces[pfx]
+            elif pfx in namespaceUrls:
+                schemaDoc.targetNamespace = pfx
+            else:
+                xbrlCompMdl.error("oime:documentNamespaceHasNoPrefix",
+                            _("Taxonomy document namespace '%(namespace)s' is not defined in namespaces"),
+                            sourceFileLine=href, namespace=pfx)
         if "urlMapping" in documentInfo:
             for prefix, url in documentInfo["urlMapping"].items():
                 namespaceUrls[prefix] = url

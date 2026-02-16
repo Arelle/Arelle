@@ -128,19 +128,19 @@ def selectImportedObjects(txmyMdl, newTxmy, impTxObj):
                 txmyMdl.error("oimte:invalidSelection",
                           _("The importTaxonomy %(name)s selection[%(nbr)s] is incomplete."),
                           xbrlObject=impTxObj, name=name, nbr=iSel)
+                hasSelError = True
             else:
                 if whereObj.property.namespaceURI is None: # object property
                     if whereObj.property.localName not in getattr(xbrlObjectTypes[selObj.objectType], "__annotations__", EMPTY_DICT):
                         txmyMdl.error("oimte:invalidSelectorOperator",
                                   _("The importTaxonomy %(name)s selection[%(selNbr)s]/where[%(whNbr)s] property %(qname)s does not exist for object %(objType)s."),
                                   xbrlObject=impTxObj, name=name, selNbr=iSel, whNbr=iWh, qname=whereObj.property, objType=selObj.objectType)
+                        hasSelError = True
     if selections and not hasSelError:
         hasSel = True
         for obj in txmyMdl.namedObjects.values():
             if i0 <= obj.xbrlMdlObjIndex <= iL: # applies to this taxonomy import
                 for selObj in impTxObj.selections:
-                    if type(obj) not in xbrlObjectQNames:
-                        print("trace")
                     if xbrlObjectQNames[type(obj)] == selObj.objectType and (
                         all((eval(obj, whereObj) for whereObj in selObj.where))):
                         selObjs[obj.xbrlMdlObjIndex - i0] = True
