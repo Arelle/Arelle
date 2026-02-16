@@ -1,5 +1,5 @@
 # Arelle ixbrl-viewer plugin
-ixbrl-viewer==1.4.87
+ixbrl-viewer==1.4.88
 
 # EDGAR plugins
 holidays==0.90

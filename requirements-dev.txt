@@ -3,7 +3,7 @@ flake8-noqa==1.5.0
 
 mypy==1.19.1
 
-types-boto3[s3]==1.42.44
+types-boto3[s3]==1.42.49
 types-lxml==2026.1.1
 types-openpyxl==3.1.5.20250919
 types-PyMySQL==1.1.0.20251220
