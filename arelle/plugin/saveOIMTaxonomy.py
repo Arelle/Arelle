@@ -16,7 +16,7 @@ primaryLang = "en"
 excludeImportNamespaces = {XbrlConst.xbrli, XbrlConst.xbrldt}
 
 def saveOIMTaxonomy(dts, jsonFile):
-    from arelle import ModelDocument, XmlUtil
+    from arelle import ModelDocument
 
     # identify extension schema
     namespacePrefixes = dict((ns, prefix) for prefix, ns in dts.prefixedNamespaces.items())

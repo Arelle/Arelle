@@ -20,7 +20,6 @@ if TYPE_CHECKING:
     from arelle.XmlValidate import XsdPattern
 
 import regex as re
-XmlUtil = None
 
 @overload
 def qname(value: ModelObject | str | QName) -> QName: ...
@@ -586,7 +585,7 @@ class YearMonthDayTimeDuration():
             return "PT0S"
         return "P" + ''.join(per)
 
-def time(value: str, castException: type[Exception] | None = None) -> Time | None:
+def time(value: str | ModelObject | datetime.time | datetime.datetime | Any | None, castException: type[Exception] | None = None) -> Time | None:
     from arelle.ModelObject import ModelObject
 
     if value == "MinTime":

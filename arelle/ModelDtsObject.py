@@ -1,5 +1,5 @@
 """
-:mod:`arelle.ModelDtsObjuect`
+:mod:`arelle.ModelDtsObject`
 ~~~~~~~~~~~~~~~~~~~
 
 .. module:: arelle.ModelDtsObject
@@ -59,13 +59,17 @@ validation.
 """
 from __future__ import annotations
 from collections import defaultdict
-import os, sys
-from lxml import etree
 import decimal
-from arelle import (XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue, XmlValidate)
-from arelle.XmlValidateConst import UNVALIDATED, VALID
+import os, sys
+from arelle import (
+    Locale,
+    ModelValue,
+    XbrlConst,
+    XbrlUtil,
+    XmlUtil,
+    XmlValidate,
+)
 from arelle.ModelObject import ModelObject
-from arelle.ModelValue import QName
 
 ModelFact = None
 
@@ -1081,10 +1085,15 @@ class ModelType(ModelNamableTerm):
     @property
     def qnameDerivedFrom(self):
         """(QName) -- the type that this type is derived from"""
-        typeOrUnion = XmlUtil.schemaBaseTypeDerivedFrom(self)
-        if isinstance(typeOrUnion,list): # union
-            return [self.schemaNameQname(t) for t in typeOrUnion]
-        return self.schemaNameQname(typeOrUnion)
+        try:
+            return self._qnameDerivedFrom
+        except AttributeError:
+            typeOrUnion = XmlUtil.schemaBaseTypeDerivedFrom(self)
+            if isinstance(typeOrUnion,list): # union
+                self._qnameDerivedFrom = [self.schemaNameQname(t) for t in typeOrUnion]
+            else:
+                self._qnameDerivedFrom = self.schemaNameQname(typeOrUnion)
+            return self._qnameDerivedFrom
 
     @property
     def typeDerivedFrom(self):
@@ -1592,6 +1601,8 @@ class ModelLink(ModelObject):
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
     """
+    labeledResources: dict[str, list[ModelObject]]
+
     def init(self, modelDocument):
         super(ModelLink, self).init(modelDocument)
         self.labeledResources = defaultdict(list)
@@ -1728,6 +1739,8 @@ class ModelRelationship(ModelObject):
 
         Value of xlink:role attribute of parent extended link element
     """
+    _equivalenceHash: int | None
+
     def __init__(self, modelDocument, arcElement, fromModelObject, toModelObject):
         # copy model object properties from arcElement
         self.arcElement = arcElement
@@ -1735,6 +1748,7 @@ class ModelRelationship(ModelObject):
         self.init(modelDocument)
         self.fromModelObject = fromModelObject
         self.toModelObject = toModelObject
+        self._equivalenceHash = None
 
     def clear(self):
         self.__dict__.clear() # dereference here, not an lxml object, don't use superclass clear()
@@ -2024,15 +2038,19 @@ class ModelRelationship(ModelObject):
 
     @property
     def equivalenceHash(self): # not exact, use equivalenceKey if hashes are the same
-        return hash((self.qname,
-                     self.arcrole,
-                     self.linkQname,
-                     self.linkrole,  # needed when linkrole=None merges multiple links
-                     self.fromModelObject.objectIndex if isinstance(self.fromModelObject, ModelObject) else -1,
-                     self.toModelObject.objectIndex if isinstance(self.toModelObject, ModelObject) else -1,
-                     self.order,
-                     self.weight,
-                     self.preferredLabel))
+        if self._equivalenceHash is None:
+            self._equivalenceHash = hash((
+                self.qname,
+                self.arcrole,
+                self.linkQname,
+                self.linkrole,  # needed when linkrole=None merges multiple links
+                self.fromModelObject.objectIndex if isinstance(self.fromModelObject, ModelObject) else -1,
+                self.toModelObject.objectIndex if isinstance(self.toModelObject, ModelObject) else -1,
+                self.order,
+                self.weight,
+                self.preferredLabel,
+            ))
+        return self._equivalenceHash
 
     @property
     def equivalenceKey(self):
