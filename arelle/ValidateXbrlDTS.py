@@ -1486,16 +1486,18 @@ def checkNamespaceSchemaConnectivity(val: ValidateXbrl) -> None:
                     includeNeighbors[refDoc].add(schema)
                     includedSchemas.add(refDoc)
         # Walk the undirected graph to find connected components,
-        # then count top-level schemas (not included by anything) in each.
+        # then count effective entry points per component. Each component
+        # contributes max(non-included count, 1) so that disjoint
+        # components (even fully circular ones) are detected.
         #
         # Examples:
-        #   N2->N1         : 1 component, 1 top-level (N2)          -> valid
-        #   N2->N1<-N3     : 1 component, 2 top-levels (N2, N3)     -> error
-        #   N4->N5->N6->N4 : 1 component, 0 top-levels (circular)   -> valid
-        #   A<->B, C<->D   : 2 components, 0 top-levels each        -> error
+        #   N2->N1         : 1 component, 1 non-included (N2)       -> valid
+        #   N2->N1<-N3     : 1 component, 2 non-included (N2, N3)   -> error
+        #   N4->N5->N6->N4 : 1 component, 0 non-included (circular) -> valid
+        #   A<->B, C<->D   : 2 components, 0 non-included each      -> error
         visited: set[ModelDocument] = set()
-        topLevelCount = 0
-        topLevelSchemas: set[ModelDocument] = set()
+        entryPointCount = 0
+        errorSchemas: set[ModelDocument] = set()
         for schema in schemaDocs:
             if schema in visited:
                 continue
@@ -1508,26 +1510,27 @@ def checkNamespaceSchemaConnectivity(val: ValidateXbrl) -> None:
                 visited.add(current)
                 component.add(current)
                 queue.extend(includeNeighbors[current] - visited)
-            componentTopLevelSchemas = component - includedSchemas
-            # Circular components (e.g. N4<->N5) have zero top-level
-            # schemas since every schema is included. max(..., 1)
-            # treats the whole cycle as one valid group.
-            topLevelCount += max(len(componentTopLevelSchemas), 1)
-            # Collect top-level schemas for the error message. For
-            # circular components, fall back to the whole component
-            # since there is no meaningful top-level subset.
-            topLevelSchemas |= componentTopLevelSchemas or component
+            componentEntryPoints = component - includedSchemas
+            # A single circular component (e.g. N4<->N5) has no
+            # non-included schema; max(..., 1) counts it as 1, which
+            # is valid on its own. Multiple disjoint components each
+            # contribute at least 1, so the sum > 1 triggers an error.
+            entryPointCount += max(len(componentEntryPoints), 1)
+            # Collect schemas for error reporting. For circular
+            # components (where every schema is included by another),
+            # include all schemas in the component as context.
+            errorSchemas |= componentEntryPoints or component
         # Multiple URIs mapping to the same document (via dedup) count as
-        # additional top-level entries since they represent separate loads
+        # additional entry points since they represent separate loads
         # not connected by xs:include.
-        topLevelUriCount = (len(uris) - len(schemaDocs)) + topLevelCount
-        if topLevelUriCount > 1:
+        entryPointUriCount = (len(uris) - len(schemaDocs)) + entryPointCount
+        if entryPointUriCount > 1:
             val.modelXbrl.error(
                 "xbrl:multipleTopLevelSchemasForNamespace",
-                _("Multiple top-level schemas found for namespace %(namespace)s: %(schemas)s. "
-                  "All schemas for a namespace must be connected by xs:include links "
-                  "with at most one top-level schema."),
-                modelObject=list(topLevelSchemas),
+                _("Schemas for namespace %(namespace)s are not fully connected via xs:include: %(schemas)s. "
+                  "All schemas for a namespace must form a single connected group of xs:include links "
+                  "with at most one top-level (non-included) schema."),
+                modelObject=list(errorSchemas),
                 namespace=targetNamespace,
                 schemas=", ".join(sorted(uris)),
             )
