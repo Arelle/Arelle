@@ -47,6 +47,8 @@ class LocaleDict(TypedDict):
     thousands_sep: str  # ','
     grouping: list[int]  # [3, 3, 0]
 
+# Use these for isinstance checks when importing, say, ModelDocument
+# seems excessive or might lead to circular references.
 class ModelDocumentBase: pass
 class ModelFactBase: pass
 class ModelObjectBase: pass
