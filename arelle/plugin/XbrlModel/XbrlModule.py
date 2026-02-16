@@ -24,16 +24,16 @@ from .XbrlReport import XbrlFact, XbrlFootnote, XbrlTableTemplate, XbrlFactSourc
 from .XbrlModel import XbrlCompiledModel
 from .XbrlTransform import XbrlTransform
 from .XbrlUnit import XbrlUnit
-from .XbrlTypes import XbrlModuleType, QNameKeyType
+from .XbrlTypes import XbrlModuleType, QNameKeyType, OptionalNonemptySet
 from .XbrlObject import XbrlModelObject, XbrlReferencableModelObject
 from .XbrlLayout import XbrlLayout, XbrlDataTable, XbrlAxis, XbrlAxisHeader
 
 class XbrlModelType(XbrlReferencableModelObject):
     module: XbrlModuleType
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the model type object.
-    allowedObjects: Optional[OrderedSet[QName]] # (optional) Defines a set of QNames representing the object types that may use the modelType. If no value is provided then the modelType can be used with any object type. 
-    allowedProperties: Optional[OrderedSet[QName]] # (optional) Defines a set of property QNames that can be used with the model type. If no value is provided then any property can be used with the model type. 
-    requiredProperties: Optional[OrderedSet[QName]] # (optional) Defines a set of property QNames that must be properties of the xbrl:xbrlModelObject. The set MUST NOT be empty.
+    allowedObjects: OptionalNonemptySet[QName] # (optional) Defines a set of QNames representing the object types that may use the modelType. If no value is provided then the modelType can be used with any object type. 
+    allowedProperties: OptionalNonemptySet[QName] # (optional) Defines a set of property QNames that can be used with the model type. If no value is provided then any property can be used with the model type. 
+    requiredProperties: OptionalNonemptySet[QName] # (optional) Defines a set of property QNames that must be properties of the xbrl:xbrlModelObject. The set MUST NOT be empty.
 
 class XbrlModule(XbrlModelObject):
     compiledModel: XbrlCompiledModel
@@ -77,7 +77,7 @@ class XbrlModule(XbrlModelObject):
 
 referencableObjectTypes = {
         qname("{https://xbrl.org/2025}xbrl:xbrlModelObject"): XbrlModule,
-         qname("{https://xbrl.org/2025}xbrl:conceptObject"): XbrlConcept,
+        qname("{https://xbrl.org/2025}xbrl:conceptObject"): XbrlConcept,
         qname("{https://xbrl.org/2025}xbrl:abstractObject"): XbrlAbstract,
         qname("{https://xbrl.org/2025}xbrl:cubeObject"): XbrlCube,
         qname("{https://xbrl.org/2025}xbrl:dimensionObject"): XbrlDimension,

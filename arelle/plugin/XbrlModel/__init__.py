@@ -66,7 +66,7 @@ from .XbrlModel import XbrlCompiledModel, castToXbrlCompiledModel
 from .XbrlModule import XbrlModule, xbrlObjectTypes
 from .XbrlObject import XbrlObject, XbrlReferencableModelObject, XbrlTaxonomyTagObject, XbrlObjectType
 from .XbrlTypes import (XbrlTaxonomyModelType, XbrlModuleType, XbrlLayoutType, XbrlReportType, XbrlUnitTypeType,
-                        QNameKeyType, SQNameKeyType, DefaultTrue, DefaultFalse, DefaultZero, DefaultOne, OptionalList)
+                        QNameKeyType, SQNameKeyType, DefaultTrue, DefaultFalse, DefaultZero, DefaultOne, OptionalList, OptionalNonemptySet)
 from .ValidateXbrlModel import validateCompiledModel
 from .ValidateReport import validateReport, validateDateResolutionConceptFacts
 from .SelectImportedObjects import selectImportedObjects
@@ -269,7 +269,11 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                         p_last = p
                     msg = err.message
                     if p_last == "allowedAsLinkProperty" and " is not of type " in msg:
-                        errCode = "oime:invalidPropertyValue"
+                        errCode = "oimte:invalidPropertyValue"
+                    elif " is a required property" in msg:
+                        errCode = "oimte:invalidJSONStructureMissingRequiredProperty"
+                    elif "Additional properties are not allowed " in msg:
+                        errCode = "oimte:invalidJSONStructureInvalidPropertyDefined"
                     elif p_last == "language" and " does not match " in msg:
                         errCode = "oimte:invalidLanguage"
                     elif p_last == "coreDimensions" and "unique elements" in msg:
@@ -302,7 +306,11 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                     p_last = p
                 msg = ex.message
                 if p_last == "allowedAsLinkProperty" and " must be boolean" in msg:
-                    errCode = "oime:invalidPropertyValue"
+                    errCode = "oimte:invalidPropertyValue"
+                elif re.match(r".* must contain .* properties", msg):
+                    errCode = "oimte:invalidJSONStructureMissingRequiredProperty"
+                elif re.match(r".* must not contain .* properties", msg):
+                    errCode = "oimte:invalidJSONStructureInvalidPropertyDefined"
                 elif p_last == "language" and " must match " in msg:
                     errCode = "oimte:invalidLanguage"
                 elif p_last == "coreDimensions" and " unique items" in msg:
@@ -503,7 +511,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                                             # must have None value for validation to work
                                         if propName == "relatedNames":
                                             relatedNames.append(listObj)
-                                    if propClass in (set, OrderedSet):
+                                    if propClass in (set, OrderedSet, OptionalNonemptySet):
                                         try:
                                             if listObj not in collectionProp:
                                                 collectionProp.add(listObj)
@@ -515,6 +523,10 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                                             print("exception adding collection property")
                                     else:
                                         collectionProp.append(listObj)
+                            if propClass == OptionalNonemptySet and not collectionProp:
+                                error("oimte:invalidEmptySet",
+                                      _("Invalid empty set %(propName)s in jsonObj: %(path)s"),
+                                      sourceFileLine=href, propName=propName, path="/".join(pathParts + [propName]))
                         elif isinstance(jsonValue, dict) and _keyClass is not None:
                             for iObj, (valKey, valVal) in enumerate(jsonValue.items()):
                                 if isinstance(_keyClass, type) and issubclass(_keyClass,QName):
@@ -576,7 +588,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                 else: # absent json element
                     if not (propClass in (dict, set, OrderedSet, OrderedDict) or
                             (isinstance(propClass, _GenericAlias) and propClass.__origin__ == list)):
-                        if propClass != OptionalList: # OptionalList is null if completely absent, not an empty list
+                        if propClass not in (OptionalList, OptionalNonemptySet): # OptionalList, OptionalNonemptySet is null if completely absent, not an empty list
                             jsonEltsReqdButMissing.append(f"{'/'.join(pathParts + [propName])}")
                         setattr(newObj, propName, None) # not defaultable but set to None anyway
             if unexpectedJsonProps:
