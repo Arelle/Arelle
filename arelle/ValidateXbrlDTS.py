@@ -13,7 +13,7 @@ from arelle.ModelValue import qname
 from arelle.PluginManager import pluginClassMethods
 from arelle.XhtmlValidate import ixMsgCode
 from lxml import etree
-from collections import defaultdict
+from collections import defaultdict, deque
 import regex as re
 
 if TYPE_CHECKING:
@@ -1446,3 +1446,91 @@ def _shouldValidateBaseTaxonomyDoc(val: ValidateXbrl, modelDocument: ModelDocume
     if baseTaxonomyValidationMode == ValidateBaseTaxonomiesMode.DISCLOSURE_SYSTEM:
         return modelDocument.uri not in getattr(val.disclosureSystem, "standardTaxonomiesDict", {})
     raise ValueError(f"Invalid base taxonomy validation mode: {baseTaxonomyValidationMode}")
+
+
+def checkNamespaceSchemaConnectivity(val: ValidateXbrl) -> None:
+    """
+    Validates that for each targetNamespace with multiple schemas,
+    there is at most one top-level schema (not included by other schemas).
+
+    XBRL 2.1 Section 3.2 requirement (2025 revision).
+    """
+
+    # Iterate urlDocs rather than namespaceDocs because the schema dedup
+    # in ModelDocument.load() can map multiple URIs to the same ModelDocument.
+    # We need to count distinct URIs to detect schemas loaded from separate
+    # paths (e.g., local linkbase ref vs HTTP xsi:schemaLocation).
+    schemaUrisByNamespace: defaultdict[str, list[str]] = defaultdict(list)
+    for uri, doc in val.modelXbrl.urlDocs.items():
+        if doc.type == ModelDocumentType.SCHEMA and doc.targetNamespace:
+            schemaUrisByNamespace[doc.targetNamespace].append(uri)
+    for targetNamespace, uris in schemaUrisByNamespace.items():
+        if len(uris) <= 1:
+            continue
+        schemaDocs = {val.modelXbrl.urlDocs[uri] for uri in uris}
+        # Two data structures are built from xs:include relationships:
+        #
+        # includeNeighbors: undirected adjacency list for connectivity.
+        #   If A includes B, both A->B and B->A are recorded so the walk can
+        #   discover connected components regardless of include direction.
+        #
+        # includedSchemas: directed "is included" set for top-level detection.
+        #   Only the target of an include (refDoc) is added. A schema in
+        #   this set is NOT top-level because some other schema includes it.
+        includeNeighbors: defaultdict[ModelDocument, set[ModelDocument]] = defaultdict(set)
+        includedSchemas: set[ModelDocument] = set()
+        for schema in schemaDocs:
+            for refDoc, docRef in schema.referencesDocument.items():
+                if "include" in docRef.referenceTypes and refDoc in schemaDocs:
+                    includeNeighbors[schema].add(refDoc)
+                    includeNeighbors[refDoc].add(schema)
+                    includedSchemas.add(refDoc)
+        # Walk the undirected graph to find connected components,
+        # then count effective entry points per component. Each component
+        # contributes max(non-included count, 1) so that disjoint
+        # components (even fully circular ones) are detected.
+        #
+        # Examples:
+        #   N2->N1         : 1 component, 1 non-included (N2)       -> valid
+        #   N2->N1<-N3     : 1 component, 2 non-included (N2, N3)   -> error
+        #   N4->N5->N6->N4 : 1 component, 0 non-included (circular) -> valid
+        #   A<->B, C<->D   : 2 components, 0 non-included each      -> error
+        visited: set[ModelDocument] = set()
+        entryPointCount = 0
+        errorSchemas: set[ModelDocument] = set()
+        for schema in schemaDocs:
+            if schema in visited:
+                continue
+            component: set[ModelDocument] = set()
+            queue = deque([schema])
+            while queue:
+                current = queue.popleft()
+                if current in visited:
+                    continue
+                visited.add(current)
+                component.add(current)
+                queue.extend(includeNeighbors[current] - visited)
+            componentEntryPoints = component - includedSchemas
+            # A single circular component (e.g. N4<->N5) has no
+            # non-included schema; max(..., 1) counts it as 1, which
+            # is valid on its own. Multiple disjoint components each
+            # contribute at least 1, so the sum > 1 triggers an error.
+            entryPointCount += max(len(componentEntryPoints), 1)
+            # Collect schemas for error reporting. For circular
+            # components (where every schema is included by another),
+            # include all schemas in the component as context.
+            errorSchemas |= componentEntryPoints or component
+        # Multiple URIs mapping to the same document (via dedup) count as
+        # additional entry points since they represent separate loads
+        # not connected by xs:include.
+        entryPointUriCount = (len(uris) - len(schemaDocs)) + entryPointCount
+        if entryPointUriCount > 1:
+            val.modelXbrl.error(
+                "xbrl:multipleTopLevelSchemasForNamespace",
+                _("Schemas for namespace %(namespace)s are not fully connected via xs:include: %(schemas)s. "
+                  "All schemas for a namespace must form a single connected group of xs:include links "
+                  "with at most one top-level (non-included) schema."),
+                modelObject=list(errorSchemas),
+                namespace=targetNamespace,
+                schemas=", ".join(sorted(uris)),
+            )

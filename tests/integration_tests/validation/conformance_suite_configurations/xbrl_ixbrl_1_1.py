@@ -21,6 +21,12 @@ config = ConformanceSuiteConfig(
         ),
     ],
     capture_warnings=False,
+    expected_additional_testcase_errors={f"*tests/{s}": val for s, val in {
+        # test case references two distinct example schemas with the same target namespace and no includes.
+        'baseURIs/PASS-baseURI-on-ix-references-multiRefs.xml:V-1003': {
+            'xbrl:multipleTopLevelSchemasForNamespace': 1,
+        },
+    }.items()},
     info_url='https://specifications.xbrl.org/work-product-index-inline-xbrl-inline-xbrl-1.1.html',
     name=PurePath(__file__).stem,
     plugins=frozenset({'inlineXbrlDocumentSet', '../../tests/plugin/testcaseIxExpectedHtmlFixup.py'}),
