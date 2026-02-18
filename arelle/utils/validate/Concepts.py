@@ -2,12 +2,8 @@ from __future__ import annotations
 
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelXbrl import ModelXbrl
+from arelle.utils.validate.Common import isExtensionUri
 
-
-def isExtensionUri(uri: str, modelXbrl: ModelXbrl, taxonomyUrlPrefixes: frozenset[str]) -> bool:
-    if uri.startswith(modelXbrl.uriDir):
-        return True
-    return not any(uri.startswith(taxonomyUri) for taxonomyUri in taxonomyUrlPrefixes)
 
 def getExtensionConcepts(modelXbrl: ModelXbrl, taxonomyUrlPrefixes: frozenset[str]) -> list[ModelConcept]:
     """

@@ -22,13 +22,13 @@ from arelle.ModelValue import QName, qname
 from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateDuplicateFacts import DuplicateType
 from arelle.ValidateXbrl import ValidateXbrl
-from arelle.XmlValidateConst import VALID
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
+from arelle.utils.validate.Document import checkDocumentEncoding
 from arelle.utils.validate.Validation import Validation
 from arelle.utils.validate.ValidationUtil import hasPresentationalConceptsWithFacts
-from ..Constants import AccountingStandard, JAPAN_LANGUAGE_CODES, REPORT_ELR_URI_PATTERN, REPORT_ELR_ID_PATTERN
+from ..Constants import AccountingStandard, JAPAN_LANGUAGE_CODES, REPORT_ELR_URI_PATTERN, REPORT_ELR_ID_PATTERN, STANDARD_TAXONOMY_URL_PREFIXES
 from ..ControllerPluginData import ControllerPluginData
 from ..DeiRequirements import DeiItemStatus
 from ..DisclosureSystems import DISCLOSURE_SYSTEM_EDINET
@@ -134,6 +134,31 @@ def rule_EC1057E(
                       "Please add '【提出日】' to the relevant file."),
                 file=modelDocument.basename,
             )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC5000E(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC5000E: The encoding of the file must be UTF-8.
+    """
+    invalidEncodings = checkDocumentEncoding(val, ['utf-8', 'utf-8-sig'], STANDARD_TAXONOMY_URL_PREFIXES)
+    for modelDocument in invalidEncodings:
+        yield Validation.error(
+            codes='EDINET.EC5000E',
+            msg=_("The encoding is not UTF-8. "
+                  "File name: '%(path)s'. "
+                  "Please change the encoding of the relevant file to UTF-8."),
+            path=modelDocument.uri,
+            modelObject=modelDocument,
+        )
 
 
 @validation(
