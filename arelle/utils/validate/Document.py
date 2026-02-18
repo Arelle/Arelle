@@ -22,7 +22,7 @@ def checkDocumentEncoding(val: ValidateXbrl, encodings: list[str], taxonomyUrlPr
     for modelDocument in val.modelXbrl.urlDocs.values():
         if not isExtensionUri(modelDocument.uri, val.modelXbrl, taxonomyUrlPrefixes):
             continue
-        if ModelDocumentType == cast(type[ModelDocumentType], ModelDocumentType.INLINEXBRLDOCUMENTSET):
+        if modelDocument.type == ModelDocumentType.INLINEXBRLDOCUMENTSET:
             continue
         if documentType is not None and modelDocument.type != documentType:
             continue

@@ -14,9 +14,9 @@ from arelle import UrlUtil, XbrlConst, XmlUtil
 from arelle.ModelDocumentType import ModelDocumentType
 from arelle.HtmlUtil import attrValue
 from arelle.LinkbaseType import LinkbaseType
-from arelle.ModelDtsObject import ModelConcept, ModelResource
+from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFootnote
-from arelle.ModelObject import ModelObject, ModelComment
+from arelle.ModelObject import ModelObject
 from arelle.ModelValue import QName
 from arelle.PrototypeDtsObject import LocPrototype, ArcPrototype
 from arelle.UrlUtil import isHttpUrl, splitDecodeFragment
@@ -30,7 +30,6 @@ from arelle.utils.Contexts import getDuplicateContextGroups
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.Units import getDuplicateUnitGroups
 from arelle.utils.validate.Decorator import validation
-from arelle.utils.validate.Document import checkDocumentEncoding
 from arelle.utils.validate.Validation import Validation
 from ..Constants import domainItemTypeQname, JAPAN_LANGUAGE_CODES, NUMERIC_LABEL_ROLES, LC3_NAME_PATTERN, STANDARD_TAXONOMY_URL_PREFIXES
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
