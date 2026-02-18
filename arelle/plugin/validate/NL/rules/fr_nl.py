@@ -22,7 +22,9 @@ from arelle.typing import TypeGetText
 from arelle.utils.Contexts import partitionModelXbrlContexts
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
+from arelle.utils.validate.Document import checkDocumentEncoding
 from arelle.utils.validate.Validation import Validation
+from ..Constants import STANDARD_TAXONOMY_URL_PREFIXES
 from ..DisclosureSystems import NT_DISCLOSURE_SYSTEMS
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
@@ -203,14 +205,13 @@ def rule_fr_nl_1_05(
     """
     FR-NL-1.05: The character encoding UTF-8 MUST be used in the filing instance document
     """
-    for doc in val.modelXbrl.urlDocs.values():
-        if doc.type == ModelDocumentType.INSTANCE:
-            if 'UTF-8' != doc.documentEncoding.upper():
-                yield Validation.error(
-                    codes='NL.FR-NL-1.05',
-                    msg=_('The XML character encoding \'UTF-8\' MUST be used in the filing instance document'),
-                    modelObject=val.modelXbrl.modelDocument
-                )
+    invalidEncodings = checkDocumentEncoding(val, ['utf-8'], STANDARD_TAXONOMY_URL_PREFIXES, cast(ModelDocumentType, ModelDocumentType.INSTANCE))
+    for doc in invalidEncodings:
+        yield Validation.error(
+            codes='NL.FR-NL-1.05',
+            msg=_('The XML character encoding \'UTF-8\' MUST be used in the filing instance document'),
+            modelObject=doc
+        )
 
 
 @validation(

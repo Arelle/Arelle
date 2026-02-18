@@ -23,7 +23,8 @@ from arelle.ModelValue import QName, gYear
 from arelle.ModelXbrl import ModelXbrl
 from arelle.typing import assert_type
 from arelle.utils.PluginData import PluginData
-from arelle.utils.validate.Concepts import isExtensionUri, getExtensionConcepts
+from arelle.utils.validate.Concepts import getExtensionConcepts
+from arelle.utils.validate.Common import isExtensionUri
 from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
 from arelle.XbrlConst import ixbrl11
 from arelle.XmlValidate import lexicalPatterns

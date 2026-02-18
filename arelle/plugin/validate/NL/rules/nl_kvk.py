@@ -24,7 +24,8 @@ from arelle.ModelObject import ModelObject
 from arelle.PrototypeDtsObject import PrototypeObject
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
-from arelle.utils.validate.Concepts import isExtensionUri, getExtensionConcepts
+from arelle.utils.validate.Concepts import getExtensionConcepts
+from arelle.utils.validate.Common import isExtensionUri
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.DetectScriptsInXhtml import containsScriptMarkers
 from arelle.utils.validate.ESEFImage import ImageValidationParameters, validateImage
