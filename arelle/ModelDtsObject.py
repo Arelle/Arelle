@@ -69,6 +69,7 @@ from arelle import (
     XmlUtil,
     XmlValidate,
 )
+from arelle.LinkRelationships import LinkRelationships
 from arelle.ModelObject import ModelObject
 from arelle.typing import ModelFactBase, ModelResourceBase
 
@@ -1592,7 +1593,7 @@ class ModelEnumeration(ModelNamableTerm):
     def value(self):
         return self.get("value")
 
-class ModelLink(ModelObject):
+class ModelLink(ModelObject, LinkRelationships):
     """
     .. class:: ModelLink(modelDocument)
 
@@ -1602,14 +1603,13 @@ class ModelLink(ModelObject):
     :type modelDocument: ModelDocument
     """
     labeledResources: dict[str, list[ModelObject]]
+    role: str
 
     def init(self, modelDocument):
         super(ModelLink, self).init(modelDocument)
         self.labeledResources = defaultdict(list)
-
-    @property
-    def role(self):
-        return self.get("{http://www.w3.org/1999/xlink}role")
+        self.role = self.get("{http://www.w3.org/1999/xlink}role")
+        self.initRelationships()
 
 class ModelResource(ModelObject, ModelResourceBase):
     """
@@ -1738,10 +1738,10 @@ class ModelRelationship(ModelObject):
     """
     _equivalenceHash: int | None
 
-    def __init__(self, modelDocument, arcElement, fromModelObject, toModelObject):
+    def __init__(self, modelDocument, arcElement, fromModelObject, toModelObject, linkrole=None):
         # copy model object properties from arcElement
         self.arcElement = arcElement
-        self.linkrole = arcElement.getparent().get("{http://www.w3.org/1999/xlink}role")
+        self.linkrole = linkrole if linkrole is not None else arcElement.getparent().get("{http://www.w3.org/1999/xlink}role")
         self.init(modelDocument)
         self.fromModelObject = fromModelObject
         self.toModelObject = toModelObject

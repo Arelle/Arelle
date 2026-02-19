@@ -6,11 +6,12 @@ from __future__ import annotations
 # initialize object from loaded linkbases
 from collections import defaultdict
 from dataclasses import dataclass
+from itertools import chain
 from typing import Any
 from arelle import Locale, XbrlConst, ModelValue
 from arelle.ModelObject import ModelObject
-from arelle.ModelDtsObject import ModelRelationship, ModelResource
-from arelle.PrototypeDtsObject import LocPrototype, PrototypeObject
+from arelle.ModelDtsObject import ModelRelationship
+from arelle.PrototypeDtsObject import PrototypeObject
 from arelle.PythonUtil import OrderedSet
 from arelle.XbrlConst import consecutiveArcrole
 import sys
@@ -24,6 +25,7 @@ def create(modelXbrl, arcrole, linkrole=None, linkqname=None, arcqname=None, inc
 def ineffectiveArcs(baseSetModelLinks, arcrole, arcqname=None):
     hashEquivalentRels = defaultdict(list)
     for modelLink in baseSetModelLinks:
+        modelLinkrole = modelLink.role
         for linkChild in modelLink:
             if (isinstance(linkChild,(ModelObject,PrototypeObject)) and
                 linkChild.get("{http://www.w3.org/1999/xlink}type") == "arc" and
@@ -33,7 +35,7 @@ def ineffectiveArcs(baseSetModelLinks, arcrole, arcqname=None):
                 toLabel = linkChild.get("{http://www.w3.org/1999/xlink}to")
                 for fromResource in modelLink.labeledResources[fromLabel]:
                     for toResource in modelLink.labeledResources[toLabel]:
-                        modelRel = ModelRelationship(modelLink.modelDocument, linkChild, fromResource.dereference(), toResource.dereference())
+                        modelRel = ModelRelationship(modelLink.modelDocument, linkChild, fromResource.dereference(), toResource.dereference(), linkrole=modelLinkrole)
                         hashEquivalentRels[modelRel.equivalenceHash].append(modelRel)
     # determine ineffective relationships
     ineffectives = []
@@ -144,52 +146,41 @@ class ModelRelationshipSet:
             arcrole = (arcrole,)
 
         for modelLink in modelLinks:
-            arcs = []
             linkEltQname = modelLink.qname
-            for linkChild in modelLink:
-                linkChildArcrole = linkChild.get("{http://www.w3.org/1999/xlink}arcrole")
-                if linkChild.get("{http://www.w3.org/1999/xlink}type") == "arc" and linkChildArcrole:
-                    if isFootnoteRel: # arcrole is fact-footnote or other custom footnote relationship
-                        arcs.append(linkChild)
-                    elif isDimensionRel:
-                        if XbrlConst.isDimensionArcrole(linkChildArcrole):
-                            arcs.append(linkChild)
-                    elif isFormulaRel:
-                        if XbrlConst.isFormulaArcrole(linkChildArcrole):
-                            arcs.append(linkChild)
-                    elif isTableRenderingRel:
-                        if XbrlConst.isTableRenderingArcrole(linkChildArcrole):
-                            arcs.append(linkChild)
-                    elif (linkChildArcrole in arcrole and
-                          (arcqname is None or arcqname == linkChild.qname) and
-                          (linkqname is None or linkqname == linkEltQname)):
-                        arcs.append(linkChild)
+            if not (linkqname is None or linkqname == linkEltQname):
+                continue
+            linkRelationships = []
+            if isDimensionRel:
+                linkRelationships.append(modelLink.dimensionRelationships)
+            elif isFormulaRel:
+                linkRelationships.append(modelLink.formulaRelationships)
+            elif isTableRenderingRel:
+                linkRelationships.append(modelLink.tableRenderingRelationships)
+            elif isFootnoteRel:
+                linkRelationships.append(modelLink.relationships)
+            else:
+                for _arcrole in arcrole:
+                    if arcqname is None:
+                        linkRelationships.append(modelLink.relationshipsByArcrole.get(_arcrole, ()))
+                    else:
+                        linkRelationships.append(modelLink.relationshipsByArcroleArcqname.get(_arcrole, {}).get(arcqname, ()))
 
             # build network
-            for arcElement in arcs:
-                fromLabel = arcElement.get("{http://www.w3.org/1999/xlink}from")
-                toLabel = arcElement.get("{http://www.w3.org/1999/xlink}to")
-                for fromResource in modelLink.labeledResources[fromLabel]:
-                    if not isinstance(fromResource,(ModelResource,LocPrototype)):
-                        continue
-                    for toResource in modelLink.labeledResources[toLabel]:
-                        if not isinstance(toResource,(ModelResource,LocPrototype)):
-                            continue
-                        modelRel = ModelRelationship(modelLink.modelDocument, arcElement, fromResource.dereference(), toResource.dereference())
-                        modelRelEquivalenceHash = modelRel.equivalenceHash
-                        if modelRelEquivalenceHash not in relationships:
-                            relationships[modelRelEquivalenceHash] = modelRel
-                        else: # use equivalenceKey instead of hash
-                            otherRel = relationships[modelRelEquivalenceHash]
-                            if otherRel is not USING_EQUIVALENCE_KEY: # move equivalentRel to use key instead of hasn
-                                if modelRel.isIdenticalTo(otherRel):
-                                    continue # skip identical arc
-                                relationships[otherRel.equivalenceKey] = otherRel
-                                relationships[modelRelEquivalenceHash] = USING_EQUIVALENCE_KEY
-                            modelRelEquivalenceKey = modelRel.equivalenceKey    # this is a complex tuple to compute, get once for below
-                            if modelRelEquivalenceKey not in relationships or \
-                                modelRel.priorityOver(relationships[modelRelEquivalenceKey]):
-                                relationships[modelRelEquivalenceKey] = modelRel
+            for modelRel in chain.from_iterable(linkRelationships):
+                modelRelEquivalenceHash = modelRel.equivalenceHash
+                if modelRelEquivalenceHash not in relationships:
+                    relationships[modelRelEquivalenceHash] = modelRel
+                else: # use equivalenceKey instead of hash
+                    otherRel = relationships[modelRelEquivalenceHash]
+                    if otherRel is not USING_EQUIVALENCE_KEY: # move equivalentRel to use key instead of hasn
+                        if modelRel.isIdenticalTo(otherRel):
+                            continue # skip identical arc
+                        relationships[otherRel.equivalenceKey] = otherRel
+                        relationships[modelRelEquivalenceHash] = USING_EQUIVALENCE_KEY
+                    modelRelEquivalenceKey = modelRel.equivalenceKey    # this is a complex tuple to compute, get once for below
+                    if modelRelEquivalenceKey not in relationships or \
+                        modelRel.priorityOver(relationships[modelRelEquivalenceKey]):
+                        relationships[modelRelEquivalenceKey] = modelRel
 
         #reduce effective arcs and order relationships...
         self.modelRelationshipsFrom = None
