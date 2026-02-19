@@ -6,6 +6,7 @@ from enum import Enum, auto
 from typing import TYPE_CHECKING
 from arelle import (ModelDtsObject, HtmlUtil, UrlUtil, XmlUtil, XbrlUtil, XbrlConst,
                     XmlValidate)
+from arelle.ModelDocument import urlMatchPattern as xbrlOrgUrlVariant
 from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ModelRelationshipSet import baseSetRelationship
 from arelle.ModelObject import ModelObject, ModelComment
@@ -1461,8 +1462,19 @@ def checkNamespaceSchemaConnectivity(val: ValidateXbrl) -> None:
     # We need to count distinct URIs to detect schemas loaded from separate
     # paths (e.g., local linkbase ref vs HTTP xsi:schemaLocation).
     schemaUrisByNamespace: defaultdict[str, list[str]] = defaultdict(list)
+    seenXbrlOrgGroups: defaultdict[str, set[tuple[str, ...]]] = defaultdict(set)
     for uri, doc in val.modelXbrl.urlDocs.items():
         if doc.type == ModelDocumentType.SCHEMA and doc.targetNamespace:
+            # Skip xbrl.org URIs that differ only by http/https or www
+            # subdomain from a URI already collected for this namespace.
+            # Matches the tolerance in ModelDocument.load() for SEC IFRS
+            # 2024 filings where extensible-enumerations-2.0.xsd is
+            # referenced with (FASB SRT) and without (IFRS) the www subdomain.
+            if (m := xbrlOrgUrlVariant.match(uri)):
+                seen = seenXbrlOrgGroups[doc.targetNamespace]
+                if m.groups() in seen:
+                    continue
+                seen.add(m.groups())
             schemaUrisByNamespace[doc.targetNamespace].append(uri)
     for targetNamespace, uris in schemaUrisByNamespace.items():
         if len(uris) <= 1:

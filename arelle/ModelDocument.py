@@ -31,7 +31,7 @@ from arelle.typing import ModelDocumentBase
 from arelle.ModelDocumentType import ModelDocumentType as _Type
 Type = _Type
 
-urlMatchPattern = re.compile("^https?://(?:www.)?(xbrl.org)/(.*)$") # for checking allowable schemaLocation mismatches
+urlMatchPattern = re.compile(r"^https?://(?:www\.)?(xbrl\.org)/(.*)$") # for checking allowable schemaLocation mismatches
 
 creationSoftwareNames = None
 
