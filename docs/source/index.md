@@ -6,6 +6,7 @@
 install
 command_line
 faq
+versioning
 esef
 user_guides/user_guides
 plugins/plugins
