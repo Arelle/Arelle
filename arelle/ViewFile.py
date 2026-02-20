@@ -1,11 +1,18 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-import csv, io, json, sys
+from __future__ import annotations
+
+import csv, io, json
+from typing import TYPE_CHECKING
+
 import regex as re
 from lxml import etree
 from decimal import Decimal
 from arelle.FileSource import FileNamedStringIO
+
+if TYPE_CHECKING:
+    from arelle.ModelXbrl import ModelXbrl
 
 NoneType = type(None) # for isinstance testing
 
@@ -24,7 +31,15 @@ nonNameCharPattern =  re.compile(r"[^\w\-\.:]")
 
 class View:
     # note that cssExtras override any css entries provided by this module if they have the same name
-    def __init__(self, modelXbrl, outfile, rootElementName, lang=None, style="table", cssExtras=""):
+    def __init__(
+            self,
+            modelXbrl: ModelXbrl | None,
+            outfile,
+            rootElementName,
+            lang=None,
+            style="table",
+            cssExtras=""
+    ):
         global Workbook, cell, utils, Font, PatternFill, Border, Alignment, Color, fills, Side
         self.modelXbrl = modelXbrl
         self.lang = lang
@@ -348,9 +363,13 @@ class View:
                                      xmlcharrefreplace= (self.type == HTML) )
                 if not isinstance(self.outfile, FileNamedStringIO):
                     fh.close()
-                self.modelXbrl.info("info", _("Saved output %(type)s to %(file)s"), file=self.outfile, type=fileType)
+                if self.modelXbrl:
+                    self.modelXbrl.info("info", _("Saved output %(type)s to %(file)s"), file=self.outfile, type=fileType)
             except (IOError, EnvironmentError) as err:
-                self.modelXbrl.exception("arelle:htmlIOError", _("Failed to save output %(type)s to %(file)s: %(error)s"), file=self.outfile, type=fileType, error=err)
+                if self.modelXbrl:
+                    self.modelXbrl.exception("arelle:htmlIOError", _("Failed to save output %(type)s to %(file)s: %(error)s"), file=self.outfile, type=fileType, error=err)
+                else:
+                    raise
         self.modelXbrl = None
         if self.type == HTML:
             self.tblElt = None
