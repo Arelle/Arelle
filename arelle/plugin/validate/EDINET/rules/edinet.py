@@ -938,211 +938,6 @@ def rule_EC8034W(
 
 
 @validation(
-    hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
-)
-def rule_EC8069W(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
-        *args: Any,
-        **kwargs: Any,
-) -> Iterable[Validation]:
-    """
-    EDINET.EC8069W: If tagging IssuedSharesTotalNumberOfSharesEtcTextBlock, also tag using at least one of the following three elements:"
-    "Overview of the corporate governance system (company with auditors) [text block]" (CorporateGovernanceCompanyWithCorporateAuditorsTextBlock) ・
-    "Overview of the corporate governance system (company with audit and supervisory committee) [text block]" (CorporateGovernanceCompanyWithAuditAndSupervisoryCommitteeTextBlock)
-    "Overview of the corporate governance system (company with nominating committee, etc.) [text block]" (CorporateGovernanceCompanyWithNominatingAndOtherCommitteesTextBlock)
-
-    If a role indicating a disclosure of securities information and if IssuedSharesTotalNumberOfSharesEtcTextBlock is tagged and non-nil then the one or more of the above three elements must also be tagged and non-nil.
-    """
-    roleUris = (
-        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo24SecuritiesRegistrationStatement',
-        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo27SecuritiesRegistrationStatement',
-        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo3AnnualSecuritiesReport',
-        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo32AnnualSecuritiesReport',
-        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo4AnnualSecuritiesReport',
-        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo43QuarterlySecuritiesReport',
-        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo43SemiAnnualSecuritiesReport',
-        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo24SecuritiesRegistrationStatement',
-        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo27SecuritiesRegistrationStatement',
-        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo3AnnualSecuritiesReport',
-        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo32AnnualSecuritiesReport',
-        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo4AnnualSecuritiesReport',
-        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo43QuarterlySecuritiesReport',
-        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo43SemiAnnualSecuritiesReport'
-    )
-    if not hasPresentationalConceptsWithFacts(val.modelXbrl, roleUris):
-        return
-    if not pluginData.hasValidNonNilFact(val.modelXbrl, pluginData.issuedSharesTotalNumberOfSharesEtcQn):
-        return
-    if (
-            pluginData.hasValidNonNilFact(val.modelXbrl, pluginData.corporateGovernanceCompanyWithAuditAndSupervisoryCommitteeTextBlockQn) or
-            pluginData.hasValidNonNilFact(val.modelXbrl, pluginData.corporateGovernanceCompanyWithCorporateAuditorsTextBlockQn) or
-            pluginData.hasValidNonNilFact(val.modelXbrl, pluginData.corporateGovernanceCompanyWithNominatingAndOtherCommitteesTextBlockQn)
-    ):
-        return
-    totalStockShares = val.modelXbrl.factsByQname.get(pluginData.issuedSharesTotalNumberOfSharesEtcQn)
-    yield Validation.error(
-        codes='EDINET.EC8069W',
-        msg=_("If tagging IssuedSharesTotalNumberOfSharesEtcTextBlock, also tag using at least one of the following three elements: \n"
-              "'Overview of corporate governance system (company with auditors) [Text Block]' (CorporateGovernanceCompanyWithCorporateAuditorsTextBlock) \n"
-              "'Overview of corporate governance system (company with audit and supervisory committee) [Text Block]' (CorporateGovernanceCompanyWithAuditAndSupervisoryCommitteeTextBlock)\n"
-              "'Overview of corporate governance system (company with nominating committee, etc.) [Text Block]' (CorporateGovernanceCompanyWithNominatingAndOtherCommitteesTextBlock)\n"),
-        modelObject=totalStockShares
-    )
-
-
-@validation(
-    hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
-)
-def rule_EC8073E(
-    pluginData: PluginValidationDataExtension,
-    val: ValidateXbrl,
-    *args: Any,
-    **kwargs: Any,
-) -> Iterable[Validation]:
-    """
-    EDINET.EC8073E: Prohibited characters are used in the labels for descendents of
-                    CategoriesOfDirectorsAndOtherOfficersAxis except for ExecutiveOfficersMember
-    """
-    axisConcept = val.modelXbrl.qnameConcepts.get(pluginData.categoriesOfDirectorsAndOtherOfficersAxisQn)
-    if axisConcept is None:
-        return
-    illegalCharactersPattern = pluginData.getIllegalCharactersPattern(val.modelXbrl)
-    defRelSet = val.modelXbrl.relationshipSet(tuple(LinkbaseType.DEFINITION.getArcroles()))
-    labelRelSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
-    for rel in defRelSet.fromModelObject(axisConcept):
-        if rel.toModelObject is None or rel.toModelObject.qname == pluginData.executiveOfficersMemberQn:
-            continue
-        for labelRel in labelRelSet.fromModelObject(rel.toModelObject):
-            if labelRel.toModelObject is None or labelRel.toModelObject.textValue is None:
-                continue
-            illegalChars = set(illegalCharactersPattern.findall(labelRel.toModelObject.textValue))
-            if any(illegalChars):
-                yield Validation.error(
-                    codes='EDINET.EC8073E',
-                    msg=_("The concept: %(concept)s has a %(role)s label which contains characters that are not "
-                          "allowed. Label: %(label)s, disallowed characters: %(characters)s"),
-                    concept=rel.toModelObject.qname.localName,
-                    role=labelRel.toModelObject.role,
-                    label=labelRel.toModelObject.textValue,
-                    characters=list(illegalChars)
-                )
-
-
-@validation(
-    hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
-)
-def rule_EC8073W_EC8074W(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
-        *args: Any,
-        **kwargs: Any,
-) -> Iterable[Validation]:
-    """
-    EDINET.EC8073W: Prohibited characters are used in Japanese labels for descendents of ExecutiveOfficersMember
-    EDINET.EC8074W: Prohibited characters are used in English labels for descendents of ExecutiveOfficersMember
-    """
-    memberConcept = val.modelXbrl.qnameConcepts.get(pluginData.executiveOfficersMemberQn)
-    if memberConcept is None:
-        return
-
-    # Pattern breakdown:
-    # \u0020-\u007E : Basic Latin (Alphanumeric + Symbols)
-    # \u00C0-\u00D6 : Latin-1 Letters (Part 1)
-    # \u00D8-\u00F6 : Latin-1 Letters (Part 2)
-    # \u00F8-\u00FF : Latin-1 Letters (Part 3)
-    # Note: U+00D7 is '×' and U+00F7 is '÷', which are symbols.
-    illegalEnglishCharactersPattern = regex.compile(r'[^\u0020-\u007E\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF]')
-    illegalJapaneseCharactersPattern = pluginData.getIllegalCharactersPattern(val.modelXbrl)
-
-    defRelSet = val.modelXbrl.relationshipSet(tuple(LinkbaseType.DEFINITION.getArcroles()))
-    labelRelSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
-    conceptsLabelsToCheck = {memberConcept}.union(
-        {rel.toModelObject for rel in defRelSet.fromModelObject(memberConcept) if rel.toModelObject is not None}
-    )
-    for concept in conceptsLabelsToCheck:
-        for labelRel in labelRelSet.fromModelObject(concept):
-            label = labelRel.toModelObject
-            if label is None or label.textValue is None:
-                continue
-
-            # Check Japanese labels
-            if label.xmlLang in JAPAN_LANGUAGE_CODES:
-                illegalChars = set(illegalJapaneseCharactersPattern.findall(label.textValue))
-                if illegalChars:
-                    yield Validation.warning(
-                        codes='EDINET.EC8073W',
-                        msg=_("The concept: %(concept)s has a %(role)s label which contains characters that are not "
-                              "allowed. Label: %(label)s, disallowed characters: %(characters)s"),
-                        concept=concept.qname.localName,
-                        role=label.role,
-                        label=label.textValue,
-                        characters=list(illegalChars)
-                    )
-
-            # Check English labels
-            elif label.xmlLang == 'en':
-                illegalChars = set(illegalEnglishCharactersPattern.findall(label.textValue))
-                if illegalChars:
-                    yield Validation.warning(
-                        codes='EDINET.EC8074W',
-                        msg=_("The concept: %(concept)s has a %(role)s label which contains characters that are not "
-                              "allowed. Label: %(label)s, disallowed characters: %(characters)s"),
-                        concept=concept.qname.localName,
-                        role=label.role,
-                        label=label.textValue,
-                        characters=sorted(illegalChars)
-                    )
-
-
-@validation(
-    hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
-)
-def rule_EC8075W(
-    pluginData: PluginValidationDataExtension,
-    val: ValidateXbrl,
-    *args: Any,
-    **kwargs: Any,
-) -> Iterable[Validation]:
-    """
-    EDINET.EC8075W: The percentage of female executives has not been tagged in detail. Ensure that there is
-    a nonnil value disclosed for jpcrp_cor:RatioOfFemaleDirectorsAndOtherOfficers.
-    """
-    if pluginData.isCorporateForm(val.modelXbrl):
-        if not pluginData.hasValidNonNilFact(val.modelXbrl, pluginData.ratioOfFemaleDirectorsAndOtherOfficersQn):
-            yield Validation.warning(
-                codes='EDINET.EC8075W',
-                msg=_("The percentage of female executives has not been tagged in detail."),
-                )
-
-
-@validation(
-    hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
-)
-def rule_EC8076W(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
-        *args: Any,
-        **kwargs: Any,
-) -> Iterable[Validation]:
-    """
-    EDINET.EC8076W: "Issued Shares, Total Number of Shares, etc. [Text Block]" (IssuedSharesTotalNumberOfSharesEtcTextBlock) is not tagged.
-    Applies to forms 3 and 4.
-    """
-    if pluginData.isStockForm(val.modelXbrl) and pluginData.isCorporateReport(val.modelXbrl):
-        if not pluginData.hasValidNonNilFact(val.modelXbrl, pluginData.issuedSharesTotalNumberOfSharesEtcQn):
-            yield Validation.warning(
-                codes='EDINET.EC8076W',
-                msg=_('"Issued Shares, Total Number of Shares, etc. [Text Block]" (IssuedSharesTotalNumberOfSharesEtcTextBlock) is not tagged.'),
-            )
-
-
-@validation(
     hook=ValidationHook.COMPLETE,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
@@ -2145,3 +1940,208 @@ def rule_EC8068W(
         msg=_("The statement of changes in equity is not tagged in detail. "
               "Please provide detailed tagging of the statement of changes in equity."),
     )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8069W(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8069W: If tagging IssuedSharesTotalNumberOfSharesEtcTextBlock, also tag using at least one of the following three elements:"
+    "Overview of the corporate governance system (company with auditors) [text block]" (CorporateGovernanceCompanyWithCorporateAuditorsTextBlock) ・
+    "Overview of the corporate governance system (company with audit and supervisory committee) [text block]" (CorporateGovernanceCompanyWithAuditAndSupervisoryCommitteeTextBlock)
+    "Overview of the corporate governance system (company with nominating committee, etc.) [text block]" (CorporateGovernanceCompanyWithNominatingAndOtherCommitteesTextBlock)
+
+    If a role indicating a disclosure of securities information and if IssuedSharesTotalNumberOfSharesEtcTextBlock is tagged and non-nil then the one or more of the above three elements must also be tagged and non-nil.
+    """
+    roleUris = (
+        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo24SecuritiesRegistrationStatement',
+        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo27SecuritiesRegistrationStatement',
+        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo3AnnualSecuritiesReport',
+        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo32AnnualSecuritiesReport',
+        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo4AnnualSecuritiesReport',
+        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo43QuarterlySecuritiesReport',
+        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo43SemiAnnualSecuritiesReport',
+        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo24SecuritiesRegistrationStatement',
+        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo27SecuritiesRegistrationStatement',
+        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo3AnnualSecuritiesReport',
+        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo32AnnualSecuritiesReport',
+        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo4AnnualSecuritiesReport',
+        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo43QuarterlySecuritiesReport',
+        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo43SemiAnnualSecuritiesReport'
+    )
+    if not hasPresentationalConceptsWithFacts(val.modelXbrl, roleUris):
+        return
+    if not pluginData.hasValidNonNilFact(val.modelXbrl, pluginData.issuedSharesTotalNumberOfSharesEtcQn):
+        return
+    if (
+            pluginData.hasValidNonNilFact(val.modelXbrl, pluginData.corporateGovernanceCompanyWithAuditAndSupervisoryCommitteeTextBlockQn) or
+            pluginData.hasValidNonNilFact(val.modelXbrl, pluginData.corporateGovernanceCompanyWithCorporateAuditorsTextBlockQn) or
+            pluginData.hasValidNonNilFact(val.modelXbrl, pluginData.corporateGovernanceCompanyWithNominatingAndOtherCommitteesTextBlockQn)
+    ):
+        return
+    totalStockShares = val.modelXbrl.factsByQname.get(pluginData.issuedSharesTotalNumberOfSharesEtcQn)
+    yield Validation.error(
+        codes='EDINET.EC8069W',
+        msg=_("If tagging IssuedSharesTotalNumberOfSharesEtcTextBlock, also tag using at least one of the following three elements: \n"
+              "'Overview of corporate governance system (company with auditors) [Text Block]' (CorporateGovernanceCompanyWithCorporateAuditorsTextBlock) \n"
+              "'Overview of corporate governance system (company with audit and supervisory committee) [Text Block]' (CorporateGovernanceCompanyWithAuditAndSupervisoryCommitteeTextBlock)\n"
+              "'Overview of corporate governance system (company with nominating committee, etc.) [Text Block]' (CorporateGovernanceCompanyWithNominatingAndOtherCommitteesTextBlock)\n"),
+        modelObject=totalStockShares
+    )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8073E(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8073E: Prohibited characters are used in the labels for descendents of
+                    CategoriesOfDirectorsAndOtherOfficersAxis except for ExecutiveOfficersMember
+    """
+    axisConcept = val.modelXbrl.qnameConcepts.get(pluginData.categoriesOfDirectorsAndOtherOfficersAxisQn)
+    if axisConcept is None:
+        return
+    illegalCharactersPattern = pluginData.getIllegalCharactersPattern(val.modelXbrl)
+    defRelSet = val.modelXbrl.relationshipSet(tuple(LinkbaseType.DEFINITION.getArcroles()))
+    labelRelSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
+    for rel in defRelSet.fromModelObject(axisConcept):
+        if rel.toModelObject is None or rel.toModelObject.qname == pluginData.executiveOfficersMemberQn:
+            continue
+        for labelRel in labelRelSet.fromModelObject(rel.toModelObject):
+            if labelRel.toModelObject is None or labelRel.toModelObject.textValue is None:
+                continue
+            illegalChars = set(illegalCharactersPattern.findall(labelRel.toModelObject.textValue))
+            if any(illegalChars):
+                yield Validation.error(
+                    codes='EDINET.EC8073E',
+                    msg=_("The concept: %(concept)s has a %(role)s label which contains characters that are not "
+                          "allowed. Label: %(label)s, disallowed characters: %(characters)s"),
+                    concept=rel.toModelObject.qname.localName,
+                    role=labelRel.toModelObject.role,
+                    label=labelRel.toModelObject.textValue,
+                    characters=list(illegalChars)
+                )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8073W_EC8074W(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8073W: Prohibited characters are used in Japanese labels for descendents of ExecutiveOfficersMember
+    EDINET.EC8074W: Prohibited characters are used in English labels for descendents of ExecutiveOfficersMember
+    """
+    memberConcept = val.modelXbrl.qnameConcepts.get(pluginData.executiveOfficersMemberQn)
+    if memberConcept is None:
+        return
+
+    # Pattern breakdown:
+    # \u0020-\u007E : Basic Latin (Alphanumeric + Symbols)
+    # \u00C0-\u00D6 : Latin-1 Letters (Part 1)
+    # \u00D8-\u00F6 : Latin-1 Letters (Part 2)
+    # \u00F8-\u00FF : Latin-1 Letters (Part 3)
+    # Note: U+00D7 is '×' and U+00F7 is '÷', which are symbols.
+    illegalEnglishCharactersPattern = regex.compile(r'[^\u0020-\u007E\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF]')
+    illegalJapaneseCharactersPattern = pluginData.getIllegalCharactersPattern(val.modelXbrl)
+
+    defRelSet = val.modelXbrl.relationshipSet(tuple(LinkbaseType.DEFINITION.getArcroles()))
+    labelRelSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
+    conceptsLabelsToCheck = {memberConcept}.union(
+        {rel.toModelObject for rel in defRelSet.fromModelObject(memberConcept) if rel.toModelObject is not None}
+    )
+    for concept in conceptsLabelsToCheck:
+        for labelRel in labelRelSet.fromModelObject(concept):
+            label = labelRel.toModelObject
+            if label is None or label.textValue is None:
+                continue
+
+            # Check Japanese labels
+            if label.xmlLang in JAPAN_LANGUAGE_CODES:
+                illegalChars = set(illegalJapaneseCharactersPattern.findall(label.textValue))
+                if illegalChars:
+                    yield Validation.warning(
+                        codes='EDINET.EC8073W',
+                        msg=_("The concept: %(concept)s has a %(role)s label which contains characters that are not "
+                              "allowed. Label: %(label)s, disallowed characters: %(characters)s"),
+                        concept=concept.qname.localName,
+                        role=label.role,
+                        label=label.textValue,
+                        characters=list(illegalChars)
+                    )
+
+            # Check English labels
+            elif label.xmlLang == 'en':
+                illegalChars = set(illegalEnglishCharactersPattern.findall(label.textValue))
+                if illegalChars:
+                    yield Validation.warning(
+                        codes='EDINET.EC8074W',
+                        msg=_("The concept: %(concept)s has a %(role)s label which contains characters that are not "
+                              "allowed. Label: %(label)s, disallowed characters: %(characters)s"),
+                        concept=concept.qname.localName,
+                        role=label.role,
+                        label=label.textValue,
+                        characters=sorted(illegalChars)
+                    )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8075W(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8075W: The percentage of female executives has not been tagged in detail. Ensure that there is
+    a nonnil value disclosed for jpcrp_cor:RatioOfFemaleDirectorsAndOtherOfficers.
+    """
+    if pluginData.isCorporateForm(val.modelXbrl):
+        if not pluginData.hasValidNonNilFact(val.modelXbrl, pluginData.ratioOfFemaleDirectorsAndOtherOfficersQn):
+            yield Validation.warning(
+                codes='EDINET.EC8075W',
+                msg=_("The percentage of female executives has not been tagged in detail."),
+            )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8076W(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8076W: "Issued Shares, Total Number of Shares, etc. [Text Block]" (IssuedSharesTotalNumberOfSharesEtcTextBlock) is not tagged.
+    Applies to forms 3 and 4.
+    """
+    if pluginData.isStockForm(val.modelXbrl) and pluginData.isCorporateReport(val.modelXbrl):
+        if not pluginData.hasValidNonNilFact(val.modelXbrl, pluginData.issuedSharesTotalNumberOfSharesEtcQn):
+            yield Validation.warning(
+                codes='EDINET.EC8076W',
+                msg=_('"Issued Shares, Total Number of Shares, etc. [Text Block]" (IssuedSharesTotalNumberOfSharesEtcTextBlock) is not tagged.'),
+            )
