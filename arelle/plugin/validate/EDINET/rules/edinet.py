@@ -33,6 +33,7 @@ from ..ControllerPluginData import ControllerPluginData
 from ..DeiRequirements import DeiItemStatus
 from ..DisclosureSystems import DISCLOSURE_SYSTEM_EDINET
 from ..FilingFormat import DocumentType
+from ..FormType import FormType
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 from ..ReportFolderType import ReportFolderType
 from ..Statement import StatementType
@@ -1995,6 +1996,91 @@ def rule_EC8069W(
               "'Overview of corporate governance system (company with nominating committee, etc.) [Text Block]' (CorporateGovernanceCompanyWithNominatingAndOtherCommitteesTextBlock)\n"),
         modelObject=totalStockShares
     )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8069W_2(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8069W: No executive details have been tagged.
+    Please provide detailed tagging such as compensation for each executive category.
+    This rule should be fired for:
+        Form 2-4 (linkbase names beginning jpsrs0204)
+        Form 2-7 (linkbase names beginning jpsrs0207)
+        Form 3 filed by a listed company (linkbase names beginning jpcrp0300 and containing a nonnil fact for IssuedSharesTotalNumberOfSharesEtcTextBlock)
+        Form 4 filed by a listed company (linkbase names beginning jpcrp0400 and containing a nonnil fact for IssuedSharesTotalNumberOfSharesEtcTextBlock)
+
+    8069W requires non-nil facts to be reported for ONE OR MORE of:
+        TotalAmountOfRemunerationEtcPaidByGroupRemunerationEtcPaidByGroupToEachDirectorOrOtherOfficer
+        TotalAmountOfRemunerationEtcRemunerationEtcByCategoryOfDirectorsAndOtherOfficers
+        TotalAmountByTypeOfRemunerationRemunerationEtcByCategoryOfDirectorsAndOtherOfficersAbstract
+        FixedRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficers
+        PerformanceBasedRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficers
+        BaseRemunerationRemunerationEtcByCategoryOfDirectorsAndOtherOfficers
+        ShareAwardsRemunerationEtcByCategoryOfDirectorsAndOtherOfficers
+        RestrictedShareAwardsRemunerationEtcByCategoryOfDirectorsAndOtherOfficers
+        PerformanceLinkedShareAwardsRemunerationEtcByCategoryOfDirectorsAndOtherOfficers
+        ShareOptionRemunerationEtcByCategoryOfDirectorsAndOtherOfficers
+        BonusRemunerationEtcByCategoryOfDirectorsAndOtherOfficers
+        RetirementBenefitsRemunerationEtcByCategoryOfDirectorsAndOtherOfficers
+        NonMonetaryRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficers
+        OtherRemunerationEtcByCategoryOfDirectorsAndOtherOfficers
+
+        AND
+
+        Non-nil Facts for ONE OR MORE of:
+        CorporateGovernanceCompanyWithCorporateAuditorsTextBlock
+        CorporateGovernanceCompanyWithAuditAndSupervisoryCommitteeTextBlock
+        CorporateGovernanceCompanyWithNominatingAndOtherCommitteesTextBlock
+    """
+
+    formTypeOnly = (FormType.FORM_2_4, FormType.FORM_2_7)
+    formTypeAndFact = (FormType.FORM_3, FormType.FORM_4)
+    groupOneConcepts = (
+        pluginData.corporateGovernanceCompanyWithCorporateAuditorsTextBlockQn,
+        pluginData.corporateGovernanceCompanyWithAuditAndSupervisoryCommitteeTextBlockQn,
+        pluginData.corporateGovernanceCompanyWithNominatingAndOtherCommitteesTextBlockQn
+    )
+    groupTwoConcepts = (
+        pluginData.baseRemunerationRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn,
+        pluginData.bonusRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn,
+        pluginData.fixedRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficersQn,
+        pluginData.nonMonetaryRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficersQn,
+        pluginData.otherRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn,
+        pluginData.performanceBasedRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficersQn,
+        pluginData.performanceLinkedShareAwardsRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn,
+        pluginData.restrictedShareAwardsRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn,
+        pluginData.retirementBenefitsRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn,
+        pluginData.shareAwardsRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn,
+        pluginData.shareOptionRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn,
+        pluginData.totalAmountByTypeOfRemunerationRemunerationEtcByCategoryOfDirectorsAndOtherOfficersAbstractQn,
+        pluginData.totalAmountOfRemunerationEtcPaidByGroupRemunerationEtcPaidByGroupToEachDirectorOrOtherOfficerQn,
+        pluginData.totalAmountOfRemunerationEtcRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn
+    )
+    formType = pluginData.getFormType(val.modelXbrl)
+    allRuleFormTypes = formTypeOnly + formTypeAndFact
+    if formType not in allRuleFormTypes:
+        return
+    if formType in formTypeAndFact:
+        if not pluginData.isCorporateReport(val.modelXbrl):
+            return
+        if not pluginData.hasValidNonNilFact(val.modelXbrl, pluginData.issuedSharesTotalNumberOfSharesEtcQn):
+            return
+    foundGroupOneFact = any(pluginData.hasValidNonNilFact(val.modelXbrl, c) for c in groupOneConcepts)
+    foundGroupTwoFact = any(pluginData.hasValidNonNilFact(val.modelXbrl, c) for c in groupTwoConcepts)
+    if not foundGroupOneFact or not foundGroupTwoFact:
+        yield Validation.warning(
+            codes='EDINET.EC8069W',
+            msg=_("No executive details have been tagged. "
+                  "Please provide detailed tagging such as compensation for each executive category.\n"),
+        )
 
 
 @validation(

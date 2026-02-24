@@ -62,19 +62,35 @@ class PluginValidationDataExtension(PluginData):
 
     accountingStandardsDeiQn: QName
     assetsIfrsQn: QName
+    baseRemunerationRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn: QName
+    bonusRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn: QName
     categoriesOfDirectorsAndOtherOfficersAxisQn: QName
     consolidatedOrNonConsolidatedAxisQn: QName
     corporateGovernanceCompanyWithAuditAndSupervisoryCommitteeTextBlockQn: QName
     corporateGovernanceCompanyWithCorporateAuditorsTextBlockQn: QName
     corporateGovernanceCompanyWithNominatingAndOtherCommitteesTextBlockQn: QName
+    directorsAndOtherOfficersAxisQn: QName
     documentTypeDeiQn: QName
     executiveOfficersMemberQn: QName
+    fixedRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficersQn: QName
     jpcrpEsrFilingDateCoverPageQn: QName
     jpcrpFilingDateCoverPageQn: QName
     jpspsFilingDateCoverPageQn: QName
     issuedSharesTotalNumberOfSharesEtcQn: QName
     nonConsolidatedMemberQn: QName
+    nonMonetaryRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficersQn: QName
+    otherRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn: QName
+    performanceBasedRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficersQn: QName
+    performanceLinkedShareAwardsRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn: QName
     ratioOfFemaleDirectorsAndOtherOfficersQn: QName
+    restrictedShareAwardsRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn: QName
+    retirementBenefitsRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn: QName
+    shareAwardsRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn: QName
+    shareOptionRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn: QName
+    totalAmountByTypeOfRemunerationRemunerationEtcByCategoryOfDirectorsAndOtherOfficersAbstractQn: QName
+    totalAmountOfRemunerationEtcPaidByGroupRemunerationEtcPaidByGroupToEachDirectorOrOtherOfficerQn: QName
+    totalAmountOfRemunerationEtcRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn: QName
+
 
     coverItemRequirementsPath: Path
     coverPageTitleQns: tuple[QName, ...]
@@ -91,19 +107,35 @@ class PluginValidationDataExtension(PluginData):
         # QNames
         self.accountingStandardsDeiQn = qname(self.namespaces.jpdei, 'AccountingStandardsDEI')
         self.assetsIfrsQn = qname(self.namespaces.jpigp, 'AssetsIFRS')
+        self.baseRemunerationRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn = qname(self.namespaces.jpcrp, "BaseRemunerationRemunerationEtcByCategoryOfDirectorsAndOtherOfficers")
+        self.bonusRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn = qname(self.namespaces.jpcrp, "BonusRemunerationEtcByCategoryOfDirectorsAndOtherOfficers")
         self.categoriesOfDirectorsAndOtherOfficersAxisQn = qname(self.namespaces.jpcrp, 'CategoriesOfDirectorsAndOtherOfficersAxis')
         self.consolidatedOrNonConsolidatedAxisQn = qname(self.namespaces.jppfs, 'ConsolidatedOrNonConsolidatedAxis')
         self.corporateGovernanceCompanyWithAuditAndSupervisoryCommitteeTextBlockQn = qname(self.namespaces.jpcrp, 'CorporateGovernanceCompanyWithAuditAndSupervisoryCommitteeTextBlock')
         self.corporateGovernanceCompanyWithCorporateAuditorsTextBlockQn = qname(self.namespaces.jpcrp, 'CorporateGovernanceCompanyWithCorporateAuditorsTextBlock')
         self.corporateGovernanceCompanyWithNominatingAndOtherCommitteesTextBlockQn = qname(self.namespaces.jpcrp, 'CorporateGovernanceCompanyWithNominatingAndOtherCommitteesTextBlock')
+        self.directorsAndOtherOfficersAxisQn = qname(self.namespaces.jpcrp, 'DirectorsAndOtherOfficersAxis')
         self.documentTypeDeiQn = qname(self.namespaces.jpdei, 'DocumentTypeDEI')
         self.executiveOfficersMemberQn = qname(self.namespaces.jpcrp, 'ExecutiveOfficersMember')
+        self.fixedRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficersQn = qname(self.namespaces.jpcrp, "FixedRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficers")
         self.issuedSharesTotalNumberOfSharesEtcQn = qname(self.namespaces.jpcrp, 'IssuedSharesTotalNumberOfSharesEtcTextBlock')
         self.jpcrpEsrFilingDateCoverPageQn = qname(self.namespaces.jpcrpEsr, 'FilingDateCoverPage')
         self.jpcrpFilingDateCoverPageQn = qname(self.namespaces.jpcrp, 'FilingDateCoverPage')
         self.jpspsFilingDateCoverPageQn = qname(self.namespaces.jpsps, 'FilingDateCoverPage')
         self.nonConsolidatedMemberQn = qname(self.namespaces.jppfs, "NonConsolidatedMember")
+        self.nonMonetaryRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficersQn = qname(self.namespaces.jpcrp, "NonMonetaryRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficers")
+        self.otherRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn = qname(self.namespaces.jpcrp, "OtherRemunerationEtcByCategoryOfDirectorsAndOtherOfficers")
+        self.performanceBasedRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficersQn = qname(self.namespaces.jpcrp, "PerformanceBasedRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficers")
+        self.performanceLinkedShareAwardsRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn = qname(self.namespaces.jpcrp, "PerformanceLinkedShareAwardsRemunerationEtcByCategoryOfDirectorsAndOtherOfficers")
         self.ratioOfFemaleDirectorsAndOtherOfficersQn = qname(self.namespaces.jpcrp, "RatioOfFemaleDirectorsAndOtherOfficers")
+        self.restrictedShareAwardsRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn = qname(self.namespaces.jpcrp, "RestrictedShareAwardsRemunerationEtcByCategoryOfDirectorsAndOtherOfficers")
+        self.retirementBenefitsRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn = qname(self.namespaces.jpcrp, "RetirementBenefitsRemunerationEtcByCategoryOfDirectorsAndOtherOfficers")
+        self.shareAwardsRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn = qname(self.namespaces.jpcrp, "ShareAwardsRemunerationEtcByCategoryOfDirectorsAndOtherOfficers")
+        self.shareOptionRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn = qname(self.namespaces.jpcrp, "ShareOptionRemunerationEtcByCategoryOfDirectorsAndOtherOfficers")
+        self.totalAmountByTypeOfRemunerationRemunerationEtcByCategoryOfDirectorsAndOtherOfficersAbstractQn = qname(self.namespaces.jpcrp, "TotalAmountByTypeOfRemunerationRemunerationEtcByCategoryOfDirectorsAndOtherOfficersAbstract")
+        self.totalAmountOfRemunerationEtcPaidByGroupRemunerationEtcPaidByGroupToEachDirectorOrOtherOfficerQn = qname(self.namespaces.jpcrp, "TotalAmountOfRemunerationEtcPaidByGroupRemunerationEtcPaidByGroupToEachDirectorOrOtherOfficer")
+        self.totalAmountOfRemunerationEtcRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn = qname(self.namespaces.jpcrp, "TotalAmountOfRemunerationEtcRemunerationEtcByCategoryOfDirectorsAndOtherOfficers")
+
 
         self.coverItemRequirementsPath = Path(__file__).parent / "resources" / "cover-item-requirements.json"
         self.coverPageTitleQns = (

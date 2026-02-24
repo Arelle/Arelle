@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="EDINET.EC8069W"
+        description="EDINET.EC8069W: No executive details have been tagged."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid01" name="invalid01">
+        <description>
+            The form is missing a value from group1.
+            <!--Based on valid02.zip-->
+        </description>
+        <data>
+            <instance readMeFirst="true">invalid01.zip</instance>
+        </data>
+        <result>
+            <warning num="4">EDINET.EC8023W</warning>
+            <warning>EDINET.EC2002W</warning>
+            <warning>EDINET.EC8015W</warning>
+            <warning num="2">EDINET.EC8027W</warning>
+            <warning>EDINET.EC8029W</warning>
+            <warning num="2">EDINET.EC8069W</warning>
+            <warning>EDINET.EC8024E</warning>
+        </result>
+    </variation>
+</testcase>
