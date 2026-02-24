@@ -263,7 +263,8 @@
         "reportPackageMaxMB": null
     },
     "EL": {
-        "name": "Greece"
+        "name": "Greece",
+        "permitOnlyTextBlockEscape": true
     },
     "ES": {
         "name": "Spain"
