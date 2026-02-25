@@ -21,6 +21,7 @@ import sys
 import threading
 import time
 import traceback
+from curses.ascii import ctrl
 from optparse import SUPPRESS_HELP, Option, OptionGroup, OptionParser
 from pprint import pprint
 
@@ -86,8 +87,8 @@ def main():
     gettext.install("arelle")
     ctrl = parseAndRun(args)
 
-    if ctrl.validation_exit_code:
-        if ctrl.errors or not ctrl.is_successful:
+    if getattr(ctrl, "validationExitCode", False):
+        if ctrl.errors or not getattr(ctrl, "isSuccessful", False):
             sys.exit(3)
 
 
@@ -534,6 +535,9 @@ def parseArgs(args):
 
     (options, leftoverArgs) = parser.parse_args(args)
 
+    if options.webserver and options.validationExitCode:
+        parser.error(_("--validationExitCode can't be used with --webserver"))
+
     if options.about:
         print(_("\narelle(r) {version} ({wordSize}bit {platform})\n\n"
                           "An open source XBRL platform\n"
@@ -669,7 +673,12 @@ def configAndRunCntlr(options, arellePluginModules):
                            logXmlMaxAttributeLength=options.logXmlMaxAttributeLength,
                            logPropagate=options.logPropagate)
         cntlr.postLoggingInit()  # Cntlr options after logging is started
-        cntlr.run(options)
+        result = cntlr.run(options)
+
+        if validationExitCode := options.validationExitCode:
+            cntlr.validationExitCode = validationExitCode
+            cntlr.isSuccessful = result
+
         return cntlr
 
 
@@ -737,8 +746,6 @@ class CntlrCmdLine(Cntlr.Cntlr):
     def __init__(self, logFileName=None, uiLang=None, disable_persistent_config=False):
         super().__init__(hasGui=False, uiLang=uiLang, disable_persistent_config=disable_persistent_config, logFileName=logFileName)
         self.preloadedPlugins = {}
-        self.validation_exit_code = False
-        self.is_successful = False
 
     def run(self, options: RuntimeOptions, sourceZipStream=None, responseZipStream=None) -> bool:
         """Process command line arguments or web service request, such as to load and validate an XBRL document, or start web server.
@@ -749,7 +756,6 @@ class CntlrCmdLine(Cntlr.Cntlr):
         :param options: OptionParser options from parse_args of main argv arguments (when called from command line) or corresponding arguments from web service (REST) request.
         :type options: optparse.Values
         """
-        self.validation_exit_code = options.validationExitCode
 
         for b in BETA_FEATURES_AND_DESCRIPTIONS:
             self.betaFeatures[b] = getattr(options, b)
@@ -1082,22 +1088,19 @@ class CntlrCmdLine(Cntlr.Cntlr):
             try:
                 pluginXbrlMethod(self, options, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
             except SystemExit: # terminate operation, plug in has terminated all processing
-                self.is_successful = True
-                return self.is_successful
+                return True
 
         # if no entrypointFile is applicable, quit now
         if options.proxy or options.plugins or hasUtilityPlugin:
             if not (options.entrypointFile or sourceZipStream):
-                self.is_successful = True
-                return self.is_successful
+                return True
 
         entrypointParseResult = parseEntrypointFileInput(self, options.entrypointFile, sourceZipStream)
         if not entrypointParseResult.success:
-            self.is_successful = False
-            return self.is_successful
+            return False
         filesource = entrypointParseResult.filesource
         _entrypointFiles = entrypointParseResult.entrypointFiles
-        self.is_successful = True
+        success = True
 
         for pluginXbrlMethod in PluginManager.pluginClassMethods("CntlrCmdLine.Filing.Start"):
             pluginXbrlMethod(self, options, filesource, _entrypointFiles, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
@@ -1112,7 +1115,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 # web server post request does not have a file name.
                 msg = _("No XBRL entry points could be loaded from provided input")
             self.addToLog(msg, messageCode="error", level=logging.ERROR)
-            self.is_successful = False
+            success = False
         for _entrypoint in _entrypointFiles:
             _entrypointFile = _entrypoint.get("file", None) if isinstance(_entrypoint,dict) else _entrypoint
             if filesource and filesource.isArchive:
@@ -1141,7 +1144,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                             traceback.format_exc()),
                               messageCode="Exception",
                               level=logging.ERROR)
-                self.is_successful = False    # loading errors, don't attempt to utilize loaded DTS
+                success = False    # loading errors, don't attempt to utilize loaded DTS
             if modelXbrl and modelXbrl.modelDocument:
                 loadTime = time.time() - startedAt
                 modelXbrl.profileStat(_("load"), loadTime)
@@ -1164,7 +1167,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                                     messageCode="info", file=importFile)
                         modelXbrl.profileStat(_("import"), loadTime)
                     if modelXbrl.errors:
-                        self.is_successful = False    # loading errors, don't attempt to utilize loaded DTS
+                        success = False    # loading errors, don't attempt to utilize loaded DTS
                 if modelXbrl.modelDocument.type in ModelDocument.Type.TESTCASETYPES:
                     for pluginXbrlMethod in PluginManager.pluginClassMethods("Testcases.Start"):
                         pluginXbrlMethod(self, options, modelXbrl)
@@ -1181,8 +1184,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                         level=logging.INFO)
 
             else:
-                self.is_successful = False
-            if self.is_successful and options.diffFile and options.versReportFile:
+                success = False
+            if success and options.diffFile and options.versReportFile:
                 try:
                     diffFilesource = FileSource.FileSource(options.diffFile,self)
                     startedAt = time.time()
@@ -1190,7 +1193,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     if modelXbrl2.errors:
                         if not options.keepOpen:
                             modelXbrl2.close()
-                        self.is_successful = False
+                        success = False
                     else:
                         loadTime = time.time() - startedAt
                         modelXbrl.profileStat(_("load"), loadTime)
@@ -1207,13 +1210,13 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                                     diffTime),
                                                     messageCode="info", file=self.entrypointFile)
                 except ModelDocument.LoadingException:
-                    self.is_successful = False
+                    success = False
                 except Exception as err:
-                    self.is_successful = False
+                    success = False
                     self.addToLog(_("[Exception] Failed to load diff file: \n{0} \n{1}").format(
                                 err,
                                 traceback.format_exc()))
-            if self.is_successful:
+            if success:
                 try:
                     for modelXbrl in [self.modelManager.modelXbrl] + getattr(self.modelManager.modelXbrl, "supplementalModelXbrls", []):
                         hasFormulae = modelXbrl.hasFormulae
@@ -1266,9 +1269,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                 compareTime = time.time() - startedAt
                                 modelXbrl.profileStat(_("compare formula output"), compareTime)
                             except ModelDocument.LoadingException:
-                                self.is_successful = False
+                                success = False
                             except Exception as err:
-                                self.is_successful = False
+                                success = False
                                 self.addToLog(_("[Exception] Failed to load compare file: \n{0} \n{1}").format(
                                     err,
                                     traceback.format_exc()))
@@ -1288,9 +1291,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                 compareTime = time.time() - startedAt
                                 modelXbrl.profileStat(_("compare"), compareTime)
                             except ModelDocument.LoadingException:
-                                self.is_successful = False
+                                success = False
                             except Exception as err:
-                                self.is_successful = False
+                                success = False
                                 self.addToLog(_("[Exception] Failed to load compare file: \n{0} \n{1}").format(
                                     err,
                                     traceback.format_exc()))
@@ -1338,7 +1341,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                   messageCode="IOError",
                                   file=options.entrypointFile,
                                   level=logging.CRITICAL)
-                    self.is_successful = False
+                    success = False
                 except Exception as err:
                     self.addToLog(_("[Exception] Failed to complete request: \n{0} \n{1}").format(
                                     err,
@@ -1346,9 +1349,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                   messageCode=err.__class__.__name__,
                                   file=options.entrypointFile,
                                   level=logging.CRITICAL)
-                    self.is_successful = False
+                    success = False
             if modelXbrl:
-                if self.is_successful:
+                if success:
                     if options.saveDeduplicatedInstance:
                         if options.deduplicateFacts:
                             deduplicateFactsArg = ValidateDuplicateFacts.DeduplicationType(options.deduplicateFacts)
@@ -1363,12 +1366,12 @@ class CntlrCmdLine(Cntlr.Cntlr):
                             # so we'll run it as a final step in the CLI controller flow.
                             ValidateDuplicateFacts.saveDeduplicatedInstance(modelXbrl, deduplicateFactsArg, options.saveDeduplicatedInstance)
                             if options.keepOpen:
-                                self.is_successful = False
+                                success = False
                                 self.addToLog(_("Attempted to keep model connection open after saving deduplicated instance. "
                                                 "Deduplication modifies the model in ways that can cause unexpected behavior on subsequent use."),
                                               messageCode="error", level=logging.CRITICAL)
                     elif options.deduplicateFacts:
-                        self.is_successful = False
+                        success = False
                         self.addToLog(_("'deduplicateFacts' can only be used with 'saveDeduplicatedInstance'"),
                                       messageCode="error", level=logging.CRITICAL)
 
@@ -1389,7 +1392,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             # Archive filesource potentially used by multiple reports may still be open.
             filesource.close()
 
-        if self.is_successful:
+        if success:
             if options.validate:
                 for pluginXbrlMethod in PluginManager.pluginClassMethods("CntlrCmdLine.Filing.Validate"):
                     pluginXbrlMethod(self, options, filesource, _entrypointFiles, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
@@ -1405,7 +1408,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             win32file.CloseHandle(self.statusPipe)
             self.statusPipe = None # dereference
 
-        return self.is_successful
+        return success
 
     # default web authentication password
     def internet_user_password(self, host, realm):
