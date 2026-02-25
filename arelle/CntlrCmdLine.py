@@ -21,7 +21,6 @@ import sys
 import threading
 import time
 import traceback
-from curses.ascii import ctrl
 from optparse import SUPPRESS_HELP, Option, OptionGroup, OptionParser
 from pprint import pprint
 
