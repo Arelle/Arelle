@@ -1377,6 +1377,13 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 modelXbrl.profileStat(_("total"), time.time() - firstStartedAt)
                 if options.collectProfileStats and modelXbrl:
                     modelXbrl.logProfileStats()
+
+                if modelDiffReport and modelDiffReport.errors:
+                    success = False
+
+                if modelXbrl and modelXbrl.errors:
+                    success = False
+
                 if not options.keepOpen:
                     if modelDiffReport:
                         self.modelManager.close(modelDiffReport)
