@@ -2040,9 +2040,6 @@ def rule_EC8069W_2(
         CorporateGovernanceCompanyWithAuditAndSupervisoryCommitteeTextBlock
         CorporateGovernanceCompanyWithNominatingAndOtherCommitteesTextBlock
     """
-
-    formTypeOnly = (FormType.FORM_2_4, FormType.FORM_2_7)
-    formTypeAndFact = (FormType.FORM_3, FormType.FORM_4)
     groupOneConcepts = (
         pluginData.corporateGovernanceCompanyWithCorporateAuditorsTextBlockQn,
         pluginData.corporateGovernanceCompanyWithAuditAndSupervisoryCommitteeTextBlockQn,
@@ -2064,15 +2061,8 @@ def rule_EC8069W_2(
         pluginData.totalAmountOfRemunerationEtcPaidByGroupRemunerationEtcPaidByGroupToEachDirectorOrOtherOfficerQn,
         pluginData.totalAmountOfRemunerationEtcRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn
     )
-    formType = pluginData.getFormType(val.modelXbrl)
-    allRuleFormTypes = formTypeOnly + formTypeAndFact
-    if formType not in allRuleFormTypes:
+    if not pluginData.shouldContainExecutiveDetails(val.modelXbrl):
         return
-    if formType in formTypeAndFact:
-        if not pluginData.isCorporateReport(val.modelXbrl):
-            return
-        if not pluginData.hasValidNonNilFact(val.modelXbrl, pluginData.issuedSharesTotalNumberOfSharesEtcQn):
-            return
     foundGroupOneFact = any(pluginData.hasValidNonNilFact(val.modelXbrl, c) for c in groupOneConcepts)
     foundGroupTwoFact = any(pluginData.hasValidNonNilFact(val.modelXbrl, c) for c in groupTwoConcepts)
     if not foundGroupOneFact or not foundGroupTwoFact:
@@ -2080,6 +2070,55 @@ def rule_EC8069W_2(
             codes='EDINET.EC8069W',
             msg=_("No executive details have been tagged. "
                   "Please provide detailed tagging such as compensation for each executive category.\n"),
+        )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8070W(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8070W: No executive details have been tagged.
+    Please tag the officers in detail.
+
+    This rule should be fired for:
+    Form 2-4 (linkbase names beginning jpsrs0204)
+    Form 2-7 (linkbase names beginning jpsrs0207)
+    Form 3 filed by a listed company (linkbase names beginning jpcrp0300 and containing a nonnil fact for IssuedSharesTotalNumberOfSharesEtcTextBlock)
+    Form 4 filed by a listed company (linkbase names beginning jpcrp0400 and containing a nonnil fact for IssuedSharesTotalNumberOfSharesEtcTextBlock)
+
+    This rule seems to require one or more non-nil facts for the element:
+    TotalAmountOfRemunerationEtcPaidByGroupRemunerationEtcPaidByGroupToEachDirectorOrOtherOfficer dimensionalized with an extended member on the
+    DirectorsAndOtherOfficersAxis and that member needs to be a child of DirectorsAndOtherOfficersMember
+    """
+    if not pluginData.shouldContainExecutiveDetails(val.modelXbrl):
+        return
+    facts = pluginData.iterValidNonNilFacts(val.modelXbrl, pluginData.totalAmountOfRemunerationEtcPaidByGroupRemunerationEtcPaidByGroupToEachDirectorOrOtherOfficerQn)
+    factFound = False
+    parentMember = val.modelXbrl.qnameConcepts.get(pluginData.directorsAndOtherOfficersMemberQn)
+    relationships = val.modelXbrl.relationshipSet(XbrlConst.domainMember)
+    for fact in facts:
+        if fact.context is None:
+            continue
+        if len(fact.context.qnameDims) > 0:
+            if fact.context.qnameDims.keys() != {pluginData.directorsAndOtherOfficersAxisQn}:
+                continue
+            memberUsed = fact.context.dimMemberQname(pluginData.directorsAndOtherOfficersAxisQn)
+            for rel in relationships.fromModelObject(parentMember):
+                if rel.toModelObject.qname == memberUsed:
+                    factFound = True
+                    break
+    if not factFound:
+        yield Validation.warning(
+            codes='EDINET.EC8070W',
+            msg=_("No executive details have been tagged.\n"
+                  "Please tag the officers in detail."),
         )
 
 

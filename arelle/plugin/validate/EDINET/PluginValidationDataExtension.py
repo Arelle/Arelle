@@ -70,6 +70,7 @@ class PluginValidationDataExtension(PluginData):
     corporateGovernanceCompanyWithCorporateAuditorsTextBlockQn: QName
     corporateGovernanceCompanyWithNominatingAndOtherCommitteesTextBlockQn: QName
     directorsAndOtherOfficersAxisQn: QName
+    directorsAndOtherOfficersMemberQn: QName
     documentTypeDeiQn: QName
     executiveOfficersMemberQn: QName
     fixedRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficersQn: QName
@@ -115,6 +116,7 @@ class PluginValidationDataExtension(PluginData):
         self.corporateGovernanceCompanyWithCorporateAuditorsTextBlockQn = qname(self.namespaces.jpcrp, 'CorporateGovernanceCompanyWithCorporateAuditorsTextBlock')
         self.corporateGovernanceCompanyWithNominatingAndOtherCommitteesTextBlockQn = qname(self.namespaces.jpcrp, 'CorporateGovernanceCompanyWithNominatingAndOtherCommitteesTextBlock')
         self.directorsAndOtherOfficersAxisQn = qname(self.namespaces.jpcrp, 'DirectorsAndOtherOfficersAxis')
+        self.directorsAndOtherOfficersMemberQn = qname(self.namespaces.jpcrp, 'DirectorsAndOtherOfficersMember')
         self.documentTypeDeiQn = qname(self.namespaces.jpdei, 'DocumentTypeDEI')
         self.executiveOfficersMemberQn = qname(self.namespaces.jpcrp, 'ExecutiveOfficersMember')
         self.fixedRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficersQn = qname(self.namespaces.jpcrp, "FixedRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficers")
@@ -605,3 +607,17 @@ class PluginValidationDataExtension(PluginData):
     def addUsedFilepath(self, modelXbrl: ModelXbrl, path: Path) -> None:
         controllerPluginData = ControllerPluginData.get(modelXbrl.modelManager.cntlr, self.name)
         controllerPluginData.addUsedFilepath(path)
+
+    def shouldContainExecutiveDetails(self, modelXbrl: ModelXbrl) -> bool:
+        formType = self.getFormType(modelXbrl)
+        formTypeOnly = (FormType.FORM_2_4, FormType.FORM_2_7)
+        formTypeAndFact = (FormType.FORM_3, FormType.FORM_4)
+        allRuleFormTypes = formTypeOnly + formTypeAndFact
+        if formType not in allRuleFormTypes:
+            return False
+        if formType in formTypeAndFact:
+            if not self.isCorporateReport(modelXbrl):
+                return False
+            if not self.hasValidNonNilFact(modelXbrl, self.issuedSharesTotalNumberOfSharesEtcQn):
+                return False
+        return True
