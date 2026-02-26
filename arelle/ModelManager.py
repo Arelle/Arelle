@@ -177,9 +177,24 @@ class ModelManager:
         elif self.modelXbrl is not None:
             self.modelXbrl.saveDTSpackage()
 
-    def create(self, newDocumentType=None, url=None, schemaRefs=None, createModelDocument=True, isEntry=False, errorCaptureLevel=None, initialXml=None, base=None) -> ModelXbrl:
-        self.modelXbrl = ModelXbrl.create(self, newDocumentType=newDocumentType, url=url, schemaRefs=schemaRefs, createModelDocument=createModelDocument,
-                                          isEntry=isEntry, errorCaptureLevel=errorCaptureLevel, initialXml=initialXml, base=base)
+    def create(self,
+               newDocumentType=None,
+               url=None,
+               schemaRefs=None,
+               createModelDocument=True,
+               isEntry=False,
+               errorCaptureLevel=None,
+               initialXml=None,
+               base=None) -> ModelXbrl.ModelXbrl:
+        self.modelXbrl = ModelXbrl.create(self,
+                                          newDocumentType=newDocumentType,
+                                          url=url,
+                                          schemaRefs=schemaRefs,
+                                          createModelDocument=createModelDocument,
+                                          isEntry=isEntry,
+                                          errorCaptureLevel=errorCaptureLevel,
+                                          initialXml=initialXml,
+                                          base=base)
         self.loadedModelXbrls.append(self.modelXbrl)
         return self.modelXbrl
 
@@ -196,13 +211,14 @@ class ModelManager:
                            err,
                            traceback.format_exc()))
 
-    def compareDTSes(self, versReportFile, writeReportFile=True):
+    def compareDTSes(self, versReportFile: str, writeReportFile: bool = True) -> ModelXbrl.ModelXbrl | None:
         """Compare two most recently loaded DTSes, saving versioning report in to the file name provided.
 
         :param versReportFile: file name in which to save XBRL Versioning Report
         :type versReportFile: str
         :param writeReportFile: False to prevent writing XBRL Versioning Report file
         :type writeReportFile: bool
+        :return: ModelXbrl instance if successful, None otherwise
         """
         from arelle.ModelVersReport import ModelVersReport
         if len(self.loadedModelXbrls) >= 2:
@@ -216,11 +232,12 @@ class ModelManager:
             return modelVersReport
         return None
 
-    def close(self, modelXbrl=None):
+    def close(self, modelXbrl: ModelXbrl.ModelXbrl = None) -> None:
         """Closes the specified or most recently loaded modelXbrl
 
         :param modelXbrl: Specific ModelXbrl to be closed (defaults to last opened ModelXbrl)
-        :type modelXbrl: ModelXbrl
+        :type modelXbrl: ModelXbrl.ModelXbrl
+        :return: None
         """
         if modelXbrl is None: modelXbrl = self.modelXbrl
         if modelXbrl:
