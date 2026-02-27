@@ -2,6 +2,7 @@
 See COPYRIGHT.md for copyright information.
 '''
 from collections import defaultdict
+from functools import cached_property
 import datetime
 import regex as re
 from arelle import XmlUtil, XbrlConst
@@ -1919,21 +1920,15 @@ class ModelExplicitDimension(ModelFilter):
     def aspectsCovered(self, varBinding):
         return {self.dimQname}
 
-    @property
+    @cached_property
     def dimQname(self):
-        try:
-            return self._dimQname
-        except AttributeError:
-            dQn = XmlUtil.child(XmlUtil.child(self,XbrlConst.df,"dimension"), XbrlConst.df, "qname")
-            self._dimQname = qname( dQn, XmlUtil.text(dQn) ) if dQn is not None else None
-            return self._dimQname
+        dQn = XmlUtil.child(XmlUtil.child(self, XbrlConst.df, "dimension"), XbrlConst.df, "qname")
+        return qname(dQn, XmlUtil.text(dQn)) if dQn is not None else None
 
-    @property
+    @cached_property
     def dimQnameExpression(self):
-        qnameExpression = XmlUtil.descendant(XmlUtil.child(self,XbrlConst.df,"dimension"), XbrlConst.df, "qnameExpression")
-        if qnameExpression is not None:
-            return XmlUtil.text(qnameExpression)
-        return None
+        qnameExpression = XmlUtil.descendant(XmlUtil.child(self, XbrlConst.df, "dimension"), XbrlConst.df, "qnameExpression")
+        return XmlUtil.text(qnameExpression) if qnameExpression is not None else None
 
     def compile(self):
         if not hasattr(self, "dimQnameExpressionProg"):
@@ -2125,19 +2120,15 @@ class ModelTypedDimension(ModelTestFilter):
     def aspectsCovered(self, varBinding):
         return {self.dimQname}
 
-    @property
+    @cached_property
     def dimQname(self):
         dimQname = XmlUtil.descendant(self, XbrlConst.df, "qname")
-        if dimQname is not None:
-            return qname( dimQname, XmlUtil.text(dimQname) )
-        return None
+        return qname(dimQname, XmlUtil.text(dimQname)) if dimQname is not None else None
 
-    @property
+    @cached_property
     def dimQnameExpression(self):
         qnameExpression = XmlUtil.descendant(self, XbrlConst.df, "qnameExpression")
-        if qnameExpression is not None:
-            return XmlUtil.text(qnameExpression)
-        return None
+        return XmlUtil.text(qnameExpression) if qnameExpression is not None else None
 
     def compile(self):
         if not hasattr(self, "dimQnameExpressionProg"):
