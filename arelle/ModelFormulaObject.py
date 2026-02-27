@@ -2160,6 +2160,11 @@ class ModelTypedDimension(ModelTestFilter):
             return None
 
     def filter(self, xpCtx, varBinding, facts, cmplmt):
+        if not facts:
+            return facts
+        if self.dimQname and not self.test:
+            dimedFacts = set.union(*[inst.factsByDimMemQname(self.dimQname) for inst in varBinding.instances])
+            return (facts - dimedFacts) if cmplmt else (facts & dimedFacts)
         outFacts = set()
         for fact in facts:
             dimQname = self.evalDimQname(xpCtx, fact)
