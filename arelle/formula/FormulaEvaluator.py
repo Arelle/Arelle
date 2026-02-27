@@ -732,23 +732,16 @@ def trialFilterFacts(xpCtx, vb, facts, filterRelationships, filterType, var=None
         noComplHandledFilterRels = varSet.noComplHandledFilterRels
         complHandledFilterRels = varSet.complHandledFilterRels
         unHandledFilterRels = varSet.unHandledFilterRels
-    if filterInfo is not None:
-        if filterInfo and len(noComplHandledFilterRels) > 0:
-            for varFilterRel, dimQname in noComplHandledFilterRels:
+    if filterInfo and noComplHandledFilterRels:
+        facts = {f for f in facts if f.isItem}
+        filterRelationships = unHandledFilterRels
+        for varFilterRel, dimQname in noComplHandledFilterRels:
+            if varFilterRel.isCovered:  # block boolean group filters that have cover in subnetworks
                 _filter = varFilterRel.toModelObject
-                if varFilterRel.isCovered:  # block boolean group filters that have cover in subnetworks
-                    vb.aspectsCovered |= _filter.aspectsCovered(vb)
-            filterRelationships = unHandledFilterRels
-            # filter now with filter info
-            outFacts = set()
-            for fact in facts:
-                if fact.isItem:
-                    for varFilterRel, dimQname in noComplHandledFilterRels:
-                        dim = fact.context.qnameDims.get(dimQname)
-                        if dim is not None:
-                            outFacts.add(fact)
-            facts = outFacts
-            if len(facts) == 0:
+                vb.aspectsCovered |= _filter.aspectsCovered(vb)
+            dimedFacts = set.union(*[inst.factsByDimMemQname(dimQname) for inst in vb.instances])
+            facts = facts & dimedFacts
+            if not facts:
                 return facts
 
     for varFilterRel in filterRelationships:
@@ -784,21 +777,15 @@ def trialFilterFacts(xpCtx, vb, facts, filterRelationships, filterType, var=None
         facts = factSet
 
     # handle now simple model type complement (at the end since it appears to reduce much less)
-    if filterInfo is not None:
-        if filterInfo and len(complHandledFilterRels) > 0:
-            for varFilterRel, dimQname in complHandledFilterRels:
+    if filterInfo and complHandledFilterRels:
+        if not noComplHandledFilterRels:
+            facts = {f for f in facts if f.isItem}
+        for varFilterRel, dimQname in complHandledFilterRels:
+            if varFilterRel.isCovered:  # block boolean group filters that have cover in subnetworks
                 _filter = varFilterRel.toModelObject
-                if varFilterRel.isCovered:  # block boolean group filters that have cover in subnetworks
-                    vb.aspectsCovered |= _filter.aspectsCovered(vb)
-            # filter now with filter info
-            outFacts = set()
-            for fact in facts:
-                if fact.isItem:
-                    for varFilterRel, dimQname in complHandledFilterRels:
-                        dim = fact.context.qnameDims.get(dimQname)
-                        if dim is None:
-                            outFacts.add(fact)
-            facts = outFacts
+                vb.aspectsCovered |= _filter.aspectsCovered(vb)
+            dimedFacts = set.union(*[inst.factsByDimMemQname(dimQname) for inst in vb.instances])
+            facts = facts - dimedFacts
     return facts
 
 
