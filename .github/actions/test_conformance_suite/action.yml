@@ -72,7 +72,7 @@ runs:
         printf 'artifact-name=%s%s %s %s logs' "${{ inputs.short_name || inputs.name }}" "${{ inputs.shard && format(' {0}', inputs.shard) || '' }}" "${{ runner.os }}" "${{ inputs.python_version }}" >> $GITHUB_OUTPUT
     - name: Upload logs and reports
       if: always()
-      uses: actions/upload-artifact@v6.0.0
+      uses: actions/upload-artifact@v7.0.0
       with:
         name: ${{ steps.build-artifact-name.outputs.artifact-name }}
         if-no-files-found: error
