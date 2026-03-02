@@ -33,7 +33,7 @@ jobs:
           cp TkTable/*.dylib output/
           cp TkTable/pkgIndex.tcl output/
           cp TkTable/library/tkTable.tcl output/
-      - uses: actions/upload-artifact@v6.0.0
+      - uses: actions/upload-artifact@v7.0.0
         with:
           name: tktable-macos-arm64
           path: output/
@@ -60,7 +60,7 @@ jobs:
           cp TkTable/*.dylib output/
           cp TkTable/pkgIndex.tcl output/
           cp TkTable/library/tkTable.tcl output/
-      - uses: actions/upload-artifact@v6.0.0
+      - uses: actions/upload-artifact@v7.0.0
         with:
           name: tktable-macos-x86_64
           path: output/
@@ -86,7 +86,7 @@ jobs:
           cp TkTable/*.so output/
           cp TkTable/pkgIndex.tcl output/
           cp TkTable/library/tkTable.tcl output/
-      - uses: actions/upload-artifact@v6.0.0
+      - uses: actions/upload-artifact@v7.0.0
         with:
           name: tktable-linux-x86_64
           path: output/
@@ -135,7 +135,7 @@ jobs:
           mkdir output -ErrorAction SilentlyContinue
           $tktableDir = Get-ChildItem -Path "tcl-install\lib" -Directory -Filter "Tktable*" | Select-Object -First 1
           Copy-Item "$($tktableDir.FullName)\*" output\
-      - uses: actions/upload-artifact@v6.0.0
+      - uses: actions/upload-artifact@v7.0.0
         with:
           name: tktable-win-x86_64
           path: output/

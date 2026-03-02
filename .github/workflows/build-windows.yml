@@ -127,14 +127,14 @@ jobs:
       run: 7z a -tzip ..\..\${{ steps.define-artifact-names.outputs.zip_build_artifact_path }} *
     - name: Upload installer artifact
       id: upload-installer-artifact
-      uses: actions/upload-artifact@v6.0.0
+      uses: actions/upload-artifact@v7.0.0
       with:
         name: ${{ steps.define-artifact-names.outputs.exe_uploaded_artifact_name }}
         if-no-files-found: error
         path: ${{ steps.define-artifact-names.outputs.exe_build_artifact_path }}
     - name: Upload zip artifact
       id: upload-zip-artifact
-      uses: actions/upload-artifact@v6.0.0
+      uses: actions/upload-artifact@v7.0.0
       with:
         name: ${{ steps.define-artifact-names.outputs.zip_uploaded_artifact_name }}
         if-no-files-found: error
@@ -145,7 +145,7 @@ jobs:
         pytest -s --disable-warnings --all-frozen-builds --download-cache --offline --arelle="${{ env.BUILD_PATH }}\arelleCmdLine.exe" tests/integration_tests/scripts/test_scripts.py
     - name: "[Test] Upload test artifacts"
       if: always()
-      uses: actions/upload-artifact@v6.0.0
+      uses: actions/upload-artifact@v7.0.0
       with:
         name: 'windows test logs'
         if-no-files-found: error

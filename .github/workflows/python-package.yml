@@ -38,13 +38,13 @@ jobs:
           pip install build
           python -m build
       - name: Upload tar artifact
-        uses: actions/upload-artifact@v6.0.0
+        uses: actions/upload-artifact@v7.0.0
         with:
           name: arelle.tar.gz
           if-no-files-found: error
           path: dist/*.tar.gz
       - name: Upload wheel artifact
-        uses: actions/upload-artifact@v6.0.0
+        uses: actions/upload-artifact@v7.0.0
         with:
           name: arelle.whl
           if-no-files-found: error
