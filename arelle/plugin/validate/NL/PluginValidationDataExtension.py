@@ -146,22 +146,28 @@ class PluginValidationDataExtension(PluginData):
     AnnualReportOfForeignGroupHeadForExemptionUnderArticle403Qn: QName
     AnnualReportOfForeignGroupHeadForExemptionUnderArticle408Qn: QName
     chamberOfCommerceRegistrationNumberQn: QName
+    consolidatedMemberQn: QName
     documentAdoptionDateQn: QName
     documentAdoptionStatusQn: QName
     documentResubmissionUnsurmountableInaccuraciesQn: QName
     entrypointRoot: str
     entrypoints: set[str]
-    financialReportingPeriodQn: QName
-    financialReportingPeriodCurrentStartDateQn: QName
     financialReportingPeriodCurrentEndDateQn: QName
-    financialReportingPeriodPreviousStartDateQn: QName
+    financialReportingPeriodCurrentStartDateQn: QName
     financialReportingPeriodPreviousEndDateQn: QName
+    financialReportingPeriodPreviousStartDateQn: QName
+    financialReportingPeriodQn: QName
+    financialStatementsTypeAxisQn: QName
     formattedExplanationItemTypeQn: QName | None
+    ifrsConsolidatedAndSeparateFinancialStatementsAxisQn: QName | None
+    ifrsConsolidatedMemberQn: QName | None
     ifrsIdentifier: str
+    ifrsSeparateMemberQn: QName | None
     mandatoryFactQNames: frozenset[QName] | None
     nonDimensionalLineItemsQName: QName | None
     permissibleGAAPRootAbstracts: frozenset[QName]
     permissibleIFRSRootAbstracts: frozenset[QName]
+    separateMemberQn: QName
     textFormattingSchemaPath: str
     textFormattingWrapper: str
 

@@ -319,6 +319,7 @@ class ValidationPluginExtension(ValidationPlugin):
             AnnualReportOfForeignGroupHeadForExemptionUnderArticle403Qn=qname(kvkINamespace, 'AnnualReportOfForeignGroupHeadForExemptionUnderArticle403'),
             AnnualReportOfForeignGroupHeadForExemptionUnderArticle408Qn=qname(kvkINamespace, 'AnnualReportOfForeignGroupHeadForExemptionUnderArticle408'),
             chamberOfCommerceRegistrationNumberQn=qname(jenvNamespace, 'ChamberOfCommerceRegistrationNumber'),
+            consolidatedMemberQn=qname(jenvNamespace, 'ConsolidatedMember'),
             documentAdoptionDateQn=qname(jenvNamespace, 'DocumentAdoptionDate'),
             documentAdoptionStatusQn=qname(jenvNamespace, 'DocumentAdoptionStatus'),
             documentResubmissionUnsurmountableInaccuraciesQn=qname(kvkINamespace, 'DocumentResubmissionDueToUnsurmountableInaccuracies'),
@@ -329,8 +330,12 @@ class ValidationPluginExtension(ValidationPlugin):
             financialReportingPeriodCurrentEndDateQn=qname(jenvNamespace, 'FinancialReportingPeriodCurrentEndDate'),
             financialReportingPeriodPreviousStartDateQn=qname(jenvNamespace, 'FinancialReportingPeriodPreviousStartDate'),
             financialReportingPeriodPreviousEndDateQn=qname(jenvNamespace, 'FinancialReportingPeriodPreviousEndDate'),
+            financialStatementsTypeAxisQn=qname(jenvNamespace, 'FinancialStatementsTypeAxis'),
             formattedExplanationItemTypeQn=qname(nlTypesNamespace, 'formattedExplanationItemType') if nlTypesNamespace else None,
+            ifrsConsolidatedAndSeparateFinancialStatementsAxisQn=qname(ifrsNamespace, 'ConsolidatedAndSeparateFinancialStatementsAxis') if ifrsNamespace else None,
+            ifrsConsolidatedMemberQn=qname(ifrsNamespace, 'ConsolidatedMember') if ifrsNamespace else None,
             ifrsIdentifier = 'https://xbrl.ifrs.org',
+            ifrsSeparateMemberQn=qname(ifrsNamespace, 'SeparateMember') if ifrsNamespace else None,
             mandatoryFactQNames=mandatoryFactQNames,
             nonDimensionalLineItemsQName=qname(kvkINamespace, 'NonDimensionalLineItems') if kvkINamespace else None,
             permissibleGAAPRootAbstracts=permissibleMandatoryFactsRootAbstracts | frozenset([
@@ -347,6 +352,7 @@ class ValidationPluginExtension(ValidationPlugin):
                 qname(ifrsNamespace, 'StatementOfCashFlowsAbstract'),
                 qname(ifrsNamespace, 'StatementOfChangesInEquityAbstract'),
             ]) if ifrsNamespace else frozenset(),
+            separateMemberQn=qname(jenvNamespace, 'SeparateMember'),
             textFormattingSchemaPath='sbr-text-formatting.xsd',
             textFormattingWrapper='<formattedText xmlns="http://www.nltaxonomie.nl/2017/xbrl/sbr-text-formatting">{}</formattedText>',
         )
