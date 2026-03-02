@@ -2127,17 +2127,21 @@ class ModelTypedDimension(ModelTestFilter):
 
     @property
     def dimQname(self):
-        dimQname = XmlUtil.descendant(self, XbrlConst.df, "qname")
-        if dimQname is not None:
-            return qname( dimQname, XmlUtil.text(dimQname) )
-        return None
+        try:
+            return self._dimQname
+        except AttributeError:
+            dimQname = XmlUtil.descendant(self, XbrlConst.df, "qname")
+            self._dimQname = qname(dimQname, XmlUtil.text(dimQname)) if dimQname is not None else None
+            return self._dimQname
 
     @property
     def dimQnameExpression(self):
-        qnameExpression = XmlUtil.descendant(self, XbrlConst.df, "qnameExpression")
-        if qnameExpression is not None:
-            return XmlUtil.text(qnameExpression)
-        return None
+        try:
+            return self._dimQnameExpression
+        except AttributeError:
+            qnameExpression = XmlUtil.descendant(self, XbrlConst.df, "qnameExpression")
+            self._dimQnameExpression = XmlUtil.text(qnameExpression) if qnameExpression is not None else None
+            return self._dimQnameExpression
 
     def compile(self):
         if not hasattr(self, "dimQnameExpressionProg"):
@@ -2156,6 +2160,11 @@ class ModelTypedDimension(ModelTestFilter):
             return None
 
     def filter(self, xpCtx, varBinding, facts, cmplmt):
+        if not facts:
+            return facts
+        if self.dimQname and not self.test:
+            dimedFacts = set.union(*[inst.factsByDimMemQname(self.dimQname) for inst in varBinding.instances])
+            return (facts - dimedFacts) if cmplmt else (facts & dimedFacts)
         outFacts = set()
         for fact in facts:
             dimQname = self.evalDimQname(xpCtx, fact)
