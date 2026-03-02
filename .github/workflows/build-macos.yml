@@ -201,7 +201,7 @@ jobs:
           hdiutil detach "${DEVICE}"
           hdiutil convert dist_dmg/arelle_tmp.dmg -format UDZO -imagekey zlib-level=9 -o ${{ env.DMG_BUILD_ARTIFACT_PATH }}
       - name: Upload build artifact
-        uses: actions/upload-artifact@v6.0.0
+        uses: actions/upload-artifact@v7.0.0
         with:
           name: ${{ steps.define-artifact-names.outputs.uploaded_artifact_name }}
           if-no-files-found: error
@@ -212,7 +212,7 @@ jobs:
           pytest -s --disable-warnings --all-frozen-builds --download-cache --offline --arelle="build/Arelle.app/Contents/MacOS/arelleCmdLine" tests/integration_tests/scripts/test_scripts.py
       - name: "[Test] Upload test artifacts"
         if: always()
-        uses: actions/upload-artifact@v6.0.0
+        uses: actions/upload-artifact@v7.0.0
         with:
           name: 'macos ${{ inputs.python_architecture }} test logs'
           if-no-files-found: error

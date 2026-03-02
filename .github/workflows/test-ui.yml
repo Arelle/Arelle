@@ -59,12 +59,12 @@ jobs:
           fetch-depth: 0
       - name: Download installer artifact
         if: matrix.build-type == 'installer'
-        uses: actions/download-artifact@v7.0.0
+        uses: actions/download-artifact@v8.0.0
         with:
           name: ${{ env.exe_uploaded_artifact_name }}
       - name: Download ZIP artifact
         if: matrix.build-type == 'zip'
-        uses: actions/download-artifact@v7.0.0
+        uses: actions/download-artifact@v8.0.0
         with:
           name: ${{ env.zip_uploaded_artifact_name }}
 
@@ -118,7 +118,7 @@ jobs:
 
       - name: Upload logs
         if: always()
-        uses: actions/upload-artifact@v6.0.0
+        uses: actions/upload-artifact@v7.0.0
         with:
           name: logs-${{ matrix.build-type }}
           if-no-files-found: error
@@ -126,7 +126,7 @@ jobs:
       - name: Upload screenshots
         # screenshots are only taken on test failure
         if: failure()
-        uses: actions/upload-artifact@v6.0.0
+        uses: actions/upload-artifact@v7.0.0
         with:
           name: screenshots-${{ matrix.build-type }}
           if-no-files-found: error
@@ -134,7 +134,7 @@ jobs:
       - name: Upload videos
         # videos are only saved on test failure
         if: failure()
-        uses: actions/upload-artifact@v6.0.0
+        uses: actions/upload-artifact@v7.0.0
         with:
           name: videos-${{ matrix.build-type }}
           if-no-files-found: error
