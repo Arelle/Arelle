@@ -733,7 +733,7 @@ def trialFilterFacts(xpCtx, vb, facts, filterRelationships, filterType, var=None
         complHandledFilterRels = varSet.complHandledFilterRels
         unHandledFilterRels = varSet.unHandledFilterRels
     if filterInfo and noComplHandledFilterRels:
-        facts = {f for f in facts if f.isItem}
+        facts = {fact for fact in facts if fact.isItem}
         filterRelationships = unHandledFilterRels
         for varFilterRel, dimQname in noComplHandledFilterRels:
             if varFilterRel.isCovered:  # block boolean group filters that have cover in subnetworks
@@ -779,7 +779,7 @@ def trialFilterFacts(xpCtx, vb, facts, filterRelationships, filterType, var=None
     # handle now simple model type complement (at the end since it appears to reduce much less)
     if filterInfo and complHandledFilterRels:
         if not noComplHandledFilterRels:
-            facts = {f for f in facts if f.isItem}
+            facts = {fact for fact in facts if fact.isItem}
         for varFilterRel, dimQname in complHandledFilterRels:
             if varFilterRel.isCovered:  # block boolean group filters that have cover in subnetworks
                 _filter = varFilterRel.toModelObject
