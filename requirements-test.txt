@@ -1,4 +1,4 @@
-boto3==1.42.54
+boto3==1.42.59
 packaging==26.0
 pytest==9.0.2
 requests==2.32.5
