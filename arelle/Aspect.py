@@ -58,6 +58,16 @@ aspectRuleAspects = {   # aspect correspondence to rule-retrievable aspects
     Aspect.UNIT: (Aspect.UNIT_MEASURES, Aspect.MULTIPLY_BY, Aspect.DIVIDE_BY)
 }
 
+aspectContextAspects = frozenset({
+    Aspect.ENTITY_IDENTIFIER, Aspect.VALUE, Aspect.SCHEME,
+    Aspect.PERIOD, Aspect.PERIOD_TYPE, Aspect.START, Aspect.END, Aspect.INSTANT, Aspect.INSTANT_END,
+    Aspect.COMPLETE_SEGMENT,
+    Aspect.COMPLETE_SCENARIO,
+    Aspect.NON_XDT_SEGMENT,
+    Aspect.NON_XDT_SCENARIO,
+    Aspect.DIMENSIONS, Aspect.OMIT_DIMENSIONS,
+})
+
 aspectModels = {
     "dimensional": {  # order by likelyhood of short circuting aspect match tests
         Aspect.CONCEPT, Aspect.PERIOD, Aspect.UNIT, Aspect.LOCATION, Aspect.ENTITY_IDENTIFIER,
