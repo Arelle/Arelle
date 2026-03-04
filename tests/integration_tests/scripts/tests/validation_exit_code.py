@@ -84,7 +84,7 @@ result = run_arelle_cmd(
     )
 
 if result.returncode != 2:
-    errors.append("--validationExitCode can't be used with --webserver")
+    errors.append(f"Validation finished with exit code {result.returncode}. Expected 2.")
 
 print("Cleaning up")
 rmtree(samples_directory)
