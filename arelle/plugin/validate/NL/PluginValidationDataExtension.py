@@ -65,6 +65,7 @@ class ContextData:
 class DimensionalData:
     domainMembers: frozenset[ModelConcept]
     elrPrimaryItems: dict[str, set[ModelConcept]]
+    primaryItemElrs: dict[ModelConcept, set[str]]
     primaryItems: frozenset[ModelConcept]
 
 
@@ -448,6 +449,7 @@ class PluginValidationDataExtension(PluginData):
     def getDimensionalData(self, modelXbrl: ModelXbrl) -> DimensionalData:
         domainMembers = set()  # concepts which are dimension domain members
         elrPrimaryItems = defaultdict(set)
+        primaryItemElrs = defaultdict(set)
         hcPrimaryItems: set[ModelConcept] = set()
         hcMembers: set[Any] = set()
         primaryItems: set[ModelConcept] = set()
@@ -475,12 +477,14 @@ class PluginValidationDataExtension(PluginData):
                         for hcPrimaryItem in hcPrimaryItems:
                             if not hcPrimaryItem.isAbstract:
                                 elrPrimaryItems[hasHcRel.linkrole].add(hcPrimaryItem)
+                                primaryItemElrs[hcPrimaryItem].add(hasHcRel.linkrole)
                                 elrPrimaryItems["*"].add(hcPrimaryItem) # members of any ELR
                     hcPrimaryItems.clear()
                     hcMembers.clear()
         return DimensionalData(
             domainMembers=frozenset(domainMembers),
             elrPrimaryItems=elrPrimaryItems,
+            primaryItemElrs=primaryItemElrs,
             primaryItems=frozenset(primaryItems),
         )
 

@@ -1794,50 +1794,47 @@ def rule_nl_kvk_4_4_2_5(
             pluginData.ifrsSeparateMemberQn: 'https://www.nltaxonomie.nl/kvk/role/lineitems-separate-financial-statements-ifrs',
         }
 
-    elrPrimaryItems = pluginData.getDimensionalData(val.modelXbrl).elrPrimaryItems
-    extensionRoleTypes = getExtensionRoleTypes(val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES)
-    errors = set()
+    primaryItemElrs = pluginData.getDimensionalData(val.modelXbrl).primaryItemElrs
+    extensionRoleUris = frozenset({
+        extensionRoleType.roleURI
+        for extensionRoleType in getExtensionRoleTypes(
+            val.modelXbrl,
+            STANDARD_TAXONOMY_URL_PREFIXES
+        )
+    })
 
-    for fact in val.modelXbrl.facts:
-        if (
-            (context := fact.context) is None or
-            (concept := fact.concept) is None or
-            not (qnameDims := context.qnameDims)
-        ):
+    contextRequiredRoles = {}
+    for context in val.modelXbrl.contextsInUse:
+        if not (qnameDims := context.qnameDims):
             continue
-        if any(
-            concept in elrPrimaryItems.get(extensionRoleType.roleURI, set())
-            for extensionRoleType in extensionRoleTypes
-        ):
-            # Ignore concept if it is assigned to an extension definition link role.
-            # This condition is not documented, but is implied by failures in the conformance suite.
-            continue
-
         # Determine if a required role is in effect based on the dimensions used in the fact.
-        requiredRole = None
         for axisQn, memberRoleMap in requiredPlaceholderMap.items():
             # Must match exactly one explicit dimension.
             if qnameDims.keys() == {axisQn}:
-                memberQn = qnameDims[axisQn].member.qname
+                memberQn = qnameDims[axisQn].memberQname
                 if memberQn in memberRoleMap:
-                    requiredRole = memberRoleMap[memberQn]
+                    contextRequiredRoles[context.id] = memberRoleMap[memberQn]
                 break
-        if requiredRole is None:
-            continue
 
-        if concept not in elrPrimaryItems.get(requiredRole, set()):
-            # Concept isn't a primary item in the required role.
-            errors.add(fact)
+    errors = set()
+    for fact in val.modelXbrl.facts:
+        if (context := fact.context) is None:
             continue
-
-        for linkrole, concepts in elrPrimaryItems.items():
-            if linkrole in (requiredRole, '*'):
-                continue
-            if concept not in concepts:
-                continue
-            # Concept is a primary item in a linkrole other than the required role.
-            errors.add(fact)
-            break
+        if context.id not in contextRequiredRoles:
+            # Fact's context does not have a required role based on its dimensions.
+            continue
+        if (requiredRole := contextRequiredRoles.get(context.id)) is None:
+            continue
+        if (concept := fact.concept) is None:
+            continue
+        conceptRoleUris = primaryItemElrs.get(concept, set())
+        if conceptRoleUris == {requiredRole}:
+            continue
+        if conceptRoleUris & extensionRoleUris:
+            # Ignore concept if it is assigned to an extension definition link role.
+            # This condition is not documented, but is implied by failures in the conformance suite.
+            continue
+        errors.add(fact)
 
     for error in errors:
         yield Validation.error(
