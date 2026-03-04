@@ -1844,7 +1844,7 @@ def rule_nl_kvk_4_4_2_5(
             codes='NL.NL-KVK.4.4.2.5.extensionTaxonomyLineItemNotLinkedToDesignatedPlaceholder',
             modelObject=error,
             msg=_('Line item is not present in the correct definition linkbase placeholder. '
-                  'Ensure line items with only Financial Statements type is in the approriate placeholder.'),
+                  'Ensure line items with only Financial Statements type is in the appropriate placeholder.'),
         )
 
 
