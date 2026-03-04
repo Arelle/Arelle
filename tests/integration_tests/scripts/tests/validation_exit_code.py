@@ -17,8 +17,6 @@ this_file = Path(__file__)
 args = parse_args(
     this_file.stem,
     "Confirm the `--validationExitCode` option works as expected.",
-    cache=this_file.with_suffix(".zip").name,
-    cache_version_id='CNTq_CLLvVEpcpxw9x4ipF76gD7zvZWD',
     )
 
 arelle_command = args.arelle
