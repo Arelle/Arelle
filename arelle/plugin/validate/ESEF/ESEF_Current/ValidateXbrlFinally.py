@@ -769,14 +769,10 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 '''
         # identify report date
         reportDate = None
-        for f in modelXbrl.factsByLocalName.get("DateOfEndOfReportingPeriod2013", ()):
+        for f in modelXbrl.factsByLocalName.get("NameOfReportingEntityOrOtherMeansOfIdentification", ()):
             if getattr(f, "xValid", 0) >= VALID:
-                reportDate = f.xValue
-                break
-        if not reportDate: # no report period, take name's end context
-            for f in modelXbrl.factsByLocalName.get("NameOfReportingEntityOrOtherMeansOfIdentification", ()):
-                if getattr(f, "xValid", 0) >= VALID:
-                    reportDate = f.context.endDate
+                if startDatetime := f.context.startDatetime:
+                    reportDate = startDatetime.date()
                     break
 
         if esefDisclosureSystemYear >= 2024 and factsMissingId:
