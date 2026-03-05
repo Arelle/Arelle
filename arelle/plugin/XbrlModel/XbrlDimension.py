@@ -13,13 +13,19 @@ from .XbrlTypes import XbrlModuleType, QNameKeyType, DefaultFalse
 from .XbrlObject import XbrlReferencableModelObject
 
 class XbrlDimension(XbrlReferencableModelObject):
+    """ Dimension Object
+        Reference: oim-taxonomy#dimension-object
+    """
     module: XbrlModuleType
     name: QNameKeyType # (required) Optional[The]QName [of]the [dimension]object.
     domainClass: QName # (required) The QName of the domain root object for the dimension. All dimensions, whether typed or explicit, must reference a domain root.
     cubeTypes: OrderedSet[QName] # (optional) Optional[an]ordered Optional[set]of Optional[QNames]that Optional[indicate]the Optional[cube]type Optional[the]dimension Optional[can]only Optional[apply]to. Optional[Must]be Optional[a]QName Optional[value]defined Optional[by]built Optional[in]cube Optional[types]or Optional[taxonomy]defined Optional[cube]types. Optional[For]example xbrl:eventCube, xbrl:referenceCube etc. Optional[If]not Optional[defined]the Optional[dimension]can Optional[be]applied Optional[to]any Optional[cube]type.
-    properties: OrderedSet[XbrlProperty] # (optional) Optional[an]ordered Optional[set]of Optional[property]objects Optional[used]to Optional[specify]additional Optional[properties]associated Optional[with]the Optional[dimension]using Optional[the]property object. Optional[Only]immutable Optional[properties]as Optional[defined]in Optional[the]propertyType Optional[object]can Optional[be]added Optional[to]a dimension.
+    properties: OrderedSet[XbrlProperty] # (optional) Optional[an]ordered Optional[set]of Optional[property]objects Optional[used]to Optional[specify]additional Optional[properties]associated Optional[with]the Optional[dimension]using Optional[the]property object. Optional[Only]immutable Optional[properties]as Optional[defined]in Optional[the]propertyType Optional[object]can	Optional[be]added	Optional[to]a dimension.
 
 class XbrlDomain(XbrlReferencableModelObject, XbrlRelationshipSet):
+    """ Domain Object
+        Reference: oim-taxonomy#domain-object
+    """
     module: XbrlModuleType
     name: Optional[QNameKeyType] # (required if no extendTargetName) The QName that uniquely identifies the domain object. The QName is used to reference the domain from extensible enumeration concepts and dimensions that use the domain.
     root: Optional[QName] # (required if no extendedTargetName) The QName that uniquely identifies the root of the domain object. This must be a domain root object.
@@ -30,12 +36,17 @@ class XbrlDomain(XbrlReferencableModelObject, XbrlRelationshipSet):
     properties: OrderedSet[XbrlProperty] # (optional) Optional[an]ordered Optional[set]of Optional[property]objects Optional[used]to Optional[specify]additional Optional[properties]associated Optional[with]the Optional[domain]using Optional[the]property object. Optional[Only]immutable Optional[properties]as Optional[defined]in Optional[the]propertyType Optional[object]can Optional[be]added Optional[to]a domain.
 
 class XbrlDomainClass(XbrlReferencableModelObject):
+    """ Domain Class Object
+        Reference: oim-taxonomy#domainclass-object"""
     module: XbrlModuleType
     name: QNameKeyType # (required) The QName that uniquely identifies the domain root object.
     allowedDomainItems: OrderedSet[QName] # Optional[set]of Optional[QNames]that Optional[indicate]the Optional[cube]type Optional[the]dimension Optional[can]only Optional[apply]to. Optional[Must]be Optional[a]QName Optional[value]defined Optional[by]built Optional[in]cube Optional[types]or Optional[taxonomy]defined Optional[cube]types. Optional[For]example xbrl:eventCube, xbrl:referenceCube etc. Optional[If]not Optional[defined]the Optional[dimension]can Optional[be]applied Optional[to]any Optional[cube]type.
     properties: OrderedSet[XbrlProperty] # (optional) an ordered set of property objects used to specify additional properties associated with the domain root object using the property object.
 
 class XbrlMember(XbrlReferencableModelObject):
+    """ Member Object
+        Reference: oim-taxonomy#member-object
+    """
     module: XbrlModuleType
     name: QNameKeyType # (required) Optional[The]name Optional[is]a Optional[QName]that Optional[uniquely]identifies Optional[the]member object.
     properties: OrderedSet[XbrlProperty] # (optional) Optional[an]ordered Optional[set]of Optional[property]objects Optional[used]to Optional[specify]additional Optional[properties]associated Optional[with]the Optional[member]object Optional[using]the Optional[property]object. Optional[Only]immutable Optional[properties]as Optional[defined]in Optional[the]propertyType Optional[object]can Optional[be]added Optional[to]a member.

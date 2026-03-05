@@ -12,6 +12,9 @@ from .XbrlTypes import XbrlModuleType, QNameKeyType
 from .XbrlObject import XbrlModelObject, XbrlReferencableModelObject
 
 class XbrlRelationship(XbrlModelObject):
+    """ Relationship Object
+        Reference: oim-taxonomy#relationship-object
+    """
     source: QName # (required) This attribute identifies the source concept of the relationship type. The value of the attribute must be a QName.
     target: QName # (required) This attribute identifies the target concept of the relationship type. The value of the attribute must be a QName.
     order: Optional[int] # (optional) This is used to order the relationships if the order is different than the order that the relationship appears in the list of relationships. The order property can be used on any relationship type.
@@ -72,6 +75,10 @@ class XbrlRelationshipSet:
         return self._roots
 
 class XbrlNetwork(XbrlReferencableModelObject, XbrlRelationshipSet):
+    """ Network Object
+        Reference: oim-taxonomy#network-object
+        The network object represents a set of relationships that are grouped together. The network object can be used to group relationships that are related to each other, such as presentation relationships or calculation relationships. The network object can also be used to group relationships that are defined in different files or modules. The network object can be used to view the relationships in a taxonomy in a hierarchical manner, and to view the  
+        """
     module: XbrlModuleType
     name: QNameKeyType # (required if no extendedTargetName) The name is a QName that uniquely identifies the network object.
     relationshipTypeName: QName # (required if no extendedTargetName) The relationshipType object of the network expressed as a QName such as xbrl:parent-child

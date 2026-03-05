@@ -11,6 +11,22 @@ from arelle.XmlValidateConst import VALID, INVALID
 coreToFactDim = {conceptCoreDim: "concept", entityCoreDim: "entity", unitCoreDim: "unit"}
 
 def matchFactToCube(compMdl, factspace, cubeObj):
+    """Check if the factspace dimensions match the cube dimensions and allowed members.
+        Return True if the factspace matches the cube, False otherwise. 
+
+        The factspace matches the cube if for each dimension of the cube, there is a corresponding dimension 
+        in the factspace with a value that matches one of the allowed members of the cube dimension. 
+
+        For core dimensions (concept, entity, unit), the factspace dimension value must match one of the 
+        allowed members of the cube dimension. 
+
+        For period dimension, the factspace period value must match one of the period constraints of the cube dimension. 
+
+        For taxonomy-defined dimensions, the factspace dimension value must match one of the allowed members of the cube dimension. 
+
+        If any cube dimension does not have a matching factspace dimension with a matching value, then the factspace 
+        does not match the cube and the function returns False. 
+    """
     hasCoreDims = True
     hasDims = True
     for cubeDimObj in cubeObj.cubeDimensions:
@@ -86,6 +102,23 @@ def matchFactToCube(compMdl, factspace, cubeObj):
     return hasDims
 
 def validateCubes(compMdl, factspace):
+    """Find cubes that match the dimensions of the factspace, and validate the factspace against those cubes. 
+        Return list of cubes that match the factspace dimensions. 
+
+        This is a first step toward validating the factspace against the cubes, and then validating the facts against the cubes. 
+
+        The cube fit scores are used to find likely cubes, and then the factspace is validated against those cubes. 
+
+        The factspace is validated against a cube by checking that the dimensions of the factspace match the dimensions of the cube, 
+        and that the values of the dimensions of the factspace match the allowed members of the cube dimensions.
+
+        The factspace is validated against a cube by checking that for each dimension of the cube, there is a corresponding dimension 
+        in the factspace with a value that matches one of the allowed members of the cube dimension. 
+
+        If all dimensions of the cube are matched by dimensions in the factspace with matching values, 
+        then the factspace is considered to match the cube. The function returns a list of cubes that match the 
+        factspace dimensions and values.
+    """
     # find likely cubes
     cubeFitQuery = [(dimQn, value) for dimQn,value in factspace.factDimensions.items() if isinstance(dimQn, QName)]
     results = searchXbrl(compMdl, cubeFitQuery, SEARCH_CUBES, 50) # allow sufficient return scores

@@ -106,11 +106,16 @@ EMPTY_DICT = {}
 UNSPECIFIABLE_STR = '\uDBFE' # impossible unicode character
 
 def jsonGet(tbl, key, default=None):
+    """"""
     if isinstance(tbl, dict):
         return tbl.get(key, default)
     return default
 
-def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kwargs):
+def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kwargs)
+    """Load an OIM Taxonomy module from JSON file or dict object, return the modelDocument or raise an exception if invalid.
+        If modelXbrl is not None, then load as a XbrlModule into the modelXbrl, otherwise create and return a standalone 
+        XbrlCompiledModel.
+    """
     global jsonschemaValidator
     from arelle import ModelDocument, ModelXbrl, XmlUtil
     from arelle.ModelDocument import ModelDocument, ModelDocumentReference
@@ -131,6 +136,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
             loadDictErrors.append((msgCode, msgText, kwargs))
 
         def loadDict(keyValuePairs):
+            """"""
             _dict = {}
             _valueKeyDict = {}
             for key, value in keyValuePairs:
@@ -258,6 +264,18 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                 jsonschemaValidator = jsonSchemaLoaderMethod(json.load(fh))
             modelXbrl.profileActivity("Load schema validator schema file", minTimeToShow=PROFILE_MIN_TIME)
         cntlr.showStatus(_("Schema validating: {0}").format(moduleFileBasename))
+        """ JSON Schema Validation, support multiple validator libraries based on constant at top of module
+
+            Note that jsonschema and fastjsonschema have very different performance characteristics, 
+            and jsonschema is more likely to complete validation of our complex schemas and provide all errors in the source object, 
+            while fastjsonschema may be faster if it works on our schemas but only provides the first error in the source object.  
+            jsonschema_rs appears to be faster than jsonschema but raises a RUST ValueError on our taxonomy validation, 
+            so we catch that as a general exception and report it as an invalid JSON structure error.
+
+            For some error types such as missing required property or invalid property value, we attempt to map the error message 
+            to a more specific OIM error code, but for other errors we just report a general invalid JSON structure error with the 
+            error message from the validator.
+        """
         if JSON_SCHEMA_VALIDATOR == "jsonschema":
             try:
                 for err in jsonschemaValidator.iter_errors(moduleFileObj) or ():
@@ -453,6 +471,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
         jsonEltsReqdButMissing = []
         namedObjectDuplicates = defaultdict(OrderedSet)
         def createModelObject(jsonObj, oimParentObj, keyClass, objClass, newObj, pathParts):
+            """"""
             keyValue = None
             relatedNames = [] # to tag an object with labels or references
             oimParentTypes = (type(oimParentObj), type(oimParentObj).__name__) # allow actual type or TypeAlias type
@@ -617,6 +636,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
             return keyValue
 
         def createModelObjects(jsonKey, jsonObj, oimParentObj, pathParts):
+            """"""
             # find collection owner in oimParentObj
             for objName in (jsonKey, plural(jsonKey)):
                 ownrPropType = getattr(oimParentObj, "__annotations__", EMPTY_DICT).get(objName)
@@ -753,367 +773,6 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
 
         return schemaDoc
 
-        ####################### convert to XML Taxonomy
-
-
-        QN_ANNOTATION = qname("{http://www.w3.org/2001/XMLSchema}xs:annotation")
-        QN_APPINFO = qname("{http://www.w3.org/2001/XMLSchema}xs:appinfo")
-        QN_IMPORT = qname("{http://www.w3.org/2001/XMLSchema}xs:import")
-        QN_ELEMENT = qname("{http://www.w3.org/2001/XMLSchema}xs:element")
-        QN_PERIOD_TYPE = qname("{http://www.xbrl.org/2003/instance}xbrli:periodType")
-        QN_BALANCE = qname("{http://www.xbrl.org/2003/instance}xbrli:balance")
-        QN_SUBS_GROUP = qname("{http://www.w3.org/2001/XMLSchema}xs:substitutionGroup")
-        QN_ROLE_TYPE = qname("{http://www.xbrl.org/2003/linkbase}link:roleType")
-        QN_ROLE_TYPE = qname("{http://www.xbrl.org/2003/linkbase}link:roleType")
-        QN_DEFINITION = qname("{http://www.xbrl.org/2003/linkbase}link:definition")
-        QN_USED_ON = qname("{http://www.xbrl.org/2003/linkbase}link:usedOn")
-
-        # convert into XML Taxonomy
-        schemaElt = schemaDoc.xmlRootElement
-        annotationElt = addChild(schemaElt, QN_ANNOTATION)
-        appinfoElt = addChild(annotationElt, QN_APPINFO)
-
-        if not any(t["namespace"] == "http://www.xbrl.org/2003/instance" for t in taxonomyRefs):
-            taxonomyRefs.insert(0, {"namespace":"http://www.xbrl.org/2003/instance", "entryPoint":"http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"})
-        if "cubes" in moduleObj and not any(t["namespace"] == "http://xbrl.org/2005/xbrldt" for t in taxonomyRefs):
-            taxonomyRefs.insert(0, {"namespace":"http://xbrl.org/2005/xbrldt", "entryPoint": "http://www.xbrl.org/2005/xbrldt-2005.xsd"})
-        for txmyRefObj in taxonomyRefs:
-            schemaDoc.addDocumentReference(
-                loadModelDocument(modelXbrl, txmyRefObj.get("entryPoint"), txBase, namespace=txmyRefObj.get("namespace"), isDiscovered=True),
-                "import")
-            addChild(schemaElt, QN_IMPORT, attributes={
-                "namespace": txmyRefObj.get("namespace"),
-                "schemaLocation": txmyRefObj.get("entryPoint")})
-
-        # additional namespaces needed
-        for prefix, ns in (("xlink", "http://www.w3.org/1999/xlink"),
-                           ("ref", "http://www.xbrl.org/2006/ref"),
-                           ("xbrldt", "http://xbrl.org/2005/xbrldt"),
-                           ("xbrl", xbrl)):
-            if ns not in namespacePrefixes:
-                namespacePrefixes[ns] = prefix
-                prefixNamespaces[prefix] = ns
-                setXmlns(schemaDoc, prefix, ns)
-
-
-
-        ##### Move to end
-        currentAction = "identifying default dimensions"
-        if modelXbrl is not None:
-            ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl) # needs dimension defaults
-
-        currentAction = "creating concepts"
-        conceptObjs = taxonomyObj.get("concepts", [])
-        conceptNum = 0 # for synthetic concept number
-        syntheticConceptFormat = "_f{{:0{}}}".format(int(log10(len(conceptObjs) or 1))) #want
-
-        numConceptCreationXbrlErrors = 0
-
-        for conceptI, conceptObj in enumerate(conceptObjs):
-            nillable = conceptObj.get("nillable", True)
-            periodType = conceptObj.get("periodType", True)
-            balance = conceptObj.get("balance", None)
-            abstract = conceptObj.get("abstract", None)
-            nillable = conceptObj.get("abstract", None)
-            name = qname(conceptObj.get("name", ""), prefixNamespaces)
-            if name:
-                dataType = qname(conceptObj.get("dataType", ""), prefixNamespaces)
-                substitutionGroup = qname(conceptObj.get("substitutionGroup", ""), prefixNamespaces)
-                attributes = {"id": f"{name.prefix}_{name.localName}",
-                              "name": name.localName}
-                if dataType:
-                    attributes["type"] = str(dataType)
-                if periodType:
-                    attributes[QN_PERIOD_TYPE.clarkNotation] = periodType
-                if balance:
-                    attributes[QN_BALANCE.clarkNotation] = balance
-                if abstract is not None:
-                    attributes["abstract"] = str(abstract).lower()
-                if nillable is not None:
-                    attributes["nillable"] = str(nillable).lower()
-                attributes["substitutionGroup"] = str(substitutionGroup)
-
-                conceptElt = addChild(schemaElt,
-                                      QN_ELEMENT,
-                                      attributes=attributes)
-            else:
-                error("oimte:invalidConceptName",
-                      "%(path)s concept name %(name)s is not valid",
-                      modelObject=modelXbrl, path=f"xbrlModel/concept[{conceptI+1}]", name=conceptObj.get("name", ""))
-
-        # find which linkbases networkURIs are used on
-        usedOn = defaultdict(set)
-        for dimObj in taxonomyObj.get("cubes", []) + taxonomyObj.get("domains", []):
-            networkURI = dimObj.get("networkURI", "")
-            if networkURI:
-                usedOn[networkURI].add("link:definitionLink")
-        for networkObj in taxonomyObj.get("networks", []) + taxonomyObj.get("domains", []):
-            networkURI = networkObj.get("networkURI", "")
-            if networkURI:
-                for relObj in networkObj.get("relationships", []):
-                    relType = relObj.get("relationshipType", "")
-                    if relType == XbrlConst.parentChild:
-                        usedOn[networkURI].add("link:presentationLink")
-                    elif relType in XbrlConst.summationItems:
-                        usedOn[networkURI].add("link:calculationLink")
-                    elif relType in (XbrlConst.requiresElement, XbrlConst.generalSpecial):
-                        usedOn[networkURI].add("link:definitionLink")
-        for networkObj in taxonomyObj.get("cubes", []):
-            networkURI = networkObj.get("networkURI", "")
-            if networkURI and networkObj.get("dimensions", []):
-                usedOn[networkURI].add("link:definitionLink")
-
-        # define role types
-        locallyDefinedRoles = OrderedDict() # URI: {name, description, usedOns}
-        # networkURI can appear multiple times in different places, infer a single role definition from all
-        for objI, networkObj in enumerate(taxonomyObj.get("networks", []) + taxonomyObj.get("domains", [])):
-            networkURI = networkObj.get("networkURI", "")
-            if networkURI in locallyDefinedRoles:
-                roleDef = locallyDefinedRoles[networkURI]
-            else:
-                locallyDefinedRoles[networkURI] = roleDef = {}
-            if "name" in networkObj:
-                roleDef["name"] = networkObj["name"]
-            if "description" in networkObj:
-                roleDev["description"] = networkObj["description"]
-        locallyDefinedRoleHrefs = {}
-        for objI, (networkURI, networkObj) in enumerate(locallyDefinedRoles.items()):
-            name = networkObj.get("name", f"_roleType_{objI+1}")
-            description = networkObj.get("description", "")
-            locallyDefinedRoleHrefs[networkURI] = f"#{name}"
-
-            roleTypeElt = addChild(appinfoElt, QN_ROLE_TYPE,
-                                   attributes={"id": name,
-                                               "roleURI": networkURI})
-            if description:
-                addChild(roleTypeElt, QN_DEFINITION, text=description)
-            for u in usedOn[networkURI]:
-                addChild(roleTypeElt, QN_USED_ON, text=u)
-            modelXbrl.roleTypes[networkURI].append(roleTypeElt)
-
-        # create ELRs
-        lbElts = []
-        xlinkLabelFormat = "{{}}{{:0{}}}".format(int(log10(len(taxonomyObj.get("labels", [])) or 1)))
-        locXlinkLabels = {}
-        hrefsNsWithoutPrefix = defaultdict(list)
-        def locXlinkLabel(elrElt, conceptRef, path):
-            if conceptRef not in locXlinkLabels:
-                qn = qname(conceptRef, prefixNamespaces)
-                if qn is None:
-                    error("oimte:invalidConceptRef",
-                          "%(path)s concept reference %(conceptRef)s is not a defined prefix or not a valid qname",
-                          modelObject=modelXbrl, path=path, conceptRef=conceptRef)
-                elif qn.namespaceURI not in namespacePrefixes:
-                    hrefsNsWithoutPrefix[qn.namespaceURI or "(none)"].append(path)
-                concept = modelXbrl.qnameConcepts.get(qn)
-                xlinkLabel = xlinkLabelFormat.format("loc", len(locXlinkLabels)+1)
-                locXlinkLabels[conceptRef] = xlinkLabel
-                if concept is not None:
-                    addChild(elrElt, XbrlConst.qnLinkLoc,
-                             attributes={"{http://www.w3.org/1999/xlink}label": xlinkLabel,
-                                         "{http://www.w3.org/1999/xlink}href": f"{concept.modelDocument.uri}#{concept.id}",
-                                         "{http://www.w3.org/1999/xlink}type": "locator"})
-                else:
-                    error("oimte:invalidConceptQName",
-                          "%(path)s concept reference %(conceptRef)s, qname %(qname)s, does not correspond to a defined concept",
-                          modelObject=modelXbrl, path=path, qname=qn, conceptRef=conceptRef)
-            return locXlinkLabels[conceptRef]
-        lbElt = addChild(appinfoElt, XbrlConst.qnLinkLinkbase,
-                         attributes={"id":"_labels_"})
-        lbElts.append(lbElt)
-        elrElt = addChild(lbElt, XbrlConst.qnLinkLabelLink,
-                         attributes={"{http://www.w3.org/1999/xlink}role": XbrlConst.defaultLinkRole,
-                                     "{http://www.w3.org/1999/xlink}type": "extended"})
-        for labelI, labelObj in enumerate(taxonomyObj.get("labels", [])):
-            labelType = labelObj.get("labelType", "")
-            value = labelObj.get("value", "")
-            language = labelObj.get("language", "")
-            relatedID = labelObj.get("relatedID", [])
-            xlinkLbl = xlinkLabelFormat.format("label", labelI+1)
-            addChild(elrElt, XbrlConst.qnLinkLabel, text=value,
-                     attributes={# "id": xlinkLbl,
-                                 "{http://www.w3.org/1999/xlink}label": xlinkLbl,
-                                 "{http://www.w3.org/1999/xlink}role": labelType,
-                                 "{http://www.w3.org/1999/xlink}lang": language,
-                                 "{http://www.w3.org/1999/xlink}type": "resource"})
-            for refI, ref in enumerate(relatedID):
-                addChild(elrElt, XbrlConst.qnLinkLabelArc,
-                         attributes={"{http://www.w3.org/1999/xlink}from": locXlinkLabel(elrElt, ref, f"label[{labelI}]/relatedID[{refI}]"),
-                                     "{http://www.w3.org/1999/xlink}to": xlinkLbl,
-                                     "{http://www.w3.org/1999/xlink}arcrole": XbrlConst.conceptLabel,
-                                     "{http://www.w3.org/1999/xlink}type": "arc"})
-
-        def addRoleRefs(lbElt, roles, arcroles):
-            firstElr = lbElt[0]
-            for role in sorted(roles):
-                if role in locallyDefinedRoleHrefs:
-                    href = locallyDefinedRoleHrefs[role]
-                    addChild(lbElt, XbrlConst.qnLinkRoleRef,
-                             beforeSibling=firstElr,
-                             attributes={
-                                 "{http://www.w3.org/1999/xlink}roleURI": role,
-                                 "{http://www.w3.org/1999/xlink}type": "simple",
-                                 "{http://www.w3.org/1999/xlink}href": href})
-            for arcrole in sorted(arcroles):
-                if arcrole.startswith("http://xbrl.org/int/dim/arcrole"):
-                    href = f"http://www.xbrl.org/2005/xbrldt-2005.xsd#{os.path.basename(arcrole)}"
-                    addChild(lbElt, XbrlConst.qnLinkArcroleRef,
-                             beforeSibling=firstElr,
-                                 attributes={
-                                     "{http://www.w3.org/1999/xlink}arcroleURI": arcrole,
-                                     "{http://www.w3.org/1999/xlink}type": "simple",
-                                     "{http://www.w3.org/1999/xlink}href": href})
-            roles.clear()
-            arcroles.clear()
-
-        domainIDHypercubeQNames = {}
-        domainIDPrimaryDimensions = {}
-        domainIDPeriodDimensions = {}
-        lbElt = addChild(appinfoElt, XbrlConst.qnLinkLinkbase)
-        lbElts.append(lbElt)
-        lbEltRoleRefs = set()
-        lbEltArcroleRefs = set()
-        for cubeI, cubeObj in enumerate(taxonomyObj.get("cubes", [])):
-            locXlinkLabels.clear() # separate locs per elr
-            networkURI = cubeObj.get("networkURI", "") # ELR
-            hypercubeConcept = cubeObj.get("name", "") # hypercube concept clark name
-            cubeType = cubeObj.get("cubeType", "")
-            elrElt = addChild(lbElt, XbrlConst.qnLinkDefinitionLink,
-                             attributes={"{http://www.w3.org/1999/xlink}role": networkURI,
-                                         "{http://www.w3.org/1999/xlink}type": "extended"})
-            lbEltRoleRefs.add(networkURI)
-            for dimI, dimObj in enumerate(cubeObj.get("dimensions", [])):
-                dimensionType = dimObj.get("dimensionType", "")
-                domainID = dimObj.get("domainID", "")
-                dimensionType = dimObj.get("dimensionType", "")
-                dimensionConcept = dimObj.get("dimensionConcept", "")
-                if dimensionConcept == "xbrl:PrimaryDimension":
-                    domainIDPrimaryDimensions[domainID] = hypercubeConcept
-                elif dimensionConcept == "xbrl:PeriodDimension":
-                    domainIDPeriodDimensions[domainID] = hypercubeConcept
-                else:
-                    domainIDHypercubeQNames[domainID] = hypercubeConcept
-                    addChild(elrElt, XbrlConst.qnLinkDefinitionArc,
-                             attributes={"{http://www.w3.org/1999/xlink}from": locXlinkLabel(elrElt, hypercubeConcept, f"cube[{cubeI}]/cube.name"),
-                                         "{http://www.w3.org/1999/xlink}to": locXlinkLabel(elrElt, dimensionConcept, f"cube[{cubeI}]/dimension[{dimI}]/dimensionConcept"),
-                                         "{http://www.w3.org/1999/xlink}arcrole": XbrlConst.hypercubeDimension,
-                                         "{http://www.w3.org/1999/xlink}type": "arc"})
-                    lbEltArcroleRefs.add(XbrlConst.hypercubeDimension)
-
-        for domI, domObj in enumerate(taxonomyObj.get("domains", [])):
-            locXlinkLabels.clear() # separate locs per elr
-            networkURI = domObj.get("networkURI", "")
-            domainID = domObj.get("domainID", "")
-            domainConcept = domObj.get("domainConcept", "")
-            relationships = domObj.get("relationships", [])
-            elrElt = addChild(lbElt, XbrlConst.qnLinkDefinitionLink,
-                             attributes={"{http://www.w3.org/1999/xlink}role": networkURI,
-                                         "{http://www.w3.org/1999/xlink}type": "extended"})
-            lbEltRoleRefs.add(networkURI)
-            if domainID not in domainIDPrimaryDimensions and domainID not in domainIDPeriodDimensions:
-                addChild(elrElt, XbrlConst.qnLinkDefinitionArc,
-                         attributes={"{http://www.w3.org/1999/xlink}from": locXlinkLabel(elrElt, domainIDHypercubeQNames.get(domainID), f"domain[{domI}]/domainID"),
-                                     "{http://www.w3.org/1999/xlink}to": locXlinkLabel(elrElt, domainConcept, f"domain[{domI}]/domainConcept"),
-                                     "{http://www.w3.org/1999/xlink}arcrole": XbrlConst.dimensionDomain,
-                                     "{http://www.w3.org/1999/xlink}type": "arc"})
-                lbEltArcroleRefs.add(XbrlConst.dimensionDomain)
-            for relI, relObj in enumerate(relationships):
-                source = relObj.get("source", "")
-                target = relObj.get("target", "")
-                order = relObj.get("order", "1")
-                if domainID in domainIDPrimaryDimensions and relI == 0:
-                    addChild(elrElt, XbrlConst.qnLinkDefinitionArc,
-                             attributes={"{http://www.w3.org/1999/xlink}from": locXlinkLabel(elrElt, target, f"domain[{domI}]/relationship[{relI}/target"),
-                                         "{http://www.w3.org/1999/xlink}to": locXlinkLabel(elrElt, domainIDPrimaryDimensions.get(domainID), f"domain[{domI}]/domainID"),
-                                         "{http://www.w3.org/1999/xlink}arcrole": XbrlConst.all,
-                                         "{http://www.w3.org/1999/xlink}type": "arc",
-                                         # TBD - determine values dynamically from taxonomy and authority
-                                         "{http://xbrl.org/2005/xbrldt}closed": "true",
-                                         "{http://xbrl.org/2005/xbrldt}contextElement": "segment"})
-                    lbEltArcroleRefs.add(XbrlConst.all)
-                else:
-                    addChild(elrElt, XbrlConst.qnLinkDefinitionArc,
-                             attributes={"{http://www.w3.org/1999/xlink}from": locXlinkLabel(elrElt, source, f"domain[{domI}]/relationship[{relI}/source"),
-                                         "{http://www.w3.org/1999/xlink}to": locXlinkLabel(elrElt, target, f"domain[{domI}]/relationship[{relI}/target"),
-                                         "{http://www.w3.org/1999/xlink}arcrole": XbrlConst.domainMember,
-                                         "{http://www.w3.org/1999/xlink}type": "arc",
-                                         "order": order})
-                    lbEltArcroleRefs.add(XbrlConst.domainMember)
-        addRoleRefs(lbElt, lbEltRoleRefs, lbEltArcroleRefs)
-
-        lbElt = addChild(appinfoElt, XbrlConst.qnLinkLinkbase)
-        lbElts.append(lbElt)
-        for networkI, networkObj in enumerate(taxonomyObj.get("networks", [])):
-            locXlinkLabels.clear() # separate locs per elr
-            networkURI = networkObj.get("networkURI", "")
-            elrElt = addChild(lbElt, XbrlConst.qnLinkDefinitionLink,
-                             attributes={"{http://www.w3.org/1999/xlink}role": networkURI,
-                                         "{http://www.w3.org/1999/xlink}type": "extended"})
-            lbEltRoleRefs.add(networkURI)
-            relationships = networkObj.get("relationships", [])
-            for relI, relObj in enumerate(relationships):
-                source = relObj.get("source", "")
-                target = relObj.get("target", "")
-                order = relObj.get("order", None)
-                relationshipType = relObj.get("relationshipType", "")
-                preferredLabel = relObj.get("preferredLabel", None)
-                weight = relObj.get("weight", None)
-                attributes = {"{http://www.w3.org/1999/xlink}from": locXlinkLabel(elrElt, source, f"network[{networkI}]/relationship[{relI}/source"),
-                              "{http://www.w3.org/1999/xlink}to": locXlinkLabel(elrElt, target, f"network[{networkI}]/relationship[{relI}/target"),
-                              "{http://www.w3.org/1999/xlink}arcrole": relationshipType,
-                              "{http://www.w3.org/1999/xlink}type": "arc"}
-                lbEltArcroleRefs.add(relationshipType)
-                if weight is not None:
-                    attributes["weight"] = weight
-                if preferredLabel is not None:
-                    attributes["preferredLabel"] = preferredLabel
-                addChild(elrElt, XbrlConst.qnLinkDefinitionArc, attributes)
-        addRoleRefs(lbElt, lbEltRoleRefs, lbEltArcroleRefs)
-
-        locXlinkLabels.clear() # separate locs per elr
-        elrElt = addChild(lbElt, XbrlConst.qnLinkReferenceLink,
-                         attributes={"{http://www.w3.org/1999/xlink}role": XbrlConst.defaultLinkRole,
-                                     "{http://www.w3.org/1999/xlink}type": "extended"})
-        for refI, refObj in enumerate(taxonomyObj.get("references", [])):
-            referenceType = refObj.get("referenceType", "")
-            relatedIDs = refObj.get("relatedID", "")
-            xlinkLbl = xlinkLabelFormat.format("reference", refI+1)
-            refElt = addChild(elrElt, XbrlConst.qnLinkReference,
-                              attributes={"{http://www.w3.org/1999/xlink}label": xlinkLbl,
-                                          "{http://www.w3.org/1999/xlink}role": referenceType,
-                                          "{http://www.w3.org/1999/xlink}type": "resource"})
-            for partObj in sorted(refObj.get("parts", []), key=lambda o:refObj.get("order", 0)):
-                name = partObj.get("name", "")
-                value = partObj.get("value", "")
-                partI = partObj.get("order", "")
-                addChild(refElt, qname(name, prefixNamespaces), text=value)
-            for relatedID in relatedIDs:
-                addChild(elrElt, XbrlConst.qnLinkLabelArc,
-                         attributes={"{http://www.w3.org/1999/xlink}from": locXlinkLabel(elrElt, relatedID, f"reference[{refI}]/relatedID"),
-                                     "{http://www.w3.org/1999/xlink}to": xlinkLbl,
-                                     "{http://www.w3.org/1999/xlink}arcrole": XbrlConst.conceptReference,
-                                     "{http://www.w3.org/1999/xlink}type": "arc"})
-                lbEltArcroleRefs.add(XbrlConst.conceptReference)
-        addRoleRefs(lbElt, lbEltRoleRefs, lbEltArcroleRefs)
-
-        # discover linkbases
-        for lbElt in lbElts:
-            schemaDoc.linkbaseDiscover(lbElt)
-
-        # errors
-        for hrefNs, paths in sorted(hrefsNsWithoutPrefix.items(), key=lambda i:i[0]):
-            error("oimte:missingConceptRefPrefx",
-                  "Namespace has no prefix %(namespace)s in %(paths)s",
-                  modelObject=modelXbrl, namespace=hrefNs, paths=", ".join(paths))
-
-        # save schema files if specified
-        if (saveOIMTaxonomySchemaFiles or
-            modelXbrl.modelManager.formulaOptions.typedParameters(modelXbrl.prefixedNamespaces)
-            .get(SAVE_XML_SCHEMA_FORMULA_PARAMETER, ("",None))[1] not in (None, "", "false")):
-            schemaDoc.save(schemaDoc.filepath.replace(".json", "-json.xsd"))
-
-        return schemaDoc
-
     except NotOIMException as ex:
         _return = ex # not an OIM document
     except Exception as ex:
@@ -1133,6 +792,9 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
     return _return
 
 def xbrlModelValidator(val, parameters):
+    """ ModelDocument.Validate:
+        Validate an XBRL model, if it is an XBRL compiled model, by validating the taxonomy model, then validating facts whose values represent dateResolution concepts, then validating each report
+    """
     if not isinstance(val.modelXbrl, XbrlCompiledModel): # if no ModelCompiledXbrl give up
         return
     try:
@@ -1159,7 +821,10 @@ lastFilePath = None
 lastFilePathIsOIM = False
 
 def isXbrlModelLoadable(modelXbrl, mappedUri, normalizedUri, filepath, **kwargs):
-    global lastFilePath, lastFilePathIsOIM
+    """ ModelDocument.IsPullLoadable:
+        Determine if the file at filepath is an OIM taxonomy file, returning True if it is, False if not
+    """
+    global lastFilePath, lastFilePathIsOI
     lastFilePath = None
     lastFilePathIsOIM = False
     _ext = os.path.splitext(filepath)[1]
@@ -1187,6 +852,11 @@ def isXbrlModelLoadable(modelXbrl, mappedUri, normalizedUri, filepath, **kwargs)
     return lastFilePathIsOIM
 
 def xbrlModelLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
+    """ ModelDocument.PullLoader:
+        Load an OIM taxonomy file, returning a ModelDocument if successful, 
+        None if not an OIM file, 
+        or an exception if an error occurs during loading
+    """
     if filepath != lastFilePath or not lastFilePathIsOIM:
         return None # not an OIM file
 
@@ -1198,6 +868,8 @@ def xbrlModelLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
     return doc
 
 def optionsExtender(parser, *args, **kwargs):
+    """ CntlrCmdLine.Options:
+        Extend command line options to include option for saving XML schema files from OIM taxonomies"""
     parser.add_option(SAVE_XML_SCHEMA_CMDLINE_PARAMETER,
                       action="store",
                       dest="saveXMLSchemaFiles",
@@ -1210,7 +882,9 @@ def filingStart(self, options, *args, **kwargs):
     pass
 
 def xbrlModelLoaded(cntlr, options, xbrlCompMdl, *args, **kwargs):
-    # index groupContents
+    """ CntlrCmdLine.Xbrl.Loaded:
+        After an XBRL model is loaded, if it is an XBRL compiled model, index group contents and load CSV tables
+    """
     if not isinstance(xbrlCompMdl, XbrlCompiledModel):
         return
 
@@ -1228,7 +902,7 @@ def xbrlModelLoaded(cntlr, options, xbrlCompMdl, *args, **kwargs):
                     reportObj.facts[fact.name] = fact
 
 
-    # save schema files if specified
+    # save schema files if specified by command line option or formula parameter
     saveXmlSchemaFiles = None
     if options is not None and  options.saveXMLSchemaFiles:
         saveXmlSchemaFiles = options.saveXMLSchemaFiles
@@ -1242,6 +916,9 @@ def xbrlModelLoaded(cntlr, options, xbrlCompMdl, *args, **kwargs):
 
 
 def xbrlModelViews(cntlr, xbrlCompMdl):
+    """ CntlrWinMain.Xbrl.Views:
+        After an XBRL model is loaded, if it is an XBRL compiled model, add views for the taxonomy objects
+    """
     xbrlModelLoaded(cntlr, None, xbrlCompMdl)
     if isinstance(xbrlCompMdl, XbrlCompiledModel):
         initialViews = []

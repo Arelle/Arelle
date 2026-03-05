@@ -44,6 +44,9 @@ resolveFact = validateFactPosition = None
 
 perCnstrtFmtStartEndPattern = re.compile(r".*@(start|end)")
 def validateCompiledModel(compMdl):
+    """Validate the compiled model as a whole, after all modules have been validated and combined into the compiled model.
+        This is for checks that require the whole model to be available, such as checking for duplicate labels across modules.
+    """
 
     mdlLvlChecks = attrdict(
         labelsCt = defaultdict(list), # count of duplicated labels by relatedName, labelType and language
@@ -118,6 +121,18 @@ def validateQNameReference(compMdl, contextObj, propName, objType, msgCode=None,
     return resolvedObj
 
 def validateValue(compMdl, module, obj, value, dataTypeQn, pathElt, msgCode):
+    """Validate a value against a data type, including facets. Return (xValid, xValue) where xValid is VALID, INVALID or NONE and xValue is the converted value if valid or None if invalid.        
+        Args:
+            compMdl: compiled model
+            module: the module containing the object
+            obj: the object being validated
+            value: the value to validate
+            dataTypeQn: the data type QName
+            pathElt: the path element for error messages
+            msgCode: the message code for error messages
+        Returns:
+            A tuple of (xValid, xValue)
+    """
     if isinstance(dataTypeQn, QName):
         dataTypeObj = compMdl.namedObjects.get(dataTypeQn)
         if not isinstance(dataTypeObj, XbrlDataType): # validity checked in owner object validations
@@ -159,6 +174,14 @@ def validateValue(compMdl, module, obj, value, dataTypeQn, pathElt, msgCode):
     return (prototypeElt.xValid, prototypeElt.xValue)
 
 def reqRelMatch(relQn, reqQn, compMdl):
+    """Check if a relationship QName matches a required relationship QName, either by direct match or by matching the required relationship's data type.    
+        Args:
+            relQn: the relationship QName
+            reqQn: the required relationship QName
+            compMdl: the compiled model
+        Returns:
+            True if the relationship matches the required relationship, False otherwise
+    """
     if relQn == reqQn:
         return True
     concept = compMdl.namedObjects.get(relQn)
@@ -168,6 +191,18 @@ def reqRelMatch(relQn, reqQn, compMdl):
     return False
 
 def validateProperties(compMdl, oimFile, module, obj):
+    """Validate the properties of an object, including checking that property types are valid and allowed for the object, 
+        and that property values are valid for their property type. Also check for conflicting property values for the 
+        same property type.     
+
+        Args:
+            compMdl: the compiled model
+            oimFile: the OIM file
+            module: the module containing the object
+            obj: the object being validated
+        Returns:
+            None
+    """
     propTypeQns = defaultdict(set)
     for i, propObj in enumerate(getattr(obj, "properties", ())):
         propTypeQn = propObj.property
@@ -208,6 +243,16 @@ def validateProperties(compMdl, oimFile, module, obj):
 
 
 def validateXbrlModule(compMdl, module, mdlLvlChecks):
+    """Validate an XBRL module within an assembled compiled model, including validating all objects within the module and 
+        checking for consistency with the module's modelType.    
+
+        Args:
+            compMdl: the compiled model
+            module: the module to validate
+            mdlLvlChecks: level of checks to perform
+        Returns:
+            None
+    """
     oimFile = str(module.name)
     txmyNamespace = module.name.namespaceURI
     isCompiledModel = module.modelForm == "compiled"
@@ -1368,6 +1413,9 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                               xbrlObject=tblTmpl, dimension=dim)
 
 def validateCompletedModel(compMdl):
+    """ Validate the completed model, including validating facts and complete cubes. 
+        This should be called after all models have been loaded and all references resolved.
+    """
     # Facts in taxonomy
     if any(module.facts for module in compMdl.xbrlModels.values()):
 

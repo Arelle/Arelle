@@ -19,6 +19,12 @@ from .XbrlConst import qnStdLabel
 
 
 def viewXbrlTaxonomyObject(xbrlCompMdl, objClass, tabWin, header, additionalViews=None):
+    """View an XBRL taxonomy object class in a tree view.   
+    :param xbrlCompMdl: Compiled ModelXbrl
+    :param objClass: Xbrl Model object class to view
+    :param tabWin: parent tab window for view
+    :param header: header for view
+    :param additionalViews: additional views to add to view menu (list of (viewName"""
     xbrlCompMdl.modelManager.showStatus(_("viewing concepts"))
     view = ViewXbrlTxmyObj(xbrlCompMdl, objClass, tabWin, header)
     view.propNameTypes = []
@@ -87,6 +93,7 @@ def viewXbrlTaxonomyObject(xbrlCompMdl, objClass, tabWin, header, additionalView
     view.menuAddViews(addClose=False, additionalViews=additionalViews, additionalViewMethod=viewXbrlTaxonomyObject)
 
 class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
+    """View of XBRL taxonomy object class in a tree view.   """
     def __init__(self, xbrlCompMdl, objClass, tabWin, header):
         super(ViewXbrlTxmyObj, self).__init__(xbrlCompMdl, tabWin, header, True, None)
         self.xbrlCompMdl = xbrlCompMdl

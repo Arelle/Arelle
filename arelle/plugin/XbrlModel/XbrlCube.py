@@ -18,6 +18,11 @@ from .XbrlObject import XbrlModelObject, XbrlReferencableModelObject
 from arelle.FunctionFn import true, false
 
 class XbrlDateResolution(XbrlModelObject):
+    """ Date Resolution Object
+        Reference: oim-taxonomy#dateresolution-object
+
+        A value that can be resolved to a date value for use in a period constraint. The value of the date resolution can be provided as a literal date value, a fact with a date value, or the date context value of a fact. A suffix of @start or @end may be added to any of the date formats, specifying the instant at the start or end end of the duration, respectively. If no suffix is provided then the default is @end.
+    """
     conceptName: Optional[QName] # (optional) Identifies the QName of a concept object that has a date fact value. The values of the concept object resolves to a set of dates. If no value exists in the report then the property is ignored, and no date constraint is enforced on the cube.
     context: Optional[QNameAt] # (optional) Identifies the QName of a concept object that has a value. The context of the fact values resolves to a set of dates. If no value exists in the report then the property is ignored. The context suffix must be either @end or @start. If an @ value is not provided then the suffix defaults to @end.
     value: Optional[DateTime] # (optional) A literal date value representing the end date.
@@ -27,6 +32,9 @@ periodConstraintPeriodPattern = re.compile(
     r"^(?P<stDt>(?P<stYr>\d{4}|YYYY)-(?P<stMo>0[1-9]|1[0-2]|MM)-(?P<stDa>0[1-9]|[12]\d|3[01]|DD|eom))(T(?P<stHr>[01]\d|2[0-4]|hh):(?P<stMn>[0-5]\d|60|mm)(:(?P<stSc>[0-5]\d|60|ss))?)?(/((?P<EnDt>(?P<enYr>\d{4}|YYYY)-(?P<enMo>0[1-9]|1[0-2]|MM)-(?P<enDa>0[1-9]|[12]\d|3[01]|DD|eom))(T(?P<enHr>[01]\d|2[0-4]|hh):(?P<enMn>[0-5]\d|60|mm)(:(?P<enSc>[0-5]\d|60|ss))?)?))?")
 
 class XbrlPeriodConstraint(XbrlModelObject):
+    """ Period Constraint Object
+        Reference: oim-taxonomy#periodconstraint-object
+    """
     periodType: str # (required) Used to indicate if the period is an instant or a duration.
     timeSpan: Optional[str] # (optional) Defines a duration of time using the XML duration type to define a duration of time. The duration of the time span maps to facts with the same duration.
     periodPattern: Optional[str] # (optional) Defines a date or duration pattern that is used to select dates or durations.
@@ -55,6 +63,9 @@ class XbrlPeriodConstraint(XbrlModelObject):
 
 
 class XbrlCubeDimension(XbrlModelObject):
+    """ Cube Dimension Object
+        Reference: oim-taxonomy#cubedimension-object
+    """
     dimensionName: QName # (required) The QName of the dimension object that is used to identify the dimension. For the core dimensions of concept, period, entity and unit, the core dimension QNames of xbrl:concept, xbrl:period, xbrl:entity, xbrl:unit and xbrl:language are used. The dimension object indicates if the dimension is typed or explicit.
     domainName: Optional[QName] # (required if explicit dimension) The QName of the domain object that is used to identify the domain associated with the dimension. Only one domain can be associated with a dimension. The domain name cannot be provided for a typed dimension or the period core dimension.
     domainDataType: Optional[QName] # (optional) The dimension QName that identifies the taxonomy defined dimension.
@@ -76,6 +87,9 @@ class XbrlCubeDimension(XbrlModelObject):
             return self._allowedMembers
 
 class XbrlCube(XbrlReferencableModelObject):
+    """ Cube Object
+        Reference: oim-taxonomy#cube-object
+     """
     module: XbrlModuleType
     name: QNameKeyType # (required) The name property is a QName that uniquely identifies the cube object.
     cubeType: Optional[QName] # (optional) The cubeType property identifies the type of data cube being represented. This must match a defined cubeType object or specification defined cube types of xbrl:eventCube, xbrl:positionCube, xbrl:referenceCube, xbrl:reportCube, xbrl:journalCube, xbrl:eventDetailsCube, xbrl:timeSeriesCube and xbrl:defaultCube. If no QName is provided the default is xbrl:reportCube.
@@ -86,21 +100,33 @@ class XbrlCube(XbrlReferencableModelObject):
     properties: OrderedSet[XbrlProperty] # (optional) An ordered set of property objects Used to specify additional properties associated with the cube using the property object. Only immutable properties as defined in the propertyType object can be added to a cube.
 
 class XbrlDimensionPropertiesConstraint(XbrlModelObject):
+    """ Dimension Properties Constraint Object
+        Reference: oim-taxonomy#dimensionpropertiesconstraint-object
+    """
     allowed: OrderedSet[QName] # (optional) An ordered set of property type QNames that can be used on the dimension.
     required: OrderedSet[QName] # (optional) An ordered set of property type QNames that must be used on the dimension.
 
 class XbrlDimensionConstraint(XbrlModelObject):
+    """ Dimension Constraint Object
+        Reference: oim-taxonomy#dimensionconstraint-object
+    """ 
     dimensionName: Optional[QName] # (optional) The dimension QName that identifies the taxonomy defined dimension.
     type: Optional[str] # (optional) The dimension QName that identifies the taxonomy defined dimension.
     dataType: Optional[QName] # (optional) The dimension QName that identifies the taxonomy defined dimension.
     required: Union[bool, DefaultFalse] # (optional) The dimension QName that identifies the taxonomy defined dimension.
     dimensionProperties: Optional[XbrlDimensionPropertiesConstraint] # (optional) Defines constraints on dimension properties defining those properties that are allowed.
 
-class XbrlDimensionsAllowed(XbrlModelObject):
+class XbrlDimensionsAllowed(XbrlModelObject):   
+    """ Dimensions Allowed Object
+        Reference: oim-taxonomy#dimensionsallowed-object
+    """ 
     allowed: OrderedSet[XbrlDimensionConstraint] # (optional) An ordered set of dimension constraint objects. (xbrl:dimensionConstraintObject) The dimension constraint defines the constraints on dimensions that can be included in cubes of this type.
     closed: Union[bool, DefaultFalse] # (optional) If true, only dimensions listed in allowed can be used. If false, other taxonomy-defined dimensions are permitted. Defaults to false.
 
 class XbrlVertexConstraint(XbrlModelObject):
+    """ Vertex Constraint Object
+        Reference: oim-taxonomy#vertexconstraint-object
+    """
     qname: Optional[QName] # (optional) Specific source or target QName
     objectType: Optional[QName] # (optional) Source or target object type QName (e.g., xbrl:conceptObject)
     dataType: Optional[QName] # (optional) Source or target data type QName
@@ -114,6 +140,9 @@ class XbrlVertexConstraint(XbrlModelObject):
         return hash( (hash(self.qname), hash(self.objectType), hash(self.dataType)) )
 
 class XbrlCubeRelationshipConstraint(XbrlModelObject):
+    """ Cube Relationship Constraint Object
+        Reference: oim-taxonomy#cuberelationshipconstraint-object
+    """
     type: Optional[QName] # (optional) The relationship type QName
     source: Optional[XbrlVertexConstraint] # (optional) Constraints on the relationship source. Use the xbrl:vertexConstraintObject to define the constraints on the source of the relationship.
     target: Optional[XbrlVertexConstraint] # (optional) Constraints on the relationship target. Use the xbrl:vertexConstraintObject to define the constraints on the target of the relationship.
@@ -127,14 +156,23 @@ class XbrlCubeRelationshipConstraint(XbrlModelObject):
         return hash( (hash(self.type), hash(self.source), hash(self.target)) )
 
 class XbrlCubeRelationshipAllowed(XbrlModelObject):
+    """ Cube Relationships Allowed Object
+        Reference: oim-taxonomy#cuberelationshipsallowed-object
+    """
     required: OrderedSet[XbrlCubeRelationshipConstraint] # (optional)An ordered set of cube relationships constraint objects (xbrl:cubeRelationshipConstraintObject) that must be present.
     allowed: OrderedSet[XbrlCubeRelationshipConstraint] # (optional) An ordered set of cube relationships constraint objects (xbrl:cubeRelationshipConstraintObject) that are permitted, using the same format as required.
 
 class XbrlCubePropertiesConstraint(XbrlModelObject):
+    """ Cube Properties Constraint Object
+        Reference: oim-taxonomy#cubepropertiesconstraint-object
+    """
     required: OrderedSet[QName] # (optional) An ordered set of property type QNames that must be associated with cubes of this type.
     allowed: OrderedSet[QName] # (optional) An ordered set of property type QNames that are permitted on cubes of this type. If not specified, any property type defined in the taxonomy can be used.
 
 class XbrlCubeType(XbrlReferencableModelObject):
+    """ Cube Type Object
+        Reference: oim-taxonomy#cubetype-object
+    """
     module: XbrlModuleType
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the cube type object.
     # Optional properties may be inherited so they don't default until checking inheritance chain
@@ -144,7 +182,14 @@ class XbrlCubeType(XbrlReferencableModelObject):
     cubeRelationships: Optional[XbrlCubeRelationshipAllowed] # (optional) An object that defines constraints on relationships that can be associated with the cube.
     cubeProperties: Optional[XbrlCubePropertiesConstraint] # (optional) An object that defines constraints on properties that can be associated with the cube.
 
-    def effectivePropVal(self, compMdl, *propNames): # property effective value considering inheritance and default value if not on basemost cube type
+    def effectivePropVal(self, compMdl, *propNames):
+        """ Return the effective value of a property considering inheritance and default value if not on basemost cube type. 
+            propNames is the property name or names to check in order for a value, e.g. (coreDimensions, closed) 
+            where coreDimensions is an iterable and closed is a scalar. For iterables, the first non-empty iterable value is returned. 
+            For scalars, the first non-None value is returned. If no value is found then the base cube type is checked for the 
+            property value. If there is no base cube type then the default value for the property is returned (e.g., 
+            None for scalars and empty set for iterables).
+        """
         obj = self
         accumVal = None # accumulate OrderedSet contents inherited
         for propName in propNames: # e.g. (cuubeDimensions, closed)
@@ -173,6 +218,8 @@ class XbrlCubeType(XbrlReferencableModelObject):
         return set() # set object
 
     def basemostCubeType(self, compMdl):
+        """ Return the basemost cube type in the inheritance chain. If there is no base cube type then return this cube type's name. 
+        """
         baseCubeType = compMdl.namedObjects.get(self.baseCubeType)
         if isinstance(baseCubeType, XbrlCubeType):
             return baseCubeType.basemostCubeType

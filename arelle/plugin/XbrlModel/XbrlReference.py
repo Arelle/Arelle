@@ -11,7 +11,10 @@ from .XbrlTypes import XbrlModuleType, QNameKeyType
 from .ModelValueMore import SQName
 from .XbrlObject import XbrlReferencableModelObject, XbrlTaxonomyTagObject
 
-class XbrlReference(XbrlTaxonomyTagObject):
+class XbrlReference(XbrlaxonomyTagObject):
+    """ Reference Object
+        Reference: oim-taxonomy#reference-object
+    """
     module: XbrlModuleType
     name: QNameKeyType # (required if no extendTargetame) The name is a QName that uniquely identifies the reference object.
     extendTargetName: Optional[QName] # (required if no name) Names the reference object that the defined relatedNames property should be appended to. The relatedNames property in the reference with this property are appended to the end of the relatedName property defined in the target reference object. This property cannot be used in conjunction with the name property.
@@ -25,6 +28,9 @@ class XbrlReference(XbrlTaxonomyTagObject):
         return self.referenceType
 
 class XbrlReferenceType(XbrlReferencableModelObject):
+    """ Reference Type Object
+        Reference: oim-taxonomy#referencetype-object
+    """
     module: XbrlModuleType
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the reference type object.
     uri: Optional[AnyURI] # (optional) A uri used to identify the reference type of reference objects for backward compatability with XBRL 2.1 taxonomies.

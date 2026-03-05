@@ -21,6 +21,12 @@ from .ValidateCubes import validateCubes
 dimPropPattern = re.compile(r"^_[A-Za-z0-9]+$")
 
 def resolveFact(txmyMdl, txmyObj, fact):
+    """ Resolve QNames and other container-dependent values in fact. 
+
+        This is done before validating fact values because some of those values are needed for validation, 
+        such as the concept and unit dimensions. This is also done before validating fact position because 
+        some of those values are needed for finding the cubes that a fact is valid for, such as the period dimension.
+    """
     # resolve QNames and other container-dependent values in fact
     name = fact.name
     cQn = fact.factDimensions.get(conceptCoreDim)
@@ -135,6 +141,11 @@ def resolveFact(txmyMdl, txmyObj, fact):
         fact.factDimensions[dimName] = dimVal
 
 def validateFactPosition(txmyMdl, fact):
+    """ Validate that fact is valid in at least one cube based on its dimensions. 
+    
+        This is done after resolving fact dimensions because some of those dimensions are needed for finding the cubes 
+        that a fact is valid for, such as the period dimension.  
+    """
     def error(code, msg, **kwargs):
          txmyMdl.error(code, msg, xbrlObject=fact, name=getattr(fact,"name"), **kwargs)
     cQn = fact.factDimensions.get(conceptCoreDim)
@@ -179,6 +190,8 @@ def validateFactPosition(txmyMdl, fact):
             cubeObj._factspaces.add(fact)
 
 def validateTable(reportObj, txmyMdl, table):
+    """ Validate table definition.
+    """
     # ensure template exists
     url = table.url
     if not txmyMdl.fileSource.exists(url) and not table.optional:
@@ -193,6 +206,7 @@ def validateTable(reportObj, txmyMdl, table):
               table=table.name, name=table.template)
 
 def validateDateResolutionConceptFacts(txmyMdl):
+    """ Validate facts whose values represent dateResolution concepts."""
     # validate facts whose values represent dateResolution concepts first
     for qn in txmyMdl.dateResolutionConceptNames:
         f = txmyMdl.namedObjects.get(qn)
@@ -200,6 +214,7 @@ def validateDateResolutionConceptFacts(txmyMdl):
             validateFact(f, reportQn, reportObj, txmyMdl)
 
 def validateReport(txmyMdl, reportObj):
+    """ Validate report facts and tables. """  
     for table in reportObj.tables.values():
         validateTable(table, reportQn, reportObj, txmyMdl)
     # validate facts not involved in dateResolution

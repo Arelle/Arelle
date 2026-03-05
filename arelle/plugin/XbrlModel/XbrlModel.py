@@ -29,6 +29,13 @@ def castToXbrlCompiledModel(modelXbrl, isReport=False):
 
 
 class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
+    """Compiled XBRL model with additional properties and methods for use in XBRL report generation and analysis.
+        This class extends the base ModelXbrl class (for Arelle 2.1 XBRL) to include additional properties for 
+        managing XBRL taxonomies, layouts, and report-specific data such as facts and footnotes. 
+        It also provides methods for retrieving labels and reference properties, as well as a method for viewing 
+        taxonomy objects in the user interface. The class is designed to be used in both taxonomy and report contexts, 
+        with properties that are relevant to each context.
+    """
     xbrlModels: OrderedDict[QNameKeyType, XbrlModuleType]
     xbrlObjects: list[XbrlObject] # not visible metadata
     # objects only present for XbrlReports
