@@ -78,6 +78,7 @@ result = run_arelle_cmd(
         "--validate",
         "--validationExitCode",
         "--webserver",
+        "locahost:8080",
         ],
     offline=arelle_offline,
     logFile=arelle_log_file,
