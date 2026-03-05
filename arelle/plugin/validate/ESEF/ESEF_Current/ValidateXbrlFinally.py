@@ -6,7 +6,7 @@ from __future__ import annotations
 import os
 import zipfile
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date as datetime_date
 from math import isnan
 from typing import Any, cast
 
@@ -907,7 +907,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
         outdatedTaxonomyURLs = val.authParam["outdatedTaxonomyURLs"].copy()
         if reportDate:
             for expiringTaxonomyURLs in val.authParam.get("expiringTaxonomyURLs", ()):
-                if expiringTaxonomyURLs["lastReportableDate"] < str(reportDate):
+                if datetime_date.fromisoformat(expiringTaxonomyURLs["lastReportableDate"]) < reportDate:
                     outdatedTaxonomyURLs.update(expiringTaxonomyURLs["URLs"])
         for e in outdatedTaxonomyURLs:
             if e in val.extensionImportedUrls:
