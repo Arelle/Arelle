@@ -16,6 +16,9 @@ from arelle.FunctionFn import true
 xbrlObjectQNames = None
 
 class XbrlConcept(XbrlReferencableModelObject):
+    """ Concept Object
+        Reference: oim-specification.md#concept-object
+    """
     module: XbrlModuleType
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the concept object.
     dataType: QName # (required) Indicates the dataType of the concept. These are provided as a QName based on the datatypes specified in the XBRL 2.1 specification and any custom datatype defined in the taxonomy.
@@ -33,16 +36,25 @@ class XbrlConcept(XbrlReferencableModelObject):
         return isinstance(dtObj, XbrlDataType) and dtObj.isOimTextFactType(txmyMdl)
 
 class XbrlCollectionType(XbrlModelObject):
+    """ Collection Type Object
+        Reference: oim-specification.md#collection-type-object
+    """
     dataTypesAllowed: OrderedSet[QName] # (required) Defines a set of data types that can be included in the set. The data types are defined using the QName of the dataType object.
     uniqueValues: Union[bool, DefaultTrue] # (optional) Indicates if the values in the set must be unique. If true all values in the set must be unique. If false values can be duplicated. Defaults to true if not provided.
     orderedValues: Union[bool, DefaultFalse] # (optional) Indicates if the values in the set are ordered. If true the order of the values in the set is significant. If false the order of the values in the set is not significant. Defaults to false if not provided.
 
 class XbrlUnitType(XbrlModelObject):
+    """ Unit Type Object
+        Reference: oim-specification.md#unittype-object
+    """
     dataTypeNumerator: Optional[QName] # (optional) Defines the numerator data type of the data type.
     dataTypeDenominator: Optional[QName] # (optional) Defines the denominator data type used by a unit used to define a value of the data type.
     dataTypeMultiplier: Optional[QName] # (optional) Defines a multiplier data type used by a unit used to define a value of the data type.
 
 class XbrlDataType(XbrlReferencableModelObject):
+    """ Data Type Object    
+        Reference: oim-specification.md#datatype-object
+    """
     module: XbrlModuleType  
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the datatype object.
     baseType: QName # (required) The base type is a QName that uniquely identifies the base datatype the datatype is based on.
@@ -63,6 +75,7 @@ class XbrlDataType(XbrlReferencableModelObject):
     allowedObjects: set[QName] # (optional) Set of object type QNames that the data type can be used with. If no value is provided the property can be used with any object. The value provided is a set of model component objects.
 
     def xsBaseType(self, compMdl, visitedTypes=None): # find base types thru dataType hierarchy
+        """(str) -- returns the base XSD type name if this is an XSD-based type, otherwise None"""
         try:
             return self._xsBaseType
         except AttributeError:
@@ -85,6 +98,9 @@ class XbrlDataType(XbrlReferencableModelObject):
             return None
 
     def isAllowedFor(self, obj): # obj may be a QName or instance of object
+        """(bool) -- returns True if this data type is allowed for the object, otherwise False 
+            If allowedObjects is not specified, then the data type is allowed for any object.
+        """
         global xbrlObjectQNames
         if xbrlObjectQNames is None:
             from .XbrlModule import xbrlObjectQNames
@@ -97,9 +113,15 @@ class XbrlDataType(XbrlReferencableModelObject):
         return qn in self.allowedObjects
 
     def isNumeric(self, compMdl):
+        """(bool) -- returns True if this is a numeric type, otherwise False
+            A numeric type is a type that is based on an XSD numeric type. If the base type is not an XSD type, then the base types are searched until an XSD type is found or there are no more base types.
+        """
         return isNumericXsdType(self.xsBaseType(compMdl))
 
     def instanceOfType(self, qnTypes, compMdl, visitedTypes=None):
+        """(bool) -- returns True if this type is the same as or derived from any of the types in qnTypes, otherwise False
+            qnTypes can be a QName or a set, list or tuple of QNames. If the base type is not an XSD type, then the base types are searched until a type in qnTypes is found or there are no more base types.
+        """
         if isinstance(qnTypes, (tuple,list,set)):
             if self.name in qnTypes:
                 return True
@@ -116,6 +138,11 @@ class XbrlDataType(XbrlReferencableModelObject):
         return False
 
     def xsFacets(self):
+        """(dict) -- returns a dict of the XSD facets of this type if this is an XSD-based type, otherwise an empty dict
+            The keys of the dict are the facet names and the values are the facet values. 
+            Only facets that are defined for this type are included in the dict. If a facet is not defined for this type, 
+            it is not included in the dict. If a facet is defined for this type but has no value, it is not included in the dict.
+        """
         facets = {}
         for facet in ("enumeration", "minInclusive", "maxInclusive", "minExclusive", "maxExclusive", "totalDigits", "fractionDigits", "length", "minLength", "maxLength", "whiteSpace", "patterns"):
             value = getattr(self, facet, None)

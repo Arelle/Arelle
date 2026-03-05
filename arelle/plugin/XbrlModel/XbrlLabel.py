@@ -13,6 +13,9 @@ from .XbrlTypes import XbrlModuleType, QNameKeyType, OptionalNonemptySet
 from .XbrlObject import XbrlModelObject, XbrlReferencableModelObject, XbrlTaxonomyTagObject
 
 class XbrlLabel(XbrlTaxonomyTagObject):
+""" Label Object
+    Reference: oim-taxonomy#label-object
+""" 
     module: XbrlModuleType
     relatedName: QName # (required) Defines a QName that the label is associated with.
     labelType: QName # (required) A QName representing the label type of the label. This can be a taxonomy defined label type or a standard XBRL label type defined in specification.
@@ -25,6 +28,9 @@ class XbrlLabel(XbrlTaxonomyTagObject):
         return self.labelType
 
 class XbrlLabelType(XbrlReferencableModelObject):
+    """ Label Type Object
+        Reference: oim-taxonomy#labeltype-object
+    """
     module: XbrlModuleType
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the label type object.
     uri: Optional[AnyURI] # (optional) A uri used to identify the label type of label objects for backward compatability with XBRL 2.1 taxonomies.

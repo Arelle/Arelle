@@ -10,11 +10,14 @@ from .XbrlModule import xbrlObjectTypes, xbrlObjectQNames
 from .XbrlObject import DEREFERENCE_OBJECT
 
 def eval(obj, whereObj):
+    """Evaluate a where condition for an object. 
+       Return True if the condition is satisfied, False if not satisfied, or None if cannot be evaluated.
+    """
     qn = whereObj.property
     if qn.namespaceURI is None:
         v1 = getattr(obj, qn.localName)
     else:
-        for i, propObj in enumerate(getattr(obj, "properties", ())):
+        for i, propObj in enumerate(getattr(obj, "properties", ()))
             if propObj.name == qn:
                 v1 = propObj.value # should use _xValue if _xValid >- VALID
                 break
@@ -42,6 +45,10 @@ def eval(obj, whereObj):
         return v1 <= v2
 
 def selectImportedObjects(txmyMdl, newTxmy, impTxObj):
+    """Select imported objects based on importTaxonomy selection, importObjects and importObjectTypes, and exportProfile selections. 
+        Exclude objects not selected. Exclude labels if excludeLabels is true. Select referenced objects of selected objects. 
+        Exclude non-selected objects from the model.
+    """
     impTxModuleObj = impTxObj._txmyModule
     i0 = impTxModuleObj.xbrlMdlObjIndex # object index range of imported objects
     iL = impTxModuleObj._lastMdlObjIndex

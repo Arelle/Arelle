@@ -29,6 +29,9 @@ from .XbrlObject import XbrlModelObject, XbrlReferencableModelObject
 from .XbrlLayout import XbrlLayout, XbrlDataTable, XbrlAxis, XbrlAxisHeader
 
 class XbrlModelType(XbrlReferencableModelObject):
+    """ Model Type Object
+        Reference: oim-taxonomy#modeltype-object
+    """
     module: XbrlModuleType
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the model type object.
     allowedObjects: OptionalNonemptySet[QName] # (optional) Defines a set of QNames representing the object types that may use the modelType. If no value is provided then the modelType can be used with any object type. 
@@ -36,6 +39,9 @@ class XbrlModelType(XbrlReferencableModelObject):
     requiredProperties: OptionalNonemptySet[QName] # (optional) Defines a set of property QNames that must be properties of the xbrl:xbrlModelObject. The set MUST NOT be empty.
 
 class XbrlModule(XbrlModelObject):
+    """ XBRL Module Object
+        Reference: oim-taxonomy#taxonomy-object
+    """
     compiledModel: XbrlCompiledModel
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the taxonomy object.
     frameworkName: Optional[str] # (optional) The framework name of the taxonomy such as "US-GAAP" that indicates the taxonomy broad taxonomy family. The framework name stays consistent between regular taxonomy releases of the same taxonomy domain.
@@ -76,6 +82,8 @@ class XbrlModule(XbrlModelObject):
     properties: OrderedSet[XbrlProperty] # ordered set of property objects used to specify additional properties associated with the taxonomy. Only immutable properties as defined in the propertyType object can be added to a taxonom
 
 referencableObjectTypes = {
+    """ Referencable Object Types
+        These are the object types that can be referenced by other objects in the taxonomy or report."""
         qname("{https://xbrl.org/2025}xbrl:xbrlModelObject"): XbrlModule,
         qname("{https://xbrl.org/2025}xbrl:conceptObject"): XbrlConcept,
         qname("{https://xbrl.org/2025}xbrl:abstractObject"): XbrlAbstract,

@@ -36,6 +36,13 @@ condition = Group(
 selWhereParser = qName("objectType") + Suppress("where") + delimitedList(condition, delim=oneOf("AND OR"))
 
 def parseSelectionWhereClause(selWhereClause):
+    """Parses a selection where clause and returns a structured representation of the object type and conditions.
+        Reference: oim-specification.md#selection-where-clause
+        Args:
+            selWhereClause (str): The selection where clause to parse.
+        Returns:
+            dict: A structured representation of the parsed selection where clause, or an error message if parsing fails.
+    """
     try:
         parsed = selWhereParser.parseString(selWhereClause, parseAll=True)
 

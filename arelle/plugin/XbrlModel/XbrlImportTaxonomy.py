@@ -11,15 +11,30 @@ from .XbrlTypes import XbrlModuleType, QNameKeyType, DefaultTrue, DefaultFalse
 from .XbrlObject import XbrlObject, XbrlModelObject, XbrlReferencableModelObject
 
 class XbrlFilterCondition(XbrlObject):
+    """ Filter Condition Object
+        Reference: oim-taxonomy#filtercondition-object 
+
+        This object defines a filter condition that can be used to filter objects in the taxonomy model.
+    """
     property: QName # (required) The name of the property to be used for filtering the objects. This is either a names object property or a QName property that identifies the property, such as periodType, xbrl:balance, etc.
     operator: str # (required) The operator to be used for filtering the objects. The operator can be one of the following values: =, !=, in, not in, contains, not contains, >, <, >=, <=. The operator is used to compare the property value with the specified value.
     value: Any # (required) The value to be used for filtering the objects. The value can be a string, number, or boolean, depending on the property type. The value is compared with the property value using the specified operator.
 
 class XbrlStructuredSelectStatement(XbrlObject):
+    """ Structured Select Statement Object
+        Reference: oim-taxonomy#structuredselectstatement-object 
+
+        This object defines a structured select statement that can be used to select objects in the taxonomy model based on specific criteria.
+    """
     objectType: QName # (required) The type of the object to be selected. This is a QName that identifies the object type, such as xbrl:conceptObject, xbrl:dimensionObject, etc.
     where: list[XbrlFilterCondition] # (optional) An array of filter conditions that define the selection criteria. Each condition is an object that specifies the property, operator, and value to be used for filtering the objects.
 
 class XbrlImportTaxonomy(XbrlModelObject):
+    """ Import Taxonomy Object
+        Reference: oim-taxonomy#importtaxonomy-object 
+
+        This object defines the properties and criteria for importing a taxonomy into the taxonomy model. It specifies the location of the taxonomy to be imported, the xBRL module it belongs to, and any filters or selections to be applied during the import process.
+    """
     module: XbrlModuleType
     xbrlModelName: QNameKeyType # (required) The QName of the xBRL Module to import. When importing XBRL 2.1 taxonomies, the QName comprising the namespace of the taxonomy to import and a local name of taxonomy is defined (e.g., ifrs:Taxonomy).
     profiles: set[QName] # (optional only if selections, importObjects or importObjectTypes are not used) A set of exportProfile objects defined in the taxonomy being imported. Only objects defined in this set will be included in the taxonomy model. If this property is not present, all objects in the taxonomy identified by the taxonomyName property location will be included in the taxonomy model.
@@ -31,6 +46,11 @@ class XbrlImportTaxonomy(XbrlModelObject):
     # _txmyModule: XbrlModule of the import
 
 class XbrlFinalTaxonomy(XbrlReferencableModelObject):
+    """ Final Taxonomy Object
+        Reference: oim-taxonomy#finaltaxonomy-object 
+
+        This object defines the properties and criteria for marking a taxonomy as final. A final taxonomy is a taxonomy that cannot be extended by importing other taxonomies. The final taxonomy object specifies the name of the final taxonomy, whether the entire taxonomy is final or only specific object types or objects, and any selections to be applied for identifying the final objects.
+    """
     module: XbrlModuleType
     name: QNameKeyType # (required) The name of the finalTaxonomy object.
     finalTaxonomyFlag: Union[bool, DefaultFalse] # (optional) If set to true, indicates that the taxonomy is final and cannot be extended by importing taxonomies. The default value is false. No objects can be added to the taxonomy except factspace objects, footnote objects and entity objects.

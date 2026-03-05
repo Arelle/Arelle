@@ -11,6 +11,8 @@ from .XbrlTypes import XbrlModuleType, SQNameKeyType
 from .XbrlObject import XbrlReferencableModelObject
 
 class XbrlUnit(XbrlReferencableModelObject):
+    """ Unit Object
+        Reference: oim-taxonomy#unit-object"""
     module: XbrlModuleType
     name: SQNameKeyType # (required) The unitQName that identifies the unit so it can be referenced by other objects.
     dataType: QName # (required) Indicates the dataType of the unit. These are provided as a QName based on the datatypes specified in the XBRL 2.1 specification and any custom datatype defined in the taxonomy.

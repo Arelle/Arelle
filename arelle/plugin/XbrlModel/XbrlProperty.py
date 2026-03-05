@@ -10,6 +10,10 @@ from .XbrlObject import XbrlModelClass, XbrlReferencableModelObject
 from .XbrlTypes import XbrlModuleType, QNameKeyType, DefaultFalse
 
 class XbrlProperty(XbrlModelClass):
+    """ Property Object
+        Reference: oim-taxonomy#property-object
+        The property object is used to specify additional properties associated with a concept using the property object. Only immutable properties as defined in the propertyType object can be added to a concept. The property object has a property attribute that is a QName that uniquely identifies the property type object, and a value attribute that is the value of the property, that must be consistent with the datatype of the property. The property object can be used to specify additional properties associated with a concept using the property object. Only immutable properties as defined in the propertyType object can be added to a concept. The property object has a property attribute that is a QName that uniquely identifies the property type object, and a value attribute that is the value of the property, that must be consistent with the datatype of the property.
+    """
     property: QName # (required) The name is a QName that uniquely identifies the property type object.
     value: Any # (required) The value of the property, that must be consistent with the datatype of the property.
 
@@ -19,6 +23,9 @@ class XbrlProperty(XbrlModelClass):
 
 
 class XbrlPropertyType(XbrlReferencableModelObject):
+    """ Property Type Object
+        Reference: oim-taxonomy#propertytype-object
+    """
     module: XbrlModuleType
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the property type object.
     dataType: QName # (required) Indicates the dataType of the property value. These are provided as a QName based on the datatypes specified in the XBRL 2.1 specification and any custom datatype defined in the taxonomy.

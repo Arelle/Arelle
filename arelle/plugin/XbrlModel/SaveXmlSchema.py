@@ -54,7 +54,17 @@ QN_BALANCE = qname(xbrli, "xbrli:balance")
 QN_PERIOD_TYPE = qname(xbrli    , "xbrli:periodType")
 
 
-def saveXmlSchema(cntlr, txmyMdl, saveXMLSchemaFiles):
+def saveXmlSchema(cntlr, txmyMdl, saveXMLSchemaFiles)
+    """Save OIM Taxonomy Model into XML Schema (for inline XBRL and XML schema/instance validation)
+        Called from xbrlModelLoaded when --saveXMLSchemaFiles provides a directory path to save XML schema files,
+        or when the formula parameter saveXMLSchemaFiles is provided with a directory path to save XML schema files.
+
+        The taxonomy model is scanned for objects of type XbrlAbstract, XbrlConcept, XbrlDimension, and XbrlMember
+        which have an equivalent feature in XBRL 2.1 with XBRL Dimensions (xBRL-XML).
+        
+        Formula parameters:
+        oimTaxonomySaveSeparateNamespaces = true | yes means to save namespaces in separate files
+    """
     prefixNamespaces = {} # prefix and namespaces of savable objects
     txmyModules = set()
 

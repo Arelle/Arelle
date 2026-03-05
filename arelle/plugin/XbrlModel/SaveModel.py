@@ -29,6 +29,12 @@ DOCINFO = {
 
 
 def saveableValue(val, mdlPropName, **kwargs):
+    """ Convert a value into a saveable form. 
+        For QName, convert to string and track namespaces. 
+        For Decimal, convert to float for json but not cbor. 
+        For bool, keep as bool for cbor but convert to string for json. 
+        For other types, convert to string.
+    """
     if isinstance(val, QName):
         if "txmyModuleName" in kwargs and "txmyPrefixes" in kwargs and val.prefix:
             txmyPrefixes = kwargs["txmyPrefixes"]
@@ -49,6 +55,10 @@ def saveableValue(val, mdlPropName, **kwargs):
     return str(val)
 
 def saveableObjects(mdlObj, mdlName, **kwargs):
+    """ Recursively convert XbrlModelClass objects into saveable dicts, skipping properties with default values.
+        Track visited objects to avoid cycles. Skip empty OrderedSet properties. 
+        Skip txmyMdl and layout properties which are not needed to save.
+    """
     if "visited" not in kwargs:
         kwargs["visited"] = set()
     if mdlObj in kwargs["visited"]:
@@ -100,6 +110,10 @@ def saveableObjects(mdlObj, mdlName, **kwargs):
     return saveableObj
 
 def saveFiles(cntlr, txmyMdl, fileName, **kwargs):
+    """ Save OIM Taxonomy Model into json, cbor and Excel files. 
+        For GUI, always ask file name and type to save. 
+        For command line, file name and type must be provided as arguments.
+    """
     fileExt = os.path.splitext(fileName)[1].lower()
     # nested sheet for each OrderedSet of XbrlModule object
     txmyPrefixes = {} # dict by taxonomy name by prefix
@@ -159,7 +173,11 @@ def saveFiles(cntlr, txmyMdl, fileName, **kwargs):
 
 
 def xbrlModelSave(cntlr, view, fileType=None, fileName=None, *args, **kwargs):
-    if not isinstance(view, ViewXbrlTxmyObj):
+    """ CntlrWinMain.Xbrl.Save:
+        Save OIM Taxonomy Model into json, cbor and Excel files. 
+        For GUI, always ask file name and type to save. For command line, file name and type must be provided as arguments.
+    """
+    if not isinstance(view, ViewXbrlTxmyObj): # only save OIM Taxonomy Views
         return False # not an OIM Taxonomy View
     txmyMdl = view.xbrlCompMdl
     parameters = cntlr.modelManager.formulaOptions.typedParameters({})

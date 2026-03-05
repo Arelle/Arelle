@@ -11,6 +11,9 @@ from .XbrlTypes import XbrlModuleType, QNameKeyType
 from .XbrlObject import XbrlReferencableModelObject
 
 class XbrlAbstract(XbrlReferencableModelObject):
+    """ Abstract Object
+        Reference: oim-specification.md#abstract-object
+    """
     module: XbrlModuleType
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the abstract object.
     properties: OrderedSet[XbrlProperty] # (optional) ordered set of property objects used to specify additional properties associated with the concept using the property object. Only immutable properties as defined in the propertyType object can be added to a concept.
