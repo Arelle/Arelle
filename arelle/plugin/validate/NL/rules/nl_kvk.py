@@ -21,6 +21,7 @@ from arelle.LinkbaseType import LinkbaseType
 from arelle.ModelDtsObject import ModelConcept, ModelLink, ModelResource, ModelType
 from arelle.ModelInstanceObject import ModelInlineFact
 from arelle.ModelObject import ModelObject
+from arelle.ModelValue import qname
 from arelle.PrototypeDtsObject import PrototypeObject
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
@@ -29,6 +30,7 @@ from arelle.utils.validate.Common import isExtensionUri
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.DetectScriptsInXhtml import containsScriptMarkers
 from arelle.utils.validate.ESEFImage import ImageValidationParameters, validateImage
+from arelle.utils.validate.RoleTypes import getExtensionRoleTypes
 from arelle.utils.validate.Validation import Validation
 from arelle.ValidateDuplicateFacts import getAspectEqualFacts, getDuplicateFactSets, getHashEquivalentFactGroups
 from arelle.ValidateXbrl import ValidateXbrl
@@ -1752,6 +1754,98 @@ def rule_nl_kvk_4_4_2_4(
             modelObject=error,
             msg=_('A non-dimensional concept was not associated to a hypercube.  Update relationship so concept is linked to a hypercube.'),
         )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=ALL_NL_INLINE_DISCLOSURE_SYSTEMS,
+)
+def rule_nl_kvk_4_4_2_5(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    NL-KVK.4.4.2.5: Line items must be placed under the appropriate designated definition linkbase placeholders (i.e.
+    role [990010], [990015], [990020] or [990025]) when the dimensional structure contains only one axis:
+    bw2‑titel9_FinancialStatementsTypeAxis for NL‑GAAP, or ifrs‑full:ConsolidatedAndSeparateFinancialStatementsAxis for IFRS.
+
+    For each fact with exactly one explicit dimension:
+    If the dimension is bw2‑titel9_FinancialStatementsTypeAxis and the member is bw2-titel9_ConsolidatedMember:
+        the fact must be in exactly one definition linkbase, and it must be [990010]
+    If the dimension is bw2‑titel9_FinancialStatementsTypeAxis and the member is bw2-titel9_SeparateMember:
+        the fact must be in exactly one definition linkbase, and it must be [990020]
+    If the dimension is ifrs‑full:ConsolidatedAndSeparateFinancialStatementsAxis and the member is ifrs-full_ConsolidatedMember:
+        the fact must be in exactly one definition linkbase, and it must be [990015]
+    If the dimension is ifrs‑full:ConsolidatedAndSeparateFinancialStatementsAxis and the member is ifrs-full_SeparateMember:
+        the fact must be in exactly one definition linkbase, and it must be [990025]
+    (Facts with zero or multiple explicit dimensions are ignored)
+
+    Although not documented, the conformance suite implies concepts in any extension definition link role should be ignored.
+    """
+    requiredPlaceholderMap = {
+        pluginData.financialStatementsTypeAxisQn: {
+            pluginData.consolidatedMemberQn: 'https://www.nltaxonomie.nl/kvk/role/lineitems-consolidated-financial-statements-nlgaap',
+            pluginData.separateMemberQn: 'https://www.nltaxonomie.nl/kvk/role/lineitems-separate-financial-statements-nlgaap',
+        }
+    }
+    if pluginData.ifrsConsolidatedAndSeparateFinancialStatementsAxisQn is not None:
+        assert pluginData.ifrsConsolidatedMemberQn is not None
+        assert pluginData.ifrsSeparateMemberQn is not None
+        requiredPlaceholderMap[pluginData.ifrsConsolidatedAndSeparateFinancialStatementsAxisQn] = {
+            pluginData.ifrsConsolidatedMemberQn: 'https://www.nltaxonomie.nl/kvk/role/lineitems-consolidated-financial-statements-ifrs',
+            pluginData.ifrsSeparateMemberQn: 'https://www.nltaxonomie.nl/kvk/role/lineitems-separate-financial-statements-ifrs',
+        }
+
+    primaryItemElrs = pluginData.getDimensionalData(val.modelXbrl).primaryItemElrs
+    extensionRoleUris = frozenset({
+        extensionRoleType.roleURI
+        for extensionRoleType in getExtensionRoleTypes(
+            val.modelXbrl,
+            STANDARD_TAXONOMY_URL_PREFIXES
+        )
+    })
+
+    contextRequiredRoles = {}
+    for context in val.modelXbrl.contextsInUse:
+        if not (qnameDims := context.qnameDims):
+            continue
+        # Determine if a required role is in effect based on the dimensions used in the fact.
+        for axisQn, memberRoleMap in requiredPlaceholderMap.items():
+            # Must match exactly one explicit dimension.
+            if qnameDims.keys() == {axisQn}:
+                memberQn = qnameDims[axisQn].memberQname
+                if memberQn in memberRoleMap:
+                    contextRequiredRoles[context.id] = memberRoleMap[memberQn]
+                break
+
+    errors = set()
+    for fact in val.modelXbrl.facts:
+        if (context := fact.context) is None:
+            continue
+        if (requiredRole := contextRequiredRoles.get(context.id)) is None:
+            # Fact's context does not have a required role based on its dimensions.
+            continue
+        if (concept := fact.concept) is None:
+            continue
+        conceptRoleUris = primaryItemElrs.get(concept, set())
+        if conceptRoleUris == {requiredRole}:
+            continue
+        if not conceptRoleUris.isdisjoint(extensionRoleUris):
+            # Ignore concept if it is assigned to an extension definition link role.
+            # This condition is not documented, but is implied by failures in the conformance suite.
+            continue
+        errors.add(fact)
+
+    for error in errors:
+        yield Validation.error(
+            codes='NL.NL-KVK.4.4.2.5.extensionTaxonomyLineItemNotLinkedToDesignatedPlaceholder',
+            modelObject=error,
+            msg=_('Line item is not present in the correct definition linkbase placeholder. '
+                  'Ensure line items with only Financial Statements type is in the appropriate placeholder.'),
+        )
+
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,

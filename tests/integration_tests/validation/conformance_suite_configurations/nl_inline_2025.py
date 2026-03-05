@@ -236,6 +236,11 @@ config = ConformanceSuiteConfig(
         'RTS_Annex_IV_Par_4_3/index.xml:TC4_invalid': {
             'extensionTaxonomyWrongFilesStructure': 1,
         },
+        'RTS_Annex_IV_Par_5/index.xml:TC3_invalid': {
+            # The circumstance introduced in this testcase that causes extensionTaxonomyLineItemNotLinkedToAnyHypercube
+            # to fire also causes extensionTaxonomyLineItemNotLinkedToDesignatedPlaceholder.
+            'extensionTaxonomyLineItemNotLinkedToDesignatedPlaceholder': 1,
+        },
         'RTS_Annex_IV_Par_6/index.xml:TC2_valid': {
             # filing_information-2024-12-31-en.html
             'kvkFilingDocumentNameDoesNotFollowNamingConvention': 1,
