@@ -1772,10 +1772,14 @@ def rule_nl_kvk_4_4_2_5(
     bw2‑titel9_FinancialStatementsTypeAxis for NL‑GAAP, or ifrs‑full:ConsolidatedAndSeparateFinancialStatementsAxis for IFRS.
 
     For each fact with exactly one explicit dimension:
-    If the dimension is bw2‑titel9_FinancialStatementsTypeAxis and the member is bw2-titel9_ConsolidatedMember , the fact must be in exactly one definition linkbase, and it must be [990010]
-    If the dimension is bw2‑titel9_FinancialStatementsTypeAxis and the member is bw2-titel9_SeparateMember , the fact must be in exactly one definition linkbase, and it must be [990020]
-    If the dimension is ifrs‑full:ConsolidatedAndSeparateFinancialStatementsAxis and the member is *ConsolidatedMember , the fact must be in exactly one definition linkbase, and it must be [990015]
-    If the dimension is ifrs‑full:ConsolidatedAndSeparateFinancialStatementsAxis and the member is *SeparateMember , the fact must be in exactly one definition linkbase, and it must be [990025]
+    If the dimension is bw2‑titel9_FinancialStatementsTypeAxis and the member is bw2-titel9_ConsolidatedMember:
+        the fact must be in exactly one definition linkbase, and it must be [990010]
+    If the dimension is bw2‑titel9_FinancialStatementsTypeAxis and the member is bw2-titel9_SeparateMember:
+        the fact must be in exactly one definition linkbase, and it must be [990020]
+    If the dimension is ifrs‑full:ConsolidatedAndSeparateFinancialStatementsAxis and the member is ifrs-full_ConsolidatedMember:
+        the fact must be in exactly one definition linkbase, and it must be [990015]
+    If the dimension is ifrs‑full:ConsolidatedAndSeparateFinancialStatementsAxis and the member is ifrs-full_SeparateMember:
+        the fact must be in exactly one definition linkbase, and it must be [990025]
     (Facts with zero or multiple explicit dimensions are ignored)
 
     Although not documented, the conformance suite implies concepts in any extension definition link role should be ignored.
@@ -1820,17 +1824,15 @@ def rule_nl_kvk_4_4_2_5(
     for fact in val.modelXbrl.facts:
         if (context := fact.context) is None:
             continue
-        if context.id not in contextRequiredRoles:
-            # Fact's context does not have a required role based on its dimensions.
-            continue
         if (requiredRole := contextRequiredRoles.get(context.id)) is None:
+            # Fact's context does not have a required role based on its dimensions.
             continue
         if (concept := fact.concept) is None:
             continue
         conceptRoleUris = primaryItemElrs.get(concept, set())
         if conceptRoleUris == {requiredRole}:
             continue
-        if conceptRoleUris & extensionRoleUris:
+        if not conceptRoleUris.isdisjoint(extensionRoleUris):
             # Ignore concept if it is assigned to an extension definition link role.
             # This condition is not documented, but is implied by failures in the conformance suite.
             continue
