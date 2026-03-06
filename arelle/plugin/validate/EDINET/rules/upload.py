@@ -18,6 +18,7 @@ from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
 from arelle.ModelObject import ModelObject
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
+from arelle.utils.validate.Characters import findProhibitedCharacters
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from arelle.ValidateXbrl import ValidateXbrl
@@ -1116,8 +1117,6 @@ def rule_EC5003E(
 ) -> Iterable[Validation]:
     """
     EDINET.EC5003E: Prohibited characters must not be used in HTML files.
-
-    TODO: Consolidate with NL.FR-NL-1.02 (which currently only checks text content)
     """
     if not fileSource.dir or not isinstance(fileSource.baseurl, str):
         return
@@ -1132,7 +1131,7 @@ def rule_EC5003E(
         file = fileSource.file(str(filepath))[0]
         with file as f:
             for lineNumber, line in enumerate(f, start=1):
-                illegalChars = set(illegalCharactersPattern.findall(line))
+                illegalChars = findProhibitedCharacters(line, illegalCharactersPattern)
                 if illegalChars:
                     yield Validation.error(
                         codes='EDINET.EC5003E',

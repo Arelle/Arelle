@@ -25,6 +25,7 @@ from arelle.ValidateDuplicateFacts import DuplicateType
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
+from arelle.utils.validate.Characters import findProhibitedCharacters
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Document import checkDocumentEncoding
 from arelle.utils.validate.Validation import Validation
@@ -2155,7 +2156,7 @@ def rule_EC8073E(
         for labelRel in labelRelSet.fromModelObject(rel.toModelObject):
             if labelRel.toModelObject is None or labelRel.toModelObject.textValue is None:
                 continue
-            illegalChars = set(illegalCharactersPattern.findall(labelRel.toModelObject.textValue))
+            illegalChars = findProhibitedCharacters(labelRel.toModelObject.textValue, illegalCharactersPattern)
             if any(illegalChars):
                 yield Validation.error(
                     codes='EDINET.EC8073E',
@@ -2208,7 +2209,7 @@ def rule_EC8073W_EC8074W(
 
             # Check Japanese labels
             if label.xmlLang in JAPAN_LANGUAGE_CODES:
-                illegalChars = set(illegalJapaneseCharactersPattern.findall(label.textValue))
+                illegalChars = findProhibitedCharacters(label.textValue, illegalJapaneseCharactersPattern)
                 if illegalChars:
                     yield Validation.warning(
                         codes='EDINET.EC8073W',
@@ -2222,7 +2223,7 @@ def rule_EC8073W_EC8074W(
 
             # Check English labels
             elif label.xmlLang == 'en':
-                illegalChars = set(illegalEnglishCharactersPattern.findall(label.textValue))
+                illegalChars = findProhibitedCharacters(label.textValue, illegalEnglishCharactersPattern)
                 if illegalChars:
                     yield Validation.warning(
                         codes='EDINET.EC8074W',
