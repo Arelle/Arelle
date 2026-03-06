@@ -1,0 +1,297 @@
+{
+    "$schema": "../oim-taxonomy-schema.json",
+    "documentInfo": {
+        "documentType": "https://xbrl.org/2026/model",
+        "namespaces": {
+            "calc11e": "https://xbrl.org/CR/2022-10-12/error",
+            "xbrl": "https://xbrl.org/2025",
+            "xs": "http://www.w3.org/2001/XMLSchema"
+        },
+        "documentNamespace": "calc11e"
+    },
+    "xbrlModel": {
+        "name": "calc11e:ErrorsTaxonomy",
+        "version": "1.0",
+        "domainClasses": [
+            {
+                "name": "calc11e:CALCErrorClassDomain"
+            }
+        ],
+        "domains": [
+            {
+                "name": "calc11e:CALCErrorDomain",
+                "root": "calc11e:CALCErrorClassDomain",
+                "relationships": [
+                    {"source": "calc11e:CALCErrorClassDomain", "target": "calc11e:inconsistentCalculationUsingRounding", "order": 1},
+                    {"source": "calc11e:CALCErrorClassDomain", "target": "calc11e:inconsistentCalculationUsingTruncation", "order": 2} ,
+                    {"source": "calc11e:CALCErrorClassDomain", "target": "calc11e:duplicateCalculationRelationships", "order": 3},
+                    {"source": "calc11e:CALCErrorClassDomain", "target": "calc11e:excessDigitsInCalculation", "order": 4},
+                    {"source": "calc11e:CALCErrorClassDomain", "target": "calc11e:disallowedDuplicateFactsUsingTruncation", "order": 5}
+                ]
+            }
+        ],
+        "members": [
+            {
+                "name": "calc11e:inconsistentCalculationUsingRounding",
+                "domainClasses": ["calc11e:CALCErrorClassDomain"],
+                "properties": [
+                    {"property": "xbrl:severity", "value": "error"}
+                ]
+            },
+            {
+                "name": "calc11e:inconsistentCalculationUsingTruncation",
+                "domainClasses": ["calc11e:CALCErrorClassDomain"],
+                "properties": [
+                    {"property": "xbrl:severity", "value": "error"}
+                ]
+            },
+            {
+                "name": "calc11e:duplicateCalculationRelationships",
+                "domainClasses": ["calc11e:CALCErrorClassDomain"],
+                "properties": [
+                    {"property": "xbrl:severity", "value": "error"}
+                ]
+            },
+            {
+                "name": "calc11e:excessDigitsInCalculation",
+                "domainClasses": ["calc11e:CALCErrorClassDomain"],
+                "properties": [
+                    {"property": "xbrl:severity", "value": "error"}
+                ]
+            },
+            {
+                "name": "calc11e:disallowedDuplicateFactsUsingTruncation",
+                "domainClasses": ["calc11e:CALCErrorClassDomain"],
+                "properties": [
+                    {"property": "xbrl:severity", "value": "error"}
+                ]
+            }
+        ],
+        "abstracts": [
+            {
+                "name": "calc11e:CalcErrors"
+            }
+        ],
+        "networks": [
+            {
+                "name": "calc11e:ErrorsByObjectType",
+                "relationshipTypeName": "xbrl:parent-child",
+                "roots": [
+                    
+                    "calc11e:CalcErrors"
+                ],
+                "relationships": [
+                    {"source": "calc11e:CalcErrors", "target": "calc11e:inconsistentCalculationUsingRounding", "order": 1},
+                    {"source": "calc11e:CalcErrors", "target": "calc11e:inconsistentCalculationUsingTruncation", "order": 2},
+                    {"source": "calc11e:CalcErrors", "target": "calc11e:duplicateCalculationRelationships", "order": 3},
+                    {"source": "calc11e:CalcErrors", "target": "calc11e:excessDigitsInCalculation", "order": 4},
+                    {"source": "calc11e:CalcErrors", "target": "calc11e:disallowedDuplicateFactsUsingTruncation", "order": 5}
+                ]
+            }
+        ],
+        "labels": [
+            {
+                "relatedName": "calc11e:inconsistentCalculationUsingRounding",
+                "language": "en",
+                "value": "Inconsistent Calculation Using Rounding",
+                "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "calc11e:inconsistentCalculationUsingRounding",
+                "language": "en",
+                "value": "The calculation is inconsistent due to rounding differences using round-to-nearest.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "relatedName": "calc11e:inconsistentCalculationUsingTruncation",
+                "language": "en",
+                "value": "Inconsistent Calculation Using Truncation",
+                "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "calc11e:inconsistentCalculationUsingTruncation",
+                "language": "en",
+                "value": "The calculation is inconsistent due to truncation differences using truncation.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "relatedName": "calc11e:CALCErrorClassDomain",
+                "language": "en",
+                "value": "🚫",
+                "labelType": "xbrl:iconLabel"
+            },
+            {
+                "relatedName": "calc11e:CalcErrors",
+                "language": "en",
+                "value": "Calculation Errors",
+                "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "calc11e:CalcErrors",
+                "language": "en",
+                "value": "All identified calculation errors.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "relatedName": "calc11e:duplicateCalculationRelationships",
+                "language": "en",
+                "value": "Duplicate Calculation Relationships",
+                "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "calc11e:duplicateCalculationRelationships",
+                "language": "en",
+                "value": "There must not be more than one summation-item relationship with the same total concept and the same contributing concept within a single calculation.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "relatedName": "calc11e:excessDigitsInCalculation",
+                "language": "en",
+                "value": "Excess Digits in Calculation",
+                "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "calc11e:excessDigitsInCalculation",
+                "language": "en",
+                "value": "If a calculation fact has digits in excess of the declared decimals, then calc11e:excessDigits MUST be raised, and no further consistency checking is performed for this binding of the calculation.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "relatedName": "calc11e:disallowedDuplicateFactsUsingTruncation",
+                "language": "en",
+                "value": "Disallowed Duplicate Facts Using Truncation",
+                "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "calc11e:disallowedDuplicateFactsUsingTruncation",
+                "language": "en",
+                "value": "If there are duplicate facts using truncation that are not allowed, then calc11e:disallowedDuplicateFactsUsingTruncation is raised.",
+                "labelType": "xbrl:errorMessage"
+            }
+        ],
+        "references": [
+            {
+                "name": "calc11e:inconsistentCalculationUsingRounding1Reference",
+                "relatedNames": [
+                    "calc11e:inconsistentCalculationUsingRounding"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CALCULATION-InvalidSummationItemValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "\u274c Fail"
+                    }
+                ]
+            },
+            {
+                "name": "calc11e:inconsistentCalculationUsingRounding2Reference",
+                "relatedNames": [
+                    "calc11e:inconsistentCalculationUsingRounding"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CALCULATION-InvalidSummationItemWeight.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "\u274c Fail"
+                    }
+                ]
+            },
+            {
+                "name": "calc11e:inconsistentCalculationUsingRounding3Reference",
+                "relatedNames": [
+                    "calc11e:inconsistentCalculationUsingRounding"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CALCULATION-InvalidSummationMultiEntityValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "\u274c Fail"
+                    }
+                ]
+            },
+            {
+                "name": "calc11e:inconsistentCalculationUsingRounding4Reference",
+                "relatedNames": [
+                    "calc11e:inconsistentCalculationUsingRounding"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CALCULATION-ValidSummationMultiEntityValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "\u2705 Pass"
+                    }
+                ]
+            },
+            {
+                "name": "calc11e:duplicateCalculationRelationships1Reference",
+                "relatedNames": [
+                    "calc11e:duplicateCalculationRelationships"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CALCULATION-InvalidDuplicateCalculationRelationships.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "\u274c Fail"
+                    }
+                ]
+            },
+            {
+                "name": "calc11e:duplicateCalculationRelationships2Reference",
+                "relatedNames": [
+                    "calc11e:duplicateCalculationRelationships"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CALCULATION-InvalidDuplicateCalcDiffWeightRelationships.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "\u274c Fail"
+                    }
+                ]
+            },
+            {
+                "name": "calc11e:duplicateCalculationRelationshipsReference",
+                "relatedNames": [
+                     "calc11e:duplicateCalculationRelationships"
+                ],
+                "referenceType": "xbrl:specificationErrorReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://www.xbrl.org/Specification/calculation-1.1/CR-2022-10-12/calculation-1.1-CR-2022-10-12.html#error-calc11e-duplicatecalculationrelationships"
+                    }
+                ]
+            }
+        ]
+    }
+}

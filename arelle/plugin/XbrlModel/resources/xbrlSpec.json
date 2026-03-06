@@ -941,6 +941,12 @@
                 "value": "A weight link property is used on certain relationship types (for example summation-item) to indicate the multiplier applied to the source when computing aggregates."
             },
             {
+                "relatedName": "xbrl:reconciliation",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "A reconciliation link property is a boolean value used on a summation-item relationship types to indicate that the source and target xbrla:balance can be the same and have a -1 weight or be different and have a +1 weight."
+            },
+            {
                 "relatedName": "xbrl:preferredLabel",
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -1435,6 +1441,14 @@
                 ]
             },
             {
+                "name" : "xbrl:reconciliation",
+                "dataType": "xs:boolean",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:relationshipObject"
+                ]
+            },
+            {
                 "name": "xbrl:aggregation",
                 "dataType": "xbrli:aggregationType",
                 "definitional": false,
@@ -1559,13 +1573,18 @@
             },
             {
                 "name": "xbrl:reportDate",
-                "dataType": "xs:dateTime",
+                "dataType": "xs:date",
                 "allowedObjects": ["xbrl:xbrlModelObject"]
             },
             {
                 "name": "xbrl:reportFilingDate",
                 "dataType": "xs:dateTime",
                 "allowedObjects": ["xbrl:xbrlModelObject"]
+            },
+            {
+                "name": "xbrl:dimensionMemberProperty",
+                "dataType": "xbrli:dimensionMemberMap",
+                "allowedObjects": ["xbrl:factObject"]
             }
         ],
         "referenceTypes": [
@@ -1654,37 +1673,13 @@
                 "name": "xbrl:parent-child",
                 "uri": "http://www.xbrl.org/2003/arcrole/parent-child",
                 "cycles" : "undirected",
-                "allowedLinkProperties" : ["xbrl:preferredLabel", "xbrl:order"],
-                "sourceObjects" : [
-                    "xbrl:conceptObject", 
-                    "xbrl:abstractObject",
-                    "xbrl:memberObject", 
-                    "xbrl:domainObject",
-                    "xbrl:domainClassObject", 
-                    "xbrl:dimensionObject", 
-                    "xbrl:cubeObject", 
-                    "xbrl:entityObject",  
-                    "xbrl:unitObject",
-                    "xbrl:factMapObject"
-                ],
-                "targetObjects" : [
-                    "xbrl:conceptObject", 
-                    "xbrl:abstractObject",
-                    "xbrl:memberObject", 
-                    "xbrl:domainObject",
-                    "xbrl:domainClassObject",
-                    "xbrl:dimensionObject", 
-                    "xbrl:cubeObject", 
-                    "xbrl:entityObject",  
-                    "xbrl:unitObject",
-                    "xbrl:factMapObject"
-                ]
+                "allowedLinkProperties" : ["xbrl:preferredLabel", "xbrl:order"]
             },
             {
                 "name": "xbrl:summation-item",
                 "uri": "https://xbrl.org/2023/arcrole/summation-item",
                 "cycles" : "undirected",
-                "allowedLinkProperties" : ["xbrl:weight", "xbrl:order"],
+                "allowedLinkProperties" : ["xbrl:weight", "xbrl:order", "xbrl:reconciliation"],
                 "requiredLinkProperties" : ["xbrl:weight"],
                 "sourceObjects" : ["xbrl:conceptObject"],
                 "targetObjects" : ["xbrl:conceptObject"]
@@ -1694,8 +1689,8 @@
                 "uri": "http://www.xbrl.org/2003/arcrole/class-subclass",
                 "cycles" : "none",
                 "allowedLinkProperties" : ["xbrl:order"],
-                "sourceObjects" : ["xbrl:conceptObject"],
-                "targetObjects" : ["xbrl:conceptObject"]
+                "sourceObjects" : ["xbrl:conceptObject", "xbrl:domainClassObject"],
+                "targetObjects" : ["xbrl:conceptObject", "xbrl:domainClassObject"]
             },
             {
                 "name": "xbrl:general-special",

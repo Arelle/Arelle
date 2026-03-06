@@ -81,9 +81,9 @@ class XbrlModule(XbrlModelObject):
     layouts: OrderedSet[XbrlLayout] # (optional) A layout object that defines the layout of a data structure that conforms with a XBRL model. The layout object is used to define how facts in a model or are rendered in a form or user interface.
     properties: OrderedSet[XbrlProperty] # ordered set of property objects used to specify additional properties associated with the taxonomy. Only immutable properties as defined in the propertyType object can be added to a taxonom
 
+""" Referencable Object Types
+    These are the object types that can be referenced by other objects in the taxonomy or report."""
 referencableObjectTypes = {
-    """ Referencable Object Types
-        These are the object types that can be referenced by other objects in the taxonomy or report."""
         qname("{https://xbrl.org/2025}xbrl:xbrlModelObject"): XbrlModule,
         qname("{https://xbrl.org/2025}xbrl:conceptObject"): XbrlConcept,
         qname("{https://xbrl.org/2025}xbrl:abstractObject"): XbrlAbstract,

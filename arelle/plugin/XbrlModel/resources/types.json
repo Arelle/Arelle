@@ -26,6 +26,12 @@
                 "enumeration": ["debit", "credit"],
                 "allowedObjects": ["xbrl:propertyObject"]
             },
+            {
+                "name": "xbrli:nilReasonType",
+                "baseType": "xs:string",
+                "enumeration": ["unknown", "unavailable", "immaterial", "withheld", "confidential", "redacted", "notApplicable", "pending", "notRequired", "other"],
+                "openEnumeration": true
+            },
             {   "name": "xbrli:periodType",
                 "baseType": "xs:string",
                 "enumeration": ["instant", "duration", "none"]
@@ -71,6 +77,10 @@
                 "baseType": "xbrli:noLangToken"
             },
             {
+                "name": "xbrli:map",
+                "baseType": "xbrli:noLangToken"
+            },
+            {
                 "name": "xbrli:QNameSet",
                 "baseType": "xbrli:collection",
                 "collectionType": {
@@ -86,6 +96,16 @@
                     "dataTypesAllowed":["xs:string"],
                     "uniqueValues":true,
                     "orderedValues":false
+                }
+            },
+            {
+                "name": "xbrli:dimensionMemberMap",
+                "baseType": "xbrli:map",
+                "mapType": {
+                "keyType": "xs:QName",
+                "valueType": "xs:QName",
+                "requiredKeys": [],
+                "allowedKeys": []
                 }
             },
             {
@@ -368,6 +388,12 @@
                 "patterns" : [".*T.*"]
             },
             {
+                "name" : "xbrli:partialDate",
+                "baseType" : "xs:string",
+                "allowedObjects": ["xbrl:conceptObject"],
+                "patterns" : ["-?[0-9]{4,}(-[0-9]{2}(-[0-9]{2}(T[0-9]{2}(:[0-9]{2}(:[0-9]{2})?)?)?)?)?"]
+            },
+            {
                 "name" : "xbrli:ghgEmissions",
                 "baseType" : "xs:decimal"
             },
@@ -567,6 +593,42 @@
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The enumerationSet type is a set equivalent of the enumeration type. Its format is intended to be equivalent to a set of enumeration types."
+            },
+            {
+                "relatedName" : "xbrli:collection",
+                "language" : "en",
+                "labelType" : "xbrl:label",
+                "value" : "Collection"
+            },
+            {
+                "relatedName" : "xbrli:collection",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The collection type serves as a base type for defining ordered or unordered collections of values (also known as lists, sets, or arrays). Collections are defined using a collectionType object which specifies which datatypes are allowed as members, whether values must be unique, whether order is significant, and optional size constraints. Collections can represent sets (unique, unordered), lists (ordered, potentially with duplicates), or other collection semantics. In JSON representations, collections are represented as JSON arrays. In XML representations, collections are represented as whitespace-separated values. This type enables the definition of multi-valued data such as sets of QNames, lists of periods, or any other collection of homogeneous or heterogeneous typed values."
+            },
+            {
+                "relatedName" : "xbrli:map",
+                "language" : "en",
+                "labelType" : "xbrl:label",
+                "value" : "Map"
+            },
+            {
+                "relatedName" : "xbrli:map",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The map type serves as a base type for defining structured key-value pair datatypes (also known as dictionaries or associative arrays). Maps are defined using a mapType object which specifies the data types for both keys and values, and optionally constrains which keys are required or allowed. In JSON representations, maps are represented as JSON objects. In XML representations, maps are represented using nested entry elements with key and value child elements. This type enables the definition of structured data such as dimension-member mappings, configuration settings, or any other key-value structured information."
+            },
+            {
+                "relatedName" : "xbrli:dimensionMemberMap",
+                "language" : "en",
+                "labelType" : "xbrl:label",
+                "value" : "Dimension Member Map"
+            },
+            {
+                "relatedName" : "xbrli:dimensionMemberMap",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The dimension member map type is a specialized map datatype used to represent mappings between dimension QNames and member QNames. This type is particularly useful for expressing additional dimensional context on facts through properties, allowing a single property to specify multiple dimension-member pairs. Each key in the map represents a dimension (such as exp:CountryDimension) and each value represents the corresponding member for that dimension (such as exp:Country_Canada). This enables compact representation of dimensional facts where multiple dimensions need to be specified simultaneously, such as when adding factDimensions via properties for facts that represent values for both an entity and specific dimension members. In JSON representations, dimension member maps are expressed as objects with dimension QNames as keys and member QNames as values. In XML representations, they use nested entry elements containing key and value child elements."
             },
             {
                 "relatedName" : "xbrli:escaped",
@@ -831,6 +893,18 @@
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "A subtype of xs:dateTime that requires a time component (as xs:dateTime does)."
+            },
+            {
+                "relatedName" : "xbrli:partialDate",
+                "language" : "en",
+                "labelType" : "xbrl:label",
+                "value" : "Partial Date"
+            },
+            {
+                "relatedName" : "xbrli:partialDate",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "An ISO 8601 truncated date/time value that may represent a year (YYYY), year-month (YYYY-MM), full date (YYYY-MM-DD), or date with hours, minutes or seconds. Used where the precision of a date or time value is not known in advance."
             },
             {
                 "relatedName" : "xbrli:ghgEmissions",
@@ -1125,6 +1199,14 @@
                 
             },
             {
+                "name": "xbrli:PartialDateRequirementReference",
+                "relatedNames": [
+                    "xbrli:partialDate"
+                ],
+                "referenceType": "xbrl:dataTypeRequirement",
+                "properties": [{"property":"ref:Requirement", "value":"This data type is required to represent dates at varying levels of temporal precision, from year only through to full date-time. This is needed for financial reporting scenarios where the exact date of a transaction or contract event is not known with full precision — for example, an investment schedule where the maturity year and month of a bond are known but not the exact day. Fabricating a full date in such cases would misrepresent the precision of the data. The type accepts values conforming to ISO 8601 truncated date representations: YYYY, YYYY-MM, YYYY-MM-DD, YYYY-MM-DDTHH, YYYY-MM-DDTHH:MM, or YYYY-MM-DDTHH:MM:SS."}]
+            },
+            {
                 "name": "xbrli:PrefixedContentRequirementReference",
                 "relatedNames": [
                     "xbrli:prefixedContent"
@@ -1194,6 +1276,7 @@
                     "xbrli:monetaryPerEnergy",
                     "xbrli:monetaryPerMass",
                     "xbrli:dateTime",
+                    "xbrli:partialDate",
                     "xbrli:ghgEmissions",
                     "xbrli:energyPerMonetary",
                     "xbrli:ghgEmissionsPerMonetary",
