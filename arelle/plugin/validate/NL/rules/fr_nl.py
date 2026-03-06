@@ -21,6 +21,7 @@ from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.Contexts import partitionModelXbrlContexts
 from arelle.utils.PluginHooks import ValidationHook
+from arelle.utils.validate.Characters import findProhibitedCharacters
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Document import checkDocumentEncoding
 from arelle.utils.validate.Validation import Validation
@@ -97,9 +98,10 @@ def rule_fr_nl_1_02(
                     texts = [elt.elementAttributesStr, elt.textValue]
                 matched = False
                 for text in texts:
-                    for match in regex.finditer(UNICODE_CHARACTER_RANGES_PATTERN, text):
+                    match = findProhibitedCharacters(text, UNICODE_CHARACTER_RANGES_PATTERN)
+                    if match:
                         matched = True
-                        foundChars.add(match.group())
+                        foundChars.update(match)
                 if matched:
                     errorObjects.append(elt)
     if len(errorObjects) > 0:
