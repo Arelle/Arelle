@@ -23,7 +23,7 @@ from arelle.utils.Contexts import partitionModelXbrlContexts
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Characters import findProhibitedCharacters
 from arelle.utils.validate.Decorator import validation
-from arelle.utils.validate.Document import checkDocumentEncoding
+from arelle.utils.validate.Document import checkDocumentEncoding, getReferencedModelObjects
 from arelle.utils.validate.Validation import Validation
 from ..Constants import STANDARD_TAXONOMY_URL_PREFIXES
 from ..DisclosureSystems import NT_DISCLOSURE_SYSTEMS
@@ -312,17 +312,12 @@ def rule_fr_nl_2_04(
     """
     FR-NL-2.04: The 'link:schemaRef' element MUST NOT appear more than once
     """
-    schema_ref_model_objects = []
-    for doc in val.modelXbrl.urlDocs.values():
-        if doc.type == ModelDocumentType.INSTANCE:
-            for refDoc, docRef in doc.referencesDocument.items():
-                if docRef.referringModelObject.localName == "schemaRef":
-                    schema_ref_model_objects.append(docRef.referringModelObject)
-    if len(schema_ref_model_objects) > 1:
+    schemaRefModelObjects = getReferencedModelObjects(val, ModelDocumentType.INSTANCE, "schemaRef")
+    if len(schemaRefModelObjects) > 1:
         yield Validation.error(
             codes='NL.FR-NL-2.04',
             msg=_('The \'link:schemaRef\' element must not appear more than once.'),
-            modelObject=schema_ref_model_objects
+            modelObject=schemaRefModelObjects
         )
 
 
@@ -339,17 +334,12 @@ def rule_fr_nl_2_05(
     """
     FR-NL-2.05: The 'link:linkbaseRef' element MUST NOT occur
     """
-    linkbase_ref_model_objects = []
-    for doc in val.modelXbrl.urlDocs.values():
-        if doc.type == ModelDocumentType.INSTANCE:
-            for refDoc, docRef in doc.referencesDocument.items():
-                if docRef.referringModelObject.localName == "linkbaseRef":
-                    linkbase_ref_model_objects.append(docRef.referringModelObject)
-    if len(linkbase_ref_model_objects) > 0:
+    linkbaseRefModelObjects = getReferencedModelObjects(val, ModelDocumentType.INSTANCE, "linkbaseRef")
+    if len(linkbaseRefModelObjects) > 0:
         yield Validation.error(
             codes='NL.FR-NL-2.05',
             msg=_('The \'link:linkbaseRef\' element must not occur.'),
-            modelObject=linkbase_ref_model_objects
+            modelObject=linkbaseRefModelObjects
         )
 
 

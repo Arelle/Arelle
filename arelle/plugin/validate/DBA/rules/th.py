@@ -11,6 +11,7 @@ from arelle.typing import TypeGetText
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
+from arelle.utils.validate.Document import getReferencedModelObjects
 from arelle.utils.validate.Validation import Validation
 from arelle.XmlValidateConst import VALID
 from ..PluginValidationDataExtension import PluginValidationDataExtension
@@ -113,16 +114,11 @@ def rule_th10 (
     roleRef
     more than one schemaRef
     """
-    linkbaseRefModelObjects = []
+    linkbaseRefModelObjects = getReferencedModelObjects(val, ModelDocumentType.INLINEXBRL, "linkbaseRef")
+    schemaRefModelObjects = getReferencedModelObjects(val, ModelDocumentType.INLINEXBRL, "schemaRef")
     roleRefModelObjects = []
-    schemaRefModelObjects = []
     for doc in val.modelXbrl.urlDocs.values():
         if doc.type == ModelDocumentType.INLINEXBRL:
-            for refDoc, docRef in doc.referencesDocument.items():
-                if docRef.referringModelObject.localName == "linkbaseRef":
-                    linkbaseRefModelObjects.append(docRef.referringModelObject)
-                if docRef.referringModelObject.localName == "schemaRef":
-                    schemaRefModelObjects.append(docRef.referringModelObject)
             for htmlElement in doc.modelXbrl.ixdsHtmlElements:
                 for inlineElement in htmlElement.iterdescendants(tag=doc.ixNStag + "resources"):
                     roleRefModelObjects.extend(inlineElement.iterchildren("{http://www.xbrl.org/2003/linkbase}roleRef"))

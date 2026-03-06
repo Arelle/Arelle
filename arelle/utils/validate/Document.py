@@ -1,7 +1,8 @@
-from typing import Optional, cast
+from typing import Optional
 
 from arelle import ModelDocument
 from arelle.ModelDocumentType import ModelDocumentType
+from arelle.ModelObject import ModelObject
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.utils.validate.Common import isExtensionUri
 
@@ -29,3 +30,21 @@ def checkDocumentEncoding(val: ValidateXbrl, encodings: list[str], taxonomyUrlPr
         if modelDocument.documentEncoding is None or modelDocument.documentEncoding.lower() not in encodings:
             docsWithDisallowedEncoding.append(modelDocument)
     return docsWithDisallowedEncoding
+
+
+def getReferencedModelObjects(val: ValidateXbrl, modelDocumentType: int, referenceType: str) -> list[ModelObject]:
+    """
+    Returns a list of ModelObjects that are referenced by referenceType.
+
+    :param val: validateXbrl object containing the modelXbrl with the documents to check.
+    :param modelDocumentType: integer representation of the document type used to filter=(e.g., ModelDocumentType.INSTANCE).
+    :param referenceType: local name of the reference type to check for (e.g., "schemaRef").
+    :return: list of ModelObjects that are referenced.
+    """
+    refModelObjects = []
+    for doc in val.modelXbrl.urlDocs.values():
+        if doc.type == modelDocumentType:
+            for docRef in doc.referencesDocument.values():
+                if docRef.referringModelObject.localName == referenceType:
+                    refModelObjects.append(docRef.referringModelObject)
+    return refModelObjects
