@@ -26,10 +26,11 @@ jobs:
       - uses: actions/checkout@v6.0.2
         with:
           persist-credentials: false
-          ref: ${{ github.base_ref }}  # Forces the tip of the branch, not the event SHA
+          ref: ${{ github.base_ref || github.ref_name }}  # Forces the tip of the branch, not the event SHA
       # pull_request_target runs in the context of the base repository, so we need to
       # merge the head branch to test the correct code for the PR.
       - uses: ./.github/actions/merge
+        if: github.base_ref != '' # Only run merge if this is a PR run
         with:
           commit_sha: ${{ github.event.pull_request.head.sha }}
           repository_full_name: ${{ github.event.pull_request.head.repo.full_name }}
@@ -44,8 +45,9 @@ jobs:
       - uses: actions/checkout@v6.0.2
         with:
           persist-credentials: false
-          ref: ${{ github.base_ref }}  # Forces the tip of the branch, not the event SHA
-      - uses: ./.github/actions/merge
+          ref: ${{ github.base_ref || github.ref_name }}  # Forces the tip of the branch, not the event SHA
+      - uses: ./.github/actions/merge # Only run merge if this is a PR run
+        if: github.base_ref != ''
         with:
           commit_sha: ${{ github.event.pull_request.head.sha }}
           repository_full_name: ${{ github.event.pull_request.head.repo.full_name }}
@@ -65,8 +67,9 @@ jobs:
       - uses: actions/checkout@v6.0.2
         with:
           persist-credentials: false
-          ref: ${{ github.base_ref }}  # Forces the tip of the branch, not the event SHA
-      - uses: ./.github/actions/merge
+          ref: ${{ github.base_ref || github.ref_name }}  # Forces the tip of the branch, not the event SHA
+      - uses: ./.github/actions/merge # Only run merge if this is a PR run
+        if: github.base_ref != ''
         with:
           commit_sha: ${{ github.event.pull_request.head.sha }}
           repository_full_name: ${{ github.event.pull_request.head.repo.full_name }}
@@ -98,8 +101,9 @@ jobs:
       - uses: actions/checkout@v6.0.2
         with:
           persist-credentials: false
-          ref: ${{ github.base_ref }}  # Forces the tip of the branch, not the event SHA
-      - uses: ./.github/actions/merge
+          ref: ${{ github.base_ref || github.ref_name }}  # Forces the tip of the branch, not the event SHA
+      - uses: ./.github/actions/merge # Only run merge if this is a PR run
+        if: github.base_ref != ''
         with:
           commit_sha: ${{ github.event.pull_request.head.sha }}
           repository_full_name: ${{ github.event.pull_request.head.repo.full_name }}
