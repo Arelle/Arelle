@@ -31,7 +31,7 @@ runs:
         echo "Deepening base branch history to depth $DEPTH..."
         git fetch --quiet --depth="$DEPTH" origin
 
-        git merge FETCH_HEAD --no-edit || {
+        git merge "$SHA" --no-edit || {
           echo "::error::Merge failed. Ancestor not found within $DEPTH commits or a conflict exists."
           git merge --abort
           exit 1
