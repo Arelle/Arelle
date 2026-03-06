@@ -2,7 +2,7 @@
 bottle==0.13.4
 certifi==2026.2.25
 cheroot==11.1.2
-filelock==3.24.3
+filelock==3.25.0
 isodate==0.7.2
 jaconv==0.5.0
 jsonschema==4.26.0
