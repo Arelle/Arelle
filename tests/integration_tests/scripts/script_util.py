@@ -94,6 +94,41 @@ def _get_arelle_args(
     return args
 
 
+def run_arelle_cmd(
+    arelle_command: str,
+    plugins: list[str] | None = None,
+    additional_args: list[str] | None = None,
+    offline: bool = False,
+    logFile: Path | None = None,
+    logFormat: str = "[%(messageCode)s] %(message)s - %(file)s",
+) -> subprocess.CompletedProcess[bytes]:
+    """
+    Executes an Arelle command using subprocess and returns the completed process.
+
+    The function constructs the command-line arguments needed to execute an Arelle
+    command by combining the provided parameters.
+
+    :param arelle_command: The base Arelle command that needs to be executed.
+    :param plugins: A list of plugins to enable during the execution. Defaults to None.
+    :param additional_args: Additional arguments to include when executing the command. Defaults to None.
+    :param offline: A boolean flag indicating whether the command should be executed in offline
+        mode. Defaults to False.
+    :param logFile: The file path for logging the output of the Arelle command. Defaults to None.
+    :param logFormat: The format of the log messages. Defaults to "[%(messageCode)s] %(message)s - %(file)s".
+
+    :return: Returns a CompletedProcess instance containing information about the executed process,
+        including its output, return code, and other attributes.
+    """
+    args = _get_arelle_args(
+        arelle_command,
+        plugins,
+        additional_args,
+        offline,
+        logFile,
+        logFormat,
+    )
+    return subprocess.run(args, capture_output=True)
+
 def run_arelle(
     arelle_command: str,
     plugins: list[str] | None = None,
@@ -102,11 +137,14 @@ def run_arelle(
     logFile: Path | None = None,
     logFormat: str = "[%(messageCode)s] %(message)s - %(file)s",
 ) -> None:
-    args = _get_arelle_args(
-        arelle_command, plugins, additional_args,
-        offline, logFile, logFormat
-    )
-    result = subprocess.run(args, capture_output=True)
+    result = run_arelle_cmd(
+        arelle_command,
+        plugins,
+        additional_args,
+        offline,
+        logFile,
+        logFormat,
+        )
     assert result.returncode == 0, result.stderr.decode().strip()
 
 

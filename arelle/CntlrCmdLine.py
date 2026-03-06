@@ -25,6 +25,7 @@ from optparse import SUPPRESS_HELP, Option, OptionGroup, OptionParser
 from pprint import pprint
 
 import regex as re
+from bottle import Bottle
 from lxml import etree
 
 from arelle import (
@@ -84,19 +85,30 @@ def main():
     args = shlex.split(envArgs) if envArgs else sys.argv[1:]
     setApplicationLocale()
     gettext.install("arelle")
-    parseAndRun(args)
+    cntlr, options, result = _parseAndRun(args)
+
+    if options.validationExitCode and not result:
+        sys.exit(3)
 
 
 def wsgiApplication(extraArgs=[]): # for example call wsgiApplication(["--plugins=EDGAR/render"])
     return parseAndRun( ["--webserver=::wsgi"] + extraArgs )
 
 
-def parseAndRun(args):
-    """interface used by Main program and py.test (arelle_test.py)
+def _parseAndRun(args: list[str]) -> tuple[CntlrCmdLine, RuntimeOptions, bool]:
     """
-
+    interface used by Main program and py.test (arelle_test.py)
+    """
     runtimeOptions, arellePluginModules = parseArgs(args)
-    cntlr = configAndRunCntlr(runtimeOptions, arellePluginModules)
+    cntlr, result = _configAndRunCntlr(runtimeOptions, arellePluginModules)
+    return cntlr, runtimeOptions, result
+
+
+def parseAndRun(args: list[str]) -> CntlrCmdLine:
+    """
+    interface used by Main program and py.test (arelle_test.py)
+    """
+    cntlr, _, _ = _parseAndRun(args)
     return cntlr
 
 
@@ -391,8 +403,14 @@ def parseArgs(args):
     parser.add_option("--testcaseFilter", "--testcasefilter", action="append", dest="testcaseFilters",
                       help=_("If any filters are provided, any testcase variation path in the form {testcaseFilepath}:{testcaseVariationId} that doesn't pass any filter "
                              "will be skipped." ))
-    parser.add_option("--testcaseResultsCaptureWarnings", "--testcaseresultscapturewarnings", action="store_true", dest="testcaseResultsCaptureWarnings",
-                      help=_("For testcase variations and RSS feed items, capture warning results, default is inconsistency or warning if there is any warning expected result.  "))
+    parser.add_option("--testcaseResultsCaptureWarnings",
+                      "--testcaseresultscapturewarnings",
+                      "--captureWarnings",
+                      action="store_true",
+                      dest="testcaseResultsCaptureWarnings",
+                      help=_("Capture warning-level messages as validation results. Applies to testcase variations, "
+                             "RSS feed items, and when used with --validationExitCode, "
+                             "causes warnings to produce exit code 3."))
     parser.add_option("--testcaseResultOptions", choices=("match-any", "match-all"), action="store", dest="testcaseResultOptions",
                       help=_("For testcase results, default is match any expected result, options to match any or match all expected result(s).  "))
     parser.add_option("--formulaRunIDs", "--formularunids", action="store", dest="formulaRunIDs", help=_("Specify formula/assertion IDs to run, separated by a '|' character, or a regex expression."))
@@ -491,6 +509,14 @@ def parseArgs(args):
                       action="store", dest="optionsFile",
                       help=_("Provide a path to a JSON file containing runtime options. "
                              "These options will be overridden by any command line options provided."))
+    parser.add_option("--validationExitCode",
+                      action="store_true",
+                      default=False,
+                      dest="validationExitCode",
+                      help=_("Exit with a code indicating validation results: "
+                             "0 = valid, no issues "
+                             "2 = usage error (existing parser.error usage) "
+                             "3 = validation errors found (and/or warnings if --captureWarnings is also used)"))
 
     if not args and isGAE():
         args = ["--webserver=::gae"]
@@ -521,6 +547,10 @@ def parseArgs(args):
             priorArg = arg
 
     (options, leftoverArgs) = parser.parse_args(args)
+
+    if options.webserver and options.validationExitCode:
+        parser.error(_("--validationExitCode can't be used with --webserver"))
+
     if options.about:
         print(_("\narelle(r) {version} ({wordSize}bit {platform})\n\n"
                           "An open source XBRL platform\n"
@@ -628,7 +658,10 @@ def createCntlrAndPreloadPlugins(uiLang, disablePersistentConfig, arellePluginMo
     return cntlr
 
 
-def configAndRunCntlr(options, arellePluginModules):
+def _configAndRunCntlr(
+        options: RuntimeOptions,
+        arellePluginModules: dict
+                       ) -> tuple[None, None] | tuple[Bottle, None] | tuple[CntlrCmdLine, bool]:
     """
     This function creates and configures a controller based off an options dataclass and
     :param options: RuntimeOptions dataclass
@@ -644,7 +677,10 @@ def configAndRunCntlr(options, arellePluginModules):
         from arelle import CntlrWebMain
         app = CntlrWebMain.startWebserver(cntlr, options)
         if options.webserver == '::wsgi':
-            return app
+            return app, None
+
+        return None, None
+
     else:
         cntlr.startLogging(logFileName=(options.logFile or "logToPrint"),
                            logFileMode=options.logFileMode,
@@ -656,8 +692,14 @@ def configAndRunCntlr(options, arellePluginModules):
                            logXmlMaxAttributeLength=options.logXmlMaxAttributeLength,
                            logPropagate=options.logPropagate)
         cntlr.postLoggingInit()  # Cntlr options after logging is started
-        cntlr.run(options)
-        return cntlr
+        result = cntlr.run(options)
+
+        return cntlr, result
+
+
+def configAndRunCntlr(options: RuntimeOptions, arellePluginModules: dict) -> CntlrCmdLine:
+    cntlr, _ = _configAndRunCntlr(options, arellePluginModules)
+    return cntlr
 
 
 class ParserForDynamicPlugins:
@@ -723,7 +765,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
 
     def __init__(self, logFileName=None, uiLang=None, disable_persistent_config=False):
         super().__init__(hasGui=False, uiLang=uiLang, disable_persistent_config=disable_persistent_config, logFileName=logFileName)
-        self.preloadedPlugins =  {}
+        self.preloadedPlugins = {}
 
     def run(self, options: RuntimeOptions, sourceZipStream=None, responseZipStream=None) -> bool:
         """Process command line arguments or web service request, such as to load and validate an XBRL document, or start web server.
@@ -734,6 +776,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
         :param options: OptionParser options from parse_args of main argv arguments (when called from command line) or corresponding arguments from web service (REST) request.
         :type options: optparse.Values
         """
+        hasValidationErrors = False
         for b in BETA_FEATURES_AND_DESCRIPTIONS:
             self.betaFeatures[b] = getattr(options, b)
         if options.statusPipe or options.monitorParentProcess:
@@ -1065,12 +1108,12 @@ class CntlrCmdLine(Cntlr.Cntlr):
             try:
                 pluginXbrlMethod(self, options, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
             except SystemExit: # terminate operation, plug in has terminated all processing
-                return True # success
+                return True
 
         # if no entrypointFile is applicable, quit now
         if options.proxy or options.plugins or hasUtilityPlugin:
             if not (options.entrypointFile or sourceZipStream):
-                return True # success
+                return True
 
         entrypointParseResult = parseEntrypointFileInput(self, options.entrypointFile, sourceZipStream)
         if not entrypointParseResult.success:
@@ -1355,6 +1398,13 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 modelXbrl.profileStat(_("total"), time.time() - firstStartedAt)
                 if options.collectProfileStats and modelXbrl:
                     modelXbrl.logProfileStats()
+
+                if modelDiffReport and modelDiffReport.errors:
+                    hasValidationErrors = True
+
+                if modelXbrl and modelXbrl.errors:
+                    hasValidationErrors = True
+
                 if not options.keepOpen:
                     if modelDiffReport:
                         self.modelManager.close(modelDiffReport)
@@ -1385,7 +1435,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             win32file.CloseHandle(self.statusPipe)
             self.statusPipe = None # dereference
 
-        return success
+        return success and not (options.validationExitCode and (hasValidationErrors or self.errors))
 
     # default web authentication password
     def internet_user_password(self, host, realm):
@@ -1406,7 +1456,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             except Exception as ex:
                 #with open("Z:\\temp\\trace.log", "at", encoding="utf-8") as fh:
                 #    fh.write("Status pipe exception {} {}\n".format(type(ex), ex))
-                system.exit()
+                sys.exit()
 
     def loadPackage(self, package: str, packageManifestName: str):
         from arelle import PackageManager

@@ -157,6 +157,7 @@ class RuntimeOptions:
     viewFile: Optional[str | FileNamedStringIO] = None
     webserver: Optional[str] = None
     xdgConfigHome: Optional[str] = None
+    validationExitCode: bool = False
 
     def __eq__(self, other: Any) -> bool:
         """ Default dataclass implementation doesn't consider plugin applied options. """

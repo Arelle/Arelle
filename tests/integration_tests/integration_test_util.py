@@ -92,7 +92,7 @@ def get_test_data(
     """
     if required_locale_by_ids is None:
         required_locale_by_ids = {}
-    cntlr = parseAndRun(args)  # type: ignore[no-untyped-call]
+    cntlr = parseAndRun(args)
     try:
         system_locale = locale.setlocale(locale.LC_CTYPE)
         results: list[ParameterSet] = []
