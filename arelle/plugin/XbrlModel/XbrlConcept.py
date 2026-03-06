@@ -58,8 +58,10 @@ class XbrlDataType(XbrlReferencableModelObject):
     module: XbrlModuleType  
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the datatype object.
     baseType: QName # (required) The base type is a QName that uniquely identifies the base datatype the datatype is based on.
-    enumeration: OrderedSet[Any] # (optional) Defines an ordered set of enumerated values of the datatype if applicable
     collectionType: Optional[XbrlCollectionType] # (optional) Defines a set of of data types that can be used in a set. This attribute can only be used when the base type is defined as a xbrli:set.
+    mapType: Optional[dict[QName, Any]] # (optional) Defines a model object that defines the structure of a map type. This attribute can only be used when the base type is defined as a xbrli:map.
+    enumeration: OrderedSet[Any] # (optional) Defines an ordered set of enumerated values of the datatype if applicable
+    openEnumeration: Union[bool, DefaultFalse] # (optional) Indicates if the enumeration is open or closed. If true, the enumeration is open and additional values beyond those specified in the enumeration property are allowed. If false, the enumeration is closed and only the values specified in the enumeration property are allowed. Defaults to false if not provided.
     minInclusive: Optional[Decimal] # (optional) Defines a decimal value to indicate a min inclusive cardinal value for a type. Only applies to types based on float, double and decimal.
     maxInclusive: Optional[Decimal] # (optional) Defines a decimal value to indicate a max inclusive cardinal value for a type. Only applies to types based on float, double and decimal.
     minExclusive: Optional[Decimal] # (optional) Defines a decimal value to indicate a min exclusive cardinal value for a type. Only applies to types based on float, double and decimal.

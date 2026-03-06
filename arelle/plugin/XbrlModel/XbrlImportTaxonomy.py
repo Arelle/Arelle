@@ -31,7 +31,7 @@ class XbrlStructuredSelectStatement(XbrlObject):
 
 class XbrlImportTaxonomy(XbrlModelObject):
     """ Import Taxonomy Object
-        Reference: oim-taxonomy#importtaxonomy-object 
+        Reference: oim-taxonomy#import-taxonomy-object 
 
         This object defines the properties and criteria for importing a taxonomy into the taxonomy model. It specifies the location of the taxonomy to be imported, the xBRL module it belongs to, and any filters or selections to be applied during the import process.
     """

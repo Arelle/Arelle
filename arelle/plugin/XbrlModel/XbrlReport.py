@@ -13,8 +13,11 @@ from .XbrlProperty import XbrlProperty
 from .XbrlUnit import  parseUnitString
 
 class XbrlFactValueSource(XbrlObject):
+    """ Fact Value Source Object
+        Reference: oim-taxonomy#factvaluesource-object"""
+    source: Optional[QName] # (optional) entifies the source of the document file using a QName that represents a file such as a pdf file or html file. If no source is provided the document file encapsulating the taxonomy (report) object is implied. If the model is external to the source file then the sourceMapping property of the documentInfo object is used to associate the model with a document file. A value only needs to be provided if there is more than one source file used to represent fact values.
     medium: Optional[str] # (optional) The document medium, which may be implied when the taxonomy (report) object is encapsulated in a document file: html, pdf, tabular.
-    href: Optional[str] # (required for HTML only) The HTML element containing mapped (inner) text content. May be an id such as #elt1, to identify inner text of that element, if present (else ineffective and contributes nothing to the value).
+    id: Optional[str] # (optional for HTML only) The HTML element containing mapped (inner) text content. May be an id such as #elt1, to identify inner text of that element, if present (else ineffective and contributes nothing to the value).   
     formField: Optional[str] # (optional for PDF only) The field name of a PDF form field. Identifies that field contents (if any) or default (if any) contribute to the value.
     page: Optional[int] # (required for PDF non-form text only) The page number.
     mcid: Optional[str] # (optional for PDF non-form structure text identified by mcid)
@@ -26,8 +29,12 @@ class XbrlFactValueSource(XbrlObject):
     escape: Union[bool, DefaultFalse] # (optional) If the escape attribute is true then value is the escaped representation for media with markup, e.g. html or pdf, otherwise the concatenation in document order of all descendant text content. If no value is provided the attribute defaults to false.
 
 class XbrlFactValueAnchor(XbrlObject):
+    """ Fact Value Anchor Object
+        Reference: oim-taxonomy#factvalueanchor-object
+    """
+    source: Optional[QName] # (optional) entifies the source of the document file using a QName that represents a file such as a pdf file or html file. If no source is provided the document file encapsulating the taxonomy (report) object is implied. If the model is external to the source file then the sourceMapping property of the documentInfo object is used to associate the model with a document file. A value only needs to be provided if there is more than one source file used to represent fact values.
     medium: Optional[str] # (optional) The document medium, which may be implied when the taxonomy (report) object is encapsulated in a document file: html, pdf, tabular.
-    href: Optional[str] # (required for HTML only) The HTML element containing mapped (inner) text content. May be an id such as #elt1, to identify inner text of that element, if present (else ineffective and contributes nothing to the value).
+    id: Optional[str] # (optional for HTML only) The HTML element containing mapped (inner) text content. May be an id such as #elt1, to identify inner text of that element, if present (else ineffective and contributes nothing to the value).   
     formField: Optional[str] # (optional for PDF only) The field name of a PDF form field. Identifies that field contents (if any) or default (if any) contribute to the value.
     page: Optional[int] # (required for PDF non-form text only) The page number.
     mcid: Optional[str] # (optional for PDF non-form structure text identified by mcid)
@@ -35,6 +42,9 @@ class XbrlFactValueAnchor(XbrlObject):
     tabularPath: Optional[str] # (optional for tabular sources to identify a tabular path (e.g. RevenueByRegion!row[@Year=2024 and @Region='NA']/Revenue). See Appendix I for the tabularPath grammar.
 
 class XbrlFactValue(XbrlObject):
+    """ Fact Value Object
+        Reference: oim-taxonomy#factvalue-object
+    """
     name: QNameKeyType
     value: Optional[Any] # (required if valueSources not provided) The value of the fact. This can be a numeric value, a string, or any other type of value that is valid for the fact.
     decimals: Optional[int] # An integer providing the value of the {decimals} property, or absent if the value is infinitely precise or not applicable (for nil or non-numeric facts).
@@ -42,14 +52,28 @@ class XbrlFactValue(XbrlObject):
     valueSources: OrderedSet[XbrlFactValueSource] # (required if value not provided) An ordered set of factValueSource objects that identify where the values are obtained from content of an embedding or accompanying document file (html, pdf or tabular).
     valueAnchors: OrderedSet[XbrlFactValueAnchor] # (optional if valueSources not provided) An ordered set of factAnchor objects that identify corresponding content of an embedding document file (html, pdf or tabular) for cases where the value is provided in the value property instead of obtained from the content of document file. For example, non-transformable values, such as a QName value, may correspond to prose text in the document file. Used by tools to highlight and detect mouse-over correspondence between fact values and document text.
 
+class XbrlFactDimensions(dict[QName, Any]): 
+    """ Fact Dimensions Object
+        Reference: oim-taxonomy#factdimensions-object
+    """
+    # The factDimensions object is a dictionary with properties corresponding to the members of the {dimensions} property of the taxonomy model. Each property is a QName that identifies a dimension, and the value of each property is the dimension value for that dimension. The dimension value can be a QName for explicit dimensions or a typed value for typed dimensions. The factDimensions object must include properties for all dimensions defined in the {dimensions} property of the taxonomy model, and may include additional properties for dimensions not defined in the {dimensions} property.      
+
 class XbrlFact(XbrlReportObject):
+    """ Fact Object
+        Reference: oim-taxonomy#fact-object
+    """
     parent: Union[XbrlReportType,XbrlModuleType]  # facts in taxonomy module are owned by the txmyMdl
-    name: QNameKeyType # (required) The name is a QName that uniquely identifies the factspace object.
+    name: QNameKeyType # (equired if no extendTargetName) The name is a QName that uniquely identifies the factspace object.
     factValues: OrderedSet[XbrlFactValue]
-    factDimensions: dict[QName, Any] # (required) A dimensions object with properties corresponding to the members of the {dimensions} property.
+    factDimensions: XbrlFactDimensions # (required) A dimensions object with properties corresponding to the members of the {dimensions} property.
+    properties: OrderedSet[XbrlProperty] # (optional) an ordered set of property objects used to specify additional properties associated with the fact using the property object. 
+    extendTargetName: Optional[QName] # (required if no name property) Names the fact object that is appended to. The fact values and dimensions of the fact with this property are appended to the end of the fact object with the name property. This property cannot be used in conjunction with the name property.  
     _propertyMap: ClassVar[dict[type,dict[str, str]]] = {}
 
 class XbrlFootnote(XbrlReportObject):
+    """ Footnote Object
+        Reference: oim-taxonomy#footnote-object
+    """
     parent: Union[XbrlReportType,XbrlModuleType]  # facts in taxonomy module are owned by the txmyMdl
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the abstract object.
     content: Optional[str] # (required) The content of the footnote.

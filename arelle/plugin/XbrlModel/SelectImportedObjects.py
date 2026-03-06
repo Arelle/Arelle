@@ -17,7 +17,7 @@ def eval(obj, whereObj):
     if qn.namespaceURI is None:
         v1 = getattr(obj, qn.localName)
     else:
-        for i, propObj in enumerate(getattr(obj, "properties", ()))
+        for i, propObj in enumerate(getattr(obj, "properties", ())):
             if propObj.name == qn:
                 v1 = propObj.value # should use _xValue if _xValid >- VALID
                 break

@@ -25,6 +25,7 @@ class XbrlDateResolution(XbrlModelObject):
     """
     conceptName: Optional[QName] # (optional) Identifies the QName of a concept object that has a date fact value. The values of the concept object resolves to a set of dates. If no value exists in the report then the property is ignored, and no date constraint is enforced on the cube.
     context: Optional[QNameAt] # (optional) Identifies the QName of a concept object that has a value. The context of the fact values resolves to a set of dates. If no value exists in the report then the property is ignored. The context suffix must be either @end or @start. If an @ value is not provided then the suffix defaults to @end.
+    dateProperty: Optional[str] # (optional) Allows using a date or duration used as a value of a property of an object. Identifies the QName of an object and the QName of a property associated with the object and uses @start or @end suffix if a duration i.e. exp:myExtTaxonomy.xbrl:reportPeriod@end. 
     value: Optional[DateTime] # (optional) A literal date value representing the end date.
     timeShift: Optional[YearMonthDayTimeDuration] # (optional) Defines a time duration shift from the date derived form either the value, context or name properties. The duration of the time shift is defined using the XML duration type to define a duration of time. A negative operator is used to deduct the timeShift from the resolved date.
 
@@ -91,13 +92,14 @@ class XbrlCube(XbrlReferencableModelObject):
         Reference: oim-taxonomy#cube-object
      """
     module: XbrlModuleType
-    name: QNameKeyType # (required) The name property is a QName that uniquely identifies the cube object.
+    name: QNameKeyType # (required if no extendTargetName) The name property is a QName that uniquely identifies the cube object.
     cubeType: Optional[QName] # (optional) The cubeType property identifies the type of data cube being represented. This must match a defined cubeType object or specification defined cube types of xbrl:eventCube, xbrl:positionCube, xbrl:referenceCube, xbrl:reportCube, xbrl:journalCube, xbrl:eventDetailsCube, xbrl:timeSeriesCube and xbrl:defaultCube. If no QName is provided the default is xbrl:reportCube.
     cubeDimensions: OrderedSet[XbrlCubeDimension] # (required) An ordered set of cubeDimension objects that identify the dimensions and associated domains used on the cube.
     cubeNetworks: OrderedSet[QName] # (optional) An ordered set of network object QNames that reference network objects that are directly related to the cube.
     excludeCubes: OrderedSet[QName] # (optional) An ordered set of cube object QNames that remove the facts of the constraint cube from the facts of the defined cube.
-    cubeComplete: Optional[bool] # (optional) A boolean flag that indicates if all cells in the cube are required to have a value. If true then all cube cells must include a fact value. If a value is not provided for the cubeComplete property then the default is false.
+    requiredCubes: OrderedSet[QName] # (optional) An ordered set of cube object QNames that require the facts of the constraint cube to be included in the facts of the defined cube.
     properties: OrderedSet[XbrlProperty] # (optional) An ordered set of property objects Used to specify additional properties associated with the cube using the property object. Only immutable properties as defined in the propertyType object can be added to a cube.
+    extendTargetName: Optional[QName] # (required if no name) The cubeType QName of a cube that this cube extends. This is used to indicate that this cube is an extension of another cube and inherits the properties of the base cube. The base cube must be defined in the same taxonomy module as this cube or in a directly imported module.
 
 class XbrlDimensionPropertiesConstraint(XbrlModelObject):
     """ Dimension Properties Constraint Object

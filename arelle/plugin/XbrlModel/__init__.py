@@ -111,7 +111,7 @@ def jsonGet(tbl, key, default=None):
         return tbl.get(key, default)
     return default
 
-def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kwargs)
+def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kwargs):
     """Load an OIM Taxonomy module from JSON file or dict object, return the modelDocument or raise an exception if invalid.
         If modelXbrl is not None, then load as a XbrlModule into the modelXbrl, otherwise create and return a standalone 
         XbrlCompiledModel.
@@ -824,7 +824,7 @@ def isXbrlModelLoadable(modelXbrl, mappedUri, normalizedUri, filepath, **kwargs)
     """ ModelDocument.IsPullLoadable:
         Determine if the file at filepath is an OIM taxonomy file, returning True if it is, False if not
     """
-    global lastFilePath, lastFilePathIsOI
+    global lastFilePath, lastFilePathIsOIM
     lastFilePath = None
     lastFilePathIsOIM = False
     _ext = os.path.splitext(filepath)[1]

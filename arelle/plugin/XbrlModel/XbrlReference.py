@@ -11,7 +11,7 @@ from .XbrlTypes import XbrlModuleType, QNameKeyType
 from .ModelValueMore import SQName
 from .XbrlObject import XbrlReferencableModelObject, XbrlTaxonomyTagObject
 
-class XbrlReference(XbrlaxonomyTagObject):
+class XbrlReference(XbrlTaxonomyTagObject):
     """ Reference Object
         Reference: oim-taxonomy#reference-object
     """
