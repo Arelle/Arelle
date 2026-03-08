@@ -29,6 +29,7 @@ from ..FilingFormat import DocumentType
 from ..FormType import FormType
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 from ..ReportFolderType import ReportFolderType
+from arelle.utils.validate.Facts import isValidNonNilFact
 
 _: TypeGetText
 
@@ -336,7 +337,7 @@ def rule_EC8021W(
     compareDate = cast(datetime.datetime, targetDate + relativedelta(years=1))
     for modelXbrl in pluginData.loadedModelXbrls:
         for fact in modelXbrl.factsByLocalName.get('FilingDateCoverPage', set()):
-            if fact.isNil or fact.xValid < VALID:
+            if not isValidNonNilFact(fact):
                 continue
             submissionDate = cast(datetime.datetime, fact.xValue)
             if compareDate < submissionDate:

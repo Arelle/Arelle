@@ -30,7 +30,7 @@ _: TypeGetText
 
 
 def _getReportingPeriodDateValue(modelXbrl: ModelXbrl, qname: QName) -> date | None:
-    facts = modelXbrl.factsByQname.get(qname)
+    facts = modelXbrl.factsByQname.get(qname, set())
     if facts and len(facts) == 1:
         datetimeValue = XmlUtil.datetimeValue(next(iter(facts)))
         if datetimeValue:
@@ -221,10 +221,10 @@ def rule_br_kvk_4_12(
     """
     modelXbrl = val.modelXbrl
     resubmissionConceptQname = pluginData.documentResubmissionUnsurmountableInaccuraciesQn
-    if not any(f.value == 'Ja' for f in modelXbrl.factsByQname.get(resubmissionConceptQname, [])):
+    if not any(f.value == 'Ja' for f in modelXbrl.factsByQname.get(resubmissionConceptQname, set())):
         return
     documentAdoptionStatusQname = pluginData.documentAdoptionStatusQn
-    if not any(f.value == 'Ja' for f in modelXbrl.factsByQname.get(documentAdoptionStatusQname, [])):
+    if not any(f.value == 'Ja' for f in modelXbrl.factsByQname.get(documentAdoptionStatusQname, set())):
         yield Validation.error(
             codes='NL.BR-KVK-4.12',
             msg=_('For a corrected annual report, an annual report to be corrected '
@@ -255,14 +255,14 @@ def rule_br_kvk_4_16(
     """
     modelXbrl = val.modelXbrl
     resubmissionConceptQname = pluginData.documentResubmissionUnsurmountableInaccuraciesQn
-    if not any(f.value == 'Ja' for f in modelXbrl.factsByQname.get(resubmissionConceptQname, [])):
+    if not any(f.value == 'Ja' for f in modelXbrl.factsByQname.get(resubmissionConceptQname, set())):
         return
     requiredConceptQnames = (
         pluginData.documentAdoptionDateQn,
         pluginData.documentAdoptionStatusQn
     )
     for conceptQname in requiredConceptQnames:
-        if not any(f.value for f in modelXbrl.factsByQname.get(conceptQname, [])):
+        if not any(f.value for f in modelXbrl.factsByQname.get(conceptQname, set())):
             yield Validation.error(
                 codes='NL.BR-KVK-4.16',
                 msg=_('A corrected financial statement MUST be established. '

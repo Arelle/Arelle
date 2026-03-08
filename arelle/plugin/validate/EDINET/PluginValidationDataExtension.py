@@ -32,6 +32,7 @@ from arelle.XhtmlValidate import htmlEltUriAttrs
 from arelle.XmlValidate import VALID
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
+from arelle.utils.validate.Facts import getUsedConceptsFromFacts, hasValidNonNilFactByQname, iterValidNonNilFactsByQname
 from .Constants import xhtmlDtdExtension, PROHIBITED_HTML_TAGS, PROHIBITED_HTML_ATTRIBUTES, STANDARD_TAXONOMY_URL_PREFIXES
 from .ControllerPluginData import ControllerPluginData
 from .DeiRequirements import DeiRequirements, DEI_LOCAL_NAMES
@@ -261,7 +262,7 @@ class PluginValidationDataExtension(PluginData):
         """
         Returns a set of concepts used on facts and in explicit dimensions
         """
-        usedConcepts = {fact.concept for fact in modelXbrl.facts if fact.concept is not None}
+        usedConcepts = getUsedConceptsFromFacts(modelXbrl)
         for context in modelXbrl.contextsInUse:
             for dim in context.scenDimValues.values():
                 if dim.isExplicit:
@@ -575,7 +576,7 @@ class PluginValidationDataExtension(PluginData):
         return results
 
     def hasValidNonNilFact(self, modelXbrl: ModelXbrl, qname: QName) -> bool:
-        return any(True for fact in self.iterValidNonNilFacts(modelXbrl, qname))
+        return hasValidNonNilFactByQname(modelXbrl, qname)
 
     def isStandardTaxonomyUrl(self, uri: str, modelXbrl: ModelXbrl) -> bool:
         return modelXbrl.modelManager.disclosureSystem.hrefValidForDisclosureSystem(uri)
@@ -600,9 +601,7 @@ class PluginValidationDataExtension(PluginData):
                 yield fact
 
     def iterValidNonNilFacts(self, modelXbrl: ModelXbrl, qname: QName) -> Iterable[ModelFact]:
-        for fact in self.iterValidFacts(modelXbrl, qname):
-            if not fact.isNil:
-                yield fact
+        yield from iterValidNonNilFactsByQname(modelXbrl, qname)
 
     def addUsedFilepath(self, modelXbrl: ModelXbrl, path: Path) -> None:
         controllerPluginData = ControllerPluginData.get(modelXbrl.modelManager.cntlr, self.name)

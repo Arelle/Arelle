@@ -22,6 +22,7 @@ from arelle.ValidateXbrl import ValidateXbrl
 from arelle.utils.Contexts import ContextHashKey
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
+from arelle.utils.validate.Facts import isValidNonNilFact
 from arelle.utils.validate.Validation import Validation
 from arelle.XmlValidateConst import VALID
 from . import errorOnDateFactComparison, getFactsWithDimension, getFactsGroupedByContextId, getFactsWithoutDimension, groupFactsByContextHash, \
@@ -107,7 +108,7 @@ def rule_fr20(
     for concept_qn in pluginData.managementEndorsementQns:
         facts = modelXbrl.factsByQname.get(concept_qn, set())
         for fact in facts:
-            if fact.xValid >= VALID and not fact.isNil:
+            if isValidNonNilFact(fact):
                 return
     yield Validation.error(
         codes="DBA.FR20",
@@ -329,7 +330,7 @@ def rule_fr35(
     for concept_qn in pluginData.accountingPolicyConceptQns:
         facts = modelXbrl.factsByQname.get(concept_qn, set())
         for fact in facts:
-            if fact.xValid >= VALID and not fact.isNil:
+            if isValidNonNilFact(fact):
                 if not fact.context.scenDimValues:
                     noDimensionFacts.add(fact)
                 if pluginData.consolidatedSoloDimensionQn in [dim.qname for dim in fact.context.scenDimValues.keys()]:
@@ -945,27 +946,27 @@ def rule_fr63(
     less than or equal to the balance sheet total. Applies to both the year's figures and comparative figures.
     """
     modelXbrl = val.modelXbrl
-    asset_facts = modelXbrl.factsByQname.get(pluginData.assetsQn, set())
-    for asset_fact in asset_facts:
-        if asset_fact.xValid >= VALID and isinstance(asset_fact.xValue, decimal.Decimal):
-            concepts_in_error = []
-            facts_in_error = []
-            for balance_sheet_qn in pluginData.balanceSheetQnLessThanOrEqualToAssets:
-                balance_sheet_qn_facts = modelXbrl.factsByQname.get(balance_sheet_qn, set())
-                for balance_sheet_qn_fact in balance_sheet_qn_facts:
-                    if (balance_sheet_qn_fact.xValid >= VALID and
-                            isinstance(balance_sheet_qn_fact.xValue, decimal.Decimal) and
-                            asset_fact.contextID == balance_sheet_qn_fact.contextID and
-                            asset_fact.xValue < balance_sheet_qn_fact.xValue):
-                        concepts_in_error.append(balance_sheet_qn.localName)
-                        facts_in_error.append(balance_sheet_qn_fact)
-            if len(facts_in_error) > 0:
+    assetFacts = modelXbrl.factsByQname.get(pluginData.assetsQn, set())
+    for assetFact in assetFacts:
+        if assetFact.xValid >= VALID and isinstance(assetFact.xValue, decimal.Decimal):
+            conceptsInError = []
+            factsInError = []
+            for balanceSheetQn in pluginData.balanceSheetQnLessThanOrEqualToAssets:
+                balanceSheetQnFacts = modelXbrl.factsByQname.get(balanceSheetQn, set())
+                for balanceSheetQnFact in balanceSheetQnFacts:
+                    if (balanceSheetQnFact.xValid >= VALID and
+                            isinstance(balanceSheetQnFact.xValue, decimal.Decimal) and
+                            assetFact.contextID == balanceSheetQnFact.contextID and
+                            assetFact.xValue < balanceSheetQnFact.xValue):
+                        conceptsInError.append(balanceSheetQn.localName)
+                        factsInError.append(balanceSheetQnFact)
+            if len(factsInError) > 0:
                 yield Validation.error(
                     codes='DBA.FR63',
                     msg=_("The annual report contains items in the balance sheet (year's figures or comparison "
                           "figures) which are greater than the balance sheet total(Assets). The following "
-                          "fields do not comply: {}").format(concepts_in_error),
-                    modelObject=facts_in_error
+                          "fields do not comply: {}").format(conceptsInError),
+                    modelObject=factsInError
                 )
 
 
@@ -992,22 +993,22 @@ def rule_fr71(
     Both on the year's figures and comparative figures."
     """
     modelXbrl = val.modelXbrl
-    facts_in_error = []
-    for cost_qn in [
+    factsInError = []
+    for costQn in [
         pluginData.employeeBenefitsExpenseQn,
         pluginData.wagesAndSalariesQn,
         pluginData.postemploymentBenefitExpenseQn,
         pluginData.otherEmployeeExpenseQn
     ]:
-        facts = modelXbrl.factsByQname.get(cost_qn, set())
+        facts = modelXbrl.factsByQname.get(costQn, set())
         for fact in facts:
             if fact.xValid >= VALID and isinstance(fact.xValue, decimal.Decimal) and fact.xValue < 0:
-                facts_in_error.append(fact)
-    if len(facts_in_error) > 0:
+                factsInError.append(fact)
+    if len(factsInError) > 0:
         yield Validation.warning(
             codes="DBA.FR71",
             msg=_("Costs must be reported as positive numbers in the XBRL file"),
-            modelObject=facts_in_error
+            modelObject=factsInError
         )
 
 
@@ -1029,9 +1030,9 @@ def rule_fr72(
     then arr:DescriptionsOfQualificationsOfReviewedFinancialStatements must be tagged.
     """
     modelXbrl = val.modelXbrl
-    review_facts = modelXbrl.factsByQname.get(pluginData.typeOfBasisForModifiedOpinionOnFinancialStatementsReviewQn, set())
-    for review_fact in review_facts:
-        if review_fact.xValid >= VALID and review_fact.xValue in [
+    reviewFacts = modelXbrl.factsByQname.get(pluginData.typeOfBasisForModifiedOpinionOnFinancialStatementsReviewQn, set())
+    for reviewFact in reviewFacts:
+        if reviewFact.xValid >= VALID and reviewFact.xValue in [
             pluginData.basisForAdverseOpinionDanish,
             pluginData.basisForAdverseOpinionEnglish,
             pluginData.basisForDisclaimerOpinionDanish,
@@ -1045,9 +1046,9 @@ def rule_fr72(
                     codes='DBA.FR72',
                     msg=_("DescriptionsOfQualificationsOfReviewedFinancialStatements must be tagged when {} is tagged with the value of {}").format(
                         pluginData.typeOfBasisForModifiedOpinionOnFinancialStatementsReviewQn.localName,
-                        review_fact.xValue
+                        reviewFact.xValue
                     ),
-                    modelObject=review_fact
+                    modelObject=reviewFact
                 )
 
 
@@ -1242,8 +1243,8 @@ def rule_fr81(
 
     Implementation: Check all facts for at least one `lang` attribute that must be either `da` or `en`.
     """
-    has_valid_lang = any(fact.xmlLang in {'da', 'en'} for fact in val.modelXbrl.facts)
-    if not has_valid_lang:
+    hasValidLang = any(fact.xmlLang in {'da', 'en'} for fact in val.modelXbrl.facts)
+    if not hasValidLang:
         yield Validation.error(
             codes="DBA.FR81",
             msg=_("The digital annual report does not contain a technical indication of the language used. There "
@@ -1424,7 +1425,7 @@ def rule_fr91(
     if pluginData.isAnnualReport(val.modelXbrl):
         approvalOfReportFact = None
         generalMeetingFact = None
-        approvalFacts = (val.modelXbrl.factsByQname.get(pluginData.dateOfApprovalOfAnnualReportQn, set()))
+        approvalFacts = val.modelXbrl.factsByQname.get(pluginData.dateOfApprovalOfAnnualReportQn, set())
         if len(approvalFacts) > 0:
             approvalOfReportFact = next(iter(approvalFacts), None)
         meetingFacts = val.modelXbrl.factsByQname.get(pluginData.dateOfGeneralMeetingQn, set())
@@ -1775,15 +1776,15 @@ def rule_fr118(
                     continue
                 reportedValueFacts = factsByContextId.get(reportedValueContext.id, set())
                 for reportedValueFact in reportedValueFacts:
-                    fact_key = (reportedValueFact.qname, reportedValueFact.unitID)
-                    if fact_key not in otherRenderingFactsMap:
+                    factKey = (reportedValueFact.qname, reportedValueFact.unitID)
+                    if factKey not in otherRenderingFactsMap:
                         continue
                     matchingOtherRenderingFacts = {
                         _fact
-                        for _fact in otherRenderingFactsMap.get(fact_key, set())
+                        for _fact in otherRenderingFactsMap.get(factKey, set())
                         if _fact.scaleInt != reportedValueFact.scaleInt  # type: ignore[attr-defined]
                     }
-                    otherRenderingFactsMap[fact_key] -= matchingOtherRenderingFacts
+                    otherRenderingFactsMap[factKey] -= matchingOtherRenderingFacts
 
             # Any remaining "other rendering" facts have not been matched
             # with a "reported value" fact with a different scale

@@ -866,7 +866,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
 
         def checkMonetaryUnits(parent: ModelConcept, relSet: ModelRelationshipSet, visited: set[ModelConcept]) -> None:
             if parent.isMonetary:
-                for f in modelXbrl.factsByQname.get(parent.qname,()):
+                for f in modelXbrl.factsByQname.get(parent.qname, set()):
                     u = f.unit
                     if u is not None and u.isSingleMeasure:
                         currency = u.measures[0][0].localName

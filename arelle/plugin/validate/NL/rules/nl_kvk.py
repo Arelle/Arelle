@@ -21,7 +21,6 @@ from arelle.LinkbaseType import LinkbaseType
 from arelle.ModelDtsObject import ModelConcept, ModelLink, ModelResource, ModelType
 from arelle.ModelInstanceObject import ModelInlineFact
 from arelle.ModelObject import ModelObject
-from arelle.ModelValue import qname
 from arelle.PrototypeDtsObject import PrototypeObject
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
@@ -30,6 +29,7 @@ from arelle.utils.validate.Common import isExtensionUri
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.DetectScriptsInXhtml import containsScriptMarkers
 from arelle.utils.validate.ESEFImage import ImageValidationParameters, validateImage
+from arelle.utils.validate.Facts import getUsedConceptsFromFacts
 from arelle.utils.validate.RoleTypes import getExtensionRoleTypes
 from arelle.utils.validate.Validation import Validation
 from arelle.ValidateDuplicateFacts import getAspectEqualFacts, getDuplicateFactSets, getHashEquivalentFactGroups
@@ -76,7 +76,7 @@ DOCTYPE_XHTML_PATTERN = regex.compile(r"^<!(?:DOCTYPE\s+)\s*html(?:PUBLIC\s+)?(?
 
 
 def _getReportingPeriodDateValue(modelXbrl: ModelXbrl, qname: QName) -> date | None:
-    facts = modelXbrl.factsByQname.get(qname)
+    facts = modelXbrl.factsByQname.get(qname, set())
     if facts and len(facts) == 1:
         datetimeValue = XmlUtil.datetimeValue(next(iter(facts)))
         if datetimeValue:
@@ -1117,7 +1117,7 @@ def rule_nl_kvk_prohibited_dimension_use(
     collect(nonDimensionalLineItemsElement)
     invalidDimensionUseFacts = []
     for qname in nonDimensionalLineItems:
-        for fact in val.modelXbrl.factsByQname[qname]:
+        for fact in val.modelXbrl.factsByQname.get(qname, set()):
             if fact.context.hasScenario or fact.context.hasSegment:
                 invalidDimensionUseFacts.append(fact)
     if invalidDimensionUseFacts:
@@ -2470,7 +2470,7 @@ def rule_nl_kvk_RTS_Annex_IV_Par_5(
     must be included in at least one presentation and definition linkbase hierarchy.
     """
     extensionData = pluginData.getExtensionData(val.modelXbrl)
-    taggedExtensionConcepts = set(extensionData.extensionConcepts) & set(fact.concept for fact in val.modelXbrl.facts)
+    taggedExtensionConcepts = set(extensionData.extensionConcepts) & getUsedConceptsFromFacts(val.modelXbrl)
 
     def getConceptsInLinkbase(arcroles: frozenset[str], concepts: set[ModelConcept]) -> None:
         for fromModelObject, toRels in val.modelXbrl.relationshipSet(tuple(arcroles)).fromModelObjects().items():

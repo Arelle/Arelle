@@ -24,6 +24,7 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Characters import findProhibitedCharacters
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Document import checkDocumentEncoding, getReferencedModelObjects
+from arelle.utils.validate.Facts import factHasPrecisionAttribute, factHasXsiNilAttribute, getDuplicateFactGroupsByConceptContextUnit, isEmptyStringItemFact
 from arelle.utils.validate.Validation import Validation
 from ..Constants import STANDARD_TAXONOMY_URL_PREFIXES
 from ..DisclosureSystems import NT_DISCLOSURE_SYSTEMS
@@ -400,7 +401,7 @@ def rule_fr_nl_2_07(
     FR-NL-2.07: The attribute 'xsi:nil' MUST NOT be used
     """
     for fact in val.modelXbrl.facts:
-        if fact.get("{http://www.w3.org/2001/XMLSchema-instance}nil") is not None:
+        if factHasXsiNilAttribute(fact):
             yield Validation.error(
                 codes='NL.FR-NL-2.07',
                 msg=_('The attribute \'xsi:nil\' must not be used.'),
@@ -425,10 +426,10 @@ def rule_fr_nl_3_01(
     'T' is a separator indicating that time-of-day follows the date
     """
     for context in val.modelXbrl.contexts.values():
-        elt_start = XmlUtil.child(context.period, XbrlConst.xbrli, "startDate")
-        elt_end = XmlUtil.child(context.period, XbrlConst.xbrli, "endDate")
-        if ((elt_start is not None and 'T' in getattr(elt_start, 'text')) or
-                (elt_end is not None and 'T' in getattr(elt_end, 'text'))):
+        eltStart = XmlUtil.child(context.period, XbrlConst.xbrli, "startDate")
+        eltEnd = XmlUtil.child(context.period, XbrlConst.xbrli, "endDate")
+        if ((eltStart is not None and 'T' in getattr(eltStart, 'text')) or
+                (eltEnd is not None and 'T' in getattr(eltEnd, 'text'))):
             yield Validation.error(
                 codes='NL.FR-NL-3.01',
                 msg=_('Date elements in an \'xbrli:period\' element must be included without time'),
@@ -494,12 +495,12 @@ def rule_fr_nl_3_04(
     """
     FR-NL-3.04: An XBRL instance document MUST NOT contain duplicate 'xbrli:context' elements
     """
-    for duplicate_contexts in partitionModelXbrlContexts(val.modelXbrl).values():
-        if len(duplicate_contexts) > 1:
+    for duplicateContexts in partitionModelXbrlContexts(val.modelXbrl).values():
+        if len(duplicateContexts) > 1:
             yield Validation.error(
                 codes='NL.FR-NL-3.04',
                 msg=_('An XBRL instance document MUST NOT contain duplicate \'context\' elements'),
-                modelObject=duplicate_contexts
+                modelObject=duplicateContexts
             )
 
 
@@ -519,12 +520,12 @@ def rule_fr_nl_4_01(
     duplicates = defaultdict(list)
     for unit in val.modelXbrl.units.values():
         duplicates[unit.hash].append(unit)
-    for duplicate_units in duplicates.values():
-        if len(duplicate_units) > 1:
+    for duplicateUnits in duplicates.values():
+        if len(duplicateUnits) > 1:
             yield Validation.error(
                 codes='NL.FR-NL-4.01',
                 msg=_('An XBRL instance document MUST NOT contain duplicate \'xbrli:unit\' elements'),
-                modelObject=duplicate_units
+                modelObject=duplicateUnits
             )
 
 
@@ -568,10 +569,8 @@ def rule_fr_nl_5_01(
     which states that an instance document can only have one lang. Value also doesn't matter because the filing
     manual makes no distinction between consistent or inconsistent duplicate facts.
     """
-    duplicates = defaultdict(list)
-    for fact in val.modelXbrl.facts:
-        duplicates[fact.conceptContextUnitHash].append(fact)
-    for duplicate_facts in duplicates.values():
+    duplicateGroups = getDuplicateFactGroupsByConceptContextUnit(val.modelXbrl.facts)
+    for duplicate_facts in duplicateGroups.values():
         if len(duplicate_facts) > 1:
             yield Validation.error(
                 codes='NL.FR-NL-5.01',
@@ -594,7 +593,7 @@ def rule_fr_nl_5_03(
     FR-NL-5.03: An XBRL instance document MUST NOT contain empty item concepts
     """
     for fact in val.modelXbrl.facts:
-        if fact.concept.instanceOfType(XbrlConst.qnXbrliStringItemType) and not fact.xValue:
+        if isEmptyStringItemFact(fact):
             yield Validation.error(
                 codes='NL.FR-NL-5.03',
                 msg=_('An XBRL instance document MUST NOT contain empty item concepts.'),
@@ -616,7 +615,7 @@ def rule_fr_nl_5_06(
     FR-NL-5.06: The 'precision' attribute MUST NOT be used
     """
     for fact in val.modelXbrl.facts:
-        if fact.get("precision") is not None:
+        if factHasPrecisionAttribute(fact):
             yield Validation.error(
                 codes='NL.FR-NL-5.06',
                 msg=_('The \'precision\' attribute must not be used.'),

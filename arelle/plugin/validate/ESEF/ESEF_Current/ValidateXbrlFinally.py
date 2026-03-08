@@ -769,7 +769,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 '''
         # identify report date
         reportDate = None
-        for f in modelXbrl.factsByLocalName.get("NameOfReportingEntityOrOtherMeansOfIdentification", ()):
+        for f in modelXbrl.factsByLocalName.get("NameOfReportingEntityOrOtherMeansOfIdentification", set()):
             if getattr(f, "xValid", 0) >= VALID:
                 if startDatetime := f.context.startDatetime:
                     reportDate = startDatetime.date()
@@ -1034,7 +1034,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
 
         def checkMonetaryUnits(parent: ModelConcept, relSet: ModelRelationshipSet, visited: set[ModelConcept]) -> None:
             if parent.isMonetary:
-                for f in modelXbrl.factsByQname.get(parent.qname,()):
+                for f in modelXbrl.factsByQname.get(parent.qname, set()):
                     u = f.unit
                     if u is not None and u.isSingleMeasure:
                         currency = u.measures[0][0].localName

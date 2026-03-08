@@ -16,6 +16,7 @@ from arelle.ModelXbrl import ModelXbrl
 from arelle.typing import TypeGetText
 from arelle.UrlUtil import isExternalUrl
 from arelle.utils.Contexts import ContextHashKey
+from arelle.utils.validate.Facts import factHasNegativeNumericValue, hasNonNillFact
 from arelle.utils.validate.Validation import Validation
 from arelle.ValidateFilingText import parseImageDataURL
 from arelle.ValidateXbrl import ValidateXbrl
@@ -132,14 +133,8 @@ def errorOnRequiredFact(
     Yields an error if a fact with the given QName is not tagged with a non-nil value.
     :return: Yields validation errors.
     """
-    facts: set[ModelFact] = modelXbrl.factsByQname.get(factQn, set())
-    for fact in facts:
-        if not fact.isNil:
-            return
-    yield Validation.error(
-        codes=code,
-        msg=message,
-)
+    if not hasNonNillFact(modelXbrl, factQn):
+        yield Validation.error(codes=code, msg=message)
 
 
 def errorOnRequiredPositiveFact(
@@ -149,22 +144,23 @@ def errorOnRequiredPositiveFact(
         message: str,
 ) -> Iterable[Validation]:
     """
-    Yields an error if a fact with the given QName is not tagged with a valid date and a non-nil value.
+    Yields an error for each fact that has a negative value, or one error on the document if no facts exist.
     :return: Yields validation errors.
     """
-    errorModelObjects: list[ModelFact | ModelDocument| None] = []
     if not facts:
-        errorModelObjects.append(modelXbrl.modelDocument)
-    else:
-        for fact in facts:
-            if fact.xValid >= VALID and cast(int, fact.xValue) < 0:
-                errorModelObjects.append(fact)
-    if errorModelObjects:
         yield Validation.error(
             codes=code,
             msg=message,
-            modelObject=errorModelObjects
+            modelObject=modelXbrl.modelDocument,
         )
+    else:
+        for fact in facts:
+            if factHasNegativeNumericValue(fact):
+                yield Validation.error(
+                    codes=code,
+                    msg=message,
+                    modelObject=fact,
+                )
 
 
 def getFactsWithDimension(
@@ -174,7 +170,7 @@ def getFactsWithDimension(
         memberQns: list[QName]
 ) -> set[ModelFact ]:
     foundFacts: set[ModelFact] = set()
-    facts = val.modelXbrl.factsByQname.get(conceptQn)
+    facts = val.modelXbrl.factsByQname.get(conceptQn, set())
     if facts:
         for fact in facts:
             if fact is not None:
@@ -215,7 +211,7 @@ def getValidDateFacts(
     :return:
     """
     results = []
-    facts: set[ModelFact] = modelXbrl.factsByQname.get(conceptQn, set())
+    facts = modelXbrl.factsByQname.get(conceptQn, set())
     for fact in facts:
         if fact.xValid < VALID:
             continue
@@ -302,7 +298,7 @@ def minimumRequiredFactsFound(
     """
     count = 0
     for factQn in factQns:
-        facts: set[ModelFact] = modelXbrl.factsByQname.get(factQn, set())
+        facts = modelXbrl.factsByQname.get(factQn, set())
         for fact in facts:
             if fact is not None and fact.xValid >= VALID:
                 count += 1
