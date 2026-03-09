@@ -58,7 +58,7 @@ def factHasNegativeNumericValue(fact: ModelFact) -> bool:
     """
     Returns True if fact is valid and has a negative numeric value.
     """
-    return fact.xValid >= VALID and fact.xValue is not None and fact.isNumeric and cast(int, fact.xValue) < 0
+    return fact.xValid >= VALID and fact.xValue is not None and isinstance(fact.xValue, int) and fact.xValue < 0
 
 
 def getDuplicateFactGroupsByConceptContextUnit(
