@@ -439,6 +439,7 @@ class ValidateUK:
     def _checkValidFact(self, fact: ModelFact ) -> bool:
         return (
             fact is not None and
+            fact.xValid >= VALID and
             not fact.isNil and
             fact.context is not None
         )

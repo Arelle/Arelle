@@ -196,7 +196,7 @@ def validateXbrlFinally(val, *args, **kwargs):
             prefix, _sep, name = prefixedName.rpartition(":")
             mustNotBeHiddenQnames.add(qname(nsMap.get(prefix), name))
         for concept in mustNotBeHiddenQnames:
-            facts = val.modelXbrl.factsByQname.get(concept, ())
+            facts = val.modelXbrl.factsByQname.get(concept, set())
             for fact in facts:
                 if qnIXbrl11Hidden in fact.ancestorQnames:
                     foundHiddenFacts.append(fact)

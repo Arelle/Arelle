@@ -27,6 +27,7 @@ from .NamespaceConfig import NamespaceConfig
 from .ReportFolderType import ReportFolderType
 from .TableOfContentsBuilder import TableOfContentsBuilder
 from .UploadContents import UploadContents, UploadPathInfo
+from arelle.utils.validate.Facts import isValidNonNilFact
 
 if TYPE_CHECKING:
     from .ManifestInstance import ManifestInstance
@@ -284,8 +285,8 @@ class ControllerPluginData(PluginData):
         :return:
         """
         for localName in DEI_LOCAL_NAMES:
-            for fact in modelXbrl.factsByLocalName.get(localName, ()):
-                if fact.isNil or fact.xValid < VALID:
+            for fact in modelXbrl.factsByLocalName.get(localName, set()):
+                if not isValidNonNilFact(fact):
                     continue
                 self.setDeiValue(localName, fact.xValue)
 

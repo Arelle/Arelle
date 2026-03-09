@@ -34,6 +34,7 @@ from arelle.utils.validate.Validation import Validation
 from ..Constants import domainItemTypeQname, JAPAN_LANGUAGE_CODES, NUMERIC_LABEL_ROLES, LC3_NAME_PATTERN, STANDARD_TAXONOMY_URL_PREFIXES
 from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
 from ..PluginValidationDataExtension import PluginValidationDataExtension
+from arelle.utils.validate.Facts import isValidNonNilFact
 
 
 _: TypeGetText
@@ -422,7 +423,7 @@ def rule_gfm_1_2_13(
     defaultLang = cast(str, val.disclosureSystem.defaultXmlLang)
     languageFacts: dict[str,dict[QName, set[ModelFact]]] = defaultdict(lambda: defaultdict(set))
     for fact in val.modelXbrl.facts:
-        if fact.xValid >= VALID and fact.xmlLang is not None and not fact.isNil:
+        if isValidNonNilFact(fact) and fact.xmlLang is not None:
             languageFacts[fact.xmlLang][fact.qname].add(fact)
     for language, qnames in languageFacts.items():
         if language != defaultLang:

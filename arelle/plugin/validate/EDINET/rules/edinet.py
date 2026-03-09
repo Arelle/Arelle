@@ -1989,7 +1989,7 @@ def rule_EC8069W(
             pluginData.hasValidNonNilFact(val.modelXbrl, pluginData.corporateGovernanceCompanyWithNominatingAndOtherCommitteesTextBlockQn)
     ):
         return
-    totalStockShares = val.modelXbrl.factsByQname.get(pluginData.issuedSharesTotalNumberOfSharesEtcQn)
+    totalStockShares = val.modelXbrl.factsByQname.get(pluginData.issuedSharesTotalNumberOfSharesEtcQn, set())
     yield Validation.error(
         codes='EDINET.EC8069W',
         msg=_("If tagging IssuedSharesTotalNumberOfSharesEtcTextBlock, also tag using at least one of the following three elements: \n"
