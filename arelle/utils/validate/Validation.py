@@ -11,7 +11,8 @@ from typing import Any
 class Level(Enum):
     ERROR = "ERROR"
     INCONSISTENCY = "INCONSISTENCY"
-    INFO = "INFO-SEMANTIC"
+    INFO = "INFO"
+    INFO_SEMANTIC = "INFO-SEMANTIC"
     WARNING = "WARNING"
 
 @dataclass(frozen=True)
@@ -53,6 +54,14 @@ class Validation:
             **kwargs: Any,
     ) -> Validation:
         return Validation(level=Level.INFO, codes=codes, msg=msg, args=kwargs)
+
+    @staticmethod
+    def info_semantic(
+            codes: str | tuple[str, ...],
+            msg: str,
+            **kwargs: Any,
+    ) -> Validation:
+        return Validation(level=Level.INFO_SEMANTIC, codes=codes, msg=msg, args=kwargs)
 
     @staticmethod
     def warning(
