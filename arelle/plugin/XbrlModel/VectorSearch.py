@@ -51,6 +51,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from arelle.ModelValue import QName
+from arelle.XmlValidate import VALID
 
 from .XbrlCube import XbrlCube
 from .XbrlObject import XbrlReferencableModelObject, XbrlReportObject
@@ -148,22 +149,23 @@ def buildXbrlVocab(txmyMdl: XbrlCompiledModel, valueTokensOffset: int) -> Tuple[
 
     # from factPosition
     for factPosition in txmyMdl.filterNamedObjects(XbrlFact):
-        f = factPosition.xbrlMdlObjIndex
-        tokens = []
-        for qn, value in factPosition.factDimensions.items():
-            dimObj = txmyMdl.namedObjects.get(qn)
-            if dimObj:
-                d = dimObj.xbrlMdlObjIndex
-                if isinstance(value, QName) and value in txmyMdl.namedObjects:
-                    m = txmyMdl.namedObjects[value].xbrlMdlObjIndex
-                else:
-                    m = value
-                v = ( d, m )
-                t = valueTokens.add( v ) + valueTokensOffset
-                tokens.append( t ) # dimension value for dimension value queries
-                tokens.append( d )      # hasDimension for queries wildcarding dimension
-        factTokens.add( (f, tuple(tokens) ) )
-        # do we encode the fact's value?  or its hash?  or valueSource like html id or pdf form field id
+        if factPosition._xValid >= VALID:
+            f = factPosition.xbrlMdlObjIndex
+            tokens = []
+            for qn, value in factPosition.factDimensions.items():
+                dimObj = txmyMdl.namedObjects.get(qn)
+                if dimObj:
+                    d = dimObj.xbrlMdlObjIndex
+                    if isinstance(value, QName) and value in txmyMdl.namedObjects:
+                        m = txmyMdl.namedObjects[value].xbrlMdlObjIndex
+                    else:
+                        m = value
+                    v = ( d, m )
+                    t = valueTokens.add( v ) + valueTokensOffset
+                    tokens.append( t ) # dimension value for dimension value queries
+                    tokens.append( d )      # hasDimension for queries wildcarding dimension
+            factTokens.add( (f, tuple(tokens) ) )
+            # do we encode the fact's value?  or its hash?  or valueSource like html id or pdf form field id
 
     return OrderedSet(sorted(cubeTokens)), OrderedSet(sorted(factTokens)), valueTokens
 

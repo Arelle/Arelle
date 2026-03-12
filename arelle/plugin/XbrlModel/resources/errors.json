@@ -488,7 +488,7 @@
                     {"property": "oimte:severity", "value": "error"}
                 ]
             }
-            
+
         ],
         "abstracts": [
             {
@@ -2246,7 +2246,7 @@
                 "value": "JSON Errors",
                 "labelType": "xbrl:label"
             }
-            
+
         ],
         "references": [
             {
@@ -2437,7 +2437,7 @@
                     {"property":"oimte:conformanceTestFileName" ,"value":"CUBE-DuplicateDimension.json"}
                 ]
             },
-            
+
             {
                 "name": "oimte:disallowedObjectPropertySpecReference",
                 "relatedNames": [

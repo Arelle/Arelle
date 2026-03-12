@@ -61,7 +61,7 @@ def saveXmlSchema(cntlr, txmyMdl, saveXMLSchemaFiles):
 
         The taxonomy model is scanned for objects of type XbrlAbstract, XbrlConcept, XbrlDimension, and XbrlMember
         which have an equivalent feature in XBRL 2.1 with XBRL Dimensions (xBRL-XML).
-        
+
         Formula parameters:
         oimTaxonomySaveSeparateNamespaces = true | yes means to save namespaces in separate files
     """

@@ -21,22 +21,25 @@ from .ValidateCubes import validateCubes
 dimPropPattern = re.compile(r"^_[A-Za-z0-9]+$")
 
 def resolveFact(txmyMdl, txmyObj, fact):
-    """ Resolve QNames and other container-dependent values in fact. 
+    """ Resolve QNames and other container-dependent values in fact.
 
-        This is done before validating fact values because some of those values are needed for validation, 
-        such as the concept and unit dimensions. This is also done before validating fact position because 
+        This is done before validating fact values because some of those values are needed for validation,
+        such as the concept and unit dimensions. This is also done before validating fact position because
         some of those values are needed for finding the cubes that a fact is valid for, such as the period dimension.
     """
     # resolve QNames and other container-dependent values in fact
+    if not hasattr(fact, "_xValid"):
+        fact._xValid = True
     name = fact.name
     cQn = fact.factDimensions.get(conceptCoreDim)
     if isinstance(cQn, str) and ":" in cQn:
         cQn = fact.factDimensions[conceptCoreDim] = qname(cQn, txmyObj._prefixNamespaces)
     cObj = txmyMdl.namedObjects.get(cQn)
     if cObj is None or not isinstance(cObj, XbrlConcept):
-        txmyMdl.error("oime:missingConceptDimension", 
+        txmyMdl.error("oime:missingConceptDimension",
                       _("The concept core dimension MUST be present on fact: %(name)s and must be a taxonomy concept."),
                       xbrlObject=fact, name=fact.name)
+        fact._xValid = False
         return
     cDataType = txmyMdl.namedObjects.get(cObj.dataType)
     if cDataType is None or not isinstance(cDataType, XbrlDataType):
@@ -44,8 +47,8 @@ def resolveFact(txmyMdl, txmyObj, fact):
         return
     for factValue in fact.factValues:
         _valid, _value = validateValue(txmyMdl, txmyObj, factValue, factValue.value, cDataType, f"/value", "oimte:factValueDataTypeMismatch")
-        fact._valid = _valid
-        fact._value = _value
+        factValue._xValid = _valid
+        factValue._xValue = _value
         if factValue.language and concept.type.isOimTextFactType:
             if not factValue.language.islower():
                 txmyMdl.error("xbrlje:invalidLanguageCodeCase",
@@ -62,16 +65,19 @@ def resolveFact(txmyMdl, txmyObj, fact):
                 txmyMdl.error("oime:illegalPureUnit",
                               _("Unit MUST NOT have single numerator measure xbrli:pure with no denominators: %(unit)s"),
                               xbrlObject=fact, unit=uStr)
+                fact._xValid = False
             elif not UnitPattern.match( PrefixedQName.sub(UnitPrefixedQNameSubstitutionChar, uStr) ):
                 txmyMdl.error("oimce:invalidUnitStringRepresentation",
                               _("Unit string representation is lexically invalid, %(unit)s, fact id %(name)s"),
                               xbrlObject=fact, unit=uStr)
+                fact._xValid = False
             else:
                 fact.factDimensions[unitCoreDim] = parseUnitString(uStr, fact, txmyObj, txmyMdl)
         else:
             txmyMdl.error("oime:misplacedUnitDimension",
                           _("The unit core dimension MUST NOT be present on non-numeric facts: %(concept)s, unit %(unit)s."),
                           xbrlObject=fact, concept=cQn, unit=uStr)
+            fact._xValid = False
     updateDimVals = {} # compiled values
     for dimName, dimVal in fact.factDimensions.items():
         if not isinstance(dimName, QName):
@@ -79,6 +85,7 @@ def resolveFact(txmyMdl, txmyObj, fact):
                 txmyMdl.error("oime:unknownDimension",
                               _("Factspace %(name)s taxonomy-defined dimension QName not be resolved with available DTS: %(qname)s."),
                               xbrlObject=fact, qname=dimName)
+                fact._xValid = False
         '''
         if isinstance(dimName, QName):
             dimObj = txmyMdl.namedObjects.get(dimName)
@@ -141,10 +148,10 @@ def resolveFact(txmyMdl, txmyObj, fact):
         fact.factDimensions[dimName] = dimVal
 
 def validateFactPosition(txmyMdl, fact):
-    """ Validate that fact is valid in at least one cube based on its dimensions. 
-    
-        This is done after resolving fact dimensions because some of those dimensions are needed for finding the cubes 
-        that a fact is valid for, such as the period dimension.  
+    """ Validate that fact is valid in at least one cube based on its dimensions.
+
+        This is done after resolving fact dimensions because some of those dimensions are needed for finding the cubes
+        that a fact is valid for, such as the period dimension.
     """
     def error(code, msg, **kwargs):
          txmyMdl.error(code, msg, xbrlObject=fact, name=getattr(fact,"name"), **kwargs)
@@ -214,7 +221,7 @@ def validateDateResolutionConceptFacts(txmyMdl):
             validateFact(f, reportQn, reportObj, txmyMdl)
 
 def validateReport(txmyMdl, reportObj):
-    """ Validate report facts and tables. """  
+    """ Validate report facts and tables. """
     for table in reportObj.tables.values():
         validateTable(table, reportQn, reportObj, txmyMdl)
     # validate facts not involved in dateResolution

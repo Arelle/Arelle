@@ -17,7 +17,7 @@ xbrlObjectQNames = None
 
 class XbrlConcept(XbrlReferencableModelObject):
     """ Concept Object
-        Reference: oim-specification.md#concept-object
+        Reference: oim-taxonomy.md#concept-object
     """
     module: XbrlModuleType
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the concept object.
@@ -37,29 +37,41 @@ class XbrlConcept(XbrlReferencableModelObject):
 
 class XbrlCollectionType(XbrlModelObject):
     """ Collection Type Object
-        Reference: oim-specification.md#collection-type-object
+        Reference: oim-taxonomy.md#collection-type-object
     """
     dataTypesAllowed: OrderedSet[QName] # (required) Defines a set of data types that can be included in the set. The data types are defined using the QName of the dataType object.
     uniqueValues: Union[bool, DefaultTrue] # (optional) Indicates if the values in the set must be unique. If true all values in the set must be unique. If false values can be duplicated. Defaults to true if not provided.
     orderedValues: Union[bool, DefaultFalse] # (optional) Indicates if the values in the set are ordered. If true the order of the values in the set is significant. If false the order of the values in the set is not significant. Defaults to false if not provided.
 
+class XbrlMapType(XbrlModelObject):
+    """ Map Type Object
+        Reference: oim-taxonomy.md#maptype-object
+    """
+    keyType: QName # (required) Defines the data type of the keys in the map. The data type is defined using the QName of the dataType object.
+    valueType: QName # (required) Defines the data type of the values in the map. The data type is defined using the QName of the dataType object. The value data type can be defined as a xbrli:set with a collection of data types to allow for multiple data types for the values in the map.
+    requiredKeys: OrderedSet[QName] # (optional) Defines a set of required keys in the map. The values of the required keys must be included in any instance of the map type. The values in the set are based on the keyType property of the map type.
+    allowedKeys: OrderedSet[QName] # (optional) Defines a set of allowed keys in the map. If provided, the values of the keys in any instance of the map type must be included in this set. The values in the set are based on the keyType property of the map type. If not provided, then any key value based on the keyType property is allowed.
+    uniqueKeys: Union[bool, DefaultTrue] # (optional) Indicates if the keys in the map must be unique. If true all keys in the map must be unique. If false keys can be duplicated. Defaults to true if not provided.
+    minItems: Optional[int] # (optional) Defines an int value to indicate the minimum number of key-value pairs in the map.
+    maxItems: Optional[int] # (optional) Defines an int value to indicate the maximum number of key-value pairs in the map.
+
 class XbrlUnitType(XbrlModelObject):
     """ Unit Type Object
-        Reference: oim-specification.md#unittype-object
+        Reference: oim-taxonomy.md#unittype-object
     """
     dataTypeNumerator: Optional[QName] # (optional) Defines the numerator data type of the data type.
     dataTypeDenominator: Optional[QName] # (optional) Defines the denominator data type used by a unit used to define a value of the data type.
     dataTypeMultiplier: Optional[QName] # (optional) Defines a multiplier data type used by a unit used to define a value of the data type.
 
 class XbrlDataType(XbrlReferencableModelObject):
-    """ Data Type Object    
-        Reference: oim-specification.md#datatype-object
+    """ Data Type Object
+        Reference: oim-taxonomy.md#datatype-object
     """
-    module: XbrlModuleType  
+    module: XbrlModuleType
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the datatype object.
     baseType: QName # (required) The base type is a QName that uniquely identifies the base datatype the datatype is based on.
     collectionType: Optional[XbrlCollectionType] # (optional) Defines a set of of data types that can be used in a set. This attribute can only be used when the base type is defined as a xbrli:set.
-    mapType: Optional[dict[QName, Any]] # (optional) Defines a model object that defines the structure of a map type. This attribute can only be used when the base type is defined as a xbrli:map.
+    mapType: Optional[XbrlMapType] # (optional) Defines a model object that defines the structure of a map type. This attribute can only be used when the base type is defined as a xbrli:map.
     enumeration: OrderedSet[Any] # (optional) Defines an ordered set of enumerated values of the datatype if applicable
     openEnumeration: Union[bool, DefaultFalse] # (optional) Indicates if the enumeration is open or closed. If true, the enumeration is open and additional values beyond those specified in the enumeration property are allowed. If false, the enumeration is closed and only the values specified in the enumeration property are allowed. Defaults to false if not provided.
     minInclusive: Optional[Decimal] # (optional) Defines a decimal value to indicate a min inclusive cardinal value for a type. Only applies to types based on float, double and decimal.
@@ -100,7 +112,7 @@ class XbrlDataType(XbrlReferencableModelObject):
             return None
 
     def isAllowedFor(self, obj): # obj may be a QName or instance of object
-        """(bool) -- returns True if this data type is allowed for the object, otherwise False 
+        """(bool) -- returns True if this data type is allowed for the object, otherwise False
             If allowedObjects is not specified, then the data type is allowed for any object.
         """
         global xbrlObjectQNames
@@ -141,8 +153,8 @@ class XbrlDataType(XbrlReferencableModelObject):
 
     def xsFacets(self):
         """(dict) -- returns a dict of the XSD facets of this type if this is an XSD-based type, otherwise an empty dict
-            The keys of the dict are the facet names and the values are the facet values. 
-            Only facets that are defined for this type are included in the dict. If a facet is not defined for this type, 
+            The keys of the dict are the facet names and the values are the facet values.
+            Only facets that are defined for this type are included in the dict. If a facet is not defined for this type,
             it is not included in the dict. If a facet is defined for this type but has no value, it is not included in the dict.
         """
         facets = {}

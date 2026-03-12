@@ -77,7 +77,7 @@ class XbrlRelationshipSet:
 class XbrlNetwork(XbrlReferencableModelObject, XbrlRelationshipSet):
     """ Network Object
         Reference: oim-taxonomy#network-object
-        The network object represents a set of relationships that are grouped together. The network object can be used to group relationships that are related to each other, such as presentation relationships or calculation relationships. The network object can also be used to group relationships that are defined in different files or modules. The network object can be used to view the relationships in a taxonomy in a hierarchical manner, and to view the  
+        The network object represents a set of relationships that are grouped together. The network object can be used to group relationships that are related to each other, such as presentation relationships or calculation relationships. The network object can also be used to group relationships that are defined in different files or modules. The network object can be used to view the relationships in a taxonomy in a hierarchical manner, and to view the
         """
     module: XbrlModuleType
     name: QNameKeyType # (required if no extendedTargetName) The name is a QName that uniquely identifies the network object.

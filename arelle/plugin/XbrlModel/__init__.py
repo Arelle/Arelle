@@ -113,7 +113,7 @@ def jsonGet(tbl, key, default=None):
 
 def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kwargs):
     """Load an OIM Taxonomy module from JSON file or dict object, return the modelDocument or raise an exception if invalid.
-        If modelXbrl is not None, then load as a XbrlModule into the modelXbrl, otherwise create and return a standalone 
+        If modelXbrl is not None, then load as a XbrlModule into the modelXbrl, otherwise create and return a standalone
         XbrlCompiledModel.
     """
     global jsonschemaValidator
@@ -266,14 +266,14 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
         cntlr.showStatus(_("Schema validating: {0}").format(moduleFileBasename))
         """ JSON Schema Validation, support multiple validator libraries based on constant at top of module
 
-            Note that jsonschema and fastjsonschema have very different performance characteristics, 
-            and jsonschema is more likely to complete validation of our complex schemas and provide all errors in the source object, 
-            while fastjsonschema may be faster if it works on our schemas but only provides the first error in the source object.  
-            jsonschema_rs appears to be faster than jsonschema but raises a RUST ValueError on our taxonomy validation, 
+            Note that jsonschema and fastjsonschema have very different performance characteristics,
+            and jsonschema is more likely to complete validation of our complex schemas and provide all errors in the source object,
+            while fastjsonschema may be faster if it works on our schemas but only provides the first error in the source object.
+            jsonschema_rs appears to be faster than jsonschema but raises a RUST ValueError on our taxonomy validation,
             so we catch that as a general exception and report it as an invalid JSON structure error.
 
-            For some error types such as missing required property or invalid property value, we attempt to map the error message 
-            to a more specific OIM error code, but for other errors we just report a general invalid JSON structure error with the 
+            For some error types such as missing required property or invalid property value, we attempt to map the error message
+            to a more specific OIM error code, but for other errors we just report a general invalid JSON structure error with the
             error message from the validator.
         """
         if JSON_SCHEMA_VALIDATOR == "jsonschema":
@@ -492,8 +492,8 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                     unexpectedJsonProps.remove(jsonKey)
                     jsonValue = jsonObj[jsonKey]
                     if (isinstance(propType, GenericAlias) or
-                        (isinstance(propType, _UnionGenericAlias) and isinstance(propType.__args__[0], GenericAlias) and propType.__args__[0].__origin__ == OrderedSet) or
-                        (isinstance(propType, _GenericAlias) and propType.__origin__ in (list, set, OrderedSet))):
+                        (isinstance(propType, _UnionGenericAlias) and isinstance(propType.__args__[0], GenericAlias) and propType.__args__[0].__origin__ in (OrderedSet, dict)) or
+                        (isinstance(propType, _GenericAlias) and propType.__origin__ in (list, set, OrderedSet, dict))):
                         # for Optional OrderedSets where the jsonValue exists, handle as propType, _keyClass and eltClass
                         if isinstance(propType.__args__[0], GenericAlias) and len(propType.__args__[0].__args__) == 1 and propType.__args__[0].__origin__ == OrderedSet:
                             # handle as non-optional OrderedSet
@@ -853,8 +853,8 @@ def isXbrlModelLoadable(modelXbrl, mappedUri, normalizedUri, filepath, **kwargs)
 
 def xbrlModelLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
     """ ModelDocument.PullLoader:
-        Load an OIM taxonomy file, returning a ModelDocument if successful, 
-        None if not an OIM file, 
+        Load an OIM taxonomy file, returning a ModelDocument if successful,
+        None if not an OIM file,
         or an exception if an error occurs during loading
     """
     if filepath != lastFilePath or not lastFilePathIsOIM:

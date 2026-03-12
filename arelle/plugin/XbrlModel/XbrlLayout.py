@@ -33,7 +33,7 @@ class XbrlAxisHeader(XbrlModelObject):
     totalLocation: Optional[str] # (optional) Specifies where totals should be displayed relative to the dimension members. Valid values are "start", "end", or "none".
     groupDuplicateLabels: Union[bool, DefaultFalse] # (optional) Indicates whether duplicate labels should be grouped together.
     typedLabel: Optional[XbrlAxisTypedLabel] # (optional) Configuration for typed dimension labels
-    
+
 class XbrlGridHeader(XbrlModelObject):
     label: str # (required) The label to display for this grid row or column. This can be a static string or can reference a label defined in the taxonomy.
     span: Union[int, DefaultOne] # (optional) The number of columns (for x-axis) or rows (for y-axis) that this header should span. Defaults to 1 if not specified.
@@ -65,7 +65,7 @@ class XbrlAxis(XbrlModelObject):
     axisHeaders: OrderedSet[XbrlAxisHeader] # (optional) Defines a set of strings that are used as the axis labels. Cannot be used with the presentationNetwork property.
     gridHeaders: OrderedSet[XbrlGridHeader] # (optional) An array of gridHeader objects that defines the label for each column or row on a grid.
     axisLabelsGroup: Optional[XbrlAxisLabelGroup] # (optional) An optional grouping of axis labels with valueArray and/or range specifications.
-    gridAxis: Optional[XbrlGridAxis] # (optional) Grid axis configuration for aligning dimension pairs with rows and columns in grid layouts. 
+    gridAxis: Optional[XbrlGridAxis] # (optional) Grid axis configuration for aligning dimension pairs with rows and columns in grid layouts.
 
 class XbrlGridCoordinate(XbrlModelObject):
     xAxis: int # (required) The x-axis (column) coordinate in the grid.
@@ -85,10 +85,10 @@ class XbrlDataTable(XbrlReferencableModelObject):
     xAxis: XbrlAxis # (required) An axis object that identifies an ordered set of axis and the behaviour of the dimension when mapped to the X axis of the table.
     yAxis: XbrlAxis # (required) An axis object that identifies an ordered set of axis and the behaviour of the dimension when mapped to the Y axis of the table.
     zAxis: Optional[XbrlAxis] # (optional) An axis object that identifies an ordered set of axis and the behaviour of the dimension when mapped to the Z axis of the table.
-    tablePoints: Optional[XbrlTablePoint] # (optional) Array of tablePoint objects that map dimension member pairs to specific grid cells. 
+    tablePoints: Optional[XbrlTablePoint] # (optional) Array of tablePoint objects that map dimension member pairs to specific grid cells.
 
 class XbrlLayout(XbrlModelObject):
     txmyMdl: XbrlModuleType
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the layout object.
-    tableConstruction: Optional[str] # (optional) Specifies how multiple tables in the dataTables array should be joined together. 
+    tableConstruction: Optional[str] # (optional) Specifies how multiple tables in the dataTables array should be joined together.
     dataTables: OrderedSet[XbrlDataTable] # (optional) ordered set of dataTable objects.
