@@ -1136,7 +1136,7 @@
                 "relatedName": "iso4217:BOV",
                 "value": "Bolivian Mvdol"
             },
-            
+
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -1311,7 +1311,7 @@
                 "relatedName": "iso4217:CHE",
                 "value": "WIR Bank"
             },
-            
+
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -1342,7 +1342,7 @@
                 "relatedName": "iso4217:CHW",
                 "value": "WIR Bank"
             },
-            
+
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -1355,7 +1355,7 @@
                 "relatedName": "iso4217:CLF",
                 "value": "Unidad de Fomento"
             },
-           
+
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -1422,7 +1422,7 @@
                 "relatedName": "iso4217:COU",
                 "value": "Unidad de Valor Real"
             },
-            
+
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -1597,7 +1597,7 @@
                 "relatedName": "iso4217:EEK",
                 "value": "Estonian kroon"
             },
-            
+
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -2438,7 +2438,7 @@
                 "relatedName": "iso4217:MDL",
                 "value": "Moldovan leu"
             },
-            
+
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -2649,7 +2649,7 @@
                 "relatedName": "iso4217:MXV",
                 "value": "Mexican UDI"
             },
-            
+
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -2968,7 +2968,7 @@
                 "relatedName": "iso4217:RON",
                 "value": "Romanian new leu"
             },
-            
+
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -3089,7 +3089,7 @@
                 "relatedName": "iso4217:SDG",
                 "value": "Sudanese pound"
             },
-            
+
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -3228,7 +3228,7 @@
                 "relatedName": "iso4217:SSP",
                 "value": "South Sudanese pound"
             },
-            
+
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -3349,7 +3349,7 @@
                 "relatedName": "iso4217:TJS",
                 "value": "Tajikistani somoni"
             },
-            
+
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -3362,7 +3362,7 @@
                 "relatedName": "iso4217:TMT",
                 "value": "Turkmenistani manat"
             },
-            
+
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -3573,7 +3573,7 @@
                 "relatedName": "iso4217:UYI",
                 "value": "Uruguay Peso en Unidades Indexadas"
             },
-            
+
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -3622,7 +3622,7 @@
                 "relatedName": "iso4217:UZS",
                 "value": "Som"
             },
-            
+
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -3761,7 +3761,7 @@
                 "relatedName": "iso4217:XAF",
                 "value": "CFA Franc BEAC"
             },
-            
+
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -3774,7 +3774,7 @@
                 "relatedName": "iso4217:XAG",
                 "value": "Silver"
             },
-            
+
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -3787,7 +3787,7 @@
                 "relatedName": "iso4217:XAU",
                 "value": "Gold"
             },
-            
+
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -3800,7 +3800,7 @@
                 "relatedName": "iso4217:XBA",
                 "value": "EURCO"
             },
-            
+
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -3813,7 +3813,7 @@
                 "relatedName": "iso4217:XBB",
                 "value": "E.M.U.-6"
             },
-            
+
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -3826,7 +3826,7 @@
                 "relatedName": "iso4217:XBC",
                 "value": "E.U.A.-9"
             },
-           
+
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -3839,7 +3839,7 @@
                 "relatedName": "iso4217:XBD",
                 "value": "E.U.A.-17"
             },
-           
+
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -3870,7 +3870,7 @@
                 "relatedName": "iso4217:XDR",
                 "value": "Special Drawing Rights"
             },
-            
+
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -3883,7 +3883,7 @@
                 "relatedName": "iso4217:XFU",
                 "value": "UIC Franc"
             },
-            
+
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -3896,7 +3896,7 @@
                 "relatedName": "iso4217:XOF",
                 "value": "CFA Franc BCEAO"
             },
-           
+
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -3909,7 +3909,7 @@
                 "relatedName": "iso4217:XPD",
                 "value": "Palladium"
             },
-           
+
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -3922,7 +3922,7 @@
                 "relatedName": "iso4217:XPF",
                 "value": "CFP Franc"
             },
-            
+
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -3935,7 +3935,7 @@
                 "relatedName": "iso4217:XPT",
                 "value": "Platinum"
             },
-            
+
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -3966,7 +3966,7 @@
                 "relatedName": "iso4217:XUA",
                 "value": "ADB Unit of Account"
             },
-            
+
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -3979,7 +3979,7 @@
                 "relatedName": "iso4217:YER",
                 "value": "Yemeni rial"
             },
-            
+
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -4273,7 +4273,7 @@
                                     "iso4217:ZWL"
                             ],
                 "referenceType" : "utr:unitCreationDate",
-                
+
                 "properties" : [{"property":"utr:dateUnitCreated", "value":"2012-10-31"}]
             },
             {

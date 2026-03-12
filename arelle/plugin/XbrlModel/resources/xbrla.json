@@ -14,7 +14,7 @@
     "xbrlModel": {
         "name": "xbrla:AccountingModel",
         "dataTypes": [
-            {   
+            {
                 "name": "xbrla:balanceType",
                 "baseType": "xs:string",
                 "enumeration": ["debit", "credit"],
@@ -88,7 +88,7 @@
                 "constraints": [
                           {
                               "constraint": "relationship.source.xbrli:dataType == relationship.target.xbrli:dataType AND relationship.source.property.xbrla:balance == relationship.target.property.xbrla:balance AND relationship.source.xbrli:periodType == instant AND relationship.target.xbrli:periodType == duration"
-                          }         
+                          }
                         ]
             },
             {
@@ -100,7 +100,7 @@
                  "constraints": [
                           {
                               "constraint": "relationship.source.xbrli:dataType == relationship.target.xbrli:dataType AND relationship.source.property.xbrla:balance != relationship.target.property.xbrla:balance AND relationship.source.xbrli:periodType == instant AND relationship.target.xbrli:periodType == duration"
-                          }         
+                          }
                         ]
             },
             {

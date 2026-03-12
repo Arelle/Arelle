@@ -78,14 +78,14 @@ def assertObjectType(compMdl, obj, objType):
 
 def validateQNameReference(compMdl, contextObj, propName, objType, msgCode=None, qnDefault=None):
     """Validate a QName reference and return resolved object or raise error.
-    
+
     Args:
         compMdl: compiled model
         contextObj: object containing the reference (for error context)
         propName: property name where reference appears (for error message)
         objType: expected type of resolved object (XbrlConcept, XbrlDimension, etc.)
         msgCode: optional message code for error, default is "oimte:invalidQNameReference"
-    
+
     Returns:
         Resolved object if valid and correct type, None if error raised
     """
@@ -95,33 +95,33 @@ def validateQNameReference(compMdl, contextObj, propName, objType, msgCode=None,
     if not qnRef:
         compMdl.error("oime:invalidJSONStructureMissingRequiredProperty",
                       _("%(objType)s %(name)s is missing required QName reference property '%(prop)s'"),
-                      xbrlObject=contextObj, objType=objType.__name__, name=getattr(contextObj, 'name', '?'), 
+                      xbrlObject=contextObj, objType=objType.__name__, name=getattr(contextObj, 'name', '?'),
                       prop=propName)
         return None
-    
+
     # Resolve QName to object
     resolvedObj = compMdl.namedObjects.get(qnRef)
-    
+
     if not resolvedObj:
         compMdl.error(msgCode or "oimte:invalidQNameReference",
                       _("%(parentType)s %(parentName)s property %(propName)s references undefined QName '%(qnRef)s'"),
-                      xbrlObject=contextObj, parentType=type(contextObj).__name__, 
+                      xbrlObject=contextObj, parentType=type(contextObj).__name__,
                       parentName=getattr(contextObj, 'name', '?'), propName=propName, qnRef=qnRef)
         return None
-    
+
     # Check resolved object is correct type
     if not isinstance(resolvedObj, objType):
         compMdl.error(msgCode or "oimte:invalidQNameReference",
                       _("%(parentType)s %(parentName)s property %(propName)s references '%(qnRef)s' which is %(actualType)s, expected %(expectedType)s"),
-                      xbrlObject=contextObj, parentType=type(contextObj).__name__, 
-                      parentName=getattr(contextObj, 'name', '?'), propName=propName, 
+                      xbrlObject=contextObj, parentType=type(contextObj).__name__,
+                      parentName=getattr(contextObj, 'name', '?'), propName=propName,
                       qnRef=qnRef, actualType=type(resolvedObj).__name__, expectedType=objType.__name__)
         return None
-    
+
     return resolvedObj
 
 def validateValue(compMdl, module, obj, value, dataTypeQn, pathElt, msgCode):
-    """Validate a value against a data type, including facets. Return (xValid, xValue) where xValid is VALID, INVALID or NONE and xValue is the converted value if valid or None if invalid.        
+    """Validate a value against a data type, including facets. Return (xValid, xValue) where xValid is VALID, INVALID or NONE and xValue is the converted value if valid or None if invalid.
         Args:
             compMdl: compiled model
             module: the module containing the object
@@ -174,7 +174,7 @@ def validateValue(compMdl, module, obj, value, dataTypeQn, pathElt, msgCode):
     return (prototypeElt.xValid, prototypeElt.xValue)
 
 def reqRelMatch(relQn, reqQn, compMdl):
-    """Check if a relationship QName matches a required relationship QName, either by direct match or by matching the required relationship's data type.    
+    """Check if a relationship QName matches a required relationship QName, either by direct match or by matching the required relationship's data type.
         Args:
             relQn: the relationship QName
             reqQn: the required relationship QName
@@ -191,9 +191,9 @@ def reqRelMatch(relQn, reqQn, compMdl):
     return False
 
 def validateProperties(compMdl, oimFile, module, obj):
-    """Validate the properties of an object, including checking that property types are valid and allowed for the object, 
-        and that property values are valid for their property type. Also check for conflicting property values for the 
-        same property type.     
+    """Validate the properties of an object, including checking that property types are valid and allowed for the object,
+        and that property values are valid for their property type. Also check for conflicting property values for the
+        same property type.
 
         Args:
             compMdl: the compiled model
@@ -243,8 +243,8 @@ def validateProperties(compMdl, oimFile, module, obj):
 
 
 def validateXbrlModule(compMdl, module, mdlLvlChecks):
-    """Validate an XBRL module within an assembled compiled model, including validating all objects within the module and 
-        checking for consistency with the module's modelType.    
+    """Validate an XBRL module within an assembled compiled model, including validating all objects within the module and
+        checking for consistency with the module's modelType.
 
         Args:
             compMdl: the compiled model
@@ -566,8 +566,8 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                       "oimte:intervalOfMeasurementOnNonTimeSeriesDimension",
                                   _("The dimension %(dimension)s properties %(tsProps)s on cube %(name)s type %(cubeType)s MUST only be used on a timeSeries cubeType."),
                                   xbrlObject=cubeObj, name=name, dimension=dimQn, cubeType=cubeType.name, tsProps=", ".join(sorted(str(p) for p in tsProps)))
-                    else:
-                        dimDomDTQn = dimObj.domainDataType
+                    elif cubeDimObj.domainDataType:
+                        dimDomDTQn = cubeDimObj.domainDataType
                         domDTobj = compMdl.namedObjects.get(dimDomDTQn)
                         if not (isinstance(compMdl.namedObjects.get(dimDomDTQn), XbrlDataType) or
                                 domDTobj.instanceOfType(qnXsDateTime, compMdl)):
@@ -1413,7 +1413,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                               xbrlObject=tblTmpl, dimension=dim)
 
 def validateCompletedModel(compMdl):
-    """ Validate the completed model, including validating facts and complete cubes. 
+    """ Validate the completed model, including validating facts and complete cubes.
         This should be called after all models have been loaded and all references resolved.
     """
     # Facts in taxonomy
@@ -1452,5 +1452,5 @@ def validateCompletedModel(compMdl):
 
     # check complete cubes
     for cubeObj in compMdl.filterNamedObjects(XbrlCube):
-        if cubeObj.cubeComplete:
+        if cubeObj.requiredCubes:
             validateCompleteCube(compMdl, cubeObj)

@@ -36,7 +36,7 @@
                 "baseType": "xs:string",
                 "enumeration": ["instant", "duration", "none"]
             },
-            
+
             {   "name": "xbrli:timeSeriesDataType",
                 "baseType": "xs:string",
                 "enumeration": ["Aggregated", "Raw"]
@@ -189,7 +189,7 @@
             {
                 "name" : "xbrli:nonNegativeNoDecimalsMonetary",
                 "baseType" : "xbrli:monetary",
-                "fractionDigits": 0, 
+                "fractionDigits": 0,
                 "minInclusive" : 0,
                 "allowedObjects": ["xbrl:conceptObject", "xbrl:unitObject"]
             },
@@ -197,7 +197,7 @@
                 "name" : "xbrli:insolation",
                 "baseType" : "xs:decimal",
                 "allowedObjects": ["xbrl:conceptObject", "xbrl:unitObject"]
-                    
+
             },
             {
                 "name" : "xbrli:temperature",
@@ -234,7 +234,7 @@
             {
                 "name" : "xbrli:planeAngle",
                 "baseType" : "xs:decimal",
-                "allowedObjects": ["xbrl:conceptObject", "xbrl:unitObject"]      
+                "allowedObjects": ["xbrl:conceptObject", "xbrl:unitObject"]
             },
             {
                 "name" : "xbrli:voltage",
@@ -379,7 +379,7 @@
                 "baseType": "xbrli:perShare",
                 "unitType" : {
                 "dataTypeNumerator": "xbrli:monetary",
-                "dataTypeDenominator": "xbrli:sharesType"  
+                "dataTypeDenominator": "xbrli:sharesType"
                 }
             },
             {
@@ -563,7 +563,7 @@
                 "labelType" : "xbrl:documentation",
                 "value" : "Used to identify if the time series is recording raw data or aggregated data. Possible values are Raw or Aggregated. Raw data is collected at the defined interval as a single measurement. This data is usually highly voluminous. Aggregated time series data is used with continuous or high-frequency data (say, every second), but only stores one value per interval (like an hour), the value used within that period must be an aggregation such  as: Max - the highest observed value in the hour (e.g., max temperature). Min - the lowest observed value in the hour (e.g., min heart rate). First - the earliest value recorded in that hour (open price in finance). Last - the latest value recorded in that hour (close price in finance). Mean / Sum, Median, and  Percentile are other forms of possible aggregation. The aggregation performed should be associated with the concept recording the measurement as an aggregation property."
             },
-           
+
             {
                 "relatedName" : "xbrli:monetary",
                 "language" : "en",
@@ -960,7 +960,7 @@
                 "relatedName": "xbrli:MonetaryPerShare",
                 "value": "Monetary/share"
             },
-           
+
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -1187,7 +1187,7 @@
                 ],
                 "referenceType": "xbrl:dataTypeRequirement",
                 "properties": [{"property":"ref:Requirement", "value":"Interoperable Taxonomy Architecture (ITA) initiative requirement for alignment of the EDINET, IFRS and US GAAP taxonomies."}]
-               
+
             },
             {
                 "name": "xbrli:SQNameRequirementReference",
@@ -1196,7 +1196,7 @@
                 ],
                 "referenceType": "xbrl:dataTypeRequirement",
                 "properties": [{"property":"ref:Requirement", "value":"This data type is required in order to validate and correctly process SQName values. As SQNames rely on the in-scope namespace prefixes, it is important that consuming software can unambiguously identify values that are SQNames."}]
-                
+
             },
             {
                 "name": "xbrli:PartialDateRequirementReference",

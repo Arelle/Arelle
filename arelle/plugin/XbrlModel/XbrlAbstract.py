@@ -12,7 +12,7 @@ from .XbrlObject import XbrlReferencableModelObject
 
 class XbrlAbstract(XbrlReferencableModelObject):
     """ Abstract Object
-        Reference: oim-specification.md#abstract-object
+        Reference: oim-taxonomy.md#abstract-object
     """
     module: XbrlModuleType
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the abstract object.

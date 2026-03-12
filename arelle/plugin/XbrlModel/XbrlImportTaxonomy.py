@@ -12,7 +12,7 @@ from .XbrlObject import XbrlObject, XbrlModelObject, XbrlReferencableModelObject
 
 class XbrlFilterCondition(XbrlObject):
     """ Filter Condition Object
-        Reference: oim-taxonomy#filtercondition-object 
+        Reference: oim-taxonomy#filtercondition-object
 
         This object defines a filter condition that can be used to filter objects in the taxonomy model.
     """
@@ -22,7 +22,7 @@ class XbrlFilterCondition(XbrlObject):
 
 class XbrlStructuredSelectStatement(XbrlObject):
     """ Structured Select Statement Object
-        Reference: oim-taxonomy#structuredselectstatement-object 
+        Reference: oim-taxonomy#structuredselectstatement-object
 
         This object defines a structured select statement that can be used to select objects in the taxonomy model based on specific criteria.
     """
@@ -31,7 +31,7 @@ class XbrlStructuredSelectStatement(XbrlObject):
 
 class XbrlImportTaxonomy(XbrlModelObject):
     """ Import Taxonomy Object
-        Reference: oim-taxonomy#import-taxonomy-object 
+        Reference: oim-taxonomy#import-taxonomy-object
 
         This object defines the properties and criteria for importing a taxonomy into the taxonomy model. It specifies the location of the taxonomy to be imported, the xBRL module it belongs to, and any filters or selections to be applied during the import process.
     """
@@ -47,7 +47,7 @@ class XbrlImportTaxonomy(XbrlModelObject):
 
 class XbrlFinalTaxonomy(XbrlReferencableModelObject):
     """ Final Taxonomy Object
-        Reference: oim-taxonomy#finaltaxonomy-object 
+        Reference: oim-taxonomy#finaltaxonomy-object
 
         This object defines the properties and criteria for marking a taxonomy as final. A final taxonomy is a taxonomy that cannot be extended by importing other taxonomies. The final taxonomy object specifies the name of the final taxonomy, whether the entire taxonomy is final or only specific object types or objects, and any selections to be applied for identifying the final objects.
     """

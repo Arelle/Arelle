@@ -37,7 +37,7 @@ selWhereParser = qName("objectType") + Suppress("where") + delimitedList(conditi
 
 def parseSelectionWhereClause(selWhereClause):
     """Parses a selection where clause and returns a structured representation of the object type and conditions.
-        Reference: oim-specification.md#selection-where-clause
+        Reference: oim-taxonomy.md#selection-where-clause
         Args:
             selWhereClause (str): The selection where clause to parse.
         Returns:

@@ -25,7 +25,7 @@ class XbrlDateResolution(XbrlModelObject):
     """
     conceptName: Optional[QName] # (optional) Identifies the QName of a concept object that has a date fact value. The values of the concept object resolves to a set of dates. If no value exists in the report then the property is ignored, and no date constraint is enforced on the cube.
     context: Optional[QNameAt] # (optional) Identifies the QName of a concept object that has a value. The context of the fact values resolves to a set of dates. If no value exists in the report then the property is ignored. The context suffix must be either @end or @start. If an @ value is not provided then the suffix defaults to @end.
-    dateProperty: Optional[str] # (optional) Allows using a date or duration used as a value of a property of an object. Identifies the QName of an object and the QName of a property associated with the object and uses @start or @end suffix if a duration i.e. exp:myExtTaxonomy.xbrl:reportPeriod@end. 
+    dateProperty: Optional[str] # (optional) Allows using a date or duration used as a value of a property of an object. Identifies the QName of an object and the QName of a property associated with the object and uses @start or @end suffix if a duration i.e. exp:myExtTaxonomy.xbrl:reportPeriod@end.
     value: Optional[DateTime] # (optional) A literal date value representing the end date.
     timeShift: Optional[YearMonthDayTimeDuration] # (optional) Defines a time duration shift from the date derived form either the value, context or name properties. The duration of the time shift is defined using the XML duration type to define a duration of time. A negative operator is used to deduct the timeShift from the resolved date.
 
@@ -111,17 +111,17 @@ class XbrlDimensionPropertiesConstraint(XbrlModelObject):
 class XbrlDimensionConstraint(XbrlModelObject):
     """ Dimension Constraint Object
         Reference: oim-taxonomy#dimensionconstraint-object
-    """ 
+    """
     dimensionName: Optional[QName] # (optional) The dimension QName that identifies the taxonomy defined dimension.
     type: Optional[str] # (optional) The dimension QName that identifies the taxonomy defined dimension.
     dataType: Optional[QName] # (optional) The dimension QName that identifies the taxonomy defined dimension.
     required: Union[bool, DefaultFalse] # (optional) The dimension QName that identifies the taxonomy defined dimension.
     dimensionProperties: Optional[XbrlDimensionPropertiesConstraint] # (optional) Defines constraints on dimension properties defining those properties that are allowed.
 
-class XbrlDimensionsAllowed(XbrlModelObject):   
+class XbrlDimensionsAllowed(XbrlModelObject):
     """ Dimensions Allowed Object
         Reference: oim-taxonomy#dimensionsallowed-object
-    """ 
+    """
     allowed: OrderedSet[XbrlDimensionConstraint] # (optional) An ordered set of dimension constraint objects. (xbrl:dimensionConstraintObject) The dimension constraint defines the constraints on dimensions that can be included in cubes of this type.
     closed: Union[bool, DefaultFalse] # (optional) If true, only dimensions listed in allowed can be used. If false, other taxonomy-defined dimensions are permitted. Defaults to false.
 
@@ -185,11 +185,11 @@ class XbrlCubeType(XbrlReferencableModelObject):
     cubeProperties: Optional[XbrlCubePropertiesConstraint] # (optional) An object that defines constraints on properties that can be associated with the cube.
 
     def effectivePropVal(self, compMdl, *propNames):
-        """ Return the effective value of a property considering inheritance and default value if not on basemost cube type. 
-            propNames is the property name or names to check in order for a value, e.g. (coreDimensions, closed) 
-            where coreDimensions is an iterable and closed is a scalar. For iterables, the first non-empty iterable value is returned. 
-            For scalars, the first non-None value is returned. If no value is found then the base cube type is checked for the 
-            property value. If there is no base cube type then the default value for the property is returned (e.g., 
+        """ Return the effective value of a property considering inheritance and default value if not on basemost cube type.
+            propNames is the property name or names to check in order for a value, e.g. (coreDimensions, closed)
+            where coreDimensions is an iterable and closed is a scalar. For iterables, the first non-empty iterable value is returned.
+            For scalars, the first non-None value is returned. If no value is found then the base cube type is checked for the
+            property value. If there is no base cube type then the default value for the property is returned (e.g.,
             None for scalars and empty set for iterables).
         """
         obj = self
@@ -220,7 +220,7 @@ class XbrlCubeType(XbrlReferencableModelObject):
         return set() # set object
 
     def basemostCubeType(self, compMdl):
-        """ Return the basemost cube type in the inheritance chain. If there is no base cube type then return this cube type's name. 
+        """ Return the basemost cube type in the inheritance chain. If there is no base cube type then return this cube type's name.
         """
         baseCubeType = compMdl.namedObjects.get(self.baseCubeType)
         if isinstance(baseCubeType, XbrlCubeType):

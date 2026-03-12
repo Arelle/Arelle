@@ -29,10 +29,10 @@ DOCINFO = {
 
 
 def saveableValue(val, mdlPropName, **kwargs):
-    """ Convert a value into a saveable form. 
-        For QName, convert to string and track namespaces. 
-        For Decimal, convert to float for json but not cbor. 
-        For bool, keep as bool for cbor but convert to string for json. 
+    """ Convert a value into a saveable form.
+        For QName, convert to string and track namespaces.
+        For Decimal, convert to float for json but not cbor.
+        For bool, keep as bool for cbor but convert to string for json.
         For other types, convert to string.
     """
     if isinstance(val, QName):
@@ -56,7 +56,7 @@ def saveableValue(val, mdlPropName, **kwargs):
 
 def saveableObjects(mdlObj, mdlName, **kwargs):
     """ Recursively convert XbrlModelClass objects into saveable dicts, skipping properties with default values.
-        Track visited objects to avoid cycles. Skip empty OrderedSet properties. 
+        Track visited objects to avoid cycles. Skip empty OrderedSet properties.
         Skip txmyMdl and layout properties which are not needed to save.
     """
     if "visited" not in kwargs:
@@ -110,8 +110,8 @@ def saveableObjects(mdlObj, mdlName, **kwargs):
     return saveableObj
 
 def saveFiles(cntlr, txmyMdl, fileName, **kwargs):
-    """ Save OIM Taxonomy Model into json, cbor and Excel files. 
-        For GUI, always ask file name and type to save. 
+    """ Save OIM Taxonomy Model into json, cbor and Excel files.
+        For GUI, always ask file name and type to save.
         For command line, file name and type must be provided as arguments.
     """
     fileExt = os.path.splitext(fileName)[1].lower()
@@ -174,7 +174,7 @@ def saveFiles(cntlr, txmyMdl, fileName, **kwargs):
 
 def xbrlModelSave(cntlr, view, fileType=None, fileName=None, *args, **kwargs):
     """ CntlrWinMain.Xbrl.Save:
-        Save OIM Taxonomy Model into json, cbor and Excel files. 
+        Save OIM Taxonomy Model into json, cbor and Excel files.
         For GUI, always ask file name and type to save. For command line, file name and type must be provided as arguments.
     """
     if not isinstance(view, ViewXbrlTxmyObj): # only save OIM Taxonomy Views

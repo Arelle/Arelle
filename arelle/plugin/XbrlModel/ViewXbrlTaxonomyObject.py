@@ -19,7 +19,7 @@ from .XbrlConst import qnStdLabel
 
 
 def viewXbrlTaxonomyObject(xbrlCompMdl, objClass, tabWin, header, additionalViews=None):
-    """View an XBRL taxonomy object class in a tree view.   
+    """View an XBRL taxonomy object class in a tree view.
     :param xbrlCompMdl: Compiled ModelXbrl
     :param objClass: Xbrl Model object class to view
     :param tabWin: parent tab window for view
