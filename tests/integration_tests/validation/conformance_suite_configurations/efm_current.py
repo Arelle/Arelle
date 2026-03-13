@@ -24,7 +24,7 @@ config = ConformanceSuiteConfig(
             source=AssetSource.S3_PUBLIC,
         )
     ],
-    cache_version_id='bY6OmURBAtPB4UALKzz5aeeLlMSKxN9e',
+    cache_version_id='ShpWxxspdHtuQbCApZ2bwkO7.t66OMa3',
     disclosure_system='efm-pragmatic',
     # Failures expected to be resolved when EFM 26.1 conformance suite is published.
     expected_additional_testcase_errors={
