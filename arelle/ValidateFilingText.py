@@ -32,7 +32,8 @@ namedEntityPattern = re.compile("&[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02
 #                                "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*;")
 
 inlinePattern = re.compile(r"xmlns:[\w.-]+=['\"]http://www.xbrl.org/2013/inlineXBRL['\"]")
-inlineSelfClosedElementPattern = re.compile(r"<(?P<element>([\w.-]+:)?(?P<localName>\w+))([^\w/][^<]*)?/>")
+inlineSelfClosedElementPattern = re.compile(r"<(?P<element>([\w.-]+:)?(?P<localName>\w+))(?P<attributes>[^\w/][^<]*)?/>")
+xsiNilPattern = re.compile(r".*\sxsi:nil\s*=\s*['\"]\s*(true|1)\s*['\"]")
 # The ESEF 2022 conformance suite G2-5-1_2 TC3_invalid depends on optional "/".
 # <img src="data:image;base64,iVBOR...
 imgDataMediaBase64Pattern = re.compile(r"data:image(?:/(?P<mimeSubtype>[^,;]*))?(?P<base64>;base64)?,(?P<data>.*)$", re.S)
@@ -413,6 +414,9 @@ elementsWithNoContent = {
     # elements which can have no text node siblings, tested with IE, Chrome and Safari
     "td", "tr"
     }
+ixElementsAllowingNil = {
+    "fraction", "nonFraction", "nonNumeric", "tuple"
+    }
 
 
 ModelDocumentTypeINLINEXBRL = None
@@ -499,7 +503,8 @@ def checkfile(modelXbrl, filepath):
             if isInline and '/>' in line:
                 for match in inlineSelfClosedElementPattern.finditer(line):
                     selfClosedLocalName = match.group('localName')
-                    if selfClosedLocalName not in elementsWithNoContent:
+                    if (selfClosedLocalName not in elementsWithNoContent and
+                        not (selfClosedLocalName in ixElementsAllowingNil and xsiNilPattern.match(match.group('attributes') or ''))):
                         modelXbrl.warning("ixbrl:selfClosedTagWarning",
                                           _("Self-closed element \"%(element)s\" may contain text or other elements and should not use self-closing tag syntax (/>) when empty; change these to end-tags in file %(file)s line %(line)s column %(column)s"),
                                           modelDocument=filepath, element=match.group('element'), file=os.path.basename(filepath), line=lineNum, column=match.start())
