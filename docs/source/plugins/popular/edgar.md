@@ -10,6 +10,31 @@ Commission (SEC), is designed to provide traditional and inline XBRL viewers for
 and extends the [EFM Validation plugin][github-validate-efm], offering EFM validation for SEC filings. For end-user support,
 please contact the SEC directly at: [StructuredData@sec.gov][sec-email].
 
+## Installation
+
+The EDGAR plugins are included in Arelle's [prepackaged distributions][prepackaged], so no additional
+installation steps are needed if you are using one of those.
+
+If you installed Arelle [from source][from-source] or via [pip][python-package],
+the EDGAR plugins are **not** included and must be installed separately.
+See the [EDGAR repository][github-edgar] for installation instructions.
+
+Additionally, EDGAR requires some extra Python dependencies. You can install them by running:
+
+```shell
+pip install arelle-release[EFM]
+```
+
+Or if running from source:
+
+```shell
+pip install -r requirements-plugins.txt
+```
+
+[prepackaged]: project:../../install.md#prepackaged-distributions
+[from-source]: project:../../install.md#from-python-source
+[python-package]: project:../../install.md#python-package
+
 ## Key Features
 
 - **XBRL Viewers**: Offers both traditional and inline XBRL viewers for SEC filings.
@@ -39,6 +64,7 @@ The Edgar Renderer can be easily configured through the graphical user interface
 - To access the Renderer, go to `View` > `Edgar Renderer`.
 - To select an EFM disclosure system, navigate to `Tools` > `Validation` > `Disclosure system checks`.
 
+[github-edgar]: https://github.com/Arelle/EDGAR/
 [github-edgar-renderer]: https://github.com/Arelle/EDGAR/tree/master/render
 [github-validate-efm]: https://github.com/Arelle/EDGAR/tree/master/validate
 [sec-email]: mailto:StructuredData@sec.gov

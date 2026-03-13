@@ -11,6 +11,31 @@ rules for SEC filings and FERC rules available in XULE format. It also allows fo
 facts. Utilize the `DQC Rules Validator` and `ESEF DQC Rules Validator` plugins for specific XULE validation rules. For
 more details on XULE and its usage, visit the [XULE plugin readme][readme].
 
+## Installation
+
+XULE is included in Arelle's [prepackaged distributions][prepackaged], so no additional
+installation steps are needed if you are using one of those.
+
+If you installed Arelle [from source][from-source] or via [pip][python-package],
+the XULE plugin is **not** included and must be installed separately.
+See the [XULE plugin README][readme] for installation instructions.
+
+Additionally, XULE requires some extra Python dependencies. You can install them by running:
+
+```shell
+pip install arelle-release[XULE]
+```
+
+Or if running from source:
+
+```shell
+pip install -r requirements-plugins.txt
+```
+
+[prepackaged]: project:../../install.md#prepackaged-distributions
+[from-source]: project:../../install.md#from-python-source
+[python-package]: project:../../install.md#python-package
+
 ## Key Features
 
 - **XBRL Data Querying and Manipulation**: Provides a user-friendly syntax for interacting with XBRL data.

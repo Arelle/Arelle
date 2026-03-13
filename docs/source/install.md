@@ -56,6 +56,13 @@ See the contributing documentation for [setting up your environment][setting-up-
 if you're comfortable setting up your own Python environment and would like to run
 Arelle from source.
 
+:::{note}
+Some plugins bundled with the [prepackaged distributions](#prepackaged-distributions),
+such as [XULE][xule], [EDGAR][edgar], and the [Arelle iXBRL Viewer][arelle-ixbrl-viewer], are maintained in separate
+repositories and are not included when running from source or when installing the Python package.
+See their documentation for installation instructions.
+:::
+
 [setting-up-your-environment]: project:contributor_guides/contributing.md#setting-up-your-environment
 
 ## Python Package

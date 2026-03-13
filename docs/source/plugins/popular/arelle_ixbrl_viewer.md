@@ -9,6 +9,22 @@ The [Arelle iXBRL Viewer][github] is an interactive tool developed by the Arelle
 reports in web browsers. It enables users to access and interact with XBRL data embedded in iXBRL reports. This viewer
 is designed with extensibility in mind, allowing users to adapt it to their needs.
 
+## Installation
+
+The iXBRL Viewer is included in Arelle's [prepackaged distributions][prepackaged], so no additional
+installation steps are needed if you are using one of those.
+
+If you installed Arelle [from source][from-source] or via [pip][python-package],
+the iXBRL Viewer plugin is **not** included and must be installed separately:
+
+```shell
+pip install ixbrl-viewer
+```
+
+[prepackaged]: project:../../install.md#prepackaged-distributions
+[from-source]: project:../../install.md#from-python-source
+[python-package]: project:../../install.md#python-package
+
 ## Key Features
 
 - **Interactive Viewing**: Experience interactive viewing of iXBRL reports in any web browser.
