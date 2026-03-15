@@ -6,7 +6,7 @@
             "xbrl": "https://xbrl.org/2025",
             "xbrli":"https://xbrl.org/2025/instance",
             "xs": "http://www.w3.org/2001/XMLSchema",
-            "xbrltt":"https://xbrl.org/2025/transform-types"
+            "xbrltt":"https://xbrl.org/2025/transform-types"  
             },
         "documentNamespace":"xbrltt"
   },
@@ -111,7 +111,7 @@
             ],
             "whiteSpace": "collapse"
           },
-
+          
             {
             "name": "xbrltt:dateDayMonthnameElType",
             "baseType": "xs:string",
@@ -717,21 +717,21 @@
                 "baseType": "xs:string",
                 "whiteSpace": "collapse",
                 "length": 0
-
+                
               },
               {
                 "name": "xbrltt:fixedFalseType",
                 "baseType": "xs:boolean",
                 "whiteSpace": "collapse",
                 "patterns": ["false"]
-
+                
               },
               {
                 "name": "xbrltt:fixedTrueType",
                 "baseType": "xs:boolean",
                 "whiteSpace": "collapse",
                 "patterns": ["true"]
-
+                
               },
               {
                 "name": "xbrltt:fixedZeroType",
@@ -760,28 +760,28 @@
                 "baseType": "xs:string",
                 "whiteSpace": "collapse",
                 "patterns":[ "[,  0-9]*(\\.[  0-9]+)?"]
-
+                
               },
               {
                 "name": "xbrltt:numDotDecimalAposType",
                 "baseType": "xs:string",
                 "whiteSpace": "collapse",
                 "patterns": ["[,'`´’′  0-9]*(\\.[  0-9]+)?"]
-
+                
               },
               {
                 "name": "xbrltt:numUnitDecimalType",
                 "baseType": "xs:string",
                 "whiteSpace": "collapse",
                 "patterns": ["([0-9０-９\\.,，]+)([^0-9０-９\\.,，][^0-9０-９]*)([0-9０-９]{1,2})([^0-9０-９]*)"]
-
+                
               },
               {
                 "name": "xbrltt:numUnitDecimalAposType",
                 "baseType": "xs:string",
                 "whiteSpace": "collapse",
                 "patterns": ["([0-9０-９\\.,，'`´’′＇]+)([^0-9０-９\\.,，'`´’′＇][^0-9０-９]*)([0-9０-９]{1,2})([^0-9０-９]*)"]
-
+                
               }
       ],
       "labels": [

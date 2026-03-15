@@ -797,7 +797,7 @@
             {
                 "relatedName": "oimte:conflictingPropertyValues",
                 "language": "en",
-                "value": "Property '{xbrl:propertyName}' is defined multiple times on {objectType}, {object} with conflicting values: {conflictingValues}.",
+                "value": "Property '{propertyName}' is defined multiple times on {objectType}, {objectName} with conflicting values: {conflictingValues}.",
                 "labelType": "oimte:errorMessage"
             },
             {

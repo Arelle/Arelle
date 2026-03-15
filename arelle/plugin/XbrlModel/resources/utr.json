@@ -1626,7 +1626,7 @@
                 "relatedName": "xbrli:pure",
                 "value": "pure"
             },
-
+            
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -1639,7 +1639,7 @@
                 "relatedName": "utr:Rate",
                 "value": "Rate"
             },
-
+            
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -1652,7 +1652,7 @@
                 "relatedName": "xbrli:shares",
                 "value": "Share"
             },
-
+            
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -2709,7 +2709,7 @@
                             ],
                 "referenceType" : "utr:unitCreationDate",
                 "properties" : [{"property":"utr:dateUnitCreated", "value":"2012-10-03"}]
-
+                        
             },
             {
                 "name" : "utr:InternationalSystemOfUnitsRef",
@@ -2822,7 +2822,7 @@
                                     "utr:Mvar" ],
                 "referenceType" : "xbrl:baseUnitsStandard",
                 "properties" : [{"property":"utr:baseStandardIdentifier", "value":"customary"}]
-
+                        
             },
             {
                 "name" : "utr:SiDerivedUnitsRef",

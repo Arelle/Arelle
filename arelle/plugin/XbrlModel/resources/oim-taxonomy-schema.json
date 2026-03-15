@@ -21,13 +21,10 @@
           "documentNamespace": {
             "type": "string"
           },
-          "urlMapping": {
+          "importMapping": {
             "type": "object",
             "additionalProperties": {
-              "type": "array",
-              "items": { "type": "string" },
-              "minItems": 1,
-              "uniqueItems": true
+              "type": "string"
             }
           },
           "sourceMapping": {
@@ -62,7 +59,7 @@
                     "description": "Indicates whether the xbrlModel is a compiled or modular model. If no value is provided the xbrlModel defaults to module."
                 },
                 "modelType": {
-                   "$ref": "#/definitions/modelTypeQName"
+                   "$ref": "#/definitions/modelTypeQName" 
                 },
                 "importedTaxonomies": {
                   "type": "array",
@@ -105,22 +102,22 @@
                   "type": "object",
                   "description": "Defines those objects and object types that are considered final within the xbrlModel, and cannot be extended by importing taxonomies.",
                   "properties": {
-                    "name": {
+                    "name": { 
                       "$ref": "#/definitions/QName",
                       "description": "The QName that uniquely identifies the final taxonomy object."
                     },
-                    "finalTaxonomyFlag": {
+                    "finalTaxonomyFlag": { 
                       "type": "boolean",
                       "description": "The boolean flag that indicates whether the taxonomy is final."
                     },
-                    "finalObjectTypes":
+                    "finalObjectTypes": 
                       {
                           "type": "array",
                           "items":{ "$ref": "#/definitions/QName" },
                           "uniqueItems": true,
                           "description": "Set of objects types that are considered final within the xbrlModel. An importing xbrlModel cannot include object types that are defined in this set."
                       },
-                    "finalObjects":
+                    "finalObjects": 
                       {
                           "type": "array",
                           "items":{ "$ref": "#/definitions/QName" },
@@ -252,8 +249,8 @@
                           },
                           "then": {
                             "properties": {
-                              "dataType": {
-                                    "enum": ["xs:QName", "xbrli:enumeration", "xbrli:enumerationSet"]
+                              "dataType": { 
+                                    "enum": ["xs:QName", "xbrli:enumeration", "xbrli:enumerationSet"] 
                                 }
                             }
                           }
@@ -278,7 +275,7 @@
                             "dimensionName": { "$ref": "#/definitions/dimensionQName" },
                             "domainName": { "$ref": "#/definitions/domainQName" },
                             "domainDataType" : { "$ref": "#/definitions/dataTypeQName" },
-
+                            
                             "typedSort": {
                               "type": "string",
                               "enum": ["asc", "desc"],
@@ -552,9 +549,9 @@
                     "properties": {
                       "name": { "$ref": "#/definitions/QName" },
                       "dataType": { "$ref": "#/definitions/dataTypeQName" },
-                      "stringRepresentations": {
+                      "stringRepresentations": { 
                         "type": "array",
-                        "items": {
+                        "items": { 
                           "type": "string",
                            "pattern": ".*(\\*|/).*",
                           "description": "String representation of the unit."
@@ -610,7 +607,7 @@
                   "type": "object",
                   "description": "Defines the hierarchical organization of groups within the xbrlModel. Only one groupTree is allowed per xbrlModel.",
                   "properties": {
-                    "name": {
+                    "name": { 
                       "$ref": "#/definitions/QName",
                       "description": "The QName that uniquely identifies the groupTree object."
                     },
@@ -620,11 +617,11 @@
                       "items": {
                         "type": "object",
                         "properties": {
-                          "source": {
+                          "source": { 
                             "$ref": "#/definitions/QName",
                             "description": "QName of the source xbrlModel or group object."
                           },
-                          "target": {
+                          "target": { 
                             "$ref": "#/definitions/QName",
                             "description": "QName of the target group object."
                           },
@@ -746,7 +743,7 @@
                         { "required": ["name", "referenceType"] },
                         { "required": ["extendTargetName", "referenceType"] }
                       ],
-
+                      
                       "additionalProperties": false
                   },
                     "uniqueItems": true
@@ -772,9 +769,9 @@
                                               {
                                                 "type": "number"
                                               },
-                                              {
+                                              { 
                                                 "type": "string",
-                                                "pattern": "INF"
+                                                "pattern": "INF" 
                                               }
                                         ]
                                   },
@@ -1275,7 +1272,7 @@
                                         "enum": ["typed", "explicit"],
                                         "description": "Whether this is a typed or explicit dimension constraint."
                                       },
-                                      "dataType": {
+                                      "dataType": { 
                                         "$ref": "#/definitions/dataTypeQName",
                                         "description": "Required if type is 'typed'. The data type for typed dimension members."
                                       },
@@ -1639,7 +1636,7 @@
             },
             "required": ["name"],
             "additionalProperties": false
-        }
+        }  
       },
     "definitions": {
       "propertyObject": {

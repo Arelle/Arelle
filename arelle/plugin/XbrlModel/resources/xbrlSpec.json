@@ -23,7 +23,7 @@
                     }
                 },
                 {
-                    "name": "xbrl:defaultCube"
+                    "name": "xbrl:openCube"
                 },
                 {
                     "name": "xbrl:negativeCube",
@@ -67,7 +67,8 @@
                     "xbrl:footnoteObject",
                     "xbrl:entityObject",
                     "xbrl:unitObject",
-                    "xbrl:importTaxonomyObject"
+                    "xbrl:importTaxonomyObject",
+                    "xbrl:networkObject"
                     ],
                 "requiredProperties": [
                     "xbrl:reportDate"
@@ -246,31 +247,31 @@
                 "name": "xbrl:disclosureGuidance",
                 "uri": "http://www.xbrl.org/2003/role/disclosureGuidance",
                 "dataType": "xs:string"
-
+                
             },
             {
                 "name": "xbrl:presentationGuidance",
                 "uri": "http://www.xbrl.org/2003/role/presentationGuidance",
                 "dataType": "xs:string"
-
+                
             },
             {
                 "name": "xbrl:measurementGuidance",
                 "uri": "http://www.xbrl.org/2003/role/measurementGuidance",
                 "dataType": "xs:string"
-
+                
             },
             {
                 "name": "xbrl:commentaryGuidance",
                 "uri": "http://www.xbrl.org/2003/role/commentaryGuidance",
                 "dataType": "xs:string"
-
+                
             },
             {
                 "name": "xbrl:exampleGuidance",
                 "uri": "http://www.xbrl.org/2003/role/exampleGuidance",
                 "dataType": "xs:string"
-
+                
             },
             {
                 "name": "xbrl:deprecatedDateLabel",
@@ -591,7 +592,7 @@
                 "relatedName": "xbrl:exampleGuidance",
                 "value": "An example of the type of information intended to be captured by the object."
             },
-
+        
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -991,7 +992,7 @@
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:defaultCube",
+                "relatedName": "xbrl:openCube",
                 "value": "Default generic cube type used when no other cube type is appropriate."
             },
             {
@@ -1413,6 +1414,12 @@
                 "language": "en",
                 "relatedName": "xbrl:xbrlModelObject",
                 "value": "The root model object representing an entire XBRL taxonomy or report. Contains all objects, relationships, and metadata that comprise a complete XBRL model."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:defaultLanguage",
+                "value": "A built-in property type that specifies the default BCP 47 language for text-valued objects (such as footnotes and text-typed facts) within the model. When a text-valued object does not declare an explicit language, processors MAY use the value of this property on the enclosing XBRL model object as the inherited language. This property may only be applied to the xbrl:xbrlModelObject."
             }
         ],
         "propertyTypes": [
@@ -1585,6 +1592,11 @@
                 "name": "xbrl:dimensionMemberProperty",
                 "dataType": "xbrli:dimensionMemberMap",
                 "allowedObjects": ["xbrl:factObject"]
+            },
+            {
+                "name": "xbrl:defaultLanguage",
+                "dataType": "xbrli:languageType",
+                "allowedObjects": ["xbrl:xbrlModelObject"]
             }
         ],
         "referenceTypes": [
@@ -1708,7 +1720,7 @@
                 "sourceObjects" : ["xbrl:conceptObject"],
                 "targetObjects" : ["xbrl:conceptObject"]
             },
-
+            
             {
                 "name": "xbrl:propertyValue-object",
                 "uri": "http://xbrl.org/oim/propertyValue-object",
@@ -1769,17 +1781,17 @@
                 "cycles" : "undirected",
                  "sourceObjects" : ["xbrl:conceptObject",
                     "xbrl:abstractObject",
-                    "xbrl:memberObject",
+                    "xbrl:memberObject", 
                     "xbrl:domainObject",
-                    "xbrl:domainClassObject",
+                    "xbrl:domainClassObject", 
                     "xbrl:dimensionObject",
                     "xbrl:cubeObject"
                 ],
-                "targetObjects" : ["xbrl:conceptObject",
+                "targetObjects" : ["xbrl:conceptObject", 
                     "xbrl:abstractObject",
-                    "xbrl:memberObject",
+                    "xbrl:memberObject", 
                     "xbrl:domainObject",
-                    "xbrl:domainClassObject",
+                    "xbrl:domainClassObject", 
                     "xbrl:dimensionObject",
                     "xbrl:cubeObject"
                 ]
@@ -1847,6 +1859,6 @@
                 "relationshipTypeName": "xbrl:fact-footnote"
             }
         ]
-
+        
     }
 }
