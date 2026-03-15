@@ -24,7 +24,7 @@
                 "relationships": [
                     {"source": "oime:OIMErrorClassDomain", "target": "oime:invalidJSON", "order": 2},
                     {"source": "oime:OIMErrorClassDomain", "target": "oime:invalidJSONStructure", "order": 3}
-
+                    
                 ]
             }
         ],
@@ -52,13 +52,13 @@
                 "name": "oime:ErrorsByObjectType",
                 "relationshipTypeName": "xbrl:parent-child",
                 "roots": [
-
+                    
                     "oime:JSONErrors"
                 ],
                 "relationships": [
                     {"source": "oime:JSONErrors", "target": "oime:invalidJSON", "order": 1},
                     {"source": "oime:JSONErrors", "target": "oime:invalidJSONStructure", "order": 2}
-
+                    
                 ]
             },
             {
@@ -122,10 +122,10 @@
                 "value": "This error is generated when the JSON document's structure does not conform to the OIM Taxonomy schema requirements. Property values must match their specified JSON types (string, object, array, number). Required properties must be present. Values must conform to the specified model types, including proper lexical representations for XML Schema datatypes.",
                 "labelType": "xbrl:documentation"
             }
-
+            
         ],
         "references": [
-
+            
         ]
     }
 }
