@@ -626,10 +626,10 @@ def loadModule(moduleInfo: dict[TypeModuleInfoKey, Any], packagePrefix: str="") 
                     try:
                         _gettext = gettext.translation(pluginInfo['localeDomain'], localeDir, getLanguageCodes())
                     except OSError:
-                        def _gettext(x):
+                        def _gettext(x: Any) -> Any: # type: ignore[misc]
                             return x # no translation
                 else:
-                    def _gettext(x):
+                    def _gettext(x: Any) -> Any: # type: ignore[misc]
                         return x
                 for key, value in pluginInfo.items():
                     if key == 'name':
@@ -641,7 +641,7 @@ def loadModule(moduleInfo: dict[TypeModuleInfoKey, Any], packagePrefix: str="") 
                             classModuleNames.append(name)
                     if key == 'ModelObjectFactory.ElementSubstitutionClasses':
                         elementSubstitutionClasses = value
-                module._ = _gettext
+                module._ = _gettext # type: ignore[attr-defined]
                 global pluginConfigChanged
                 pluginConfigChanged = True
             if elementSubstitutionClasses:
