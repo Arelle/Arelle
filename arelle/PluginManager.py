@@ -17,7 +17,7 @@ import types
 from collections import defaultdict
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
-from importlib.metadata import EntryPoint, entry_points
+from importlib.metadata import EntryPoint, entry_points, Distribution
 from numbers import Number
 from pathlib import Path
 from types import ModuleType
@@ -381,14 +381,16 @@ def parsePluginInfo(moduleURL: str, moduleFilename: str, entryPoint: EntryPoint 
                 moduleInfo["status"] = 'enabled'
                 moduleInfo["fileDate"] = time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(os.path.getmtime(moduleFilename)))
                 if entryPoint:
+                    distribution =  cast(Distribution, entryPoint.dist) if getattr(entryPoint, 'dist', None) else None
+                    version = distribution.version if distribution else None
                     moduleInfo["moduleURL"] = moduleFilename  # pip-installed plugins need absolute filepath
                     moduleInfo["entryPoint"] = {
                         "module": entryPoint.module,
                         "name": entryPoint.name,
-                        "version": entryPoint.dist.version if hasattr(entryPoint, 'dist') else None,
+                        "version": version,
                     }
                     if not moduleInfo.get("version"):
-                        moduleInfo["version"] = entryPoint.dist.version  # If no explicit version, retrieve from entry point
+                        moduleInfo["version"] = version # If no explicit version, retrieve from entry point
             elif isinstance(item.value, ast.Constant) and isinstance(item.value.value, str):  # possible constant used in plugininfo, such as VERSION
                 for assignmentName in item.targets:
                     constantStrings[assignmentName.id] = item.value.value
