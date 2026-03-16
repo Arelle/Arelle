@@ -147,6 +147,7 @@ class Cntlr:
     config: dict[str, Any] | None
     configJsonFile: str
     webCache: WebCache
+    pluginManager: PluginManager.PluginManager
     modelManager: ModelManager.ModelManager
     logger: logging.Logger | None
     logHandler: logging.Handler
@@ -289,6 +290,7 @@ class Cntlr:
 
         # start plug in server (requres web cache initialized, but not logger)
         PluginManager.init(self, loadPluginConfig=hasGui)
+        self.pluginManager = PluginManager._singleton  # type: ignore[assignment]
 
         # requires plug ins initialized
         self.modelManager = ModelManager.initialize(self)
