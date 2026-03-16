@@ -110,6 +110,7 @@ class Session:
         responseZipStream: BinaryIO | None = None,
         logHandler: logging.Handler | None = None,
         logFilters: list[logging.Filter] | None = None,
+        logFileName: str | None = None,
     ) -> bool:
         """
         Perform a run using the given options.
@@ -164,7 +165,7 @@ class Session:
             else:
                 if not self._cntlr.logger:
                     self._cntlr.startLogging(
-                        logFileName=(options.logFile or "logToPrint"),
+                        logFileName=(logFileName or options.logFile or "logToPrint"),
                         logFileMode=options.logFileMode,
                         logFormat=(options.logFormat or "[%(messageCode)s] %(message)s - %(file)s"),
                         logLevel=(options.logLevel or "DEBUG"),

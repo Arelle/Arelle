@@ -1550,8 +1550,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
     Initialization sets up for platform via Cntlr.Cntlr.
     """
 
-    def __init__(self, logFileName=None, uiLang=None, disable_persistent_config=False):
-        super().__init__(hasGui=False, uiLang=uiLang, disable_persistent_config=disable_persistent_config, logFileName=logFileName)
+    def __init__(self, uiLang=None, disable_persistent_config=False):
+        super().__init__(hasGui=False, uiLang=uiLang, disable_persistent_config=disable_persistent_config)
         self.preloadedPlugins = {}
 
     def run(self, options: RuntimeOptions, sourceZipStream=None, responseZipStream=None) -> bool:

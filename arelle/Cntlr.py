@@ -402,13 +402,14 @@ class Cntlr:
             if logFileName in ("logToPrint", "logToStdErr") and not logToBuffer:
                 self.logHandler = LogToPrintHandler(logFileName)
             elif logFileName == "logToBuffer":
-                self.logHandler = LogToBufferHandler()
+                self.logHandler = LogToBufferHandler(self)
                 setattr(self.logger, "logRefObjectProperties", logRefObjectProperties)
             elif logFileName == "logToStructuredMessage":
-                self.logHandler = StructuredMessageLogHandler()
+                self.logHandler = StructuredMessageLogHandler(self)
                 setattr(self.logger, "logRefObjectProperties", logRefObjectProperties)
             elif logFileName.endswith(".xml") or logFileName.endswith(".json") or logToBuffer:
                 self.logHandler = LogToXmlHandler(
+                    self,
                     filename=logFileName,
                     mode=logFileMode or "a",
                     logXmlMaxAttributeLength=logXmlMaxAttributeLength
