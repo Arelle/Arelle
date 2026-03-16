@@ -4,7 +4,6 @@ See COPYRIGHT.md for copyright information.
 
 # changed from reporting locs to reporting relationships: HF 2020-06-23
 
-from arelle import PluginManager
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelValue import qname
 from arelle.Version import copyrightLabel
