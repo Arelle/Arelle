@@ -36,7 +36,7 @@ if TYPE_CHECKING:
 
 _: TypeGetText
 
-PLUGIN_TRACE_FILE = None
+PLUGIN_TRACE_FILE: str | None = None
 # PLUGIN_TRACE_FILE = "c:/temp/pluginerr.txt"
 PLUGIN_TRACE_LEVEL = logging.WARNING
 
@@ -52,10 +52,10 @@ _cntlr: Cntlr = None # type: ignore[assignment]
 
 pluginConfigChanged = False
 pluginTraceFileLogger = None
-modulePluginInfos = {}
-pluginMethodsForClasses = {}
+modulePluginInfos: dict[str, Any] = {}
+pluginMethodsForClasses: dict[str, Any] = {}
 _pluginBase = None
-EMPTYLIST = []
+EMPTYLIST: list[Any] = []
 _ERROR_MESSAGE_IMPORT_TEMPLATE = "Unable to load module {}"
 
 def init(cntlr: Cntlr, loadPluginConfig: bool = True) -> None:
