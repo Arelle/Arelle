@@ -19,7 +19,6 @@ from arelle.ModelDtsObject import ModelLink
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelObjectFactory import parser
 from arelle.PrototypeDtsObject import LinkPrototype, LocPrototype, ArcPrototype, DocumentPrototype, PrototypeElementTree
-from arelle.PluginManager import pluginClassMethods as _pluginClassMethods  # retained for close() where modelXbrl is dereferenced
 from arelle.PythonUtil import OrderedDefaultDict, isLegacyAbs, normalizeSpace
 from arelle.XhtmlValidate import ixMsgCode
 from arelle.XmlValidateConst import VALID
@@ -663,6 +662,9 @@ class ModelDocument(ModelDocumentBase):
         self.inDTS = False
         self.definesUTR = False
         self.isModified = False
+        # The "ModelDocument.CustomCloser" plugin hooked is invoked after modelXbrl is dereferenced
+        # Store a reference to the plugin manager so that hook can be called, then deference it.
+        self.pluginManager = modelXbrl.modelManager.cntlr.pluginManager
 
 
     def objectId(self,refId=""):
@@ -772,9 +774,14 @@ class ModelDocument(ModelDocumentBase):
             pass
         if visited is None: visited = []
         visited.append(self)
-        # note that self.modelXbrl has been closed/dereferenced already, do not use in plug in
-        for pluginMethod in _pluginClassMethods("ModelDocument.CustomCloser"):
-            pluginMethod(self)
+        # note that self.modelXbrl has been closed/dereferenced already, do not use in plug in.
+        # We have a reference to the modelXbrl's PluginManager and need to dereference after using.
+        # `close` is sometimes called on ModelDocument multiple times, so check for pluginManager
+        # in case it is already deferenced.
+        if self.pluginManager is not None:
+            for pluginMethod in self.pluginManager.pluginClassMethods("ModelDocument.CustomCloser"):
+                pluginMethod(self)
+            self.pluginManager = None
         try:
             for referencedDocument, modelDocumentReference in self.referencesDocument.items():
                 if referencedDocument not in visited:
