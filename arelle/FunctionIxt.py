@@ -4,7 +4,6 @@ See COPYRIGHT.md for copyright information.
 import regex as re
 
 from arelle.ModelValue import QName
-from arelle.PluginManager import pluginClassMethods
 from arelle.formula.XPathParser import OperationDef
 from arelle.XmlValidate import decimalPattern
 from arelle.formula import XPathContext
