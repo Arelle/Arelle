@@ -21,7 +21,7 @@ from importlib.metadata import EntryPoint, entry_points
 from numbers import Number
 from pathlib import Path
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, cast, Union
 
 import arelle.FileSource
 from arelle.Locale import getLanguageCodes
@@ -57,6 +57,10 @@ pluginMethodsForClasses: dict[str, Any] = {}
 _pluginBase = None
 EMPTYLIST: list[Any] = []
 _ERROR_MESSAGE_IMPORT_TEMPLATE = "Unable to load module {}"
+
+TypeModuleInfoKey = Union[
+    str, bytes, int, float, complex, types.EllipsisType, None
+]
 
 def init(cntlr: Cntlr, loadPluginConfig: bool = True) -> None:
     global pluginJsonFile, pluginConfig, pluginTraceFileLogger, modulePluginInfos, pluginMethodsForClasses, pluginConfigChanged, _cntlr, _pluginBase
@@ -94,8 +98,8 @@ def reset() -> None:  # force reloading modules and plugin infos
     if pluginMethodsForClasses:
         pluginMethodsForClasses.clear() # dict by class of list of ordered callable function objects
 
-def orderedPluginConfig():
-    fieldOrder = [
+def orderedPluginConfig() -> dict[str, Any]:
+    fieldOrder: list[TypeModuleInfoKey] = [
         'name',
         'status',
         'fileDate',
@@ -111,7 +115,7 @@ def orderedPluginConfig():
     ]
     priorityIndex = {k: i for i, k in enumerate(fieldOrder)}
 
-    def sortModuleInfo(moduleInfo):
+    def sortModuleInfo(moduleInfo: dict[TypeModuleInfoKey, Any]) -> dict[TypeModuleInfoKey, Any]:
         # Prioritize known fields by the index in fieldOrder; sort others alphabetically
         orderedKeys = sorted(
             moduleInfo.keys(),
@@ -321,7 +325,7 @@ def getModuleFilename(moduleURL: str, reload: bool, normalize: bool, base: str |
     return None, None
 
 
-def parsePluginInfo(moduleURL: str, moduleFilename: str, entryPoint: EntryPoint | None) -> dict | None:
+def parsePluginInfo(moduleURL: str, moduleFilename: str, entryPoint: EntryPoint | None) -> dict[TypeModuleInfoKey, Any] | None:
     moduleDir, moduleName = os.path.split(moduleFilename)
     with arelle.FileSource.openFileStream(_cntlr, moduleFilename) as f:
         contents = f.read()
@@ -332,7 +336,7 @@ def parsePluginInfo(moduleURL: str, moduleFilename: str, entryPoint: EntryPoint 
     functionDefNames = set()
     methodDefNamesByClass = defaultdict(set)
     moduleImports = []
-    moduleInfo = {"name":None}
+    moduleInfo: dict[TypeModuleInfoKey, Any] = {"name":None}
     isPlugin = False
     for item in tree.body:
         if isinstance(item, ast.Assign):
@@ -426,7 +430,7 @@ def moduleModuleInfo(
         moduleURL: str | None = None,
         entryPoint: EntryPoint | None = None,
         reload: bool = False,
-        parentImportsSubtree: bool = False) -> dict | None:
+        parentImportsSubtree: bool = False) -> dict[TypeModuleInfoKey, Any] | None:
     """
     Generates a module info dict based on the provided `moduleURL` or `entryPoint`
     Exactly one of "moduleURL" or "entryPoint" must be provided, otherwise a RuntimeError will be thrown.
@@ -579,7 +583,7 @@ def _find_and_load_module(moduleDir: str, moduleName: str) -> ModuleType | None:
 
     return sys.modules[moduleName]
 
-def loadModule(moduleInfo: dict[str, Any], packagePrefix: str="") -> None:
+def loadModule(moduleInfo: dict[TypeModuleInfoKey, Any], packagePrefix: str="") -> None:
     name = moduleInfo['name']
     moduleURL = moduleInfo['moduleURL']
     modulePath = Path(moduleInfo['path'])
@@ -667,7 +671,7 @@ def pluginClassMethods(className: str) -> Iterator[Callable[..., Any]]:
         yield from pluginMethodsForClass
 
 
-def addPluginModule(name: str) -> dict[str, Any] | None:
+def addPluginModule(name: str) -> dict[TypeModuleInfoKey, Any] | None:
     """
     Discover plugin entry points with given name.
     :param name: The name to search for
@@ -695,7 +699,7 @@ def reloadPluginModule(name):
 def removePluginModule(name):
     moduleInfo = pluginConfig["modules"].get(name)
     if moduleInfo and name:
-        def _removePluginModule(moduleInfo):
+        def _removePluginModule(moduleInfo: dict[TypeModuleInfoKey, Any]) -> None:
             _name = moduleInfo.get("name")
             if _name:
                 for classMethod in moduleInfo["classMethods"]:
@@ -714,7 +718,7 @@ def removePluginModule(name):
     return False # unable to remove
 
 
-def addPluginModuleInfo(plugin_module_info: dict[str, Any]) -> dict[str, Any] | None:
+def addPluginModuleInfo(plugin_module_info: dict[TypeModuleInfoKey, Any] | None) -> dict[TypeModuleInfoKey, Any] | None:
     """
     Given a dictionary containing module information, loads plugin info into `pluginConfig`
     :param plugin_module_info: Dictionary of module info fields. See comment block in PluginManager.py for structure.
@@ -725,7 +729,7 @@ def addPluginModuleInfo(plugin_module_info: dict[str, Any]) -> dict[str, Any] | 
     name = plugin_module_info["name"]
     removePluginModule(name)  # remove any prior entry for this module
 
-    def _addPluginSubModule(subModuleInfo: dict[str, Any]):
+    def _addPluginSubModule(subModuleInfo: dict[TypeModuleInfoKey, Any]) -> None:
         """
         Inline function for recursively exploring module imports
         :param subModuleInfo: Module information to add.
@@ -764,9 +768,9 @@ class EntryPointRef:
     aliases: set[str]
     entryPoint: EntryPoint | None
     moduleFilename: str | None
-    moduleInfo: dict | None
+    moduleInfo: dict[TypeModuleInfoKey, Any] | None
 
-    def createModuleInfo(self) -> dict | None:
+    def createModuleInfo(self) -> dict[TypeModuleInfoKey, Any] | None:
         """
         Creates a module information dictionary from the entry point ref.
         :return: A module inforomation dictionary
@@ -802,7 +806,7 @@ class EntryPointRef:
         aliases = set()
         if entryPoint:
             aliases.add(entryPoint.name)
-        moduleInfo: dict | None = None
+        moduleInfo: dict[TypeModuleInfoKey, Any] | None = None
         if moduleFilename:
             moduleInfo = parsePluginInfo(moduleFilename, moduleFilename, entryPoint)
             if moduleInfo is None:
