@@ -49,7 +49,6 @@ class TestFilter(logging.Filter):
 
 
 log_filter = TestFilter()
-log_handler = StructuredMessageLogHandler()
 print(f"Generating IXBRL viewer: {viewer_path}")
 # include start
 with open(samples_zip_path, 'rb') as stream:
@@ -57,6 +56,7 @@ with open(samples_zip_path, 'rb') as stream:
         entrypointFile=str(target_path),
         internetConnectivity='offline' if arelle_offline else 'online',
         keepOpen=True,
+        logFile="logToStructuredMessage",
         logFormat="[%(messageCode)s] %(message)s - %(file)s",
         logPropagate=False,
         pluginOptions={
@@ -71,7 +71,6 @@ with open(samples_zip_path, 'rb') as stream:
         session.run(
             options,
             sourceZipStream=stream,
-            logHandler=log_handler,
             logFilters=[log_filter],
         )
         # Plugin default options were applied.
@@ -91,7 +90,6 @@ if actual_filtered != expected_filtered:
     errors.append(f'Expected {expected_filtered} filtered log records, found {actual_filtered}.')
 
 print("Checking log XML for errors...")
-assert log_xml == log_handler.getXml(clearLogBuffer=False, includeDeclaration=False)
 errors += validate_log_xml(log_xml)
 
 assert_result(errors)
