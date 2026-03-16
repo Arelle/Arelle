@@ -350,7 +350,7 @@ class Cntlr:
             Cntlr.addToLog(self, localeSetupMessage, messageCode="arelle:uiLocale", level=logging.WARNING)
 
         # Cntlr.Init after logging started
-        for pluginMethod in PluginManager.pluginClassMethods("Cntlr.Init"):
+        for pluginMethod in self.pluginManager.pluginClassMethods("Cntlr.Init"):
             pluginMethod(self)
 
     def setUiLanguage(self, locale: str | None, fallbackToDefault: bool = False) -> None:
@@ -515,7 +515,7 @@ class Cntlr:
            :param saveConfig: save the user preferences configuration
            :type saveConfig: bool
         """
-        PluginManager.save(self)
+        self.pluginManager.save(self)
 
         if self.hasGui:
             PackageManager.save(self)
