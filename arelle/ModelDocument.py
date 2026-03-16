@@ -19,7 +19,7 @@ from arelle.ModelDtsObject import ModelLink
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelObjectFactory import parser
 from arelle.PrototypeDtsObject import LinkPrototype, LocPrototype, ArcPrototype, DocumentPrototype, PrototypeElementTree
-from arelle.PluginManager import pluginClassMethods
+from arelle.PluginManager import pluginClassMethods as _pluginClassMethods  # retained for close() where modelXbrl is dereferenced
 from arelle.PythonUtil import OrderedDefaultDict, isLegacyAbs, normalizeSpace
 from arelle.XhtmlValidate import ixMsgCode
 from arelle.XmlValidateConst import VALID
@@ -139,7 +139,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
         return None
 
     isPullLoadable = any(pluginMethod(modelXbrl, mappedUri, normalizedUri, filepath, isEntry=isEntry, namespace=namespace, **kwargs)
-                         for pluginMethod in pluginClassMethods("ModelDocument.IsPullLoadable"))
+                         for pluginMethod in modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("ModelDocument.IsPullLoadable"))
 
     if not isPullLoadable and os.path.splitext(filepath)[1] in (".xlsx", ".xls"):
         modelXbrl.error("FileNotLoadable",
@@ -152,7 +152,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
     modelXbrl.modelManager.showStatus(_("parsing {0}").format(uri))
     file = None
     try:
-        for pluginMethod in pluginClassMethods("ModelDocument.PullLoader"):
+        for pluginMethod in modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("ModelDocument.PullLoader"):
             # assumes not possible to check file in string format or not all available at once
             modelDocument = pluginMethod(modelXbrl, normalizedUri, filepath, isEntry=isEntry, namespace=namespace, **kwargs)
             if isinstance(modelDocument, Exception):
@@ -182,7 +182,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             file, _encoding = modelXbrl.fileSource.file(filepath, stripDeclaration=True)
         xmlDocument = None
         isPluginParserDocument = False
-        for pluginMethod in pluginClassMethods("ModelDocument.CustomLoader"):
+        for pluginMethod in modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("ModelDocument.CustomLoader"):
             modelDocument = pluginMethod(modelXbrl, file, mappedUri, filepath)
             if modelDocument is not None:
                 file.close()
@@ -334,7 +334,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             # any xml document can be an inline document, only html and xhtml are found above
             _type = Type.INLINEXBRL
         else:
-            for pluginMethod in pluginClassMethods("ModelDocument.IdentifyType"):
+            for pluginMethod in modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("ModelDocument.IdentifyType"):
                 _identifiedType = pluginMethod(modelXbrl, rootNode, filepath)
                 if _identifiedType is not None:
                     _type, _class, rootNode = _identifiedType
@@ -370,7 +370,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
 
         # discovery (parsing)
         if any(pluginMethod(modelDocument)
-               for pluginMethod in pluginClassMethods("ModelDocument.Discover")):
+               for pluginMethod in modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("ModelDocument.Discover")):
             pass # discovery was performed by plug-in, we're done
         elif _type == Type.SCHEMA:
             modelDocument.schemaDiscover(rootNode, isIncluded, isSupplemental, namespace)
@@ -773,7 +773,7 @@ class ModelDocument(ModelDocumentBase):
         if visited is None: visited = []
         visited.append(self)
         # note that self.modelXbrl has been closed/dereferenced already, do not use in plug in
-        for pluginMethod in pluginClassMethods("ModelDocument.CustomCloser"):
+        for pluginMethod in _pluginClassMethods("ModelDocument.CustomCloser"):
             pluginMethod(self)
         try:
             for referencedDocument, modelDocumentReference in self.referencesDocument.items():
@@ -1231,7 +1231,7 @@ class ModelDocument(ModelDocumentBase):
                 else:
                     _newDoc = load
                 if urlRewritePluginClass:
-                    for pluginMethod in pluginClassMethods(urlRewritePluginClass):
+                    for pluginMethod in self.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods(urlRewritePluginClass):
                         url = pluginMethod(self, url)
                 doc = _newDoc(self.modelXbrl, url, isDiscovered=not nonDTS, base=self.baseForElement(element), referringElement=element)
                 if not nonDTS and doc is not None:
@@ -1346,14 +1346,14 @@ class ModelDocument(ModelDocumentBase):
         self.htmlBase = htmlBase
         ixdsTarget = getattr(self.modelXbrl, "ixdsTarget", None)
         if all(pluginMethod(self.modelXbrl)
-               for pluginMethod in pluginClassMethods("ModelDocument.DiscoverIxdsDts")):
+               for pluginMethod in self.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("ModelDocument.DiscoverIxdsDts")):
             # load referenced schemas and linkbases (before validating inline HTML
             for inlineElement in htmlElement.iterdescendants(tag=ixNStag + "references"):
                 if inlineElement.get("target") == ixdsTarget:
                     self.schemaLinkbaseRefsDiscover(inlineElement)
                     xmlValidate(self.modelXbrl, inlineElement) # validate instance elements
         # validate resources only if no possibility of multi-document ixds for which ix:references not encountered yet
-        if len(list(pluginClassMethods("ModelDocument.SelectIxdsTarget"))) == 0:
+        if len(list(self.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("ModelDocument.SelectIxdsTarget"))) == 0:
             for inlineElement in htmlElement.iterdescendants(tag=ixNStag + "resources"):
                 xmlValidate(self.modelXbrl, inlineElement) # validate instance elements
         # with DTS loaded, now validate inline HTML (so schema definition of facts is available)
@@ -1465,7 +1465,7 @@ class ModelDocument(ModelDocumentBase):
 # modelIxdsDocument is an inlineDocumentSet or entry inline document (if not a document set)
 #   note that multi-target and multi-instance facts may have html elements belonging to primary ixds instead of this instance ixds
 def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, **kwargs):
-    for pluginMethod in pluginClassMethods("ModelDocument.SelectIxdsTarget"):
+    for pluginMethod in modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("ModelDocument.SelectIxdsTarget"):
         pluginMethod(modelXbrl, modelIxdsDocument, **kwargs)
     # extract for a single target document
     ixdsTarget = getattr(modelXbrl, "ixdsTarget", None)
@@ -2126,7 +2126,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
         modelIxdsDocument.targetXbrlRootElement = modelXbrl.ixTargetRootElements[ixdsTarget]
         modelIxdsDocument.targetXbrlElementTree = PrototypeElementTree(modelIxdsDocument.targetXbrlRootElement)
 
-    for pluginMethod in pluginClassMethods("ModelDocument.IxdsTargetDiscovered"):
+    for pluginMethod in modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("ModelDocument.IxdsTargetDiscovered"):
         pluginMethod(modelXbrl, modelIxdsDocument)
 
 class LoadingException(Exception):
