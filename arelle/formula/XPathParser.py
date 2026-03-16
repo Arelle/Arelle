@@ -39,7 +39,6 @@ from pyparsing import (
 
 from arelle import ModelValue, XbrlConst, XmlUtil
 from arelle.Locale import format_string
-from arelle.PluginManager import pluginClassMethods
 
 if TYPE_CHECKING:
     from arelle.ModelFormulaObject import ModelFormulaResource
@@ -976,7 +975,7 @@ def parse(
     returnProg = None
     pluginCustomFunctionQNames = set()
 
-    for pluginXbrlMethod in pluginClassMethods("Formula.CustomFunctions"):
+    for pluginXbrlMethod in modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("Formula.CustomFunctions"):
         pluginCustomFunctionQNames.update(pluginXbrlMethod().keys())
 
     # throws ParseException
