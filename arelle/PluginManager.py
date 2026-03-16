@@ -338,16 +338,17 @@ def parsePluginInfo(moduleURL: str, moduleFilename: str, entryPoint: EntryPoint 
         if '__pluginInfo__' not in contents:
             return None
         tree = ast.parse(contents, filename=moduleFilename)
-    constantStrings = {}
+    constantStrings: dict[str, Any] = {}
     functionDefNames = set()
-    methodDefNamesByClass = defaultdict(set)
+    methodDefNamesByClass: dict[str, set[str]] = defaultdict(set)
     moduleImports = []
     moduleInfo: dict[TypeModuleInfoKey, Any] = {"name":None}
     isPlugin = False
     for item in tree.body:
         if isinstance(item, ast.Assign):
             try:
-                attr = item.targets[0].id
+                _name = cast(ast.Name, item.targets[0])
+                attr = _name.id
             except AttributeError:
                 # Not plugininfo
                 continue
@@ -355,28 +356,37 @@ def parsePluginInfo(moduleURL: str, moduleFilename: str, entryPoint: EntryPoint 
                 isPlugin = True
                 classMethods = []
                 importURLs = []
-                for i, key in enumerate(item.value.keys):
-                    _key = key.value
-                    _value = item.value.values[i]
+                _dict = cast(ast.Dict, item.value)
+                for i, key in enumerate(_dict.keys):
+                    _key = cast(ast.Constant, key).value
+                    if _key is None:
+                        continue
+
+                    _value = _dict.values[i]
+
                     _valueType = _value.__class__.__name__
                     if _key == "import":
                         if _valueType == 'Constant':
-                            importURLs.append(_value.value)
+                            importURLs.append(cast(ast.Constant, _value).value)
                         elif _valueType in ("List", "Tuple"):
-                            for elt in _value.elts:
-                                importURLs.append(elt.value)
+                            for elt in cast(ast.Tuple | ast.List, _value).elts:
+                                importURLs.append(cast(ast.Constant, elt).value)
                     elif _valueType == 'Constant':
-                        moduleInfo[_key] = _value.value
+                        _constantValue = cast(ast.Constant, _value)
+                        moduleInfo[_key] = _constantValue.value
                     elif _valueType == 'Name':
-                        if _value.id in constantStrings:
-                            moduleInfo[_key] = constantStrings[_value.id]
-                        elif _value.id in functionDefNames:
+                        _nameValue = cast(ast.Name, _value)
+                        if _nameValue.id in constantStrings:
+                            moduleInfo[_key] = constantStrings[_nameValue.id]
+                        elif _nameValue.id in functionDefNames:
                             classMethods.append(_key)
                     elif _valueType == 'Attribute':
-                        if _value.attr in methodDefNamesByClass[_value.value.id]:
+                        _attributeValue = cast(ast.Attribute, _value)
+                        if _attributeValue.attr in methodDefNamesByClass[cast(ast.Name, _attributeValue.value).id]:
                             classMethods.append(_key)
                     elif _valueType in ("List", "Tuple"):
-                        values = [elt.value for elt in _value.elts]
+                        _listValue = cast(ast.Tuple | ast.List, _value)
+                        values = [cast(ast.Constant, elt).value for elt in _listValue.elts]
                         if _key == "imports":
                             importURLs = values
                         else:
@@ -401,7 +411,7 @@ def parsePluginInfo(moduleURL: str, moduleFilename: str, entryPoint: EntryPoint 
                         moduleInfo["version"] = version # If no explicit version, retrieve from entry point
             elif isinstance(item.value, ast.Constant) and isinstance(item.value.value, str):  # possible constant used in plugininfo, such as VERSION
                 for assignmentName in item.targets:
-                    constantStrings[assignmentName.id] = item.value.value
+                    constantStrings[cast(ast.Name, assignmentName).id] = item.value.value
         elif isinstance(item, ast.ImportFrom):
             if item.level == 1: # starts with .
                 if item.module is None:  # from . import module1, module2, ...
@@ -463,6 +473,7 @@ def moduleModuleInfo(
         # If entry point is provided, use it to retrieve `moduleFilename`
         moduleFilename = moduleURL = entryPoint.load()()
     else:
+        assert moduleURL is not None
         # Otherwise, we will verify the path before continuing
         moduleFilename, entryPoint = getModuleFilename(moduleURL, reload=reload, normalize=True, base=_pluginBase)
 
