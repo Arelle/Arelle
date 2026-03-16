@@ -543,13 +543,12 @@ def moduleModuleInfo(
     return None
 
 
-def moduleInfo(pluginInfo):
-    moduleInfo = {}
-    for name, value in pluginInfo.items():
-        if isinstance(value, str):
-            moduleInfo[name] = value
-        elif isinstance(value, types.FunctionType):
-            moduleInfo.getdefault('classes', []).append(name)
+def moduleInfo(pluginInfo: Any) -> None:
+    """
+    This is an empty function in place for backwards compatability.
+    Will be removed in future release.
+    """
+    pass
 
 
 def _isAbsoluteModuleURL(moduleURL: str) -> bool:
