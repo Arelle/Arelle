@@ -206,6 +206,10 @@ def modulesWithNewerFileDates():
     names = set()
     for moduleName, moduleInfo in pluginConfig["modules"].items():
         freshenedFilename = _cntlr.webCache.getfilename(moduleInfo["moduleURL"], checkModifiedTime=True, normalize=True, base=_pluginBase)
+        if freshenedFilename is None:
+            _msg = _("Module URL could not be mapped to a filepath: {moduleURL}").format(moduleURL=moduleInfo["moduleURL"])
+            logPluginTrace(_msg, logging.ERROR)
+            continue
         try:
             if os.path.isdir(freshenedFilename): # if freshenedFilename is a directory containing an __init__.py file, open that instead
                 if os.path.isfile(os.path.join(freshenedFilename, "__init__.py")):
@@ -231,6 +235,10 @@ def freshenModuleInfos():
     for moduleName, moduleInfo in pluginConfig["modules"].items():
         moduleEnabled = moduleInfo["status"] == "enabled"
         freshenedFilename = _cntlr.webCache.getfilename(moduleInfo["moduleURL"], checkModifiedTime=True, normalize=True, base=_pluginBase)
+        if freshenedFilename is None:
+            _msg = _("Module URL could not be mapped to a filepath: {moduleURL}").format(moduleURL=moduleInfo["moduleURL"])
+            logPluginTrace(_msg, logging.ERROR)
+            continue
         try: # check if moduleInfo cached may differ from referenced moduleInfo
             if os.path.isdir(freshenedFilename): # if freshenedFilename is a directory containing an __ini__.py file, open that instead
                 if os.path.isfile(os.path.join(freshenedFilename, "__init__.py")):
