@@ -189,7 +189,7 @@ moduleInfo = {
 
 '''
 
-def logPluginTrace(message: str, level: Number) -> None:
+def logPluginTrace(message: str, level: int) -> None:
     """
     If plugin trace file logging is configured, logs `message` to it.
     Only logs to controller logger if log is an error.
@@ -202,7 +202,7 @@ def logPluginTrace(message: str, level: Number) -> None:
         _cntlr.addToLog(message=message, level=level, messageCode='arelle:pluginLoadingError')
 
 
-def modulesWithNewerFileDates():
+def modulesWithNewerFileDates() -> set[str]:
     names = set()
     for moduleName, moduleInfo in pluginConfig["modules"].items():
         freshenedFilename = _cntlr.webCache.getfilename(moduleInfo["moduleURL"], checkModifiedTime=True, normalize=True, base=_pluginBase)
@@ -229,7 +229,7 @@ def modulesWithNewerFileDates():
 
     return names
 
-def freshenModuleInfos():
+def freshenModuleInfos() -> None:
     # for modules with different date-times, re-load module info
     missingEnabledModules = []
     for moduleName, moduleInfo in pluginConfig["modules"].items():
@@ -555,7 +555,7 @@ def _isAbsoluteModuleURL(moduleURL: str) -> bool:
     return isAbsolute(moduleURL) or isLegacyAbs(moduleURL)
 
 
-def _get_name_dir_prefix(modulePath: Path, packagePrefix: str = "") -> tuple[str, str, str] | tuple[None, None, None]:
+def _get_name_dir_prefix(modulePath: Path, packagePrefix: str = "") -> tuple[str | None, str | None, str | None]:
     """Get the name, directory and prefix of a module."""
     moduleName = None
     moduleDir = None
@@ -576,7 +576,7 @@ def _get_name_dir_prefix(modulePath: Path, packagePrefix: str = "") -> tuple[str
 
     return (moduleName, moduleDir, packageImportPrefix)
 
-def _get_location(moduleDir: str, moduleName: str) -> str:
+def _get_location(moduleDir: str, moduleName: str) -> Path:
     """Get the file name of a plugin."""
     module_name_path = Path(f"{moduleDir}/{moduleName}.py")
     if os.path.isfile(module_name_path):
@@ -584,7 +584,7 @@ def _get_location(moduleDir: str, moduleName: str) -> str:
 
     return Path(f"{moduleDir}/{moduleName}/__init__.py")
 
-def _find_and_load_module(moduleDir: str, moduleName: str) -> ModuleType | None:
+def _find_and_load_module(moduleDir: str, moduleName: str) -> ModuleType:
     """Load a module based on name and directory."""
     location = _get_location(moduleDir=moduleDir, moduleName=moduleName)
     spec = importlib.util.spec_from_file_location(name=moduleName, location=location)
@@ -707,7 +707,7 @@ def addPluginModule(name: str) -> dict[TypeModuleInfoKey, Any] | None:
     return addPluginModuleInfo(pluginModuleInfo)
 
 
-def reloadPluginModule(name):
+def reloadPluginModule(name: str) -> bool:
     if name in pluginConfig["modules"]:
         url = pluginConfig["modules"][name].get("moduleURL")
         if url:
@@ -717,7 +717,7 @@ def reloadPluginModule(name):
                 return True
     return False
 
-def removePluginModule(name):
+def removePluginModule(name: str) -> bool:
     moduleInfo = pluginConfig["modules"].get(name)
     if moduleInfo and name:
         def _removePluginModule(moduleInfo: dict[TypeModuleInfoKey, Any]) -> None:
@@ -852,7 +852,7 @@ class EntryPointRef:
         global _entryPointRefCache
         if _entryPointRefCache is None:
             assert _pluginBase is not None
-            _entryPointRefCache = EntryPointRef._discoverBuiltIn([], cast(str, _pluginBase)) + EntryPointRef._discoverInstalled()
+            _entryPointRefCache = EntryPointRef._discoverBuiltIn([], _pluginBase) + EntryPointRef._discoverInstalled()
         return _entryPointRefCache
 
     @staticmethod
@@ -906,7 +906,9 @@ class EntryPointRef:
         :return: Matching entry point ref, if found.
         """
         entryPointRefs = EntryPointRef.search(search)
-        if len(entryPointRefs) == 0:
+        if entryPointRefs is None:
+            return None
+        elif len(entryPointRefs) == 0:
             return None
         elif len(entryPointRefs) > 1:
             paths = [r.moduleFilename for r in entryPointRefs]
