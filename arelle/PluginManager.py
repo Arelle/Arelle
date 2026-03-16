@@ -149,8 +149,6 @@ def close() -> None:  # close all loaded methods
         modulePluginInfos.clear()
     if pluginMethodsForClasses is not None:
         pluginMethodsForClasses.clear()
-    global webCache
-    webCache = None
 
 ''' pluginInfo structure:
 
