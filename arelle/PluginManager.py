@@ -612,13 +612,15 @@ def loadModule(moduleInfo: dict[TypeModuleInfoKey, Any], packagePrefix: str="") 
         _cntlr.addToLog(message=_ERROR_MESSAGE_IMPORT_TEMPLATE.format(name), level=logging.ERROR)
     else:
         try:
+            if moduleDir is None or moduleName is None:
+                raise ModuleNotFoundError("Unable to load module")
             module = _find_and_load_module(moduleDir=moduleDir, moduleName=moduleName)
             pluginInfo = module.__pluginInfo__.copy()
             elementSubstitutionClasses = None
             if name == pluginInfo.get('name'):
                 pluginInfo["moduleURL"] = moduleURL
                 modulePluginInfos[name] = pluginInfo
-                if 'localeURL' in pluginInfo:
+                if 'localeURL' in pluginInfo and module.__file__ is not None:
                     # set L10N internationalization in loaded module
                     localeDir = os.path.dirname(module.__file__) + os.sep + pluginInfo['localeURL']
                     try:
@@ -650,8 +652,9 @@ def loadModule(moduleInfo: dict[TypeModuleInfoKey, Any], packagePrefix: str="") 
                     _msg = _("Exception loading plug-in {name}: processing ModelObjectFactory.ElementSubstitutionClasses").format(
                             name=name, error=err)
                     logPluginTrace(_msg, logging.ERROR)
-            for importModuleInfo in moduleInfo.get('imports', EMPTYLIST):
-                loadModule(importModuleInfo, packageImportPrefix)
+            if packageImportPrefix is not None:
+                for importModuleInfo in moduleInfo.get('imports', EMPTYLIST):
+                    loadModule(importModuleInfo, packageImportPrefix)
         except (AttributeError, ImportError, FileNotFoundError, ModuleNotFoundError, TypeError, SystemError) as err:
             # Send a summary of the error to the logger and retain the stacktrace for stderr
             _cntlr.addToLog(message=_ERROR_MESSAGE_IMPORT_TEMPLATE.format(name), level=logging.ERROR)
