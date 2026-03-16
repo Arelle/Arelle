@@ -6,7 +6,7 @@ from tests.integration_tests.validation.conformance_suite_config import (
     ConformanceSuiteConfig,
 )
 
-CONFORMANCE_SUITE_ZIP_NAME = 'efm-76-251010.zip'
+CONFORMANCE_SUITE_ZIP_NAME = 'efm-77-260316.zip'
 
 config = ConformanceSuiteConfig(
     additional_plugins_by_prefix=[(f'conf/{t}', frozenset({'EDGAR/render'})) for t in [
@@ -24,17 +24,8 @@ config = ConformanceSuiteConfig(
             source=AssetSource.S3_PUBLIC,
         )
     ],
-    cache_version_id='ShpWxxspdHtuQbCApZ2bwkO7.t66OMa3',
+    cache_version_id='hsS07mO9NuCtSMs1Dqvcw.cv6.V3FZRP',
     disclosure_system='efm-pragmatic',
-    # Failures expected to be resolved when EFM 26.1 conformance suite is published.
-    expected_additional_testcase_errors={
-        'conf/622-only-supported-locations/622-01-all-supported-locations/622-01-all-supported-locations-testcase.xml:_046gd': {
-            'DQC.US.0159.10081': 1,
-        },
-        'conf/624-rendering/09-start-end-labels/gd/09-start-end-labels-gd-testcase.xml:_002gd': {
-            'DQC.US.0159.10081': 1,
-        },
-    },
     info_url='https://www.sec.gov/structureddata/osdinteractivedatatestsuite',
     name=PurePath(__file__).stem,
     plugins=frozenset({
