@@ -53,6 +53,8 @@ class PluginManager:
         self.modulePluginInfos: dict[str, Any] = {}
         self.pluginMethodsForClasses: dict[str, Any] = {}
         self._pluginBase: str = cntlr.pluginDir + os.sep
+        self._entryPointRefCache: list[EntryPointRef] | None = None
+        self._entryPointRefAliasCache: dict[str, list[EntryPointRef]] | None = None
 
         if PLUGIN_TRACE_FILE:
             self.pluginTraceFileLogger = logging.getLogger(__name__)
@@ -309,7 +311,7 @@ class PluginManager:
                     return normalizedPath, None
         # `moduleFilename` did not map to a local filepath or did not normalize to a script
         # Try using `moduleURL` to search for pip-installed entry point
-        entryPointRef = EntryPointRef.get(moduleURL)
+        entryPointRef = EntryPointRef.get(moduleURL, plugin_manager=self)
         if entryPointRef is not None:
             return entryPointRef.moduleFilename, entryPointRef.entryPoint
         return None, None
@@ -689,10 +691,10 @@ class PluginManager:
         :param name: The name to search for
         :return: The module information dictionary, if added. Otherwise, None.
         """
-        entryPointRef = EntryPointRef.get(name)
+        entryPointRef = EntryPointRef.get(name, plugin_manager=self)
         pluginModuleInfo = None
         if entryPointRef:
-            pluginModuleInfo = entryPointRef.createModuleInfo()
+            pluginModuleInfo = entryPointRef.createModuleInfo(plugin_manager=self)
         if not pluginModuleInfo or not pluginModuleInfo.get("name"):
             pluginModuleInfo = self.moduleModuleInfo(moduleURL=name)
         return self.addPluginModuleInfo(pluginModuleInfo)
@@ -764,8 +766,6 @@ class PluginManager:
         return plugin_module_info
 
 
-_entryPointRefCache: list[EntryPointRef] | None = None
-_entryPointRefAliasCache: dict[str, list[EntryPointRef]] | None = None
 _entryPointRefSearchTermEndings = [
     '/__init__.py',
     '.py'
@@ -780,45 +780,52 @@ class EntryPointRef:
     moduleFilename: str | None
     moduleInfo: dict[str, Any] | None
 
-    def createModuleInfo(self) -> dict[str, Any] | None:
+    def createModuleInfo(self, plugin_manager: PluginManager | None = None) -> dict[str, Any] | None:
         """
         Creates a module information dictionary from the entry point ref.
-        :return: A module inforomation dictionary
+        :param plugin_manager: PluginManager instance. Defaults to module-level _singleton.
+        :return: A module information dictionary
         """
+        pm = plugin_manager or _singleton
+        assert pm is not None
         if self.entryPoint is not None:
-            return moduleModuleInfo(entryPoint=self.entryPoint)
-        return moduleModuleInfo(moduleURL=self.moduleFilename)
+            return pm.moduleModuleInfo(entryPoint=self.entryPoint)
+        return pm.moduleModuleInfo(moduleURL=self.moduleFilename)
 
     @staticmethod
-    def fromEntryPoint(entryPoint: EntryPoint) -> EntryPointRef | None:
+    def fromEntryPoint(entryPoint: EntryPoint, plugin_manager: PluginManager | None = None) -> EntryPointRef | None:
         """
         Given an entry point, retrieves the subset of information from __pluginInfo__ necessary to
         determine if the entry point should be imported as a plugin.
         :param entryPoint:
+        :param plugin_manager: PluginManager instance. Defaults to module-level _singleton.
         :return:
         """
         pluginUrlFunc = entryPoint.load()
         pluginUrl = pluginUrlFunc()
-        return EntryPointRef.fromFilepath(pluginUrl, entryPoint)
+        return EntryPointRef.fromFilepath(pluginUrl, entryPoint, plugin_manager=plugin_manager)
 
     @staticmethod
-    def fromFilepath(filepath: str, entryPoint: EntryPoint | None = None) -> EntryPointRef | None:
+    def fromFilepath(filepath: str, entryPoint: EntryPoint | None = None, plugin_manager: PluginManager | None = None) -> EntryPointRef | None:
         """
         Given a filepath, retrieves a subset of information from __pluginInfo__ necessary to
         determine if the entry point should be imported as a plugin.
         :param filepath: Path to plugin, can be a directory or .py filepath
         :param entryPoint: Optional entry point information to include in aliases/moduleInfo
+        :param plugin_manager: PluginManager instance. Defaults to module-level _singleton.
         :return:
         """
-        moduleFilename = self._cntlr.webCache.getfilename(filepath)
+        pm = plugin_manager or _singleton
+        assert pm is not None
+        moduleFilename = pm._cntlr.webCache.getfilename(filepath)
         if moduleFilename:
-            moduleFilename = normalizeModuleFilename(moduleFilename)
+            moduleFilename = pm.normalizeModuleFilename(moduleFilename)
         aliases = set()
         if entryPoint:
             aliases.add(entryPoint.name)
         moduleInfo: dict[str, Any] | None = None
         if moduleFilename:
-            moduleInfo = parsePluginInfo(moduleFilename, moduleFilename, entryPoint)
+            moduleInfo = pm.parsePluginInfo(moduleFilename, moduleFilename, entryPoint)
             if moduleInfo is None:
                 return None
             if "name" in moduleInfo:
@@ -833,23 +840,25 @@ class EntryPointRef:
         )
 
     @staticmethod
-    def discoverAll() -> list[EntryPointRef]:
+    def discoverAll(plugin_manager: PluginManager | None = None) -> list[EntryPointRef]:
         """
         Retrieve all plugin entry points, cached on first run.
+        :param plugin_manager: PluginManager instance. Defaults to module-level _singleton.
         :return: List of all discovered entry points.
         """
-        global _entryPointRefCache
-        if _entryPointRefCache is None:
-            assert _pluginBase is not None
-            _entryPointRefCache = EntryPointRef._discoverBuiltIn([], _pluginBase) + EntryPointRef._discoverInstalled()
-        return _entryPointRefCache
+        pm = plugin_manager or _singleton
+        assert pm is not None
+        if pm._entryPointRefCache is None:
+            pm._entryPointRefCache = EntryPointRef._discoverBuiltIn([], pm._pluginBase, plugin_manager=pm) + EntryPointRef._discoverInstalled(plugin_manager=pm)
+        return pm._entryPointRefCache
 
     @staticmethod
-    def _discoverBuiltIn(entryPointRefs: list[EntryPointRef], directory: str) -> list[EntryPointRef]:
+    def _discoverBuiltIn(entryPointRefs: list[EntryPointRef], directory: str, plugin_manager: PluginManager | None = None) -> list[EntryPointRef]:
         """
         Recursively retrieve all plugin entry points in the given directory.
         :param entryPointRefs: Working list of entry point refs to append to.
         :param directory: Directory to search for entry points within.
+        :param plugin_manager: PluginManager instance. Defaults to module-level _singleton.
         :return: List of discovered entry points.
         """
         for fileName in sorted(os.listdir(directory)):
@@ -857,7 +866,7 @@ class EntryPointRef:
                 continue  # Ignore these entries
             filePath = os.path.join(directory, fileName)
             if os.path.isdir(filePath):
-                EntryPointRef._discoverBuiltIn(entryPointRefs, filePath)
+                EntryPointRef._discoverBuiltIn(entryPointRefs, filePath, plugin_manager=plugin_manager)
             if os.path.isfile(filePath) and os.path.basename(filePath).endswith(".py"):
                 # If `filePath` references .py file directly, use it
                 moduleFilePath = filePath
@@ -866,35 +875,37 @@ class EntryPointRef:
                 moduleFilePath = initFilePath
             else:
                 continue
-            entryPointRef = EntryPointRef.fromFilepath(moduleFilePath)
+            entryPointRef = EntryPointRef.fromFilepath(moduleFilePath, plugin_manager=plugin_manager)
             if entryPointRef is not None:
                 entryPointRefs.append(entryPointRef)
         return entryPointRefs
 
     @staticmethod
-    def _discoverInstalled() -> list[EntryPointRef]:
+    def _discoverInstalled(plugin_manager: PluginManager | None = None) -> list[EntryPointRef]:
         """
         Retrieve all installed plugin entry points.
+        :param plugin_manager: PluginManager instance. Defaults to module-level _singleton.
         :return: List of all discovered entry points.
         """
         entryPoints = list(entry_points(group='arelle.plugin'))
         entryPointRefs = []
         for entryPoint in entryPoints:
-            entryPointRef = EntryPointRef.fromEntryPoint(entryPoint)
+            entryPointRef = EntryPointRef.fromEntryPoint(entryPoint, plugin_manager=plugin_manager)
             if entryPointRef is not None:
                 entryPointRefs.append(entryPointRef)
         return entryPointRefs
 
     @staticmethod
-    def get(search: str) -> EntryPointRef | None:
+    def get(search: str, plugin_manager: PluginManager | None = None) -> EntryPointRef | None:
         """
         Retrieve an entry point ref with a matching name or alias.
         May return None of no matches are found.
         Throws an exception if multiple entry point refs match the search term.
         :param search: Only retrieve entry point matching the given search text.
+        :param plugin_manager: PluginManager instance. Defaults to module-level _singleton.
         :return: Matching entry point ref, if found.
         """
-        entryPointRefs = EntryPointRef.search(search)
+        entryPointRefs = EntryPointRef.search(search, plugin_manager=plugin_manager)
         if entryPointRefs is None:
             return None
         elif len(entryPointRefs) == 0:
@@ -922,23 +933,25 @@ class EntryPointRef:
             return search.lower()
 
     @staticmethod
-    def search(search: str) -> list[EntryPointRef] | None:
+    def search(search: str, plugin_manager: PluginManager | None = None) -> list[EntryPointRef] | None:
         """
         Retrieve entry point module information matching provided search text.
         A map of aliases to matching entry points is cached on the first run.
         :param search: Only retrieve entry points matching the given search text.
+        :param plugin_manager: PluginManager instance. Defaults to module-level _singleton.
         :return: List of matching module infos.
         """
-        global _entryPointRefAliasCache
-        if _entryPointRefAliasCache is None:
-            entryPointRefAliasCache = defaultdict(list)
-            entryPointRefs = EntryPointRef.discoverAll()
+        pm = plugin_manager or _singleton
+        assert pm is not None
+        if pm._entryPointRefAliasCache is None:
+            entryPointRefAliasCache: dict[str, list[EntryPointRef]] = defaultdict(list)
+            entryPointRefs = EntryPointRef.discoverAll(plugin_manager=pm)
             for entryPointRef in entryPointRefs:
                 for alias in entryPointRef.aliases:
                     entryPointRefAliasCache[alias].append(entryPointRef)
-            _entryPointRefAliasCache = entryPointRefAliasCache
+            pm._entryPointRefAliasCache = entryPointRefAliasCache
         search = EntryPointRef._normalizePluginSearchTerm(search)
-        return _entryPointRefAliasCache.get(search, [])
+        return pm._entryPointRefAliasCache.get(search, [])
 
 
 # ---------------------------------------------------------------------------
@@ -955,6 +968,7 @@ _SINGLETON_ATTRS = frozenset({
     "pluginJsonFile", "pluginConfig", "pluginConfigChanged",
     "pluginTraceFileLogger", "modulePluginInfos", "pluginMethodsForClasses",
     "_cntlr", "_pluginBase",
+    "_entryPointRefCache", "_entryPointRefAliasCache",
 })
 
 
