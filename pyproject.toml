@@ -189,7 +189,6 @@ module = [
     'arelle.ModelVersObject',
     'arelle.ModelVersReport',
     'arelle.PackageManager',
-    'arelle.PluginManager',
     'arelle.PrototypeDtsObject',
     'arelle.PrototypeInstanceObject',
     'arelle.PythonUtil',
