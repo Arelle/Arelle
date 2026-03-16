@@ -8,6 +8,7 @@ import pytest
 from unittest.mock import Mock
 
 from arelle import PluginManager
+from arelle.PluginManager import PluginManager as PluginManagerClass
 
 
 def test_plugin_manager_init_first_pass():
@@ -148,6 +149,76 @@ def test_function_loadModule():
     assert "functionsMath" in all_modules_list
 
     PluginManager.close()
+
+class TestPluginManagerClass:
+    """Tests that use the PluginManager class directly (not the module-level API)."""
+
+    def test_init_creates_instance(self):
+        cntlr = Mock(pluginDir='some_dir')
+        pm = PluginManagerClass(cntlr, loadPluginConfig=False)
+        assert len(pm.pluginConfig) == 2
+        assert 'modules' in pm.pluginConfig
+        assert 'classes' in pm.pluginConfig
+        assert len(pm.modulePluginInfos) == 0
+        assert len(pm.pluginMethodsForClasses) == 0
+        assert pm._cntlr is cntlr
+
+    def test_reset_clears_runtime_state(self):
+        cntlr = Mock(pluginDir='some_dir')
+        pm = PluginManagerClass(cntlr, loadPluginConfig=False)
+        pm.modulePluginInfos['module'] = 'plugin_info'
+        pm.pluginMethodsForClasses['class'] = 'plugin_method'
+        pm.reset()
+        assert len(pm.pluginConfig) == 2
+        assert len(pm.modulePluginInfos) == 0
+        assert len(pm.pluginMethodsForClasses) == 0
+
+    def test_close_clears_all_state(self):
+        cntlr = Mock(pluginDir='some_dir')
+        pm = PluginManagerClass(cntlr, loadPluginConfig=False)
+        pm.modulePluginInfos['module'] = 'plugin_info'
+        pm.pluginMethodsForClasses['class'] = 'plugin_method'
+        pm.close()
+        assert len(pm.pluginConfig) == 0
+        assert len(pm.modulePluginInfos) == 0
+        assert len(pm.pluginMethodsForClasses) == 0
+
+    def test_singleton_wired_after_init(self):
+        cntlr = Mock(pluginDir='some_dir')
+        PluginManager.init(cntlr, loadPluginConfig=False)
+        assert PluginManager._singleton is not None
+        assert isinstance(PluginManager._singleton, PluginManagerClass)
+        assert PluginManager._singleton._cntlr is cntlr
+
+    def test_backward_compat_getattr(self):
+        cntlr = Mock(pluginDir='some_dir')
+        PluginManager.init(cntlr, loadPluginConfig=False)
+        assert PluginManager.pluginConfig is PluginManager._singleton.pluginConfig
+        assert PluginManager._cntlr is PluginManager._singleton._cntlr
+        assert PluginManager.modulePluginInfos is PluginManager._singleton.modulePluginInfos
+
+    @pytest.mark.parametrize(
+        "test_data, expected_result",
+        [
+            (
+                (Path("arelle/plugin/non-existent-plugin"), "xyz"),
+                (None, None, None)
+            ),
+            (
+                (Path("arelle/plugin/CacheBuilder.py"), "xyz"),
+                ("CacheBuilder", "arelle/plugin", "xyz")
+            ),
+        ]
+    )
+    def test_static_get_name_dir_prefix(self, test_data, expected_result):
+        moduleName, moduleDir, packageImportPrefix = PluginManagerClass._get_name_dir_prefix(
+            modulePath=test_data[0],
+            packagePrefix=test_data[1],
+        )
+        assert moduleName == expected_result[0]
+        assert moduleDir == (None if expected_result[1] is None else os.path.normcase(expected_result[1]))
+        assert packageImportPrefix == expected_result[2]
+
 
 def teardown_function():
     PluginManager.close()
