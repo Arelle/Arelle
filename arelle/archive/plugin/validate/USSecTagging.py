@@ -2,7 +2,6 @@
 See COPYRIGHT.md for copyright information.
 '''
 
-from arelle import PluginManager
 from arelle.ModelValue import qname
 from arelle import XbrlConst
 from arelle.Version import copyrightLabel

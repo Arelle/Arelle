@@ -4,7 +4,6 @@ pluginPackages test case
 See COPYRIGHT.md for copyright information.
 '''
 from os import path
-from arelle.PluginManager import pluginClassMethods
 from arelle.Version import authorLabel, copyrightLabel
 from . import importTestImported1
 from .importTestImported1 import foo
@@ -12,9 +11,9 @@ from .importTestImported1 import foo
 def parentMenuEntender(cntlr, menu):
     menu.add_command(label="Packaged Parent exercise descendants", underline=0, command=lambda: parentMenuCommand(cntlr) )
 
-def parentMenuCommand(cntl):
+def parentMenuCommand(cntlr):
     for i in range(1,100):
-        for pluginMethod in pluginClassMethods("Import.Packaged.Entry{}".format(i)):
+        for pluginMethod in cntlr.pluginManager.pluginClassMethods("Import.Packaged.Entry{}".format(i)):
             pluginMethod()
 
 def parentCommandLineOptionExtender(parser):
