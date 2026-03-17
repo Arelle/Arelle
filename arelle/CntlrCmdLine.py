@@ -204,7 +204,14 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict]:
         "--diagnostics",
         action="store_true",
         dest="diagnostics",
-        help=_("output system diagnostics information")
+        help=_("Output system diagnostics information")
+        )
+    generalGroup.add_option(
+        "--showEnvironment",
+        "--showenvironment",
+        action="store_true",
+        dest="showEnvironment",
+        help=_("Show Arelle's config and cache directory and host OS environment parameters.")
         )
     parser.add_option_group(generalGroup)
 
@@ -260,13 +267,36 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict]:
         help=_("FILENAME is the filename to save as the versioning report.")
         )
     inputGroup.add_option(
-        "--optionsFile",
-        "--optionsfile",
-        action="store",
-        dest="optionsFile",
+        "--package",
+        "--packages",
+        action="append",
+        dest="packages",
         help=_(
-            "Provide a path to a JSON file containing runtime options. "
-            "These options will be overridden by any command line options provided."
+            "Load taxonomy packages. Option can be repeated for multiple files. "
+            "If a directory is specified, all .zip files in the directory will be loaded. "
+            "(Package settings from GUI are no longer shared with cmd line operation. "
+            "Cmd line package settings are not persistent.)"
+            )
+        )
+    inputGroup.add_option(
+        "--packageManifestName",
+        action="store",
+        dest="packageManifestName",
+        help=_(
+            "Provide non-standard archive manifest file name pattern (e.g., *taxonomyPackage.xml).  "
+            "Uses unix file name pattern matching.  "
+            "Multiple manifest files are supported in archive (such as oasis catalogs).  "
+            "(Replaces search for either .taxonomyPackage.xml or catalog.xml)."
+            )
+        )
+    inputGroup.add_option(
+        "--skipLoading",
+        "--skiploading",
+        action="store",
+        dest="skipLoading",
+        help=_(
+            "Skip loading discovered or schemaLocated files matching pattern "
+            "(unix-style file name patterns separated by `|`), useful when not all linkbases are needed."
             )
         )
     parser.add_option_group(inputGroup)
@@ -297,7 +327,8 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict]:
         dest="validateDuplicateFacts",
         help=_(
             "Select which types of duplicates should trigger warnings "
-            "(`none`, `inconsistent`, `consistent`, `incomplete`, `complete`, `all`)"
+            f"({' ,'.join([f'`{a.value}`' for a in ValidateDuplicateFacts.DUPLICATE_TYPE_ARG_MAP])})"
+
             )
         )
     validationGroup.add_option(
@@ -444,29 +475,29 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict]:
         help=_("Ignore detected file type and validate all files as Taxonomy Packages.")
         )
     validationGroup.add_option(
-        "--saveOIMToXMLReport",
-        "--saveoimtoxmlreport",
-        "--saveOIMinstance",
-        "--saveoiminstance",
-        action="store",
-        dest="saveOIMToXMLReport",
-        help=_("Save a report loaded from OIM into this file XML file name.")
-        )
-    validationGroup.add_option(
-        "--deduplicateFacts",
-        "--deduplicatefacts",
-        choices=[a.value for a in ValidateDuplicateFacts.DeduplicationType],
-        dest="deduplicateFacts",
+        "--validationExitCode",
+        action="store_true",
+        default=False,
+        dest="validationExitCode",
         help=_(
-            "When using `--saveDeduplicatedInstance` to save a deduplicated instance, check for duplicates of this type"
-            " (`complete`, `consistent-pairs`, `consistent-sets`)."
+            "Exit with a code indicating validation results: "
+            "`0` = valid, no issues "
+            "`2` = usage error (existing parser.error usage) "
+            "`3` = validation errors found (and/or warnings if `--captureWarnings` is also used)"
             )
         )
     validationGroup.add_option(
-        "--saveDeduplicatedInstance",
-        "--savededuplicatedinstance",
-        dest="saveDeduplicatedInstance",
-        help=_("Save an instance document with duplicates of the provided type (`--deduplicateFacts`) deduplicated.")
+        "--parameters",
+        action="store",
+        dest="parameters",
+        help=_("Specify parameters for formula and validation (name=value[,name=value]).")
+        )
+    validationGroup.add_option(
+        "--parameterSeparator",
+        "--parameterseparator",
+        action="store",
+        dest="parameterSeparator",
+        help=_("Specify parameters separator string (if other than comma).")
         )
     parser.add_option_group(validationGroup)
 
@@ -681,16 +712,29 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict]:
         help=_("Write rendered table linkbase grid into `FILE` (format determined by extension: `.html`, `.xlsx`)")
         )
     outputFileGroup.add_option(
-        "--validationExitCode",
-        action="store_true",
-        default=False,
-        dest="validationExitCode",
+        "--saveOIMToXMLReport",
+        "--saveoimtoxmlreport",
+        "--saveOIMinstance",
+        "--saveoiminstance",
+        action="store",
+        dest="saveOIMToXMLReport",
+        help=_("Save a report loaded from OIM into this file XML file name.")
+        )
+    outputFileGroup.add_option(
+        "--deduplicateFacts",
+        "--deduplicatefacts",
+        choices=[a.value for a in ValidateDuplicateFacts.DeduplicationType],
+        dest="deduplicateFacts",
         help=_(
-            "Exit with a code indicating validation results: "
-            "`0` = valid, no issues "
-            "`2` = usage error (existing parser.error usage) "
-            "`3` = validation errors found (and/or warnings if `--captureWarnings` is also used)"
+            "When using `--saveDeduplicatedInstance` to save a deduplicated instance, check for duplicates of this type"
+            f" ({' ,'.join([f'`{a.value}`' for a in ValidateDuplicateFacts.DeduplicationType])})."
             )
+        )
+    outputFileGroup.add_option(
+        "--saveDeduplicatedInstance",
+        "--savededuplicatedinstance",
+        dest="saveDeduplicatedInstance",
+        help=_("Save an instance document with duplicates of the provided type (`--deduplicateFacts`) deduplicated.")
         )
     parser.add_option_group(outputFileGroup)
 
@@ -782,7 +826,7 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict]:
         type="int",
         help=_(
             "Truncate XML log file attribute values at length. "
-            "The default is 4_096_000 for JSON content and 128 for everything else."
+            "The default is `4,096,000` for JSON content and `128` for everything else."
             )
         )
     loggingGroup.add_option(
@@ -793,22 +837,9 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict]:
         )
     parser.add_option_group(loggingGroup)
 
-    # ====== VALIDATION AND FORMULA OPTIONS ======
-    formulaGroup = OptionGroup(parser, _("Validation and Formula Options"))
+    # ====== FORMULA OPTIONS ======
+    formulaGroup = OptionGroup(parser, _("Formula Options"))
 
-    formulaGroup.add_option(
-        "--parameters",
-        action="store",
-        dest="parameters",
-        help=_("Specify parameters for formula and validation (name=value[,name=value]).")
-        )
-    formulaGroup.add_option(
-        "--parameterSeparator",
-        "--parameterseparator",
-        action="store",
-        dest="parameterSeparator",
-        help=_("Specify parameters separator string (if other than comma).")
-        )
     formulaGroup.add_option(
         "--formula",
         choices=("validate", "run", "none"),
@@ -840,9 +871,11 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict]:
         "--formulacachesize",
         action="store",
         dest="formulaCacheSize",
+        type="int",
+        default=10_000_000,
         help=_(
             "Specify the number of fact aspect combinations to cache during formula evaluations. "
-            "Negative numbers have no limit."
+            "Negative numbers have no limit. (10,000,000 is default)"
             )
         )
     formulaGroup.add_option(
@@ -1051,8 +1084,8 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict]:
         action="store",
         dest="testcaseResultOptions",
         help=_(
-            "For testcase results, default is `match-any` expected result, "
-            "options to `match-any` or `match-all` expected result(s).  "
+            "For testcase results, default configuration is to pass if any expected result is matched (`match-any`). "
+            "Alternatively, require that all expected results are matched (`match-all`)."
             )
         )
     parser.add_option_group(testGroup)
@@ -1077,6 +1110,43 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict]:
             )
         )
     configGroup.add_option(
+        "--internetLogDownloads",
+        "--internetlogdownloads",
+        action="store_true",
+        dest="internetLogDownloads",
+        help=_("Log info message for downloads to web cache.")
+        )
+    configGroup.add_option(
+        "--abortOnMajorError",
+        action="store_true",
+        dest="abortOnMajorError",
+        help=_("Abort process on major error, such as when load is unable to find an entry or discovered file.")
+        )
+    configGroup.add_option(
+        "--skipDTS",
+        "--skipdts",
+        action="store_true",
+        dest="skipDTS",
+        help=_("Skip DTS activities (loading, discovery, validation), useful when an instance needs only to be parsed.")
+        )
+
+    if hasWebServer():
+        configGroup.add_option(
+            "--webserver",
+            action="store",
+            dest="webserver",
+            help=_(
+                "start web server on host:port[:server] for REST and web access, e.g., `--webserver locahost:8080`, "
+                "or specify nondefault a server name, such as cheroot, `--webserver locahost:8080:cheroot`. "
+                "(It is possible to specify options to be defaults for the web server, "
+                "such as disclosureSystem and validations, but not including file names.)"
+                )
+            )
+    parser.add_option_group(configGroup)
+
+    # ====== INTERNET CONNECTIVITY ARGUMENTS ======
+    internetConnectivityGroup = OptionGroup(parser, _("Internet Connectivity Arguments"))
+    internetConnectivityGroup.add_option(
         "--proxy",
         action="store",
         dest="proxy",
@@ -1088,21 +1158,21 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict]:
             " or `show` to show current setting."
             )
         )
-    configGroup.add_option(
+    internetConnectivityGroup.add_option(
         f"--{INTERNET_CONNECTIVITY}",
         f"--{INTERNET_CONNECTIVITY.lower()}",
         choices=("online", OFFLINE),
         dest="internetConnectivity",
         help=_("Specify internet connectivity: `online` or `offline`")
         )
-    configGroup.add_option(
+    internetConnectivityGroup.add_option(
         "--internetTimeout",
         "--internettimeout",
         type="int",
         dest="internetTimeout",
         help=_("Specify internet connection timeout in seconds (0 means unlimited).")
         )
-    configGroup.add_option(
+    internetConnectivityGroup.add_option(
         "--internetRecheck",
         "--internetrecheck",
         choices=("weekly", "daily", "never", "hourly", "quarter-hourly"),
@@ -1112,35 +1182,51 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict]:
             "Specify rechecking for newer cache files 'quarter-hourly', `hourly`, `daily`, `weekly` or `never`."
             )
         )
-    configGroup.add_option(
-        "--internetLogDownloads",
-        "--internetlogdownloads",
-        action="store_true",
-        dest="internetLogDownloads",
-        help=_("Log info message for downloads to web cache.")
-        )
-    configGroup.add_option(
+    internetConnectivityGroup.add_option(
         "--noCertificateCheck",
         "--nocertificatecheck",
         action="store_true",
         dest="noCertificateCheck",
         help=_("Specify no checking of internet secure connection certificate")
         )
-    configGroup.add_option(
+    internetConnectivityGroup.add_option(
         "--httpsRedirectCache",
         "--httpsredirectcache",
         action="store_true",
         dest="httpsRedirectCache",
         help=_("Treat http and https schemes interchangeably when looking up files from the webcache")
         )
-    configGroup.add_option(
+    internetConnectivityGroup.add_option(
         "--cacheDirectory",
         "--cachedirectory",
         action="store",
         dest="cacheDirectory",
         help=_("Override the default location of the cache directory")
         )
-    configGroup.add_option(
+    internetConnectivityGroup.add_option(
+        "--httpUserAgent",
+        "--httpuseragent",
+        action="store",
+        dest="httpUserAgent",
+        help=_("Specify non-standard http header User-Agent value")
+        )
+
+    parser.add_option_group(internetConnectivityGroup)
+
+    # ====== CONFIGURATION ARGUMENTS ======
+    configArgumentsGroup = OptionGroup(parser, _("Configuration Arguments"))
+
+    configArgumentsGroup.add_option(
+        "--optionsFile",
+        "--optionsfile",
+        action="store",
+        dest="optionsFile",
+        help=_(
+            "Provide a path to a JSON file containing runtime options. "
+            "These options will be overridden by any command line options provided."
+            )
+        )
+    configArgumentsGroup.add_option(
         "--xdgConfigHome",
         action="store",
         dest="xdgConfigHome",
@@ -1149,21 +1235,14 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict]:
             "(overrides environment parameter XDG_CONFIG_HOME)."
             )
         )
-    configGroup.add_option(
-        "--httpUserAgent",
-        "--httpuseragent",
-        action="store",
-        dest="httpUserAgent",
-        help=_("Specify non-standard http header User-Agent value")
-        )
-    configGroup.add_option(
+    configArgumentsGroup.add_option(
         DISABLE_PERSISTENT_CONFIG_OPTION,
         DISABLE_PERSISTENT_CONFIG_OPTION.lower(),
         action="store_true",
         dest="disablePersistentConfig",
         help=_("Prohibits Arelle from reading and writing a config to the local cache.")
         )
-    configGroup.add_option(
+    configArgumentsGroup.add_option(
         "--plugin",
         "--plugins",
         action="store",
@@ -1180,73 +1259,8 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict]:
             "Packaged plug-in urls are their directory's url (e.g., `--plugins EDGAR/render` or `--plugins xbrlDB`).  "
             )
         )
-    configGroup.add_option(
-        "--package",
-        "--packages",
-        action="append",
-        dest="packages",
-        help=_(
-            "Load taxonomy packages. Option can be repeated for multiple files. "
-            "If a directory is specified, all .zip files in the directory will be loaded. "
-            "(Package settings from GUI are no longer shared with cmd line operation. "
-            "Cmd line package settings are not persistent.)"
-            )
-        )
-    configGroup.add_option(
-        "--packageManifestName",
-        action="store",
-        dest="packageManifestName",
-        help=_(
-            "Provide non-standard archive manifest file name pattern (e.g., *taxonomyPackage.xml).  "
-            "Uses unix file name pattern matching.  "
-            "Multiple manifest files are supported in archive (such as oasis catalogs).  "
-            "(Replaces search for either .taxonomyPackage.xml or catalog.xml)."
-            )
-        )
-    configGroup.add_option(
-        "--abortOnMajorError",
-        action="store_true",
-        dest="abortOnMajorError",
-        help=_("Abort process on major error, such as when load is unable to find an entry or discovered file.")
-        )
-    configGroup.add_option(
-        "--skipDTS",
-        "--skipdts",
-        action="store_true",
-        dest="skipDTS",
-        help=_("Skip DTS activities (loading, discovery, validation), useful when an instance needs only to be parsed.")
-        )
-    configGroup.add_option(
-        "--skipLoading",
-        "--skiploading",
-        action="store",
-        dest="skipLoading",
-        help=_(
-            "Skip loading discovered or schemaLocated files matching pattern "
-            "(unix-style file name patterns separated by `|`), useful when not all linkbases are needed."
-            )
-        )
-    configGroup.add_option(
-        "--showEnvironment",
-        "--showenvironment",
-        action="store_true",
-        dest="showEnvironment",
-        help=_("Show Arelle's config and cache directory and host OS environment parameters.")
-        )
 
-    if hasWebServer():
-        configGroup.add_option(
-            "--webserver",
-            action="store",
-            dest="webserver",
-            help=_(
-                "start web server on host:port[:server] for REST and web access, e.g., `--webserver locahost:8080`, "
-                "or specify nondefault a server name, such as cheroot, `--webserver locahost:8080:cheroot`. "
-                "(It is possible to specify options to be defaults for the web server, "
-                "such as disclosureSystem and validations, but not including file names.)"
-                )
-            )
-    parser.add_option_group(configGroup)
+    parser.add_option_group(configArgumentsGroup)
 
     pluginOptionsIndex = len(parser.option_list)
     pluginOptionsGroupIndex = len(parser.option_groups)
@@ -1290,7 +1304,9 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict]:
         args = []
         namedOptions = set()
         optionsWithArg = set()
-        for option in parser.option_list:
+        optionList = parser.option_list
+        [optionList.extend(group.option_list) for group in parser.option_groups]
+        for option in optionList:
             names = str(option).split("/")
             namedOptions.update(names)
             if option.action == "store":
