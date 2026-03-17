@@ -549,14 +549,14 @@
                     "properties": {
                       "name": { "$ref": "#/definitions/QName" },
                       "dataType": { "$ref": "#/definitions/dataTypeQName" },
-                      "stringRepresentations": { 
+                      "compositeUnitRepresentation": { 
                         "type": "array",
                         "items": { 
                           "type": "string",
-                           "pattern": ".*(\\*|/).*",
-                          "description": "String representation of the unit."
+                          "pattern": "^([A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z_][A-Za-z0-9_.-]*)(\\*[A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z_][A-Za-z0-9_.-]*)*$|^([A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z_][A-Za-z0-9_.-]*|\\([A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z_][A-Za-z0-9_.-]*(\\*[A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z_][A-Za-z0-9_.-]*)+\\))/([A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z_][A-Za-z0-9_.-]*|\\([A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z_][A-Za-z0-9_.-]*(\\*[A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z_][A-Za-z0-9_.-]*)+\\))$",
+                          "description": "A unit string representation as defined in OIM Common §3.4. Must consist only of QNames (prefix:localname), '*' (multiplication), '/' (division), and '()' (grouping parentheses). No whitespace is permitted. Valid forms: a single QName (e.g. 'iso4217:EUR'), QNames joined by '*' (e.g. 'utr:m*utr:m'), or a numerator group '/' denominator group where each group is either a single QName or a parenthesised '*'-separated list of two or more QNames (e.g. 'utr:kg/(utr:m*utr:m)')."
                          },
-                        "description": "Ordered set of strings representing the string representations of the unit.",
+                        "description": "Ordered set of unit string representations equivalent to the defined unit, as defined in OIM Common §3.4.",
                         "uniqueItems": true
                        }
                     },

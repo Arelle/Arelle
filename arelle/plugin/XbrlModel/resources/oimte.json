@@ -274,6 +274,16 @@
                     },
                     {
                         "source": "oimte:OIMErrorClassDomain",
+                        "target": "oimte:duplicateRelationships",
+                        "order": 33
+                    },
+                    {
+                        "source": "oimte:OIMErrorClassDomain",
+                        "target": "oimte:duplicateRoots",
+                        "order": 33.5
+                    },
+                    {
+                        "source": "oimte:OIMErrorClassDomain",
                         "target": "oimte:invalidObjectType",
                         "order": 34
                     },
@@ -933,6 +943,30 @@
                 ]
             },
             {
+                "name": "oimte:duplicateRelationships",
+                "domainClasses": [
+                    "oimte:OIMErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:duplicateRoots",
+                "domainClasses": [
+                    "oimte:OIMErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
                 "name": "oimte:duplicateLabelObject",
                 "domainClasses": [
                     "oimte:OIMErrorClassDomain"
@@ -1445,18 +1479,6 @@
                 ]
             },
             {
-                "name": "oimte:invalidObjectNamespacePrefix",
-                "domainClasses": [
-                    "oimte:OIMErrorClassDomain"
-                ],
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
                 "name": "oimte:disallowedObjectModelType",
                 "domainClasses": [
                     "oimte:OIMErrorClassDomain"
@@ -1482,18 +1504,6 @@
             },
             {
                 "name": "oimte:objectNamespacePrefixNotDefined",
-                "domainClasses": [
-                    "oimte:OIMErrorClassDomain"
-                ],
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
-                "name": "oimte:duplicateNamespaceURI",
                 "domainClasses": [
                     "oimte:OIMErrorClassDomain"
                 ],
@@ -2453,6 +2463,18 @@
                 ]
             },
             {
+                "name": "oimte:unitDataTypeUsedInDefinition",
+                "domainClasses": [
+                    "oimte:OIMErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
                 "name": "oimte:missingSQNameProperty",
                 "domainClasses": [
                     "oimte:OIMErrorClassDomain"
@@ -3021,6 +3043,16 @@
                         "order": 1
                     },
                     {
+                        "source": "oimte:NetworkErrors",
+                        "target": "oimte:duplicateRelationships",
+                        "order": 2
+                    },
+                    {
+                        "source": "oimte:NetworkErrors",
+                        "target": "oimte:duplicateRoots",
+                        "order": 3
+                    },
+                    {
                         "source": "oimte:LabelErrors",
                         "target": "oimte:duplicateLabelObject",
                         "order": 1
@@ -3174,16 +3206,6 @@
                         "source": "oimte:DocumentInfoErrors",
                         "target": "oimte:objectNamespacePrefixNotDefined",
                         "order": 5
-                    },
-                    {
-                        "source": "oimte:DocumentInfoErrors",
-                        "target": "oimte:duplicateNamespaceURI",
-                        "order": 5.5
-                    },
-                    {
-                        "source": "oimte:DocumentInfoErrors",
-                        "target": "oimte:invalidObjectNamespacePrefix",
-                        "order": 6
                     },
                     {
                         "source": "oimte:DocumentInfoErrors",
@@ -3584,6 +3606,16 @@
                         "order": 1
                     },
                     {
+                        "source": "xbrl:networkObject",
+                        "target": "oimte:duplicateRelationships",
+                        "order": 2
+                    },
+                    {
+                        "source": "xbrl:networkObject",
+                        "target": "oimte:duplicateRoots",
+                        "order": 3
+                    },
+                    {
                         "source": "xbrl:labelObject",
                         "target": "oimte:duplicateLabelObject",
                         "order": 1
@@ -3755,11 +3787,6 @@
                     },
                     {
                         "source": "oimte:JSONErrors",
-                        "target": "oimte:invalidObjectNamespacePrefix",
-                        "order": 5
-                    },
-                    {
-                        "source": "oimte:JSONErrors",
                         "target": "oimte:objectNamespaceMismatch",
                         "order": 6
                     },
@@ -3892,16 +3919,6 @@
                         "source": "oimte:DocumentInfoErrors",
                         "target": "oimte:objectNamespacePrefixNotDefined",
                         "order": 5
-                    },
-                    {
-                        "source": "oimte:DocumentInfoErrors",
-                        "target": "oimte:duplicateNamespaceURI",
-                        "order": 5.5
-                    },
-                    {
-                        "source": "oimte:DocumentInfoErrors",
-                        "target": "oimte:invalidObjectNamespacePrefix",
-                        "order": 6
                     },
                     {
                         "source": "oimte:DocumentInfoErrors",
@@ -4072,6 +4089,10 @@
                     {
                         "source": "xbrl:conceptObject",
                         "target": "oimte:invalidUnitObject"
+                    },
+                    {
+                        "source": "xbrl:conceptObject",
+                        "target": "oimte:unitDataTypeUsedInDefinition"
                     },
                     {
                         "source": "xbrl:conceptObject",
@@ -4519,6 +4540,36 @@
                 "language": "en",
                 "value": "The declared root '${network.root}' of network '${network.name}' does not match the actual root nodes.",
                 "labelType": "xbrl:errorMessage"
+            },
+            {
+                "relatedName": "oimte:duplicateRelationships",
+                "language": "en",
+                "value": "Duplicate Relationships",
+                "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "oimte:duplicateRelationships",
+                "language": "en",
+                "value": "A relationship in network '${network.name}' with source '${relationship.source}', target '${relationship.target}', and order '${relationship.order}' is a duplicate of an existing relationship in the network.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "relatedName": "oimte:duplicateRoots",
+                "language": "en",
+                "value": "Duplicate Roots",
+                "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "oimte:duplicateRoots",
+                "language": "en",
+                "value": "The root '${network.root}' in network '${network.name}' is a duplicate of an existing root already declared in the network.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "relatedName": "oimte:duplicateRoots",
+                "language": "en",
+                "value": "This error occurs when a network object's roots array contains the same QName more than once. Each value in the roots array must be unique. The constraint applies both to roots declared directly in a named network object and to roots appended via extendTargetName — if an extending network attempts to add a root QName that is already present in the target network's roots array, this error is raised on each such duplicate entry.",
+                "labelType": "xbrl:documentation"
             },
             {
                 "relatedName": "oimte:duplicateLabelObject",
@@ -5019,18 +5070,6 @@
                 "labelType": "xbrl:errorMessage"
             },
             {
-                "relatedName": "oimte:invalidObjectNamespacePrefix",
-                "language": "en",
-                "value": "Invalid Object Namespace Prefix",
-                "labelType": "xbrl:label"
-            },
-            {
-                "relatedName": "oimte:invalidObjectNamespacePrefix",
-                "language": "en",
-                "value": "The object namespace prefix '{prefix}' is a reserved prefix and is not valid for object '{objectName}'.",
-                "labelType": "xbrl:errorMessage"
-            },
-            {
                 "relatedName": "oimte:documentNamespacePrefixNotDefined",
                 "language": "en",
                 "value": "Document Namespace Has No Prefix",
@@ -5071,24 +5110,6 @@
                 "language": "en",
                 "value": "The object namespace prefix '{prefix}' is not defined for object '{objectName}' in the namespace declaration.",
                 "labelType": "xbrl:errorMessage"
-            },
-            {
-                "relatedName": "oimte:duplicateNamespaceURI",
-                "language": "en",
-                "value": "Duplicate Namespace URI",
-                "labelType": "xbrl:label"
-            },
-            {
-                "relatedName": "oimte:duplicateNamespaceURI",
-                "language": "en",
-                "value": "Prefixes '{prefix1}' and '{prefix2}' both map to the same namespace URI '{uri}' in the namespaces declaration. Each namespace URI must be unique.",
-                "labelType": "xbrl:errorMessage"
-            },
-            {
-                "relatedName": "oimte:duplicateNamespaceURI",
-                "language": "en",
-                "value": "This error occurs when two or more prefix keys in the namespaces object map to the same namespace URI. Since namespace URIs are the authoritative identity for all objects, allowing two prefixes to map to the same URI would create ambiguity about which prefix is authoritative and could cause inconsistent object identity resolution. Each namespace URI in the namespaces object must be unique.",
-                "labelType": "xbrl:documentation"
             },
             {
                 "relatedName": "oimte:objectNamespaceMismatch",
@@ -5764,6 +5785,12 @@
                 "labelType": "xbrl:documentation"
             },
             {
+                "relatedName": "oimte:duplicateRelationships",
+                "language": "en",
+                "value": "This error occurs when a network contains two or more relationship objects whose `source`, `target`, `order`, and any additional properties are all identical. A duplicate can arise directly within a single network definition or when an extension taxonomy uses `extendTargetName` to append a relationship that already exists in the base network.",
+                "labelType": "xbrl:documentation"
+            },
+            {
                 "relatedName": "oimte:duplicateLabelObject",
                 "language": "en",
                 "value": "This error is generated when multiple labels with the same relatedName, language, and labelType are defined in the XBRL Model. Each label must be uniquely identified by the combination of these three properties. Having duplicate labels creates ambiguity in which label should be used.",
@@ -6013,12 +6040,6 @@
                 "relatedName": "oimte:groupTreeNotImportable",
                 "language": "en",
                 "value": "This error is generated when an attempt is made to import a group tree object from another taxonomy. The group tree is specific to each taxonomy and defines how that taxonomy's groups are organized. When importing a taxonomy, the group tree object is intentionally excluded. Each taxonomy must define its own group tree if needed.",
-                "labelType": "xbrl:documentation"
-            },
-            {
-                "relatedName": "oimte:invalidObjectNamespacePrefix",
-                "language": "en",
-                "value": "This error occurs when an object's QName uses a namespace prefix that is reserved by the OIM Taxonomy specification but is incorrectly applied. Certain prefixes are reserved for core taxonomy elements and cannot be used for custom objects. Using a reserved prefix inappropriately violates the namespace conventions defined by the specification.",
                 "labelType": "xbrl:documentation"
             },
             {
@@ -6991,13 +7012,31 @@
                 "relatedName": "oimte:invalidUnitObject",
                 "language": "en",
                 "labelType": "xbrl:errorMessage",
-                "value": "The unit '{unitName}' referenced in stringRepresentations is not a valid unit object."
+                "value": "The unit '{unitName}' referenced in compositeUnitRepresentation is not a valid unit object."
             },
             {
                 "relatedName": "oimte:invalidUnitObject",
                 "language": "en",
                 "labelType": "xbrl:documentation",
-                "value": "Raised when a reference to a unit object in the stringRepresentations property cannot be resolved to a valid unit object in the taxonomy model."
+                "value": "Raised when a reference to a unit object in the compositeUnitRepresentation property cannot be resolved to a valid unit object in the taxonomy model."
+            },
+            {
+                "relatedName": "oimte:unitDataTypeUsedInDefinition",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Unit Self-Reference in Definition"
+            },
+            {
+                "relatedName": "oimte:unitDataTypeUsedInDefinition",
+                "language": "en",
+                "labelType": "xbrl:errorMessage",
+                "value": "Unit '{unitName}' references itself in compositeUnitRepresentation '{value}'. A unit MUST NOT appear in its own unit string representation."
+            },
+            {
+                "relatedName": "oimte:unitDataTypeUsedInDefinition",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "Raised when a unit object's compositeUnitRepresentation contains a unit string representation that includes the unit's own QName (its name property). A unit MUST NOT reference itself — directly or as a component of a composite expression — in its own compositeUnitRepresentation, as this would create a circular unit definition."
             },
             {
                 "relatedName": "oimte:missingSQNameProperty",
@@ -7874,6 +7913,94 @@
                 ]
             },
             {
+                "name": "oimte:duplicateRelationshipsReference",
+                "relatedNames": [
+                    "oimte:duplicateRelationships"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "NETWORK-NetworkObjectWithDuplicateRelationships.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "\u274c Fail"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                       "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#NETWORK-NetworkObjectWithDuplicateRelationships"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:duplicateRelationshipsExtendReference",
+                "relatedNames": [
+                    "oimte:duplicateRelationships"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "NETWORK-ExtendCausesDuplicateRelationship.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "\u274c Fail"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                       "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#NETWORK-ExtendCausesDuplicateRelationship"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:duplicateRootsReference",
+                "relatedNames": [
+                    "oimte:duplicateRoots"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "NETWORK-ExtendCausesDuplicateRoots.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "\u274c Fail"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                       "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#NETWORK-ExtendCausesDuplicateRoots"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:duplicateRootsImportReference",
+                "relatedNames": [
+                    "oimte:duplicateRoots"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "NETWORK-ImportCausesDuplicateRoots.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "\u274c Fail"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                       "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#NETWORK-ImportCausesDuplicateRoots"
+                    }
+                ]
+            },
+            {
                 "name": "oimte:DuplicatePropertyTypeReferenceNames",
                 "relatedNames": [
                     "oimte:duplicateObjects"
@@ -7906,6 +8033,50 @@
                     {
                         "property": "xbrl:conformanceStatus",
                         "value": "\u274c Fail"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:unitDataTypeUsedInDefinitionSameUnitTypeReference",
+                "relatedNames": [
+                    "oimte:unitDataTypeUsedInDefinition"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "UNIT-UnitWithStringRepresentationSameUnitType.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "\u274c Fail"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                       "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#UNIT-UnitWithStringRepresentationSameUnitType"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:unitDataTypeUsedInDefinitionDuplicateStringRepresentationsReference",
+                "relatedNames": [
+                    "oimte:unitDataTypeUsedInDefinition"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "UNIT-UnitWithDuplicateStringRepresentations.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "\u274c Fail"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                       "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#UNIT-UnitWithDuplicateStringRepresentations"
                     }
                 ]
             },
@@ -8282,42 +8453,6 @@
                     {
                         "property": "xbrl:conformanceTestFileName",
                         "value": "NAMESPACE-PrefixNotDefined.json"
-                    },
-                    {
-                        "property": "xbrl:conformanceStatus",
-                        "value": "\u274c Fail"
-                    }
-                ]
-            },
-            {
-                "name": "oimte:invalidObjectNamespacePrefixReference",
-                "relatedNames": [
-                    "oimte:invalidObjectNamespacePrefix"
-                ],
-                "referenceType": "xbrl:conformanceTestReference",
-                "language": "en",
-                "properties": [
-                    {
-                        "property": "xbrl:conformanceTestFileName",
-                        "value": "NAMESPACE-RestrictedPrefix.json"
-                    },
-                    {
-                        "property": "xbrl:conformanceStatus",
-                        "value": "\u274c Fail"
-                    }
-                ]
-            },
-            {
-                "name": "oimte:invalidObjectNamespaceImportPrefixReference",
-                "relatedNames": [
-                    "oimte:invalidObjectNamespacePrefix"
-                ],
-                "referenceType": "xbrl:conformanceTestReference",
-                "language": "en",
-                "properties": [
-                    {
-                        "property": "xbrl:conformanceTestFileName",
-                        "value": "IMPORTTAXONOMY-PassThroughPrefixError.json"
                     },
                     {
                         "property": "xbrl:conformanceStatus",
@@ -10457,20 +10592,6 @@
                     {
                         "property": "xbrl:specificationErrorURI",
                         "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-objectnamespaceprefixnotdefined"
-                    }
-                ]
-            },
-            {
-                "name": "oimte:invalidObjectNamespacePrefixSpecReference",
-                "relatedNames": [
-                    "oimte:invalidObjectNamespacePrefix"
-                ],
-                "referenceType": "xbrl:specificationErrorReference",
-                "language": "en",
-                "properties": [
-                    {
-                        "property": "xbrl:specificationErrorURI",
-                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-invalidobjectnamespaceprefix"
                     }
                 ]
             },

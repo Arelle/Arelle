@@ -2,7 +2,7 @@
 See COPYRIGHT.md for copyright information.
 """
 from typing import GenericAlias, _UnionGenericAlias, Any, _GenericAlias, ClassVar, ForwardRef
-import os
+import os, inspect
 from arelle.ModelValue import QName
 from arelle.PythonUtil import OrderedSet
 from arelle.XmlValidate import INVALID, VALID
@@ -37,7 +37,7 @@ class XbrlModelClass:
     @classmethod
     def propertyNameTypes(cls, skipParentProperty=False):
         initialParentObjProp = skipParentProperty # true when the parent (xbrlModel or report) is to be skipped
-        for propName, propType in getattr(cls, "__annotations__", EMPTY_DICT).items():
+        for propName, propType in inspect.get_annotations(cls).items():
             if initialParentObjProp:
                 initialParentObjProp = False
                 if (isinstance(propType, str) or propType.__name__.startswith("Xbrl") or # skip taxonomy alias type
@@ -155,7 +155,7 @@ class XbrlObject(XbrlModelClass):
         objName = objClass.__name__[0].lower() + objClass.__name__[1:]
         propVals = [f"{self.xbrlMdlObjIndex}"]
         initialParentObjProp = True
-        for propName, propType in getattr(objClass, "__annotations__", EMPTY_DICT).items():
+        for propName, propType in inspect.get_annotations(objClass).items():
             if isinstance(propType, _GenericAlias) and propType.__origin__ == ClassVar:
                 continue
             if initialParentObjProp:
