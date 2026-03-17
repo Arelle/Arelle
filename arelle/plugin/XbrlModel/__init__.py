@@ -260,7 +260,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
         # schema validation
         if jsonschemaValidator is None:
             cntlr.showStatus(_("Loading schema validator schema file"))
-            with io.open(OIMT_SCHEMA, mode="rt") as fh:
+            with io.open(OIMT_SCHEMA, mode="rt", encoding="utf-8") as fh:
                 jsonschemaValidator = jsonSchemaLoaderMethod(json.load(fh))
             modelXbrl.profileActivity("Load schema validator schema file", minTimeToShow=PROFILE_MIN_TIME)
         cntlr.showStatus(_("Schema validating: {0}").format(moduleFileBasename))
