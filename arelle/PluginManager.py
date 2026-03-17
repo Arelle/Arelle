@@ -48,15 +48,20 @@ pluginJsonFile = None
 # the assignment type hint error here and rely on the initialization process to set
 # these values before use.
 pluginConfig: dict[str, Any] = None # type: ignore[assignment]
-_cntlr: Cntlr = None # type: ignore[assignment]
 
 pluginConfigChanged = False
 pluginTraceFileLogger = None
 modulePluginInfos: dict[str, Any] = {}
 pluginMethodsForClasses: dict[str, Any] = {}
+_cntlr: Cntlr | None = None
 _pluginBase = None
 EMPTYLIST: list[Any] = []
 _ERROR_MESSAGE_IMPORT_TEMPLATE = "Unable to load module {}"
+
+
+def _getCntlr() -> Cntlr:
+    assert _cntlr is not None, "PluginManager.init() must be called before use"
+    return _cntlr
 
 
 def init(cntlr: Cntlr, loadPluginConfig: bool = True) -> None:
@@ -196,13 +201,13 @@ def logPluginTrace(message: str, level: int) -> None:
     if pluginTraceFileLogger:
         pluginTraceFileLogger.log(level, message)
     if level >= logging.ERROR:
-        _cntlr.addToLog(message=message, level=level, messageCode='arelle:pluginLoadingError')
+        _getCntlr().addToLog(message=message, level=level, messageCode='arelle:pluginLoadingError')
 
 
 def modulesWithNewerFileDates() -> set[str]:
     names = set()
     for moduleName, moduleInfo in pluginConfig["modules"].items():
-        freshenedFilename = _cntlr.webCache.getfilename(moduleInfo["moduleURL"], checkModifiedTime=True, normalize=True, base=_pluginBase)
+        freshenedFilename = _getCntlr().webCache.getfilename(moduleInfo["moduleURL"], checkModifiedTime=True, normalize=True, base=_pluginBase)
         if freshenedFilename is None:
             _msg = _("Module URL could not be mapped to a filepath: {moduleURL}").format(moduleURL=moduleInfo["moduleURL"])
             logPluginTrace(_msg, logging.ERROR)
@@ -231,7 +236,7 @@ def freshenModuleInfos() -> None:
     missingEnabledModules = []
     for moduleName, moduleInfo in pluginConfig["modules"].items():
         moduleEnabled = moduleInfo["status"] == "enabled"
-        freshenedFilename = _cntlr.webCache.getfilename(moduleInfo["moduleURL"], checkModifiedTime=True, normalize=True, base=_pluginBase)
+        freshenedFilename = _getCntlr().webCache.getfilename(moduleInfo["moduleURL"], checkModifiedTime=True, normalize=True, base=_pluginBase)
         if freshenedFilename is None:
             _msg = _("Module URL could not be mapped to a filepath: {moduleURL}").format(moduleURL=moduleInfo["moduleURL"])
             logPluginTrace(_msg, logging.ERROR)
@@ -272,7 +277,7 @@ def freshenModuleInfos() -> None:
             logPluginTrace(_("Reloaded plugin that failed loading: {} {}").format(moduleName, moduleInfo), logging.INFO)
         else:
             logPluginTrace(_("Removed plugin that failed loading (plugin may have been archived): {}").format(moduleName), logging.ERROR)
-    save(_cntlr)
+    save(_getCntlr())
 
 
 def normalizeModuleFilename(moduleFilename: str) -> str | None:
@@ -305,7 +310,7 @@ def normalizeModuleFilename(moduleFilename: str) -> str | None:
 
 def getModuleFilename(moduleURL: str, reload: bool, normalize: bool, base: str | None) -> tuple[str | None, EntryPoint | None]:
     #TODO several directories, eg User Application Data
-    moduleFilename = _cntlr.webCache.getfilename(moduleURL, reload=reload, normalize=normalize, base=base)
+    moduleFilename = _getCntlr().webCache.getfilename(moduleURL, reload=reload, normalize=normalize, base=base)
     if moduleFilename:
         # `moduleURL` was mapped to a local filepath
         moduleFilename = normalizeModuleFilename(moduleFilename)
@@ -609,7 +614,7 @@ def loadModule(moduleInfo: dict[str, Any], packagePrefix: str="") -> None:
     moduleName, moduleDir, packageImportPrefix = _get_name_dir_prefix(modulePath, packagePrefix)
 
     if all(p is None for p in [moduleName, moduleDir, packageImportPrefix]):
-        _cntlr.addToLog(message=_ERROR_MESSAGE_IMPORT_TEMPLATE.format(name), level=logging.ERROR)
+        _getCntlr().addToLog(message=_ERROR_MESSAGE_IMPORT_TEMPLATE.format(name), level=logging.ERROR)
     else:
         try:
             if moduleDir is None or moduleName is None:
@@ -657,7 +662,7 @@ def loadModule(moduleInfo: dict[str, Any], packagePrefix: str="") -> None:
                     loadModule(importModuleInfo, packageImportPrefix)
         except (AttributeError, ImportError, FileNotFoundError, ModuleNotFoundError, TypeError, SystemError) as err:
             # Send a summary of the error to the logger and retain the stacktrace for stderr
-            _cntlr.addToLog(message=_ERROR_MESSAGE_IMPORT_TEMPLATE.format(name), level=logging.ERROR)
+            _getCntlr().addToLog(message=_ERROR_MESSAGE_IMPORT_TEMPLATE.format(name), level=logging.ERROR)
 
             _msg = _("Exception loading plug-in {name}: {error}\n{traceback}").format(
                     name=name, error=err, traceback=traceback.format_exc())
@@ -821,7 +826,7 @@ class EntryPointRef:
         :param entryPoint: Optional entry point information to include in aliases/moduleInfo
         :return:
         """
-        moduleFilename = _cntlr.webCache.getfilename(filepath)
+        moduleFilename = _getCntlr().webCache.getfilename(filepath)
         if moduleFilename:
             moduleFilename = normalizeModuleFilename(moduleFilename)
         aliases = set()
