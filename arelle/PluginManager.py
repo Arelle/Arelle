@@ -58,9 +58,6 @@ _pluginBase = None
 EMPTYLIST: list[Any] = []
 _ERROR_MESSAGE_IMPORT_TEMPLATE = "Unable to load module {}"
 
-TypeModuleInfoKey = Union[
-    str, bytes, int, float, complex, types.EllipsisType, None
-]
 
 def init(cntlr: Cntlr, loadPluginConfig: bool = True) -> None:
     global pluginJsonFile, pluginConfig, pluginTraceFileLogger, modulePluginInfos, pluginMethodsForClasses, pluginConfigChanged, _cntlr, _pluginBase
@@ -99,7 +96,7 @@ def reset() -> None:  # force reloading modules and plugin infos
         pluginMethodsForClasses.clear() # dict by class of list of ordered callable function objects
 
 def orderedPluginConfig() -> dict[str, Any]:
-    fieldOrder: list[TypeModuleInfoKey] = [
+    fieldOrder: list[str] = [
         'name',
         'status',
         'fileDate',
@@ -115,7 +112,7 @@ def orderedPluginConfig() -> dict[str, Any]:
     ]
     priorityIndex = {k: i for i, k in enumerate(fieldOrder)}
 
-    def sortModuleInfo(moduleInfo: dict[TypeModuleInfoKey, Any]) -> dict[TypeModuleInfoKey, Any]:
+    def sortModuleInfo(moduleInfo: dict[str, Any]) -> dict[str, Any]:
         # Prioritize known fields by the index in fieldOrder; sort others alphabetically
         orderedKeys = sorted(
             moduleInfo.keys(),
@@ -331,7 +328,7 @@ def getModuleFilename(moduleURL: str, reload: bool, normalize: bool, base: str |
     return None, None
 
 
-def parsePluginInfo(moduleURL: str, moduleFilename: str, entryPoint: EntryPoint | None) -> dict[TypeModuleInfoKey, Any] | None:
+def parsePluginInfo(moduleURL: str, moduleFilename: str, entryPoint: EntryPoint | None) -> dict[str, Any] | None:
     moduleDir, moduleName = os.path.split(moduleFilename)
     with arelle.FileSource.openFileStream(_cntlr, moduleFilename) as f:
         contents = f.read()
@@ -342,7 +339,7 @@ def parsePluginInfo(moduleURL: str, moduleFilename: str, entryPoint: EntryPoint 
     functionDefNames = set()
     methodDefNamesByClass: dict[str, set[str]] = defaultdict(set)
     moduleImports = []
-    moduleInfo: dict[TypeModuleInfoKey, Any] = {"name":None}
+    moduleInfo: dict[str, Any] = {"name":None}
     isPlugin = False
     for item in tree.body:
         if isinstance(item, ast.Assign):
@@ -361,9 +358,12 @@ def parsePluginInfo(moduleURL: str, moduleFilename: str, entryPoint: EntryPoint 
                     _key = cast(ast.Constant, key).value
                     if _key is None:
                         continue
+                    assert isinstance(_key, str), \
+                        (f"Plugin info keys must be strings. "
+                         f"Found key of type {_key.__class__.__name__} "
+                         f"in module {moduleFilename}")
 
                     _value = _dict.values[i]
-
                     _valueType = _value.__class__.__name__
                     if _key == "import":
                         if _valueType == 'Constant':
@@ -448,7 +448,7 @@ def moduleModuleInfo(
         moduleURL: str | None = None,
         entryPoint: EntryPoint | None = None,
         reload: bool = False,
-        parentImportsSubtree: bool = False) -> dict[TypeModuleInfoKey, Any] | None:
+        parentImportsSubtree: bool = False) -> dict[str, Any] | None:
     """
     Generates a module info dict based on the provided `moduleURL` or `entryPoint`
     Exactly one of "moduleURL" or "entryPoint" must be provided, otherwise a RuntimeError will be thrown.
@@ -601,7 +601,7 @@ def _find_and_load_module(moduleDir: str, moduleName: str) -> ModuleType:
 
     return sys.modules[moduleName]
 
-def loadModule(moduleInfo: dict[TypeModuleInfoKey, Any], packagePrefix: str="") -> None:
+def loadModule(moduleInfo: dict[str, Any], packagePrefix: str="") -> None:
     name = moduleInfo['name']
     moduleURL = moduleInfo['moduleURL']
     modulePath = Path(moduleInfo['path'])
@@ -692,7 +692,7 @@ def pluginClassMethods(className: str) -> Iterator[Callable[..., Any]]:
         yield from pluginMethodsForClass
 
 
-def addPluginModule(name: str) -> dict[TypeModuleInfoKey, Any] | None:
+def addPluginModule(name: str) -> dict[str, Any] | None:
     """
     Discover plugin entry points with given name.
     :param name: The name to search for
@@ -720,7 +720,7 @@ def reloadPluginModule(name: str) -> bool:
 def removePluginModule(name: str) -> bool:
     moduleInfo = pluginConfig["modules"].get(name)
     if moduleInfo and name:
-        def _removePluginModule(moduleInfo: dict[TypeModuleInfoKey, Any]) -> None:
+        def _removePluginModule(moduleInfo: dict[str, Any]) -> None:
             _name = moduleInfo.get("name")
             if _name:
                 for classMethod in moduleInfo["classMethods"]:
@@ -739,7 +739,7 @@ def removePluginModule(name: str) -> bool:
     return False # unable to remove
 
 
-def addPluginModuleInfo(plugin_module_info: dict[TypeModuleInfoKey, Any] | None) -> dict[TypeModuleInfoKey, Any] | None:
+def addPluginModuleInfo(plugin_module_info: dict[str, Any] | None) -> dict[str, Any] | None:
     """
     Given a dictionary containing module information, loads plugin info into `pluginConfig`
     :param plugin_module_info: Dictionary of module info fields. See comment block in PluginManager.py for structure.
@@ -750,7 +750,7 @@ def addPluginModuleInfo(plugin_module_info: dict[TypeModuleInfoKey, Any] | None)
     name = plugin_module_info["name"]
     removePluginModule(name)  # remove any prior entry for this module
 
-    def _addPluginSubModule(subModuleInfo: dict[TypeModuleInfoKey, Any]) -> None:
+    def _addPluginSubModule(subModuleInfo: dict[str, Any]) -> None:
         """
         Inline function for recursively exploring module imports
         :param subModuleInfo: Module information to add.
@@ -789,9 +789,9 @@ class EntryPointRef:
     aliases: set[str]
     entryPoint: EntryPoint | None
     moduleFilename: str | None
-    moduleInfo: dict[TypeModuleInfoKey, Any] | None
+    moduleInfo: dict[str, Any] | None
 
-    def createModuleInfo(self) -> dict[TypeModuleInfoKey, Any] | None:
+    def createModuleInfo(self) -> dict[str, Any] | None:
         """
         Creates a module information dictionary from the entry point ref.
         :return: A module inforomation dictionary
@@ -827,7 +827,7 @@ class EntryPointRef:
         aliases = set()
         if entryPoint:
             aliases.add(entryPoint.name)
-        moduleInfo: dict[TypeModuleInfoKey, Any] | None = None
+        moduleInfo: dict[str, Any] | None = None
         if moduleFilename:
             moduleInfo = parsePluginInfo(moduleFilename, moduleFilename, entryPoint)
             if moduleInfo is None:
