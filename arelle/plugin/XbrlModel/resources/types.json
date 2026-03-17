@@ -128,7 +128,7 @@
             {
                 "name" : "xbrli:percent",
                 "baseType" : "xbrli:pureType",
-                "allowedObjects": ["xbrl:conceptObject", "xbrl:unitObject"]
+                "allowedObjects": ["xbrl:conceptObject"]
             },
             {
                 "name" : "xbrli:perShare",

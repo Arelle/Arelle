@@ -1,0 +1,479 @@
+{
+    "$schema": "../oim-taxonomy-schema.json",
+    "documentInfo": {
+        "documentType": "https://xbrl.org/2026/model",
+        "namespaces": {
+            "oimce": "https://xbrl.org/2021/oim-common/error",
+            "xbrl": "https://xbrl.org/2025",
+            "xs": "http://www.w3.org/2001/XMLSchema"
+        },
+        "documentNamespace": "oimce"
+    },
+    "xbrlModel": {
+        "name": "oimce:ErrorsTaxonomy",
+        "version": "1.0",
+        "domainClasses": [
+            {
+                "name": "oimce:OIMCommonErrorClassDomain"
+            }
+        ],
+        "domains": [
+            {
+                "name": "oimce:OIMCommonErrorDomain",
+                "root": "oimce:OIMCommonErrorClassDomain",
+                "relationships": [
+                    {
+                        "source": "oimce:OIMCommonErrorClassDomain",
+                        "target": "oimce:invalidURIAlias",
+                        "order": 1
+                    },
+                    {
+                        "source": "oimce:OIMCommonErrorClassDomain",
+                        "target": "oimce:multipleAliasesForURI",
+                        "order": 2
+                    },
+                    {
+                        "source": "oimce:OIMCommonErrorClassDomain",
+                        "target": "oimce:multipleURIsForAlias",
+                        "order": 3
+                    },
+                    {
+                        "source": "oimce:OIMCommonErrorClassDomain",
+                        "target": "oimce:invalidURIForReservedAlias",
+                        "order": 4
+                    },
+                    {
+                        "source": "oimce:OIMCommonErrorClassDomain",
+                        "target": "oimce:invalidURI",
+                        "order": 5
+                    },
+                    {
+                        "source": "oimce:OIMCommonErrorClassDomain",
+                        "target": "oimce:invalidAliasForReservedURI",
+                        "order": 6
+                    },
+                    {
+                        "source": "oimce:OIMCommonErrorClassDomain",
+                        "target": "oimce:invalidPeriodRepresentation",
+                        "order": 7
+                    },
+                    {
+                        "source": "oimce:OIMCommonErrorClassDomain",
+                        "target": "oimce:invalidUnitStringRepresentation",
+                        "order": 8
+                    }
+                ]
+            }
+        ],
+        "members": [
+            {
+                "name": "oimce:invalidURIAlias",
+                "domainClasses": [
+                    "oimce:OIMCommonErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimce:multipleAliasesForURI",
+                "domainClasses": [
+                    "oimce:OIMCommonErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimce:multipleURIsForAlias",
+                "domainClasses": [
+                    "oimce:OIMCommonErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimce:invalidURIForReservedAlias",
+                "domainClasses": [
+                    "oimce:OIMCommonErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimce:invalidURI",
+                "domainClasses": [
+                    "oimce:OIMCommonErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimce:invalidAliasForReservedURI",
+                "domainClasses": [
+                    "oimce:OIMCommonErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimce:invalidPeriodRepresentation",
+                "domainClasses": [
+                    "oimce:OIMCommonErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimce:invalidUnitStringRepresentation",
+                "domainClasses": [
+                    "oimce:OIMCommonErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            }
+        ],
+        "labels": [
+            {
+                "relatedName": "oimce:OIMCommonErrorClassDomain",
+                "language": "en",
+                "value": "🚫",
+                "labelType": "xbrl:iconLabel"
+            },
+            {
+                "relatedName": "oimce:OIMCommonErrorClassDomain",
+                "language": "en",
+                "value": "OIM Common Errors",
+                "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "oimce:OIMCommonErrorClassDomain",
+                "language": "en",
+                "value": "Error codes defined in the OIM Common specification, raised when validating URI maps (namespace prefix maps), period string representations, and unit string representations.",
+                "labelType": "xbrl:documentation"
+            },
+            {
+                "relatedName": "oimce:invalidURIAlias",
+                "language": "en",
+                "value": "Invalid URI Alias",
+                "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "oimce:invalidURIAlias",
+                "language": "en",
+                "value": "A URI alias (namespace prefix) in the namespaces map MUST NOT be empty and MUST be a valid NCName as defined in the XML Names specification.",
+                "labelType": "xbrl:documentation"
+            },
+            {
+                "relatedName": "oimce:invalidURIAlias",
+                "language": "en",
+                "value": "The URI alias '{alias}' is empty or is not a valid NCName.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "relatedName": "oimce:multipleAliasesForURI",
+                "language": "en",
+                "value": "Multiple Aliases for URI",
+                "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "oimce:multipleAliasesForURI",
+                "language": "en",
+                "value": "This error occurs when two or more prefix keys in the namespaces object map to the same namespace URI. Since namespace URIs are the authoritative identity for all objects, allowing two prefixes to map to the same URI would create ambiguity about which prefix is authoritative and could cause inconsistent object identity resolution. Each namespace URI in the namespaces object must be unique.",
+                "labelType": "xbrl:documentation"
+            },
+            {
+                "relatedName": "oimce:multipleAliasesForURI",
+                "language": "en",
+                "value": "Prefixes '{prefix1}' and '{prefix2}' both map to the same namespace URI '{uri}' in the namespaces declaration. Each namespace URI must be unique.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "relatedName": "oimce:multipleURIsForAlias",
+                "language": "en",
+                "value": "Multiple URIs for Alias",
+                "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "oimce:multipleURIsForAlias",
+                "language": "en",
+                "value": "Within a URI map (namespaces object), each alias (prefix) MUST be bound to at most one URI. A single prefix cannot map to two different namespace URIs.",
+                "labelType": "xbrl:documentation"
+            },
+            {
+                "relatedName": "oimce:multipleURIsForAlias",
+                "language": "en",
+                "value": "The alias '{alias}' is bound to more than one URI in the namespaces map: '{uris}'.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "relatedName": "oimce:invalidURIForReservedAlias",
+                "language": "en",
+                "value": "Invalid URI for Reserved Alias",
+                "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "oimce:invalidURIForReservedAlias",
+                "language": "en",
+                "value": "A reserved URI alias (such as 'xbrl', 'xs', 'xbrli') MUST only be bound to the namespace URI prescribed for that alias in the specification, and MUST NOT be used as the namespace prefix for custom object names in an XBRL Model. Binding a reserved alias to a different URI, or using a reserved alias as the namespace prefix when defining new objects, violates the namespace conventions defined by the specification.",
+                "labelType": "xbrl:documentation"
+            },
+            {
+                "relatedName": "oimce:invalidURIForReservedAlias",
+                "language": "en",
+                "value": "The reserved alias '{alias}' is bound to '{uri}' but MUST be bound to '{expectedUri}'.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "relatedName": "oimce:invalidURI",
+                "language": "en",
+                "value": "Invalid URI",
+                "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "oimce:invalidURI",
+                "language": "en",
+                "value": "Each URI value in the namespaces map MUST be valid according to the xs:anyURI datatype, and MUST be an absolute URI Reference as defined in RFC 2396 and RFC 2732. Relative URIs and invalid URI strings are not permitted as namespace URIs.",
+                "labelType": "xbrl:documentation"
+            },
+            {
+                "relatedName": "oimce:invalidURI",
+                "language": "en",
+                "value": "The URI '{uri}' bound to alias '{alias}' is not a valid absolute URI Reference.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "relatedName": "oimce:invalidAliasForReservedURI",
+                "language": "en",
+                "value": "Invalid Alias for Reserved URI",
+                "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "oimce:invalidAliasForReservedURI",
+                "language": "en",
+                "value": "A namespace URI for which a reserved alias is prescribed MUST NOT be bound to any other alias. If a specification defines that the URI 'https://xbrl.org/2025' must use the alias 'xbrl', then binding that URI to any other prefix is not permitted.",
+                "labelType": "xbrl:documentation"
+            },
+            {
+                "relatedName": "oimce:invalidAliasForReservedURI",
+                "language": "en",
+                "value": "The URI '{uri}' is bound to alias '{alias}' but this URI requires the reserved alias '{reservedAlias}'.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "relatedName": "oimce:invalidPeriodRepresentation",
+                "language": "en",
+                "value": "Invalid Period Representation",
+                "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "oimce:invalidPeriodRepresentation",
+                "language": "en",
+                "value": "A value that is required to be a period string representation (as defined in OIM Common) does not conform to the required format. Period string representations must be valid xs:dateTime values in canonical lexical form for instants, or a pair of xs:dateTime values separated by '/' for durations.",
+                "labelType": "xbrl:documentation"
+            },
+            {
+                "relatedName": "oimce:invalidPeriodRepresentation",
+                "language": "en",
+                "value": "The value '{value}' is not a valid period string representation.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "relatedName": "oimce:invalidUnitStringRepresentation",
+                "language": "en",
+                "value": "Invalid Unit String Representation",
+                "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "oimce:invalidUnitStringRepresentation",
+                "language": "en",
+                "value": "A value in the compositeUnitRepresentation property of a unit object must conform to the unit string representation syntax defined in OIM Common. The string must consist only of QNames (prefix:localname), '*' multiplication separators, '/' division operators, and '(' ')' grouping parentheses, with no whitespace permitted anywhere in the string. Each QName in the string must also resolve to an existing unit object defined in the taxonomy model. This error is raised if (a) the string contains characters or structure that violates the unit string representation syntax, or (b) any QName in a syntactically valid string does not resolve to a unit object in the model.",
+                "labelType": "xbrl:documentation"
+            },
+            {
+                "relatedName": "oimce:invalidUnitStringRepresentation",
+                "language": "en",
+                "value": "The unit string representation '{value}' is invalid: {reason}.",
+                "labelType": "xbrl:errorMessage"
+            }
+        ],
+        "references": [
+            {
+                "name": "oimce:multipleAliasesForURIPrefixCollisionReference",
+                "relatedNames": [
+                    "oimce:multipleAliasesForURI"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "NAMESPACE-PrefixRemapRequired-Error.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#NAMESPACE-PrefixRemapRequired-Error"
+                    }
+                ]
+            },
+            {
+                "name": "oimce:multipleAliasesForURIAmbiguousReference",
+                "relatedNames": [
+                    "oimce:multipleAliasesForURI"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "NAMESPACE-PrefixRemapAmbiguous-Invalid.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#NAMESPACE-PrefixRemapAmbiguous-Invalid"
+                    }
+                ]
+            },
+            {
+                "name": "oimce:invalidUnitStringRepresentationBadCharsReference",
+                "relatedNames": [
+                    "oimce:invalidUnitStringRepresentation"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "UNIT-InvalidUnitStringRepresentationBadChars.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#UNIT-InvalidUnitStringRepresentationBadChars"
+                    }
+                ]
+            },
+            {
+                "name": "oimce:invalidUnitStringRepresentationUnknownUnitReference",
+                "relatedNames": [
+                    "oimce:invalidUnitStringRepresentation"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "UNIT-InvalidUnitStringRepresentationUnknownUnit.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#UNIT-InvalidUnitStringRepresentationUnknownUnit"
+                    }
+                ]
+            },
+            {
+                "name": "oimce:invalidUnitStringRepresentationExistingReference",
+                "relatedNames": [
+                    "oimce:invalidUnitStringRepresentation"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "UNIT-UnitWithInvalidStringRepresentation.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#UNIT-UnitWithInvalidStringRepresentation"
+                    }
+                ]
+            },
+            {
+                "name": "oimce:invalidURIForReservedAliasRestrictedPrefixReference",
+                "relatedNames": [
+                    "oimce:invalidURIForReservedAlias"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "NAMESPACE-RestrictedPrefix.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "\u274c Fail"
+                    }
+                ]
+            },
+            {
+                "name": "oimce:invalidURIForReservedAliasPassThroughPrefixReference",
+                "relatedNames": [
+                    "oimce:invalidURIForReservedAlias"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "IMPORTTAXONOMY-PassThroughPrefixError.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "\u274c Fail"
+                    }
+                ]
+            }
+        ]
+    }
+}

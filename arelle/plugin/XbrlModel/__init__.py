@@ -18,7 +18,7 @@ For XBRL 2.1 XML schema validation purposes, saves schema files in directory if
 
 from typing import TYPE_CHECKING, cast, GenericAlias, Union, _GenericAlias, _UnionGenericAlias, get_origin, ClassVar, ForwardRef
 
-import os, io, json, cbor2, sys, time, traceback
+import os, io, json, cbor2, sys, time, traceback, inspect
 JSON_SCHEMA_VALIDATOR = "jsonschema" # select one of below JSON schema validator libraries (seriously different performance)
 #JSON_SCHEMA_VALIDATOR = "fastjsonschema"
 if JSON_SCHEMA_VALIDATOR == "jsonschema": # slow and thorough
@@ -431,12 +431,20 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                 xbrlCompMdl.error("oime:documentNamespaceHasNoPrefix",
                             _("Taxonomy document namespace '%(namespace)s' is not defined in namespaces"),
                             sourceFileLine=href, namespace=pfx)
-        if "urlMapping" in documentInfo:
-            for prefix, url in documentInfo["urlMapping"].items():
-                namespaceUrls[prefix] = url
+        # The mapping key was renamed from urlMapping to importMapping in newer schemas.
+        # Accept both keys and normalize values to a tuple of URLs.
+        mapping = documentInfo.get("importMapping") or documentInfo.get("urlMapping") or EMPTY_DICT
+        if mapping:
+            for prefix, url in mapping.items():
+                if isinstance(url, str):
+                    namespaceUrls[prefix] = (url,)
+                elif isinstance(url, SEQUENCE_TYPES):
+                    namespaceUrls[prefix] = tuple(url)
+                else:
+                    namespaceUrls[prefix] = ()
         xbrlModelName = qname(moduleObj.get("name"), prefixNamespaces)
         if not xbrlModelName:
-            xbrlCompMdl.error("oime:missingQNameProperty",
+            xbrlCompMdl.error("oimte:invalidJSONStructureMissingRequiredProperty",
                           _("Taxonomy must have a name (QName) property"),
                           sourceFileLine=href)
 
@@ -639,7 +647,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
             """"""
             # find collection owner in oimParentObj
             for objName in (jsonKey, plural(jsonKey)):
-                ownrPropType = getattr(oimParentObj, "__annotations__", EMPTY_DICT).get(objName)
+                ownrPropType = inspect.get_annotations(type(oimParentObj)).get(objName)
                 if ownrPropType is not None:
                     break
             if ownrPropType is not None:

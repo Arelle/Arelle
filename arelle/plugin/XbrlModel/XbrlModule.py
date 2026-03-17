@@ -67,7 +67,7 @@ class XbrlModule(XbrlModelObject):
     groups: OrderedSet[XbrlGroup] #  (optional) ordered set of group objects.
     groupContents: OrderedSet[XbrlGroupContent] # ordered set of groupContent objects that link a group QName to a list of network or cube objects.
     groupTree: Optional[XbrlGroupTree] # (optional) A groupTree object that defines the hierarchical organization of groups within the taxonomy. Unlike groupContents which links groups to networks and cubes, groupTree organizes the groups themselves into a tree structure. The taxonomy serves as the root by being referenced as the source in top-level relationships. Only one groupTree object is allowed per taxonomy.
-    JSONTemplateMaps: OrderedSet[XbrlJSONTemplateMap] # (optional) ordered set of JSON template map objects that define mappings from taxonomy objects to JSON templates for rendering in user interfaces or forms.
+    jsonTemplateMaps: OrderedSet[XbrlJSONTemplateMap] # (optional) ordered set of JSON template map objects that define mappings from taxonomy objects to JSON templates for rendering in user interfaces or forms.
     labels: OrderedSet[XbrlLabel] # (optional) ordered set of label objects.
     layouts: OrderedSet[XbrlLayout] # (optional) A layout object that defines the layout of a data structure that conforms with a XBRL model. The layout object is used to define how facts in a model or are rendered in a form or user interface.
     members: OrderedSet[XbrlMember] #  (optional) ordered set of member objects.
@@ -80,7 +80,11 @@ class XbrlModule(XbrlModelObject):
     relationshipTypes: OrderedSet[XbrlRelationshipType] # (optional) ordered set of relationshipType objects.
     transforms: OrderedSet[XbrlTransform] # (optional) an ordered set of transform objects.
     units: OrderedSet[XbrlUnit] # ordered set of unit objects.
-    XMLTemplateMaps: OrderedSet[XbrlXMLTemplateMap] # (optional) ordered set of XML template map objects that define mappings from taxonomy objects to XML templates for rendering in user interfaces or forms.
+    xmlTemplateMaps: OrderedSet[XbrlXMLTemplateMap] # (optional) ordered set of XML template map objects that define mappings from taxonomy objects to XML templates for rendering in user interfaces or forms.
+
+    # Backward-compatibility aliases for older property casing used in early drafts.
+    JSONTemplateMaps: OrderedSet[XbrlJSONTemplateMap]
+    XMLTemplateMaps: OrderedSet[XbrlXMLTemplateMap]
     properties: OrderedSet[XbrlProperty] # ordered set of property objects used to specify additional properties associated with the taxonomy. Only immutable properties as defined in the propertyType object can be added to a taxonom
 
 """ Referencable Object Types
