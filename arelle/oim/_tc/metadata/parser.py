@@ -26,6 +26,9 @@ from arelle.oim._tc.metadata.model import (
     TCUniqueKey,
     TCValueConstraint,
 )
+from arelle.typing import TypeGetText
+
+_: TypeGetText
 
 
 class TCMetadataParseError(TCError):
@@ -48,7 +51,11 @@ class TCMetadataParseError(TCError):
 class TCMetadataParseTypeError(TCMetadataParseError):
     def __init__(self, expected_type: type, actual_value: Any, *path: str) -> None:
         super().__init__(
-            f"Expected {expected_type.__name__}, got {type(actual_value).__name__}: {actual_value!r}",
+            _("Expected {expected}, got {actual}: {value}").format(
+                expected=expected_type.__name__,
+                actual=type(actual_value).__name__,
+                value=repr(actual_value),
+            ),
             *path,
         )
 
@@ -56,7 +63,7 @@ class TCMetadataParseTypeError(TCMetadataParseError):
 class TCMetadataUnknownPropertiesError(TCMetadataParseError):
     def __init__(self, property_names: list[str]) -> None:
         names = ", ".join(repr(n) for n in sorted(property_names))
-        super().__init__(f"Unknown properties: {names}")
+        super().__init__(_("Unknown properties: {names}").format(names=names))
 
 
 def _prepend_paths(errors: list[TCMetadataParseError], *segments: str) -> list[TCMetadataParseError]:
@@ -476,7 +483,9 @@ def _parse_bounded_int(
 ) -> int | None:
     val = _parse_primitive_field(obj, key, int, errors, default=default)
     if val is not None and val < min_value:
-        errors.append(TCMetadataParseError(f"Value {val} is less than minimum {min_value}", key))
+        errors.append(
+            TCMetadataParseError(_("Value {value} is less than minimum {min}").format(value=val, min=min_value), key)
+        )
         return default
     return val
 
