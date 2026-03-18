@@ -117,7 +117,10 @@ def qname(
             namespaceURI = "http://www.w3.org/XML/1998/namespace"
     if not namespaceURI:
         if prefix:
-            if prefixException: raise prefixException
+            if prefixException:
+                if isinstance(prefixException, type):
+                    raise prefixException(f"prefix '{prefix}' is not defined in namespace map.")
+                raise prefixException
             return None  # error, prefix not found
         namespaceURI = None # cancel namespace if it is a zero length string
     return QName(prefix, namespaceURI, localName)
@@ -146,7 +149,7 @@ def qnameEltPfxName(
     | ModelInlineFact
     | ModelObject,
     prefixedName: str,
-    prefixException: type[Exception] | None = None,
+    prefixException: Exception | type[Exception] | None = None,
 ) -> QName | None:
     prefix: str | None
     namespaceURI: str | None
@@ -166,7 +169,10 @@ def qnameEltPfxName(
             if prefix == 'xml':
                 namespaceURI = "http://www.w3.org/XML/1998/namespace"
             else:
-                if prefixException: raise prefixException
+                if prefixException:
+                    if isinstance(prefixException, type):
+                        raise prefixException(f"prefix '{prefix}' is not defined in namespace map.")
+                    raise prefixException
                 return None
         else:
             namespaceURI = None # cancel namespace if it is a zero length string
