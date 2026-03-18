@@ -64,8 +64,8 @@ class Session:
         with _session_lock:
             self._check_thread()
             if self._cntlr is not None:
-                self._cntlr.pluginManager.close()
                 self._cntlr.close()
+                self._cntlr.pluginManager.close()
 
     def get_log_messages(self) -> list[dict[str, Any]]:
         """
