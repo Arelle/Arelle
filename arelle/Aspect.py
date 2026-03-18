@@ -19,7 +19,7 @@ class Aspect:
     PRECISION = 95  # not real aspects, just for common processing
     DECIMALS = 96
 
-    label = {
+    label: dict[int, str] = {
         LOCATION: "location",
         CONCEPT: "concept",
         ENTITY_IDENTIFIER: "entity-identifier",  VALUE:"identifier value", SCHEME: "scheme",
@@ -35,30 +35,30 @@ class Aspect:
         DECIMALS: "decimals",
     }
 
-def aspectStr(aspect):
-    if aspect in Aspect.label:
-        return Aspect.label[aspect]
-    else:
-        return str(aspect)
 
-def isDimensionalAspect(aspect):
+def aspectStr(aspect: int | QName) -> str:
+    return Aspect.label.get(aspect, str(aspect))  # type: ignore[arg-type]
+
+
+def isDimensionalAspect(aspect: int | QName) -> bool:
     return aspect in (Aspect.DIMENSIONS, Aspect.OMIT_DIMENSIONS) or isinstance(aspect, QName)
 
-aspectModelAspect = {   # aspect of the model that corresponds to retrievable aspects
-    Aspect.VALUE: Aspect.ENTITY_IDENTIFIER, Aspect.SCHEME:Aspect.ENTITY_IDENTIFIER,
+
+aspectModelAspect: dict[int, int] = {  # aspect of the model that corresponds to retrievable aspects
+    Aspect.VALUE: Aspect.ENTITY_IDENTIFIER, Aspect.SCHEME: Aspect.ENTITY_IDENTIFIER,
     Aspect.PERIOD_TYPE: Aspect.PERIOD,
     Aspect.START: Aspect.PERIOD, Aspect.END: Aspect.PERIOD,
     Aspect.INSTANT: Aspect.PERIOD, Aspect.INSTANT_END: Aspect.PERIOD,
     Aspect.UNIT_MEASURES: Aspect.UNIT, Aspect.MULTIPLY_BY: Aspect.UNIT, Aspect.DIVIDE_BY: Aspect.UNIT
 }
 
-aspectRuleAspects = {   # aspect correspondence to rule-retrievable aspects
+aspectRuleAspects: dict[int, tuple[int, ...]] = {   # aspect correspondence to rule-retrievable aspects
     Aspect.ENTITY_IDENTIFIER: (Aspect.VALUE, Aspect.SCHEME),
     Aspect.PERIOD: (Aspect.PERIOD_TYPE, Aspect.START, Aspect.END, Aspect.INSTANT),
     Aspect.UNIT: (Aspect.UNIT_MEASURES, Aspect.MULTIPLY_BY, Aspect.DIVIDE_BY)
 }
 
-aspectContextAspects = frozenset({
+aspectContextAspects: frozenset[int] = frozenset({
     Aspect.ENTITY_IDENTIFIER, Aspect.VALUE, Aspect.SCHEME,
     Aspect.PERIOD, Aspect.PERIOD_TYPE, Aspect.START, Aspect.END, Aspect.INSTANT, Aspect.INSTANT_END,
     Aspect.COMPLETE_SEGMENT,
@@ -68,7 +68,7 @@ aspectContextAspects = frozenset({
     Aspect.DIMENSIONS, Aspect.OMIT_DIMENSIONS,
 })
 
-aspectModels = {
+aspectModels: dict[str, set[int]] = {
     "dimensional": {  # order by likelyhood of short circuting aspect match tests
         Aspect.CONCEPT, Aspect.PERIOD, Aspect.UNIT, Aspect.LOCATION, Aspect.ENTITY_IDENTIFIER,
         Aspect.DIMENSIONS,
@@ -78,7 +78,7 @@ aspectModels = {
         Aspect.COMPLETE_SEGMENT, Aspect.COMPLETE_SCENARIO},
 }
 
-aspectFromToken = {
+aspectFromToken: dict[str, int] = {
     "location": Aspect.LOCATION, "concept": Aspect.CONCEPT,
     "entityIdentifier": Aspect.ENTITY_IDENTIFIER, "entity-identifier": Aspect.ENTITY_IDENTIFIER,
     "period": Aspect.PERIOD, "unit": Aspect.UNIT,
@@ -89,18 +89,18 @@ aspectFromToken = {
     "scenario": Aspect.COMPLETE_SCENARIO, "complete-scenario": Aspect.COMPLETE_SCENARIO,
 }
 
-aspectToToken = {
+aspectToToken: dict[int, str] = {
     Aspect.LOCATION: "location", Aspect.CONCEPT: "concept",
-    Aspect.ENTITY_IDENTIFIER: "entityIdentifier", Aspect.ENTITY_IDENTIFIER: "entity-identifier",
+    Aspect.ENTITY_IDENTIFIER: "entity-identifier",
     Aspect.PERIOD: "period", Aspect.UNIT:"unit",
     Aspect.NON_XDT_SEGMENT: "non-XDT-segment",
     Aspect.NON_XDT_SCENARIO: "non-XDT-scenario",
-    Aspect.DIMENSIONS: "dimension", Aspect.DIMENSIONS: "dimensions" ,
+    Aspect.DIMENSIONS: "dimensions" ,
     Aspect.COMPLETE_SEGMENT: "complete-segment",
     Aspect.COMPLETE_SCENARIO: "complete-scenario",
 }
 
-aspectElementNameAttrValue = {
+aspectElementNameAttrValue: dict[int, tuple[str | tuple[str, str], str, str | None, str | None]] = {
     Aspect.LOCATION_RULE: ("location", XbrlConst.tuple, None, None),
     Aspect.CONCEPT: ("concept", XbrlConst.formula, None, None),
     Aspect.ENTITY_IDENTIFIER: ("entityIdentifier", XbrlConst.formula, None, None),
