@@ -1304,7 +1304,7 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict]:
         args = []
         namedOptions = set()
         optionsWithArg = set()
-        optionList = parser.option_list
+        optionList = parser.option_list.copy()
         [optionList.extend(group.option_list) for group in parser.option_groups]
         for option in optionList:
             names = str(option).split("/")
