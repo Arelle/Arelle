@@ -45,7 +45,10 @@ _ERROR_MESSAGE_IMPORT_TEMPLATE = "Unable to load module {}"
 
 class PluginManager:
 
-    def __init__(self, cntlr: Cntlr, loadPluginConfig: bool = True) -> None:
+    def __init__(self) -> None:
+        self.pluginConfig: dict[str, Any] = {}
+
+    def init(self, cntlr: Cntlr, loadPluginConfig: bool = True) -> None:
         self.pluginJsonFile: str | None = None
         self._cntlr: Cntlr = cntlr
         self.pluginConfigChanged = False
@@ -980,7 +983,9 @@ def __getattr__(name: str) -> Any:
 
 def init(cntlr: Cntlr, loadPluginConfig: bool = True) -> None:
     global _singleton
-    _singleton = PluginManager(cntlr, loadPluginConfig)
+    if _singleton is None:
+        _singleton = PluginManager()
+    _singleton.init(cntlr, loadPluginConfig)
 
 
 def reset() -> None:

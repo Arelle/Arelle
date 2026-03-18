@@ -155,7 +155,8 @@ class TestPluginManagerClass:
 
     def test_init_creates_instance(self):
         cntlr = Mock(pluginDir='some_dir')
-        pm = PluginManagerClass(cntlr, loadPluginConfig=False)
+        pm = PluginManagerClass()
+        pm.init(cntlr, loadPluginConfig=False)
         assert len(pm.pluginConfig) == 2
         assert 'modules' in pm.pluginConfig
         assert 'classes' in pm.pluginConfig
@@ -165,7 +166,8 @@ class TestPluginManagerClass:
 
     def test_reset_clears_runtime_state(self):
         cntlr = Mock(pluginDir='some_dir')
-        pm = PluginManagerClass(cntlr, loadPluginConfig=False)
+        pm = PluginManagerClass()
+        pm.init(cntlr, loadPluginConfig=False)
         pm.modulePluginInfos['module'] = 'plugin_info'
         pm.pluginMethodsForClasses['class'] = 'plugin_method'
         pm.reset()
@@ -175,7 +177,8 @@ class TestPluginManagerClass:
 
     def test_close_clears_all_state(self):
         cntlr = Mock(pluginDir='some_dir')
-        pm = PluginManagerClass(cntlr, loadPluginConfig=False)
+        pm = PluginManagerClass()
+        pm.init(cntlr, loadPluginConfig=False)
         pm.modulePluginInfos['module'] = 'plugin_info'
         pm.pluginMethodsForClasses['class'] = 'plugin_method'
         pm.close()
