@@ -9,7 +9,6 @@ from pathlib import Path
 from arelle.RuntimeOptions import RuntimeOptions
 # include import start
 from arelle.api.Session import Session
-from arelle.logging.handlers.StructuredMessageLogHandler import StructuredMessageLogHandler
 # include import end
 from tests.integration_tests.integration_test_util import get_s3_uri
 from tests.integration_tests.scripts.script_util import parse_args, validate_log_xml, assert_result

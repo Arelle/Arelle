@@ -21,14 +21,14 @@ class LogToXmlHandler(LogHandlerWithXml):
     A log handler that writes log entries to named XML file (utf-8 encoded) upon closing the application.
     """
     logRecordBuffer: list[logging.LogRecord]
-    cntlr: Cntlr
+    cntlr: Cntlr | None
     filename: str | None
     filemode: str
     htmlTitle: str = "Arelle Message Log" # may be customized in plugin startup
 
     def __init__(
             self,
-            cntlr: Cntlr,
+            cntlr: Cntlr | None = None,
             filename: str | None = None,
             mode: str = 'w',
             logXmlMaxAttributeLength: int | None = None
@@ -42,8 +42,9 @@ class LogToXmlHandler(LogHandlerWithXml):
     def flush(self) -> None:
         # Note to developers: breakpoints in this method don't work, please debug with print statements
         securityIsActive = securityHasWritten = False
-        for pluginMethod in self.cntlr.pluginManager.pluginClassMethods("Security.Crypt.IsActive"):
-            securityIsActive = pluginMethod(self) # must be active for the cntlr object to effect log writing
+        if self.cntlr is not None:
+            for pluginMethod in self.cntlr.pluginManager.pluginClassMethods("Security.Crypt.IsActive"):
+                securityIsActive = pluginMethod(self) # must be active for the cntlr object to effect log writing
         if self.filename == "logToStdOut.xml":
             print('<?xml version="1.0" encoding="utf-8"?>')
             print('<log>')
@@ -60,7 +61,7 @@ class LogToXmlHandler(LogHandlerWithXml):
         elif self.filename is not None:
             if self.filename.endswith(".xml"):
                 # print ("filename=" + self.filename)
-                if securityIsActive:
+                if securityIsActive and self.cntlr is not None:
                     for pluginMethod in self.cntlr.pluginManager.pluginClassMethods("Security.Crypt.Write"):
                         securityHasWritten = pluginMethod(self, self.filename,
                                                           '<?xml version="1.0" encoding="utf-8"?>\n<log>\n' +
@@ -73,14 +74,14 @@ class LogToXmlHandler(LogHandlerWithXml):
                             fh.write(self.recordToXml(logRec))
                         fh.write('</log>\n')
             elif self.filename.endswith(".json"):
-                if securityIsActive:
+                if securityIsActive and self.cntlr is not None:
                     for pluginMethod in self.cntlr.pluginManager.pluginClassMethods("Security.Crypt.Write"):
                         securityHasWritten = pluginMethod(self, self.filename, self.getJson())
                 if not securityHasWritten:
                     with open(self.filename, self.filemode, encoding='utf-8') as fh:
                         fh.write(self.getJson())
             elif self.filename.endswith(".html"):
-                if securityIsActive:
+                if securityIsActive and self.cntlr is not None:
                     for pluginMethod in self.cntlr.pluginManager.pluginClassMethods("Security.Crypt.Write"):
                         securityHasWritten = pluginMethod(self, self.filename, self.getHtml())
                 if not securityHasWritten:
@@ -99,7 +100,7 @@ class LogToXmlHandler(LogHandlerWithXml):
                                .decode(sys.stdout.encoding, 'strict')),
                               file=_file)
             else:
-                if securityIsActive:
+                if securityIsActive and self.cntlr is not None:
                     for pluginMethod in self.cntlr.pluginManager.pluginClassMethods("Security.Crypt.Write"):
                         securityHasWritten = pluginMethod(self, self.filename,
                                                           ''.join(self.format(logRec) + "\n" for logRec in self.logRecordBuffer))
@@ -186,9 +187,10 @@ class LogToXmlHandler(LogHandlerWithXml):
             self.htmlTitle)
         ]
         if self.logRecordBuffer:
-            for logRec in self.logRecordBuffer:
-                if all(p(logRec) for p in self.cntlr.pluginManager.pluginClassMethods("Cntlr.Log.RecFilter.Html")):
-                    html.append(self.recordToHtml(logRec))
+            if self.cntlr is not None:
+                for logRec in self.logRecordBuffer:
+                    if all(p(logRec) for p in self.cntlr.pluginManager.pluginClassMethods("Cntlr.Log.RecFilter.Html")):
+                        html.append(self.recordToHtml(logRec))
             if clearLogBuffer:
                 self.clearLogBuffer()
             html.append("</tbody>\n</table>\n</body>\n</html>\n")
