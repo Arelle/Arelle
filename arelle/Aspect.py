@@ -33,7 +33,7 @@ class Aspect:
         OMIT_DIMENSIONS: "omit dimensions",
         PRECISION: "precision",
         DECIMALS: "decimals",
-        }
+    }
 
 
 def aspectStr(aspect: int | QName) -> str:
@@ -91,6 +91,7 @@ aspectFromToken: dict[str, int] = {
 
 aspectToToken: dict[int, str] = {
     Aspect.LOCATION: "location", Aspect.CONCEPT: "concept",
+    Aspect.ENTITY_IDENTIFIER: "entity-identifier",
     Aspect.PERIOD: "period", Aspect.UNIT:"unit",
     Aspect.NON_XDT_SEGMENT: "non-XDT-segment",
     Aspect.NON_XDT_SCENARIO: "non-XDT-scenario",
