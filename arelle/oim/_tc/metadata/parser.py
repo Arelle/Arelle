@@ -59,6 +59,12 @@ class TCMetadataUnknownPropertiesError(TCMetadataParseError):
         super().__init__(f"Unknown properties: {names}")
 
 
+def _prepend_paths(errors: list[TCMetadataParseError], *segments: str) -> list[TCMetadataParseError]:
+    for error in errors:
+        error.prepend_path(*segments)
+    return errors
+
+
 @dataclass(frozen=True)
 class TCParseResult:
     metadata: TCMetadata | None
@@ -83,7 +89,10 @@ def parse_tc_metadata(
         for template_id, template_obj in tableTemplates.items():
             if not isinstance(template_obj, dict):
                 continue
-            tc = _parse_template_constraints(template_obj, template_id, errors)
+            local_errors: list[TCMetadataParseError] = []
+            tc = _parse_template_constraints(template_obj, local_errors)
+            if local_errors:
+                errors.extend(_prepend_paths(local_errors, "tableTemplates", template_id))
             if tc is not None:
                 template_constraints[template_id] = tc
 
@@ -93,7 +102,6 @@ def parse_tc_metadata(
 
 def _parse_template_constraints(
     template_obj: dict[str, Any],
-    template_id: str,
     errors: list[TCMetadataParseError],
 ) -> TCTemplateConstraints | None:
     local_errors: list[TCMetadataParseError] = []
@@ -103,9 +111,6 @@ def _parse_template_constraints(
     keys = _parse_template_keys(template_obj, local_errors)
     column_order = _parse_ordered_set(template_obj, TC_COLUMN_ORDER_PROPERTY_NAME, local_errors)
     table_constraints = _parse_template_table_constraints(template_obj, local_errors)
-
-    for error in local_errors:
-        error.prepend_path("tableTemplates", template_id)
 
     if local_errors:
         errors.extend(local_errors)
@@ -142,9 +147,8 @@ def _parse_column_constraints(
             continue
         item_errors: list[TCMetadataParseError] = []
         value_constraint = _parse_value_constraint(constraint_obj, item_errors)
-        for error in item_errors:
-            error.prepend_path("columns", col_name, TC_CONSTRAINTS_PROPERTY_NAME)
-        errors.extend(item_errors)
+        if item_errors:
+            errors.extend(_prepend_paths(item_errors, "columns", col_name, TC_CONSTRAINTS_PROPERTY_NAME))
         if value_constraint is not None:
             result[col_name] = value_constraint
     return result
@@ -167,9 +171,8 @@ def _parse_param_constraints(
             continue
         item_errors: list[TCMetadataParseError] = []
         value_constraint = _parse_value_constraint(param_obj, item_errors)
-        for error in item_errors:
-            error.prepend_path(TC_PARAMETERS_PROPERTY_NAME, param_name)
-        errors.extend(item_errors)
+        if item_errors:
+            errors.extend(_prepend_paths(item_errors, TC_PARAMETERS_PROPERTY_NAME, param_name))
         if value_constraint is not None:
             result[param_name] = value_constraint
     return result
@@ -187,10 +190,8 @@ def _parse_template_keys(
         return None
     local_errors: list[TCMetadataParseError] = []
     keys = _parse_keys(keys_obj, local_errors)
-    for error in local_errors:
-        error.prepend_path(TC_KEYS_PROPERTY_NAME)
     if local_errors:
-        errors.extend(local_errors)
+        errors.extend(_prepend_paths(local_errors, TC_KEYS_PROPERTY_NAME))
         return None
     return keys
 
@@ -207,10 +208,8 @@ def _parse_template_table_constraints(
         return None
     local_errors: list[TCMetadataParseError] = []
     result = _parse_table_constraints(obj, local_errors)
-    for error in local_errors:
-        error.prepend_path(TC_TABLE_CONSTRAINTS_PROPERTY_NAME)
     if local_errors:
-        errors.extend(local_errors)
+        errors.extend(_prepend_paths(local_errors, TC_TABLE_CONSTRAINTS_PROPERTY_NAME))
         return None
     return result
 
@@ -315,9 +314,8 @@ def _parse_unique_keys(
             continue
         item_errors: list[TCMetadataParseError] = []
         parsed_key = _parse_unique_key(uni_key, item_errors)
-        for e in item_errors:
-            e.prepend_path(unique_key_name, str(i))
-        errors.extend(item_errors)
+        if item_errors:
+            errors.extend(_prepend_paths(item_errors, unique_key_name, str(i)))
         if parsed_key is not None:
             parsed_unique_keys.append(parsed_key)
     return tuple(parsed_unique_keys) if parsed_unique_keys else None
@@ -361,9 +359,8 @@ def _parse_reference_keys(
             continue
         item_errors: list[TCMetadataParseError] = []
         parsed_key = _parse_reference_key(ref_key, item_errors)
-        for e in item_errors:
-            e.prepend_path(reference_key_name, str(i))
-        errors.extend(item_errors)
+        if item_errors:
+            errors.extend(_prepend_paths(item_errors, reference_key_name, str(i)))
         if parsed_key is not None:
             parsed_reference_keys.append(parsed_key)
     return tuple(parsed_reference_keys) if parsed_reference_keys else None
