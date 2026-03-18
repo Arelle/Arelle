@@ -5,15 +5,13 @@ import os
 import urllib.request
 import zipfile
 from pathlib import Path
-from shutil import rmtree
 
 import regex
 
 from arelle.RuntimeOptions import RuntimeOptions
 from arelle.api.Session import Session
-from arelle.logging.handlers.StructuredMessageLogHandler import StructuredMessageLogHandler
 from tests.integration_tests.integration_test_util import get_s3_uri
-from tests.integration_tests.scripts.script_util import parse_args, assert_result, prepare_logfile, validate_log_xml, validate_log_file
+from tests.integration_tests.scripts.script_util import parse_args, assert_result, prepare_logfile, validate_log_xml
 
 errors = []
 this_file = Path(__file__)
