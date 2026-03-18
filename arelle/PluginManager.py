@@ -17,11 +17,11 @@ import types
 from collections import defaultdict
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
-from importlib.metadata import EntryPoint, entry_points
+from importlib.metadata import EntryPoint, entry_points, Distribution
 from numbers import Number
 from pathlib import Path
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, cast, Union
 
 import arelle.FileSource
 from arelle.Locale import getLanguageCodes
@@ -36,21 +36,32 @@ if TYPE_CHECKING:
 
 _: TypeGetText
 
-PLUGIN_TRACE_FILE = None
+PLUGIN_TRACE_FILE: str | None = None
 # PLUGIN_TRACE_FILE = "c:/temp/pluginerr.txt"
 PLUGIN_TRACE_LEVEL = logging.WARNING
 
 # plugin control is static to correspond to statically loaded modules
 pluginJsonFile = None
-pluginConfig: dict | None = None
+pluginConfig: dict[str, Any] | None = None
 pluginConfigChanged = False
 pluginTraceFileLogger = None
-modulePluginInfos = {}
-pluginMethodsForClasses = {}
-_cntlr = None
+modulePluginInfos: dict[str, Any] = {}
+pluginMethodsForClasses: dict[str, Any] = {}
+_cntlr: Cntlr | None = None
 _pluginBase = None
-EMPTYLIST = []
+EMPTYLIST: list[Any] = []
 _ERROR_MESSAGE_IMPORT_TEMPLATE = "Unable to load module {}"
+
+
+def _getPluginConfig() -> dict[str, Any]:
+    assert pluginConfig is not None, "PluginManager.init() must be called before use"
+    return pluginConfig
+
+
+def _getCntlr() -> Cntlr:
+    assert _cntlr is not None, "PluginManager.init() must be called before use"
+    return _cntlr
+
 
 def init(cntlr: Cntlr, loadPluginConfig: bool = True) -> None:
     global pluginJsonFile, pluginConfig, pluginTraceFileLogger, modulePluginInfos, pluginMethodsForClasses, pluginConfigChanged, _cntlr, _pluginBase
@@ -88,8 +99,8 @@ def reset() -> None:  # force reloading modules and plugin infos
     if pluginMethodsForClasses:
         pluginMethodsForClasses.clear() # dict by class of list of ordered callable function objects
 
-def orderedPluginConfig():
-    fieldOrder = [
+def orderedPluginConfig() -> dict[str, Any]:
+    fieldOrder: list[str] = [
         'name',
         'status',
         'fileDate',
@@ -105,7 +116,7 @@ def orderedPluginConfig():
     ]
     priorityIndex = {k: i for i, k in enumerate(fieldOrder)}
 
-    def sortModuleInfo(moduleInfo):
+    def sortModuleInfo(moduleInfo: dict[str, Any]) -> dict[str, Any]:
         # Prioritize known fields by the index in fieldOrder; sort others alphabetically
         orderedKeys = sorted(
             moduleInfo.keys(),
@@ -113,14 +124,15 @@ def orderedPluginConfig():
         )
         return {k: moduleInfo[k] for k in orderedKeys}
 
+    _pluginConfig = _getPluginConfig()
     orderedModules = {
-        moduleName: sortModuleInfo(pluginConfig['modules'][moduleName])
-        for moduleName in sorted(pluginConfig['modules'].keys())
+        moduleName: sortModuleInfo(_pluginConfig['modules'][moduleName])
+        for moduleName in sorted(_pluginConfig['modules'].keys())
     }
 
     return {
         'modules': orderedModules,
-        'classes': dict(sorted(pluginConfig['classes'].items()))
+        'classes': dict(sorted(_pluginConfig['classes'].items()))
     }
 
 def save(cntlr: Cntlr) -> None:
@@ -139,8 +151,6 @@ def close() -> None:  # close all loaded methods
         modulePluginInfos.clear()
     if pluginMethodsForClasses is not None:
         pluginMethodsForClasses.clear()
-    global webCache
-    webCache = None
 
 ''' pluginInfo structure:
 
@@ -181,7 +191,7 @@ moduleInfo = {
 
 '''
 
-def logPluginTrace(message: str, level: Number) -> None:
+def logPluginTrace(message: str, level: int) -> None:
     """
     If plugin trace file logging is configured, logs `message` to it.
     Only logs to controller logger if log is an error.
@@ -191,13 +201,17 @@ def logPluginTrace(message: str, level: Number) -> None:
     if pluginTraceFileLogger:
         pluginTraceFileLogger.log(level, message)
     if level >= logging.ERROR:
-        _cntlr.addToLog(message=message, level=level, messageCode='arelle:pluginLoadingError')
+        _getCntlr().addToLog(message=message, level=level, messageCode='arelle:pluginLoadingError')
 
 
-def modulesWithNewerFileDates():
+def modulesWithNewerFileDates() -> set[str]:
     names = set()
-    for moduleName, moduleInfo in pluginConfig["modules"].items():
-        freshenedFilename = _cntlr.webCache.getfilename(moduleInfo["moduleURL"], checkModifiedTime=True, normalize=True, base=_pluginBase)
+    for moduleName, moduleInfo in _getPluginConfig()["modules"].items():
+        freshenedFilename = _getCntlr().webCache.getfilename(moduleInfo["moduleURL"], checkModifiedTime=True, normalize=True, base=_pluginBase)
+        if freshenedFilename is None:
+            _msg = _("Module URL could not be mapped to a filepath: {moduleURL}").format(moduleURL=moduleInfo["moduleURL"])
+            logPluginTrace(_msg, logging.ERROR)
+            continue
         try:
             if os.path.isdir(freshenedFilename): # if freshenedFilename is a directory containing an __init__.py file, open that instead
                 if os.path.isfile(os.path.join(freshenedFilename, "__init__.py")):
@@ -217,12 +231,17 @@ def modulesWithNewerFileDates():
 
     return names
 
-def freshenModuleInfos():
+def freshenModuleInfos() -> None:
     # for modules with different date-times, re-load module info
     missingEnabledModules = []
-    for moduleName, moduleInfo in pluginConfig["modules"].items():
+    _pluginConfig = _getPluginConfig()
+    for moduleName, moduleInfo in _pluginConfig["modules"].items():
         moduleEnabled = moduleInfo["status"] == "enabled"
-        freshenedFilename = _cntlr.webCache.getfilename(moduleInfo["moduleURL"], checkModifiedTime=True, normalize=True, base=_pluginBase)
+        freshenedFilename = _getCntlr().webCache.getfilename(moduleInfo["moduleURL"], checkModifiedTime=True, normalize=True, base=_pluginBase)
+        if freshenedFilename is None:
+            _msg = _("Module URL could not be mapped to a filepath: {moduleURL}").format(moduleURL=moduleInfo["moduleURL"])
+            logPluginTrace(_msg, logging.ERROR)
+            continue
         try: # check if moduleInfo cached may differ from referenced moduleInfo
             if os.path.isdir(freshenedFilename): # if freshenedFilename is a directory containing an __ini__.py file, open that instead
                 if os.path.isfile(os.path.join(freshenedFilename, "__init__.py")):
@@ -234,7 +253,7 @@ def freshenModuleInfos():
                     freshenedModuleInfo = moduleModuleInfo(moduleURL=moduleInfo["moduleURL"], reload=True)
                     if freshenedModuleInfo is not None:
                         if freshenedModuleInfo["name"] == moduleName:
-                            pluginConfig["modules"][moduleName] = freshenedModuleInfo
+                            _pluginConfig["modules"][moduleName] = freshenedModuleInfo
                         else:
                             # Module has been re-named
                             if moduleEnabled:
@@ -254,12 +273,12 @@ def freshenModuleInfos():
         # Try re-adding plugin modules by name (for plugins that moved from built-in to pip installed)
         moduleInfo = addPluginModule(moduleName)
         if moduleInfo:
-            pluginConfig["modules"][moduleInfo["name"]] = moduleInfo
+            _pluginConfig["modules"][moduleInfo["name"]] = moduleInfo
             loadModule(moduleInfo)
             logPluginTrace(_("Reloaded plugin that failed loading: {} {}").format(moduleName, moduleInfo), logging.INFO)
         else:
             logPluginTrace(_("Removed plugin that failed loading (plugin may have been archived): {}").format(moduleName), logging.ERROR)
-    save(_cntlr)
+    save(_getCntlr())
 
 
 def normalizeModuleFilename(moduleFilename: str) -> str | None:
@@ -292,7 +311,7 @@ def normalizeModuleFilename(moduleFilename: str) -> str | None:
 
 def getModuleFilename(moduleURL: str, reload: bool, normalize: bool, base: str | None) -> tuple[str | None, EntryPoint | None]:
     #TODO several directories, eg User Application Data
-    moduleFilename = _cntlr.webCache.getfilename(moduleURL, reload=reload, normalize=normalize, base=base)
+    moduleFilename = _getCntlr().webCache.getfilename(moduleURL, reload=reload, normalize=normalize, base=base)
     if moduleFilename:
         # `moduleURL` was mapped to a local filepath
         moduleFilename = normalizeModuleFilename(moduleFilename)
@@ -315,23 +334,24 @@ def getModuleFilename(moduleURL: str, reload: bool, normalize: bool, base: str |
     return None, None
 
 
-def parsePluginInfo(moduleURL: str, moduleFilename: str, entryPoint: EntryPoint | None) -> dict | None:
+def parsePluginInfo(moduleURL: str, moduleFilename: str, entryPoint: EntryPoint | None) -> dict[str, Any] | None:
     moduleDir, moduleName = os.path.split(moduleFilename)
     with arelle.FileSource.openFileStream(_cntlr, moduleFilename) as f:
         contents = f.read()
         if '__pluginInfo__' not in contents:
             return None
         tree = ast.parse(contents, filename=moduleFilename)
-    constantStrings = {}
+    constantStrings: dict[str, Any] = {}
     functionDefNames = set()
-    methodDefNamesByClass = defaultdict(set)
+    methodDefNamesByClass: dict[str, set[str]] = defaultdict(set)
     moduleImports = []
-    moduleInfo = {"name":None}
+    moduleInfo: dict[str, Any] = {"name":None}
     isPlugin = False
     for item in tree.body:
         if isinstance(item, ast.Assign):
             try:
-                attr = item.targets[0].id
+                _name = cast(ast.Name, item.targets[0])
+                attr = _name.id
             except AttributeError:
                 # Not plugininfo
                 continue
@@ -339,28 +359,40 @@ def parsePluginInfo(moduleURL: str, moduleFilename: str, entryPoint: EntryPoint 
                 isPlugin = True
                 classMethods = []
                 importURLs = []
-                for i, key in enumerate(item.value.keys):
-                    _key = key.value
-                    _value = item.value.values[i]
+                _dict = cast(ast.Dict, item.value)
+                for i, key in enumerate(_dict.keys):
+                    _key = cast(ast.Constant, key).value
+                    if _key is None:
+                        continue
+                    assert isinstance(_key, str), \
+                        (f"Plugin info keys must be strings. "
+                         f"Found key of type {_key.__class__.__name__} "
+                         f"in module {moduleFilename}")
+
+                    _value = _dict.values[i]
                     _valueType = _value.__class__.__name__
                     if _key == "import":
                         if _valueType == 'Constant':
-                            importURLs.append(_value.value)
+                            importURLs.append(cast(ast.Constant, _value).value)
                         elif _valueType in ("List", "Tuple"):
-                            for elt in _value.elts:
-                                importURLs.append(elt.value)
+                            for elt in cast(ast.Tuple | ast.List, _value).elts:
+                                importURLs.append(cast(ast.Constant, elt).value)
                     elif _valueType == 'Constant':
-                        moduleInfo[_key] = _value.value
+                        _constantValue = cast(ast.Constant, _value)
+                        moduleInfo[_key] = _constantValue.value
                     elif _valueType == 'Name':
-                        if _value.id in constantStrings:
-                            moduleInfo[_key] = constantStrings[_value.id]
-                        elif _value.id in functionDefNames:
+                        _nameValue = cast(ast.Name, _value)
+                        if _nameValue.id in constantStrings:
+                            moduleInfo[_key] = constantStrings[_nameValue.id]
+                        elif _nameValue.id in functionDefNames:
                             classMethods.append(_key)
                     elif _valueType == 'Attribute':
-                        if _value.attr in methodDefNamesByClass[_value.value.id]:
+                        _attributeValue = cast(ast.Attribute, _value)
+                        if _attributeValue.attr in methodDefNamesByClass[cast(ast.Name, _attributeValue.value).id]:
                             classMethods.append(_key)
                     elif _valueType in ("List", "Tuple"):
-                        values = [elt.value for elt in _value.elts]
+                        _listValue = cast(ast.Tuple | ast.List, _value)
+                        values = [cast(ast.Constant, elt).value for elt in _listValue.elts]
                         if _key == "imports":
                             importURLs = values
                         else:
@@ -373,17 +405,19 @@ def parsePluginInfo(moduleURL: str, moduleFilename: str, entryPoint: EntryPoint 
                 moduleInfo["status"] = 'enabled'
                 moduleInfo["fileDate"] = time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(os.path.getmtime(moduleFilename)))
                 if entryPoint:
+                    distribution =  cast(Distribution, entryPoint.dist) if getattr(entryPoint, 'dist', None) else None
+                    version = distribution.version if distribution else None
                     moduleInfo["moduleURL"] = moduleFilename  # pip-installed plugins need absolute filepath
                     moduleInfo["entryPoint"] = {
                         "module": entryPoint.module,
                         "name": entryPoint.name,
-                        "version": entryPoint.dist.version if hasattr(entryPoint, 'dist') else None,
+                        "version": version,
                     }
                     if not moduleInfo.get("version"):
-                        moduleInfo["version"] = entryPoint.dist.version  # If no explicit version, retrieve from entry point
+                        moduleInfo["version"] = version # If no explicit version, retrieve from entry point
             elif isinstance(item.value, ast.Constant) and isinstance(item.value.value, str):  # possible constant used in plugininfo, such as VERSION
                 for assignmentName in item.targets:
-                    constantStrings[assignmentName.id] = item.value.value
+                    constantStrings[cast(ast.Name, assignmentName).id] = item.value.value
         elif isinstance(item, ast.ImportFrom):
             if item.level == 1: # starts with .
                 if item.module is None:  # from . import module1, module2, ...
@@ -420,7 +454,7 @@ def moduleModuleInfo(
         moduleURL: str | None = None,
         entryPoint: EntryPoint | None = None,
         reload: bool = False,
-        parentImportsSubtree: bool = False) -> dict | None:
+        parentImportsSubtree: bool = False) -> dict[str, Any] | None:
     """
     Generates a module info dict based on the provided `moduleURL` or `entryPoint`
     Exactly one of "moduleURL" or "entryPoint" must be provided, otherwise a RuntimeError will be thrown.
@@ -445,6 +479,7 @@ def moduleModuleInfo(
         # If entry point is provided, use it to retrieve `moduleFilename`
         moduleFilename = moduleURL = entryPoint.load()()
     else:
+        assert moduleURL is not None
         # Otherwise, we will verify the path before continuing
         moduleFilename, entryPoint = getModuleFilename(moduleURL, reload=reload, normalize=True, base=_pluginBase)
 
@@ -514,20 +549,19 @@ def moduleModuleInfo(
     return None
 
 
-def moduleInfo(pluginInfo):
-    moduleInfo = {}
-    for name, value in pluginInfo.items():
-        if isinstance(value, str):
-            moduleInfo[name] = value
-        elif isinstance(value, types.FunctionType):
-            moduleInfo.getdefault('classes', []).append(name)
+def moduleInfo(pluginInfo: Any) -> None:
+    """
+    This is an empty function in place for backwards compatability.
+    Will be removed in future release.
+    """
+    pass
 
 
 def _isAbsoluteModuleURL(moduleURL: str) -> bool:
     return isAbsolute(moduleURL) or isLegacyAbs(moduleURL)
 
 
-def _get_name_dir_prefix(modulePath: Path, packagePrefix: str = "") -> tuple[str, str, str] | tuple[None, None, None]:
+def _get_name_dir_prefix(modulePath: Path, packagePrefix: str = "") -> tuple[str | None, str | None, str | None]:
     """Get the name, directory and prefix of a module."""
     moduleName = None
     moduleDir = None
@@ -548,7 +582,7 @@ def _get_name_dir_prefix(modulePath: Path, packagePrefix: str = "") -> tuple[str
 
     return (moduleName, moduleDir, packageImportPrefix)
 
-def _get_location(moduleDir: str, moduleName: str) -> str:
+def _get_location(moduleDir: str, moduleName: str) -> Path:
     """Get the file name of a plugin."""
     module_name_path = Path(f"{moduleDir}/{moduleName}.py")
     if os.path.isfile(module_name_path):
@@ -556,7 +590,7 @@ def _get_location(moduleDir: str, moduleName: str) -> str:
 
     return Path(f"{moduleDir}/{moduleName}/__init__.py")
 
-def _find_and_load_module(moduleDir: str, moduleName: str) -> ModuleType | None:
+def _find_and_load_module(moduleDir: str, moduleName: str) -> ModuleType:
     """Load a module based on name and directory."""
     location = _get_location(moduleDir=moduleDir, moduleName=moduleName)
     spec = importlib.util.spec_from_file_location(name=moduleName, location=location)
@@ -577,41 +611,44 @@ def loadModule(moduleInfo: dict[str, Any], packagePrefix: str="") -> None:
     name = moduleInfo['name']
     moduleURL = moduleInfo['moduleURL']
     modulePath = Path(moduleInfo['path'])
+    _pluginConfig = _getPluginConfig()
 
     moduleName, moduleDir, packageImportPrefix = _get_name_dir_prefix(modulePath, packagePrefix)
 
     if all(p is None for p in [moduleName, moduleDir, packageImportPrefix]):
-        _cntlr.addToLog(message=_ERROR_MESSAGE_IMPORT_TEMPLATE.format(name), level=logging.ERROR)
+        _getCntlr().addToLog(message=_ERROR_MESSAGE_IMPORT_TEMPLATE.format(name), level=logging.ERROR)
     else:
         try:
+            if moduleDir is None or moduleName is None:
+                raise ModuleNotFoundError("Unable to load module")
             module = _find_and_load_module(moduleDir=moduleDir, moduleName=moduleName)
             pluginInfo = module.__pluginInfo__.copy()
             elementSubstitutionClasses = None
             if name == pluginInfo.get('name'):
                 pluginInfo["moduleURL"] = moduleURL
                 modulePluginInfos[name] = pluginInfo
-                if 'localeURL' in pluginInfo:
+                if 'localeURL' in pluginInfo and module.__file__ is not None:
                     # set L10N internationalization in loaded module
                     localeDir = os.path.dirname(module.__file__) + os.sep + pluginInfo['localeURL']
                     try:
                         _gettext = gettext.translation(pluginInfo['localeDomain'], localeDir, getLanguageCodes())
                     except OSError:
-                        def _gettext(x):
+                        def _gettext(x: Any) -> Any: # type: ignore[misc]
                             return x # no translation
                 else:
-                    def _gettext(x):
+                    def _gettext(x: Any) -> Any: # type: ignore[misc]
                         return x
                 for key, value in pluginInfo.items():
                     if key == 'name':
                         if name:
-                            pluginConfig['modules'][name] = moduleInfo
+                            _pluginConfig['modules'][name] = moduleInfo
                     elif isinstance(value, types.FunctionType):
-                        classModuleNames = pluginConfig['classes'].setdefault(key, [])
+                        classModuleNames = _pluginConfig['classes'].setdefault(key, [])
                         if name and name not in classModuleNames:
                             classModuleNames.append(name)
                     if key == 'ModelObjectFactory.ElementSubstitutionClasses':
                         elementSubstitutionClasses = value
-                module._ = _gettext
+                module._ = _gettext # type: ignore[attr-defined]
                 global pluginConfigChanged
                 pluginConfigChanged = True
             if elementSubstitutionClasses:
@@ -622,11 +659,12 @@ def loadModule(moduleInfo: dict[str, Any], packagePrefix: str="") -> None:
                     _msg = _("Exception loading plug-in {name}: processing ModelObjectFactory.ElementSubstitutionClasses").format(
                             name=name, error=err)
                     logPluginTrace(_msg, logging.ERROR)
-            for importModuleInfo in moduleInfo.get('imports', EMPTYLIST):
-                loadModule(importModuleInfo, packageImportPrefix)
+            if packageImportPrefix is not None:
+                for importModuleInfo in moduleInfo.get('imports', EMPTYLIST):
+                    loadModule(importModuleInfo, packageImportPrefix)
         except (AttributeError, ImportError, FileNotFoundError, ModuleNotFoundError, TypeError, SystemError) as err:
             # Send a summary of the error to the logger and retain the stacktrace for stderr
-            _cntlr.addToLog(message=_ERROR_MESSAGE_IMPORT_TEMPLATE.format(name), level=logging.ERROR)
+            _getCntlr().addToLog(message=_ERROR_MESSAGE_IMPORT_TEMPLATE.format(name), level=logging.ERROR)
 
             _msg = _("Exception loading plug-in {name}: {error}\n{traceback}").format(
                     name=name, error=err, traceback=traceback.format_exc())
@@ -645,11 +683,12 @@ def pluginClassMethods(className: str) -> Iterator[Callable[..., Any]]:
             # load all modules for class
             pluginMethodsForClass = []
             modulesNamesLoaded = set()
-            if className in pluginConfig["classes"]:
-                for moduleName in pluginConfig["classes"].get(className):
-                    if moduleName and moduleName in pluginConfig["modules"] and moduleName not in modulesNamesLoaded:
+            _pluginConfig = _getPluginConfig()
+            if className in _pluginConfig["classes"]:
+                for moduleName in _pluginConfig["classes"].get(className):
+                    if moduleName and moduleName in _pluginConfig["modules"] and moduleName not in modulesNamesLoaded:
                         modulesNamesLoaded.add(moduleName) # prevent multiply executing same class
-                        moduleInfo = pluginConfig["modules"][moduleName]
+                        moduleInfo = _pluginConfig["modules"][moduleName]
                         if moduleInfo["status"] == "enabled":
                             if moduleName not in modulePluginInfos:
                                 loadModule(moduleInfo)
@@ -676,9 +715,10 @@ def addPluginModule(name: str) -> dict[str, Any] | None:
     return addPluginModuleInfo(pluginModuleInfo)
 
 
-def reloadPluginModule(name):
-    if name in pluginConfig["modules"]:
-        url = pluginConfig["modules"][name].get("moduleURL")
+def reloadPluginModule(name: str) -> bool:
+    _pluginConfig = _getPluginConfig()
+    if name in _pluginConfig["modules"]:
+        url = _pluginConfig["modules"][name].get("moduleURL")
         if url:
             moduleInfo = moduleModuleInfo(moduleURL=url, reload=True)
             if moduleInfo:
@@ -686,21 +726,22 @@ def reloadPluginModule(name):
                 return True
     return False
 
-def removePluginModule(name):
-    moduleInfo = pluginConfig["modules"].get(name)
+def removePluginModule(name: str) -> bool:
+    _pluginConfig = _getPluginConfig()
+    moduleInfo = _pluginConfig["modules"].get(name)
     if moduleInfo and name:
-        def _removePluginModule(moduleInfo):
+        def _removePluginModule(moduleInfo: dict[str, Any]) -> None:
             _name = moduleInfo.get("name")
             if _name:
                 for classMethod in moduleInfo["classMethods"]:
-                    classMethods = pluginConfig["classes"].get(classMethod)
+                    classMethods = _pluginConfig["classes"].get(classMethod)
                     if classMethods and _name and _name in classMethods:
                         classMethods.remove(_name)
                         if not classMethods: # list has become unused
-                            del pluginConfig["classes"][classMethod] # remove class
+                            del _pluginConfig["classes"][classMethod] # remove class
                 for importModuleInfo in moduleInfo.get('imports', EMPTYLIST):
                     _removePluginModule(importModuleInfo)
-                pluginConfig["modules"].pop(_name, None)
+                _pluginConfig["modules"].pop(_name, None)
         _removePluginModule(moduleInfo)
         global pluginConfigChanged
         pluginConfigChanged = True
@@ -708,7 +749,7 @@ def removePluginModule(name):
     return False # unable to remove
 
 
-def addPluginModuleInfo(plugin_module_info: dict[str, Any]) -> dict[str, Any] | None:
+def addPluginModuleInfo(plugin_module_info: dict[str, Any] | None) -> dict[str, Any] | None:
     """
     Given a dictionary containing module information, loads plugin info into `pluginConfig`
     :param plugin_module_info: Dictionary of module info fields. See comment block in PluginManager.py for structure.
@@ -719,24 +760,25 @@ def addPluginModuleInfo(plugin_module_info: dict[str, Any]) -> dict[str, Any] | 
     name = plugin_module_info["name"]
     removePluginModule(name)  # remove any prior entry for this module
 
-    def _addPluginSubModule(subModuleInfo: dict[str, Any]):
+    def _addPluginSubModule(subModuleInfo: dict[str, Any]) -> None:
         """
         Inline function for recursively exploring module imports
         :param subModuleInfo: Module information to add.
         :return:
         """
+        _pluginConfig = _getPluginConfig()
         _name = subModuleInfo.get("name")
         if not _name:
             return
         # add classes
         for classMethod in subModuleInfo["classMethods"]:
-            classMethods = pluginConfig["classes"].setdefault(classMethod, [])
+            classMethods = _pluginConfig["classes"].setdefault(classMethod, [])
             _name = subModuleInfo["name"]
             if _name and _name not in classMethods:
                 classMethods.append(_name)
         for importModuleInfo in subModuleInfo.get('imports', EMPTYLIST):
             _addPluginSubModule(importModuleInfo)
-        pluginConfig["modules"][_name] = subModuleInfo
+        _pluginConfig["modules"][_name] = subModuleInfo
 
     _addPluginSubModule(plugin_module_info)
     global pluginConfigChanged
@@ -758,9 +800,9 @@ class EntryPointRef:
     aliases: set[str]
     entryPoint: EntryPoint | None
     moduleFilename: str | None
-    moduleInfo: dict | None
+    moduleInfo: dict[str, Any] | None
 
-    def createModuleInfo(self) -> dict | None:
+    def createModuleInfo(self) -> dict[str, Any] | None:
         """
         Creates a module information dictionary from the entry point ref.
         :return: A module inforomation dictionary
@@ -790,13 +832,13 @@ class EntryPointRef:
         :param entryPoint: Optional entry point information to include in aliases/moduleInfo
         :return:
         """
-        moduleFilename = _cntlr.webCache.getfilename(filepath)
+        moduleFilename = _getCntlr().webCache.getfilename(filepath)
         if moduleFilename:
             moduleFilename = normalizeModuleFilename(moduleFilename)
         aliases = set()
         if entryPoint:
             aliases.add(entryPoint.name)
-        moduleInfo: dict | None = None
+        moduleInfo: dict[str, Any] | None = None
         if moduleFilename:
             moduleInfo = parsePluginInfo(moduleFilename, moduleFilename, entryPoint)
             if moduleInfo is None:
@@ -821,7 +863,7 @@ class EntryPointRef:
         global _entryPointRefCache
         if _entryPointRefCache is None:
             assert _pluginBase is not None
-            _entryPointRefCache = EntryPointRef._discoverBuiltIn([], cast(str, _pluginBase)) + EntryPointRef._discoverInstalled()
+            _entryPointRefCache = EntryPointRef._discoverBuiltIn([], _pluginBase) + EntryPointRef._discoverInstalled()
         return _entryPointRefCache
 
     @staticmethod
@@ -875,7 +917,9 @@ class EntryPointRef:
         :return: Matching entry point ref, if found.
         """
         entryPointRefs = EntryPointRef.search(search)
-        if len(entryPointRefs) == 0:
+        if entryPointRefs is None:
+            return None
+        elif len(entryPointRefs) == 0:
             return None
         elif len(entryPointRefs) > 1:
             paths = [r.moduleFilename for r in entryPointRefs]
