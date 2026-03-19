@@ -1,0 +1,58 @@
+*.env
+*.env*
+.git
+*.iml
+*.pyc
+.DS_Store
+.eggs
+.python-version
+.tox
+/.mypy_cache/
+/.pytest_cache/
+/venv/
+Arelle.egg-info
+Pipfile
+Pipfile.lock
+__pycache__
+arelle-release*
+arelle/_version.py
+arelle/cache/
+arelle/cachedUrlCheckTimes.json
+arelle_release.egg-info
+bin/
+build
+buildRenameX64.bat
+buildRenameX86.bat
+conf-*
+dist
+docs/_build
+docs/source/apidocs
+obj/
+runtime_options.json
+tests/resources/conformance_suites/*
+!tests/resources/conformance_suites/cipc/
+!tests/resources/conformance_suites/dba_*
+!tests/resources/conformance_suites/edinet/
+!tests/resources/conformance_suites/hmrc/
+!tests/resources/conformance_suites/nl_*/
+!tests/resources/conformance_suites/ros/
+tests/resources/packages/
+
+### IDE-specific ignores
+
+# PyCharm
+.idea
+
+# VS Code
+.devcontainer
+.vscode
+
+# Visual Studio
+.vs/
+.test
+
+# Eclipse
+/.project
+.settings
+/.classpath
+/.pydevproject
