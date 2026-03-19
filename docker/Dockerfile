@@ -2,7 +2,7 @@ FROM python:3.14.3
 
 WORKDIR /usr/src/app
 
-RUN apt update -y
+RUN apt-get update
 RUN apt-get install unixodbc-dev -y
 
 COPY requirements.txt .
