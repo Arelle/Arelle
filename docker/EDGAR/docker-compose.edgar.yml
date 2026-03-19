@@ -1,0 +1,7 @@
+services:
+  arelle-edgar:
+    build:
+      context: .
+      dockerfile: ./docker/EDGAR/Dockerfile
+    ports:
+      - "8080:8080"
