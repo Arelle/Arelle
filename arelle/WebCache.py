@@ -1,10 +1,10 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
 
 For SEC EDGAR data access see: https://www.sec.gov/os/accessing-edgar-data
 e.g., User-Agent: Sample Company Name AdminContact@<sample company domain>.com
 
-'''
+"""
 from __future__ import annotations
 
 import calendar
@@ -35,7 +35,7 @@ from arelle.PythonUtil import isLegacyAbs
 try:
     import ssl
 except ImportError:
-    ssl = None
+    ssl = None  # type: ignore[assignment]
 
 from arelle.FileSource import SERVER_WEB_CACHE, archiveFilenameParts
 from arelle.PluginManager import pluginClassMethods
@@ -51,7 +51,7 @@ DIRECTORY_INDEX_FILE = "!~DirectoryIndex~!"
 FILE_LOCK_TIMEOUT = 30
 INF = float("inf")
 RETRIEVAL_RETRY_COUNT = 5
-HTTP_USER_AGENT = 'Mozilla/5.0 (Arelle/{}) Email/NotRegistered@arelle.org'.format(__version__)
+HTTP_USER_AGENT = "Mozilla/5.0 (Arelle/{}) Email/NotRegistered@arelle.org".format(__version__)
 
 # The xbrl.org server accepts requests for both http and https as well as with or without the WWW subdomain.
 # Don't require duplicating these files in the cache.
