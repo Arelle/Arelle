@@ -1134,6 +1134,12 @@ def evaluationIsUnnecessary(thisEval, xpCtx):
             for vQn, vBoundFact in nonNoneEvals.items()
             if vQn not in vQnDependentOnOtherVarFallenBackButBoundInOtherEval
         ]
+        # If any compared variable has an indexed hash not seen in prior
+        # evaluations, no prior evaluation can match on all compared
+        # variables simultaneously, so this evaluation is unique.
+        for vQn, vBoundFact in evalsNotDependentOnVarFallenBackButBoundInOtherEval:
+            if vQn in otherEvalHashDicts and hash(vBoundFact) not in otherEvalHashDicts[vQn]:
+                return False
         # detects evaluations which are not different (duplicate) and extra fallback evaluations
         # vBoundFact may be single fact or tuple of facts
         return any(
