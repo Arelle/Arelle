@@ -5,17 +5,15 @@ This script builds an Arelle docker container with the necessary dependancies fo
 - xule plugin
 
 ```shell
-# Clone the Arelle repository
+# Clone and traverse into the Arelle repository
 git clone --depth 1 https://github.com/Arelle/Arelle.git
+cd Arelle
 
-# Make the script executable
-chmod +x Arelle/docker/EDGAR/build_EDGAR.sh
-
-# Run the build script
-Arelle/docker/EDGAR/build_EDGAR.sh
+# Build and run the Arelle container
+docker compose -f docker/EDGAR/docker-compose.edgar.yml up -d --build
 ```
 or in one line
 ```shell
-git clone --depth 1 https://github.com/Arelle/Arelle.git && chmod +x Arelle/docker/EDGAR/build_EDGAR.sh && Arelle/docker/EDGAR/build_EDGAR.sh
+git clone --depth 1 https://github.com/Arelle/Arelle.git && cd Arelle && docker compose -f docker/EDGAR/docker-compose.edgar.yml up -d --build
 ```
 [local-arelle]: http://127.0.0.1:8080

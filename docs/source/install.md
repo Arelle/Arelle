@@ -100,17 +100,15 @@ arelleGUI
 ## Docker from source
 This script builds an Arelle docker container and starts the webserver at [http://127.0.0.1:8080][local-arelle].
 ```shell
-# Clone the Arelle repository
+# Clone and traverse into the Arelle repository
 git clone --depth 1 https://github.com/Arelle/Arelle.git
+cd Arelle
 
-# Make the script executable
-chmod +x Arelle/docker/build.sh
-
-# Run the build script
-Arelle/docker/build.sh
+# Build and run the Arelle container
+docker compose -f docker/docker-compose.yml up -d --build
 ```
 or in one line
 ```shell
-git clone --depth 1 https://github.com/Arelle/Arelle.git && chmod +x Arelle/docker/build.sh && Arelle/docker/build.sh
+git clone --depth 1 https://github.com/Arelle/Arelle.git && cd Arelle && docker compose -f docker/docker-compose.yml up -d --build
 ```
 [local-arelle]: http://127.0.0.1:8080
