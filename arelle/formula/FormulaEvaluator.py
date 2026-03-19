@@ -228,6 +228,8 @@ def evaluateVariableBindings(xpCtx, varSet, uncoveredAspectFacts):
             varSet.timeEvaluationStarted = now
         if xpCtx.isRunTimeExceeded:
             raise XPathContext.RunTimeExceededException()
+        if xpCtx.isVariableSetRunTimeExceeded:
+            raise XPathContext.VariableSetRunTimeExceededException()
         xpCtx.modelXbrl.profileActivity(
             "...   evaluation {0} (skipped)".format(varSet.evaluationNumber), minTimeToShow=10.0
         )
@@ -256,6 +258,8 @@ def evaluateVariableBindings(xpCtx, varSet, uncoveredAspectFacts):
             varSet.timeEvaluationStarted = now
         if xpCtx.isRunTimeExceeded:
             raise XPathContext.RunTimeExceededException()
+        if xpCtx.isVariableSetRunTimeExceeded:
+            raise XPathContext.VariableSetRunTimeExceededException()
         return
 
     # evaluate variable set
@@ -511,6 +515,8 @@ def bindVariables(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectF
             )
         if xpCtx.isRunTimeExceeded:
             raise XPathContext.RunTimeExceededException()
+        if xpCtx.isVariableSetRunTimeExceeded:
+            raise XPathContext.VariableSetRunTimeExceededException()
         evaluateVar(xpCtx, varSet, varIndex + 1, cachedFilteredFacts, uncoveredAspectFacts)
         xpCtx.inScopeVars.pop(varQname)
         if overriddenInScopeVar is not None:  # restore overridden value if there was one

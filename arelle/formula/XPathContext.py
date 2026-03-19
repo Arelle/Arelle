@@ -181,6 +181,14 @@ class RunTimeExceededException(Exception):
         return _("Formula run time exceeded")
 
 
+class VariableSetRunTimeExceededException(Exception):
+    def __init__(self) -> None:
+        self.args = (self.__repr__(),)
+
+    def __repr__(self) -> str:
+        return _("Variable set run time exceeded")
+
+
 def create(
         modelXbrl: ModelXbrl,
         inputXbrlInstance: ModelDocument | None = None,
@@ -222,6 +230,7 @@ class XPathContext:
     ) -> None:
         self.modelXbrl = modelXbrl
         self.isRunTimeExceeded = False
+        self.isVariableSetRunTimeExceeded = False
         self.inputXbrlInstance = inputXbrlInstance
         self.outputLastContext: dict[QName, ModelContext] = {}  # last context element output per output instance
         self.outputLastUnit: dict[QName, ModelUnit] = {}
@@ -261,6 +270,9 @@ class XPathContext:
 
     def runTimeExceededCallback(self) -> None:
         self.isRunTimeExceeded = True
+
+    def variableSetRunTimeExceededCallback(self) -> None:
+        self.isVariableSetRunTimeExceeded = True
 
     @property
     def formulaOptions(self) -> FormulaOptions:

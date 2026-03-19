@@ -53,6 +53,7 @@ class FormulaOptions():
         self.traceVariableExpressionEvaluation = False
         self.traceVariableExpressionResult = False
         self.testcaseFilters = None
+        self.formulaVarSetTimeout = None  # seconds
         self.formulaReportTimeout = None  # seconds
         self.testcaseResultsCaptureWarnings = False
         self.testcaseResultOptions = None

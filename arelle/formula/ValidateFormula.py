@@ -846,7 +846,26 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
                             val.modelXbrl.profileActivity("... evaluating " + varSetId, minTimeToShow=10.0)
                             val.modelXbrl.modelManager.showStatus(_("evaluating {0}").format(varSetId))
                             val.modelXbrl.profileActivity("... evaluating " + varSetId, minTimeToShow=1.0)
-                            evaluate(xpathContext, modelVariableSet)
+                            varSetTimeout = formulaOptions.formulaVarSetTimeout
+                            if varSetTimeout is not None:
+                                varSetTimeoutTimer = Timer(varSetTimeout, xpathContext.variableSetRunTimeExceededCallback)
+                                varSetTimeoutTimer.start()
+                            else:
+                                varSetTimeoutTimer = None
+                            try:
+                                evaluate(xpathContext, modelVariableSet)
+                            except XPathContext.VariableSetRunTimeExceededException:
+                                val.modelXbrl.error(
+                                    "formula:varSetTimeout",
+                                    _("Variable set %(variableSet)s timed out after %(secs)s seconds"),
+                                    modelObject=modelVariableSet,
+                                    variableSet=varSetId,
+                                    secs=varSetTimeout,
+                                )
+                            finally:
+                                if varSetTimeoutTimer:
+                                    varSetTimeoutTimer.cancel()
+                                xpathContext.isVariableSetRunTimeExceeded = False
                             xpathContext.factAspectsCache.clear()
                             val.modelXbrl.profileStat(modelVariableSet.localName + "_" + varSetId)
                         except XPathContext.XPathException as err:
