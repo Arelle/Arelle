@@ -9,7 +9,7 @@ ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
 ## Requirements are installed here to ensure they will be cached.
-COPY Arelle/requirements.txt .
+COPY requirements.txt .
 
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
@@ -31,8 +31,8 @@ COPY --from=builder /usr/local/lib/python3.14/site-packages/ /usr/local/lib/pyth
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
 ## Copy application code
-COPY Arelle/arelleCmdLine.py .
-COPY Arelle/arelle ./arelle
+COPY arelleCmdLine.py .
+COPY arelle ./arelle
 
 ## Copy and create docker scripts
 COPY docker/entrypoint /entrypoint
