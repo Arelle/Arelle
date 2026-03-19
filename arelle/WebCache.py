@@ -114,8 +114,7 @@ def lastModifiedTime(headers: dict[str, str]) -> float | None:
 
 
 class WebCache:
-
-    default_timeout = None
+    default_timeout: float | int | None = None
 
     def __init__(
         self, cntlr: Cntlr,
@@ -123,49 +122,45 @@ class WebCache:
     ) -> None:
 
         self.cntlr = cntlr
-        #self.proxies = request.getproxies()
-        #self.proxies = {'ftp': 'ftp://63.192.17.1:3128', 'http': 'http://63.192.17.1:3128', 'https': 'https://63.192.17.1:3128'}
-        self._timeout = None
+        self._timeout: float | int | None = None
 
-        self._noCertificateCheck = False
-        self._httpUserAgent = HTTP_USER_AGENT # default user agent for product
-        self._httpsRedirect = False
-        self._redirectFallbackMap = {}
+        self._noCertificateCheck: bool = False
+        self._httpUserAgent: str = HTTP_USER_AGENT # default user agent for product
+        self._httpsRedirect: bool = False
+        self._redirectFallbackMap: dict[re.Pattern[str], str] = {}
         self.resetProxies(httpProxyTuple)
 
-        self.opener.addheaders = [('User-agent', self.httpUserAgent)]
-
-        #self.opener = WebCacheUrlOpener(cntlr, proxyDirFmt(httpProxyTuple)) # self.proxies)
+        self.opener.addheaders = [("User-agent", self.httpUserAgent)]
 
         if cntlr.isGAE:
-            self.cacheDir = SERVER_WEB_CACHE # GAE type servers
-            self.encodeFileChars = re.compile(r'[:^]')
+            self.cacheDir: str = SERVER_WEB_CACHE # GAE type servers
+            self.encodeFileChars: re.Pattern[str] = re.compile(r"[:^]")
         elif sys.platform == "darwin" and "/Application Support/" in cntlr.userAppDir:
             self.cacheDir = cntlr.userAppDir.replace("Application Support","Caches")
-            self.encodeFileChars = re.compile(r'[:^]')
+            self.encodeFileChars = re.compile(r"[:^]")
 
         else:  #windows and unix
             self.cacheDir = cntlr.userAppDir + os.sep + "cache"
             if sys.platform.startswith("win"):
                 self.encodeFileChars = re.compile(r'[<>:"\\|?*^]')
             else:
-                self.encodeFileChars = re.compile(r'[:^]')
-        self.builtInCacheDir = os.path.abspath(os.path.join(__file__, '..', 'resources', 'cache'))
-        self.decodeFileChars = re.compile(r'\^[0-9]{3}')
+                self.encodeFileChars = re.compile(r"[:^]")
+        self.builtInCacheDir: str = os.path.abspath(os.path.join(__file__, "..", "resources", "cache"))
+        self.decodeFileChars: re.Pattern[str] = re.compile(r"\^[0-9]{3}")
         self.workOffline: bool = False
-        self._logDownloads = False
-        self.maxAgeSeconds = 60.0 * 60.0 * 24.0 * 7.0 # seconds before checking again for file
+        self._logDownloads: bool = False
+        self.maxAgeSeconds: float = 60.0 * 60.0 * 24.0 * 7.0 # seconds before checking again for file
         if cntlr.hasFileSystem and not cntlr.disablePersistentConfig:
-            self.urlCheckJsonFile = cntlr.userAppDir + os.sep + "cachedUrlCheckTimes.json"
+            self.urlCheckJsonFile: str = cntlr.userAppDir + os.sep + "cachedUrlCheckTimes.json"
             try:
-                with io.open(self.urlCheckJsonFile, 'rt', encoding='utf-8') as f:
-                    self.cachedUrlCheckTimes = json.load(f)
+                with io.open(self.urlCheckJsonFile, "rt", encoding="utf-8") as f:
+                    self.cachedUrlCheckTimes: dict[str, str] = json.load(f)
             except Exception:
                 self.cachedUrlCheckTimes = {}
         else:
             self.cachedUrlCheckTimes = {}
-        self.cachedUrlCheckTimesModified = False
-        self._normalizeUrlCache = {}
+        self.cachedUrlCheckTimesModified: bool = False
+        self._normalizeUrlCache: dict[tuple[str | None, str | None], str | None] = {}
 
     @property
     def timeout(self):
