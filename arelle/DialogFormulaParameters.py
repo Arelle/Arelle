@@ -170,6 +170,10 @@ class DialogFormulaParameters(Toplevel):
 
         mainWin.showStatus(None)
 
+        label(frame, 1, y, "Report Timeout (secs):")
+        self.reportTimeoutEntry = gridCell(frame, 2, y, options.get("formulaReportTimeout"))
+        y += 1
+
         label(frame, 1, y, "IDs:")
         self.idsEntry = gridCell(frame, 1, y, options.get("runIDs"))
         self.idsEntry.grid(columnspan=2, padx=30)
@@ -206,6 +210,7 @@ class DialogFormulaParameters(Toplevel):
                 parameterValues[qnameCell.value] = (typeCell.value, valueCell.value)
         self.options["parameterValues"] = parameterValues
         self.options["runIDs"] = self.idsEntry.value
+        self.options["formulaReportTimeout"] = _parsePositiveFloat(self.reportTimeoutEntry.value)
 
     def ok(self, event=None):
         self.setOptions()
@@ -215,3 +220,10 @@ class DialogFormulaParameters(Toplevel):
     def close(self, event=None):
         self.parent.focus_set()
         self.destroy()
+
+def _parsePositiveFloat(value):
+    try:
+        f = float(value.strip())
+        return f if f > 0 else None
+    except (ValueError, AttributeError):
+        return None

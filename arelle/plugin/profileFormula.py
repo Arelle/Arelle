@@ -69,16 +69,17 @@ def backgroundProfileFormula(cntlr, profileReportFile, maxRunTime, excludeCompil
 
     # a minimal validation class for formula validator parameters that are needed
     class Validate:
-        def __init__(self, modelXbrl, maxRunTime):
+        def __init__(self, modelXbrl):
             self.modelXbrl = modelXbrl
             self.parameters = None
             self.validateSBRNL = False
-            self.maxFormulaRunTime = maxRunTime
         def close(self):
             self.__dict__.clear()
 
-    val = Validate(cntlr.modelManager.modelXbrl, maxRunTime)
+    val = Validate(cntlr.modelManager.modelXbrl)
     formulaOptions = val.modelXbrl.modelManager.formulaOptions
+    if maxRunTime > 0:
+        formulaOptions.formulaReportTimeout = maxRunTime * 60.0  # maxRunTime is in minutes
     if excludeCompileTime:
         startedAt = time.time()
         cntlr.addToLog(_("pre-compiling formulas before profiling"))

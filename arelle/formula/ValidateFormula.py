@@ -812,8 +812,11 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
 
     # evaluate consistency assertions
     try:
-        if hasattr(val, "maxFormulaRunTime") and val.maxFormulaRunTime > 0:
-            maxFormulaRunTimeTimer = Timer(val.maxFormulaRunTime * 60.0, xpathContext.runTimeExceededCallback)
+        formulaReportTimeout = formulaOptions.formulaReportTimeout
+        if formulaReportTimeout is None and hasattr(val, "maxFormulaRunTime") and val.maxFormulaRunTime > 0:
+            formulaReportTimeout = val.maxFormulaRunTime * 60.0  # backward compat: maxFormulaRunTime is in minutes
+        if formulaReportTimeout is not None:
+            maxFormulaRunTimeTimer = Timer(formulaReportTimeout, xpathContext.runTimeExceededCallback)
             maxFormulaRunTimeTimer.start()
         else:
             maxFormulaRunTimeTimer = None
@@ -857,11 +860,11 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
         if maxFormulaRunTimeTimer:
             maxFormulaRunTimeTimer.cancel()
     except XPathContext.RunTimeExceededException:
-        val.modelXbrl.info(
+        val.modelXbrl.error(
             "formula:maxRunTime",
-            _("Formula execution ended after %(mins)s minutes"),
+            _("Formula execution ended after %(secs)s seconds"),
             modelObject=val.modelXbrl,
-            mins=val.maxFormulaRunTime,
+            secs=formulaReportTimeout,
         )
 
     logAssertionResultCounts(val, formulaOptions, runIDs)
