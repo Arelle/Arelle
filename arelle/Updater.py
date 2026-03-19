@@ -76,7 +76,7 @@ def _checkForUpdates(cntlr: CntlrWinMain) -> None:
 def _getLatestArelleRelease(cntlr: CntlrWinMain) -> ArelleRelease:
     try:
         with io.BytesIO() as filestream:
-            cntlr.webCache.retrieve(_UPDATE_URL, filestream=filestream)  # type: ignore[no-untyped-call]
+            cntlr.webCache.retrieve(_UPDATE_URL, filestream=filestream)
             updateResponseJson: dict[str, Any] = json.load(filestream)
     except (URLError, json.JSONDecodeError) as e:
         raise RuntimeError("Failed to get latest Arelle release.") from e
