@@ -32,7 +32,7 @@ RUN if [ ! -d arelle/plugin/EDGAR ]; then \
 ##      Move xule validation contents (DQC.py & eforms.py) to Arelle validation directory
 ##      Remove empty xule validation directory
 ##      Move xule plugin directory contents to arelle plugin directory
-##      Remove remants of temporary xule directory
+##      Remove remnants of temporary xule directory
 ARG XULE_REF=""
 RUN if [ ! -d arelle/plugin/xule ]; then \
         git clone --depth 1 ${XULE_REF:+--branch "$XULE_REF"} https://github.com/xbrlus/xule.git \
