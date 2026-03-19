@@ -26,7 +26,7 @@ RUN if [ ! -d arelle/plugin/EDGAR ]; then \
         && mv EDGAR arelle/plugin/; \
     fi
 
-## Check if EDGAR plugin already exists
+## Check if XULE plugin already exists
 ## If not:
 ##      Clone xule plugin using XULE_REF to pin a specific tag/release
 ##      Move xule validation contents (DQC.py & eforms.py) to Arelle validation directory
