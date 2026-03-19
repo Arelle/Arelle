@@ -265,14 +265,14 @@ class WebCache:
 
                 if not self.hasNTLM: # try for python site-packages ntlm
                     try:
-                        from ntlm import HTTPNtlmAuthHandler
+                        from ntlm import HTTPNtlmAuthHandler # type: ignore[import-not-found,no-redef]
                         self.hasNTLM = True
                     except ImportError:
                         pass
 
             if self.hasNTLM:
                 pwrdmgr = proxyhandlers.HTTPPasswordMgrWithDefaultRealm()
-                pwrdmgr.add_password(None, _proxyDirFmt["http"], user, password)
+                assert _proxyDirFmt is not None
                 pwrdmgr.add_password(None, _proxyDirFmt["http"], str(user), str(password))
                 self.proxy_handler = proxyhandlers.ProxyHandler({})
                 self.proxy_auth_handler = proxyhandlers.ProxyBasicAuthHandler(pwrdmgr)
@@ -345,6 +345,7 @@ class WebCache:
             url = url.removeprefix("file://")
             url = url.removeprefix("file:\\")
 
+        normedPath: str | None
         if url and not (isHttpUrl(url) or isLegacyAbs(url)):
             if base is not None and not isHttpUrl(base) and "%" in url:
                 url = unquote(url)
@@ -404,7 +405,8 @@ class WebCache:
             match = fromPattern.match(url)
             if not match:
                 continue
-            redirectUrl = toPattern.format(*match[1:])
+
+            redirectUrl = toPattern.format(*match.groups())
             redirectFilepath = self.urlToCacheFilepath(
                 redirectUrl,
                 cacheDir,
@@ -455,6 +457,7 @@ class WebCache:
         scheme, sep, path = url.partition("://")
         filepath = [cacheDir, scheme]
         pathparts = path.split('/')
+        user: str | None
         user, sep, server = pathparts[0].partition("@")
         if not sep:
             server = user
@@ -487,7 +490,7 @@ class WebCache:
             if urlparts[2].startswith("^port"):
                 urlparts[1] += ":" + urlparts[2][5:]  # the port number
                 del urlparts[2]
-            if urlparts[2].startswith("^user"):
+            if len(urlparts) > 2 and urlparts[2].startswith("^user"):
                 urlparts[1] = urlparts[2][5:] + "@" + urlparts[1]  # the user part
                 del urlparts[2]
         if urlparts[-1] == DIRECTORY_INDEX_FILE:
@@ -965,12 +968,16 @@ class WebCache:
         headers = {}
         initialBytes = b''
         fp = self.opener.open(url, data, timeout=self.timeout)
+        tfp: Any
         try:
             headers = fp.info()
             if filename:
                 tfp = open(filename, 'wb')
             elif filestream:
                 tfp = filestream
+            else:
+                raise ValueError("Either filename or filestream must be provided")
+
             try:
                 bs = 1024*8
                 size = -1
