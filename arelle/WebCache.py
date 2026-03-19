@@ -18,6 +18,7 @@ import shutil
 import sys
 import time
 import zlib
+from email.utils import parsedate as email_parsedate
 from http.client import IncompleteRead
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -101,12 +102,12 @@ def proxyTuple(url: str) -> tuple[bool, str, str, str, str]: # system, none, or 
     user, sep, password = userpwd.partition(":")
     return False, urlAddr, urlPort, user, password
 
-def lastModifiedTime(headers):
+
+def lastModifiedTime(headers: dict[str, str]) -> float | None:
     if headers:
         headerTimeStamp = headers["last-modified"]
         if headerTimeStamp:
-            from email.utils import parsedate
-            hdrTime = parsedate(headerTimeStamp)
+            hdrTime = email_parsedate(headerTimeStamp)
             if hdrTime:
                 return time.mktime(hdrTime)
     return None
