@@ -66,26 +66,27 @@ XBRL_ORG_CACHE_REDIRECTS = {
     for prefix in _XBRL_ORG_URL_PREFIXES
 }
 
-def proxyDirFmt(httpProxyTuple):
-    if isinstance(httpProxyTuple,(tuple,list)) and len(httpProxyTuple) == 5:
-        useOsProxy, urlAddr, urlPort, user, password = httpProxyTuple
-        if useOsProxy:
-            return None
-        elif urlAddr:
-            if user and password:
-                userPart = "{0}:{1}@".format(user, password)
-            else:
-                userPart = ""
-            if urlPort:
-                portPart = ":{0}".format(urlPort)
-            else:
-                portPart = ""
-            return {"http": "http://{0}{1}{2}".format(userPart, urlAddr, portPart) }
-            #return {"http": "{0}{1}{2}".format(userPart, urlAddr, portPart) }
-        else:
-            return {}  # block use of any proxy
-    else:
+
+def proxyDirFmt(httpProxyTuple: tuple[bool, str, str, str, str] | list[bool | str] | None) -> dict[str, str] | None:
+    if not isinstance(httpProxyTuple, (tuple, list)) or len(httpProxyTuple) != 5:
         return None # use system proxy
+
+    useOsProxy, urlAddr, urlPort, user, password = httpProxyTuple
+    if useOsProxy:
+        return None
+
+    elif urlAddr:
+        if user and password:
+            userPart = "{0}:{1}@".format(user, password)
+        else:
+            userPart = ""
+        if urlPort:
+            portPart = ":{0}".format(urlPort)
+        else:
+            portPart = ""
+        return {"http": "http://{0}{1}{2}".format(userPart, urlAddr, portPart)}
+
+    return {}  # block use of any proxy
 
 def proxyTuple(url): # system, none, or http:[user[:passowrd]@]host[:port]
     if url == "none":
