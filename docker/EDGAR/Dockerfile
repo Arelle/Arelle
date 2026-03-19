@@ -39,7 +39,8 @@ RUN if [ ! -d arelle/plugin/xule ]; then \
         && mv xule/plugin/validate/* arelle/plugin/validate/ \
         && rm -rf xule/plugin/validate \
         && mv xule/plugin/* arelle/plugin/ \
-        && rm -rf xule
+        && rm -rf xule; \
+    fi
 
 ## Start webserver
 CMD ["python", "arelleCmdLine.py", "--webserver=0.0.0.0:8080"]
