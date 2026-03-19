@@ -21,7 +21,7 @@ import zlib
 from email.utils import parsedate as email_parsedate
 from http.client import IncompleteRead
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Callable
 from urllib import request as proxyhandlers
 from urllib.error import ContentTooShortError, HTTPError, URLError
 from urllib.parse import quote, unquote, urlsplit, urlunsplit
@@ -240,10 +240,10 @@ class WebCache:
     def httpsRedirect(self, value: bool) -> None:
         self._httpsRedirect = value
 
-    def redirectFallback(self, matchPattern: re.Pattern, replaceFormat: str):
+    def redirectFallback(self, matchPattern: re.Pattern[str], replaceFormat: str) -> None:
         self._redirectFallbackMap[matchPattern] = replaceFormat
 
-    def resetProxies(self, httpProxyTuple):
+    def resetProxies(self, httpProxyTuple: tuple[bool, str, str, str, str] | list[bool | str] | None) -> None:
         # for ntlm user and password are required
         self.hasNTLM = False
         self._httpProxyTuple = httpProxyTuple # save for resetting in noCertificateCheck setter
@@ -295,7 +295,7 @@ class WebCache:
         #self.opener.close()
         #self.opener = WebCacheUrlOpener(self.cntlr, proxyDirFmt(httpProxyTuple))
 
-    def normalizeFilepath(self, filepath: str, url: str, cacheDir: str = None) -> str:
+    def normalizeFilepath(self, filepath: str, url: str, cacheDir: str | None = None) -> str:
         """
         Perform any necessary transformations to filepath.
         :param filepath: Filepath to normalize.
@@ -363,8 +363,8 @@ class WebCache:
         self._normalizeUrlCache[cacheKey] = normedPath
         return normedPath
 
-    def encodeForFilename(self, pathpart):
-        return self.encodeFileChars.sub(lambda m: '^{0:03}'.format(ord(m.group(0))), pathpart)
+    def encodeForFilename(self, pathpart: str) -> str:
+        return self.encodeFileChars.sub(lambda m: "^{0:03}".format(ord(m.group(0))), pathpart)
 
     def _fallbackRedirect(self, url: str, originalFilepath: str, cacheDir: str) -> str:
         """
@@ -468,10 +468,15 @@ class WebCache:
                          urlpart) for urlpart in urlparts)
 
     def getfilename(
-            self, url: str | None, base: str | None = None,
-            reload: bool = False, checkModifiedTime: bool = False,
-            normalize: bool = False, filenameOnly: bool = False,
-            allowTransformation: bool = True) -> str | None:
+            self,
+            url: str | None,
+            base: str | None = None,
+            reload: bool = False,
+            checkModifiedTime: bool = False,
+            normalize: bool = False,
+            filenameOnly: bool = False,
+            allowTransformation: bool = True
+        ) -> str | None:
         if allowTransformation:
             for pluginXbrlMethod in pluginClassMethods("WebCache.TransformURL"):
                 url, final = pluginXbrlMethod(self.cntlr, url, base)
@@ -562,7 +567,7 @@ class WebCache:
         return False
 
     @staticmethod
-    def _getTimeString(timeValue: time.time) -> str:
+    def _getTimeString(timeValue: float) -> str:
         """
         :param timeValue:
         :return: UTC-formatted string representation of `timeValue`
@@ -599,7 +604,8 @@ class WebCache:
             url: str,
             filepath: str,
             retrievingDueToRecheckInterval: bool = False,
-            retryCount: int = 5) -> bool:
+            retryCount: int = 5
+        ) -> bool:
         before_timestamp = WebCache._getFileTimestamp(filepath)
         fileInCache = False
         lock = FileLock(filepath + '.lock', timeout=FILE_LOCK_TIMEOUT)
@@ -630,7 +636,8 @@ class WebCache:
             url: str,
             filepath: str,
             retrievingDueToRecheckInterval: bool = False,
-            retryCount: int = 5) -> bool:
+            retryCount: int = 5
+        ) -> bool:
         """
         Downloads the file at `url` to a temporary location before copying it to `filepath`.
         :param url: Web resource to download.
@@ -849,7 +856,7 @@ class WebCache:
         self.cachedUrlCheckTimes[url] = timeNowStr
         self.cachedUrlCheckTimesModified = True
 
-    def reportProgress(self, blockCount, blockSize, totalSize):
+    def reportProgress(self, blockCount: int, blockSize: int, totalSize: int) -> None:
         if totalSize > 0:
             self.cntlr.showStatus(_("web caching {0}: {1:.0f} of {2:.0f} KB").format(
                     self.progressUrl,
@@ -860,7 +867,7 @@ class WebCache:
                     self.progressUrl,
                     blockCount * blockSize / 1024))
 
-    def clear(self):
+    def clear(self) -> None:
         for cachedProtocol in ("http", "https"):
             cachedProtocolDir = os.path.join(self.cacheDir, cachedProtocol)
             try:
@@ -869,6 +876,7 @@ class WebCache:
                 pass
 
     def getheaders(self, url):
+    def getheaders(self, url: str) -> dict[str, str]:
         if url and isHttpUrl(url):
             try:
                 fp = self.opener.open(url, timeout=self.timeout)
@@ -880,6 +888,8 @@ class WebCache:
         return {}
 
     def geturl(self, url):  # get the url that the argument url redirects or resolves to
+    def geturl(self, url: str) -> str | None:  # get the url that the argument url redirects or resolves to
+        actualurl = None
         if url and isHttpUrl(url):
             try:
                 fp = self.opener.open(url, timeout=self.timeout)
@@ -891,6 +901,14 @@ class WebCache:
         return None
 
     def retrieve(self, url, filename=None, filestream=None, reporthook=None, data=None):
+    def retrieve(
+            self,
+            url: str,
+            filename: str | None = None,
+            filestream: io.BytesIO | None = None,
+            reporthook: Callable[[int, int, int], None] | None = None,
+            data: bytes | None = None
+        ) -> tuple[str | None, dict[str, str], bytes]:
         # return filename, headers (in dict), initial file bytes (to detect logon requests)
         headers = None
         initialBytes = b''
