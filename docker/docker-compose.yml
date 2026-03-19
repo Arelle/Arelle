@@ -1,7 +1,7 @@
 services:
   arelle:
     build:
-      context: .
+      context: ..
       dockerfile: ./docker/Dockerfile
     ports:
       - "8080:8080"
