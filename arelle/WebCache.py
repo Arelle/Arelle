@@ -163,15 +163,15 @@ class WebCache:
         self._normalizeUrlCache: dict[tuple[str | None, str | None], str | None] = {}
 
     @property
-    def timeout(self):
+    def timeout(self) -> float | None:
         return self._timeout or WebCache.default_timeout
 
     @timeout.setter
-    def timeout(self, seconds):
+    def timeout(self, seconds: float | int) -> None:
         self._timeout = seconds
 
     @property
-    def recheck(self):
+    def recheck(self) -> str:
         days = self.maxAgeSeconds / (60.0 * 60.0 * 24.0)
         if days == INF:
             return "never"
@@ -179,7 +179,7 @@ class WebCache:
             return "monthly"
         elif days >= 7:
             return "weekly"
-        elif days >=1:
+        elif days >= 1:
             return "daily"
         elif self.maxAgeSeconds >= 3600.0:
             return "hourly"
@@ -189,17 +189,17 @@ class WebCache:
             return "(invalid)"
 
     @recheck.setter
-    def recheck(self, recheckInterval):
+    def recheck(self, recheckInterval: str) -> None:
         self.maxAgeSeconds = {"daily": 1.0, "weekly": 7.0, "monthly": 30.0, "never": INF,
                               "hourly": 1.0/24.0, "quarter-hourly": 1.0/96.0 # lower numbers for testing purposes
                               }.get(recheckInterval, 7.0) * (60.0 * 60.0 * 24.0)
 
     @property
-    def logDownloads(self):
+    def logDownloads(self) -> bool:
         return self._logDownloads
 
     @logDownloads.setter
-    def logDownloads(self, _logDownloads):
+    def logDownloads(self, _logDownloads: bool) -> None:
         self._logDownloads = _logDownloads
 
     def saveUrlCheckTimes(self) -> None:
@@ -209,22 +209,22 @@ class WebCache:
             self.cachedUrlCheckTimesModified = False
 
     @property
-    def noCertificateCheck(self):
+    def noCertificateCheck(self) -> bool:
         return self._noCertificateCheck
 
     @noCertificateCheck.setter
-    def noCertificateCheck(self, check):
+    def noCertificateCheck(self, check: bool) -> None:
         priorValue = self._noCertificateCheck
         self._noCertificateCheck = check
         if priorValue != check:
             self.resetProxies(self._httpProxyTuple)
 
     @property
-    def httpUserAgent(self):
+    def httpUserAgent(self) -> str:
         return self._httpUserAgent
 
     @httpUserAgent.setter
-    def httpUserAgent(self, userAgent):
+    def httpUserAgent(self, userAgent: str | None) -> None:
         if not userAgent: # None or blank sets to default
             userAgent = HTTP_USER_AGENT
         priorValue = self._httpUserAgent
@@ -233,11 +233,11 @@ class WebCache:
             self.resetProxies(self._httpProxyTuple)
 
     @property
-    def httpsRedirect(self):
+    def httpsRedirect(self) -> bool:
         return self._httpsRedirect
 
     @httpsRedirect.setter
-    def httpsRedirect(self, value):
+    def httpsRedirect(self, value: bool) -> None:
         self._httpsRedirect = value
 
     def redirectFallback(self, matchPattern: re.Pattern, replaceFormat: str):
