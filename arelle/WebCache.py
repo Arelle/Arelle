@@ -88,15 +88,18 @@ def proxyDirFmt(httpProxyTuple: tuple[bool, str, str, str, str] | list[bool | st
 
     return {}  # block use of any proxy
 
-def proxyTuple(url): # system, none, or http:[user[:passowrd]@]host[:port]
+
+def proxyTuple(url: str) -> tuple[bool, str, str, str, str]: # system, none, or http:[user[:passowrd]@]host[:port]
     if url == "none":
-        return (False, "", "", "", "")
+        return False, "", "", "", ""
+
     elif url == "system":
-        return (True, "", "", "", "")
+        return True, "", "", "", ""
+
     userpwd, sep, hostport = url.rpartition("://")[2].rpartition("@")
     urlAddr, sep, urlPort = hostport.partition(":")
     user, sep, password = userpwd.partition(":")
-    return (False, urlAddr, urlPort, user, password)
+    return False, urlAddr, urlPort, user, password
 
 def lastModifiedTime(headers):
     if headers:
