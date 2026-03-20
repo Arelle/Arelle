@@ -5,7 +5,7 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Literal, TypeVar, overload
+from typing import Any, Literal, TypeVar, overload, Iterable
 
 from arelle.oim._tc.common import TCError
 from arelle.oim._tc.const import (
@@ -14,8 +14,10 @@ from arelle.oim._tc.const import (
     TC_KEYS_PROPERTY_NAME,
     TC_NAMESPACES,
     TC_PARAMETERS_PROPERTY_NAME,
+    TC_PREFIX,
     TC_TABLE_CONSTRAINTS_PROPERTY_NAME,
     TCME_INVALID_JSON_STRUCTURE,
+    TCME_INVALID_NAMESPACE_PREFIX,
 )
 from arelle.oim._tc.metadata.model import (
     TCKeys,
@@ -45,7 +47,9 @@ class TCMetadataParseError(TCError):
         return "/" + "/".join(self.path_segments)
 
     def __str__(self) -> str:
-        return f"{self.json_pointer}: {self._message}"
+        if self.path_segments:
+            return f"{self.json_pointer}: {self._message}"
+        return self._message
 
 
 class TCMetadataParseTypeError(TCMetadataParseError):
@@ -104,6 +108,10 @@ def parse_tc_metadata(
                 template_constraints[template_id] = tc
 
     metadata = None if errors else TCMetadata(template_constraints=template_constraints)
+
+    # Validations that should not prevent successful parsing
+    errors.extend(validate_namespace_prefixes(namespaces))
+
     return TCParseResult(metadata=metadata, errors=tuple(errors))
 
 
@@ -609,3 +617,17 @@ def _parse_set(
     if not _validate_str_list(key, val, errors, unique=True, non_empty=non_empty):
         return default
     return frozenset(val)
+
+
+def validate_namespace_prefixes(
+        namespaces: dict[str, str]
+) -> Iterable[TCMetadataParseError]:
+    for prefix, uri in namespaces.items():
+        if uri in TC_NAMESPACES and  prefix != TC_PREFIX:
+            yield TCMetadataParseError(
+                _(
+                    "Table constraints namespace '{uri}' must be bound to "
+                    "prefix '{tc_prefix}', not '{prefix}'"
+                ).format(uri=uri, tc_prefix=TC_PREFIX, prefix=prefix),
+                code=TCME_INVALID_NAMESPACE_PREFIX,
+            )
