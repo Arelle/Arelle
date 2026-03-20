@@ -878,7 +878,7 @@ def openFileStream(
                 filestream = io.BytesIO(cachedBytes)
         if filestream is None:
             filestream = io.BytesIO()
-            cntlr.webCache.retrieve(cntlr.webCache.cacheFilepathToUrl(filepath),  # type: ignore[no-untyped-call]
+            cntlr.webCache.retrieve(cntlr.webCache.cacheFilepathToUrl(filepath),
                                     filestream=filestream)
             if cntlr.isGAE:
                 gaeSet(cacheKey, filestream.getvalue())

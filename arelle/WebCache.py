@@ -1,10 +1,10 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
 
 For SEC EDGAR data access see: https://www.sec.gov/os/accessing-edgar-data
 e.g., User-Agent: Sample Company Name AdminContact@<sample company domain>.com
 
-'''
+"""
 from __future__ import annotations
 
 import calendar
@@ -18,9 +18,10 @@ import shutil
 import sys
 import time
 import zlib
+from email.utils import parsedate as email_parsedate
 from http.client import IncompleteRead
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Callable
 from urllib import request as proxyhandlers
 from urllib.error import ContentTooShortError, HTTPError, URLError
 from urllib.parse import quote, unquote, urlsplit, urlunsplit
@@ -31,11 +32,12 @@ import truststore
 from filelock import FileLock, Timeout
 
 from arelle.PythonUtil import isLegacyAbs
+from arelle.typing import TypeGetText
 
 try:
     import ssl
 except ImportError:
-    ssl = None
+    ssl = None  # type: ignore[assignment]
 
 from arelle.FileSource import SERVER_WEB_CACHE, archiveFilenameParts
 from arelle.PluginManager import pluginClassMethods
@@ -45,13 +47,15 @@ from arelle.Version import __version__
 if TYPE_CHECKING:
     from arelle.Cntlr import Cntlr
 
+_: TypeGetText
+
 addServerWebCache = None
 
 DIRECTORY_INDEX_FILE = "!~DirectoryIndex~!"
 FILE_LOCK_TIMEOUT = 30
 INF = float("inf")
 RETRIEVAL_RETRY_COUNT = 5
-HTTP_USER_AGENT = 'Mozilla/5.0 (Arelle/{}) Email/NotRegistered@arelle.org'.format(__version__)
+HTTP_USER_AGENT = "Mozilla/5.0 (Arelle/{}) Email/NotRegistered@arelle.org".format(__version__)
 
 # The xbrl.org server accepts requests for both http and https as well as with or without the WWW subdomain.
 # Don't require duplicating these files in the cache.
@@ -66,51 +70,54 @@ XBRL_ORG_CACHE_REDIRECTS = {
     for prefix in _XBRL_ORG_URL_PREFIXES
 }
 
-def proxyDirFmt(httpProxyTuple):
-    if isinstance(httpProxyTuple,(tuple,list)) and len(httpProxyTuple) == 5:
-        useOsProxy, urlAddr, urlPort, user, password = httpProxyTuple
-        if useOsProxy:
-            return None
-        elif urlAddr:
-            if user and password:
-                userPart = "{0}:{1}@".format(user, password)
-            else:
-                userPart = ""
-            if urlPort:
-                portPart = ":{0}".format(urlPort)
-            else:
-                portPart = ""
-            return {"http": "http://{0}{1}{2}".format(userPart, urlAddr, portPart) }
-            #return {"http": "{0}{1}{2}".format(userPart, urlAddr, portPart) }
-        else:
-            return {}  # block use of any proxy
-    else:
+
+def proxyDirFmt(httpProxyTuple: tuple[bool, str, str, str, str] | list[bool | str] | None) -> dict[str, str] | None:
+    if not isinstance(httpProxyTuple, (tuple, list)) or len(httpProxyTuple) != 5:
         return None # use system proxy
 
-def proxyTuple(url): # system, none, or http:[user[:passowrd]@]host[:port]
+    useOsProxy, urlAddr, urlPort, user, password = httpProxyTuple
+    if useOsProxy:
+        return None
+
+    elif urlAddr:
+        if user and password:
+            userPart = "{0}:{1}@".format(user, password)
+        else:
+            userPart = ""
+        if urlPort:
+            portPart = ":{0}".format(urlPort)
+        else:
+            portPart = ""
+        return {"http": "http://{0}{1}{2}".format(userPart, urlAddr, portPart)}
+
+    return {}  # block use of any proxy
+
+
+def proxyTuple(url: str) -> tuple[bool, str, str, str, str]: # system, none, or http:[user[:passowrd]@]host[:port]
     if url == "none":
-        return (False, "", "", "", "")
+        return False, "", "", "", ""
+
     elif url == "system":
-        return (True, "", "", "", "")
+        return True, "", "", "", ""
+
     userpwd, sep, hostport = url.rpartition("://")[2].rpartition("@")
     urlAddr, sep, urlPort = hostport.partition(":")
     user, sep, password = userpwd.partition(":")
-    return (False, urlAddr, urlPort, user, password)
+    return False, urlAddr, urlPort, user, password
 
-def lastModifiedTime(headers):
+
+def lastModifiedTime(headers: dict[str, str]) -> float | None:
     if headers:
         headerTimeStamp = headers["last-modified"]
         if headerTimeStamp:
-            from email.utils import parsedate
-            hdrTime = parsedate(headerTimeStamp)
+            hdrTime = email_parsedate(headerTimeStamp)
             if hdrTime:
                 return time.mktime(hdrTime)
     return None
 
 
 class WebCache:
-
-    default_timeout = None
+    default_timeout: float | int | None = None
 
     def __init__(
         self, cntlr: Cntlr,
@@ -118,60 +125,56 @@ class WebCache:
     ) -> None:
 
         self.cntlr = cntlr
-        #self.proxies = request.getproxies()
-        #self.proxies = {'ftp': 'ftp://63.192.17.1:3128', 'http': 'http://63.192.17.1:3128', 'https': 'https://63.192.17.1:3128'}
-        self._timeout = None
+        self._timeout: float | int | None = None
 
-        self._noCertificateCheck = False
-        self._httpUserAgent = HTTP_USER_AGENT # default user agent for product
-        self._httpsRedirect = False
-        self._redirectFallbackMap = {}
+        self._noCertificateCheck: bool = False
+        self._httpUserAgent: str = HTTP_USER_AGENT # default user agent for product
+        self._httpsRedirect: bool = False
+        self._redirectFallbackMap: dict[re.Pattern[str], str] = {}
         self.resetProxies(httpProxyTuple)
 
-        self.opener.addheaders = [('User-agent', self.httpUserAgent)]
-
-        #self.opener = WebCacheUrlOpener(cntlr, proxyDirFmt(httpProxyTuple)) # self.proxies)
+        self.opener.addheaders = [("User-agent", self.httpUserAgent)]
 
         if cntlr.isGAE:
-            self.cacheDir = SERVER_WEB_CACHE # GAE type servers
-            self.encodeFileChars = re.compile(r'[:^]')
+            self.cacheDir: str = SERVER_WEB_CACHE # GAE type servers
+            self.encodeFileChars: re.Pattern[str] = re.compile(r"[:^]")
         elif sys.platform == "darwin" and "/Application Support/" in cntlr.userAppDir:
             self.cacheDir = cntlr.userAppDir.replace("Application Support","Caches")
-            self.encodeFileChars = re.compile(r'[:^]')
+            self.encodeFileChars = re.compile(r"[:^]")
 
         else:  #windows and unix
             self.cacheDir = cntlr.userAppDir + os.sep + "cache"
             if sys.platform.startswith("win"):
                 self.encodeFileChars = re.compile(r'[<>:"\\|?*^]')
             else:
-                self.encodeFileChars = re.compile(r'[:^]')
-        self.builtInCacheDir = os.path.abspath(os.path.join(__file__, '..', 'resources', 'cache'))
-        self.decodeFileChars = re.compile(r'\^[0-9]{3}')
+                self.encodeFileChars = re.compile(r"[:^]")
+        self.builtInCacheDir: str = os.path.abspath(os.path.join(__file__, "..", "resources", "cache"))
+        self.decodeFileChars: re.Pattern[str] = re.compile(r"\^[0-9]{3}")
         self.workOffline: bool = False
-        self._logDownloads = False
-        self.maxAgeSeconds = 60.0 * 60.0 * 24.0 * 7.0 # seconds before checking again for file
+        self._logDownloads: bool = False
+        self.maxAgeSeconds: float = 60.0 * 60.0 * 24.0 * 7.0 # seconds before checking again for file
         if cntlr.hasFileSystem and not cntlr.disablePersistentConfig:
-            self.urlCheckJsonFile = cntlr.userAppDir + os.sep + "cachedUrlCheckTimes.json"
+            self.urlCheckJsonFile: str = cntlr.userAppDir + os.sep + "cachedUrlCheckTimes.json"
             try:
-                with io.open(self.urlCheckJsonFile, 'rt', encoding='utf-8') as f:
-                    self.cachedUrlCheckTimes = json.load(f)
+                with io.open(self.urlCheckJsonFile, "rt", encoding="utf-8") as f:
+                    self.cachedUrlCheckTimes: dict[str, str] = json.load(f)
             except Exception:
                 self.cachedUrlCheckTimes = {}
         else:
             self.cachedUrlCheckTimes = {}
-        self.cachedUrlCheckTimesModified = False
-        self._normalizeUrlCache = {}
+        self.cachedUrlCheckTimesModified: bool = False
+        self._normalizeUrlCache: dict[tuple[str | None, str | None], str | None] = {}
 
     @property
-    def timeout(self):
+    def timeout(self) -> float | None:
         return self._timeout or WebCache.default_timeout
 
     @timeout.setter
-    def timeout(self, seconds):
+    def timeout(self, seconds: float | int) -> None:
         self._timeout = seconds
 
     @property
-    def recheck(self):
+    def recheck(self) -> str:
         days = self.maxAgeSeconds / (60.0 * 60.0 * 24.0)
         if days == INF:
             return "never"
@@ -179,7 +182,7 @@ class WebCache:
             return "monthly"
         elif days >= 7:
             return "weekly"
-        elif days >=1:
+        elif days >= 1:
             return "daily"
         elif self.maxAgeSeconds >= 3600.0:
             return "hourly"
@@ -189,42 +192,42 @@ class WebCache:
             return "(invalid)"
 
     @recheck.setter
-    def recheck(self, recheckInterval):
+    def recheck(self, recheckInterval: str) -> None:
         self.maxAgeSeconds = {"daily": 1.0, "weekly": 7.0, "monthly": 30.0, "never": INF,
                               "hourly": 1.0/24.0, "quarter-hourly": 1.0/96.0 # lower numbers for testing purposes
                               }.get(recheckInterval, 7.0) * (60.0 * 60.0 * 24.0)
 
     @property
-    def logDownloads(self):
+    def logDownloads(self) -> bool:
         return self._logDownloads
 
     @logDownloads.setter
-    def logDownloads(self, _logDownloads):
+    def logDownloads(self, _logDownloads: bool) -> None:
         self._logDownloads = _logDownloads
 
     def saveUrlCheckTimes(self) -> None:
         if self.cachedUrlCheckTimesModified and not self.cntlr.disablePersistentConfig:
-            with io.open(self.urlCheckJsonFile, 'wt', encoding='utf-8') as f:
+            with io.open(self.urlCheckJsonFile, "wt", encoding="utf-8") as f:
                 f.write(json.dumps(self.cachedUrlCheckTimes, ensure_ascii=False, indent=0))
             self.cachedUrlCheckTimesModified = False
 
     @property
-    def noCertificateCheck(self):
+    def noCertificateCheck(self) -> bool:
         return self._noCertificateCheck
 
     @noCertificateCheck.setter
-    def noCertificateCheck(self, check):
+    def noCertificateCheck(self, check: bool) -> None:
         priorValue = self._noCertificateCheck
         self._noCertificateCheck = check
         if priorValue != check:
             self.resetProxies(self._httpProxyTuple)
 
     @property
-    def httpUserAgent(self):
+    def httpUserAgent(self) -> str:
         return self._httpUserAgent
 
     @httpUserAgent.setter
-    def httpUserAgent(self, userAgent):
+    def httpUserAgent(self, userAgent: str | None) -> None:
         if not userAgent: # None or blank sets to default
             userAgent = HTTP_USER_AGENT
         priorValue = self._httpUserAgent
@@ -233,50 +236,56 @@ class WebCache:
             self.resetProxies(self._httpProxyTuple)
 
     @property
-    def httpsRedirect(self):
+    def httpsRedirect(self) -> bool:
         return self._httpsRedirect
 
     @httpsRedirect.setter
-    def httpsRedirect(self, value):
+    def httpsRedirect(self, value: bool) -> None:
         self._httpsRedirect = value
 
-    def redirectFallback(self, matchPattern: re.Pattern, replaceFormat: str):
+    def redirectFallback(self, matchPattern: re.Pattern[str], replaceFormat: str) -> None:
         self._redirectFallbackMap[matchPattern] = replaceFormat
 
-    def resetProxies(self, httpProxyTuple):
+    def resetProxies(self, httpProxyTuple: tuple[bool, str, str, str, str] | list[bool | str] | None) -> None:
         # for ntlm user and password are required
         self.hasNTLM = False
         self._httpProxyTuple = httpProxyTuple # save for resetting in noCertificateCheck setter
-        if isinstance(httpProxyTuple,(tuple,list)) and len(httpProxyTuple) == 5:
+        if isinstance(httpProxyTuple,(tuple, list)) and len(httpProxyTuple) == 5:
             useOsProxy, _urlAddr, _urlPort, user, password = httpProxyTuple
             _proxyDirFmt = proxyDirFmt(httpProxyTuple)
             # only try ntlm if user and password are provided because passman is needed
             if user and not useOsProxy:
                 for pluginXbrlMethod in pluginClassMethods("Proxy.HTTPAuthenticate"):
                     pluginXbrlMethod(self.cntlr)
+
                 for pluginXbrlMethod in pluginClassMethods("Proxy.HTTPNtlmAuthHandler"):
                     HTTPNtlmAuthHandler = pluginXbrlMethod()
                     if HTTPNtlmAuthHandler is not None:
                         self.hasNTLM = True
+
                 if not self.hasNTLM: # try for python site-packages ntlm
                     try:
-                        from ntlm import HTTPNtlmAuthHandler
+                        from ntlm import HTTPNtlmAuthHandler # type: ignore[import-not-found,no-redef]
                         self.hasNTLM = True
                     except ImportError:
                         pass
+
             if self.hasNTLM:
                 pwrdmgr = proxyhandlers.HTTPPasswordMgrWithDefaultRealm()
-                pwrdmgr.add_password(None, _proxyDirFmt["http"], user, password)
+                assert _proxyDirFmt is not None
+                pwrdmgr.add_password(None, _proxyDirFmt["http"], str(user), str(password))
                 self.proxy_handler = proxyhandlers.ProxyHandler({})
                 self.proxy_auth_handler = proxyhandlers.ProxyBasicAuthHandler(pwrdmgr)
                 self.http_auth_handler = proxyhandlers.HTTPBasicAuthHandler(pwrdmgr)
                 self.ntlm_auth_handler = HTTPNtlmAuthHandler.HTTPNtlmAuthHandler(pwrdmgr)
                 proxyHandlers = [self.proxy_handler, self.ntlm_auth_handler, self.proxy_auth_handler, self.http_auth_handler]
+
         if not self.hasNTLM:
             self.proxy_handler = proxyhandlers.ProxyHandler(proxyDirFmt(httpProxyTuple))
             self.proxy_auth_handler = proxyhandlers.ProxyBasicAuthHandler()
             self.http_auth_handler = proxyhandlers.HTTPBasicAuthHandler()
             proxyHandlers = [self.proxy_handler, self.proxy_auth_handler, self.http_auth_handler]
+
         if ssl:
             context = truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
             # Include certifi certificates (Mozilla’s carefully curated
@@ -286,16 +295,17 @@ class WebCache:
                 context.check_hostname = False
                 context.verify_mode = ssl.CERT_NONE
             proxyHandlers.append(proxyhandlers.HTTPSHandler(context=context))
+
         self.opener = proxyhandlers.build_opener(*proxyHandlers)
         self.opener.addheaders = [
-            ('User-Agent', self.httpUserAgent),
-            ('Accept-Encoding', 'gzip, deflate')
-            ]
+            ("User-Agent", self.httpUserAgent),
+            ("Accept-Encoding", "gzip, deflate")
+        ]
 
         #self.opener.close()
         #self.opener = WebCacheUrlOpener(self.cntlr, proxyDirFmt(httpProxyTuple))
 
-    def normalizeFilepath(self, filepath: str, url: str, cacheDir: str = None) -> str:
+    def normalizeFilepath(self, filepath: str, url: str, cacheDir: str | None = None) -> str:
         """
         Perform any necessary transformations to filepath.
         :param filepath: Filepath to normalize.
@@ -305,42 +315,53 @@ class WebCache:
         """
         if cacheDir is None:
             cacheDir = self.cacheDir
+
         if self.httpsRedirect:
             if not os.path.exists(filepath):
                 # if enabled, check for missing files in their inverse http/https cache directory
                 redirect = None
-                if url.startswith('http://'):
-                    redirect = self.urlToCacheFilepath('https' + url[4:], cacheDir=cacheDir)
-                elif url.startswith('https://'):
-                    redirect = self.urlToCacheFilepath('http' + url[5:], cacheDir=cacheDir)
+                if url.startswith("http://"):
+                    redirect = self.urlToCacheFilepath("https" + url[4:], cacheDir=cacheDir)
+                elif url.startswith("https://"):
+                    redirect = self.urlToCacheFilepath("http" + url[5:], cacheDir=cacheDir)
+
                 if redirect and os.path.exists(redirect):
                     filepath = redirect
+
         if filepath.endswith("/"):
             filepath += DIRECTORY_INDEX_FILE
-        if os.sep == '\\':
-            filepath = filepath.replace('/', '\\')
+
+        if os.sep == "\\":
+            filepath = filepath.replace("/", "\\")
+
         return filepath
 
     def normalizeUrl(self, url: str | None, base: str | None = None) -> Any:
         cacheKey = (url, base)
         if result := self._normalizeUrlCache.get(cacheKey):
             return result
+
         if url:
             url = url.removeprefix("file://")
             url = url.removeprefix("file:\\")
+
+        normedPath: str | None
         if url and not (isHttpUrl(url) or isLegacyAbs(url)):
-            if base is not None and not isHttpUrl(base) and '%' in url:
+            if base is not None and not isHttpUrl(base) and "%" in url:
                 url = unquote(url)
+
             if base:
                 if isHttpUrl(base):
                     scheme, sep, path = base.partition("://")
                     normedPath = scheme + sep + posixpath.normpath(os.path.dirname(path) + "/" + url)
                 else:
-                    if '%' in base:
+                    if "%" in base:
                         base = unquote(base)
-                    normedPath = os.path.normpath(os.path.join(os.path.dirname(base),url))
+                    normedPath = os.path.normpath(os.path.join(os.path.dirname(base), url))
+
             else: # includes base == '' (for forcing relative path)
                 normedPath = url
+
             normedPath = normedPath.removeprefix("file://")
             normedPath = normedPath.removeprefix("file:\\")
 
@@ -353,18 +374,19 @@ class WebCache:
         if normedPath:
             if isHttpUrl(normedPath):
                 scheme, sep, pathpart = normedPath.partition("://")
-                pathpart = pathpart.replace('\\','/')
-                endingSep = '/' if pathpart[-1] == '/' else ''  # normpath drops ending directory separator
+                pathpart = pathpart.replace("\\","/")
+                endingSep = "/" if pathpart[-1] == "/" else ""  # normpath drops ending directory separator
                 normedPath = scheme + "://" + posixpath.normpath(pathpart) + endingSep
             else:
                 normedPath = os.path.normpath(normedPath)
                 if normedPath.startswith(self.cacheDir):
                     normedPath = self.cacheFilepathToUrl(normedPath)
+
         self._normalizeUrlCache[cacheKey] = normedPath
         return normedPath
 
-    def encodeForFilename(self, pathpart):
-        return self.encodeFileChars.sub(lambda m: '^{0:03}'.format(ord(m.group(0))), pathpart)
+    def encodeForFilename(self, pathpart: str) -> str:
+        return self.encodeFileChars.sub(lambda m: "^{0:03}".format(ord(m.group(0))), pathpart)
 
     def _fallbackRedirect(self, url: str, originalFilepath: str, cacheDir: str) -> str:
         """
@@ -378,11 +400,13 @@ class WebCache:
         """
         if os.path.exists(originalFilepath):
             return originalFilepath
+
         for fromPattern, toPattern in self._redirectFallbackMap.items():
             match = fromPattern.match(url)
             if not match:
                 continue
-            redirectUrl = toPattern.format(*match[1:])
+
+            redirectUrl = toPattern.format(*match.groups())
             redirectFilepath = self.urlToCacheFilepath(
                 redirectUrl,
                 cacheDir,
@@ -391,20 +415,21 @@ class WebCache:
             if os.path.exists(redirectFilepath):
                 if self.cntlr.modelManager.modelXbrl:
                     self.cntlr.modelManager.modelXbrl.warning(
-                        codes='arelle:redirectedUrl',
-                        msg='Redirected URL from %(url)s to %(redirectUrl)s',
-                        args={'url': url, 'redirectUrl': redirectUrl},
+                        codes="arelle:redirectedUrl",
+                        msg="Redirected URL from %(url)s to %(redirectUrl)s",
+                        args={"url": url, "redirectUrl": redirectUrl},
                         file=redirectUrl
                     )
                 else:
                     self.cntlr.addToLog(
-                        messageCode='arelle:redirectedUrl',
-                        message='Redirected URL from %(url)s to %(redirectUrl)s',
-                        messageArgs={'url': url, 'redirectUrl': redirectUrl},
+                        messageCode="arelle:redirectedUrl",
+                        message="Redirected URL from %(url)s to %(redirectUrl)s",
+                        messageArgs={"url": url, "redirectUrl": redirectUrl},
                         file=redirectUrl,
                         level=logging.WARNING,
                     )
                 return redirectFilepath
+
         for fromUrlPrefix, toUrlPrefixes in XBRL_ORG_CACHE_REDIRECTS.items():
             if url.startswith(fromUrlPrefix):
                 for toUrlPrefix in toUrlPrefixes:
@@ -428,25 +453,32 @@ class WebCache:
         """
         if cacheDir is None:
             cacheDir = self.cacheDir
+
         scheme, sep, path = url.partition("://")
         filepath = [cacheDir, scheme]
         pathparts = path.split('/')
+        user: str | None
         user, sep, server = pathparts[0].partition("@")
         if not sep:
             server = user
             user = None
+
         host, sep, port = server.partition(':')
         filepath.append(self.encodeForFilename(host))
         if port:
             filepath.append("^port" + port)
+
         if user:
             filepath.append("^user" + self.encodeForFilename(user) ) # user may have : or other illegal chars
+
         filepath.extend(self.encodeForFilename(pathpart) for pathpart in pathparts[1:])
         if url.endswith("/"):  # default index file
             filepath.append(DIRECTORY_INDEX_FILE)
+
         joined_filepath = os.sep.join(filepath)
         if useRedirectFallback:
             return self._fallbackRedirect(url, joined_filepath, cacheDir)
+
         return joined_filepath
 
     def cacheFilepathToUrl(self, cacheFilepath: str, cacheDir: str | None = None) -> str:
@@ -458,27 +490,34 @@ class WebCache:
             if urlparts[2].startswith("^port"):
                 urlparts[1] += ":" + urlparts[2][5:]  # the port number
                 del urlparts[2]
-            if urlparts[2].startswith("^user"):
+            if len(urlparts) > 2 and urlparts[2].startswith("^user"):
                 urlparts[1] = urlparts[2][5:] + "@" + urlparts[1]  # the user part
                 del urlparts[2]
         if urlparts[-1] == DIRECTORY_INDEX_FILE:
             urlparts[-1] = ""  # restore default index file syntax
-        return '/'.join(self.decodeFileChars  # remove cacheDir part
+        return "/".join(self.decodeFileChars  # remove cacheDir part
                         .sub(lambda c: chr( int(c.group(0)[1:]) ), # remove ^nnn encoding
                          urlpart) for urlpart in urlparts)
 
     def getfilename(
-            self, url: str | None, base: str | None = None,
-            reload: bool = False, checkModifiedTime: bool = False,
-            normalize: bool = False, filenameOnly: bool = False,
-            allowTransformation: bool = True) -> str | None:
+            self,
+            url: str | None,
+            base: str | None = None,
+            reload: bool = False,
+            checkModifiedTime: bool = False,
+            normalize: bool = False,
+            filenameOnly: bool = False,
+            allowTransformation: bool = True
+        ) -> str | None:
         if allowTransformation:
             for pluginXbrlMethod in pluginClassMethods("WebCache.TransformURL"):
                 url, final = pluginXbrlMethod(self.cntlr, url, base)
                 if final:
                     return url
+
         if url is None:
             return url
+
         if base is not None or normalize:
             url = self.normalizeUrl(url, base)
 
@@ -487,16 +526,23 @@ class WebCache:
         if not schemeSep or urlScheme not in ("http", "https"):
             if url.startswith("file://"): url = url[7:]
             elif url.startswith("file:\\"): url = url[6:]
-            if os.sep == '\\':
-                url = url.replace('/', '\\')
+
+            if os.sep == "\\":
+                url = url.replace("/", "\\")
+
             return url
 
         # Handle archive URLs with recursive call
         _archiveFileNameParts = archiveFilenameParts(url)
         if _archiveFileNameParts:
-            _archiveFilename = self.getfilename(_archiveFileNameParts[0], reload=reload, checkModifiedTime=checkModifiedTime)
+            _archiveFilename = self.getfilename(
+                _archiveFileNameParts[0],
+                reload=reload,
+                checkModifiedTime=checkModifiedTime
+            )
             if _archiveFilename:
                 return os.path.join(_archiveFilename, _archiveFileNameParts[1])
+
             return None
 
         # Generate cache filepath from url
@@ -527,7 +573,7 @@ class WebCache:
 
         # Determine if file has aged out of cache, return filepath if not
         if url in self.cachedUrlCheckTimes and not checkModifiedTime:
-            cachedTime = calendar.timegm(time.strptime(self.cachedUrlCheckTimes[url], '%Y-%m-%dT%H:%M:%S UTC'))
+            cachedTime = calendar.timegm(time.strptime(self.cachedUrlCheckTimes[url], "%Y-%m-%dT%H:%M:%S UTC"))
         else:
             cachedTime = 0
         timeNow = time.time()
@@ -539,6 +585,7 @@ class WebCache:
             self._downloadFileWithLock(url, filepath, retrievingDueToRecheckInterval=True)
             # Whether the download is successful or not, we know `filepath` exists, so return it.
             return filepath
+
         # Otherwise, use existing file
         self.cachedUrlCheckTimes[url] = WebCache._getTimeString(timeNow)
         self.cachedUrlCheckTimesModified = True
@@ -562,12 +609,12 @@ class WebCache:
         return False
 
     @staticmethod
-    def _getTimeString(timeValue: time.time) -> str:
+    def _getTimeString(timeValue: float) -> str:
         """
-        :param timeValue:
+        :param timeValue: time in seconds since the epoch, in UTC
         :return: UTC-formatted string representation of `timeValue`
         """
-        return time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(timeValue))
+        return time.strftime("%Y-%m-%dT%H:%M:%S UTC", time.gmtime(timeValue))
 
     @staticmethod
     def _quotedUrl(url: str) -> str:
@@ -599,10 +646,11 @@ class WebCache:
             url: str,
             filepath: str,
             retrievingDueToRecheckInterval: bool = False,
-            retryCount: int = 5) -> bool:
+            retryCount: int = 5
+        ) -> bool:
         before_timestamp = WebCache._getFileTimestamp(filepath)
         fileInCache = False
-        lock = FileLock(filepath + '.lock', timeout=FILE_LOCK_TIMEOUT)
+        lock = FileLock(filepath + ".lock", timeout=FILE_LOCK_TIMEOUT)
         try:
             with lock.acquire():
                 after_timestamp = WebCache._getFileTimestamp(filepath)
@@ -630,7 +678,8 @@ class WebCache:
             url: str,
             filepath: str,
             retrievingDueToRecheckInterval: bool = False,
-            retryCount: int = 5) -> bool:
+            retryCount: int = 5
+        ) -> bool:
         """
         Downloads the file at `url` to a temporary location before copying it to `filepath`.
         :param url: Web resource to download.
@@ -639,7 +688,7 @@ class WebCache:
         :param retryCount: Number of times to retry download.
         :return: Whether `filepath` should now be used.
         """
-        temporaryFilename = Path(f'{filepath}.tmp')
+        temporaryFilename = Path(f"{filepath}.tmp")
         fileExt = os.path.splitext(filepath)[1]
         timeNowStr = WebCache._getTimeString(time.time())
         quotedUrl = WebCache._quotedUrl(url)
@@ -654,10 +703,10 @@ class WebCache:
             try:
                 self.progressUrl = url
                 savedfile, headers, initialBytes = self.retrieve(
-                    #savedfile, headers = self.opener.retrieve(
                     quotedUrl,
                     filename=str(temporaryFilename),
-                    reporthook=self.reportProgress)
+                    reporthook=self.reportProgress
+                )
 
                 # check if this is a real file or a wifi or web logon screen
                 if fileExt in {".xsd", ".xml", ".xbrl"}:
@@ -706,15 +755,20 @@ class WebCache:
                     tryWebAuthentication = False
                     if isinstance(err, HTTPError) and err.code == 401:
                         tryWebAuthentication = True
-                        if 'www-authenticate' in err.hdrs:
-                            match = re.match('[ \t]*([^ \t]+)[ \t]+realm="([^"]*)"', err.hdrs['www-authenticate'])
+                        if "www-authenticate" in err.hdrs:
+                            match = re.match('[ \t]*([^ \t]+)[ \t]+realm="([^"]*)"', err.hdrs["www-authenticate"])
                             if match:
                                 scheme, realm = match.groups()
-                                if scheme.lower() == 'basic':
-                                    host = os.path.dirname(quotedUrl)
-                                    userPwd = self.cntlr.internet_user_password(host, realm)
-                                    if isinstance(userPwd,(tuple,list)):
-                                        self.http_auth_handler.add_password(realm=realm,uri=host,user=userPwd[0],passwd=userPwd[1])
+                                if scheme.lower() == "basic":
+                                    auth_host = os.path.dirname(quotedUrl)
+                                    userPwd = self.cntlr.internet_user_password(auth_host, realm)
+                                    if isinstance(userPwd, (tuple, list)):
+                                        self.http_auth_handler.add_password(
+                                            realm=realm,
+                                            uri=auth_host,
+                                            user=userPwd[0],
+                                            passwd=userPwd[1]
+                                        ) # type: ignore[call-arg]
                                         retryCount -= 1
                                         continue
                                 self.cntlr.addToLog(_("'%(scheme)s' www-authentication for realm '%(realm)s' is required to access %(URL)s\n%(error)s"),
@@ -723,15 +777,20 @@ class WebCache:
                                                     level=logging.ERROR)
                     elif isinstance(err, HTTPError) and err.code == 407:
                         tryWebAuthentication = True
-                        if 'proxy-authenticate' in err.hdrs:
-                            match = re.match('[ \t]*([^ \t]+)[ \t]+realm="([^"]*)"', err.hdrs['proxy-authenticate'])
+                        if "proxy-authenticate" in err.hdrs:
+                            match = re.match('[ \t]*([^ \t]+)[ \t]+realm="([^"]*)"', err.hdrs["proxy-authenticate"])
                             if match:
                                 scheme, realm = match.groups()
-                                host = self.proxy_handler.proxies.get('http')
-                                if scheme.lower() == 'basic':
+                                host = self.proxy_handler.proxies.get("http") # type: ignore[attr-defined]
+                                if scheme.lower() == "basic":
                                     userPwd = self.cntlr.internet_user_password(host, realm)
-                                    if isinstance(userPwd,(tuple,list)):
-                                        self.proxy_auth_handler.add_password(realm=realm,uri=host,user=userPwd[0],passwd=userPwd[1])
+                                    if isinstance(userPwd, (tuple, list)):
+                                        self.proxy_auth_handler.add_password(
+                                            realm=realm,
+                                            uri=host,
+                                            user=userPwd[0],
+                                            passwd=userPwd[1]
+                                            ) # type: ignore[call-arg]
                                         retryCount -= 1
                                         continue
                                 self.cntlr.addToLog(_("'%(scheme)s' proxy-authentication for realm '%(realm)s' is required to access %(URL)s\n%(error)s"),
@@ -753,18 +812,23 @@ class WebCache:
                         # may be a web login authentication request
                         response = None  # found possible logon request
                         if self.cntlr.hasGui:
-                            response = self.cntlr.internet_logon(url, quotedUrl,
-                                                                 _("HTTP {0} authentication request").format(err.code),
-                                                                 _("Is browser-based internet access authentication possible? If so, click 'yes', or 'cancel' to abort retrieval: \n\n{0}")
-                                                                 .format(url))
+                            response = self.cntlr.internet_logon(
+                                url,
+                                quotedUrl,
+                                _("HTTP {0} authentication request").format(err.code), # type: ignore[attr-defined]
+                                _("Is browser-based internet access authentication possible? If so, click 'yes', or 'cancel' to abort retrieval: \n\n{0}")
+                                .format(url)
+                            )
                         if response == "retry":
                             retryCount -= 1
                             continue
                         elif response != "no":
-                            self.cntlr.addToLog(_("Web file HTTP 401 (authentication required) response, not retrieved: %(URL)s"),
-                                                messageCode="webCache:authenticationRequired",
-                                                messageArgs={"URL": url},
-                                                level=logging.ERROR)
+                            self.cntlr.addToLog(
+                                _("Web file HTTP 401 (authentication required) response, not retrieved: %(URL)s"),
+                                messageCode="webCache:authenticationRequired",
+                                messageArgs={"URL": url},
+                                level=logging.ERROR
+                                )
                             return False
 
                 except AttributeError:
@@ -849,7 +913,7 @@ class WebCache:
         self.cachedUrlCheckTimes[url] = timeNowStr
         self.cachedUrlCheckTimesModified = True
 
-    def reportProgress(self, blockCount, blockSize, totalSize):
+    def reportProgress(self, blockCount: int, blockSize: int, totalSize: int) -> None:
         if totalSize > 0:
             self.cntlr.showStatus(_("web caching {0}: {1:.0f} of {2:.0f} KB").format(
                     self.progressUrl,
@@ -860,7 +924,7 @@ class WebCache:
                     self.progressUrl,
                     blockCount * blockSize / 1024))
 
-    def clear(self):
+    def clear(self) -> None:
         for cachedProtocol in ("http", "https"):
             cachedProtocolDir = os.path.join(self.cacheDir, cachedProtocol)
             try:
@@ -868,41 +932,53 @@ class WebCache:
             except FileNotFoundError:
                 pass
 
-    def getheaders(self, url):
+    def getheaders(self, url: str) -> dict[str, str]:
+        headers = {}
         if url and isHttpUrl(url):
             try:
                 fp = self.opener.open(url, timeout=self.timeout)
                 headers = fp.info()
                 fp.close()
-                return headers
             except Exception:
                 pass
-        return {}
 
-    def geturl(self, url):  # get the url that the argument url redirects or resolves to
+        return headers
+
+    def geturl(self, url: str) -> str | None:  # get the url that the argument url redirects or resolves to
+        actualurl = None
         if url and isHttpUrl(url):
             try:
                 fp = self.opener.open(url, timeout=self.timeout)
                 actualurl = fp.geturl()
                 fp.close()
-                return actualurl
             except Exception:
                 pass
-        return None
 
-    def retrieve(self, url, filename=None, filestream=None, reporthook=None, data=None):
+        return actualurl
+
+    def retrieve(
+            self,
+            url: str,
+            filename: str | None = None,
+            filestream: io.BytesIO | None = None,
+            reporthook: Callable[[int, int, int], None] | None = None,
+            data: bytes | None = None
+        ) -> tuple[str | None, dict[str, str], bytes]:
         # return filename, headers (in dict), initial file bytes (to detect logon requests)
-        headers = None
+        headers = {}
         initialBytes = b''
         fp = self.opener.open(url, data, timeout=self.timeout)
+        tfp: Any
         try:
             headers = fp.info()
             if filename:
                 tfp = open(filename, 'wb')
             elif filestream:
                 tfp = filestream
+            else:
+                raise ValueError("Either filename or filestream must be provided")
+
             try:
-                result = filename, headers
                 bs = 1024*8
                 size = -1
                 read = 0
@@ -913,7 +989,8 @@ class WebCache:
                     reporthook(blocknum, bs, size)
                 isGzipped = "gzip" in headers.get("content-encoding", "")
                 if isGzipped:
-                    decompressor = zlib.decompressobj(16+zlib.MAX_WBITS) #this magic number can be inferred from the structure of a gzip file
+                    # this magic number can be inferred from the structure of a gzip file
+                    decompressor = zlib.decompressobj(16+zlib.MAX_WBITS)
                 while 1:
                     block = fp.read(bs)
                     if not block:
@@ -937,13 +1014,13 @@ class WebCache:
         if size >= 0 and read < size:
             raise ContentTooShortError(
                 _("retrieval incomplete: got only %i out of %i bytes")
-                % (read, size), result)
+                % (read, size), (filename, headers)) # type: ignore[arg-type]
 
         if filestream:
             tfp.seek(0)
         return filename, headers, initialBytes
 
-'''
+"""
 class WebCacheUrlOpener(request.FancyURLopener):
     def __init__(self, cntlr, proxies=None):
         self.cntlr = cntlr
@@ -958,4 +1035,4 @@ class WebCacheUrlOpener(request.FancyURLopener):
 
     def prompt_user_passwd(self, host, realm):
         return self.cntlr.internet_user_password(host, realm)
-'''
+"""
