@@ -2,7 +2,6 @@
 FROM python:3.14.3 AS builder
 
 WORKDIR /usr/src/app
-RUN apt-get update
 
 ## Set environment variables to optimize Python
 ENV PYTHONUNBUFFERED=1
@@ -16,11 +15,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 ## Optionally install gunicorn to run via wsgi server
 # RUN pip install --no-cache-dir --upgrade gunicorn
 
-## --------------------- Production Stage --------------------- 
-FROM python:3.14.3 AS production
+## Copy application code
+COPY arelleCmdLine.py .
+COPY arelle ./arelle
 
-WORKDIR /usr/src/app
-RUN apt-get update
+## --------------------- Production Stage --------------------- 
+FROM python:3.14.3-slim-bookworm AS production
 
 ## Set environment variables to optimize Python
 ENV PYTHONUNBUFFERED=1
@@ -29,10 +29,10 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ## Copy python dependancies
 COPY --from=builder /usr/local/lib/python3.14/site-packages/ /usr/local/lib/python3.14/site-packages/
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
+COPY --from=builder /usr/src/app /usr/src/app
 
-## Copy application code
-COPY arelleCmdLine.py .
-COPY arelle ./arelle
+RUN apt-get update
+RUN apt-get install -y curl
 
 ## Copy and create docker scripts
 COPY --chmod=755 docker/entrypoint.sh /entrypoint.sh
@@ -43,6 +43,7 @@ COPY --chmod=755 docker/healthcheck.sh /healthcheck.sh
 ## Assign app ownership and switch to new user
 RUN useradd -m arelle
 RUN chown -R arelle:arelle /usr/src/app
+WORKDIR /usr/src/app
 USER arelle
 
 ENTRYPOINT ["/entrypoint.sh"]
