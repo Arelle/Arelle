@@ -852,6 +852,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
                                 varSetTimeoutTimer.start()
                             else:
                                 varSetTimeoutTimer = None
+                            savedInScopeVars = xpathContext.inScopeVars.copy()
                             try:
                                 evaluate(xpathContext, modelVariableSet)
                             except XPathContext.VariableSetRunTimeExceededException:
@@ -862,6 +863,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
                                     variableSet=varSetId,
                                     secs=varSetTimeout,
                                 )
+                                xpathContext.inScopeVars = savedInScopeVars
                             finally:
                                 if varSetTimeoutTimer:
                                     varSetTimeoutTimer.cancel()
