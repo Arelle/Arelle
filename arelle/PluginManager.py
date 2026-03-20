@@ -127,7 +127,7 @@ class PluginManager:
         if self.pluginConfigChanged and cntlr.hasFileSystem and not cntlr.disablePersistentConfig:
             pluginJsonFile = cntlr.userAppDir + os.sep + "plugins.json"
             with open(pluginJsonFile, 'w', encoding='utf-8') as f:
-                jsonStr = str(json.dumps(self.orderedPluginConfig(), ensure_ascii=False, indent=2)) # might not be unicode in 2.7
+                jsonStr = json.dumps(self.orderedPluginConfig(), ensure_ascii=False, indent=2)
                 f.write(jsonStr)
             self.pluginConfigChanged = False
 
