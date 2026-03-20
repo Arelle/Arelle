@@ -138,7 +138,7 @@ class ValidateXbrlCalcs:
             oimErrs = set()
             for i in range(len(modelXbrl.errors) - 1, -1, -1):
                 e = modelXbrl.errors[i]
-                if e in oimXbrlxeBlockingErrorCodes:
+                if isinstance(e, str) and e in oimXbrlxeBlockingErrorCodes:
                     del modelXbrl.errors[i] # remove the oim errors from modelXbrl.errors
                 oimErrs.add(e)
             if any(e == "xbrlxe:unsupportedTuple" for e in oimErrs):
