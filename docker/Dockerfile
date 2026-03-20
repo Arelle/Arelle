@@ -35,9 +35,9 @@ COPY arelleCmdLine.py .
 COPY arelle ./arelle
 
 ## Copy and create docker scripts
-COPY --chmod=755 docker/entrypoint /entrypoint
-COPY --chmod=755 docker/start /start
-COPY --chmod=755 docker/healthcheck /healthcheck
+COPY --chmod=755 docker/entrypoint.sh /entrypoint.sh
+COPY --chmod=755 docker/start.sh /start.sh
+COPY --chmod=755 docker/healthcheck.sh /healthcheck.sh
 
 ## Add user with home directory (Arelle caches to the user's home directory by default)
 ## Assign app ownership and switch to new user
@@ -45,4 +45,4 @@ RUN useradd -m arelle
 RUN chown -R arelle:arelle /usr/src/app
 USER arelle
 
-ENTRYPOINT ["/entrypoint"]
+ENTRYPOINT ["/entrypoint.sh"]

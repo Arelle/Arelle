@@ -3,11 +3,11 @@ services:
     build:
       context: ..
       dockerfile: ./docker/Dockerfile
-    command: /start
+    command: /start.sh
     ports:
       - 8080:8080
     healthcheck:
-      test: /healthcheck
+      test: /healthcheck.sh
       interval: 60s
       timeout: 5s
       retries: 3
