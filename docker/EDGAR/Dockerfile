@@ -63,17 +63,9 @@ RUN if [ ! -d arelle/plugin/xule ]; then \
     fi
 
 ## Copy and create docker scripts
-COPY docker/entrypoint /entrypoint
-RUN sed -i 's/\r$//g' /entrypoint
-RUN chmod +x /entrypoint
-
-COPY docker/start /start
-RUN sed -i 's/\r$//g' /start
-RUN chmod +x /start
-
-COPY docker/healthcheck /healthcheck
-RUN sed -i 's/\r$//g' /healthcheck
-RUN chmod +x /healthcheck
+COPY --chmod=755 docker/entrypoint /entrypoint
+COPY --chmod=755 docker/start /start
+COPY --chmod=755 docker/healthcheck /healthcheck
 
 ## Add user with home directory (Arelle caches to the user's home directory by default)
 ## Assign app ownership and switch to new user
