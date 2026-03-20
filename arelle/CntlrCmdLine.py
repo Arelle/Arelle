@@ -879,6 +879,22 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict]:
             )
         )
     formulaGroup.add_option(
+        "--formulaVarSetTimeout",
+        "--formulavarsettimeout",
+        action="store",
+        dest="formulaVarSetTimeout",
+        type="float",
+        help=_("Maximum number of seconds per variable set evaluation before logging a timeout error.")
+        )
+    formulaGroup.add_option(
+        "--formulaReportTimeout",
+        "--formulareporttimeout",
+        action="store",
+        dest="formulaReportTimeout",
+        type="float",
+        help=_("Maximum number of seconds to run all formula processing before logging a timeout error.")
+        )
+    formulaGroup.add_option(
         "--formulaMaximumMessageInterpolationLength",
         "--formulamaximummessageinterpolationlength",
         action="store",
@@ -1886,6 +1902,10 @@ class CntlrCmdLine(Cntlr.Cntlr):
             fo.formulaAction = options.formulaAction
         if options.formulaCacheSize:
             fo.cacheSize = options.formulaCacheSize
+        if options.formulaVarSetTimeout is not None:
+            fo.formulaVarSetTimeout = options.formulaVarSetTimeout
+        if options.formulaReportTimeout is not None:
+            fo.formulaReportTimeout = options.formulaReportTimeout
         self.modelManager.formulaOptions = fo
 
         # run utility command line options that don't depend on entrypoint Files

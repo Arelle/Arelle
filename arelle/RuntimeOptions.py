@@ -68,6 +68,8 @@ class RuntimeOptions:
     formulaCompileOnly: Optional[bool] = None
     formulaFormulaRules: Optional[bool] = None
     formulaMaximumMessageInterpolationLength: Optional[int] = None
+    formulaVarSetTimeout: Optional[float] = None
+    formulaReportTimeout: Optional[float] = None
     formulaParamExprResult: Optional[bool] = None
     formulaParamInputValue: Optional[bool] = None
     formulaRunIDs: Optional[int] = None
@@ -179,6 +181,10 @@ class RuntimeOptions:
         :param pluginOptions: Options that are introduced via plugins
         :return: Nothing
         """
+        if self.formulaVarSetTimeout is not None and self.formulaVarSetTimeout <= 0:
+            raise RuntimeOptionsException('formulaVarSetTimeout must be a positive number')
+        if self.formulaReportTimeout is not None and self.formulaReportTimeout <= 0:
+            raise RuntimeOptionsException('formulaReportTimeout must be a positive number')
         if pluginOptions:
             existingBaseOptions = sorted(
                 optionName
