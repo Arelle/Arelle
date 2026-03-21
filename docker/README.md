@@ -14,7 +14,7 @@ cd Arelle
 docker compose -f docker/arelle/docker-compose.yml up -d --build
 
 # or build and run the Arelle container with the EDGAR plugin
-docker compose -f docker/arelle/EDGAR/docker-compose.yml up -d --build
+docker compose -f docker/arelle-EDGAR/docker-compose.yml up -d --build
 ```
 or in one line
 ```shell

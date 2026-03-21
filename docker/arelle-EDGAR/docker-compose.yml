@@ -1,8 +1,8 @@
 services:
   webserver:
     build:
-      context: ../../..
-      dockerfile: ./docker/arelle/EDGAR/Dockerfile
+      context: ../..
+      dockerfile: ./docker/arelle-EDGAR/Dockerfile
     command: /start.sh
     ports:
       - 8080:8080
