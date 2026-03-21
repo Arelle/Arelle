@@ -1,5 +1,5 @@
 # Docker containers
-Build and run an Arelle webserver with Docker. The arelle/EDGAR image contains the necessary dependencies
+Build and run an Arelle webserver with Docker. The arelle-EDGAR image contains the necessary dependencies
 for the EDGAR plugins (render, validate, and transform) and EFM disclosure systems:
 - Arelle
 - EDGAR plugins
