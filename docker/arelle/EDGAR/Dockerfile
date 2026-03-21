@@ -1,17 +1,15 @@
-## --------------------- Build Stage --------------------- 
+## --------------------- Build Stage ---------------------
 FROM python:3.14.3 AS builder
 
 WORKDIR /usr/src/app
 
-## Set environment variables to optimize Python
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONDONTWRITEBYTECODE=1
-
 ## Requirements are installed here to ensure they will be cached.
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 COPY requirements.txt .
 COPY requirements-plugins.txt .
-RUN pip install --upgrade pip
-RUN pip install --no-cache-dir -r requirements.txt -r requirements-plugins.txt
+RUN pip install --upgrade pip \
+  && pip install --no-cache-dir -r requirements.txt -r requirements-plugins.txt
 ## Optionally install gunicorn to run via wsgi server
 # RUN pip install --no-cache-dir --upgrade gunicorn
 
@@ -47,31 +45,35 @@ RUN if [ ! -d arelle/plugin/xule ]; then \
         && rm -rf xule; \
     fi
 
-## --------------------- Production Stage --------------------- 
-FROM python:3.14.3-slim-bookworm AS production
+## ------------------- Production Stage -------------------
+FROM python:3.14.3-slim AS production
 
 ## Set environment variables to optimize Python
 ENV PYTHONUNBUFFERED=1
-ENV PYTHONDONTWRITEBYTECODE=1
 
-## Copy python dependancies
+RUN apt-get update \
+  && apt-get install --upgrade -y --no-install-recommends \
+  curl \
+  && apt-get purge -y --auto-remove \
+  && rm -rf /var/lib/apt/lists/*
+
+## Copy python dependencies and application code
 COPY --from=builder /usr/local/lib/python3.14/site-packages/ /usr/local/lib/python3.14/site-packages/
-COPY --from=builder /usr/local/bin/ /usr/local/bin/
 COPY --from=builder /usr/src/app /usr/src/app
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
-RUN apt-get update
-RUN apt-get install -y curl
+## Copy docker scripts
+COPY --chmod=755 docker/scripts/entrypoint.sh /entrypoint.sh
+COPY --chmod=755 docker/scripts/start.sh /start.sh
+COPY --chmod=755 docker/scripts/healthcheck.sh /healthcheck.sh
 
-## Copy and create docker scripts
-COPY --chmod=755 docker/entrypoint.sh /entrypoint.sh
-COPY --chmod=755 docker/start.sh /start.sh
-COPY --chmod=755 docker/healthcheck.sh /healthcheck.sh
+WORKDIR /usr/src/app
 
 ## Add user with home directory (Arelle caches to the user's home directory by default)
 ## Assign app ownership and switch to new user
-RUN useradd -m arelle
-RUN chown -R arelle:arelle /usr/src/app
-WORKDIR /usr/src/app
+RUN useradd -m arelle \
+  && chown -R arelle:arelle /usr/src/app
 USER arelle
 
 ENTRYPOINT ["/entrypoint.sh"]

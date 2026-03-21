@@ -1,8 +1,8 @@
 services:
-  arelle:
+  webserver:
     build:
-      context: ..
-      dockerfile: ./docker/Dockerfile
+      context: ../..
+      dockerfile: ./docker/arelle/Dockerfile
     command: /start.sh
     ports:
       - 8080:8080
