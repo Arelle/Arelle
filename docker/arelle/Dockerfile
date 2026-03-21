@@ -37,8 +37,8 @@ COPY --chmod=755 docker/scripts/healthcheck.sh /healthcheck.sh
 
 ## Copy application code
 WORKDIR /usr/src/app
-COPY Arelle/arelleCmdLine.py .
-COPY Arelle/arelle ./arelle
+COPY arelleCmdLine.py .
+COPY arelle ./arelle
 
 ## Add user with home directory (Arelle caches to the user's home directory by default)
 ## Assign app ownership and switch to new user
