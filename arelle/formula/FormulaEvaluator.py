@@ -1092,63 +1092,64 @@ def factsPartitions(xpCtx, facts, aspects):
 
 def evaluationIsUnnecessary(thisEval, xpCtx):
     otherEvals = xpCtx.evaluations
-    if otherEvals:
-        otherEvalHashDicts = xpCtx.evaluationHashDicts
-        if all(e is None for e in thisEval.values()):
-            # evaluation not necessary, all fallen back
-            return True
-        nonNoneEvals = {
-            vQn: vBoundFact
-            for vQn, vBoundFact in thisEval.items()
-            if vBoundFact is not None
-        }
-        # hash check if any hashes merit further look for equality
-        otherEvalSets = [
-            otherEvalHashDicts[vQn][hash(vBoundFact)]
-            for vQn, vBoundFact in nonNoneEvals.items()
-            if vQn in otherEvalHashDicts
-            if hash(vBoundFact) in otherEvalHashDicts[vQn]
-        ]
-        if otherEvalSets:
-            matchingEvals = [otherEvals[i] for i in set.intersection(*otherEvalSets)]
-        else:
-            matchingEvals = otherEvals
-        # find set of vQn whose dependencies are fallen back in this eval but not others that match
-        varBindings = xpCtx.varBindings
-        vQnDependent = set(
-            vQn
-            for vQn in nonNoneEvals
-            if vQn in varBindings
+    if not otherEvals:
+        return False
+
+    otherEvalHashDicts = xpCtx.evaluationHashDicts
+    if all(e is None for e in thisEval.values()):
+        # evaluation not necessary, all fallen back
+        return True
+    nonNoneEvals = {
+        vQn: vBoundFact
+        for vQn, vBoundFact in thisEval.items()
+        if vBoundFact is not None
+    }
+    # hash check if any hashes merit further look for equality
+    otherEvalSets = [
+        otherEvalHashDicts[vQn][hash(vBoundFact)]
+        for vQn, vBoundFact in nonNoneEvals.items()
+        if vQn in otherEvalHashDicts
+        if hash(vBoundFact) in otherEvalHashDicts[vQn]
+    ]
+    if otherEvalSets:
+        matchingEvals = [otherEvals[i] for i in set.intersection(*otherEvalSets)]
+    else:
+        matchingEvals = otherEvals
+    # find set of vQn whose dependencies are fallen back in this eval but not others that match
+    varBindings = xpCtx.varBindings
+    vQnDependent = set(
+        vQn
+        for vQn in nonNoneEvals
+        if vQn in varBindings
+        and any(
+            varBindings[varRefQn].isFallback
             and any(
-                varBindings[varRefQn].isFallback
-                and any(
-                    m[varRefQn] is not None
-                    for m in matchingEvals
-                )
-                for varRefQn in varBindings[vQn].var.variableRefs()
-                if varRefQn in varBindings
+                m[varRefQn] is not None
+                for m in matchingEvals
             )
+            for varRefQn in varBindings[vQn].var.variableRefs()
+            if varRefQn in varBindings
         )
-        evalsNotDependent = [
-            (vQn, vBoundFact)
-            for vQn, vBoundFact in nonNoneEvals.items()
-            if vQn not in vQnDependent
-        ]
-        # If any compared variable has an indexed hash not seen in prior
-        # evaluations, no prior evaluation can match on all compared
-        # variables simultaneously, so this evaluation is unique.
-        for vQn, vBoundFact in evalsNotDependent:
-            if vQn in otherEvalHashDicts and hash(vBoundFact) not in otherEvalHashDicts[vQn]:
-                return False
-        # detects evaluations which are not different (duplicate) and extra fallback evaluations
-        # vBoundFact may be single fact or tuple of facts
-        return any(
-            all(
-                vBoundFact == matchingEval[vQn]
-                for vQn, vBoundFact in evalsNotDependent
-            ) for matchingEval in matchingEvals
-        )
-    return False
+    )
+    evalsNotDependent = [
+        (vQn, vBoundFact)
+        for vQn, vBoundFact in nonNoneEvals.items()
+        if vQn not in vQnDependent
+    ]
+    # If any compared variable has an indexed hash not seen in prior
+    # evaluations, no prior evaluation can match on all compared
+    # variables simultaneously, so this evaluation is unique.
+    for vQn, vBoundFact in evalsNotDependent:
+        if vQn in otherEvalHashDicts and hash(vBoundFact) not in otherEvalHashDicts[vQn]:
+            return False
+    # detects evaluations which are not different (duplicate) and extra fallback evaluations
+    # vBoundFact may be single fact or tuple of facts
+    return any(
+        all(
+            vBoundFact == matchingEval[vQn]
+            for vQn, vBoundFact in evalsNotDependent
+        ) for matchingEval in matchingEvals
+    )
 
 
 def produceOutputFact(xpCtx, formula, result):
