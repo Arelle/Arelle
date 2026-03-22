@@ -1115,9 +1115,9 @@ def evaluationIsUnnecessary(thisEval, xpCtx):
             matchingEvals = otherEvals
         # find set of vQn whose dependencies are fallen back in this eval but not others that match
         varBindings = xpCtx.varBindings
-        vQnDependentOnOtherVarFallenBackButBoundInOtherEval = set(
+        vQnDependent = set(
             vQn
-            for vQn, vBoundFact in nonNoneEvals.items()
+            for vQn in nonNoneEvals
             if vQn in varBindings
             and any(
                 varBindings[varRefQn].isFallback
@@ -1129,15 +1129,15 @@ def evaluationIsUnnecessary(thisEval, xpCtx):
                 if varRefQn in varBindings
             )
         )
-        evalsNotDependentOnVarFallenBackButBoundInOtherEval = [
+        evalsNotDependent = [
             (vQn, vBoundFact)
             for vQn, vBoundFact in nonNoneEvals.items()
-            if vQn not in vQnDependentOnOtherVarFallenBackButBoundInOtherEval
+            if vQn not in vQnDependent
         ]
         # If any compared variable has an indexed hash not seen in prior
         # evaluations, no prior evaluation can match on all compared
         # variables simultaneously, so this evaluation is unique.
-        for vQn, vBoundFact in evalsNotDependentOnVarFallenBackButBoundInOtherEval:
+        for vQn, vBoundFact in evalsNotDependent:
             if vQn in otherEvalHashDicts and hash(vBoundFact) not in otherEvalHashDicts[vQn]:
                 return False
         # detects evaluations which are not different (duplicate) and extra fallback evaluations
@@ -1145,7 +1145,7 @@ def evaluationIsUnnecessary(thisEval, xpCtx):
         return any(
             all(
                 vBoundFact == matchingEval[vQn]
-                for vQn, vBoundFact in evalsNotDependentOnVarFallenBackButBoundInOtherEval
+                for vQn, vBoundFact in evalsNotDependent
             ) for matchingEval in matchingEvals
         )
     return False
