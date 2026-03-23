@@ -7,6 +7,6 @@ services:
     build:
       args:
         INCLUDE_EDGAR: "true"
-        # EXTRA_PIP: "gunicorn"
+        EXTRA_PIP: "-r requirements-plugins.txt"
         # or
-        # EXTRA_PIP: "-r requirements-extra.txt"
+        # EXTRA_PIP: "gunicorn -r requirements-plugins.txt"
