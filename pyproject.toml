@@ -186,7 +186,6 @@ module = [
     'arelle.ModelTestcaseObject',
     'arelle.ModelVersObject',
     'arelle.ModelVersReport',
-    'arelle.PackageManager',
     'arelle.PrototypeDtsObject',
     'arelle.PrototypeInstanceObject',
     'arelle.PythonUtil',
