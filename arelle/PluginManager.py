@@ -1002,8 +1002,8 @@ def orderedPluginConfig() -> dict[str, Any]:
 
 
 def save(cntlr: Cntlr) -> None:
-    if _singleton is not None:
-        _singleton.save(cntlr)
+    assert _singleton is not None
+    _singleton.save(cntlr)
 
 
 def close() -> None:
@@ -1012,8 +1012,10 @@ def close() -> None:
 
 
 def logPluginTrace(message: str, level: int) -> None:
-    if _singleton is not None:
-        _singleton.logPluginTrace(message, level)
+    if _singleton is None:
+        logging.log(level, message)
+        return
+    _singleton.logPluginTrace(message, level)
 
 
 def modulesWithNewerFileDates() -> set[str]:
@@ -1022,8 +1024,8 @@ def modulesWithNewerFileDates() -> set[str]:
 
 
 def freshenModuleInfos() -> None:
-    if _singleton is not None:
-        _singleton.freshenModuleInfos()
+    assert _singleton is not None
+    _singleton.freshenModuleInfos()
 
 
 def normalizeModuleFilename(moduleFilename: str) -> str | None:
@@ -1054,8 +1056,8 @@ def moduleInfo(pluginInfo: Any) -> None:
 
 
 def pluginClassMethods(className: str) -> Iterator[Callable[..., Any]]:
-    if _singleton is not None:
-        yield from _singleton.pluginClassMethods(className)
+    assert _singleton is not None
+    yield from _singleton.pluginClassMethods(className)
 
 
 def hasPluginWithHook(name: str) -> bool:
