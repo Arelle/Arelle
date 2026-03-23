@@ -9,6 +9,9 @@ import sys
 from typing import TYPE_CHECKING
 
 from arelle.logging.handlers.LogHandlerWithXml import LogHandlerWithXml
+from arelle.typing import TypeGetText
+
+_: TypeGetText
 
 if TYPE_CHECKING:
     from arelle.Cntlr import Cntlr
@@ -42,9 +45,10 @@ class LogToXmlHandler(LogHandlerWithXml):
     def flush(self) -> None:
         # Note to developers: breakpoints in this method don't work, please debug with print statements
         securityIsActive = securityHasWritten = False
-        if self.cntlr is not None:
-            for pluginMethod in self.cntlr.pluginManager.pluginClassMethods("Security.Crypt.IsActive"):
-                securityIsActive = pluginMethod(self) # must be active for the cntlr object to effect log writing
+        assert self.cntlr is not None, \
+            _("Controller object is required for security plugin hooks to execute.")
+        for pluginMethod in self.cntlr.pluginManager.pluginClassMethods("Security.Crypt.IsActive"):
+            securityIsActive = pluginMethod(self) # must be active for the cntlr object to effect log writing
         if self.filename == "logToStdOut.xml":
             print('<?xml version="1.0" encoding="utf-8"?>')
             print('<log>')
@@ -61,7 +65,7 @@ class LogToXmlHandler(LogHandlerWithXml):
         elif self.filename is not None:
             if self.filename.endswith(".xml"):
                 # print ("filename=" + self.filename)
-                if securityIsActive and self.cntlr is not None:
+                if securityIsActive:
                     for pluginMethod in self.cntlr.pluginManager.pluginClassMethods("Security.Crypt.Write"):
                         securityHasWritten = pluginMethod(self, self.filename,
                                                           '<?xml version="1.0" encoding="utf-8"?>\n<log>\n' +
@@ -74,14 +78,14 @@ class LogToXmlHandler(LogHandlerWithXml):
                             fh.write(self.recordToXml(logRec))
                         fh.write('</log>\n')
             elif self.filename.endswith(".json"):
-                if securityIsActive and self.cntlr is not None:
+                if securityIsActive:
                     for pluginMethod in self.cntlr.pluginManager.pluginClassMethods("Security.Crypt.Write"):
                         securityHasWritten = pluginMethod(self, self.filename, self.getJson())
                 if not securityHasWritten:
                     with open(self.filename, self.filemode, encoding='utf-8') as fh:
                         fh.write(self.getJson())
             elif self.filename.endswith(".html"):
-                if securityIsActive and self.cntlr is not None:
+                if securityIsActive:
                     for pluginMethod in self.cntlr.pluginManager.pluginClassMethods("Security.Crypt.Write"):
                         securityHasWritten = pluginMethod(self, self.filename, self.getHtml())
                 if not securityHasWritten:
@@ -100,7 +104,7 @@ class LogToXmlHandler(LogHandlerWithXml):
                                .decode(sys.stdout.encoding, 'strict')),
                               file=_file)
             else:
-                if securityIsActive and self.cntlr is not None:
+                if securityIsActive:
                     for pluginMethod in self.cntlr.pluginManager.pluginClassMethods("Security.Crypt.Write"):
                         securityHasWritten = pluginMethod(self, self.filename,
                                                           ''.join(self.format(logRec) + "\n" for logRec in self.logRecordBuffer))
