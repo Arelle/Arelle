@@ -17,27 +17,24 @@ RUN pip install --upgrade pip \
 COPY arelleCmdLine.py .
 COPY arelle ./arelle
 
-## Check if EDGAR plugin already exists
-## If not:
-##      Clone EDGAR plugin using EDGAR_REF to pin a specific tag/release
-##      Remove .git directory
-##      Move EDGAR plugin to Arelle plugin directory
+## Install plugin requirements when building with EDGAR or XULE plugins
+ARG INCLUDE_EDGAR=""
 ARG EDGAR_REF=""
-RUN if [ ! -d arelle/plugin/EDGAR ]; then \
+ARG XULE_REF=""
+
+## Clone EDGAR plugin if enabled and plugin doesn't already exist
+## Uses EDGAR_REF to pin a specific tag/release if provided
+RUN if ([ -n "$INCLUDE_EDGAR" ] || [ -n "$EDGAR_REF" ]) && [ ! -d arelle/plugin/EDGAR ]; then \
         git clone --depth 1 ${EDGAR_REF:+--branch "$EDGAR_REF"} https://github.com/Arelle/EDGAR.git \
         && rm -rf EDGAR/.git \
         && mv EDGAR arelle/plugin/; \
     fi
 
-## Check if XULE plugin already exists
-## If not:
-##      Clone xule plugin using XULE_REF to pin a specific tag/release
-##      Move xule validation contents (DQC.py & eforms.py) to Arelle validation directory
-##      Remove empty xule validation directory
-##      Move xule plugin directory contents to arelle plugin directory
-##      Remove remnants of temporary xule directory
-ARG XULE_REF=""
-RUN if [ ! -d arelle/plugin/xule ]; then \
+## Clone XULE plugin if enabled and plugin doesn't already exist
+## Uses XULE_REF to pin a specific tag/release if provided
+## Moves xule validation contents (DQC.py & eforms.py) to Arelle validation directory
+## Moves xule plugin directory contents to arelle plugin directory
+RUN if ([ -n "$INCLUDE_EDGAR" ] || [ -n "$XULE_REF" ]) && [ ! -d arelle/plugin/xule ]; then \
         git clone --depth 1 ${XULE_REF:+--branch "$XULE_REF"} https://github.com/xbrlus/xule.git \
         && mv xule/plugin/validate/* arelle/plugin/validate/ \
         && rm -rf xule/plugin/validate \
@@ -48,7 +45,7 @@ RUN if [ ! -d arelle/plugin/xule ]; then \
 ## ------------------- Production Stage -------------------
 FROM python:3.14.3-slim AS production
 
-## Set environment variables to optimize Python
+## Prevent python from buffering stdout & stderr
 ENV PYTHONUNBUFFERED=1
 
 RUN apt-get update \
@@ -58,7 +55,6 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 ## Copy python dependencies and application code
-COPY --from=builder /usr/local/lib/python3.14/site-packages/ /usr/local/lib/python3.14/site-packages/
 COPY --from=builder /usr/src/app /usr/src/app
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"

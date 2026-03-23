@@ -1,8 +1,12 @@
 services:
   webserver:
     build:
-      context: ../..
-      dockerfile: ./docker/arelle-EDGAR/Dockerfile
+      context: ..
+      dockerfile: ./docker/Dockerfile
+      args:
+        INCLUDE_EDGAR: ${INCLUDE_EDGAR:-}
+        EDGAR_REF: ${EDGAR_REF:-}
+        XULE_REF: ${XULE_REF:-}
     command: /start.sh
     ports:
       - 8080:8080
@@ -12,4 +16,3 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
-
