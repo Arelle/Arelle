@@ -1567,13 +1567,13 @@ def _parseOptionsFile(optionsFile: str, parser: OptionParser) -> dict[str, Any]:
             jsonOptions = json.load(f)
     except OSError:
         parser.error(_("Options file path does not exist: {}").format(optionsFile))
-        return {}
+
     except Exception as e:
         parser.error(_("Unable to parse options JSON file: {}").format(e))
-        return {}
+
     if not isinstance(jsonOptions, dict):
         parser.error(_("Options JSON file must contain a JSON object at its root."))
-        return {}
+
     return jsonOptions
 
 
@@ -1684,9 +1684,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
             useOsProxy, urlAddr, urlPort, user, password = self.config.get("proxySettings", proxyTuple("none"))  # type: ignore[union-attr]
             if useOsProxy:
                 self.addToLog(_("Proxy configured to use {0}.").format(
-                    _('Microsoft Windows Internet Settings') if sys.platform.startswith("win")
-                    else (_('Mac OS X System Configuration') if sys.platform in ("darwin", "macos")
-                          else _('environment variables'))), messageCode="info")
+                    _("Microsoft Windows Internet Settings") if sys.platform.startswith("win")
+                    else (_("Mac OS X System Configuration") if sys.platform in ("darwin", "macos")
+                          else _("environment variables"))), messageCode="info")
             elif urlAddr:
                 self.addToLog(_("Proxy setting: http://{0}{1}{2}{3}{4}").format(
                     user if user else "",
@@ -1827,7 +1827,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             self.modelManager.skipDTS = True
         if options.skipLoading and isinstance(options.skipLoading, str):
             self.modelManager.skipLoading = re.compile(
-                '|'.join(fnmatch.translate(f) for f in options.skipLoading.split('|')))
+                "|".join(fnmatch.translate(f) for f in options.skipLoading.split("|")))
 
         # disclosure system sets logging filters, override disclosure filters, if specified by command line
         if options.logLevelFilter:
@@ -1882,10 +1882,10 @@ class CntlrCmdLine(Cntlr.Cntlr):
             self.webCache.recheck = options.internetRecheck
         fo = FormulaOptions()  # type: ignore[no-untyped-call]
         if options.parameters:
-            parameterSeparator = (options.parameterSeparator or ',')
-            fo.parameterValues = dict(((qname(key, noPrefixIsNoNamespace=True),(None,value))
+            parameterSeparator = options.parameterSeparator or ","
+            fo.parameterValues = dict(((qname(key, noPrefixIsNoNamespace=True), (None, value))
                                        for param in options.parameters.split(parameterSeparator)
-                                       for key,sep,value in (param.partition('='),) ) )
+                                       for key, sep, value in (param.partition("="), )))
         fo.maximumMessageInterpolationLength = options.formulaMaximumMessageInterpolationLength
         if options.formulaParamExprResult:
             fo.traceParameterExpressionResult = True
@@ -1937,7 +1937,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             fo.testcaseFilters = options.testcaseFilters
         errorCaptureLevel = None
         if options.testcaseResultsCaptureWarnings:
-            errorCaptureLevel = logging._checkLevel("WARNING")
+            errorCaptureLevel = logging.getLevelName("WARNING")
             self.errorManager.setErrorCaptureLevel(errorCaptureLevel)
             fo.testcaseResultsCaptureWarnings = True
         if options.testcaseResultOptions:
@@ -2037,7 +2037,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 if options.importFiles:
                     for importFile in options.importFiles.split("|"):
                         fileName = importFile.strip()
-                        if sourceZipStream is not None and not (fileName.startswith('http://') or os.path.isabs(fileName)):
+                        if sourceZipStream is not None and not (fileName.startswith("http://") or os.path.isabs(fileName)):
                             fileName = os.path.dirname(modelXbrl.uri) + os.sep + fileName # make relative to sourceZipStream
                         ModelDocument.load(modelXbrl, fileName, isSupplemental=True)
                         loadTime = time.time() - startedAt
@@ -2346,7 +2346,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
         showPackages = False
         # For backwards compatibility, we allow '|' separated filenames/URLs
         # within a single --packages option.
-        for packageCmd in [cmd for p in packages for cmd in p.split('|')]:
+        for packageCmd in [cmd for p in packages for cmd in p.split("|")]:
             cmd = packageCmd.strip()
             if cmd == "show":
                 showPackages = True
