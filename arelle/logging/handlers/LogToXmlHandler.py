@@ -191,10 +191,12 @@ class LogToXmlHandler(LogHandlerWithXml):
             self.htmlTitle)
         ]
         if self.logRecordBuffer:
+            filters = None
             if self.cntlr is not None:
-                for logRec in self.logRecordBuffer:
-                    if all(p(logRec) for p in self.cntlr.pluginManager.pluginClassMethods("Cntlr.Log.RecFilter.Html")):
-                        html.append(self.recordToHtml(logRec))
+                filters = self.cntlr.pluginManager.pluginClassMethods("Cntlr.Log.RecFilter.Html")
+            for logRec in self.logRecordBuffer:
+                if not filters or all(_filter(logRec) for _filter in filters):
+                    html.append(self.recordToHtml(logRec))
             if clearLogBuffer:
                 self.clearLogBuffer()
             html.append("</tbody>\n</table>\n</body>\n</html>\n")
