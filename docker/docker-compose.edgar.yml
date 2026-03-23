@@ -1,7 +1,7 @@
 services:
   edgar-webserver:
     extends:
-      file: docker/docker-compose.yml
+      file: docker-compose.yml
       service: webserver
     container_name: arelle-edgar-webserver
     build:
