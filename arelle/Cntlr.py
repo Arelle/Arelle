@@ -290,7 +290,7 @@ class Cntlr:
 
         # start plug in server (requres web cache initialized, but not logger)
         PluginManager.init(self, loadPluginConfig=hasGui)
-        self.pluginManager = PluginManager._singleton  # type: ignore[assignment]
+        self.pluginManager = PluginManager.getInstance()  # type: ignore[assignment]
 
         # requires plug ins initialized
         self.modelManager = ModelManager.initialize(self)

@@ -967,6 +967,9 @@ class EntryPointRef:
 
 _singleton: PluginManager | None = None
 
+def getInstance() -> PluginManager | None:
+    return _singleton
+
 _SINGLETON_ATTRS = frozenset({
     "pluginJsonFile", "pluginConfig", "pluginConfigChanged",
     "pluginTraceFileLogger", "modulePluginInfos", "pluginMethodsForClasses",
