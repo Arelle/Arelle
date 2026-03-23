@@ -23,6 +23,7 @@ import time
 import traceback
 from optparse import SUPPRESS_HELP, Option, OptionGroup, OptionParser
 from pprint import pprint
+from typing import Any
 
 import regex as re
 from bottle import Bottle
@@ -78,7 +79,7 @@ UILANG_OPTION = "--uiLang"
 _: TypeGetText
 
 
-def main():
+def main() -> None:
     """Main program to initiate application from command line or as a separate process (e.g, java Runtime.getRuntime().exec).  May perform
     a command line request, or initiate a web server on specified local port.
 
@@ -95,11 +96,13 @@ def main():
         sys.exit(3)
 
 
-def wsgiApplication(extraArgs=[]): # for example call wsgiApplication(["--plugins=EDGAR/render"])
-    return parseAndRun( ["--webserver=::wsgi"] + extraArgs )
+def wsgiApplication(extraArgs: list[str] | None = None) -> CntlrCmdLine:  # for example call wsgiApplication(["--plugins=EDGAR/render"])
+    if extraArgs is None:
+        extraArgs = []
+    return parseAndRun(["--webserver=::wsgi"] + extraArgs)
 
 
-def _parseAndRun(args: list[str]) -> tuple[CntlrCmdLine, RuntimeOptions, bool]:
+def _parseAndRun(args: list[str]) -> tuple[Any | CntlrCmdLine | None, RuntimeOptions, bool | None]:
     """
     interface used by Main program and py.test (arelle_test.py)
     """
@@ -113,7 +116,7 @@ def parseAndRun(args: list[str]) -> CntlrCmdLine:
     interface used by Main program and py.test (arelle_test.py)
     """
     cntlr, _, _ = _parseAndRun(args)
-    return cntlr
+    return cntlr  # type: ignore[return-value]
 
 
 PREPARSE_ARG_CONFIGS = frozenset([
@@ -148,7 +151,7 @@ def preparseArgs(args: list[str], parser: OptionParser) -> dict[str, str]:
     return preparsedArgs
 
 
-def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict]:
+def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict[str, Any]]:
     """
     Parses the command line arguments and generates runtimeOptions and arellePluginModules
     :param args: Command Line arguments
@@ -1471,8 +1474,8 @@ def createCntlrAndPreloadPlugins(
 
 def _configAndRunCntlr(
         options: RuntimeOptions,
-        arellePluginModules: dict
-                       ) -> tuple[None, None] | tuple[Bottle, None] | tuple[CntlrCmdLine, bool]:
+        arellePluginModules: dict[str, Any]
+    ) -> tuple[None, None] | tuple[Bottle, None] | tuple[CntlrCmdLine, bool]:
     """
     This function creates and configures a controller based off an options dataclass and
     :param options: RuntimeOptions dataclass
@@ -1487,7 +1490,7 @@ def _configAndRunCntlr(
     if options.webserver:
         cntlr.startLogging(logFileName='logToBuffer',
                            logTextMaxLength=options.logTextMaxLength,
-                           logRefObjectProperties=options.logRefObjectProperties)
+                           logRefObjectProperties=options.logRefObjectProperties)  # type: ignore[arg-type]
         cntlr.postLoggingInit()
         from arelle import CntlrWebMain
         app = CntlrWebMain.startWebserver(cntlr, options)
@@ -1503,7 +1506,7 @@ def _configAndRunCntlr(
                            logLevel=(options.logLevel or "DEBUG"),
                            logToBuffer=getattr(options, "logToBuffer", False),
                            logTextMaxLength=options.logTextMaxLength,  # e.g., used by EDGAR/render to require buffered logging
-                           logRefObjectProperties=options.logRefObjectProperties,
+                           logRefObjectProperties=options.logRefObjectProperties,  # type: ignore[arg-type]
                            logXmlMaxAttributeLength=options.logXmlMaxAttributeLength,
                            logPropagate=options.logPropagate)
         cntlr.postLoggingInit()  # Cntlr options after logging is started
@@ -1512,9 +1515,9 @@ def _configAndRunCntlr(
         return cntlr, result
 
 
-def configAndRunCntlr(options: RuntimeOptions, arellePluginModules: dict) -> CntlrCmdLine:
+def configAndRunCntlr(options: RuntimeOptions, arellePluginModules: dict[str, Any]) -> CntlrCmdLine:
     cntlr, _ = _configAndRunCntlr(options, arellePluginModules)
-    return cntlr
+    return cntlr  # type: ignore[return-value]
 
 
 class ParserForDynamicPlugins:
@@ -1541,7 +1544,7 @@ class ParserForDynamicPlugins:
         return None
 
 
-def _pluginHasCliOptions(moduleInfo):
+def _pluginHasCliOptions(moduleInfo: dict[str, Any]) -> bool:
     if "CntlrCmdLine.Options" in moduleInfo["classMethods"]:
         return True
     if imports := moduleInfo.get("imports"):
@@ -1549,7 +1552,7 @@ def _pluginHasCliOptions(moduleInfo):
     return False
 
 
-def _parseOptionsFile(optionsFile: str, parser: OptionParser) -> dict:
+def _parseOptionsFile(optionsFile: str, parser: OptionParser) -> dict[str, Any]:
     """
     Parse the JSON options within the provided filepath.
     :param optionsFile: The path to the JSON options file.
