@@ -1,8 +1,8 @@
 services:
   webserver:
     build:
-      context: ../..
-      dockerfile: ./docker/arelle-EDGAR/Dockerfile
+      context: ..
+      dockerfile: ./docker/Dockerfile
       args:
         INCLUDE_EDGAR: ${INCLUDE_EDGAR:-}
         EDGAR_REF: ${EDGAR_REF:-}
