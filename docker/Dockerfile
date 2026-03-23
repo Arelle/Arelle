@@ -55,7 +55,6 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 ## Copy python dependencies and application code
-COPY --from=builder /usr/local/lib/python3.14/site-packages/ /usr/local/lib/python3.14/site-packages/
 COPY --from=builder /usr/src/app /usr/src/app
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
