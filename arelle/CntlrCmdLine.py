@@ -28,6 +28,11 @@ import regex as re
 from bottle import Bottle
 from lxml import etree
 
+try:
+    import win32file, win32api, win32process, pywintypes
+except ImportError: # win32 not installed
+    win32file = win32api = win32process = pywintypes = None  # type: ignore[assignment]
+
 from arelle import (
     Cntlr,
     FileSource,
@@ -65,7 +70,6 @@ from arelle.utils.EntryPointDetection import parseEntrypointFileInput
 from arelle.ValidateXbrlDTS import ValidateBaseTaxonomiesMode
 from arelle.WebCache import proxyTuple
 
-win32file = win32api = win32process = pywintypes = None
 STILL_ACTIVE = 259 # MS Windows process status constants
 PROCESS_QUERY_INFORMATION = 0x400
 DISABLE_PERSISTENT_CONFIG_OPTION = "--disablePersistentConfig"
@@ -1582,37 +1586,55 @@ class CntlrCmdLine(Cntlr.Cntlr):
         hasValidationErrors = False
         for b in BETA_FEATURES_AND_DESCRIPTIONS:
             self.betaFeatures[b] = getattr(options, b)
-        if options.statusPipe or options.monitorParentProcess:
-            try:
-                global win32file, win32api, win32process, pywintypes
-                import win32file, win32api, win32process, pywintypes
-            except ImportError: # win32 not installed
+
+        if None in (win32file, win32api, win32process, pywintypes):
+            if options.statusPipe or options.monitorParentProcess:
                 self.addToLog(f"--statusPipe {options.statusPipe} cannot be installed, packages for win32 missing")
                 options.statusPipe = options.monitorParentProcess = None
+
+            if options.monitorParentProcess:
+                self.addToLog(
+                    f"--monitorParentProcess {options.monitorParentProcess} cannot be installed, "
+                    f"packages for win32api and win32process missing"
+                    )
+                options.monitorParentProcess = None
+
         if options.statusPipe:
             try:
-                self.statusPipe = win32file.CreateFile(f"\\\\.\\pipe\\{options.statusPipe}",
-                                                       win32file.GENERIC_READ | win32file.GENERIC_WRITE, 0, None, win32file.OPEN_EXISTING, win32file.FILE_FLAG_NO_BUFFERING, None)
-                self.showStatus = self.showStatusOnPipe
+                self.statusPipe = win32file.CreateFile(
+                    f"\\\\.\\pipe\\{options.statusPipe}",
+                    win32file.GENERIC_READ | win32file.GENERIC_WRITE,
+                    0,
+                    None,
+                    win32file.OPEN_EXISTING,
+                    win32file.FILE_FLAG_NO_BUFFERING,
+                    None
+                )
+                self.showStatus = self.showStatusOnPipe  # type: ignore[method-assign]
                 self.lastStatusTime = 0.0
                 self.parentProcessHandle = None
-            except pywintypes.error: # named pipe doesn't exist
+            except pywintypes.error:  # named pipe doesn't exist
                 self.addToLog(f"--statusPipe {options.statusPipe} has not been created by calling program")
+
         if options.monitorParentProcess:
             try:
-                self.parentProcessHandle = win32api.OpenProcess(PROCESS_QUERY_INFORMATION, False, int(options.monitorParentProcess))
-                def monitorParentProcess():
-                    if win32process.GetExitCodeProcess(self.parentProcessHandle) != STILL_ACTIVE:
+                self.parentProcessHandle = win32api.OpenProcess(
+                    PROCESS_QUERY_INFORMATION,
+                    False,
+                    int(options.monitorParentProcess)
+                )
+
+                def monitorParentProcess() -> None:
+                    if win32process.GetExitCodeProcess(self.parentProcessHandle) != STILL_ACTIVE:  # type: ignore[arg-type]
                         sys.exit()
                     _t = threading.Timer(10.0, monitorParentProcess)
                     _t.daemon = True
                     _t.start()
                 monitorParentProcess()
-            except ImportError: # win32 not installed
-                self.addToLog(f"--monitorParentProcess {options.monitorParentProcess} cannot be installed, packages for win32api and win32process missing")
             except (ValueError, pywintypes.error): # parent process doesn't exist
                 self.addToLog(f"--monitorParentProcess Process {options.monitorParentProcess} Id is invalid")
                 sys.exit()
+
         if options.showOptions: # debug options
             for optName, optValue in sorted(options.__dict__.items(), key=lambda optItem: optItem[0]):
                 self.addToLog(f"Option {optName}={optValue}", messageCode="info")
@@ -2236,11 +2258,11 @@ class CntlrCmdLine(Cntlr.Cntlr):
         self._clearPluginData()
 
         if options.statusPipe and getattr(self, "statusPipe", None) is not None:
-            win32file.WriteFile(self.statusPipe, b" ")  # clear status
-            win32file.FlushFileBuffers(self.statusPipe)
-            win32file.SetFilePointer(self.statusPipe, 0, win32file.FILE_BEGIN) # hangs on close without this
-            win32file.CloseHandle(self.statusPipe)
-            self.statusPipe = None # dereference
+            win32file.WriteFile(self.statusPipe, b" ")  # type: ignore[arg-type] # clear status
+            win32file.FlushFileBuffers(self.statusPipe)  # type: ignore[arg-type]
+            win32file.SetFilePointer(self.statusPipe, 0, win32file.FILE_BEGIN)  # type: ignore[call-overload] # hangs on close without this
+            win32file.CloseHandle(self.statusPipe)  # type: ignore[arg-type]
+            self.statusPipe = None  # type: ignore[assignment] # dereference
 
         return success and not (options.validationExitCode and (hasValidationErrors or self.errors))
 
@@ -2249,7 +2271,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
         return (self.username, self.password)
 
     # special show status for named pipes
-    def showStatusOnPipe(self, message, clearAfter=None):
+    def showStatusOnPipe(self, message: str | None, clearAfter: int | None = None) -> None:
         # now = time.time() # seems ok without time-limiting writes to the pipe
         if self.statusPipe is not None:  # max status updates 3 per second now - 0.3 > self.lastStatusTime and
             # self.lastStatusTime = now
@@ -2257,9 +2279,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 if self.parentProcessHandle is not None:
                     if win32process.GetExitCodeProcess(self.parentProcessHandle) != STILL_ACTIVE:
                         sys.exit()
-                win32file.WriteFile(self.statusPipe, (message or "").encode("utf8"))
-                win32file.FlushFileBuffers(self.statusPipe)
-                win32file.SetFilePointer(self.statusPipe, 0, win32file.FILE_BEGIN)  # hangs on close without this
+                win32file.WriteFile(self.statusPipe, (message or "").encode("utf8"))  # type: ignore[arg-type]
+                win32file.FlushFileBuffers(self.statusPipe)  # type: ignore[arg-type]
+                win32file.SetFilePointer(self.statusPipe, 0, win32file.FILE_BEGIN)  # type: ignore[call-overload] # hangs on close without this
             except Exception as ex:
                 #with open("Z:\\temp\\trace.log", "at", encoding="utf-8") as fh:
                 #    fh.write("Status pipe exception {} {}\n".format(type(ex), ex))
