@@ -1521,24 +1521,27 @@ def configAndRunCntlr(options: RuntimeOptions, arellePluginModules: dict[str, An
 
 
 class ParserForDynamicPlugins:
-    def __init__(self, options):
-        self._long_opt = {}
-        self._short_opt = {}
-        self.conflict_handler = 'error'
-        self.defaults = {}
-        self.option_class = Option
-        self.options = options
+    def __init__(self, options: RuntimeOptions) -> None:
+        self._long_opt: dict[str, Any] = {}
+        self._short_opt: dict[str, Any] = {}
+        self.conflict_handler: str = "error"
+        self.defaults: dict[str, Any] = {}
+        self.option_class: type[Option] = Option
+        self.options: RuntimeOptions = options
 
     def add_option(self, *args, **kwargs):
         if 'dest' in kwargs:
             _dest = kwargs['dest']
+    def add_option(self, *args: Any, **kwargs: Any) -> None:
+        if "dest" in kwargs:
+            _dest = kwargs["dest"]
             if not hasattr(self.options, _dest):
-                setattr(self.options, _dest, kwargs.get('default'))
+                setattr(self.options, _dest, kwargs.get("default"))
 
-    def add_option_group(self, featureGroup, *args, **kwargs):
+    def add_option_group(self, featureGroup: OptionGroup, *args: Any, **kwargs: Any) -> None:
         for opt in featureGroup.option_list:
             if hasattr(opt, "dest"):
-                self.add_option(dest=opt.dest, default=getattr(opt, 'default', None))
+                self.add_option(dest=opt.dest, default=getattr(opt, "default", None))
 
     def __getattr__(self, name: str) -> None:
         return None
