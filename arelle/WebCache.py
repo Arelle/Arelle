@@ -170,7 +170,7 @@ class WebCache:
         return self._timeout or WebCache.default_timeout
 
     @timeout.setter
-    def timeout(self, seconds: float | int) -> None:
+    def timeout(self, seconds: float | int | None) -> None:
         self._timeout = seconds
 
     @property
