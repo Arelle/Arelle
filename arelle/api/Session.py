@@ -65,7 +65,7 @@ class Session:
             self._check_thread()
             if self._cntlr is not None:
                 self._cntlr.close()
-            PluginManager.close()
+                self._cntlr.pluginManager.close()
 
     def get_log_messages(self) -> list[dict[str, Any]]:
         """
@@ -110,6 +110,7 @@ class Session:
         responseZipStream: BinaryIO | None = None,
         logHandler: logging.Handler | None = None,
         logFilters: list[logging.Filter] | None = None,
+        logFileName: str | None = None,
     ) -> bool:
         """
         Perform a run using the given options.
@@ -128,7 +129,8 @@ class Session:
         with _session_lock:
             self._check_thread()
             PackageManager.reset()
-            PluginManager.reset()
+            if self._cntlr is not None:
+                self._cntlr.pluginManager.reset()
             if self._cntlr is None:
                 # Certain options must be passed into the controller constructor to have the intended effect
                 self._cntlr = createCntlrAndPreloadPlugins(
@@ -163,7 +165,7 @@ class Session:
             else:
                 if not self._cntlr.logger:
                     self._cntlr.startLogging(
-                        logFileName=(options.logFile or "logToPrint"),
+                        logFileName=(logFileName or options.logFile or "logToPrint"),
                         logFileMode=options.logFileMode,
                         logFormat=(options.logFormat or "[%(messageCode)s] %(message)s - %(file)s"),
                         logLevel=(options.logLevel or "DEBUG"),

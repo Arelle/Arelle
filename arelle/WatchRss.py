@@ -8,7 +8,6 @@ from arelle import (ModelXbrl, XmlUtil, ModelVersReport, XbrlConst, ModelDocumen
 from arelle.formula import ValidateFormula
 from arelle.FileSource import openFileSource
 from arelle.ModelValue import (qname, QName)
-from arelle.PluginManager import pluginClassMethods
 from arelle.UrlUtil import parseRfcDatetime
 import datetime
 
@@ -111,7 +110,7 @@ class WatchRss:
                 rssWatchOptions.get("validateFormulaAssertions") or
                 rssWatchOptions.get("alertMatchedFactText") or
                 any(pluginXbrlMethod(rssWatchOptions)
-                    for pluginXbrlMethod in pluginClassMethods("RssWatch.HasWatchAction"))
+                    for pluginXbrlMethod in self.cntlr.pluginManager.pluginClassMethods("RssWatch.HasWatchAction"))
                 ):
                 # form keys in ascending order of pubdate
                 pubDateRssItems = []
@@ -146,7 +145,7 @@ class WatchRss:
                                             form=rssItem.formType, date=rssItem.filingDate)
                             rssItem.status = "not loadable"
                         else:
-                            for pluginXbrlMethod in pluginClassMethods("RssItem.Xbrl.Loaded"):
+                            for pluginXbrlMethod in self.cntlr.pluginManager.pluginClassMethods("RssItem.Xbrl.Loaded"):
                                 pluginXbrlMethod(modelXbrl, rssWatchOptions, rssItem)
                             # validate schema, linkbase, or instance
                             if self.stopRequested:
@@ -156,7 +155,7 @@ class WatchRss:
                                 self.instValidator.validate(modelXbrl, modelXbrl.modelManager.formulaOptions.typedParameters(modelXbrl.prefixedNamespaces))
                                 if modelXbrl.errors and rssWatchOptions.get("alertValiditionError"):
                                     emailAlert = True
-                            for pluginXbrlMethod in pluginClassMethods("RssWatch.DoWatchAction"):
+                            for pluginXbrlMethod in self.cntlr.pluginManager.pluginClassMethods("RssWatch.DoWatchAction"):
                                 pluginXbrlMethod(modelXbrl, rssWatchOptions, rssItem)
                             # check match expression
                             if matchPattern:

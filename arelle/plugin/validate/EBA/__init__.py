@@ -5,7 +5,6 @@ EBA (2.3), EIOPA (2.0.0) Filing Rules Validation
 """
 import os, sys
 import regex as re
-from arelle import PluginManager
 from arelle import XbrlConst, XmlUtil, UrlUtil, LeiUtil
 from arelle.ModelDocumentType import ModelDocumentType
 from arelle.HashUtil import md5hash, Md5Sum

@@ -5,9 +5,12 @@ from __future__ import annotations
 
 from logging import LogRecord
 from collections.abc import Mapping
-from typing import Any, cast
+from typing import Any, cast, TYPE_CHECKING
 
 from arelle.logging.handlers.LogToXmlHandler import LogToXmlHandler
+
+if TYPE_CHECKING:
+    from arelle.Cntlr import Cntlr
 
 REFS = "refs"
 MSG = "msg"
@@ -21,8 +24,8 @@ class StructuredMessageLogHandler(LogToXmlHandler):
     Custom logging handler to handle logging traffic.
     """
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, cntlr: Cntlr | None = None) -> None:
+        super().__init__(cntlr)
         self.messages: list[dict[str, Any]] = []
 
     def flush(self) -> None:

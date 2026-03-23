@@ -40,7 +40,6 @@ except ImportError:
     ssl = None  # type: ignore[assignment]
 
 from arelle.FileSource import SERVER_WEB_CACHE, archiveFilenameParts
-from arelle.PluginManager import pluginClassMethods
 from arelle.UrlUtil import isHttpUrl
 from arelle.Version import __version__
 
@@ -255,10 +254,10 @@ class WebCache:
             _proxyDirFmt = proxyDirFmt(httpProxyTuple)
             # only try ntlm if user and password are provided because passman is needed
             if user and not useOsProxy:
-                for pluginXbrlMethod in pluginClassMethods("Proxy.HTTPAuthenticate"):
+                for pluginXbrlMethod in self.cntlr.pluginManager.pluginClassMethods("Proxy.HTTPAuthenticate"):
                     pluginXbrlMethod(self.cntlr)
 
-                for pluginXbrlMethod in pluginClassMethods("Proxy.HTTPNtlmAuthHandler"):
+                for pluginXbrlMethod in self.cntlr.pluginManager.pluginClassMethods("Proxy.HTTPNtlmAuthHandler"):
                     HTTPNtlmAuthHandler = pluginXbrlMethod()
                     if HTTPNtlmAuthHandler is not None:
                         self.hasNTLM = True
@@ -510,7 +509,7 @@ class WebCache:
             allowTransformation: bool = True
         ) -> str | None:
         if allowTransformation:
-            for pluginXbrlMethod in pluginClassMethods("WebCache.TransformURL"):
+            for pluginXbrlMethod in self.cntlr.pluginManager.pluginClassMethods("WebCache.TransformURL"):
                 url, final = pluginXbrlMethod(self.cntlr, url, base)
                 if final:
                     return url
@@ -803,7 +802,7 @@ class WebCache:
                     if tryWebAuthentication:
                         # check if single signon is requested (on first retry)
                         if retryCount == RETRIEVAL_RETRY_COUNT:
-                            for pluginXbrlMethod in pluginClassMethods("Proxy.HTTPAuthenticate"):
+                            for pluginXbrlMethod in self.cntlr.pluginManager.pluginClassMethods("Proxy.HTTPAuthenticate"):
                                 if pluginXbrlMethod(self.cntlr): # true if succeessful single sign on
                                     retryCount -= 1
                                     break

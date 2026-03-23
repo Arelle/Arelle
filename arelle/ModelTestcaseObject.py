@@ -11,7 +11,6 @@ from typing import TYPE_CHECKING
 from arelle import XmlUtil, XbrlConst, ModelValue
 from arelle.conformance.Constants import CONFORMANCE_SUITE_ID_OVERRIDES
 from arelle.ModelObject import ModelObject
-from arelle.PluginManager import pluginClassMethods
 
 if TYPE_CHECKING:
     from arelle import FileSource
@@ -120,7 +119,7 @@ class ModelTestcaseVariation(ModelObject):
             self.readMeFirstElements = []
             # first look if any plugin method to get readme first URIs
             if not any(pluginXbrlMethod(self)
-                       for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ReadMeFirstUris")):
+                       for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("ModelTestcaseVariation.ReadMeFirstUris")):
                 if self.localName == "testGroup":  #w3c testcase
                     instanceTestElement = XmlUtil.descendant(self, None, "instanceTest")
                     if instanceTestElement is not None: # take instance first
@@ -201,7 +200,7 @@ class ModelTestcaseVariation(ModelObject):
 
     @property
     def resultXbrlInstanceUri(self):
-        for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ResultXbrlInstanceUri"):
+        for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("ModelTestcaseVariation.ResultXbrlInstanceUri"):
             resultInstanceUri = pluginXbrlMethod(self)
             if resultInstanceUri is not None:
                 return resultInstanceUri or None # (empty string returns None)
@@ -309,7 +308,7 @@ class ModelTestcaseVariation(ModelObject):
 
     @property
     def expected(self):
-        for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ExpectedResult"):
+        for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("ModelTestcaseVariation.ExpectedResult"):
             expected = pluginXbrlMethod(self)
             if expected:
                 return expected
@@ -393,7 +392,7 @@ class ModelTestcaseVariation(ModelObject):
 
     @property
     def expectedCount(self):
-        for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ExpectedCount"):
+        for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("ModelTestcaseVariation.ExpectedCount"):
             _count = pluginXbrlMethod(self)
             if _count is not None: # ignore plug in if not a plug-in-recognized test case
                 return _count
@@ -409,7 +408,7 @@ class ModelTestcaseVariation(ModelObject):
 
     @property
     def severityLevel(self):
-        for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ExpectedSeverity"):
+        for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("ModelTestcaseVariation.ExpectedSeverity"):
             severityLevelName = pluginXbrlMethod(self)
             if severityLevelName: # ignore plug in if not a plug-in-recognized test case
                 return logging._checkLevel(severityLevelName)

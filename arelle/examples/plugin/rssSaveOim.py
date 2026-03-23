@@ -24,7 +24,6 @@ This plug-in imports the following plug-ins:
 import os
 from arelle import ModelXbrl
 from arelle.FileSource import openFileSource
-from arelle.PluginManager import pluginClassMethods
 from arelle.Version import authorLabel, copyrightLabel
 
 def saveFilingOim(cntlr, zippedUrl, oimFile):
@@ -32,7 +31,7 @@ def saveFilingOim(cntlr, zippedUrl, oimFile):
     modelXbrl = ModelXbrl.load(cntlr.modelManager,
                                openFileSource(zippedUrl, cntlr))
     if modelXbrl is not None:
-        for saveLoadableOIM in pluginClassMethods("SaveLoadableOim.Save"):
+        for saveLoadableOIM in cntlr.pluginManager.pluginClassMethods("SaveLoadableOim.Save"):
             saveLoadableOIM(modelXbrl, oimFile)
             modelXbrl.info("arelle:savedOIM", _("Saved OIM File {}").format(oimFile))
         # check for supplemental instances
@@ -41,7 +40,7 @@ def saveFilingOim(cntlr, zippedUrl, oimFile):
             for supplementalModelXbrl in modelXbrl.supplementalModelXbrls:
                 # use basename for the json file
                 supplementalOimFile = os.path.join(oimFileDir, os.path.splitext(supplementalModelXbrl.basename)[0] + ".json")
-                for saveLoadableOIM in pluginClassMethods("SaveLoadableOim.Save"):
+                for saveLoadableOIM in cntlr.pluginManager.pluginClassMethods("SaveLoadableOim.Save"):
                     saveLoadableOIM(supplementalModelXbrl, supplementalOimFile)
                     modelXbrl.info("arelle:savedOIM",_("Saved OIM File {}").format(supplementalOimFile))
                 supplementalModelXbrl.close()
