@@ -25,7 +25,6 @@ from arelle.ModelFormulaObject import (
     ModelGeneralVariable,
     ModelParameter,
     ModelTuple,
-    ModelTypedDimension,
     ModelValueAssertion,
     ModelVariable,
 )
@@ -580,15 +579,13 @@ def bindFactVariable(xpCtx, varSet, cachedFilteredFacts, uncoveredAspectFacts, v
                     factCount=len(facts),
                 )
 
-            checkVarSetFilterInfo(varSet)
-            facts = trialFilterFacts(xpCtx, vb, facts, varSet.groupFilterRelationships, "group", varSet=varSet)
+            facts = filterFacts(xpCtx, vb, facts, varSet.groupFilterRelationships, "group")
 
             vb.aspectsCovered.clear()  # group boolean sub-filters may have covered aspects
             cachedFilteredFacts[groupFilteredFactsKey] = facts
 
-        checkVarFilterInfo(var)
         # also finds covered aspects (except aspect cover filter dims, not known until after this complete pass)
-        facts = trialFilterFacts(xpCtx, vb, facts, var.filterRelationships, None, var=var)
+        facts = filterFacts(xpCtx, vb, facts, var.filterRelationships, None)
 
         # adding dim aspects must be done after explicit filterin
         for fact in facts:
@@ -653,159 +650,6 @@ def bindFactVariable(xpCtx, varSet, cachedFilteredFacts, uncoveredAspectFacts, v
                 variable=varQname,
                 result=str(vb.values),
             )
-
-
-def checkVarFilterInfo(var):
-    # collect all dims's of "simple" model type dimension filters associated to this variable set
-    # info is 1 for not "simple" and a list of dim's otherwise
-    try:
-        ff = var.filterInfo
-        return
-    except:
-        pass
-    var.noComplHandledFilterRels = []
-    var.complHandledFilterRels = []
-    var.unHandledFilterRels = []
-    for varFilterRel in var.filterRelationships:
-        _filter = varFilterRel.toModelObject
-        handled = False
-        _filter = varFilterRel.toModelObject
-        if isinstance(_filter, ModelTypedDimension):
-            try:
-                tmp = _filter.dimQname
-                if tmp and not _filter.test:
-                    if varFilterRel.isComplemented:
-                        var.complHandledFilterRels.append((varFilterRel, tmp))
-                    else:
-                        var.noComplHandledFilterRels.append((varFilterRel, tmp))
-                    handled = True
-            except:
-                pass
-        if not handled:
-            var.unHandledFilterRels.append(varFilterRel)
-    if len(var.noComplHandledFilterRels) > 0 or len(var.complHandledFilterRels) > 0:
-        var.filterInfo = True
-    else:
-        var.filterInfo = False
-
-
-def checkVarSetFilterInfo(varSet):
-    try:
-        ff = varSet.filterInfo
-        return
-    except:
-        pass
-    varSet.noComplHandledFilterRels = []
-    varSet.complHandledFilterRels = []
-    varSet.unHandledFilterRels = []
-    for varFilterRel in varSet.groupFilterRelationships:
-        _filter = varFilterRel.toModelObject
-        handled = False
-        _filter = varFilterRel.toModelObject
-        if isinstance(_filter, ModelTypedDimension):
-            try:
-                tmp = _filter.dimQname
-                if tmp and not _filter.test:
-                    if varFilterRel.isComplemented:
-                        varSet.complHandledFilterRels.append((varFilterRel, tmp))
-                    else:
-                        varSet.noComplHandledFilterRels.append((varFilterRel, tmp))
-                    handled = True
-            except:
-                pass
-        if not handled:
-            varSet.unHandledFilterRels.append(varFilterRel)
-    if len(varSet.noComplHandledFilterRels) > 0 or len(varSet.complHandledFilterRels) > 0:
-        varSet.filterInfo = True
-    else:
-        varSet.filterInfo = False
-
-
-def trialFilterFacts(xpCtx, vb, facts, filterRelationships, filterType, var=None, varSet=None):
-    typeLbl = filterType + " " if filterType else ""
-    orFilter = filterType == "or"
-    groupFilter = filterType == "group"
-    if orFilter:
-        factSet = set()
-    filterInfo = None
-    if filterType is None and var is not None:
-        filterInfo = var.filterInfo
-        noComplHandledFilterRels = var.noComplHandledFilterRels
-        complHandledFilterRels = var.complHandledFilterRels
-        unHandledFilterRels = var.unHandledFilterRels
-    elif groupFilter and varSet is not None:
-        filterInfo = varSet.filterInfo
-        noComplHandledFilterRels = varSet.noComplHandledFilterRels
-        complHandledFilterRels = varSet.complHandledFilterRels
-        unHandledFilterRels = varSet.unHandledFilterRels
-    if filterInfo is not None:
-        if filterInfo and len(noComplHandledFilterRels) > 0:
-            for varFilterRel, dimQname in noComplHandledFilterRels:
-                _filter = varFilterRel.toModelObject
-                if varFilterRel.isCovered:  # block boolean group filters that have cover in subnetworks
-                    vb.aspectsCovered |= _filter.aspectsCovered(vb)
-            filterRelationships = unHandledFilterRels
-            # filter now with filter info
-            outFacts = set()
-            for fact in facts:
-                if fact.isItem:
-                    for varFilterRel, dimQname in noComplHandledFilterRels:
-                        dim = fact.context.qnameDims.get(dimQname)
-                        if dim is not None:
-                            outFacts.add(fact)
-            facts = outFacts
-            if len(facts) == 0:
-                return facts
-
-    for varFilterRel in filterRelationships:
-        _filter = varFilterRel.toModelObject
-        if isinstance(_filter, ModelFilter):  # relationship not constrained to real filters
-            if filterType is None and len(facts) == 0:
-                pass  # still continue to do the aspects covered thing
-            else:
-                result = _filter.filter(xpCtx, vb, facts, varFilterRel.isComplemented)
-
-                if xpCtx.formulaOptions.traceVariableFilterWinnowing:
-                    allFacts = ""
-                    for fact in facts:
-                        allFacts += str(fact)
-                    xpCtx.modelXbrl.info(
-                        "formula:trace",
-                        _("Fact Variable %(variable)s %(filterType)s %(filter)s filter %(xlinkLabel)s passes %(factCount)s facts %(allFacts)s"),
-                        modelObject=vb.var,
-                        variable=vb.qname,
-                        filterType=typeLbl,
-                        filter=_filter.localName,
-                        xlinkLabel=_filter.xlinkLabel,
-                        factCount=len(result),
-                        allFacts=allFacts,
-                    ),
-                if orFilter:
-                    factSet |= result
-                else:
-                    facts = result
-            if not groupFilter and varFilterRel.isCovered:  # block boolean group filters that have cover in subnetworks
-                vb.aspectsCovered |= _filter.aspectsCovered(vb)
-    if orFilter:
-        facts = factSet
-
-    # handle now simple model type complement (at the end since it appears to reduce much less)
-    if filterInfo is not None:
-        if filterInfo and len(complHandledFilterRels) > 0:
-            for varFilterRel, dimQname in complHandledFilterRels:
-                _filter = varFilterRel.toModelObject
-                if varFilterRel.isCovered:  # block boolean group filters that have cover in subnetworks
-                    vb.aspectsCovered |= _filter.aspectsCovered(vb)
-            # filter now with filter info
-            outFacts = set()
-            for fact in facts:
-                if fact.isItem:
-                    for varFilterRel, dimQname in complHandledFilterRels:
-                        dim = fact.context.qnameDims.get(dimQname)
-                        if dim is None:
-                            outFacts.add(fact)
-            facts = outFacts
-    return facts
 
 
 def filterFacts(xpCtx, vb, facts, filterRelationships, filterType):
