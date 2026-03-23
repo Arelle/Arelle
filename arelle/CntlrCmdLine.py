@@ -1450,7 +1450,11 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict]:
     return runtimeOptions, arellePluginModules
 
 
-def createCntlrAndPreloadPlugins(uiLang, disablePersistentConfig, arellePluginModules) -> CntlrCmdLine:
+def createCntlrAndPreloadPlugins(
+        uiLang: str | None,
+        disablePersistentConfig: bool,
+        arellePluginModules: dict[str, Any]
+        ) -> CntlrCmdLine:
     """
     This function creates a cntlr and preloads all the necessary plugins.
     :param uiLang: The UI Language
@@ -1475,7 +1479,11 @@ def _configAndRunCntlr(
     :param arellePluginModules: a dictionary of commands and moduleInfos
     :return: cntlr
     """
-    cntlr = createCntlrAndPreloadPlugins(options.uiLang, options.disablePersistentConfig, arellePluginModules)
+    cntlr = createCntlrAndPreloadPlugins(
+        options.uiLang,
+        options.disablePersistentConfig,
+        arellePluginModules
+    )
     if options.webserver:
         cntlr.startLogging(logFileName='logToBuffer',
                            logTextMaxLength=options.logTextMaxLength,
@@ -1787,13 +1795,13 @@ class CntlrCmdLine(Cntlr.Cntlr):
             options.keepOpen = True
         if options.baseTaxonomyValidationMode is not None:
             self.modelManager.baseTaxonomyValidationMode = ValidateBaseTaxonomiesMode.fromName(options.baseTaxonomyValidationMode)
-        self.modelManager.validateXmlOim = bool(options.validateXmlOim)
+        self.modelManager.validateXmlOim = options.validateXmlOim
         if options.validateDuplicateFacts:
             duplicateTypeArg = ValidateDuplicateFacts.DuplicateTypeArg(options.validateDuplicateFacts)
             duplicateType = duplicateTypeArg.duplicateType()
             self.modelManager.validateDuplicateFacts = duplicateType
-        self.modelManager.validateAllFilesAsReportPackages = bool(options.reportPackage)
-        self.modelManager.validateAllFilesAsTaxonomyPackages = bool(options.taxonomyPackage)
+        self.modelManager.validateAllFilesAsReportPackages = options.reportPackage
+        self.modelManager.validateAllFilesAsTaxonomyPackages = options.taxonomyPackage
         if options.utrUrl:  # override disclosureSystem utrUrl
             self.modelManager.disclosureSystem.utrUrl = [options.utrUrl]
             # can be set now because the utr is first loaded at validation time
