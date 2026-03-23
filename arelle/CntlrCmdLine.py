@@ -1529,9 +1529,6 @@ class ParserForDynamicPlugins:
         self.option_class: type[Option] = Option
         self.options: RuntimeOptions = options
 
-    def add_option(self, *args, **kwargs):
-        if 'dest' in kwargs:
-            _dest = kwargs['dest']
     def add_option(self, *args: Any, **kwargs: Any) -> None:
         if "dest" in kwargs:
             _dest = kwargs["dest"]
