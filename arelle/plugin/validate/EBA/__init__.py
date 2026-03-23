@@ -19,6 +19,7 @@ from arelle.Version import authorLabel, copyrightLabel
 from arelle.XbrlConst import qnEnumerationItemTypes
 from arelle.ModelInstanceObject import ModelFact
 from arelle.utils.Contexts import getDuplicateContextGroups
+from arelle.utils.validate.ContextData import checkContexts
 import regex as re
 from lxml import etree
 from collections import defaultdict
@@ -177,17 +178,26 @@ def validateFacts(val, factsToCheck):
 
     # note EBA 2.1 is in ModelDocument.py
 
-    timelessDatePattern = re.compile(r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})\s*$")
+    contextIssues = checkContexts(modelXbrl)
+    for cntx in contextIssues.contextsWithSegments:
+        modelXbrl.error(("EBA.2.14","EIOPA.N.2.14"),
+                        _("Contexts MUST NOT contain xbrli:segment values: %(cntx)s.'"),
+                        modelObject=cntx, cntx=cntx.id)
+    for cntx in contextIssues.contextsWithImproperContent:
+        modelXbrl.error(("EBA.2.15","EIOPA.S.2.15" if val.isEIOPAfullVersion else "EIOPA.N.2.15"),
+                        _("Contexts MUST NOT contain non-dimensional xbrli:scenario values: %(cntx)s.'"),
+                        modelObject=cntx, cntx=cntx.id,
+                        messageCodes=("EBA.2.15","EIOPA.N.2.15","EIOPA.S.2.15"))
+    for cntx in contextIssues.contextsWithPeriodTime | contextIssues.contextsWithPeriodTimeZone:
+        dateElts = XmlUtil.descendants(cntx, XbrlConst.xbrli, ("startDate","endDate","instant"))
+        modelXbrl.error(("EBA.2.10","EIOPA.2.10"),
+                        _('Period dates must be whole dates without time or timezone: %(dates)s.'),
+                        modelObject=cntx, dates=", ".join(e.text for e in dateElts))
     for cntx in modelXbrl.contexts.values():
         if getattr(cntx, "_batchChecked", False):
             continue # prior streaming batch already checked
         cntx._batchChecked = True
         val.cntxEntities.add(cntx.entityIdentifier)
-        dateElts = XmlUtil.descendants(cntx, XbrlConst.xbrli, ("startDate","endDate","instant"))
-        if any(not timelessDatePattern.match(e.textValue) for e in dateElts):
-            modelXbrl.error(("EBA.2.10","EIOPA.2.10"),
-                    _('Period dates must be whole dates without time or timezone: %(dates)s.'),
-                    modelObject=cntx, dates=", ".join(e.text for e in dateElts))
         if cntx.isForeverPeriod:
             modelXbrl.error(("EBA.2.11","EIOPA.N.2.11"),
                     _('Forever context period is not allowed.'),
@@ -200,15 +210,6 @@ def validateFacts(val, factsToCheck):
             # cannot pass context object to final() below, for error logging, if streaming mode
             val.cntxDates[cntx.instantDatetime].add(modelXbrl if getattr(val.modelXbrl, "isStreamingMode", False)
                                                     else cntx)
-        if cntx.hasSegment:
-            modelXbrl.error(("EBA.2.14","EIOPA.N.2.14"),
-                _("Contexts MUST NOT contain xbrli:segment values: %(cntx)s.'"),
-                modelObject=cntx, cntx=cntx.id)
-        if cntx.nonDimValues("scenario"):
-            modelXbrl.error(("EBA.2.15","EIOPA.S.2.15" if val.isEIOPAfullVersion else "EIOPA.N.2.15"),
-                _("Contexts MUST NOT contain non-dimensional xbrli:scenario values: %(cntx)s.'"),
-                modelObject=cntx, cntx=cntx.id,
-                messageCodes=("EBA.2.15","EIOPA.N.2.15","EIOPA.S.2.15"))
         val.unusedCntxIDs.add(cntx.id)
         if val.isEIOPA_2_0_1 and len(cntx.id) > 128:
             modelXbrl.warning("EIOPA.S.2.6",
