@@ -102,7 +102,7 @@ def wsgiApplication(extraArgs: list[str] | None = None) -> CntlrCmdLine:  # for 
     return parseAndRun(["--webserver=::wsgi"] + extraArgs)
 
 
-def _parseAndRun(args: list[str]) -> tuple[Any | CntlrCmdLine | None, RuntimeOptions, bool | None]:
+def _parseAndRun(args: list[str]) -> tuple[Bottle | CntlrCmdLine | None, RuntimeOptions, bool | None]:
     """
     interface used by Main program and py.test (arelle_test.py)
     """
