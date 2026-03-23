@@ -1,6 +1,6 @@
 *.env
 *.env*
-.git
+arelle/plugin/**/.git
 *.iml
 *.pyc
 .DS_Store
