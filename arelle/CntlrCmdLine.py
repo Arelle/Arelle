@@ -1488,13 +1488,13 @@ def _configAndRunCntlr(
         arellePluginModules
     )
     if options.webserver:
-        cntlr.startLogging(logFileName='logToBuffer',
+        cntlr.startLogging(logFileName="logToBuffer",
                            logTextMaxLength=options.logTextMaxLength,
                            logRefObjectProperties=options.logRefObjectProperties)  # type: ignore[arg-type]
         cntlr.postLoggingInit()
         from arelle import CntlrWebMain
         app = CntlrWebMain.startWebserver(cntlr, options)
-        if options.webserver == '::wsgi':
+        if options.webserver == "::wsgi":
             return app, None
 
         return None, None
