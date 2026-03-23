@@ -2284,13 +2284,10 @@ def rule_nl_kvk_RTS_Annex_II_Par_1_RTS_Annex_IV_par_7(
     NL-KVK.RTS_Annex_II_Par_1_RTS_Annex_IV_par_7: Legal entities should mark all amounts in a designated currency included in a. the balance sheet, income statement, cash flow statement,
     statement of comprehensive income and statement of changes in equity of the (consolidated) financial statements based on NL-GAAP; or b. the statement of financial position,
     the income statement (separately or as part of the statement of comprehensive income), the statement of comprehensive income, the statement of changes in equity and
-    the statement of cash flows of the (consolidated) financial statements based on IFRS.
+    the statement of cash flows of the (consolidated) financial statements based on IFRS.  Filings may use both NL-GAAP and IFRS, so permit abstracts from both in the same instance.
     """
     warnings = []
-    permissibleAbstracts = pluginData.permissibleGAAPRootAbstracts
-    ifrsMatch = any(k.startswith(pluginData.ifrsIdentifier) for k in val.modelXbrl.namespaceDocs.keys())
-    if ifrsMatch:
-        permissibleAbstracts = pluginData.permissibleIFRSRootAbstracts
+    permissibleAbstracts = pluginData.permissibleGAAPRootAbstracts | pluginData.permissibleIFRSRootAbstracts
     for ELR in val.modelXbrl.relationshipSet(parentChild).linkRoleUris:
         relSet = val.modelXbrl.relationshipSet(parentChild, ELR)
         for rootConcept in relSet.rootConcepts:
