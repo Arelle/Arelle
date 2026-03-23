@@ -1,0 +1,5 @@
+services:
+  webserver:
+    build:
+      args:
+        INCLUDE_EDGAR: "true"
