@@ -630,11 +630,11 @@ class Cntlr:
                     win32clipboard.OpenClipboard()
                     if text is None:
                         if win32clipboard.IsClipboardFormatAvailable(win32clipboard.CF_TEXT):
-                            return win32clipboard.GetClipboardData().decode("utf8")
+                            return win32clipboard.GetClipboardData(win32clipboard.CF_TEXT).decode("utf8")
                     else:
-                        win32clipboard.EmptyClipboard()
-                        win32clipboard.SetClipboardData(win32clipboard.CF_TEXT, text.encode("utf8"))
-                    win32clipboard.CloseClipboard()
+                        win32clipboard.EmptyClipboard()  # type: ignore[no-untyped-call]
+                        win32clipboard.SetClipboardData(win32clipboard.CF_TEXT, text.encode("utf8"))  # type: ignore[no-untyped-call]
+                    win32clipboard.CloseClipboard()  # type: ignore[no-untyped-call]
                 else: # Unix/Linux
                     import gtk
                     clipbd = gtk.Clipboard(display=gtk.gdk.display_get_default(), selection="CLIPBOARD")
