@@ -748,11 +748,11 @@ def trialFilterFacts(xpCtx, vb, facts, filterRelationships, filterType, var=None
             # filter now with filter info
             outFacts = set()
             for fact in facts:
-                if fact.isItem:
-                    for varFilterRel, dimQname in noComplHandledFilterRels:
-                        dim = fact.context.qnameDims.get(dimQname)
-                        if dim is not None:
-                            outFacts.add(fact)
+                if (
+                    fact.isItem
+                    and all(fact.context.qnameDims.get(dimQname) is not None for _, dimQname in noComplHandledFilterRels)
+                ):
+                    outFacts.add(fact)
             facts = outFacts
             if len(facts) == 0:
                 return facts
@@ -799,11 +799,11 @@ def trialFilterFacts(xpCtx, vb, facts, filterRelationships, filterType, var=None
             # filter now with filter info
             outFacts = set()
             for fact in facts:
-                if fact.isItem:
-                    for varFilterRel, dimQname in complHandledFilterRels:
-                        dim = fact.context.qnameDims.get(dimQname)
-                        if dim is None:
-                            outFacts.add(fact)
+                if (
+                    fact.isItem
+                    and all(fact.context.qnameDims.get(dimQname) is None for _, dimQname in complHandledFilterRels)
+                ):
+                    outFacts.add(fact)
             facts = outFacts
     return facts
 
