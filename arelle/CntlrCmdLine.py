@@ -26,7 +26,7 @@ from pprint import pprint
 from typing import Any
 
 import regex as re
-from bottle import Bottle
+from bottle import Bottle  # type: ignore[import-untyped]
 from lxml import etree
 
 try:
@@ -2303,8 +2303,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
         return success and not (options.validationExitCode and (hasValidationErrors or self.errors))
 
     # default web authentication password
-    def internet_user_password(self, host, realm):
-        return (self.username, self.password)
+    def internet_user_password(self, host: str, realm: str) -> tuple[str, str]:
+        return self.username or "", self.password or ""
 
     # special show status for named pipes
     def showStatusOnPipe(self, message: str | None, clearAfter: int | None = None) -> None:
@@ -2323,9 +2323,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 #    fh.write("Status pipe exception {} {}\n".format(type(ex), ex))
                 sys.exit()
 
-    def loadPackage(self, package: str, packageManifestName: str):
+    def loadPackage(self, package: str, packageManifestName: str) -> None:
         from arelle import PackageManager
-        packageInfo = PackageManager.addPackage(self, package, packageManifestName)
+        packageInfo = PackageManager.addPackage(self, package, packageManifestName)  # type: ignore[no-untyped-call]
         if packageInfo:
             self.addToLog(_("Activation of package {0} successful.").format(packageInfo.get("name")),
                           messageCode="info", file=packageInfo.get("URL"))
@@ -2334,7 +2334,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                           messageCode="arelle:packageLoadingError",
                           messageArgs={"name": package, "file": package}, level=logging.ERROR)
 
-    def loadPackages(self, packages: list[str], packageManifestName: str):
+    def loadPackages(self, packages: list[str], packageManifestName: str) -> None:
         """
         Loads specified packages.
 
@@ -2353,19 +2353,19 @@ class CntlrCmdLine(Cntlr.Cntlr):
             elif cmd == "temp":
                 savePackagesChanges = False
             elif cmd.startswith("+"):
-                packageInfo = PackageManager.addPackage(self, cmd[1:], packageManifestName)
+                packageInfo = PackageManager.addPackage(self, cmd[1:], packageManifestName)  # type: ignore[no-untyped-call]
                 if packageInfo:
                     self.addToLog(_("Addition of package {0} successful.").format(packageInfo.get("name")),
                                   messageCode="info", file=packageInfo.get("URL"))
                 else:
                     self.addToLog(_("Unable to load package."), messageCode="info", file=cmd[1:])
             elif cmd.startswith("~"):
-                if PackageManager.reloadPackageModule(self, cmd[1:]):
+                if PackageManager.reloadPackageModule(self, cmd[1:]):  # type: ignore[no-untyped-call]
                     self.addToLog(_("Reload of package successful."), messageCode="info", file=cmd[1:])
                 else:
                     self.addToLog(_("Unable to reload package."), messageCode="info", file=cmd[1:])
             elif cmd.startswith("-"):
-                if PackageManager.removePackageModule(self, cmd[1:]):
+                if PackageManager.removePackageModule(self, cmd[1:]):  # type: ignore[no-untyped-call]
                     self.addToLog(_("Deletion of package successful."), messageCode="info", file=cmd[1:])
                 else:
                     self.addToLog(_("Unable to delete package."), messageCode="info", file=cmd[1:])
@@ -2377,14 +2377,14 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 savePackagesChanges = False
                 self.loadPackage(cmd, packageManifestName)
         if PackageManager.packagesConfigChanged:
-            PackageManager.rebuildRemappings(self)
+            PackageManager.rebuildRemappings(self)  # type: ignore[no-untyped-call]
         if savePackagesChanges:
             PackageManager.save(self)
         else:
             PackageManager.packagesConfigChanged = False
         if showPackages:
             self.addToLog(_("Taxonomy packages:"), messageCode="info")
-            for packageInfo in PackageManager.orderedPackagesConfig()["packages"]:
+            for packageInfo in PackageManager.orderedPackagesConfig()["packages"]:  # type: ignore[no-untyped-call]
                 self.addToLog(_("Package: {0}; version: {1}; status: {2}; date: {3}; description: {4}.").format(
                     packageInfo.get("name"), packageInfo.get("version"), packageInfo.get("status"),
                     packageInfo.get("fileDate"), packageInfo.get("description")),
