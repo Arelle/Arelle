@@ -10,7 +10,7 @@ from importlib.metadata import EntryPoint
 from tkinter import Toplevel, font, messagebox, VERTICAL, HORIZONTAL, N, S, E, W
 from tkinter.constants import DISABLED, ACTIVE
 
-from arelle.PluginManager import EntryPointRef
+from arelle.plugin_system.entry_point_ref import EntryPointRef
 
 try:
     from tkinter.ttk import Treeview, Scrollbar, Frame, Label, Button

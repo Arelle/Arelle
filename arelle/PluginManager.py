@@ -25,8 +25,8 @@ if TYPE_CHECKING:
 # ---------------------------------------------------------------------------
 
 
-# Re-export for backwards compatability
-from arelle.plugin_system.entry_point_ref import EntryPointRef # noqa: F401
+# Temporarily re-export for backwards compatability
+from arelle.plugin_system.entry_point_ref import EntryPointRef as EntryPointRef  # noqa: F401
 
 
 _singleton: PluginManager = PluginManager()
