@@ -455,53 +455,58 @@ package dict
 
 '''
 
-def packageNamesWithNewerFileDates():
+def packageNamesWithNewerFileDates() -> set[str]:
     names = set()
     for package in _getPackagesConfig()["packages"]:
         freshenedFilename = _getCntlr().webCache.getfilename(package["URL"], checkModifiedTime=True, normalize=True)
         try:
+            assert freshenedFilename is not None
             if package["fileDate"] < time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(os.path.getmtime(freshenedFilename))):
                 names.add(package["name"])
         except Exception:
             pass
     return names
 
-def validateTaxonomyPackage(cntlr, filesource, errors: list | None = None) -> bool:
-        if errors is None:
-            errors = []
-        numErrorsOnEntry = len(errors)
-        for validator in TAXONOMY_PACKAGE_ABORTING_VALIDATIONS:
-            if validation := validator(TAXONOMY_PACKAGE_TYPE, filesource):
-                cntlr.error(
-                    level=validation.level.name,
-                    codes=validation.codes,
-                    msg=validation.msg,
-                    fileSource=filesource,
-                    **validation.args
-                )
-                errors.append(validation.codes)
-                return False
-        for validator in TAXONOMY_PACKAGE_NON_ABORTING_VALIDATIONS:
-            if validation := validator(TAXONOMY_PACKAGE_TYPE, filesource):
-                cntlr.error(
-                    level=validation.level.name,
-                    codes=validation.codes,
-                    msg=validation.msg,
-                    fileSource=filesource,
-                    **validation.args
-                )
-                errors.append(validation.codes)
-
-        _dir = filesource.dir or []
-        if not any(f.endswith('/META-INF/taxonomyPackage.xml') for f in _dir):
-            messageCode = "tpe:metadataFileNotFound"
+def validateTaxonomyPackage(
+    cntlr: Cntlr,
+    filesource: FileSource,
+    errors: list[str] | None = None,
+) -> bool:
+    if errors is None:
+        errors = []
+    numErrorsOnEntry = len(errors)
+    for validator in TAXONOMY_PACKAGE_ABORTING_VALIDATIONS:
+        if validation := validator(TAXONOMY_PACKAGE_TYPE, filesource):
             cntlr.error(
-                codes=messageCode,
-                msg=_("Taxonomy package does not contain a metadata file */META-INF/taxonomyPackage.xml"),
+                level=validation.level.name,
+                codes=validation.codes,
+                msg=validation.msg,
                 fileSource=filesource,
+                **validation.args
             )
-            errors.append(messageCode)
-        return len(errors) == numErrorsOnEntry
+            errors.append(validation.codes)
+            return False
+    for validator in TAXONOMY_PACKAGE_NON_ABORTING_VALIDATIONS:
+        if validation := validator(TAXONOMY_PACKAGE_TYPE, filesource):
+            cntlr.error(
+                level=validation.level.name,
+                codes=validation.codes,
+                msg=validation.msg,
+                fileSource=filesource,
+                **validation.args
+            )
+            errors.append(validation.codes)
+
+    _dir = filesource.dir or []
+    if not any(f.endswith('/META-INF/taxonomyPackage.xml') for f in _dir):
+        messageCode = "tpe:metadataFileNotFound"
+        cntlr.error(
+            codes=messageCode,
+            msg=_("Taxonomy package does not contain a metadata file */META-INF/taxonomyPackage.xml"),
+            fileSource=filesource,
+        )
+        errors.append(messageCode)
+    return len(errors) == numErrorsOnEntry
 
 
 def discoverPackageFiles(filesource: FileSource) -> list[str]:
