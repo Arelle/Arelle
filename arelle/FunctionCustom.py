@@ -1,6 +1,8 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
+from __future__ import annotations
+
 from decimal import Decimal
 from typing import Any, Callable
 
@@ -22,6 +24,7 @@ class fnFunctionNotAvailable(Exception):
     def __repr__(self) -> str:
         return self.args[0]
 
+
 def call(
         xc: XPathContext.XPathContext,
         p: OperationDef,
@@ -38,6 +41,7 @@ def call(
         return customFunctions[qname](xc, p, contextItem, args)  # type: ignore[no-any-return]
     except (fnFunctionNotAvailable, KeyError):
         raise XPathContext.FunctionNotAvailable("custom function:{0}".format(str(qname)))
+
 
 def callCfi(
         xc: XPathContext.XPathContext,
@@ -65,7 +69,7 @@ def callCfi(
                             _("%(cfi)s(%(arguments)s)"),
                             modelObject=cfi,
                             cfi=qname,
-                            arguments=', '.join("{}={}".format(argName, args[i])
+                            arguments=", ".join("{}={}".format(argName, args[i])
                                                 for i, argName in enumerate(inputNames)))
 
     for i, step in enumerate(cfi.stepExpressions):
@@ -131,19 +135,19 @@ def my_fn_PDxEV(
             for ev in EVseq:
                 if ev.context is not None:
                     evDim = ev.context.dimValue(dimQname)
-                    if pdDim is not None and isinstance(pdDim,ModelDimensionValue):
-                        dimEqual =  pdDim.isEqualTo(evDim, equalMode=XbrlUtil.S_EQUAL2)
-                    elif evDim is not None and isinstance(evDim,ModelDimensionValue):
-                        dimEqual =  evDim.isEqualTo(pdDim, equalMode=XbrlUtil.S_EQUAL2)
+                    if pdDim is not None and isinstance(pdDim, ModelDimensionValue):
+                        dimEqual = pdDim.isEqualTo(evDim, equalMode=XbrlUtil.S_EQUAL2)
+                    elif evDim is not None and isinstance(evDim, ModelDimensionValue):
+                        dimEqual = evDim.isEqualTo(pdDim, equalMode=XbrlUtil.S_EQUAL2)
                     else:
                         dimEqual = (pdDim == evDim)
                     if dimEqual:
                         pdX = pd.xValue
                         evX = ev.xValue
                         # type promotion required
-                        if isinstance(pdX,Decimal) and isinstance(evX,float):
+                        if isinstance(pdX, Decimal) and isinstance(evX, float):
                             pdX = float(pdX)
-                        elif isinstance(evX,Decimal) and isinstance(pdX,float):
+                        elif isinstance(evX, Decimal) and isinstance(pdX, float):
                             pdX = float(evX)
                         PDxEV.append(pdX * evX)
                         break
