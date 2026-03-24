@@ -26,10 +26,10 @@ runs:
         git config user.email "github-actions@github.com"
         
         echo "Fetching $SHA from $REPO with depth $DEPTH..."
-        git fetch --quiet --depth="$DEPTH" "https://github.com/$REPO.git" "$SHA"
+        git fetch --deepen="$DEPTH" "https://github.com/$REPO.git" "$SHA"
 
         echo "Deepening base branch history to depth $DEPTH..."
-        git fetch --quiet --depth="$DEPTH" origin
+        git fetch --deepen="$DEPTH" origin
 
         git merge "$SHA" --no-edit || {
           echo "::error::Merge failed. Ancestor not found within $DEPTH commits or a conflict exists."
