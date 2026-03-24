@@ -140,5 +140,5 @@ docker run --name arelle-edgar-webserver -p 8080:8080 arelle-edgar-webserver /st
 ```
 
 [local-arelle]: http://127.0.0.1:8080
-[edgar-plugin]: project:plugins/popular/edgar.md
-[xule-plugin]: project:plugins/popular/xule.md
+[edgar-plugin]: plugins/popular/edgar.md
+[xule-plugin]: plugins/popular/xule.md
