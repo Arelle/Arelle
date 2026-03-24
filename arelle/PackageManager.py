@@ -9,7 +9,7 @@ import os
 import time
 from collections import defaultdict
 from fnmatch import fnmatch
-from typing import TYPE_CHECKING
+from typing import IO, TYPE_CHECKING
 from urllib.parse import urljoin
 
 from lxml import etree
@@ -68,7 +68,13 @@ def langCloseness(l1: str, l2: str) -> int:
     return _len
 
 
-def _parseFile(cntlr, parser, filepath, file, schemaUrl):
+def _parseFile(
+    cntlr: Cntlr,
+    parser: etree.XMLParser,
+    filepath: str,
+    file: IO[bytes],
+    schemaUrl: str,
+) -> etree._ElementTree:
     """
     Returns tree from `file`, parsed with `parser`, and validated against the provided schema at `schemaUrl`.
     :return: Tree if parsed and validated, None if `schemaUrl` could not be loaded.
