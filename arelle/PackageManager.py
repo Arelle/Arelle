@@ -9,7 +9,7 @@ import os
 import time
 from collections import defaultdict
 from fnmatch import fnmatch
-from typing import IO, TYPE_CHECKING
+from typing import Any, IO, TYPE_CHECKING
 from urllib.parse import urljoin
 
 from lxml import etree
@@ -354,11 +354,22 @@ def _parseCatalog(
 
 # taxonomy package manager
 # plugin control is static to correspond to statically loaded modules
-packagesJsonFile = None
-packagesConfig = None
-packagesConfigChanged = False
-packagesMappings = {}
-_cntlr = None
+packagesJsonFile: str | None = None
+packagesConfig: dict[str, Any] | None = None
+packagesConfigChanged: bool = False
+packagesMappings: dict[str, str] = {}
+_cntlr: Cntlr | None = None
+
+
+def _getPackagesConfig() -> dict[str, Any]:
+    assert packagesConfig is not None, "PackageManager.init() must be called before use"
+    return packagesConfig
+
+
+def _getCntlr() -> Cntlr:
+    assert _cntlr is not None, "PackageManager.init() must be called before use"
+    return _cntlr
+
 
 def init(cntlr: Cntlr, loadPackagesConfig: bool = True) -> None:
     global packagesJsonFile, packagesConfig, _cntlr
@@ -403,8 +414,8 @@ def orderedPackagesConfig():
                                                          "versioningReports": '13',
                                                          'remappings': '14',
                                                          }.get(k[0],k[0])))
-                       for _packageInfo in packagesConfig['packages']]),
-         ('remappings',dict(sorted(packagesConfig['remappings'].items())))))
+                       for _packageInfo in _getPackagesConfig()['packages']]),
+         ('remappings',dict(sorted(_getPackagesConfig()['remappings'].items())))))
 
 def save(cntlr: Cntlr) -> None:
     global packagesConfigChanged
@@ -442,8 +453,8 @@ package dict
 
 def packageNamesWithNewerFileDates():
     names = set()
-    for package in packagesConfig["packages"]:
-        freshenedFilename = _cntlr.webCache.getfilename(package["URL"], checkModifiedTime=True, normalize=True)
+    for package in _getPackagesConfig()["packages"]:
+        freshenedFilename = _getCntlr().webCache.getfilename(package["URL"], checkModifiedTime=True, normalize=True)
         try:
             if package["fileDate"] < time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(os.path.getmtime(freshenedFilename))):
                 names.add(package["name"])
@@ -495,20 +506,20 @@ def discoverPackageFiles(filesource: FileSource) -> list[str]:
 
 def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
     #TODO several directories, eg User Application Data
-    packageFilename = _cntlr.webCache.getfilename(URL, reload=reload, normalize=True)
+    packageFilename = _getCntlr().webCache.getfilename(URL, reload=reload, normalize=True)
     if packageFilename:
         from arelle.FileSource import TAXONOMY_PACKAGE_FILE_NAMES, archiveFilenameParts, openFileSource
         filesource = None
         try:
             parts = archiveFilenameParts(packageFilename)
             if parts is not None:
-                sourceFileSource = openFileSource(parts[0], _cntlr)
+                sourceFileSource = openFileSource(parts[0], _getCntlr())
                 sourceFileSource.open()
                 fileDateTuple = sourceFileSource.fs.getinfo(parts[1]).date_time + (0,0,0)
             else:
                 sourceFileSource = None
                 fileDateTuple = time.gmtime(os.path.getmtime(packageFilename))
-            filesource = openFileSource(packageFilename, _cntlr, sourceFileSource=sourceFileSource)
+            filesource = openFileSource(packageFilename, _getCntlr(), sourceFileSource=sourceFileSource)
             if sourceFileSource:
                 sourceFileSource.close()
             # allow multiple manifests [[metadata, prefix]...] for multiple catalogs
@@ -573,7 +584,7 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
             packageNames = []
             descriptions = []
             for packageFileUrl, packageFilePrefix, packageFile in packages:
-                parsedPackage = parsePackage(_cntlr, filesource, packageFileUrl, packageFilePrefix, errors)
+                parsedPackage = parsePackage(_getCntlr(), filesource, packageFileUrl, packageFilePrefix, errors)
                 if parsedPackage:
                     packageNames.append(parsedPackage['name'])
                     if parsedPackage.get('description'):
@@ -619,10 +630,10 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
     return None
 
 def rebuildRemappings(cntlr):
-    remappings = packagesConfig["remappings"]
+    remappings = _getPackagesConfig()["remappings"]
     remappings.clear()
     remapOverlapUrls = [] # (prefix, packageURL, rewriteString)
-    for _packageInfo in packagesConfig["packages"]:
+    for _packageInfo in _getPackagesConfig()["packages"]:
         _packageInfoURL = _packageInfo['URL']
         if _packageInfo['status'] == 'enabled':
             for prefix, remapping in _packageInfo['remappings'].items():
@@ -677,7 +688,7 @@ def addPackage(cntlr, url, packageManifestName=None):
     if newPackageInfo and newPackageInfo.get("identifier"):
         identifier = newPackageInfo.get("identifier")
         j = -1
-        packagesList = packagesConfig["packages"]
+        packagesList = _getPackagesConfig()["packages"]
         for i, _packageInfo in enumerate(packagesList):
             if _packageInfo['identifier'] == identifier:
                 j = i
@@ -693,7 +704,7 @@ def addPackage(cntlr, url, packageManifestName=None):
 
 def reloadPackageModule(cntlr, name):
     packageUrls = []
-    packagesList = packagesConfig["packages"]
+    packagesList = _getPackagesConfig()["packages"]
     for _packageInfo in packagesList:
         if _packageInfo.get('name') == name:
             packageUrls.append(_packageInfo['URL'])
@@ -705,7 +716,7 @@ def reloadPackageModule(cntlr, name):
 
 def removePackageModule(cntlr, name):
     packageIndices = []
-    packagesList = packagesConfig["packages"]
+    packagesList = _getPackagesConfig()["packages"]
     for i, _packageInfo in enumerate(packagesList):
         if _packageInfo.get('name') == name:
             packageIndices.insert(0, i) # must remove in reverse index order
