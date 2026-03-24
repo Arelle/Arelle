@@ -10,7 +10,6 @@ from .XbrlTypes import XbrlLayoutType, XbrlDataTableType, XbrlModuleType, QNameK
 from .XbrlObject import XbrlModelObject, XbrlReferencableModelObject
 
 class XbrlAxisLabelGroupRange(XbrlModelObject):
-    dataType: QName # (required) The data type of the range values
     interval: str # (required) The interval between range values
     startValue: str # (required) The starting value of the range
     stopValue: Optional[str] # (optional) The ending value of the range

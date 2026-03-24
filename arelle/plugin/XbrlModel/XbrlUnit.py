@@ -16,8 +16,7 @@ class XbrlUnit(XbrlReferencableModelObject):
     module: XbrlModuleType
     name: SQNameKeyType # (required) The unitQName that identifies the unit so it can be referenced by other objects.
     dataType: QName # (required) Indicates the dataType of the unit. These are provided as a QName based on the datatypes specified in the XBRL 2.1 specification and any custom datatype defined in the taxonomy.
-    dataTypeNumerator: Optional[QName] # (optional) Indicates the dataType of the unit numerator when the unit is comprised of a division of two datatypes. This is an optional property and must be used with dataTypeDenominator
-    stringRepresentations: OrderedSet[str] # (optional) An ordered set of string representations of the unit. Each string representation is a string as defined in the OIM report specification.
+    compositeUnitRepresentation: OrderedSet[str] # (optional) A set of unit string representations that are equivalent to the defined unit. Multiple unit string representations can be defined for a defined unit. 
 
 def parseUnitString(uStr, unitObj, reportObj, txmyMdl):
     _mul, _sep, _div = uStr.partition('/')
