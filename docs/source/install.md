@@ -118,5 +118,26 @@ or in one line. The webserver will be available at [http://127.0.0.1:8080][local
 ```shell
 git clone --depth 1 https://github.com/Arelle/Arelle.git && cd Arelle && docker compose -f docker/docker-compose.yml up -d --build
 ```
+
+### Build
+```shell
+docker build -t arelle-webserver -f docker/Dockerfile .
+
+# With the EDGAR plugins
+docker build --build-arg INCLUDE_EDGAR="true" --build-arg EXTRA_PIP="-r requirements-plugins.txt" -t arelle-edgar-webserver -f docker/Dockerfile .
+```
+
+### Run
+```shell
+# To run the command line
+docker run arelle-webserver python arelleCmdLine.py --help
+# To run the webserver
+docker run --name arelle-webserver -p 8080:8080 arelle-webserver /start.sh
+
+# With the EDGAR plugins
+docker run arelle-edgar-webserver python arelleCmdLine.py --help
+docker run --name arelle-edgar-webserver -p 8080:8080 arelle-edgar-webserver /start.sh
+```
+
 [local-arelle]: http://127.0.0.1:8080
 
