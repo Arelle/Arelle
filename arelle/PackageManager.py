@@ -361,7 +361,6 @@ packagesConfig: dict[str, Any] | None = None
 packagesConfigChanged: bool = False
 packagesMappings: dict[str, str] = {}
 _cntlr: Cntlr | None = None
-webCache: Any = None
 
 
 def _getPackagesConfig() -> dict[str, Any]:
@@ -444,10 +443,8 @@ def save(cntlr: Cntlr) -> None:
         packagesConfigChanged = False
 
 def close() -> None:  # close all loaded methods
-    global webCache
     _getPackagesConfig().clear()
     packagesMappings.clear()
-    webCache = None
 
 ''' packagesConfig structure
 
