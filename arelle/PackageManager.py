@@ -360,6 +360,7 @@ packagesConfig: dict[str, Any] | None = None
 packagesConfigChanged: bool = False
 packagesMappings: dict[str, str] = {}
 _cntlr: Cntlr | None = None
+webCache: Any = None
 
 
 def _getPackagesConfig() -> dict[str, Any]:
@@ -397,7 +398,8 @@ def reset() -> None:  # force reloading modules and plugin infos
     if packagesMappings:
         packagesMappings.clear() # dict by class of list of ordered callable function objects
 
-def orderedPackagesConfig():
+def orderedPackagesConfig() -> dict[str, Any]:
+    _cfg = _getPackagesConfig()
     return dict(
         (('packages', [dict(sorted(_packageInfo.items(),
                                           key=lambda k: {'name': '01',
@@ -414,22 +416,23 @@ def orderedPackagesConfig():
                                                          "supersededTaxonomyPackages": '12',
                                                          "versioningReports": '13',
                                                          'remappings': '14',
-                                                         }.get(k[0],k[0])))
-                       for _packageInfo in _getPackagesConfig()['packages']]),
-         ('remappings',dict(sorted(_getPackagesConfig()['remappings'].items())))))
+                                                         }.get(str(k[0]), str(k[0])))
+                       for _packageInfo in _cfg['packages']]),
+         ('remappings',dict(sorted(_cfg['remappings'].items())))))
 
 def save(cntlr: Cntlr) -> None:
     global packagesConfigChanged
     if packagesConfigChanged and cntlr.hasFileSystem:
+        assert packagesJsonFile is not None
         with open(packagesJsonFile, "w", encoding='utf-8') as f:
             jsonStr = str(json.dumps(orderedPackagesConfig(), ensure_ascii=False, indent=2)) # might not be unicode in 2.7
             f.write(jsonStr)
         packagesConfigChanged = False
 
-def close():  # close all loaded methods
-    packagesConfig.clear()
-    packagesMappings.clear()
+def close() -> None:  # close all loaded methods
     global webCache
+    _getPackagesConfig().clear()
+    packagesMappings.clear()
     webCache = None
 
 ''' packagesConfig structure
