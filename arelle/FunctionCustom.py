@@ -2,6 +2,7 @@
 See COPYRIGHT.md for copyright information.
 '''
 from decimal import Decimal
+from typing import Any, Callable
 
 from arelle import XbrlUtil
 from arelle.formula import XPathContext
@@ -9,12 +10,16 @@ from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.ModelValue import QName, qname
 from arelle.PythonUtil import flattenSequence
 from arelle.formula.XPathParser import OperationDef
+from arelle.typing import TypeGetText
+
+_: TypeGetText
 
 
 class fnFunctionNotAvailable(Exception):
-    def __init__(self):
-        self.args =  ("custom function not available",)
-    def __repr__(self):
+    def __init__(self) -> None:
+        self.args: tuple[str, ...] = ("custom function not available", )
+
+    def __repr__(self) -> str:
         return self.args[0]
 
 def call(
@@ -27,26 +32,33 @@ def call(
     try:
         cfSig = xc.modelXbrl.modelCustomFunctionSignatures[qname, len(args)]
         if cfSig is not None and cfSig.customFunctionImplementation is not None:
-            return callCfi(xc, p, qname, cfSig, contextItem, args)
+            return callCfi(xc, p, qname, cfSig, contextItem, args)  # type: ignore[no-any-return]
         elif qname not in customFunctions: # compiled functions in this module
             raise fnFunctionNotAvailable
-        return customFunctions[qname](xc, p, contextItem, args)
+        return customFunctions[qname](xc, p, contextItem, args)  # type: ignore[no-any-return]
     except (fnFunctionNotAvailable, KeyError):
         raise XPathContext.FunctionNotAvailable("custom function:{0}".format(str(qname)))
 
-def callCfi(xc, p, qname, cfSig, contextItem, args):
+def callCfi(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        qname: QName,
+        cfSig: Any,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != len(cfSig.inputTypes):
         raise XPathContext.FunctionNumArgs()
 
     cfi = cfSig.customFunctionImplementation
-    overriddenInScopeVars = {}
-    traceSource = xc.formulaOptions.traceSource(xc.traceType)
-    traceEvaluation = xc.formulaOptions.traceEvaluation(xc.traceType)
+    overriddenInScopeVars: dict[str, Any] = {}
+    traceSource = xc.formulaOptions.traceSource(xc.traceType)  # type: ignore[no-untyped-call]
+    traceEvaluation = xc.formulaOptions.traceEvaluation(xc.traceType)  # type: ignore[no-untyped-call]
     inputNames = cfi.inputNames
     for i, argName in enumerate(inputNames):
         if argName in xc.inScopeVars:
             overriddenInScopeVars[argName] = xc.inScopeVars[argName]
-        xc.inScopeVars[argName] = args[i]
+        xc.inScopeVars[argName] = args[i]   # type: ignore[assignment]
 
     if traceEvaluation:
         xc.modelXbrl.info("formula:trace",
@@ -72,7 +84,7 @@ def callCfi(xc, p, qname, cfSig, contextItem, args):
                                 cfi=qname, step=stepQname, expression=result)
         if stepQname in xc.inScopeVars:
             overriddenInScopeVars[stepQname] = xc.inScopeVars[stepQname]
-        xc.inScopeVars[stepQname] = result
+        xc.inScopeVars[stepQname] = result   # type: ignore[assignment]
 
     if traceSource:
         xc.modelXbrl.info("formula:trace",
@@ -98,11 +110,16 @@ def callCfi(xc, p, qname, cfSig, contextItem, args):
             del xc.inScopeVars[argName]
 
     if result is None:  # atomic value failed the result cast expression
-        raise XPathContext.FunctionArgType("output",cfSig.outputType,result)
+        raise XPathContext.FunctionArgType("output", cfSig.outputType, result)
     return result
 
 # for test case 22015 v01
-def  my_fn_PDxEV(xc, p, contextItem, args):
+def my_fn_PDxEV(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> list[float]:
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
     PDseq = flattenSequence(args[0])
     EVseq = flattenSequence(args[1])
@@ -133,6 +150,6 @@ def  my_fn_PDxEV(xc, p, contextItem, args):
     return PDxEV
 
 
-customFunctions = {
+customFunctions: dict[QName, Callable] = {  # type: ignore[type-arg]
     qname("{http://www.example.com/wgt-avg/function}my-fn:PDxEV"): my_fn_PDxEV
 }
