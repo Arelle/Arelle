@@ -48,19 +48,19 @@ TAXONOMY_PACKAGE_NON_ABORTING_VALIDATIONS = (
     PackageValidation.validateMetadataDirectory,
 )
 
-def baseForElement(element):
+def baseForElement(element: etree._Element) -> str:
     base = ""
-    baseElt = element
+    baseElt: etree._Element | None = element
     while baseElt is not None:
         if baseAttr := baseElt.get("{http://www.w3.org/XML/1998/namespace}base"):
             base = baseAttr if baseAttr.startswith("/") else baseAttr + base
         baseElt = baseElt.getparent()
     return base
 
-def xmlLang(element):
+def xmlLang(element: etree._Element) -> str:
     return (element.xpath('@xml:lang') + element.xpath('ancestor::*/@xml:lang') + [''])[0]
 
-def langCloseness(l1, l2):
+def langCloseness(l1: str, l2: str) -> int:
     _len = min(len(l1), len(l2))
     for i in range(0, _len):
         if l1[i] != l2[i]:
