@@ -58,7 +58,7 @@ def baseForElement(element: etree._Element) -> str:
     return base
 
 def xmlLang(element: etree._Element) -> str:
-    return (element.xpath('@xml:lang') + element.xpath('ancestor::*/@xml:lang') + [''])[0]
+    return str((element.xpath('@xml:lang') + element.xpath('ancestor::*/@xml:lang') + [''])[0])
 
 def langCloseness(l1: str, l2: str) -> int:
     _len = min(len(l1), len(l2))
@@ -72,7 +72,7 @@ def _parseFile(
     cntlr: Cntlr,
     parser: etree.XMLParser,
     filepath: str,
-    file: IO[bytes],
+    file: IO[Any],
     schemaUrl: str,
 ) -> etree._ElementTree:
     """
@@ -130,7 +130,7 @@ def _parsePackageMetadata(
                    "http://xbrl.org/2016/taxonomy-package",
                    "http://xbrl.org/WGWD/YYYY-MM-DD/taxonomy-package")
 
-    pkg = {"remappings": remappings}
+    pkg: dict[str, Any] = {"remappings": remappings}
 
     currentLang = Locale.getLanguageCode()
     parser = lxmlResolvingParser(cntlr)
@@ -150,7 +150,7 @@ def _parsePackageMetadata(
         return pkg
 
     root = tree.getroot()
-    ns = root.tag.partition("}")[0][1:]
+    ns = str(root.tag).partition("}")[0][1:]
     nsPrefix = f"{{{ns}}}"
 
     if ns in  txmyPkgNSes:  # package file
@@ -191,7 +191,7 @@ def _parsePackageMetadata(
                 r.get("href")
                 for r in m.iterchildren(tag=nsPrefix + "versioningReport")]
         # check for duplicate multi-lingual elements (among children of nodes)
-        langElts = defaultdict(list)
+        langElts: defaultdict[str, list[etree._Element]] = defaultdict(list)
         for n in root.iter(tag=nsPrefix + "*"):
             for eltName in ("name", "description", "publisher"):
                 langElts.clear()
@@ -229,7 +229,7 @@ def _parsePackageMetadata(
         pkg["description"] = "oasis catalog"
         pkg["version"] = "(none)"
 
-    entryPoints = defaultdict(list)
+    entryPoints: defaultdict[str, list[tuple[str, str | None, str]]] = defaultdict(list)
     pkg["entryPoints"] = entryPoints
 
     for entryPointSpec in tree.iter(tag=nsPrefix + "entryPoint"):
@@ -259,6 +259,7 @@ def _parsePackageMetadata(
             #perform prefix remappings
             remappedUrl = resolvedUrl
             longestPrefix = 0
+            _remappedUrl: str = remappedUrl if isinstance(remappedUrl, str) else ""
             for mapFrom, mapTo in remappings.items():
                 assert isinstance(remappedUrl, str)
                 if remappedUrl.startswith(mapFrom):
@@ -387,7 +388,7 @@ def init(cntlr: Cntlr, loadPackagesConfig: bool = True) -> None:
             "remappings": {}  # dict by prefix of remappings in effect
         }
         packagesConfigChanged = False # don't save until something is added to pluginConfig
-    pluginMethodsForClasses = {} # dict by class of list of ordered callable function objects
+    pluginMethodsForClasses: dict[str, Any] = {} # dict by class of list of ordered callable function objects
     _cntlr = cntlr
 
 def reset() -> None:  # force reloading modules and plugin infos
@@ -581,15 +582,17 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
                     raise OSError(_("File must be a taxonomy package (zip file), catalog file, or manifest (): {0}.")
                                   .format(packageFilename, ', '.join(TAXONOMY_PACKAGE_FILE_NAMES)))
             remappings = {}
-            packageNames = []
-            descriptions = []
+            packageNames: list[str] = []
+            descriptions: list[str] = []
             for packageFileUrl, packageFilePrefix, packageFile in packages:
                 parsedPackage = parsePackage(_getCntlr(), filesource, packageFileUrl, packageFilePrefix, errors)
                 if parsedPackage:
-                    packageNames.append(parsedPackage['name'])
+                    packageNames.append(str(parsedPackage['name']))
                     if parsedPackage.get('description'):
-                        descriptions.append(parsedPackage['description'])
-                    for prefix, remapping in parsedPackage["remappings"].items():
+                        descriptions.append(str(parsedPackage['description']))
+                    _remappings = parsedPackage["remappings"]
+                    assert isinstance(_remappings, dict)
+                    for prefix, remapping in _remappings.items():
                         if prefix not in remappings:
                             remappings[prefix] = remapping
                         else:
