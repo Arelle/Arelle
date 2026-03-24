@@ -51,7 +51,7 @@ def _compareInstance(originalInstance: ModelXbrl, expectedInstance: ModelXbrl, t
                         modelXbrl=originalInstance,
                         file=originalInstance.uri)
         return
-    for pluginXbrlMethod in expectedInstance.modelManager.cntlr.pluginManager.pluginClassMethods("CompareInstance.Loaded"):
+    for pluginXbrlMethod in expectedInstance.modelManager.cntlr.plugins.hooks("CompareInstance.Loaded"):
         pluginXbrlMethod(expectedInstance, targetInstance)
     if len(expectedInstance.facts) != len(targetInstance.facts):
         targetInstance.error("compareInstance:resultFactCounts",

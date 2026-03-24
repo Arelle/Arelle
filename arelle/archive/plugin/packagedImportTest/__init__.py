@@ -13,7 +13,7 @@ def parentMenuEntender(cntlr, menu):
 
 def parentMenuCommand(cntlr):
     for i in range(1,100):
-        for pluginMethod in cntlr.pluginManager.pluginClassMethods("Import.Packaged.Entry{}".format(i)):
+        for pluginMethod in cntlr.plugins.hooks("Import.Packaged.Entry{}".format(i)):
             pluginMethod()
 
 def parentCommandLineOptionExtender(parser):

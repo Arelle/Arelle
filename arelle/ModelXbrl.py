@@ -102,7 +102,7 @@ def load(modelManager: ModelManager, url: str | FileSourceClass, nextaction: str
     #uncomment for trial use of lxml xml schema validation of entry document
     #XmlValidate.xmlValidate(modelXbrl.modelDocument)
     modelManager.cntlr.webCache.saveUrlCheckTimes()
-    for pluginXbrlMethod in modelManager.cntlr.pluginManager.pluginClassMethods("ModelXbrl.LoadComplete"):
+    for pluginXbrlMethod in modelManager.cntlr.plugins.hooks("ModelXbrl.LoadComplete"):
         pluginXbrlMethod(modelXbrl)
     modelManager.showStatus(_("xbrl loading finished, {0}...").format(nextaction))
     return modelXbrl
@@ -362,13 +362,13 @@ class ModelXbrl:
         self.formulaOutputInstance: ModelXbrl | None = None
         self.logger: logging.Logger | None = self.modelManager.cntlr.logger
         self.logRefObjectProperties: bool = getattr(self.logger, "logRefObjectProperties", False)
-        self.logRefHasPluginAttrs: bool = any(True for m in self.modelManager.cntlr.pluginManager.pluginClassMethods("Logging.Ref.Attributes"))
-        self.logRefHasPluginProperties: bool = any(True for m in self.modelManager.cntlr.pluginManager.pluginClassMethods("Logging.Ref.Properties"))
+        self.logRefHasPluginAttrs: bool = any(True for m in self.modelManager.cntlr.plugins.hooks("Logging.Ref.Attributes"))
+        self.logRefHasPluginProperties: bool = any(True for m in self.modelManager.cntlr.plugins.hooks("Logging.Ref.Properties"))
         self.profileStats: dict[str, tuple[int, float, float | int]] = {}
         self.schemaDocsToValidate: set[ModelDocumentClass] = set()
         self.modelXbrl = self  # for consistency in addressing modelXbrl
         self.arelleUnitTests: dict[str, str] = {}  # unit test entries (usually from processing instructions
-        for pluginXbrlMethod in self.modelManager.cntlr.pluginManager.pluginClassMethods("ModelXbrl.Init"):
+        for pluginXbrlMethod in self.modelManager.cntlr.plugins.hooks("ModelXbrl.Init"):
             pluginXbrlMethod(self)
 
     def close(self) -> None:
@@ -466,7 +466,7 @@ class ModelXbrl:
 
     def roleTypeName(self, roleURI: str, lang: str | None = None) -> str:
         # authority-specific role type name
-        for pluginXbrlMethod in self.modelManager.cntlr.pluginManager.pluginClassMethods("ModelXbrl.RoleTypeName"):
+        for pluginXbrlMethod in self.modelManager.cntlr.plugins.hooks("ModelXbrl.RoleTypeName"):
             _roleTypeName = pluginXbrlMethod(self, roleURI, lang)
             if _roleTypeName:
                 return cast(str, _roleTypeName)

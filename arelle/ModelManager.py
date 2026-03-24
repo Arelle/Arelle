@@ -159,7 +159,7 @@ class ModelManager:
             pass # filesource may be a string, which has no url attribute
         self.filesource = filesource
         modelXbrl = None # loaded modelXbrl
-        for customLoader in self.cntlr.pluginManager.pluginClassMethods("ModelManager.Load"):
+        for customLoader in self.cntlr.plugins.hooks("ModelManager.Load"):
             modelXbrl = customLoader(self, filesource, **kwargs)
             if modelXbrl is not None:
                 break # custom loader did the loading
@@ -253,5 +253,5 @@ class ModelManager:
     def loadCustomTransforms(self):
         if self.customTransforms is None:
             self.customTransforms = {}
-            for pluginMethod in self.cntlr.pluginManager.pluginClassMethods("ModelManager.LoadCustomTransforms"):
+            for pluginMethod in self.cntlr.plugins.hooks("ModelManager.LoadCustomTransforms"):
                 pluginMethod(self.customTransforms)

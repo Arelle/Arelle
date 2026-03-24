@@ -848,7 +848,7 @@ class FileSource:
 
     def pluginClassMethods(self, className: str) -> Iterator[Callable[..., Any]]:
         if self.cntlr and hasattr(self.cntlr, 'pluginManager'):
-            yield from self.cntlr.pluginManager.pluginClassMethods(className)
+            yield from self.cntlr.plugins.hooks(className)
             return
         yield from iter(())
 

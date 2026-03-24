@@ -65,7 +65,7 @@ def convertVariation(cntlr, variationFile, variationElt, inPath, outPath, entryP
                 ref.referringModelObject.qname = QN_SCHEMA_REF
 
     # perform OIM validation on xBRL-XML source instance
-    for pluginXbrlMethod in cntlr.pluginManager.pluginClassMethods("Validate.XBRL.Finally"):
+    for pluginXbrlMethod in cntlr.plugins.hooks("Validate.XBRL.Finally"):
         pluginXbrlMethod(doc)
     if any(oimErrPattern.match(err) for err in modelXbrl.errors):
         modelXbrl.error("testSuiteConverter:unconvertableTestcase",
@@ -86,7 +86,7 @@ def convertVariation(cntlr, variationFile, variationElt, inPath, outPath, entryP
     # CntlrCmdLine.Xbrl.Run invokes both saveLoadableOIM for instance and formulaSaver for xf
     options = attrdict(**transformedFiles)
     try:
-        for pluginXbrlMethod in cntlr.pluginManager.pluginClassMethods("CntlrCmdLine.Xbrl.Run"):
+        for pluginXbrlMethod in cntlr.plugins.hooks("CntlrCmdLine.Xbrl.Run"):
             pluginXbrlMethod(cntlr, options, modelXbrl)
     except Exception as ex:
         modelXbrl.error("testSuiteConverter:unconvertableTestcase",
@@ -99,7 +99,7 @@ def convertVariation(cntlr, variationFile, variationElt, inPath, outPath, entryP
         options = attrdict(saveLoadableOIM=os.path.join(outPath, resultOutFile))
         convertedFiles[resultInstFile] = resultOutFile
         try:
-            for pluginXbrlMethod in cntlr.pluginManager.pluginClassMethods("CntlrCmdLine.Xbrl.Run"):
+            for pluginXbrlMethod in cntlr.plugins.hooks("CntlrCmdLine.Xbrl.Run"):
                 pluginXbrlMethod(cntlr, options, modelXbrl)
         except Exception as ex:
             modelXbrl.error("testSuiteConverter:unconvertableTestcase",

@@ -79,7 +79,7 @@ class ViewRssFeed(ViewWinTree.ViewTree):
         import webbrowser
         filingMenu = Menu(self.viewFrame, tearoff=0)
         filingMenu.add_command(label=_("Open Instance Document"), underline=0, command=self.openInstance)
-        for pluginMenuExtender in self.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("RssFeed.Menu.Filing"):
+        for pluginMenuExtender in self.modelXbrl.modelManager.cntlr.plugins.hooks("RssFeed.Menu.Filing"):
             pluginMenuExtender(self, filingMenu)
 
         if event is not None:

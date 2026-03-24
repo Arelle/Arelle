@@ -183,7 +183,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             if label is None:
                 self.fileMenu.add_separator()
             elif label == "PLUG-IN":
-                for pluginMenuExtender in self.pluginManager.pluginClassMethods(command):
+                for pluginMenuExtender in self.plugins.hooks(command):
                     pluginMenuExtender(self, self.fileMenu)
                     self.fileMenuLength += 1
             else:
@@ -243,7 +243,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.validateDuplicateFacts = None
         self.buildValidateDuplicateFactsMenu(validateMenu)
 
-        for pluginMenuExtender in self.pluginManager.pluginClassMethods("CntlrWinMain.Menu.Validation"):
+        for pluginMenuExtender in self.plugins.hooks("CntlrWinMain.Menu.Validation"):
             pluginMenuExtender(self, validateMenu)
 
         formulaMenu = Menu(self.menubar, tearoff=0)
@@ -326,14 +326,14 @@ class CntlrWinMain (Cntlr.Cntlr):
 
         toolsMenu.add_command(label=_("Language..."), underline=0, command=lambda: DialogLanguage.askLanguage(self))
 
-        for pluginMenuExtender in self.pluginManager.pluginClassMethods("CntlrWinMain.Menu.Tools"):
+        for pluginMenuExtender in self.plugins.hooks("CntlrWinMain.Menu.Tools"):
             pluginMenuExtender(self, toolsMenu)
         self.menubar.add_cascade(label=_("Tools"), menu=toolsMenu, underline=0)
 
         # view menu only if any plug-in additions provided
-        if any (self.pluginManager.pluginClassMethods("CntlrWinMain.Menu.View")):
+        if any (self.plugins.hooks("CntlrWinMain.Menu.View")):
             viewMenu = Menu(self.menubar, tearoff=0)
-            for pluginMenuExtender in self.pluginManager.pluginClassMethods("CntlrWinMain.Menu.View"):
+            for pluginMenuExtender in self.plugins.hooks("CntlrWinMain.Menu.View"):
                 pluginMenuExtender(self, viewMenu)
             self.menubar.add_cascade(label=_("View"), menu=viewMenu, underline=0)
 
@@ -351,12 +351,12 @@ class CntlrWinMain (Cntlr.Cntlr):
             if label is None:
                 helpMenu.add_separator()
             elif label == "PLUG-IN":
-                for pluginMenuExtender in self.pluginManager.pluginClassMethods(command):
+                for pluginMenuExtender in self.plugins.hooks(command):
                     pluginMenuExtender(self, helpMenu)
             else:
                 helpMenu.add_command(label=label, underline=0, command=command, accelerator=shortcut_text)
                 self.parent.bind(shortcut, command)
-        for pluginMenuExtender in self.pluginManager.pluginClassMethods("CntlrWinMain.Menu.Help"):
+        for pluginMenuExtender in self.plugins.hooks("CntlrWinMain.Menu.Help"):
             pluginMenuExtender(self, helpMenu)
         self.menubar.add_cascade(label=_("Help"), menu=helpMenu, underline=0)
 
@@ -407,7 +407,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             else:
                 ToolTip(tbControl, text=toolTip)
             menubarColumn += 1
-        for toolbarExtender in self.pluginManager.pluginClassMethods("CntlrWinMain.Toolbar"):
+        for toolbarExtender in self.plugins.hooks("CntlrWinMain.Toolbar"):
             toolbarExtender(self, toolbar)
         toolbar.grid(row=0, column=0, sticky=(N, W))
 
@@ -869,7 +869,7 @@ class CntlrWinMain (Cntlr.Cntlr):
 
     def fileOpenFile(self, filename, importToDTS=False, selectTopView=False):
         if filename:
-            for xbrlLoadedMethod in self.pluginManager.pluginClassMethods("CntlrWinMain.Xbrl.Open"):
+            for xbrlLoadedMethod in self.plugins.hooks("CntlrWinMain.Xbrl.Open"):
                 filename = xbrlLoadedMethod(self, filename) # runs in GUI thread, allows mapping filename, mult return filename
             entrypointParseResult = parseEntrypointFileInput(self, filename, fallbackSelect=False)
             if not entrypointParseResult.success or entrypointParseResult.filesource is None:
@@ -908,7 +908,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         if url:
             url = PackageManager.mappedUrl(url)
             self.updateFileHistory(url, False)
-            for xbrlLoadedMethod in self.pluginManager.pluginClassMethods("CntlrWinMain.Xbrl.Open"):
+            for xbrlLoadedMethod in self.plugins.hooks("CntlrWinMain.Xbrl.Open"):
                 url = xbrlLoadedMethod(self, url) # runs in GUI thread, allows mapping url, mult return url
             entrypointParseResult = parseEntrypointFileInput(self, url, fallbackSelect=False)
             if not entrypointParseResult.success or entrypointParseResult.filesource is None:
@@ -946,7 +946,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         loadedModels = []
         try:
             action = _("preparing entrypoints")
-            for pluginXbrlMethod in self.pluginManager.pluginClassMethods("CntlrWinMain.Filing.Start"):
+            for pluginXbrlMethod in self.plugins.hooks("CntlrWinMain.Filing.Start"):
                 pluginXbrlMethod(self, filesource, entrypointFiles)
             for entrypoint in entrypointFiles:
                 entrypointFile = entrypoint.get("file", None) if isinstance(entrypoint,dict) else entrypoint
@@ -1025,7 +1025,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                             os.path.basename(modelXbrl.modelDocument.uri)))
             self.setValidateTooltipText()
             if any(extViews(self, modelXbrl)
-                   for extViews in self.pluginManager.pluginClassMethods("CntlrWinMain.Xbrl.Views")):
+                   for extViews in self.plugins.hooks("CntlrWinMain.Xbrl.Views")):
                 currentAction = "ext views provided"
             elif modelXbrl.modelDocument.type in ModelDocument.Type.TESTCASETYPES:
                 currentAction = "tree view of tests"
@@ -1114,7 +1114,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                     topView.select()
                 self.currentView = topView
                 currentAction = "plugin method CntlrWinMain.Xbrl.Loaded"
-                for xbrlLoadedMethod in self.pluginManager.pluginClassMethods("CntlrWinMain.Xbrl.Loaded"):
+                for xbrlLoadedMethod in self.plugins.hooks("CntlrWinMain.Xbrl.Loaded"):
                     xbrlLoadedMethod(self, modelXbrl, attach) # runs in GUI thread
         except Exception as err:
             msg = _("Exception preparing {0}: {1}, at {2}").format(
@@ -1215,7 +1215,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             if loadedModelXbrl.modelDocument:
                 startedAt = time.time()
                 if loadedModelXbrl.modelDocument.type in ModelDocument.Type.TESTCASETYPES:
-                    for pluginXbrlMethod in self.pluginManager.pluginClassMethods("Testcases.Start"):
+                    for pluginXbrlMethod in self.plugins.hooks("Testcases.Start"):
                         pluginXbrlMethod(self, None, loadedModelXbrl)
                 if loadedModelXbrl.fileSource not in validatedFileSources:
                     validatedFileSources.add(loadedModelXbrl.fileSource)

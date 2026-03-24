@@ -34,6 +34,7 @@ from arelle.logging.handlers.LogToXmlHandler import LogToXmlHandler
 from arelle.logging.handlers.StructuredMessageLogHandler import StructuredMessageLogHandler
 from arelle.SystemInfo import PlatformOS, getSystemWordSize, hasFileSystem, hasWebServer, isCGI, isGAE
 from arelle.plugin_system._plugin_manager import PluginManager
+from arelle.plugin_system.plugin_provider import PluginProvider
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
 from arelle.utils.validate.Validation import Validation
@@ -292,7 +293,7 @@ class Cntlr:
         # start plug in server (requres web cache initialized, but not logger)
         from arelle.PluginManager import getInstance as _getPluginManagerInstance
         self.pluginManager = _getPluginManagerInstance()
-        self.pluginManager.init(self, loadPluginConfig=hasGui)
+        self.plugins = PluginProvider(self.pluginManager)
 
         # requires plug ins initialized
         self.modelManager = ModelManager.initialize(self)
@@ -352,7 +353,7 @@ class Cntlr:
             Cntlr.addToLog(self, localeSetupMessage, messageCode="arelle:uiLocale", level=logging.WARNING)
 
         # Cntlr.Init after logging started
-        for pluginMethod in self.pluginManager.pluginClassMethods("Cntlr.Init"):
+        for pluginMethod in self.plugins.hooks("Cntlr.Init"):
             pluginMethod(self)
 
     def setUiLanguage(self, locale: str | None, fallbackToDefault: bool = False) -> None:

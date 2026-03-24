@@ -110,9 +110,9 @@ class ErrorManager:
             self._errors.append(args["assertionResults"])
             return
         if self.logHasRelevelerPlugin is None:
-            self.logHasRelevelerPlugin = self._modelManager.cntlr.pluginManager.hasPluginWithHook("Logging.Severity.Releveler")
+            self.logHasRelevelerPlugin = any(self._modelManager.cntlr.plugins.hooks("Logging.Severity.Releveler"))
         if sourceModelXbrl is not None and self.logHasRelevelerPlugin:
-            for pluginXbrlMethod in self._modelManager.cntlr.pluginManager.pluginClassMethods("Logging.Severity.Releveler"):
+            for pluginXbrlMethod in self._modelManager.cntlr.plugins.hooks("Logging.Severity.Releveler"):
                 level, messageCode = pluginXbrlMethod(sourceModelXbrl, level, messageCode, args) # args must be passed as dict because it may contain modelXbrl or messageCode key value
         if (messageCode and
                 (not messageCodeFilter or messageCodeFilter.match(messageCode)) and
@@ -226,9 +226,9 @@ class ErrorManager:
                                     ref["properties"] = propValues(arg.propertyView)
                                 except AttributeError:
                                     pass # is a default properties entry appropriate or needed?
-                            if any(True for m in self._modelManager.cntlr.pluginManager.pluginClassMethods("Logging.Ref.Properties")):
+                            if any(True for m in self._modelManager.cntlr.plugins.hooks("Logging.Ref.Properties")):
                                 refProperties: Any = ref.get("properties", {})
-                                for pluginXbrlMethod in self._modelManager.cntlr.pluginManager.pluginClassMethods("Logging.Ref.Properties"):
+                                for pluginXbrlMethod in self._modelManager.cntlr.plugins.hooks("Logging.Ref.Properties"):
                                     pluginXbrlMethod(arg, refProperties, codedArgs)
                                 if refProperties:
                                     ref["properties"] = refProperties
@@ -238,9 +238,9 @@ class ErrorManager:
                                 ref["sourceLine"] = arg.sourceline
                             except AttributeError:
                                 pass # arg may not have sourceline, ignore if so
-                        if any(True for m in self._modelManager.cntlr.pluginManager.pluginClassMethods("Logging.Ref.Attributes")):
+                        if any(True for m in self._modelManager.cntlr.plugins.hooks("Logging.Ref.Attributes")):
                             refAttributes: dict[str, str] = {}
-                            for pluginXbrlMethod in self._modelManager.cntlr.pluginManager.pluginClassMethods("Logging.Ref.Attributes"):
+                            for pluginXbrlMethod in self._modelManager.cntlr.plugins.hooks("Logging.Ref.Attributes"):
                                 pluginXbrlMethod(arg, refAttributes, codedArgs)
                             if refAttributes:
                                 ref["customAttributes"] = refAttributes
@@ -286,7 +286,7 @@ class ErrorManager:
                 else:
                     file = ""
             extras["refs"] = [{"href": file}]
-        for pluginXbrlMethod in self._modelManager.cntlr.pluginManager.pluginClassMethods("Logging.Message.Parameters"):
+        for pluginXbrlMethod in self._modelManager.cntlr.plugins.hooks("Logging.Message.Parameters"):
             # plug in can rewrite msg string or return msg if not altering msg
             msg = pluginXbrlMethod(messageCode, msg, modelObjectArgs, fmtArgs) or msg
         return (messageCode,

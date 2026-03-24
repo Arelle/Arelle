@@ -975,7 +975,7 @@ def parse(
     returnProg = None
     pluginCustomFunctionQNames = set()
 
-    for pluginXbrlMethod in modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("Formula.CustomFunctions"):
+    for pluginXbrlMethod in modelXbrl.modelManager.cntlr.plugins.hooks("Formula.CustomFunctions"):
         pluginCustomFunctionQNames.update(pluginXbrlMethod().keys())
 
     # throws ParseException

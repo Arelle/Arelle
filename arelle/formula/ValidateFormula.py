@@ -738,7 +738,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
     val.modelXbrl.profileActivity("... instances scopes and setup", minTimeToShow=1.0)
 
     val.modelXbrl.profileStat(_("formulaValidation"))
-    for pluginXbrlMethod in val.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("ValidateFormula.Compiled"):
+    for pluginXbrlMethod in val.modelXbrl.modelManager.cntlr.plugins.hooks("ValidateFormula.Compiled"):
         pluginXbrlMethod(val.modelXbrl, xpathContext)
 
     if (
@@ -897,7 +897,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
         val.modelXbrl.formulaOutputInstance = outputXbrlInstance
 
     val.modelXbrl.modelManager.showStatus(_("formulae finished"), 2000)
-    for pluginXbrlMethod in val.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("ValidateFormula.Finished"):
+    for pluginXbrlMethod in val.modelXbrl.modelManager.cntlr.plugins.hooks("ValidateFormula.Finished"):
         pluginXbrlMethod(val)
 
     instanceProducingVariableSets.clear()  # dereference
