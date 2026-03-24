@@ -857,8 +857,8 @@ def openFileStream(
     cntlr: Cntlr | None, filepath: str, mode: str = "r", encoding: str | None = None
 ) -> io.BytesIO | IO[Any]:
     filestream: io.IOBase | FileNamedStringIO | None
-    if PackageManager.isMappedUrl(filepath):  # type: ignore[no-untyped-call]
-        filepath = PackageManager.mappedUrl(filepath)  # type: ignore[no-untyped-call]
+    if PackageManager.isMappedUrl(filepath):
+        filepath = PackageManager.mappedUrl(filepath) or filepath
     elif (
             cntlr
             and hasattr(cntlr, "modelManager")

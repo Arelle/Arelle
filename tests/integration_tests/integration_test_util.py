@@ -168,7 +168,7 @@ def get_test_data(
         return results
     finally:
         cntlr.modelManager.close()
-        PackageManager.close()  # type: ignore[no-untyped-call]
+        PackageManager.close()
         cntlr.pluginManager.close()
 
 
