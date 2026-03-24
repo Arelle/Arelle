@@ -351,7 +351,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
         assertObjectType(compMdl, cncpt, XbrlConcept)
         perType = getattr(cncpt, "periodType", None)
         if perType not in ("instant", "duration", "none"):
-            compMdl.error("oime:invalidPropertyValue",
+            compMdl.error("oimte:invalidPeriodType",
                       _("Concept %(name)s has invalid period type %(perType)s"),
                       xbrlObject=cncpt, name=cncpt.name, perType=perType)
         dtObj = validateQNameReference(compMdl, cncpt, "dataType", XbrlDataType)
@@ -359,11 +359,8 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
             compMdl.error("oimte:unallowedDataTypeObject",
                       _("Concept %(name)s is not allowed for dataType %(dataType)s"),
                     xbrlObject=cncpt, name=cncpt.name, dataType=dtObj.name)
-        enumDomQn = getattr(cncpt, "enumerationDomain", None)
-        if enumDomQn and (enumDomQn not in compMdl.namedObjects or not isinstance(compMdl.namedObjects[enumDomQn], XbrlDomain)):
-            compMdl.error("oime:invalidEnumerationDomainObject",
-                      _("Concept %(name)s has invalid enumeration domain reference %(enumDomain)s"),
-                      xbrlObject=cncpt, name=cncpt.name, enumDomain=enumDomQn)
+        if getattr(cncpt, "enumerationDomain", None):
+            validateQNameReference(compMdl, cncpt, "enumerationDomain", XbrlDomain)
         validateProperties(compMdl, oimFile, module, cncpt)
 
     # CubeType Objects
@@ -526,9 +523,9 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
     for cubeObj in module.cubes:
         assertObjectType(compMdl, cubeObj, XbrlCube)
         name = cubeObj.name
-        cubeType = compMdl.namedObjects.get(cubeObj.cubeType or reportCubeType)
+        cubeType = validateQNameReference(compMdl, cubeObj, "cubeType", XbrlCubeType, qnRef=(cubeObj.cubeType or reportCubeType)) 
         if cubeType is None:
-            print("DEBUG: cubeType not found for cube", cubeObj.cubeType, "in cube", name)
+            continue # can't do further checks without cube type
         isTimeSeriesCubeType = cubeType and cubeType.name == timeSeriesCubeType
         ntwks = set()
         for ntwrkQn in cubeObj.cubeNetworks:
@@ -576,72 +573,67 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                       _("The cubeDimensions of cube %(name)s duplicate these dimension object(s): %(dimensions)s"),
                       xbrlObject=cubeObj, name=name, dimensions=", ".join(str(qn) for qn, ct in dimQnCounts.items() if ct > 1))
         # check cube dims against cube type
-        if not isinstance(cubeType, XbrlCubeType):
-            compMdl.error("oimte:invalidQNameReference",
-                      _("The cube %(name)s  cubeType %(qname)s must be a valid cube type."),
-                      xbrlObject=cubeObj, name=name, qname=(cubeObj.cubeType or reportCubeType))
-        else:
-            if cubeType.basemostCubeType != defaultCubeType and conceptCoreDim not in dimQnCounts.keys():
-                compMdl.error("oimte:cubeMissingConceptDimension",
-                          _("The cubeDimensions of cube %(name)s, type %(cubeType)s, must have a concept core dimension"),
-                          xbrlObject=cubeObj, name=name, cubeType=cubeType.name)
-            for prop, coreDim in (("periodDimension", periodCoreDim),
-                                  ("entityDimension", entityCoreDim),
-                                  ("unitDimension", unitCoreDim)):
-                if coreDim in dimQnCounts.keys() and coreDim not in cubeType.effectivePropVal(compMdl, "coreDimensions"):
-                    compMdl.error("oimte:cubeDimensionNotAllowed",
-                              _("The cube %(name)s, type %(cubeType)s, dimension %(dimension)s is not allowed"),
-                              xbrlObject=cubeObj, name=name, cubeType=cubeType.name, dimension=coreDim)
-            allowedCubeDimConstrs = cubeType.effectivePropVal(compMdl, "cubeDimensionConstraints", "allowed")
-            cubeDimsClosed = cubeType.effectivePropVal(compMdl, "cubeDimensionConstraints", "closed")
-            txmyDefDimsQNs = set(dim for dim in dimQnCounts.keys() if dim.namespaceURI != xbrl)
-            if cubeDimsClosed and not allowedCubeDimConstrs:
-                if txmyDefDimsQNs:
-                    compMdl.error("oimte:cubeDimensionNotAllowed",
-                              _("The cube %(name)s, type %(cubeType)s, taxonomy defined dimensions %(dimension)s are not allowed"),
-                              xbrlObject=cubeObj, name=name, cubeType=cubeType.name, dimension=", ".join(sorted(sorted(str(d) for d in txmyDefDimsQNs))))
-            elif allowedCubeDimConstrs is not None: # absent allows any dimensions
-                txmyDefDims = set()
-                for dimQn in txmyDefDimsQNs:
-                    dim = compMdl.namedObjects.get(dimQn)
-                    if isinstance(dim, XbrlDimension):
-                        txmyDefDims.add(dim)
-                matchedDimQNs = set()
-                for allwdDimConstr in allowedCubeDimConstrs:
-                    matchedDim = None
-                    for dim in txmyDefDims:
-                        if ((not allwdDimConstr.dimensionName or dim.name == allwdDimConstr.dimensionName)):
-                            matchedDim = dim
-                            matchedDimQNs.add(dim.name)
-                            break
-                    if not matchedDim and allwdDimConstr.required:
-                        compMdl.error("oimte:requiredCubeDimensionalSpaceMissingFromCube",
-                                  _("The cube %(name)s, type %(cubeType)s, taxonomy defined dimensions %(dimension)s is missing"),
-                                  xbrlObject=cubeObj, name=name, cubeType=cubeType.name,
-                                  dimension=', '.join(str(getattr(allwdDim,p)) for p in ("dimensionName", "dimensionType", "dimensionDataType") if getattr(allwdDim,p)))
-                disallowedDims = txmyDefDimsQNs - matchedDimQNs
-                if cubeDimsClosed and disallowedDims:
-                    compMdl.error("oimte:cubeDimensionNotAllowed",
-                              _("The cube %(name)s, type %(cubeType)s allowedDimensions do not allow dimension(s) %(dimension)s"),
-                              xbrlObject=cubeObj, name=name, cubeType=cubeType.name, dimension=", ".join(sorted(str(d) for d in disallowedDims)))
-            for reqRel in cubeType.effectivePropVal(compMdl, "requiredCubeRelationships"):
-                reqRelSatisfied = False
-                for ntwk in ntwks:
-                    if (ntwk.relationshipTypeName == reqRel.relationshipTypeName and
-                        any(((not reqRel.source or reqRelMatch(r.source, reqRel.source, compMdl)) and
-                             (not reqRel.target or reqRelMatch(r.target, reqRel.target, compMdl)) and
-                             (not reqRel.sourceObject or isinstance(type(compMdl.namedObjects.get(r.source)), xbrlObjectTypes.get(reqRel.sourceObject))) and
-                             (not reqRel.targetObject or isinstance(type(compMdl.namedObjects.get(r.target)), xbrlObjectTypes.get(reqRel.targetObject))))
-                            for r in ntwk.relationships)):
-                        reqRelSatisfied = True
+        if cubeType.basemostCubeType != defaultCubeType and conceptCoreDim not in dimQnCounts.keys():
+            compMdl.error("oimte:cubeMissingConceptDimension",
+                        _("The cubeDimensions of cube %(name)s, type %(cubeType)s, must have a concept core dimension"),
+                        xbrlObject=cubeObj, name=name, cubeType=cubeType.name)
+        for prop, coreDim in (("periodDimension", periodCoreDim),
+                                ("entityDimension", entityCoreDim),
+                                ("unitDimension", unitCoreDim)):
+            if coreDim in dimQnCounts.keys() and coreDim not in cubeType.effectivePropVal(compMdl, "coreDimensions"):
+                compMdl.error("oimte:cubeDimensionNotAllowed",
+                            _("The cube %(name)s, type %(cubeType)s, dimension %(dimension)s is not allowed"),
+                            xbrlObject=cubeObj, name=name, cubeType=cubeType.name, dimension=coreDim)
+        allowedCubeDimConstrs = cubeType.effectivePropVal(compMdl, "cubeDimensionConstraints", "allowed")
+        cubeDimsClosed = cubeType.effectivePropVal(compMdl, "cubeDimensionConstraints", "closed")
+        txmyDefDimsQNs = set(dim for dim in dimQnCounts.keys() if dim.namespaceURI != xbrl)
+        if cubeDimsClosed and not allowedCubeDimConstrs:
+            if txmyDefDimsQNs:
+                compMdl.error("oimte:cubeDimensionNotAllowed",
+                            _("The cube %(name)s, type %(cubeType)s, taxonomy defined dimensions %(dimension)s are not allowed"),
+                            xbrlObject=cubeObj, name=name, cubeType=cubeType.name, dimension=", ".join(sorted(sorted(str(d) for d in txmyDefDimsQNs))))
+        elif allowedCubeDimConstrs is not None: # absent allows any dimensions
+            txmyDefDims = set()
+            for dimQn in txmyDefDimsQNs:
+                dim = compMdl.namedObjects.get(dimQn)
+                if isinstance(dim, XbrlDimension):
+                    txmyDefDims.add(dim)
+            matchedDimQNs = set()
+            for allwdDimConstr in allowedCubeDimConstrs:
+                matchedDim = None
+                for dim in txmyDefDims:
+                    if ((not allwdDimConstr.dimensionName or dim.name == allwdDimConstr.dimensionName)):
+                        matchedDim = dim
+                        matchedDimQNs.add(dim.name)
                         break
-                if not reqRelSatisfied:
-                    reqRelStr = f"{reqRel.relationshipTypeName}"
-                    if reqRel.source: reqRelStr += f" source {reqRel.source}"
-                    if reqRel.target: reqRelStr += f" target {reqRel.target}"
-                    compMdl.error("oimte:cubeMissingRelationship",
-                              _("The cube %(name)s, type %(cubeType)s, requiredCubeRelationships %(reqRel)s is missing"),
-                              xbrlObject=cubeObj, name=name, cubeType=cubeType.name, reqRel=reqRelStr)
+                if not matchedDim and allwdDimConstr.required:
+                    compMdl.error("oimte:requiredCubeDimensionalSpaceMissingFromCube",
+                                _("The cube %(name)s, type %(cubeType)s, taxonomy defined dimensions %(dimension)s is missing"),
+                                xbrlObject=cubeObj, name=name, cubeType=cubeType.name,
+                                dimension=', '.join(str(getattr(allwdDim,p)) for p in ("dimensionName", "dimensionType", "dimensionDataType") if getattr(allwdDim,p)))
+            disallowedDims = txmyDefDimsQNs - matchedDimQNs
+            if cubeDimsClosed and disallowedDims:
+                compMdl.error("oimte:cubeDimensionNotAllowed",
+                            _("The cube %(name)s, type %(cubeType)s allowedDimensions do not allow dimension(s) %(dimension)s"),
+                            xbrlObject=cubeObj, name=name, cubeType=cubeType.name, dimension=", ".join(sorted(str(d) for d in disallowedDims)))
+        for reqRel in cubeType.effectivePropVal(compMdl, "requiredCubeRelationships"):
+            reqRelSatisfied = False
+            for ntwk in ntwks:
+                if (ntwk.relationshipTypeName == reqRel.relationshipTypeName and
+                    any(((not reqRel.source or reqRelMatch(r.source, reqRel.source, compMdl)) and
+                            (not reqRel.target or reqRelMatch(r.target, reqRel.target, compMdl)) and
+                            (not reqRel.sourceObject or isinstance(type(compMdl.namedObjects.get(r.source)), xbrlObjectTypes.get(reqRel.sourceObject))) and
+                            (not reqRel.targetObject or isinstance(type(compMdl.namedObjects.get(r.target)), xbrlObjectTypes.get(reqRel.targetObject))))
+                        for r in ntwk.relationships)):
+                    reqRelSatisfied = True
+                    break
+            if not reqRelSatisfied:
+                reqRelStr = f"{reqRel.relationshipTypeName}"
+                if reqRel.source: reqRelStr += f" source {reqRel.source}"
+                if reqRel.target: reqRelStr += f" target {reqRel.target}"
+                compMdl.error("oimte:cubeMissingRelationship",
+                            _("The cube %(name)s, type %(cubeType)s, requiredCubeRelationships %(reqRel)s is missing"),
+                            xbrlObject=cubeObj, name=name, cubeType=cubeType.name, reqRel=reqRelStr)
 
 
         for exclCubeQn in cubeObj.excludeCubes:
@@ -659,8 +651,8 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                           xbrlObject=cubeObj, name=name, qname=exclCubeQn)
         validateProperties(compMdl, oimFile, module, cubeObj)
         unitDataTypeQNs = set()
-        cncptDataTypeQNs = set()
-        hasConcpeptDimension = False
+        conceptDataTypeQNs = set()
+        hasConceptDimension = False
         hasTimeseriesDimension = False
         for iCubeDim, cubeDimObj in enumerate(cubeObj.cubeDimensions):
             assertObjectType(compMdl, cubeDimObj, XbrlCubeDimension)
@@ -729,7 +721,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                   _("Cube %(name)s conceptConstraints domain relationships must be from concepts, source: %(source)s."),
                                   xbrlObject=(cubeObj,cubeDimObj,relObj), name=name, qname=dimName, source=relObj.source)
                     if isinstance(compMdl.namedObjects.get(relObj.target,None), XbrlConcept):
-                        cncptDataTypeQNs.add(compMdl.namedObjects[relObj.target].dataType)
+                        conceptDataTypeQNs.add(compMdl.namedObjects[relObj.target].dataType)
                 if cubeDimObj.allowDomainFacts:
                     compMdl.error("oimte:invalidAllowDomainFactsPropertyOnConceptDimension",
                               _("Cube %(name)s conceptConstraints property MUST NOT specify allowDomainFacts."),
@@ -834,7 +826,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                           xbrlObject=(cubeObj,cubeDimObj), name=name)
 
         for unitDataTypeQN in unitDataTypeQNs:
-            if unitDataTypeQN not in cncptDataTypeQNs:
+            if unitDataTypeQN not in conceptDataTypeQNs:
                 compMdl.error("oimte:invalidDataTypeObject",
                           _("Cube %(name)s unitConstraints data Type %(dataType)s MUST have at least one associated concept object on the concept core dimension with the same datatype as the unit object."),
                           xbrlObject=(cubeObj,cubeDimObj), name=name, dataType=unitDataTypeQN)
@@ -1143,10 +1135,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                 compMdl.error("oimte:invalidQNameReference",
                           _("The propertyType %(name)s dataType %(qname)s MUST be a valid dataType object in the taxonomy model"),
                           xbrlObject=propTpObj, name=propTpObj.name, qname=propTpObj.dataType)
-            elif not isinstance(compMdl.namedObjects.get(propTpObj.enumerationDomain), XbrlDomain):
-                compMdl.error("oime:invalidEnumerationDomainObject",
-                          _("The propertyType %(name)s has invalid enumeration domain reference %(enumDomain)s"),
-                          xbrlObject=propTpObj, name=propTpObj.name, enumDomain=propTpObj.enumerationDomain)
+            validateQNameReference(compMdl, propTpObj, "enumerationDomain", XbrlDomain)
         for allowedObjQn in propTpObj.allowedObjects:
             if allowedObjQn not in objectsWithProperties:
                 compMdl.error("oimte:invalidAllowedObject",
@@ -1278,7 +1267,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                               _("The unit %(name)s is not allowed for dataType %(dataType)s."),
                           xbrlObject=unitObj, name=unitObj.name, dataType=dtQn)
 
-        unitObj._unitsMeasures = [parseUnitString(uStr, unitObj, module, compMdl) for uStr in unitObj.stringRepresentations]
+        unitObj._unitsMeasures = [parseUnitString(uStr, unitObj, module, compMdl) for uStr in unitObj.compositeUnitRepresentation]
         for uMeas in unitObj._unitsMeasures:
             if any(m == name for md in uMeas for m in md):
                 compMdl.error("oimte:invalidPropertyValue",
@@ -1325,7 +1314,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
     for tblTmpl in module.tableTemplates:
         assertObjectType(compMdl, tblTmpl, XbrlTableTemplate)
 
-        for dim in tblTmpl.dimensions:
+        for dim in tblTmpl.factDimensions:
             if dim.startswith('$'):
                 colName = dim[1:]
                 if colName not in tblTmpl.columns:

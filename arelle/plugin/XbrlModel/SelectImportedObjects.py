@@ -2,7 +2,7 @@
 See COPYRIGHT.md for copyright information.
 '''
 
-import regex as re
+import regex as re, inspect
 from bitarray import bitarray
 from arelle.oim.Load import EMPTY_DICT
 from .XbrlConst import qnXbrlImportTaxonomyObj, qnXbrlLabelObj
@@ -116,7 +116,7 @@ def selectImportedObjects(txmyMdl, newTxmy, impTxObj):
                 hasSelError = True
             else:
                 if whereObj.property.namespaceURI is None: # object property
-                    if whereObj.property.localName not in getattr(xbrlObjectTypes[selObj.objectType], "__annotations__", EMPTY_DICT):
+                    if whereObj.property.localName not in inspect.get_annotations(xbrlObjectTypes[selObj.objectType]).keys():
                         txmyMdl.error("oimte:invalidSelectionExpression",
                                   _("The importTaxonomy %(name)s selection[%(selNbr)s]/where[%(whNbr)s] property %(qname)s does not exist for object %(objType)s."),
                                   xbrlObject=impTxObj, name=name, selNbr=iSel, whNbr=iWh, qname=whereObj.property, objType=selObj.objectType)

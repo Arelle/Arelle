@@ -127,10 +127,12 @@ class XbrlFactSource(XbrlReportObject):
     metadata: Optional[XbrlFactSourceMetadata] # (optional) A metadata object that can contain any additional information about the fact source. The structure and content of the metadata object is not defined in the specification and may be determined by the implementation.
     properties: OrderedSet[XbrlProperty] # (optional) an ordered set of property objects used to specify additional properties associated with the factSource using the property object.
 
-class XbrlTableTemplate(XbrlObject):
+class XbrlTableTemplate(XbrlReportObject):
     """ Table Template Object
         Reference: oim-taxonomy#tabletemplate-object
     """
+    parent: Union[XbrlReportType,XbrlModuleType]  # table templates in taxonomy module are owned by the txmyMdl
+    name: QNameKeyType # (required) The name is a QName that uniquely identifies the tableTemplate object.
     rowIdColumn: Optional[str] # (optional) An identifier specifying the name of the row ID column.
     columns: dict # (required) A columns object. (See xbrl-csv specification)
     factDimensions: dict[QName, Any] # (required) A dimensions object that defines table dimensions. (See xbrl-csv specification)
@@ -156,9 +158,8 @@ class XbrlXMLTemplateMap(XbrlReportObject):
 class XbrlFactMap(XbrlReportObject):
     parent: Union[XbrlReportType,XbrlModuleType]  # table templates in taxonomy module are owned by the txmyMdl
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the fact map object.
-    tableTemplate: Optional[XbrlTableTemplate] # optional) Defines a fact map based on data in a tabular format such as CSV or spreadsheet.
-    jsonTemplateMap: Optional[XbrlJSONTemplateMap] # optional) Defines a fact map based on data in a JSON format. The JSON template object uses JSONPath to identify fact values in the JSON data.
-    xmlTemplateMap: Optional[XbrlXMLTemplateMap] # (optional) Defines a fact map based on data in an XML format. The XML template object uses xpath to identify fact values in the XML data.
+    cubeName: Optional[QName] # (optional) A QName that references a cube object defined in the taxonomy model. If provided, the fact map object only applies to the facts with this cube. If not provided, the fact map object applies to all facts in the report.
+    templateName: Optional[QName] # (optional) A QName that references a tableTemplate, jsonTemplateMap or xmlTemplateMap object defined in the taxonomy model. If provided, the fact map object only applies to the facts with this template. If not provided, the fact map object applies to all facts in the report.
 
 class XbrlReport(XbrlReportObject):
     txmyMdl: XbrlTaxonomyModelType

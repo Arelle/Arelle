@@ -45,7 +45,7 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
 
     @classmethod
     def propertyNameTypes(cls):
-        for propName, propType in getattr(cls, "__annotations__", EMPTY_DICT).items():
+        for propName, propType in inspect.get_annotations(cls).items():
             if propName in ("taxonomies", "layouts"):
                 yield propName, propType
 
