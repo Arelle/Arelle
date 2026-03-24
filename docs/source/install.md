@@ -101,8 +101,8 @@ arelleGUI
 Build and run an Arelle webserver with Docker. The EDGAR configuration includes the necessary dependencies
 for the EDGAR plugins (render, validate, and transform) and EFM disclosure systems:
 - Arelle
-- EDGAR plugins
-- xule plugin
+- [EDGAR plugins][edgar-plugin]
+- [xule plugin][xule-plugin]
 ```shell
 # Clone and traverse into the Arelle repository
 git clone --depth 1 https://github.com/Arelle/Arelle.git
@@ -140,4 +140,5 @@ docker run --name arelle-edgar-webserver -p 8080:8080 arelle-edgar-webserver /st
 ```
 
 [local-arelle]: http://127.0.0.1:8080
-
+[edgar-plugin]: project:plugins/popular/edgar.md
+[xule-plugin]: project:plugins/popular/xule.md
