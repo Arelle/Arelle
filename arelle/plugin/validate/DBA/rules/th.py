@@ -10,6 +10,7 @@ from typing import Any
 from arelle.typing import TypeGetText
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.utils.PluginHooks import ValidationHook
+from arelle.utils.validate.ContextIssues import getContextIssues
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Document import getReferencedModelObjects
 from arelle.utils.validate.Validation import Validation
@@ -63,14 +64,13 @@ def rule_th05 (
     """
     DBA.TH05: Contexts should not contain segments
     """
-    contexts = val.modelXbrl.contexts.values()
-    for context in contexts:
-        if context.hasSegment:
-            yield Validation.error(
-                'DBA.TH05',
-                _('Contexts should not contain segments.'),
-                modelObject=context,
-            )
+    contextIssues = getContextIssues(val.modelXbrl)
+    for context in contextIssues.contextsWithSegments:
+        yield Validation.error(
+            'DBA.TH05',
+            _('Contexts should not contain segments.'),
+            modelObject=context,
+        )
 
 
 @validation(

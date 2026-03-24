@@ -27,6 +27,7 @@ from arelle.ModelValue import QName
 from arelle.ModelValue import qname
 from arelle.ModelXbrl import ModelXbrl
 
+from arelle.utils.validate.ContextIssues import getContextIssues
 from arelle.utils.validate.ESEFImage import ImageValidationParameters, checkSVGContentElt, validateImageAndLog
 from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
 from arelle.PythonUtil import isLegacyAbs, normalizeSpace
@@ -58,7 +59,7 @@ from ..Const import (
     DefaultDimensionLinkroles,
     FOOTNOTE_LINK_CHILDREN,
     LineItemsNotQualifiedLinkroles,
-    PERCENT_TYPES, datetimePattern,
+    PERCENT_TYPES,
     docTypeXhtmlPattern,
     esefMandatoryElementNames2020,
     esefPrimaryStatementPlaceholderNames,
@@ -599,48 +600,20 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
             modelXbrl.modelManager.showStatus(None)
             return # no more checks apply
 
-        contextsWithDisallowedOCEs = []
-        contextsWithDisallowedOCEcontent = []
-        contextsWithPeriodTime: list[ModelContext] = []
-        contextsWithPeriodTimeZone: list[ModelContext] = []
-        contextsWithWrongInstantDate: list[ModelContext] = []
+        # Shared context validation (period format, segment/scenario structure)
+        contextIssues = getContextIssues(modelXbrl, esefYear=esefDisclosureSystemYear)
         contextIdentifiers = defaultdict(list)
         for context in modelXbrl.contexts.values():
-            for uncast_elt in context.iterdescendants("{http://www.xbrl.org/2003/instance}startDate",
-                                               "{http://www.xbrl.org/2003/instance}endDate",
-                                               "{http://www.xbrl.org/2003/instance}instant"):
-                elt = cast(Any, uncast_elt)
-
-                m = datetimePattern.match(elt.stringValue)
-                if m:
-                    if m.group(1):
-                        contextsWithPeriodTime.append(context)
-                    if m.group(3):
-                        contextsWithPeriodTimeZone.append(context)
-
-            if esefDisclosureSystemYear >= 2024 and context.instantDate and context.instantDate.day == 1 and context.instantDate.month == 1:
-                contextsWithWrongInstantDate.append(context)
-            for elt in context.iterdescendants("{http://www.xbrl.org/2003/instance}segment"):
-                contextsWithDisallowedOCEs.append(context)
-                break
-            for elt in context.iterdescendants("{http://www.xbrl.org/2003/instance}scenario"):
-                if isinstance(elt,ModelObject):
-                    if any(True for child in elt.iterchildren()
-                                if isinstance(child,ModelObject) and
-                                   child.tag not in ("{http://xbrl.org/2006/xbrldi}explicitMember",
-                                                     "{http://xbrl.org/2006/xbrldi}typedMember")):
-                        contextsWithDisallowedOCEcontent.append(context)
-            # check periods here
             contextIdentifiers[context.entityIdentifier].append(context)
 
-        if contextsWithDisallowedOCEs:
+        if contextIssues.contextsWithSegments:
             modelXbrl.error("ESEF.2.1.3.segmentUsed",
                 _("xbrli:segment container MUST NOT be used in contexts: %(contextIds)s"),
-                modelObject=contextsWithDisallowedOCEs, contextIds=", ".join(c.id for c in contextsWithDisallowedOCEs if c.id is not None))
-        if contextsWithDisallowedOCEcontent:
+                modelObject=contextIssues.contextsWithSegments, contextIds=", ".join(c.id for c in contextIssues.contextsWithSegments if c.id is not None))
+        if contextIssues.contextsWithImproperContent:
             modelXbrl.error("ESEF.2.1.3.scenarioContainsNonDimensionalContent",
                 _("xbrli:scenario in contexts MUST NOT contain any other content than defined in XBRL Dimensions specification: %(contextIds)s"),
-                modelObject=contextsWithDisallowedOCEcontent, contextIds=", ".join(c.id for c in contextsWithDisallowedOCEcontent if c.id is not None))
+                modelObject=contextIssues.contextsWithImproperContent, contextIds=", ".join(c.id for c in contextIssues.contextsWithImproperContent if c.id is not None))
         if len(contextIdentifiers) > 1:
             modelXbrl.error("ESEF.2.1.4.multipleIdentifiers",
                 _("All entity identifiers in contexts MUST have identical content: %(contextIds)s"),
@@ -661,16 +634,16 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     modelXbrl.error("ESEF.2.1.1.invalidIdentifier",
                         _("The LEI context identifier has checksum error: %(identifier)s"),
                         modelObject=contextElts, identifier=contextIdentifier)
-        if contextsWithPeriodTime:
+        if contextIssues.contextsWithPeriodTime:
             modelXbrl.error("ESEF.2.1.2.periodWithTimeContent",
                 _("The xbrli:startDate, xbrli:endDate and xbrli:instant elements MUST identify periods using whole days (i.e. specified without a time content): %(contextIds)s"),
-                modelObject=contextsWithPeriodTime, contextIds=", ".join(c.id for c in contextsWithPeriodTime if c.id))
-        if contextsWithPeriodTimeZone:
+                modelObject=contextIssues.contextsWithPeriodTime, contextIds=", ".join(c.id for c in contextIssues.contextsWithPeriodTime if c.id))
+        if contextIssues.contextsWithPeriodTimeZone:
             modelXbrl.error("ESEF.2.1.2.periodWithTimeZone",
                 _("The xbrli:startDate, xbrli:endDate and xbrli:instant elements MUST identify periods using whole days (i.e. specified without a time zone): %(contextIds)s"),
-                modelObject=contextsWithPeriodTimeZone, contextIds=", ".join(c.id for c in contextsWithPeriodTimeZone if c.id))
-        if contextsWithWrongInstantDate:
-            for context in contextsWithWrongInstantDate:
+                modelObject=contextIssues.contextsWithPeriodTimeZone, contextIds=", ".join(c.id for c in contextIssues.contextsWithPeriodTimeZone if c.id))
+        if contextIssues.contextsWithWrongInstantDate:
+            for context in contextIssues.contextsWithWrongInstantDate:
                 modelXbrl.error("ESEF.2.1.2.inappropriateInstantDate",
                                 _("Instant date %(actualValue)s in context %(contextID)s shall be replaced by %(expectedValue)s to ensure a better comparability between the facts."),
                                 modelObject=context, actualValue=context.instantDate, expectedValue=context.instantDate - timedelta(days=1), contextID=context.id)
@@ -757,16 +730,6 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                             if f.context is not None:
                                 textFactsByConceptContext[(f.qname, mapContext.get(f.context,f.context))].append(f)
                 conceptsUsed.add(f.concept)
-                ''' only check line item concepts in 2020
-                if f.context is not None:
-                    for dim in f.context.qnameDims.values():
-                        conceptsUsed.add(dim.dimension)
-                        if dim.isExplicit:
-                            conceptsUsed.add(dim.member)
-                        #don't consider typed member as a used concept which needs to be in pre LB
-                        #elif dim.isTyped:
-                        #    conceptsUsed.add(dim.typedMember)
-                '''
         # identify report date
         reportDate = None
         for f in modelXbrl.factsByLocalName.get("NameOfReportingEntityOrOtherMeansOfIdentification", set()):
@@ -852,11 +815,6 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 _("Every nonempty link:footnote element SHOULD be linked to at least one fact. Unused footnote ids: %(ids)s"),
                 modelObject=orphanedFootnotes, ids=', '.join([f'"{footnote.id}"' for footnote in orphanedFootnotes]))
 
-        # this test removed from Filer Manual July 2020
-        #if noLangFootnotes:
-        #    modelXbrl.error("ESEF.2.3.1.undefinedLanguageForFootnote",
-        #        _("Each footnote MUST have the 'xml:lang' attribute whose value corresponds to the language of the text in the content of the respective footnote."),
-        #        modelObject=noLangFootnotes)
         ftLangNotUsedByTextFacts = set()
         ftLangNotUsedByTextLangs = set()
         for f,langs in factLangFootnotes.items():
@@ -894,9 +852,6 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 _("A link:footnoteLink element MUST have no children other than link:loc, link:footnote, and link:footnoteArc."),
                 modelObject=nonStdFootnoteElts)
 
-        conceptsUsedByFacts = conceptsUsed.copy()
-        #for qn in modelXbrl.qnameDimensionDefaults.values():
-        #    conceptsUsed.add(modelXbrl.qnameConcepts.get(qn))
 
         # 3.1.1 test
         hasOutdatedUrl = False
@@ -928,6 +883,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
 
 
         # unused elements in linkbases
+        conceptsUsedByFacts = conceptsUsed.copy()
         unreportedLbLocs = set()
         for arcroles, error, checkRoots, lbType in (
                     ((parentChild,), "elements{}UsedForTagging{}AppliedInPresentationLinkbase", True, "presentation"),

@@ -26,6 +26,7 @@ from arelle.XbrlConst import qnXbrlScenario, qnXbrldiExplicitMember, xhtmlBaseId
 from arelle.XmlValidate import VALID
 from arelle.typing import TypeGetText
 from arelle.utils.validate.Concepts import getExtensionConcepts
+from arelle.utils.validate.ContextIssues import getContextIssues
 from arelle.utils.Contexts import getDuplicateContextGroups
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.Units import getDuplicateUnitGroups
@@ -263,17 +264,12 @@ def rule_gfm_1_2_4(
     """
     EDINET.EC5700W: [GFM 1.2.4] Segment must not be used in the context.
     """
-    allContexts = val.modelXbrl.contextsByDocument()
-    contextsWithSegments =[]
-    for contexts in allContexts.values():
-        for context in contexts:
-            if context.hasSegment:
-                contextsWithSegments.append(context)
-    if len(contextsWithSegments) > 0:
+    contextIssues = getContextIssues(val.modelXbrl)
+    if contextIssues.contextsWithSegments:
         yield Validation.warning(
             codes='EDINET.EC5700W.GFM.1.2.4',
             msg=_('Set the scenario element in the context. Do not set the segment element.'),
-            modelObject = contextsWithSegments
+            modelObject=contextIssues.contextsWithSegments,
         )
 
 
@@ -291,21 +287,13 @@ def rule_gfm_1_2_5(
     EDINET.EC5700W: [GFM 1.2.5] If an xbrli:scenario element appears in a context, then its children
     must be one or more xbrldi:explicitMember elements.
     """
-    allContexts = val.modelXbrl.contextsByDocument()
-    contextsWithDisallowedScenarioChildren =[]
-    for contexts in allContexts.values():
-        for context in contexts:
-            for elt in context.iterdescendants(qnXbrlScenario.clarkNotation):
-                if isinstance(elt, ModelObject):
-                    if any(isinstance(child, ModelObject) and child.tag != qnXbrldiExplicitMember.clarkNotation
-                           for child in elt.iterchildren()):
-                        contextsWithDisallowedScenarioChildren.append(context)
-    if len(contextsWithDisallowedScenarioChildren) > 0:
+    contextIssues = getContextIssues(val.modelXbrl)
+    if contextIssues.contextsWithImproperContent:
         yield Validation.warning(
             codes='EDINET.EC5700W.GFM.1.2.5',
             msg=_('Please delete all child elements other than the xbrldi:explicitMember '
                   'element from the segment element or scenario element.'),
-            modelObject = contextsWithDisallowedScenarioChildren
+            modelObject=contextIssues.contextsWithImproperContent,
         )
 
 
