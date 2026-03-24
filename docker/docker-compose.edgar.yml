@@ -1,5 +1,12 @@
 services:
-  webserver:
+  edgar-webserver:
+    extends:
+      file: docker-compose.yml
+      service: webserver
+    container_name: arelle-edgar-webserver
     build:
       args:
         INCLUDE_EDGAR: "true"
+        EXTRA_PIP: "-r requirements-plugins.txt"
+        # or
+        # EXTRA_PIP: "gunicorn -r requirements-plugins.txt"
