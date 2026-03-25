@@ -3,22 +3,16 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-import logging
 import os
 from collections import defaultdict
-from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from importlib.metadata import EntryPoint, entry_points
-from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from arelle.typing import TypeGetText
-from ._plugin_manager import PluginManager
 
 if TYPE_CHECKING:
-    # Prevent potential circular import error
-    from arelle.Cntlr import Cntlr
-    from gettext import gettext as _
+    from arelle.plugin_system._plugin_manager import PluginManager
 
 
 _: TypeGetText
@@ -41,10 +35,11 @@ class EntryPointRef:
     def createModuleInfo(self, plugin_manager: PluginManager | None = None) -> dict[str, Any] | None:
         """
         Creates a module information dictionary from the entry point ref.
-        :param plugin_manager: PluginManager instance. Defaults to module-level _singleton.
+        :param plugin_manager: PluginManager instance. Defaults to module-level singleton.
         :return: A module information dictionary
         """
-        pm = plugin_manager or _singleton
+        from arelle.PluginManager import getInstance
+        pm = plugin_manager or getInstance()
         assert pm is not None
         if self.entryPoint is not None:
             return pm.moduleModuleInfo(entryPoint=self.entryPoint)
@@ -56,7 +51,7 @@ class EntryPointRef:
         Given an entry point, retrieves the subset of information from __pluginInfo__ necessary to
         determine if the entry point should be imported as a plugin.
         :param entryPoint:
-        :param plugin_manager: PluginManager instance. Defaults to module-level _singleton.
+        :param plugin_manager: PluginManager instance. Defaults to module-level singleton.
         :return:
         """
         pluginUrlFunc = entryPoint.load()
@@ -70,10 +65,11 @@ class EntryPointRef:
         determine if the entry point should be imported as a plugin.
         :param filepath: Path to plugin, can be a directory or .py filepath
         :param entryPoint: Optional entry point information to include in aliases/moduleInfo
-        :param plugin_manager: PluginManager instance. Defaults to module-level _singleton.
+        :param plugin_manager: PluginManager instance. Defaults to module-level singleton.
         :return:
         """
-        pm = plugin_manager or _singleton
+        from arelle.PluginManager import getInstance
+        pm = plugin_manager or getInstance()
         assert pm is not None
         moduleFilename = pm._cntlr.webCache.getfilename(filepath)
         if moduleFilename:
@@ -101,10 +97,11 @@ class EntryPointRef:
     def discoverAll(plugin_manager: PluginManager | None = None) -> list[EntryPointRef]:
         """
         Retrieve all plugin entry points, cached on first run.
-        :param plugin_manager: PluginManager instance. Defaults to module-level _singleton.
+        :param plugin_manager: PluginManager instance. Defaults to module-level singleton.
         :return: List of all discovered entry points.
         """
-        pm = plugin_manager or _singleton
+        from arelle.PluginManager import getInstance
+        pm = plugin_manager or getInstance()
         assert pm is not None
         if pm._entryPointRefCache is None:
             pm._entryPointRefCache = EntryPointRef._discoverBuiltIn([], pm._pluginBase, plugin_manager=pm) + EntryPointRef._discoverInstalled(plugin_manager=pm)
@@ -116,7 +113,7 @@ class EntryPointRef:
         Recursively retrieve all plugin entry points in the given directory.
         :param entryPointRefs: Working list of entry point refs to append to.
         :param directory: Directory to search for entry points within.
-        :param plugin_manager: PluginManager instance. Defaults to module-level _singleton.
+        :param plugin_manager: PluginManager instance. Defaults to module-level singleton.
         :return: List of discovered entry points.
         """
         for fileName in sorted(os.listdir(directory)):
@@ -142,7 +139,7 @@ class EntryPointRef:
     def _discoverInstalled(plugin_manager: PluginManager | None = None) -> list[EntryPointRef]:
         """
         Retrieve all installed plugin entry points.
-        :param plugin_manager: PluginManager instance. Defaults to module-level _singleton.
+        :param plugin_manager: PluginManager instance. Defaults to module-level singleton.
         :return: List of all discovered entry points.
         """
         entryPoints = list(entry_points(group='arelle.plugin'))
@@ -160,7 +157,7 @@ class EntryPointRef:
         May return None of no matches are found.
         Throws an exception if multiple entry point refs match the search term.
         :param search: Only retrieve entry point matching the given search text.
-        :param plugin_manager: PluginManager instance. Defaults to module-level _singleton.
+        :param plugin_manager: PluginManager instance. Defaults to module-level singleton.
         :return: Matching entry point ref, if found.
         """
         entryPointRefs = EntryPointRef.search(search, plugin_manager=plugin_manager)
@@ -196,10 +193,11 @@ class EntryPointRef:
         Retrieve entry point module information matching provided search text.
         A map of aliases to matching entry points is cached on the first run.
         :param search: Only retrieve entry points matching the given search text.
-        :param plugin_manager: PluginManager instance. Defaults to module-level _singleton.
+        :param plugin_manager: PluginManager instance. Defaults to module-level singleton.
         :return: List of matching module infos.
         """
-        pm = plugin_manager or _singleton
+        from arelle.PluginManager import getInstance
+        pm = plugin_manager or getInstance()
         assert pm is not None
         if pm._entryPointRefAliasCache is None:
             entryPointRefAliasCache: dict[str, list[EntryPointRef]] = defaultdict(list)

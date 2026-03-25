@@ -24,6 +24,7 @@ from typing import TYPE_CHECKING, Any, cast
 import arelle.FileSource
 from arelle.Locale import getLanguageCodes
 from arelle.PythonUtil import isLegacyAbs
+from arelle.plugin_system.entry_point_ref import EntryPointRef
 from arelle.typing import TypeGetText
 from arelle.UrlUtil import isAbsolute
 
