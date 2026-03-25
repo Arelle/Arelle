@@ -36,7 +36,6 @@ from arelle.ModelValue import (
     qname,
 )
 from arelle.ModelXbrl import ModelXbrl
-from arelle.PluginManager import pluginClassMethods
 from arelle.PrototypeDtsObject import PrototypeElementTree, PrototypeObject
 from arelle.PythonUtil import STR_NUM_TYPES
 from arelle.formula.FactAspectsCache import FactAspectsCache
@@ -250,7 +249,7 @@ class XPathContext:
             QName,
             Callable[[XPathContext, OperationDef, ContextItem, ResultStack], ContextItem]
         ] = {}
-        for pluginXbrlMethod in pluginClassMethods("Formula.CustomFunctions"):
+        for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("Formula.CustomFunctions"):
             self.customFunctions.update(pluginXbrlMethod())
 
     def copy(self) -> XPathContext:  # shallow copy (for such as for Table LB table processiong

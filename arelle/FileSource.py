@@ -13,12 +13,11 @@ import struct
 import tarfile
 import zipfile
 import zlib
-from typing import IO, TYPE_CHECKING, Any, BinaryIO, Optional, TextIO, cast
+from typing import IO, TYPE_CHECKING, Any, BinaryIO, Optional, TextIO, cast, Iterator, Callable
 
 import regex as re
 from lxml import etree
 
-import arelle.PluginManager
 from arelle import PackageManager, XmlUtil
 from arelle.PythonUtil import isLegacyAbs
 from arelle.packages.report.DetectReportPackage import isReportPackageExtension
@@ -660,7 +659,7 @@ class FileSource:
                             break
 
         # custom overrides for decription, etc
-        for pluginMethod in arelle.PluginManager.pluginClassMethods("FileSource.File"):
+        for pluginMethod in self.pluginClassMethods("FileSource.File"):
             fileResult = pluginMethod(self.cntlr, filepath, binary, stripDeclaration)
             if fileResult is not None:
                 return fileResult # type: ignore[no-any-return]
@@ -713,7 +712,7 @@ class FileSource:
                 return archiveFileName.replace("\\","/") in archiveFileSource.dir
 
         # custom overrides for decription, etc
-        for pluginMethod in arelle.PluginManager.pluginClassMethods("FileSource.Exists"):
+        for pluginMethod in self.pluginClassMethods("FileSource.Exists"):
             existsResult = pluginMethod(self.cntlr, filepath)
             if existsResult is not None:
                 return cast(bool, existsResult)
@@ -846,6 +845,13 @@ class FileSource:
         if isinstance(self.url, list):
             return [os.path.basename(url) for url in self.url]
         return None
+
+    def pluginClassMethods(self, className: str) -> Iterator[Callable[..., Any]]:
+        if self.cntlr and hasattr(self.cntlr, 'pluginManager'):
+            yield from self.cntlr.pluginManager.pluginClassMethods(className)
+            return
+        yield from iter(())
+
 
 def openFileStream(
     cntlr: Cntlr | None, filepath: str, mode: str = "r", encoding: str | None = None

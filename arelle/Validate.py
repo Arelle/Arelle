@@ -24,7 +24,6 @@ from arelle.ModelObject import ModelObject
 from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelTestcaseObject import testcaseVariationsByTarget, ModelTestcaseVariation
 from arelle.ModelValue import (qname, QName)
-from arelle.PluginManager import pluginClassMethods
 from arelle.packages.report.DetectReportPackage import isReportPackageExtension
 from arelle.rendering import RenderingEvaluator
 from arelle.utils.EntryPointDetection import filesourceEntrypointFiles
@@ -169,7 +168,7 @@ class Validate:
                             entrypoints = filesourceEntrypointFiles(filesource)
                             if entrypoints:
                                 # resolve an IXDS in entrypoints
-                                for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ArchiveIxds"):
+                                for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("ModelTestcaseVariation.ArchiveIxds"):
                                     pluginXbrlMethod(self, filesource,entrypoints)
                                 filesource.select(entrypoints[0].get("file", None) )
                         except Exception as err:
@@ -178,7 +177,7 @@ class Validate:
                                 modelXbrl=self.modelXbrl, instance=rssItemUrl, error=err)
                             continue # don't try to load this entry URL
                     modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager, filesource, _("validating"), rssItem=rssItem, errorCaptureLevel=errorCaptureLevel)
-                for pluginXbrlMethod in pluginClassMethods("RssItem.Xbrl.Loaded"):
+                for pluginXbrlMethod in modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("RssItem.Xbrl.Loaded"):
                     pluginXbrlMethod(modelXbrl, {}, rssItem)
                 if getattr(rssItem, "doNotProcessRSSitem", False) or modelXbrl.modelDocument is None:
                     modelXbrl.close()
@@ -187,7 +186,7 @@ class Validate:
                 self.instValidator.close()
                 rssItem.setResults(modelXbrl)
                 self.modelXbrl.modelManager.viewModelObject(self.modelXbrl, rssItem.objectId())
-                for pluginXbrlMethod in pluginClassMethods("Validate.RssItem"):
+                for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("Validate.RssItem"):
                     pluginXbrlMethod(self, modelXbrl, rssItem)
                 modelXbrl.close()
             except Exception as err:
@@ -385,7 +384,7 @@ class Validate:
                 if newSourceFileSource:
                     sourceFileSource.close()
                 _rptPkgIxdsOptions = {}
-                for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ReportPackageIxdsOptions"):
+                for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("ModelTestcaseVariation.ReportPackageIxdsOptions"):
                     pluginXbrlMethod(self, _rptPkgIxdsOptions)
                 reportPackageErrors = False
                 if (filesource.isReportPackage or self.modelXbrl.modelManager.validateAllFilesAsReportPackages) and not _rptPkgIxdsOptions:
@@ -413,7 +412,7 @@ class Validate:
                             )
                             if entrypoints:
                                 # resolve an IXDS in entrypoints
-                                for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ArchiveIxds"):
+                                for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("ModelTestcaseVariation.ArchiveIxds"):
                                     pluginXbrlMethod(self, filesource,entrypoints)
                                 for entrypoint in entrypoints:
                                     filesource.select(entrypoint.get("file", None))
@@ -440,7 +439,7 @@ class Validate:
                                 self.modelXbrl.modelManager.validateAllFilesAsTaxonomyPackages,
                                 errors=preLoadingErrors
                             )
-                            for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ArchiveIxds"):
+                            for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("ModelTestcaseVariation.ArchiveIxds"):
                                 pluginXbrlMethod(self, filesource, entrypoints)
                             for entrypoint in entrypoints:
                                 filesource.select(entrypoint.get("file", None))
@@ -455,7 +454,7 @@ class Validate:
                 else:
                     if _rptPkgIxdsOptions and filesource.isTaxonomyPackage:
                         # Legacy ESEF conformance suite logic.
-                        for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ReportPackageIxds"):
+                        for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("ModelTestcaseVariation.ReportPackageIxds"):
                                 filesource.select(pluginXbrlMethod(filesource, **_rptPkgIxdsOptions))
                     if len(loadedModels) == 0:
                         modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager,
@@ -497,17 +496,17 @@ class Validate:
                 _hasFormulae = model.hasFormulae
                 model.hasFormulae = False
                 try:
-                    for pluginXbrlMethod in pluginClassMethods("TestcaseVariation.Xbrl.Loaded"):
+                    for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("TestcaseVariation.Xbrl.Loaded"):
                         pluginXbrlMethod(self.modelXbrl, model, modelTestcaseVariation)
                     self.instValidator.validate(model, parameters)
-                    for pluginXbrlMethod in pluginClassMethods("TestcaseVariation.Xbrl.Validated"):
+                    for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("TestcaseVariation.Xbrl.Validated"):
                         pluginXbrlMethod(self.modelXbrl, model)
                 except Exception as err:
                     model.error("exception:" + type(err).__name__,
                         _("Testcase variation validation exception: %(error)s, instance: %(instance)s"),
                         modelXbrl=model, instance=model.modelDocument.basename, error=err, exc_info=True)
                 model.hasFormulae = _hasFormulae
-        for pluginXbrlMethod in pluginClassMethods("Validate.Complete"):
+        for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("Validate.Complete"):
             pluginXbrlMethod(self.modelXbrl.modelManager.cntlr, filesource)
         errors = [error for model in loadedModels for error in model.errors]
         reportModelCount = len([
@@ -589,7 +588,7 @@ class Validate:
                     _("Testcase formula variation validation exception: %(error)s, instance: %(instance)s"),
                     modelXbrl=modelXbrl, instance=modelXbrl.modelDocument.basename, error=err, exc_info=True)
         if modelTestcaseVariation.resultIsInfoset and self.modelXbrl.modelManager.validateInfoset:
-            for pluginXbrlMethod in pluginClassMethods("Validate.Infoset"):
+            for pluginXbrlMethod in modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("Validate.Infoset"):
                 pluginXbrlMethod(modelXbrl, modelTestcaseVariation.resultInfosetUri)
             infoset = ModelXbrl.load(self.modelXbrl.modelManager,
                                         modelTestcaseVariation.resultInfosetUri,
@@ -610,7 +609,7 @@ class Validate:
             # diff (or generate) table infoset
             resultTableUri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(modelTestcaseVariation.resultTableUri, baseForElement)
             if not any(alternativeValidation(modelXbrl, resultTableUri)
-                        for alternativeValidation in pluginClassMethods("Validate.TableInfoset")):
+                        for alternativeValidation in modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("Validate.TableInfoset")):
                 try:
                     ViewFileRenderedLayout.viewRenderedLayout(modelXbrl, resultTableUri, diffToFile=True)  # false to save infoset files
                 except Exception as err:
@@ -619,7 +618,7 @@ class Validate:
                         modelXbrl=modelXbrl, instance=modelXbrl.modelDocument.basename, error=err, exc_info=True)
         self.instValidator.close()
         extraErrors = []
-        for pluginXbrlMethod in pluginClassMethods("TestcaseVariation.Validated"):
+        for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("TestcaseVariation.Validated"):
             pluginXbrlMethod(self.modelXbrl, modelXbrl, extraErrors, inputDTSes)
         self.determineTestStatus(modelTestcaseVariation, [e for inputDTSlist in inputDTSes.values() for inputDTS in inputDTSlist for e in inputDTS.errors] + extraErrors) # include infoset errors in status
         if modelXbrl.formulaOutputInstance and self.noErrorCodes(modelTestcaseVariation.actual):
