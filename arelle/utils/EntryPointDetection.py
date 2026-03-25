@@ -69,7 +69,7 @@ def parseEntrypointFileInput(cntlr: Cntlr, entrypointFile: str | None, sourceZip
 def filesourceEntrypointFiles(filesource, entrypointFiles=None, inlineOnly=False, fallbackSelect=True):
     if entrypointFiles is None:
         entrypointFiles = []
-    for pluginXbrlMethod in filesource.pluginClassMethods("FileSource.EntrypointFiles"):
+    for pluginXbrlMethod in filesource.hooks("FileSource.EntrypointFiles"):
         resultEntrypointFiles = pluginXbrlMethod(filesource, inlineOnly)
         if resultEntrypointFiles is not None:
             del entrypointFiles[:]  # clear list
@@ -86,7 +86,7 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=None, inlineOnly=False
                 if report.isInline:
                     reportEntries = [{"file": f} for f in report.fullPathFiles]
                     ixdsDiscovered = False
-                    for pluginXbrlMethod in filesource.pluginClassMethods("InlineDocumentSet.Discovery"):
+                    for pluginXbrlMethod in filesource.hooks("InlineDocumentSet.Discovery"):
                         pluginXbrlMethod(filesource, reportEntries)
                         ixdsDiscovered = True
                     if not ixdsDiscovered and len(reportEntries) > 1:
@@ -108,7 +108,7 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=None, inlineOnly=False
                     entrypointFiles.append({"file":url})
                 if entrypointFiles:
                     if identifiedType == ModelDocumentType.INLINEXBRL:
-                        for pluginXbrlMethod in filesource.pluginClassMethods("InlineDocumentSet.Discovery"):
+                        for pluginXbrlMethod in filesource.hooks("InlineDocumentSet.Discovery"):
                             pluginXbrlMethod(filesource, entrypointFiles) # group into IXDS if plugin feature is available
                     break # found inline (or non-inline) entrypoint files, don't look for any other type
             # for ESEF non-consolidated xhtml documents accept an xhtml entry point
@@ -133,7 +133,7 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=None, inlineOnly=False
                 if identifiedType in (ModelDocumentType.INSTANCE, ModelDocumentType.INLINEXBRL):
                     entrypointFiles.append({"file":_path})
         if hasInline: # group into IXDS if plugin feature is available
-            for pluginXbrlMethod in filesource.pluginClassMethods("InlineDocumentSet.Discovery"):
+            for pluginXbrlMethod in filesource.hooks("InlineDocumentSet.Discovery"):
                 pluginXbrlMethod(filesource, entrypointFiles)
 
     return entrypointFiles
