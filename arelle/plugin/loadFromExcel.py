@@ -1866,6 +1866,11 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
 def isExcelPath(filepath):
     return os.path.splitext(filepath)[1] in (".xlsx", ".xls", ".xlsm")
 
+def excelEntrypointFiles(filesource, inlineOnly):
+    if not inlineOnly and isExcelPath(filesource.url):
+        return [{"file": filesource.url}]
+    return None
+
 def isExcelLoadable(modelXbrl, mappedUri, normalizedUri, filepath, **kwargs):
     return isExcelPath(filepath)
 
@@ -2009,6 +2014,7 @@ __pluginInfo__ = {
     'author': authorLabel,
     'copyright': copyrightLabel,
     # classes of mount points (required)
+    'FileSource.EntrypointFiles': excelEntrypointFiles,
     'ModelDocument.IsPullLoadable': isExcelLoadable,
     'ModelDocument.PullLoader': excelLoader,
     'CntlrWinMain.Xbrl.Loaded': guiXbrlLoaded,

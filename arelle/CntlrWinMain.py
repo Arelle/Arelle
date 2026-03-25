@@ -878,9 +878,6 @@ class CntlrWinMain (Cntlr.Cntlr):
             entrypointFiles = entrypointParseResult.entrypointFiles
             # check for archive files
             if filesource.isArchive:
-                filenameWithoutFakeIxdsPrefix = UrlUtil.stripIxdsSurrogatePrefix(filename)
-                if all(e.get("file") == filenameWithoutFakeIxdsPrefix for e in entrypointFiles):
-                    entrypointFiles = []
                 if (
                     len(entrypointFiles) == 0 and
                     not filesource.selection and
