@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
 
 import regex as re
@@ -336,10 +336,10 @@ def yr4(arg: str | None) -> str | None:   # zero pad to 4 digits
 
 def yrin(arg: str | None, _mo: int, _day: int) -> str | None:   # zero pad to 4 digits
     if arg is not None and len(arg) == 2:
-        if arg > '21' or (arg == '21' and _mo >= 10 and _day >= 11):
-            return '19' + arg
+        if arg > "21" or (arg == "21" and _mo >= 10 and _day >= 11):
+            return "19" + arg
         else:
-            return '20' + arg
+            return "20" + arg
     return arg
 
 
@@ -387,21 +387,21 @@ def sakaToGregorian(sYr: int, sMo: int, sDay: int) -> tuple[int, int, int]: # re
 
 
 # see: http://www.i18nguy.com/l10n/emperor-date.html
-eraStart: dict[str, int] = {'令和': 2018,
-            '令': 2018,
-            '\u5E73\u6210': 1988,
-            '\u5E73': 1988,
-            '\u660E\u6CBB': 1867,
-            '\u660E': 1867,
-            '\u5927\u6B63': 1911,
-            '\u5927': 1911,
-            '\u662D\u548C': 1925,
-            '\u662D': 1925
+eraStart: dict[str, int] = {"令和": 2018,
+            "令": 2018,
+            "\u5E73\u6210": 1988,
+            "\u5E73": 1988,
+            "\u660E\u6CBB": 1867,
+            "\u660E": 1867,
+            "\u5927\u6B63": 1911,
+            "\u5927": 1911,
+            "\u662D\u548C": 1925,
+            "\u662D": 1925
             }
 
 
 def eraYear(era: str, yr: str) -> int:
-    return eraStart[era] + (1 if yr == '元' else int(yr))
+    return eraStart[era] + (1 if yr == "元" else int(yr))
 
 
 def canonicalNumber(n: str) -> str | None:
@@ -413,39 +413,39 @@ def canonicalNumber(n: str) -> str | None:
 # transforms
 
 def booleanfalse(arg: Any) -> str:
-    return 'false'
+    return "false"
 
 
 def booleantrue(arg: Any) -> str:
-    return 'true'
+    return "true"
 
 
 def dateslashus(arg: str) -> str:
     m = dateslashPattern.match(arg)
     if m and m.lastindex == 3:
         return "{0}-{1}-{2}".format(yr4(m.group(3)), z2(m.group(1)), z2(m.group(2)))
-    raise XPathContext.FunctionArgType(0,"xs:date")
+    raise XPathContext.FunctionArgType(0, "xs:date")
 
 
 def dateslasheu(arg: str) -> str:
     m = dateslashPattern.match(arg)
     if m and m.lastindex == 3:
         return "{0}-{1}-{2}".format(yr4(m.group(3)), z2(m.group(2)), z2(m.group(1)))
-    raise XPathContext.FunctionArgType(0,"xs:date")
+    raise XPathContext.FunctionArgType(0, "xs:date")
 
 
 def datedotus(arg: str) -> str:
     m = datedotPattern.match(arg)
     if m and m.lastindex == 3:
         return "{0}-{1}-{2}".format(yr4(m.group(3)), z2(m.group(1)), z2(m.group(2)))
-    raise XPathContext.FunctionArgType(0,"xs:date")
+    raise XPathContext.FunctionArgType(0, "xs:date")
 
 
 def datedoteu(arg: str) -> str:
     m = datedotPattern.match(arg)
     if m and m.lastindex == 3:
         return "{0}-{1}-{2}".format(yr4(m.group(3)), z2(m.group(2)), z2(m.group(1)))
-    raise XPathContext.FunctionArgType(0,"xs:date")
+    raise XPathContext.FunctionArgType(0, "xs:date")
 
 
 def datelongusTR1(arg: str) -> str:
@@ -476,7 +476,7 @@ def datedaymonthTR2(arg: str) -> str:
         assert isinstance(day, str)
         if "01" <= day <= maxDayInMo.get(mo, "00"):
             return "--{0}-{1}".format(mo, day)
-    raise XPathContext.FunctionArgType(0,"xs:gMonthDay")
+    raise XPathContext.FunctionArgType(0, "xs:gMonthDay")
 
 
 def datemonthday(arg: str) -> str:
@@ -487,7 +487,7 @@ def datemonthday(arg: str) -> str:
         assert isinstance(day, str)
         if "01" <= day <= maxDayInMo.get(mo, "00"):
             return "--{0}-{1}".format(mo, day)
-    raise XPathContext.FunctionArgType(0,"xs:gMonthDay")
+    raise XPathContext.FunctionArgType(0, "xs:gMonthDay")
 
 
 def datedaymonthSlashTR1(arg: str) -> str:
@@ -496,7 +496,7 @@ def datedaymonthSlashTR1(arg: str) -> str:
         mo = z2(m.group(2))
         day = z2(m.group(1))
         return "--{0}-{1}".format(mo, day)
-    raise XPathContext.FunctionArgType(0,"xs:gMonthDay")
+    raise XPathContext.FunctionArgType(0, "xs:gMonthDay")
 
 
 def datemonthdaySlashTR1(arg: str) -> str:
@@ -505,7 +505,7 @@ def datemonthdaySlashTR1(arg: str) -> str:
         mo = z2(m.group(1))
         day = z2(m.group(2))
         return "--{0}-{1}".format(mo, day)
-    raise XPathContext.FunctionArgType(0,"xs:gMonthDay")
+    raise XPathContext.FunctionArgType(0, "xs:gMonthDay")
 
 
 def datedaymonth(
@@ -529,7 +529,7 @@ def datedaymonth(
                 return "--{0:02}-{1}".format(_mo, _day)
     except KeyError:
         pass
-    raise XPathContext.FunctionArgType(0,"xs:gMonthDay")
+    raise XPathContext.FunctionArgType(0, "xs:gMonthDay")
 
 
 def datedaymonthbg(arg: str) -> str:
@@ -563,7 +563,7 @@ def datedaymonthdk(arg: str) -> str:
                  (monEnd and not monPer)) and
                 "01" <= day <= maxDayInMo.get(mo, "00")):
                 return "--{0:02}-{1}".format(mo, day)
-    raise XPathContext.FunctionArgType(0,"xs:gMonthDay")
+    raise XPathContext.FunctionArgType(0, "xs:gMonthDay")
 
 
 def datedaymonthel(arg: str) -> str:
@@ -681,7 +681,7 @@ def datemonthyearTR3(arg: str) -> str:
         assert isinstance(_mo, str)
         if "01" <= _mo <= "12":
             return "{0}-{1:2}".format(yr4(m.group(2)), _mo)
-    raise XPathContext.FunctionArgType(0,"xs:gYearMonth")
+    raise XPathContext.FunctionArgType(0, "xs:gYearMonth")
 
 
 def datemonthyearTR4(arg: str) -> str:
@@ -691,7 +691,7 @@ def datemonthyearTR4(arg: str) -> str:
         assert isinstance(_mo, str)
         if "01" <= _mo <= "12":
             return "{0}-{1:2}".format(yr4(m.group(2)), _mo)
-    raise XPathContext.FunctionArgType(0,"xs:gYearMonth")
+    raise XPathContext.FunctionArgType(0, "xs:gYearMonth")
 
 
 def dateyearmonth(arg: str) -> str:
@@ -701,7 +701,7 @@ def dateyearmonth(arg: str) -> str:
         assert isinstance(_mo, str)
         if "01" <= _mo <= "12":
             return "{0}-{1:2}".format(yr4(m.group(1)), _mo)
-    raise XPathContext.FunctionArgType(0,"xs:gYearMonth")
+    raise XPathContext.FunctionArgType(0, "xs:gYearMonth")
 
 
 def dateyearmonthTR4(arg: str) -> str:
@@ -724,7 +724,7 @@ def datemonthyear(
             return "{0}-{1:02}".format(yr4(m.group(yr)), moTbl[m.group(mo).lower()])
     except KeyError:
         pass
-    raise XPathContext.FunctionArgType(0,"xs:gYearMonth")
+    raise XPathContext.FunctionArgType(0, "xs:gYearMonth")
 
 
 def datemonthyearbg(arg: str) -> str:
@@ -753,7 +753,7 @@ def datemonthyeardk(arg: str) -> str:
                                     (not monEnd and monPer) or
                                     (monEnd and not monPer)):
             return "{0}-{1:02}".format(yr4(m.group(4)), monthnumber[mon3])
-    raise XPathContext.FunctionArgType(0,"xs:gYearMonth")
+    raise XPathContext.FunctionArgType(0, "xs:gYearMonth")
 
 
 def datemonthyearel(arg: str) -> str:
@@ -804,7 +804,7 @@ def datemonthyearin(arg: str) -> str:
                                    gregorianHindiMonthNumber[m.group(1)])
     except (AttributeError, IndexError, KeyError):
         pass
-    raise XPathContext.FunctionArgType(0,"xs:gYearMonth")
+    raise XPathContext.FunctionArgType(0, "xs:gYearMonth")
 
 
 def datemonthyearit(arg: str) -> str:
@@ -885,7 +885,7 @@ def datedaymonthyear(
                 return "{0}-{1:02}-{2}".format(_yr, _mo, _day)
     except KeyError:
         pass
-    raise XPathContext.FunctionArgType(0,"xs:date")
+    raise XPathContext.FunctionArgType(0, "xs:date")
 
 
 def datedaymonthyearbg(arg: str) -> str:
@@ -918,7 +918,7 @@ def datedaymonthyeardk(arg: str) -> str:
             _mo = monthnumber[_mon3]
             if checkDate(_yr, _mo, _day):
                 return "{0}-{1:02}-{2}".format(_yr, _mo, _day)
-    raise XPathContext.FunctionArgType(0,"xs:date")
+    raise XPathContext.FunctionArgType(0, "xs:date")
 
 
 def datedaymonthyearel(arg: str) -> str:
@@ -968,7 +968,7 @@ def datedaymonthyearin(arg: str, daymonthyearInPattern: RePattern) -> str:
             return "{0}-{1}-{2}".format(_yr, _mo, _day)
     except (AttributeError, IndexError, KeyError):
         pass
-    raise XPathContext.FunctionArgType(0,"xs:date")
+    raise XPathContext.FunctionArgType(0, "xs:date")
 
 
 def datedaymonthyearinTR3(arg: str) -> str:
@@ -1037,7 +1037,7 @@ def calindaymonthyear(arg: str) -> str:
         return "{0}-{1:02}-{2:02}".format(*gregorianDate)
     except (AttributeError, IndexError, KeyError, ValueError):
         pass
-    raise XPathContext.FunctionArgType(0,"xs:date")
+    raise XPathContext.FunctionArgType(0, "xs:date")
 
 
 def dateerayearmonthdayjp(arg: str) -> str:
@@ -1048,7 +1048,7 @@ def dateerayearmonthdayjp(arg: str) -> str:
         _day = z2(m.group(6))
         if checkDate(_yr, _mo, _day):
             return "{0}-{1}-{2}".format(_yr, _mo, _day)
-    raise XPathContext.FunctionArgType(0,"xs:date")
+    raise XPathContext.FunctionArgType(0, "xs:date")
 
 
 def dateyearmonthday(arg: str) -> str:
@@ -1059,7 +1059,7 @@ def dateyearmonthday(arg: str) -> str:
         _day = z2(m.group(3))
         if checkDate(_yr, _mo, _day):
             return "{0}-{1}-{2}".format(_yr, _mo, _day)
-    raise XPathContext.FunctionArgType(0,"xs:date")
+    raise XPathContext.FunctionArgType(0, "xs:date")
 
 
 def dateerayearmonthjp(arg: str) -> str:
@@ -1070,7 +1070,7 @@ def dateerayearmonthjp(arg: str) -> str:
         assert isinstance(_mo, str)
         if "01" <= _mo <= "12":
             return "{0}-{1}".format(_yr, _mo)
-    raise XPathContext.FunctionArgType(0,"xs:gYearMonth")
+    raise XPathContext.FunctionArgType(0, "xs:gYearMonth")
 
 
 def dateyearmonthdaycjk(arg: str) -> str:
@@ -1081,7 +1081,7 @@ def dateyearmonthdaycjk(arg: str) -> str:
         _day = z2(m.group(5))
         if checkDate(_yr, _mo, _day):
             return "{0}-{1}-{2}".format(_yr, _mo, _day)
-    raise XPathContext.FunctionArgType(0,"xs:date")
+    raise XPathContext.FunctionArgType(0, "xs:date")
 
 
 def dateyearmonthcjk(arg: str) -> str:
@@ -1091,101 +1091,101 @@ def dateyearmonthcjk(arg: str) -> str:
         assert isinstance(_mo, str)
         if "01" <= _mo <= "12":
             return "{0}-{1}".format(yr4(m.group(1)), _mo)
-    raise XPathContext.FunctionArgType(0,"xs:date")
+    raise XPathContext.FunctionArgType(0, "xs:date")
 
 
 def nocontent(arg: str) -> str:
-    return ''
+    return ""
 
 
 def numcommadecimal(arg: str) -> str:
     if numCommaDecimalPattern.match(arg):
-        return arg.replace('.', '').replace(',', '.').replace(' ', '').replace('\u00A0', '')
-    raise XPathContext.FunctionArgType(0,"ixt:nonNegativeDecimalType")
+        return arg.replace(".", "").replace(",", ".").replace(" ", "").replace("\u00A0", "")
+    raise XPathContext.FunctionArgType(0, "ixt:nonNegativeDecimalType")
 
 
 def numcommadecimalTR4(arg: str) -> str:
     if numCommaDecimalTR4Pattern.match(arg):
-        result = arg.replace('.', '').replace(',', '.').replace(' ', '').replace('\u00A0', '')
+        result = arg.replace(".", "").replace(",", ".").replace(" ", "").replace("\u00A0", "")
         if decimalPattern.match(result):
             return canonicalNumber(result)  # type: ignore[return-value]
-    raise XPathContext.FunctionArgType(0,"ixt:nonNegativeDecimalType")
+    raise XPathContext.FunctionArgType(0, "ixt:nonNegativeDecimalType")
 
 
 def numcommadecimalApos(arg: str) -> str:
     if numCommaDecimalAposPattern.match(arg):
-        result = arg.replace('.', '').replace('\'', '').replace('`', '').replace('´', '').replace('’', '').replace('′', '').replace(',', '.').replace(' ', '').replace('\u00A0', '')
+        result = arg.replace(".", "").replace("'", "").replace("`", "").replace("´", "").replace("’", "").replace("′", "").replace(",", ".").replace(" ", "").replace("\u00A0", "")
         if decimalPattern.match(result):
             return canonicalNumber(result)  # type: ignore[return-value]
-    raise XPathContext.FunctionArgType(0,"ixt:nonNegativeDecimalType")
+    raise XPathContext.FunctionArgType(0, "ixt:nonNegativeDecimalType")
 
 
 def numcommadot(arg: str) -> str:
     if numCommaDotPattern.match(arg):
-        return arg.replace(',', '')
-    raise XPathContext.FunctionArgType(0,"ixt:numcommadot")
+        return arg.replace(",", "")
+    raise XPathContext.FunctionArgType(0, "ixt:numcommadot")
 
 
 def numdash(arg: str) -> str:
     if numDashPattern.match(arg):
-        return arg.replace('-','0')
-    raise XPathContext.FunctionArgType(0,"ixt:numdash")
+        return arg.replace("-","0")
+    raise XPathContext.FunctionArgType(0, "ixt:numdash")
 
 
 def numspacedot(arg: str) -> str:
     if numSpaceDotPattern.match(arg):
-        return arg.replace(' ', '').replace('\u00A0', '')
-    raise XPathContext.FunctionArgType(0,"ixt:numspacedot")
+        return arg.replace(" ", "").replace("\u00A0", "")
+    raise XPathContext.FunctionArgType(0, "ixt:numspacedot")
 
 
 def numcomma(arg: str) -> str:
     if numCommaPattern.match(arg):
-        return arg.replace(',', '.')
-    raise XPathContext.FunctionArgType(0,"ixt:numcomma")
+        return arg.replace(",", ".")
+    raise XPathContext.FunctionArgType(0, "ixt:numcomma")
 
 
 def numdotcomma(arg: str) -> str:
     if numDotCommaPattern.match(arg):
-        return arg.replace('.', '').replace(',', '.')
-    raise XPathContext.FunctionArgType(0,"ixt:numdotcomma")
+        return arg.replace(".", "").replace(",", ".")
+    raise XPathContext.FunctionArgType(0, "ixt:numdotcomma")
 
 
 def numspacecomma(arg: str) -> str:
     if numSpaceCommaPattern.match(arg):
-        return arg.replace(' ', '').replace('\u00A0', '').replace(',', '.')
-    raise XPathContext.FunctionArgType(0,"ixt:numspacecomma")
+        return arg.replace(" ", "").replace("\u00A0", "").replace(",", ".")
+    raise XPathContext.FunctionArgType(0, "ixt:numspacecomma")
 
 
 def zerodash(arg: str) -> str:
     if zeroDashPattern.match(arg):
-        return '0'
-    raise XPathContext.FunctionArgType(0,"ixt:zerodashType")
+        return "0"
+    raise XPathContext.FunctionArgType(0, "ixt:zerodashType")
 
 
 def fixedzero(arg: str) -> str:
-    return '0'
+    return "0"
 
 
 def numdotdecimal(arg: str) -> str:
     if numDotDecimalPattern.match(arg):
-        return arg.replace(',', '').replace(' ', '').replace('\u00A0', '')
-    raise XPathContext.FunctionArgType(0,"ixt:numdotdecimalType")
+        return arg.replace(",", "").replace(" ", "").replace("\u00A0", "")
+    raise XPathContext.FunctionArgType(0, "ixt:numdotdecimalType")
 
 
 def numdotdecimalTR4(arg: str) -> str:
     if numDotDecimalTR4Pattern.match(arg):
-        result = arg.replace(',', '').replace(' ', '').replace('\u00A0', '')
+        result = arg.replace(",", "").replace(" ", "").replace("\u00A0", "")
         if decimalPattern.match(result):
             return canonicalNumber(result)  # type: ignore[return-value]
-    raise XPathContext.FunctionArgType(0,"ixt:numdotdecimalType")
+    raise XPathContext.FunctionArgType(0, "ixt:numdotdecimalType")
 
 
 def numdotdecimalApos(arg: str) -> str:
     if numDotDecimalAposPattern.match(arg):
-        result = arg.replace(',', '').replace('\'', '').replace('`', '').replace('´', '').replace('’', '').replace('′', '').replace(' ', '').replace('\u00A0', '')
+        result = arg.replace(",", "").replace("'", "").replace("`", "").replace("´", "").replace("’", "").replace("′", "").replace(" ", "").replace("\u00A0", "")
         if decimalPattern.match(result):
             return canonicalNumber(result)  # type: ignore[return-value]
-    raise XPathContext.FunctionArgType(0,"ixt:numdotdecimalType")
+    raise XPathContext.FunctionArgType(0, "ixt:numdotdecimalType")
 
 
 def numdotdecimalin(arg: str) -> str:
@@ -1196,8 +1196,8 @@ def numdotdecimalin(arg: str) -> str:
             fract = m2[-1]
         else:
             fract = ""
-        return m2[0].replace(',','').replace(' ','').replace('\xa0','') + fract
-    raise XPathContext.FunctionArgType(1,"ixt:numdotdecimalinType")
+        return m2[0].replace(",","").replace(" ","").replace("\xa0","") + fract
+    raise XPathContext.FunctionArgType(1, "ixt:numdotdecimalinType")
 
 
 def numdotdecimalinTR4(arg: str) -> str:
@@ -1208,254 +1208,253 @@ def numunitdecimal(arg: str) -> str:
     # remove comma (normal), full-width comma, and stops (periods)
     m = numUnitDecimalPattern.match(jpDigitsToNormal(arg))
     if m and m.lastindex > 1:  # type: ignore[operator]
-        majorValue = m.group(1).replace('.','').replace(',','').replace('\uFF0C','').replace('\uFF0E','')
+        majorValue = m.group(1).replace(".","").replace(",","").replace("\uFF0C","").replace("\uFF0E","")
         fractValue = z2(m.group(m.lastindex))  # type: ignore[arg-type]
         return f"{majorValue}.{fractValue}"
-    raise XPathContext.FunctionArgType(1,"ixt:nonNegativeDecimalType")
+    raise XPathContext.FunctionArgType(1, "ixt:nonNegativeDecimalType")
 
 
 def numunitdecimalTR4(arg: str) -> str:
     # remove comma (normal), full-width comma, and stops (periods)
     m = numUnitDecimalTR4Pattern.match(jpDigitsToNormal(arg))
     if m and m.lastindex > 1:  # type: ignore[operator]
-        majorValue = m.group(1).replace('.','').replace(',','').replace('\uFF0C','').replace('\uFF0E','')
+        majorValue = m.group(1).replace(".","").replace(",","").replace("\uFF0C","").replace("\uFF0E","")
         fractValue = z2(m.group(m.lastindex))  # type: ignore[arg-type]
         assert isinstance(fractValue, str)
         if len(majorValue) > 0 and len(fractValue) > 0:
             return canonicalNumber(f"{majorValue}.{fractValue}")  # type: ignore[return-value]
-    raise XPathContext.FunctionArgType(1,"ixt:nonNegativeDecimalType")
+    raise XPathContext.FunctionArgType(1, "ixt:nonNegativeDecimalType")
 
 
 def numunitdecimalApos(arg: str) -> str:
     # remove comma (normal), full-width comma, and stops (periods)
     m = numUnitDecimalAposPattern.match(jpDigitsToNormal(arg))
     if m and m.lastindex > 1:  # type: ignore[operator]
-        majorValue = m.group(1).replace('.','').replace(',','').replace('\'', '').replace('`', '').replace('´', '').replace('’', '').replace('′', '').replace('＇', '').replace('\uFF0C','').replace('\uFF0E','')
+        majorValue = m.group(1).replace(".","").replace(",","").replace("'", "").replace("`", "").replace("´", "").replace("’", "").replace("′", "").replace("＇", "").replace("\uFF0C","").replace("\uFF0E","")
         fractValue = z2(m.group(m.lastindex))  # type: ignore[arg-type]
         assert isinstance(fractValue, str)
         if len(majorValue) > 0 and len(fractValue) > 0:
             return canonicalNumber(f"{majorValue}.{fractValue}")  # type: ignore[return-value]
-    raise XPathContext.FunctionArgType(1,"ixt:nonNegativeDecimalType")
+    raise XPathContext.FunctionArgType(1, "ixt:nonNegativeDecimalType")
 
 
 def numunitdecimalin(arg: str) -> str:
     m = numUnitDecimalInPattern.match(arg)
     if m:
         m2 = [g for g in m.groups() if g is not None]
-        majorValue = m2[0].replace(',', '').replace(' ', '').replace('\xa0', '')
+        majorValue = m2[0].replace(",", "").replace(" ", "").replace("\xa0", "")
         fractValue = z2(m2[-2])
         return f"{majorValue}.{fractValue}"
-    raise XPathContext.FunctionArgType(1,"ixt:numunitdecimalinType")
+    raise XPathContext.FunctionArgType(1, "ixt:numunitdecimalinType")
 
 
 tr1Functions = {
     # 2010-04-20 functions
-    'dateslashus': dateslashus,
-    'dateslasheu': dateslasheu,
-    'datedotus': datedotus,
-    'datedoteu': datedoteu,
-    'datelongus': datelongusTR1,
-    'dateshortus': dateshortusTR1,
-    'datelonguk': datelongukTR1,
-    'dateshortuk': dateshortukTR1,
-    'numcommadot': numcommadot,
-    'numdash': numdash,
-    'numspacedot': numspacedot,
-    'numdotcomma': numdotcomma,
-    'numcomma': numcomma,
-    'numspacecomma': numspacecomma,
-    'datelongdaymonthuk': datedaymonthLongEnTR1,
-    'dateshortdaymonthuk': datedaymonthShortEnTR1,
-    'datelongmonthdayus': datemonthdayLongEnTR1,
-    'dateshortmonthdayus': datemonthdayShortEnTR1,
-    'dateslashdaymontheu': datedaymonthSlashTR1,
-    'dateslashmonthdayus': datemonthdaySlashTR1,
-    'datelongyearmonth': dateyearmonthLongEnTR1,
-    'dateshortyearmonth': dateyearmonthShortEnTR1,
-    'datelongmonthyear': datemonthyearLongEnTR1,
-    'dateshortmonthyear': datemonthyearShortEnTR1
+    "dateslashus": dateslashus,
+    "dateslasheu": dateslasheu,
+    "datedotus": datedotus,
+    "datedoteu": datedoteu,
+    "datelongus": datelongusTR1,
+    "dateshortus": dateshortusTR1,
+    "datelonguk": datelongukTR1,
+    "dateshortuk": dateshortukTR1,
+    "numcommadot": numcommadot,
+    "numdash": numdash,
+    "numspacedot": numspacedot,
+    "numdotcomma": numdotcomma,
+    "numcomma": numcomma,
+    "numspacecomma": numspacecomma,
+    "datelongdaymonthuk": datedaymonthLongEnTR1,
+    "dateshortdaymonthuk": datedaymonthShortEnTR1,
+    "datelongmonthdayus": datemonthdayLongEnTR1,
+    "dateshortmonthdayus": datemonthdayShortEnTR1,
+    "dateslashdaymontheu": datedaymonthSlashTR1,
+    "dateslashmonthdayus": datemonthdaySlashTR1,
+    "datelongyearmonth": dateyearmonthLongEnTR1,
+    "dateshortyearmonth": dateyearmonthShortEnTR1,
+    "datelongmonthyear": datemonthyearLongEnTR1,
+    "dateshortmonthyear": datemonthyearShortEnTR1
 }
 
 tr2Functions = {
-
     # 2011-07-31 functions
-    'booleanfalse': booleanfalse,
-    'booleantrue': booleantrue,
-    'datedaymonth': datedaymonthTR2,
-    'datedaymonthen': datedaymonthen,
-    'datedaymonthyear': datedaymonthyearTR2,
-    'datedaymonthyearen': datedaymonthyearen,
-    'dateerayearmonthdayjp': dateerayearmonthdayjp,
-    'dateerayearmonthjp': dateerayearmonthjp,
-    'datemonthday': datemonthday,
-    'datemonthdayen': datemonthdayen,
-    'datemonthdayyear': datemonthdayyear,
-    'datemonthdayyearen': datemonthdayyearen,
-    'datemonthyearen': datemonthyearen,
-    'dateyearmonthdaycjk': dateyearmonthdaycjk,
-    'dateyearmonthen': dateyearmonthen,
-    'dateyearmonthcjk': dateyearmonthcjk,
-    'nocontent': nocontent,
-    'numcommadecimal': numcommadecimal,
-    'zerodash': zerodash,
-    'numdotdecimal': numdotdecimal,
-    'numunitdecimal': numunitdecimal
+    "booleanfalse": booleanfalse,
+    "booleantrue": booleantrue,
+    "datedaymonth": datedaymonthTR2,
+    "datedaymonthen": datedaymonthen,
+    "datedaymonthyear": datedaymonthyearTR2,
+    "datedaymonthyearen": datedaymonthyearen,
+    "dateerayearmonthdayjp": dateerayearmonthdayjp,
+    "dateerayearmonthjp": dateerayearmonthjp,
+    "datemonthday": datemonthday,
+    "datemonthdayen": datemonthdayen,
+    "datemonthdayyear": datemonthdayyear,
+    "datemonthdayyearen": datemonthdayyearen,
+    "datemonthyearen": datemonthyearen,
+    "dateyearmonthdaycjk": dateyearmonthdaycjk,
+    "dateyearmonthen": dateyearmonthen,
+    "dateyearmonthcjk": dateyearmonthcjk,
+    "nocontent": nocontent,
+    "numcommadecimal": numcommadecimal,
+    "zerodash": zerodash,
+    "numdotdecimal": numdotdecimal,
+    "numunitdecimal": numunitdecimal
 }
 
     # transformation registry v-3 functions
 tr3Functions = tr2Functions.copy() # tr3 starts with tr2 and adds more functions
 tr3Functions.update ({
-    # same as v2: 'booleanfalse': booleanfalse,
-    # same as v2: 'booleantrue': booleantrue,
-    'calindaymonthyear': calindaymonthyear, # TBD: calindaymonthyear,
-    #'calinmonthyear': nocontent, # TBD: calinmonthyear,
-    # same as v2: 'datedaymonth': datedaymonthTR2,
-    'datedaymonthdk': datedaymonthdk,
-    # same as v2: 'datedaymonthen': datedaymonthen,
-    # same as v2: 'datedaymonthyear': datedaymonthyearTR2,
-    'datedaymonthyeardk': datedaymonthyeardk,
-    # same as v2: 'datedaymonthyearen': datedaymonthyearen,
-    'datedaymonthyearin': datedaymonthyearinTR3,
-    # same as v2: 'dateerayearmonthdayjp': dateerayearmonthdayjp,
-    # same as v2: 'dateerayearmonthjp': dateerayearmonthjp,
-    # same as v2: 'datemonthday': datemonthday,
-    # same as v2: 'datemonthdayen': datemonthdayen,
-    # same as v2: 'datemonthdayyear': datemonthdayyear,
-    # same as v2: 'datemonthdayyearen': datemonthdayyearen,
-    'datemonthyear': datemonthyearTR3,
-    'datemonthyeardk': datemonthyeardk,
-    # same as v2: 'datemonthyearen': datemonthyearen,
-    'datemonthyearin': datemonthyearin,
-    # same as v2: 'dateyearmonthcjk': dateyearmonthcjk,
-    'dateyearmonthday': dateyearmonthday, # (Y)Y(YY)*MM*DD allowing kanji full-width numerals
-    # same as v2: 'dateyearmonthdaycjk': dateyearmonthdaycjk,
-    # same as v2: 'dateyearmonthen': dateyearmonthen,
-    # same as v2: 'nocontent': nocontent,
-    # same as v2: 'numcommadecimal': numcommadecimal,
-    # same as v2: 'numdotdecimal': numdotdecimal,
-    'numdotdecimalin': numdotdecimalin,
-    # same as v2: 'numunitdecimal': numunitdecimal,
-    'numunitdecimalin': numunitdecimalin,
-    # same as v2: 'zerodash': zerodash,
+    # same as v2: "booleanfalse": booleanfalse,
+    # same as v2: "booleantrue": booleantrue,
+    "calindaymonthyear": calindaymonthyear, # TBD: calindaymonthyear,
+    #"calinmonthyear": nocontent, # TBD: calinmonthyear,
+    # same as v2: "datedaymonth": datedaymonthTR2,
+    "datedaymonthdk": datedaymonthdk,
+    # same as v2: "datedaymonthen": datedaymonthen,
+    # same as v2: "datedaymonthyear": datedaymonthyearTR2,
+    "datedaymonthyeardk": datedaymonthyeardk,
+    # same as v2: "datedaymonthyearen": datedaymonthyearen,
+    "datedaymonthyearin": datedaymonthyearinTR3,
+    # same as v2: "dateerayearmonthdayjp": dateerayearmonthdayjp,
+    # same as v2: "dateerayearmonthjp": dateerayearmonthjp,
+    # same as v2: "datemonthday": datemonthday,
+    # same as v2: "datemonthdayen": datemonthdayen,
+    # same as v2: "datemonthdayyear": datemonthdayyear,
+    # same as v2: "datemonthdayyearen": datemonthdayyearen,
+    "datemonthyear": datemonthyearTR3,
+    "datemonthyeardk": datemonthyeardk,
+    # same as v2: "datemonthyearen": datemonthyearen,
+    "datemonthyearin": datemonthyearin,
+    # same as v2: "dateyearmonthcjk": dateyearmonthcjk,
+    "dateyearmonthday": dateyearmonthday, # (Y)Y(YY)*MM*DD allowing kanji full-width numerals
+    # same as v2: "dateyearmonthdaycjk": dateyearmonthdaycjk,
+    # same as v2: "dateyearmonthen": dateyearmonthen,
+    # same as v2: "nocontent": nocontent,
+    # same as v2: "numcommadecimal": numcommadecimal,
+    # same as v2: "numdotdecimal": numdotdecimal,
+    "numdotdecimalin": numdotdecimalin,
+    # same as v2: "numunitdecimal": numunitdecimal,
+    "numunitdecimalin": numunitdecimalin,
+    # same as v2: "zerodash": zerodash,
 })
     # transformation registry v-4 functions
 tr4Functions = {
-    'date-day-month': datedaymonthTR2,
-    'date-day-monthname-bg': datedaymonthbg,
-    'date-day-monthname-cs': datedaymonthcs,
-    'date-day-monthname-da': datedaymonthdk,
-    'date-day-monthname-de': datedaymonthde,
-    'date-day-monthname-el': datedaymonthel,
-    'date-day-monthname-en': datedaymonthen,
-    'date-day-monthname-es': datedaymonthes,
-    'date-day-monthname-et': datedaymonthet,
-    'date-day-monthname-fi': datedaymonthfi,
-    'date-day-monthname-fr': datedaymonthfr,
-    'date-day-monthname-hr': datedaymonthhr,
-    'date-day-monthname-it': datedaymonthit,
-    'date-day-monthname-lv': datedaymonthlv,
-    'date-day-monthname-nl': datedaymonthnl,
-    'date-day-monthname-no': datedaymonthno,
-    'date-day-monthname-pl': datedaymonthpl,
-    'date-day-monthname-pt': datedaymonthpt,
-    'date-day-monthname-ro': datedaymonthro,
-    'date-day-monthname-sk': datedaymonthsk,
-    'date-day-monthname-sl': datedaymonthsl,
-    'date-day-monthname-sv': datedaymonthdk,
-    'date-day-monthroman': datedaymonthroman,
-    'date-day-month-year': datedaymonthyearTR4,
-    'date-day-monthname-year-bg': datedaymonthyearbg,
-    'date-day-monthname-year-cs': datedaymonthyearcs,
-    'date-day-monthname-year-da': datedaymonthyeardk,
-    'date-day-monthname-year-de': datedaymonthyearde,
-    'date-day-monthname-year-el': datedaymonthyearel,
-    'date-day-monthname-year-en': datedaymonthyearen,
-    'date-day-monthname-year-es': datedaymonthyeares,
-    'date-day-monthname-year-et': datedaymonthyearet,
-    'date-day-monthname-year-fi': datedaymonthyearfi,
-    'date-day-monthname-year-fr': datedaymonthyearfr,
-    'date-day-monthname-year-hi': datedaymonthyearinTR4,
-    'date-day-monthname-year-hr': datedaymonthyearhr,
-    'date-day-monthname-year-it': datedaymonthyearit,
-    'date-day-monthname-year-nl': datedaymonthyearnl,
-    'date-day-monthname-year-no': datedaymonthyearno,
-    'date-day-monthname-year-pl': datedaymonthyearpl,
-    'date-day-monthname-year-pt': datedaymonthyearpt,
-    'date-day-monthname-year-ro': datedaymonthyearro,
-    'date-day-monthname-year-sk': datedaymonthyearsk,
-    'date-day-monthname-year-sl': datedaymonthyearsl,
-    'date-day-monthname-year-sv': datedaymonthyeardk,
-    'date-day-monthroman-year': datedaymonthyearroman,
-    'date-ind-day-monthname-year-hi': calindaymonthyear,
-    'date-jpn-era-year-month-day': dateerayearmonthdayjp,
-    'date-jpn-era-year-month': dateerayearmonthjp,
-    'date-monthname-day-en': datemonthdayen,
-    'date-monthname-day-hu': datemonthdayhu,
-    'date-monthname-day-lt': datemonthdaylt,
-    'date-monthname-day-year-en': datemonthdayyearen,
-    'date-month-day': datemonthday,
-    'date-month-day-year': datemonthdayyear,
-    'date-month-year': datemonthyearTR4,
-    'date-monthname-year-bg': datemonthyearbg,
-    'date-monthname-year-cs': datemonthyearcs,
-    'date-monthname-year-da': datemonthyeardk,
-    'date-monthname-year-de': datemonthyearde,
-    'date-monthname-year-el': datemonthyearel,
-    'date-monthname-year-en': datemonthyearen,
-    'date-monthname-year-es': datemonthyeares,
-    'date-monthname-year-et': datemonthyearet,
-    'date-monthname-year-fi': datemonthyearfi,
-    'date-monthname-year-fr': datemonthyearfr,
-    'date-monthname-year-hi': datemonthyearin,
-    'date-monthname-year-hr': datemonthyearhr,
-    'date-monthname-year-it': datemonthyearit,
-    'date-monthname-year-nl': datemonthyearnl,
-    'date-monthname-year-no': datemonthyearno,
-    'date-monthname-year-pl': datemonthyearpl,
-    'date-monthname-year-pt': datemonthyearpt,
-    'date-monthname-year-ro': datemonthyearro,
-    'date-monthname-year-sk': datemonthyearsk,
-    'date-monthname-year-sl': datemonthyearsl,
-    'date-monthname-year-sv': datemonthyeardk,
-    'date-monthroman-year': datemonthyearroman,
-    'date-year-day-monthname-lv': dateyeardaymonthlv,
-    'date-year-month': dateyearmonthTR4,
-    'date-year-month-day': dateyearmonthday, # (Y)Y(YY)*MM*DD allowing kanji full-width numerals
-    'date-year-monthname-en': dateyearmonthen,
-    'date-year-monthname-hu': dateyearmonthhu,
-    'date-year-monthname-day-hu': dateyearmonthdayhu,
-    'date-year-monthname-day-lt': dateyearmonthdaylt,
-    'date-year-monthname-lt': dateyearmonthlt,
-    'date-year-monthname-lv': dateyearmonthlv,
-    'fixed-empty': nocontent,
-    'fixed-false': booleanfalse,
-    'fixed-true': booleantrue,
-    'fixed-zero': fixedzero,
-    'num-comma-decimal': numcommadecimalTR4,
-    'num-dot-decimal': numdotdecimalTR4, # relax requirement for 0 before decimal
-    'numdotdecimalin': numdotdecimalinTR4,
-    'num-unit-decimal': numunitdecimalTR4,
+    "date-day-month": datedaymonthTR2,
+    "date-day-monthname-bg": datedaymonthbg,
+    "date-day-monthname-cs": datedaymonthcs,
+    "date-day-monthname-da": datedaymonthdk,
+    "date-day-monthname-de": datedaymonthde,
+    "date-day-monthname-el": datedaymonthel,
+    "date-day-monthname-en": datedaymonthen,
+    "date-day-monthname-es": datedaymonthes,
+    "date-day-monthname-et": datedaymonthet,
+    "date-day-monthname-fi": datedaymonthfi,
+    "date-day-monthname-fr": datedaymonthfr,
+    "date-day-monthname-hr": datedaymonthhr,
+    "date-day-monthname-it": datedaymonthit,
+    "date-day-monthname-lv": datedaymonthlv,
+    "date-day-monthname-nl": datedaymonthnl,
+    "date-day-monthname-no": datedaymonthno,
+    "date-day-monthname-pl": datedaymonthpl,
+    "date-day-monthname-pt": datedaymonthpt,
+    "date-day-monthname-ro": datedaymonthro,
+    "date-day-monthname-sk": datedaymonthsk,
+    "date-day-monthname-sl": datedaymonthsl,
+    "date-day-monthname-sv": datedaymonthdk,
+    "date-day-monthroman": datedaymonthroman,
+    "date-day-month-year": datedaymonthyearTR4,
+    "date-day-monthname-year-bg": datedaymonthyearbg,
+    "date-day-monthname-year-cs": datedaymonthyearcs,
+    "date-day-monthname-year-da": datedaymonthyeardk,
+    "date-day-monthname-year-de": datedaymonthyearde,
+    "date-day-monthname-year-el": datedaymonthyearel,
+    "date-day-monthname-year-en": datedaymonthyearen,
+    "date-day-monthname-year-es": datedaymonthyeares,
+    "date-day-monthname-year-et": datedaymonthyearet,
+    "date-day-monthname-year-fi": datedaymonthyearfi,
+    "date-day-monthname-year-fr": datedaymonthyearfr,
+    "date-day-monthname-year-hi": datedaymonthyearinTR4,
+    "date-day-monthname-year-hr": datedaymonthyearhr,
+    "date-day-monthname-year-it": datedaymonthyearit,
+    "date-day-monthname-year-nl": datedaymonthyearnl,
+    "date-day-monthname-year-no": datedaymonthyearno,
+    "date-day-monthname-year-pl": datedaymonthyearpl,
+    "date-day-monthname-year-pt": datedaymonthyearpt,
+    "date-day-monthname-year-ro": datedaymonthyearro,
+    "date-day-monthname-year-sk": datedaymonthyearsk,
+    "date-day-monthname-year-sl": datedaymonthyearsl,
+    "date-day-monthname-year-sv": datedaymonthyeardk,
+    "date-day-monthroman-year": datedaymonthyearroman,
+    "date-ind-day-monthname-year-hi": calindaymonthyear,
+    "date-jpn-era-year-month-day": dateerayearmonthdayjp,
+    "date-jpn-era-year-month": dateerayearmonthjp,
+    "date-monthname-day-en": datemonthdayen,
+    "date-monthname-day-hu": datemonthdayhu,
+    "date-monthname-day-lt": datemonthdaylt,
+    "date-monthname-day-year-en": datemonthdayyearen,
+    "date-month-day": datemonthday,
+    "date-month-day-year": datemonthdayyear,
+    "date-month-year": datemonthyearTR4,
+    "date-monthname-year-bg": datemonthyearbg,
+    "date-monthname-year-cs": datemonthyearcs,
+    "date-monthname-year-da": datemonthyeardk,
+    "date-monthname-year-de": datemonthyearde,
+    "date-monthname-year-el": datemonthyearel,
+    "date-monthname-year-en": datemonthyearen,
+    "date-monthname-year-es": datemonthyeares,
+    "date-monthname-year-et": datemonthyearet,
+    "date-monthname-year-fi": datemonthyearfi,
+    "date-monthname-year-fr": datemonthyearfr,
+    "date-monthname-year-hi": datemonthyearin,
+    "date-monthname-year-hr": datemonthyearhr,
+    "date-monthname-year-it": datemonthyearit,
+    "date-monthname-year-nl": datemonthyearnl,
+    "date-monthname-year-no": datemonthyearno,
+    "date-monthname-year-pl": datemonthyearpl,
+    "date-monthname-year-pt": datemonthyearpt,
+    "date-monthname-year-ro": datemonthyearro,
+    "date-monthname-year-sk": datemonthyearsk,
+    "date-monthname-year-sl": datemonthyearsl,
+    "date-monthname-year-sv": datemonthyeardk,
+    "date-monthroman-year": datemonthyearroman,
+    "date-year-day-monthname-lv": dateyeardaymonthlv,
+    "date-year-month": dateyearmonthTR4,
+    "date-year-month-day": dateyearmonthday, # (Y)Y(YY)*MM*DD allowing kanji full-width numerals
+    "date-year-monthname-en": dateyearmonthen,
+    "date-year-monthname-hu": dateyearmonthhu,
+    "date-year-monthname-day-hu": dateyearmonthdayhu,
+    "date-year-monthname-day-lt": dateyearmonthdaylt,
+    "date-year-monthname-lt": dateyearmonthlt,
+    "date-year-monthname-lv": dateyearmonthlv,
+    "fixed-empty": nocontent,
+    "fixed-false": booleanfalse,
+    "fixed-true": booleantrue,
+    "fixed-zero": fixedzero,
+    "num-comma-decimal": numcommadecimalTR4,
+    "num-dot-decimal": numdotdecimalTR4, # relax requirement for 0 before decimal
+    "numdotdecimalin": numdotdecimalinTR4,
+    "num-unit-decimal": numunitdecimalTR4,
 }
     # transformation registry v-5 functions
 tr5Functions = tr4Functions.copy() # tr5 starts with tr4 and adds more functions
 tr5Functions.update ({
     # Welsh language
-    'date-day-monthname-cy': datedaymonthcy,
-    'date-day-monthname-year-cy': datedaymonthyearcy,
-    'date-monthname-year-cy': datemonthyearcy,
+    "date-day-monthname-cy": datedaymonthcy,
+    "date-day-monthname-year-cy": datedaymonthyearcy,
+    "date-monthname-year-cy": datemonthyearcy,
     # Swiss-style numbers with apostrophes as thousand separators
-    'num-comma-decimal-apos': numcommadecimalApos,
-    'num-dot-decimal-apos': numdotdecimalApos,
-    'num-unit-decimal-apos': numunitdecimalApos
+    "num-comma-decimal-apos": numcommadecimalApos,
+    "num-dot-decimal-apos": numdotdecimalApos,
+    "num-unit-decimal-apos": numunitdecimalApos
 })
-deprecatedNamespaceURI = 'http://www.xbrl.org/2008/inlineXBRL/transformation' # the CR/PR pre-REC namespace
+deprecatedNamespaceURI = "http://www.xbrl.org/2008/inlineXBRL/transformation" # the CR/PR pre-REC namespace
 
 ixtNamespacesByVersion = {
-    1: 'http://www.xbrl.org/inlineXBRL/transformation/2010-04-20',
-    2: 'http://www.xbrl.org/inlineXBRL/transformation/2011-07-31',
-    3: 'http://www.xbrl.org/inlineXBRL/transformation/2015-02-26',
-    4: 'http://www.xbrl.org/inlineXBRL/transformation/2020-02-12',
-    5: 'http://www.xbrl.org/inlineXBRL/transformation/2022-02-16',
+    1: "http://www.xbrl.org/inlineXBRL/transformation/2010-04-20",
+    2: "http://www.xbrl.org/inlineXBRL/transformation/2011-07-31",
+    3: "http://www.xbrl.org/inlineXBRL/transformation/2015-02-26",
+    4: "http://www.xbrl.org/inlineXBRL/transformation/2020-02-12",
+    5: "http://www.xbrl.org/inlineXBRL/transformation/2022-02-16",
 }
 
 ixtNamespaces = {
@@ -1470,5 +1469,5 @@ ixtNamespaceFunctions = {
     ixtNamespacesByVersion[4]: tr4Functions, # transformation registry v4
     ixtNamespacesByVersion[5]: tr5Functions, # transformation registry v5
     "http://www.xbrl.org/inlineXBRL/transformation/WGWD/YYYY-MM-DD": tr5Functions, # transformation registry v4 draft
-    'http://www.xbrl.org/2008/inlineXBRL/transformation': tr1Functions # the CR/PR pre-REC namespace
+    "http://www.xbrl.org/2008/inlineXBRL/transformation": tr1Functions # the CR/PR pre-REC namespace
 }
