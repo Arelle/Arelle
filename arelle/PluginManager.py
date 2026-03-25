@@ -24,9 +24,9 @@ if TYPE_CHECKING:
 # continue to work without modification.
 # ---------------------------------------------------------------------------
 
-_singleton: PluginManager | None = None
+_singleton: PluginManager = PluginManager()
 
-def getInstance() -> PluginManager | None:
+def getInstance() -> PluginManager:
     return _singleton
 
 _SINGLETON_ATTRS = frozenset({
@@ -44,9 +44,6 @@ def __getattr__(name: str) -> Any:
 
 
 def init(cntlr: Cntlr, loadPluginConfig: bool = True) -> None:
-    global _singleton
-    if _singleton is None:
-        _singleton = PluginManager()
     _singleton.init(cntlr, loadPluginConfig)
 
 
