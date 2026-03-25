@@ -153,7 +153,7 @@ class DialogUserPassword(Toplevel):
                                          "       with user and password (if provided)"
                                          ).format(hostProxy), wraplength=360)
             self.useOsProxyCb = useOsProxyCb
-            useOsProxyCb.valueVar.trace("w", self.setEnabledState)
+            useOsProxyCb.valueVar.trace_add("write", self.setEnabledState)
 
             y += 1
         if showUrl:

@@ -200,13 +200,13 @@ class CntlrWinMain (Cntlr.Cntlr):
         validateMenu.add_command(label=_("Validate"), underline=0, command=self.validate)
         self.modelManager.validateDisclosureSystem = self.config.setdefault("validateDisclosureSystem",False)
         self.validateDisclosureSystem = BooleanVar(value=self.modelManager.validateDisclosureSystem)
-        self.validateDisclosureSystem.trace("w", self.setValidateDisclosureSystem)
+        self.validateDisclosureSystem.trace_add("write", self.setValidateDisclosureSystem)
         validateMenu.add_checkbutton(label=_("Disclosure system checks"), underline=0, variable=self.validateDisclosureSystem, onvalue=True, offvalue=False)
         validateMenu.add_command(label=_("Select disclosure system..."), underline=0, command=self.selectDisclosureSystem)
         calcMenu = Menu(self.menubar, tearoff=0)
         self.modelManager.validateCalcs = self.config.setdefault("validateCalcsEnum", CalcsMode.NONE)
         self.calcChoiceEnumVar = IntVar(self.parent, value=self.modelManager.validateCalcs)
-        self.calcChoiceEnumVar.trace("w", self.setCalcChoiceEnumVar)
+        self.calcChoiceEnumVar.trace_add("write", self.setCalcChoiceEnumVar)
         for calcChoiceMenuLabel, calcChoiceEnumValue in CalcsMode.menu().items():
             calcMenu.add_radiobutton(label=calcChoiceMenuLabel, underline=0, var=self.calcChoiceEnumVar, value=calcChoiceEnumValue)
         toolsMenu.add_cascade(label=_("Calc linkbase"), menu=calcMenu, underline=0)
@@ -215,29 +215,29 @@ class CntlrWinMain (Cntlr.Cntlr):
         baseValidationModeName = self.config.setdefault("baseTaxonomyValidationMode", ValidateBaseTaxonomiesMode.DISCLOSURE_SYSTEM.value)
         self.modelManager.baseTaxonomyValidationMode = ValidateBaseTaxonomiesMode.fromName(baseValidationModeName)
         self.baseTaxonomyValidationModeEnumVar = StringVar(self.parent, value=baseValidationModeName)
-        self.baseTaxonomyValidationModeEnumVar.trace("w", self.setBaseTaxonomyValidationModeEnumVar)
+        self.baseTaxonomyValidationModeEnumVar.trace_add("write", self.setBaseTaxonomyValidationModeEnumVar)
         for modeLabel, modeValue in ValidateBaseTaxonomiesMode.menu().items():
             baseValidateModeMenu.add_radiobutton(label=modeLabel, underline=0, var=self.baseTaxonomyValidationModeEnumVar, value=modeValue)
         validateMenu.add_cascade(label=_("Base taxonomy validation"), menu=baseValidateModeMenu, underline=0)
 
         self.modelManager.validateUtr = self.config.setdefault("validateUtr",True)
         self.validateUtr = BooleanVar(value=self.modelManager.validateUtr)
-        self.validateUtr.trace("w", self.setValidateUtr)
+        self.validateUtr.trace_add("write", self.setValidateUtr)
         validateMenu.add_checkbutton(label=_("Unit Type Registry validation"), underline=0, variable=self.validateUtr, onvalue=True, offvalue=False)
 
         self.modelManager.validateXmlOim = self.config.setdefault("validateXmlOim", False)
         self.validateXmlOim = BooleanVar(value=self.modelManager.validateXmlOim)
-        self.validateXmlOim.trace("w", self.setValidateXmlOim)
+        self.validateXmlOim.trace_add("write", self.setValidateXmlOim)
         validateMenu.add_checkbutton(label=_("OIM validate xBRL-XML documents"), underline=0, variable=self.validateXmlOim, onvalue=True, offvalue=False)
 
         self.modelManager.validateAllFilesAsReportPackages = self.config.setdefault("validateAllFilesAsReportPackages", False)
         self.validateAllFilesAsReportPackages = BooleanVar(value=self.modelManager.validateAllFilesAsReportPackages)
-        self.validateAllFilesAsReportPackages.trace("w", self.setValidateAllFilesAsReportPackages)
+        self.validateAllFilesAsReportPackages.trace_add("write", self.setValidateAllFilesAsReportPackages)
         validateMenu.add_checkbutton(label=_("Validate all files as Report Packages"), underline=0, variable=self.validateAllFilesAsReportPackages, onvalue=True, offvalue=False)
 
         self.modelManager.validateAllFilesAsTaxonomyPackages = self.config.setdefault("validateAllFilesAsTaxonomyPackages", False)
         self.validateAllFilesAsTaxonomyPackages = BooleanVar(value=self.modelManager.validateAllFilesAsTaxonomyPackages)
-        self.validateAllFilesAsTaxonomyPackages.trace("w", self.setValidateAllFilesAsTaxonomyPackages)
+        self.validateAllFilesAsTaxonomyPackages.trace_add("write", self.setValidateAllFilesAsTaxonomyPackages)
         validateMenu.add_checkbutton(label=_("Validate all files as Taxonomy Packages"), underline=0, variable=self.validateAllFilesAsTaxonomyPackages, onvalue=True, offvalue=False)
 
         self.validateDuplicateFacts = None
@@ -266,20 +266,20 @@ class CntlrWinMain (Cntlr.Cntlr):
         toolsMenu.add_cascade(label=_("Internet"), menu=cacheMenu, underline=0)
         self.webCache.workOffline  = self.config.setdefault("workOffline",False)
         self.workOffline = BooleanVar(value=self.webCache.workOffline)
-        self.workOffline.trace("w", self.setWorkOffline)
+        self.workOffline.trace_add("write", self.setWorkOffline)
         cacheMenu.add_checkbutton(label=_("Work offline"), underline=0, variable=self.workOffline, onvalue=True, offvalue=False)
         self.webCache.noCertificateCheck = self.config.setdefault("noCertificateCheck",False) # resets proxy handler stack if true
         self.noCertificateCheck = BooleanVar(value=self.webCache.noCertificateCheck)
-        self.noCertificateCheck.trace("w", self.setNoCertificateCheck)
+        self.noCertificateCheck.trace_add("write", self.setNoCertificateCheck)
         cacheMenu.add_checkbutton(label=_("No certificate check"), underline=0, variable=self.noCertificateCheck, onvalue=True, offvalue=False)
         '''
         self.webCache.recheck  = self.config.setdefault("webRecheck",False)
         self.webRecheck = BooleanVar(value=self.webCache.webRecheck)
-        self.webRecheck.trace("w", self.setWebRecheck)
+        self.webRecheck.trace_add("write", self.setWebRecheck)
         cacheMenu.add_checkbutton(label=_("Recheck file dates weekly"), underline=0, variable=self.workOffline, onvalue=True, offvalue=False)
         self.webCache.notify  = self.config.setdefault("",False)
         self.downloadNotify = BooleanVar(value=self.webCache.retrievalNotify)
-        self.downloadNotify.trace("w", self.setRetrievalNotify)
+        self.downloadNotify.trace_add("write", self.setRetrievalNotify)
         cacheMenu.add_checkbutton(label=_("Notify file downloads"), underline=0, variable=self.workOffline, onvalue=True, offvalue=False)
         '''
 
@@ -288,7 +288,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.internetRecheckVar = StringVar(value=self.webCache.recheck)
         self._internetRecheckLabel = _("Internet recheck Interval")
         _recheck_initial = 'disable' if self.webCache.workOffline else 'normal'
-        self.internetRecheckVar.trace("w", self.setInternetRecheck)
+        self.internetRecheckVar.trace_add("write", self.setInternetRecheck)
 
         _internetRecheckEntries = ((_("daily"), "daily"), (_("weekly"), "weekly"), (_("monthly"), "monthly"), (_("never"), "never"))
 
@@ -316,12 +316,12 @@ class CntlrWinMain (Cntlr.Cntlr):
         logmsgMenu.add_command(label=_("Save to file"), underline=0, command=self.logSaveToFile)
         self.modelManager.collectProfileStats = self.config.setdefault("collectProfileStats",False)
         self.collectProfileStats = BooleanVar(value=self.modelManager.collectProfileStats)
-        self.collectProfileStats.trace("w", self.setCollectProfileStats)
+        self.collectProfileStats.trace_add("write", self.setCollectProfileStats)
         logmsgMenu.add_checkbutton(label=_("Collect profile stats"), underline=0, variable=self.collectProfileStats, onvalue=True, offvalue=False)
         logmsgMenu.add_command(label=_("Log profile stats"), underline=0, command=self.showProfileStats)
         logmsgMenu.add_command(label=_("Clear profile stats"), underline=0, command=self.clearProfileStats)
         self.showDebugMessages = BooleanVar(value=self.config.setdefault("showDebugMessages",False))
-        self.showDebugMessages.trace("w", self.setShowDebugMessages)
+        self.showDebugMessages.trace_add("write", self.setShowDebugMessages)
         logmsgMenu.add_checkbutton(label=_("Show debug messages"), underline=0, variable=self.showDebugMessages, onvalue=True, offvalue=False)
 
         toolsMenu.add_command(label=_("Language..."), underline=0, command=lambda: DialogLanguage.askLanguage(self))
@@ -540,7 +540,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             duplicateTypeArg = ValidateDuplicateFacts.DuplicateTypeArg(defaultArg)
         self.modelManager.validateDuplicateFacts = duplicateTypeArg.duplicateType()
         self.validateDuplicateFacts = StringVar(value=duplicateTypeArg.value)
-        self.validateDuplicateFacts.trace("w", self.setValidateDuplicateFacts)
+        self.validateDuplicateFacts.trace_add("write", self.setValidateDuplicateFacts)
         duplicateFactWarningMenu = Menu(validateMenu, tearoff=0)
         for duplicateTypeArg in ValidateDuplicateFacts.DuplicateTypeArg:
             duplicateFactWarningMenu.add_checkbutton(

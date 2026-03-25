@@ -27,7 +27,7 @@ def viewFacts(modelXbrl, tabWin, header="Fact Table", arcrole=XbrlConst.parentCh
     # languages menu
     menu = view.contextMenu()
     optionsMenu = Menu(view.viewFrame, tearoff=0)
-    view.ignoreDims.trace("w", view.viewReloadDueToMenuAction)
+    view.ignoreDims.trace_add("write", view.viewReloadDueToMenuAction)
     optionsMenu.add_checkbutton(label=_("Ignore Dimensions"), underline=0, variable=view.ignoreDims, onvalue=True, offvalue=False)
     menu.add_cascade(label=_("Options"), menu=optionsMenu, underline=0)
     view.menuAddExpandCollapse()
