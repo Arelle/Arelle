@@ -70,7 +70,7 @@ def viewRenderedGrid(modelXbrl, tabWin, lang=None):
     optionsMenu = Menu(view.viewFrame, tearoff=0)
     optionsMenu.add_command(label=_("New fact item options"), underline=0, command=lambda: getNewFactItemOptions(modelXbrl.modelManager.cntlr, view.newFactItemOptions))
     optionsMenu.add_command(label=_("Open breakdown entry rows"), underline=0, command=view.setOpenBreakdownEntryRows)
-    view.ignoreDimValidity.trace("w", view.viewReloadDueToMenuAction)
+    view.ignoreDimValidity.trace_add("write", view.viewReloadDueToMenuAction)
     optionsMenu.add_checkbutton(label=_("Ignore Dimensional Validity"), underline=0, variable=view.ignoreDimValidity, onvalue=True, offvalue=False)
     menu.add_cascade(label=_("Options"), menu=optionsMenu, underline=0)
     view.tablesMenu = Menu(view.viewFrame, tearoff=0)

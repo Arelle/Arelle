@@ -173,7 +173,7 @@ class gridCell(Entry):
     def __init__(self, master, x, y, value="", width=None, justify=None, objectId=None, onClick=None):
         Entry.__init__(self, master=master)
         self.valueVar = StringVar()
-        self.valueVar.trace('w', self.valueChanged)
+        self.valueVar.trace_add('write', self.valueChanged)
         self.config(textvariable=self.valueVar,
                     #relief="ridge",
                     #bg="#ff8ff8ff8", fg="#000000000",
@@ -217,7 +217,7 @@ class gridCombobox(_Combobox):
         _Combobox.__init__(self, master=master)
         self.attr = attr
         self.valueVar = StringVar()
-        self.valueVar.trace('w', self.valueChanged)
+        self.valueVar.trace_add('write', self.valueChanged)
         self.config(textvariable=self.valueVar,
                     background="#ff8ff8ff8", foreground="#000000000",
                    # justify='center'
@@ -282,7 +282,7 @@ class checkbox(Checkbutton):
         self.attr = attr
         self.onclick = onclick
         self.valueVar = StringVar()
-        self.valueVar.trace('w', self.valueChanged)
+        self.valueVar.trace_add('write', self.valueChanged)
         Checkbutton.__init__(self, master=master, text=text, variable=self.valueVar)
         self.grid(column=x, row=y, sticky=W, padx=24)
         if columnspan:

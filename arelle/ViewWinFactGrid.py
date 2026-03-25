@@ -20,9 +20,9 @@ def viewFactsGrid(modelXbrl, tabWin, header="Fact Grid", arcrole=XbrlConst.paren
         # context menu
         menu = view.contextMenu()
         optionsMenu = Menu(view.viewFrame, tearoff=0)
-        view.ignoreDims.trace("w", view.view)
+        view.ignoreDims.trace_add("write", view.view)
         optionsMenu.add_checkbutton(label=_("Ignore Dimensions"), underline=0, variable=view.ignoreDims, onvalue=True, offvalue=False)
-        view.showDimDefaults.trace("w", view.view)
+        view.showDimDefaults.trace_add("write", view.view)
         optionsMenu.add_checkbutton(label=_("Show Dimension Defaults"), underline=0, variable=view.showDimDefaults, onvalue=True, offvalue=False)
         menu.add_cascade(label=_("Options"), menu=optionsMenu, underline=0)
         menu.add_cascade(label=_("Close"), underline=0, command=view.close)
