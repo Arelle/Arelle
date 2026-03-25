@@ -65,7 +65,7 @@ class Session:
             self._check_thread()
             if self._cntlr is not None:
                 self._cntlr.close()
-                self._cntlr.pluginManager.close()
+                PluginManager.getInstance().close()
 
     def get_log_messages(self) -> list[dict[str, Any]]:
         """
@@ -130,7 +130,7 @@ class Session:
             self._check_thread()
             PackageManager.reset()
             if self._cntlr is not None:
-                self._cntlr.pluginManager.reset()
+                PluginManager.getInstance().reset()
             if self._cntlr is None:
                 # Certain options must be passed into the controller constructor to have the intended effect
                 self._cntlr = createCntlrAndPreloadPlugins(

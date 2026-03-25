@@ -32,7 +32,7 @@ def dialogPluginManager(mainWin):
 
 def backgroundCheckForUpdates(cntlr):
     cntlr.showStatus(_("Checking for updates to plug-ins")) # clear web loading status
-    modulesWithNewerFileDates = cntlr.pluginManager.modulesWithNewerFileDates()
+    modulesWithNewerFileDates = PluginManager.getInstance().modulesWithNewerFileDates()
     if modulesWithNewerFileDates:
         cntlr.showStatus(_("Updates are available for these plug-ins: {0}")
                               .format(', '.join(modulesWithNewerFileDates)), clearAfter=5000)
@@ -51,7 +51,8 @@ class DialogPluginManager(Toplevel):
         self.cntlr = mainWin
 
         # copy plugins for temporary display
-        self.pluginConfig = self.cntlr.pluginManager.pluginConfig
+        self._pluginManager = PluginManager.getInstance()
+        self.pluginConfig = self._pluginManager.pluginConfig
         self.pluginConfigChanged = False
         self.uiClassMethodsChanged = False
         self.modelClassesChanged = False
@@ -283,9 +284,9 @@ class DialogPluginManager(Toplevel):
             del self.pluginConfig["classes"][_orphanedClassName]
 
         if self.pluginConfigChanged:
-            self.cntlr.pluginManager.pluginConfig = self.pluginConfig
-            self.cntlr.pluginManager.pluginConfigChanged = True
-            self.cntlr.pluginManager.reset()  # force reloading of modules
+            self._pluginManager.pluginConfig = self.pluginConfig
+            self._pluginManager.pluginConfigChanged = True
+            self._pluginManager.reset()  # force reloading of modules
         if self.uiClassMethodsChanged or self.modelClassesChanged or self.customTransformsChanged or self.disclosureSystemTypesChanged or self.hostSystemFeaturesChanged:  # may require reloading UI
             affectedItems = ""
             if self.uiClassMethodsChanged:
@@ -428,7 +429,7 @@ class DialogPluginManager(Toplevel):
         if selectedPath:
             if selectedPath.startswith(self.cntlr.pluginDir):
                 selectedPath = selectedPath[len(self.cntlr.pluginDir)+1:]
-            moduleInfo = self.cntlr.pluginManager.moduleModuleInfo(moduleURL=selectedPath)
+            moduleInfo = self._pluginManager.moduleModuleInfo(moduleURL=selectedPath)
             self.loadFoundModuleInfo(moduleInfo, selectedPath)
 
     def browseLocally(self):
@@ -447,14 +448,14 @@ class DialogPluginManager(Toplevel):
             #    os.path.isfile(filename)):
             #    filename = os.path.dirname(filename) # refer to the package instead
             self.cntlr.config["pluginOpenDir"] = os.path.dirname(filename)
-            moduleInfo = self.cntlr.pluginManager.moduleModuleInfo(moduleURL=filename)
+            moduleInfo = self._pluginManager.moduleModuleInfo(moduleURL=filename)
             self.loadFoundModuleInfo(moduleInfo, filename)
 
 
     def findOnWeb(self):
         url = DialogURL.askURL(self)
         if url:  # url is the in-cache or local file
-            moduleInfo = self.cntlr.pluginManager.moduleModuleInfo(moduleURL=url)
+            moduleInfo = self._pluginManager.moduleModuleInfo(moduleURL=url)
             self.cntlr.showStatus("") # clear web loading status
             self.loadFoundModuleInfo(moduleInfo, url)
 
@@ -561,7 +562,7 @@ class DialogPluginManager(Toplevel):
         if self.selectedModule in self.pluginConfig["modules"]:
             url = self.pluginConfig["modules"][self.selectedModule].get("moduleURL")
             if url:
-                moduleInfo = self.cntlr.pluginManager.moduleModuleInfo(moduleURL=url, reload=True)
+                moduleInfo = self._pluginManager.moduleModuleInfo(moduleURL=url, reload=True)
                 if moduleInfo:
                     if self.checkIfImported(moduleInfo):
                         return;

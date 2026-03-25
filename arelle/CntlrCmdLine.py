@@ -1301,13 +1301,14 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict[str, Any]]:
 
     # install any dynamic plugins so their command line options can be parsed if present
     arellePluginModules = {}
+    pluginManager = PluginManager.getInstance()
     for pluginCmd in preloadPlugins:
         cmd = pluginCmd.strip()
         if cmd not in ("show", "temp") and len(cmd) > 0 and cmd[0] not in ("-", "~", "+"):
-            moduleInfo = cntlr.pluginManager.addPluginModule(cmd)
+            moduleInfo = pluginManager.addPluginModule(cmd)
             if moduleInfo:
                 arellePluginModules[cmd] = moduleInfo
-                cntlr.pluginManager.reset()
+                pluginManager.reset()
 
     # add plug-in options
     for optionsExtender in cntlr.plugins.hooks("CntlrCmdLine.Options"):
@@ -1716,7 +1717,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 elif cmd == "temp":
                     savePluginChanges = False
                 elif cmd.startswith("+"):
-                    moduleInfo = self.pluginManager.addPluginModule(cmd[1:])
+                    moduleInfo = self._pluginManager.addPluginModule(cmd[1:])
                     if moduleInfo:
                         self.addToLog(_("Addition of plug-in {0} successful.").format(moduleInfo.get("name")),
                                       messageCode="info", file=moduleInfo.get("moduleURL"))  # type: ignore[arg-type]
@@ -1726,13 +1727,13 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     else:
                         self.addToLog(_("Unable to load plug-in."), messageCode="info", file=cmd[1:])
                 elif cmd.startswith("~"):
-                    if self.pluginManager.reloadPluginModule(cmd[1:]):
+                    if self._pluginManager.reloadPluginModule(cmd[1:]):
                         self.addToLog(_("Reload of plug-in successful."), messageCode="info", file=cmd[1:])
                         resetPlugins = True
                     else:
                         self.addToLog(_("Unable to reload plug-in."), messageCode="info", file=cmd[1:])
                 elif cmd.startswith("-"):
-                    if self.pluginManager.removePluginModule(cmd[1:]):
+                    if self._pluginManager.removePluginModule(cmd[1:]):
                         self.addToLog(_("Deletion of plug-in successful."), messageCode="info", file=cmd[1:])
                         resetPlugins = True
                     else:
@@ -1742,7 +1743,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     if cmd in self.preloadedPlugins:
                         moduleInfo =  self.preloadedPlugins[cmd] # already loaded, add activation message to log below
                     else:
-                        moduleInfo = self.pluginManager.addPluginModule(cmd)
+                        moduleInfo = self._pluginManager.addPluginModule(cmd)
                         if moduleInfo:
                             resetPlugins = True
                             if _pluginHasCliOptions(moduleInfo):
@@ -1755,9 +1756,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                       messageCode="arelle:pluginParameterError",
                                       messageArgs={"name": cmd, "file": cmd}, level=logging.ERROR)
                 if resetPlugins:
-                    self.pluginManager.reset()
+                    self._pluginManager.reset()
                     if savePluginChanges:
-                        self.pluginManager.save(self)
+                        self._pluginManager.save(self)
                 if loadPluginOptions:
                     _optionsParser = ParserForDynamicPlugins(options)
                     # add plug-in options

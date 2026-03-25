@@ -292,8 +292,8 @@ class Cntlr:
 
         # start plug in server (requres web cache initialized, but not logger)
         from arelle.PluginManager import getInstance as _getPluginManagerInstance
-        self.pluginManager = _getPluginManagerInstance()
-        self.plugins = PluginProvider(self.pluginManager)
+        self._pluginManager = _getPluginManagerInstance()
+        self.plugins = PluginProvider(self._pluginManager)
 
         # requires plug ins initialized
         self.modelManager = ModelManager.initialize(self)
@@ -519,7 +519,7 @@ class Cntlr:
            :param saveConfig: save the user preferences configuration
            :type saveConfig: bool
         """
-        self.pluginManager.save(self)
+        self._pluginManager.save(self)
 
         if self.hasGui:
             PackageManager.save(self)
