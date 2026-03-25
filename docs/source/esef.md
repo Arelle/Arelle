@@ -35,6 +35,15 @@ Arelle's validation plugins can provide multiple collections of validation rules
 
 > **Important**: Always select the appropriate disclosure system version that matches your reporting period requirements, as validation rules evolve between reporting years.
 
+## Authority-Specific Configuration
+
+Some ESEF Filer Manual rules allow jurisdiction specific behavior. The `--esefAuthority` option configures this behavior.
+
+- Report package size limits and measurement method (zipped vs unzipped)
+- Whether iXBRL target attributes are allowed, warned, or treated as errors
+- Identifier scheme requirements (e.g., LEI vs Companies House)
+- Formula filtering (e.g., skipping LEI checks)
+
 ## GUI Validation
 
 To enable ESEF validation in the Arelle graphical user interface:
@@ -49,11 +58,9 @@ To enable ESEF validation in the Arelle graphical user interface:
      - For reports with Inline XBRL: Select year-specific system matching your requirements (e.g., `ESMA RTS on ESEF-2023`)
      - For reports without XBRL tagging: Select `ESMA RTS on ESEF-2023 Unconsolidated` or equivalent for your reporting year
 
-3. **Set Formula Parameters (Optional)**:
-   - Navigate to `Tools` > `Formula` > `Parameters...`
-   - Set parameters as needed:
-     - `authority`: For country-specific validations (e.g., `DK` for Denmark or `UK` for UKSEF)
-     - `eps_threshold`: Custom calculation tolerance for numeric accuracy checks
+3. **Set Authority (Optional)**:
+   - Navigate to `Tools` > `Validation` > `ESEF authority`
+   - Select the appropriate authority for your jurisdiction
 
 4. **Open the ESEF Report**:
    - Use `File` > `Open File...` to open the ESEF report (can be .zip package, or .xbri report package.)
@@ -82,12 +89,16 @@ python arelleCmdLine.py --plugin validate/ESEF --disclosureSystem esef --validat
 python arelleCmdLine.py --plugin validate/ESEF --disclosureSystem esef-2023 --validate --file report.zip
 ```
 
-#### Country-Specific Validation Rules
-
-For authority-specific validations (e.g., Denmark or United Kingdom):
+#### Authority Specific Configuration
 
 ```bash
-python arelleCmdLine.py --plugin validate/ESEF --disclosureSystem esef-2023 --parameters "authority=DK" --validate --file report.zip
+python arelleCmdLine.py --plugin validate/ESEF --disclosureSystem esef-2023 --esefAuthority DK --validate --file report.zip
+```
+
+For UKFRC (UK Financial Reporting Council) validation:
+
+```bash
+python arelleCmdLine.py --plugin validate/ESEF --disclosureSystem esef-2023 --esefAuthority UKFRC --validate --file report.zip
 ```
 
 ### Including ESEF Taxonomy Packages
