@@ -23,6 +23,7 @@ class ixtFunctionNotAvailable(Exception):
     def __repr__(self) -> str:
         return self.args[0]
 
+
 def call(
         xc: XPathContext.XPathContext,
         p: OperationDef,
@@ -34,8 +35,9 @@ def call(
     except KeyError:
         raise XPathContext.FunctionNotAvailable(str(qn))
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
-    if len(args[0]) != 1: raise XPathContext.FunctionArgType(0,"xs:string")
+    if len(args[0]) != 1: raise XPathContext.FunctionArgType(0, "xs:string")
     return _ixtFunction(str(args[0][0]))
+
 
 # class of deferred-compilation patterns
 # reduces load time by .5 sec (debug) .15 sec (compiled)
@@ -54,6 +56,7 @@ class RePattern:
         if self.regex is None:
             self.regex = re.compile(self.pattern, self.flags)
         return self.regex.search(target)
+
 
 dateslashPattern = RePattern(r"^[ \t\n\r]*(\d+)/(\d+)/(\d+)[ \t\n\r]*$")
 daymonthslashPattern = RePattern(r"^[ \t\n\r]*([0-9]{1,2})/([0-9]{1,2})[ \t\n\r]*$")
@@ -313,6 +316,7 @@ sakaMonthPattern = RePattern(r"(C\S*ait|\u091A\u0948\u0924\u094D\u0930)|"
 sakaMonthLength = (30,31,31,31,31,31,30,30,30,30,30,30) # Chaitra has 31 days in Gregorian leap year
 sakaMonthOffset = ((3,22,0),(4,21,0),(5,22,0),(6,22,0),(7,23,0),(8,23,0),(9,23,0),(10,23,0),(11,22,0),(12,22,0),(1,21,1),(2,20,1))
 
+
 # common helper functions
 def checkDate(y: str | int | None, m: str | int | None, d: str | int | None) -> bool:
     try:
@@ -321,13 +325,11 @@ def checkDate(y: str | int | None, m: str | int | None, d: str | int | None) -> 
     except (ValueError, TypeError):
         return False
 
-def z2(arg):   # zero pad to 2 digits
-    if arg is not None and len(arg) == 1:
-        return '0' + arg
+
 def z2(arg: str | None) -> str | None:   # zero pad to 2 digits
     return arg
 
-def yr4(arg):   # zero pad to 4 digits
+
 def yr4(arg: str | None) -> str | None:   # zero pad to 4 digits
     if arg is not None:
         if len(arg) == 1:
@@ -336,7 +338,7 @@ def yr4(arg: str | None) -> str | None:   # zero pad to 4 digits
             return '20' + arg
     return arg
 
-def yrin(arg, _mo, _day):   # zero pad to 4 digits
+
 def yrin(arg: str | None, _mo: int, _day: int) -> str | None:   # zero pad to 4 digits
     if arg is not None and len(arg) == 2:
         if arg > '21' or (arg == '21' and _mo >= 10 and _day >= 11):
@@ -345,17 +347,21 @@ def yrin(arg: str | None, _mo: int, _day: int) -> str | None:   # zero pad to 4 
             return '20' + arg
     return arg
 
-devanagariDigitsTrTable = dict((0x966 + i, ord("0") + i) for i in range(10))
-def devanagariDigitsToNormal(devanagariDigits):
+
+devanagariDigitsTrTable: dict[int, int] = dict((0x966 + i, ord("0") + i) for i in range(10))
+
+
 def devanagariDigitsToNormal(devanagariDigits: str) -> str:
     return devanagariDigits.translate(devanagariDigitsTrTable)
 
-jpDigitsTrTable = dict((0xFF10 + i, ord("0") + i) for i in range(10))
-def jpDigitsToNormal(jpDigits):
+
+jpDigitsTrTable: dict[int, int] = dict((0xFF10 + i, ord("0") + i) for i in range(10))
+
+
 def jpDigitsToNormal(jpDigits: str) -> str:
     return jpDigits.translate(jpDigitsTrTable)
 
-def sakaToGregorian(sYr, sMo, sDay): # replacement of plug-in sakaCalendar.py which is LGPL-v3 licensed
+
 def sakaToGregorian(sYr: int, sMo: int, sDay: int) -> tuple[int, int, int]: # replacement of plug-in sakaCalendar.py which is LGPL-v3 licensed
     gYr = sYr + 78  # offset from Saka to Gregorian year
     sStartsInLeapYr = gYr % 4 == 0 and (not gYr % 100 == 0 or gYr % 400 == 0) # Saka yr starts in leap yr
@@ -382,7 +388,8 @@ def sakaToGregorian(sYr: int, sMo: int, sDay: int) -> tuple[int, int, int]: # re
         if gMo == 13:  # overflow from Gregorian year of start of Saka year to following Gregorian year
             gMo = 1
             gYr += 1
-    return (gYr, gMo, gDay)
+    return gYr, gMo, gDay
+
 
 # see: http://www.i18nguy.com/l10n/emperor-date.html
 eraStart: dict[str, int] = {'令和': 2018,
@@ -397,11 +404,11 @@ eraStart: dict[str, int] = {'令和': 2018,
             '\u662D': 1925
             }
 
-def eraYear(era,yr):
+
 def eraYear(era: str, yr: str) -> int:
     return eraStart[era] + (1 if yr == '元' else int(yr))
 
-def canonicalNumber(n):
+
 def canonicalNumber(n: str) -> str | None:
     m = numCanonicalizationPattern.match(n)
     if m:
@@ -413,59 +420,59 @@ def canonicalNumber(n: str) -> str | None:
 def booleanfalse(arg: Any) -> str:
     return 'false'
 
-def booleantrue(arg):
+
 def booleantrue(arg: Any) -> str:
     return 'true'
 
-def dateslashus(arg):
+
 def dateslashus(arg: str) -> str:
     m = dateslashPattern.match(arg)
     if m and m.lastindex == 3:
         return "{0}-{1}-{2}".format(yr4(m.group(3)), z2(m.group(1)), z2(m.group(2)))
     raise XPathContext.FunctionArgType(0,"xs:date")
 
-def dateslasheu(arg):
+
 def dateslasheu(arg: str) -> str:
     m = dateslashPattern.match(arg)
     if m and m.lastindex == 3:
         return "{0}-{1}-{2}".format(yr4(m.group(3)), z2(m.group(2)), z2(m.group(1)))
     raise XPathContext.FunctionArgType(0,"xs:date")
 
-def datedotus(arg):
+
 def datedotus(arg: str) -> str:
     m = datedotPattern.match(arg)
     if m and m.lastindex == 3:
         return "{0}-{1}-{2}".format(yr4(m.group(3)), z2(m.group(1)), z2(m.group(2)))
     raise XPathContext.FunctionArgType(0,"xs:date")
 
-def datedoteu(arg):
+
 def datedoteu(arg: str) -> str:
     m = datedotPattern.match(arg)
     if m and m.lastindex == 3:
         return "{0}-{1}-{2}".format(yr4(m.group(3)), z2(m.group(2)), z2(m.group(1)))
     raise XPathContext.FunctionArgType(0,"xs:date")
 
-def datelongusTR1(arg):
+
 def datelongusTR1(arg: str) -> str:
     return datedaymonthyear(arg, dateLongUsTR1Pattern, dy=2, mo=1, yr=3)
 
-def dateshortusTR1(arg):
+
 def dateshortusTR1(arg: str) -> str:
     return datedaymonthyear(arg, dateShortUsTR1Pattern, dy=2, mo=1, yr=3)
 
-def datelongukTR1(arg):
+
 def datelongukTR1(arg: str) -> str:
     return datedaymonthyear(arg, dateLongUkTR1Pattern)
 
-def dateshortukTR1(arg):
+
 def dateshortukTR1(arg: str) -> str:
     return datedaymonthyear(arg, dateShortUkTR1Pattern)
 
-def datelongeu(arg):
+
 def datelongeu(arg: str) -> str:
     return datedaymonthyear(arg, dateEuPattern)
 
-def datedaymonthTR2(arg):
+
 def datedaymonthTR2(arg: str) -> str:
     m = daymonthPattern.match(arg)
     if m and m.lastindex == 2:
@@ -476,7 +483,7 @@ def datedaymonthTR2(arg: str) -> str:
             return "--{0}-{1}".format(mo, day)
     raise XPathContext.FunctionArgType(0,"xs:gMonthDay")
 
-def datemonthday(arg):
+
 def datemonthday(arg: str) -> str:
     m = monthdayPattern.match(arg)
     if m and m.lastindex == 2:
@@ -487,7 +494,7 @@ def datemonthday(arg: str) -> str:
             return "--{0}-{1}".format(mo, day)
     raise XPathContext.FunctionArgType(0,"xs:gMonthDay")
 
-def datedaymonthSlashTR1(arg):
+
 def datedaymonthSlashTR1(arg: str) -> str:
     m = daymonthslashPattern.match(arg)
     if m and m.lastindex == 2:
@@ -496,7 +503,7 @@ def datedaymonthSlashTR1(arg: str) -> str:
         return "--{0}-{1}".format(mo, day)
     raise XPathContext.FunctionArgType(0,"xs:gMonthDay")
 
-def datemonthdaySlashTR1(arg):
+
 def datemonthdaySlashTR1(arg: str) -> str:
     m = monthdayslashPattern.match(arg)
     if m and m.lastindex == 2:
@@ -504,6 +511,7 @@ def datemonthdaySlashTR1(arg: str) -> str:
         day = z2(m.group(2))
         return "--{0}-{1}".format(mo, day)
     raise XPathContext.FunctionArgType(0,"xs:gMonthDay")
+
 
 def datedaymonth(
         arg: str,
@@ -528,17 +536,22 @@ def datedaymonth(
         pass
     raise XPathContext.FunctionArgType(0,"xs:gMonthDay")
 
+
 def datedaymonthbg(arg: str) -> str:
     return datedaymonth(arg, daymonthBgPattern)
+
 
 def datedaymonthcs(arg: str) -> str:
     return datedaymonth(arg, daymonthCsPattern, monthnumbercs)
 
+
 def datedaymonthcy(arg: str) -> str:
     return datedaymonth(arg, daymonthCyPattern, monthnumbercy)
 
+
 def datedaymonthde(arg: str) -> str:
     return datedaymonth(arg, daymonthDePattern)
+
 
 def datedaymonthdk(arg: str) -> str:
     m = daymonthDkPattern.match(arg)
@@ -557,86 +570,114 @@ def datedaymonthdk(arg: str) -> str:
                 return "--{0:02}-{1}".format(mo, day)
     raise XPathContext.FunctionArgType(0,"xs:gMonthDay")
 
+
 def datedaymonthel(arg: str) -> str:
     return datedaymonth(arg, daymonthElPattern)
+
 
 def datedaymonthen(arg: str) -> str:
     return datedaymonth(arg, daymonthEnPattern)
 
+
 def datedaymonthShortEnTR1(arg: str) -> str:
     return datedaymonth(arg, daymonthShortEnTR1Pattern, dy=1, mo=2)
+
 
 def datedaymonthLongEnTR1(arg: str) -> str:
     return datedaymonth(arg, daymonthLongEnTR1Pattern, dy=1, mo=2)
 
+
 def datemonthdayen(arg: str) -> str:
     return datedaymonth(arg, monthdayEnPattern, dy=2, mo=1)
+
 
 def datemonthdayLongEnTR1(arg: str) -> str:
     return datedaymonth(arg, monthdayLongEnTR1Pattern, dy=2, mo=1)
 
+
 def datemonthdayShortEnTR1(arg: str) -> str:
     return datedaymonth(arg, monthdayShortEnTR1Pattern, dy=2, mo=1)
+
 
 def datedaymonthes(arg: str) -> str:
     return datedaymonth(arg, daymonthEsPattern)
 
+
 def datedaymonthet(arg: str) -> str:
     return datedaymonth(arg, daymonthEtPattern)
+
 
 def datedaymonthfi(arg: str) -> str:
     return datedaymonth(arg, daymonthFiPattern, monthnumberfi)
 
+
 def datedaymonthfr(arg: str) -> str:
     return datedaymonth(arg, daymonthFrPattern)
+
 
 def datedaymonthhr(arg: str) -> str:
     return datedaymonth(arg, daymonthHrPattern, monthnumberhr)
 
+
 def datemonthdayhu(arg: str) -> str:
     return datedaymonth(arg, monthdayHuPattern, dy=2, mo=1)
+
 
 def datedaymonthit(arg: str) -> str:
     return datedaymonth(arg, daymonthItPattern)
 
+
 def datemonthdaylt(arg: str) -> str:
     return datedaymonth(arg, monthdayLtPattern, monthnumberlt, dy=2, mo=1)
+
 
 def datedaymonthlv(arg: str) -> str:
     return datedaymonth(arg, daymonthLvPattern)
 
+
 def datedaymonthnl(arg: str) -> str:
     return datedaymonth(arg, daymonthNlPattern)
+
 
 def datedaymonthno(arg: str) -> str:
     return datedaymonth(arg, daymonthNoPattern)
 
+
 def datedaymonthpl(arg: str) -> str:
     return datedaymonth(arg, daymonthPlPattern, monthnumberpl)
+
 
 def datedaymonthpt(arg: str) -> str:
     return datedaymonth(arg, daymonthPtPattern)
 
+
 def datedaymonthroman(arg: str) -> str:
     return datedaymonth(arg, daymonthRomanPattern, monthnumberroman)
+
 
 def datedaymonthro(arg: str) -> str:
     return datedaymonth(arg, daymonthRoPattern)
 
+
 def datedaymonthsk(arg: str) -> str:
     return datedaymonth(arg, daymonthSkPattern)
+
 
 def datedaymonthsl(arg: str) -> str:
     return datedaymonth(arg, daymonthSlPattern)
 
+
 def datedaymonthyearTR2(arg: str) -> str:
     return datedaymonthyear(arg, daymonthyearPattern, None, dy=1, mo=2, yr=3)
+
 
 def datedaymonthyearTR4(arg: str) -> str:
     return datedaymonthyear(arg.translate(devanagariDigitsTrTable), daymonthyearPattern, None, dy=1, mo=2, yr=3)
 
+
 def datemonthdayyear(arg: str) -> str:
     return datedaymonthyear(arg, monthdayyearPattern, None, dy=2, mo=1, yr=3)
+
 
 def datemonthyearTR3(arg: str) -> str:
     m = monthyearPattern.match(arg) # "(M)M*(Y)Y(YY)", with non-numeric separator,
@@ -647,6 +688,7 @@ def datemonthyearTR3(arg: str) -> str:
             return "{0}-{1:2}".format(yr4(m.group(2)), _mo)
     raise XPathContext.FunctionArgType(0,"xs:gYearMonth")
 
+
 def datemonthyearTR4(arg: str) -> str:
     m = monthyearPattern.match(arg.translate(devanagariDigitsTrTable)) # "(M)M*(Y)Y(YY)", with non-numeric separator,
     if m and m.lastindex == 2:
@@ -655,6 +697,7 @@ def datemonthyearTR4(arg: str) -> str:
         if "01" <= _mo <= "12":
             return "{0}-{1:2}".format(yr4(m.group(2)), _mo)
     raise XPathContext.FunctionArgType(0,"xs:gYearMonth")
+
 
 def dateyearmonth(arg: str) -> str:
     m = yearmonthPattern.match(arg) # "(Y)Y(YY)*(M)M", with non-numeric separator,
@@ -665,8 +708,10 @@ def dateyearmonth(arg: str) -> str:
             return "{0}-{1:2}".format(yr4(m.group(1)), _mo)
     raise XPathContext.FunctionArgType(0,"xs:gYearMonth")
 
+
 def dateyearmonthTR4(arg: str) -> str:
     return dateyearmonth(arg.translate(jpDigitsTrTable))
+
 
 def datemonthyear(
         arg: str,
@@ -686,14 +731,18 @@ def datemonthyear(
         pass
     raise XPathContext.FunctionArgType(0,"xs:gYearMonth")
 
+
 def datemonthyearbg(arg: str) -> str:
     return datemonthyear(arg, monthyearBgPattern)
+
 
 def datemonthyearcs(arg: str) -> str:
     return datemonthyear(arg, monthyearCsPattern, monthnumbercs)
 
+
 def datemonthyearcy(arg: str) -> str:
     return datemonthyear(arg, monthyearCyPattern, monthnumbercy)
+
 
 def datemonthyearde(arg: str) -> str:
     return datemonthyear(arg, monthyearDePattern)
@@ -711,35 +760,46 @@ def datemonthyeardk(arg: str) -> str:
             return "{0}-{1:02}".format(yr4(m.group(4)), monthnumber[mon3])
     raise XPathContext.FunctionArgType(0,"xs:gYearMonth")
 
+
 def datemonthyearel(arg: str) -> str:
     return datemonthyear(arg, monthyearElPattern)
+
 
 def datemonthyearen(arg: str) -> str:
     return datemonthyear(arg, monthyearEnPattern, mo=1, yr=2)
 
+
 def datemonthyearShortEnTR1(arg: str) -> str:
     return datemonthyear(arg, monthyearShortEnTR1Pattern, mo=1, yr=2)
+
 
 def datemonthyearLongEnTR1(arg: str) -> str:
     return datemonthyear(arg, monthyearLongEnTR1Pattern, mo=1, yr=2)
 
+
 def datemonthyeares(arg: str) -> str:
     return datemonthyear(arg, monthyearEsPattern)
+
 
 def dateyearmonthen(arg: str) -> str:
     return datemonthyear(arg, yearmonthEnPattern, mo=2, yr=1)
 
+
 def datemonthyearet(arg: str) -> str:
     return datemonthyear(arg, monthyearEtPattern)
+
 
 def datemonthyearfi(arg: str) -> str:
     return datemonthyear(arg, monthyearFiPattern, monthnumberfi)
 
+
 def datemonthyearfr(arg: str) -> str:
     return datemonthyear(arg, monthyearFrPattern)
 
+
 def datemonthyearhr(arg: str) -> str:
     return datemonthyear(arg, monthyearHrPattern, monthnumberhr)
+
 
 def datemonthyearin(arg: str) -> str:
     m = monthyearInPattern.match(arg)
@@ -751,47 +811,62 @@ def datemonthyearin(arg: str) -> str:
         pass
     raise XPathContext.FunctionArgType(0,"xs:gYearMonth")
 
+
 def datemonthyearit(arg: str) -> str:
     return datemonthyear(arg, monthyearItPattern)
+
 
 def datemonthyearnl(arg: str) -> str:
     return datemonthyear(arg, monthyearNlPattern)
 
+
 def datemonthyearno(arg: str) -> str:
     return datemonthyear(arg, monthyearNoPattern)
+
 
 def datemonthyearpl(arg: str) -> str:
     return datemonthyear(arg, monthyearPlPattern, monthnumberpl)
 
+
 def datemonthyearpt(arg: str) -> str:
     return datemonthyear(arg, monthyearPtPattern)
+
 
 def datemonthyearroman(arg: str) -> str:
     return datemonthyear(arg, monthyearRomanPattern, monthnumberroman, mo=1, yr=6, lastindex=6)
 
+
 def datemonthyearro(arg: str) -> str:
     return datemonthyear(arg, monthyearRoPattern)
+
 
 def datemonthyearsk(arg: str) -> str:
     return datemonthyear(arg, monthyearSkPattern)
 
+
 def datemonthyearsl(arg: str) -> str:
     return datemonthyear(arg, monthyearSlPattern)
+
 
 def dateyearmonthhu(arg: str) -> str:
     return datemonthyear(arg, yearmonthHuPattern, mo=2, yr=1)
 
+
 def dateyearmonthlt(arg: str) -> str:
     return datemonthyear(arg, yearmonthLtPattern, monthnumberlt, mo=2, yr=1)
+
 
 def dateyearmonthlv(arg: str) -> str:
     return datemonthyear(arg, yearmonthLvPattern, mo=2, yr=1)
 
+
 def dateyearmonthShortEnTR1(arg: str) -> str:
     return datemonthyear(arg, yearmonthShortEnTR1Pattern, mo=2, yr=1)
 
+
 def dateyearmonthLongEnTR1(arg: str) -> str:
     return datemonthyear(arg, yearmonthLongEnTR1Pattern, mo=2, yr=1)
+
 
 def datedaymonthyear(
         arg: str,
@@ -817,17 +892,22 @@ def datedaymonthyear(
         pass
     raise XPathContext.FunctionArgType(0,"xs:date")
 
+
 def datedaymonthyearbg(arg: str) -> str:
     return datedaymonthyear(arg, daymonthyearBgPattern)
+
 
 def datedaymonthyearcs(arg: str) -> str:
     return datedaymonthyear(arg, daymonthyearCsPattern, monthnumbercs)
 
+
 def datedaymonthyearcy(arg: str) -> str:
     return datedaymonthyear(arg, daymonthyearCyPattern, monthnumbercy)
 
+
 def datedaymonthyearde(arg: str) -> str:
     return datedaymonthyear(arg, daymonthyearDePattern)
+
 
 def datedaymonthyeardk(arg: str) -> str:
     m = daymonthyearDkPattern.match(arg)
@@ -845,32 +925,42 @@ def datedaymonthyeardk(arg: str) -> str:
                 return "{0}-{1:02}-{2}".format(_yr, _mo, _day)
     raise XPathContext.FunctionArgType(0,"xs:date")
 
+
 def datedaymonthyearel(arg: str) -> str:
     return datedaymonthyear(arg, daymonthyearElPattern)
+
 
 def datedaymonthyearen(arg: str) -> str:
     return datedaymonthyear(arg, daymonthyearEnPattern)
 
+
 def datemonthdayyearen(arg: str) -> str:
     return datedaymonthyear(arg, monthdayyearEnPattern, dy=2, mo=1, yr=3)
+
 
 def datedaymonthyeares(arg: str) -> str:
     return datedaymonthyear(arg, daymonthyearEsPattern)
 
+
 def datedaymonthyearet(arg: str) -> str:
     return datedaymonthyear(arg, daymonthyearEtPattern)
+
 
 def datedaymonthyearfi(arg: str) -> str:
     return datedaymonthyear(arg, daymonthyearFiPattern, monthnumberfi)
 
+
 def datedaymonthyearfr(arg: str) -> str:
     return datedaymonthyear(arg, daymonthyearFrPattern)
+
 
 def datedaymonthyearhr(arg: str) -> str:
     return datedaymonthyear(arg, daymonthyearHrPattern, monthnumberhr)
 
+
 def dateyearmonthdayhu(arg: str) -> str:
     return datedaymonthyear(arg, yearmonthdayHuPattern, dy=3, mo=2, yr=1)
+
 
 def datedaymonthyearin(arg: str, daymonthyearInPattern: RePattern) -> str:
     m = daymonthyearInPattern.match(arg)
@@ -885,66 +975,75 @@ def datedaymonthyearin(arg: str, daymonthyearInPattern: RePattern) -> str:
         pass
     raise XPathContext.FunctionArgType(0,"xs:date")
 
+
 def datedaymonthyearinTR3(arg: str) -> str:
     return datedaymonthyearin(arg, daymonthyearInPatternTR3)
+
 
 def datedaymonthyearinTR4(arg: str) -> str:
     return datedaymonthyearin(arg, daymonthyearInPatternTR4)
 
+
 def datedaymonthyearit(arg: str) -> str:
     return datedaymonthyear(arg, daymonthyearItPattern)
+
 
 def dateyeardaymonthlv(arg: str) -> str:
     return datedaymonthyear(arg, yeardaymonthLvPattern, dy=2, mo=3, yr=1)
 
+
 def dateyearmonthdaylt(arg: str) -> str:
     return datedaymonthyear(arg, yearmonthdayLtPattern, monthnumberlt, dy=3, mo=2, yr=1)
+
 
 def datedaymonthyearnl(arg: str) -> str:
     return datedaymonthyear(arg, daymonthyearNlPattern)
 
+
 def datedaymonthyearno(arg: str) -> str:
     return datedaymonthyear(arg, daymonthyearNoPattern)
+
 
 def datedaymonthyearpl(arg: str) -> str:
     return datedaymonthyear(arg, daymonthyearPlPattern, monthnumberpl)
 
+
 def datedaymonthyearpt(arg: str) -> str:
     return datedaymonthyear(arg, daymonthyearPtPattern)
+
 
 def datedaymonthyearroman(arg: str) -> str:
     return datedaymonthyear(arg, daymonthyearRomanPattern, monthnumberroman, dy=1, mo=2, yr=7, lastindex=7)
 
+
 def datedaymonthyearro(arg: str) -> str:
     return datedaymonthyear(arg, daymonthyearRoPattern)
+
 
 def datedaymonthyearsk(arg: str) -> str:
     return datedaymonthyear(arg, daymonthyearSkPattern)
 
+
 def datedaymonthyearsl(arg: str) -> str:
     return datedaymonthyear(arg, daymonthyearSlPattern)
+
 
 def calindaymonthyear(arg: str) -> str:
     m = daymonthyearInIndPattern.match(arg)
     assert isinstance(m, re.Match)
     try:
         # Transformation registry 3 requires use of pattern comparisons instead of exact transliterations
-        #_mo = int(sakaMonthNumber[m.group(2)])
         # pattern approach
         _mo = sakaMonthPattern.search(m.group(2)).lastindex  # type: ignore[union-attr]
         assert isinstance(_mo, int)
         _day = int(devanagariDigitsToNormal(m.group(1)))
         _yr = int(devanagariDigitsToNormal(yrin(m.group(15), _mo, _day)))  # type: ignore[arg-type]
-        #sakaDate = [_yr, _mo, _day]
-        #for pluginMethod in pluginClassMethods("SakaCalendar.ToGregorian"):  # LGPLv3 plugin (moved to examples/plugin)
-        #    gregorianDate = pluginMethod(sakaDate)
-        #    return "{0}-{1:02}-{2:02}".format(gregorianDate[0], gregorianDate[1], gregorianDate[2])
-        #raise NotImplementedError (_("ixt:calindaymonthyear requires plugin sakaCalendar.py, please install plugin.  "))
         gregorianDate = sakaToGregorian(_yr, _mo, _day) # native implementation for Arelle
         return "{0}-{1:02}-{2:02}".format(gregorianDate[0], gregorianDate[1], gregorianDate[2])
     except (AttributeError, IndexError, KeyError, ValueError):
         pass
     raise XPathContext.FunctionArgType(0,"xs:date")
+
 
 def dateerayearmonthdayjp(arg: str) -> str:
     m = erayearmonthdayjpPattern.match(jpDigitsToNormal(arg))
@@ -956,6 +1055,7 @@ def dateerayearmonthdayjp(arg: str) -> str:
             return "{0}-{1}-{2}".format(_yr, _mo, _day)
     raise XPathContext.FunctionArgType(0,"xs:date")
 
+
 def dateyearmonthday(arg: str) -> str:
     m = yearmonthdayPattern.match(arg.translate(jpDigitsTrTable)) # (Y)Y(YY)*MM*DD with kangu full-width numerals
     if m and m.lastindex == 3:
@@ -965,6 +1065,7 @@ def dateyearmonthday(arg: str) -> str:
         if checkDate(_yr, _mo, _day):
             return "{0}-{1}-{2}".format(_yr, _mo, _day)
     raise XPathContext.FunctionArgType(0,"xs:date")
+
 
 def dateerayearmonthjp(arg: str) -> str:
     m = erayearmonthjpPattern.match(jpDigitsToNormal(arg))
@@ -976,6 +1077,7 @@ def dateerayearmonthjp(arg: str) -> str:
             return "{0}-{1}".format(_yr, _mo)
     raise XPathContext.FunctionArgType(0,"xs:gYearMonth")
 
+
 def dateyearmonthdaycjk(arg: str) -> str:
     m = yearmonthdaycjkPattern.match(jpDigitsToNormal(arg))
     if m and m.lastindex == 6:
@@ -986,6 +1088,7 @@ def dateyearmonthdaycjk(arg: str) -> str:
             return "{0}-{1}-{2}".format(_yr, _mo, _day)
     raise XPathContext.FunctionArgType(0,"xs:date")
 
+
 def dateyearmonthcjk(arg: str) -> str:
     m = yearmonthcjkPattern.match(jpDigitsToNormal(arg))
     if m and m.lastindex == 4:
@@ -995,13 +1098,16 @@ def dateyearmonthcjk(arg: str) -> str:
             return "{0}-{1}".format(yr4(m.group(1)), _mo)
     raise XPathContext.FunctionArgType(0,"xs:date")
 
+
 def nocontent(arg: str) -> str:
     return ''
+
 
 def numcommadecimal(arg: str) -> str:
     if numCommaDecimalPattern.match(arg):
         return arg.replace('.', '').replace(',', '.').replace(' ', '').replace('\u00A0', '')
     raise XPathContext.FunctionArgType(0,"ixt:nonNegativeDecimalType")
+
 
 def numcommadecimalTR4(arg: str) -> str:
     if numCommaDecimalTR4Pattern.match(arg):
@@ -1010,6 +1116,7 @@ def numcommadecimalTR4(arg: str) -> str:
             return canonicalNumber(result)  # type: ignore[return-value]
     raise XPathContext.FunctionArgType(0,"ixt:nonNegativeDecimalType")
 
+
 def numcommadecimalApos(arg: str) -> str:
     if numCommaDecimalAposPattern.match(arg):
         result = arg.replace('.', '').replace('\'', '').replace('`', '').replace('´', '').replace('’', '').replace('′', '').replace(',', '.').replace(' ', '').replace('\u00A0', '')
@@ -1017,48 +1124,58 @@ def numcommadecimalApos(arg: str) -> str:
             return canonicalNumber(result)  # type: ignore[return-value]
     raise XPathContext.FunctionArgType(0,"ixt:nonNegativeDecimalType")
 
+
 def numcommadot(arg: str) -> str:
     if numCommaDotPattern.match(arg):
         return arg.replace(',', '')
     raise XPathContext.FunctionArgType(0,"ixt:numcommadot")
+
 
 def numdash(arg: str) -> str:
     if numDashPattern.match(arg):
         return arg.replace('-','0')
     raise XPathContext.FunctionArgType(0,"ixt:numdash")
 
+
 def numspacedot(arg: str) -> str:
     if numSpaceDotPattern.match(arg):
         return arg.replace(' ', '').replace('\u00A0', '')
     raise XPathContext.FunctionArgType(0,"ixt:numspacedot")
+
 
 def numcomma(arg: str) -> str:
     if numCommaPattern.match(arg):
         return arg.replace(',', '.')
     raise XPathContext.FunctionArgType(0,"ixt:numcomma")
 
+
 def numdotcomma(arg: str) -> str:
     if numDotCommaPattern.match(arg):
         return arg.replace('.', '').replace(',', '.')
     raise XPathContext.FunctionArgType(0,"ixt:numdotcomma")
+
 
 def numspacecomma(arg: str) -> str:
     if numSpaceCommaPattern.match(arg):
         return arg.replace(' ', '').replace('\u00A0', '').replace(',', '.')
     raise XPathContext.FunctionArgType(0,"ixt:numspacecomma")
 
+
 def zerodash(arg: str) -> str:
     if zeroDashPattern.match(arg):
         return '0'
     raise XPathContext.FunctionArgType(0,"ixt:zerodashType")
 
+
 def fixedzero(arg: str) -> str:
     return '0'
+
 
 def numdotdecimal(arg: str) -> str:
     if numDotDecimalPattern.match(arg):
         return arg.replace(',', '').replace(' ', '').replace('\u00A0', '')
     raise XPathContext.FunctionArgType(0,"ixt:numdotdecimalType")
+
 
 def numdotdecimalTR4(arg: str) -> str:
     if numDotDecimalTR4Pattern.match(arg):
@@ -1067,12 +1184,14 @@ def numdotdecimalTR4(arg: str) -> str:
             return canonicalNumber(result)  # type: ignore[return-value]
     raise XPathContext.FunctionArgType(0,"ixt:numdotdecimalType")
 
+
 def numdotdecimalApos(arg: str) -> str:
     if numDotDecimalAposPattern.match(arg):
         result = arg.replace(',', '').replace('\'', '').replace('`', '').replace('´', '').replace('’', '').replace('′', '').replace(' ', '').replace('\u00A0', '')
         if decimalPattern.match(result):
             return canonicalNumber(result)  # type: ignore[return-value]
     raise XPathContext.FunctionArgType(0,"ixt:numdotdecimalType")
+
 
 def numdotdecimalin(arg: str) -> str:
     m = numDotDecimalInPattern.match(arg)
@@ -1085,8 +1204,10 @@ def numdotdecimalin(arg: str) -> str:
         return m2[0].replace(',','').replace(' ','').replace('\xa0','') + fract
     raise XPathContext.FunctionArgType(1,"ixt:numdotdecimalinType")
 
+
 def numdotdecimalinTR4(arg: str) -> str:
     return canonicalNumber(numdotdecimalin(arg))  # type: ignore[return-value]
+
 
 def numunitdecimal(arg: str) -> str:
     # remove comma (normal), full-width comma, and stops (periods)
@@ -1096,6 +1217,7 @@ def numunitdecimal(arg: str) -> str:
         fractValue = z2(m.group(m.lastindex))  # type: ignore[arg-type]
         return f"{majorValue}.{fractValue}"
     raise XPathContext.FunctionArgType(1,"ixt:nonNegativeDecimalType")
+
 
 def numunitdecimalTR4(arg: str) -> str:
     # remove comma (normal), full-width comma, and stops (periods)
@@ -1108,6 +1230,7 @@ def numunitdecimalTR4(arg: str) -> str:
             return canonicalNumber(f"{majorValue}.{fractValue}")  # type: ignore[return-value]
     raise XPathContext.FunctionArgType(1,"ixt:nonNegativeDecimalType")
 
+
 def numunitdecimalApos(arg: str) -> str:
     # remove comma (normal), full-width comma, and stops (periods)
     m = numUnitDecimalAposPattern.match(jpDigitsToNormal(arg))
@@ -1119,6 +1242,7 @@ def numunitdecimalApos(arg: str) -> str:
             return canonicalNumber(f"{majorValue}.{fractValue}")  # type: ignore[return-value]
     raise XPathContext.FunctionArgType(1,"ixt:nonNegativeDecimalType")
 
+
 def numunitdecimalin(arg: str) -> str:
     m = numUnitDecimalInPattern.match(arg)
     if m:
@@ -1127,6 +1251,7 @@ def numunitdecimalin(arg: str) -> str:
         fractValue = z2(m2[-2])
         return f"{majorValue}.{fractValue}"
     raise XPathContext.FunctionArgType(1,"ixt:numunitdecimalinType")
+
 
 tr1Functions = {
     # 2010-04-20 functions
