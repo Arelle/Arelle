@@ -293,6 +293,7 @@ class Cntlr:
         # start plug in server (requres web cache initialized, but not logger)
         from arelle.PluginManager import getInstance as _getPluginManagerInstance
         self._pluginManager = _getPluginManagerInstance()
+        self._pluginManager.init(self, loadPluginConfig=hasGui)
         self.plugins = PluginProvider(self._pluginManager)
 
         # requires plug ins initialized
