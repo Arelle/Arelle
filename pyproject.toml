@@ -165,7 +165,6 @@ module = [
     'arelle.DialogUserPassword',
     'arelle.DisclosureSystem',
     'arelle.FunctionFn',
-    'arelle.FunctionIxt',
     'arelle.FunctionUtil',
     'arelle.FunctionXfi',
     'arelle.FunctionXs',
