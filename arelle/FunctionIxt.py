@@ -327,16 +327,11 @@ def checkDate(y: str | int | None, m: str | int | None, d: str | int | None) -> 
 
 
 def z2(arg: str | None) -> str | None:   # zero pad to 2 digits
-    return arg
+    return arg.zfill(2) if isinstance(arg, str) else arg
 
 
 def yr4(arg: str | None) -> str | None:   # zero pad to 4 digits
-    if arg is not None:
-        if len(arg) == 1:
-            return '200' + arg
-        elif len(arg) == 2:
-            return '20' + arg
-    return arg
+    return "2" + arg.zfill(3) if isinstance(arg, str) else arg
 
 
 def yrin(arg: str | None, _mo: int, _day: int) -> str | None:   # zero pad to 4 digits
@@ -1039,7 +1034,7 @@ def calindaymonthyear(arg: str) -> str:
         _day = int(devanagariDigitsToNormal(m.group(1)))
         _yr = int(devanagariDigitsToNormal(yrin(m.group(15), _mo, _day)))  # type: ignore[arg-type]
         gregorianDate = sakaToGregorian(_yr, _mo, _day) # native implementation for Arelle
-        return "{0}-{1:02}-{2:02}".format(gregorianDate[0], gregorianDate[1], gregorianDate[2])
+        return "{0}-{1:02}-{2:02}".format(*gregorianDate)
     except (AttributeError, IndexError, KeyError, ValueError):
         pass
     raise XPathContext.FunctionArgType(0,"xs:date")
