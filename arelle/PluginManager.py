@@ -1,31 +1,15 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
 
-import ast
-import gettext
-from glob import glob
-import importlib.util
-import json
 import logging
-import os
-import sys
-import time
-import traceback
-import types
-from collections import defaultdict
 from collections.abc import Callable, Iterator
-from importlib.metadata import EntryPoint, Distribution
+from importlib.metadata import EntryPoint
 from pathlib import Path
-from types import ModuleType
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
-import arelle.FileSource
-from arelle.Locale import getLanguageCodes
-from arelle.PythonUtil import isLegacyAbs
-from arelle.typing import TypeGetText
-from arelle.UrlUtil import isAbsolute
+from arelle.plugin_system._plugin_manager import PluginManager
 
 if TYPE_CHECKING:
     # Prevent potential circular import error
