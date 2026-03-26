@@ -39,7 +39,7 @@ def xfm_exp(
 ) -> float | EmptyTuple:
     if len(args) != 1:
         raise XPathContext.FunctionNumArgs()
-    x = numericArg(xc, p, args, 0, emptyFallback=())  # type: ignore[no-untyped-call]
+    x = numericArg(xc, p, args, 0, emptyFallback=())
     if x != ():
         return math.exp(x)
     return ()
@@ -53,7 +53,7 @@ def xfm_exp10(
 ) -> float | EmptyTuple:
     if len(args) != 1:
         raise XPathContext.FunctionNumArgs()
-    x = numericArg(xc, p, args, 0, emptyFallback=())  # type: ignore[no-untyped-call]
+    x = numericArg(xc, p, args, 0, emptyFallback=())
     if x != ():
         return math.pow(10.0, x)
     return ()
@@ -67,7 +67,7 @@ def xfm_log(
 ) -> float | EmptyTuple:
     if len(args) != 1:
         raise XPathContext.FunctionNumArgs()
-    x = numericArg(xc, p, args, 0, emptyFallback=())  # type: ignore[no-untyped-call]
+    x = numericArg(xc, p, args, 0, emptyFallback=())
     if x != ():
         if x == 0:
             return MINUSINF
@@ -87,7 +87,7 @@ def xfm_log10(
 ) -> float | EmptyTuple:
     if len(args) != 1:
         raise XPathContext.FunctionNumArgs()
-    x = numericArg(xc, p, args, 0, emptyFallback=())  # type: ignore[no-untyped-call]
+    x = numericArg(xc, p, args, 0, emptyFallback=())
     if x != ():
         if x == 0:
             return MINUSINF
@@ -107,9 +107,9 @@ def xfm_pow(
 ) -> float | EmptyTuple:
     if len(args) != 2:
         raise XPathContext.FunctionNumArgs()
-    x = numericArg(xc, p, args, 0, emptyFallback=())  # type: ignore[no-untyped-call]
+    x = numericArg(xc, p, args, 0, emptyFallback=())
     if x != ():
-        y = numericArg(xc, p, args, 1)  # type: ignore[no-untyped-call]
+        y = numericArg(xc, p, args, 1)
         if x == 0:
             if math.copysign(1, x) < 0:  # e.g., value is -0.0
                 if y < 0:
@@ -144,7 +144,7 @@ def xfm_sqrt(
 ) -> float | EmptyTuple:
     if len(args) != 1:
         raise XPathContext.FunctionNumArgs()
-    x = numericArg(xc, p, args, 0, emptyFallback=())  # type: ignore[no-untyped-call]
+    x = numericArg(xc, p, args, 0, emptyFallback=())
     if x != ():
         if x == MINUSINF:
             return NaN
@@ -162,7 +162,7 @@ def xfm_sin(
 ) -> float | EmptyTuple:
     if len(args) != 1:
         raise XPathContext.FunctionNumArgs()
-    x = numericArg(xc, p, args, 0, emptyFallback=())  # type: ignore[no-untyped-call]
+    x = numericArg(xc, p, args, 0, emptyFallback=())
     if x != ():
         if math.isinf(x):
             return NaN
@@ -178,7 +178,7 @@ def xfm_cos(
 ) -> float | EmptyTuple:
     if len(args) != 1:
         raise XPathContext.FunctionNumArgs()
-    x = numericArg(xc, p, args, 0, emptyFallback=())  # type: ignore[no-untyped-call]
+    x = numericArg(xc, p, args, 0, emptyFallback=())
     if x != ():
         if math.isinf(x):
             return NaN
@@ -194,7 +194,7 @@ def xfm_tan(
 ) -> float | EmptyTuple:
     if len(args) != 1:
         raise XPathContext.FunctionNumArgs()
-    x = numericArg(xc, p, args, 0, emptyFallback=())  # type: ignore[no-untyped-call]
+    x = numericArg(xc, p, args, 0, emptyFallback=())
     if x != ():
         if math.isinf(x):
             return NaN
@@ -210,7 +210,7 @@ def xfm_asin(
 ) -> float | EmptyTuple:
     if len(args) != 1:
         raise XPathContext.FunctionNumArgs()
-    x = numericArg(xc, p, args, 0, emptyFallback=())  # type: ignore[no-untyped-call]
+    x = numericArg(xc, p, args, 0, emptyFallback=())
     if x != ():
         try:
             return math.asin(x)
@@ -227,7 +227,7 @@ def xfm_acos(
 ) -> float | EmptyTuple:
     if len(args) != 1:
         raise XPathContext.FunctionNumArgs()
-    x = numericArg(xc, p, args, 0, emptyFallback=())  # type: ignore[no-untyped-call]
+    x = numericArg(xc, p, args, 0, emptyFallback=())
     if x != ():
         try:
             return math.acos(x)
@@ -244,7 +244,7 @@ def xfm_atan(
 ) -> float | EmptyTuple:
     if len(args) != 1:
         raise XPathContext.FunctionNumArgs()
-    x = numericArg(xc, p, args, 0, emptyFallback=())  # type: ignore[no-untyped-call]
+    x = numericArg(xc, p, args, 0, emptyFallback=())
     if x != ():
         try:
             return math.atan(x)
@@ -261,8 +261,8 @@ def xfm_atan2(
 ) -> float:
     if len(args) != 2:
         raise XPathContext.FunctionNumArgs()
-    y = numericArg(xc, p, args, 0)  # type: ignore[no-untyped-call]
-    x = numericArg(xc, p, args, 1)  # type: ignore[no-untyped-call]
+    y = numericArg(xc, p, args, 0)
+    x = numericArg(xc, p, args, 1)
     return math.atan2(y, x)
 
 
