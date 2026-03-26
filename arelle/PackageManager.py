@@ -10,7 +10,7 @@ import time
 import zipfile
 from collections import defaultdict
 from fnmatch import fnmatch
-from typing import Any, IO, TYPE_CHECKING
+from typing import Any, IO, TYPE_CHECKING, cast
 from urllib.parse import urljoin
 
 from lxml import etree
@@ -59,7 +59,11 @@ def baseForElement(element: etree._Element) -> str:
     return base
 
 def xmlLang(element: etree._Element) -> str:
-    return str((element.xpath('@xml:lang') + element.xpath('ancestor::*/@xml:lang') + [''])[0])
+    return (
+        cast(list[str], element.xpath('@xml:lang')) +
+        cast(list[str], element.xpath('ancestor::*/@xml:lang')) +
+        ['']
+    )[0]
 
 def langCloseness(l1: str, l2: str) -> int:
     _len = min(len(l1), len(l2))
@@ -151,7 +155,7 @@ def _parsePackageMetadata(
         return pkg
 
     root = tree.getroot()
-    ns = str(root.tag).partition("}")[0][1:]
+    ns = cast(str, root.tag).partition("}")[0][1:]
     nsPrefix = f"{{{ns}}}"
 
     if ns in  txmyPkgNSes:  # package file

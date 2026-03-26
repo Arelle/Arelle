@@ -2325,7 +2325,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
         packageInfo = PackageManager.addPackage(self, package, packageManifestName)
         if packageInfo:
             self.addToLog(_("Activation of package {0} successful.").format(packageInfo.get("name")),
-                          messageCode="info", file=str(packageInfo.get("URL")))
+                          messageCode="info", file=packageInfo.get("URL", ""))
         else:
             self.addToLog(_("Unable to load package \"%(name)s\". "),
                           messageCode="arelle:packageLoadingError",
@@ -2353,7 +2353,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 packageInfo = PackageManager.addPackage(self, cmd[1:], packageManifestName)
                 if packageInfo:
                     self.addToLog(_("Addition of package {0} successful.").format(packageInfo.get("name")),
-                                  messageCode="info", file=str(packageInfo.get("URL")))
+                                  messageCode="info", file=packageInfo.get("URL", ""))
                 else:
                     self.addToLog(_("Unable to load package."), messageCode="info", file=cmd[1:])
             elif cmd.startswith("~"):
