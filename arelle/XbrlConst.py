@@ -1045,59 +1045,68 @@ consecutiveArcrole: dict[str, str | tuple[str, ...]] = {  # can be list of or si
 }
 
 
-def isTableRenderingArcrole(arcrole: str) -> bool:
-    return arcrole in {  # current PWD 2013-05-17
-        tableBreakdown,
-        tableBreakdownTree,
-        tableFilter,
-        tableParameter,
-        tableDefinitionNodeSubtree,
-        tableAspectNodeFilter,
-        # current IWD
-        tableBreakdownMMDD,
-        tableBreakdownTreeMMDD,
-        tableFilterMMDD,
-        tableParameterMMDD,
-        tableDefinitionNodeSubtreeMMDD,
-        tableAspectNodeFilterMMDD,
-    }
+tableRenderingArcroles = frozenset({
+    # current PWD 2013-05-17
+    tableBreakdown,
+    tableBreakdownTree,
+    tableFilter,
+    tableParameter,
+    tableDefinitionNodeSubtree,
+    tableAspectNodeFilter,
+    # current IWD
+    tableBreakdownMMDD,
+    tableBreakdownTreeMMDD,
+    tableFilterMMDD,
+    tableParameterMMDD,
+    tableDefinitionNodeSubtreeMMDD,
+    tableAspectNodeFilterMMDD,
+})
+
+def isTableRenderingArcrole(arcrole: str | None) -> bool:
+    return arcrole in tableRenderingArcroles
 
 
-tableIndexingArcroles = frozenset((euGroupTable,))
+tableIndexingArcroles = frozenset({
+    euGroupTable,
+})
 
-
-def isTableIndexingArcrole(arcrole: str) -> bool:
+def isTableIndexingArcrole(arcrole: str | None) -> bool:
     return arcrole in tableIndexingArcroles
 
 
-def isFormulaArcrole(arcrole: str) -> bool:
-    return arcrole in {
-        "http://xbrl.org/arcrole/2008/assertion-set",
-        "http://xbrl.org/arcrole/2008/variable-set",
-        "http://xbrl.org/arcrole/2008/variable-set-filter",
-        "http://xbrl.org/arcrole/2008/variable-filter",
-        "http://xbrl.org/arcrole/2008/boolean-filter",
-        "http://xbrl.org/arcrole/2008/variable-set-precondition",
-        "http://xbrl.org/arcrole/2008/consistency-assertion-formula",
-        "http://xbrl.org/arcrole/2010/function-implementation",
-        "http://xbrl.org/arcrole/2010/assertion-satisfied-message",
-        "http://xbrl.org/arcrole/2010/assertion-unsatisfied-message",
-        "http://xbrl.org/arcrole/PR/2015-11-18/assertion-unsatisfied-severity",
-        "http://xbrl.org/arcrole/2010/instance-variable",
-        "http://xbrl.org/arcrole/2010/formula-instance",
-        "http://xbrl.org/arcrole/2010/function-implementation",
-        "http://xbrl.org/arcrole/2010/variables-scope",
-    }
+formulaArcroles = frozenset({
+    "http://xbrl.org/arcrole/2008/assertion-set",
+    "http://xbrl.org/arcrole/2008/variable-set",
+    "http://xbrl.org/arcrole/2008/variable-set-filter",
+    "http://xbrl.org/arcrole/2008/variable-filter",
+    "http://xbrl.org/arcrole/2008/boolean-filter",
+    "http://xbrl.org/arcrole/2008/variable-set-precondition",
+    "http://xbrl.org/arcrole/2008/consistency-assertion-formula",
+    "http://xbrl.org/arcrole/2010/function-implementation",
+    "http://xbrl.org/arcrole/2010/assertion-satisfied-message",
+    "http://xbrl.org/arcrole/2010/assertion-unsatisfied-message",
+    "http://xbrl.org/arcrole/PR/2015-11-18/assertion-unsatisfied-severity",
+    "http://xbrl.org/arcrole/2010/instance-variable",
+    "http://xbrl.org/arcrole/2010/formula-instance",
+    "http://xbrl.org/arcrole/2010/function-implementation",
+    "http://xbrl.org/arcrole/2010/variables-scope",
+})
+
+def isFormulaArcrole(arcrole: str | None) -> bool:
+    return arcrole in formulaArcroles
 
 
-def isResourceArcrole(arcrole: str) -> bool:
-    return arcrole in {
-        "http://www.xbrl.org/2003/arcrole/concept-label",
-        "http://www.xbrl.org/2003/arcrole/concept-reference",
-        "http://www.xbrl.org/2003/arcrole/fact-footnote",
-        "http://xbrl.org/arcrole/2008/element-label",
-        "http://xbrl.org/arcrole/2008/element-reference",
-    } or isFormulaArcrole(arcrole)
+resourceArcroles = frozenset({
+    "http://www.xbrl.org/2003/arcrole/concept-label",
+    "http://www.xbrl.org/2003/arcrole/concept-reference",
+    "http://www.xbrl.org/2003/arcrole/fact-footnote",
+    "http://xbrl.org/arcrole/2008/element-label",
+    "http://xbrl.org/arcrole/2008/element-reference",
+}) | formulaArcroles
+
+
+def isResourceArcrole(arcrole: str | None) -> bool:
+    return arcrole in resourceArcroles
 
 
 # LRR (https://specifications.xbrl.org/registries/lrr-2.0/index.html)
