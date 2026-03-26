@@ -24,6 +24,11 @@ if TYPE_CHECKING:
 # continue to work without modification.
 # ---------------------------------------------------------------------------
 
+
+# Re-export for backwards compatability
+from arelle.plugin_system.entry_point_ref import EntryPointRef # noqa: F401
+
+
 _singleton: PluginManager = PluginManager()
 
 def getInstance() -> PluginManager:
