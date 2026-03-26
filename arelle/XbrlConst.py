@@ -715,8 +715,7 @@ standardNamespaceSchemaLocations: dict[str, str] = {
 }
 
 
-def isNumericXsdType(xsdType: str) -> bool:
-    return xsdType in {
+numericXsdType = frozenset({
         "integer",
         "positiveInteger",
         "negativeInteger",
@@ -734,10 +733,8 @@ def isNumericXsdType(xsdType: str) -> bool:
         "float",
         "double",
     }
-
-
-def isDecimalXsdType(xsdType: str) -> bool:
-    return xsdType in {
+)
+decimalXsdType = frozenset({
         "integer",
         "positiveInteger",
         "negativeInteger",
@@ -753,10 +750,8 @@ def isDecimalXsdType(xsdType: str) -> bool:
         "unsignedByte",
         "decimal",
     }
-
-
-def isIntegerXsdType(xsdType: str) -> bool:
-    return xsdType in {
+)
+integerXsdTypes = frozenset({
         "integer",
         "positiveInteger",
         "negativeInteger",
@@ -771,6 +766,18 @@ def isIntegerXsdType(xsdType: str) -> bool:
         "byte",
         "unsignedByte",
     }
+)
+
+def isNumericXsdType(xsdType: str | None) -> bool:
+    return xsdType in numericXsdType
+
+
+def isDecimalXsdType(xsdType: str | None) -> bool:
+    return xsdType in decimalXsdType
+
+
+def isIntegerXsdType(xsdType: str | None) -> bool:
+    return xsdType in integerXsdTypes
 
 
 baseXbrliTypes = frozenset({
