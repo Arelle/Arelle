@@ -155,7 +155,7 @@ class ValidateXbrl:
             if cyclesAllowed != "any" or arcrole in XbrlConst.summationItems \
                                       or arcrole in self.genericArcArcroles  \
                                       or arcrole.startswith(XbrlConst.formulaStartsWith) \
-                                      or (modelXbrl.hasXDT and arcrole.startswith(XbrlConst.dimStartsWith)):
+                                      or (modelXbrl.hasXDT and XbrlConst.isDimensionArcrole(arcrole)):
                 relsSet = modelXbrl.relationshipSet(arcrole, ELR, linkqname, arcqname)
                 if cyclesAllowed != "any" and \
                     ((XbrlConst.isStandardExtLinkQname(linkqname) and XbrlConst.isStandardArcQname(arcqname)) \
@@ -258,7 +258,7 @@ class ValidateXbrl:
                                         _("Essence-alias relationship from %(source)s to %(target)s in link role %(linkrole)s has different balances")).format(
                                         modelObject=modelRel,
                                         source=fromConcept.qname, target=toConcept.qname, linkrole=ELR)
-                elif modelXbrl.hasXDT and arcrole.startswith(XbrlConst.dimStartsWith):
+                elif modelXbrl.hasXDT and XbrlConst.isDimensionArcrole(arcrole):
                     ValidateXbrlDimensions.checkBaseSet(self, arcrole, ELR, relsSet)
                 elif arcrole in ValidateFormula.arcroleChecks:
                     ValidateFormula.checkBaseSet(self, arcrole, ELR, relsSet)

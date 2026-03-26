@@ -2099,7 +2099,7 @@ class ModelRelationship(ModelObject):
                      self.toModelObject.typedDomainElement is not None  else (),
                 ("closed", self.closed) if self.arcrole in (XbrlConst.all, XbrlConst.notAll)  else (),
                 ("usable", self.usable) if self.arcrole == XbrlConst.domainMember  else (),
-                ("targetRole", self.targetRole) if self.arcrole.startswith(XbrlConst.dimStartsWith) else (),
+                ("targetRole", self.targetRole) if XbrlConst.isDimensionArcrole(self.arcrole) else (),
                 ("order", self.order),
                 ("priority", self.priority)) + \
                (("from", self.fromModelObject.qname),) if isinstance(self.fromModelObject,ModelObject) else ()
