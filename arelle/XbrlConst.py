@@ -696,11 +696,13 @@ def labelroleLabel(role: str) -> str:  # with sort char in first position
     return "3" + os.path.basename(role).title()
 
 
-def isStandardNamespace(namespaceURI: str) -> bool:
-    return namespaceURI in {xsd, xbrli, link, gen, xbrldt, xbrldi}
+standardNamespaces = frozenset({xsd, xbrli, link, gen, xbrldt, xbrldi})
+
+def isStandardNamespace(namespaceURI: str | None) -> bool:
+    return namespaceURI in standardNamespaces
 
 
-standardNamespaceSchemaLocations = {
+standardNamespaceSchemaLocations: dict[str, str] = {
     xbrli: "http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd",
     link: "http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd",
     xl: "http://www.xbrl.org/2003/xl-2003-12-31.xsd",
