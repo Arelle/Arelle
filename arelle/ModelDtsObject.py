@@ -1179,8 +1179,7 @@ class ModelType(ModelNamableTerm):
                     if qnameDerivedFrom == XbrlConst.qnDateUnionXsdTypes:
                         self._baseXbrliTypeQname = qnameDerivedFrom
                     # TBD implement union types
-                    elif len(qnameDerivedFrom) == 1:
-                        qn0 = qnameDerivedFrom[0]
+                    elif len(qnameDerivedFrom) == 1 and (qn0 := qnameDerivedFrom[0]):
                         if XbrlConst.isXsdOrXbrliNamespace(qn0.namespaceURI):
                             self._baseXbrliTypeQname = qn0
                         else:
