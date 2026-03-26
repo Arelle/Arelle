@@ -7,9 +7,10 @@ import json
 import logging
 import os
 import time
+import zipfile
 from collections import defaultdict
 from fnmatch import fnmatch
-from typing import TYPE_CHECKING
+from typing import Any, IO, TYPE_CHECKING, cast
 from urllib.parse import urljoin
 
 from lxml import etree
@@ -48,19 +49,23 @@ TAXONOMY_PACKAGE_NON_ABORTING_VALIDATIONS = (
     PackageValidation.validateMetadataDirectory,
 )
 
-def baseForElement(element):
+def baseForElement(element: etree._Element) -> str:
     base = ""
-    baseElt = element
+    baseElt: etree._Element | None = element
     while baseElt is not None:
         if baseAttr := baseElt.get("{http://www.w3.org/XML/1998/namespace}base"):
             base = baseAttr if baseAttr.startswith("/") else baseAttr + base
         baseElt = baseElt.getparent()
     return base
 
-def xmlLang(element):
-    return (element.xpath('@xml:lang') + element.xpath('ancestor::*/@xml:lang') + [''])[0]
+def xmlLang(element: etree._Element) -> str:
+    return (
+        cast(list[str], element.xpath('@xml:lang')) +
+        cast(list[str], element.xpath('ancestor::*/@xml:lang')) +
+        ['']
+    )[0]
 
-def langCloseness(l1, l2):
+def langCloseness(l1: str, l2: str) -> int:
     _len = min(len(l1), len(l2))
     for i in range(0, _len):
         if l1[i] != l2[i]:
@@ -68,7 +73,13 @@ def langCloseness(l1, l2):
     return _len
 
 
-def _parseFile(cntlr, parser, filepath, file, schemaUrl):
+def _parseFile(
+    cntlr: Cntlr,
+    parser: etree.XMLParser,
+    filepath: str,
+    file: IO[Any],
+    schemaUrl: str,
+) -> etree._ElementTree:
     """
     Returns tree from `file`, parsed with `parser`, and validated against the provided schema at `schemaUrl`.
     :return: Tree if parsed and validated, None if `schemaUrl` could not be loaded.
@@ -124,7 +135,7 @@ def _parsePackageMetadata(
                    "http://xbrl.org/2016/taxonomy-package",
                    "http://xbrl.org/WGWD/YYYY-MM-DD/taxonomy-package")
 
-    pkg = {"remappings": remappings}
+    pkg: dict[str, Any] = {"remappings": remappings}
 
     currentLang = Locale.getLanguageCode()
     parser = lxmlResolvingParser(cntlr)
@@ -144,7 +155,7 @@ def _parsePackageMetadata(
         return pkg
 
     root = tree.getroot()
-    ns = root.tag.partition("}")[0][1:]
+    ns = cast(str, root.tag).partition("}")[0][1:]
     nsPrefix = f"{{{ns}}}"
 
     if ns in  txmyPkgNSes:  # package file
@@ -185,7 +196,7 @@ def _parsePackageMetadata(
                 r.get("href")
                 for r in m.iterchildren(tag=nsPrefix + "versioningReport")]
         # check for duplicate multi-lingual elements (among children of nodes)
-        langElts = defaultdict(list)
+        langElts: defaultdict[str, list[etree._Element]] = defaultdict(list)
         for n in root.iter(tag=nsPrefix + "*"):
             for eltName in ("name", "description", "publisher"):
                 langElts.clear()
@@ -223,7 +234,7 @@ def _parsePackageMetadata(
         pkg["description"] = "oasis catalog"
         pkg["version"] = "(none)"
 
-    entryPoints = defaultdict(list)
+    entryPoints: defaultdict[str, list[tuple[str | None, str | None, str]]] = defaultdict(list)
     pkg["entryPoints"] = entryPoints
 
     for entryPointSpec in tree.iter(tag=nsPrefix + "entryPoint"):
@@ -253,6 +264,7 @@ def _parsePackageMetadata(
             #perform prefix remappings
             remappedUrl = resolvedUrl
             longestPrefix = 0
+            _remappedUrl: str = remappedUrl if isinstance(remappedUrl, str) else ""
             for mapFrom, mapTo in remappings.items():
                 assert isinstance(remappedUrl, str)
                 if remappedUrl.startswith(mapFrom):
@@ -348,11 +360,22 @@ def _parseCatalog(
 
 # taxonomy package manager
 # plugin control is static to correspond to statically loaded modules
-packagesJsonFile = None
-packagesConfig = None
-packagesConfigChanged = False
-packagesMappings = {}
-_cntlr = None
+packagesJsonFile: str | None = None
+packagesConfig: dict[str, Any] | None = None
+packagesConfigChanged: bool = False
+packagesMappings: dict[str, str] = {}
+_cntlr: Cntlr | None = None
+
+
+def _getPackagesConfig() -> dict[str, Any]:
+    assert packagesConfig is not None, "PackageManager.init() must be called before use"
+    return packagesConfig
+
+
+def _getCntlr() -> Cntlr:
+    assert _cntlr is not None, "PackageManager.init() must be called before use"
+    return _cntlr
+
 
 def init(cntlr: Cntlr, loadPackagesConfig: bool = True) -> None:
     global packagesJsonFile, packagesConfig, _cntlr
@@ -370,7 +393,7 @@ def init(cntlr: Cntlr, loadPackagesConfig: bool = True) -> None:
             "remappings": {}  # dict by prefix of remappings in effect
         }
         packagesConfigChanged = False # don't save until something is added to pluginConfig
-    pluginMethodsForClasses = {} # dict by class of list of ordered callable function objects
+    pluginMethodsForClasses: dict[str, Any] = {} # dict by class of list of ordered callable function objects
     _cntlr = cntlr
 
 def reset() -> None:  # force reloading modules and plugin infos
@@ -379,40 +402,53 @@ def reset() -> None:  # force reloading modules and plugin infos
     if packagesMappings:
         packagesMappings.clear() # dict by class of list of ordered callable function objects
 
-def orderedPackagesConfig():
+def orderedPackagesConfig() -> dict[str, Any]:
+    _cfg = _getPackagesConfig()
+    _field_order = {
+        'name': '01',
+        'status': '02',
+        'version': '03',
+        'fileDate': '04',
+        'license': '05',
+        'URL': '06',
+        'description': '07',
+        "publisher": '08',
+        "publisherURL": '09',
+        "publisherCountry": '10',
+        "publicationDate": '11',
+        "supersededTaxonomyPackages": '12',
+        "versioningReports": '13',
+        'remappings': '14',
+    }
+
+    def _package_sort_key(k: tuple[str, Any]) -> str:
+        return _field_order.get(str(k[0]), str(k[0]))
+
     return dict(
-        (('packages', [dict(sorted(_packageInfo.items(),
-                                          key=lambda k: {'name': '01',
-                                                         'status': '02',
-                                                         'version': '03',
-                                                         'fileDate': '04',
-                                                         'license': '05',
-                                                         'URL': '06',
-                                                         'description': '07',
-                                                         "publisher": '08',
-                                                         "publisherURL": '09',
-                                                         "publisherCountry": '10',
-                                                         "publicationDate": '11',
-                                                         "supersededTaxonomyPackages": '12',
-                                                         "versioningReports": '13',
-                                                         'remappings': '14',
-                                                         }.get(k[0],k[0])))
-                       for _packageInfo in packagesConfig['packages']]),
-         ('remappings',dict(sorted(packagesConfig['remappings'].items())))))
+        (
+            (
+                'packages',
+                [
+                    dict(sorted(_packageInfo.items(), key=_package_sort_key))
+                    for _packageInfo in _cfg['packages']
+                ],
+            ),
+            ('remappings', dict(sorted(_cfg['remappings'].items()))),
+        )
+    )
 
 def save(cntlr: Cntlr) -> None:
     global packagesConfigChanged
     if packagesConfigChanged and cntlr.hasFileSystem:
+        assert packagesJsonFile is not None
         with open(packagesJsonFile, "w", encoding='utf-8') as f:
             jsonStr = str(json.dumps(orderedPackagesConfig(), ensure_ascii=False, indent=2)) # might not be unicode in 2.7
             f.write(jsonStr)
         packagesConfigChanged = False
 
-def close():  # close all loaded methods
-    packagesConfig.clear()
+def close() -> None:  # close all loaded methods
+    _getPackagesConfig().clear()
     packagesMappings.clear()
-    global webCache
-    webCache = None
 
 ''' packagesConfig structure
 
@@ -434,79 +470,101 @@ package dict
 
 '''
 
-def packageNamesWithNewerFileDates():
+def packageNamesWithNewerFileDates() -> set[str]:
     names = set()
-    for package in packagesConfig["packages"]:
-        freshenedFilename = _cntlr.webCache.getfilename(package["URL"], checkModifiedTime=True, normalize=True)
+    for package in _getPackagesConfig()["packages"]:
+        freshenedFilename = _getCntlr().webCache.getfilename(package["URL"], checkModifiedTime=True, normalize=True)
         try:
+            assert freshenedFilename is not None
             if package["fileDate"] < time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(os.path.getmtime(freshenedFilename))):
                 names.add(package["name"])
         except Exception:
             pass
     return names
 
-def validateTaxonomyPackage(cntlr, filesource, errors: list | None = None) -> bool:
-        if errors is None:
-            errors = []
-        numErrorsOnEntry = len(errors)
-        for validator in TAXONOMY_PACKAGE_ABORTING_VALIDATIONS:
-            if validation := validator(TAXONOMY_PACKAGE_TYPE, filesource):
-                cntlr.error(
-                    level=validation.level.name,
-                    codes=validation.codes,
-                    msg=validation.msg,
-                    fileSource=filesource,
-                    **validation.args
-                )
-                errors.append(validation.codes)
-                return False
-        for validator in TAXONOMY_PACKAGE_NON_ABORTING_VALIDATIONS:
-            if validation := validator(TAXONOMY_PACKAGE_TYPE, filesource):
-                cntlr.error(
-                    level=validation.level.name,
-                    codes=validation.codes,
-                    msg=validation.msg,
-                    fileSource=filesource,
-                    **validation.args
-                )
-                errors.append(validation.codes)
-
-        _dir = filesource.dir or []
-        if not any(f.endswith('/META-INF/taxonomyPackage.xml') for f in _dir):
-            messageCode = "tpe:metadataFileNotFound"
+def validateTaxonomyPackage(
+    cntlr: Cntlr,
+    filesource: FileSource,
+    errors: list[str] | None = None,
+) -> bool:
+    if errors is None:
+        errors = []
+    numErrorsOnEntry = len(errors)
+    for validator in TAXONOMY_PACKAGE_ABORTING_VALIDATIONS:
+        if validation := validator(TAXONOMY_PACKAGE_TYPE, filesource):
             cntlr.error(
-                codes=messageCode,
-                msg=_("Taxonomy package does not contain a metadata file */META-INF/taxonomyPackage.xml"),
+                level=validation.level.name,
+                codes=validation.codes,
+                msg=validation.msg,
                 fileSource=filesource,
+                **validation.args
             )
-            errors.append(messageCode)
-        return len(errors) == numErrorsOnEntry
+            if isinstance(validation.codes, str):
+                errors.append(validation.codes)
+            else:
+                errors.extend(validation.codes)
+            return False
+    for validator in TAXONOMY_PACKAGE_NON_ABORTING_VALIDATIONS:
+        if validation := validator(TAXONOMY_PACKAGE_TYPE, filesource):
+            cntlr.error(
+                level=validation.level.name,
+                codes=validation.codes,
+                msg=validation.msg,
+                fileSource=filesource,
+                **validation.args
+            )
+            if isinstance(validation.codes, str):
+                errors.append(validation.codes)
+            else:
+                errors.extend(validation.codes)
+
+    _dir = filesource.dir or []
+    if not any(f.endswith('/META-INF/taxonomyPackage.xml') for f in _dir):
+        messageCode = "tpe:metadataFileNotFound"
+        cntlr.error(
+            codes=messageCode,
+            msg=_("Taxonomy package does not contain a metadata file */META-INF/taxonomyPackage.xml"),
+            fileSource=filesource,
+        )
+        errors.append(messageCode)
+    return len(errors) == numErrorsOnEntry
 
 
 def discoverPackageFiles(filesource: FileSource) -> list[str]:
     return [e for e in filesource.dir or [] if e.endswith("/META-INF/taxonomyPackage.xml")]
 
 
-def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
+def packageInfo(
+    cntlr: Cntlr,
+    URL: str,
+    reload: bool = False,
+    packageManifestName: str | None = None,
+    errors: list[str] | None = None,
+) -> dict[str, Any] | None:
+    if errors is None:
+        errors = []
     #TODO several directories, eg User Application Data
-    packageFilename = _cntlr.webCache.getfilename(URL, reload=reload, normalize=True)
+    packageFilename = _getCntlr().webCache.getfilename(URL, reload=reload, normalize=True)
     if packageFilename:
         from arelle.FileSource import TAXONOMY_PACKAGE_FILE_NAMES, archiveFilenameParts, openFileSource
-        filesource = None
+        filesource: FileSource | None = None
         try:
             parts = archiveFilenameParts(packageFilename)
+            fileDateTuple: time.struct_time | tuple[int, ...]
+            sourceFileSource: FileSource | None = None
             if parts is not None:
-                sourceFileSource = openFileSource(parts[0], _cntlr)
+                sourceFileSource = openFileSource(parts[0], _getCntlr())
                 sourceFileSource.open()
-                fileDateTuple = sourceFileSource.fs.getinfo(parts[1]).date_time + (0,0,0)
+                assert isinstance(sourceFileSource.fs, zipfile.ZipFile)
+                fileDateTuple = sourceFileSource.fs.getinfo(parts[1]).date_time + (0, 0, 0)
             else:
-                sourceFileSource = None
                 fileDateTuple = time.gmtime(os.path.getmtime(packageFilename))
-            filesource = openFileSource(packageFilename, _cntlr, sourceFileSource=sourceFileSource)
+            filesource = openFileSource(packageFilename, _getCntlr(), sourceFileSource=sourceFileSource)
             if sourceFileSource:
                 sourceFileSource.close()
             # allow multiple manifests [[metadata, prefix]...] for multiple catalogs
-            packages = []
+            packages: list[list[str]] = []
+            parsedPackage: dict[str, Any] | None = None
             if filesource.isZip:
                 validateTaxonomyPackage(cntlr, filesource, errors)
                 packageFiles = discoverPackageFiles(filesource)
@@ -564,15 +622,19 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
                     raise OSError(_("File must be a taxonomy package (zip file), catalog file, or manifest (): {0}.")
                                   .format(packageFilename, ', '.join(TAXONOMY_PACKAGE_FILE_NAMES)))
             remappings = {}
-            packageNames = []
-            descriptions = []
+            packageNames: list[str] = []
+            descriptions: list[str] = []
             for packageFileUrl, packageFilePrefix, packageFile in packages:
-                parsedPackage = parsePackage(_cntlr, filesource, packageFileUrl, packageFilePrefix, errors)
+                parsedPackage = parsePackage(
+                    _getCntlr(), filesource, packageFileUrl, packageFilePrefix, errors
+                )
                 if parsedPackage:
-                    packageNames.append(parsedPackage['name'])
+                    packageNames.append(str(parsedPackage['name']))
                     if parsedPackage.get('description'):
-                        descriptions.append(parsedPackage['description'])
-                    for prefix, remapping in parsedPackage["remappings"].items():
+                        descriptions.append(str(parsedPackage['description']))
+                    _remappings = parsedPackage["remappings"]
+                    assert isinstance(_remappings, dict)
+                    for prefix, remapping in _remappings.items():
                         if prefix not in remappings:
                             remappings[prefix] = remapping
                         else:
@@ -612,11 +674,11 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
             filesource.close()
     return None
 
-def rebuildRemappings(cntlr):
-    remappings = packagesConfig["remappings"]
+def rebuildRemappings(cntlr: Cntlr) -> None:
+    remappings = _getPackagesConfig()["remappings"]
     remappings.clear()
-    remapOverlapUrls = [] # (prefix, packageURL, rewriteString)
-    for _packageInfo in packagesConfig["packages"]:
+    remapOverlapUrls: list[tuple[str, str, str]] = []  # (prefix, packageURL, rewriteString)
+    for _packageInfo in _getPackagesConfig()["packages"]:
         _packageInfoURL = _packageInfo['URL']
         if _packageInfo['status'] == 'enabled':
             for prefix, remapping in _packageInfo['remappings'].items():
@@ -646,32 +708,37 @@ def rebuildRemappings(cntlr):
                 )
 
 
-def isMappedUrl(url):
+def isMappedUrl(url: str | None) -> bool:
     return (packagesConfig is not None and url is not None and
             any(url.startswith(mapFrom) and not url.startswith(mapTo) # prevent recursion in mapping for url hosted Packages
                 for mapFrom, mapTo in packagesConfig.get('remappings', {}).items()))
 
-def mappedUrl(url):
+def mappedUrl(url: str | None) -> str | None:
     if packagesConfig is not None and url is not None:
         longestPrefix = 0
+        mapped: str | None = None
         for mapFrom, mapTo in packagesConfig.get('remappings', {}).items():
             if url.startswith(mapFrom):
                 if url.startswith(mapTo):
                     return url # recursive mapping, this is already mapped
                 prefixLength = len(mapFrom)
                 if prefixLength > longestPrefix:
-                    mappedUrl = mapTo + url[prefixLength:]
+                    mapped = mapTo + url[prefixLength:]
                     longestPrefix = prefixLength
         if longestPrefix:
-            return mappedUrl
+            return mapped
     return url
 
-def addPackage(cntlr, url, packageManifestName=None):
+def addPackage(
+    cntlr: Cntlr,
+    url: str,
+    packageManifestName: str | None = None,
+) -> dict[str, Any] | None:
     newPackageInfo = packageInfo(cntlr, url, packageManifestName=packageManifestName)
     if newPackageInfo and newPackageInfo.get("identifier"):
         identifier = newPackageInfo.get("identifier")
         j = -1
-        packagesList = packagesConfig["packages"]
+        packagesList = _getPackagesConfig()["packages"]
         for i, _packageInfo in enumerate(packagesList):
             if _packageInfo['identifier'] == identifier:
                 j = i
@@ -685,9 +752,9 @@ def addPackage(cntlr, url, packageManifestName=None):
         return newPackageInfo
     return None
 
-def reloadPackageModule(cntlr, name):
-    packageUrls = []
-    packagesList = packagesConfig["packages"]
+def reloadPackageModule(cntlr: Cntlr, name: str) -> bool:
+    packageUrls: list[str] = []
+    packagesList = _getPackagesConfig()["packages"]
     for _packageInfo in packagesList:
         if _packageInfo.get('name') == name:
             packageUrls.append(_packageInfo['URL'])
@@ -697,9 +764,9 @@ def reloadPackageModule(cntlr, name):
         result = True
     return result
 
-def removePackageModule(cntlr, name):
-    packageIndices = []
-    packagesList = packagesConfig["packages"]
+def removePackageModule(cntlr: Cntlr, name: str) -> bool:
+    packageIndices: list[int] = []
+    packagesList = _getPackagesConfig()["packages"]
     for i, _packageInfo in enumerate(packagesList):
         if _packageInfo.get('name') == name:
             packageIndices.insert(0, i) # must remove in reverse index order
