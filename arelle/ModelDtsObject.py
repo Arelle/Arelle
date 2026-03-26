@@ -1234,7 +1234,7 @@ class ModelType(ModelNamableTerm):
     @property
     def isOimTextFactType(self):
         """(str) -- True if type meets OIM requirements to be a text fact"""
-        if self.modelDocument.targetNamespace.startswith(XbrlConst.dtrTypesStartsWith):
+        if XbrlConst.isDtrTypeNamespace(self.modelDocument.targetNamespace):
             return self.name not in XbrlConst.dtrNoLangItemTypeNames and self.baseXsdType in XbrlConst.xsdStringTypeNames
         if self.modelDocument.targetNamespace == XbrlConst.xbrli:
             return self.baseXsdType not in XbrlConst.xsdNoLangTypeNames and self.baseXsdType in XbrlConst.xsdStringTypeNames

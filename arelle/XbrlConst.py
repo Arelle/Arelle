@@ -32,12 +32,12 @@ qnXsiType = qname(xsi, "xsi:type")
 qnXsiSchemaLocation = qname(xsi, "xsi:schemaLocation")
 qnXsiNoNamespaceSchemaLocation = qname(xsi, "xsi:noNamespaceSchemaLocation")
 qnXmlLang = qname("{http://www.w3.org/XML/1998/namespace}xml:lang")
-builtinAttributes = {
+builtinAttributes = frozenset({
     qnXsiNil,
     qnXsiType,
     qnXsiSchemaLocation,
     qnXsiNoNamespaceSchemaLocation,
-}
+})
 ref2004 = "http://www.xbrl.org/2004/ref"
 ref2006 = "http://www.xbrl.org/2006/ref"
 svg = "http://www.w3.org/2000/svg"
@@ -144,7 +144,7 @@ qnXhtmlImg = qname("{http://www.w3.org/1999/xhtml}img")
 qnXhtmlDel = qname("{http://www.w3.org/1999/xhtml}del")
 ixbrl = "http://www.xbrl.org/2008/inlineXBRL"
 ixbrl11 = "http://www.xbrl.org/2013/inlineXBRL"
-ixbrlAll = {ixbrl, ixbrl11}
+ixbrlAll = frozenset({ixbrl, ixbrl11})
 ixbrlTags = ("{http://www.xbrl.org/2013/inlineXBRL}*", "{http://www.xbrl.org/2008/inlineXBRL}*")
 ixbrlTagPattern = re.compile("[{]http://www.xbrl.org/(2008|2013)/inlineXBRL[}]")
 ixt = "http://www.xbrl.org/inlineXBRL/transformation/2010-04-20"
@@ -166,7 +166,7 @@ qnIXbrl11Denominator = qname("{http://www.xbrl.org/2013/inlineXBRL}denominator")
 qnIXbrl11Footnote = qname("{http://www.xbrl.org/2013/inlineXBRL}footnote")
 qnIXbrl11Relationship = qname("{http://www.xbrl.org/2013/inlineXBRL}relationship")
 qnIXbrl11Hidden = qname("{http://www.xbrl.org/2013/inlineXBRL}hidden")
-ixAttributes = set(
+ixAttributes = frozenset(
     qname(n, noPrefixIsNoNamespace=True)
     for n in (
         "continuedAt",
@@ -242,20 +242,25 @@ xlinkLinkbase = "http://www.w3.org/1999/xlink/properties/linkbase"
 
 utr = "http://www.xbrl.org/2009/utr"
 
-dtr = "http://www.xbrl.org/2009/dtr"
-dtrTypesStartsWith = "http://www.xbrl.org/dtr/type/"
-dtrNumeric = "http://www.xbrl.org/dtr/type/numeric"
-dtrTypeNamespace_2018_01_17_CR = f"{dtrTypesStartsWith}CR/2018-01-17"
-dtrTypeNamespace_2018_07_11_CR = f"{dtrTypesStartsWith}CR/2018-07-11"
-dtrTypeNamespace_2019_04_19_CR = f"{dtrTypesStartsWith}CR/2019-04-19"
-dtrTypeNamespace_2020_01_21 = f"{dtrTypesStartsWith}2020-01-21"
-dtrTypeNamespace_2021_12_08_CR = f"{dtrTypesStartsWith}CR/2021-12-08"
-dtrTypeNamespace_2022_03_31 = f"{dtrTypesStartsWith}2022-03-31"
-dtrTypeNamespace_2023_12_20_CR = f"{dtrTypesStartsWith}CR/2023-12-20"
-dtrTypeNamespace_2024_01_31 = f"{dtrTypesStartsWith}2024-01-31"
-dtrTypeNamespace_WGWD = f"{dtrTypesStartsWith}WGWD/YYYY-MM-DD"
 
-_dtrTypeNamespaces2019AndNewer = (
+_dtrTypesStartsWith = "http://www.xbrl.org/dtr/type/"
+
+def isDtrTypeNamespace(namespace: str | None) -> bool:
+    return namespace.startswith(_dtrTypesStartsWith) if namespace else False
+
+dtr = "http://www.xbrl.org/2009/dtr"
+dtrNumeric = "http://www.xbrl.org/dtr/type/numeric"
+dtrTypeNamespace_2018_01_17_CR = f"{_dtrTypesStartsWith}CR/2018-01-17"
+dtrTypeNamespace_2018_07_11_CR = f"{_dtrTypesStartsWith}CR/2018-07-11"
+dtrTypeNamespace_2019_04_19_CR = f"{_dtrTypesStartsWith}CR/2019-04-19"
+dtrTypeNamespace_2020_01_21 = f"{_dtrTypesStartsWith}2020-01-21"
+dtrTypeNamespace_2021_12_08_CR = f"{_dtrTypesStartsWith}CR/2021-12-08"
+dtrTypeNamespace_2022_03_31 = f"{_dtrTypesStartsWith}2022-03-31"
+dtrTypeNamespace_2023_12_20_CR = f"{_dtrTypesStartsWith}CR/2023-12-20"
+dtrTypeNamespace_2024_01_31 = f"{_dtrTypesStartsWith}2024-01-31"
+dtrTypeNamespace_WGWD = f"{_dtrTypesStartsWith}WGWD/YYYY-MM-DD"
+
+_dtrTypeNamespaces2019AndNewer = frozenset({
     dtrTypeNamespace_2019_04_19_CR,
     dtrTypeNamespace_2020_01_21,
     dtrTypeNamespace_2021_12_08_CR,
@@ -263,15 +268,9 @@ _dtrTypeNamespaces2019AndNewer = (
     dtrTypeNamespace_2023_12_20_CR,
     dtrTypeNamespace_2024_01_31,
     dtrTypeNamespace_WGWD,
-)
-_dtrTypeNamespaces2018_07_11AndNewer = (
-    dtrTypeNamespace_2018_07_11_CR,
-    *_dtrTypeNamespaces2019AndNewer,
-)
-_dtrTypeNamespacesAll = (
-    dtrTypeNamespace_2018_01_17_CR,
-    *_dtrTypeNamespaces2018_07_11AndNewer,
-)
+})
+_dtrTypeNamespaces2018_07_11AndNewer = _dtrTypeNamespaces2019AndNewer | frozenset({dtrTypeNamespace_2018_07_11_CR})
+_dtrTypeNamespacesAll = _dtrTypeNamespaces2018_07_11AndNewer | frozenset({dtrTypeNamespace_2018_01_17_CR})
 
 dtrNoDecimalsItemTypes = frozenset(
     qname(namespace, typeName)
@@ -306,12 +305,12 @@ dtrSQNamesTypes = frozenset(
     for namespace in _dtrTypeNamespaces2019AndNewer
 )
 dtrSQNameNamesItemTypes = dtrSQNameItemTypes | dtrSQNamesItemTypes
-dtrSQNameNamesTypes = dtrSQNameTypes + dtrSQNamesTypes
+dtrSQNameNamesTypes = dtrSQNameTypes | dtrSQNamesTypes
 
-wgnStringItemTypeNames = ("stringItemType", "normalizedStringItemType")
-dtrNoLangItemTypeNames = ("domainItemType", "noLangTokenItemType", "noLangStringItemType")
-xsdNoLangTypeNames = ("language", "Name")
-xsdStringTypeNames = (
+wgnStringItemTypeNames = frozenset({"stringItemType", "normalizedStringItemType"})
+dtrNoLangItemTypeNames = frozenset({"domainItemType", "noLangTokenItemType", "noLangStringItemType"})
+xsdNoLangTypeNames = frozenset({"language", "Name"})
+xsdStringTypeNames = frozenset({
     "string",
     "normalizedString",
     "token",
@@ -325,7 +324,7 @@ xsdStringTypeNames = (
     "ENTITIES",
     "NMTOKEN",
     "NMTOKENS",
-)
+})
 
 ver10 = "http://xbrl.org/2010/versioning-base"
 # 2010 names
@@ -338,24 +337,24 @@ ver = "http://xbrl.org/2013/versioning-base"
 vercu = "http://xbrl.org/2013/versioning-concept-use"
 vercd = "http://xbrl.org/2013/versioning-concept-details"
 verdim = "http://xbrl.org/2013/versioning-dimensions"
-verPrefixNS = {
+verPrefixNS = frozenset({
     "ver": ver,
     "vercu": vercu,
     "vercd": vercd,
     "verrels": verrels,
     "verdim": verdim,
-}
+})
 
 # extended enumeration spec
-enum2s = {
+enum2s = frozenset({
     "http://xbrl.org/2020/extensible-enumerations-2.0",
     "http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0",
-}
-enums = {
+})
+enums = frozenset({
     "http://xbrl.org/2014/extensible-enumerations",
     "http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1",
     "http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1",
-} | enum2s
+} | enum2s)
 qnEnumerationItemType2014 = qname("{http://xbrl.org/2014/extensible-enumerations}enum:enumerationItemType")
 qnEnumerationItemType2020 = qname("{http://xbrl.org/2020/extensible-enumerations-2.0}enum2:enumerationItemType")
 qnEnumerationItemTypeYYYY = qname(
@@ -388,17 +387,17 @@ qnEnumerationItemType2016 = qname(
 qnEnumerationsItemType2016 = qname(
     "{http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1}enum:enumerationsItemType"
 )
-qnEnumerationListItemTypes = (
+qnEnumerationListItemTypes = frozenset({
     qnEnumerationListItemType11YYYY,
     qnEnumerationSetItemType11YYYY,
     qnEnumerationsItemType2016,
-)
-qnEnumerationSetItemTypes = (
+})
+qnEnumerationSetItemTypes = frozenset({
     qnEnumerationSetItemType11YYYY,
     qnEnumerationSetItemType2020,
     qnEnumerationSetItemTypeYYYY,
-)
-qnEnumerationItemTypes = (
+})
+qnEnumerationItemTypes = frozenset({
     qnEnumerationItemType2014,
     qnEnumerationItemType2020,
     qnEnumerationItemTypeYYYY,
@@ -409,12 +408,12 @@ qnEnumerationItemTypes = (
     qnEnumerationListItemType11YYYY,
     qnEnumerationItemType2016,
     qnEnumerationsItemType2016,
-)
-qnEnumerationTypes = qnEnumerationItemTypes + (
+})
+qnEnumerationTypes = qnEnumerationItemTypes | {
     qnEnumerationSetValDimType2020,
     qnEnumerationSetValDimTypeYYYY,
-)
-qnEnumeration2ItemTypes = (qnEnumerationItemType2020, qnEnumerationSetItemType2020)
+}
+qnEnumeration2ItemTypes = frozenset({qnEnumerationItemType2020, qnEnumerationSetItemType2020})
 attrEnumerationDomain2014 = "{http://xbrl.org/2014/extensible-enumerations}domain"
 attrEnumerationDomain2020 = "{http://xbrl.org/2020/extensible-enumerations-2.0}domain"
 attrEnumerationDomainYYYY = "{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0}domain"
@@ -656,11 +655,11 @@ euGroupTable = "http://www.eurofiling.info/xbrl/arcrole/group-table"
 widerNarrower = "http://www.esma.europa.eu/xbrl/esef/arcrole/wider-narrower"
 
 xdtSchemaErrorNS = "http://www.xbrl.org/2005/genericXmlSchemaError"
-errMsgPrefixNS = {  # err prefixes which are not declared, such as XPath's "err" prefix
+errMsgPrefixNS = frozenset({  # err prefixes which are not declared, such as XPath's "err" prefix
     "err": xpath2err,
     "xmlSchema": xdtSchemaErrorNS,
     "utre": "http://www.xbrl.org/2009/utr/errors",
-}
+})
 
 # Filing Indicators
 qnEuFiTuple = qname("{http://www.eurofiling.info/xbrl/ext/filing-indicators}ef-find:fIndicators")
@@ -773,7 +772,7 @@ def isIntegerXsdType(xsdType: str) -> bool:
     }
 
 
-baseXbrliTypes = {
+baseXbrliTypes = frozenset({
     "decimalItemType", "floatItemType", "doubleItemType", "integerItemType",
     "nonPositiveIntegerItemType", "negativeIntegerItemType", "longItemType", "intItemType",
     "shortItemType", "byteItemType", "nonNegativeIntegerItemType", "unsignedLongItemType",
@@ -784,9 +783,8 @@ baseXbrliTypes = {
     "dateTimeItemType", "timeItemType", "dateItemType", "gYearMonthItemType",
     "gYearItemType", "gMonthDayItemType", "gDayItemType", "gMonthItemType",
     "normalizedStringItemType", "tokenItemType", "languageItemType", "NameItemType", "NCNameItemType"
-}
-
-standardLabelRoles = {
+})
+standardLabelRoles = frozenset({
     "http://www.xbrl.org/2003/role/label",
     "http://www.xbrl.org/2003/role/terseLabel",
     "http://www.xbrl.org/2003/role/verboseLabel",
@@ -809,9 +807,8 @@ standardLabelRoles = {
     "http://www.xbrl.org/2003/role/measurementGuidance",
     "http://www.xbrl.org/2003/role/commentaryGuidance",
     "http://www.xbrl.org/2003/role/exampleGuidance",
-}
-
-standardReferenceRoles = {
+})
+standardReferenceRoles = frozenset({
     "http://www.xbrl.org/2003/role/reference",
     "http://www.xbrl.org/2003/role/definitionRef",
     "http://www.xbrl.org/2003/role/disclosureRef",
@@ -822,16 +819,14 @@ standardReferenceRoles = {
     "http://www.xbrl.org/2003/role/measurementRef",
     "http://www.xbrl.org/2003/role/commentaryRef",
     "http://www.xbrl.org/2003/role/exampleRef",
-}
-
-standardLinkbaseRefRoles = {
+})
+standardLinkbaseRefRoles = frozenset({
     "http://www.xbrl.org/2003/role/calculationLinkbaseRef",
     "http://www.xbrl.org/2003/role/definitionLinkbaseRef",
     "http://www.xbrl.org/2003/role/labelLinkbaseRef",
     "http://www.xbrl.org/2003/role/presentationLinkbaseRef",
     "http://www.xbrl.org/2003/role/referenceLinkbaseRef",
-}
-
+})
 standardRoles = (
     standardLabelRoles
     | standardReferenceRoles
@@ -984,16 +979,16 @@ def isStandardArcInExtLinkElement(element: ModelObject) -> bool:
     ) or element.qname == qnIXbrl11Relationship
 
 
-standardExtLinkQnames = {
+standardExtLinkQnames = frozenset({
     qname("{http://www.xbrl.org/2003/linkbase}definitionLink"),
     qname("{http://www.xbrl.org/2003/linkbase}calculationLink"),
     qname("{http://www.xbrl.org/2003/linkbase}presentationLink"),
     qname("{http://www.xbrl.org/2003/linkbase}labelLink"),
     qname("{http://www.xbrl.org/2003/linkbase}referenceLink"),
     qname("{http://www.xbrl.org/2003/linkbase}footnoteLink"),
-}
+})
 
-standardExtLinkQnamesAndResources = {
+standardExtLinkQnamesAndResources = frozenset({
     qname("{http://www.xbrl.org/2003/linkbase}definitionLink"),
     qname("{http://www.xbrl.org/2003/linkbase}calculationLink"),
     qname("{http://www.xbrl.org/2003/linkbase}presentationLink"),
@@ -1003,7 +998,7 @@ standardExtLinkQnamesAndResources = {
     qname("{http://www.xbrl.org/2003/linkbase}label"),
     qname("{http://www.xbrl.org/2003/linkbase}footnote"),
     qname("{http://www.xbrl.org/2003/linkbase}reference"),
-}
+})
 
 
 def isStandardExtLinkQname(qName: QName) -> bool:
