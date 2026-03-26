@@ -1193,7 +1193,7 @@ class ModelType(ModelNamableTerm):
                         typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
                         self._baseXbrliTypeQname = typeDerivedFrom.baseXbrliTypeQname if typeDerivedFrom is not None else None
                 else:
-                    self._baseXbrliTypeQname = None
+                    self._baseXbrliType = None
             return self._baseXbrliTypeQname
 
     @property
