@@ -4,20 +4,17 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING, Tuple, cast
+from typing import TYPE_CHECKING, cast
+from gettext import gettext as _
 
 import regex as re
 
 from arelle.ModelValue import qname
-from arelle.typing import TypeGetText
 
 if TYPE_CHECKING:
     from arelle.ModelObject import ModelObject
     from arelle.ModelValue import QName
 
-_: TypeGetText
-# tuple is overridden below
-_tuple = tuple  # type: ignore[type-arg]
 
 xsd = "http://www.w3.org/2001/XMLSchema"
 qnXsdComplexType = qname("{http://www.w3.org/2001/XMLSchema}xsd:complexType")
@@ -276,7 +273,7 @@ _dtrTypeNamespacesAll = (
     *_dtrTypeNamespaces2018_07_11AndNewer,
 )
 
-dtrNoDecimalsItemTypes = _tuple(
+dtrNoDecimalsItemTypes = frozenset(
     qname(namespace, typeName)
     for namespace in _dtrTypeNamespaces2018_07_11AndNewer
     for typeName in [
@@ -284,31 +281,31 @@ dtrNoDecimalsItemTypes = _tuple(
         "nonNegativeNoDecimalsMonetaryItemType",
     ]
 )
-dtrPrefixedContentItemTypes = _tuple(
+dtrPrefixedContentItemTypes = frozenset(
     qname(namespace, "prefixedContentItemType")
     for namespace in _dtrTypeNamespaces2019AndNewer
 )
-dtrPrefixedContentTypes = _tuple(
+dtrPrefixedContentTypes = frozenset(
     qname(namespace, "prefixedContentType")
     for namespace in _dtrTypeNamespaces2019AndNewer
 )
-dtrSQNameItemTypes = _tuple(
+dtrSQNameItemTypes = frozenset(
     qname(namespace, "SQNameItemType")
     for namespace in _dtrTypeNamespaces2018_07_11AndNewer
 )
-dtrSQNameTypes = _tuple(
+dtrSQNameTypes = frozenset(
     qname(namespace, "SQNameType")
     for namespace in _dtrTypeNamespaces2019AndNewer
 )
-dtrSQNamesItemTypes = _tuple(
+dtrSQNamesItemTypes = frozenset(
     qname(namespace, "SQNamesItemType")
     for namespace in _dtrTypeNamespaces2019AndNewer
 )
-dtrSQNamesTypes = _tuple(
+dtrSQNamesTypes = frozenset(
     qname(namespace, "SQNamesType")
     for namespace in _dtrTypeNamespaces2019AndNewer
 )
-dtrSQNameNamesItemTypes = dtrSQNameItemTypes + dtrSQNamesItemTypes
+dtrSQNameNamesItemTypes = dtrSQNameItemTypes | dtrSQNamesItemTypes
 dtrSQNameNamesTypes = dtrSQNameTypes + dtrSQNamesTypes
 
 wgnStringItemTypeNames = ("stringItemType", "normalizedStringItemType")
@@ -448,7 +445,7 @@ qnEqualityDefinition = qname("{http://xbrl.org/2008/variable}variable:equalityDe
 qnEqualityTestA = qname("{http://xbrl.org/2008/variable/aspectTest}aspectTest:a")
 qnEqualityTestB = qname("{http://xbrl.org/2008/variable/aspectTest}aspectTest:b")
 formula = "http://xbrl.org/2008/formula"
-tuple = "http://xbrl.org/2010/formula/tuple"
+formulaTuple = "http://xbrl.org/2010/formula/tuple"
 qnFormula = qname("{http://xbrl.org/2008/formula}formula:formula")
 qnTuple = qname("{http://xbrl.org/2010/formula/tuple}tuple:tuple")
 qnFormulaUncovered = qname("{http://xbrl.org/2008/formula}formula:uncovered")
@@ -917,7 +914,7 @@ def isStandardArcrole(role: str) -> bool:
     }
 
 
-standardArcroleCyclesAllowed: dict[str, Tuple[str, str | None]] = {
+standardArcroleCyclesAllowed: dict[str, tuple[str, str | None]] = {
     "http://www.xbrl.org/2003/arcrole/concept-label": ("any", None),
     "http://www.xbrl.org/2003/arcrole/concept-reference": ("any", None),
     "http://www.xbrl.org/2003/arcrole/fact-footnote": ("any", None),
@@ -1028,7 +1025,7 @@ def isDimensionArcrole(arcrole: str) -> bool:
     return arcrole.startswith("http://xbrl.org/int/dim/arcrole/")
 
 
-consecutiveArcrole: dict[str, str | Tuple[str, ...]] = {  # can be list of or single arcrole
+consecutiveArcrole: dict[str, str | tuple[str, ...]] = {  # can be list of or single arcrole
     all: (dimensionDomain, hypercubeDimension),
     notAll: (dimensionDomain, hypercubeDimension),
     hypercubeDimension: dimensionDomain,
