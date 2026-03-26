@@ -495,7 +495,10 @@ def validateTaxonomyPackage(
                 fileSource=filesource,
                 **validation.args
             )
-            errors.append(str(validation.codes))
+            if isinstance(validation.codes, str):
+                errors.append(validation.codes)
+            else:
+                errors.extend(validation.codes)
             return False
     for validator in TAXONOMY_PACKAGE_NON_ABORTING_VALIDATIONS:
         if validation := validator(TAXONOMY_PACKAGE_TYPE, filesource):
@@ -506,7 +509,10 @@ def validateTaxonomyPackage(
                 fileSource=filesource,
                 **validation.args
             )
-            errors.append(str(validation.codes))
+            if isinstance(validation.codes, str):
+                errors.append(validation.codes)
+            else:
+                errors.extend(validation.codes)
 
     _dir = filesource.dir or []
     if not any(f.endswith('/META-INF/taxonomyPackage.xml') for f in _dir):
