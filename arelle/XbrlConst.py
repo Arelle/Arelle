@@ -210,7 +210,6 @@ essenceAlias = "http://www.xbrl.org/2003/arcrole/essence-alias"
 similarTuples = "http://www.xbrl.org/2003/arcrole/similar-tuples"
 requiresElement = "http://www.xbrl.org/2003/arcrole/requires-element"
 generalSpecial = "http://www.xbrl.org/2003/arcrole/general-special"
-dimStartsWith = "http://xbrl.org/int/dim"
 all = "http://xbrl.org/int/dim/arcrole/all"
 notAll = "http://xbrl.org/int/dim/arcrole/notAll"
 hypercubeDimension = "http://xbrl.org/int/dim/arcrole/hypercube-dimension"
@@ -874,9 +873,7 @@ def isNumericRole(role: str) -> bool:
         "http://www.xbrl.org/2009/role/negatedNetLabel",
         "http://www.xbrl.org/2009/role/negatedTerseLabel",
     }
-
-
-standardDimensionArcroles = frozenset({
+dimensionsSpecArcroles = frozenset({
     all,
     notAll,
     hypercubeDimension,
@@ -886,27 +883,25 @@ standardDimensionArcroles = frozenset({
 })
 
 
-standardDefinitionArcroles = frozenset(standardDimensionArcroles | {
+standardDefinitionArcroles = frozenset({
     essenceAlias,
     generalSpecial,
     requiresElement,
     similarTuples,
 })
 
-
-def isStandardArcrole(role: str) -> bool:
-    return role in {
+standardArcroles = standardDefinitionArcroles | {
         "http://www.w3.org/1999/xlink/properties/linkbase",
         "http://www.xbrl.org/2003/arcrole/concept-label",
         "http://www.xbrl.org/2003/arcrole/concept-reference",
         "http://www.xbrl.org/2003/arcrole/fact-footnote",
         "http://www.xbrl.org/2003/arcrole/parent-child",
         "http://www.xbrl.org/2003/arcrole/summation-item",
-        "http://www.xbrl.org/2003/arcrole/general-special",
-        "http://www.xbrl.org/2003/arcrole/essence-alias",
-        "http://www.xbrl.org/2003/arcrole/similar-tuples",
-        "http://www.xbrl.org/2003/arcrole/requires-element",
-    }
+}
+
+
+def isStandardArcrole(role: str) -> bool:
+    return role in standardArcroles
 
 
 standardArcroleCyclesAllowed: dict[str, tuple[str, str | None]] = {
@@ -1017,7 +1012,7 @@ def isStandardArcQname(qName: QName) -> bool:
 
 
 def isDimensionArcrole(arcrole: str) -> bool:
-    return arcrole.startswith("http://xbrl.org/int/dim/arcrole/")
+    return arcrole in dimensionsSpecArcroles
 
 
 consecutiveArcrole: dict[str, str | tuple[str, ...]] = {  # can be list of or single arcrole
