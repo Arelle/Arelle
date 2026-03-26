@@ -841,30 +841,19 @@ standardRoles = (
     | standardLinkbaseRefRoles
     | {"http://www.xbrl.org/2003/role/link", "http://www.xbrl.org/2003/role/footnote"}
 )
-
-
-def isStandardRole(role: str) -> bool:
-    return role in standardRoles
-
-
-def isTotalRole(role: str) -> bool:
-    return role in {
+totalRoles = frozenset({
         "http://www.xbrl.org/2003/role/totalLabel",
         "http://xbrl.us/us-gaap/role/label/negatedTotal",
         "http://www.xbrl.org/2009/role/negatedTotalLabel",
+    })
+netRoles = frozenset(
+    {
+        "http://www.xbrl.org/2009/role/netLabel",
+        "http://www.xbrl.org/2009/role/negatedNetLabel"
     }
-
-
-def isNetRole(role: str) -> bool:
-    return role in {"http://www.xbrl.org/2009/role/netLabel", "http://www.xbrl.org/2009/role/negatedNetLabel"}
-
-
-def isLabelRole(role: str) -> bool:
-    return role in standardLabelRoles or role == genLabel
-
-
-def isNumericRole(role: str) -> bool:
-    return role in {
+)
+numericRoles = frozenset(
+    {
         "http://www.xbrl.org/2003/role/totalLabel",
         "http://www.xbrl.org/2003/role/positiveLabel",
         "http://www.xbrl.org/2003/role/negativeLabel",
@@ -882,6 +871,28 @@ def isNumericRole(role: str) -> bool:
         "http://www.xbrl.org/2009/role/negatedNetLabel",
         "http://www.xbrl.org/2009/role/negatedTerseLabel",
     }
+)
+
+def isStandardRole(role: str | None) -> bool:
+    return role in standardRoles
+
+
+def isTotalRole(role: str | None) -> bool:
+    return role in totalRoles
+
+
+def isNetRole(role: str | None) -> bool:
+    return role in netRoles
+
+
+def isLabelRole(role: str | None) -> bool:
+    return role in standardLabelRoles or role == genLabel
+
+
+def isNumericRole(role: str | None) -> bool:
+    return role in numericRoles
+
+
 dimensionsSpecArcroles = frozenset({
     all,
     notAll,
