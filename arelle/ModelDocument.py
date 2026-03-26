@@ -214,9 +214,10 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
         if file:
             file.close()
         # retry in case of well known schema locations
-        if not isIncluded and namespace and namespace in XbrlConst.standardNamespaceSchemaLocations and uri != XbrlConst.standardNamespaceSchemaLocations[namespace]:
-            return load(modelXbrl, XbrlConst.standardNamespaceSchemaLocations[namespace],
-                        base, referringElement, isEntry, isDiscovered, isIncluded, namespace, reloadCache)
+        shouldLoad = namespace and (canonicalUri := XbrlConst.standardNamespaceSchemaLocations.get(namespace)) is not None and uri != canonicalUri
+        if not isIncluded and shouldLoad:
+            return load(modelXbrl, canonicalUri,
+                        base, referringElement, isEntry, isDiscovered, isIncluded, bool(namespace), reloadCache)
         if modelXbrl.modelManager.abortOnMajorError and (isEntry or isDiscovered):
             modelXbrl.error("IOerror",
                 _("%(fileName)s: file error: %(error)s \nLoading terminated."),

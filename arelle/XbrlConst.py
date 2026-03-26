@@ -245,7 +245,7 @@ utr = "http://www.xbrl.org/2009/utr"
 _dtrTypesStartsWith = "http://www.xbrl.org/dtr/type/"
 
 def isDtrTypeNamespace(namespace: str | None) -> bool:
-    return namespace.startswith(_dtrTypesStartsWith) if namespace else False
+    return bool(namespace) and namespace.startswith(_dtrTypesStartsWith)
 
 dtr = "http://www.xbrl.org/2009/dtr"
 dtrNumeric = "http://www.xbrl.org/dtr/type/numeric"
@@ -697,10 +697,16 @@ def labelroleLabel(role: str) -> str:  # with sort char in first position
 
 
 standardNamespaces = frozenset({xsd, xbrli, link, gen, xbrldt, xbrldi})
+xsdOrXbrliNamespaces = frozenset({xsd, xbrli})
 
 def isStandardNamespace(namespaceURI: str | None) -> bool:
     return namespaceURI in standardNamespaces
 
+def isXsdOrXbrliNamespace(namespaceURI: str | None) -> bool:
+    return namespaceURI in xsdOrXbrliNamespaces
+
+def isUSTypesNamespace(namespaceURI: str | None) -> bool:
+    return bool(namespaceURI) and "/us-types/" in namespaceURI
 
 standardNamespaceSchemaLocations: dict[str, str] = {
     xbrli: "http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd",

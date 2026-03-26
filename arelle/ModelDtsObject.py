@@ -1181,21 +1181,19 @@ class ModelType(ModelNamableTerm):
                     # TBD implement union types
                     elif len(qnameDerivedFrom) == 1:
                         qn0 = qnameDerivedFrom[0]
-                        if qn0.namespaceURI in (XbrlConst.xbrli, XbrlConst.xsd):
+                        if XbrlConst.isXsdOrXbrliNamespace(qn0.namespaceURI):
                             self._baseXbrliTypeQname = qn0
                         else:
                             typeDerivedFrom = self.modelXbrl.qnameTypes.get(qn0)
                             self._baseXbrliTypeQname = typeDerivedFrom.baseXbrliTypeQname if typeDerivedFrom is not None else None
                 elif isinstance(qnameDerivedFrom, ModelValue.QName):
-                    if qnameDerivedFrom.namespaceURI == XbrlConst.xbrli:  # xbrli type
-                        self._baseXbrliTypeQname = qnameDerivedFrom
-                    elif qnameDerivedFrom.namespaceURI == XbrlConst.xsd:    # xsd type
+                    if XbrlConst.isXsdOrXbrliNamespace(qnameDerivedFrom.namespaceURI):
                         self._baseXbrliTypeQname = qnameDerivedFrom
                     else:
                         typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
                         self._baseXbrliTypeQname = typeDerivedFrom.baseXbrliTypeQname if typeDerivedFrom is not None else None
                 else:
-                    self._baseXbrliType = None
+                    self._baseXbrliTypeQname = None
             return self._baseXbrliTypeQname
 
     @property
@@ -1219,14 +1217,14 @@ class ModelType(ModelNamableTerm):
 
     @property
     def isTextBlock(self):
-        """(str) -- True if type is, or is derived from, us-types:textBlockItemType or dtr-types:escapedItemType"""
-        if self.name == "textBlockItemType" and "/us-types/" in self.modelDocument.targetNamespace:
+        """(str) -- True if type is, or is derived from, dtr-types:escapedItemType or us-types:textBlockItemType or a type derived from either of those types."""
+        if self.name == "escapedItemType" and XbrlConst.isDtrTypeNamespace(self.modelDocument.targetNamespace):
             return True
-        if self.name == "escapedItemType" and self.modelDocument.targetNamespace.startswith(XbrlConst.dtrTypesStartsWith):
+        if self.name == "textBlockItemType" and XbrlConst.isUSTypesNamespace(self.modelDocument.targetNamespace):
             return True
         qnameDerivedFrom = self.qnameDerivedFrom
         if (not isinstance(qnameDerivedFrom, ModelValue.QName) or # textblock not a union type
-            (qnameDerivedFrom.namespaceURI in(XbrlConst.xsd,XbrlConst.xbrli))):
+            XbrlConst.isXsdOrXbrliNamespace(qnameDerivedFrom.namespaceURI)):
             return False
         typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
         return typeDerivedFrom.isTextBlock if typeDerivedFrom is not None else False
@@ -1259,12 +1257,11 @@ class ModelType(ModelNamableTerm):
     def isDomainItemType(self):
         """(bool) -- True if type is, or is derived from, domainItemType in either a us-types or a dtr-types namespace."""
         if self.name == "domainItemType" and \
-           ("/us-types/" in self.modelDocument.targetNamespace or
-            self.modelDocument.targetNamespace.startswith(XbrlConst.dtrTypesStartsWith)):
+           (XbrlConst.isDtrTypeNamespace(self.modelDocument.targetNamespace) or XbrlConst.isUSTypesNamespace(self.modelDocument.targetNamespace)):
             return True
         qnameDerivedFrom = self.qnameDerivedFrom
         if (not isinstance(qnameDerivedFrom, ModelValue.QName) or # domainItemType not a union type
-            (qnameDerivedFrom.namespaceURI in(XbrlConst.xsd,XbrlConst.xbrli))):
+            XbrlConst.isXsdOrXbrliNamespace(qnameDerivedFrom.namespaceURI)):
             return False
         typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
         return typeDerivedFrom.isDomainItemType if typeDerivedFrom is not None else False
