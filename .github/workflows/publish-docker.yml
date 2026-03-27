@@ -44,10 +44,27 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
+      - name: Build and push EDGAR Docker images
+        id: push-edgar
+        uses: docker/build-push-action@v7.0.0
+        with:
+          context: .
+          file: docker/Dockerfile
+          build-args: |
+            INCLUDE_EDGAR="true"
+            EXTRA_PIP="-r requirements-plugins.txt"
+          push: true
+          tags: |
+            edgar
+            ${{ steps.meta.outputs.tags }}-edgar
+          labels: ${{ steps.meta.outputs.labels }}
+
       - name: Generate artifact attestation
         uses: actions/attest@v4.1.0
         with:
           subject-name: index.docker.io/${{ secrets.DOCKER_USERNAME }}/arelle
-          subject-digest: ${{ steps.push.outputs.digest }}
+          subject-digest: |
+            ${{ steps.push.outputs.digest }}
+            ${{ steps.push-edgar.outputs.digest }}
           push-to-registry: true
 
