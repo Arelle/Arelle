@@ -31,8 +31,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v6.0.0
         with:
-          images: ryangeiser1/arelle
-          # images: arelleproject/arelle
+          images: ${{ secrets.DOCKER_USERNAME }}/arelle
 
       - name: Build and push Docker images
         id: push
@@ -47,8 +46,7 @@ jobs:
       - name: Generate artifact attestation
         uses: actions/attest@v4.1.0
         with:
-          subject-name: index.docker.io/ryangeiser1/arelle
-          # subject-name: index.docker.io/arelleproject/arelle
+          subject-name: index.docker.io/${{ secrets.DOCKER_USERNAME }}/arelle
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
 
