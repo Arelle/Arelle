@@ -52,16 +52,6 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}-edgar
             type=semver,pattern={{major}}-edgar
 
-      - name: Build and push Docker images
-        id: push
-        uses: docker/build-push-action@v7.0.0
-        with:
-          context: .
-          file: docker/Dockerfile
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-
       - name: Build and push EDGAR Docker images
         id: push-edgar
         uses: docker/build-push-action@v7.0.0
@@ -75,12 +65,27 @@ jobs:
           tags: ${{ steps.meta-edgar.outputs.tags }}
           labels: ${{ steps.meta-edgar.outputs.labels }}
 
+      - name: Build and push Docker images
+        id: push
+        uses: docker/build-push-action@v7.0.0
+        with:
+          context: .
+          file: docker/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
       - name: Generate artifact attestation
         uses: actions/attest@v4.1.0
         with:
           subject-name: index.docker.io/${{ secrets.DOCKER_USERNAME }}/arelle
-          subject-digest: |
-            ${{ steps.push.outputs.digest }}
-            ${{ steps.push-edgar.outputs.digest }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
+
+      - name: Generate artifact attestation EDGAR
+        uses: actions/attest@v4.1.0
+        with:
+          subject-name: index.docker.io/${{ secrets.DOCKER_USERNAME }}/arelle
+          subject-digest: ${{ steps.push-edgar.outputs.digest }}
           push-to-registry: true
 
