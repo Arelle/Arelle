@@ -33,6 +33,16 @@ jobs:
         uses: docker/metadata-action@v6.0.0
         with:
           images: ${{ secrets.DOCKER_USERNAME }}/arelle
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}.{{patch}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+          edgar-tags: |
+            type=semver,pattern={{version}}-edgar
+            type=semver,pattern={{major}}.{{minor}}.{{patch}}-edgar
+            type=semver,pattern={{major}}.{{minor}}-edgar
+            type=semver,pattern={{major}}-edgar
 
       - name: Build and push Docker images
         id: push
@@ -54,9 +64,7 @@ jobs:
             INCLUDE_EDGAR=true
             EXTRA_PIP=-r requirements-plugins.txt
           push: true
-          tags: |
-            edgar
-            ${{ steps.meta.outputs.tags }}-edgar
+          tags: ${{ steps.meta.outputs.edgar-tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Generate artifact attestation
