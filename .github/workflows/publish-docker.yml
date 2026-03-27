@@ -38,7 +38,13 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}.{{patch}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
-          edgar-tags: |
+
+      - name: Extract metadata (tags, labels) for Docker EDGAR
+        id: meta-edgar
+        uses: docker/metadata-action@v6.0.0
+        with:
+          images: ${{ secrets.DOCKER_USERNAME }}/arelle
+          tags: |
             type=semver,pattern={{version}}-edgar
             type=semver,pattern={{major}}.{{minor}}.{{patch}}-edgar
             type=semver,pattern={{major}}.{{minor}}-edgar
@@ -64,8 +70,12 @@ jobs:
             INCLUDE_EDGAR=true
             EXTRA_PIP=-r requirements-plugins.txt
           push: true
-          tags: ${{ steps.meta.outputs.edgar-tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: |
+            edgar
+            ${{ steps.meta-edgar.outputs.tags }}
+          labels: |
+            edgar
+            ${{ steps.meta-edgar.outputs.labels }}
 
       - name: Generate artifact attestation
         uses: actions/attest@v4.1.0
