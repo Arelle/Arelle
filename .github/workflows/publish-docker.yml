@@ -19,6 +19,7 @@ jobs:
       - name: Checkout Arelle
         uses: actions/checkout@v6.0.2
         with: 
+          # ref: $RESOLVED_VERSION
           fetch-depth: 0
 
       - name: Log in to Docker Hub
