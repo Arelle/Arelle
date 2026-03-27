@@ -245,7 +245,7 @@ utr = "http://www.xbrl.org/2009/utr"
 _dtrTypesStartsWith = "http://www.xbrl.org/dtr/type/"
 
 def isDtrTypeNamespace(namespace: str | None) -> bool:
-    return bool(namespace) and namespace.startswith(_dtrTypesStartsWith)
+    return namespace.startswith(_dtrTypesStartsWith) if namespace else False
 
 dtr = "http://www.xbrl.org/2009/dtr"
 dtrNumeric = "http://www.xbrl.org/dtr/type/numeric"
@@ -706,7 +706,7 @@ def isXsdOrXbrliNamespace(namespaceURI: str | None) -> bool:
     return namespaceURI in xsdOrXbrliNamespaces
 
 def isUSTypesNamespace(namespaceURI: str | None) -> bool:
-    return bool(namespaceURI) and "/us-types/" in namespaceURI
+    return "/us-types/" in namespaceURI if namespaceURI else False
 
 standardNamespaceSchemaLocations: dict[str, str] = {
     xbrli: "http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd",
