@@ -3,27 +3,46 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 
+import datetime
+import datetime as dt
 import math
 import regex as re
-from arelle.ModelObject import ModelObject, ModelAttribute
-from arelle.ModelValue import (qname, dateTime, DateTime, DATE, DATETIME, dayTimeDuration,
-                         YearMonthDuration, DayTimeDuration, time, Time)
-from arelle.FunctionUtil import anytypeArg, atomicArg, stringArg, numericArg, integerArg, qnameArg, nodeArg
-from arelle import FunctionXs, XbrlUtil, XmlUtil, UrlUtil, ModelDocument, XmlValidate
-from arelle.formula import XPathContext
-from arelle.Locale import format_picture
-from arelle.formula.XPathParser import FormulaToken, OperationDef
-from arelle.XmlValidateConst import VALID_NO_CONTENT
 from decimal import Decimal
-from lxml import etree
 from numbers import Number
+from typing import Any, NoReturn, Callable, cast
+
+from lxml import etree
+
+from arelle import FunctionXs, ModelDocument, UrlUtil, XbrlUtil, XmlUtil, XmlValidate
+from arelle.FunctionUtil import anytypeArg, stringArg, numericArg, integerArg, qnameArg, nodeArg
+from arelle.Locale import format_picture
+from arelle.ModelObject import ModelObject, ModelAttribute
+from arelle.ModelValue import (
+    QName as ModelValueQName,
+    qname,
+    dateTime,
+    DateTime,
+    DATE,
+    DATETIME,
+    dayTimeDuration,
+    YearMonthDuration,
+    DayTimeDuration,
+    time,
+    Time,
+)
+from arelle.formula import XPathContext
+from arelle.formula.XPathParser import FormulaToken, OperationDef
+from arelle.typing import TypeGetText
+from arelle.XmlValidateConst import VALID_NO_CONTENT
+
+_: TypeGetText
 
 DECIMAL_5 = Decimal(.5)
 
 class fnFunctionNotAvailable(Exception):
-    def __init__(self):
-        self.args =  ("fn function not available",)
-    def __repr__(self):
+    def __init__(self) -> None:
+        self.args: tuple[str] =  ("fn function not available",)
+    def __repr__(self) -> str:
         return self.args[0]
 
 def call(
@@ -35,23 +54,38 @@ def call(
 ) -> XPathContext.RecursiveContextItem:
     try:
         if localname not in fnFunctions: raise fnFunctionNotAvailable
-        return fnFunctions[localname](xc, p, contextItem, args)
+        return fnFunctions[localname](xc, p, contextItem, args)  # type: ignore[no-any-return]
     except fnFunctionNotAvailable:
         raise XPathContext.FunctionNotAvailable("fn:{0}".format(localname))
 
-def node_name(xc, p, contextItem, args):
+def node_name(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> tuple[()] | ModelValueQName:
     node = nodeArg(xc, args, 0, "node()?", missingArgFallback=contextItem, emptyFallback=())
     if node != ():
-        return qname(node)
+        return qname(node)  # type: ignore[arg-type]
     return ()
 
-def nilled(xc, p, contextItem, args):
+def nilled(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> bool | tuple[()]:
     node = nodeArg(xc, args, 0, "node()?", missingArgFallback=contextItem, emptyFallback=())
     if node != () and isinstance(node,ModelObject):
         return node.get("{http://www.w3.org/2001/XMLSchema-instance}nil") == "true"
     return ()
 
-def string(xc, p, contextItem, args):
+def string(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> str:
     if len(args) > 1: raise XPathContext.FunctionNumArgs()
     item = anytypeArg(xc, args, 0, "item()?", missingArgFallback=contextItem)
     if item == ():
@@ -60,41 +94,76 @@ def string(xc, p, contextItem, args):
         x = item.stringValue # represents inner text of this and all subelements
     else:
         x = xc.atomize(p, item)
-    return FunctionXs.xsString( xc, p, x )
+    return FunctionXs.xsString( xc, p, x )  # type: ignore[no-untyped-call,no-any-return]
 
-def data(xc, p, contextItem, args):
+def data(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     return xc.atomize(p, args[0])
 
-def base_uri(xc, p, contextItem, args):
+def base_uri(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> str:
     item = anytypeArg(xc, args, 0, "node()?", missingArgFallback=contextItem)
     if item == ():
         return ''
-    if isinstance(item, (ModelObject, ModelDocument)):
+    if isinstance(item, (ModelObject, ModelDocument.ModelDocument)):
         return UrlUtil.ensureUrl(item.modelDocument.uri)
     return ''
 
-def document_uri(xc, p, contextItem, args):
-    return xc.modelXbrl.modelDocument.uri
+def document_uri(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
+    return xc.modelXbrl.modelDocument.uri  # type: ignore[union-attr]
 
-def error(xc, p, contextItem, args):
+def error(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> NoReturn:
     if len(args) > 2: raise XPathContext.FunctionNumArgs()
     qn = qnameArg(xc, p, args, 0, 'QName?', emptyFallback=None)
     msg = stringArg(xc, args, 1, "xs:string", emptyFallback='')
-    raise XPathContext.XPathException(p, (qn or "err:FOER0000"), msg)
+    raise XPathContext.XPathException(p, (cast(ModelValueQName, qn) or "err:FOER0000"), msg)
 
-def trace(xc, p, contextItem, args):
+def trace(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> NoReturn:
     raise fnFunctionNotAvailable()
 
-def fn_dateTime(xc, p, contextItem, args):
+def fn_dateTime(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> tuple[()] | DateTime | datetime.timedelta:
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
     date = anytypeArg(xc, args, 0, "xs:date", missingArgFallback=())
     time = anytypeArg(xc, args, 1, "xs:time", missingArgFallback=())
     if date is None or time is None:
         return ()
-    return dateTime(date) + dayTimeDuration(time)
+    return dateTime(date) + dayTimeDuration(time)   #type: ignore[operator]
 
-def fn_abs(xc, p, contextItem, args):
+def fn_abs(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args)
     if math.isinf(x):
@@ -103,22 +172,42 @@ def fn_abs(xc, p, contextItem, args):
         x = abs(x)
     return x
 
-def fn_ceiling(xc, p, contextItem, args):
+def fn_ceiling(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> int:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
-    return math.ceil(numericArg(xc, p, args))
+    return math.ceil(numericArg(xc, p, args))  #type: ignore[no-any-return]
 
-def fn_floor(xc, p, contextItem, args):
+def fn_floor(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> int:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
-    return math.floor(numericArg(xc, p, args))
+    return math.floor(numericArg(xc, p, args))  #type: ignore[no-any-return]
 
-def fn_round(xc, p, contextItem, args):
+def fn_round(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args)
     if math.isinf(x) or math.isnan(x):
         return x
     return int(x + (DECIMAL_5 if isinstance(x,Decimal) else .5))  # round towards +inf
 
-def fn_round_half_to_even(xc, p, contextItem, args):
+def fn_round_half_to_even(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) > 2 or len(args) == 0: raise XPathContext.FunctionNumArgs()
     x = numericArg(xc, p, args)
     if len(args) == 2:
@@ -128,20 +217,36 @@ def fn_round_half_to_even(xc, p, contextItem, args):
         return round(x, precision)
     return round(x)
 
-def codepoints_to_string(xc, p, contextItem, args):
+def codepoints_to_string(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> str | None:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     try:
-        return ''.join(chr(c) for c in args[0])
+        return ''.join(chr(c) for c in args[0])  # type: ignore[arg-type]
     except TypeError:
         XPathContext.FunctionArgType(1,"xs:integer*")
+        return None
 
-def string_to_codepoints(xc, p, contextItem, args):
+def string_to_codepoints(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> tuple[int, ...] | tuple[()]:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     str = stringArg(xc, args, 0, "xs:string", emptyFallback=())
     if str == (): return ()
     return tuple(ord(c) for c in str)
 
-def compare(xc, p, contextItem, args):
+def compare(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> int | tuple[()]:
     if len(args) == 3: raise fnFunctionNotAvailable()
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
     comparand1 = stringArg(xc, args, 0, "xs:string?", emptyFallback=())
@@ -151,22 +256,37 @@ def compare(xc, p, contextItem, args):
     if comparand1 < comparand2: return -1
     return 1
 
-def codepoint_equal(xc, p, contextItem, args):
+def codepoint_equal(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> NoReturn:
     raise fnFunctionNotAvailable()
 
-def concat(xc, p, contextItem, args):
+def concat(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> str:
     if len(args) < 2: raise XPathContext.FunctionNumArgs()
-    atomizedArgs = []
+    atomizedArgs: list[str] = []
     for i in range(len(args)):
         item = anytypeArg(xc, args, i, "xs:anyAtomicType?")
         if item != ():
-            atomizedArgs.append( FunctionXs.xsString( xc, p, xc.atomize(p, item) ) )
+            atomizedArgs.append( FunctionXs.xsString( xc, p, xc.atomize(p, item) ) )  # type: ignore[no-untyped-call]
     return ''.join(atomizedArgs)
 
-def string_join(xc, p, contextItem, args):
+def string_join(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> str:
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
-    joiner = stringArg(xc, args, 1, "xs:string")
-    atomizedArgs = []
+    joiner: str = stringArg(xc, args, 1, "xs:string")
+    atomizedArgs: list[str] = []
     for x in xc.atomize( p, args[0] ):
         if isinstance(x, str):
             atomizedArgs.append(x)
@@ -174,10 +294,15 @@ def string_join(xc, p, contextItem, args):
             raise XPathContext.FunctionArgType(0,"xs:string*")
     return joiner.join(atomizedArgs)
 
-def substring(xc, p, contextItem, args):
+def substring(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> str:
     l = len(args)
     if l < 2 or l > 3: raise XPathContext.FunctionNumArgs()
-    string = stringArg(xc, args, 0, "xs:string?")
+    string: str = stringArg(xc, args, 0, "xs:string?")
     start = int(round( numericArg(xc, p, args, 1) )) - 1
     if l == 3:
         length = int(round( numericArg(xc, p, args, 2) ))
@@ -189,12 +314,22 @@ def substring(xc, p, contextItem, args):
     if start < 0: start = 0
     return string[start:]
 
-def string_length(xc, p, contextItem, args):
+def string_length(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> int:
     if len(args) > 1: raise XPathContext.FunctionNumArgs()
     return len( stringArg(xc, args, 0, "xs:string", missingArgFallback=contextItem) )
 
 
-def normalize_space(xc, p, contextItem, args):
+def normalize_space(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> str:
     # https://www.w3.org/TR/xpath-functions/#func-normalize-space
     # Defined to be the same as whitespace = collapse in XML schema
     # So we use the same implementation
@@ -202,24 +337,44 @@ def normalize_space(xc, p, contextItem, args):
     return XmlUtil.collapseWhitespace(stringArg(xc, args, 0, "xs:string", missingArgFallback=contextItem))
 
 
-def normalize_unicode(xc, p, contextItem, args):
+def normalize_unicode(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> NoReturn:
     raise fnFunctionNotAvailable()
 
-def upper_case(xc, p, contextItem, args):
+def upper_case(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> str:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
-    return stringArg(xc, args, 0, "xs:string").upper()
+    return stringArg(xc, args, 0, "xs:string").upper()  # type: ignore[no-any-return]
 
-def lower_case(xc, p, contextItem, args):
+def lower_case(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> str:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
-    return stringArg(xc, args, 0, "xs:string").lower()
+    return stringArg(xc, args, 0, "xs:string").lower()  # type: ignore[no-any-return]
 
-def translate(xc, p, contextItem, args):
+def translate(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> str | tuple[()]:
     if len(args) != 3: raise XPathContext.FunctionNumArgs()
     arg = stringArg(xc, args, 0, "xs:string?", emptyFallback=())
     mapString = stringArg(xc, args, 1, "xs:string", emptyFallback=())
     transString = stringArg(xc, args, 2, "xs:string", emptyFallback=())
     if arg == (): return ()
-    out = []
+    out: list[str] = []
     for c in arg:
         if c in mapString:
             i = mapString.index(c)
@@ -229,37 +384,83 @@ def translate(xc, p, contextItem, args):
             out.append(c)
     return ''.join(out)
 
-def encode_for_uri(xc, p, contextItem, args):
+def encode_for_uri(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> str:
     from urllib.parse import quote
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     return quote(stringArg(xc, args, 0, "xs:string"))
 
-def iri_to_uri(xc, p, contextItem, args):
+def iri_to_uri(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> str:
     return encode_for_uri(xc, p, contextItem, args)
 
-def escape_html_uri(xc, p, contextItem, args):
+def escape_html_uri(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> str:
     return encode_for_uri(xc, p, contextItem, args)
 
-def contains(xc, p, contextItem, args):
+def contains(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> bool | str:
     return substring_functions(xc, args, contains=True)
 
-def starts_with(xc, p, contextItem, args):
+def starts_with(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> bool | str:
     return substring_functions(xc, args, startEnd=True)
 
-def ends_with(xc, p, contextItem, args):
+def ends_with(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> bool | str:
     return substring_functions(xc, args, startEnd=False)
 
-def substring_before(xc, p, contextItem, args):
+def substring_before(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> bool | str:
     return substring_functions(xc, args, beforeAfter=True)
 
-def substring_after(xc, p, contextItem, args):
+def substring_after(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> bool | str:
     return substring_functions(xc, args, beforeAfter=False)
 
-def substring_functions(xc, args, contains=None, startEnd=None, beforeAfter=None):
+def substring_functions(
+        xc: XPathContext.XPathContext,
+        args: XPathContext.ResultStack,
+        contains: bool | None = None,
+        startEnd: bool | None = None,
+        beforeAfter: bool | None = None,
+) -> bool | str:
     if len(args) == 3: raise fnFunctionNotAvailable()
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
-    string = stringArg(xc, args, 0, "xs:string?")
-    portion = stringArg(xc, args, 1, "xs:string")
+    string: str = stringArg(xc, args, 0, "xs:string?")
+    portion: str = stringArg(xc, args, 1, "xs:string")
     if contains == True:
         return portion in string
     elif startEnd == True:
@@ -275,7 +476,12 @@ def substring_functions(xc, args, contains=None, startEnd=None, beforeAfter=None
             return ''
     raise fnFunctionNotAvailable()  # wrong arguments?
 
-def regexFlags(xc, p, args, n):
+def regexFlags(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        args: XPathContext.ResultStack,
+        n: int,
+) -> int:
     f = 0
     flagsArg = stringArg(xc, args, n, "xs:string", missingArgFallback="", emptyFallback="")
     for c in flagsArg:
@@ -287,7 +493,12 @@ def regexFlags(xc, p, args, n):
             raise XPathContext.XPathException(p, 'err:FORX0001', _('Regular expression interpretation flag unrecognized: {0}').format(flagsArg))
     return f
 
-def matches(xc, p, contextItem, args):
+def matches(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> bool:
     if not 2 <= len(args) <= 3: raise XPathContext.FunctionNumArgs()
     input = stringArg(xc, args, 0, "xs:string?", emptyFallback="")
     pattern = stringArg(xc, args, 1, "xs:string", emptyFallback="")
@@ -297,7 +508,12 @@ def matches(xc, p, contextItem, args):
         raise XPathContext.XPathException(p, 'err:FORX0002', _('fn:matches regular expression pattern error: {0}').format(err))
 
 
-def replace(xc, p, contextItem, args):
+def replace(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> str:
     if not 3 <= len(args) <= 4: raise XPathContext.FunctionNumArgs()
     input = stringArg(xc, args, 0, "xs:string?", emptyFallback="")  # empty string is default
     pattern = stringArg(xc, args, 1, "xs:string", emptyFallback="")
@@ -312,7 +528,12 @@ def replace(xc, p, contextItem, args):
         raise XPathContext.XPathException(p, 'err:FORX0002', _('fn:replace regular expression pattern error: {0}').format(err))
 
 
-def tokenize(xc, p, contextItem, args):
+def tokenize(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> list[str]:
     # See https://www.w3.org/TR/xpath-functions/#func-tokenize
     if not 1 <= len(args) <= 3:
         raise XPathContext.FunctionNumArgs()
@@ -327,12 +548,12 @@ def tokenize(xc, p, contextItem, args):
     if "" == input:
         return []
 
-    m_flags = "" if len(args) < 3 else args[2]
+    m_flags: Any = "" if len(args) < 3 else args[2]
     if matches(xc, p, contextItem, ["", pattern, m_flags]):
         raise XPathContext.XPathException(p, 'err:FORX0003', _('fn:tokenize $pattern matches a zero-length string: {0}').format(pattern))
 
     try:
-        result = []
+        result: list[str] = []
         lastEnd = 0
         for match in re.finditer(pattern, input, flags=regexFlags(xc, p, args, 2)):
             start, end = match.span()
@@ -344,22 +565,47 @@ def tokenize(xc, p, contextItem, args):
         raise XPathContext.XPathException(p, 'err:FORX0002', _('fn:tokenize regular expression pattern error: {0}').format(err))
 
 
-def resolve_uri(xc, p, contextItem, args):
+def resolve_uri(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
     relative = stringArg(xc, args, 0, "xs:string?", emptyFallback=())
     base = stringArg(xc, args, 1, "xs:string", emptyFallback=())
     return xc.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(relative,base)
 
-def true(xc, p, contextItem, args):
+def true(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> bool:
     return True
 
-def false(xc, p, contextItem, args):
+def false(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> bool:
     return False
 
-def _not(xc, p, contextItem, args):
+def _not(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> bool:
     return not boolean(xc, p, contextItem, args)
 
-def years_from_duration(xc, p, contextItem, args):
+def years_from_duration(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     d = anytypeArg(xc, args, 0, 'duration', missingArgFallback=())
     if d == (): return d
@@ -367,7 +613,12 @@ def years_from_duration(xc, p, contextItem, args):
     if isinstance(d, YearMonthDuration): return d.years
     raise XPathContext.FunctionArgType(1,"xs:duration")
 
-def months_from_duration(xc, p, contextItem, args):
+def months_from_duration(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     d = anytypeArg(xc, args, 0, 'duration', missingArgFallback=())
     if d == (): return d
@@ -375,153 +626,268 @@ def months_from_duration(xc, p, contextItem, args):
     if isinstance(d, YearMonthDuration): return d.months
     raise XPathContext.FunctionArgType(1,"xs:duration")
 
-def days_from_duration(xc, p, contextItem, args):
+def days_from_duration(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     d = anytypeArg(xc, args, 0, 'duration', missingArgFallback=())
     if d == (): return d
     if isinstance(d, DayTimeDuration): return d.days
-    if isinstance(d, YearMonthDuration): return d.dayHrsMinsSecs[0]
+    if isinstance(d, YearMonthDuration): return d.dayHrsMinsSecs[0]  # type: ignore[attr-defined]
     raise XPathContext.FunctionArgType(1,"xs:duration")
 
-def hours_from_duration(xc, p, contextItem, args):
+def hours_from_duration(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     d = anytypeArg(xc, args, 0, 'duration', missingArgFallback=())
     if d == (): return d
     if isinstance(d, DayTimeDuration): return 0
-    if isinstance(d, YearMonthDuration): return d.dayHrsMinsSecs[1]
+    if isinstance(d, YearMonthDuration): return d.dayHrsMinsSecs[1]  # type: ignore[attr-defined]
     raise XPathContext.FunctionArgType(1,"xs:duration")
 
-def minutes_from_duration(xc, p, contextItem, args):
+def minutes_from_duration(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     d = anytypeArg(xc, args, 0, 'duration', missingArgFallback=())
     if d == (): return d
     if isinstance(d, DayTimeDuration): return 0
-    if isinstance(d, YearMonthDuration): return d.dayHrsMinsSecs[2]
+    if isinstance(d, YearMonthDuration): return d.dayHrsMinsSecs[2]  # type: ignore[attr-defined]
     raise XPathContext.FunctionArgType(1,"xs:duration")
 
-def seconds_from_duration(xc, p, contextItem, args):
+def seconds_from_duration(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     d = anytypeArg(xc, args, 0, 'duration', missingArgFallback=())
     if d == (): return d
     if isinstance(d, DayTimeDuration): return 0
-    if isinstance(d, YearMonthDuration): return d.dayHrsMinsSecs[2]
+    if isinstance(d, YearMonthDuration): return d.dayHrsMinsSecs[2]  # type: ignore[attr-defined]
     raise XPathContext.FunctionArgType(1,"xs:duration")
 
-def year_from_dateTime(xc, p, contextItem, args):
+def year_from_dateTime(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     d = anytypeArg(xc, args, 0, 'dateTime', missingArgFallback=())
     if d == (): return d
     if isinstance(d, DateTime): return d.year
     raise XPathContext.FunctionArgType(1,"xs:dateTime")
 
-def month_from_dateTime(xc, p, contextItem, args):
+def month_from_dateTime(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     d = anytypeArg(xc, args, 0, 'dateTime', missingArgFallback=())
     if d == (): return d
     if isinstance(d, DateTime): return d.month
     raise XPathContext.FunctionArgType(1,"xs:dateTime")
 
-def day_from_dateTime(xc, p, contextItem, args):
+def day_from_dateTime(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     d = anytypeArg(xc, args, 0, 'dateTime', missingArgFallback=())
     if d == (): return d
     if isinstance(d, DateTime): return d.day
     raise XPathContext.FunctionArgType(1,"xs:dateTime")
 
-def hours_from_dateTime(xc, p, contextItem, args):
+def hours_from_dateTime(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     d = anytypeArg(xc, args, 0, 'dateTime', missingArgFallback=())
     if d == (): return d
     if isinstance(d, DateTime): return d.hour
     raise XPathContext.FunctionArgType(1,"xs:dateTime")
 
-def minutes_from_dateTime(xc, p, contextItem, args):
+def minutes_from_dateTime(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     d = anytypeArg(xc, args, 0, 'dateTime', missingArgFallback=())
     if d == (): return d
     if isinstance(d, DateTime): return d.minute
     raise XPathContext.FunctionArgType(1,"xs:dateTime")
 
-def seconds_from_dateTime(xc, p, contextItem, args):
+def seconds_from_dateTime(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     d = anytypeArg(xc, args, 0, 'dateTime', missingArgFallback=())
     if d == (): return d
     if isinstance(d, DateTime): return d.second
     raise XPathContext.FunctionArgType(1,"xs:dateTime")
 
-def timezone_from_dateTime(xc, p, contextItem, args):
+def timezone_from_dateTime(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     d = anytypeArg(xc, args, 0, 'dateTime', missingArgFallback=())
     if d == (): return d
     if isinstance(d, DateTime): return d.tzinfo
     raise XPathContext.FunctionArgType(1,"xs:dateTime")
 
-def year_from_date(xc, p, contextItem, args):
+def year_from_date(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     d = anytypeArg(xc, args, 0, 'dateTime', missingArgFallback=())
     if d == (): return d
     if isinstance(d, DateTime): return d.year
     raise XPathContext.FunctionArgType(1,"xs:dateTime")
 
-def month_from_date(xc, p, contextItem, args):
+def month_from_date(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     d = anytypeArg(xc, args, 0, 'dateTime', missingArgFallback=())
     if d == (): return d
     if isinstance(d, DateTime): return d.month
     raise XPathContext.FunctionArgType(1,"xs:dateTime")
 
-def day_from_date(xc, p, contextItem, args):
+def day_from_date(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     d = anytypeArg(xc, args, 0, 'dateTime', missingArgFallback=())
     if d == (): return d
     if isinstance(d, DateTime): return d.day
     raise XPathContext.FunctionArgType(1,"xs:dateTime")
 
-def timezone_from_date(xc, p, contextItem, args):
+def timezone_from_date(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     d = anytypeArg(xc, args, 0, 'dateTime', missingArgFallback=())
     if d == (): return d
     if isinstance(d, DateTime): return d.tzinfo
     raise XPathContext.FunctionArgType(1,"xs:dateTime")
 
-def hours_from_time(xc, p, contextItem, args):
+def hours_from_time(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     d = anytypeArg(xc, args, 0, 'time', missingArgFallback=())
     if d == (): return d
     if isinstance(d, Time): return d.hour
     raise XPathContext.FunctionArgType(1,"xs:time")
 
-def minutes_from_time(xc, p, contextItem, args):
+def minutes_from_time(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     d = anytypeArg(xc, args, 0, 'time', missingArgFallback=())
     if d == (): return d
     if isinstance(d, Time): return d.minute
     raise XPathContext.FunctionArgType(1,"xs:time")
 
-def seconds_from_time(xc, p, contextItem, args):
+def seconds_from_time(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     d = anytypeArg(xc, args, 0, 'time', missingArgFallback=())
     if d == (): return d
     if isinstance(d, Time): return d.second
     raise XPathContext.FunctionArgType(1,"xs:time")
 
-def timezone_from_time(xc, p, contextItem, args):
+def timezone_from_time(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     d = anytypeArg(xc, args, 0, 'time', missingArgFallback=())
     if d == (): return d
     if isinstance(d, Time): return d.tzinfo
     raise XPathContext.FunctionArgType(1,"xs:time")
 
-def adjust_dateTime_to_timezone(xc, p, contextItem, args):
+def adjust_dateTime_to_timezone(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> NoReturn:
     raise fnFunctionNotAvailable()
 
-def adjust_date_to_timezone(xc, p, contextItem, args):
+def adjust_date_to_timezone(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> NoReturn:
     raise fnFunctionNotAvailable()
 
-def adjust_time_to_timezone(xc, p, contextItem, args):
+def adjust_time_to_timezone(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> NoReturn:
     raise fnFunctionNotAvailable()
 
-def resolve_QName(xc, p, contextItem, args):
+def resolve_QName(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
     strQn = stringArg(xc, args, 0, "xs:string?")
     node = nodeArg(xc, args, 1, 'element()', emptyFallback=())
@@ -529,68 +895,142 @@ def resolve_QName(xc, p, contextItem, args):
         return node.prefixedNameQname(strQn)
     return ()
 
-def QName(xc, p, contextItem, args):
+def QName(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
     ns = stringArg(xc, args, 0, "xs:string?")
     prefixedName = stringArg(xc, args, 1, "xs:string")
     return qname(ns, prefixedName)
 
 
-def prefix_from_QName(xc, p, contextItem, args):
+def prefix_from_QName(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     return QName_functions(xc, p, args, prefix=True)
 
-def local_name_from_QName(xc, p, contextItem, args):
+def local_name_from_QName(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     return QName_functions(xc, p, args, localName=True)
 
-def namespace_uri_from_QName(xc, p, contextItem, args):
+def namespace_uri_from_QName(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     return QName_functions(xc, p, args, namespaceURI=True)
 
-def QName_functions(xc, p, args, prefix=False, localName=False, namespaceURI=False):
+def QName_functions(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        args: XPathContext.ResultStack,
+        prefix: bool = False,
+        localName: bool = False,
+        namespaceURI: bool = False,
+) -> Any:
     qn = qnameArg(xc, p, args, 0, 'QName?', emptyFallback=())
-    if qn != ():
+    if isinstance(qn, ModelValueQName):
         if prefix: return qn.prefix
         if localName: return qn.localName
         if namespaceURI: return qn.namespaceURI
     return ()
 
-def namespace_uri_for_prefix(xc, p, contextItem, args):
+def namespace_uri_for_prefix(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     prefix = nodeArg(xc, args, 0, 'string?', emptyFallback='')
     node = nodeArg(xc, args, 1, 'element()', emptyFallback=())
     if node is not None and isinstance(node,ModelObject):
-        return XmlUtil.xmlns(node, prefix)
+        return XmlUtil.xmlns(node, prefix)  # type: ignore[arg-type]
     return ()
 
-def in_scope_prefixes(xc, p, contextItem, args):
+def in_scope_prefixes(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> NoReturn:
     raise fnFunctionNotAvailable()
 
-def name(xc, p, contextItem, args):
+def name(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> str:
     return Node_functions(xc, contextItem, args, name=True)
 
-def local_name(xc, p, contextItem, args):
+def local_name(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> str:
     return Node_functions(xc, contextItem, args, localName=True)
 
-def namespace_uri(xc, p, contextItem, args):
+def namespace_uri(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> str:
     return Node_functions(xc, contextItem, args, namespaceURI=True)
 
-def Node_functions(xc, contextItem, args, name=None, localName=None, namespaceURI=None):
+def Node_functions(
+        xc: XPathContext.XPathContext,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+        name: bool | None = None,
+        localName: bool | None = None,
+        namespaceURI: bool | None = None,
+) -> str:
     node = nodeArg(xc, args, 0, 'node()?', missingArgFallback=contextItem, emptyFallback=())
     if node != () and isinstance(node, ModelObject):
         if name: return node.prefixedName
         if localName: return node.localName
-        if namespaceURI: return node.namespaceURI
+        if namespaceURI: return node.namespaceURI or ''
     return ''
 
 NaN = float('NaN')
 
-def number(xc, p, contextItem, args):
+def number(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> float:
     # TBD: add argument of type of number to convert to (fallback is float)
     n = numericArg(xc, p, args, missingArgFallback=contextItem, emptyFallback=NaN, convertFallback=NaN)
     return float(n)
 
-def lang(xc, p, contextItem, args):
+def lang(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> NoReturn:
     raise fnFunctionNotAvailable()
 
-def root(xc, p, contextItem, args):
+def root(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> NoReturn:
     raise fnFunctionNotAvailable()
 
 def boolean(
@@ -615,7 +1055,12 @@ def boolean(
             return not math.isnan(item) and item != 0
     raise XPathContext.XPathException(p, 'err:FORG0006', _('Effective boolean value indeterminate'))
 
-def index_of(xc, p, contextItem, args):
+def index_of(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> list[int]:
     if len(args) == 3: raise fnFunctionNotAvailable()
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
     seq = xc.atomize(p, args[0])
@@ -623,7 +1068,7 @@ def index_of(xc, p, contextItem, args):
     if isinstance(srch,(tuple,list)):
         if len(srch) != 1: raise XPathContext.FunctionArgType(1,'xs:anyAtomicType')
         srch = srch[0]
-    indices = []
+    indices: list[int] = []
     pos = 0
     for x in seq:
         pos += 1
@@ -631,44 +1076,79 @@ def index_of(xc, p, contextItem, args):
             indices.append(pos)
     return indices
 
-def empty(xc, p, contextItem, args):
+def empty(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> bool:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     return len(xc.flattenSequence(args[0])) == 0
 
-def exists(xc, p, contextItem, args):
+def exists(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> bool:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     return len(xc.flattenSequence(args[0])) > 0
 
-def distinct_values(xc, p, contextItem, args):
+def distinct_values(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> list[Any] | set[Any]:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     sequence = args[0]
     if len(sequence) == 0: return []
     return list(set(xc.atomize(p, sequence)))
 
-def insert_before(xc, p, contextItem, args):
+def insert_before(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 3: raise XPathContext.FunctionNumArgs()
-    sequence = args[0]
+    sequence: Any = args[0]
     if isinstance(sequence, tuple): sequence = list(sequence)
     elif not isinstance(sequence, list): sequence = [sequence]
-    index = integerArg(xc, p, args, 1, "xs:integer", convertFallback=0) - 1
-    insertion = args[2]
+    index: int = integerArg(xc, p, args, 1, "xs:integer", convertFallback=0) - 1  # type: ignore[operator,assignment]
+    insertion: Any = args[2]
     if isinstance(insertion, tuple): insertion = list(insertion)
     elif not isinstance(insertion, list): insertion = [insertion]
     return sequence[:index] + insertion + sequence[index:]
 
-def remove(xc, p, contextItem, args):
+def remove(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
     sequence = args[0]
-    index = integerArg(xc, p, args, 1, "xs:integer", convertFallback=0) - 1
-    return sequence[:index] + sequence[index+1:]
+    index: int = integerArg(xc, p, args, 1, "xs:integer", convertFallback=0) - 1  # type: ignore[operator,assignment]
+    return sequence[:index] + sequence[index+1:]  # type: ignore[operator]
 
-def reverse(xc, p, contextItem, args):
+def reverse(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> list[Any]:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     sequence = args[0]
     if len(sequence) == 0: return []
     return list( reversed(sequence) )
 
-def subsequence(xc, p, contextItem, args):
+def subsequence(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) not in (2,3): raise XPathContext.FunctionNumArgs()
     l = len(args)
     if l < 2 or l > 3: raise XPathContext.FunctionNumArgs()
@@ -684,40 +1164,75 @@ def subsequence(xc, p, contextItem, args):
     if start < 0: start = 0
     return sequence[start:]
 
-def unordered(xc, p, contextItem, args):
+def unordered(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     return args[0]
 
-def zero_or_one(xc, p, contextItem, args):
+def zero_or_one(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     if len(args[0]) > 1:
         raise XPathContext.FunctionNumArgs(errCode='err:FORG0003',
                                            errText=_('fn:zero-or-one called with a sequence containing more than one item'))
     return args[0]
 
-def one_or_more(xc, p, contextItem, args):
+def one_or_more(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     if len(args[0]) < 1:
         raise XPathContext.FunctionNumArgs(errCode='err:FORG0004',
                                            errText=_('fn:one-or-more called with a sequence containing no items'))
     return args[0]
 
-def exactly_one(xc, p, contextItem, args):
+def exactly_one(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     if len(args[0]) != 1:
         raise XPathContext.FunctionNumArgs(errCode='err:FORG0005',
                                            errText=_('fn:exactly-one called with a sequence containing zero or more than one item'))
     return args[0]
 
-def deep_equal(xc, p, contextItem, args):
+def deep_equal(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
-    return XbrlUtil.nodesCorrespond(xc.modelXbrl, args[0], args[1])
+    return XbrlUtil.nodesCorrespond(xc.modelXbrl, args[0], args[1])  # type: ignore[arg-type]
 
-def count(xc, p, contextItem, args):
+def count(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> int:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     return len(xc.flattenSequence(args[0]))
 
-def avg(xc, p, contextItem, args):
+def avg(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     addends = xc.atomize( p, args[0] )
     try:
@@ -740,7 +1255,12 @@ def avg(xc, p, contextItem, args):
     except TypeError:
         raise XPathContext.FunctionArgType(1,"sumable values", addends, errCode='err:FORG0001')
 
-def fn_max(xc, p, contextItem, args):
+def fn_max(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     comparands = xc.atomize( p, args[0] )
     try:
@@ -752,7 +1272,12 @@ def fn_max(xc, p, contextItem, args):
     except TypeError:
         raise XPathContext.FunctionArgType(1,"comparable values", comparands, errCode='err:FORG0001')
 
-def fn_min(xc, p, contextItem, args):
+def fn_min(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     comparands = xc.atomize( p, args[0] )
     try:
@@ -764,7 +1289,12 @@ def fn_min(xc, p, contextItem, args):
     except TypeError:
         raise XPathContext.FunctionArgType(1,"comparable values", comparands, errCode='err:FORG0001')
 
-def fn_sum(xc, p, contextItem, args):
+def fn_sum(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     addends = xc.atomize( p, args[0] )
     try:
@@ -786,13 +1316,29 @@ def fn_sum(xc, p, contextItem, args):
     except TypeError:
         raise XPathContext.FunctionArgType(1,"summable sequence", addends, errCode='err:FORG0001')
 
-def id(xc, p, contextItem, args):
+# INAPPROPRIATE NAME. MUST BE RENAMED
+def id(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> NoReturn:
     raise fnFunctionNotAvailable()
 
-def idref(xc, p, contextItem, args):
+def idref(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> NoReturn:
     raise fnFunctionNotAvailable()
 
-def doc(xc, p, contextItem, args):
+def doc(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Any:
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     uri = stringArg(xc, args, 0, "xs:string", emptyFallback=None)
     if uri is None:
@@ -803,7 +1349,7 @@ def doc(xc, p, contextItem, args):
         raise XPathContext.XPathException(p, 'err:FODC0005', _('Function xf:doc $uri is not valid {0}').format(uri))
     normalizedUri = xc.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(
                                 uri,
-                                xc.progHeader.element.modelDocument.baseForElement(xc.progHeader.element))
+                                xc.progHeader.element.modelDocument.baseForElement(xc.progHeader.element))  # type: ignore[no-untyped-call]
     if normalizedUri in xc.modelXbrl.urlDocs:
         return xc.modelXbrl.urlDocs[normalizedUri].xmlDocument
     modelDocument = ModelDocument.load(xc.modelXbrl, normalizedUri)
@@ -813,52 +1359,111 @@ def doc(xc, p, contextItem, args):
     XmlValidate.validate(xc.modelXbrl, modelDocument.xmlRootElement)
     return modelDocument.xmlDocument
 
-def doc_available(xc, p, contextItem, args):
+def doc_available(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> bool:
     return isinstance(doc(xc, p, contextItem, args), etree._ElementTree)
 
-def collection(xc, p, contextItem, args):
+def collection(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> NoReturn:
     raise fnFunctionNotAvailable()
 
-def position(xc, p, contextItem, args):
+def position(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> NoReturn:
     raise fnFunctionNotAvailable()
 
-def last(xc, p, contextItem, args):
+def last(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> NoReturn:
     raise fnFunctionNotAvailable()
 
-def current_dateTime(xc, p, contextItem, args):
-    from datetime import datetime
-    return dateTime(datetime.now(), type=DATETIME)
+def current_dateTime(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> DateTime | None:
+    return dateTime(dt.datetime.now(), type=DATETIME)
 
-def current_date(xc, p, contextItem, args):
-    from datetime import date
-    return dateTime(date.today(), type=DATE)
+def current_date(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> DateTime | None:
+    return dateTime(dt.date.today(), type=DATE)
 
-def current_time(xc, p, contextItem, args):
-    from datetime import datetime
-    return time(datetime.now())
+def current_time(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> Time | None:
+    return time(dt.datetime.now())
 
-def implicit_timezone(xc, p, contextItem, args):
-    from datetime import datetime
-    return datetime.now().tzinfo
+def implicit_timezone(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> dt.tzinfo | None:
+    return dt.datetime.now().tzinfo
 
-def default_collation(xc, p, contextItem, args):
+def default_collation(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> str:
     # only unicode is supported
     return "http://www.w3.org/2005/xpath-functions/collation/codepoint"
 
-def static_base_uri(xc, p, contextItem, args):
+def static_base_uri(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> NoReturn:
     raise fnFunctionNotAvailable()
 
 # added in XPATH 3
-def format_number(xc, p, contextItem, args):
+def format_number(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> str:
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
     value = numericArg(xc, p, args, 0, missingArgFallback='NaN', emptyFallback='NaN')
     picture = stringArg(xc, args, 1, "xs:string", missingArgFallback='', emptyFallback='')
     try:
-        return format_picture(xc.modelXbrl.locale, value, picture)
+        return format_picture(xc.modelXbrl.locale, value, picture)  # type: ignore[arg-type]
     except ValueError as err:
         raise XPathContext.XPathException(p, 'err:FODF1310', str(err) )
 
-fnFunctions = {
+fnFunctions: dict[str, Callable[
+    [
+        XPathContext.XPathContext,
+        OperationDef,
+        XPathContext.ContextItem,
+        XPathContext.ResultStack
+    ],
+    Any,
+]] = {
     'node-name': node_name,
     'nilled': nilled,
     'string': string,
