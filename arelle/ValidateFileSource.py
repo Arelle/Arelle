@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from arelle import PluginManager, PackageManager
+from arelle import PackageManager
 from arelle.packages.report.ReportPackageValidator import ReportPackageValidator
 
 if TYPE_CHECKING:
@@ -20,7 +20,7 @@ class ValidateFileSource:
         self._filesource = filesource
 
     def validate(self, forceValidateAsReportPackages: bool = False, forceValidateAsTaxonomyPackage: bool = False, errors: list[str] | None = None) -> None:
-        for pluginXbrlMethod in PluginManager.pluginClassMethods("Validate.FileSource"):
+        for pluginXbrlMethod in self._cntrl.pluginManager.pluginClassMethods("Validate.FileSource"):
             pluginXbrlMethod(self._cntrl, self._filesource)
         if self._filesource.isReportPackage or forceValidateAsReportPackages:
             rpValidator = ReportPackageValidator(self._filesource)

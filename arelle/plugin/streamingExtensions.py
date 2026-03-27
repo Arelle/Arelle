@@ -24,7 +24,6 @@ from arelle.ModelDocument import ModelDocument, Type
 from arelle.ModelObjectFactory import parser
 from arelle.ModelObject import ModelObject
 from arelle.ModelInstanceObject import ModelFact
-from arelle.PluginManager import pluginClassMethods
 from arelle.Validate import Validate
 from arelle.Version import authorLabel, copyrightLabel
 from arelle.HashUtil import md5hash, Md5Sum
@@ -235,7 +234,7 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
     logSyntaxErrors(instInfoContext)
     del instInfoContext # dereference
 
-    for pluginMethod in pluginClassMethods("Streaming.BlockStreaming"):
+    for pluginMethod in modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("Streaming.BlockStreaming"):
         _blockingPluginName = pluginMethod(modelXbrl)
         if _blockingPluginName: # name of blocking plugin is returned
             modelXbrl.error("streamingExtensions:incompatiblePlugIn",
@@ -261,9 +260,9 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
     footnoteBuffer = []
     footnoteLinksToDrop = []
 
-    _streamingFactsPlugin = any(True for pluginMethod in pluginClassMethods("Streaming.Facts"))
+    _streamingFactsPlugin = any(True for pluginMethod in modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("Streaming.Facts"))
     _streamingValidateFactsPlugin = (_streamingExtensionsValidate and
-                                     any(True for pluginMethod in pluginClassMethods("Streaming.ValidateFacts")))
+                                     any(True for pluginMethod in modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("Streaming.ValidateFacts")))
 
     ''' this is very much slower than iterparse
     class modelLoaderTarget():
@@ -313,7 +312,7 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
                     else: # need default dimensions
                         ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl)
                 elif not self.beforeInstanceStream and self.beforeStartStreamingPlugin:
-                    for pluginMethod in pluginClassMethods("Streaming.Start"):
+                    for pluginMethod in modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("Streaming.Start"):
                         pluginMethod(modelXbrl)
                     self.beforeStartStreamingPlugin = False
             return mdlObj
@@ -375,7 +374,7 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
                             factsToCheck = modelXbrl.facts.copy()
                             factsHaveBeenProcessed = True
                             # can block facts deletion if required data not yet available, such as numeric unit for DpmDB
-                            for pluginMethod in pluginClassMethods("Streaming.ValidateFacts"):
+                            for pluginMethod in modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("Streaming.ValidateFacts"):
                                 if not pluginMethod(modelXbrl, factsToCheck):
                                     factsHaveBeenProcessed = False
                             if factsHaveBeenProcessed:
@@ -399,7 +398,7 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
                     # check remaining footnote refs
                     for footnoteLink in footnoteBuffer:
                         checkFootnoteHrefs(modelXbrl, footnoteLink)
-                    for pluginMethod in pluginClassMethods("Streaming.Finish"):
+                    for pluginMethod in modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("Streaming.Finish"):
                         pluginMethod(modelXbrl)
             elif ns == XbrlConst.link:
                 if ln == "footnoteLink":
@@ -446,7 +445,7 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
                             factsToCheck = modelXbrl.facts.copy()
                             factsHaveBeenProcessed = True
                             # can block facts deletion if required data not yet available, such as numeric unit for DpmDB
-                            for pluginMethod in pluginClassMethods("Streaming.ValidateFacts"):
+                            for pluginMethod in modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("Streaming.ValidateFacts"):
                                 if not pluginMethod(modelXbrl, factsToCheck):
                                     factsHaveBeenProcessed = False
                             if factsHaveBeenProcessed:
@@ -570,7 +569,7 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
                         else: # need default dimensions
                             ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl)
                 elif not beforeInstanceStream and beforeStartStreamingPlugin:
-                    for pluginMethod in pluginClassMethods("Streaming.Start"):
+                    for pluginMethod in modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("Streaming.Start"):
                         pluginMethod(modelXbrl)
                     beforeStartStreamingPlugin = False
         elif event == "end":
@@ -628,10 +627,10 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
                             factsToCheck = modelXbrl.facts.copy()
                             # can block facts deletion if required data not yet available, such as numeric unit for DpmDB
                             if _streamingValidateFactsPlugin:
-                                for pluginMethod in pluginClassMethods("Streaming.ValidateFacts"):
+                                for pluginMethod in modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("Streaming.ValidateFacts"):
                                     pluginMethod(instValidator, factsToCheck)
                             if _streamingFactsPlugin:
-                                for pluginMethod in pluginClassMethods("Streaming.Facts"):
+                                for pluginMethod in modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("Streaming.Facts"):
                                     pluginMethod(modelXbrl, factsToCheck)
                             for fact in factsToCheck:
                                 dropFact(modelXbrl, fact, modelXbrl.facts)
@@ -675,10 +674,10 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
                                                 _("Invalid sum-of-md5s %(sumOfMd5)s"),
                                                 modelObject=modelXbrl, sumOfMd5=_matchGroups[1])
                     if _streamingValidateFactsPlugin:
-                        for pluginMethod in pluginClassMethods("Streaming.ValidateFinish"):
+                        for pluginMethod in modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("Streaming.ValidateFinish"):
                             pluginMethod(instValidator)
                     if _streamingFactsPlugin:
-                        for pluginMethod in pluginClassMethods("Streaming.Finish"):
+                        for pluginMethod in modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("Streaming.Finish"):
                             pluginMethod(modelXbrl)
             elif ns == XbrlConst.link:
                 if ln in ("schemaRef", "linkbaseRef"):
@@ -724,10 +723,10 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
                             factsToCheck = modelXbrl.facts.copy()
                             # can block facts deletion if required data not yet available, such as numeric unit for DpmDB
                             if _streamingValidateFactsPlugin:
-                                for pluginMethod in pluginClassMethods("Streaming.ValidateFacts"):
+                                for pluginMethod in modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("Streaming.ValidateFacts"):
                                     pluginMethod(instValidator, factsToCheck)
                             if _streamingFactsPlugin:
-                                for pluginMethod in pluginClassMethods("Streaming.Facts"):
+                                for pluginMethod in modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("Streaming.Facts"):
                                     pluginMethod(modelXbrl, factsToCheck)
                             for fact in factsToCheck:
                                 dropFact(modelXbrl, fact, modelXbrl.facts)

@@ -49,8 +49,8 @@ class RuntimeOptions:
     diagnostics: Optional[bool] = None
     diffFile: Optional[str] = None
     dimFile: Optional[str] = None
-    disablePersistentConfig: Optional[bool] = None
-    disableRtl: Optional[bool] = None
+    disablePersistentConfig: bool = False
+    disableRtl: bool = False
     disclosureSystemName: Optional[str] = None
     DTSFile: Optional[str] = None
     entrypointFile: Optional[str] = None
@@ -122,7 +122,7 @@ class RuntimeOptions:
     proxy: Optional[str] = None
     redirectFallbacks: Optional[dict[re.Pattern[str], str]] = None
     relationshipCols: Optional[int] = None
-    reportPackage: Optional[bool] = None
+    reportPackage: bool = False
     roleTypesFile: Optional[str] = None
     rssReport: Optional[str] = None
     rssReportCols: Optional[int] = None
@@ -135,7 +135,7 @@ class RuntimeOptions:
     statusPipe: Optional[str] = None
     renderedTableLinkbaseFile: Optional[str] = None
     tableFile: Optional[str] = None
-    taxonomyPackage: Optional[bool] = None
+    taxonomyPackage: bool = False
     testReport: Optional[str] = None
     testReportCols: Optional[int] = None
     testcaseExpectedErrors: Optional[dict[str, list[str]]] = None
@@ -149,7 +149,7 @@ class RuntimeOptions:
     utrValidate: Optional[bool] = None
     validate: Optional[bool] = None
     validateDuplicateFacts: Optional[str] = None
-    validateXmlOim: Optional[bool] = None
+    validateXmlOim: bool = False
     validateEFM: Optional[bool] = None
     validateEFMCalcTree: Optional[bool] = None
     validateHMRC: Optional[bool] = None

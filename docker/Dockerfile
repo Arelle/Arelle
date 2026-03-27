@@ -4,14 +4,17 @@ FROM python:3.14.3 AS builder
 WORKDIR /usr/src/app
 
 ## Requirements are installed here to ensure they will be cached.
+ARG EXTRA_PIP=""
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 COPY requirements.txt .
+COPY requirements-build.txt .
+COPY requirements-dev.txt .
+COPY requirements-docs.txt .
 COPY requirements-plugins.txt .
+COPY requirements-test.txt .
 RUN pip install --upgrade pip \
-  && pip install --no-cache-dir -r requirements.txt -r requirements-plugins.txt
-## Optionally install gunicorn to run via wsgi server
-# RUN pip install --no-cache-dir --upgrade gunicorn
+  && pip install --no-cache-dir -r requirements.txt ${EXTRA_PIP}
 
 ## Copy application code
 COPY arelleCmdLine.py .

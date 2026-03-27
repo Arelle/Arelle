@@ -49,7 +49,6 @@ from arelle.ModelDocument import ModelDocument
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname, QName, dateTime, DATETIME
 from arelle.ModelRelationshipSet import ModelRelationshipSet
-from arelle.PluginManager import pluginClassMethods
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.PythonUtil import flattenSequence
 from arelle.ValidateXbrlCalcs import roundValue
@@ -110,7 +109,7 @@ XBRLDBTABLES = {
 class XbrlSqlDatabaseConnection(SqlDbConnection):
     def verifyTables(self):
         allExtTables = set()
-        for pluginXbrlMethod in pluginClassMethods("xbrlDB.Open.Ext.TableDDLFiles"):
+        for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("xbrlDB.Open.Ext.TableDDLFiles"):
             allExtTables |= pluginXbrlMethod(self)[0]
         coreAndExtTables = XBRLDBTABLES | allExtTables
         presentTables = self.tablesInDB()
@@ -125,7 +124,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                                      "postgres": "xbrlOpenPostgresDB.ddl"}[self.product]))
             presentTables.clear() # db is cleared
         # for this extension, add extension tables if any ext's tables are missing
-        for pluginXbrlMethod in pluginClassMethods("xbrlDB.Open.Ext.TableDDLFiles"):
+        for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("xbrlDB.Open.Ext.TableDDLFiles"):
             _extTables, _extDdlFiles = pluginXbrlMethod(self)
             if not (presentTables & _extTables):
                 self.create(_extDdlFiles, dropPriorTables=False)
@@ -156,7 +155,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
 
             # obtain ext metadata
             self.metadata = loadEntityInformation(self.modelXbrl, entrypoint, rssItem)
-            for pluginXbrlMethod in pluginClassMethods("xbrlDB.Open.Ext.Metadata"):
+            for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("xbrlDB.Open.Ext.Metadata"):
                 pluginXbrlMethod(self, entrypoint, rssItem)
             # identify table facts (table datapoints) (prior to locked database transaction
             self.tableFacts = tableFacts(self.modelXbrl)  # for EFM & HMRC this is ( (roleType, table_code, fact) )
@@ -268,7 +267,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                 self.arcroleHasResource[arcrole] = hasResource
 
     def initializeBatch(self, rssObject):
-        for pluginXbrlMethod in pluginClassMethods("xbrlDB.Open.Ext.InitializeBatch"):
+        for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("xbrlDB.Open.Ext.InitializeBatch"):
             pluginXbrlMethod(self, rssObject)
 
 
@@ -286,12 +285,12 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             self.submissionId = submissionId
             break
 
-        for pluginXbrlMethod in pluginClassMethods("xbrlDB.Open.Ext.ExtSubmission"):
+        for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("xbrlDB.Open.Ext.ExtSubmission"):
             existingFilingId = pluginXbrlMethod(self, now)
 
         self.showStatus("insert filing")
         self.filingPk = None
-        for pluginXbrlMethod in pluginClassMethods("xbrlDB.Open.Ext.ExistingFilingPk"):
+        for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("xbrlDB.Open.Ext.ExistingFilingPk"):
             self.filingPk = pluginXbrlMethod(self)
             if self.filingPk:
                 break
@@ -305,12 +304,12 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                   )
             for pk, in table:
                 self.filingPk = pk
-        for pluginXbrlMethod in pluginClassMethods("xbrlDB.Open.Ext.ExtFiling"):
+        for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("xbrlDB.Open.Ext.ExtFiling"):
             existingFilingId = pluginXbrlMethod(self, now)
         self.showStatus("insert report")
         self.reportPk = None
         self.filingPreviouslyInDB = False
-        for pluginXbrlMethod in pluginClassMethods("xbrlDB.Open.Ext.ExistingReportPk"):
+        for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("xbrlDB.Open.Ext.ExistingReportPk"):
             self.reportPk = pluginXbrlMethod(self)
             if self.reportPk:
                 self.filingPreviouslyInDB = True
@@ -331,7 +330,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                 self.reportPk = pk
                 break
 
-        for pluginXbrlMethod in pluginClassMethods("xbrlDB.Open.Ext.ExtReport"):
+        for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("xbrlDB.Open.Ext.ExtReport"):
             existingFilingId = pluginXbrlMethod(self, now)
 
     def isSemanticDocument(self, modelDocument):
@@ -500,7 +499,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                              ((self.reportPk, instDocId, creationSoftware,
                                instSchemaDocId),)
                             )
-            for pluginXbrlMethod in pluginClassMethods("xbrlDB.Open.Ext.ExtReportUpdate"):
+            for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("xbrlDB.Open.Ext.ExtReportUpdate"):
                 existingFilingId = pluginXbrlMethod(self)
 
 

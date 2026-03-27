@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from typing import Any, TYPE_CHECKING
 
 from arelle import (
-    PluginManager, FileSource, PackageManager,
+    FileSource, PackageManager,
 )
 from arelle.ModelDocumentType import ModelDocumentType
 from arelle.UrlUtil import isHttpUrl
@@ -69,7 +69,7 @@ def parseEntrypointFileInput(cntlr: Cntlr, entrypointFile: str | None, sourceZip
 def filesourceEntrypointFiles(filesource, entrypointFiles=None, inlineOnly=False, fallbackSelect=True):
     if entrypointFiles is None:
         entrypointFiles = []
-    for pluginXbrlMethod in PluginManager.pluginClassMethods("FileSource.EntrypointFiles"):
+    for pluginXbrlMethod in filesource.pluginClassMethods("FileSource.EntrypointFiles"):
         resultEntrypointFiles = pluginXbrlMethod(filesource, inlineOnly)
         if resultEntrypointFiles is not None:
             del entrypointFiles[:]  # clear list
@@ -79,22 +79,21 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=None, inlineOnly=False
         if filesource.isTaxonomyPackage:  # if archive is also a taxonomy package, activate mappings
             filesource.loadTaxonomyPackageMappings()
         # HF note: a web api request to load a specific file from archive is ignored, is this right?
-        discoveredEntrypointFiles = []
+        del entrypointFiles[:]
         if reportPackage := filesource.reportPackage:
-            del entrypointFiles[:]
             assert isinstance(filesource.basefile, str)
             for report in reportPackage.reports or []:
                 if report.isInline:
                     reportEntries = [{"file": f} for f in report.fullPathFiles]
                     ixdsDiscovered = False
-                    for pluginXbrlMethod in PluginManager.pluginClassMethods("InlineDocumentSet.Discovery"):
+                    for pluginXbrlMethod in filesource.pluginClassMethods("InlineDocumentSet.Discovery"):
                         pluginXbrlMethod(filesource, reportEntries)
                         ixdsDiscovered = True
                     if not ixdsDiscovered and len(reportEntries) > 1:
                         raise RuntimeError(_("Loading error. Inline document set encountered. Enable 'InlineXbrlDocumentSet' plug-in to load this filing: {0}").format(filesource.url))
-                    discoveredEntrypointFiles.extend(reportEntries)
+                    entrypointFiles.extend(reportEntries)
                 elif not inlineOnly:
-                    discoveredEntrypointFiles.append({"file": report.fullPathPrimary})
+                    entrypointFiles.append({"file": report.fullPathPrimary})
         elif fallbackSelect:
             # attempt to find inline XBRL files before instance files, .xhtml before probing others (ESMA)
             urlsByType = {}
@@ -106,25 +105,20 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=None, inlineOnly=False
             # use inline instances, if any, else non-inline instances
             for identifiedType in ((ModelDocumentType.INLINEXBRL,) if inlineOnly else (ModelDocumentType.INLINEXBRL, ModelDocumentType.INSTANCE)):
                 for url in urlsByType.get(identifiedType, []):
-                    discoveredEntrypointFiles.append({"file":url})
-                if discoveredEntrypointFiles:
+                    entrypointFiles.append({"file":url})
+                if entrypointFiles:
                     if identifiedType == ModelDocumentType.INLINEXBRL:
-                        for pluginXbrlMethod in PluginManager.pluginClassMethods("InlineDocumentSet.Discovery"):
-                            pluginXbrlMethod(filesource, discoveredEntrypointFiles) # group into IXDS if plugin feature is available
+                        for pluginXbrlMethod in filesource.pluginClassMethods("InlineDocumentSet.Discovery"):
+                            pluginXbrlMethod(filesource, entrypointFiles) # group into IXDS if plugin feature is available
                     break # found inline (or non-inline) entrypoint files, don't look for any other type
             # for ESEF non-consolidated xhtml documents accept an xhtml entry point
-            if not discoveredEntrypointFiles and not inlineOnly:
+            if not entrypointFiles and not inlineOnly:
                 for url in urlsByType.get(ModelDocumentType.HTML, []):
-                    discoveredEntrypointFiles.append({"file":url})
-            if not discoveredEntrypointFiles and filesource.taxonomyPackage is not None:
+                    entrypointFiles.append({"file":url})
+            if not entrypointFiles and filesource.taxonomyPackage is not None:
                 for packageEntry in filesource.taxonomyPackage.get('entryPoints', {}).values():
                     for _resolvedUrl, remappedUrl, _closest in packageEntry:
-                        discoveredEntrypointFiles.append({"file": remappedUrl})
-        if discoveredEntrypointFiles:
-            # Only clear archive entry points if we discovered new ones.
-            # This could be a plugin loaded archive, such as an Excel file.
-            del entrypointFiles[:]
-            entrypointFiles.extend(discoveredEntrypointFiles)
+                        entrypointFiles.append({"file": remappedUrl})
 
 
     elif os.path.isdir(filesource.url):
@@ -139,7 +133,7 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=None, inlineOnly=False
                 if identifiedType in (ModelDocumentType.INSTANCE, ModelDocumentType.INLINEXBRL):
                     entrypointFiles.append({"file":_path})
         if hasInline: # group into IXDS if plugin feature is available
-            for pluginXbrlMethod in PluginManager.pluginClassMethods("InlineDocumentSet.Discovery"):
+            for pluginXbrlMethod in filesource.pluginClassMethods("InlineDocumentSet.Discovery"):
                 pluginXbrlMethod(filesource, entrypointFiles)
 
     return entrypointFiles

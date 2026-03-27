@@ -11,7 +11,6 @@ from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ModelRelationshipSet import baseSetRelationship
 from arelle.ModelObject import ModelObject, ModelComment
 from arelle.ModelValue import qname
-from arelle.PluginManager import pluginClassMethods
 from arelle.XhtmlValidate import ixMsgCode
 from lxml import etree
 from collections import defaultdict, deque
@@ -318,7 +317,7 @@ def checkDTS(val: ValidateXbrl, modelDocument: ModelDocument, checkedModelDocume
                         modelXbrl=modelDocument, encoding=val.documentTypeEncoding,
                         metaContentTypeEncoding=val.metaContentTypeEncoding)
             if val.validateSBRNL:
-                for pluginXbrlMethod in pluginClassMethods("Validate.SBRNL.DTS.document"):
+                for pluginXbrlMethod in val.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("Validate.SBRNL.DTS.document"):
                     pluginXbrlMethod(val, modelDocument)
             del val.valUsedPrefixes
             del val.schemaRoleTypes
@@ -330,7 +329,7 @@ def checkDTS(val: ValidateXbrl, modelDocument: ModelDocument, checkedModelDocume
             # validate base taxonomy documents. Although Arelle now validates all documents, it retains this logic for
             # the plugin hook to prevent running validation rules intended solely for extension taxonomy documents
             # against base taxonomy documents.
-            for pluginXbrlMethod in pluginClassMethods("Validate.XBRL.DTS.document"):
+            for pluginXbrlMethod in val.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("Validate.XBRL.DTS.document"):
                 pluginXbrlMethod(val, modelDocument, isFilingDocument)
 
     val.roleRefURIs = None

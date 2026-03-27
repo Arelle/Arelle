@@ -147,6 +147,7 @@ class Cntlr:
     config: dict[str, Any] | None
     configJsonFile: str
     webCache: WebCache
+    pluginManager: PluginManager.PluginManager
     modelManager: ModelManager.ModelManager
     logger: logging.Logger | None
     logHandler: logging.Handler
@@ -289,6 +290,7 @@ class Cntlr:
 
         # start plug in server (requres web cache initialized, but not logger)
         PluginManager.init(self, loadPluginConfig=hasGui)
+        self.pluginManager = PluginManager.getInstance()  # type: ignore[assignment]
 
         # requires plug ins initialized
         self.modelManager = ModelManager.initialize(self)
@@ -348,7 +350,7 @@ class Cntlr:
             Cntlr.addToLog(self, localeSetupMessage, messageCode="arelle:uiLocale", level=logging.WARNING)
 
         # Cntlr.Init after logging started
-        for pluginMethod in PluginManager.pluginClassMethods("Cntlr.Init"):
+        for pluginMethod in self.pluginManager.pluginClassMethods("Cntlr.Init"):
             pluginMethod(self)
 
     def setUiLanguage(self, locale: str | None, fallbackToDefault: bool = False) -> None:
@@ -400,13 +402,14 @@ class Cntlr:
             if logFileName in ("logToPrint", "logToStdErr") and not logToBuffer:
                 self.logHandler = LogToPrintHandler(logFileName)
             elif logFileName == "logToBuffer":
-                self.logHandler = LogToBufferHandler()
+                self.logHandler = LogToBufferHandler(self)
                 setattr(self.logger, "logRefObjectProperties", logRefObjectProperties)
             elif logFileName == "logToStructuredMessage":
-                self.logHandler = StructuredMessageLogHandler()
+                self.logHandler = StructuredMessageLogHandler(self)
                 setattr(self.logger, "logRefObjectProperties", logRefObjectProperties)
             elif logFileName.endswith(".xml") or logFileName.endswith(".json") or logToBuffer:
                 self.logHandler = LogToXmlHandler(
+                    self,
                     filename=logFileName,
                     mode=logFileMode or "a",
                     logXmlMaxAttributeLength=logXmlMaxAttributeLength
@@ -513,7 +516,7 @@ class Cntlr:
            :param saveConfig: save the user preferences configuration
            :type saveConfig: bool
         """
-        PluginManager.save(self)
+        self.pluginManager.save(self)
 
         if self.hasGui:
             PackageManager.save(self)
@@ -630,11 +633,11 @@ class Cntlr:
                     win32clipboard.OpenClipboard()
                     if text is None:
                         if win32clipboard.IsClipboardFormatAvailable(win32clipboard.CF_TEXT):
-                            return win32clipboard.GetClipboardData().decode("utf8")
+                            return win32clipboard.GetClipboardData(win32clipboard.CF_TEXT).decode("utf8")
                     else:
-                        win32clipboard.EmptyClipboard()
-                        win32clipboard.SetClipboardData(win32clipboard.CF_TEXT, text.encode("utf8"))
-                    win32clipboard.CloseClipboard()
+                        win32clipboard.EmptyClipboard()  # type: ignore[no-untyped-call]
+                        win32clipboard.SetClipboardData(win32clipboard.CF_TEXT, text.encode("utf8"))  # type: ignore[no-untyped-call]
+                    win32clipboard.CloseClipboard()  # type: ignore[no-untyped-call]
                 else: # Unix/Linux
                     import gtk
                     clipbd = gtk.Clipboard(display=gtk.gdk.display_get_default(), selection="CLIPBOARD")

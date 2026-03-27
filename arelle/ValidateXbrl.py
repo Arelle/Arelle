@@ -16,7 +16,6 @@ from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelInstanceObject import ModelContext, ModelDimensionValue, ModelFact, ModelInlineFact
 from arelle.ModelValue import qname
 from arelle.ModelXbrl import ModelXbrl
-from arelle.PluginManager import pluginClassMethods
 from arelle.ValidateXbrlCalcs import inferredDecimals
 from arelle.XbrlConst import (ixbrlAll, dtrNoDecimalsItemTypes, dtrPrefixedContentItemTypes, dtrPrefixedContentTypes,
                               dtrSQNameItemTypes, dtrSQNameTypes,  dtrSQNamesItemTypes, dtrSQNamesTypes, baseXbrliTypes)
@@ -113,7 +112,7 @@ class ValidateXbrl:
         self.validateDuplicateFacts = modelXbrl.modelManager.validateDuplicateFacts
         self._pluginData: dict[str, PluginData] = {}
 
-        for pluginXbrlMethod in pluginClassMethods("Validate.XBRL.Start"):
+        for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("Validate.XBRL.Start"):
             pluginXbrlMethod(self, parameters)
 
         # xlink validation
@@ -395,7 +394,7 @@ class ValidateXbrl:
                 ValidateXbrlDimensions.checkConcept(self, concept)
         modelXbrl.profileStat(_("validateConcepts"))
 
-        for pluginXbrlMethod in pluginClassMethods("Validate.XBRL.Finally"):
+        for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("Validate.XBRL.Finally"):
             pluginXbrlMethod(self)
 
         if modelXbrl.loadedFromOIM or modelXbrl.modelManager.validateXmlOim:
@@ -562,7 +561,7 @@ class ValidateXbrl:
                                      # block executing formulas when validating if hasFormula is False (e.g., --formula=none)
                                      compileOnly=modelXbrl.modelRenderingTables and not modelXbrl.hasFormulae)
 
-        for pluginXbrlMethod in pluginClassMethods("Validate.Finally"):
+        for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("Validate.Finally"):
             pluginXbrlMethod(self)
 
         modelXbrl.modelManager.showStatus(_("ready"), 2000)

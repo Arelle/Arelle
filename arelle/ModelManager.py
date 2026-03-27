@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING
 import gc, sys, traceback, logging
 from arelle import ModelXbrl, Validate, DisclosureSystem, PackageManager, ValidateXbrlCalcs, ValidateDuplicateFacts
 from arelle.ModelFormulaObject import FormulaOptions
-from arelle.PluginManager import pluginClassMethods
 from arelle.ValidateXbrlDTS import ValidateBaseTaxonomiesMode
 from arelle.typing import LocaleDict
 
@@ -160,7 +159,7 @@ class ModelManager:
             pass # filesource may be a string, which has no url attribute
         self.filesource = filesource
         modelXbrl = None # loaded modelXbrl
-        for customLoader in pluginClassMethods("ModelManager.Load"):
+        for customLoader in self.cntlr.pluginManager.pluginClassMethods("ModelManager.Load"):
             modelXbrl = customLoader(self, filesource, **kwargs)
             if modelXbrl is not None:
                 break # custom loader did the loading
@@ -254,5 +253,5 @@ class ModelManager:
     def loadCustomTransforms(self):
         if self.customTransforms is None:
             self.customTransforms = {}
-            for pluginMethod in pluginClassMethods("ModelManager.LoadCustomTransforms"):
+            for pluginMethod in self.cntlr.pluginManager.pluginClassMethods("ModelManager.LoadCustomTransforms"):
                 pluginMethod(self.customTransforms)

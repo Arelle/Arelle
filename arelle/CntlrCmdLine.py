@@ -23,10 +23,16 @@ import time
 import traceback
 from optparse import SUPPRESS_HELP, Option, OptionGroup, OptionParser
 from pprint import pprint
+from typing import Any
 
 import regex as re
-from bottle import Bottle
+from bottle import Bottle  # type: ignore[import-untyped]
 from lxml import etree
+
+try:
+    import win32file, win32api, win32process, pywintypes
+except ImportError: # win32 not installed
+    win32file = win32api = win32process = pywintypes = None  # type: ignore[assignment]
 
 from arelle import (
     Cntlr,
@@ -65,7 +71,6 @@ from arelle.utils.EntryPointDetection import parseEntrypointFileInput
 from arelle.ValidateXbrlDTS import ValidateBaseTaxonomiesMode
 from arelle.WebCache import proxyTuple
 
-win32file = win32api = win32process = pywintypes = None
 STILL_ACTIVE = 259 # MS Windows process status constants
 PROCESS_QUERY_INFORMATION = 0x400
 DISABLE_PERSISTENT_CONFIG_OPTION = "--disablePersistentConfig"
@@ -74,7 +79,7 @@ UILANG_OPTION = "--uiLang"
 _: TypeGetText
 
 
-def main():
+def main() -> None:
     """Main program to initiate application from command line or as a separate process (e.g, java Runtime.getRuntime().exec).  May perform
     a command line request, or initiate a web server on specified local port.
 
@@ -91,11 +96,13 @@ def main():
         sys.exit(3)
 
 
-def wsgiApplication(extraArgs=[]): # for example call wsgiApplication(["--plugins=EDGAR/render"])
-    return parseAndRun( ["--webserver=::wsgi"] + extraArgs )
+def wsgiApplication(extraArgs: list[str] | None = None) -> CntlrCmdLine:  # for example call wsgiApplication(["--plugins=EDGAR/render"])
+    if extraArgs is None:
+        extraArgs = []
+    return parseAndRun(["--webserver=::wsgi"] + extraArgs)
 
 
-def _parseAndRun(args: list[str]) -> tuple[CntlrCmdLine, RuntimeOptions, bool]:
+def _parseAndRun(args: list[str]) -> tuple[Bottle | CntlrCmdLine | None, RuntimeOptions, bool | None]:
     """
     interface used by Main program and py.test (arelle_test.py)
     """
@@ -109,7 +116,7 @@ def parseAndRun(args: list[str]) -> CntlrCmdLine:
     interface used by Main program and py.test (arelle_test.py)
     """
     cntlr, _, _ = _parseAndRun(args)
-    return cntlr
+    return cntlr  # type: ignore[return-value]
 
 
 PREPARSE_ARG_CONFIGS = frozenset([
@@ -144,7 +151,7 @@ def preparseArgs(args: list[str], parser: OptionParser) -> dict[str, str]:
     return preparsedArgs
 
 
-def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict]:
+def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict[str, Any]]:
     """
     Parses the command line arguments and generates runtimeOptions and arellePluginModules
     :param args: Command Line arguments
@@ -1297,13 +1304,13 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict]:
     for pluginCmd in preloadPlugins:
         cmd = pluginCmd.strip()
         if cmd not in ("show", "temp") and len(cmd) > 0 and cmd[0] not in ("-", "~", "+"):
-            moduleInfo = PluginManager.addPluginModule(cmd)
+            moduleInfo = cntlr.pluginManager.addPluginModule(cmd)
             if moduleInfo:
                 arellePluginModules[cmd] = moduleInfo
-                PluginManager.reset()
+                cntlr.pluginManager.reset()
 
     # add plug-in options
-    for optionsExtender in PluginManager.pluginClassMethods("CntlrCmdLine.Options"):
+    for optionsExtender in cntlr.pluginManager.pluginClassMethods("CntlrCmdLine.Options"):
         optionsExtender(parser)
     pluginLastOptionIndex = len(parser.option_list)
     pluginLastOptionsGroupIndex = len(parser.option_groups)
@@ -1321,7 +1328,7 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict]:
         namedOptions = set()
         optionsWithArg = set()
         optionList = parser.option_list.copy()
-        [optionList.extend(group.option_list) for group in parser.option_groups]
+        [optionList.extend(group.option_list) for group in parser.option_groups]  # type: ignore[func-returns-value]
         for option in optionList:
             names = str(option).split("/")
             namedOptions.update(names)
@@ -1380,7 +1387,7 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict]:
         parser.exit()
     elif options.disclosureSystemName in ("help", "help-verbose"):
         text = _("Disclosure system choices: \n{0}").format(
-            " \n".join(cntlr.modelManager.disclosureSystem.dirlist(options.disclosureSystemName))
+            " \n".join(cntlr.modelManager.disclosureSystem.dirlist(options.disclosureSystemName))  # type: ignore[no-untyped-call]
             )
         try:
             print(text)
@@ -1446,7 +1453,11 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict]:
     return runtimeOptions, arellePluginModules
 
 
-def createCntlrAndPreloadPlugins(uiLang, disablePersistentConfig, arellePluginModules) -> CntlrCmdLine:
+def createCntlrAndPreloadPlugins(
+        uiLang: str | None,
+        disablePersistentConfig: bool,
+        arellePluginModules: dict[str, Any]
+        ) -> CntlrCmdLine:
     """
     This function creates a cntlr and preloads all the necessary plugins.
     :param uiLang: The UI Language
@@ -1463,23 +1474,27 @@ def createCntlrAndPreloadPlugins(uiLang, disablePersistentConfig, arellePluginMo
 
 def _configAndRunCntlr(
         options: RuntimeOptions,
-        arellePluginModules: dict
-                       ) -> tuple[None, None] | tuple[Bottle, None] | tuple[CntlrCmdLine, bool]:
+        arellePluginModules: dict[str, Any]
+    ) -> tuple[None, None] | tuple[Bottle, None] | tuple[CntlrCmdLine, bool]:
     """
     This function creates and configures a controller based off an options dataclass and
     :param options: RuntimeOptions dataclass
     :param arellePluginModules: a dictionary of commands and moduleInfos
     :return: cntlr
     """
-    cntlr = createCntlrAndPreloadPlugins(options.uiLang, options.disablePersistentConfig, arellePluginModules)
+    cntlr = createCntlrAndPreloadPlugins(
+        options.uiLang,
+        options.disablePersistentConfig,
+        arellePluginModules
+    )
     if options.webserver:
-        cntlr.startLogging(logFileName='logToBuffer',
+        cntlr.startLogging(logFileName="logToBuffer",
                            logTextMaxLength=options.logTextMaxLength,
-                           logRefObjectProperties=options.logRefObjectProperties)
+                           logRefObjectProperties=options.logRefObjectProperties)  # type: ignore[arg-type]
         cntlr.postLoggingInit()
         from arelle import CntlrWebMain
         app = CntlrWebMain.startWebserver(cntlr, options)
-        if options.webserver == '::wsgi':
+        if options.webserver == "::wsgi":
             return app, None
 
         return None, None
@@ -1491,7 +1506,7 @@ def _configAndRunCntlr(
                            logLevel=(options.logLevel or "DEBUG"),
                            logToBuffer=getattr(options, "logToBuffer", False),
                            logTextMaxLength=options.logTextMaxLength,  # e.g., used by EDGAR/render to require buffered logging
-                           logRefObjectProperties=options.logRefObjectProperties,
+                           logRefObjectProperties=options.logRefObjectProperties,  # type: ignore[arg-type]
                            logXmlMaxAttributeLength=options.logXmlMaxAttributeLength,
                            logPropagate=options.logPropagate)
         cntlr.postLoggingInit()  # Cntlr options after logging is started
@@ -1500,36 +1515,36 @@ def _configAndRunCntlr(
         return cntlr, result
 
 
-def configAndRunCntlr(options: RuntimeOptions, arellePluginModules: dict) -> CntlrCmdLine:
+def configAndRunCntlr(options: RuntimeOptions, arellePluginModules: dict[str, Any]) -> CntlrCmdLine:
     cntlr, _ = _configAndRunCntlr(options, arellePluginModules)
-    return cntlr
+    return cntlr  # type: ignore[return-value]
 
 
 class ParserForDynamicPlugins:
-    def __init__(self, options):
-        self._long_opt = {}
-        self._short_opt = {}
-        self.conflict_handler = 'error'
-        self.defaults = {}
-        self.option_class = Option
-        self.options = options
+    def __init__(self, options: RuntimeOptions) -> None:
+        self._long_opt: dict[str, Any] = {}
+        self._short_opt: dict[str, Any] = {}
+        self.conflict_handler: str = "error"
+        self.defaults: dict[str, Any] = {}
+        self.option_class: type[Option] = Option
+        self.options: RuntimeOptions = options
 
-    def add_option(self, *args, **kwargs):
-        if 'dest' in kwargs:
-            _dest = kwargs['dest']
+    def add_option(self, *args: Any, **kwargs: Any) -> None:
+        if "dest" in kwargs:
+            _dest = kwargs["dest"]
             if not hasattr(self.options, _dest):
-                setattr(self.options, _dest, kwargs.get('default'))
+                setattr(self.options, _dest, kwargs.get("default"))
 
-    def add_option_group(self, featureGroup, *args, **kwargs):
+    def add_option_group(self, featureGroup: OptionGroup, *args: Any, **kwargs: Any) -> None:
         for opt in featureGroup.option_list:
             if hasattr(opt, "dest"):
-                self.add_option(dest=opt.dest, default=getattr(opt, 'default', None))
+                self.add_option(dest=opt.dest, default=getattr(opt, "default", None))
 
     def __getattr__(self, name: str) -> None:
         return None
 
 
-def _pluginHasCliOptions(moduleInfo):
+def _pluginHasCliOptions(moduleInfo: dict[str, Any]) -> bool:
     if "CntlrCmdLine.Options" in moduleInfo["classMethods"]:
         return True
     if imports := moduleInfo.get("imports"):
@@ -1537,7 +1552,7 @@ def _pluginHasCliOptions(moduleInfo):
     return False
 
 
-def _parseOptionsFile(optionsFile: str, parser: OptionParser) -> dict:
+def _parseOptionsFile(optionsFile: str, parser: OptionParser) -> dict[str, Any]:
     """
     Parse the JSON options within the provided filepath.
     :param optionsFile: The path to the JSON options file.
@@ -1549,13 +1564,13 @@ def _parseOptionsFile(optionsFile: str, parser: OptionParser) -> dict:
             jsonOptions = json.load(f)
     except OSError:
         parser.error(_("Options file path does not exist: {}").format(optionsFile))
-        return {}
+
     except Exception as e:
         parser.error(_("Unable to parse options JSON file: {}").format(e))
-        return {}
+
     if not isinstance(jsonOptions, dict):
         parser.error(_("Options JSON file must contain a JSON object at its root."))
-        return {}
+
     return jsonOptions
 
 
@@ -1566,11 +1581,21 @@ class CntlrCmdLine(Cntlr.Cntlr):
     Initialization sets up for platform via Cntlr.Cntlr.
     """
 
-    def __init__(self, logFileName=None, uiLang=None, disable_persistent_config=False):
-        super().__init__(hasGui=False, uiLang=uiLang, disable_persistent_config=disable_persistent_config, logFileName=logFileName)
-        self.preloadedPlugins = {}
+    def __init__(
+            self,
+            logFileName: str | None = None,
+            uiLang: str | None = None,
+            disable_persistent_config: bool = False
+        ) -> None:
+        super().__init__(
+            hasGui=False,
+            uiLang=uiLang,
+            disable_persistent_config=disable_persistent_config,
+            logFileName=logFileName
+        )
+        self.preloadedPlugins: dict[str, Any] = {}
 
-    def run(self, options: RuntimeOptions, sourceZipStream=None, responseZipStream=None) -> bool:
+    def run(self, options: RuntimeOptions, sourceZipStream: Any = None, responseZipStream: Any = None) -> bool:
         """Process command line arguments or web service request, such as to load and validate an XBRL document, or start web server.
 
         When a web server has been requested, this method may be called multiple times, once for each web service (REST) request that requires processing.
@@ -1580,39 +1605,58 @@ class CntlrCmdLine(Cntlr.Cntlr):
         :type options: optparse.Values
         """
         hasValidationErrors = False
+        assert self.errorManager is not None, "errorManager has not been initialized"
         for b in BETA_FEATURES_AND_DESCRIPTIONS:
             self.betaFeatures[b] = getattr(options, b)
-        if options.statusPipe or options.monitorParentProcess:
-            try:
-                global win32file, win32api, win32process, pywintypes
-                import win32file, win32api, win32process, pywintypes
-            except ImportError: # win32 not installed
+
+        if None in (win32file, win32api, win32process, pywintypes):
+            if options.statusPipe or options.monitorParentProcess:
                 self.addToLog(f"--statusPipe {options.statusPipe} cannot be installed, packages for win32 missing")
                 options.statusPipe = options.monitorParentProcess = None
+
+            if options.monitorParentProcess:
+                self.addToLog(
+                    f"--monitorParentProcess {options.monitorParentProcess} cannot be installed, "
+                    f"packages for win32api and win32process missing"
+                    )
+                options.monitorParentProcess = None
+
         if options.statusPipe:
             try:
-                self.statusPipe = win32file.CreateFile(f"\\\\.\\pipe\\{options.statusPipe}",
-                                                       win32file.GENERIC_READ | win32file.GENERIC_WRITE, 0, None, win32file.OPEN_EXISTING, win32file.FILE_FLAG_NO_BUFFERING, None)
-                self.showStatus = self.showStatusOnPipe
+                self.statusPipe = win32file.CreateFile(
+                    f"\\\\.\\pipe\\{options.statusPipe}",
+                    win32file.GENERIC_READ | win32file.GENERIC_WRITE,
+                    0,
+                    None,
+                    win32file.OPEN_EXISTING,
+                    win32file.FILE_FLAG_NO_BUFFERING,
+                    None
+                )
+                self.showStatus = self.showStatusOnPipe  # type: ignore[method-assign]
                 self.lastStatusTime = 0.0
                 self.parentProcessHandle = None
-            except pywintypes.error: # named pipe doesn't exist
+            except pywintypes.error:  # named pipe doesn't exist
                 self.addToLog(f"--statusPipe {options.statusPipe} has not been created by calling program")
+
         if options.monitorParentProcess:
             try:
-                self.parentProcessHandle = win32api.OpenProcess(PROCESS_QUERY_INFORMATION, False, int(options.monitorParentProcess))
-                def monitorParentProcess():
-                    if win32process.GetExitCodeProcess(self.parentProcessHandle) != STILL_ACTIVE:
+                self.parentProcessHandle = win32api.OpenProcess(
+                    PROCESS_QUERY_INFORMATION,
+                    False,
+                    int(options.monitorParentProcess)
+                )
+
+                def monitorParentProcess() -> None:
+                    if win32process.GetExitCodeProcess(self.parentProcessHandle) != STILL_ACTIVE:  # type: ignore[arg-type]
                         sys.exit()
                     _t = threading.Timer(10.0, monitorParentProcess)
                     _t.daemon = True
                     _t.start()
                 monitorParentProcess()
-            except ImportError: # win32 not installed
-                self.addToLog(f"--monitorParentProcess {options.monitorParentProcess} cannot be installed, packages for win32api and win32process missing")
             except (ValueError, pywintypes.error): # parent process doesn't exist
                 self.addToLog(f"--monitorParentProcess Process {options.monitorParentProcess} Id is invalid")
                 sys.exit()
+
         if options.showOptions: # debug options
             for optName, optValue in sorted(options.__dict__.items(), key=lambda optItem: optItem[0]):
                 self.addToLog(f"Option {optName}={optValue}", messageCode="info")
@@ -1631,15 +1675,15 @@ class CntlrCmdLine(Cntlr.Cntlr):
             if options.proxy != "show":
                 proxySettings = proxyTuple(options.proxy)
                 self.webCache.resetProxies(proxySettings)
-                self.config["proxySettings"] = proxySettings
+                self.config["proxySettings"] = proxySettings  # type: ignore[index]
                 self.saveConfig()
                 self.addToLog(_("Proxy configuration has been set."), messageCode="info")
-            useOsProxy, urlAddr, urlPort, user, password = self.config.get("proxySettings", proxyTuple("none"))
+            useOsProxy, urlAddr, urlPort, user, password = self.config.get("proxySettings", proxyTuple("none"))  # type: ignore[union-attr]
             if useOsProxy:
                 self.addToLog(_("Proxy configured to use {0}.").format(
-                    _('Microsoft Windows Internet Settings') if sys.platform.startswith("win")
-                    else (_('Mac OS X System Configuration') if sys.platform in ("darwin", "macos")
-                          else _('environment variables'))), messageCode="info")
+                    _("Microsoft Windows Internet Settings") if sys.platform.startswith("win")
+                    else (_("Mac OS X System Configuration") if sys.platform in ("darwin", "macos")
+                          else _("environment variables"))), messageCode="info")
             elif urlAddr:
                 self.addToLog(_("Proxy setting: http://{0}{1}{2}{3}{4}").format(
                     user if user else "",
@@ -1672,23 +1716,23 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 elif cmd == "temp":
                     savePluginChanges = False
                 elif cmd.startswith("+"):
-                    moduleInfo = PluginManager.addPluginModule(cmd[1:])
+                    moduleInfo = self.pluginManager.addPluginModule(cmd[1:])
                     if moduleInfo:
                         self.addToLog(_("Addition of plug-in {0} successful.").format(moduleInfo.get("name")),
-                                      messageCode="info", file=moduleInfo.get("moduleURL"))
+                                      messageCode="info", file=moduleInfo.get("moduleURL"))  # type: ignore[arg-type]
                         resetPlugins = True
                         if _pluginHasCliOptions(moduleInfo):
                             loadPluginOptions = True
                     else:
                         self.addToLog(_("Unable to load plug-in."), messageCode="info", file=cmd[1:])
                 elif cmd.startswith("~"):
-                    if PluginManager.reloadPluginModule(cmd[1:]):
+                    if self.pluginManager.reloadPluginModule(cmd[1:]):
                         self.addToLog(_("Reload of plug-in successful."), messageCode="info", file=cmd[1:])
                         resetPlugins = True
                     else:
                         self.addToLog(_("Unable to reload plug-in."), messageCode="info", file=cmd[1:])
                 elif cmd.startswith("-"):
-                    if PluginManager.removePluginModule(cmd[1:]):
+                    if self.pluginManager.removePluginModule(cmd[1:]):
                         self.addToLog(_("Deletion of plug-in successful."), messageCode="info", file=cmd[1:])
                         resetPlugins = True
                     else:
@@ -1698,31 +1742,32 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     if cmd in self.preloadedPlugins:
                         moduleInfo =  self.preloadedPlugins[cmd] # already loaded, add activation message to log below
                     else:
-                        moduleInfo = PluginManager.addPluginModule(cmd)
+                        moduleInfo = self.pluginManager.addPluginModule(cmd)
                         if moduleInfo:
                             resetPlugins = True
                             if _pluginHasCliOptions(moduleInfo):
                                 loadPluginOptions = True
                     if moduleInfo:
                         self.addToLog(_("Activation of plug-in {0} successful, version {1}.").format(moduleInfo.get("name"), moduleInfo.get("version")),
-                                      messageCode="info", file=moduleInfo.get("moduleURL"))
+                                      messageCode="info", file=moduleInfo.get("moduleURL"))  # type: ignore[arg-type]
                     else:
                         self.addToLog(_("Unable to load \"%(name)s\" as a plug-in or \"%(name)s\" is not recognized as a plugin command. "),
                                       messageCode="arelle:pluginParameterError",
                                       messageArgs={"name": cmd, "file": cmd}, level=logging.ERROR)
                 if resetPlugins:
-                    PluginManager.reset()
+                    self.pluginManager.reset()
                     if savePluginChanges:
-                        PluginManager.save(self)
+                        self.pluginManager.save(self)
                 if loadPluginOptions:
                     _optionsParser = ParserForDynamicPlugins(options)
                     # add plug-in options
-                    for optionsExtender in PluginManager.pluginClassMethods("CntlrCmdLine.Options"):
+                    for optionsExtender in self.pluginManager.pluginClassMethods("CntlrCmdLine.Options"):
                         optionsExtender(_optionsParser)
 
             if showPluginModules:
                 self.addToLog(_("Plug-in modules:"), messageCode="info")
-                for i, moduleItem in enumerate(sorted(PluginManager.pluginConfig.get("modules", {}).items())):
+                assert isinstance(self.pluginManager.pluginConfig, dict)
+                for i, moduleItem in enumerate(sorted(self.pluginManager.pluginConfig.get("modules", {}).items())):
                     moduleInfo = moduleItem[1]
                     self.addToLog(_("Plug-in: {0}; author: {1}; version: {2}; status: {3}; date: {4}; description: {5}; license {6}.").format(
                                   moduleItem[0], moduleInfo.get("author"), moduleInfo.get("version"), moduleInfo.get("status"),
@@ -1730,7 +1775,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                   messageCode="info", file=moduleInfo.get("moduleURL"))
 
         if options.packages:
-            self.loadPackages(options.packages, options.packageManifestName)
+            self.loadPackages(options.packages, options.packageManifestName or "")
 
         if options.showEnvironment:
             self.addToLog(_("Config directory: {0}").format(self.configDir))
@@ -1741,45 +1786,45 @@ class CntlrCmdLine(Cntlr.Cntlr):
             return True
 
         self.modelManager.customTransforms = None # clear out prior custom transforms
-        self.modelManager.loadCustomTransforms()
+        self.modelManager.loadCustomTransforms()  # type: ignore[no-untyped-call]
 
         self.username = options.username
         self.password = options.password
         if options.disclosureSystemName:
             self.modelManager.validateDisclosureSystem = True
-            self.modelManager.disclosureSystem.select(options.disclosureSystemName)
+            self.modelManager.disclosureSystem.select(options.disclosureSystemName)  # type: ignore[no-untyped-call]
             if options.validateEFM:
                 self.addToLog(_("both --efm and --disclosureSystem validation are requested, ignoring --efm only"),
-                              messageCode="info", file=options.entrypointFile)
+                              messageCode="info", file=options.entrypointFile)  # type: ignore[arg-type]
         elif options.validateEFM:
             self.modelManager.validateDisclosureSystem = True
-            self.modelManager.disclosureSystem.select("efm")
+            self.modelManager.disclosureSystem.select("efm")  # type: ignore[no-untyped-call]
         elif options.validateHMRC:
             self.modelManager.validateDisclosureSystem = True
-            self.modelManager.disclosureSystem.select("hmrc")
+            self.modelManager.disclosureSystem.select("hmrc")  # type: ignore[no-untyped-call]
         else:
-            self.modelManager.disclosureSystem.select(None) # just load ordinary mappings
+            self.modelManager.disclosureSystem.select(None)  # type: ignore[no-untyped-call] # just load ordinary mappings
             self.modelManager.validateDisclosureSystem = False
         if self.modelManager.disclosureSystem.keepOpen:
             # Force keepOpen if specified by disclosure system.
             options.keepOpen = True
         if options.baseTaxonomyValidationMode is not None:
             self.modelManager.baseTaxonomyValidationMode = ValidateBaseTaxonomiesMode.fromName(options.baseTaxonomyValidationMode)
-        self.modelManager.validateXmlOim = bool(options.validateXmlOim)
+        self.modelManager.validateXmlOim = options.validateXmlOim
         if options.validateDuplicateFacts:
             duplicateTypeArg = ValidateDuplicateFacts.DuplicateTypeArg(options.validateDuplicateFacts)
             duplicateType = duplicateTypeArg.duplicateType()
             self.modelManager.validateDuplicateFacts = duplicateType
-        self.modelManager.validateAllFilesAsReportPackages = bool(options.reportPackage)
-        self.modelManager.validateAllFilesAsTaxonomyPackages = bool(options.taxonomyPackage)
+        self.modelManager.validateAllFilesAsReportPackages = options.reportPackage
+        self.modelManager.validateAllFilesAsTaxonomyPackages = options.taxonomyPackage
         if options.utrUrl:  # override disclosureSystem utrUrl
             self.modelManager.disclosureSystem.utrUrl = [options.utrUrl]
             # can be set now because the utr is first loaded at validation time
         if options.skipDTS: # skip DTS loading, discovery, etc
             self.modelManager.skipDTS = True
-        if options.skipLoading: # skip loading matching files (list of unix patterns)
+        if options.skipLoading and isinstance(options.skipLoading, str):
             self.modelManager.skipLoading = re.compile(
-                '|'.join(fnmatch.translate(f) for f in options.skipLoading.split('|')))
+                "|".join(fnmatch.translate(f) for f in options.skipLoading.split("|")))
 
         # disclosure system sets logging filters, override disclosure filters, if specified by command line
         if options.logLevelFilter:
@@ -1790,10 +1835,10 @@ class CntlrCmdLine(Cntlr.Cntlr):
         if options.calcDecimals:
             if options.calcPrecision:
                 self.addToLog(_("both --calcDecimals and --calcPrecision validation are requested, proceeding with --calcDecimals only"),
-                              messageCode="info", file=options.entrypointFile)
+                              messageCode="info", file=options.entrypointFile)  # type: ignore[arg-type]
             if options.calcs:
                 self.addToLog(_("both --calcDecimals and --calcs validation are requested, proceeding with --calcDecimals only"),
-                              messageCode="info", file=options.entrypointFile)
+                              messageCode="info", file=options.entrypointFile)  # type: ignore[arg-type]
             self.modelManager.validateCalcs = CalcsMode.XBRL_v2_1 + (options.calcDeduplicate or 0)
         elif options.calcPrecision:
             self.modelManager.validateCalcs = CalcsMode.XBRL_v2_1_INFER_PRECISION
@@ -1814,7 +1859,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     }[options.calcs]
             except KeyError:
                 self.addToLog(_("--calc parameter value invalid, parameter ignored"),
-                              messageCode="info", file=options.entrypointFile)
+                              messageCode="info", file=options.entrypointFile)  # type: ignore[arg-type]
         if options.utrValidate:
             self.modelManager.validateUtr = True
         if options.infosetValidate:
@@ -1824,20 +1869,20 @@ class CntlrCmdLine(Cntlr.Cntlr):
         if options.collectProfileStats:
             self.modelManager.collectProfileStats = True
         if options.outputAttribution:
-            self.modelManager.outputAttribution = options.outputAttribution
-        self.modelManager.validateTestcaseSchema = options.validateTestcaseSchema
+            self.modelManager.outputAttribution = options.outputAttribution  # type: ignore[attr-defined]
+        self.modelManager.validateTestcaseSchema = options.validateTestcaseSchema  # type: ignore[assignment]
         if options.internetTimeout is not None:
             self.webCache.timeout = (options.internetTimeout or None)  # use None if zero specified to disable timeout
         if options.internetLogDownloads:
             self.webCache.logDownloads = True
         if options.internetRecheck:
             self.webCache.recheck = options.internetRecheck
-        fo = FormulaOptions()
+        fo = FormulaOptions()  # type: ignore[no-untyped-call]
         if options.parameters:
-            parameterSeparator = (options.parameterSeparator or ',')
-            fo.parameterValues = dict(((qname(key, noPrefixIsNoNamespace=True),(None,value))
+            parameterSeparator = options.parameterSeparator or ","
+            fo.parameterValues = dict(((qname(key, noPrefixIsNoNamespace=True), (None, value))
                                        for param in options.parameters.split(parameterSeparator)
-                                       for key,sep,value in (param.partition('='),) ) )
+                                       for key, sep, value in (param.partition("="), )))
         fo.maximumMessageInterpolationLength = options.formulaMaximumMessageInterpolationLength
         if options.formulaParamExprResult:
             fo.traceParameterExpressionResult = True
@@ -1889,7 +1934,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             fo.testcaseFilters = options.testcaseFilters
         errorCaptureLevel = None
         if options.testcaseResultsCaptureWarnings:
-            errorCaptureLevel = logging._checkLevel("WARNING")
+            errorCaptureLevel = logging.getLevelName("WARNING")
             self.errorManager.setErrorCaptureLevel(errorCaptureLevel)
             fo.testcaseResultsCaptureWarnings = True
         if options.testcaseResultOptions:
@@ -1910,7 +1955,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
 
         # run utility command line options that don't depend on entrypoint Files
         hasUtilityPlugin = False
-        for pluginXbrlMethod in PluginManager.pluginClassMethods("CntlrCmdLine.Utility.Run"):
+        for pluginXbrlMethod in self.pluginManager.pluginClassMethods("CntlrCmdLine.Utility.Run"):
             hasUtilityPlugin = True
             try:
                 pluginXbrlMethod(self, options, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
@@ -1929,7 +1974,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
         _entrypointFiles = entrypointParseResult.entrypointFiles
         success = True
 
-        for pluginXbrlMethod in PluginManager.pluginClassMethods("CntlrCmdLine.Filing.Start"):
+        for pluginXbrlMethod in self.pluginManager.pluginClassMethods("CntlrCmdLine.Filing.Start"):
             pluginXbrlMethod(self, options, filesource, _entrypointFiles, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
 
         if options.validate and filesource is not None:
@@ -1959,7 +2004,12 @@ class CntlrCmdLine(Cntlr.Cntlr):
             modelXbrl = None
             try:
                 if filesource:
-                    modelXbrl = self.modelManager.load(filesource, _("views loading"), entrypoint=_entrypoint, errorCaptureLevel=errorCaptureLevel)
+                    modelXbrl = self.modelManager.load(
+                        filesource,
+                        _("views loading"),
+                        entrypoint=_entrypoint,
+                        errorCaptureLevel=errorCaptureLevel
+                    )  # type: ignore[no-untyped-call]
                     if filesource.isArchive:
                         # Keep archive filesource potentially used by multiple reports open.
                         modelXbrl.closeFileSource = False
@@ -1978,13 +2028,13 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 self.addToLog(format_string(self.modelManager.locale,
                                             _("loaded in %.2f secs at %s"),
                                             (loadTime, timeNow)),
-                                            messageCode="info", file=self.entrypointFile)
+                                            messageCode="info", file=self.entrypointFile)  # type: ignore[arg-type]
                 if modelXbrl.hasTableRendering:
-                    RenderingEvaluator.init(modelXbrl)
+                    RenderingEvaluator.init(modelXbrl)  # type: ignore[no-untyped-call]
                 if options.importFiles:
                     for importFile in options.importFiles.split("|"):
                         fileName = importFile.strip()
-                        if sourceZipStream is not None and not (fileName.startswith('http://') or os.path.isabs(fileName)):
+                        if sourceZipStream is not None and not (fileName.startswith("http://") or os.path.isabs(fileName)):
                             fileName = os.path.dirname(modelXbrl.uri) + os.sep + fileName # make relative to sourceZipStream
                         ModelDocument.load(modelXbrl, fileName, isSupplemental=True)
                         loadTime = time.time() - startedAt
@@ -1996,10 +2046,10 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     if modelXbrl.errors:
                         success = False    # loading errors, don't attempt to utilize loaded DTS
                 if modelXbrl.modelDocument.type in ModelDocument.Type.TESTCASETYPES:
-                    for pluginXbrlMethod in PluginManager.pluginClassMethods("Testcases.Start"):
+                    for pluginXbrlMethod in self.pluginManager.pluginClassMethods("Testcases.Start"):
                         pluginXbrlMethod(self, options, modelXbrl)
                 else: # not a test case, probably instance or DTS
-                    for pluginXbrlMethod in PluginManager.pluginClassMethods("CntlrCmdLine.Xbrl.Loaded"):
+                    for pluginXbrlMethod in self.pluginManager.pluginClassMethods("CntlrCmdLine.Xbrl.Loaded"):
                         pluginXbrlMethod(self, options, modelXbrl, _entrypoint, responseZipStream=responseZipStream)
                     if options.saveOIMToXMLReport:
                         if modelXbrl.loadedFromOIM and modelXbrl.modelDocument is not None:
@@ -2016,26 +2066,27 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 try:
                     diffFilesource = FileSource.FileSource(options.diffFile,self)
                     startedAt = time.time()
-                    modelXbrl2 = self.modelManager.load(diffFilesource, _("views loading"))
+                    modelXbrl2 = self.modelManager.load(diffFilesource, _("views loading"))  # type: ignore[no-untyped-call]
                     if modelXbrl2.errors:
                         if not options.keepOpen:
                             modelXbrl2.close()
                         success = False
                     else:
+                        assert modelXbrl is not None
                         loadTime = time.time() - startedAt
                         modelXbrl.profileStat(_("load"), loadTime)
                         self.addToLog(format_string(self.modelManager.locale,
                                                     _("diff comparison DTS loaded in %.2f secs"),
                                                     loadTime),
-                                                    messageCode="info", file=self.entrypointFile)
+                                                    messageCode="info", file=self.entrypointFile)  # type: ignore[arg-type]
                         startedAt = time.time()
-                        modelDiffReport = self.modelManager.compareDTSes(options.versReportFile)
+                        modelDiffReport = self.modelManager.compareDTSes(str(options.versReportFile))
                         diffTime = time.time() - startedAt
                         modelXbrl.profileStat(_("diff"), diffTime)
                         self.addToLog(format_string(self.modelManager.locale,
                                                     _("compared in %.2f secs"),
                                                     diffTime),
-                                                    messageCode="info", file=self.entrypointFile)
+                                                    messageCode="info", file=self.entrypointFile)  # type: ignore[arg-type]
                 except ModelDocument.LoadingException:
                     success = False
                 except Exception as err:
@@ -2048,7 +2099,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     for modelXbrl in [self.modelManager.modelXbrl] + getattr(self.modelManager.modelXbrl, "supplementalModelXbrls", []):
                         hasFormulae = modelXbrl.hasFormulae
                         isAlreadyValidated = False
-                        for pluginXbrlMethod in PluginManager.pluginClassMethods("ModelDocument.IsValidated"):
+                        for pluginXbrlMethod in self.pluginManager.pluginClassMethods("ModelDocument.IsValidated"):
                             if pluginXbrlMethod(modelXbrl): # e.g., streaming extensions already has validated
                                 isAlreadyValidated = True
                         if options.validate and not isAlreadyValidated:
@@ -2056,13 +2107,13 @@ class CntlrCmdLine(Cntlr.Cntlr):
                             if options.formulaAction: # don't automatically run formulas
                                 modelXbrl.hasFormulae = False
                             from arelle import Validate
-                            Validate.validate(modelXbrl)
+                            Validate.validate(modelXbrl)  # type: ignore[no-untyped-call]
                             if options.formulaAction: # restore setting
                                 modelXbrl.hasFormulae = hasFormulae
                             self.addToLog(format_string(self.modelManager.locale,
                                                         _("validated in %.2f secs"),
                                                         time.time() - startedAt),
-                                                        messageCode="info", file=self.entrypointFile)
+                                                        messageCode="info", file=self.entrypointFile)  # type: ignore[arg-type]
                         if (modelXbrl.modelDocument.type not in ModelDocument.Type.TESTCASETYPES and
                                 options.formulaAction in ("validate", "run") and  # do nothing here if "none"
                                 not isAlreadyValidated):  # formulas can't run if streaming has validated the instance
@@ -2070,16 +2121,16 @@ class CntlrCmdLine(Cntlr.Cntlr):
                             from arelle.formula import ValidateFormula
                             startedAt = time.time()
                             if not options.validate:
-                                ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl)
+                                ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl)  # type: ignore[no-untyped-call]
                             # setup fresh parameters from formula optoins
-                            modelXbrl.parameters = fo.typedParameters(modelXbrl.prefixedNamespaces)
+                            modelXbrl.parameters = fo.typedParameters(modelXbrl.prefixedNamespaces)  # type: ignore[no-untyped-call]
                             ValidateFormula.validate(modelXbrl, compileOnly=(options.formulaAction != "run"))
                             self.addToLog(format_string(self.modelManager.locale,
                                                         _("formula validation and execution in %.2f secs")
                                                         if options.formulaAction == "run"
                                                         else _("formula validation only in %.2f secs"),
                                                         time.time() - startedAt),
-                                                        messageCode="info", file=self.entrypointFile)
+                                                        messageCode="info", file=self.entrypointFile)  # type: ignore[arg-type]
 
                         if options.compareFormulaOutput:
                             try:
@@ -2126,47 +2177,47 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                     traceback.format_exc()))
 
                         if options.testReport:
-                            ViewFileTests.viewTests(self.modelManager.modelXbrl, options.testReport, options.testReportCols)
+                            ViewFileTests.viewTests(self.modelManager.modelXbrl, options.testReport, options.testReportCols)  # type: ignore[no-untyped-call]
 
                         if options.rssReport:
-                            ViewFileRssFeed.viewRssFeed(self.modelManager.modelXbrl, options.rssReport, options.rssReportCols)
+                            ViewFileRssFeed.viewRssFeed(self.modelManager.modelXbrl, options.rssReport, options.rssReportCols)  # type: ignore[no-untyped-call]
 
                         if options.DTSFile:
-                            ViewFileDTS.viewDTS(modelXbrl, options.DTSFile)
+                            ViewFileDTS.viewDTS(modelXbrl, options.DTSFile)  # type: ignore[no-untyped-call]
                         if options.factsFile:
-                            ViewFileFactList.viewFacts(modelXbrl, options.factsFile, labelrole=options.labelRole, lang=options.labelLang, cols=options.factListCols)
+                            ViewFileFactList.viewFacts(modelXbrl, options.factsFile, labelrole=options.labelRole, lang=options.labelLang, cols=options.factListCols)  # type: ignore[no-untyped-call]
                         if options.factTableFile:
-                            ViewFileFactTable.viewFacts(modelXbrl, options.factTableFile, labelrole=options.labelRole, lang=options.labelLang, cols=options.factTableCols)
+                            ViewFileFactTable.viewFacts(modelXbrl, options.factTableFile, labelrole=options.labelRole, lang=options.labelLang, cols=options.factTableCols)  # type: ignore[no-untyped-call]
                         if options.conceptsFile:
-                            ViewFileConcepts.viewConcepts(modelXbrl, options.conceptsFile, labelrole=options.labelRole, lang=options.labelLang)
+                            ViewFileConcepts.viewConcepts(modelXbrl, options.conceptsFile, labelrole=options.labelRole, lang=options.labelLang)  # type: ignore[no-untyped-call]
                         if options.preFile:
-                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.preFile, "Presentation Linkbase", XbrlConst.parentChild, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)
+                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.preFile, "Presentation Linkbase", XbrlConst.parentChild, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)  # type: ignore[no-untyped-call]
                         if options.tableFile:
-                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.tableFile, "Table Linkbase", "Table-rendering", labelrole=options.labelRole, lang=options.labelLang)
+                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.tableFile, "Table Linkbase", "Table-rendering", labelrole=options.labelRole, lang=options.labelLang)  # type: ignore[no-untyped-call]
                         if options.renderedTableLinkbaseFile and modelXbrl.hasTableRendering:
-                            ViewFileRenderedGrid.viewRenderedGrid(modelXbrl, options.renderedTableLinkbaseFile, lang=options.labelLang)
+                            ViewFileRenderedGrid.viewRenderedGrid(modelXbrl, options.renderedTableLinkbaseFile, lang=options.labelLang)  # type: ignore[no-untyped-call]
                         if options.calFile:
-                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.calFile, "Calculation Linkbase", XbrlConst.summationItems, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)
+                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.calFile, "Calculation Linkbase", XbrlConst.summationItems, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)  # type: ignore[no-untyped-call]
                         if options.dimFile:
-                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.dimFile, "Dimensions", "XBRL-dimensions", labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)
+                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.dimFile, "Dimensions", "XBRL-dimensions", labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)  # type: ignore[no-untyped-call]
                         if options.anchFile:
-                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.anchFile, "Anchoring", XbrlConst.widerNarrower, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)
+                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.anchFile, "Anchoring", XbrlConst.widerNarrower, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)  # type: ignore[no-untyped-call]
                         if options.formulaeFile:
-                            ViewFileFormulae.viewFormulae(modelXbrl, options.formulaeFile, "Formulae", lang=options.labelLang)
+                            ViewFileFormulae.viewFormulae(modelXbrl, options.formulaeFile, "Formulae", lang=options.labelLang)  # type: ignore[no-untyped-call]
                         if options.viewArcrole and options.viewFile:
-                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.viewFile, os.path.basename(options.viewArcrole), options.viewArcrole, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)
+                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.viewFile, os.path.basename(options.viewArcrole), options.viewArcrole, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)  # type: ignore[no-untyped-call]
                         if options.roleTypesFile:
-                            ViewFileRoleTypes.viewRoleTypes(modelXbrl, options.roleTypesFile, "Role Types", isArcrole=False, lang=options.labelLang)
+                            ViewFileRoleTypes.viewRoleTypes(modelXbrl, options.roleTypesFile, "Role Types", isArcrole=False, lang=options.labelLang)  # type: ignore[no-untyped-call]
                         if options.arcroleTypesFile:
-                            ViewFileRoleTypes.viewRoleTypes(modelXbrl, options.arcroleTypesFile, "Arcrole Types", isArcrole=True, lang=options.labelLang)
+                            ViewFileRoleTypes.viewRoleTypes(modelXbrl, options.arcroleTypesFile, "Arcrole Types", isArcrole=True, lang=options.labelLang)  # type: ignore[no-untyped-call]
 
-                        for pluginXbrlMethod in PluginManager.pluginClassMethods("CntlrCmdLine.Xbrl.Run"):
+                        for pluginXbrlMethod in self.pluginManager.pluginClassMethods("CntlrCmdLine.Xbrl.Run"):
                             pluginXbrlMethod(self, options, modelXbrl, _entrypoint, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
 
                 except OSError as err:
                     self.addToLog(_("[IOError] Failed to save output:\n {0}").format(err),
                                   messageCode="IOError",
-                                  file=options.entrypointFile,
+                                  file=options.entrypointFile,  # type: ignore[arg-type]
                                   level=logging.CRITICAL)
                     success = False
                 except Exception as err:
@@ -2174,7 +2225,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                     err,
                                     traceback.format_exc()),
                                   messageCode=err.__class__.__name__,
-                                  file=options.entrypointFile,
+                                  file=options.entrypointFile,  # type: ignore[arg-type]
                                   level=logging.CRITICAL)
                     success = False
             if modelXbrl:
@@ -2191,7 +2242,11 @@ class CntlrCmdLine(Cntlr.Cntlr):
                             # Deduplication modifies the underlying lxml tree and leaves the model in an undefined state.
                             # Anything depending on the ModelXbrl that runs after this may encounter unexpected behavior,
                             # so we'll run it as a final step in the CLI controller flow.
-                            ValidateDuplicateFacts.saveDeduplicatedInstance(modelXbrl, deduplicateFactsArg, options.saveDeduplicatedInstance)
+                            ValidateDuplicateFacts.saveDeduplicatedInstance(
+                                modelXbrl,
+                                deduplicateFactsArg,
+                                options.saveDeduplicatedInstance # type: ignore[arg-type]
+                                )
                             if options.keepOpen:
                                 success = False
                                 self.addToLog(_("Attempted to keep model connection open after saving deduplicated instance. "
@@ -2219,7 +2274,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         self.modelManager.close(modelXbrl)
 
         if options.validate:
-            for pluginXbrlMethod in PluginManager.pluginClassMethods("Validate.Complete"):
+            for pluginXbrlMethod in self.pluginManager.pluginClassMethods("Validate.Complete"):
                 pluginXbrlMethod(self, filesource)
 
         if filesource is not None and not options.keepOpen:
@@ -2228,28 +2283,28 @@ class CntlrCmdLine(Cntlr.Cntlr):
 
         if success:
             if options.validate:
-                for pluginXbrlMethod in PluginManager.pluginClassMethods("CntlrCmdLine.Filing.Validate"):
+                for pluginXbrlMethod in self.pluginManager.pluginClassMethods("CntlrCmdLine.Filing.Validate"):
                     pluginXbrlMethod(self, options, filesource, _entrypointFiles, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
-            for pluginXbrlMethod in PluginManager.pluginClassMethods("CntlrCmdLine.Filing.End"):
+            for pluginXbrlMethod in self.pluginManager.pluginClassMethods("CntlrCmdLine.Filing.End"):
                 pluginXbrlMethod(self, options, filesource, _entrypointFiles, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
         self.username = self.password = None #dereference password
         self._clearPluginData()
 
         if options.statusPipe and getattr(self, "statusPipe", None) is not None:
-            win32file.WriteFile(self.statusPipe, b" ")  # clear status
-            win32file.FlushFileBuffers(self.statusPipe)
-            win32file.SetFilePointer(self.statusPipe, 0, win32file.FILE_BEGIN) # hangs on close without this
-            win32file.CloseHandle(self.statusPipe)
-            self.statusPipe = None # dereference
+            win32file.WriteFile(self.statusPipe, b" ")  # type: ignore[arg-type] # clear status
+            win32file.FlushFileBuffers(self.statusPipe)  # type: ignore[arg-type]
+            win32file.SetFilePointer(self.statusPipe, 0, win32file.FILE_BEGIN)  # type: ignore[call-overload] # hangs on close without this
+            win32file.CloseHandle(self.statusPipe)  # type: ignore[arg-type]
+            self.statusPipe = None  # type: ignore[assignment] # dereference
 
         return success and not (options.validationExitCode and (hasValidationErrors or self.errors))
 
     # default web authentication password
-    def internet_user_password(self, host, realm):
-        return (self.username, self.password)
+    def internet_user_password(self, host: str, realm: str) -> tuple[str, str]:
+        return self.username or "", self.password or ""
 
     # special show status for named pipes
-    def showStatusOnPipe(self, message, clearAfter=None):
+    def showStatusOnPipe(self, message: str | None, clearAfter: int | None = None) -> None:
         # now = time.time() # seems ok without time-limiting writes to the pipe
         if self.statusPipe is not None:  # max status updates 3 per second now - 0.3 > self.lastStatusTime and
             # self.lastStatusTime = now
@@ -2257,26 +2312,26 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 if self.parentProcessHandle is not None:
                     if win32process.GetExitCodeProcess(self.parentProcessHandle) != STILL_ACTIVE:
                         sys.exit()
-                win32file.WriteFile(self.statusPipe, (message or "").encode("utf8"))
-                win32file.FlushFileBuffers(self.statusPipe)
-                win32file.SetFilePointer(self.statusPipe, 0, win32file.FILE_BEGIN)  # hangs on close without this
+                win32file.WriteFile(self.statusPipe, (message or "").encode("utf8"))  # type: ignore[arg-type]
+                win32file.FlushFileBuffers(self.statusPipe)  # type: ignore[arg-type]
+                win32file.SetFilePointer(self.statusPipe, 0, win32file.FILE_BEGIN)  # type: ignore[call-overload] # hangs on close without this
             except Exception as ex:
                 #with open("Z:\\temp\\trace.log", "at", encoding="utf-8") as fh:
                 #    fh.write("Status pipe exception {} {}\n".format(type(ex), ex))
                 sys.exit()
 
-    def loadPackage(self, package: str, packageManifestName: str):
+    def loadPackage(self, package: str, packageManifestName: str) -> None:
         from arelle import PackageManager
         packageInfo = PackageManager.addPackage(self, package, packageManifestName)
         if packageInfo:
             self.addToLog(_("Activation of package {0} successful.").format(packageInfo.get("name")),
-                          messageCode="info", file=packageInfo.get("URL"))
+                          messageCode="info", file=packageInfo.get("URL", ""))
         else:
             self.addToLog(_("Unable to load package \"%(name)s\". "),
                           messageCode="arelle:packageLoadingError",
                           messageArgs={"name": package, "file": package}, level=logging.ERROR)
 
-    def loadPackages(self, packages: list[str], packageManifestName: str):
+    def loadPackages(self, packages: list[str], packageManifestName: str) -> None:
         """
         Loads specified packages.
 
@@ -2288,7 +2343,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
         showPackages = False
         # For backwards compatibility, we allow '|' separated filenames/URLs
         # within a single --packages option.
-        for packageCmd in [cmd for p in packages for cmd in p.split('|')]:
+        for packageCmd in [cmd for p in packages for cmd in p.split("|")]:
             cmd = packageCmd.strip()
             if cmd == "show":
                 showPackages = True
@@ -2298,7 +2353,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 packageInfo = PackageManager.addPackage(self, cmd[1:], packageManifestName)
                 if packageInfo:
                     self.addToLog(_("Addition of package {0} successful.").format(packageInfo.get("name")),
-                                  messageCode="info", file=packageInfo.get("URL"))
+                                  messageCode="info", file=packageInfo.get("URL", ""))
                 else:
                     self.addToLog(_("Unable to load package."), messageCode="info", file=cmd[1:])
             elif cmd.startswith("~"):

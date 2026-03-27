@@ -31,6 +31,13 @@ _: TypeGetText
 YEAR_GROUP = "year"
 DISCLOSURE_SYSTEM_YEAR_PATTERN = re.compile(rf"esef-(?:unconsolidated-)?(?P<{YEAR_GROUP}>20\d\d)(?:-draft)?")
 
+AUTHORITY_CODES: frozenset[str] = frozenset({
+    "AT", "BE", "BG", "CY", "CZ", "DBA", "DE", "DK", "EE", "EL", "ES",
+    "FI", "FR", "GB", "HR", "HU", "IE", "IS", "IT", "LI", "LT", "LU",
+    "LV", "MT", "NL", "NO", "PL", "PT", "RO", "SE", "SI", "SK",
+    "UKFRC", "UKFRC-2022", "UKFRC-2023",
+})
+
 
 def getDisclosureSystemYear(modelXbrl: ModelXbrl) -> int:
     for name in modelXbrl.modelManager.disclosureSystem.names:

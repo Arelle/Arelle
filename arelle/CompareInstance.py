@@ -9,7 +9,6 @@ from arelle.ModelDtsObject import ModelResource
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelXbrl import ModelXbrl, load
-from arelle.PluginManager import pluginClassMethods
 from arelle.XmlUtil import collapseWhitespace
 from arelle.typing import TypeGetText
 
@@ -52,7 +51,7 @@ def _compareInstance(originalInstance: ModelXbrl, expectedInstance: ModelXbrl, t
                         modelXbrl=originalInstance,
                         file=originalInstance.uri)
         return
-    for pluginXbrlMethod in pluginClassMethods("CompareInstance.Loaded"):
+    for pluginXbrlMethod in expectedInstance.modelManager.cntlr.pluginManager.pluginClassMethods("CompareInstance.Loaded"):
         pluginXbrlMethod(expectedInstance, targetInstance)
     if len(expectedInstance.facts) != len(targetInstance.facts):
         targetInstance.error("compareInstance:resultFactCounts",

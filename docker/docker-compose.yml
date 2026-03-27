@@ -1,5 +1,6 @@
 services:
   webserver:
+    container_name: arelle-webserver
     build:
       context: ..
       dockerfile: ./docker/Dockerfile
@@ -7,6 +8,7 @@ services:
         INCLUDE_EDGAR: ${INCLUDE_EDGAR:-}
         EDGAR_REF: ${EDGAR_REF:-}
         XULE_REF: ${XULE_REF:-}
+        EXTRA_PIP: ${EXTRA_PIP:-}
     command: /start.sh
     ports:
       - 8080:8080

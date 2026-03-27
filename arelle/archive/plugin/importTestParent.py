@@ -3,7 +3,6 @@ pluginPackages test case
 
 See COPYRIGHT.md for copyright information.
 '''
-from arelle.PluginManager import pluginClassMethods
 from arelle.Version import authorLabel, copyrightLabel
 # . relative import only works inside a package now, see https://www.python.org/dev/peps/pep-0366/
 # following two imports raise system error due to PEP 366 after python 3.4.3
@@ -13,9 +12,9 @@ from arelle.Version import authorLabel, copyrightLabel
 def parentMenuEntender(cntlr, menu):
     menu.add_command(label="Unpackaged Parent exercise descendants", underline=0, command=lambda: parentMenuCommand(cntlr) )
 
-def parentMenuCommand(cntl):
+def parentMenuCommand(cntlr):
     for i in range(1,100):
-        for pluginMethod in pluginClassMethods("Import.Unpackaged.Entry{}".format(i)):
+        for pluginMethod in cntlr.pluginManager.pluginClassMethods("Import.Unpackaged.Entry{}".format(i)):
             pluginMethod()
 
 def parentCommandLineOptionExtender(parser):

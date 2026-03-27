@@ -14,7 +14,7 @@ def validateTableInfosetMenuEntender(cntlr, validateMenu):
     generateTableInfoset = BooleanVar(value=cntlr.modelManager.generateTableInfoset)
     def setTableInfosetOption(*args):
         cntlr.config["generateTableInfoset"] = cntlr.modelManager.generateTableInfoset = generateTableInfoset.get()
-    generateTableInfoset.trace("w", setTableInfosetOption)
+    generateTableInfoset.trace_add("write", setTableInfosetOption)
     validateMenu.add_checkbutton(label=_("Generate table infosets (instead of diffing them)"),
                                  underline=0,
                                  variable=generateTableInfoset, onvalue=True, offvalue=False)

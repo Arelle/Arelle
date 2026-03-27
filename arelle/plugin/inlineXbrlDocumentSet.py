@@ -136,7 +136,6 @@ from arelle.ModelDocument import ModelDocument, ModelDocumentReference, Type, cr
 from arelle.ModelInstanceObject import ModelInlineFootnote
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import INVALIDixVALUE, qname
-from arelle.PluginManager import pluginClassMethods
 from arelle.PrototypeDtsObject import ArcPrototype, LocPrototype
 from arelle.PythonUtil import attrdict, isLegacyAbs
 from arelle.RuntimeOptions import RuntimeOptions
@@ -612,7 +611,7 @@ def runSaveTargetDocumentMenuCommand(
         responseZipStream: BinaryIO | None = None,
         deduplicationType: DeduplicationType | None = None):
     # skip if another class handles saving (e.g., EDGAR/render)
-    if saveTargetInstanceOverriden(deduplicationType):
+    if saveTargetInstanceOverriden(cntlr, deduplicationType):
         return
     # save DTS menu item has been invoked
     if (cntlr.modelManager is None or
@@ -807,14 +806,15 @@ def filingStart(cntlr, entrypointFiles, inlineTarget):
                     entrypointFile["file"] = docsetSurrogatePath + IXDS_DOC_SEPARATOR.join(_files)
 
 
-def saveTargetInstanceOverriden(deduplicationType: DeduplicationType | None) -> bool:
+def saveTargetInstanceOverriden(cntlr, deduplicationType: DeduplicationType | None) -> bool:
     """
     Checks if another plugin implements instance extraction, and throws an exception
     if the provided arguments are not compatible.
+    :param cntlr: The controller for plugin manager access.
     :param deduplicationType: The deduplication type to be used, if set.
     :return: True if instance extraction is overridden by another plugin.
     """
-    for pluginXbrlMethod in pluginClassMethods('InlineDocumentSet.SavesTargetInstance'):
+    for pluginXbrlMethod in cntlr.pluginManager.pluginClassMethods('InlineDocumentSet.SavesTargetInstance'):
         if pluginXbrlMethod():
             if deduplicationType is not None:
                 raise RuntimeError(_('Deduplication is enabled but could not be performed because instance '
@@ -827,7 +827,7 @@ def commandLineXbrlRun(cntlr, options: RuntimeOptions, modelXbrl, *args, **kwarg
     deduplicationTypeArg = getattr(options, "deduplicateIxbrlFacts", None)
     deduplicationType = None if deduplicationTypeArg is None else DeduplicationType(deduplicationTypeArg)
     # skip if another class handles saving (e.g., EDGAR/render)
-    if saveTargetInstanceOverriden(deduplicationType):
+    if saveTargetInstanceOverriden(cntlr, deduplicationType):
         return
     # extend XBRL-loaded run processing for this option
     if getattr(options, "saveTargetInstance", False) or getattr(options, "saveTargetFiling", False):
@@ -956,7 +956,7 @@ def selectTargetDocument(modelXbrl, modelIxdsDocument, **kwargs):
     if not hasattr(modelXbrl, "ixdsTarget"): # DTS discoverey deferred until all ix docs loaded
         # isolate any documents to separate IXDSes according to authority submission rules
         modelXbrl.targetIXDSesToLoad = [] # [[target,[ixdsHtmlElements], ...]
-        for pluginXbrlMethod in pluginClassMethods('InlineDocumentSet.IsolateSeparateIXDSes'):
+        for pluginXbrlMethod in modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods('InlineDocumentSet.IsolateSeparateIXDSes'):
             separateIXDSesHtmlElements = pluginXbrlMethod(modelXbrl, modelIxdsDocument, **kwargs)
             if len(separateIXDSesHtmlElements) > 1: # [[ixdsHtml1, ixdsHtml2], [ixdsHtml3...] ...]
                 for separateIXDSHtmlElements in separateIXDSesHtmlElements[1:]:

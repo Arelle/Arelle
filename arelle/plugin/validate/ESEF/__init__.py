@@ -7,20 +7,29 @@ Filer Guidelines:
 
 GUI operation:
 - Enable the validate/ESEF plugin and optionally install ESEF taxonomy packages.
-- From the `Tools` menu > `Formula` > `Parameters` set the eps_threshold and optionally the authority.
+- Optionally select an authority from `Tools` > `Validation` > `ESEF authority`.
 
 Command line operation:
 `python arelleCmdLine.py --plugins validate/ESEF --packages {my-package-directory}/esef_taxonomy.zip --disclosureSystem esef --validate --file {my-report-package-zip-file}`
 
-Adding checks for formulas not automatically included:
-`--parameters "eps_threshold=.01"`
+Authority-specific configuration:
+The --esefAuthority option configures jurisdiction-specific behavior within the ESEF Filer Manual
+rules (e.g. target attribute handling). Valid authority codes are defined in resources/authority-validations.json.
+- `--esefAuthority DK`
+- `--esefAuthority UKFRC`
+
+Python API:
+`RuntimeOptions(pluginOptions={"esefAuthority": "DK"})`
+
+Supplementary formula assertions:
+The esef_all-for.xml formula linkbase contains additional assertions (e.g. EPS calculations) that
+are not loaded by default. To use them, import the linkbase and provide the required eps_threshold
+parameter:
+`--import http://www.esma.europa.eu/taxonomy/2020-03-16/esef_all-for.xml --parameters "eps_threshold=.01"`
 Dimensional validations required by some auditors may require
 `--import http://www.esma.europa.eu/taxonomy/2020-03-16/esef_all-for.xml`
-and likely `--skipLoading *esef_all-cal.xml` because the esef_all-cal.xml calculations are reported to be problematic for some filings.
-
-Authority specific validations are enabled by formula parameter authority, e.g. for Denmark or UKSEF and eps_threshold specify:
-- `--parameters "eps_threshold=.01,authority=DK"`
-- `--parameters "eps_threshold=.01,authority=UK"`
+and likely `--skipLoading *esef_all-cal.xml` because the esef_all-cal.xml calculations are reported
+to be problematic for some filings.
 
 Using arelle as a web server:
 
@@ -31,11 +40,13 @@ python arelleCmdLine.py --webserver localhost:8080:cheroot --plugins validate/ES
 Client with curl:
 
 ```bash
-curl -X POST "-HContent-type: application/zip" -T TC1_valid.zip "http://localhost:8080/rest/xbrl/validation?disclosureSystem=esef&media=text"
+curl -X POST "-HContent-type: application/zip" -T TC1_valid.zip "http://localhost:8080/rest/xbrl/validation?disclosureSystem=esef&esefAuthority=DK&media=text"
 ```
 """
 from __future__ import annotations
 
+from dataclasses import dataclass
+from optparse import OptionParser
 from pathlib import Path
 from typing import Any, cast
 
@@ -43,24 +54,28 @@ import regex as re
 from lxml.etree import XMLParser, XMLSyntaxError, parse
 
 from arelle import ModelDocument, XhtmlValidate
+from arelle.Cntlr import Cntlr
 from arelle.DisclosureSystem import DisclosureSystem
 from arelle.FileSource import FileSource
 from arelle.ModelDocument import LoadingException, ModelDocument as ModelDocumentClass
 from arelle.ModelValue import qname
 from arelle.ModelXbrl import ModelXbrl
 from arelle.PackageManager import validateTaxonomyPackage
+from arelle.RuntimeOptions import RuntimeOptions
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.Version import authorLabel, copyrightLabel
 from arelle.XbrlConst import xhtml
 from arelle.formula.XPathContext import XPathContext
 from arelle.typing import TypeGetText
+from arelle.utils.PluginData import PluginData
 from arelle.utils.PluginHooks import PluginHooks
 from .ESEF_2021.ValidateXbrlFinally import validateXbrlFinally as validateXbrlFinally2021
 from .ESEF_Current.ValidateXbrlFinally import validateXbrlFinally as validateXbrlFinallyCurrent
-from .Util import getDisclosureSystemYear, loadAuthorityValidations
+from .Util import AUTHORITY_CODES, getDisclosureSystemYear, loadAuthorityValidations
 
 _: TypeGetText
 
+ESEF_PLUGIN_NAME = "Validate ESMA ESEF"
 ESEF_DISCLOSURE_SYSTEM_TEST_PROPERTY = "ESEFplugin"
 
 ixErrorPattern = re.compile(r"ix11[.]|xmlSchema[:]|(?!xbrl.5.2.5.2|xbrl.5.2.6.2)xbrl[.]|xbrld[ti]e[:]|utre[:]")
@@ -94,6 +109,51 @@ def shouldRunEsefValidationRules(val: ValidateXbrl) -> bool:
         return False
     return esefDisclosureSystemSelected(val.modelXbrl)
 
+
+def getEsefAuthority(
+    modelXbrl: ModelXbrl,
+    parameters: dict[Any, Any] | None,
+) -> str | None:
+    cntlr = modelXbrl.modelManager.cntlr
+    pluginData = cntlr.getPluginData(ESEF_PLUGIN_NAME)
+    esefAuthority = pluginData.esefAuthority if isinstance(pluginData, ESEFPluginData) else None
+    if not esefAuthority and cntlr.hasGui and cntlr.config is not None:
+        esefAuthority = cntlr.config.get("esefAuthority") or None
+    formulaAuthority = None
+    if parameters:
+        # formula parameter backwards compatibility for legacy users.
+        p = parameters.get(qname("authority", noPrefixIsNoNamespace=True))
+        if p and len(p) == 2 and p[1] not in ("null", "None", None):
+            formulaAuthority = p[1]
+    if esefAuthority and formulaAuthority and esefAuthority != formulaAuthority:
+        modelXbrl.error(
+            "Arelle.conflictingESEFAuthorityParameters",
+            _(
+                "ESEF Authority '%(esefAuthority)s' conflicts with formula parameter authority '%(formulaAuthority)s'."
+                " Continuing with '%(esefAuthority)s'."
+            ),
+            modelObject=modelXbrl,
+            esefAuthority=esefAuthority,
+            formulaAuthority=formulaAuthority,
+        )
+    authority = esefAuthority or formulaAuthority
+    if authority and authority not in AUTHORITY_CODES:
+        modelXbrl.error(
+            "Arelle.invalidESEFAuthority",
+            _("Invalid authority '%(authority)s'. Valid values: %(validValues)s."),
+            modelObject=modelXbrl,
+            authority=authority,
+            validValues=", ".join(sorted(AUTHORITY_CODES)),
+        )
+        return None
+    return authority
+
+
+@dataclass
+class ESEFPluginData(PluginData):
+    esefAuthority: str | None = None
+
+
 class ESEFPlugin(PluginHooks):
     @staticmethod
     def disclosureSystemTypes(
@@ -110,6 +170,55 @@ class ESEFPlugin(PluginHooks):
         **kwargs: Any,
     ) -> str:
         return str(Path(__file__).parent / "resources" / "config.xml")
+
+    @staticmethod
+    def cntlrCmdLineOptions(
+        parser: OptionParser,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        parser.add_option(
+            "--esefAuthority",
+            action="store",
+            dest="esefAuthority",
+            choices=sorted(AUTHORITY_CODES),
+            help=_("Select ESEF authority for jurisdiction-specific validation configuration."),
+        )
+
+    @staticmethod
+    def cntlrCmdLineUtilityRun(
+        cntlr: Cntlr,
+        options: RuntimeOptions,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        esefAuthority = getattr(options, "esefAuthority", None)
+        if esefAuthority:
+            cntlr.setPluginData(ESEFPluginData(name=ESEF_PLUGIN_NAME, esefAuthority=esefAuthority))
+
+    @staticmethod
+    def cntlrWinMainMenuValidation(
+        cntlr: Any,
+        menu: Any,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        from tkinter import Menu as TkMenu, StringVar
+
+        jurisdictionMenu = TkMenu(menu, tearoff=0)
+        cntlr.config.setdefault("esefAuthority", "")
+        esefAuthorityVar = StringVar(value=cntlr.config.get("esefAuthority", ""))
+
+        def setEsefAuthority(*args: Any) -> None:
+            cntlr.config["esefAuthority"] = esefAuthorityVar.get()
+            cntlr.saveConfig()
+
+        esefAuthorityVar.trace_add("write", setEsefAuthority)
+        jurisdictionMenu.add_radiobutton(label=_("None"), variable=esefAuthorityVar, value="")
+        jurisdictionMenu.add_separator()
+        for code in sorted(AUTHORITY_CODES):
+            jurisdictionMenu.add_radiobutton(label=code, variable=esefAuthorityVar, value=code)
+        menu.add_cascade(label=_("ESEF authority"), menu=jurisdictionMenu, underline=0)
 
     @staticmethod
     def modelDocumentPullLoader(
@@ -228,12 +337,7 @@ class ESEFPlugin(PluginHooks):
         val.extensionImportedUrls = set()
         val.unconsolidated = any("unconsolidated" in n for n in val.disclosureSystem.names)
         val.consolidated = not val.unconsolidated
-        val.authority = None
-        if parameters:
-            p = parameters.get(qname("authority",noPrefixIsNoNamespace=True))
-            if p and len(p) == 2 and p[1] not in ("null", "None", None):
-                v = p[1] # formula dialog and cmd line formula parameters may need type conversion
-                val.authority = v
+        val.authority = getEsefAuthority(modelXbrl, parameters)
 
         authorityValidations = loadAuthorityValidations(val.modelXbrl)
         # loadAuthorityValidations returns either a list or a dict but in this context, we expect a dict.
@@ -389,6 +493,9 @@ __pluginInfo__ = {
     "license": "Apache-2",
     "author": authorLabel,
     "copyright": copyrightLabel,
+    "CntlrCmdLine.Options": ESEFPlugin.cntlrCmdLineOptions,
+    "CntlrCmdLine.Utility.Run": ESEFPlugin.cntlrCmdLineUtilityRun,
+    "CntlrWinMain.Menu.Validation": ESEFPlugin.cntlrWinMainMenuValidation,
     "ModelDocument.PullLoader": ESEFPlugin.modelDocumentPullLoader,
     "import": ("inlineXbrlDocumentSet",),  # import dependent modules
     # classes of mount points (required)

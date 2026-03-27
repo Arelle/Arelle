@@ -146,7 +146,6 @@ exclude = '''(?x)(
 # remove from list below as each module is updated with type hinting
 [[tool.mypy.overrides]]
 module = [
-    'arelle.CntlrCmdLine',
     'arelle.CntlrComServer',
     'arelle.CntlrProfiler',
     'arelle.CntlrQuickBooks',
@@ -187,7 +186,6 @@ module = [
     'arelle.ModelTestcaseObject',
     'arelle.ModelVersObject',
     'arelle.ModelVersReport',
-    'arelle.PackageManager',
     'arelle.PrototypeDtsObject',
     'arelle.PrototypeInstanceObject',
     'arelle.PythonUtil',

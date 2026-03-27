@@ -13,7 +13,6 @@ from arelle.ModelValue import dateTime
 from arelle import XmlUtil
 from arelle.UiUtil import gridCell, gridCombobox, label, checkbox
 from arelle.CntlrWinTooltip import ToolTip
-from arelle.PluginManager import pluginClassMethods
 from arelle.UrlUtil import isValidAbsolute
 from arelle.ValidateXbrlCalcs import ValidateCalcsMode as CalcsMode
 
@@ -81,7 +80,7 @@ class DialogRssWatch(Toplevel):
         chooseFormulaFileButton.grid(row=row, column=3, sticky=W)
         row += 1
         openDatabaseImage = PhotoImage(file=os.path.join(mainWin.imagesDir, "toolbarOpenDatabase.gif"))
-        for pluginXbrlMethod in pluginClassMethods("DialogRssWatch.FileChoices"):
+        for pluginXbrlMethod in self.mainWin.pluginManager.pluginClassMethods("DialogRssWatch.FileChoices"):
             pluginXbrlMethod(self, frame, row, options, mainWin, openFileImage, openDatabaseImage)
             row += 1
         label(frame, 1, row, "Log file:")
@@ -133,7 +132,7 @@ class DialogRssWatch(Toplevel):
            # Note: if adding to this list keep ModelFormulaObject.FormulaOptions in sync
         )
         row += 1
-        for pluginXbrlMethod in pluginClassMethods("DialogRssWatch.ValidateChoices"):
+        for pluginXbrlMethod in self.mainWin.pluginManager.pluginClassMethods("DialogRssWatch.ValidateChoices"):
             pluginXbrlMethod(self, frame, row, options, mainWin)
             row += 1
         label(frame, 2, row, "Alert on:")

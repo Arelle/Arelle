@@ -103,7 +103,6 @@ from arelle.FileSource import openFileSource
 from arelle.Locale import format_string, setApplicationLocale
 from arelle.ModelFormulaObject import FormulaOptions
 from arelle.oim.xml.Save import saveOimReportToXmlInstance
-from arelle.PluginManager import pluginClassMethods
 from arelle.rendering import RenderingEvaluator
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateXbrlCalcs import ValidateCalcsMode as CalcsMode
@@ -184,7 +183,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             if label is None:
                 self.fileMenu.add_separator()
             elif label == "PLUG-IN":
-                for pluginMenuExtender in pluginClassMethods(command):
+                for pluginMenuExtender in self.pluginManager.pluginClassMethods(command):
                     pluginMenuExtender(self, self.fileMenu)
                     self.fileMenuLength += 1
             else:
@@ -201,13 +200,13 @@ class CntlrWinMain (Cntlr.Cntlr):
         validateMenu.add_command(label=_("Validate"), underline=0, command=self.validate)
         self.modelManager.validateDisclosureSystem = self.config.setdefault("validateDisclosureSystem",False)
         self.validateDisclosureSystem = BooleanVar(value=self.modelManager.validateDisclosureSystem)
-        self.validateDisclosureSystem.trace("w", self.setValidateDisclosureSystem)
+        self.validateDisclosureSystem.trace_add("write", self.setValidateDisclosureSystem)
         validateMenu.add_checkbutton(label=_("Disclosure system checks"), underline=0, variable=self.validateDisclosureSystem, onvalue=True, offvalue=False)
         validateMenu.add_command(label=_("Select disclosure system..."), underline=0, command=self.selectDisclosureSystem)
         calcMenu = Menu(self.menubar, tearoff=0)
         self.modelManager.validateCalcs = self.config.setdefault("validateCalcsEnum", CalcsMode.NONE)
         self.calcChoiceEnumVar = IntVar(self.parent, value=self.modelManager.validateCalcs)
-        self.calcChoiceEnumVar.trace("w", self.setCalcChoiceEnumVar)
+        self.calcChoiceEnumVar.trace_add("write", self.setCalcChoiceEnumVar)
         for calcChoiceMenuLabel, calcChoiceEnumValue in CalcsMode.menu().items():
             calcMenu.add_radiobutton(label=calcChoiceMenuLabel, underline=0, var=self.calcChoiceEnumVar, value=calcChoiceEnumValue)
         toolsMenu.add_cascade(label=_("Calc linkbase"), menu=calcMenu, underline=0)
@@ -216,35 +215,35 @@ class CntlrWinMain (Cntlr.Cntlr):
         baseValidationModeName = self.config.setdefault("baseTaxonomyValidationMode", ValidateBaseTaxonomiesMode.DISCLOSURE_SYSTEM.value)
         self.modelManager.baseTaxonomyValidationMode = ValidateBaseTaxonomiesMode.fromName(baseValidationModeName)
         self.baseTaxonomyValidationModeEnumVar = StringVar(self.parent, value=baseValidationModeName)
-        self.baseTaxonomyValidationModeEnumVar.trace("w", self.setBaseTaxonomyValidationModeEnumVar)
+        self.baseTaxonomyValidationModeEnumVar.trace_add("write", self.setBaseTaxonomyValidationModeEnumVar)
         for modeLabel, modeValue in ValidateBaseTaxonomiesMode.menu().items():
             baseValidateModeMenu.add_radiobutton(label=modeLabel, underline=0, var=self.baseTaxonomyValidationModeEnumVar, value=modeValue)
         validateMenu.add_cascade(label=_("Base taxonomy validation"), menu=baseValidateModeMenu, underline=0)
 
         self.modelManager.validateUtr = self.config.setdefault("validateUtr",True)
         self.validateUtr = BooleanVar(value=self.modelManager.validateUtr)
-        self.validateUtr.trace("w", self.setValidateUtr)
+        self.validateUtr.trace_add("write", self.setValidateUtr)
         validateMenu.add_checkbutton(label=_("Unit Type Registry validation"), underline=0, variable=self.validateUtr, onvalue=True, offvalue=False)
 
         self.modelManager.validateXmlOim = self.config.setdefault("validateXmlOim", False)
         self.validateXmlOim = BooleanVar(value=self.modelManager.validateXmlOim)
-        self.validateXmlOim.trace("w", self.setValidateXmlOim)
+        self.validateXmlOim.trace_add("write", self.setValidateXmlOim)
         validateMenu.add_checkbutton(label=_("OIM validate xBRL-XML documents"), underline=0, variable=self.validateXmlOim, onvalue=True, offvalue=False)
 
         self.modelManager.validateAllFilesAsReportPackages = self.config.setdefault("validateAllFilesAsReportPackages", False)
         self.validateAllFilesAsReportPackages = BooleanVar(value=self.modelManager.validateAllFilesAsReportPackages)
-        self.validateAllFilesAsReportPackages.trace("w", self.setValidateAllFilesAsReportPackages)
+        self.validateAllFilesAsReportPackages.trace_add("write", self.setValidateAllFilesAsReportPackages)
         validateMenu.add_checkbutton(label=_("Validate all files as Report Packages"), underline=0, variable=self.validateAllFilesAsReportPackages, onvalue=True, offvalue=False)
 
         self.modelManager.validateAllFilesAsTaxonomyPackages = self.config.setdefault("validateAllFilesAsTaxonomyPackages", False)
         self.validateAllFilesAsTaxonomyPackages = BooleanVar(value=self.modelManager.validateAllFilesAsTaxonomyPackages)
-        self.validateAllFilesAsTaxonomyPackages.trace("w", self.setValidateAllFilesAsTaxonomyPackages)
+        self.validateAllFilesAsTaxonomyPackages.trace_add("write", self.setValidateAllFilesAsTaxonomyPackages)
         validateMenu.add_checkbutton(label=_("Validate all files as Taxonomy Packages"), underline=0, variable=self.validateAllFilesAsTaxonomyPackages, onvalue=True, offvalue=False)
 
         self.validateDuplicateFacts = None
         self.buildValidateDuplicateFactsMenu(validateMenu)
 
-        for pluginMenuExtender in pluginClassMethods("CntlrWinMain.Menu.Validation"):
+        for pluginMenuExtender in self.pluginManager.pluginClassMethods("CntlrWinMain.Menu.Validation"):
             pluginMenuExtender(self, validateMenu)
 
         formulaMenu = Menu(self.menubar, tearoff=0)
@@ -267,20 +266,20 @@ class CntlrWinMain (Cntlr.Cntlr):
         toolsMenu.add_cascade(label=_("Internet"), menu=cacheMenu, underline=0)
         self.webCache.workOffline  = self.config.setdefault("workOffline",False)
         self.workOffline = BooleanVar(value=self.webCache.workOffline)
-        self.workOffline.trace("w", self.setWorkOffline)
+        self.workOffline.trace_add("write", self.setWorkOffline)
         cacheMenu.add_checkbutton(label=_("Work offline"), underline=0, variable=self.workOffline, onvalue=True, offvalue=False)
         self.webCache.noCertificateCheck = self.config.setdefault("noCertificateCheck",False) # resets proxy handler stack if true
         self.noCertificateCheck = BooleanVar(value=self.webCache.noCertificateCheck)
-        self.noCertificateCheck.trace("w", self.setNoCertificateCheck)
+        self.noCertificateCheck.trace_add("write", self.setNoCertificateCheck)
         cacheMenu.add_checkbutton(label=_("No certificate check"), underline=0, variable=self.noCertificateCheck, onvalue=True, offvalue=False)
         '''
         self.webCache.recheck  = self.config.setdefault("webRecheck",False)
         self.webRecheck = BooleanVar(value=self.webCache.webRecheck)
-        self.webRecheck.trace("w", self.setWebRecheck)
+        self.webRecheck.trace_add("write", self.setWebRecheck)
         cacheMenu.add_checkbutton(label=_("Recheck file dates weekly"), underline=0, variable=self.workOffline, onvalue=True, offvalue=False)
         self.webCache.notify  = self.config.setdefault("",False)
         self.downloadNotify = BooleanVar(value=self.webCache.retrievalNotify)
-        self.downloadNotify.trace("w", self.setRetrievalNotify)
+        self.downloadNotify.trace_add("write", self.setRetrievalNotify)
         cacheMenu.add_checkbutton(label=_("Notify file downloads"), underline=0, variable=self.workOffline, onvalue=True, offvalue=False)
         '''
 
@@ -289,7 +288,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.internetRecheckVar = StringVar(value=self.webCache.recheck)
         self._internetRecheckLabel = _("Internet recheck Interval")
         _recheck_initial = 'disable' if self.webCache.workOffline else 'normal'
-        self.internetRecheckVar.trace("w", self.setInternetRecheck)
+        self.internetRecheckVar.trace_add("write", self.setInternetRecheck)
 
         _internetRecheckEntries = ((_("daily"), "daily"), (_("weekly"), "weekly"), (_("monthly"), "monthly"), (_("never"), "never"))
 
@@ -317,24 +316,24 @@ class CntlrWinMain (Cntlr.Cntlr):
         logmsgMenu.add_command(label=_("Save to file"), underline=0, command=self.logSaveToFile)
         self.modelManager.collectProfileStats = self.config.setdefault("collectProfileStats",False)
         self.collectProfileStats = BooleanVar(value=self.modelManager.collectProfileStats)
-        self.collectProfileStats.trace("w", self.setCollectProfileStats)
+        self.collectProfileStats.trace_add("write", self.setCollectProfileStats)
         logmsgMenu.add_checkbutton(label=_("Collect profile stats"), underline=0, variable=self.collectProfileStats, onvalue=True, offvalue=False)
         logmsgMenu.add_command(label=_("Log profile stats"), underline=0, command=self.showProfileStats)
         logmsgMenu.add_command(label=_("Clear profile stats"), underline=0, command=self.clearProfileStats)
         self.showDebugMessages = BooleanVar(value=self.config.setdefault("showDebugMessages",False))
-        self.showDebugMessages.trace("w", self.setShowDebugMessages)
+        self.showDebugMessages.trace_add("write", self.setShowDebugMessages)
         logmsgMenu.add_checkbutton(label=_("Show debug messages"), underline=0, variable=self.showDebugMessages, onvalue=True, offvalue=False)
 
         toolsMenu.add_command(label=_("Language..."), underline=0, command=lambda: DialogLanguage.askLanguage(self))
 
-        for pluginMenuExtender in pluginClassMethods("CntlrWinMain.Menu.Tools"):
+        for pluginMenuExtender in self.pluginManager.pluginClassMethods("CntlrWinMain.Menu.Tools"):
             pluginMenuExtender(self, toolsMenu)
         self.menubar.add_cascade(label=_("Tools"), menu=toolsMenu, underline=0)
 
         # view menu only if any plug-in additions provided
-        if any (pluginClassMethods("CntlrWinMain.Menu.View")):
+        if any (self.pluginManager.pluginClassMethods("CntlrWinMain.Menu.View")):
             viewMenu = Menu(self.menubar, tearoff=0)
-            for pluginMenuExtender in pluginClassMethods("CntlrWinMain.Menu.View"):
+            for pluginMenuExtender in self.pluginManager.pluginClassMethods("CntlrWinMain.Menu.View"):
                 pluginMenuExtender(self, viewMenu)
             self.menubar.add_cascade(label=_("View"), menu=viewMenu, underline=0)
 
@@ -352,12 +351,12 @@ class CntlrWinMain (Cntlr.Cntlr):
             if label is None:
                 helpMenu.add_separator()
             elif label == "PLUG-IN":
-                for pluginMenuExtender in pluginClassMethods(command):
+                for pluginMenuExtender in self.pluginManager.pluginClassMethods(command):
                     pluginMenuExtender(self, helpMenu)
             else:
                 helpMenu.add_command(label=label, underline=0, command=command, accelerator=shortcut_text)
                 self.parent.bind(shortcut, command)
-        for pluginMenuExtender in pluginClassMethods("CntlrWinMain.Menu.Help"):
+        for pluginMenuExtender in self.pluginManager.pluginClassMethods("CntlrWinMain.Menu.Help"):
             pluginMenuExtender(self, helpMenu)
         self.menubar.add_cascade(label=_("Help"), menu=helpMenu, underline=0)
 
@@ -408,7 +407,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             else:
                 ToolTip(tbControl, text=toolTip)
             menubarColumn += 1
-        for toolbarExtender in pluginClassMethods("CntlrWinMain.Toolbar"):
+        for toolbarExtender in self.pluginManager.pluginClassMethods("CntlrWinMain.Toolbar"):
             toolbarExtender(self, toolbar)
         toolbar.grid(row=0, column=0, sticky=(N, W))
 
@@ -541,7 +540,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             duplicateTypeArg = ValidateDuplicateFacts.DuplicateTypeArg(defaultArg)
         self.modelManager.validateDuplicateFacts = duplicateTypeArg.duplicateType()
         self.validateDuplicateFacts = StringVar(value=duplicateTypeArg.value)
-        self.validateDuplicateFacts.trace("w", self.setValidateDuplicateFacts)
+        self.validateDuplicateFacts.trace_add("write", self.setValidateDuplicateFacts)
         duplicateFactWarningMenu = Menu(validateMenu, tearoff=0)
         for duplicateTypeArg in ValidateDuplicateFacts.DuplicateTypeArg:
             duplicateFactWarningMenu.add_checkbutton(
@@ -870,7 +869,7 @@ class CntlrWinMain (Cntlr.Cntlr):
 
     def fileOpenFile(self, filename, importToDTS=False, selectTopView=False):
         if filename:
-            for xbrlLoadedMethod in pluginClassMethods("CntlrWinMain.Xbrl.Open"):
+            for xbrlLoadedMethod in self.pluginManager.pluginClassMethods("CntlrWinMain.Xbrl.Open"):
                 filename = xbrlLoadedMethod(self, filename) # runs in GUI thread, allows mapping filename, mult return filename
             entrypointParseResult = parseEntrypointFileInput(self, filename, fallbackSelect=False)
             if not entrypointParseResult.success or entrypointParseResult.filesource is None:
@@ -879,9 +878,6 @@ class CntlrWinMain (Cntlr.Cntlr):
             entrypointFiles = entrypointParseResult.entrypointFiles
             # check for archive files
             if filesource.isArchive:
-                filenameWithoutFakeIxdsPrefix = UrlUtil.stripIxdsSurrogatePrefix(filename)
-                if all(e.get("file") == filenameWithoutFakeIxdsPrefix for e in entrypointFiles):
-                    entrypointFiles = []
                 if (
                     len(entrypointFiles) == 0 and
                     not filesource.selection and
@@ -912,7 +908,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         if url:
             url = PackageManager.mappedUrl(url)
             self.updateFileHistory(url, False)
-            for xbrlLoadedMethod in pluginClassMethods("CntlrWinMain.Xbrl.Open"):
+            for xbrlLoadedMethod in self.pluginManager.pluginClassMethods("CntlrWinMain.Xbrl.Open"):
                 url = xbrlLoadedMethod(self, url) # runs in GUI thread, allows mapping url, mult return url
             entrypointParseResult = parseEntrypointFileInput(self, url, fallbackSelect=False)
             if not entrypointParseResult.success or entrypointParseResult.filesource is None:
@@ -950,7 +946,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         loadedModels = []
         try:
             action = _("preparing entrypoints")
-            for pluginXbrlMethod in pluginClassMethods("CntlrWinMain.Filing.Start"):
+            for pluginXbrlMethod in self.pluginManager.pluginClassMethods("CntlrWinMain.Filing.Start"):
                 pluginXbrlMethod(self, filesource, entrypointFiles)
             for entrypoint in entrypointFiles:
                 entrypointFile = entrypoint.get("file", None) if isinstance(entrypoint,dict) else entrypoint
@@ -1029,7 +1025,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                             os.path.basename(modelXbrl.modelDocument.uri)))
             self.setValidateTooltipText()
             if any(extViews(self, modelXbrl)
-                   for extViews in pluginClassMethods("CntlrWinMain.Xbrl.Views")):
+                   for extViews in self.pluginManager.pluginClassMethods("CntlrWinMain.Xbrl.Views")):
                 currentAction = "ext views provided"
             elif modelXbrl.modelDocument.type in ModelDocument.Type.TESTCASETYPES:
                 currentAction = "tree view of tests"
@@ -1118,7 +1114,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                     topView.select()
                 self.currentView = topView
                 currentAction = "plugin method CntlrWinMain.Xbrl.Loaded"
-                for xbrlLoadedMethod in pluginClassMethods("CntlrWinMain.Xbrl.Loaded"):
+                for xbrlLoadedMethod in self.pluginManager.pluginClassMethods("CntlrWinMain.Xbrl.Loaded"):
                     xbrlLoadedMethod(self, modelXbrl, attach) # runs in GUI thread
         except Exception as err:
             msg = _("Exception preparing {0}: {1}, at {2}").format(
@@ -1219,7 +1215,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             if loadedModelXbrl.modelDocument:
                 startedAt = time.time()
                 if loadedModelXbrl.modelDocument.type in ModelDocument.Type.TESTCASETYPES:
-                    for pluginXbrlMethod in pluginClassMethods("Testcases.Start"):
+                    for pluginXbrlMethod in self.pluginManager.pluginClassMethods("Testcases.Start"):
                         pluginXbrlMethod(self, None, loadedModelXbrl)
                 if loadedModelXbrl.fileSource not in validatedFileSources:
                     validatedFileSources.add(loadedModelXbrl.fileSource)
