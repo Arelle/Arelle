@@ -6,9 +6,10 @@ on:
   workflow_dispatch:
 
 jobs:
-  push_to_registry:
+  push-to-registry:
     name: Push Docker images to Docker Hub
     runs-on: ubuntu-24.04
+    environment: Docker
     permissions:
       packages: write
       contents: read
@@ -21,7 +22,6 @@ jobs:
           fetch-depth: 0
 
       - name: Log in to Docker Hub
-        environment: Docker
         uses: docker/login-action@v4.0.0
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
@@ -45,7 +45,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Generate artifact attestation
-        uses: actions/attest@v4
+        uses: actions/attest@v4.1.0
         with:
           subject-name: index.docker.io/ryangeiser1/arelle
           # subject-name: index.docker.io/arelleproject/arelle
