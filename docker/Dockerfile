@@ -69,10 +69,4 @@ COPY --chmod=755 docker/scripts/healthcheck.sh /opt/healthcheck.sh
 
 WORKDIR /usr/src/app
 
-## Add user with home directory (Arelle caches to the user's home directory by default)
-## Assign app ownership and switch to new user
-RUN useradd -m arelle \
-  && chown -R arelle:arelle /usr/src/app
-USER arelle
-
 ENTRYPOINT ["/opt/entrypoint.sh"]
