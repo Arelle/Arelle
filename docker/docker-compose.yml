@@ -9,11 +9,11 @@ services:
         EDGAR_REF: ${EDGAR_REF:-}
         XULE_REF: ${XULE_REF:-}
         EXTRA_PIP: ${EXTRA_PIP:-}
-    command: /start.sh
+    command: /opt/start.sh
     ports:
       - 8080:8080
     healthcheck:
-      test: /healthcheck.sh
+      test: /opt/healthcheck.sh
       interval: 60s
       timeout: 5s
       retries: 3

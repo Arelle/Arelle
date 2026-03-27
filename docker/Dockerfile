@@ -63,9 +63,9 @@ COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 ## Copy docker scripts
-COPY --chmod=755 docker/scripts/entrypoint.sh /entrypoint.sh
-COPY --chmod=755 docker/scripts/start.sh /start.sh
-COPY --chmod=755 docker/scripts/healthcheck.sh /healthcheck.sh
+COPY --chmod=755 docker/scripts/entrypoint.sh /opt/entrypoint.sh
+COPY --chmod=755 docker/scripts/start.sh /opt/start.sh
+COPY --chmod=755 docker/scripts/healthcheck.sh /opt/healthcheck.sh
 
 WORKDIR /usr/src/app
 
@@ -75,4 +75,4 @@ RUN useradd -m arelle \
   && chown -R arelle:arelle /usr/src/app
 USER arelle
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/opt/entrypoint.sh"]

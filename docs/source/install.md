@@ -132,11 +132,11 @@ docker build --build-arg INCLUDE_EDGAR="true" --build-arg EXTRA_PIP="-r requirem
 # To run the command line
 docker run arelle-webserver python arelleCmdLine.py --help
 # To run the webserver
-docker run --name arelle-webserver -p 8080:8080 arelle-webserver /start.sh
+docker run --name arelle-webserver -p 8080:8080 arelle-webserver /opt/start.sh
 
 # With the EDGAR plugins
 docker run arelle-edgar-webserver python arelleCmdLine.py --help
-docker run --name arelle-edgar-webserver -p 8080:8080 arelle-edgar-webserver /start.sh
+docker run --name arelle-edgar-webserver -p 8080:8080 arelle-edgar-webserver /opt/start.sh
 ```
 
 [local-arelle]: http://127.0.0.1:8080
