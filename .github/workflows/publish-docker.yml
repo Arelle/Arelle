@@ -45,6 +45,8 @@ jobs:
         with:
           images: ${{ secrets.DOCKER_USERNAME }}/arelle
           tags: |
+            edgar
+            type=raw,value=latest,enable=false
             type=semver,pattern={{version}}-edgar
             type=semver,pattern={{major}}.{{minor}}.{{patch}}-edgar
             type=semver,pattern={{major}}.{{minor}}-edgar
@@ -70,12 +72,8 @@ jobs:
             INCLUDE_EDGAR=true
             EXTRA_PIP=-r requirements-plugins.txt
           push: true
-          tags: |
-            edgar
-            ${{ steps.meta-edgar.outputs.tags }}
-          labels: |
-            edgar
-            ${{ steps.meta-edgar.outputs.labels }}
+          tags: ${{ steps.meta-edgar.outputs.tags }}
+          labels: ${{ steps.meta-edgar.outputs.labels }}
 
       - name: Generate artifact attestation
         uses: actions/attest@v4.1.0
