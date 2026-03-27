@@ -41,9 +41,11 @@ jobs:
           file: docker/Dockerfile
           push: true
           tags: |
-            latest
+            ${{ secrets.DOCKER_USERNAME }}/arelle:latest
             ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          labels: |
+            ${{ secrets.DOCKER_USERNAME }}/arelle:latest
+            ${{ steps.meta.outputs.labels }}
 
       - name: Generate artifact attestation
         uses: actions/attest@v4.1.0
