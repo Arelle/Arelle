@@ -31,7 +31,9 @@ jobs:
         id: meta
         uses: docker/metadata-action@v6.0.0
         with:
-          images: ${{ secrets.DOCKER_USERNAME }}/arelle
+          images: |
+            ${{ secrets.DOCKER_USERNAME }}/arelle
+            ${{ secrets.DOCKER_USERNAME }}/arelle:latest
 
       - name: Build and push Docker images
         id: push
@@ -41,11 +43,11 @@ jobs:
           file: docker/Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/arelle:latest
             ${{ steps.meta.outputs.tags }}
-          labels: |
             ${{ secrets.DOCKER_USERNAME }}/arelle:latest
+          labels: |
             ${{ steps.meta.outputs.labels }}
+            ${{ secrets.DOCKER_USERNAME }}/arelle:latest
 
       - name: Generate artifact attestation
         uses: actions/attest@v4.1.0
