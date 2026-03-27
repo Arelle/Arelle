@@ -51,8 +51,8 @@ jobs:
           context: .
           file: docker/Dockerfile
           build-args: |
-            INCLUDE_EDGAR="true"
-            EXTRA_PIP="-r requirements-plugins.txt"
+            INCLUDE_EDGAR=true
+            EXTRA_PIP=-r requirements-plugins.txt
           push: true
           tags: |
             edgar
