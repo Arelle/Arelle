@@ -33,7 +33,6 @@ jobs:
         with:
           images: |
             ${{ secrets.DOCKER_USERNAME }}/arelle
-            ${{ secrets.DOCKER_USERNAME }}/arelle:latest
 
       - name: Build and push Docker images
         id: push
