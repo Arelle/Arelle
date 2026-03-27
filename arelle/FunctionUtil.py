@@ -10,26 +10,25 @@ from typing import Any, Sequence, TypeAlias
 from arelle import ModelValue
 from arelle.ModelObject import ModelAttribute, ModelObject
 from arelle.PythonUtil import pyTypeName
-from arelle.formula.XPathContext import ContextItem, FunctionArgType, XPathContext, XPathException
+from arelle.formula.XPathContext import ContextItem, FunctionArgType, XPathContext, XPathException, ResultStack
 from arelle.formula.XPathParser import FormulaToken
 from arelle.typing import TypeGetText
 
-missingArgFallbackType: TypeAlias = tuple[()] | str | None
-emptyFallbackType: TypeAlias = tuple[()] | str | int | None
+emptyFallbackType: TypeAlias = tuple[()] | str | int | float | None
 _: TypeGetText
 
 
 def anytypeArg(
         xc: XPathContext,
-        args: Sequence[Any],
+        args: ResultStack,
         i: int,
         type: str,
-        missingArgFallback: missingArgFallbackType = None,
+        missingArgFallback: ContextItem = None,
     ) -> Any:
     if len(args) > i:
         item = args[i]
     else:
-        item = missingArgFallback
+        item = missingArgFallback  # type: ignore[assignment]
 
     if isinstance(item, (tuple, list)):
         if len(item) > 1:
@@ -45,10 +44,10 @@ def anytypeArg(
 def atomicArg(
         xc: XPathContext,
         p: FormulaToken,
-        args: Sequence[Any],
+        args: ResultStack,
         i: int,
         type: str,
-        missingArgFallback: missingArgFallbackType = None,
+        missingArgFallback: ContextItem = None,
         emptyFallback: emptyFallbackType = (),
     ) -> Any:
     item = anytypeArg(xc, args, i, type, missingArgFallback)
@@ -60,10 +59,10 @@ def atomicArg(
 
 def stringArg(
         xc: XPathContext,
-        args: Sequence[Any],
+        args: ResultStack,
         i: int,
         type: str,
-        missingArgFallback: missingArgFallbackType = None,
+        missingArgFallback: ContextItem = None,
         emptyFallback: emptyFallbackType = "",
     ) -> Any:
     item = anytypeArg(xc, args, i, type, missingArgFallback)
@@ -79,9 +78,9 @@ def stringArg(
 def numericArg(
         xc: XPathContext,
         p: FormulaToken,
-        args: Sequence[Any],
+        args: ResultStack,
         i: int = 0,
-        missingArgFallback: missingArgFallbackType = None,
+        missingArgFallback: ContextItem = None,
         emptyFallback: emptyFallbackType = 0,
         convertFallback: str | int | float | None = None,
     ) -> Any:
@@ -104,9 +103,9 @@ def numericArg(
 def integerArg(
         xc: XPathContext,
         p: FormulaToken,
-        args: Sequence[Any],
+        args: ResultStack,
         i: int = 0,
-        missingArgFallback: missingArgFallbackType = None,
+        missingArgFallback: ContextItem = None,
         emptyFallback: emptyFallbackType = 0,
         convertFallback: int | None = None,
     ) -> emptyFallbackType:
@@ -129,10 +128,10 @@ def integerArg(
 def qnameArg(
         xc: XPathContext,
         p: FormulaToken,
-        args: Sequence[Any],
+        args: ResultStack,
         i: int,
         type: str,
-        missingArgFallback: missingArgFallbackType = None,
+        missingArgFallback: ContextItem = None,
         emptyFallback: emptyFallbackType = (),
     ) -> ModelValue.QName | emptyFallbackType:
     item = anytypeArg(xc, args, i, type, missingArgFallback)
@@ -148,12 +147,12 @@ def qnameArg(
 
 def nodeArg(
         xc: XPathContext,
-        args: Sequence[Any],
+        args: ResultStack,
         i: int,
         type: str,
-        missingArgFallback: missingArgFallbackType = None,
+        missingArgFallback: ContextItem = None,
         emptyFallback: emptyFallbackType = None,
-    ) -> ModelObject | ModelAttribute | emptyFallbackType:
+    ) -> ModelObject | ModelAttribute | emptyFallbackType | ModelValue.QName:
     item = anytypeArg(xc, args, i, type, missingArgFallback)
     if item == ():
         return emptyFallback
