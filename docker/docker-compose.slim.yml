@@ -1,0 +1,22 @@
+services:
+  slim-webserver:
+    container_name: arelle-slim-webserver
+    build:
+      context: ..
+      dockerfile: ./docker/Dockerfile
+      args:
+        INCLUDE_EDGAR: ${INCLUDE_EDGAR:-}
+        INCLUDE_IXBRL_VIEWER: ${INCLUDE_IXBRL_VIEWER:-}
+        EDGAR_REF: ${EDGAR_REF:-}
+        XULE_REF: ${XULE_REF:-}
+        IXBRL_VIEWER_REF: ${IXBRL_VIEWER_REF:-}
+        EXTRA_PIP: ${EXTRA_PIP:-}
+    command: /opt/start.sh
+    ports:
+      - 8080:8080
+    healthcheck:
+      test: /opt/healthcheck.sh
+      interval: 60s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
