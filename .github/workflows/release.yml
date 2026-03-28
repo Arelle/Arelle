@@ -119,3 +119,8 @@ jobs:
       build_name: ${{ needs.build-windows.outputs.zip_artifact_versioned_name }}
       build_alias: arelle-win.zip
     secrets: inherit
+
+  publish-docker:
+    uses: ./.github/workflows/publish-docker.yml
+    secrets: inherit
+
