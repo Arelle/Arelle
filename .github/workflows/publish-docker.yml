@@ -3,7 +3,36 @@ name: Publish Docker images
 
 on:
   workflow_call:
+    inputs:
+      arelle_ref:
+        default: 'master'
+        description: 'Arelle/Arelle branch, tag or SHA to checkout (blank for default)'
+        required: false
+        type: string
+      edgar_ref:
+        description: 'Arelle/EDGAR branch, tag or SHA to checkout (blank for default)'
+        required: false
+        type: string
+      xule_ref:
+        description: 'xbrlus/xule branch, tag or SHA to checkout (blank for default)'
+        required: false
+        type: string
+
   workflow_dispatch:
+    inputs:
+      arelle_ref:
+        default: 'master'
+        description: 'Arelle/Arelle branch, tag or SHA to checkout (blank for default)'
+        required: false
+        type: string
+      edgar_ref:
+        description: 'Arelle/EDGAR branch, tag or SHA to checkout (blank for default)'
+        required: false
+        type: string
+      xule_ref:
+        description: 'xbrlus/xule branch, tag or SHA to checkout (blank for default)'
+        required: false
+        type: string
 
 jobs:
   push-to-registry:
@@ -19,7 +48,7 @@ jobs:
       - name: Checkout Arelle
         uses: actions/checkout@v6.0.2
         with: 
-          # ref: $RESOLVED_VERSION
+          ref: ${{ inputs.arelle_ref }}
           fetch-depth: 1
 
       - name: Log in to Docker Hub
@@ -34,7 +63,6 @@ jobs:
         with:
           images: ${{ secrets.DOCKER_USERNAME }}/arelle
           tags: |
-            type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}.{{patch}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
@@ -58,6 +86,8 @@ jobs:
           file: docker/Dockerfile
           build-args: |
             INCLUDE_EDGAR=true
+            EDGAR_REF=${{ inputs.edgar_ref }}
+            XULE_REF=${{ inputs.xule_ref }}
             EXTRA_PIP=-r requirements-plugins.txt
           push: true
           tags: ${{ steps.meta-edgar.outputs.tags }}
