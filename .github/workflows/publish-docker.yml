@@ -114,6 +114,45 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}-viewer
             type=semver,pattern={{major}}-viewer
 
+      - name: Build and push slim Docker images
+        id: push-slim
+        uses: docker/build-push-action@v7.0.0
+        with:
+          context: .
+          file: docker/Dockerfile
+          push: true
+          tags: ${{ steps.meta-slim.outputs.tags }}
+          labels: ${{ steps.meta-slim.outputs.labels }}
+
+      - name: Build and push iXBRL Viewer Docker images
+        id: push-viewer
+        uses: docker/build-push-action@v7.0.0
+        with:
+          context: .
+          file: docker/Dockerfile
+          build-args: |
+            INCLUDE_IXBRL_VIEWER=true
+            IXBRL_VIEWER_REF=${{ inputs.viewer_ref }}
+            EXTRA_PIP=-r requirements-plugins.txt
+          push: true
+          tags: ${{ steps.meta-viewer.outputs.tags }}
+          labels: ${{ steps.meta-viewer.outputs.labels }}
+
+      - name: Build and push EDGAR Docker images
+        id: push-edgar
+        uses: docker/build-push-action@v7.0.0
+        with:
+          context: .
+          file: docker/Dockerfile
+          build-args: |
+            INCLUDE_EDGAR=true
+            EDGAR_REF=${{ inputs.edgar_ref }}
+            XULE_REF=${{ inputs.xule_ref }}
+            EXTRA_PIP=-r requirements-plugins.txt
+          push: true
+          tags: ${{ steps.meta-edgar.outputs.tags }}
+          labels: ${{ steps.meta-edgar.outputs.labels }}
+
       - name: Build and push Docker images
         id: push
         uses: docker/build-push-action@v7.0.0
@@ -131,45 +170,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-      - name: Build and push slim Docker images
-        id: push-slim
-        uses: docker/build-push-action@v7.0.0
-        with:
-          context: .
-          file: docker/Dockerfile
-          push: true
-          tags: ${{ steps.meta-slim.outputs.tags }}
-          labels: ${{ steps.meta-slim.outputs.labels }}
-
-      - name: Build and push EDGAR Docker images
-        id: push-edgar
-        uses: docker/build-push-action@v7.0.0
-        with:
-          context: .
-          file: docker/Dockerfile
-          build-args: |
-            INCLUDE_EDGAR=true
-            EDGAR_REF=${{ inputs.edgar_ref }}
-            XULE_REF=${{ inputs.xule_ref }}
-            EXTRA_PIP=-r requirements-plugins.txt
-          push: true
-          tags: ${{ steps.meta-edgar.outputs.tags }}
-          labels: ${{ steps.meta-edgar.outputs.labels }}
-
-      - name: Build and push iXBRL Viewer Docker images
-        id: push-viewer
-        uses: docker/build-push-action@v7.0.0
-        with:
-          context: .
-          file: docker/Dockerfile
-          build-args: |
-            INCLUDE_IXBRL_VIEWER=true
-            IXBRL_VIEWER_REF=${{ inputs.viewer_ref }}
-            EXTRA_PIP=-r requirements-plugins.txt
-          push: true
-          tags: ${{ steps.meta-viewer.outputs.tags }}
-          labels: ${{ steps.meta-viewer.outputs.labels }}
-
       - name: Generate artifact attestation
         uses: actions/attest@v4.1.0
         with:
@@ -180,21 +180,21 @@ jobs:
       - name: Generate artifact attestation slim
         uses: actions/attest@v4.1.0
         with:
-          subject-name: index.docker.io/${{ secrets.DOCKER_USERNAME }}/arelle:slim
+          subject-name: index.docker.io/${{ secrets.DOCKER_USERNAME }}/arelle
           subject-digest: ${{ steps.push-slim.outputs.digest }}
           push-to-registry: true
 
       - name: Generate artifact attestation EDGAR
         uses: actions/attest@v4.1.0
         with:
-          subject-name: index.docker.io/${{ secrets.DOCKER_USERNAME }}/arelle:edgar
+          subject-name: index.docker.io/${{ secrets.DOCKER_USERNAME }}/arelle
           subject-digest: ${{ steps.push-edgar.outputs.digest }}
           push-to-registry: true
 
       - name: Generate artifact attestation iXBRL Viewer
         uses: actions/attest@v4.1.0
         with:
-          subject-name: index.docker.io/${{ secrets.DOCKER_USERNAME }}/arelle:viewer
+          subject-name: index.docker.io/${{ secrets.DOCKER_USERNAME }}/arelle
           subject-digest: ${{ steps.push-viewer.outputs.digest }}
           push-to-registry: true
 
