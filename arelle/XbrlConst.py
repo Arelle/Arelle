@@ -4,16 +4,25 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 import os
+import warnings
 from typing import TYPE_CHECKING, cast
-from gettext import gettext as _
 
 import regex as re
 
 from arelle.ModelValue import qname
+from arelle.typing import TypeGetText
 
 if TYPE_CHECKING:
     from arelle.ModelObject import ModelObject
     from arelle.ModelValue import QName
+
+_: TypeGetText
+
+def __getattr__(name: str) -> object:
+    if name == "tuple":
+        warnings.warn("XbrlConst.tuple is now known as XbrlConst.formulaTuple (avoiding future conflicts)", DeprecationWarning, stacklevel=2)
+        return formulaTuple
+    raise AttributeError(name)
 
 
 xsd = "http://www.w3.org/2001/XMLSchema"
@@ -337,24 +346,27 @@ ver = "http://xbrl.org/2013/versioning-base"
 vercu = "http://xbrl.org/2013/versioning-concept-use"
 vercd = "http://xbrl.org/2013/versioning-concept-details"
 verdim = "http://xbrl.org/2013/versioning-dimensions"
-verPrefixNS = frozenset({
+
+verPrefixNS: dict[str, str] = {
     "ver": ver,
     "vercu": vercu,
     "vercd": vercd,
     "verrels": verrels,
     "verdim": verdim,
-})
+}
 
 # extended enumeration spec
 enum2s = frozenset({
     "http://xbrl.org/2020/extensible-enumerations-2.0",
     "http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0",
 })
-enums = frozenset({
+enum_1x = frozenset({
     "http://xbrl.org/2014/extensible-enumerations",
-    "http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1",
+    "http://www.xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1",
     "http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1",
-} | enum2s)
+})
+enums = enum_1x | enum2s
+
 qnEnumerationItemType2014 = qname("{http://xbrl.org/2014/extensible-enumerations}enum:enumerationItemType")
 qnEnumerationItemType2020 = qname("{http://xbrl.org/2020/extensible-enumerations-2.0}enum2:enumerationItemType")
 qnEnumerationItemTypeYYYY = qname(
@@ -908,16 +920,19 @@ dimensionsSpecArcroles = frozenset({
     domainMember,
     dimensionDefault,
 })
+standardDimensionArcroles = dimensionsSpecArcroles
 
-
-standardDefinitionArcroles = frozenset({
+baseSpecDefinitionArcroles =  frozenset({
     essenceAlias,
     generalSpecial,
     requiresElement,
     similarTuples,
 })
 
-standardArcroles = standardDefinitionArcroles | {
+standardDefinitionArcroles = baseSpecDefinitionArcroles | dimensionsSpecArcroles
+
+
+standardArcroles = baseSpecDefinitionArcroles | {
         "http://www.w3.org/1999/xlink/properties/linkbase",
         "http://www.xbrl.org/2003/arcrole/concept-label",
         "http://www.xbrl.org/2003/arcrole/concept-reference",
@@ -959,12 +974,7 @@ def standardArcroleArcElement(arcrole: str) -> str:
 
 
 def isDefinitionOrXdtArcrole(arcrole: str) -> bool:
-    return isDimensionArcrole(arcrole) or arcrole in {
-        "http://www.xbrl.org/2003/arcrole/general-special",
-        "http://www.xbrl.org/2003/arcrole/essence-alias",
-        "http://www.xbrl.org/2003/arcrole/similar-tuples",
-        "http://www.xbrl.org/2003/arcrole/requires-element",
-    }
+    return arcrole in standardDefinitionArcroles
 
 
 def isStandardResourceOrExtLinkElement(element: ModelObject) -> bool:
