@@ -18,10 +18,15 @@ if TYPE_CHECKING:
 
 _: TypeGetText
 
+# Defined early but see end of file for entries.
+_DEPRECATED: dict[str, tuple[object, str]] = {}
+
+
 def __getattr__(name: str) -> object:
-    if name == "tuple":
-        warnings.warn("XbrlConst.tuple is now known as XbrlConst.formulaTuple (avoiding future conflicts)", DeprecationWarning, stacklevel=2)
-        return formulaTuple
+    if name in _DEPRECATED:
+        value, message = _DEPRECATED[name]
+        warnings.warn(message, DeprecationWarning, stacklevel=2)
+        return value
     raise AttributeError(name)
 
 
@@ -1190,3 +1195,21 @@ lrrUnapprovedArcroles = {  # lrr entries which are not REC or ACK status
     # only for test case use
     "http://www.xbrl.org/2005/arcrole/nieRole": "NIE",
 }
+
+_DEPRECATED.update({
+    "tuple":
+        (
+            formulaTuple,
+            "XbrlConst.tuple is deprecated, use XbrlConst.formulaTuple instead."
+        ),
+    "dimStartsWith":
+        (
+            "http://xbrl.org/int/dim",
+            "XbrlConst.dimStartsWith is deprecated, use XbrlConst.isDimensionArcrole() instead."
+        ),
+    "dtrTypesStartsWith":
+        (
+            _dtrTypesStartsWith,
+            "XbrlConst.dtrTypesStartsWith is deprecated, use XbrlConst.isDtrTypeNamespace() instead."
+        )
+})
