@@ -59,7 +59,8 @@ class PackageManager:
         self.packagesMappings: dict[str, str] = {}
         self._cntlr: Cntlr | None = None
 
-    def baseForElement(self, element: etree._Element) -> str:
+    @staticmethod
+    def baseForElement(element: etree._Element) -> str:
         base = ""
         baseElt: etree._Element | None = element
         while baseElt is not None:
@@ -68,23 +69,24 @@ class PackageManager:
             baseElt = baseElt.getparent()
         return base
 
-    def xmlLang(self, element: etree._Element) -> str:
+    @staticmethod
+    def xmlLang(element: etree._Element) -> str:
         return (
             cast(list[str], element.xpath('@xml:lang')) +
             cast(list[str], element.xpath('ancestor::*/@xml:lang')) +
             ['']
         )[0]
 
-    def langCloseness(self, l1: str, l2: str) -> int:
+    @staticmethod
+    def langCloseness(l1: str, l2: str) -> int:
         _len = min(len(l1), len(l2))
         for i in range(0, _len):
             if l1[i] != l2[i]:
                 return i
         return _len
 
-
+    @staticmethod
     def _parseFile(
-        self,
         cntlr: Cntlr,
         parser: etree.XMLParser,
         filepath: str,
@@ -110,9 +112,8 @@ class PackageManager:
             )
         return tree
 
-
+    @staticmethod
     def parsePackage(
-        self,
         cntlr: Cntlr,
         filesource: FileSource,
         metadataFile: str,
@@ -123,13 +124,12 @@ class PackageManager:
             errors = []
         parser = lxmlResolvingParser(cntlr)
         catalogFile = metadataFile.replace('taxonomyPackage.xml','catalog.xml')
-        remappings = self._parseCatalog(cntlr, filesource, parser, catalogFile, fileBase, errors)
-        pkg = self._parsePackageMetadata(cntlr, filesource, parser, metadataFile, remappings, errors)
+        remappings = PackageManager._parseCatalog(cntlr, filesource, parser, catalogFile, fileBase, errors)
+        pkg = PackageManager._parsePackageMetadata(cntlr, filesource, parser, metadataFile, remappings, errors)
         return pkg
 
-
+    @staticmethod
     def _parsePackageMetadata(
-        self,
         cntlr: Cntlr,
         filesource: FileSource,
         parser: etree.XMLParser,
@@ -154,7 +154,7 @@ class PackageManager:
         parser = lxmlResolvingParser(cntlr)
         try:
             metadataFileContent = filesource.file(metadataFile)[0] # URL in zip, plain file in file system or web
-            tree = self._parseFile(cntlr, parser, metadataFile, metadataFileContent, TP_XSD)
+            tree = PackageManager._parseFile(cntlr, parser, metadataFile, metadataFileContent, TP_XSD)
         except (etree.XMLSyntaxError, etree.DocumentInvalid, etree.XMLSchemaError) as err:
             cntlr.error(
                 codes="tpe:invalidMetaDataFile",
@@ -185,8 +185,8 @@ class PackageManager:
                 closestLen = -1
                 for m in root.iterchildren(tag=nsPrefix + eltName):
                     s = (m.text or "").strip()
-                    eltLang = self.xmlLang(m)
-                    l = self.langCloseness(eltLang, currentLang)
+                    eltLang = PackageManager.xmlLang(m)
+                    l = PackageManager.langCloseness(eltLang, currentLang)
                     if l > closestLen:
                         closestLen = l
                         closest = s
@@ -214,7 +214,7 @@ class PackageManager:
                 for eltName in ("name", "description", "publisher"):
                     langElts.clear()
                     for m in n.iterchildren(tag=nsPrefix + eltName):
-                        langElts[self.xmlLang(m)].append(m)
+                        langElts[PackageManager.xmlLang(m)].append(m)
                     for lang, elts in langElts.items():
                         if not lang:
                             cntlr.error(
@@ -257,8 +257,8 @@ class PackageManager:
             # find closest match name node given xml:lang match to current language or no xml:lang
             for nameNode in entryPointSpec.iter(tag=nsPrefix + "name"):
                 s = (nameNode.text or "").strip()
-                nameLang = self.xmlLang(nameNode)
-                l = self.langCloseness(nameLang, currentLang)
+                nameLang = PackageManager.xmlLang(nameNode)
+                l = PackageManager.langCloseness(nameLang, currentLang)
                 if l > closestLen:
                     closestLen = l
                     name = s
@@ -297,8 +297,8 @@ class PackageManager:
                 closestLen = -1
                 for m in entryPointSpec.iterchildren(tag=nsPrefix + "description"):
                     s = (m.text or "").strip()
-                    eltLang = self.xmlLang(m)
-                    l = self.langCloseness(eltLang, currentLang)
+                    eltLang = PackageManager.xmlLang(m)
+                    l = PackageManager.langCloseness(eltLang, currentLang)
                     if l > closestLen:
                         closestLen = l
                         closest = s
@@ -310,9 +310,8 @@ class PackageManager:
 
         return pkg
 
-
+    @staticmethod
     def _parseCatalog(
-        self,
         cntlr: Cntlr,
         filesource: FileSource,
         parser: etree.XMLParser,
@@ -325,7 +324,7 @@ class PackageManager:
         rewriteTree = None
         try:
             _file = filesource.file(catalogFile)[0]
-            rewriteTree = self._parseFile(cntlr, parser, catalogFile, _file, CAT_XSD)
+            rewriteTree = PackageManager._parseFile(cntlr, parser, catalogFile, _file, CAT_XSD)
         except (etree.XMLSyntaxError, etree.DocumentInvalid) as err:
             cntlr.error(
                 codes="tpe:invalidCatalogFile",
@@ -346,7 +345,7 @@ class PackageManager:
                     replaceValue = m.get(replaceAttr)
                     if prefixValue and replaceValue is not None:
                         if prefixValue not in remappings:
-                            base = self.baseForElement(m)
+                            base = PackageManager.baseForElement(m)
                             if base:
                                 replaceValue = os.path.join(base, replaceValue)
                             if replaceValue and not isAbsolute(replaceValue):
@@ -485,8 +484,8 @@ class PackageManager:
                 pass
         return names
 
+    @staticmethod
     def validateTaxonomyPackage(
-        self,
         cntlr: Cntlr,
         filesource: FileSource,
         errors: list[str] | None = None,
@@ -533,8 +532,8 @@ class PackageManager:
             errors.append(messageCode)
         return len(errors) == numErrorsOnEntry
 
-
-    def discoverPackageFiles(self, filesource: FileSource) -> list[str]:
+    @staticmethod
+    def discoverPackageFiles(filesource: FileSource) -> list[str]:
         return [e for e in filesource.dir or [] if e.endswith("/META-INF/taxonomyPackage.xml")]
 
 
@@ -571,8 +570,8 @@ class PackageManager:
                 packages: list[list[str]] = []
                 parsedPackage: dict[str, Any] | None = None
                 if filesource.isZip:
-                    self.validateTaxonomyPackage(cntlr, filesource, errors)
-                    packageFiles = self.discoverPackageFiles(filesource)
+                    PackageManager.validateTaxonomyPackage(cntlr, filesource, errors)
+                    packageFiles = PackageManager.discoverPackageFiles(filesource)
                     if not packageFiles:
                         # look for pre-PWD packages
                         _dir = filesource.dir or []
@@ -630,7 +629,7 @@ class PackageManager:
                 packageNames: list[str] = []
                 descriptions: list[str] = []
                 for packageFileUrl, packageFilePrefix, packageFile in packages:
-                    parsedPackage = self.parsePackage(
+                    parsedPackage = PackageManager.parsePackage(
                         self._getCntlr(), filesource, packageFileUrl, packageFilePrefix, errors
                     )
                     if parsedPackage:
