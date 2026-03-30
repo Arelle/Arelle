@@ -46,8 +46,14 @@ class PluginManager:
 
     def __init__(self) -> None:
         self.pluginConfig: dict[str, Any] = {}
+        self._isInitialized = False
+
+    @property
+    def isInitialized(self) -> bool:
+        return self._isInitialized
 
     def init(self, cntlr: Cntlr, loadPluginConfig: bool = True) -> None:
+        self._isInitialized = True
         self.pluginJsonFile: str | None = None
         self._cntlr: Cntlr = cntlr
         self.pluginConfigChanged = False

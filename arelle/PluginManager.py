@@ -43,7 +43,7 @@ _SINGLETON_ATTRS = frozenset({
 
 
 def __getattr__(name: str) -> Any:
-    if name in _SINGLETON_ATTRS and _singleton is not None:
+    if name in _SINGLETON_ATTRS and _singleton.isInitialized:
         return getattr(_singleton, name)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
@@ -53,39 +53,37 @@ def init(cntlr: Cntlr, loadPluginConfig: bool = True) -> None:
 
 
 def reset() -> None:
-    if _singleton is not None:
-        _singleton.reset()
+    _singleton.reset()
 
 
 def orderedPluginConfig() -> dict[str, Any]:
-    assert _singleton is not None
+    assert _singleton.isInitialized
     return _singleton.orderedPluginConfig()
 
 
 def save(cntlr: Cntlr) -> None:
-    assert _singleton is not None
+    assert _singleton.isInitialized
     _singleton.save(cntlr)
 
 
 def close() -> None:
-    if _singleton is not None:
-        _singleton.close()
+    _singleton.close()
 
 
 def logPluginTrace(message: str, level: int) -> None:
-    if _singleton is None:
+    if not _singleton.isInitialized:
         logging.log(level, message)
         return
     _singleton.logPluginTrace(message, level)
 
 
 def modulesWithNewerFileDates() -> set[str]:
-    assert _singleton is not None
+    assert _singleton.isInitialized
     return _singleton.modulesWithNewerFileDates()
 
 
 def freshenModuleInfos() -> None:
-    assert _singleton is not None
+    assert _singleton.isInitialized
     _singleton.freshenModuleInfos()
 
 
@@ -94,12 +92,12 @@ def normalizeModuleFilename(moduleFilename: str) -> str | None:
 
 
 def getModuleFilename(moduleURL: str, reload: bool, normalize: bool, base: str | None) -> tuple[str | None, EntryPoint | None]:
-    assert _singleton is not None
+    assert _singleton.isInitialized
     return _singleton.getModuleFilename(moduleURL, reload, normalize, base)
 
 
 def parsePluginInfo(moduleURL: str, moduleFilename: str, entryPoint: EntryPoint | None) -> dict[str, Any] | None:
-    assert _singleton is not None
+    assert _singleton.isInitialized
     return _singleton.parsePluginInfo(moduleURL, moduleFilename, entryPoint)
 
 
@@ -108,7 +106,7 @@ def moduleModuleInfo(
         entryPoint: EntryPoint | None = None,
         reload: bool = False,
         parentImportsSubtree: bool = False) -> dict[str, Any] | None:
-    assert _singleton is not None
+    assert _singleton.isInitialized
     return _singleton.moduleModuleInfo(moduleURL=moduleURL, entryPoint=entryPoint, reload=reload, parentImportsSubtree=parentImportsSubtree)
 
 
@@ -117,38 +115,38 @@ def moduleInfo(pluginInfo: Any) -> None:
 
 
 def pluginClassMethods(className: str) -> Iterator[Callable[..., Any]]:
-    assert _singleton is not None
+    assert _singleton.isInitialized
     yield from _singleton.pluginClassMethods(className)
 
 
 def hasPluginWithHook(name: str) -> bool:
-    if _singleton is not None:
+    if _singleton.isInitialized:
         return _singleton.hasPluginWithHook(name)
     return False
 
 
 def addPluginModule(name: str) -> dict[str, Any] | None:
-    assert _singleton is not None
+    assert _singleton.isInitialized
     return _singleton.addPluginModule(name)
 
 
 def reloadPluginModule(name: str) -> bool:
-    assert _singleton is not None
+    assert _singleton.isInitialized
     return _singleton.reloadPluginModule(name)
 
 
 def removePluginModule(name: str) -> bool:
-    assert _singleton is not None
+    assert _singleton.isInitialized
     return _singleton.removePluginModule(name)
 
 
 def addPluginModuleInfo(plugin_module_info: dict[str, Any] | None) -> dict[str, Any] | None:
-    assert _singleton is not None
+    assert _singleton.isInitialized
     return _singleton.addPluginModuleInfo(plugin_module_info)
 
 
 def loadModule(moduleInfo: dict[str, Any], packagePrefix: str = "") -> None:
-    assert _singleton is not None
+    assert _singleton.isInitialized
     _singleton.loadModule(moduleInfo, packagePrefix)
 
 
