@@ -121,6 +121,8 @@ jobs:
     secrets: inherit
 
   publish-docker:
+    needs: 
+      - tests
     permissions:
       packages: write
       contents: read

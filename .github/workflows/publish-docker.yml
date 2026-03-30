@@ -4,40 +4,56 @@ name: Publish Docker images
 on:
   workflow_call:
     inputs:
+      python_version:
+        default: '3.14.2'
+        description: 'Python version to use'
+        required: true
+        type: string
       arelle_ref:
         default: 'master'
         description: 'Arelle/Arelle branch, tag or SHA to checkout (blank for default)'
         required: false
         type: string
       edgar_ref:
+        default: ''
         description: 'Arelle/EDGAR branch, tag or SHA to checkout (blank for default)'
         required: false
         type: string
       xule_ref:
+        default: ''
         description: 'xbrlus/xule branch, tag or SHA to checkout (blank for default)'
         required: false
         type: string
       viewer_ref:
+        default: ''
         description: 'Arelle/ixbrl-viewer branch, tag or SHA to checkout (blank for default)'
         required: false
         type: string
 
   workflow_dispatch:
     inputs:
+      python_version:
+        default: '3.14.2'
+        description: 'Python version to use'
+        required: true
+        type: string
       arelle_ref:
         default: 'master'
         description: 'Arelle/Arelle branch, tag or SHA to checkout (blank for default)'
         required: false
         type: string
       edgar_ref:
+        default: ''
         description: 'Arelle/EDGAR branch, tag or SHA to checkout (blank for default)'
         required: false
         type: string
       xule_ref:
+        default: ''
         description: 'xbrlus/xule branch, tag or SHA to checkout (blank for default)'
         required: false
         type: string
       viewer_ref:
+        default: ''
         description: 'Arelle/ixbrl-viewer branch, tag or SHA to checkout (blank for default)'
         required: false
         type: string
@@ -120,6 +136,8 @@ jobs:
         with:
           context: .
           file: docker/Dockerfile
+          build-args: |
+            PYTHON_VERSION=${{ inputs.python_version }}
           push: true
           tags: ${{ steps.meta-slim.outputs.tags }}
           labels: ${{ steps.meta-slim.outputs.labels }}
@@ -131,6 +149,7 @@ jobs:
           context: .
           file: docker/Dockerfile
           build-args: |
+            PYTHON_VERSION=${{ inputs.python_version }}
             INCLUDE_IXBRL_VIEWER=true
             IXBRL_VIEWER_REF=${{ inputs.viewer_ref }}
             EXTRA_PIP=-r requirements-plugins.txt
@@ -145,6 +164,7 @@ jobs:
           context: .
           file: docker/Dockerfile
           build-args: |
+            PYTHON_VERSION=${{ inputs.python_version }}
             INCLUDE_EDGAR=true
             EDGAR_REF=${{ inputs.edgar_ref }}
             XULE_REF=${{ inputs.xule_ref }}
@@ -160,6 +180,7 @@ jobs:
           context: .
           file: docker/Dockerfile
           build-args: |
+            PYTHON_VERSION=${{ inputs.python_version }}
             INCLUDE_EDGAR=true
             INCLUDE_IXBRL_VIEWER=true
             EDGAR_REF=${{ inputs.edgar_ref }}

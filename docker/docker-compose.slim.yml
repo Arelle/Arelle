@@ -5,6 +5,7 @@ services:
       context: ..
       dockerfile: ./docker/Dockerfile
       args:
+        PYTHON_VERSION: ${PYTHON_VERSION:-}
         INCLUDE_EDGAR: ${INCLUDE_EDGAR:-}
         INCLUDE_IXBRL_VIEWER: ${INCLUDE_IXBRL_VIEWER:-}
         EDGAR_REF: ${EDGAR_REF:-}

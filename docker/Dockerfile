@@ -1,5 +1,6 @@
 ## --------------------- Build Stage ---------------------
-FROM python:3.14.3 AS builder
+ARG PYTHON_VERSION=""
+FROM python:${PYTHON_VERSION} AS builder
 
 WORKDIR /usr/src/app
 
@@ -64,7 +65,7 @@ RUN if ([ -n "$INCLUDE_IXBRL_VIEWER" ] || [ -n "$IXBRL_VIEWER_REF" ]) && [ ! -d 
     fi
 
 ## ------------------- Production Stage -------------------
-FROM python:3.14.3-slim AS production
+FROM python:${PYTHON_VERSION} AS production
 
 ## Prevent python from buffering stdout & stderr
 ENV PYTHONUNBUFFERED=1
