@@ -60,7 +60,9 @@ validation.
 from __future__ import annotations
 from collections import defaultdict
 import decimal
-import os, sys
+import os
+import sys
+from typing import TYPE_CHECKING
 from arelle import (
     Locale,
     ModelValue,
@@ -73,6 +75,8 @@ from arelle.LinkRelationships import LinkRelationships
 from arelle.ModelObject import ModelObject
 from arelle.typing import ModelFactBase, ModelResourceBase
 
+if TYPE_CHECKING:
+    from arelle.ModelValue import QName
 
 class ModelRoleType(ModelObject):
     """
@@ -448,9 +452,9 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
                 self._baseXbrliTypeQname = self.type.baseXbrliTypeQname if self.type is not None else None
             return self._baseXbrliTypeQname
 
-    def instanceOfType(self, typeqname) -> bool:
-        """(bool) -- True if element is declared by, or derived from type of given qname or list of qnames"""
-        if isinstance(typeqname, (tuple,list,set)): # union
+    def instanceOfType(self, typeqname: QName | frozenset[QName] | set[QName] | list[QName] | tuple[QName, ...]) -> bool:
+        """(bool) -- True if element is declared by, or derived from type of given qname or collection of qnames"""
+        if isinstance(typeqname, (frozenset, set, tuple, list)): # union
             if self.typeQname in typeqname:
                 return True
         else: # not union, single type
