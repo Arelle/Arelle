@@ -14,7 +14,7 @@ class TestPluginImports:
 
         assert arelleModules, "Test failed to discover Arelle modules."
 
-        absolutePluginImport = re.compile(r"(?<!['\"])arelle\.plugin(?!['\"])")
+        absolutePluginImport = re.compile(r"(?<!['\"])arelle\.plugin(?!\w|['\"])")
 
         modulesImportingPluginsFromRoot = []
         for mod in arelleModules:

@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 import regex
 
-from arelle import Locale, ModelManager, PackageManager, PluginManager, XbrlConst
+from arelle import Locale, ModelManager, PackageManager, XbrlConst
 from arelle.BetaFeatures import BETA_FEATURES_AND_DESCRIPTIONS
 from arelle.ErrorManager import ErrorManager
 from arelle.FileSource import FileSource
@@ -33,6 +33,7 @@ from arelle.logging.handlers.LogToPrintHandler import LogToPrintHandler
 from arelle.logging.handlers.LogToXmlHandler import LogToXmlHandler
 from arelle.logging.handlers.StructuredMessageLogHandler import StructuredMessageLogHandler
 from arelle.SystemInfo import PlatformOS, getSystemWordSize, hasFileSystem, hasWebServer, isCGI, isGAE
+from arelle.plugin_system._plugin_manager import PluginManager
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
 from arelle.utils.validate.Validation import Validation
@@ -147,7 +148,7 @@ class Cntlr:
     config: dict[str, Any] | None
     configJsonFile: str
     webCache: WebCache
-    pluginManager: PluginManager.PluginManager
+    pluginManager: PluginManager
     modelManager: ModelManager.ModelManager
     logger: logging.Logger | None
     logHandler: logging.Handler
@@ -289,8 +290,9 @@ class Cntlr:
         self.webCache = WebCache(self, self.config.get("proxySettings"))
 
         # start plug in server (requres web cache initialized, but not logger)
-        PluginManager.init(self, loadPluginConfig=hasGui)
-        self.pluginManager = PluginManager.getInstance()  # type: ignore[assignment]
+        from arelle.PluginManager import getInstance as _getPluginManagerInstance
+        self.pluginManager = _getPluginManagerInstance()
+        self.pluginManager.init(self, loadPluginConfig=hasGui)
 
         # requires plug ins initialized
         self.modelManager = ModelManager.initialize(self)
