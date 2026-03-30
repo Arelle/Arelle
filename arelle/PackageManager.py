@@ -61,7 +61,7 @@ _cntlr: Cntlr | None = None
 
 class PackageManager:
 
-    def baseForElement(element: etree._Element) -> str:
+    def baseForElement(self, element: etree._Element) -> str:
         base = ""
         baseElt: etree._Element | None = element
         while baseElt is not None:
@@ -70,14 +70,14 @@ class PackageManager:
             baseElt = baseElt.getparent()
         return base
 
-    def xmlLang(element: etree._Element) -> str:
+    def xmlLang(self, element: etree._Element) -> str:
         return (
             cast(list[str], element.xpath('@xml:lang')) +
             cast(list[str], element.xpath('ancestor::*/@xml:lang')) +
             ['']
         )[0]
 
-    def langCloseness(l1: str, l2: str) -> int:
+    def langCloseness(self, l1: str, l2: str) -> int:
         _len = min(len(l1), len(l2))
         for i in range(0, _len):
             if l1[i] != l2[i]:
@@ -86,6 +86,7 @@ class PackageManager:
 
 
     def _parseFile(
+        self,
         cntlr: Cntlr,
         parser: etree.XMLParser,
         filepath: str,
@@ -113,6 +114,7 @@ class PackageManager:
 
 
     def parsePackage(
+        self,
         cntlr: Cntlr,
         filesource: FileSource,
         metadataFile: str,
@@ -123,12 +125,13 @@ class PackageManager:
             errors = []
         parser = lxmlResolvingParser(cntlr)
         catalogFile = metadataFile.replace('taxonomyPackage.xml','catalog.xml')
-        remappings = _parseCatalog(cntlr, filesource, parser, catalogFile, fileBase, errors)
-        pkg = _parsePackageMetadata(cntlr, filesource, parser, metadataFile, remappings, errors)
+        remappings = self._parseCatalog(cntlr, filesource, parser, catalogFile, fileBase, errors)
+        pkg = self._parsePackageMetadata(cntlr, filesource, parser, metadataFile, remappings, errors)
         return pkg
 
 
     def _parsePackageMetadata(
+        self,
         cntlr: Cntlr,
         filesource: FileSource,
         parser: etree.XMLParser,
@@ -153,7 +156,7 @@ class PackageManager:
         parser = lxmlResolvingParser(cntlr)
         try:
             metadataFileContent = filesource.file(metadataFile)[0] # URL in zip, plain file in file system or web
-            tree = _parseFile(cntlr, parser, metadataFile, metadataFileContent, TP_XSD)
+            tree = self._parseFile(cntlr, parser, metadataFile, metadataFileContent, TP_XSD)
         except (etree.XMLSyntaxError, etree.DocumentInvalid, etree.XMLSchemaError) as err:
             cntlr.error(
                 codes="tpe:invalidMetaDataFile",
@@ -184,8 +187,8 @@ class PackageManager:
                 closestLen = -1
                 for m in root.iterchildren(tag=nsPrefix + eltName):
                     s = (m.text or "").strip()
-                    eltLang = xmlLang(m)
-                    l = langCloseness(eltLang, currentLang)
+                    eltLang = self.xmlLang(m)
+                    l = self.langCloseness(eltLang, currentLang)
                     if l > closestLen:
                         closestLen = l
                         closest = s
@@ -213,7 +216,7 @@ class PackageManager:
                 for eltName in ("name", "description", "publisher"):
                     langElts.clear()
                     for m in n.iterchildren(tag=nsPrefix + eltName):
-                        langElts[xmlLang(m)].append(m)
+                        langElts[self.xmlLang(m)].append(m)
                     for lang, elts in langElts.items():
                         if not lang:
                             cntlr.error(
@@ -256,8 +259,8 @@ class PackageManager:
             # find closest match name node given xml:lang match to current language or no xml:lang
             for nameNode in entryPointSpec.iter(tag=nsPrefix + "name"):
                 s = (nameNode.text or "").strip()
-                nameLang = xmlLang(nameNode)
-                l = langCloseness(nameLang, currentLang)
+                nameLang = self.xmlLang(nameNode)
+                l = self.langCloseness(nameLang, currentLang)
                 if l > closestLen:
                     closestLen = l
                     name = s
@@ -296,8 +299,8 @@ class PackageManager:
                 closestLen = -1
                 for m in entryPointSpec.iterchildren(tag=nsPrefix + "description"):
                     s = (m.text or "").strip()
-                    eltLang = xmlLang(m)
-                    l = langCloseness(eltLang, currentLang)
+                    eltLang = self.xmlLang(m)
+                    l = self.langCloseness(eltLang, currentLang)
                     if l > closestLen:
                         closestLen = l
                         closest = s
@@ -311,6 +314,7 @@ class PackageManager:
 
 
     def _parseCatalog(
+        self,
         cntlr: Cntlr,
         filesource: FileSource,
         parser: etree.XMLParser,
@@ -323,7 +327,7 @@ class PackageManager:
         rewriteTree = None
         try:
             _file = filesource.file(catalogFile)[0]
-            rewriteTree = _parseFile(cntlr, parser, catalogFile, _file, CAT_XSD)
+            rewriteTree = self._parseFile(cntlr, parser, catalogFile, _file, CAT_XSD)
         except (etree.XMLSyntaxError, etree.DocumentInvalid) as err:
             cntlr.error(
                 codes="tpe:invalidCatalogFile",
@@ -344,7 +348,7 @@ class PackageManager:
                     replaceValue = m.get(replaceAttr)
                     if prefixValue and replaceValue is not None:
                         if prefixValue not in remappings:
-                            base = baseForElement(m)
+                            base = self.baseForElement(m)
                             if base:
                                 replaceValue = os.path.join(base, replaceValue)
                             if replaceValue and not isAbsolute(replaceValue):
@@ -370,17 +374,17 @@ class PackageManager:
         return remappings
 
 
-    def _getPackagesConfig() -> dict[str, Any]:
+    def _getPackagesConfig(self) -> dict[str, Any]:
         assert packagesConfig is not None, "PackageManager.init() must be called before use"
         return packagesConfig
 
 
-    def _getCntlr() -> Cntlr:
+    def _getCntlr(self) -> Cntlr:
         assert _cntlr is not None, "PackageManager.init() must be called before use"
         return _cntlr
 
 
-    def init(cntlr: Cntlr, loadPackagesConfig: bool = True) -> None:
+    def init(self, cntlr: Cntlr, loadPackagesConfig: bool = True) -> None:
         global packagesJsonFile, packagesConfig, _cntlr
         if loadPackagesConfig:
             try:
@@ -399,14 +403,14 @@ class PackageManager:
         pluginMethodsForClasses: dict[str, Any] = {} # dict by class of list of ordered callable function objects
         _cntlr = cntlr
 
-    def reset() -> None:  # force reloading modules and plugin infos
+    def reset(self) -> None:  # force reloading modules and plugin infos
         if packagesConfig:
             packagesConfig.clear()  # dict of loaded module pluginInfo objects by module names
         if packagesMappings:
             packagesMappings.clear() # dict by class of list of ordered callable function objects
 
-    def orderedPackagesConfig() -> dict[str, Any]:
-        _cfg = _getPackagesConfig()
+    def orderedPackagesConfig(self) -> dict[str, Any]:
+        _cfg = self._getPackagesConfig()
         _field_order = {
             'name': '01',
             'status': '02',
@@ -440,17 +444,17 @@ class PackageManager:
             )
         )
 
-    def save(cntlr: Cntlr) -> None:
+    def save(self, cntlr: Cntlr) -> None:
         global packagesConfigChanged
         if packagesConfigChanged and cntlr.hasFileSystem:
             assert packagesJsonFile is not None
             with open(packagesJsonFile, "w", encoding='utf-8') as f:
-                jsonStr = str(json.dumps(orderedPackagesConfig(), ensure_ascii=False, indent=2)) # might not be unicode in 2.7
+                jsonStr = str(json.dumps(self.orderedPackagesConfig(), ensure_ascii=False, indent=2)) # might not be unicode in 2.7
                 f.write(jsonStr)
             packagesConfigChanged = False
 
-    def close() -> None:  # close all loaded methods
-        _getPackagesConfig().clear()
+    def close(self) -> None:  # close all loaded methods
+        self._getPackagesConfig().clear()
         packagesMappings.clear()
 
     ''' packagesConfig structure
@@ -473,10 +477,10 @@ class PackageManager:
     
     '''
 
-    def packageNamesWithNewerFileDates() -> set[str]:
+    def packageNamesWithNewerFileDates(self) -> set[str]:
         names = set()
-        for package in _getPackagesConfig()["packages"]:
-            freshenedFilename = _getCntlr().webCache.getfilename(package["URL"], checkModifiedTime=True, normalize=True)
+        for package in self._getPackagesConfig()["packages"]:
+            freshenedFilename = self._getCntlr().webCache.getfilename(package["URL"], checkModifiedTime=True, normalize=True)
             try:
                 assert freshenedFilename is not None
                 if package["fileDate"] < time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(os.path.getmtime(freshenedFilename))):
@@ -486,6 +490,7 @@ class PackageManager:
         return names
 
     def validateTaxonomyPackage(
+        self,
         cntlr: Cntlr,
         filesource: FileSource,
         errors: list[str] | None = None,
@@ -533,11 +538,12 @@ class PackageManager:
         return len(errors) == numErrorsOnEntry
 
 
-    def discoverPackageFiles(filesource: FileSource) -> list[str]:
+    def discoverPackageFiles(self, filesource: FileSource) -> list[str]:
         return [e for e in filesource.dir or [] if e.endswith("/META-INF/taxonomyPackage.xml")]
 
 
     def packageInfo(
+        self,
         cntlr: Cntlr,
         URL: str,
         reload: bool = False,
@@ -547,7 +553,7 @@ class PackageManager:
         if errors is None:
             errors = []
         #TODO several directories, eg User Application Data
-        packageFilename = _getCntlr().webCache.getfilename(URL, reload=reload, normalize=True)
+        packageFilename = self._getCntlr().webCache.getfilename(URL, reload=reload, normalize=True)
         if packageFilename:
             from arelle.FileSource import TAXONOMY_PACKAGE_FILE_NAMES, archiveFilenameParts, openFileSource
             filesource: FileSource | None = None
@@ -556,21 +562,21 @@ class PackageManager:
                 fileDateTuple: time.struct_time | tuple[int, ...]
                 sourceFileSource: FileSource | None = None
                 if parts is not None:
-                    sourceFileSource = openFileSource(parts[0], _getCntlr())
+                    sourceFileSource = openFileSource(parts[0], self._getCntlr())
                     sourceFileSource.open()
                     assert isinstance(sourceFileSource.fs, zipfile.ZipFile)
                     fileDateTuple = sourceFileSource.fs.getinfo(parts[1]).date_time + (0, 0, 0)
                 else:
                     fileDateTuple = time.gmtime(os.path.getmtime(packageFilename))
-                filesource = openFileSource(packageFilename, _getCntlr(), sourceFileSource=sourceFileSource)
+                filesource = openFileSource(packageFilename, self._getCntlr(), sourceFileSource=sourceFileSource)
                 if sourceFileSource:
                     sourceFileSource.close()
                 # allow multiple manifests [[metadata, prefix]...] for multiple catalogs
                 packages: list[list[str]] = []
                 parsedPackage: dict[str, Any] | None = None
                 if filesource.isZip:
-                    validateTaxonomyPackage(cntlr, filesource, errors)
-                    packageFiles = discoverPackageFiles(filesource)
+                    self.validateTaxonomyPackage(cntlr, filesource, errors)
+                    packageFiles = self.discoverPackageFiles(filesource)
                     if not packageFiles:
                         # look for pre-PWD packages
                         _dir = filesource.dir or []
@@ -628,8 +634,8 @@ class PackageManager:
                 packageNames: list[str] = []
                 descriptions: list[str] = []
                 for packageFileUrl, packageFilePrefix, packageFile in packages:
-                    parsedPackage = parsePackage(
-                        _getCntlr(), filesource, packageFileUrl, packageFilePrefix, errors
+                    parsedPackage = self.parsePackage(
+                        self._getCntlr(), filesource, packageFileUrl, packageFilePrefix, errors
                     )
                     if parsedPackage:
                         packageNames.append(str(parsedPackage['name']))
@@ -677,11 +683,11 @@ class PackageManager:
                 filesource.close()
         return None
 
-    def rebuildRemappings(cntlr: Cntlr) -> None:
-        remappings = _getPackagesConfig()["remappings"]
+    def rebuildRemappings(self, cntlr: Cntlr) -> None:
+        remappings = self._getPackagesConfig()["remappings"]
         remappings.clear()
         remapOverlapUrls: list[tuple[str, str, str]] = []  # (prefix, packageURL, rewriteString)
-        for _packageInfo in _getPackagesConfig()["packages"]:
+        for _packageInfo in self._getPackagesConfig()["packages"]:
             _packageInfoURL = _packageInfo['URL']
             if _packageInfo['status'] == 'enabled':
                 for prefix, remapping in _packageInfo['remappings'].items():
@@ -711,12 +717,12 @@ class PackageManager:
                     )
 
 
-    def isMappedUrl(url: str | None) -> bool:
+    def isMappedUrl(self, url: str | None) -> bool:
         return (packagesConfig is not None and url is not None and
                 any(url.startswith(mapFrom) and not url.startswith(mapTo) # prevent recursion in mapping for url hosted Packages
                     for mapFrom, mapTo in packagesConfig.get('remappings', {}).items()))
 
-    def mappedUrl(url: str | None) -> str | None:
+    def mappedUrl(self, url: str | None) -> str | None:
         if packagesConfig is not None and url is not None:
             longestPrefix = 0
             mapped: str | None = None
@@ -733,15 +739,16 @@ class PackageManager:
         return url
 
     def addPackage(
+        self,
         cntlr: Cntlr,
         url: str,
         packageManifestName: str | None = None,
     ) -> dict[str, Any] | None:
-        newPackageInfo = packageInfo(cntlr, url, packageManifestName=packageManifestName)
+        newPackageInfo = self.packageInfo(cntlr, url, packageManifestName=packageManifestName)
         if newPackageInfo and newPackageInfo.get("identifier"):
             identifier = newPackageInfo.get("identifier")
             j = -1
-            packagesList = _getPackagesConfig()["packages"]
+            packagesList = self._getPackagesConfig()["packages"]
             for i, _packageInfo in enumerate(packagesList):
                 if _packageInfo['identifier'] == identifier:
                     j = i
@@ -755,21 +762,21 @@ class PackageManager:
             return newPackageInfo
         return None
 
-    def reloadPackageModule(cntlr: Cntlr, name: str) -> bool:
+    def reloadPackageModule(self, cntlr: Cntlr, name: str) -> bool:
         packageUrls: list[str] = []
-        packagesList = _getPackagesConfig()["packages"]
+        packagesList = self._getPackagesConfig()["packages"]
         for _packageInfo in packagesList:
             if _packageInfo.get('name') == name:
                 packageUrls.append(_packageInfo['URL'])
         result = False
         for url in packageUrls:
-            addPackage(cntlr, url)
+            self.addPackage(cntlr, url)
             result = True
         return result
 
-    def removePackageModule(cntlr: Cntlr, name: str) -> bool:
+    def removePackageModule(self, cntlr: Cntlr, name: str) -> bool:
         packageIndices: list[int] = []
-        packagesList = _getPackagesConfig()["packages"]
+        packagesList = self._getPackagesConfig()["packages"]
         for i, _packageInfo in enumerate(packagesList):
             if _packageInfo.get('name') == name:
                 packageIndices.insert(0, i) # must remove in reverse index order
