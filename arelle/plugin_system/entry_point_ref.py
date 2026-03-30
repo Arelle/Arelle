@@ -20,8 +20,8 @@ _: TypeGetText
 
 _entryPointRefSearchTermEndings = [
     '/__init__.py',
-    '.py'
-    '/'
+    '.py',
+    '/',
 ]
 
 
