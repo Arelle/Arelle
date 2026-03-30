@@ -49,6 +49,16 @@ TAXONOMY_PACKAGE_NON_ABORTING_VALIDATIONS = (
     PackageValidation.validateMetadataDirectory,
 )
 
+
+# taxonomy package manager
+# plugin control is static to correspond to statically loaded modules
+packagesJsonFile: str | None = None
+packagesConfig: dict[str, Any] | None = None
+packagesConfigChanged: bool = False
+packagesMappings: dict[str, str] = {}
+_cntlr: Cntlr | None = None
+
+
 def baseForElement(element: etree._Element) -> str:
     base = ""
     baseElt: etree._Element | None = element
@@ -356,15 +366,6 @@ def _parseCatalog(
                         errors.append("tpe:multipleRewriteURIsForStartString")
 
     return remappings
-
-
-# taxonomy package manager
-# plugin control is static to correspond to statically loaded modules
-packagesJsonFile: str | None = None
-packagesConfig: dict[str, Any] | None = None
-packagesConfigChanged: bool = False
-packagesMappings: dict[str, str] = {}
-_cntlr: Cntlr | None = None
 
 
 def _getPackagesConfig() -> dict[str, Any]:
