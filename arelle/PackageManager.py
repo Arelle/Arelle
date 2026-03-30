@@ -50,16 +50,14 @@ TAXONOMY_PACKAGE_NON_ABORTING_VALIDATIONS = (
 )
 
 
-# taxonomy package manager
-# plugin control is static to correspond to statically loaded modules
-packagesJsonFile: str | None = None
-packagesConfig: dict[str, Any] | None = None
-packagesConfigChanged: bool = False
-packagesMappings: dict[str, str] = {}
-_cntlr: Cntlr | None = None
-
-
 class PackageManager:
+
+    def __init__(self) -> None:
+        self.packagesJsonFile: str | None = None
+        self.packagesConfig: dict[str, Any] | None = None
+        self.packagesConfigChanged: bool = False
+        self.packagesMappings: dict[str, str] = {}
+        self._cntlr: Cntlr | None = None
 
     def baseForElement(self, element: etree._Element) -> str:
         base = ""
@@ -375,39 +373,38 @@ class PackageManager:
 
 
     def _getPackagesConfig(self) -> dict[str, Any]:
-        assert packagesConfig is not None, "PackageManager.init() must be called before use"
-        return packagesConfig
+        assert self.packagesConfig is not None, "PackageManager.init() must be called before use"
+        return self.packagesConfig
 
 
     def _getCntlr(self) -> Cntlr:
-        assert _cntlr is not None, "PackageManager.init() must be called before use"
-        return _cntlr
+        assert self._cntlr is not None, "PackageManager.init() must be called before use"
+        return self._cntlr
 
 
     def init(self, cntlr: Cntlr, loadPackagesConfig: bool = True) -> None:
-        global packagesJsonFile, packagesConfig, _cntlr
         if loadPackagesConfig:
             try:
-                packagesJsonFile = cntlr.userAppDir + os.sep + "taxonomyPackages.json"
-                with open(packagesJsonFile, encoding='utf-8') as f:
-                    packagesConfig = json.load(f)
-                packagesConfigChanged = False
+                self.packagesJsonFile = cntlr.userAppDir + os.sep + "taxonomyPackages.json"
+                with open(self.packagesJsonFile, encoding='utf-8') as f:
+                    self.packagesConfig = json.load(f)
+                self.packagesConfigChanged = False
             except Exception:
                 pass # on GAE no userAppDir, will always come here
-        if not packagesConfig:
-            packagesConfig = {  # savable/reloadable plug in configuration
+        if not self.packagesConfig:
+            self.packagesConfig = {  # savable/reloadable plug in configuration
                 "packages": [], # list taxonomy packages loaded and their remappings
                 "remappings": {}  # dict by prefix of remappings in effect
             }
-            packagesConfigChanged = False # don't save until something is added to pluginConfig
+            self.packagesConfigChanged = False # don't save until something is added to pluginConfig
         pluginMethodsForClasses: dict[str, Any] = {} # dict by class of list of ordered callable function objects
-        _cntlr = cntlr
+        self._cntlr = cntlr
 
     def reset(self) -> None:  # force reloading modules and plugin infos
-        if packagesConfig:
-            packagesConfig.clear()  # dict of loaded module pluginInfo objects by module names
-        if packagesMappings:
-            packagesMappings.clear() # dict by class of list of ordered callable function objects
+        if self.packagesConfig:
+            self.packagesConfig.clear()  # dict of loaded module pluginInfo objects by module names
+        if self.packagesMappings:
+            self.packagesMappings.clear() # dict by class of list of ordered callable function objects
 
     def orderedPackagesConfig(self) -> dict[str, Any]:
         _cfg = self._getPackagesConfig()
@@ -445,17 +442,16 @@ class PackageManager:
         )
 
     def save(self, cntlr: Cntlr) -> None:
-        global packagesConfigChanged
-        if packagesConfigChanged and cntlr.hasFileSystem:
-            assert packagesJsonFile is not None
-            with open(packagesJsonFile, "w", encoding='utf-8') as f:
+        if self.packagesConfigChanged and cntlr.hasFileSystem:
+            assert self.packagesJsonFile is not None
+            with open(self.packagesJsonFile, "w", encoding='utf-8') as f:
                 jsonStr = str(json.dumps(self.orderedPackagesConfig(), ensure_ascii=False, indent=2)) # might not be unicode in 2.7
                 f.write(jsonStr)
-            packagesConfigChanged = False
+            self.packagesConfigChanged = False
 
     def close(self) -> None:  # close all loaded methods
         self._getPackagesConfig().clear()
-        packagesMappings.clear()
+        self.packagesMappings.clear()
 
     ''' packagesConfig structure
     
@@ -718,15 +714,15 @@ class PackageManager:
 
 
     def isMappedUrl(self, url: str | None) -> bool:
-        return (packagesConfig is not None and url is not None and
+        return (self.packagesConfig is not None and url is not None and
                 any(url.startswith(mapFrom) and not url.startswith(mapTo) # prevent recursion in mapping for url hosted Packages
-                    for mapFrom, mapTo in packagesConfig.get('remappings', {}).items()))
+                    for mapFrom, mapTo in self.packagesConfig.get('remappings', {}).items()))
 
     def mappedUrl(self, url: str | None) -> str | None:
-        if packagesConfig is not None and url is not None:
+        if self.packagesConfig is not None and url is not None:
             longestPrefix = 0
             mapped: str | None = None
-            for mapFrom, mapTo in packagesConfig.get('remappings', {}).items():
+            for mapFrom, mapTo in self.packagesConfig.get('remappings', {}).items():
                 if url.startswith(mapFrom):
                     if url.startswith(mapTo):
                         return url # recursive mapping, this is already mapped
@@ -757,8 +753,7 @@ class PackageManager:
                 packagesList[j] = newPackageInfo
             else:
                 packagesList.append(newPackageInfo)
-            global packagesConfigChanged
-            packagesConfigChanged = True
+            self.packagesConfigChanged = True
             return newPackageInfo
         return None
 
@@ -785,6 +780,5 @@ class PackageManager:
             del packagesList[i]
             result = True
         if result:
-            global packagesConfigChanged
-            packagesConfigChanged = True
+            self.packagesConfigChanged = True
         return result
