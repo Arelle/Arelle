@@ -35,7 +35,7 @@ class EntryPointRef:
     def createModuleInfo(self, plugin_manager: PluginManager | None = None) -> dict[str, Any] | None:
         """
         Creates a module information dictionary from the entry point ref.
-        :param plugin_manager: PluginManager instance. Defaults to module-level singleton.
+        :param plugin_manager: PluginManager instance. If not provided, uses the global PluginManager instance.
         :return: A module information dictionary
         """
         from arelle.PluginManager import getInstance
@@ -51,7 +51,7 @@ class EntryPointRef:
         Given an entry point, retrieves the subset of information from __pluginInfo__ necessary to
         determine if the entry point should be imported as a plugin.
         :param entryPoint:
-        :param plugin_manager: PluginManager instance. Defaults to module-level singleton.
+        :param plugin_manager: PluginManager instance. If not provided, uses the global PluginManager instance.
         :return:
         """
         pluginUrlFunc = entryPoint.load()
@@ -65,7 +65,7 @@ class EntryPointRef:
         determine if the entry point should be imported as a plugin.
         :param filepath: Path to plugin, can be a directory or .py filepath
         :param entryPoint: Optional entry point information to include in aliases/moduleInfo
-        :param plugin_manager: PluginManager instance. Defaults to module-level singleton.
+        :param plugin_manager: PluginManager instance. If not provided, uses the global PluginManager instance.
         :return:
         """
         from arelle.PluginManager import getInstance
@@ -97,7 +97,7 @@ class EntryPointRef:
     def discoverAll(plugin_manager: PluginManager | None = None) -> list[EntryPointRef]:
         """
         Retrieve all plugin entry points, cached on first run.
-        :param plugin_manager: PluginManager instance. Defaults to module-level singleton.
+        :param plugin_manager: PluginManager instance. If not provided, uses the global PluginManager instance.
         :return: List of all discovered entry points.
         """
         from arelle.PluginManager import getInstance
@@ -113,7 +113,7 @@ class EntryPointRef:
         Recursively retrieve all plugin entry points in the given directory.
         :param entryPointRefs: Working list of entry point refs to append to.
         :param directory: Directory to search for entry points within.
-        :param plugin_manager: PluginManager instance. Defaults to module-level singleton.
+        :param plugin_manager: PluginManager instance. If not provided, uses the global PluginManager instance.
         :return: List of discovered entry points.
         """
         for fileName in sorted(os.listdir(directory)):
@@ -139,7 +139,7 @@ class EntryPointRef:
     def _discoverInstalled(plugin_manager: PluginManager | None = None) -> list[EntryPointRef]:
         """
         Retrieve all installed plugin entry points.
-        :param plugin_manager: PluginManager instance. Defaults to module-level singleton.
+        :param plugin_manager: PluginManager instance. If not provided, uses the global PluginManager instance.
         :return: List of all discovered entry points.
         """
         entryPoints = list(entry_points(group='arelle.plugin'))
@@ -157,7 +157,7 @@ class EntryPointRef:
         May return None of no matches are found.
         Throws an exception if multiple entry point refs match the search term.
         :param search: Only retrieve entry point matching the given search text.
-        :param plugin_manager: PluginManager instance. Defaults to module-level singleton.
+        :param plugin_manager: PluginManager instance. If not provided, uses the global PluginManager instance.
         :return: Matching entry point ref, if found.
         """
         entryPointRefs = EntryPointRef.search(search, plugin_manager=plugin_manager)
@@ -193,7 +193,7 @@ class EntryPointRef:
         Retrieve entry point module information matching provided search text.
         A map of aliases to matching entry points is cached on the first run.
         :param search: Only retrieve entry points matching the given search text.
-        :param plugin_manager: PluginManager instance. Defaults to module-level singleton.
+        :param plugin_manager: PluginManager instance. If not provided, uses the global PluginManager instance.
         :return: List of matching module infos.
         """
         from arelle.PluginManager import getInstance
