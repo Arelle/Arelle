@@ -370,16 +370,13 @@ class PackageManager:
 
         return remappings
 
-
     def _getPackagesConfig(self) -> dict[str, Any]:
         assert self.packagesConfig is not None, "PackageManager.init() must be called before use"
         return self.packagesConfig
 
-
     def _getCntlr(self) -> Cntlr:
         assert self._cntlr is not None, "PackageManager.init() must be called before use"
         return self._cntlr
-
 
     def init(self, cntlr: Cntlr, loadPackagesConfig: bool = True) -> None:
         if loadPackagesConfig:
@@ -707,7 +704,6 @@ class PackageManager:
                         rewriteStartString2=_prefix2,
                         file=(_url1, _url2),
                     )
-
 
     def isMappedUrl(self, url: str | None) -> bool:
         return (self.packagesConfig is not None and url is not None and
