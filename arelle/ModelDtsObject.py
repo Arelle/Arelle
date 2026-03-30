@@ -59,6 +59,7 @@ validation.
 """
 from __future__ import annotations
 from collections import defaultdict
+from collections.abc import Collection
 import decimal
 import os
 import sys
@@ -452,9 +453,9 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
                 self._baseXbrliTypeQname = self.type.baseXbrliTypeQname if self.type is not None else None
             return self._baseXbrliTypeQname
 
-    def instanceOfType(self, typeqname: QName | frozenset[QName] | set[QName] | list[QName] | tuple[QName, ...]) -> bool:
+    def instanceOfType(self, typeqname: QName | Collection[QName]) -> bool:
         """(bool) -- True if element is declared by, or derived from type of given qname or collection of qnames"""
-        if isinstance(typeqname, (frozenset, set, tuple, list)): # union
+        if isinstance(typeqname, Collection): # union
             if self.typeQname in typeqname:
                 return True
         else: # not union, single type
@@ -1274,20 +1275,21 @@ class ModelType(ModelNamableTerm):
         """(bool) -- True if type is, or is derived from, stringItemType or normalizedStringItemType."""
         return self.baseXbrliType in {"stringItemType", "normalizedStringItemType", "string", "normalizedString"}
 
-    def isDerivedFrom(self, typeqname):
+    def isDerivedFrom(self, typeqname: QName | Collection[QName]) -> bool:
         """(bool) -- True if type is derived from type specified by QName.  Type can be a single type QName or list of QNames"""
         qnamesDerivedFrom = self.qnameDerivedFrom # can be single qname or list of qnames if union
         if qnamesDerivedFrom is None:    # not derived from anything
             return typeqname is None or not typeqname # may be none or empty list
-        if isinstance(qnamesDerivedFrom, (tuple,list)): # union
-            if isinstance(typeqname, (tuple,list,set)):
+
+        if isinstance(qnamesDerivedFrom, Collection): # union
+            if isinstance(typeqname, Collection):
                 if any(t in qnamesDerivedFrom for t in typeqname):
                     return True
             else:
                 if typeqname in qnamesDerivedFrom:
                     return True
         else: # not union, single type
-            if isinstance(typeqname, (tuple,list,set)):
+            if isinstance(typeqname, Collection):
                 if qnamesDerivedFrom in typeqname:
                     return True
             else:
