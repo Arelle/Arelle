@@ -2378,7 +2378,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
         if savePackagesChanges:
             PackageManager.save(self)
         else:
-            PackageManager.packagesConfigChanged = False
+            PackageManager.getInstance().packagesConfigChanged = False
         if showPackages:
             self.addToLog(_("Taxonomy packages:"), messageCode="info")
             for packageInfo in PackageManager.orderedPackagesConfig()["packages"]:
