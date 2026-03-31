@@ -1,7 +1,6 @@
 """
 See COPYRIGHT.md for copyright information.
 """
-import json
 from typing import Iterator, Callable, Any
 
 from arelle.plugin_system._plugin_manager import PluginManager
