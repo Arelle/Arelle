@@ -103,7 +103,7 @@ def string(
         x = item.stringValue  # represents inner text of this and all subelements
     else:
         x = xc.atomize(p, item)
-    return FunctionXs.xsString(xc, p, x)  # type: ignore[no-untyped-call,no-any-return]
+    return FunctionXs.xsString(xc, p, x)
 
 
 def data(
@@ -317,7 +317,7 @@ def concat(
     for i in range(len(args)):
         item = anytypeArg(xc, args, i, "xs:anyAtomicType?")
         if item != ():
-            atomizedArgs.append(FunctionXs.xsString(xc, p, xc.atomize(p, item)))  # type: ignore[no-untyped-call]
+            atomizedArgs.append(FunctionXs.xsString(xc, p, xc.atomize(p, item)))
     return "".join(atomizedArgs)
 
 
