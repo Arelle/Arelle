@@ -704,20 +704,15 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                             CSV_FACTS_FILE: "xbrlce:invalidHeaderValue"}[fileType],
                                            _("CSV deliminator %(deliminator)s is not comma: file %(file)s"),
                                           file=csvFilePath, deliminator=repr(_dialect.delimiter))
-                except csv.Error as ex:
-                    # possibly can't br sniffed because there's only one column in the rows
-                    _dialect = None
+                except csv.Error:
+                    # possibly can't be sniffed because there's only one column in the row
+                    _dialect = "excel"
                     for char in chars:
-                        if char in  (",", "\n", "\r"):
-                            _dialect = "excel"
+                        if char in (",", "\n", "\r"):
                             break
                         elif char == "\t":
                             _dialect = "excel-tab"
                             break
-                    if not _dialect:
-                        raise OIMException("xbrlce:invalidCSVFileFormat",
-                                           _("CSV file %(file)s: %(error)s"),
-                                          file=csvFilePath, error=str(ex))
                 except UnicodeDecodeError as ex:
                     raise OIMException("xbrlce:invalidCSVFileFormat",
                                        _("CSV file must use utf-8 encoding %(file)s: %(error)s"),
