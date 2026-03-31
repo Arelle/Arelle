@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Any, Literal, TypeVar, overload
+from typing import Any, TypeVar, overload
 
 from arelle.oim._tc.common import TCError
 from arelle.oim._tc.const import (
@@ -69,6 +69,12 @@ class TCMetadataUnknownPropertiesError(TCMetadataParseError):
     def __init__(self, property_names: list[str]) -> None:
         names = ", ".join(repr(n) for n in sorted(property_names))
         super().__init__(_("Unknown properties: {names}").format(names=names))
+
+
+class TCMetadataMissingPropertiesError(TCMetadataParseError):
+    def __init__(self, property_names: list[str]) -> None:
+        names = ", ".join(repr(n) for n in sorted(property_names))
+        super().__init__(_("Missing required properties: {names}").format(names=names))
 
 
 def _prepend_paths(errors: list[TCMetadataParseError], *segments: str) -> list[TCMetadataParseError]:
@@ -251,6 +257,7 @@ _VALUE_CONSTRAINT_PROPERTIES = frozenset(
         "fractionDigits",
     }
 )
+_VALUE_CONSTRAINT_REQUIRED_PROPERTIES = frozenset({"type"})
 
 
 def _parse_value_constraint(
@@ -258,8 +265,13 @@ def _parse_value_constraint(
     errors: list[TCMetadataParseError],
 ) -> TCValueConstraint | None:
     local_errors: list[TCMetadataParseError] = []
-    _validate_unknown_properties(obj, _VALUE_CONSTRAINT_PROPERTIES, local_errors)
-    value_constraint_type = _parse_primitive_field(obj, "type", str, local_errors, required=True)
+    _validate_expected_properties(
+        obj,
+        local_errors,
+        known_properties=_VALUE_CONSTRAINT_PROPERTIES,
+        required_properties=_VALUE_CONSTRAINT_REQUIRED_PROPERTIES,
+    )
+    value_constraint_type = _parse_primitive_field(obj, "type", str, local_errors)
     optional = _parse_primitive_field(obj, "optional", bool, local_errors, default=False)
     nillable = _parse_primitive_field(obj, "nillable", bool, local_errors, default=False)
     enumeration_values = _parse_set(obj, "enumerationValues", local_errors, default=None, non_empty=True)
@@ -305,7 +317,7 @@ _KEYS_PROPERTIES = frozenset({"unique", "reference", "sortKey"})
 
 
 def _parse_keys(obj: dict[str, Any], errors: list[TCMetadataParseError]) -> TCKeys:
-    _validate_unknown_properties(obj, _KEYS_PROPERTIES, errors)
+    _validate_expected_properties(obj, errors, known_properties=_KEYS_PROPERTIES)
     unique = _parse_unique_keys(obj, errors)
     reference = _parse_reference_keys(obj, errors)
     sort_key = _parse_primitive_field(obj, "sortKey", str, errors, default=None)
@@ -338,6 +350,7 @@ def _parse_unique_keys(
 
 
 _UNIQUE_KEY_PROPERTIES = frozenset({"name", "fields", "severity", "shared"})
+_UNIQUE_KEY_REQUIRED_PROPERTIES = frozenset({"name", "fields"})
 
 
 def _parse_unique_key(
@@ -345,9 +358,14 @@ def _parse_unique_key(
     errors: list[TCMetadataParseError],
 ) -> TCUniqueKey | None:
     local_errors: list[TCMetadataParseError] = []
-    _validate_unknown_properties(obj, _UNIQUE_KEY_PROPERTIES, local_errors)
-    name = _parse_primitive_field(obj, "name", str, local_errors, required=True)
-    fields = _parse_ordered_set(obj, "fields", local_errors, required=True, non_empty=True)
+    _validate_expected_properties(
+        obj,
+        local_errors,
+        known_properties=_UNIQUE_KEY_PROPERTIES,
+        required_properties=_UNIQUE_KEY_REQUIRED_PROPERTIES,
+    )
+    name = _parse_primitive_field(obj, "name", str, local_errors)
+    fields = _parse_ordered_set(obj, "fields", local_errors, non_empty=True)
     severity = _parse_primitive_field(obj, "severity", str, local_errors, default="error")
     shared = _parse_primitive_field(obj, "shared", bool, local_errors, default=False)
     if local_errors:
@@ -383,6 +401,7 @@ def _parse_reference_keys(
 
 
 _REFERENCE_KEY_PROPERTIES = frozenset({"name", "fields", "referencedKeyName", "negate", "severity"})
+_REFERENCE_KEY_REQUIRED_PROPERTIES = frozenset({"name", "fields", "referencedKeyName"})
 
 
 def _parse_reference_key(
@@ -390,10 +409,15 @@ def _parse_reference_key(
     errors: list[TCMetadataParseError],
 ) -> TCReferenceKey | None:
     local_errors: list[TCMetadataParseError] = []
-    _validate_unknown_properties(obj, _REFERENCE_KEY_PROPERTIES, local_errors)
-    name = _parse_primitive_field(obj, "name", str, local_errors, required=True)
-    fields = _parse_ordered_set(obj, "fields", local_errors, required=True, non_empty=True)
-    referenced_key_name = _parse_primitive_field(obj, "referencedKeyName", str, local_errors, required=True)
+    _validate_expected_properties(
+        obj,
+        local_errors,
+        known_properties=_REFERENCE_KEY_PROPERTIES,
+        required_properties=_REFERENCE_KEY_REQUIRED_PROPERTIES,
+    )
+    name = _parse_primitive_field(obj, "name", str, local_errors)
+    fields = _parse_ordered_set(obj, "fields", local_errors, non_empty=True)
+    referenced_key_name = _parse_primitive_field(obj, "referencedKeyName", str, local_errors)
     negate = _parse_primitive_field(obj, "negate", bool, local_errors, default=False)
     severity = _parse_primitive_field(obj, "severity", str, local_errors, default="error")
     if local_errors:
@@ -416,7 +440,7 @@ def _parse_table_constraints(
     obj: dict[str, Any],
     errors: list[TCMetadataParseError],
 ) -> TCTableConstraints:
-    _validate_unknown_properties(obj, _TABLE_CONSTRAINTS_PROPERTIES, errors)
+    _validate_expected_properties(obj, errors, known_properties=_TABLE_CONSTRAINTS_PROPERTIES)
     min_tables = _parse_bounded_int(obj, "minTables", errors, min_value=1, default=None)
     max_tables = _parse_bounded_int(obj, "maxTables", errors, min_value=1, default=None)
     min_table_rows = _parse_bounded_int(obj, "minTableRows", errors, min_value=1, default=None)
@@ -432,15 +456,6 @@ def _parse_table_constraints(
 T = TypeVar("T", str, bool, int)
 
 
-@overload
-def _parse_primitive_field(
-    obj: dict[str, Any],
-    key: str,
-    expected_type: type[T],
-    errors: list[TCMetadataParseError],
-    *,
-    required: Literal[True],
-) -> T | None: ...
 @overload
 def _parse_primitive_field(
     obj: dict[str, Any],
@@ -466,11 +481,8 @@ def _parse_primitive_field(
     errors: list[TCMetadataParseError],
     *,
     default: T | None = None,
-    required: bool = False,
 ) -> T | None:
     if key not in obj:
-        if required:
-            errors.append(TCMetadataParseTypeError(expected_type, None, key))
         return default
     val = obj[key]
     if isinstance(val, expected_type) and not (expected_type is int and isinstance(val, bool)):
@@ -499,13 +511,16 @@ def _parse_bounded_int(
     return val
 
 
-def _validate_unknown_properties(
+def _validate_expected_properties(
     obj: dict[str, Any],
-    known_properties: frozenset[str],
     errors: list[TCMetadataParseError],
+    known_properties: frozenset[str],
+    required_properties: frozenset[str] = frozenset(),
 ) -> None:
     if unknown_properties := sorted(prop for prop in obj if prop not in known_properties):
         errors.append(TCMetadataUnknownPropertiesError(unknown_properties))
+    if missing_properties := sorted(prop for prop in required_properties if prop not in obj):
+        errors.append(TCMetadataMissingPropertiesError(missing_properties))
 
 
 def _validate_str_list(
@@ -534,15 +549,6 @@ def _parse_ordered_set(
     key: str,
     errors: list[TCMetadataParseError],
     *,
-    required: Literal[True],
-    non_empty: bool = ...,
-) -> tuple[str, ...] | None: ...
-@overload
-def _parse_ordered_set(
-    obj: dict[str, Any],
-    key: str,
-    errors: list[TCMetadataParseError],
-    *,
     default: tuple[str, ...],
     non_empty: bool = ...,
 ) -> tuple[str, ...]: ...
@@ -561,12 +567,9 @@ def _parse_ordered_set(
     errors: list[TCMetadataParseError],
     *,
     default: tuple[str, ...] | None = None,
-    required: bool = False,
     non_empty: bool = False,
 ) -> tuple[str, ...] | None:
     if key not in obj:
-        if required:
-            errors.append(TCMetadataParseTypeError(list, None, key))
         return default
     val = obj[key]
     if not _validate_str_list(key, val, errors, unique=True, non_empty=non_empty):
@@ -574,15 +577,6 @@ def _parse_ordered_set(
     return tuple(val)
 
 
-@overload
-def _parse_set(
-    obj: dict[str, Any],
-    key: str,
-    errors: list[TCMetadataParseError],
-    *,
-    required: Literal[True],
-    non_empty: bool = ...,
-) -> frozenset[str] | None: ...
 @overload
 def _parse_set(
     obj: dict[str, Any],
@@ -607,12 +601,9 @@ def _parse_set(
     errors: list[TCMetadataParseError],
     *,
     default: frozenset[str] | None = None,
-    required: bool = False,
     non_empty: bool = False,
 ) -> frozenset[str] | None:
     if key not in obj:
-        if required:
-            errors.append(TCMetadataParseTypeError(list, None, key))
         return default
     val = obj[key]
     if not _validate_str_list(key, val, errors, unique=True, non_empty=non_empty):

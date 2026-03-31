@@ -10,7 +10,7 @@ from arelle.oim._tc.const import (
     TCME_INVALID_NAMESPACE_PREFIX,
 )
 from arelle.oim._tc.metadata.model import TCValueConstraint
-from arelle.oim._tc.metadata.parser import TCMetadataParseError, parse_tc_metadata
+from arelle.oim._tc.metadata.parser import TCMetadataMissingPropertiesError, TCMetadataParseError, parse_tc_metadata
 
 TC_MINIMAL_NAMESPACES = {TC_PREFIX: TC_NS_DRAFT}
 
@@ -523,7 +523,7 @@ class TestUniqueKeys:
             TC_MINIMAL_NAMESPACES,
         )
         assert not result.is_valid
-        assert "/unique/1/" in result.errors[0].json_pointer
+        assert "/unique/1" in result.errors[0].json_pointer
 
 
 class TestReferenceKeys:
@@ -611,7 +611,7 @@ class TestReferenceKeys:
             TC_MINIMAL_NAMESPACES,
         )
         assert not result.is_valid
-        assert "/reference/0/" in result.errors[0].json_pointer
+        assert "/reference/0" in result.errors[0].json_pointer
 
 
 class TestKeys:
@@ -793,6 +793,38 @@ class TestUnknownProperties:
         )
         assert not result.is_valid
         assert result.errors[0].code == TCME_INVALID_JSON_STRUCTURE
+
+
+class TestMissingProperties:
+    def test_missing_required_value_constraint_type(self) -> None:
+        result = parse_tc_metadata(_with_constraint({}), TC_MINIMAL_NAMESPACES)
+        assert not result.is_valid
+        assert len(result.errors) == 1
+        assert isinstance(result.errors[0], TCMetadataMissingPropertiesError)
+        assert "'type'" in str(result.errors[0])
+
+    def test_missing_required_unique_key_fields_consolidated(self) -> None:
+        result = parse_tc_metadata(
+            _with_template({"tc:keys": {"unique": [{}]}}),
+            TC_MINIMAL_NAMESPACES,
+        )
+        assert not result.is_valid
+        assert len(result.errors) == 1
+        assert isinstance(result.errors[0], TCMetadataMissingPropertiesError)
+        assert "'fields'" in str(result.errors[0])
+        assert "'name'" in str(result.errors[0])
+
+    def test_missing_required_reference_key_fields_consolidated(self) -> None:
+        result = parse_tc_metadata(
+            _with_template({"tc:keys": {"reference": [{}]}}),
+            TC_MINIMAL_NAMESPACES,
+        )
+        assert not result.is_valid
+        assert len(result.errors) == 1
+        assert isinstance(result.errors[0], TCMetadataMissingPropertiesError)
+        assert "'fields'" in str(result.errors[0])
+        assert "'name'" in str(result.errors[0])
+        assert "'referencedKeyName'" in str(result.errors[0])
 
 
 class TestTemplateFiltering:
