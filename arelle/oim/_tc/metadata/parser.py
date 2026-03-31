@@ -4,8 +4,9 @@ See COPYRIGHT.md for copyright information.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Any, Literal, TypeVar, overload, Iterable
+from typing import Any, Literal, TypeVar, overload
 
 from arelle.oim._tc.common import TCError
 from arelle.oim._tc.const import (
