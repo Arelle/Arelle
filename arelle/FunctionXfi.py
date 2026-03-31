@@ -1107,7 +1107,7 @@ def concept_relationships(xc: XPathContext.XPathContext, p: OperationDef, args: 
         qnLink = qnameArg(xc, p, args, 5, 'QName', emptyFallback=None)
     else:
         qnLink = None
-    if lenArgs > 5:
+    if lenArgs > 6:
         qnArc = qnameArg(xc, p, args, 6, 'QName', emptyFallback=None)
     else:
         qnArc = None
@@ -1142,12 +1142,12 @@ def concept_relationships(xc: XPathContext.XPathContext, p: OperationDef, args: 
                 if axis == 'sibling':
                     return [rel for rel in rels if rel.toModelObject != srcConcept]
                 # get descendants
-                if 0 <= generations <= 1:
+                if generations == 0:
                     g = 0
                     visited = set()
                 else:
                     # g is undefined, not sure if it is supposed to be generations variable
-                    g += 2  # type: ignore[used-before-def]
+                    g = generations + 1
                 indexOfSelfInRels = rels.index(relToSelf)
                 if indexOfSelfInRels >= 0:
                     concept_relationships_step(xc, inst, relationshipSet, [relToSelf], 'descendant', g, result, visited, nestResults, targetRole)
@@ -1165,21 +1165,20 @@ def concept_relationships(xc: XPathContext.XPathContext, p: OperationDef, args: 
                         return [c for c in rootQNs if c != qnSource]
                     rels = relationshipSet.fromModelObject(srcConcept)
                     # get descendants
-                    if 0 <= generations <= 1:
+                    if generations == 0:
                         g = 0
                         visited = set()
                     else:
                         # g is undefined, not sure if it is supposed to be generations variable
-                        g += 2  # type: ignore[used-before-def]
+                        g = generations
                     indexOfSelfInRoots = rootQNs.index(qnSource)
-                    # TODO the code is wrong. relToSelf is undefined we actually don't know what correct variable should be
                     if indexOfSelfInRoots >= 0:
-                        concept_relationships_step(xc, inst, relationshipSet, [relToSelf], 'descendant', g, result, visited, nestResults, targetRole)  # type: ignore[used-before-def]
-                        if len(result) >= 2 and isinstance(result[1], list): # contains [self, [descendants...]
+                        concept_relationships_step(xc, inst, relationshipSet, rels, 'descendant', g, result, visited, nestResults, targetRole)
+                        if result:
                             if axis == 'sibling-or-descendant':
-                                return rootQNs[:indexOfSelfInRoots] + result[1] + rootQNs[indexOfSelfInRoots+1:]
-                            if axis == 'sibling-or-descendant-or-self':
                                 return rootQNs[:indexOfSelfInRoots] + result + rootQNs[indexOfSelfInRoots+1:]
+                            if axis == 'sibling-or-descendant-or-self':
+                                return rootQNs[:indexOfSelfInRoots] + [qnSource] + result + rootQNs[indexOfSelfInRoots+1:]
                 return []
             else: # must be a root, never has any siblings
                 return []
@@ -1280,7 +1279,7 @@ def element_attribute(element: ModelObject, attrQname: QName) -> Any:
     except (AttributeError, TypeError, IndexError, KeyError):
         # may be lax or deferred validated
         try:
-            xmlValidate(element.modelXbrl, element, attrQname)
+            xmlValidate(element.modelXbrl, element, attrQname=attrQname)
             modelAttribute = element.xAttributes[attrTag]
         except (AttributeError, TypeError, IndexError, KeyError):
             pass
