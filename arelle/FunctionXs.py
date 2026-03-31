@@ -1,13 +1,14 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
+
 from __future__ import annotations
 
 import datetime
 from decimal import Decimal, InvalidOperation
-from math import fabs, isinf, isnan
+from math import isinf, isnan
 from numbers import Number
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 import regex as re
 
@@ -20,7 +21,7 @@ from arelle.typing import TypeGetText
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-    from typing import NoReturn
+    from typing import Any, NoReturn
 
     from arelle.formula.XPathParser import FormulaToken, OperationDef
 
@@ -30,134 +31,169 @@ _: TypeGetText
 class FORG0001(Exception):
     def __init__(self, message: str | None = None) -> None:
         self.message = message
-        self.args: tuple[str] = ( self.__repr__(), )
+        self.args: tuple[str] = (self.__repr__(),)
+
     def __repr__(self) -> str:
         return _("Exception: FORG0001, invalid constructor")
+
 
 class FONS0004(Exception):
     def __init__(self, message: str | None = None) -> None:
         self.message = message
-        self.args: tuple[str] = ( self.__repr__(), )
+        self.args: tuple[str] = (self.__repr__(),)
+
     def __repr__(self) -> str:
         return _("Exception: FONS0004, no namespace found for prefix")
 
+
 class xsFunctionNotAvailable(Exception):
     def __init__(self) -> None:
-        self.args: tuple[str] =  (_("xs function not available"),)
+        self.args: tuple[str] = (_("xs function not available"),)
+
     def __repr__(self) -> str:
         return self.args[0]
 
+
 def call(
-        xc: XPathContext.XPathContext,
-        p: ProgHeader | OperationDef,
-        localname: str,
-        args: XPathContext.ResultStack,
+    xc: XPathContext.XPathContext,
+    p: ProgHeader | OperationDef,
+    localname: str,
+    args: XPathContext.ResultStack,
 ) -> Any:
-    source = atomicArg(xc, p, args, 0, "value?", missingArgFallback=() )
-    if source == (): return source
+    source = atomicArg(xc, p, args, 0, "value?", missingArgFallback=())
+    if source == ():
+        return source
     try:
-        if localname not in xsFunctions: raise xsFunctionNotAvailable
+        if localname not in xsFunctions:
+            raise xsFunctionNotAvailable
         return xsFunctions[localname](xc, p, source)
     except (FORG0001, ValueError, TypeError) as ex:
         if hasattr(ex, "message") and ex.message:
             exMsg = ", " + ex.message
         else:
             exMsg = ""
-        raise XPathContext.XPathException(p, 'err:FORG0001',
-                                          _('invalid cast from {0} to xs:{1}{2}').format(
-                                            type(source).__name__,
-                                            localname,
-                                            exMsg))
+        raise XPathContext.XPathException(
+            p,
+            "err:FORG0001",
+            _("invalid cast from {0} to xs:{1}{2}").format(
+                type(source).__name__,
+                localname,
+                exMsg,
+            ),
+        )
     except xsFunctionNotAvailable:
         raise XPathContext.FunctionNotAvailable("xs:{0}".format(localname))
 
+
 objtype: dict[str, Any] = {
-        #'untypedAtomic': untypedAtomic,
-        'dateTime':  ModelValue.DateTime,
-        'date': ModelValue.DateTime,
-        'time': ModelValue.Time,
-        #'duration': duration,
-        'yearMonthDuration': ModelValue.YearMonthDuration,
-        'dayTimeDuration': ModelValue.DayTimeDuration,
-        'float': float,
-        'double': float,
-        'decimal': Decimal,
-        'integer': int,
-        'nonPositiveInteger': int,
-        'negativeInteger': int,
-        'long': int,
-        'int': int,
-        'short': int,
-        'byte': int,
-        'nonNegativeInteger': int,
-        'unsignedLong': int,
-        'unsignedInt': int,
-        'unsignedShort': int,
-        'unsignedByte': int,
-        'positiveInteger': int,
-        #'gYearMonth': gYearMonth,
-        #'gYear': gYear,
-        #'gMonthDay': gMonthDay,
-        #'gDay': gDay,
-        #'gMonth': gMonth,
-        'string': str,
-        'normalizedString': str,
-        'token': str,
-        'language': str,
-        'NMTOKEN': str,
-        'Name': str,
-        'NCName': str,
-        'ID': str,
-        'IDREF': str,
-        'ENTITY': str,
-        'boolean': bool,
-        #'base64Binary': byte,
-        #'hexBinary': byte,
-        'anyURI': ModelValue.AnyURI,
-        'QName': ModelValue.QName,
-        'NOTATION': str,
-      }
+    # "untypedAtomic": untypedAtomic,
+    "dateTime": ModelValue.DateTime,
+    "date": ModelValue.DateTime,
+    "time": ModelValue.Time,
+    # "duration": duration,
+    "yearMonthDuration": ModelValue.YearMonthDuration,
+    "dayTimeDuration": ModelValue.DayTimeDuration,
+    "float": float,
+    "double": float,
+    "decimal": Decimal,
+    "integer": int,
+    "nonPositiveInteger": int,
+    "negativeInteger": int,
+    "long": int,
+    "int": int,
+    "short": int,
+    "byte": int,
+    "nonNegativeInteger": int,
+    "unsignedLong": int,
+    "unsignedInt": int,
+    "unsignedShort": int,
+    "unsignedByte": int,
+    "positiveInteger": int,
+    # "gYearMonth": gYearMonth,
+    # "gYear": gYear,
+    # "gMonthDay": gMonthDay,
+    # "gDay": gDay,
+    # "gMonth": gMonth,
+    "string": str,
+    "normalizedString": str,
+    "token": str,
+    "language": str,
+    "NMTOKEN": str,
+    "Name": str,
+    "NCName": str,
+    "ID": str,
+    "IDREF": str,
+    "ENTITY": str,
+    "boolean": bool,
+    # "base64Binary": byte,
+    # "hexBinary": byte,
+    "anyURI": ModelValue.AnyURI,
+    "QName": ModelValue.QName,
+    "NOTATION": str,
+}
+
 
 def isXsType(localName: str) -> bool:
-    if localName[-1] in ('?', '+', '*'):
+    if localName[-1] in ("?", "+", "*"):
         return localName[:-1] in xsFunctions
     return localName in xsFunctions
+
 
 def untypedAtomic(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> NoReturn:
     raise xsFunctionNotAvailable()
 
+
 def anyType(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> NoReturn:
     raise xsFunctionNotAvailable()
+
 
 def anyAtomicType(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> NoReturn:
     raise xsFunctionNotAvailable()
 
+
 def dateTime(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> ModelValue.DateTime | None:
-    if isinstance(source,datetime.datetime) and source.dateOnly is False: return source  # type: ignore[attr-defined, return-value]
+    if isinstance(source, datetime.datetime) and source.dateOnly is False:  # type: ignore[attr-defined]
+        return source  # type: ignore[return-value]
     return ModelValue.dateTime(source, type=ModelValue.DATETIME, castException=FORG0001)
 
-def dateTimeInstantEnd(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> ModelValue.DateTime | None:
-    if isinstance(source,datetime.datetime): return source  # type: ignore[return-value] # true for either datetime.date or datetime.datetime
+
+def dateTimeInstantEnd(
+    xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any
+) -> ModelValue.DateTime | None:
+    if isinstance(source, datetime.datetime):
+        return source  # type: ignore[return-value] # true for either datetime.date or datetime.datetime
     return ModelValue.dateTime(source, addOneDay=True, type=ModelValue.DATETIME, castException=FORG0001)
 
-def xbrliDateUnion(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> datetime.date | ModelValue.DateTime | None:
-    if isinstance(source,datetime.date): return source  # true for either datetime.date or datetime.datetime
+
+def xbrliDateUnion(
+    xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any
+) -> datetime.date | ModelValue.DateTime | None:
+    if isinstance(source, datetime.date):
+        return source  # true for either datetime.date or datetime.datetime
     return ModelValue.dateTime(source, type=ModelValue.DATEUNION, castException=FORG0001)
+
 
 def date(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> ModelValue.DateTime | None:
     return ModelValue.dateTime(source, type=ModelValue.DATE, castException=FORG0001)
 
+
 def time(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> ModelValue.Time | None:
     return ModelValue.time(source, castException=FORG0001)
+
 
 def duration(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> NoReturn:
     raise xsFunctionNotAvailable()
 
-def yearMonthDuration(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> ModelValue.YearMonthDuration:
+
+def yearMonthDuration(
+    xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any
+) -> ModelValue.YearMonthDuration:
     return ModelValue.yearMonthDuration(source)
+
 
 def dayTimeDuration(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> ModelValue.DayTimeDuration:
     return ModelValue.dayTimeDuration(source)
+
 
 def xs_float(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> float:
     try:
@@ -165,11 +201,13 @@ def xs_float(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any)
     except ValueError:
         raise FORG0001
 
+
 def double(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> float:
     try:
         return float(source)
     except ValueError:
         raise FORG0001
+
 
 def decimal(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> Decimal:
     try:
@@ -177,27 +215,33 @@ def decimal(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) 
     except InvalidOperation:
         raise FORG0001
 
+
 def integer(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> int:
     try:
         return int(source)
     except ValueError:
         raise FORG0001
 
+
 def nonPositiveInteger(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> int:
     try:
         i = int(source)
-        if i <= 0: return i
+        if i <= 0:
+            return i
     except ValueError:
         pass
     raise FORG0001
 
+
 def negativeInteger(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> int:
     try:
         i = int(source)
-        if i < 0: return i
+        if i < 0:
+            return i
     except ValueError:
         pass
     raise FORG0001
+
 
 def long(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> int:
     try:
@@ -205,81 +249,100 @@ def long(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> 
     except ValueError:
         raise FORG0001
 
+
 def xs_int(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> int:
     try:
         i = int(source)
-        if i <= 2147483647 and i >= -2147483648: return i
+        if i <= 2147483647 and i >= -2147483648:
+            return i
     except ValueError:
         pass
     raise FORG0001
+
 
 def short(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> int:
     try:
         i = int(source)
-        if i <= 32767 and i >= -32767: return i
+        if i <= 32767 and i >= -32767:
+            return i
     except ValueError:
         pass
     raise FORG0001
+
 
 def byte(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> int:
     try:
         i = int(source)
-        if i <= 127 and i >= -128: return i
+        if i <= 127 and i >= -128:
+            return i
     except ValueError:
         pass
     raise FORG0001
+
 
 def nonNegativeInteger(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> int:
     try:
         i = int(source)
-        if i >= 0: return i
+        if i >= 0:
+            return i
     except ValueError:
         pass
     raise FORG0001
+
 
 def unsignedLong(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> int:
     try:
         i = int(source)
-        if i >= 0: return i
+        if i >= 0:
+            return i
     except ValueError:
         pass
     raise FORG0001
+
 
 def unsignedInt(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> int:
     try:
         i = int(source)
-        if i <= 4294967295 and i >= 0: return i
+        if i <= 4294967295 and i >= 0:
+            return i
     except ValueError:
         pass
     raise FORG0001
+
 
 def unsignedShort(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> int:
     try:
         i = int(source)
-        if i <= 65535 and i >= 0: return i
+        if i <= 65535 and i >= 0:
+            return i
     except ValueError:
         pass
     raise FORG0001
+
 
 def unsignedByte(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> int:
     try:
         i = int(source)
-        if i <= 255 and i >= 0: return i
+        if i <= 255 and i >= 0:
+            return i
     except ValueError:
         pass
     raise FORG0001
+
 
 def positiveInteger(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> int:
     try:
         i = int(source)
-        if i > 0: return i
+        if i > 0:
+            return i
     except ValueError:
         pass
     raise FORG0001
 
+
 def gYearMonth(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> ModelValue.gYearMonth:
     try:
-        match = lexicalPatterns['gYearMonth'].match(source)
+        match = lexicalPatterns["gYearMonth"].match(source)
         if match:
             year, month, zSign, zHrMin, zHr, zMin = match.groups()
             return ModelValue.gYearMonth(year, month)
@@ -287,9 +350,10 @@ def gYearMonth(xc: XPathContext.XPathContext, p: FormulaToken | None, source: An
         pass
     raise FORG0001
 
+
 def gYear(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> ModelValue.gYear:
     try:
-        match = lexicalPatterns['gYear'].match(source)
+        match = lexicalPatterns["gYear"].match(source)
         if match:
             year, zSign, zHrMin, zHr, zMin = match.groups()
             return ModelValue.gYear(year)
@@ -297,20 +361,38 @@ def gYear(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) ->
         pass
     raise FORG0001
 
+
 def gMonthDay(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> ModelValue.gMonthDay:
     try:
-        match = lexicalPatterns['gMonthDay'].match(source)
+        match = lexicalPatterns["gMonthDay"].match(source)
         if match:
             month, day, zSign, zHrMin, zHr, zMin = match.groups()
-            if not int(day) > {2:29, 4:30, 6:30, 9:30, 11:30, 1:31, 3:31, 5:31, 7:31, 8:31, 10:31, 12:31}[int(month)]:
+            if (
+                not int(day)
+                > {
+                    2: 29,
+                    4: 30,
+                    6: 30,
+                    9: 30,
+                    11: 30,
+                    1: 31,
+                    3: 31,
+                    5: 31,
+                    7: 31,
+                    8: 31,
+                    10: 31,
+                    12: 31,
+                }[int(month)]
+            ):
                 return ModelValue.gMonthDay(month, day)
     except (ValueError, TypeError):
         pass
     raise FORG0001
 
+
 def gDay(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> ModelValue.gDay:
     try:
-        match = lexicalPatterns['gDay'].match(source)
+        match = lexicalPatterns["gDay"].match(source)
         if match:
             day, zSign, zHrMin, zHr, zMin = match.groups()
             return ModelValue.gDay(day)
@@ -318,9 +400,10 @@ def gDay(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> 
         pass
     raise FORG0001
 
+
 def gMonth(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> ModelValue.gMonth:
     try:
-        match = lexicalPatterns['gMonth'].match(source)
+        match = lexicalPatterns["gMonth"].match(source)
         if match:
             month, zSign, zHrMin, zHr, zMin = match.groups()
             return ModelValue.gMonth(month)
@@ -328,91 +411,112 @@ def gMonth(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -
         pass
     raise FORG0001
 
+
 def xsString(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> str:
-    if isinstance(source,bool):
-        return 'true' if source else 'false'
-    elif isinstance(source,float):
+    if isinstance(source, bool):
+        return "true" if source else "false"
+    elif isinstance(source, float):
         if isnan(source):
-            return "NaN" # note that -NaN is reported as NaN in XML
+            return "NaN"  # note that -NaN is reported as NaN in XML
         elif isinf(source):
             return "-INF" if source < 0 else "INF"
-        '''
+        """
         numMagnitude = fabs(source)
         if numMagnitude < 1000000 and numMagnitude > .000001:
             # don't want floating notation which python does for more than 4 decimal places
             s =
-        '''
+        """
         s = str(source)
         if s.endswith(".0"):
             s = s[:-2]
         return s
-    elif isinstance(source,Decimal):
+    elif isinstance(source, Decimal):
         if isnan(source):
-            return "NaN" # note that -NaN is reported as NaN in XML
+            return "NaN"  # note that -NaN is reported as NaN in XML
         elif isinf(source):
             return "-INF" if source < 0 else "INF"
-        return "{:f}".format(source) # str(source) causes unwanted scientific notation for values like 0.00000001
-    elif isinstance(source,ModelValue.DateTime):
-        return ('{0:%Y-%m-%d}' if source.dateOnly else '{0:%Y-%m-%dT%H:%M:%S}').format(source)
+        return "{:f}".format(source)  # str(source) causes unwanted scientific notation for values like 0.00000001
+    elif isinstance(source, ModelValue.DateTime):
+        return ("{0:%Y-%m-%d}" if source.dateOnly else "{0:%Y-%m-%dT%H:%M:%S}").format(source)
     return str(source)
+
 
 def normalizedString(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> str:
     return str(source)
 
+
 tokenPattern = re.compile(r"^\s*([-\.:\w]+)\s*$")
+
+
 def token(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> str:
     s = str(source)
-    if tokenPattern.match(s): return s
+    if tokenPattern.match(s):
+        return s
     raise FORG0001
 
+
 languagePattern = re.compile("[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*")
+
+
 def language(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> str:
     s = str(source)
-    if languagePattern.match(s): return s
+    if languagePattern.match(s):
+        return s
     raise FORG0001
+
 
 def NMTOKEN(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> NoReturn:
     raise xsFunctionNotAvailable()
 
+
 def Name(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> NoReturn:
     raise xsFunctionNotAvailable()
+
 
 def NCName(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> NoReturn:
     raise xsFunctionNotAvailable()
 
+
 def ID(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> NoReturn:
     raise xsFunctionNotAvailable()
+
 
 def IDREF(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> NoReturn:
     raise xsFunctionNotAvailable()
 
+
 def ENTITY(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> NoReturn:
     raise xsFunctionNotAvailable()
 
+
 def boolean(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> bool:
-    if isinstance(source,bool):
+    if isinstance(source, bool):
         return source
     elif isinstance(source, Number):
-        if source == 1:
+        if source == 1:  # type: ignore[comparison-overlap]
             return True
-        elif source == 0:
+        elif source == 0:  # type: ignore[comparison-overlap]
             return False
-    elif isinstance(source,str):
+    elif isinstance(source, str):
         b = source.lower()
-        if b in ('true','yes'):
+        if b in ("true", "yes"):
             return True
-        elif b in ('false','no'):
+        elif b in ("false", "no"):
             return False
     raise FORG0001
+
 
 def base64Binary(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> NoReturn:
     raise xsFunctionNotAvailable()
 
+
 def hexBinary(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> NoReturn:
     raise xsFunctionNotAvailable()
 
+
 def anyURI(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> ModelValue.AnyURI | None:
     return ModelValue.anyURI(source, castException=FORG0001)  # type: ignore[arg-type]
+
 
 def QName(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> ModelValue.QName | None:
     if isinstance(p, ProgHeader):
@@ -423,8 +527,10 @@ def QName(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) ->
         element = xc.sourceElement
     return ModelValue.qname(element, source, castException=FORG0001, prefixException=FONS0004)  # type: ignore[call-overload,no-any-return]
 
+
 def NOTATION(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> NoReturn:
     raise xsFunctionNotAvailable()
+
 
 xsFunctions: dict[
     str,
@@ -435,55 +541,55 @@ xsFunctions: dict[
             Any,
         ],
         Any,
-    ]
+    ],
 ] = {
-    'untypedAtomic': untypedAtomic,
-    'anyType': anyType,
-    'anyAtomicType': anyAtomicType,
-    'dateTime': dateTime,
-    'DATETIME_START': dateTime,
-    'DATETIME_INSTANT_END': dateTimeInstantEnd,
-    'XBRLI_DATEUNION': xbrliDateUnion,
-    'date': date,
-    'time': time,
-    'duration': duration,
-    'yearMonthDuration': yearMonthDuration,
-    'dayTimeDuration': dayTimeDuration,
-    'float': xs_float,
-    'double': double,
-    'decimal': decimal,
-    'integer': integer,
-    'nonPositiveInteger': nonPositiveInteger,
-    'negativeInteger': negativeInteger,
-    'long': long,
-    'int': xs_int,
-    'short': short,
-    'byte': byte,
-    'nonNegativeInteger': nonNegativeInteger,
-    'unsignedLong': unsignedLong,
-    'unsignedInt': unsignedInt,
-    'unsignedShort': unsignedShort,
-    'unsignedByte': unsignedByte,
-    'positiveInteger': positiveInteger,
-    'gYearMonth': gYearMonth,
-    'gYear': gYear,
-    'gMonthDay': gMonthDay,
-    'gDay': gDay,
-    'gMonth': gMonth,
-    'string': xsString,
-    'normalizedString': normalizedString,
-    'token': token,
-    'language': language,
-    'NMTOKEN': NMTOKEN,
-    'Name': Name,
-    'NCName': NCName,
-    'ID': ID,
-    'IDREF': IDREF,
-    'ENTITY': ENTITY,
-    'boolean': boolean,
-    'base64Binary': base64Binary,
-    'hexBinary': hexBinary,
-    'anyURI': anyURI,
-    'QName': QName,
-    'NOTATION': NOTATION,
-    }
+    "untypedAtomic": untypedAtomic,
+    "anyType": anyType,
+    "anyAtomicType": anyAtomicType,
+    "dateTime": dateTime,
+    "DATETIME_START": dateTime,
+    "DATETIME_INSTANT_END": dateTimeInstantEnd,
+    "XBRLI_DATEUNION": xbrliDateUnion,
+    "date": date,
+    "time": time,
+    "duration": duration,
+    "yearMonthDuration": yearMonthDuration,
+    "dayTimeDuration": dayTimeDuration,
+    "float": xs_float,
+    "double": double,
+    "decimal": decimal,
+    "integer": integer,
+    "nonPositiveInteger": nonPositiveInteger,
+    "negativeInteger": negativeInteger,
+    "long": long,
+    "int": xs_int,
+    "short": short,
+    "byte": byte,
+    "nonNegativeInteger": nonNegativeInteger,
+    "unsignedLong": unsignedLong,
+    "unsignedInt": unsignedInt,
+    "unsignedShort": unsignedShort,
+    "unsignedByte": unsignedByte,
+    "positiveInteger": positiveInteger,
+    "gYearMonth": gYearMonth,
+    "gYear": gYear,
+    "gMonthDay": gMonthDay,
+    "gDay": gDay,
+    "gMonth": gMonth,
+    "string": xsString,
+    "normalizedString": normalizedString,
+    "token": token,
+    "language": language,
+    "NMTOKEN": NMTOKEN,
+    "Name": Name,
+    "NCName": NCName,
+    "ID": ID,
+    "IDREF": IDREF,
+    "ENTITY": ENTITY,
+    "boolean": boolean,
+    "base64Binary": base64Binary,
+    "hexBinary": hexBinary,
+    "anyURI": anyURI,
+    "QName": QName,
+    "NOTATION": NOTATION,
+}
