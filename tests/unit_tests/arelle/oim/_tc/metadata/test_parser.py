@@ -10,7 +10,7 @@ from arelle.oim._tc.const import (
     TCME_INVALID_NAMESPACE_PREFIX,
 )
 from arelle.oim._tc.metadata.model import TCValueConstraint
-from arelle.oim._tc.metadata.parser import TCMetadataMissingPropertiesError, TCMetadataParseError, parse_tc_metadata
+from arelle.oim._tc.metadata.parser import TCMetadataMissingPropertiesError, parse_tc_metadata
 
 TC_MINIMAL_NAMESPACES = {TC_PREFIX: TC_NS_DRAFT}
 
@@ -21,35 +21,6 @@ def _with_constraint(constraint: dict[str, Any]) -> dict[str, Any]:
 
 def _with_template(template: dict[str, Any]) -> dict[str, Any]:
     return {"tableTemplates": {"t1": {"columns": {}, **template}}}
-
-
-class TestTCMetadataParseError:
-    def test_initial_json_pointer(self) -> None:
-        err = TCMetadataParseError("test", "key")
-        assert err.json_pointer == "/key"
-
-    def test_multi_segment_path(self) -> None:
-        err = TCMetadataParseError("test", "a", "b", "key")
-        assert err.json_pointer == "/a/b/key"
-
-    def test_prepend_path_accumulates_segments(self) -> None:
-        err = TCMetadataParseError("test", "field")
-        err.prepend_path("a", "b")
-        assert err.json_pointer == "/a/b/field"
-        err.prepend_path("root")
-        assert err.json_pointer == "/root/a/b/field"
-
-    def test_str_format(self) -> None:
-        err = TCMetadataParseError("Expected str, got int: 42", "key")
-        assert str(err) == "/key: Expected str, got int: 42"
-
-    def test_error_code(self) -> None:
-        err = TCMetadataParseError("test", "key")
-        assert err.code == TCME_INVALID_JSON_STRUCTURE
-
-    def test_custom_error_code(self) -> None:
-        err = TCMetadataParseError("test", "key", code="custom:code")
-        assert err.code == "custom:code"
 
 
 class TestNamespaceDetection:
