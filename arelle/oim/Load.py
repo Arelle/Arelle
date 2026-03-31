@@ -23,7 +23,6 @@ from arelle import (ModelDocument, ModelXbrl, PackageManager, UrlUtil,
 from arelle.ModelValue import (DATETIME, dateTime, dayTimeDuration, qname,
                                yearMonthDuration)
 from arelle.oim._model import OimReport
-from arelle.oim._tc.metadata.parser import parse_tc_metadata
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.PythonUtil import attrdict, isLegacyAbs, strTruncate
 from arelle.typing import TypeGetText
@@ -1230,15 +1229,6 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             documentInfoProperties.add("final")
             reportProperties = {"documentInfo", "tableTemplates", "tables", "parameters", "parameterURL", "dimensions", "decimals", "links"}
             columnProperties = {"comment", "decimals", "dimensions", "propertyGroups", "parameterURL", "propertiesFrom"}
-            tcMetadataResult = parse_tc_metadata(oimObject, namespaces)
-            modelXbrl.tcMetadata = tcMetadataResult.metadata
-            for err in tcMetadataResult.errors:
-                error(
-                    err.code,
-                    _("Invalid table constraints metadata: %(error)s"),
-                    modelObject=modelXbrl,
-                    error=str(err),
-                )
 
         entityNaQName = qname(re.sub("/xbrl-(json|csv)$","/entities",documentType), "NA")
         allowedDuplicatesFeature = ALL

@@ -13,6 +13,7 @@ from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ModelDtsObject import ModelResource
 from arelle.ModelObject import ModelObject
 from arelle.ModelXbrl import ModelXbrl
+from arelle.oim._tc.metadata.parser import parse_tc_metadata
 from arelle.typing import TypeGetText
 from arelle.XmlValidateConst import VALID
 
@@ -28,6 +29,14 @@ def validateOIM(modelXbrl: ModelXbrl) -> None:
     if oimReport := modelXbrl.oimReport:
         if oimReport.loading_errors < len(modelXbrl.errors):
             modelXbrl.error("oime:invalidTaxonomy", _("XBRL validation errors were logged for this instance."), modelObject=modelXbrl)
+        if tcMetadataResult := parse_tc_metadata(oimReport):
+            for tcParseError in tcMetadataResult.errors:
+                modelXbrl.error(
+                    tcParseError.code,
+                    _("Invalid table constraints metadata: %(error)s"),
+                    modelObject=modelXbrl,
+                    error=str(tcParseError),
+                )
     else:
         modelDocument = modelXbrl.modelDocument
         assert modelDocument is not None

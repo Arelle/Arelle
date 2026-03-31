@@ -40,7 +40,6 @@ if TYPE_CHECKING:
     from arelle.ModelValue import QName
     from arelle.PrototypeDtsObject import LinkPrototype
     from arelle.oim._model import OimReport
-    from arelle.oim._tc.metadata.model import TCMetadata
     from arelle.typing import TypeGetText, LocaleDict
     from arelle.ValidateUtr import UtrEntry
 
@@ -300,7 +299,6 @@ class ModelXbrl:
     targetRelationships: set[ModelObject]
     qnameDimensionContextElement: dict[QName, str]
     oimReport: OimReport | None
-    tcMetadata: TCMetadata | None
     _factsByDimQname: dict[QName, dict[QName | str | None, set[ModelFact]]]
     _factsByQname: dict[QName, set[ModelFact]]
     _factsByDatatype: dict[bool | tuple[bool, QName], set[ModelFact]]
@@ -359,7 +357,6 @@ class ModelXbrl:
         self.hasTableIndexing: bool = False
         self.hasFormulae: bool = False
         self.oimReport: OimReport | None = None
-        self.tcMetadata = None
         self.formulaOutputInstance: ModelXbrl | None = None
         self.logger: logging.Logger | None = self.modelManager.cntlr.logger
         self.logRefObjectProperties: bool = getattr(self.logger, "logRefObjectProperties", False)

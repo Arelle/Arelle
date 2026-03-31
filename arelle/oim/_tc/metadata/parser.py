@@ -8,6 +8,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any, TypeVar, overload
 
+from arelle.oim._model import OimReport
 from arelle.oim._tc.const import (
     TC_COLUMN_ORDER_PROPERTY_NAME,
     TC_CONSTRAINTS_PROPERTY_NAME,
@@ -79,16 +80,13 @@ class TCParseResult:
         return not self.errors
 
 
-def parse_tc_metadata(
-    oim_object: dict[str, Any],
-    namespaces: dict[str, str],
-) -> TCParseResult:
-    if not any(uri in TC_NAMESPACES for uri in namespaces.values()):
-        return TCParseResult(metadata=TCMetadata(template_constraints={}), errors=())
+def parse_tc_metadata(oim_report: OimReport) -> TCParseResult | None:
+    if not any(uri in TC_NAMESPACES for uri in oim_report.namespaces.values()):
+        return None
 
     errors: list[TCMetadataParseError] = []
     template_constraints: dict[str, TCTemplateConstraints] = {}
-    tableTemplates = oim_object.get("tableTemplates", {})
+    tableTemplates = oim_report.oim_object.get("tableTemplates", {})
     if isinstance(tableTemplates, dict):
         for template_id, template_obj in tableTemplates.items():
             if not isinstance(template_obj, dict):
@@ -103,7 +101,7 @@ def parse_tc_metadata(
     metadata = None if errors else TCMetadata(template_constraints=template_constraints)
 
     # Validations that should not prevent successful parsing
-    errors.extend(validate_namespace_prefixes(namespaces))  # type: ignore[arg-type]
+    errors.extend(validate_namespace_prefixes(oim_report.namespaces))  # type: ignore[arg-type]
 
     return TCParseResult(metadata=metadata, errors=tuple(errors))
 
