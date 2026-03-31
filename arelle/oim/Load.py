@@ -22,6 +22,7 @@ from arelle import (ModelDocument, ModelXbrl, PackageManager, UrlUtil,
                     ValidateXbrlDimensions, XbrlConst, XmlUtil, XmlValidate)
 from arelle.ModelValue import (DATETIME, dateTime, dayTimeDuration, qname,
                                yearMonthDuration)
+from arelle.oim._model import OimReport
 from arelle.oim._tc.metadata.parser import parse_tc_metadata
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.PythonUtil import attrdict, isLegacyAbs, strTruncate
@@ -2840,8 +2841,10 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     modelObject=modelXbrl, action=currentAction, error=ex,
                     traceback=traceback.format_exc())
 
-    # Reset modified status of model so user is not prompted for changes triggered by this loading operation.
-    _return.isModified = False
+    if isinstance(_return, ModelDocument.ModelDocument):
+        # Reset modified status of model so user is not prompted for changes triggered by this loading operation.
+        _return.isModified = False
+        modelXbrl.oimReport = OimReport(oimObject, len(modelXbrl.errors))
     return _return
 
 def _isParamRef(value):
@@ -2873,6 +2876,4 @@ def oimLoader(modelXbrl, mappedUri, filepath):
     doc = _loadFromOIM(cntlr, modelXbrl.error, modelXbrl.warning, modelXbrl, filepath, mappedUri)
     if doc is None:
         return None # not an OIM file
-    modelXbrl.loadedFromOIM = True
-    modelXbrl.loadedFromOimErrorCount = len(modelXbrl.errors)
     return doc

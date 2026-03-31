@@ -25,8 +25,8 @@ precisionZeroPattern = re.compile(r"^\s*0+\s*$")
 
 
 def validateOIM(modelXbrl: ModelXbrl) -> None:
-    if modelXbrl.loadedFromOIM:
-        if modelXbrl.loadedFromOimErrorCount < len(modelXbrl.errors):
+    if oimReport := modelXbrl.oimReport:
+        if oimReport.loading_errors < len(modelXbrl.errors):
             modelXbrl.error("oime:invalidTaxonomy", _("XBRL validation errors were logged for this instance."), modelObject=modelXbrl)
     else:
         modelDocument = modelXbrl.modelDocument

@@ -23,6 +23,7 @@ from arelle.ModelDocument import Type, create as createModelDocument
 from arelle import XbrlConst, ModelDocument, ModelXbrl, ValidateXbrlDimensions
 from arelle.ModelDocument import Type, create as createModelDocument
 from arelle.ModelValue import qname, dateTime, DATETIME
+from arelle.oim._model import OimReport
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.PythonUtil import attrdict
 from arelle.UrlUtil import isHttpUrl
@@ -1213,7 +1214,7 @@ def oimLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
     doc = loadFromOIM(cntlr, modelXbrl.error, modelXbrl.warning, modelXbrl, filepath, mappedUri)
     if doc is None:
         return None # not an OIM file
-    modelXbrl.loadedFromOIM = True
+    modelXbrl.oimReport = OimReport(oim_object={})
     return doc
 
 def guiXbrlLoaded(cntlr, modelXbrl, attach, *args, **kwargs):

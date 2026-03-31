@@ -39,6 +39,7 @@ if TYPE_CHECKING:
     from arelle.ModelRelationshipSet import ModelRelationshipSet as ModelRelationshipSetClass
     from arelle.ModelValue import QName
     from arelle.PrototypeDtsObject import LinkPrototype
+    from arelle.oim._model import OimReport
     from arelle.oim._tc.metadata.model import TCMetadata
     from arelle.typing import TypeGetText, LocaleDict
     from arelle.ValidateUtr import UtrEntry
@@ -298,6 +299,7 @@ class ModelXbrl:
     uriDir: str
     targetRelationships: set[ModelObject]
     qnameDimensionContextElement: dict[QName, str]
+    oimReport: OimReport | None
     tcMetadata: TCMetadata | None
     _factsByDimQname: dict[QName, dict[QName | str | None, set[ModelFact]]]
     _factsByQname: dict[QName, set[ModelFact]]
@@ -356,8 +358,7 @@ class ModelXbrl:
         self.hasTableRendering: bool = False
         self.hasTableIndexing: bool = False
         self.hasFormulae: bool = False
-        self.loadedFromOIM = False
-        self.loadedFromOimErrorCount = 0
+        self.oimReport: OimReport | None = None
         self.tcMetadata = None
         self.formulaOutputInstance: ModelXbrl | None = None
         self.logger: logging.Logger | None = self.modelManager.cntlr.logger
@@ -370,6 +371,14 @@ class ModelXbrl:
         self.arelleUnitTests: dict[str, str] = {}  # unit test entries (usually from processing instructions
         for pluginXbrlMethod in self.modelManager.cntlr.pluginManager.pluginClassMethods("ModelXbrl.Init"):
             pluginXbrlMethod(self)
+
+    @property
+    def loadedFromOIM(self) -> bool:
+        return self.oimReport is not None
+
+    @property
+    def loadedFromOimErrorCount(self) -> int:
+        return self.oimReport.loading_errors if self.oimReport is not None else 0
 
     def close(self) -> None:
         """Closes any views, formula output instances, modelDocument(s), and dereferences all memory used
