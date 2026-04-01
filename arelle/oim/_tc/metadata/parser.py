@@ -28,6 +28,7 @@ from arelle.oim._tc.metadata.model import (
     TCValueConstraint,
 )
 from arelle.typing import TypeGetText
+from arelle.XbrlConst import xsd
 
 _: TypeGetText
 
@@ -105,6 +106,8 @@ def parse_tc_metadata(oim_report: OimReport) -> TCParseResult | None:
                 errors.extend(_prepend_paths(local_errors, "tableTemplates", template_id))
             if tc is not None:
                 template_constraints[template_id] = tc
+
+    errors.extend(_validate_type_prefixes(template_constraints, oim_report.namespaces))
 
     metadata = None if errors else TCMetadata(template_constraints=template_constraints)
 
@@ -223,6 +226,55 @@ def _parse_template_table_constraints(
         errors.extend(_prepend_paths(local_errors, TC_TABLE_CONSTRAINTS_PROPERTY_NAME))
         return None
     return result
+
+
+_REQUIRED_TYPE_PREFIX_URIS: dict[str, str] = {
+    "xs": xsd,
+}
+
+
+def _validate_type_prefixes(
+    template_constraints: dict[str, TCTemplateConstraints],
+    namespaces: dict[str, str],
+) -> list[TCMetadataParseError]:
+    prefixPaths: dict[str, list[str]] = {}
+    for templateId, tc in template_constraints.items():
+        for colName, vc in tc.constraints.items():
+            _collect_type_prefix_path(
+                vc.type,
+                prefixPaths,
+                f"/tableTemplates/{templateId}/columns/{colName}/{TC_CONSTRAINTS_PROPERTY_NAME}/type",
+            )
+        for paramName, vc in tc.parameters.items():
+            _collect_type_prefix_path(
+                vc.type,
+                prefixPaths,
+                f"/tableTemplates/{templateId}/{TC_PARAMETERS_PROPERTY_NAME}/{paramName}/type",
+            )
+    errors: list[TCMetadataParseError] = []
+    for prefix, paths in prefixPaths.items():
+        expectedUri = _REQUIRED_TYPE_PREFIX_URIS.get(prefix)
+        if expectedUri is not None and namespaces.get(prefix) != expectedUri:
+            errors.append(
+                TCMetadataParseError(
+                    _("Namespace prefix '{prefix}' must be bound to '{uri}', referenced by: {paths}").format(
+                        prefix=prefix, uri=expectedUri, paths=", ".join(sorted(paths))
+                    ),
+                    "documentInfo",
+                    "namespaces",
+                )
+            )
+    return errors
+
+
+def _collect_type_prefix_path(
+    type_value: str,
+    prefixPaths: dict[str, list[str]],
+    path: str,
+) -> None:
+    prefix, _sep, localName = type_value.partition(":")
+    if localName:
+        prefixPaths.setdefault(prefix, []).append(path)
 
 
 _VALUE_CONSTRAINT_PROPERTIES = frozenset(

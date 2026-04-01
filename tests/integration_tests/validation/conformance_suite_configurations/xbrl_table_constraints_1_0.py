@@ -53,7 +53,6 @@ config = ConformanceSuiteConfig(
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-778h',
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-778i',
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-780',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-780a',
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-782a',
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-782b',
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-789a',
