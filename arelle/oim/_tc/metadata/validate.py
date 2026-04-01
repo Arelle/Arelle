@@ -16,6 +16,7 @@ from arelle.oim._tc.const import (
     TC_PARAMETERS_PROPERTY_NAME,
     TC_PREFIX,
     TC_TABLE_CONSTRAINTS_PROPERTY_NAME,
+    TCME_COLUMN_PARAMETER_CONFLICT,
     TCME_INVALID_NAMESPACE_PREFIX,
     TCME_MISPLACED_OR_UNKNOWN_PROPERTY,
 )
@@ -55,6 +56,7 @@ class TCMetadataValidator:
     def validate(self) -> Generator[TCMetadataValidationError, None, None]:
         yield from self._validate_namespace_prefixes()
         yield from self._validate_misplaced_tc_properties()
+        yield from self._validate_column_parameter_conflicts()
 
     def _validate_namespace_prefixes(self) -> Generator[TCMetadataValidationError, None, None]:
         for prefix, uri in self._namespaces.items():
@@ -64,6 +66,18 @@ class TCMetadataValidator:
                         "Table constraints namespace '{uri}' must be bound to prefix '{tc_prefix}', not '{prefix}'"
                     ).format(uri=uri, tc_prefix=TC_PREFIX, prefix=prefix),
                     code=TCME_INVALID_NAMESPACE_PREFIX,
+                )
+
+    def _validate_column_parameter_conflicts(self) -> Generator[TCMetadataValidationError, None, None]:
+        for template_id, tc in self._tc_metadata.template_constraints.items():
+            for name in tc.constraints.keys() & tc.parameters.keys():
+                yield TCMetadataValidationError(
+                    _("Constrained column '{name}' conflicts with parameter of the same name").format(name=name),
+                    _TABLE_TEMPLATES_KEY,
+                    template_id,
+                    _COLUMNS_KEY,
+                    name,
+                    code=TCME_COLUMN_PARAMETER_CONFLICT,
                 )
 
     def _validate_misplaced_tc_properties(self) -> Generator[TCMetadataValidationError, None, None]:

@@ -2,18 +2,22 @@ from __future__ import annotations
 
 from typing import Any
 
+from arelle import XbrlConst
 from arelle.oim._model import OimReport
 from arelle.oim._tc.const import (
     TC_NS_DRAFT,
     TC_PREFIX,
+    TCME_COLUMN_PARAMETER_CONFLICT,
     TCME_INVALID_NAMESPACE_PREFIX,
     TCME_MISPLACED_OR_UNKNOWN_PROPERTY,
 )
-from arelle.oim._tc.metadata.model import TCMetadata
+from arelle.oim._tc.metadata.model import TCMetadata, TCTemplateConstraints, TCValueConstraint
 from arelle.oim._tc.metadata.parser import TCMetadataParseError
 from arelle.oim._tc.metadata.validate import TCMetadataValidator
 
 TC_NAMESPACES = {TC_PREFIX: TC_NS_DRAFT}
+_XS_NAMESPACES = {TC_PREFIX: TC_NS_DRAFT, "xs": XbrlConst.xsd}
+_XS_OIM_OBJECT: dict[str, Any] = {"documentInfo": {"namespaces": _XS_NAMESPACES}}
 _EMPTY_TC_METADATA = TCMetadata(template_constraints={})
 
 
@@ -295,6 +299,73 @@ class TestNamespacePrefix:
     def test_tc_prefix_no_error(self) -> None:
         oim: dict[str, object] = {}
         assert _validate(oim, TC_NAMESPACES) == []
+
+
+class TestColumnParameterConflict:
+    def test_conflict_detected(self) -> None:
+        tc_metadata = TCMetadata(
+            template_constraints={
+                "t1": TCTemplateConstraints(
+                    constraints={"col1": TCValueConstraint(type="xs:decimal")},
+                    parameters={"col1": TCValueConstraint(type="xs:decimal")},
+                ),
+            }
+        )
+        errors = list(TCMetadataValidator(OimReport(oim_object=_XS_OIM_OBJECT), tc_metadata).validate())
+        assert len(errors) == 1
+        assert errors[0].code == TCME_COLUMN_PARAMETER_CONFLICT
+        assert errors[0].json_pointer == "/tableTemplates/t1/columns/col1"
+
+    def test_no_conflict_different_names(self) -> None:
+        tc_metadata = TCMetadata(
+            template_constraints={
+                "t1": TCTemplateConstraints(
+                    constraints={"col1": TCValueConstraint(type="xs:decimal")},
+                    parameters={"param1": TCValueConstraint(type="xs:decimal")},
+                ),
+            }
+        )
+        errors = list(TCMetadataValidator(OimReport(oim_object=_XS_OIM_OBJECT), tc_metadata).validate())
+        assert errors == []
+
+    def test_no_conflict_only_columns(self) -> None:
+        tc_metadata = TCMetadata(
+            template_constraints={
+                "t1": TCTemplateConstraints(
+                    constraints={"col1": TCValueConstraint(type="xs:string")},
+                ),
+            }
+        )
+        errors = list(TCMetadataValidator(OimReport(oim_object=_XS_OIM_OBJECT), tc_metadata).validate())
+        assert errors == []
+
+    def test_no_conflict_only_parameters(self) -> None:
+        tc_metadata = TCMetadata(
+            template_constraints={
+                "t1": TCTemplateConstraints(
+                    parameters={"param1": TCValueConstraint(type="xs:string")},
+                ),
+            }
+        )
+        errors = list(TCMetadataValidator(OimReport(oim_object=_XS_OIM_OBJECT), tc_metadata).validate())
+        assert errors == []
+
+    def test_conflict_in_one_template_not_other(self) -> None:
+        tc_metadata = TCMetadata(
+            template_constraints={
+                "t1": TCTemplateConstraints(
+                    constraints={"shared": TCValueConstraint(type="xs:string")},
+                    parameters={"shared": TCValueConstraint(type="xs:string")},
+                ),
+                "t2": TCTemplateConstraints(
+                    constraints={"shared": TCValueConstraint(type="xs:string")},
+                    parameters={"other": TCValueConstraint(type="xs:string")},
+                ),
+            }
+        )
+        errors = list(TCMetadataValidator(OimReport(oim_object=_XS_OIM_OBJECT), tc_metadata).validate())
+        assert len(errors) == 1
+        assert errors[0].json_pointer == "/tableTemplates/t1/columns/shared"
 
 
 class TestMultipleErrors:
