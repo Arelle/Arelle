@@ -367,7 +367,7 @@ enum2s = frozenset({
 })
 enum_1x = frozenset({
     "http://xbrl.org/2014/extensible-enumerations",
-    "http://www.xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1",
+    "http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1",
     "http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1",
 })
 enums = enum_1x | enum2s
@@ -739,7 +739,7 @@ standardNamespaceSchemaLocations: dict[str, str] = {
 }
 
 
-numericXsdType = frozenset({
+numericXsdTypes = frozenset({
         "integer",
         "positiveInteger",
         "negativeInteger",
@@ -758,7 +758,7 @@ numericXsdType = frozenset({
         "double",
     }
 )
-decimalXsdType = frozenset({
+decimalXsdTypes = frozenset({
         "integer",
         "positiveInteger",
         "negativeInteger",
@@ -793,11 +793,11 @@ integerXsdTypes = frozenset({
 )
 
 def isNumericXsdType(xsdType: str | None) -> bool:
-    return xsdType in numericXsdType
+    return xsdType in numericXsdTypes
 
 
 def isDecimalXsdType(xsdType: str | None) -> bool:
-    return xsdType in decimalXsdType
+    return xsdType in decimalXsdTypes
 
 
 def isIntegerXsdType(xsdType: str | None) -> bool:
