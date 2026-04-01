@@ -83,6 +83,7 @@ qnDateUnionXsdTypes = [
     qname("{http://www.w3.org/2001/XMLSchema}xsd:date"),
     qname("{http://www.w3.org/2001/XMLSchema}xsd:dateTime"),
 ]
+qnXsdDuration = qname("{http://www.w3.org/2001/XMLSchema}xsd:duration")
 qnXbrliDecimalsUnion = qname("{http://www.xbrl.org/2003/instance}xbrli:decimalsType")
 qnXbrliPrecisionUnion = qname("{http://www.xbrl.org/2003/instance}xbrli:precisionType")
 qnXbrliNonZeroDecimalUnion = qname("{http://www.xbrl.org/2003/instance}xbrli:nonZeroDecimal")

@@ -22,6 +22,7 @@ from arelle.oim._tc.const import (
 )
 from arelle.oim._tc.metadata.common import TCMetadataValidationError
 from arelle.oim._tc.metadata.model import TCMetadata
+from arelle.oim._tc.metadata.value_constraint_validation import validate_value_constraint
 from arelle.typing import TypeGetText
 
 _: TypeGetText
@@ -57,6 +58,7 @@ class TCMetadataValidator:
         yield from self._validate_namespace_prefixes()
         yield from self._validate_misplaced_tc_properties()
         yield from self._validate_column_parameter_conflicts()
+        yield from self._validate_value_constraints()
 
     def _validate_namespace_prefixes(self) -> Generator[TCMetadataValidationError, None, None]:
         for prefix, uri in self._namespaces.items():
@@ -128,6 +130,19 @@ class TCMetadataValidator:
         elif isinstance(value, list):
             for i, item in enumerate(value):
                 yield from self._walk_value(item, *path, str(i))
+
+    def _validate_value_constraints(self) -> Generator[TCMetadataValidationError, None, None]:
+        for template_id, tc in self._tc_metadata.template_constraints.items():
+            for col_name, constraint in tc.constraints.items():
+                col_path = (_TABLE_TEMPLATES_KEY, template_id, _COLUMNS_KEY, col_name, TC_CONSTRAINTS_PROPERTY_NAME)
+                for error in validate_value_constraint(constraint, self._namespaces):
+                    error.prepend_path(*col_path)
+                    yield error
+            for param_name, constraint in tc.parameters.items():
+                param_path = (_TABLE_TEMPLATES_KEY, template_id, TC_PARAMETERS_PROPERTY_NAME, param_name)
+                for error in validate_value_constraint(constraint, self._namespaces):
+                    error.prepend_path(*param_path)
+                    yield error
 
     @staticmethod
     def _misplaced_property_error(*path: str) -> TCMetadataValidationError:

@@ -10,6 +10,7 @@ from arelle.oim._tc.const import (
     TCME_COLUMN_PARAMETER_CONFLICT,
     TCME_INVALID_NAMESPACE_PREFIX,
     TCME_MISPLACED_OR_UNKNOWN_PROPERTY,
+    TCME_UNKNOWN_TYPE,
 )
 from arelle.oim._tc.metadata.model import TCMetadata, TCTemplateConstraints, TCValueConstraint
 from arelle.oim._tc.metadata.parser import TCMetadataParseError
@@ -21,7 +22,10 @@ _XS_OIM_OBJECT: dict[str, Any] = {"documentInfo": {"namespaces": _XS_NAMESPACES}
 _EMPTY_TC_METADATA = TCMetadata(template_constraints={})
 
 
-def _validate(oim: dict[str, Any], namespaces: dict[str, str] | None = None) -> list[TCMetadataParseError]:
+def _validate(
+    oim: dict[str, Any],
+    namespaces: dict[str, str] | None = None,
+) -> list[TCMetadataParseError]:
     if namespaces is not None:
         oim.setdefault("documentInfo", {})["namespaces"] = namespaces
     return list(TCMetadataValidator(OimReport(oim_object=oim), _EMPTY_TC_METADATA).validate())
@@ -366,6 +370,34 @@ class TestColumnParameterConflict:
         errors = list(TCMetadataValidator(OimReport(oim_object=_XS_OIM_OBJECT), tc_metadata).validate())
         assert len(errors) == 1
         assert errors[0].json_pointer == "/tableTemplates/t1/columns/shared"
+
+
+class TestValueConstraintIntegration:
+    def test_column_constraint_error_path(self) -> None:
+        tc_metadata = TCMetadata(
+            template_constraints={
+                "t1": TCTemplateConstraints(
+                    constraints={"col1": TCValueConstraint(type="xs:bogus")},
+                ),
+            }
+        )
+        errors = list(TCMetadataValidator(OimReport(oim_object=_XS_OIM_OBJECT), tc_metadata).validate())
+        assert len(errors) == 1
+        assert errors[0].code == TCME_UNKNOWN_TYPE
+        assert errors[0].json_pointer == "/tableTemplates/t1/columns/col1/tc:constraints/type"
+
+    def test_parameter_constraint_error_path(self) -> None:
+        tc_metadata = TCMetadata(
+            template_constraints={
+                "t1": TCTemplateConstraints(
+                    parameters={"p1": TCValueConstraint(type="xs:bogus")},
+                ),
+            }
+        )
+        errors = list(TCMetadataValidator(OimReport(oim_object=_XS_OIM_OBJECT), tc_metadata).validate())
+        assert len(errors) == 1
+        assert errors[0].code == TCME_UNKNOWN_TYPE
+        assert errors[0].json_pointer == "/tableTemplates/t1/tc:parameters/p1/type"
 
 
 class TestMultipleErrors:
