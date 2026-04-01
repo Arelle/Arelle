@@ -4,7 +4,6 @@ See COPYRIGHT.md for copyright information.
 
 from __future__ import annotations
 
-from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any, TypeVar, overload
 
@@ -15,10 +14,8 @@ from arelle.oim._tc.const import (
     TC_KEYS_PROPERTY_NAME,
     TC_NAMESPACES,
     TC_PARAMETERS_PROPERTY_NAME,
-    TC_PREFIX,
     TC_TABLE_CONSTRAINTS_PROPERTY_NAME,
     TCME_INVALID_JSON_STRUCTURE,
-    TCME_INVALID_NAMESPACE_PREFIX,
 )
 from arelle.oim._tc.metadata.common import TCMetadataValidationError
 from arelle.oim._tc.metadata.model import (
@@ -81,6 +78,17 @@ class TCParseResult:
 
 
 def parse_tc_metadata(oim_report: OimReport) -> TCParseResult | None:
+    """
+    Parse Table Constraints (TC) metadata from an OIM report.
+
+    Returns None if the report contains no TC namespace declarations,
+    indicating TC processing is not applicable.
+
+    On success or failure, returns a TCParseResult containing either
+    the parsed metadata or any structural errors that prevented
+    construction. Full semantic validation is not performed here, only
+    tcme:invalidJSONStructure errors are returned.
+    """
     if not any(uri in TC_NAMESPACES for uri in oim_report.namespaces.values()):
         return None
 
@@ -99,9 +107,6 @@ def parse_tc_metadata(oim_report: OimReport) -> TCParseResult | None:
                 template_constraints[template_id] = tc
 
     metadata = None if errors else TCMetadata(template_constraints=template_constraints)
-
-    # Validations that should not prevent successful parsing
-    errors.extend(validate_namespace_prefixes(oim_report.namespaces))  # type: ignore[arg-type]
 
     return TCParseResult(metadata=metadata, errors=tuple(errors))
 
@@ -593,17 +598,3 @@ def _parse_set(
     if not _validate_str_list(key, val, errors, unique=True, non_empty=non_empty):
         return default
     return frozenset(val)
-
-
-def validate_namespace_prefixes(
-        namespaces: dict[str, str]
-) -> Iterable[TCMetadataValidationError]:
-    for prefix, uri in namespaces.items():
-        if uri in TC_NAMESPACES and  prefix != TC_PREFIX:
-            yield TCMetadataValidationError(
-                _(
-                    "Table constraints namespace '{uri}' must be bound to "
-                    "prefix '{tc_prefix}', not '{prefix}'"
-                ).format(uri=uri, tc_prefix=TC_PREFIX, prefix=prefix),
-                code=TCME_INVALID_NAMESPACE_PREFIX,
-            )

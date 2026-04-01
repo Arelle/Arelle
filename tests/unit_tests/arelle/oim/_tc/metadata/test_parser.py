@@ -8,7 +8,6 @@ from arelle.oim._tc.const import (
     TC_NS_DRAFT,
     TC_PREFIX,
     TCME_INVALID_JSON_STRUCTURE,
-    TCME_INVALID_NAMESPACE_PREFIX,
 )
 from arelle.oim._tc.metadata.model import TCValueConstraint
 from arelle.oim._tc.metadata.parser import TCMetadataMissingPropertiesError, parse_tc_metadata
@@ -55,10 +54,6 @@ class TestNamespaceDetection:
         result = parse_tc_metadata(_oim_report({"tableTemplates": {}}, {"custom": TC_NS_DRAFT}))
         assert result is not None
         assert result.metadata is not None
-        assert not result.is_valid
-        assert len(result.errors) == 1
-        assert result.errors[0].code == TCME_INVALID_NAMESPACE_PREFIX
-        assert len(result.errors[0].path_segments) == 0
 
 
 class TestPrimitiveStr:

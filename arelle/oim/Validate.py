@@ -14,6 +14,7 @@ from arelle.ModelDtsObject import ModelResource
 from arelle.ModelObject import ModelObject
 from arelle.ModelXbrl import ModelXbrl
 from arelle.oim._tc.metadata.parser import parse_tc_metadata
+from arelle.oim._tc.metadata.validate import TCMetadataValidator
 from arelle.typing import TypeGetText
 from arelle.XmlValidateConst import VALID
 
@@ -37,6 +38,15 @@ def validateOIM(modelXbrl: ModelXbrl) -> None:
                     modelObject=modelXbrl,
                     error=str(tcParseError),
                 )
+            if tcMetadata := tcMetadataResult.metadata:
+                tcValidator = TCMetadataValidator(oimReport, tcMetadata)
+                for tcError in tcValidator.validate():
+                    modelXbrl.error(
+                        tcError.code,
+                        _("Invalid table constraints metadata: %(error)s"),
+                        modelObject=modelXbrl,
+                        error=str(tcError),
+                    )
     else:
         modelDocument = modelXbrl.modelDocument
         assert modelDocument is not None
