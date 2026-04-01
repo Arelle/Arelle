@@ -8,7 +8,7 @@ from collections.abc import Generator
 
 from arelle import XbrlConst
 from arelle.ModelValue import QName, qname
-from arelle.oim._tc.const import TCME_ILLEGAL_CONSTRAINT, TCME_UNKNOWN_TYPE
+from arelle.oim._tc.const import TCME_ILLEGAL_CONSTRAINT, TCME_UNKNOWN_PERIOD_TYPE, TCME_UNKNOWN_TYPE
 from arelle.oim._tc.metadata.common import TCMetadataValidationError
 from arelle.oim._tc.metadata.model import TCValueConstraint
 from arelle.typing import TypeGetText
@@ -172,6 +172,8 @@ _INTEGER_TYPES = _xsd_qnames(
     "unsignedByte",
 )
 
+_VALID_PERIOD_TYPES = frozenset({"year", "half", "quarter", "week", "month", "day", "instant"})
+
 
 def validate_value_constraint(
     constraint: TCValueConstraint,
@@ -200,8 +202,17 @@ def validate_value_constraint(
     if constraint.duration_type is not None and effective_type != qnXsdDuration:
         yield _illegalConstraintError(_("durationType is not applicable to type '{type}'").format(type=constraint.type))
 
-    if constraint.period_type is not None and constraint.type != "period":
-        yield _illegalConstraintError(_("periodType is not applicable to type '{type}'").format(type=constraint.type))
+    if constraint.period_type is not None:
+        if constraint.type != "period":
+            yield _illegalConstraintError(
+                _("periodType is not applicable to type '{type}'").format(type=constraint.type)
+            )
+        if constraint.period_type not in _VALID_PERIOD_TYPES:
+            yield TCMetadataValidationError(
+                _("Unknown periodType: '{period_type}'").format(period_type=constraint.period_type),
+                "periodType",
+                code=TCME_UNKNOWN_PERIOD_TYPE,
+            )
 
     if (
         constraint.time_zone is not None

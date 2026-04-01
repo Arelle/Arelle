@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import pytest
+
 from arelle import XbrlConst
 from arelle.oim._tc.const import (
     TCME_ILLEGAL_CONSTRAINT,
+    TCME_UNKNOWN_PERIOD_TYPE,
     TCME_UNKNOWN_TYPE,
 )
 from arelle.oim._tc.metadata.common import TCMetadataValidationError
@@ -109,6 +112,34 @@ class TestValidateValueConstraint:
 
     def test_period_type_on_period_no_error(self) -> None:
         assert _errors(TCValueConstraint(type="period", period_type="year")) == []
+
+    def test_unknown_period_type_error(self) -> None:
+        errors = _errors(TCValueConstraint(type="period", period_type="dayTime"))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_UNKNOWN_PERIOD_TYPE
+
+    def test_unknown_period_type_path_segment(self) -> None:
+        errors = _errors(TCValueConstraint(type="period", period_type="dayTime"))
+        assert errors[0].path_segments == ["periodType"]
+
+    def test_unknown_period_type_case_sensitive(self) -> None:
+        errors = _errors(TCValueConstraint(type="period", period_type="YEAR"))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_UNKNOWN_PERIOD_TYPE
+
+    def test_unknown_period_type_leading_space(self) -> None:
+        errors = _errors(TCValueConstraint(type="period", period_type=" year"))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_UNKNOWN_PERIOD_TYPE
+
+    def test_unknown_period_type_trailing_space(self) -> None:
+        errors = _errors(TCValueConstraint(type="period", period_type="year "))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_UNKNOWN_PERIOD_TYPE
+
+    @pytest.mark.parametrize("period_type", ["year", "half", "quarter", "week", "month", "day", "instant"])
+    def test_valid_period_types(self, period_type: str) -> None:
+        assert _errors(TCValueConstraint(type="period", period_type=period_type)) == []
 
     def test_time_zone_on_non_time_zoned_error(self) -> None:
         errors = _errors(TCValueConstraint(type="xs:string", time_zone=True))
