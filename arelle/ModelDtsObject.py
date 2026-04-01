@@ -59,8 +59,11 @@ validation.
 """
 from __future__ import annotations
 from collections import defaultdict
+from collections.abc import Collection
 import decimal
-import os, sys
+import os
+import sys
+from typing import TYPE_CHECKING
 from arelle import (
     Locale,
     ModelValue,
@@ -73,6 +76,8 @@ from arelle.LinkRelationships import LinkRelationships
 from arelle.ModelObject import ModelObject
 from arelle.typing import ModelFactBase, ModelResourceBase
 
+if TYPE_CHECKING:
+    from arelle.ModelValue import QName
 
 class ModelRoleType(ModelObject):
     """
@@ -448,9 +453,9 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
                 self._baseXbrliTypeQname = self.type.baseXbrliTypeQname if self.type is not None else None
             return self._baseXbrliTypeQname
 
-    def instanceOfType(self, typeqname) -> bool:
-        """(bool) -- True if element is declared by, or derived from type of given qname or list of qnames"""
-        if isinstance(typeqname, (tuple,list,set)): # union
+    def instanceOfType(self, typeqname: QName | Collection[QName]) -> bool:
+        """(bool) -- True if element is declared by, or derived from type of given qname or collection of qnames"""
+        if isinstance(typeqname, Collection): # union
             if self.typeQname in typeqname:
                 return True
         else: # not union, single type
@@ -1179,17 +1184,14 @@ class ModelType(ModelNamableTerm):
                     if qnameDerivedFrom == XbrlConst.qnDateUnionXsdTypes:
                         self._baseXbrliTypeQname = qnameDerivedFrom
                     # TBD implement union types
-                    elif len(qnameDerivedFrom) == 1:
-                        qn0 = qnameDerivedFrom[0]
-                        if qn0.namespaceURI in (XbrlConst.xbrli, XbrlConst.xsd):
+                    elif len(qnameDerivedFrom) == 1 and (qn0 := qnameDerivedFrom[0]):
+                        if XbrlConst.isXsdOrXbrliNamespace(qn0.namespaceURI):
                             self._baseXbrliTypeQname = qn0
                         else:
                             typeDerivedFrom = self.modelXbrl.qnameTypes.get(qn0)
                             self._baseXbrliTypeQname = typeDerivedFrom.baseXbrliTypeQname if typeDerivedFrom is not None else None
                 elif isinstance(qnameDerivedFrom, ModelValue.QName):
-                    if qnameDerivedFrom.namespaceURI == XbrlConst.xbrli:  # xbrli type
-                        self._baseXbrliTypeQname = qnameDerivedFrom
-                    elif qnameDerivedFrom.namespaceURI == XbrlConst.xsd:    # xsd type
+                    if XbrlConst.isXsdOrXbrliNamespace(qnameDerivedFrom.namespaceURI):
                         self._baseXbrliTypeQname = qnameDerivedFrom
                     else:
                         typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
@@ -1219,14 +1221,14 @@ class ModelType(ModelNamableTerm):
 
     @property
     def isTextBlock(self):
-        """(str) -- True if type is, or is derived from, us-types:textBlockItemType or dtr-types:escapedItemType"""
-        if self.name == "textBlockItemType" and "/us-types/" in self.modelDocument.targetNamespace:
+        """(str) -- True if type is, or is derived from, dtr-types:escapedItemType or us-types:textBlockItemType or a type derived from either of those types."""
+        if self.name == "escapedItemType" and XbrlConst.isDtrTypeNamespace(self.modelDocument.targetNamespace):
             return True
-        if self.name == "escapedItemType" and self.modelDocument.targetNamespace.startswith(XbrlConst.dtrTypesStartsWith):
+        if self.name == "textBlockItemType" and XbrlConst.isUSTypesNamespace(self.modelDocument.targetNamespace):
             return True
         qnameDerivedFrom = self.qnameDerivedFrom
         if (not isinstance(qnameDerivedFrom, ModelValue.QName) or # textblock not a union type
-            (qnameDerivedFrom.namespaceURI in(XbrlConst.xsd,XbrlConst.xbrli))):
+            XbrlConst.isXsdOrXbrliNamespace(qnameDerivedFrom.namespaceURI)):
             return False
         typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
         return typeDerivedFrom.isTextBlock if typeDerivedFrom is not None else False
@@ -1234,7 +1236,7 @@ class ModelType(ModelNamableTerm):
     @property
     def isOimTextFactType(self):
         """(str) -- True if type meets OIM requirements to be a text fact"""
-        if self.modelDocument.targetNamespace.startswith(XbrlConst.dtrTypesStartsWith):
+        if XbrlConst.isDtrTypeNamespace(self.modelDocument.targetNamespace):
             return self.name not in XbrlConst.dtrNoLangItemTypeNames and self.baseXsdType in XbrlConst.xsdStringTypeNames
         if self.modelDocument.targetNamespace == XbrlConst.xbrli:
             return self.baseXsdType not in XbrlConst.xsdNoLangTypeNames and self.baseXsdType in XbrlConst.xsdStringTypeNames
@@ -1259,12 +1261,11 @@ class ModelType(ModelNamableTerm):
     def isDomainItemType(self):
         """(bool) -- True if type is, or is derived from, domainItemType in either a us-types or a dtr-types namespace."""
         if self.name == "domainItemType" and \
-           ("/us-types/" in self.modelDocument.targetNamespace or
-            self.modelDocument.targetNamespace.startswith(XbrlConst.dtrTypesStartsWith)):
+           (XbrlConst.isDtrTypeNamespace(self.modelDocument.targetNamespace) or XbrlConst.isUSTypesNamespace(self.modelDocument.targetNamespace)):
             return True
         qnameDerivedFrom = self.qnameDerivedFrom
         if (not isinstance(qnameDerivedFrom, ModelValue.QName) or # domainItemType not a union type
-            (qnameDerivedFrom.namespaceURI in(XbrlConst.xsd,XbrlConst.xbrli))):
+            XbrlConst.isXsdOrXbrliNamespace(qnameDerivedFrom.namespaceURI)):
             return False
         typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
         return typeDerivedFrom.isDomainItemType if typeDerivedFrom is not None else False
@@ -1274,20 +1275,21 @@ class ModelType(ModelNamableTerm):
         """(bool) -- True if type is, or is derived from, stringItemType or normalizedStringItemType."""
         return self.baseXbrliType in {"stringItemType", "normalizedStringItemType", "string", "normalizedString"}
 
-    def isDerivedFrom(self, typeqname):
+    def isDerivedFrom(self, typeqname: QName | Collection[QName]) -> bool:
         """(bool) -- True if type is derived from type specified by QName.  Type can be a single type QName or list of QNames"""
         qnamesDerivedFrom = self.qnameDerivedFrom # can be single qname or list of qnames if union
         if qnamesDerivedFrom is None:    # not derived from anything
             return typeqname is None or not typeqname # may be none or empty list
-        if isinstance(qnamesDerivedFrom, (tuple,list)): # union
-            if isinstance(typeqname, (tuple,list,set)):
+
+        if isinstance(qnamesDerivedFrom, Collection): # union
+            if isinstance(typeqname, Collection):
                 if any(t in qnamesDerivedFrom for t in typeqname):
                     return True
             else:
                 if typeqname in qnamesDerivedFrom:
                     return True
         else: # not union, single type
-            if isinstance(typeqname, (tuple,list,set)):
+            if isinstance(typeqname, Collection):
                 if qnamesDerivedFrom in typeqname:
                     return True
             else:
@@ -2102,7 +2104,7 @@ class ModelRelationship(ModelObject):
                      self.toModelObject.typedDomainElement is not None  else (),
                 ("closed", self.closed) if self.arcrole in (XbrlConst.all, XbrlConst.notAll)  else (),
                 ("usable", self.usable) if self.arcrole == XbrlConst.domainMember  else (),
-                ("targetRole", self.targetRole) if self.arcrole.startswith(XbrlConst.dimStartsWith) else (),
+                ("targetRole", self.targetRole) if XbrlConst.isDimensionArcrole(self.arcrole) else (),
                 ("order", self.order),
                 ("priority", self.priority)) + \
                (("from", self.fromModelObject.qname),) if isinstance(self.fromModelObject,ModelObject) else ()

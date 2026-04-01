@@ -101,7 +101,7 @@ aspectToToken: dict[int, str] = {
 }
 
 aspectElementNameAttrValue: dict[int, tuple[str | tuple[str, str], str, str | None, str | None]] = {
-    Aspect.LOCATION_RULE: ("location", XbrlConst.tuple, None, None),
+    Aspect.LOCATION_RULE: ("location", XbrlConst.formulaTuple, None, None),
     Aspect.CONCEPT: ("concept", XbrlConst.formula, None, None),
     Aspect.ENTITY_IDENTIFIER: ("entityIdentifier", XbrlConst.formula, None, None),
     Aspect.SCHEME: ("entityIdentifier", XbrlConst.formula, None, None),

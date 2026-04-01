@@ -312,7 +312,7 @@ class ValidateVersReport():
                                     _("%(action)s %(event)s %(attr)s %(attrName)s does not have a name"),
                                     modelObject=conceptChange, action=conceptChange.actionId,
                                     attr=attr, attrName=customAttributeQname)
-                            elif customAttributeQname.namespaceURI in (None, XbrlConst.xbrli, XbrlConst.xsd):
+                            elif customAttributeQname.namespaceURI is None or XbrlConst.isXsdOrXbrliNamespace(customAttributeQname.namespaceURI):
                                 self.modelVersReport.error("vercde:illegalCustomAttributeEvent",
                                     _("%(action)s %(event)s %(attr)s %(attrName)s has an invalid namespace"),
                                     modelObject=conceptChange, action=conceptChange.actionId, event=conceptChange.name,
