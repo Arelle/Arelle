@@ -5,6 +5,7 @@ import pytest
 from arelle import XbrlConst
 from arelle.oim._tc.const import (
     TCME_ILLEGAL_CONSTRAINT,
+    TCME_UNKNOWN_DURATION_TYPE,
     TCME_UNKNOWN_PERIOD_TYPE,
     TCME_UNKNOWN_TYPE,
 )
@@ -104,6 +105,34 @@ class TestValidateValueConstraint:
 
     def test_duration_type_on_duration_no_error(self) -> None:
         assert _errors(TCValueConstraint(type="xs:duration", duration_type="dayTime")) == []
+
+    def test_unknown_duration_type_error(self) -> None:
+        errors = _errors(TCValueConstraint(type="xs:duration", duration_type="yearmonth"))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_UNKNOWN_DURATION_TYPE
+
+    def test_unknown_duration_type_path_segment(self) -> None:
+        errors = _errors(TCValueConstraint(type="xs:duration", duration_type="yearmonth"))
+        assert errors[0].path_segments == ["durationType"]
+
+    def test_unknown_duration_type_case_sensitive(self) -> None:
+        errors = _errors(TCValueConstraint(type="xs:duration", duration_type="YearMonth"))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_UNKNOWN_DURATION_TYPE
+
+    def test_unknown_duration_type_leading_space(self) -> None:
+        errors = _errors(TCValueConstraint(type="xs:duration", duration_type=" yearMonth"))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_UNKNOWN_DURATION_TYPE
+
+    def test_unknown_duration_type_trailing_space(self) -> None:
+        errors = _errors(TCValueConstraint(type="xs:duration", duration_type="yearMonth "))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_UNKNOWN_DURATION_TYPE
+
+    @pytest.mark.parametrize("duration_type", ["yearMonth", "dayTime"])
+    def test_valid_duration_types(self, duration_type: str) -> None:
+        assert _errors(TCValueConstraint(type="xs:duration", duration_type=duration_type)) == []
 
     def test_period_type_on_non_period_error(self) -> None:
         errors = _errors(TCValueConstraint(type="xs:string", period_type="year"))
