@@ -7,5 +7,4 @@ services:
     build:
       args:
         INCLUDE_EDGAR: "true"
-        INCLUDE_IXBRL_VIEWER: "true"
         EXTRA_PIP: "-r requirements-plugins.txt"

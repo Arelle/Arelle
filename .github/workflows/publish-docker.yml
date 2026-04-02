@@ -24,11 +24,6 @@ on:
         description: 'xbrlus/xule branch, tag or SHA to checkout (blank for default)'
         required: false
         type: string
-      viewer_ref:
-        default: ''
-        description: 'Arelle/ixbrl-viewer branch, tag or SHA to checkout (blank for default)'
-        required: false
-        type: string
 
   workflow_dispatch:
     inputs:
@@ -50,11 +45,6 @@ on:
       xule_ref:
         default: ''
         description: 'xbrlus/xule branch, tag or SHA to checkout (blank for default)'
-        required: false
-        type: string
-      viewer_ref:
-        default: ''
-        description: 'Arelle/ixbrl-viewer branch, tag or SHA to checkout (blank for default)'
         required: false
         type: string
 
@@ -104,32 +94,6 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}-slim
             type=semver,pattern={{major}}-slim
 
-      - name: Extract metadata (tags, labels) for EDGAR Docker
-        id: meta-edgar
-        uses: docker/metadata-action@v6.0.0
-        with:
-          images: ${{ secrets.DOCKER_USERNAME }}/arelle
-          flavor: |
-            latest=false
-          tags: |
-            edgar
-            type=semver,pattern={{major}}.{{minor}}.{{patch}}-edgar
-            type=semver,pattern={{major}}.{{minor}}-edgar
-            type=semver,pattern={{major}}-edgar
-
-      - name: Extract metadata (tags, labels) for iXBRL Viewer Docker
-        id: meta-viewer
-        uses: docker/metadata-action@v6.0.0
-        with:
-          images: ${{ secrets.DOCKER_USERNAME }}/arelle
-          flavor: |
-            latest=false
-          tags: |
-            viewer
-            type=semver,pattern={{major}}.{{minor}}.{{patch}}-viewer
-            type=semver,pattern={{major}}.{{minor}}-viewer
-            type=semver,pattern={{major}}-viewer
-
       - name: Build and push slim Docker images
         id: push-slim
         uses: docker/build-push-action@v7.0.0
@@ -142,37 +106,6 @@ jobs:
           tags: ${{ steps.meta-slim.outputs.tags }}
           labels: ${{ steps.meta-slim.outputs.labels }}
 
-      - name: Build and push iXBRL Viewer Docker images
-        id: push-viewer
-        uses: docker/build-push-action@v7.0.0
-        with:
-          context: .
-          file: docker/Dockerfile
-          build-args: |
-            PYTHON_VERSION=${{ inputs.python_version }}
-            INCLUDE_IXBRL_VIEWER=true
-            IXBRL_VIEWER_REF=${{ inputs.viewer_ref }}
-            EXTRA_PIP=-r requirements-plugins.txt
-          push: true
-          tags: ${{ steps.meta-viewer.outputs.tags }}
-          labels: ${{ steps.meta-viewer.outputs.labels }}
-
-      - name: Build and push EDGAR Docker images
-        id: push-edgar
-        uses: docker/build-push-action@v7.0.0
-        with:
-          context: .
-          file: docker/Dockerfile
-          build-args: |
-            PYTHON_VERSION=${{ inputs.python_version }}
-            INCLUDE_EDGAR=true
-            EDGAR_REF=${{ inputs.edgar_ref }}
-            XULE_REF=${{ inputs.xule_ref }}
-            EXTRA_PIP=-r requirements-plugins.txt
-          push: true
-          tags: ${{ steps.meta-edgar.outputs.tags }}
-          labels: ${{ steps.meta-edgar.outputs.labels }}
-
       - name: Build and push Docker images
         id: push
         uses: docker/build-push-action@v7.0.0
@@ -182,10 +115,8 @@ jobs:
           build-args: |
             PYTHON_VERSION=${{ inputs.python_version }}
             INCLUDE_EDGAR=true
-            INCLUDE_IXBRL_VIEWER=true
             EDGAR_REF=${{ inputs.edgar_ref }}
             XULE_REF=${{ inputs.xule_ref }}
-            IXBRL_VIEWER_REF=${{ inputs.viewer_ref }}
             EXTRA_PIP=-r requirements-plugins.txt
           push: true
           tags: ${{ steps.meta.outputs.tags }}
@@ -204,18 +135,3 @@ jobs:
           subject-name: index.docker.io/${{ secrets.DOCKER_USERNAME }}/arelle
           subject-digest: ${{ steps.push-slim.outputs.digest }}
           push-to-registry: true
-
-      - name: Generate artifact attestation EDGAR
-        uses: actions/attest@v4.1.0
-        with:
-          subject-name: index.docker.io/${{ secrets.DOCKER_USERNAME }}/arelle
-          subject-digest: ${{ steps.push-edgar.outputs.digest }}
-          push-to-registry: true
-
-      - name: Generate artifact attestation iXBRL Viewer
-        uses: actions/attest@v4.1.0
-        with:
-          subject-name: index.docker.io/${{ secrets.DOCKER_USERNAME }}/arelle
-          subject-digest: ${{ steps.push-viewer.outputs.digest }}
-          push-to-registry: true
-

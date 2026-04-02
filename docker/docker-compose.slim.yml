@@ -7,10 +7,8 @@ services:
       args:
         PYTHON_VERSION: ${PYTHON_VERSION:-}
         INCLUDE_EDGAR: ${INCLUDE_EDGAR:-}
-        INCLUDE_IXBRL_VIEWER: ${INCLUDE_IXBRL_VIEWER:-}
         EDGAR_REF: ${EDGAR_REF:-}
         XULE_REF: ${XULE_REF:-}
-        IXBRL_VIEWER_REF: ${IXBRL_VIEWER_REF:-}
         EXTRA_PIP: ${EXTRA_PIP:-}
     command: /opt/start.sh
     ports:

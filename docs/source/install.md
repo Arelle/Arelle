@@ -99,10 +99,8 @@ arelleGUI
 
 ## Docker containers
 Run Arelle with Docker. New releases are tagged and published to [Docker Hub][docker-hub]. There are a few different configurations/tags:
-- latest - Arelle with all plugins
+- latest - Arelle with all plugins ([EDGAR plugins][edgar-plugin], [XULE plugin][xule-plugin], [iXBRL Viewer plugin][ixbrl-viewer-plugin], and [EFM][efm-plugin] disclosure systems)
 - slim - Arelle with no plugins
-- edgar - Arelle with the [EDGAR plugins][edgar-plugin], [xule plugin][xule-plugin], and [EFM][efm-plugin] disclosure systems
-- viewer - Arelle with the [iXBRL Viewer plugin][ixbrl-viewer-plugin]
 
 ```shell
 # To run the command line
@@ -115,5 +113,5 @@ docker run --name arelle-webserver -p 8080:8080 arelleproject/arelle:latest /opt
 [docker-hub]: https://hub.docker.com/r/arelleproject/arelle
 [edgar-plugin]: plugins/popular/edgar.md
 [xule-plugin]: plugins/popular/xule.md
-[efm-plugin]: plugins/popular/validation.md
+[efm-plugin]: plugins/popular/validation.md#validate-efm
 [ixbrl-viewer-plugin]: plugins/popular/arelle_ixbrl_viewer.md
