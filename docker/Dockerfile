@@ -1,5 +1,6 @@
 ## --------------------- Build Stage ---------------------
-FROM python:3.14.3 AS builder
+ARG PYTHON_VERSION=""
+FROM python:${PYTHON_VERSION}-slim AS builder
 
 WORKDIR /usr/src/app
 
@@ -8,11 +9,7 @@ ARG EXTRA_PIP=""
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 COPY requirements.txt .
-COPY requirements-build.txt .
-COPY requirements-dev.txt .
-COPY requirements-docs.txt .
 COPY requirements-plugins.txt .
-COPY requirements-test.txt .
 RUN pip install --upgrade pip \
   && pip install --no-cache-dir -r requirements.txt ${EXTRA_PIP}
 
@@ -35,8 +32,8 @@ RUN if ([ -n "$INCLUDE_EDGAR" ] || [ -n "$EDGAR_REF" ]) && [ ! -d arelle/plugin/
 
 ## Clone XULE plugin if enabled and plugin doesn't already exist
 ## Uses XULE_REF to pin a specific tag/release if provided
-## Moves xule validation contents (DQC.py & eforms.py) to Arelle validation directory
-## Moves xule plugin directory contents to arelle plugin directory
+## Moves XULE validation contents (DQC.py & eforms.py) to Arelle validation directory
+## Moves XULE plugin directory contents to arelle plugin directory
 RUN if ([ -n "$INCLUDE_EDGAR" ] || [ -n "$XULE_REF" ]) && [ ! -d arelle/plugin/xule ]; then \
         git clone --depth 1 ${XULE_REF:+--branch "$XULE_REF"} https://github.com/xbrlus/xule.git \
         && mv xule/plugin/validate/* arelle/plugin/validate/ \
@@ -46,7 +43,7 @@ RUN if ([ -n "$INCLUDE_EDGAR" ] || [ -n "$XULE_REF" ]) && [ ! -d arelle/plugin/x
     fi
 
 ## ------------------- Production Stage -------------------
-FROM python:3.14.3-slim AS production
+FROM python:${PYTHON_VERSION}-slim AS production
 
 ## Prevent python from buffering stdout & stderr
 ENV PYTHONUNBUFFERED=1
@@ -63,16 +60,10 @@ COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 ## Copy docker scripts
-COPY --chmod=755 docker/scripts/entrypoint.sh /entrypoint.sh
-COPY --chmod=755 docker/scripts/start.sh /start.sh
-COPY --chmod=755 docker/scripts/healthcheck.sh /healthcheck.sh
+COPY --chmod=755 docker/scripts/entrypoint.sh /opt/entrypoint.sh
+COPY --chmod=755 docker/scripts/start.sh /opt/start.sh
+COPY --chmod=755 docker/scripts/healthcheck.sh /opt/healthcheck.sh
 
 WORKDIR /usr/src/app
 
-## Add user with home directory (Arelle caches to the user's home directory by default)
-## Assign app ownership and switch to new user
-RUN useradd -m arelle \
-  && chown -R arelle:arelle /usr/src/app
-USER arelle
-
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/opt/entrypoint.sh"]

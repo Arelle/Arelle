@@ -1,20 +1,10 @@
 services:
   webserver:
+    extends:
+      file: docker-compose.slim.yml
+      service: slim-webserver
     container_name: arelle-webserver
     build:
-      context: ..
-      dockerfile: ./docker/Dockerfile
       args:
-        INCLUDE_EDGAR: ${INCLUDE_EDGAR:-}
-        EDGAR_REF: ${EDGAR_REF:-}
-        XULE_REF: ${XULE_REF:-}
-        EXTRA_PIP: ${EXTRA_PIP:-}
-    command: /start.sh
-    ports:
-      - 8080:8080
-    healthcheck:
-      test: /healthcheck.sh
-      interval: 60s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
+        INCLUDE_EDGAR: "true"
+        EXTRA_PIP: "-r requirements-plugins.txt"
