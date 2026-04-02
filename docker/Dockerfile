@@ -1,6 +1,6 @@
 ## --------------------- Build Stage ---------------------
 ARG PYTHON_VERSION=""
-FROM python:${PYTHON_VERSION}-slim AS builder
+FROM python:${PYTHON_VERSION} AS builder
 
 WORKDIR /usr/src/app
 
