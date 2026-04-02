@@ -98,47 +98,20 @@ arelleGUI
 ```
 
 ## Docker containers
-Build and run an Arelle webserver with Docker. The EDGAR configuration includes the necessary dependencies
-for the EDGAR plugins (render, validate, and transform) and EFM disclosure systems:
-- Arelle
-- [EDGAR plugins][edgar-plugin]
-- [xule plugin][xule-plugin]
-```shell
-# Clone and traverse into the Arelle repository
-git clone --depth 1 https://github.com/Arelle/Arelle.git
-cd Arelle
+Run Arelle with Docker. New releases are tagged and published to [Docker Hub][docker-hub]. There are a couple different configurations/tags:
+- latest - Arelle with all plugins ([EDGAR plugins][edgar-plugin], [XULE plugin][xule-plugin], [iXBRL Viewer plugin][ixbrl-viewer-plugin], and [EFM][efm-plugin] disclosure systems)
+- slim - Arelle with no plugins
 
-# Build and run the Arelle container
-docker compose -f docker/docker-compose.yml up -d --build
-
-# or build and run the Arelle container with the EDGAR plugin
-docker compose -f docker/docker-compose.edgar.yml up -d --build
-```
-or in one line. The webserver will be available at [http://127.0.0.1:8080][local-arelle].
-```shell
-git clone --depth 1 https://github.com/Arelle/Arelle.git && cd Arelle && docker compose -f docker/docker-compose.yml up -d --build
-```
-
-### Build
-```shell
-docker build -t arelle-webserver -f docker/Dockerfile .
-
-# With the EDGAR plugins
-docker build --build-arg INCLUDE_EDGAR="true" --build-arg EXTRA_PIP="-r requirements-plugins.txt" -t arelle-edgar-webserver -f docker/Dockerfile .
-```
-
-### Run
 ```shell
 # To run the command line
-docker run arelle-webserver python arelleCmdLine.py --help
-# To run the webserver
-docker run --name arelle-webserver -p 8080:8080 arelle-webserver /start.sh
+docker run arelleproject/arelle:latest python arelleCmdLine.py --help
 
-# With the EDGAR plugins
-docker run arelle-edgar-webserver python arelleCmdLine.py --help
-docker run --name arelle-edgar-webserver -p 8080:8080 arelle-edgar-webserver /start.sh
+# To run the webserver. The webserver will be available at http://127.0.0.1:8080
+docker run --name arelle-webserver -p 8080:8080 arelleproject/arelle:latest /opt/start.sh
 ```
 
-[local-arelle]: http://127.0.0.1:8080
+[docker-hub]: https://hub.docker.com/r/arelleproject/arelle
 [edgar-plugin]: plugins/popular/edgar.md
 [xule-plugin]: plugins/popular/xule.md
+[efm-plugin]: plugins/popular/validation.md#validate-efm
+[ixbrl-viewer-plugin]: plugins/popular/arelle_ixbrl_viewer.md
