@@ -18,7 +18,7 @@ class PluginProvider:
             aliases=frozenset(module_info.get("aliases", set())),
             author=str(module_info.get("author", "")),
             description=str(module_info.get("description", "")),
-            entry_point=dict(module_info.get("entryPoint", {})).copy(),
+            entry_point=dict(module_info.get("entryPoint", {})),
             file_date=str(module_info.get("fileDate", "")),
             hook_names=frozenset(module_info.get("classMethods", set())),
             import_urls=frozenset(module_info.get("importURLs", set())),
