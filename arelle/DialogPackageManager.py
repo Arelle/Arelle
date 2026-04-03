@@ -43,7 +43,8 @@ class DialogPackageManager(Toplevel):
         self.webCache = mainWin.webCache
 
         # copy plugins for temporary display
-        self.packagesConfig = PackageManager.packagesConfig
+        self._packageManager = PackageManager.getInstance()
+        self.packagesConfig = self._packageManager.packagesConfig
         self.packagesConfigChanged = False
         self.packageNamesWithNewerFileDates = packageNamesWithNewerFileDates
 
@@ -262,8 +263,8 @@ class DialogPackageManager(Toplevel):
 
     def ok(self, event=None):
         if self.packagesConfigChanged:
-            PackageManager.packagesConfig = self.packagesConfig
-            PackageManager.packagesConfigChanged = True
+            self._packageManager.packagesConfig = self.packagesConfig
+            self._packageManager.packagesConfigChanged = True
             self.cntlr.onPackageEnablementChanged()
         self.close()
 
@@ -394,7 +395,7 @@ class DialogPackageManager(Toplevel):
         if filename:
             # check if a package is selected (any file in a directory containing an __init__.py
             self.cntlr.config["packageOpenDir"] = os.path.dirname(filename)
-            packageInfo = PackageManager.packageInfo(self.cntlr, filename, packageManifestName=self.manifestNamePattern)
+            packageInfo = self._packageManager.packageInfo(self.cntlr, filename, packageManifestName=self.manifestNamePattern)
             self.loadFoundPackageInfo(packageInfo, filename)
 
 
@@ -403,7 +404,7 @@ class DialogPackageManager(Toplevel):
 
     def loadPackageUrl(self, url):
         if url:  # url is the in-cache or local file
-            packageInfo = PackageManager.packageInfo(self.cntlr, url, packageManifestName=self.manifestNamePattern)
+            packageInfo = self._packageManager.packageInfo(self.cntlr, url, packageManifestName=self.manifestNamePattern)
             self.cntlr.showStatus("") # clear web loading status
             self.loadFoundPackageInfo(packageInfo, url)
 
@@ -444,7 +445,7 @@ class DialogPackageManager(Toplevel):
         self.removePackageInfo(name, version)  # remove any prior entry for this package
         self.packageNamesWithNewerFileDates.discard(name) # no longer has an update available
         self.packagesConfig["packages"].append(packageInfo)
-        PackageManager.rebuildRemappings(self.cntlr)
+        self._packageManager.rebuildRemappings(self.cntlr)
         self.packagesConfigChanged = True
 
     def packageEnable(self):
@@ -457,7 +458,7 @@ class DialogPackageManager(Toplevel):
                 packageInfo["status"] = "disabled"
                 self.packageEnableButton['text'] = self.ENABLE
             self.packagesConfigChanged = True
-            PackageManager.rebuildRemappings(self.cntlr)
+            self._packageManager.rebuildRemappings(self.cntlr)
             self.loadTreeViews()
 
     def packageMoveUp(self):
@@ -467,7 +468,7 @@ class DialogPackageManager(Toplevel):
             del packages[self.selectedPackageIndex]
             packages.insert(self.selectedPackageIndex -1, packageInfo)
             self.packagesConfigChanged = True
-            PackageManager.rebuildRemappings(self.cntlr)
+            self._packageManager.rebuildRemappings(self.cntlr)
             self.loadTreeViews()
 
     def packageMoveDown(self):
@@ -477,7 +478,7 @@ class DialogPackageManager(Toplevel):
             del packages[self.selectedPackageIndex]
             packages.insert(self.selectedPackageIndex + 1, packageInfo)
             self.packagesConfigChanged = True
-            PackageManager.rebuildRemappings(self.cntlr)
+            self._packageManager.rebuildRemappings(self.cntlr)
             self.loadTreeViews()
 
     def packageReload(self):
@@ -485,10 +486,10 @@ class DialogPackageManager(Toplevel):
             packageInfo = self.packagesConfig["packages"][self.selectedPackageIndex]
             url = packageInfo.get("URL")
             if url:
-                packageInfo = PackageManager.packageInfo(self.cntlr, url, reload=True, packageManifestName=packageInfo.get("manifestName"))
+                packageInfo = self._packageManager.packageInfo(self.cntlr, url, reload=True, packageManifestName=packageInfo.get("manifestName"))
                 if packageInfo:
                     self.addPackageInfo(packageInfo)
-                    PackageManager.rebuildRemappings(self.cntlr)
+                    self._packageManager.rebuildRemappings(self.cntlr)
                     self.loadTreeViews()
                     self.cntlr.showStatus(_("{0} reloaded").format(packageInfo.get("name")), clearAfter=5000)
                 else:
@@ -502,7 +503,7 @@ class DialogPackageManager(Toplevel):
             packageInfo = self.packagesConfig["packages"][self.selectedPackageIndex]
             self.removePackageInfo(packageInfo["name"], packageInfo["version"])
             self.packagesConfigChanged = True
-            PackageManager.rebuildRemappings(self.cntlr)
+            self._packageManager.rebuildRemappings(self.cntlr)
             self.loadTreeViews()
 
     def enableAll(self):
@@ -521,5 +522,5 @@ class DialogPackageManager(Toplevel):
                 packageInfo["status"] = "disabled"
                 self.packageEnableButton['text'] = self.ENABLE
         self.packagesConfigChanged = True
-        PackageManager.rebuildRemappings(self.cntlr)
+        self._packageManager.rebuildRemappings(self.cntlr)
         self.loadTreeViews()

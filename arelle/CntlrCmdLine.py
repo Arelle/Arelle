@@ -1992,7 +1992,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             if filesource and filesource.isArchive:
                 filesource.select(_entrypointFile)
             else:
-                _entrypointFile = PackageManager.mappedUrl(_entrypointFile)
+                _entrypointFile = PackageManager.getInstance().mappedUrl(_entrypointFile)
                 filesource = FileSource.openFileSource(_entrypointFile, self, sourceZipStream)
                 if options.validate:
                     ValidateFileSource(self, filesource).validate(options.reportPackage, options.taxonomyPackage)
@@ -2321,7 +2321,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
 
     def loadPackage(self, package: str, packageManifestName: str) -> None:
         from arelle import PackageManager
-        packageInfo = PackageManager.addPackage(self, package, packageManifestName)
+        packageInfo = PackageManager.getInstance().addPackage(self, package, packageManifestName)
         if packageInfo:
             self.addToLog(_("Activation of package {0} successful.").format(packageInfo.get("name")),
                           messageCode="info", file=packageInfo.get("URL", ""))
@@ -2340,6 +2340,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
         from arelle import PackageManager
         savePackagesChanges = True
         showPackages = False
+        packageManager = PackageManager.getInstance()
         # For backwards compatibility, we allow '|' separated filenames/URLs
         # within a single --packages option.
         for packageCmd in [cmd for p in packages for cmd in p.split("|")]:
@@ -2349,19 +2350,19 @@ class CntlrCmdLine(Cntlr.Cntlr):
             elif cmd == "temp":
                 savePackagesChanges = False
             elif cmd.startswith("+"):
-                packageInfo = PackageManager.addPackage(self, cmd[1:], packageManifestName)
+                packageInfo = packageManager.addPackage(self, cmd[1:], packageManifestName)
                 if packageInfo:
                     self.addToLog(_("Addition of package {0} successful.").format(packageInfo.get("name")),
                                   messageCode="info", file=packageInfo.get("URL", ""))
                 else:
                     self.addToLog(_("Unable to load package."), messageCode="info", file=cmd[1:])
             elif cmd.startswith("~"):
-                if PackageManager.reloadPackageModule(self, cmd[1:]):
+                if packageManager.reloadPackageModule(self, cmd[1:]):
                     self.addToLog(_("Reload of package successful."), messageCode="info", file=cmd[1:])
                 else:
                     self.addToLog(_("Unable to reload package."), messageCode="info", file=cmd[1:])
             elif cmd.startswith("-"):
-                if PackageManager.removePackageModule(self, cmd[1:]):
+                if packageManager.removePackageModule(self, cmd[1:]):
                     self.addToLog(_("Deletion of package successful."), messageCode="info", file=cmd[1:])
                 else:
                     self.addToLog(_("Unable to delete package."), messageCode="info", file=cmd[1:])
@@ -2372,12 +2373,12 @@ class CntlrCmdLine(Cntlr.Cntlr):
             else: # assume it is a module or package
                 savePackagesChanges = False
                 self.loadPackage(cmd, packageManifestName)
-        if PackageManager.packagesConfigChanged:
-            PackageManager.rebuildRemappings(self)
+        if packageManager.packagesConfigChanged:
+            packageManager.rebuildRemappings(self)
         if savePackagesChanges:
-            PackageManager.save(self)
+            packageManager.save(self)
         else:
-            PackageManager.packagesConfigChanged = False
+            packageManager.packagesConfigChanged = False
         if showPackages:
             self.addToLog(_("Taxonomy packages:"), messageCode="info")
             for packageInfo in PackageManager.orderedPackagesConfig()["packages"]:
