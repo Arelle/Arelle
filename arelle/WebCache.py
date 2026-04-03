@@ -130,9 +130,9 @@ class WebCache:
         self._httpUserAgent: str = HTTP_USER_AGENT # default user agent for product
         self._httpsRedirect: bool = False
         self._redirectFallbackMap: dict[re.Pattern[str], str] = {}
+        self._baseProxyHandlers: list[proxyhandlers.BaseHandler] = []
+        self._opener: proxyhandlers.OpenerDirector | None = None
         self.resetProxies(httpProxyTuple)
-
-        self.opener.addheaders = [("User-agent", self.httpUserAgent)]
 
         if cntlr.isGAE:
             self.cacheDir: str = SERVER_WEB_CACHE # GAE type servers
@@ -285,24 +285,30 @@ class WebCache:
             self.http_auth_handler = proxyhandlers.HTTPBasicAuthHandler()
             proxyHandlers = [self.proxy_handler, self.proxy_auth_handler, self.http_auth_handler]
 
-        if ssl:
-            context = truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-            # Include certifi certificates (Mozilla’s carefully curated
-            # collection) for systems with outdated certs.
-            context.load_verify_locations(cafile=certifi.where())
-            if self.noCertificateCheck:  # this is required in some Akamai environments, such as sec.gov
-                context.check_hostname = False
-                context.verify_mode = ssl.CERT_NONE
-            proxyHandlers.append(proxyhandlers.HTTPSHandler(context=context))
+        # Store handlers without SSL and invalidate the cached opener.
+        # The SSL context and opener are built lazily on first network request.
+        self._baseProxyHandlers = list(proxyHandlers)
+        self._opener = None
 
-        self.opener = proxyhandlers.build_opener(*proxyHandlers)
-        self.opener.addheaders = [
-            ("User-Agent", self.httpUserAgent),
-            ("Accept-Encoding", "gzip, deflate")
-        ]
-
-        #self.opener.close()
-        #self.opener = WebCacheUrlOpener(self.cntlr, proxyDirFmt(httpProxyTuple))
+    @property
+    def opener(self) -> proxyhandlers.OpenerDirector:
+        if self._opener is None:
+            handlers = list(self._baseProxyHandlers)
+            if ssl:
+                context = truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+                # Include certifi certificates (Mozilla's carefully curated
+                # collection) for systems with outdated certs.
+                context.load_verify_locations(cafile=certifi.where())
+                if self.noCertificateCheck:  # this is required in some Akamai environments, such as sec.gov
+                    context.check_hostname = False
+                    context.verify_mode = ssl.CERT_NONE
+                handlers.append(proxyhandlers.HTTPSHandler(context=context))
+            self._opener = proxyhandlers.build_opener(*handlers)
+            self._opener.addheaders = [
+                ("User-Agent", self.httpUserAgent),
+                ("Accept-Encoding", "gzip, deflate"),
+            ]
+        return self._opener
 
     def normalizeFilepath(self, filepath: str, url: str, cacheDir: str | None = None) -> str:
         """
