@@ -18,7 +18,8 @@ from typing import Any
 
 import regex as re
 
-from arelle import UrlUtil, ValidateDuplicateFacts
+from arelle import UrlUtil, ViewUtil
+from arelle.ValidateDuplicateFactsConst import DuplicateTypeArg
 from arelle.ValidateFileSource import ValidateFileSource
 from arelle.logging.formatters.LogFormatter import LogFormatter, logRefsFileLines
 from arelle.typing import TypeGetText
@@ -545,17 +546,17 @@ class CntlrWinMain(Cntlr.Cntlr):
         self.setValidateTooltipText()
 
     def buildValidateDuplicateFactsMenu(self, validateMenu: Menu) -> None:
-        defaultArg = ValidateDuplicateFacts.DuplicateTypeArg.NONE.value
+        defaultArg = DuplicateTypeArg.NONE.value
         validateDuplicateFactsStr = self.config.setdefault("validateDuplicateFacts", defaultArg)
         try:
-            duplicateTypeArg = ValidateDuplicateFacts.DuplicateTypeArg(validateDuplicateFactsStr)
+            duplicateTypeArg = DuplicateTypeArg(validateDuplicateFactsStr)
         except ValueError:
-            duplicateTypeArg = ValidateDuplicateFacts.DuplicateTypeArg(defaultArg)
+            duplicateTypeArg = DuplicateTypeArg(defaultArg)
         self.modelManager.validateDuplicateFacts = duplicateTypeArg.duplicateType()
         self.validateDuplicateFacts = StringVar(value=duplicateTypeArg.value)
         self.validateDuplicateFacts.trace_add("write", self.setValidateDuplicateFacts)
         duplicateFactWarningMenu = Menu(validateMenu, tearoff=0)
-        for duplicateTypeArg in ValidateDuplicateFacts.DuplicateTypeArg:
+        for duplicateTypeArg in DuplicateTypeArg:
             duplicateFactWarningMenu.add_checkbutton(
                 label=duplicateTypeArg.value.title(),
                 variable=self.validateDuplicateFacts,
@@ -1337,7 +1338,7 @@ class CntlrWinMain(Cntlr.Cntlr):
     def setValidateDuplicateFacts(self, *args: Any) -> None:
         assert self.validateDuplicateFacts is not None
         value = self.validateDuplicateFacts.get()
-        duplicateTypeArg = ValidateDuplicateFacts.DuplicateTypeArg(value)
+        duplicateTypeArg = DuplicateTypeArg(value)
         self.modelManager.validateDuplicateFacts = duplicateTypeArg.duplicateType()
         self.config["validateDuplicateFacts"] = value
         self.addToLog('ModelManager.validateDuplicateFacts = {}'.format(

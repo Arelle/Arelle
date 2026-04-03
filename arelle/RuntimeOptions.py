@@ -10,7 +10,7 @@ import regex as re
 
 from arelle.FileSource import FileNamedStringIO
 from arelle.SystemInfo import hasWebServer
-from arelle.ValidateDuplicateFacts import DeduplicationType
+from arelle.ValidateDuplicateFactsConst import DeduplicationType
 
 RuntimeOptionValue = Union[bool, int, str, None]
 

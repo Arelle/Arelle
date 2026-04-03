@@ -7,7 +7,6 @@ from __future__ import annotations
 from collections import defaultdict
 from collections.abc import Iterator
 from dataclasses import dataclass, field
-from enum import Enum, Flag, auto
 from functools import cached_property
 from math import isnan
 from typing import Any, SupportsFloat, cast
@@ -19,6 +18,14 @@ from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelUnit
 from arelle.ModelValue import DateTime, QName, TypeXValue
 from arelle.ModelXbrl import ModelXbrl
 from arelle.typing import TypeGetText
+from arelle.ValidateDuplicateFactsConst import (
+    DUPLICATE_TYPE_ARG_MAP,
+    DeduplicationType,
+    DuplicateType,
+    DuplicateTypeArg,
+    FactValueEqualityType,
+    TypeFactValueEqualityKey,
+)
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
 
 _: TypeGetText
@@ -294,56 +301,6 @@ class DuplicateFactSet:
         return self._ranges[fact]
 
 
-class DuplicateType(Flag):
-    NONE = 0
-    INCONSISTENT = auto()
-    CONSISTENT = auto()
-    INCOMPLETE = auto()
-    COMPLETE = auto()
-
-    # Flags before 3.11 did not support iterating Flag values,
-    # so we have to override with our own iterator. Remove when we no longer support 3.10
-    def __iter__(self) -> Iterator[DuplicateType]:
-        # num must be a positive integer
-        num = self.value
-        while num:
-            b = num & (~num + 1)
-            yield DuplicateType(b)
-            num ^= b
-
-    @property
-    def description(self) -> str:
-        return "|".join([str(n.name) for n in self if n.name]).lower()
-
-
-class DuplicateTypeArg(Enum):
-    NONE = "none"
-    INCONSISTENT = "inconsistent"
-    CONSISTENT = "consistent"
-    INCOMPLETE = "incomplete"
-    COMPLETE = "complete"
-    ALL = "all"
-
-    def duplicateType(self) -> DuplicateType:
-        return DUPLICATE_TYPE_ARG_MAP.get(self, DuplicateType.NONE)
-
-
-class DeduplicationType(Enum):
-    COMPLETE = "complete"
-    CONSISTENT_PAIRS = "consistent-pairs"
-    CONSISTENT_SETS = "consistent-sets"
-
-
-DUPLICATE_TYPE_ARG_MAP = {
-    DuplicateTypeArg.NONE: DuplicateType.NONE,
-    DuplicateTypeArg.INCONSISTENT: DuplicateType.INCONSISTENT,
-    DuplicateTypeArg.CONSISTENT: DuplicateType.CONSISTENT,
-    DuplicateTypeArg.INCOMPLETE: DuplicateType.INCOMPLETE,
-    DuplicateTypeArg.COMPLETE: DuplicateType.COMPLETE,
-    DuplicateTypeArg.ALL: DuplicateType.INCONSISTENT | DuplicateType.CONSISTENT,
-}
-
-
 def _isNanOrNone(value: TypeXValue) -> bool:
     if value is None:
         return True
@@ -496,15 +453,6 @@ def getDuplicateFactSetsWithType(
     for duplicateFactSet in getDuplicateFactSets(facts, includeSingles=False):
         if doesSetHaveDuplicateType(duplicateFactSet, duplicateType):
             yield duplicateFactSet
-
-
-class FactValueEqualityType(Enum):
-    DEFAULT = "default"
-    DATETIME = "datetime"
-    LANGUAGE = "language"
-
-
-TypeFactValueEqualityKey = tuple[FactValueEqualityType, tuple[Any, ...]]
 
 
 def getFactValueEqualityKey(fact: ModelFact) -> TypeFactValueEqualityKey:
