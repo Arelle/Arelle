@@ -388,19 +388,18 @@ class PackageManager:
             except Exception:
                 pass # on GAE no userAppDir, will always come here
         if not self.packagesConfig:
-            self.packagesConfig = {  # savable/reloadable plug in configuration
+            self.packagesConfig = {  # savable/reloadable package configuration
                 "packages": [], # list taxonomy packages loaded and their remappings
                 "remappings": {}  # dict by prefix of remappings in effect
             }
-            self.packagesConfigChanged = False # don't save until something is added to pluginConfig
-        pluginMethodsForClasses: dict[str, Any] = {} # dict by class of list of ordered callable function objects
+            self.packagesConfigChanged = False # don't save until something is added to packagesConfig
         self._cntlr = cntlr
 
-    def reset(self) -> None:  # force reloading modules and plugin infos
+    def reset(self) -> None:
         if self.packagesConfig:
-            self.packagesConfig.clear()  # dict of loaded module pluginInfo objects by module names
+            self.packagesConfig.clear()
         if self.packagesMappings:
-            self.packagesMappings.clear() # dict by class of list of ordered callable function objects
+            self.packagesMappings.clear()
 
     def orderedPackagesConfig(self) -> dict[str, Any]:
         _cfg = self._getPackagesConfig()
@@ -445,7 +444,7 @@ class PackageManager:
                 f.write(jsonStr)
             self.packagesConfigChanged = False
 
-    def close(self) -> None:  # close all loaded methods
+    def close(self) -> None:
         self._getPackagesConfig().clear()
         self.packagesMappings.clear()
 
