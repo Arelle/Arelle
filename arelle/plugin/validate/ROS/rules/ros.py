@@ -13,20 +13,16 @@ from decimal import Decimal
 from arelle import XbrlConst
 from arelle.typing import TypeGetText
 from arelle.ValidateXbrl import ValidateXbrl
-from collections import defaultdict
-from math import isnan
 from lxml.etree import _Comment, _ElementTree, _Entity, _ProcessingInstruction
 from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ModelInstanceObject import ModelInlineFact, ModelUnit
 from arelle.ModelValue import qname
 from arelle.ModelXbrl import ModelXbrl
 from arelle.PythonUtil import strTruncate
-from arelle.utils.Contexts import partitionModelXbrlContexts
-from arelle.utils.Units import partitionModelXbrlUnits
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
-from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
+from arelle.ValidateDuplicateFacts import getDuplicateFactSets
 from arelle.XbrlConst import qnXbrliMonetaryItemType, qnXbrliXbrl, xhtml
 from arelle.XmlValidateConst import VALID
 from ..ValidationPluginExtension import CURRENCIES_DIMENSION, EQUITY, PRINCIPAL_CURRENCY, TURNOVER_REVENUE
@@ -168,8 +164,6 @@ def rule_main(
 
 
         schemeEntityIds = set()
-        mapContext = {} # identify unique contexts and units
-        mapUnit = {}
         hasCRO = False
         unsupportedSchemeContexts = []
         mismatchIdentifierContexts = []
@@ -182,9 +176,6 @@ def rule_main(
                 mismatchIdentifierContexts.append(context)
             if scheme == "http://www.cro.ie/":
                 hasCRO = True
-        for exemplar_context, *contexts in partitionModelXbrlContexts(modelXbrl).values():
-            for context in contexts:
-                mapContext[context] = exemplar_context
 
         if len(schemeEntityIds) > 1:
             modelXbrl.error("ROS:differentContextEntityIdentifiers",
@@ -201,23 +192,14 @@ def rule_main(
                             modelObject=mismatchIdentifierContexts,
                             identifiers=", ".join(sorted(set(c.entityIdentifier[1] for c in mismatchIdentifierContexts))))
 
-        for exemplar_unit, *units in partitionModelXbrlUnits(modelXbrl).values():
-            for unit in units:
-                mapUnit[unit] = exemplar_unit
-
         if hasCRO and "ie-common" in nsMap:
             mandatory.add(qname("ie-common:CompaniesRegistrationOfficeNumber", nsMap))  # type-ignore[arg-type]
 
         reportedMandatory = set()
-        factForConceptContextUnitHash = defaultdict(list)
 
         for qn, facts in modelXbrl.factsByQname.items():
             if qn in mandatory:
                 reportedMandatory.add(qn)
-            for f in facts:
-                if (f.parentElement.qname == qnXbrliXbrl and
-                        (f.isNil or getattr(f,"xValid", 0) >= VALID) and f.context is not None and f.concept is not None and f.concept.type is not None):
-                    factForConceptContextUnitHash[f.conceptContextUnitHash].append(f)
 
         missingElements = (mandatory - reportedMandatory) # | (reportedFootnoteIfNil - reportedFootnoteIfNil)
 
@@ -226,62 +208,30 @@ def rule_main(
                             _("Required elements missing from document: %(elements)s."),
                             modelObject=modelXbrl, elements=", ".join(sorted(str(qn) for qn in missingElements)))
 
-        aspectEqualFacts = defaultdict(dict) # dict [(qname,lang)] of dict(cntx,unit) of [fact, fact]
-        decVals = {}
-        for hashEquivalentFacts in factForConceptContextUnitHash.values():
-            if len(hashEquivalentFacts) > 1:
-                for f in hashEquivalentFacts: # check for hash collision by value checks on context and unit
-                    cuDict = aspectEqualFacts[(f.qname,
-                                               (f.xmlLang or "").lower() if f.concept.type.isWgnStringFactType else None)]
-                    _matched = False
-                    for (_cntx,_unit),fList in cuDict.items():
-                        if (((_cntx is None and f.context is None) or (f.context is not None and f.context.isEqualTo(_cntx))) and
-                                ((_unit is None and f.unit is None) or (f.unit is not None and f.unit.isEqualTo(_unit)))):
-                            _matched = True
-                            fList.append(f)
-                            break
-                    if not _matched:
-                        cuDict[(f.context,f.unit)] = [f]
-                for cuDict in aspectEqualFacts.values(): # dups by qname, lang
-                    for fList in cuDict.values():  # dups by equal-context equal-unit
-                        if len(fList) > 1:
-                            f0 = fList[0]
-                            _inConsistent = True
-                            if f0.concept.isNumeric:
-                                if any(f.isNil for f in fList):
-                                    _inConsistent = not all(f.isNil for f in fList)
-                                else: # not all have same decimals
-                                    _d = inferredDecimals(f0)
-                                    _v = f0.xValue
-                                    _inConsistent = isnan(_v) # NaN is incomparable, always makes dups inconsistent
-                                    decVals[_d] = _v
-                                    aMax, bMin, _inclA, _inclB = rangeValue(_v, _d)
-                                    for f in fList[1:]:
-                                        _d = inferredDecimals(f)
-                                        _v = f.xValue
-                                        if isnan(_v):
-                                            _inConsistent = True
-                                            break
-                                        if _d in decVals:
-                                            _inConsistent |= _v != decVals[_d]
-                                        else:
-                                            decVals[_d] = _v
-                                        a, b, _inclA, _inclB = rangeValue(_v, _d)
-                                        if a > aMax: aMax = a
-                                        if b < bMin: bMin = b
-                                    if not _inConsistent:
-                                        _inConsistent = (bMin < aMax)
-                                    decVals.clear()
-                            else: # string complete duplicates
-                                _inConsistent = any(not f.isVEqualTo(f0) for f in fList[1:])
-                            if _inConsistent:
-                                modelXbrl.error("ROS.inconsistentDuplicateFacts",
-                                                "Inconsistent duplicate fact values %(element)s: %(values)s, in contexts: %(contextIDs)s.",
-                                                modelObject=fList, element=f0.qname,
-                                                contextIDs=", ".join(sorted(set(f.contextID for f in fList))),
-                                                values=", ".join(strTruncate(f.value,64) for f in fList))
-                aspectEqualFacts.clear()
-        del factForConceptContextUnitHash, aspectEqualFacts
+        rosFacts = [
+            f for f in modelXbrl.facts
+            if (f.parentElement.qname == qnXbrliXbrl
+                and (f.isNil or getattr(f, "xValid", 0) >= VALID)
+                and f.context is not None
+                and f.concept is not None
+                and f.concept.type is not None)
+        ]
+        for duplicateFactSet in getDuplicateFactSets(rosFacts, includeSingles=False):
+            fList = duplicateFactSet.facts
+            f0 = fList[0]
+            if duplicateFactSet.areNumeric:
+                if duplicateFactSet.areAnyInconsistent:
+                    modelXbrl.error("ROS.inconsistentDuplicateFacts",
+                                    "Inconsistent duplicate fact values %(element)s: %(values)s, in contexts: %(contextIDs)s.",
+                                    modelObject=fList, element=f0.qname,
+                                    contextIDs=", ".join(sorted(set(f.contextID for f in fList))),
+                                    values=", ".join(strTruncate(f.value, 64) for f in fList))
+            elif any(not f.isVEqualTo(f0) for f in fList[1:]):
+                modelXbrl.error("ROS.inconsistentDuplicateFacts",
+                                "Inconsistent duplicate fact values %(element)s: %(values)s, in contexts: %(contextIDs)s.",
+                                modelObject=fList, element=f0.qname,
+                                contextIDs=", ".join(sorted(set(f.contextID for f in fList))),
+                                values=", ".join(strTruncate(f.value, 64) for f in fList))
     modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
     modelXbrl.modelManager.showStatus(None)
 
