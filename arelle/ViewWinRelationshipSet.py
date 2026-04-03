@@ -3,7 +3,7 @@ See COPYRIGHT.md for copyright information.
 '''
 from collections import defaultdict
 import os
-from arelle import ViewWinTree, ModelDtsObject, ModelInstanceObject, ModelRenderingObject, XbrlConst, XmlUtil, Locale
+from arelle import ViewWinTree, ModelDtsObject, ModelInstanceObject, ModelRenderingObject, XbrlConst, ViewUtil, XmlUtil, Locale
 from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelDtsObject import ModelRelationship
 from arelle.ModelFormulaObject import ModelFilter
@@ -50,7 +50,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
         if isinstance(arcrole, (list,tuple)):
             tabName = arcrole[0]
         else:
-            tabName = XbrlConst.baseSetArcroleLabel(arcrole)[1:]
+            tabName = ViewUtil.baseSetArcroleLabel(arcrole)[1:]
         super(ViewRelationshipSet, self).__init__(modelXbrl, tabWin, tabName, True, lang)
         self.arcrole = arcrole
         self.linkrole = linkrole

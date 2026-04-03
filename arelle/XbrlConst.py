@@ -687,33 +687,6 @@ qnFiDim = qname("{http://www.xbrl.org/taxonomy/int/filing-indicators/REC/2021-02
 
 defaultLocale = "en-GB"
 
-arcroleGroupDetect = "*detect*"
-
-
-def baseSetArcroleLabel(arcrole: str) -> str:  # with sort char in first position
-    if arcrole == "XBRL-dimensions":
-        return _("1Dimension")
-    if arcrole == "XBRL-formulae":
-        return _("1Formula")
-    if arcrole == "Table-rendering":
-        return _("1Rendering")
-    if arcrole == parentChild:
-        return _("1Presentation")
-    if arcrole in (summationItem, summationItem11):
-        return _("1Calculation")
-    if arcrole == widerNarrower:
-        return "1Anchoring"
-    return "2" + os.path.basename(arcrole).title()
-
-
-def labelroleLabel(role: str) -> str:  # with sort char in first position
-    if role == standardLabel:
-        return _("1Standard Label")
-    elif role == conceptNameLabelRole:
-        return _("0Name")
-    return "3" + os.path.basename(role).title()
-
-
 standardNamespaces = frozenset({xsd, xbrli, link, gen, xbrldt, xbrldi})
 xsdOrXbrliNamespaces = frozenset({xsd, xbrli})
 

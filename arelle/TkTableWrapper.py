@@ -32,17 +32,16 @@ __author__ = "Guilherme Polo <ggpolo@gmail.com>"
 __all__ = ["ArrayVar", "Table"]
 
 import os
-from pathlib import Path
 import collections.abc
 import platform
+import sys
+from pathlib import Path
+
+import tkinter
 
 from arelle.SystemInfo import PlatformOS
 
-try:
-    import tkinter
-except ImportError:
-    import Tkinter as tkinter
-import sys
+
 
 def _setup_master(master):
     if master is None:
