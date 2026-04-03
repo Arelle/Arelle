@@ -17,7 +17,7 @@ from typing import Any
 
 import regex as re
 
-from arelle import UrlUtil, ValidateDuplicateFacts
+from arelle import ValidateDuplicateFacts, ViewUtil
 from arelle.ValidateFileSource import ValidateFileSource
 from arelle.logging.formatters.LogFormatter import logRefsFileLines
 from arelle.utils.EntryPointDetection import parseEntrypointFileInput
@@ -1095,7 +1095,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                     ViewWinFormulae.viewFormulae(modelXbrl, self.tabWinTopRt)
                     if topView is None: topView = modelXbrl.views[-1]
                 for name, arcroles in sorted(self.config.get("arcroleGroups", {}).items()):
-                    if XbrlConst.arcroleGroupDetect in arcroles:
+                    if ViewUtil.ARCROLE_GROUP_DETECT_STR in arcroles:
                         currentAction = name + " view"
                         hasView = ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, (name, arcroles), lang=self.labelLang)
                         if hasView and topView is None: topView = modelXbrl.views[-1]

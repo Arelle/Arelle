@@ -1,16 +1,24 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-from tkinter import *
-try:
-    from tkinter.ttk import *
-except ImportError:
-    from ttk import *
-from arelle.CntlrWinTooltip import ToolTip
+from __future__ import annotations
 import os
+from typing import TYPE_CHECKING
+
+from tkinter import *
+from tkinter.ttk import *
+
+from arelle.CntlrWinTooltip import ToolTip
+from arelle.ViewUtil import baseSetArcroles, labelroles
+from arelle.typing import TypeGetText
+
+_: TypeGetText
+
+if TYPE_CHECKING:
+    from arelle.ModelXbrl import ModelXbrl
 
 class ViewTree:
-    def __init__(self, modelXbrl, tabWin, tabTitle, hasToolTip=False, lang=None):
+    def __init__(self, modelXbrl: ModelXbrl, tabWin, tabTitle, hasToolTip=False, lang=None):
         self.tabWin = tabWin
         self.viewFrame = Frame(tabWin)
         self.viewFrame.view = self
@@ -49,7 +57,7 @@ class ViewTree:
         vScrollbar.grid(row=0, column=1, sticky=(N,S))
         self.viewFrame.columnconfigure(0, weight=1)
         self.viewFrame.rowconfigure(0, weight=1)
-        self.modelXbrl = modelXbrl
+        self.modelXbrl: ModelXbrl = modelXbrl
         self.hasToolTip = hasToolTip
         self.toolTipText = StringVar()
         if hasToolTip:
@@ -227,7 +235,6 @@ class ViewTree:
                 rolesMenu = Menu(self.viewFrame, tearoff=0)
                 self.menu.add_cascade(label=menulabel, menu=rolesMenu, underline=0)
                 if usedLabelroles is None: # provided for OIM taxonomy
-                    from arelle.ModelRelationshipSet import labelroles
                     usedLabelroles = labelroles(self.modelXbrl, includeConceptName) # arelle infrastructure
                 for x in usedLabelroles:
                     rolesMenu.add_command(label=x[0][1:], underline=0, command=lambda a=x[1]: self.setLabelrole(a))
@@ -243,7 +250,6 @@ class ViewTree:
                 if menulabel is None: menulabel = _("Name Style")
                 nameStyleMenu = Menu(self.viewFrame, tearoff=0)
                 self.menu.add_cascade(label=menulabel, menu=nameStyleMenu, underline=0)
-                from arelle.ModelRelationshipSet import labelroles
                 nameStyleMenu.add_command(label=_("Prefixed"), underline=0, command=lambda a=True: self.setNamestyle(a))
                 nameStyleMenu.add_command(label=_("No prefix"), underline=0, command=lambda a=False: self.setNamestyle(a))
             except Exception as ex: # tkinter menu problem maybe
@@ -277,7 +283,6 @@ class ViewTree:
                 viewMenu.add_cascade(label=_("Additional view"), menu=newViewsMenu, underline=0)
                 if not additionalViews: # 2.1 view
                     newViewsMenu.add_command(label=_("Arcrole group..."), underline=0, command=lambda: self.newArcroleGroupView(tabWin))
-                    from arelle.ModelRelationshipSet import baseSetArcroles
                     for x in baseSetArcroles(self.modelXbrl) + [( " Role Types","!CustomRoleTypes!"), (" Arcrole Types", "!CustomArcroleTypes!")]:
                         newViewsMenu.add_command(label=x[0][1:], underline=0, command=lambda a=x[1]: self.newView(a, tabWin))
                 else:
