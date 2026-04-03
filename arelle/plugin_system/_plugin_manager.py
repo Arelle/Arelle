@@ -46,6 +46,8 @@ class PluginManager:
 
     def __init__(self) -> None:
         self.pluginConfig: dict[str, Any] = {}
+        self.modulePluginInfos: dict[str, Any] = {}
+        self.pluginMethodsForClasses: dict[str, Any] = {}
         self._isInitialized = False
 
     @property
@@ -58,8 +60,8 @@ class PluginManager:
         self._cntlr: Cntlr = cntlr
         self.pluginConfigChanged = False
         self.pluginTraceFileLogger: logging.Logger | None = None
-        self.modulePluginInfos: dict[str, Any] = {}
-        self.pluginMethodsForClasses: dict[str, Any] = {}
+        self.modulePluginInfos = {}
+        self.pluginMethodsForClasses = {}
         self._pluginBase: str = cntlr.pluginDir + os.sep
         self._entryPointRefCache: list[EntryPointRef] | None = None
         self._entryPointRefAliasCache: dict[str, list[EntryPointRef]] | None = None
