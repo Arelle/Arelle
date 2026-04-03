@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import datetime
 from math import isinf, isnan
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import regex as re
 from lxml import etree
@@ -25,18 +25,18 @@ from arelle.ValidateXbrlCalcs import inferredDecimals, inferredPrecision
 from arelle.ValidateXbrlDimensions import priItemElrHcRels
 from arelle.XmlValidate import validate as xmlValidate, NCNamePattern
 from arelle.XmlValidateConst import VALID, VALID_NO_CONTENT
+from arelle.PrototypeDtsObject import PrototypeObject
 from arelle.typing import TypeGetText
+from arelle.ModelFormulaObject import ModelFormulaResource
+from arelle.ModelDocument import ModelDocument
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
-    from typing import Any, cast
-
+    from typing import Any
     from arelle.formula.XPathParser import OperationDef
-    from arelle.ModelDocument import ModelDocument
-    from arelle.ModelFormulaObject import ModelFormulaResource
+
     from arelle.ModelInstanceObject import ModelContext, ModelUnit
     from arelle.ModelValue import AnyURI
-    from arelle.PrototypeDtsObject import PrototypeObject
 
 _: TypeGetText
 
@@ -336,7 +336,7 @@ def fact_identifier_scheme(
     args: XPathContext.ResultStack,
 ) -> AnyURI | None:
     prototype_object = item_context_element(xc, args, "identifier")
-    scheme = prototype_object.get("scheme") if isinstance(prototype_object, PrototypeObject) else None  # type: ignore[no-untyped-call]
+    scheme = prototype_object.get("scheme") if isinstance(prototype_object, (ModelObject, PrototypeObject)) else None
     if scheme is None:
         return None
     return anyURI(scheme)

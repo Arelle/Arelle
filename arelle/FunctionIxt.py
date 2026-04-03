@@ -331,7 +331,7 @@ def z2(arg: str | None) -> str | None:   # zero pad to 2 digits
 
 
 def yr4(arg: str | None) -> str | None:   # zero pad to 4 digits
-    return "2" + arg.zfill(3) if isinstance(arg, str) else arg
+    return "2" + arg.zfill(3) if isinstance(arg, str) and len(arg) <= 2 else arg
 
 
 def yrin(arg: str | None, _mo: int, _day: int) -> str | None:   # zero pad to 4 digits
@@ -511,13 +511,11 @@ def datemonthdaySlashTR1(arg: str) -> str:
 def datedaymonth(
         arg: str,
         pattern: RePattern,
-        moTbl: dict[str, int] | None = None,
+        moTbl: dict[str, int] | None = monthnumber,
         dy: int = 1,
         mo: int = 2,
         lastindex: int = 2
     ) -> str:
-    if moTbl is None:
-        moTbl = monthnumber
     m = pattern.match(arg)
     try:
         if m and m.lastindex == lastindex:
@@ -711,16 +709,15 @@ def dateyearmonthTR4(arg: str) -> str:
 def datemonthyear(
         arg: str,
         pattern: RePattern,
-        moTbl: dict[str, int] | None = None,
+        moTbl: dict[str, int] | None = monthnumber,
         mo: int = 1,
         yr: int = 2,
         lastindex: int = 2
     ) -> str:
-    if moTbl is None:
-        moTbl = monthnumber
     m = pattern.match(arg)
     try:
         if m and m.lastindex == lastindex:
+            assert isinstance(moTbl, dict)
             return "{0}-{1:02}".format(yr4(m.group(yr)), moTbl[m.group(mo).lower()])
     except KeyError:
         pass
@@ -798,10 +795,9 @@ def datemonthyearhr(arg: str) -> str:
 
 def datemonthyearin(arg: str) -> str:
     m = monthyearInPattern.match(arg)
-    assert isinstance(m, re.Match)
     try:
-        return "{0}-{1}".format(yr4(devanagariDigitsToNormal(m.group(2))),
-                                   gregorianHindiMonthNumber[m.group(1)])
+        return "{0}-{1}".format(yr4(devanagariDigitsToNormal(m.group(2))),  # type: ignore[union-attr]
+                                   gregorianHindiMonthNumber[m.group(1)])  # type: ignore[union-attr]
     except (AttributeError, IndexError, KeyError):
         pass
     raise XPathContext.FunctionArgType(0, "xs:gYearMonth")
@@ -866,14 +862,12 @@ def dateyearmonthLongEnTR1(arg: str) -> str:
 def datedaymonthyear(
         arg: str,
         pattern: RePattern,
-        moTbl: dict[str, int] | None = None,
+        moTbl: dict[str, int] | None = monthnumber,
         dy: int = 1,
         mo: int = 2,
         yr: int = 3,
         lastindex: int = 3
     ) -> str:
-    if moTbl is None:
-        moTbl = monthnumber
     m = pattern.match(arg)
     try:
         if m and m.lastindex == lastindex:
@@ -959,11 +953,10 @@ def dateyearmonthdayhu(arg: str) -> str:
 
 def datedaymonthyearin(arg: str, daymonthyearInPattern: RePattern) -> str:
     m = daymonthyearInPattern.match(arg)
-    assert isinstance(m, re.Match)
     try:
-        _yr = yr4(devanagariDigitsToNormal(m.group(3)))
-        _mo = gregorianHindiMonthNumber.get(m.group(2), devanagariDigitsToNormal(m.group(2)))
-        _day = z2(devanagariDigitsToNormal(m.group(1)))
+        _yr = yr4(devanagariDigitsToNormal(m.group(3)))  # type: ignore[union-attr]
+        _mo = gregorianHindiMonthNumber.get(m.group(2), devanagariDigitsToNormal(m.group(2)))  # type: ignore[union-attr]
+        _day = z2(devanagariDigitsToNormal(m.group(1)))  # type: ignore[union-attr]
         if checkDate(_yr, _mo, _day):
             return "{0}-{1}-{2}".format(_yr, _mo, _day)
     except (AttributeError, IndexError, KeyError):
@@ -1025,14 +1018,13 @@ def datedaymonthyearsl(arg: str) -> str:
 
 def calindaymonthyear(arg: str) -> str:
     m = daymonthyearInIndPattern.match(arg)
-    assert isinstance(m, re.Match)
     try:
         # Transformation registry 3 requires use of pattern comparisons instead of exact transliterations
         # pattern approach
         _mo = sakaMonthPattern.search(m.group(2)).lastindex  # type: ignore[union-attr]
         assert isinstance(_mo, int)
-        _day = int(devanagariDigitsToNormal(m.group(1)))
-        _yr = int(devanagariDigitsToNormal(yrin(m.group(15), _mo, _day)))  # type: ignore[arg-type]
+        _day = int(devanagariDigitsToNormal(m.group(1)))  # type: ignore[union-attr]
+        _yr = int(devanagariDigitsToNormal(yrin(m.group(15), _mo, _day)))  # type: ignore[arg-type,union-attr]
         gregorianDate = sakaToGregorian(_yr, _mo, _day) # native implementation for Arelle
         return "{0}-{1:02}-{2:02}".format(*gregorianDate)
     except (AttributeError, IndexError, KeyError, ValueError):
