@@ -127,6 +127,7 @@ class Cntlr:
 
     """
     __version__ = "1.6.0"
+    _pluginManager: PluginManager
     betaFeatures: dict[str, bool]
     errorManager: ErrorManager | None
     hasWin32gui: bool
@@ -149,7 +150,6 @@ class Cntlr:
     config: dict[str, Any] | None
     configJsonFile: str
     webCache: WebCache
-    pluginManager: PluginManager
     modelManager: ModelManager.ModelManager
     logger: logging.Logger | None
     logHandler: logging.Handler
