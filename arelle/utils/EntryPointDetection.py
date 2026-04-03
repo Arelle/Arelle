@@ -7,11 +7,12 @@ import json
 import logging
 import os
 from dataclasses import dataclass
-from typing import Any, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING, BinaryIO, cast
 
 from arelle import (
     FileSource, PackageManager,
 )
+from arelle.FileSource import FileNamedBytesIO
 from arelle.ModelDocumentType import ModelDocumentType
 from arelle.UrlUtil import isHttpUrl
 from arelle.typing import TypeGetText
@@ -29,11 +30,11 @@ class EntrypointParseResult:
     filesource: FileSource.FileSource | None
 
 
-def parseEntrypointFileInput(cntlr: Cntlr, entrypointFile: str | None, sourceZipStream=None, fallbackSelect=True) -> EntrypointParseResult:
+def parseEntrypointFileInput(cntlr: Cntlr, entrypointFile: str | None, sourceZipStream: BinaryIO | FileNamedBytesIO | None = None, fallbackSelect: bool = True) -> EntrypointParseResult:
     # entrypointFile may be absent (if input is a POSTED zip or file name ending in .zip)
     #    or may be a | separated set of file names
     _entryPoints = []
-    _checkIfXmlIsEis = cntlr.modelManager.disclosureSystem and cntlr.modelManager.disclosureSystem.validationType == "EFM"
+    _checkIfXmlIsEis = cast(bool, cntlr.modelManager.disclosureSystem and cntlr.modelManager.disclosureSystem.validationType == "EFM")
     if entrypointFile:
         _f = entrypointFile
         try: # may be a json list
@@ -66,7 +67,7 @@ def parseEntrypointFileInput(cntlr: Cntlr, entrypointFile: str | None, sourceZip
     return EntrypointParseResult(success=True, entrypointFiles=_entrypointFiles, filesource=filesource)
 
 
-def filesourceEntrypointFiles(filesource, entrypointFiles=None, inlineOnly=False, fallbackSelect=True):
+def filesourceEntrypointFiles(filesource: FileSource.FileSource, entrypointFiles: list[dict[str, Any]] | None = None, inlineOnly: bool = False, fallbackSelect: bool = True) -> list[dict[str, str]]:
     if entrypointFiles is None:
         entrypointFiles = []
     for pluginXbrlMethod in filesource.hooks("FileSource.EntrypointFiles"):
@@ -96,12 +97,12 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=None, inlineOnly=False
                     entrypointFiles.append({"file": report.fullPathPrimary})
         elif fallbackSelect:
             # attempt to find inline XBRL files before instance files, .xhtml before probing others (ESMA)
-            urlsByType = {}
+            urlsByType: dict[int, list[str]] = {}
             for _archiveFile in (filesource.dir or ()): # .dir might be none if IOerror
                 filesource.select(_archiveFile)
-                identifiedType = ModelDocumentType.identify(filesource, filesource.url)
+                identifiedType = ModelDocumentType.identify(filesource, cast(str, filesource.url))
                 if identifiedType in (ModelDocumentType.INSTANCE, ModelDocumentType.INLINEXBRL, ModelDocumentType.HTML):
-                    urlsByType.setdefault(identifiedType, []).append(filesource.url)
+                    urlsByType.setdefault(identifiedType, []).append(cast(str, filesource.url))
             # use inline instances, if any, else non-inline instances
             for identifiedType in ((ModelDocumentType.INLINEXBRL,) if inlineOnly else (ModelDocumentType.INLINEXBRL, ModelDocumentType.INSTANCE)):
                 for url in urlsByType.get(identifiedType, []):
@@ -116,16 +117,21 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=None, inlineOnly=False
                 for url in urlsByType.get(ModelDocumentType.HTML, []):
                     entrypointFiles.append({"file":url})
             if not entrypointFiles and filesource.taxonomyPackage is not None:
-                for packageEntry in filesource.taxonomyPackage.get('entryPoints', {}).values():
+                # Looks like the type of values in the taxonomyPackage dict depends on the key
+                entryPoints = cast(
+                    dict[str, list[tuple[str | None, str, str]]],
+                    filesource.taxonomyPackage.get('entryPoints', {})
+                )
+                for packageEntry in entryPoints.values():
                     for _resolvedUrl, remappedUrl, _closest in packageEntry:
                         entrypointFiles.append({"file": remappedUrl})
 
 
-    elif os.path.isdir(filesource.url):
+    elif os.path.isdir(cast(str, filesource.url)):
         del entrypointFiles[:] # clear list
         hasInline = False
-        for _file in os.listdir(filesource.url):
-            _path = os.path.join(filesource.url, _file)
+        for _file in os.listdir(cast(str, filesource.url)):
+            _path = os.path.join(cast(str, filesource.url), _file)
             if os.path.isfile(_path):
                 identifiedType = ModelDocumentType.identify(filesource, _path)
                 if identifiedType == ModelDocumentType.INLINEXBRL:
