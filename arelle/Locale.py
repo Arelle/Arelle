@@ -8,6 +8,7 @@ See COPYRIGHT.md for copyright information.
 
 from __future__ import annotations
 
+import ctypes
 import locale
 import sys
 import unicodedata
@@ -235,7 +236,12 @@ def getLocale() -> str | None:
     if sys.platform == MACOS_PLATFORM:
         systemLocale = tryRunCommand("defaults", "read", "-g", "AppleLocale")
     elif sys.platform == WINDOWS_PLATFORM:
-        systemLocale = tryRunCommand("pwsh", "-Command", "Get-Culture | Select -ExpandProperty IetfLanguageTag")
+        # https://learn.microsoft.com/en-us/windows/win32/api/winnls/nf-winnls-getuserdefaultlocalename
+        # https://learn.microsoft.com/en-us/windows/win32/intl/locale-name-constants
+        LOCALE_NAME_MAX_LENGTH = 85
+        buf = ctypes.create_unicode_buffer(LOCALE_NAME_MAX_LENGTH)
+        if ctypes.windll.kernel32.GetUserDefaultLocaleName(buf, LOCALE_NAME_MAX_LENGTH):
+            systemLocale = buf.value
     if pythonCompatibleLocale := findCompatibleLocale(systemLocale):
         _locale = pythonCompatibleLocale
     elif sys.version_info < (3, 12) or (3, 13, 3) <= sys.version_info[:3] <= (3, 13, 4):
