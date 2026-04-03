@@ -193,7 +193,7 @@ class LogToXmlHandler(LogHandlerWithXml):
         if self.logRecordBuffer:
             filters = None
             if self.cntlr is not None:
-                filters = self.cntlr.plugins.hooks("Cntlr.Log.RecFilter.Html")
+                filters = tuple(self.cntlr.plugins.hooks("Cntlr.Log.RecFilter.Html"))
             for logRec in self.logRecordBuffer:
                 if not filters or all(_filter(logRec) for _filter in filters):
                     html.append(self.recordToHtml(logRec))
