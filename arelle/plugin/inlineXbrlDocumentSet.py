@@ -814,7 +814,7 @@ def saveTargetInstanceOverriden(cntlr, deduplicationType: DeduplicationType | No
     :param deduplicationType: The deduplication type to be used, if set.
     :return: True if instance extraction is overridden by another plugin.
     """
-    for pluginXbrlMethod in cntlr.pluginManager.pluginClassMethods('InlineDocumentSet.SavesTargetInstance'):
+    for pluginXbrlMethod in cntlr.plugins.hooks('InlineDocumentSet.SavesTargetInstance'):
         if pluginXbrlMethod():
             if deduplicationType is not None:
                 raise RuntimeError(_('Deduplication is enabled but could not be performed because instance '
@@ -956,7 +956,7 @@ def selectTargetDocument(modelXbrl, modelIxdsDocument, **kwargs):
     if not hasattr(modelXbrl, "ixdsTarget"): # DTS discoverey deferred until all ix docs loaded
         # isolate any documents to separate IXDSes according to authority submission rules
         modelXbrl.targetIXDSesToLoad = [] # [[target,[ixdsHtmlElements], ...]
-        for pluginXbrlMethod in modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods('InlineDocumentSet.IsolateSeparateIXDSes'):
+        for pluginXbrlMethod in modelXbrl.modelManager.cntlr.plugins.hooks('InlineDocumentSet.IsolateSeparateIXDSes'):
             separateIXDSesHtmlElements = pluginXbrlMethod(modelXbrl, modelIxdsDocument, **kwargs)
             if len(separateIXDSesHtmlElements) > 1: # [[ixdsHtml1, ixdsHtml2], [ixdsHtml3...] ...]
                 for separateIXDSHtmlElements in separateIXDSesHtmlElements[1:]:

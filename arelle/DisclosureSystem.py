@@ -55,7 +55,7 @@ class DisclosureSystem:
         self.HMRC = False
         self.SBRNL = False
         self.pluginTypes = set()
-        for pluginXbrlMethod in self.modelManager.cntlr.pluginManager.pluginClassMethods("DisclosureSystem.Types"):
+        for pluginXbrlMethod in self.modelManager.cntlr.plugins.hooks("DisclosureSystem.Types"):
             for typeName, typeTestVariable in pluginXbrlMethod(self):
                 setattr(self, typeTestVariable, False)
                 self.pluginTypes.add(typeName)
@@ -111,7 +111,7 @@ class DisclosureSystem:
     def urls(self):
         _urls = [os.path.join(self.modelManager.cntlr.configDir, "disclosuresystems.xml")]
         # get custom config xml file url, insert before main url in reverse order
-        for pluginXbrlMethod in self.modelManager.cntlr.pluginManager.pluginClassMethods("DisclosureSystem.ConfigURL"):
+        for pluginXbrlMethod in self.modelManager.cntlr.plugins.hooks("DisclosureSystem.ConfigURL"):
             _urls.insert(0, pluginXbrlMethod(self))
         return _urls
 
@@ -177,7 +177,7 @@ class DisclosureSystem:
                                     self.EFMorGFM = self.EFM or self.GFM
                                     self.HMRC = self.validationType == "HMRC"
                                     self.SBRNL = self.validationType == "SBR.NL"
-                                for pluginXbrlMethod in self.modelManager.cntlr.pluginManager.pluginClassMethods("DisclosureSystem.Types"):
+                                for pluginXbrlMethod in self.modelManager.cntlr.plugins.hooks("DisclosureSystem.Types"):
                                     for typeName, typeTestVariable in pluginXbrlMethod(self):
                                         setattr(self, typeTestVariable, self.validationType == typeName)
                                 self.validateFileText = dsElt.get("validateFileText") == "true"

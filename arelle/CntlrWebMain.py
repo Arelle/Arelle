@@ -83,7 +83,7 @@ def startWebserver(cntlr: CntlrCmdLine, options: RuntimeOptions) -> Bottle | Non
 
     # allow plugins to replace or add to default REST API "routes"
     pluginResult = None
-    for pluginMethod in cntlr.pluginManager.pluginClassMethods("CntlrWebMain.StartWebServer"):
+    for pluginMethod in cntlr.plugins.hooks("CntlrWebMain.StartWebServer"):
         # returns a string containing "skip-routes" to block default routes and/or "skip-run" to block default app startup
         pluginResult = pluginMethod(app, cntlr, host, port, server)
         break # only provide for a single plugin of this class

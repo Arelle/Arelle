@@ -20,7 +20,7 @@ class ValidateFileSource:
         self._filesource = filesource
 
     def validate(self, forceValidateAsReportPackages: bool = False, forceValidateAsTaxonomyPackage: bool = False, errors: list[str] | None = None) -> None:
-        for pluginXbrlMethod in self._cntrl.pluginManager.pluginClassMethods("Validate.FileSource"):
+        for pluginXbrlMethod in self._cntrl.plugins.hooks("Validate.FileSource"):
             pluginXbrlMethod(self._cntrl, self._filesource)
         if self._filesource.isReportPackage or forceValidateAsReportPackages:
             rpValidator = ReportPackageValidator(self._filesource)

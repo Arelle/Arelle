@@ -112,7 +112,7 @@ class ValidateXbrl:
         self.validateDuplicateFacts = modelXbrl.modelManager.validateDuplicateFacts
         self._pluginData: dict[str, PluginData] = {}
 
-        for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("Validate.XBRL.Start"):
+        for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.plugins.hooks("Validate.XBRL.Start"):
             pluginXbrlMethod(self, parameters)
 
         # xlink validation
@@ -394,7 +394,7 @@ class ValidateXbrl:
                 ValidateXbrlDimensions.checkConcept(self, concept)
         modelXbrl.profileStat(_("validateConcepts"))
 
-        for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("Validate.XBRL.Finally"):
+        for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.plugins.hooks("Validate.XBRL.Finally"):
             pluginXbrlMethod(self)
 
         if modelXbrl.loadedFromOIM or modelXbrl.modelManager.validateXmlOim:
@@ -561,7 +561,7 @@ class ValidateXbrl:
                                      # block executing formulas when validating if hasFormula is False (e.g., --formula=none)
                                      compileOnly=modelXbrl.modelRenderingTables and not modelXbrl.hasFormulae)
 
-        for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("Validate.Finally"):
+        for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.plugins.hooks("Validate.Finally"):
             pluginXbrlMethod(self)
 
         modelXbrl.modelManager.showStatus(_("ready"), 2000)

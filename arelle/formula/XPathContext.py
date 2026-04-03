@@ -249,7 +249,7 @@ class XPathContext:
             QName,
             Callable[[XPathContext, OperationDef, ContextItem, ResultStack], ContextItem]
         ] = {}
-        for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.pluginManager.pluginClassMethods("Formula.CustomFunctions"):
+        for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.plugins.hooks("Formula.CustomFunctions"):
             self.customFunctions.update(pluginXbrlMethod())
 
     def copy(self) -> XPathContext:  # shallow copy (for such as for Table LB table processiong

@@ -1301,16 +1301,17 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict[str, Any]]:
 
     # install any dynamic plugins so their command line options can be parsed if present
     arellePluginModules = {}
+    pluginManager = PluginManager.getInstance()
     for pluginCmd in preloadPlugins:
         cmd = pluginCmd.strip()
         if cmd not in ("show", "temp") and len(cmd) > 0 and cmd[0] not in ("-", "~", "+"):
-            moduleInfo = cntlr.pluginManager.addPluginModule(cmd)
+            moduleInfo = pluginManager.addPluginModule(cmd)
             if moduleInfo:
                 arellePluginModules[cmd] = moduleInfo
-                cntlr.pluginManager.reset()
+                pluginManager.reset()
 
     # add plug-in options
-    for optionsExtender in cntlr.pluginManager.pluginClassMethods("CntlrCmdLine.Options"):
+    for optionsExtender in cntlr.plugins.hooks("CntlrCmdLine.Options"):
         optionsExtender(parser)
     pluginLastOptionIndex = len(parser.option_list)
     pluginLastOptionsGroupIndex = len(parser.option_groups)
@@ -1716,7 +1717,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 elif cmd == "temp":
                     savePluginChanges = False
                 elif cmd.startswith("+"):
-                    moduleInfo = self.pluginManager.addPluginModule(cmd[1:])
+                    moduleInfo = self._pluginManager.addPluginModule(cmd[1:])
                     if moduleInfo:
                         self.addToLog(_("Addition of plug-in {0} successful.").format(moduleInfo.get("name")),
                                       messageCode="info", file=moduleInfo.get("moduleURL"))  # type: ignore[arg-type]
@@ -1726,13 +1727,13 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     else:
                         self.addToLog(_("Unable to load plug-in."), messageCode="info", file=cmd[1:])
                 elif cmd.startswith("~"):
-                    if self.pluginManager.reloadPluginModule(cmd[1:]):
+                    if self._pluginManager.reloadPluginModule(cmd[1:]):
                         self.addToLog(_("Reload of plug-in successful."), messageCode="info", file=cmd[1:])
                         resetPlugins = True
                     else:
                         self.addToLog(_("Unable to reload plug-in."), messageCode="info", file=cmd[1:])
                 elif cmd.startswith("-"):
-                    if self.pluginManager.removePluginModule(cmd[1:]):
+                    if self._pluginManager.removePluginModule(cmd[1:]):
                         self.addToLog(_("Deletion of plug-in successful."), messageCode="info", file=cmd[1:])
                         resetPlugins = True
                     else:
@@ -1742,7 +1743,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     if cmd in self.preloadedPlugins:
                         moduleInfo =  self.preloadedPlugins[cmd] # already loaded, add activation message to log below
                     else:
-                        moduleInfo = self.pluginManager.addPluginModule(cmd)
+                        moduleInfo = self._pluginManager.addPluginModule(cmd)
                         if moduleInfo:
                             resetPlugins = True
                             if _pluginHasCliOptions(moduleInfo):
@@ -1755,24 +1756,22 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                       messageCode="arelle:pluginParameterError",
                                       messageArgs={"name": cmd, "file": cmd}, level=logging.ERROR)
                 if resetPlugins:
-                    self.pluginManager.reset()
+                    self._pluginManager.reset()
                     if savePluginChanges:
-                        self.pluginManager.save(self)
+                        self._pluginManager.save(self)
                 if loadPluginOptions:
                     _optionsParser = ParserForDynamicPlugins(options)
                     # add plug-in options
-                    for optionsExtender in self.pluginManager.pluginClassMethods("CntlrCmdLine.Options"):
+                    for optionsExtender in self.plugins.hooks("CntlrCmdLine.Options"):
                         optionsExtender(_optionsParser)
 
             if showPluginModules:
                 self.addToLog(_("Plug-in modules:"), messageCode="info")
-                assert isinstance(self.pluginManager.pluginConfig, dict)
-                for i, moduleItem in enumerate(sorted(self.pluginManager.pluginConfig.get("modules", {}).items())):
-                    moduleInfo = moduleItem[1]
+                for name, plugin_handle in sorted(self.plugins.get_plugin_handles().items()):
                     self.addToLog(_("Plug-in: {0}; author: {1}; version: {2}; status: {3}; date: {4}; description: {5}; license {6}.").format(
-                                  moduleItem[0], moduleInfo.get("author"), moduleInfo.get("version"), moduleInfo.get("status"),
-                                  moduleInfo.get("fileDate"), moduleInfo.get("description"), moduleInfo.get("license")),
-                                  messageCode="info", file=moduleInfo.get("moduleURL"))
+                        name, plugin_handle.author, plugin_handle.version, plugin_handle.status,
+                        plugin_handle.file_date, plugin_handle.description, plugin_handle.license),
+                        messageCode="info", file=plugin_handle.module_url)
 
         if options.packages:
             self.loadPackages(options.packages, options.packageManifestName or "")
@@ -1955,7 +1954,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
 
         # run utility command line options that don't depend on entrypoint Files
         hasUtilityPlugin = False
-        for pluginXbrlMethod in self.pluginManager.pluginClassMethods("CntlrCmdLine.Utility.Run"):
+        for pluginXbrlMethod in self.plugins.hooks("CntlrCmdLine.Utility.Run"):
             hasUtilityPlugin = True
             try:
                 pluginXbrlMethod(self, options, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
@@ -1974,7 +1973,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
         _entrypointFiles = entrypointParseResult.entrypointFiles
         success = True
 
-        for pluginXbrlMethod in self.pluginManager.pluginClassMethods("CntlrCmdLine.Filing.Start"):
+        for pluginXbrlMethod in self.plugins.hooks("CntlrCmdLine.Filing.Start"):
             pluginXbrlMethod(self, options, filesource, _entrypointFiles, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
 
         if options.validate and filesource is not None:
@@ -2046,10 +2045,10 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     if modelXbrl.errors:
                         success = False    # loading errors, don't attempt to utilize loaded DTS
                 if modelXbrl.modelDocument.type in ModelDocument.Type.TESTCASETYPES:
-                    for pluginXbrlMethod in self.pluginManager.pluginClassMethods("Testcases.Start"):
+                    for pluginXbrlMethod in self.plugins.hooks("Testcases.Start"):
                         pluginXbrlMethod(self, options, modelXbrl)
                 else: # not a test case, probably instance or DTS
-                    for pluginXbrlMethod in self.pluginManager.pluginClassMethods("CntlrCmdLine.Xbrl.Loaded"):
+                    for pluginXbrlMethod in self.plugins.hooks("CntlrCmdLine.Xbrl.Loaded"):
                         pluginXbrlMethod(self, options, modelXbrl, _entrypoint, responseZipStream=responseZipStream)
                     if options.saveOIMToXMLReport:
                         if modelXbrl.loadedFromOIM and modelXbrl.modelDocument is not None:
@@ -2099,7 +2098,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     for modelXbrl in [self.modelManager.modelXbrl] + getattr(self.modelManager.modelXbrl, "supplementalModelXbrls", []):
                         hasFormulae = modelXbrl.hasFormulae
                         isAlreadyValidated = False
-                        for pluginXbrlMethod in self.pluginManager.pluginClassMethods("ModelDocument.IsValidated"):
+                        for pluginXbrlMethod in self.plugins.hooks("ModelDocument.IsValidated"):
                             if pluginXbrlMethod(modelXbrl): # e.g., streaming extensions already has validated
                                 isAlreadyValidated = True
                         if options.validate and not isAlreadyValidated:
@@ -2211,7 +2210,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         if options.arcroleTypesFile:
                             ViewFileRoleTypes.viewRoleTypes(modelXbrl, options.arcroleTypesFile, "Arcrole Types", isArcrole=True, lang=options.labelLang)  # type: ignore[no-untyped-call]
 
-                        for pluginXbrlMethod in self.pluginManager.pluginClassMethods("CntlrCmdLine.Xbrl.Run"):
+                        for pluginXbrlMethod in self.plugins.hooks("CntlrCmdLine.Xbrl.Run"):
                             pluginXbrlMethod(self, options, modelXbrl, _entrypoint, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
 
                 except OSError as err:
@@ -2274,7 +2273,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         self.modelManager.close(modelXbrl)
 
         if options.validate:
-            for pluginXbrlMethod in self.pluginManager.pluginClassMethods("Validate.Complete"):
+            for pluginXbrlMethod in self.plugins.hooks("Validate.Complete"):
                 pluginXbrlMethod(self, filesource)
 
         if filesource is not None and not options.keepOpen:
@@ -2283,9 +2282,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
 
         if success:
             if options.validate:
-                for pluginXbrlMethod in self.pluginManager.pluginClassMethods("CntlrCmdLine.Filing.Validate"):
+                for pluginXbrlMethod in self.plugins.hooks("CntlrCmdLine.Filing.Validate"):
                     pluginXbrlMethod(self, options, filesource, _entrypointFiles, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
-            for pluginXbrlMethod in self.pluginManager.pluginClassMethods("CntlrCmdLine.Filing.End"):
+            for pluginXbrlMethod in self.plugins.hooks("CntlrCmdLine.Filing.End"):
                 pluginXbrlMethod(self, options, filesource, _entrypointFiles, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
         self.username = self.password = None #dereference password
         self._clearPluginData()

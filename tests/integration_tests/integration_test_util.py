@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, cast, Any
 import pytest
 import regex
 
-from arelle import PackageManager
+from arelle import PackageManager, PluginManager
 from arelle.ModelDocumentType import ModelDocumentType
 from arelle.Cntlr import Cntlr
 from arelle.CntlrCmdLine import parseAndRun
@@ -169,7 +169,7 @@ def get_test_data(
     finally:
         cntlr.modelManager.close()
         PackageManager.close()
-        cntlr.pluginManager.close()
+        PluginManager.getInstance().close()
 
 
 def collect_test_data(
