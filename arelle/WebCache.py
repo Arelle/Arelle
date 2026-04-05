@@ -26,13 +26,7 @@ from urllib import request as proxyhandlers
 from urllib.error import ContentTooShortError, HTTPError, URLError
 from urllib.parse import quote, unquote, urlsplit, urlunsplit
 
-import certifi
 import regex as re
-import truststore
-from filelock import FileLock, Timeout
-
-from arelle.PythonUtil import isLegacyAbs
-from arelle.typing import TypeGetText
 
 try:
     import ssl
@@ -40,6 +34,8 @@ except ImportError:
     ssl = None  # type: ignore[assignment]
 
 from arelle.FileSource import SERVER_WEB_CACHE, archiveFilenameParts
+from arelle.PythonUtil import isLegacyAbs
+from arelle.typing import TypeGetText
 from arelle.UrlUtil import isHttpUrl
 from arelle.Version import __version__
 
@@ -295,6 +291,11 @@ class WebCache:
         if self._opener is None:
             handlers = list(self._baseProxyHandlers)
             if ssl:
+                # Both imports are slow to load, so we do them lazily here when
+                # we know we'll need them.
+                import certifi
+                import truststore
+
                 context = truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
                 # Include certifi certificates (Mozilla's carefully curated
                 # collection) for systems with outdated certs.
@@ -653,6 +654,10 @@ class WebCache:
             retrievingDueToRecheckInterval: bool = False,
             retryCount: int = 5
         ) -> bool:
+        # Defer import of filelock until here since it is not needed for other
+        # operations and is slow to import
+        from filelock import FileLock, Timeout
+
         before_timestamp = WebCache._getFileTimestamp(filepath)
         fileInCache = False
         lock = FileLock(filepath + ".lock", timeout=FILE_LOCK_TIMEOUT)
