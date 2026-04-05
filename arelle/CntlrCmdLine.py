@@ -23,10 +23,9 @@ import time
 import traceback
 from optparse import SUPPRESS_HELP, Option, OptionGroup, OptionParser
 from pprint import pprint
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 import regex as re
-from bottle import Bottle  # type: ignore[import-untyped]
 from lxml import etree
 
 try:
@@ -70,6 +69,9 @@ from arelle.typing import TypeGetText
 from arelle.utils.EntryPointDetection import parseEntrypointFileInput
 from arelle.ValidateXbrlDTS import ValidateBaseTaxonomiesMode
 from arelle.WebCache import proxyTuple
+
+if TYPE_CHECKING:
+    from bottle import Bottle
 
 STILL_ACTIVE = 259 # MS Windows process status constants
 PROCESS_QUERY_INFORMATION = 0x400
@@ -1495,7 +1497,7 @@ def _configAndRunCntlr(
         cntlr.postLoggingInit()
         from arelle import CntlrWebMain
         app = CntlrWebMain.startWebserver(cntlr, options)
-        if options.webserver == "::wsgi":
+        if options.webserver == "::wsgi" and app is not None:
             return app, None
 
         return None, None
