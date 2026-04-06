@@ -193,5 +193,5 @@ def testTypeCompatibility(
         "err:XPTY0004",
         _(
             "Value operation {0} incompatible arguments {1} ({2}) and {3} ({4})"
-            ).format(op, a1, pyTypeName(a1), a2, pyTypeName(a2))  # type: ignore[no-untyped-call]
+            ).format(op, a1, pyTypeName(a1), a2, pyTypeName(a2))
     )
