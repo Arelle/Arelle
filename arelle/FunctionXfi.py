@@ -1726,7 +1726,6 @@ def concept_relationships(
                         g = 0
                         visited = set()
                     else:
-                        # g is undefined, not sure if it is supposed to be generations variable
                         g = generations
                     indexOfSelfInRoots = rootQNs.index(qnSource)
                     if indexOfSelfInRoots >= 0:
