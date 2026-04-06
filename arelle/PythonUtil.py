@@ -66,20 +66,20 @@ def py3unquote(string: str, encoding: str = 'utf-8', errors: str = 'replace') ->
         string += pct_sequence.decode(encoding, errors)
     return string
 
-def pyTypeName(object: ModelValue.DateTime) -> str:
+def pyTypeName(object: Any) -> str:
     try:
         objectClass = object.__class__
         classModule = objectClass.__module__
         className = objectClass.__name__
         if classModule == 'builtins':
-            return className
+            return className  # type: ignore[no-any-return]
         fullname = classModule + '.' + className
         if fullname == 'arelle.ModelValue.DateTime':
             if object.dateOnly:
                 fullname += '-dateOnly'
             else:
                 fullname += '-dateTime'
-        return fullname
+        return fullname  # type: ignore[no-any-return]
     except:
         return str(type(object))
 
@@ -94,7 +94,7 @@ def pyNamedObject(name: str, *args: Any, **kwargs: Any) -> Any:
 def lcStr(value: str) -> str | type[str]: # lower case first letter of string
     if len(value):
         return value[0].lower() + value[1:]
-    return str
+    return value
 
 def strTruncate(value: str, length: int) -> str:
     _s = str(value).strip()
@@ -333,14 +333,6 @@ class FrozenDict(Generic[KT, VT], Mapping[KT, VT]):
             self._hash = hash(tuple(sorted(self._dict.items())))
         return self._hash
 
-
-def Fraction(numerator: fractions.Fraction | str | Decimal | int, denominator: Decimal | int | None = None) -> Fraction:  # type: ignore[valid-type]
-    if denominator is None:
-        if isinstance(numerator, (fractions.Fraction,str,Decimal)):
-            return Fraction(numerator)
-    elif isinstance(numerator, Decimal) and isinstance(denominator, Decimal):
-        return Fraction(int(numerator), int(denominator))
-    return Fraction(numerator, denominator)
 
 def pyObjectSize(obj: Any, seen: set[int] | None = None) -> int:
     """Recursively finds size of objects"""

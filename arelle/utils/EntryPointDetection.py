@@ -34,7 +34,7 @@ def parseEntrypointFileInput(cntlr: Cntlr, entrypointFile: str | None, sourceZip
     # entrypointFile may be absent (if input is a POSTED zip or file name ending in .zip)
     #    or may be a | separated set of file names
     _entryPoints = []
-    _checkIfXmlIsEis = cast(bool, cntlr.modelManager.disclosureSystem and cntlr.modelManager.disclosureSystem.validationType == "EFM")
+    _checkIfXmlIsEis = cntlr.modelManager.disclosureSystem.validationType == "EFM"
     if entrypointFile:
         _f = entrypointFile
         try: # may be a json list
@@ -100,9 +100,10 @@ def filesourceEntrypointFiles(filesource: FileSource.FileSource, entrypointFiles
             urlsByType: dict[int, list[str]] = {}
             for _archiveFile in (filesource.dir or ()): # .dir might be none if IOerror
                 filesource.select(_archiveFile)
-                identifiedType = ModelDocumentType.identify(filesource, cast(str, filesource.url))
+                assert isinstance(filesource.url, str)
+                identifiedType = ModelDocumentType.identify(filesource, filesource.url)
                 if identifiedType in (ModelDocumentType.INSTANCE, ModelDocumentType.INLINEXBRL, ModelDocumentType.HTML):
-                    urlsByType.setdefault(identifiedType, []).append(cast(str, filesource.url))
+                    urlsByType.setdefault(identifiedType, []).append(filesource.url)
             # use inline instances, if any, else non-inline instances
             for identifiedType in ((ModelDocumentType.INLINEXBRL,) if inlineOnly else (ModelDocumentType.INLINEXBRL, ModelDocumentType.INSTANCE)):
                 for url in urlsByType.get(identifiedType, []):
