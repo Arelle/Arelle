@@ -182,7 +182,6 @@ module = [
     'arelle.ModelVersReport',
     'arelle.PrototypeDtsObject',
     'arelle.PrototypeInstanceObject',
-    'arelle.PythonUtil',
     'arelle.rendering.RenderingEvaluator',
     'arelle.rendering.RenderingLayout',
     'arelle.rendering.RenderingResolution',
