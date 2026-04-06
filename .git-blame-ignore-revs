@@ -2,3 +2,13 @@
 956cfcca1aaa18dd2521172a851da3375abd2978
 # Fixed whitespace in arelle/plugin/validate/FERC/config.xml
 32529af727261eb1e9bf51a78280e558ef80f580
+# formatting changes in arelle/FunctionIxt.py
+f7a9df3d4d8971519ef0d9db3063dbddae459603
+# formatting changes in arelle/FunctionUtil.py
+d93240e5ae326f055971aad9b8fa08a36db47d9c
+# formatting changes in arelle/FunctionFn.py
+e5c51b9c3ccf4080589dd8713ea98b90a6ddfdbe
+# formatting changes in arelle/FunctionXs.py
+e4052d44491282927dd253928eb8a405b073822c
+# formatting changes in arelle/FunctionXfi.py
+43786571258444da879f76c9c165e76685689e4e

@@ -328,7 +328,7 @@ def parentId(
 def hasChild(
     element: ModelObject,
     childNamespaceURI: str,
-    childLocalNames: str
+    childLocalNames: str | tuple[str, ...]
 ) -> bool:
     result = children(element, childNamespaceURI, childLocalNames)
     return bool(result)
@@ -758,9 +758,9 @@ def addChild(
                 child.set(name.clarkNotation, str(value)) # ModelValue type hints
             else:
                 assert isinstance(name, str)
-                child.set(name, xsString(None, None, value) )  # type: ignore[no-untyped-call] # FunctionXs type hints
+                child.set(name, xsString(None, None, value) )  # type: ignore[arg-type] # FunctionXs type hints
     if text is not None:
-        child.text = xsString(None, None, text)  # type: ignore[no-untyped-call] # FunctionXs type hints
+        child.text = xsString(None, None, text)  # type: ignore[arg-type] # FunctionXs type hints
         # check if the text is a QName and add the namespace if needed!
         if isinstance(text, QName):
             addQnameValue(modelDocument, text)
