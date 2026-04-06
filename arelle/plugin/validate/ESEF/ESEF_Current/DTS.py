@@ -4,6 +4,7 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 from collections import defaultdict
+from typing import cast
 from datetime import datetime
 
 import regex as re
@@ -16,6 +17,7 @@ from arelle.ModelValue import qname
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.XbrlConst import dimensionDefault, standardLabelRoles, xbrli
 from arelle.typing import TypeGetText
+from arelle.utils.validate.Common import isExtensionUri
 from ..Const import (
     DefaultDimensionLinkroles,
     esefDefinitionArcroles,
@@ -26,7 +28,7 @@ from ..Const import (
     qnDomainItemTypes2023,
     qnDomainItemTypes2024,
 )
-from ..Util import isChildOfNotes, isExtension, getDisclosureSystemYear
+from ..Util import isChildOfNotes, getDisclosureSystemYear
 
 _: TypeGetText  # Handle gettext
 
@@ -39,7 +41,8 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
             checkFilingDTS(val, referencedDocument, esefNotesConcepts,
                            visited, ifrsNses, modelDocumentReference.referringXlinkRole)
 
-    isExtensionDoc = isExtension(val, modelDocument)
+    standardTaxonomyUriPrefixes = cast(frozenset[str], val.authParam["standardTaxonomyURIs"])
+    isExtensionDoc = isExtensionUri(modelDocument.uri, val.modelXbrl, standardTaxonomyUriPrefixes)
     filenamePattern = filenameRegex = None
     esefDisclosureSystemYear = getDisclosureSystemYear(val.modelXbrl)
     anchorAbstractExtensionElements = esefDisclosureSystemYear < 2023 and val.authParam["extensionElementsAnchoring"] == "include abstract"
@@ -232,7 +235,7 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
                             else:
                                 conceptsWithNoLabel.append(modelConcept)
             for modelType in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/2001/XMLSchema}complexType"):
-                if (isinstance(modelType,ModelType) and isExtension(val, modelType) and
+                if (isinstance(modelType,ModelType) and isExtensionUri(modelType.modelDocument.uri, val.modelXbrl, standardTaxonomyUriPrefixes) and
                     modelType.typeDerivedFrom is not None and modelType.typeDerivedFrom.qname.namespaceURI == xbrli and
                     not modelType.particlesList):
                     val.modelXbrl.error("ESEF.RTS.Annex.IV.Par.11.customDataTypeDuplicatingXbrlOrDtrEntry",
@@ -360,10 +363,10 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
                              prohibitedArcTos[arcElt.get("{http://www.w3.org/1999/xlink}to")].append(arcElt)
                     for locElt in linkElt.iterchildren("{http://www.xbrl.org/2003/linkbase}loc"):
                         prohibitingArcs = prohibitedArcTos.get(locElt.get("{http://www.w3.org/1999/xlink}label"))
-                        if prohibitingArcs and not isExtension(val, locElt.get("{http://www.w3.org/1999/xlink}href")):
+                        if prohibitingArcs and not ((href := locElt.get("{http://www.w3.org/1999/xlink}href")) and isExtensionUri(href, val.modelXbrl, standardTaxonomyUriPrefixes)):
                             prohibitingLbElts.extend(prohibitingArcs)
                         prohibitingArcs = prohibitedArcFroms.get(locElt.get("{http://www.w3.org/1999/xlink}label"))
-                        if prohibitingArcs and not isExtension(val, locElt.get("{http://www.w3.org/1999/xlink}href")):
+                        if prohibitingArcs and not ((href := locElt.get("{http://www.w3.org/1999/xlink}href")) and isExtensionUri(href, val.modelXbrl, standardTaxonomyUriPrefixes)):
                             prohibitingLbElts.extend(prohibitingArcs)
                             prohibitedBaseConcepts.append(locElt.dereference())
                     del prohibitedArcFroms, prohibitedArcTos # dereference

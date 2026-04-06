@@ -30,6 +30,7 @@ from arelle.ValidateFilingText import parseImageDataURL
 from arelle.ValidateUtr import ValidateUtr
 from arelle.ValidateDuplicateFacts import getDuplicateFactSets
 from arelle.ValidateXbrl import ValidateXbrl
+from arelle.utils.validate.Common import isExtensionUri
 from arelle.XbrlConst import (
     all as hc_all,
     dimensionDomain,
@@ -61,7 +62,6 @@ from ..Const import (
     untransformableTypes,
 )
 from ..Dimensions import checkFilingDimensions
-from ..Util import isExtension
 
 
 _: TypeGetText  # Handle gettext
@@ -699,6 +699,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
 
 
         # unused elements in linkbases
+        standardTaxonomyUriPrefixes = cast(frozenset[str], val.authParam["standardTaxonomyURIs"])
         conceptsUsedByFacts = conceptsUsed.copy()
         unreportedLbElts = set()
         for arcroles, error, checkRoots, lbType in (
@@ -714,9 +715,9 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     fr = rel.fromModelObject
                     to = rel.toModelObject
                     if arcrole in (parentChild, summationItem):
-                        if fr is not None and not fr.isAbstract and fr not in conceptsUsed and isExtension(val, rel):
+                        if fr is not None and not fr.isAbstract and fr not in conceptsUsed and isExtensionUri(rel.modelDocument.uri, val.modelXbrl, standardTaxonomyUriPrefixes):
                             unreportedLbElts.add(fr)
-                        if to is not None and not to.isAbstract and to not in conceptsUsed and isExtension(val, rel):
+                        if to is not None and not to.isAbstract and to not in conceptsUsed and isExtensionUri(rel.modelDocument.uri, val.modelXbrl, standardTaxonomyUriPrefixes):
                             unreportedLbElts.add(to)
                     elif arcrole in (hc_all, domainMember, dimensionDomain):
                         # all primary items
@@ -726,7 +727,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                             and not fr.isAbstract
                             and rel.isUsable
                             and fr not in conceptsUsed
-                            and isExtension(val, rel)
+                            and isExtensionUri(rel.modelDocument.uri, val.modelXbrl, standardTaxonomyUriPrefixes)
                             and not fr.type.isDomainItemType
                         ):
                             unreportedLbElts.add(fr)
@@ -736,7 +737,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                             and not to.isAbstract
                             and rel.isUsable
                             and to not in conceptsUsed
-                            and isExtension(val, rel)
+                            and isExtensionUri(rel.modelDocument.uri, val.modelXbrl, standardTaxonomyUriPrefixes)
                             and not to.type.isDomainItemType
                         ):
                             unreportedLbElts.add(to)
@@ -767,7 +768,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
 
         def checkLabels(parent: ModelConcept, relSet: ModelRelationshipSet, labelrole: str | None, visited: set[ModelConcept]) -> None:
             if not parent.label(labelrole,lang=reportXmlLang,fallbackToQname=False):
-                if (not labelrole or labelrole == standardLabel) and isExtension(val, parent):
+                if (not labelrole or labelrole == standardLabel) and isExtensionUri(parent.modelDocument.uri, val.modelXbrl, standardTaxonomyUriPrefixes):
                     missingConceptLabels[labelrole].add(parent)
             visited.add(parent)
             conceptRels = defaultdict(list) # counts for concepts without preferred label role
@@ -893,7 +894,8 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 if _i is not None:
                     for c in conceptlist:
                         if (c.qname.namespaceURI not in _ifrsNses
-                            and isExtension(val, c.qname.namespaceURI) # may be a authority-specific duplication such as UK-FRC
+                            and c.qname.namespaceURI is not None
+                            and isExtensionUri(c.qname.namespaceURI, val.modelXbrl, standardTaxonomyUriPrefixes) # may be a authority-specific duplication such as UK-FRC
                             and c.balance == _i.balance and c.periodType == _i.periodType):
                             modelXbrl.error("ESEF.RTS.Annex.IV.Par.4.1.extensionElementDuplicatesCoreElement",
                         _("Extension elements must not duplicate the existing elements from the core taxonomy and be identifiable %(qname)s."),

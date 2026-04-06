@@ -13,7 +13,6 @@ import regex as re
 from lxml.etree import _Element
 
 from arelle.FileSource import openFileStream
-from arelle.ModelDocument import ModelDocument
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelUnit
 from arelle.ModelManager import ModelManager
@@ -45,19 +44,6 @@ def getDisclosureSystemYear(modelXbrl: ModelXbrl) -> int:
         if disclosureSystemYear:
             return int(disclosureSystemYear.group(YEAR_GROUP))
     raise ValueError(f"Unable to determine year of ESEF disclosure system matching pattern 'esef-20XX' from {modelXbrl.modelManager.disclosureSystem.names}")
-
-
-# check if a modelDocument URI is an extension URI (document URI)
-# also works on a uri passed in as well as modelObject
-def isExtension(val: ValidateXbrl, modelObject: ModelObject | ModelDocument | str | None) -> bool:
-    if modelObject is None:
-        return False
-    if isinstance(modelObject, str):
-        uri = modelObject
-    else:
-        uri = modelObject.modelDocument.uri
-    return (uri.startswith(val.modelXbrl.uriDir) or
-            not any(uri.startswith(standardTaxonomyURI) for standardTaxonomyURI in val.authParam["standardTaxonomyURIs"]))
 
 
 # check if in core esef taxonomy (based on namespace URI)

@@ -4,6 +4,7 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 import unicodedata
+from typing import cast
 from collections import defaultdict
 
 import regex as re
@@ -15,6 +16,7 @@ from arelle.ModelObject import ModelObject
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.XbrlConst import dimensionDefault, standardLabelRoles, xbrli
 from arelle.typing import TypeGetText
+from arelle.utils.validate.Common import isExtensionUri
 from ..Const import (
     DefaultDimensionLinkroles2021,
     esefDefinitionArcroles,
@@ -23,8 +25,6 @@ from ..Const import (
     linkbaseRefTypes,
     qnDomainItemTypesBefore2023,
 )
-from ..Util import isExtension
-
 _: TypeGetText  # Handle gettext
 
 
@@ -39,7 +39,8 @@ def checkFilingDTS(
         if referencedDocument not in visited and referencedDocument.inDTS: # ignore non-DTS documents
             checkFilingDTS(val, referencedDocument, visited, modelDocumentReference.referringXlinkRole)
 
-    isExtensionDoc = isExtension(val, modelDocument)
+    standardTaxonomyUriPrefixes = cast(frozenset[str], val.authParam["standardTaxonomyURIs"])
+    isExtensionDoc = isExtensionUri(modelDocument.uri, val.modelXbrl, standardTaxonomyUriPrefixes)
     filenamePattern = filenameRegex = None
     anchorAbstractExtensionElements = val.authParam["extensionElementsAnchoring"] == "include abstract"
     allowCapsInLc3Words = val.authParam["LC3AllowCapitalsInWord"]
@@ -185,7 +186,7 @@ def checkFilingDTS(
                                     modelObject=[modelConcept]+labels, concept=modelConcept.qname, lang=lang, labelrole=labelrole)
                     langRoleLabels.clear()
             for modelType in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/2001/XMLSchema}complexType"):
-                if (isinstance(modelType,ModelType) and isExtension(val, modelType) and
+                if (isinstance(modelType,ModelType) and isExtensionUri(modelType.modelDocument.uri, val.modelXbrl, standardTaxonomyUriPrefixes) and
                     modelType.typeDerivedFrom is not None and modelType.typeDerivedFrom.qname.namespaceURI == xbrli and
                     not modelType.particlesList):
                     val.modelXbrl.error("ESEF.RTS.Annex.IV.Par.11.customDataTypeDuplicatingXbrlOrDtrEntry",
@@ -301,10 +302,10 @@ def checkFilingDTS(
                              prohibitedArcTos[arcElt.get("{http://www.w3.org/1999/xlink}to")].append(arcElt)
                     for locElt in linkElt.iterchildren("{http://www.xbrl.org/2003/linkbase}loc"):
                         prohibitingArcs = prohibitedArcTos.get(locElt.get("{http://www.w3.org/1999/xlink}label"))
-                        if prohibitingArcs and not isExtension(val, locElt.get("{http://www.w3.org/1999/xlink}href")):
+                        if prohibitingArcs and not ((href := locElt.get("{http://www.w3.org/1999/xlink}href")) and isExtensionUri(href, val.modelXbrl, standardTaxonomyUriPrefixes)):
                             prohibitingLbElts.extend(prohibitingArcs)
                         prohibitingArcs = prohibitedArcFroms.get(locElt.get("{http://www.w3.org/1999/xlink}label"))
-                        if prohibitingArcs and not isExtension(val, locElt.get("{http://www.w3.org/1999/xlink}href")):
+                        if prohibitingArcs and not ((href := locElt.get("{http://www.w3.org/1999/xlink}href")) and isExtensionUri(href, val.modelXbrl, standardTaxonomyUriPrefixes)):
                             prohibitingLbElts.extend(prohibitingArcs)
                             prohibitedBaseConcepts.append(locElt.dereference())
                     del prohibitedArcFroms, prohibitedArcTos # dereference
