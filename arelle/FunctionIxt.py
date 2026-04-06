@@ -327,11 +327,18 @@ def checkDate(y: str | int | None, m: str | int | None, d: str | int | None) -> 
 
 
 def z2(arg: str | None) -> str | None:   # zero pad to 2 digits
-    return arg.zfill(2) if isinstance(arg, str) else arg
+    if arg is not None and len(arg) == 1:
+        return "0" + arg
+    return arg
 
 
 def yr4(arg: str | None) -> str | None:   # zero pad to 4 digits
-    return "2" + arg.zfill(3) if isinstance(arg, str) and len(arg) <= 2 else arg
+    if arg is not None:
+        if len(arg) == 1:
+            return "200" + arg
+        elif len(arg) == 2:
+            return "20" + arg
+    return arg
 
 
 def yrin(arg: str | None, _mo: int, _day: int) -> str | None:   # zero pad to 4 digits
