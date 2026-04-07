@@ -1865,18 +1865,18 @@ def main() -> None:
             logMsg = "{}\nEnvironment {}".format(traceback.format_exc(limit=7), os.environ)
             #print(logMsg, file=sys.stderr)
             if syslog is not None:
-                syslog.openlog("Arelle")
-                syslog.syslog(syslog.LOG_ALERT, logMsg)
+                syslog.openlog("Arelle")  # type: ignore[attr-defined,unused-ignore]
+                syslog.syslog(syslog.LOG_ALERT, logMsg)  # type: ignore[attr-defined,unused-ignore]
             try: # this may crash.  Note syslog has 1k message length
                 logMsg = "tcl_pkgPath {} tcl_library {} tcl version {}".format(
                     Tcl().getvar("tcl_pkgPath"), Tcl().getvar("tcl_library"), Tcl().eval('info patchlevel'))
                 if syslog is not None:
-                    syslog.syslog(syslog.LOG_ALERT, logMsg)
+                    syslog.syslog(syslog.LOG_ALERT, logMsg)  # type: ignore[attr-defined,unused-ignore]
                 #print(logMsg, file=sys.stderr)
             except:
                 pass
             if syslog is not None:
-                syslog.closelog()
+                syslog.closelog()  # type: ignore[attr-defined,unused-ignore]
 
 if __name__ == "__main__":
     if getattr(sys, 'frozen', False):
