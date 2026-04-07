@@ -2382,11 +2382,11 @@ class CntlrCmdLine(Cntlr.Cntlr):
             self._packageManager.packagesConfigChanged = False
         if showPackages:
             self.addToLog(_("Taxonomy packages:"), messageCode="info")
-            for packageInfo in self._packageManager.orderedPackagesConfig()["packages"]:
+            for packageMeta in self.packages.get_packages():
                 self.addToLog(_("Package: {0}; version: {1}; status: {2}; date: {3}; description: {4}.").format(
-                    packageInfo.get("name"), packageInfo.get("version"), packageInfo.get("status"),
-                    packageInfo.get("fileDate"), packageInfo.get("description")),
-                    messageCode="info", file=packageInfo.get("URL"))
+                    packageMeta.name, packageMeta.version, packageMeta.status,
+                    packageMeta.file_date, packageMeta.description),
+                    messageCode="info", file=packageMeta.url)
 
 if __name__ == "__main__":
     if getattr(sys, 'frozen', False):

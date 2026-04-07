@@ -39,7 +39,7 @@ from arelle.formula.XPathParser import (VariableRef, QNameDef, OperationDef, Ran
 from arelle.formula.XPathContext import (XPathException, VALUE_OPS, GENERALCOMPARISON_OPS, NODECOMPARISON_OPS,
                                  COMBINING_OPS, LOGICAL_OPS, UNARY_OPS, FORSOMEEVERY_OPS, PATH_OPS,
                                  SEQUENCE_TYPES, GREGORIAN_TYPES)
-from arelle import FileSource, PackageManager, XbrlConst, XmlUtil, ValidateXbrlDimensions
+from arelle import FileSource, XbrlConst, XmlUtil, ValidateXbrlDimensions
 from arelle.formula import ValidateFormula, XPathParser
 from arelle.Version import authorLabel, copyrightLabel
 import os, datetime, logging
@@ -290,16 +290,16 @@ def validateUtilityRun(cntlr, options, *args, **kwargs):
 def setupPackageEntrypoints(cntlr, options, filesource, entrypointFiles, *args, **kwargs):
     # check package entries formula code
     if getattr(options, "checkPackageEntries", False) and not entrypointFiles:
-        for packageInfo in sorted(PackageManager.packagesConfig.get("packages", []),
-                                  key=lambda packageInfo: (packageInfo.get("name",""),packageInfo.get("version",""))):
+        for packageMeta in sorted(cntlr.packages.get_packages(),
+                                  key=lambda packageMeta: (packageMeta.name ,packageMeta.version)):
             cntlr.addToLog(_("Package %(package)s Version %(version)s"),
-                           messageArgs={"package": packageInfo["name"], "version": packageInfo["version"]},
+                           messageArgs={"package": packageMeta.name, "version": packageMeta.version},
                            messageCode="info",
                            level=logging.INFO)
-            filesource = FileSource.openFileSource(packageInfo["URL"], cntlr)
+            filesource = FileSource.openFileSource(packageMeta.url, cntlr)
             if filesource.isTaxonomyPackage:  # if archive is also a taxonomy package, activate mappings
                 filesource.loadTaxonomyPackageMappings()
-            for name, urls in packageInfo.get("entryPoints",{}).items():
+            for name, urls in packageMeta.entry_points.items():
                 for url in urls:
                     if filesource and filesource.isArchive:
                         cntlr.addToLog(_("   EntryPont %(entryPoint)s: %(url)s"),

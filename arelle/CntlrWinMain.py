@@ -593,15 +593,15 @@ class CntlrWinMain(Cntlr.Cntlr):
         self.fileMenu.add_cascade(label=_("Recent imports"), menu=self.recentAttachMenu, underline=0)
         self.packagesMenu = Menu(self.menubar, tearoff=0)
         hasPackages = False
-        for i, packageInfo in enumerate(sorted(self._packageManager.packagesConfig.get("packages", []),
-                                               key=lambda packageInfo: (packageInfo.get("name",""),packageInfo.get("version",""))),
+        for i, packageMeta in enumerate(sorted(self.packages.get_packages(),
+                                               key=lambda packageMeta: (packageMeta.name,packageMeta.version)),
                                         start=1):
-            name = packageInfo.get("name", "package{}".format(i))
-            version = packageInfo.get("version")
+            name = packageMeta.name if packageMeta.name is not None else "package{}".format(i)
+            version = packageMeta.version
             if version:
                 name = "{} ({})".format(name, version)
-            URL = packageInfo.get("URL")
-            if name and URL and packageInfo.get("status") == "enabled":
+            URL = packageMeta.url
+            if name and URL and packageMeta.status == "enabled":
                 self.packagesMenu.add_command(
                      label=name,
                      command=lambda url=URL: self.fileOpenFile(url))  # type: ignore[misc]
