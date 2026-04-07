@@ -2324,10 +2324,10 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 sys.exit()
 
     def loadPackage(self, package: str, packageManifestName: str) -> None:
-        packageInfo = self._packageManager.addPackage(self, package, packageManifestName)
-        if packageInfo:
-            self.addToLog(_("Activation of package {0} successful.").format(packageInfo.get("name")),
-                          messageCode="info", file=packageInfo.get("URL", ""))
+        packageMeta = self.packages.add(package, packageManifestName)
+        if packageMeta:
+            self.addToLog(_("Activation of package {0} successful.").format(packageMeta.name),
+                          messageCode="info", file=packageMeta.url)
         else:
             self.addToLog(_("Unable to load package \"%(name)s\". "),
                           messageCode="arelle:packageLoadingError",
@@ -2351,10 +2351,10 @@ class CntlrCmdLine(Cntlr.Cntlr):
             elif cmd == "temp":
                 savePackagesChanges = False
             elif cmd.startswith("+"):
-                packageInfo = self._packageManager.addPackage(self, cmd[1:], packageManifestName)
-                if packageInfo:
-                    self.addToLog(_("Addition of package {0} successful.").format(packageInfo.get("name")),
-                                  messageCode="info", file=packageInfo.get("URL", ""))
+                packageMeta = self.packages.add(cmd[1:], packageManifestName)
+                if packageMeta:
+                    self.addToLog(_("Addition of package {0} successful.").format(packageMeta.name),
+                                  messageCode="info", file=packageMeta.url)
                 else:
                     self.addToLog(_("Unable to load package."), messageCode="info", file=cmd[1:])
             elif cmd.startswith("~"):
