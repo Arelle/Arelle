@@ -3,6 +3,7 @@ This module is Arelle's controller in windowing interactive UI mode
 
 See COPYRIGHT.md for copyright information.
 '''
+# mypy: disable-error-code="no-untyped-call"
 from __future__ import annotations
 
 import fnmatch
@@ -19,7 +20,8 @@ import regex as re
 
 from arelle import UrlUtil, ValidateDuplicateFacts
 from arelle.ValidateFileSource import ValidateFileSource
-from arelle.logging.formatters.LogFormatter import logRefsFileLines
+from arelle.logging.formatters.LogFormatter import LogFormatter, logRefsFileLines
+from arelle.typing import TypeGetText
 from arelle.utils.EntryPointDetection import parseEntrypointFileInput
 
 if sys.platform == 'win32' and getattr(sys, 'frozen', False):
@@ -43,17 +45,21 @@ from tkinter import (
     TclError,
     Tk,
     W,
-)
-from tkinter import font as tkFont
+    Event,
+    font as tkFont,
+    )
 
 try:
     from tkinter.ttk import Button, Combobox, Frame, Label, Notebook, PanedWindow, Separator
 except ImportError:  # 3.0 versions of tkinter
-    from ttk import Button, Combobox, Frame, Label, Notebook, PanedWindow, Separator
+    from ttk import (  # type: ignore[import-not-found,no-redef]
+        Button, Combobox, Frame, Label, Notebook, PanedWindow,
+        Separator,
+        )
 try:
     import syslog
 except ImportError:
-    syslog = None
+    syslog = None  # type: ignore[assignment]
 
 import logging
 import multiprocessing
@@ -97,7 +103,9 @@ from arelle import (
     ViewWinVersReport,
     ViewWinXml,
     XbrlConst,
-)
+    DialogFormulaParameters,
+    )
+from arelle.ModelXbrl import ModelXbrl
 from arelle.CntlrWinTooltip import ToolTip
 from arelle.FileSource import openFileSource
 from arelle.Locale import format_string, setApplicationLocale
@@ -109,24 +117,29 @@ from arelle.ValidateXbrlCalcs import ValidateCalcsMode as CalcsMode
 from arelle.ValidateXbrlDTS import ValidateBaseTaxonomiesMode
 from arelle.Version import copyrightLabel
 
+_: TypeGetText
+
 restartMain = True
 
 DOCUMENTATION_URL = "https://arelle.readthedocs.io/"
 
-class CntlrWinMain (Cntlr.Cntlr):
 
-    def __init__(self, parent):
+class CntlrWinMain(Cntlr.Cntlr):
+
+    config: dict[str, Any]
+
+    def __init__(self, parent: Tk) -> None:
         # Background processes communicate with UI thread through this queue
         # Prepare before calling super so messages encountered during initialization can be queued for logging
-        self.uiThreadQueue = queue.Queue()
+        self.uiThreadQueue: queue.Queue[tuple[Any, list[Any]]] = queue.Queue()
         super(CntlrWinMain, self).__init__(hasGui=True)
         self.parent = parent
-        self.filename = None
+        self.filename: str | None = None
         self.dirty = False
         overrideLang = self.config.get("labelLangOverride")
         localeSetupMessage = self.modelManager.setLocale() # set locale before GUI for menu strings, pass any msg to logger after log pane starts up
-        self.labelLang = overrideLang if overrideLang else self.modelManager.defaultLang
-        self.data = {}
+        self.labelLang: str = overrideLang if overrideLang else self.modelManager.defaultLang
+        self.data: dict[str, Any] = {}
 
         if self.isMac: # mac Python fonts bigger than other apps (terminal, text edit, Word), and to windows Arelle
             _defaultFont = tkFont.nametofont("TkDefaultFont") # label, status bar, treegrid
@@ -138,7 +151,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         else:
             toolbarButtonPadding = 4
 
-        tkinter.CallWrapper = TkinterCallWrapper
+        tkinter.CallWrapper = TkinterCallWrapper  # type: ignore[misc,assignment]
 
         imgpath = self.imagesDir + os.sep
 
@@ -150,7 +163,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             #parent.iconwindow(label)
         else:
             self.iconImage = PhotoImage(file=imgpath + "arelle-mac-icon-4.gif") # must keep reference during life of window
-            parent.tk.call('wm', 'iconphoto', parent._w, self.iconImage)
+            parent.tk.call('wm', 'iconphoto', parent._w, self.iconImage)  # type: ignore[attr-defined]
             #parent.iconbitmap("@" + imgpath + "arelle.xbm")
             # try with gif file
             #parent.iconbitmap(path + "arelle.gif")
@@ -183,12 +196,12 @@ class CntlrWinMain (Cntlr.Cntlr):
             if label is None:
                 self.fileMenu.add_separator()
             elif label == "PLUG-IN":
-                for pluginMenuExtender in self.plugins.hooks(command):
+                for pluginMenuExtender in self.plugins.hooks(command):  # type: ignore[arg-type]
                     pluginMenuExtender(self, self.fileMenu)
                     self.fileMenuLength += 1
             else:
-                self.fileMenu.add_command(label=label, underline=0, command=command, accelerator=shortcut_text)
-                self.parent.bind(shortcut, command)
+                self.fileMenu.add_command(label=label, underline=0, command=command, accelerator=shortcut_text)  # type: ignore[arg-type]
+                self.parent.bind(shortcut, command)  # type: ignore[arg-type]
                 self.fileMenuLength += 1
         self.loadFileMenuHistory()
         self.menubar.add_cascade(label=_("File"), menu=self.fileMenu, underline=0)
@@ -208,7 +221,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.calcChoiceEnumVar = IntVar(self.parent, value=self.modelManager.validateCalcs)
         self.calcChoiceEnumVar.trace_add("write", self.setCalcChoiceEnumVar)
         for calcChoiceMenuLabel, calcChoiceEnumValue in CalcsMode.menu().items():
-            calcMenu.add_radiobutton(label=calcChoiceMenuLabel, underline=0, var=self.calcChoiceEnumVar, value=calcChoiceEnumValue)
+            calcMenu.add_radiobutton(label=calcChoiceMenuLabel, underline=0, var=self.calcChoiceEnumVar, value=calcChoiceEnumValue)  # type: ignore[call-arg]
         toolsMenu.add_cascade(label=_("Calc linkbase"), menu=calcMenu, underline=0)
 
         baseValidateModeMenu = Menu(self.menubar, tearoff=0)
@@ -217,7 +230,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.baseTaxonomyValidationModeEnumVar = StringVar(self.parent, value=baseValidationModeName)
         self.baseTaxonomyValidationModeEnumVar.trace_add("write", self.setBaseTaxonomyValidationModeEnumVar)
         for modeLabel, modeValue in ValidateBaseTaxonomiesMode.menu().items():
-            baseValidateModeMenu.add_radiobutton(label=modeLabel, underline=0, var=self.baseTaxonomyValidationModeEnumVar, value=modeValue)
+            baseValidateModeMenu.add_radiobutton(label=modeLabel, underline=0, var=self.baseTaxonomyValidationModeEnumVar, value=modeValue)  # type: ignore[call-arg]
         validateMenu.add_cascade(label=_("Base taxonomy validation"), menu=baseValidateModeMenu, underline=0)
 
         self.modelManager.validateUtr = self.config.setdefault("validateUtr",True)
@@ -240,7 +253,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.validateAllFilesAsTaxonomyPackages.trace_add("write", self.setValidateAllFilesAsTaxonomyPackages)
         validateMenu.add_checkbutton(label=_("Validate all files as Taxonomy Packages"), underline=0, variable=self.validateAllFilesAsTaxonomyPackages, onvalue=True, offvalue=False)
 
-        self.validateDuplicateFacts = None
+        self.validateDuplicateFacts: StringVar | None = None
         self.buildValidateDuplicateFactsMenu(validateMenu)
 
         for pluginMenuExtender in self.plugins.hooks("CntlrWinMain.Menu.Validation"):
@@ -261,7 +274,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         rssWatchMenu.add_command(label=_("Stop"), underline=0, command=lambda: self.rssWatchControl(stop=True))
 
         toolsMenu.add_cascade(label=_("RSS Watch"), menu=rssWatchMenu, underline=0)
-        self.modelManager.rssWatchOptions = self.config.setdefault("rssWatchOptions", {})
+        self.modelManager.rssWatchOptions = self.config.setdefault("rssWatchOptions", {})  # type: ignore[attr-defined]
 
         toolsMenu.add_cascade(label=_("Internet"), menu=cacheMenu, underline=0)
         self.webCache.workOffline  = self.config.setdefault("workOffline",False)
@@ -303,7 +316,7 @@ class CntlrWinMain (Cntlr.Cntlr):
 
         cacheMenu.add_command(label=_("Clear cache"), underline=0, command=self.confirmClearWebCache)
         cacheMenu.add_command(label=_("Manage cache"), underline=0, command=self.manageWebCache)
-        cacheMenu.add_cascade(label=self._internetRecheckLabel, menu=internetCacheRecheckMenu, underline=0, state=_recheck_initial)
+        cacheMenu.add_cascade(label=self._internetRecheckLabel, menu=internetCacheRecheckMenu, underline=0, state=_recheck_initial)  # type: ignore[arg-type]
         cacheMenu.add_command(label=_("Internet connection timeout"), underline=0, command=self.internetConnectionTimeout)
         cacheMenu.add_command(label=_("Proxy Server"), underline=0, command=self.setupProxy)
         cacheMenu.add_command(label=_("HTTP User Agent"), underline=0, command=self.setupUserAgent)
@@ -351,11 +364,11 @@ class CntlrWinMain (Cntlr.Cntlr):
             if label is None:
                 helpMenu.add_separator()
             elif label == "PLUG-IN":
-                for pluginMenuExtender in self.plugins.hooks(command):
+                for pluginMenuExtender in self.plugins.hooks(command):  # type: ignore[arg-type]
                     pluginMenuExtender(self, helpMenu)
             else:
-                helpMenu.add_command(label=label, underline=0, command=command, accelerator=shortcut_text)
-                self.parent.bind(shortcut, command)
+                helpMenu.add_command(label=label, underline=0, command=command, accelerator=shortcut_text)  # type: ignore[arg-type]
+                self.parent.bind(shortcut, command)  # type: ignore[arg-type]
         for pluginMenuExtender in self.plugins.hooks("CntlrWinMain.Menu.Help"):
             pluginMenuExtender(self, helpMenu)
         self.menubar.add_cascade(label=_("Help"), menu=helpMenu, underline=0)
@@ -366,7 +379,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.statusbarTimerId  = self.statusbar.after(5000, self.uiClearStatusTimerEvent)
         self.statusbar.grid(row=2, column=0, columnspan=2, sticky=EW)
 
-        self.toolbar_images = []
+        self.toolbar_images: list[PhotoImage] = []
         toolbar = Frame(windowFrame)
         menubarColumn = 0
         self.validateTooltipText = StringVar()
@@ -394,11 +407,11 @@ class CntlrWinMain (Cntlr.Cntlr):
                 tbControl = image
                 tbControl.grid(row=0, column=menubarColumn)
             else:
-                image = os.path.join(self.imagesDir, image)
+                image = os.path.join(self.imagesDir, image)  # type: ignore[arg-type]
                 try:
-                    image = PhotoImage(file=image)
-                    self.toolbar_images.append(image)
-                    tbControl = Button(toolbar, image=image, command=command, style="Toolbutton", padding=toolbarButtonPadding)
+                    image = PhotoImage(file=image)  # type: ignore[assignment]
+                    self.toolbar_images.append(image)  # type: ignore[arg-type]
+                    tbControl = Button(toolbar, image=image, command=command, style="Toolbutton", padding=toolbarButtonPadding)  # type: ignore[assignment]
                     tbControl.grid(row=0, column=menubarColumn)
                 except TclError as err:
                     print(err)
@@ -409,23 +422,23 @@ class CntlrWinMain (Cntlr.Cntlr):
             menubarColumn += 1
         for toolbarExtender in self.plugins.hooks("CntlrWinMain.Toolbar"):
             toolbarExtender(self, toolbar)
-        toolbar.grid(row=0, column=0, sticky=(N, W))
+        toolbar.grid(row=0, column=0, sticky=(N, W))  # type: ignore[arg-type]
 
         paneWinTopBtm = PanedWindow(windowFrame, orient=VERTICAL)
-        paneWinTopBtm.grid(row=1, column=0, sticky=(N, S, E, W))
+        paneWinTopBtm.grid(row=1, column=0, sticky=(N, S, E, W))  # type: ignore[arg-type]
         paneWinLeftRt = tkinter.PanedWindow(paneWinTopBtm, orient=HORIZONTAL)
-        paneWinLeftRt.grid(row=0, column=0, sticky=(N, S, E, W))
+        paneWinLeftRt.grid(row=0, column=0, sticky=(N, S, E, W))  # type: ignore[arg-type]
         paneWinLeftRt.bind("<<NotebookTabChanged>>", self.onTabChanged)
         paneWinTopBtm.add(paneWinLeftRt)
         self.tabWinTopLeft = Notebook(paneWinLeftRt, width=250, height=300)
-        self.tabWinTopLeft.grid(row=0, column=0, sticky=(N, S, E, W))
+        self.tabWinTopLeft.grid(row=0, column=0, sticky=(N, S, E, W))  # type: ignore[arg-type]
         paneWinLeftRt.add(self.tabWinTopLeft)
         self.tabWinTopRt = Notebook(paneWinLeftRt)
-        self.tabWinTopRt.grid(row=0, column=0, sticky=(N, S, E, W))
+        self.tabWinTopRt.grid(row=0, column=0, sticky=(N, S, E, W))  # type: ignore[arg-type]
         self.tabWinTopRt.bind("<<NotebookTabChanged>>", self.onTabChanged)
         paneWinLeftRt.add(self.tabWinTopRt)
         self.tabWinBtm = Notebook(paneWinTopBtm)
-        self.tabWinBtm.grid(row=0, column=0, sticky=(N, S, E, W))
+        self.tabWinBtm.grid(row=0, column=0, sticky=(N, S, E, W))  # type: ignore[arg-type]
         self.tabWinBtm.bind("<<NotebookTabChanged>>", self.onTabChanged)
         paneWinTopBtm.add(self.tabWinBtm)
 
@@ -439,7 +452,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         if self.hasClipboard:
             logViewMenu.add_command(label=_("Copy to clipboard"), underline=0, command=lambda: self.logView.copyToClipboard(cntlr=self))
 
-        windowFrame.grid(row=0, column=0, sticky=(N,S,E,W))
+        windowFrame.grid(row=0, column=0, sticky=(N,S,E,W))  # type: ignore[arg-type]
 
         windowFrame.columnconfigure(0, weight=999)
         windowFrame.columnconfigure(1, weight=1)
@@ -470,8 +483,8 @@ class CntlrWinMain (Cntlr.Cntlr):
             w = screenW
             h = screenH
         else:
-            priorGeometry = re.match(r"(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)",self.config.get('windowGeometry'))
-            if priorGeometry and priorGeometry.lastindex >= 4:
+            priorGeometry = re.match(r"(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)",self.config.get('windowGeometry', ''))
+            if priorGeometry and priorGeometry.lastindex is not None and priorGeometry.lastindex >= 4:
                 try:
                     w = int(priorGeometry.group(1))
                     h = int(priorGeometry.group(2))
@@ -501,15 +514,15 @@ class CntlrWinMain (Cntlr.Cntlr):
                 except:
                     pass
         # set top/btm divider
-        topLeftW, topLeftH = self.config.get('tabWinTopLeftSize',(250,300))
-        if 10 < topLeftW < w - 60:
-            self.tabWinTopLeft.config(width=topLeftW)
-        if 10 < topLeftH < h - 60:
-            self.tabWinTopLeft.config(height=topLeftH)
+        topLeftW, topLeftH = self.config.get('tabWinTopLeftSize', (250, 300))
+        if isinstance(topLeftW, (int, float)) and isinstance(topLeftH, (int, float)) and 10 < topLeftW < w - 60:
+            self.tabWinTopLeft.config(width=int(topLeftW))
+        if isinstance(topLeftH, (int, float)) and 10 < topLeftH < h - 60:
+            self.tabWinTopLeft.config(height=int(topLeftH))
 
         self.parent.title(_("arelle - Unnamed"))
 
-        self.logFile = None
+        self.logFile: Any = None
 
         self.uiThreadChecker(self.statusbar)    # start background queue
 
@@ -525,7 +538,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         for arg in sys.argv:
             if not arg: continue
             if lastArg == "--skipLoading": # skip loading matching files (list of unix patterns)
-                self.modelManager.skipLoading = re.compile('|'.join(fnmatch.translate(f) for f in arg.split('|')))
+                self.modelManager.skipLoading = re.compile('|'.join(fnmatch.translate(f) for f in arg.split('|')))  # type: ignore[assignment]
             elif arg == "--skipDTS": # skip DTS loading, discovery, etc
                 self.modelManager.skipDTS = True
             lastArg = arg
@@ -551,7 +564,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             )
         validateMenu.add_cascade(label="Warn on duplicate facts", menu=duplicateFactWarningMenu, underline=0)
 
-    def onTabChanged(self, event, *args):
+    def onTabChanged(self, event: Any, *args: Any) -> None:
         try:
             widgetIndex = event.widget.index("current")
             tabId = event.widget.tabs()[widgetIndex]
@@ -562,21 +575,21 @@ class CntlrWinMain (Cntlr.Cntlr):
         except (AttributeError, TypeError, TclError):
             pass
 
-    def loadFileMenuHistory(self):
+    def loadFileMenuHistory(self) -> None:
         self.fileMenu.delete(self.fileMenuLength, self.fileMenuLength + 2)
         fileHistory = self.config.setdefault("fileHistory", [])
         self.recentFilesMenu = Menu(self.menubar, tearoff=0)
         for i in range( min( len(fileHistory), 10 ) ):
             self.recentFilesMenu.add_command(
                  label=fileHistory[i],
-                 command=lambda j=i: self.fileOpenFile(self.config["fileHistory"][j]))
+                 command=lambda j=i: self.fileOpenFile(self.config["fileHistory"][j]))  # type: ignore[misc]
         self.fileMenu.add_cascade(label=_("Recent files"), menu=self.recentFilesMenu, underline=0)
         importHistory = self.config.setdefault("importHistory", [])
         self.recentAttachMenu = Menu(self.menubar, tearoff=0)
         for i in range( min( len(importHistory), 10 ) ):
             self.recentAttachMenu.add_command(
                  label=importHistory[i],
-                 command=lambda j=i: self.fileOpenFile(self.config["importHistory"][j],importToDTS=True))
+                 command=lambda j=i: self.fileOpenFile(self.config["importHistory"][j],importToDTS=True))  # type: ignore[misc]
         self.fileMenu.add_cascade(label=_("Recent imports"), menu=self.recentAttachMenu, underline=0)
         self.packagesMenu = Menu(self.menubar, tearoff=0)
         hasPackages = False
@@ -591,15 +604,15 @@ class CntlrWinMain (Cntlr.Cntlr):
             if name and URL and packageInfo.get("status") == "enabled":
                 self.packagesMenu.add_command(
                      label=name,
-                     command=lambda url=URL: self.fileOpenFile(url))
+                     command=lambda url=URL: self.fileOpenFile(url))  # type: ignore[misc]
                 hasPackages = True
         if hasPackages:
             self.fileMenu.add_cascade(label=_("Packages"), menu=self.packagesMenu, underline=0)
 
-    def onPackageEnablementChanged(self):
+    def onPackageEnablementChanged(self) -> None:
         self.loadFileMenuHistory()
 
-    def fileNew(self, *ignore):
+    def fileNew(self, *ignore: Any) -> None:
         if not self.okayToContinue():
             return
         self.logClear()
@@ -609,7 +622,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.parent.title(_("arelle - Unnamed"));
         self.modelManager.load(None);
 
-    def getViewAndModelXbrl(self):
+    def getViewAndModelXbrl(self) -> tuple[Any, Any]:
         view = getattr(self, "currentView", None)
         if view:
             modelXbrl = None
@@ -620,7 +633,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 return (view, None)
         return (None, None)
 
-    def okayToContinue(self):
+    def okayToContinue(self) -> bool:
         view, modelXbrl = self.getViewAndModelXbrl()
         documentIsModified = False
         if view is not None:
@@ -642,7 +655,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         else:
             return reply
 
-    def fileSave(self, event=None, view=None, fileType=None, filenameFromInstance=False, method=None, caption=None, *ignore):
+    def fileSave(self, event: Any = None, view: Any = None, fileType: str | None = None, filenameFromInstance: bool = False, method: Any = None, caption: str | None = None, *ignore: Any) -> Any:
         if view is None:
             view = getattr(self, "currentView", None)
         if view is not None:
@@ -661,7 +674,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 except AttributeError:
                     pass
             if isinstance(view, ViewWinRenderedGrid.ViewRenderedGrid):
-                initialdir = os.path.dirname(modelXbrl.modelDocument.uri)
+                initialdir = os.path.dirname(modelXbrl.modelDocument.uri)  # type: ignore[union-attr]
                 if caption is not None and method is not None:
                     if fileType in ("html", "xml", "json") and filename is None:
                         filename = self.uiFileDialog("save",
@@ -678,7 +691,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                     else: # ask file type
                         if filename is None:
                             filename = self.uiFileDialog("save",
-                                    title=_caption,
+                                    title=caption,
                                     initialdir=initialdir,
                                     filetypes=[(_("XBRL instance .xbrl"), "*.xbrl"), (_("XBRL instance .xml"), "*.xml"), (_("HTML table .html"), "*.html"), (_("HTML table .htm"), "*.htm")],
                                     defaultextension=".html")
@@ -701,7 +714,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                             initialdir=initialdir,
                             filetypes=[(_("XBRL instance .xbrl"), "*.xbrl"), (_("XBRL instance .xml"), "*.xml")],
                             defaultextension=".xbrl")
-            elif isinstance(view, ViewWinTests.ViewTests) and modelXbrl.modelDocument.type in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE):
+            elif isinstance(view, ViewWinTests.ViewTests) and modelXbrl is not None and modelXbrl.modelDocument is not None and modelXbrl.modelDocument.type in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE):
                 filename = self.uiFileDialog("save",
                         title=_("arelle - Save Test Results"),
                         initialdir=os.path.dirname(self.modelManager.modelXbrl.modelDocument.uri),
@@ -739,14 +752,14 @@ class CntlrWinMain (Cntlr.Cntlr):
                     elif isinstance(view, ViewWinDTS.ViewDTS):
                         ViewFileDTS.viewDTS(modelXbrl, filename)
                     else:
-                        if isinstance(view.arcrole, tuple) and len(view.arcrole) > 0 and view.arcrole[0] == "Calculation":
+                        if isinstance(view.arcrole, tuple) and len(view.arcrole) > 0 and view.arcrole[0] == "Calculation":  # type: ignore[attr-defined]
                             # "arcrole" is overloaded with special strings that are sometimes used magically to query
                             # the model and other times just to provide a header value. In the case of Calculation, it's
                             # only the header used in the GUI view and including it here when going to save will throw
                             # an exception.
                             arcrole = XbrlConst.summationItems
                         else:
-                            arcrole = view.arcrole
+                            arcrole = view.arcrole  # type: ignore[attr-defined]
 
                         ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, filename, view.tabTitle, arcrole, labelrole=view.labelrole, lang=view.lang)
                 except (IOError, EnvironmentError) as err:
@@ -807,13 +820,13 @@ class CntlrWinMain (Cntlr.Cntlr):
         return True;
         '''
 
-    def fileSaveExistingFile(self, event=None, view=None, fileType=None, *ignore):
+    def fileSaveExistingFile(self, event: Any = None, view: Any = None, fileType: str | None = None, *ignore: Any) -> Any:
         return self.fileSave(view=view, fileType=fileType, filenameFromInstance=True)
 
-    def saveDTSpackage(self):
+    def saveDTSpackage(self) -> None:
         self.modelManager.saveDTSpackage(allDTSes=True)
 
-    def fileOpen(self, *ignore):
+    def fileOpen(self, *ignore: Any) -> None:
         if not self.okayToContinue():
             return
         filename = self.uiFileDialog("open",
@@ -830,7 +843,7 @@ class CntlrWinMain (Cntlr.Cntlr):
 
         self.fileOpenFile(filename)
 
-    def importFileOpen(self, *ignore):
+    def importFileOpen(self, *ignore: Any) -> bool | None:
         if not self.modelManager.modelXbrl or self.modelManager.modelXbrl.modelDocument.type not in (
              ModelDocument.Type.SCHEMA, ModelDocument.Type.LINKBASE, ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
             tkinter.messagebox.showwarning(_("arelle - Warning"),
@@ -844,14 +857,15 @@ class CntlrWinMain (Cntlr.Cntlr):
         if self.isMSW and "/Microsoft/Windows/Temporary Internet Files/Content.IE5/" in filename:
             tkinter.messagebox.showerror(_("Loading web-accessed files"),
                 _('Please import web-accessed files with the File menu, fourth entry, "Import web..."'), parent=self.parent)
-            return
+            return None
         if os.sep == "\\":
             filename = filename.replace("/", "\\")
 
         self.fileOpenFile(filename, importToDTS=True)
+        return None
 
 
-    def updateFileHistory(self, url, importToDTS):
+    def updateFileHistory(self, url: Any, importToDTS: bool) -> None:
         if isinstance(url, list): # may be multi-doc ixds
             if len(url) != 1:
                 return
@@ -867,7 +881,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.loadFileMenuHistory()
         self.saveConfig()
 
-    def fileOpenFile(self, filename, importToDTS=False, selectTopView=False):
+    def fileOpenFile(self, filename: Any, importToDTS: bool = False, selectTopView: bool = False) -> None:
         if filename:
             for xbrlLoadedMethod in self.plugins.hooks("CntlrWinMain.Xbrl.Open"):
                 filename = xbrlLoadedMethod(self, filename) # runs in GUI thread, allows mapping filename, mult return filename
@@ -887,21 +901,21 @@ class CntlrWinMain (Cntlr.Cntlr):
                     filename = DialogOpenArchive.askArchiveFile(self, filesource)
                     if filename is not None:
                         entrypointFiles.append({"file": filename})
-                    if filename and filesource.basefile and not isHttpUrl(filesource.basefile):
-                        self.config["fileOpenDir"] = os.path.dirname(filesource.baseurl)
+                    if filename and filesource.basefile and not isHttpUrl(filesource.basefile):  # type: ignore[arg-type]
+                        self.config["fileOpenDir"] = os.path.dirname(filesource.baseurl)  # type: ignore[type-var]
                 filesource.loadTaxonomyPackageMappings() # if a package, load mappings if not loaded yet
             if not isinstance(filename, (dict, list)): # json objects
-                if not isHttpUrl(filename):
+                if isinstance(filename, str) and not isHttpUrl(filename):
                     if importToDTS:
                         self.config["importOpenDir"] = os.path.dirname(filename)
                     else:
-                        self.config["fileOpenDir"] = os.path.dirname(filesource.baseurl if filesource.isArchive else filename)
+                        self.config["fileOpenDir"] = os.path.dirname(str(filesource.baseurl if filesource.isArchive else filename))
                 self.updateFileHistory(filename, importToDTS)
             elif len(filename) == 1:
                 self.updateFileHistory(filename[0], importToDTS)
-            thread = threading.Thread(target=self.backgroundLoadXbrl, args=(filesource,entrypointFiles,importToDTS,selectTopView), daemon=True).start()
+            threading.Thread(target=self.backgroundLoadXbrl, args=(filesource,entrypointFiles,importToDTS,selectTopView), daemon=True).start()
 
-    def webOpen(self, *ignore):
+    def webOpen(self, *ignore: Any) -> None:
         if not self.okayToContinue():
             return
         url = DialogURL.askURL(self.parent, buttonSEC=True, buttonRSS=True)
@@ -927,9 +941,9 @@ class CntlrWinMain (Cntlr.Cntlr):
                         entrypointFiles.append({"file": url})
                     self.updateFileHistory(url, False)
                 filesource.loadTaxonomyPackageMappings()
-            thread = threading.Thread(target=self.backgroundLoadXbrl, args=(filesource,entrypointFiles,False,False), daemon=True).start()
+            threading.Thread(target=self.backgroundLoadXbrl, args=(filesource,entrypointFiles,False,False), daemon=True).start()
 
-    def importWebOpen(self, *ignore):
+    def importWebOpen(self, *ignore: Any) -> bool | None:
         if not self.modelManager.modelXbrl or self.modelManager.modelXbrl.modelDocument.type not in (
              ModelDocument.Type.SCHEMA, ModelDocument.Type.LINKBASE, ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
             tkinter.messagebox.showwarning(_("arelle - Warning"),
@@ -939,9 +953,10 @@ class CntlrWinMain (Cntlr.Cntlr):
         if url:
             url = PackageManager.mappedUrl(url)
             self.fileOpenFile(url, importToDTS=True)
+        return None
 
 
-    def backgroundLoadXbrl(self, filesource, entrypointFiles: list[dict[str, Any]], importToDTS, selectTopView):
+    def backgroundLoadXbrl(self, filesource: Any, entrypointFiles: list[dict[str, Any]], importToDTS: bool, selectTopView: bool) -> None:
         startedAt = time.time()
         loadedModels = []
         try:
@@ -1013,7 +1028,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             )
             self.showStatus(_("Loading terminated"), 15000)
 
-    def showLoadedXbrl(self, modelXbrl, attach, selectTopView=False, isSupplementalModelXbrl=False):
+    def showLoadedXbrl(self, modelXbrl: Any, attach: bool, selectTopView: bool = False, isSupplementalModelXbrl: bool = False) -> None:
         startedAt = time.time()
         currentAction = "setting title"
         topView = None
@@ -1126,7 +1141,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         if not isSupplementalModelXbrl:
             self.showStatus(_("Ready..."), 2000)
 
-    def saveXmlInstance(self):
+    def saveXmlInstance(self) -> None:
         modelXbrl = self.modelManager.modelXbrl
         if not modelXbrl or not modelXbrl.modelDocument:
             self.showStatus(_("No report loaded to save"), 5000)
@@ -1148,14 +1163,14 @@ class CntlrWinMain (Cntlr.Cntlr):
             saveOimReportToXmlInstance(modelXbrl.modelDocument, instanceFile)
             self.showStatus(_("Saved XBRL instance: {0}").format(os.path.basename(instanceFile)))
 
-    def showFormulaOutputInstance(self, priorOutputInstance, currentOutputInstance):
+    def showFormulaOutputInstance(self, priorOutputInstance: ModelXbrl, currentOutputInstance: ModelXbrl) -> None:
         currentAction = "closing prior formula output instance"
         try:
             if priorOutputInstance: # if has UI must close on UI thread, not background thread
                 priorOutputInstance.close()
             currentAction = "showing resulting formula output instance"
             if currentOutputInstance:
-                ViewWinXml.viewXml(currentOutputInstance, self.tabWinBtm, "Formula Output Instance", currentOutputInstance.modelDocument.xmlDocument)
+                ViewWinXml.viewXml(currentOutputInstance, self.tabWinBtm, "Formula Output Instance", currentOutputInstance.modelDocument.xmlDocument)  # type: ignore[union-attr]
         except Exception as err:
             msg = _("Exception {0}: {1}, at {2}").format(
                      currentAction,
@@ -1165,17 +1180,17 @@ class CntlrWinMain (Cntlr.Cntlr):
             self.addToLog(msg);
         self.showStatus(_("Ready..."), 2000)
 
-    def showProfileStats(self):
+    def showProfileStats(self) -> None:
         modelXbrl = self.modelManager.modelXbrl
         if modelXbrl and self.modelManager.collectProfileStats:
             modelXbrl.logProfileStats()
 
-    def clearProfileStats(self):
+    def clearProfileStats(self) -> None:
         modelXbrl = self.modelManager.modelXbrl
         if modelXbrl and self.modelManager.collectProfileStats:
             modelXbrl.profileStats.clear()
 
-    def fileClose(self, *ignore):
+    def fileClose(self, *ignore: Any) -> None:
         if not self.okayToContinue():
             return
         self.modelManager.close()
@@ -1185,13 +1200,13 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.setValidateTooltipText()
         self.currentView = None
 
-    def fileReopen(self, *ignore):
+    def fileReopen(self, *ignore: Any) -> None:
         self.fileClose()
         fileHistory = self.config.setdefault("fileHistory", [])
         if len(fileHistory) > 0:
             self.fileOpenFile(fileHistory[0])
 
-    def validate(self):
+    def validate(self) -> None:
         if not self.modelManager.loadedModelXbrls:
             tkinter.messagebox.showwarning(
                 _("arelle - Warning"),
@@ -1208,7 +1223,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             return
         threading.Thread(target=self.backgroundValidate, daemon=True).start()
 
-    def backgroundValidate(self):
+    def backgroundValidate(self) -> None:
         from arelle import Validate
         validatedFileSources = set()
         for loadedModelXbrl in self.modelManager.loadedModelXbrls:
@@ -1237,7 +1252,7 @@ class CntlrWinMain (Cntlr.Cntlr):
 
         self.uiThreadQueue.put((self.logSelect, []))
 
-    def compareDTSes(self):
+    def compareDTSes(self) -> bool | None:
         countLoadedDTSes = len(self.modelManager.loadedModelXbrls)
         if countLoadedDTSes != 2:
             tkinter.messagebox.showwarning(_("arelle - Warning"),
@@ -1253,9 +1268,10 @@ class CntlrWinMain (Cntlr.Cntlr):
             return False
         self.config["versioningReportDir"] = os.path.dirname(versReportFile)
         self.saveConfig()
-        thread = threading.Thread(target=self.backgroundCompareDTSes, args=(versReportFile,), daemon=True).start()
+        threading.Thread(target=self.backgroundCompareDTSes, args=(versReportFile,), daemon=True).start()
+        return None
 
-    def backgroundCompareDTSes(self, versReportFile):
+    def backgroundCompareDTSes(self, versReportFile: str) -> None:
         startedAt = time.time()
         modelVersReport = self.modelManager.compareDTSes(versReportFile)
         if modelVersReport and modelVersReport.modelDocument:
@@ -1264,23 +1280,23 @@ class CntlrWinMain (Cntlr.Cntlr):
                                         time.time() - startedAt))
             self.uiThreadQueue.put((self.showComparedDTSes, [modelVersReport]))
 
-    def showComparedDTSes(self, modelVersReport):
+    def showComparedDTSes(self, modelVersReport: ModelXbrl) -> None:
         # close prior DTS displays
-        modelVersReport.modelDocument.fromDTS.closeViews()
-        modelVersReport.modelDocument.toDTS.closeViews()
+        modelVersReport.modelDocument.fromDTS.closeViews()  # type: ignore[union-attr]
+        modelVersReport.modelDocument.toDTS.closeViews()  # type: ignore[union-attr]
         self.showLoadedXbrl(modelVersReport, True)
 
-    def loadFile(self, filename):
+    def loadFile(self, filename: str) -> None:
         self.filename = filename
-        self.listBox.delete(0, END)
+        self.listBox.delete(0, END)  # type: ignore[attr-defined]
         self.dirty = False
         try:
             with open(self.filename, "rb") as fh:
                 self.data = pickle.load(fh)
             for name in sorted(self.data, key=str.lower):
-                self.listBox.insert(END, name)
+                self.listBox.insert(END, name)  # type: ignore[attr-defined]
             self.showStatus(_("Loaded {0} items from {1}").format(
-                            self.listbox.size(),
+                            self.listbox.size(),  # type: ignore[attr-defined]
                             self.filename), clearAfter=5000)
             self.parent.title(_("arelle - {0}").format(
                             os.path.basename(self.filename)))
@@ -1292,7 +1308,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                             err),
                             parent=self.parent)
 
-    def quit(self, event=None, restartAfterQuit=False):
+    def quit(self, event: Any = None, restartAfterQuit: bool = False) -> None:
         if self.okayToContinue():
             self.modelManager.close()
             logging.shutdown()
@@ -1309,16 +1325,17 @@ class CntlrWinMain (Cntlr.Cntlr):
             self.config["tabWinTopLeftSize"] = (self.tabWinTopLeft.winfo_width() - adjustW,
                                                 self.tabWinTopLeft.winfo_height() - adjustH)
             super(CntlrWinMain, self).close(saveConfig=True)
-            self.parent.unbind_all(())
+            self.parent.unbind_all('')
             self.parent.destroy()
             if self.logFile:
                 self.logFile.close()
                 self.logFile = None
 
-    def restart(self, event=None):
+    def restart(self, event: Any = None) -> None:
         self.quit(event, restartAfterQuit=True)
 
-    def setValidateDuplicateFacts(self, *args):
+    def setValidateDuplicateFacts(self, *args: Any) -> None:
+        assert self.validateDuplicateFacts is not None
         value = self.validateDuplicateFacts.get()
         duplicateTypeArg = ValidateDuplicateFacts.DuplicateTypeArg(value)
         self.modelManager.validateDuplicateFacts = duplicateTypeArg.duplicateType()
@@ -1327,7 +1344,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             self.modelManager.validateDuplicateFacts), messageCode='debug', level=logging.DEBUG)
         self.saveConfig()
 
-    def setWorkOffline(self, *args):
+    def setWorkOffline(self, *args: Any) -> None:
         self.webCache.workOffline = self.workOffline.get()
         self.config["workOffline"] = self.webCache.workOffline
         self.saveConfig()
@@ -1337,40 +1354,40 @@ class CntlrWinMain (Cntlr.Cntlr):
         else:
             self._cacheMenu.entryconfig(self._internetRecheckLabel, state='normal')
 
-    def setInternetRecheck(self, *args):
+    def setInternetRecheck(self, *args: Any) -> None:
         self.webCache.recheck = self.internetRecheckVar.get()
         self.config["internetRecheck"] = self.webCache.recheck
         self.addToLog('WebCache.recheck = {}'.format(self.webCache.recheck), messageCode='debug', level=logging.DEBUG)
         self.addToLog('WebCache.maxAgeSeconds = {}'.format(self.webCache.maxAgeSeconds), messageCode='debug', level=logging.DEBUG)
         self.saveConfig()
 
-    def setNoCertificateCheck(self, *args):
+    def setNoCertificateCheck(self, *args: Any) -> None:
         self.webCache.noCertificateCheck = self.noCertificateCheck.get() # resets proxy handlers
         self.config["noCertificateCheck"] = self.webCache.noCertificateCheck
         self.saveConfig()
 
-    def internetConnectionTimeout(self):
+    def internetConnectionTimeout(self) -> None:
         response = tkinter.simpledialog.askinteger(
                     _("arelle - Internet Connection Timeout"),
                     _("Enter timeout in seconds or 0 for no timeout"),
-                    initialvalue=str(self.webCache.timeout or 0),
+                    initialvalue=int(self.webCache.timeout or 0),
                     parent=self.parent)
         if response is not None and response >= 0:
             self.webCache.timeout = response or None # set to None if zero - no timenout
             self.config["internetConnectionTimeout"] = self.webCache.timeout
 
-    def confirmClearWebCache(self):
+    def confirmClearWebCache(self) -> None:
         if tkinter.messagebox.askyesno(
                     _("arelle - Clear Internet Cache"),
                     _("Are you sure you want to clear the internet cache?"),
                     parent=self.parent):
-            def backgroundClearCache():
+            def backgroundClearCache() -> None:
                 self.showStatus(_("Clearing internet cache"))
                 self.webCache.clear()
                 self.showStatus(_("Internet cache cleared"), 5000)
-            thread = threading.Thread(target=backgroundClearCache, daemon=True).start()
+            threading.Thread(target=backgroundClearCache, daemon=True).start()
 
-    def manageWebCache(self):
+    def manageWebCache(self) -> None:
         if sys.platform.startswith("win"):
             command = 'explorer'
         elif sys.platform in ("darwin", "macos"):
@@ -1382,7 +1399,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         except:
             pass
 
-    def setupProxy(self):
+    def setupProxy(self) -> None:
         from arelle.DialogUserPassword import askProxy
         proxySettings = askProxy(self.parent, self.config.get("proxySettings"))
         if proxySettings:
@@ -1390,7 +1407,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             self.config["proxySettings"] = proxySettings
             self.saveConfig()
 
-    def setupUserAgent(self):
+    def setupUserAgent(self) -> None:
         httpUserAgent = tkinter.simpledialog.askstring(
             _("HTTP header User-Agent value"),
             _("Specify non-standard value or cancel to use standard User Agent"),
@@ -1403,7 +1420,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             self.config["httpUserAgent"] = httpUserAgent
         self.saveConfig()
 
-    def setValidateDisclosureSystem(self, *args):
+    def setValidateDisclosureSystem(self, *args: Any) -> None:
         self.modelManager.validateDisclosureSystem = self.validateDisclosureSystem.get()
         self.config["validateDisclosureSystem"] = self.modelManager.validateDisclosureSystem
         self.saveConfig()
@@ -1412,25 +1429,25 @@ class CntlrWinMain (Cntlr.Cntlr):
                 self.selectDisclosureSystem()
         self.setValidateTooltipText()
 
-    def selectDisclosureSystem(self, *args):
+    def selectDisclosureSystem(self, *args: Any) -> None:
         from arelle import DialogOpenArchive
         self.config["disclosureSystem"] = DialogOpenArchive.selectDisclosureSystem(self, self.modelManager.disclosureSystem)
         self.saveConfig()
         self.setValidateTooltipText()
 
-    def formulaParametersDialog(self, *args):
+    def formulaParametersDialog(self, *args: Any) -> None:
         DialogFormulaParameters.getParameters(self)
         self.setValidateTooltipText()
 
-    def rssWatchOptionsDialog(self, *args):
+    def rssWatchOptionsDialog(self, *args: Any) -> None:
         from arelle import DialogRssWatch
         DialogRssWatch.getOptions(self)
 
     # find or open rssWatch view
-    def rssWatchControl(self, start=False, stop=False, close=False):
+    def rssWatchControl(self, start: bool = False, stop: bool = False, close: bool = False) -> bool | None:
         from arelle.ModelDocument import Type
         from arelle import WatchRss
-        if not self.modelManager.rssWatchOptions.get("feedSourceUri"):
+        if not self.modelManager.rssWatchOptions.get("feedSourceUri"):  # type: ignore[attr-defined]
             tkinter.messagebox.showwarning(_("RSS Watch Control Error"),
                                 _("RSS Feed is not set up, please select options and select feed"),
                                 parent=self.parent)
@@ -1438,34 +1455,35 @@ class CntlrWinMain (Cntlr.Cntlr):
         rssModelXbrl = None
         for loadedModelXbrl in self.modelManager.loadedModelXbrls:
             if (loadedModelXbrl.modelDocument.type == Type.RSSFEED and
-                loadedModelXbrl.modelDocument.uri == self.modelManager.rssWatchOptions.get("feedSourceUri")):
+                loadedModelXbrl.modelDocument.uri == self.modelManager.rssWatchOptions.get("feedSourceUri")):  # type: ignore[attr-defined]
                 rssModelXbrl = loadedModelXbrl
                 break
         #not loaded
         if start:
             if not rssModelXbrl:
-                rssModelXbrl = self.modelManager.create(Type.RSSFEED, self.modelManager.rssWatchOptions.get("feedSourceUri"))
+                rssModelXbrl = self.modelManager.create(Type.RSSFEED, self.modelManager.rssWatchOptions.get("feedSourceUri"))  # type: ignore[attr-defined]
                 self.showLoadedXbrl(rssModelXbrl, False)
             if not hasattr(rssModelXbrl,"watchRss"):
                 WatchRss.initializeWatcher(rssModelXbrl)
-            rssModelXbrl.watchRss.start()
+            rssModelXbrl.watchRss.start()  # type: ignore[union-attr]
         elif stop:
             if rssModelXbrl and rssModelXbrl.watchRss:
                 rssModelXbrl.watchRss.stop()
+        return None
 
     # for ui thread option updating
-    def rssWatchUpdateOption(self, latestPubDate=None):
+    def rssWatchUpdateOption(self, latestPubDate: Any = None) -> None:  # type: ignore[override]
         self.uiThreadQueue.put((self.uiRssWatchUpdateOption, [latestPubDate]))
 
     # ui thread addToLog
-    def uiRssWatchUpdateOption(self, latestPubDate):
+    def uiRssWatchUpdateOption(self, latestPubDate: Any) -> None:
         if latestPubDate:
-            self.modelManager.rssWatchOptions["latestPubDate"] = latestPubDate
-        self.config["rssWatchOptions"] = self.modelManager.rssWatchOptions
+            self.modelManager.rssWatchOptions["latestPubDate"] = latestPubDate  # type: ignore[attr-defined]
+        self.config["rssWatchOptions"] = self.modelManager.rssWatchOptions  # type: ignore[attr-defined]
         self.saveConfig()
 
-    def languagesDialog(self, *args):
-        override = self.lang if self.lang != self.modelManager.defaultLang else ""
+    def languagesDialog(self, *args: Any) -> None:
+        override = self.labelLang if self.labelLang != self.modelManager.defaultLang else ""
         import tkinter.simpledialog
         newValue = tkinter.simpledialog.askstring(_("arelle - Labels language code setting"),
                 _("The system default language is: {0} \n\n"
@@ -1477,14 +1495,14 @@ class CntlrWinMain (Cntlr.Cntlr):
         if newValue is not None:
             self.config["labelLangOverride"] = newValue
             if newValue:
-                self.lang = newValue
+                self.labelLang = newValue
             else:
-                self.lang = self.modelManager.defaultLang
+                self.labelLang = self.modelManager.defaultLang
             if self.modelManager.modelXbrl and self.modelManager.modelXbrl.modelDocument:
                 self.showLoadedXbrl(self.modelManager.modelXbrl, True) # reload views
             self.saveConfig()
 
-    def setValidateTooltipText(self):
+    def setValidateTooltipText(self) -> None:
         if self.modelManager.modelXbrl and not self.modelManager.modelXbrl.isClosed and self.modelManager.modelXbrl.modelDocument is not None:
             valType = self.modelManager.modelXbrl.modelDocument.type
             if valType in (ModelDocument.Type.SCHEMA, ModelDocument.Type.LINKBASE):
@@ -1508,60 +1526,60 @@ class CntlrWinMain (Cntlr.Cntlr):
             v = _("Validate")
         self.validateTooltipText.set(v)
 
-    def setCalcChoiceEnumVar(self, *args):
+    def setCalcChoiceEnumVar(self, *args: Any) -> None:
         self.modelManager.validateCalcs = self.calcChoiceEnumVar.get()
         self.config["validateCalcsEnum"] = self.modelManager.validateCalcs
         self.saveConfig()
         self.setValidateTooltipText()
 
-    def setBaseTaxonomyValidationModeEnumVar(self, *args):
+    def setBaseTaxonomyValidationModeEnumVar(self, *args: Any) -> None:
         modeName = self.baseTaxonomyValidationModeEnumVar.get()
         self.modelManager.baseTaxonomyValidationMode = ValidateBaseTaxonomiesMode.fromName(modeName)
         self.config["baseTaxonomyValidationMode"] = modeName
         self.saveConfig()
         self.setValidateTooltipText()
 
-    def setValidateUtr(self, *args):
+    def setValidateUtr(self, *args: Any) -> None:
         self.modelManager.validateUtr = self.validateUtr.get()
         self.config["validateUtr"] = self.modelManager.validateUtr
         self.saveConfig()
         self.setValidateTooltipText()
 
-    def setValidateXmlOim(self, *args):
+    def setValidateXmlOim(self, *args: Any) -> None:
         self.modelManager.validateXmlOim = self.validateXmlOim.get()
         self.config["validateXmlOim"] = self.modelManager.validateXmlOim
         self.saveConfig()
         self.setValidateTooltipText()
 
-    def setValidateAllFilesAsReportPackages(self, *args):
+    def setValidateAllFilesAsReportPackages(self, *args: Any) -> None:
         self.modelManager.validateAllFilesAsReportPackages = self.validateAllFilesAsReportPackages.get()
         self.config["validateAllFilesAsReportPackages"] = self.modelManager.validateAllFilesAsReportPackages
         self.saveConfig()
         self.setValidateTooltipText()
 
-    def setValidateAllFilesAsTaxonomyPackages(self, *args):
+    def setValidateAllFilesAsTaxonomyPackages(self, *args: Any) -> None:
         self.modelManager.validateAllFilesAsTaxonomyPackages = self.validateAllFilesAsTaxonomyPackages.get()
         self.config["validateAllFilesAsTaxonomyPackages"] = self.modelManager.validateAllFilesAsTaxonomyPackages
         self.saveConfig()
         self.setValidateTooltipText()
 
-    def setCollectProfileStats(self, *args):
+    def setCollectProfileStats(self, *args: Any) -> None:
         self.modelManager.collectProfileStats = self.collectProfileStats.get()
         self.config["collectProfileStats"] = self.modelManager.collectProfileStats
         self.saveConfig()
 
-    def setShowDebugMessages(self, *args):
+    def setShowDebugMessages(self, *args: Any) -> None:
         self.config["showDebugMessages"] = self.showDebugMessages.get()
         self.saveConfig()
 
-    def find(self, *args):
+    def find(self, *args: Any) -> None:
         from arelle.DialogFind import find
         find(self)
 
-    def openOnlineDocumentation(self, event=None):
+    def openOnlineDocumentation(self, event: Any = None) -> None:
         webbrowser.open(DOCUMENTATION_URL)
 
-    def helpAbout(self, event=None):
+    def helpAbout(self, event: Any = None) -> None:
         from arelle import DialogAbout, Version
         from lxml import etree
         DialogAbout.about(self.parent,
@@ -1598,7 +1616,7 @@ class CntlrWinMain (Cntlr.Cntlr):
 
 
     # worker threads addToLog
-    def addToLog(self, message, messageCode="", messageArgs=None, file="", refs=[], level=logging.INFO):
+    def addToLog(self, message: str, messageCode: str = "", messageArgs: dict[str, Any] | None = None, file: str = "", refs: list[dict[str, Any]] | None = None, level: int | str = logging.INFO) -> None:
         if isinstance(level, str):
             level = logging.getLevelNamesMapping().get(level, logging.INFO)
         if level < logging.INFO and not self.showDebugMessages.get():
@@ -1620,19 +1638,19 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.uiThreadQueue.put((self.uiAddToLog, [message]))
 
     # ui thread addToLog
-    def uiAddToLog(self, message):
+    def uiAddToLog(self, message: str) -> None:
         try:
             self.logView.append(message)
         except:
             pass
 
-    def logClear(self, *ignore):
+    def logClear(self, *ignore: Any) -> None:
         self.logView.clear()
 
-    def logSelect(self, *ignore):
+    def logSelect(self, *ignore: Any) -> None:
         self.logView.select()
 
-    def logSaveToFile(self, *ignore):
+    def logSaveToFile(self, *ignore: Any) -> bool:
         filename = self.uiFileDialog("save",
                 title=_("arelle - Save Messages Log"),
                 initialdir=".",
@@ -1651,20 +1669,20 @@ class CntlrWinMain (Cntlr.Cntlr):
 
 
     # worker threads viewModelObject
-    def viewModelObject(self, modelXbrl, objectId):
+    def viewModelObject(self, modelXbrl: ModelXbrl, objectId: str) -> None:
         self.waitForUiThreadQueue() # force prior ui view updates if any
         self.uiThreadQueue.put((self.uiViewModelObject, [modelXbrl, objectId]))
 
     # ui thread viewModelObject
-    def uiViewModelObject(self, modelXbrl, objectId):
+    def uiViewModelObject(self, modelXbrl: ModelXbrl, objectId: str) -> None:
         modelXbrl.viewModelObject(objectId)
 
     # worker threads viewModelObject
-    def reloadViews(self, modelXbrl):
+    def reloadViews(self, modelXbrl: ModelXbrl) -> None:
         self.uiThreadQueue.put((self.uiReloadViews, [modelXbrl]))
 
     # ui thread viewModelObject
-    def uiReloadViews(self, modelXbrl):
+    def uiReloadViews(self, modelXbrl: ModelXbrl) -> None:
         for view in modelXbrl.views:
             view.view()
 
@@ -1673,43 +1691,43 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.uiThreadQueue.put((self.uiShowStatus, [message, clearAfter]))
 
     # ui thread showStatus
-    def uiClearStatusTimerEvent(self):
+    def uiClearStatusTimerEvent(self) -> None:
         if self.statusbarTimerId:   # if timer still wanted, clear status
             self.statusbar["text"] = ""
-        self.statusbarTimerId  = None
+        self.statusbarTimerId = None  # type: ignore[assignment]
 
-    def uiShowStatus(self, message, clearAfter=None):
+    def uiShowStatus(self, message: str, clearAfter: int | None = None) -> None:
         if self.statusbarTimerId: # ignore timer
-            self.statusbarTimerId = None
+            self.statusbarTimerId = None  # type: ignore[assignment]
         self.statusbar["text"] = message
         if clearAfter is not None and clearAfter > 0:
             self.statusbarTimerId  = self.statusbar.after(clearAfter, self.uiClearStatusTimerEvent)
 
     # web authentication password request
-    def internet_user_password(self, host, realm):
+    def internet_user_password(self, host: str, realm: str) -> Any:
         from arelle.DialogUserPassword import askUserPassword
         untilDone = threading.Event()
-        result = []
+        result: list[Any] = []
         self.uiThreadQueue.put((askUserPassword, [self.parent, host, realm, untilDone, result]))
         untilDone.wait()
         return result[0]
 
     # web file login requested
-    def internet_logon(self, url, quotedUrl, dialogCaption, dialogText):
+    def internet_logon(self, url: str, quotedUrl: str, dialogCaption: str, dialogText: str) -> Any:
         from arelle.DialogUserPassword import askInternetLogon
         untilDone = threading.Event()
-        result = []
+        result: list[Any] = []
         self.uiThreadQueue.put((askInternetLogon, [self.parent, url, quotedUrl, dialogCaption, dialogText, untilDone, result]))
         untilDone.wait()
         return result[0]
 
-    def waitForUiThreadQueue(self):
+    def waitForUiThreadQueue(self) -> None:
         for i in range(40): # max 2 secs
             if self.uiThreadQueue.empty():
                 break
             time.sleep(0.05)
 
-    def uiThreadChecker(self, widget, delayMsecs=100):        # 10x per second
+    def uiThreadChecker(self, widget: Any, delayMsecs: int = 100) -> None:        # 10x per second
         # process callback on main (UI) thread
         while not self.uiThreadQueue.empty():
             try:
@@ -1720,10 +1738,10 @@ class CntlrWinMain (Cntlr.Cntlr):
                 callback(*args)
         widget.after(delayMsecs, lambda: self.uiThreadChecker(widget))
 
-    def uiFileDialog(self, action, title=None, initialdir=None, filetypes=[], defaultextension=None, owner=None, multiple=False, parent=None):
+    def uiFileDialog(self, action: str, title: str | None = None, initialdir: str | None = None, filetypes: list[tuple[str, str]] = [], defaultextension: str | None = None, owner: Tk | None = None, multiple: bool = False, parent: Tk | None = None) -> Any:
         if parent is None: parent = self.parent
         if multiple and action == "open":  # return as simple list of file names
-            multFileNames = tkinter.filedialog.askopenfilename(
+            multFileNames = tkinter.filedialog.askopenfilename(  # type: ignore[call-arg]
                                     multiple=True,
                                     title=title,
                                     initialdir=initialdir,
@@ -1737,7 +1755,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         elif self.hasWin32gui:
             import win32gui
             try:
-                filename, filter, flags = {"open":win32gui.GetOpenFileNameW,
+                filename, filter, flags = {"open":win32gui.GetOpenFileNameW,  # type: ignore[call-arg]
                                            "save":win32gui.GetSaveFileNameW}[action](
                             hwndOwner=(owner if owner else parent).winfo_id(),
                             hInstance=win32gui.GetModuleHandle(None),
@@ -1750,7 +1768,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             except win32gui.error:
                 return ''
         else:
-            return {"open":tkinter.filedialog.askopenfilename,
+            return {"open":tkinter.filedialog.askopenfilename,  # type: ignore[operator]
                     "save":tkinter.filedialog.asksaveasfilename}[action](
                             title=title,
                             initialdir=initialdir,
@@ -1758,24 +1776,27 @@ class CntlrWinMain (Cntlr.Cntlr):
                             defaultextension=defaultextension,
                             parent=parent)
 
-from arelle import DialogFormulaParameters
 
 class WinMainLogHandler(logging.Handler):
-    def __init__(self, cntlr):
+    def __init__(self, cntlr: CntlrWinMain) -> None:
         super(WinMainLogHandler, self).__init__()
         self.cntlr = cntlr
         #formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s - %(file)s %(sourceLine)s")
-        formatter = Cntlr.LogFormatter("[%(messageCode)s] %(message)s - %(file)s")
+        formatter = LogFormatter("[%(messageCode)s] %(message)s - %(file)s")
         self.setFormatter(formatter)
-        self.logRecordBuffer = None
-    def startLogBuffering(self):
+        self.logRecordBuffer: list[logging.LogRecord] | None = None
+
+    def startLogBuffering(self) -> None:
         if self.logRecordBuffer is None:
             self.logRecordBuffer = []
-    def endLogBuffering(self):
+
+    def endLogBuffering(self) -> None:
         self.logRecordBuffer = None
-    def flush(self):
+
+    def flush(self) -> None:
         ''' Nothing to flush '''
-    def emit(self, logRecord):
+
+    def emit(self, logRecord: logging.LogRecord) -> None:
         if self.logRecordBuffer is not None:
             self.logRecordBuffer.append(logRecord)
         # add to logView
@@ -1785,15 +1806,17 @@ class WinMainLogHandler(logging.Handler):
         except:
             pass
 
+
 class TkinterCallWrapper:
     """Replacement for internal tkinter class. Stores function to call when some user
     defined Tcl function is called e.g. after an event occurred."""
-    def __init__(self, func, subst, widget):
+    def __init__(self, func: Any, subst: Any, widget: Any) -> None:
         """Store FUNC, SUBST and WIDGET as members."""
         self.func = func
         self.subst = subst
         self.widget = widget
-    def __call__(self, *args):
+
+    def __call__(self, *args: Any) -> Any:
         """Apply first function SUBST to arguments, than FUNC."""
         try:
             if self.subst:
@@ -1808,16 +1831,16 @@ class TkinterCallWrapper:
 
 
 
-def main():
+def main() -> None:
     # this is the entry called by arelleGUI.pyw for windows
     if getattr(sys, 'frozen', False) and sys.platform == 'win32':
         # windows requires fake stdout/stderr because no write/flush (e.g., EDGAR/render LocalViewer pybottle)
         class dummyFrozenStream:
-            def __init__(self): pass
-            def write(self,data): pass
-            def read(self,data): pass
-            def flush(self): pass
-            def close(self): pass
+            def __init__(self) -> None: pass
+            def write(self, data: Any) -> None: pass
+            def read(self, data: Any) -> None: pass
+            def flush(self) -> None: pass
+            def close(self) -> None: pass
         sys.stdout = dummyFrozenStream()
         sys.stderr = dummyFrozenStream()
         sys.stdin = dummyFrozenStream()
