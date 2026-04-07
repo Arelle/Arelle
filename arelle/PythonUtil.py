@@ -11,34 +11,35 @@ import os
 import subprocess
 import sys
 from collections import OrderedDict
-from collections.abc import Iterable, Iterator, Mapping, MappingView, MutableSet, Set
+from collections.abc import Callable, Iterable, Iterator, Mapping, MappingView, MutableSet, Set
 from decimal import Decimal
 from types import MappingProxyType
-from typing import Any, Generic, TypeVar
+from typing import Any, Generic, TypeVar, cast
 
+from arelle import ModelValue
 from arelle.typing import OptionalString
 
 STR_NUM_TYPES = (str, int, float, Decimal, fractions.Fraction)
 
 
-def pyTypeName(object):
+def pyTypeName(object: Any) -> str:
     try:
         objectClass = object.__class__
         classModule = objectClass.__module__
         className = objectClass.__name__
         if classModule == 'builtins':
-            return className
+            return className  # type: ignore[no-any-return]
         fullname = classModule + '.' + className
         if fullname == 'arelle.ModelValue.DateTime':
             if object.dateOnly:
                 fullname += '-dateOnly'
             else:
                 fullname += '-dateTime'
-        return fullname
+        return fullname  # type: ignore[no-any-return]
     except:
         return str(type(object))
 
-def pyNamedObject(name, *args, **kwargs):
+def pyNamedObject(name: str, *args: Any, **kwargs: Any) -> Any:
     try:
         import builtins
         objectConstructor = builtins.__dict__[name]
@@ -46,12 +47,12 @@ def pyNamedObject(name, *args, **kwargs):
     except:
         return None
 
-def lcStr(value): # lower case first letter of string
+def lcStr(value: str) -> str | type[str]: # lower case first letter of string
     if len(value):
         return value[0].lower() + value[1:]
-    return str
+    return value
 
-def strTruncate(value, length) -> str:
+def strTruncate(value: str, length: int) -> str:
     _s = str(value).strip()
     if len(_s) <= length:
         return _s
@@ -64,7 +65,7 @@ def normalizeSpace(s: OptionalString) -> OptionalString:
     return s
 
 SEQUENCE_TYPES = (tuple,list,set,frozenset,MappingView)
-def flattenSequence(x, sequence=None) -> list[Any]:
+def flattenSequence(x: Any, sequence: list[Any] | None = None) -> list[Any]:
     if sequence is None:
         if not isinstance(x, SEQUENCE_TYPES):
             if x is None:
@@ -78,7 +79,7 @@ def flattenSequence(x, sequence=None) -> list[Any]:
             sequence.append(el)
     return sequence
 
-def flattenToSet(x, _set=None):
+def flattenToSet(x: Any, _set: set[Any] | None = None) -> set[Any]:
     if _set is None:
         if not isinstance(x, SEQUENCE_TYPES):
             if x is None:
@@ -92,18 +93,18 @@ def flattenToSet(x, _set=None):
             _set.add(el)
     return _set
 
-class attrdict(dict):
+class attrdict(dict):  # type: ignore[type-arg]
     """ utility to simulate an object with named fields from a dict """
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         dict.__init__(self, *args, **kwargs)
         self.__dict__ = self
 
-class OrderedDefaultDict(OrderedDict):
+class OrderedDefaultDict(OrderedDict):  # type: ignore[type-arg]
     """ call with default factory and optional sorted initial entries
         e.g., OrderedDefaultDict(list, ((1,11),(2,22),...))
     """
-    def __init__(self, *args):
-        self.default_factory = None
+    def __init__(self, *args: Any) -> None:
+        self.default_factory: Callable[[], Any] | None = None
         if len(args) > 0:
             # arg0 is default_factory
             self.default_factory = args[0]
@@ -113,7 +114,7 @@ class OrderedDefaultDict(OrderedDict):
         else:
             super(OrderedDefaultDict, self).__init__()
 
-    def __missing__(self, key):
+    def __missing__(self, key: Any) -> Any:
         if self.default_factory is None:
             raise KeyError(key)
         _missingValue = self.default_factory()
@@ -148,7 +149,7 @@ class OrderedSet(MutableSet[T]):
         curr = end[2]
         for _ in range(index):
             curr = curr[2]
-        return curr[0]
+        return cast(T, curr[0])
 
     def __len__(self) -> int:
         return len(self.map)
@@ -189,7 +190,7 @@ class OrderedSet(MutableSet[T]):
     def pop(self, last: bool = True) -> T:
         if not self:
             raise KeyError('set is empty')
-        key = self.end[1][0] if last else self.end[2][0]
+        key: T = self.end[1][0] if last else self.end[2][0]
         self.discard(key)
         return key
 
@@ -219,7 +220,7 @@ class FrozenOrderedSet(Set[T]):
             unique_items = dict.fromkeys(iterable)
             self._items = tuple(unique_items.keys())
             self._set = frozenset(unique_items.keys())
-        self._hash: int | None = None
+        self._hash: int | None = None  # type: ignore[assignment]
 
     def __getitem__(self, index: int) -> T:
         return self._items[index]
@@ -289,15 +290,7 @@ class FrozenDict(Generic[KT, VT], Mapping[KT, VT]):
         return self._hash
 
 
-def Fraction(numerator,denominator=None):
-    if denominator is None:
-        if isinstance(numerator, (fractions.Fraction,str,Decimal)):
-            return Fraction(numerator)
-    elif isinstance(numerator, Decimal) and isinstance(denominator, Decimal):
-        return Fraction(int(numerator), int(denominator))
-    return Fraction(numerator, denominator)
-
-def pyObjectSize(obj, seen=None):
+def pyObjectSize(obj: Any, seen: set[int] | None = None) -> int:
     """Recursively finds size of objects"""
     size = sys.getsizeof(obj)
     if seen is None:

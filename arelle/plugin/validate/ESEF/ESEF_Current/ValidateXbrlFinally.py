@@ -7,7 +7,6 @@ import os
 import zipfile
 from collections import defaultdict
 from datetime import datetime, timedelta, date as datetime_date
-from math import isnan
 from typing import Any, cast
 
 import regex as re
@@ -33,12 +32,11 @@ from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
 from arelle.PythonUtil import isLegacyAbs, normalizeSpace
 from arelle.PythonUtil import strTruncate
 from arelle.utils.Contexts import partitionModelXbrlContexts
-from arelle.utils.Units import partitionModelXbrlUnits
 from arelle.utils.validate.DetectScriptsInXhtml import containsScriptMarkers
 from arelle.UrlUtil import isHttpUrl, isExternalUrl
+from arelle.ValidateDuplicateFacts import getDuplicateFactSets
 from arelle.ValidateUtr import ValidateUtr
 from arelle.ValidateXbrl import ValidateXbrl
-from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
 from arelle.XbrlConst import (
     all as hc_all,
     dimensionDomain,
@@ -650,7 +648,6 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
 
         # identify unique contexts and units
         mapContext = {}
-        mapUnit = {}
         for exemplar_context, *contexts in partitionModelXbrlContexts(modelXbrl).values():
             for context in contexts:
                 mapContext[context] = exemplar_context
@@ -658,9 +655,6 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
         utrUnitIds = set(u.unitId
                          for unitItemType in utrValidator.utrItemTypeEntries.values()
                          for u in unitItemType.values())
-        for exemplar_unit, *units in partitionModelXbrlUnits(modelXbrl).values():
-            for unit in units:
-                mapUnit[unit] = exemplar_unit
         for unit in modelXbrl.units.values():
             # check if any custom measure is in UTR
             for measureTerm in unit.measures:
@@ -674,7 +668,6 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
 
         reportedMandatory: set[QName] = set()
         precisionFacts = set()
-        numFactsByConceptContextUnit = defaultdict(list)
         textFactsByConceptContext = defaultdict(list)
         footnotesRelationshipSet = modelXbrl.relationshipSet(XbrlConst.factFootnote, XbrlConst.defaultLinkRole)
         noLangFacts = []
@@ -713,7 +706,6 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 if f.precision is not None:
                     precisionFacts.add(f)
                 if f.isNumeric and f.concept is not None and getattr(f, "xValid", 0) >= VALID:
-                    numFactsByConceptContextUnit[(f.qname, mapContext.get(f.context,f.context), mapUnit.get(f.unit, f.unit))].append(f)
                     if not f.isNil and cast(int, f.xValue) > 1 and f.concept.type is not None and (
                         f.concept.type.qname in PERCENT_TYPES
                         or any(f.concept.type.isDerivedFrom(percentType) for percentType in PERCENT_TYPES)):
@@ -758,40 +750,15 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
         # 2.2.4 test
         checkForMultiLangDuplicates(modelXbrl)
 
-        decVals = {}
-        for fList in numFactsByConceptContextUnit.values():
-            if len(fList) > 1:
+        for duplicateFactSet in getDuplicateFactSets(modelXbrl.facts, includeSingles=False):
+            if duplicateFactSet.areNumeric and duplicateFactSet.areAnyInconsistent:
+                fList = duplicateFactSet.facts
                 f0: ModelFact = fList[0]
-                if any(f.isNil for f in fList):
-                    _inConsistent = not all(f.isNil for f in fList)
-                else: # not all have same decimals
-                    _d = inferredDecimals(f0)
-                    _v = cast(float, f0.xValue)
-                    if _v is None:
-                        continue
-                    _inConsistent = isnan(_v) # NaN is incomparable, always makes dups inconsistent
-                    decVals[_d] = _v
-                    aMax, bMin, _inclA, _inclB = rangeValue(_v, _d)
-                    for f in fList[1:]:
-                        _d = inferredDecimals(f)
-                        _v = cast(float, f.xValue)
-                        if isnan(_v):
-                            _inConsistent = True
-                            break
-                        if _d in decVals:
-                            _inConsistent |= _v != decVals[_d]
-                        else:
-                            decVals[_d] = _v
-                        a, b, _inclA, _inclB = rangeValue(_v, _d)
-                        if a > aMax: aMax = a
-                        if b < bMin: bMin = b
-                    if not _inConsistent:
-                        _inConsistent = (bMin < aMax)
-                    decVals.clear()
-                if _inConsistent:
-                    modelXbrl.error(("ESEF.2.2.4.inconsistentDuplicateNumericFactInInlineXbrlDocument"),
-                        _("Inconsistent duplicate numeric facts MUST NOT appear in the content of an inline XBRL document. %(fact)s that was used more than once in contexts equivalent to %(contextID)s: values %(values)s."),
-                        modelObject=fList, fact=f0.qname, contextID=f0.contextID, values=", ".join(strTruncate(f.value, 128) for f in fList))
+                if not any(f.isNil for f in fList) and f0.xValue is None:
+                    continue
+                modelXbrl.error(("ESEF.2.2.4.inconsistentDuplicateNumericFactInInlineXbrlDocument"),
+                    _("Inconsistent duplicate numeric facts MUST NOT appear in the content of an inline XBRL document. %(fact)s that was used more than once in contexts equivalent to %(contextID)s: values %(values)s."),
+                    modelObject=fList, fact=f0.qname, contextID=f0.contextID, values=", ".join(strTruncate(f.value, 128) for f in fList))
 
         if precisionFacts:
             modelXbrl.error("ESEF.2.2.1.precisionAttributeUsed",

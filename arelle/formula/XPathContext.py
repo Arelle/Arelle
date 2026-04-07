@@ -76,6 +76,8 @@ ContextItem = Union[
     int,
     range,
     str,
+    tuple[()],
+    None,
 ]
 
 AtomizedValue = Union[
