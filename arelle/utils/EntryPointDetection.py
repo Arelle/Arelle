@@ -9,9 +9,7 @@ import os
 from dataclasses import dataclass
 from typing import Any, TYPE_CHECKING, BinaryIO, cast
 
-from arelle import (
-    FileSource, PackageManager,
-)
+from arelle import FileSource
 from arelle.FileSource import FileNamedBytesIO
 from arelle.ModelDocumentType import ModelDocumentType
 from arelle.UrlUtil import isHttpUrl
@@ -55,7 +53,7 @@ def parseEntrypointFileInput(cntlr: Cntlr, entrypointFile: str | None, sourceZip
     if sourceZipStream:
         filesource = FileSource.openFileSource(None, cntlr, sourceZipStream)
     elif len(_entryPoints) == 1 and "file" in _entryPoints[0]: # check if an archive and need to discover entry points (and not IXDS)
-        entryPath = PackageManager.mappedUrl(_entryPoints[0]["file"])
+        entryPath = cntlr.packages.map(_entryPoints[0]["file"])
         filesource = FileSource.openFileSource(entryPath, cntlr, checkIfXmlIsEis=_checkIfXmlIsEis)
     _entrypointFiles = _entryPoints
     if filesource and not filesource.selection and not (sourceZipStream and len(_entrypointFiles) > 0):

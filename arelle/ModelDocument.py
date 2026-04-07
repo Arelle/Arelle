@@ -13,17 +13,13 @@ from typing import Any, cast, TYPE_CHECKING
 from typing_extensions import Self
 from lxml import etree
 from xml.sax import SAXParseException
-
-from arelle import (
-    PackageManager, XbrlConst, XmlUtil, UrlUtil, ValidateFilingText,
-    XhtmlValidate, XmlValidateSchema, FunctionIxt,
-    )
-
-from arelle.ModelXbrl import ModelXbrl
+from arelle import (XbrlConst, XmlUtil, UrlUtil, ValidateFilingText,
+                    XhtmlValidate, XmlValidateSchema, FunctionIxt)
 from arelle.conformance.CSVTestcaseLoader import CSVTestcaseException, loadCsvTestcase
 from arelle.FileSource import FileSource
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname, QName
+from arelle.ModelXbrl import ModelXbrl
 from arelle.ModelDtsObject import ModelLink
 from arelle.ModelInstanceObject import ModelFact, ModelContext, ModelUnit, ModelInlineFact
 from arelle.ModelObjectFactory import parser, KnownNamespacesModelObjectClassLookup, DiscoveringClassLookup
@@ -115,10 +111,11 @@ def load(modelXbrl: ModelXbrl, uri: str, base: str | None = None, referringEleme
     if modelXbrl.modelManager.skipLoading and modelXbrl.modelManager.skipLoading.match(normalizedUri):
         return None
 
+    mappedUri: str | None
     if modelXbrl.fileSource.isMappedUrl(normalizedUri):
         mappedUri = modelXbrl.fileSource.mappedUrl(normalizedUri)
-    elif PackageManager.isMappedUrl(normalizedUri):
-        mappedUri = PackageManager.mappedUrl(normalizedUri)  # type: ignore[assignment]
+    elif modelXbrl.modelManager.cntlr.packages.is_mapped(normalizedUri):
+        mappedUri = modelXbrl.modelManager.cntlr.packages.map(normalizedUri)
     else:
         mappedUri = modelXbrl.modelManager.disclosureSystem.mappedUrl(normalizedUri)
 
@@ -130,7 +127,7 @@ def load(modelXbrl: ModelXbrl, uri: str, base: str | None = None, referringEleme
     if modelXbrl.fileSource.isInArchive(mappedUri):
         filepath = mappedUri
     else:
-        filepath = modelXbrl.modelManager.cntlr.webCache.getfilename(mappedUri, reload=reloadCache, checkModifiedTime=kwargs.get("checkModifiedTime",False))  # type: ignore[assignment]
+        filepath = modelXbrl.modelManager.cntlr.webCache.getfilename(mappedUri, reload=reloadCache, checkModifiedTime=kwargs.get("checkModifiedTime",False))
         if filepath:
             uri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(filepath)
     if filepath is None: # error such as HTTPerror is already logged

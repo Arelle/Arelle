@@ -920,7 +920,7 @@ class CntlrWinMain(Cntlr.Cntlr):
             return
         url = DialogURL.askURL(self.parent, buttonSEC=True, buttonRSS=True)
         if url:
-            url = self._packageManager.mappedUrl(url)
+            url = self.packages.map(url)
             self.updateFileHistory(url, False)
             for xbrlLoadedMethod in self.plugins.hooks("CntlrWinMain.Xbrl.Open"):
                 url = xbrlLoadedMethod(self, url) # runs in GUI thread, allows mapping url, mult return url
@@ -951,7 +951,7 @@ class CntlrWinMain(Cntlr.Cntlr):
             return False
         url = DialogURL.askURL(self.parent, buttonSEC=False, buttonRSS=False)
         if url:
-            url = self._packageManager.mappedUrl(url)
+            url = self.packages.map(url)
             self.fileOpenFile(url, importToDTS=True)
         return None
 
@@ -968,7 +968,7 @@ class CntlrWinMain(Cntlr.Cntlr):
                 if filesource and filesource.isArchive:
                     filesource.select(entrypointFile)
                 else:
-                    entrypointFile = self._packageManager.mappedUrl(entrypointFile)
+                    entrypointFile = self.packages.map(entrypointFile)
                     filesource = openFileSource(entrypointFile, self)
                 if importToDTS:
                     action = _("imported")

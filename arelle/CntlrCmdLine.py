@@ -1993,7 +1993,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             if filesource and filesource.isArchive:
                 filesource.select(_entrypointFile)
             else:
-                _entrypointFile = self._packageManager.mappedUrl(_entrypointFile)
+                _entrypointFile = self.packages.map(_entrypointFile)
                 filesource = FileSource.openFileSource(_entrypointFile, self, sourceZipStream)
                 if options.validate:
                     ValidateFileSource(self, filesource).validate(options.reportPackage, options.taxonomyPackage)
