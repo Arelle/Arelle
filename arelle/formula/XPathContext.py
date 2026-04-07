@@ -435,13 +435,13 @@ class XPathContext:
                         for op2 in s2:
                             testTypeCompatibility(self, p, op, op1, op2)
                             if op == '>=':
-                                result = op1 >= op2
+                                result = op1 >= op2  # type: ignore[operator]
                             elif op == '>':
-                                result = op1 > op2
+                                result = op1 > op2  # type: ignore[operator]
                             elif op == '<=':
-                                result = op1 <= op2
+                                result = op1 <= op2  # type: ignore[operator]
                             elif op == '<':
-                                result = op1 < op2
+                                result = op1 < op2  # type: ignore[operator]
                             elif op == '=':
                                 result = op1 == op2
                             elif op == '!=':
@@ -550,7 +550,7 @@ class XPathContext:
                                     }.get(t.localName)
                                     if tType:
                                         result = isinstance(x, tType)
-                                        if result and tType == DateTime:
+                                        if result and isinstance(x, DateTime):
                                             result = x.dateOnly == (t.localName == "date")
                             elif isinstance(t, OperationDef):
                                 if t.name == "element":

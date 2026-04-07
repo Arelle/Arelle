@@ -253,8 +253,8 @@ class ValidateXbrl:
                             toBalance = toConcept.balance
                             if fromBalance and toBalance:
                                 if fromBalance and toBalance and fromBalance != toBalance:
-                                    modelXbrl.error("xbrl.5.2.6.2.2:essenceAliasBalance",  # type: ignore[func-returns-value]
-                                        _("Essence-alias relationship from %(source)s to %(target)s in link role %(linkrole)s has different balances")).format(
+                                    modelXbrl.error("xbrl.5.2.6.2.2:essenceAliasBalance",
+                                        _("Essence-alias relationship from %(source)s to %(target)s in link role %(linkrole)s has different balances"),
                                         modelObject=modelRel,
                                         source=fromConcept.qname, target=toConcept.qname, linkrole=ELR)
                 elif modelXbrl.hasXDT and XbrlConst.isDimensionArcrole(arcrole):
