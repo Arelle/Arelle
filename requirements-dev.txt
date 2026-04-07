@@ -1,7 +1,7 @@
 flake8==7.3.0
 flake8-noqa==1.5.0
 
-mypy==1.19.1
+mypy==1.20.0
 
 types-boto3[s3]==1.42.83
 types-lxml==2026.2.16
