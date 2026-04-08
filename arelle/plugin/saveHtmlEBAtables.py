@@ -258,11 +258,11 @@ def generateHtmlEbaTablesetFiles(dts: ModelXbrl, indexFile: str, lang: str = "en
 
 def saveHtmlEbaTablesMenuCommand(cntlr: CntlrWinMain) -> None:
     if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:
-        cntlr.addToLog("No DTS loaded.")  # type: ignore[no-untyped-call]
+        cntlr.addToLog("No DTS loaded.")
         return
 
     assert cntlr.config is not None
-    indexFile = cntlr.uiFileDialog(  # type: ignore[no-untyped-call]
+    indexFile = cntlr.uiFileDialog(
         "save",
         title=_("arelle - Save HTML EBA Tables Index file"),
         initialdir=cntlr.config.setdefault("htmlEbaTablesFileDir", "."),
