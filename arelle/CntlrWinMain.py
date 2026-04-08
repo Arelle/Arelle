@@ -78,7 +78,6 @@ from arelle import (
     DialogPluginManager,
     DialogURL,
     ModelDocument,
-    PackageManager,
     TableStructure,
     Updater,
     ViewFileConcepts,
@@ -594,7 +593,7 @@ class CntlrWinMain(Cntlr.Cntlr):
         self.fileMenu.add_cascade(label=_("Recent imports"), menu=self.recentAttachMenu, underline=0)
         self.packagesMenu = Menu(self.menubar, tearoff=0)
         hasPackages = False
-        for i, packageInfo in enumerate(sorted(PackageManager.packagesConfig.get("packages", []),
+        for i, packageInfo in enumerate(sorted(self._packageManager.packagesConfig.get("packages", []),
                                                key=lambda packageInfo: (packageInfo.get("name",""),packageInfo.get("version",""))),
                                         start=1):
             name = packageInfo.get("name", "package{}".format(i))
@@ -921,7 +920,7 @@ class CntlrWinMain(Cntlr.Cntlr):
             return
         url = DialogURL.askURL(self.parent, buttonSEC=True, buttonRSS=True)
         if url:
-            url = PackageManager.mappedUrl(url)
+            url = self._packageManager.mappedUrl(url)
             self.updateFileHistory(url, False)
             for xbrlLoadedMethod in self.plugins.hooks("CntlrWinMain.Xbrl.Open"):
                 url = xbrlLoadedMethod(self, url) # runs in GUI thread, allows mapping url, mult return url
@@ -952,7 +951,7 @@ class CntlrWinMain(Cntlr.Cntlr):
             return False
         url = DialogURL.askURL(self.parent, buttonSEC=False, buttonRSS=False)
         if url:
-            url = PackageManager.mappedUrl(url)
+            url = self._packageManager.mappedUrl(url)
             self.fileOpenFile(url, importToDTS=True)
         return None
 
@@ -969,7 +968,7 @@ class CntlrWinMain(Cntlr.Cntlr):
                 if filesource and filesource.isArchive:
                     filesource.select(entrypointFile)
                 else:
-                    entrypointFile = PackageManager.mappedUrl(entrypointFile)
+                    entrypointFile = self._packageManager.mappedUrl(entrypointFile)
                     filesource = openFileSource(entrypointFile, self)
                 if importToDTS:
                     action = _("imported")

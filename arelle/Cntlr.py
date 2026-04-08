@@ -530,7 +530,7 @@ class Cntlr:
         self._pluginManager.save(self)
 
         if self.hasGui:
-            PackageManager.save(self)
+            self._packageManager.save(self)
         if saveConfig:
             self.saveConfig()
         if self.logger is not None:
