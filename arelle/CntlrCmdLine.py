@@ -71,7 +71,7 @@ from arelle.ValidateXbrlDTS import ValidateBaseTaxonomiesMode
 from arelle.WebCache import proxyTuple
 
 if TYPE_CHECKING:
-    from bottle import Bottle
+    from bottle import Bottle # type: ignore[import-untyped]
 
 STILL_ACTIVE = 259 # MS Windows process status constants
 PROCESS_QUERY_INFORMATION = 0x400
