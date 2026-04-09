@@ -422,23 +422,23 @@ class CntlrWinMain(Cntlr.Cntlr):
             menubarColumn += 1
         for toolbarExtender in self.plugins.hooks("CntlrWinMain.Toolbar"):
             toolbarExtender(self, toolbar)
-        toolbar.grid(row=0, column=0, sticky=(N, W))  # type: ignore[arg-type]
+        toolbar.grid(row=0, column=0, sticky=(N, W))
 
         paneWinTopBtm = PanedWindow(windowFrame, orient=VERTICAL)
-        paneWinTopBtm.grid(row=1, column=0, sticky=(N, S, E, W))  # type: ignore[arg-type]
+        paneWinTopBtm.grid(row=1, column=0, sticky=(N, S, E, W))
         paneWinLeftRt = tkinter.PanedWindow(paneWinTopBtm, orient=HORIZONTAL)
-        paneWinLeftRt.grid(row=0, column=0, sticky=(N, S, E, W))  # type: ignore[arg-type]
+        paneWinLeftRt.grid(row=0, column=0, sticky=(N, S, E, W))
         paneWinLeftRt.bind("<<NotebookTabChanged>>", self.onTabChanged)
         paneWinTopBtm.add(paneWinLeftRt)
         self.tabWinTopLeft = Notebook(paneWinLeftRt, width=250, height=300)
-        self.tabWinTopLeft.grid(row=0, column=0, sticky=(N, S, E, W))  # type: ignore[arg-type]
+        self.tabWinTopLeft.grid(row=0, column=0, sticky=(N, S, E, W))
         paneWinLeftRt.add(self.tabWinTopLeft)
         self.tabWinTopRt = Notebook(paneWinLeftRt)
-        self.tabWinTopRt.grid(row=0, column=0, sticky=(N, S, E, W))  # type: ignore[arg-type]
+        self.tabWinTopRt.grid(row=0, column=0, sticky=(N, S, E, W))
         self.tabWinTopRt.bind("<<NotebookTabChanged>>", self.onTabChanged)
         paneWinLeftRt.add(self.tabWinTopRt)
         self.tabWinBtm = Notebook(paneWinTopBtm)
-        self.tabWinBtm.grid(row=0, column=0, sticky=(N, S, E, W))  # type: ignore[arg-type]
+        self.tabWinBtm.grid(row=0, column=0, sticky=(N, S, E, W))
         self.tabWinBtm.bind("<<NotebookTabChanged>>", self.onTabChanged)
         paneWinTopBtm.add(self.tabWinBtm)
 
@@ -452,7 +452,7 @@ class CntlrWinMain(Cntlr.Cntlr):
         if self.hasClipboard:
             logViewMenu.add_command(label=_("Copy to clipboard"), underline=0, command=lambda: self.logView.copyToClipboard(cntlr=self))
 
-        windowFrame.grid(row=0, column=0, sticky=(N,S,E,W))  # type: ignore[arg-type]
+        windowFrame.grid(row=0, column=0, sticky=(N,S,E,W))
 
         windowFrame.columnconfigure(0, weight=999)
         windowFrame.columnconfigure(1, weight=1)
@@ -1768,7 +1768,7 @@ class CntlrWinMain(Cntlr.Cntlr):
             except win32gui.error:
                 return ''
         else:
-            return {"open":tkinter.filedialog.askopenfilename,  # type: ignore[operator]
+            return {"open":tkinter.filedialog.askopenfilename,
                     "save":tkinter.filedialog.asksaveasfilename}[action](
                             title=title,
                             initialdir=initialdir,

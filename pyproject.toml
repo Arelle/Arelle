@@ -380,7 +380,6 @@ module = [
     'arelle.plugin.xbrlDB.ext.xdc',
     'arelle.plugin.xbrlDB.primaryDocumentFacts',
     'arelle.plugin.xbrlDB.tableFacts',
-    'arelle.plugin.xuleSaver',
     'arelle.webserver.bottle',
     'tests.plugin.*',
     'tests.unit_tests.*',
