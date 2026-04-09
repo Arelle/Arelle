@@ -19,12 +19,12 @@ from arelle.ModelValue import DateTime, QName, TypeXValue
 from arelle.ModelXbrl import ModelXbrl
 from arelle.typing import TypeGetText
 from arelle.ValidateDuplicateFactsConst import (
-    DUPLICATE_TYPE_ARG_MAP,
-    DeduplicationType,
-    DuplicateType,
-    DuplicateTypeArg,
-    FactValueEqualityType,
-    TypeFactValueEqualityKey,
+    DUPLICATE_TYPE_ARG_MAP as DUPLICATE_TYPE_ARG_MAP,
+    DeduplicationType as DeduplicationType,
+    DuplicateType as DuplicateType,
+    DuplicateTypeArg as DuplicateTypeArg,
+    FactValueEqualityType as FactValueEqualityType,
+    TypeFactValueEqualityKey as TypeFactValueEqualityKey,
 )
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
 
