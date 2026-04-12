@@ -368,6 +368,8 @@ def tryRunCommand(*args: str) -> str | None:
             text=True,
             # A call to get std handle throws an OSError if stdin is not specified when run on Windows as a service.
             stdin=subprocess.PIPE,
+            # Prevent a console window flashing briefly when spawning console-subsystem processes from a GUI app.
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
         ).stdout.strip()
     except (OSError, subprocess.SubprocessError):
         return None

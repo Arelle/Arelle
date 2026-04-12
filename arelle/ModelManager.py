@@ -6,7 +6,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 import gc, sys, traceback, logging
-from arelle import ModelXbrl, Validate, DisclosureSystem, PackageManager, ValidateXbrlCalcs, ValidateDuplicateFacts
+from arelle import ModelXbrl, Validate, DisclosureSystem, PackageManager, ValidateXbrlCalcs, ValidateDuplicateFactsConst
 from arelle.ModelFormulaObject import FormulaOptions
 from arelle.ValidateXbrlDTS import ValidateBaseTaxonomiesMode
 from arelle.typing import LocaleDict
@@ -70,7 +70,7 @@ class ModelManager:
         self.baseTaxonomyValidationMode = ValidateBaseTaxonomiesMode.DISCLOSURE_SYSTEM
         self.validateAllFilesAsReportPackages = False
         self.validateAllFilesAsTaxonomyPackages = False
-        self.validateDuplicateFacts = ValidateDuplicateFacts.DuplicateType.NONE
+        self.validateDuplicateFacts = ValidateDuplicateFactsConst.DuplicateType.NONE
         self.validateXmlOim = False
         self.setLocale()
         ValidateXbrlCalcs.init() # required due to circular dependencies in module

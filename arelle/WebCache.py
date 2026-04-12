@@ -26,13 +26,7 @@ from urllib import request as proxyhandlers
 from urllib.error import ContentTooShortError, HTTPError, URLError
 from urllib.parse import quote, unquote, urlsplit, urlunsplit
 
-import certifi
 import regex as re
-import truststore
-from filelock import FileLock, Timeout
-
-from arelle.PythonUtil import isLegacyAbs
-from arelle.typing import TypeGetText
 
 try:
     import ssl
@@ -40,6 +34,8 @@ except ImportError:
     ssl = None  # type: ignore[assignment]
 
 from arelle.FileSource import SERVER_WEB_CACHE, archiveFilenameParts
+from arelle.PythonUtil import isLegacyAbs
+from arelle.typing import TypeGetText
 from arelle.UrlUtil import isHttpUrl
 from arelle.Version import __version__
 
@@ -130,9 +126,9 @@ class WebCache:
         self._httpUserAgent: str = HTTP_USER_AGENT # default user agent for product
         self._httpsRedirect: bool = False
         self._redirectFallbackMap: dict[re.Pattern[str], str] = {}
+        self._baseProxyHandlers: list[proxyhandlers.BaseHandler] = []
+        self._opener: proxyhandlers.OpenerDirector | None = None
         self.resetProxies(httpProxyTuple)
-
-        self.opener.addheaders = [("User-agent", self.httpUserAgent)]
 
         if cntlr.isGAE:
             self.cacheDir: str = SERVER_WEB_CACHE # GAE type servers
@@ -285,24 +281,35 @@ class WebCache:
             self.http_auth_handler = proxyhandlers.HTTPBasicAuthHandler()
             proxyHandlers = [self.proxy_handler, self.proxy_auth_handler, self.http_auth_handler]
 
-        if ssl:
-            context = truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-            # Include certifi certificates (Mozilla’s carefully curated
-            # collection) for systems with outdated certs.
-            context.load_verify_locations(cafile=certifi.where())
-            if self.noCertificateCheck:  # this is required in some Akamai environments, such as sec.gov
-                context.check_hostname = False
-                context.verify_mode = ssl.CERT_NONE
-            proxyHandlers.append(proxyhandlers.HTTPSHandler(context=context))
+        # Store handlers without SSL and invalidate the cached opener.
+        # The SSL context and opener are built lazily on first network request.
+        self._baseProxyHandlers = list(proxyHandlers)
+        self._opener = None
 
-        self.opener = proxyhandlers.build_opener(*proxyHandlers)
-        self.opener.addheaders = [
-            ("User-Agent", self.httpUserAgent),
-            ("Accept-Encoding", "gzip, deflate")
-        ]
+    @property
+    def opener(self) -> proxyhandlers.OpenerDirector:
+        if self._opener is None:
+            handlers = list(self._baseProxyHandlers)
+            if ssl:
+                # Both imports are slow to load, so we do them lazily here when
+                # we know we'll need them.
+                import certifi
+                import truststore
 
-        #self.opener.close()
-        #self.opener = WebCacheUrlOpener(self.cntlr, proxyDirFmt(httpProxyTuple))
+                context = truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+                # Include certifi certificates (Mozilla's carefully curated
+                # collection) for systems with outdated certs.
+                context.load_verify_locations(cafile=certifi.where())
+                if self.noCertificateCheck:  # this is required in some Akamai environments, such as sec.gov
+                    context.check_hostname = False
+                    context.verify_mode = ssl.CERT_NONE
+                handlers.append(proxyhandlers.HTTPSHandler(context=context))
+            self._opener = proxyhandlers.build_opener(*handlers)
+            self._opener.addheaders = [
+                ("User-Agent", self.httpUserAgent),
+                ("Accept-Encoding", "gzip, deflate"),
+            ]
+        return self._opener
 
     def normalizeFilepath(self, filepath: str, url: str, cacheDir: str | None = None) -> str:
         """
@@ -647,6 +654,10 @@ class WebCache:
             retrievingDueToRecheckInterval: bool = False,
             retryCount: int = 5
         ) -> bool:
+        # Defer import of filelock until here since it is not needed for other
+        # operations and is slow to import
+        from filelock import FileLock, Timeout
+
         before_timestamp = WebCache._getFileTimestamp(filepath)
         fileInCache = False
         lock = FileLock(filepath + ".lock", timeout=FILE_LOCK_TIMEOUT)

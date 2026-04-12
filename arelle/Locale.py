@@ -8,6 +8,8 @@ See COPYRIGHT.md for copyright information.
 
 from __future__ import annotations
 
+import ctypes
+import functools
 import locale
 import sys
 import unicodedata
@@ -42,8 +44,6 @@ defaultLocaleCodes = {
     "sk": "SK", "sl": "SI", "sq": "AL", "sr": "RS", "sv": "SE", "th": "TH",
     "tr": "TR", "uk": "UA", "ur": "PK", "vi": "VN", "zh": "CN"}
 
-MACOS_PLATFORM = "darwin"
-WINDOWS_PLATFORM = "win32"
 
 BCP47_LANGUAGE_REGION_SEPARATOR = '-'
 POSIX_LANGUAGE_REGION_SEPARATOR = '_'
@@ -52,37 +52,36 @@ POSIX_LOCALE_ENCODING_SEPARATOR = '.'
 BCP47_LANGUAGE_TAG = re.compile(r"^[a-zA-Z]{2,3}(-[a-zA-Z]{2,3}(\-[a-zA-Z0-9]{1,8})*)?$")
 
 
-def _getUserLocaleUnsafe(posixLocale: str = '') -> tuple[LocaleDict, str | None]:
+@functools.lru_cache(maxsize=None)
+def _probeLocale(localeStr: str) -> LocaleDict | None:
     """
-    Get locale conventions dictionary. May change the global locale if called directly.
-    :param posixLocale: The locale code to use to retrieve conventions. Defaults to system default.
-    :return: Tuple of local conventions dictionary and a user-directed setup message
+    Try to activate localeStr and return its localeconv dict.
+    Returns None if the locale is not available on this system.
+    Result is cached — setlocale is only called once per unique localeStr.
+    Not thread-safe (Python's locale module uses global C state).
     """
-    localeSetupMessage = None
+    saved = locale.setlocale(locale.LC_ALL)
     try:
-        locale.setlocale(locale.LC_ALL, posixLocale)
+        locale.setlocale(locale.LC_ALL, localeStr)
+        return cast(LocaleDict, locale.localeconv())
     except locale.Error:
-        locale.setlocale(locale.LC_ALL, 'C')
-        localeSetupMessage = _('Locale code "{}" is not available on this system.').format(posixLocale)
+        return None
     finally:
-        conv = locale.localeconv()
-    return cast(LocaleDict, conv), localeSetupMessage
+        locale.setlocale(locale.LC_ALL, saved)
 
 
 def getUserLocale(posixLocale: str | None = None) -> tuple[LocaleDict, str | None]:
     """
-    Get locale conventions dictionary. Ensures that the locale (global to the process) is reset afterwards.
+    Get locale conventions dictionary.
     :param posixLocale: The locale code to use to retrieve conventions. Defaults to system default.
-    :return: Tuple of local conventions dictionary and a user-directed setup message
+    :return: Tuple of (locale conventions dict, optional error message for the user)
     """
-    if posixLocale is None:
-        # Empty string is system default.
-        posixLocale = ''
-    currentLocale = locale.setlocale(locale.LC_ALL)
-    try:
-        return _getUserLocaleUnsafe(posixLocale)
-    finally:
-        locale.setlocale(locale.LC_ALL, currentLocale)
+    localeStr = posixLocale or ''
+    if (conv := _probeLocale(localeStr)) is not None:
+        return conv, None
+    # Locale not available — fall back to C and report it
+    return cast(LocaleDict, _probeLocale('C') or locale.localeconv()), \
+        _('Locale code "{}" is not available on this system.').format(posixLocale)
 
 
 def getLanguageCode() -> str:
@@ -115,46 +114,22 @@ def getLanguageCodes(configLang: str | None = None) -> list[str]:
     return [lang]
 
 
-def _unsafeIsLocaleCompatible(localeValue: str) -> bool:
-    """
-    Checks if locale can be set by python on the system.
-    May change the global locale if called directly.
-    """
-    try:
-        locale.setlocale(locale.LC_ALL, localeValue)
-        return True
-    except locale.Error:
-        return False
-
-
-def _unsafeFindCompatibleLocale(localeValue: str) -> str | None:
-    """
-    Attempts to find a system compatible locale (checks default regions and possible encodings) based on the user provided locale value.
-    May change the global locale if called directly.
-    """
-    if _unsafeIsLocaleCompatible(localeValue):
-        return localeValue
-    formattedLocaleCode = bcp47LangToPosixLocale(localeValue)
-    if formattedLocaleCode != localeValue and _unsafeIsLocaleCompatible(formattedLocaleCode):
-        return formattedLocaleCode
-    candidateLocaleCodes = _candidateLocaleCodes(formattedLocaleCode)
-    for candidateLocaleCode in candidateLocaleCodes:
-        if _unsafeIsLocaleCompatible(candidateLocaleCode):
-            return candidateLocaleCode
-    return None
-
-
 def findCompatibleLocale(localeValue: str | None) -> str | None:
     """
-    Attempts to find a system compatible locale (checks default regions and possible encodings) based on the user provided locale value.
+    Attempts to find a system-compatible locale based on the provided value.
+    Checks default regions and possible encodings.
     """
     if localeValue is None:
         return None
-    currentLocale = locale.setlocale(locale.LC_ALL)
-    try:
-        return _unsafeFindCompatibleLocale(localeValue)
-    finally:
-        locale.setlocale(locale.LC_ALL, currentLocale)
+    if _probeLocale(localeValue) is not None:
+        return localeValue
+    formattedLocaleCode = bcp47LangToPosixLocale(localeValue)
+    if formattedLocaleCode != localeValue and _probeLocale(formattedLocaleCode) is not None:
+        return formattedLocaleCode
+    for candidate in _candidateLocaleCodes(formattedLocaleCode):
+        if _probeLocale(candidate) is not None:
+            return candidate
+    return None
 
 
 def _candidateLocaleCodes(posixLocale: str) -> list[str]:
@@ -223,19 +198,26 @@ def _getPosixLocaleLangRegionAndEncoding(posixLocale: str) -> tuple[str, str | N
     return language, region or None, encoding or None
 
 
-_locale = None
+_locale: str | None = None
 
 
 def getLocale() -> str | None:
     global _locale
     if _locale:
         return _locale
+
     # Try getting locale language code from system on macOS and Windows before resorting to the less reliable locale.getlocale.
-    systemLocale = None
-    if sys.platform == MACOS_PLATFORM:
+    systemLocale: str | None = None
+    if sys.platform == "darwin":
         systemLocale = tryRunCommand("defaults", "read", "-g", "AppleLocale")
-    elif sys.platform == WINDOWS_PLATFORM:
-        systemLocale = tryRunCommand("pwsh", "-Command", "Get-Culture | Select -ExpandProperty IetfLanguageTag")
+    elif sys.platform == "win32":
+        # https://learn.microsoft.com/en-us/windows/win32/api/winnls/nf-winnls-getuserdefaultlocalename
+        # https://learn.microsoft.com/en-us/windows/win32/intl/locale-name-constants
+        LOCALE_NAME_MAX_LENGTH = 85
+        buf = ctypes.create_unicode_buffer(LOCALE_NAME_MAX_LENGTH)
+        if ctypes.windll.kernel32.GetUserDefaultLocaleName(buf, LOCALE_NAME_MAX_LENGTH):
+            systemLocale = buf.value
+
     if pythonCompatibleLocale := findCompatibleLocale(systemLocale):
         _locale = pythonCompatibleLocale
     elif sys.version_info < (3, 12) or (3, 13, 3) <= sys.version_info[:3] <= (3, 13, 4):
@@ -287,7 +269,7 @@ iso3region = {
 "US": "usa"}
 
 
-_systemLocales = None
+_systemLocales: list[str] | None = None
 
 
 def getLocaleList() -> list[str]:
@@ -297,7 +279,7 @@ def getLocaleList() -> list[str]:
     global _systemLocales
     if _systemLocales is not None:
         return _systemLocales
-    if sys.platform != WINDOWS_PLATFORM and (locales := tryRunCommand("locale", "-a")):
+    if sys.platform != "win32" and (locales := tryRunCommand("locale", "-a")):
         _systemLocales = locales.splitlines()
     else:
         _systemLocales = []
@@ -315,7 +297,7 @@ def availableLocales() -> set[str]:
     }
 
 
-_languageCodes = None
+_languageCodes: dict[str, str] | None = None
 
 
 def languageCodes() -> dict[str, str]:  # dynamically initialize after gettext is loaded

@@ -23,10 +23,9 @@ import time
 import traceback
 from optparse import SUPPRESS_HELP, Option, OptionGroup, OptionParser
 from pprint import pprint
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 import regex as re
-from bottle import Bottle  # type: ignore[import-untyped]
 from lxml import etree
 
 try:
@@ -40,7 +39,7 @@ from arelle import (
     ModelDocument,
     PackageManager,
     PluginManager,
-    ValidateDuplicateFacts,
+    ValidateDuplicateFactsConst,
     Version,
     ViewFileConcepts,
     ViewFileDTS,
@@ -70,6 +69,9 @@ from arelle.typing import TypeGetText
 from arelle.utils.EntryPointDetection import parseEntrypointFileInput
 from arelle.ValidateXbrlDTS import ValidateBaseTaxonomiesMode
 from arelle.WebCache import proxyTuple
+
+if TYPE_CHECKING:
+    from bottle import Bottle # type: ignore[import-untyped]
 
 STILL_ACTIVE = 259 # MS Windows process status constants
 PROCESS_QUERY_INFORMATION = 0x400
@@ -330,11 +332,11 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict[str, Any]]:
     validationGroup.add_option(
         "--validateDuplicateFacts",
         "--validateduplicatefacts",
-        choices=[a.value for a in ValidateDuplicateFacts.DUPLICATE_TYPE_ARG_MAP],
+        choices=[a.value for a in ValidateDuplicateFactsConst.DUPLICATE_TYPE_ARG_MAP],
         dest="validateDuplicateFacts",
         help=_(
             "Select which types of duplicates should trigger warnings "
-            f"({' ,'.join([f'`{a.value}`' for a in ValidateDuplicateFacts.DUPLICATE_TYPE_ARG_MAP])})"
+            f"({' ,'.join([f'`{a.value}`' for a in ValidateDuplicateFactsConst.DUPLICATE_TYPE_ARG_MAP])})"
 
             )
         )
@@ -730,11 +732,11 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict[str, Any]]:
     outputFileGroup.add_option(
         "--deduplicateFacts",
         "--deduplicatefacts",
-        choices=[a.value for a in ValidateDuplicateFacts.DeduplicationType],
+        choices=[a.value for a in ValidateDuplicateFactsConst.DeduplicationType],
         dest="deduplicateFacts",
         help=_(
             "When using `--saveDeduplicatedInstance` to save a deduplicated instance, check for duplicates of this type"
-            f" ({' ,'.join([f'`{a.value}`' for a in ValidateDuplicateFacts.DeduplicationType])})."
+            f" ({' ,'.join([f'`{a.value}`' for a in ValidateDuplicateFactsConst.DeduplicationType])})."
             )
         )
     outputFileGroup.add_option(
@@ -1495,7 +1497,7 @@ def _configAndRunCntlr(
         cntlr.postLoggingInit()
         from arelle import CntlrWebMain
         app = CntlrWebMain.startWebserver(cntlr, options)
-        if options.webserver == "::wsgi":
+        if options.webserver == "::wsgi" and app is not None:
             return app, None
 
         return None, None
@@ -1811,7 +1813,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             self.modelManager.baseTaxonomyValidationMode = ValidateBaseTaxonomiesMode.fromName(options.baseTaxonomyValidationMode)
         self.modelManager.validateXmlOim = options.validateXmlOim
         if options.validateDuplicateFacts:
-            duplicateTypeArg = ValidateDuplicateFacts.DuplicateTypeArg(options.validateDuplicateFacts)
+            duplicateTypeArg = ValidateDuplicateFactsConst.DuplicateTypeArg(options.validateDuplicateFacts)
             duplicateType = duplicateTypeArg.duplicateType()
             self.modelManager.validateDuplicateFacts = duplicateType
         self.modelManager.validateAllFilesAsReportPackages = options.reportPackage
@@ -2231,9 +2233,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 if success:
                     if options.saveDeduplicatedInstance:
                         if options.deduplicateFacts:
-                            deduplicateFactsArg = ValidateDuplicateFacts.DeduplicationType(options.deduplicateFacts)
+                            deduplicateFactsArg = ValidateDuplicateFactsConst.DeduplicationType(options.deduplicateFacts)
                         else:
-                            deduplicateFactsArg = ValidateDuplicateFacts.DeduplicationType.COMPLETE
+                            deduplicateFactsArg = ValidateDuplicateFactsConst.DeduplicationType.COMPLETE
                         if modelXbrl.modelDocument.type != ModelDocument.Type.INSTANCE:
                             self.addToLog(_("Provided file must be a traditional XBRL instance document to save a deduplicated instance."),
                                           messageCode="error", file=modelXbrl.modelDocument.uri)
@@ -2241,6 +2243,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                             # Deduplication modifies the underlying lxml tree and leaves the model in an undefined state.
                             # Anything depending on the ModelXbrl that runs after this may encounter unexpected behavior,
                             # so we'll run it as a final step in the CLI controller flow.
+                            from arelle import ValidateDuplicateFacts
                             ValidateDuplicateFacts.saveDeduplicatedInstance(
                                 modelXbrl,
                                 deduplicateFactsArg,
