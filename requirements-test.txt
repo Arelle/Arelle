@@ -1,6 +1,6 @@
-boto3==1.42.83
+boto3==1.42.88
 packaging==26.0
-pytest==9.0.2
+pytest==9.0.3
 requests==2.33.1
 tomli==2.3.0 ; python_version <= "3.10"
 
