@@ -2,6 +2,22 @@
 ;Adapted from Basic Example Script
 ;Written by Joost Verburg
 ;Tailored for Arelle 2011-04-28
+; Preprocessor 
+
+!define APP_NAME "Arelle"
+
+!define ARELLE_UNINSTALL_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\Arelle"
+
+!define UNINSTALLER "$INSTDIR\Uninstall.exe"
+
+; Version passed in at build time via /DINSTALLER_VERSION=x.y.z.n /DAPP_VERSION=x.y.z
+!ifndef INSTALLER_VERSION
+  !define INSTALLER_VERSION "0.0.0.0"
+!endif
+
+!ifndef APP_VERSION
+  !define APP_VERSION "0.0.0"
+!endif
 
 ;--------------------------------
 ;Include Modern UI
@@ -19,6 +35,22 @@
 
   Icon arelle\images\arelle.ico
   UninstallIcon arelle\images\arelle.ico
+
+
+
+  ; VIProductVersion must be four dot-separated non-negative integers: major.minor.patch.build
+  VIProductVersion "${INSTALLER_VERSION}"
+
+  ; Version of the installer (stays consistent with VIProductVersion)
+  VIAddVersionKey "FileDescription" "${APP_NAME} Windows Installer"
+  VIAddVersionKey "FileVersion" "${INSTALLER_VERSION}"
+
+  ; Version of Arelle that we're installing.
+  VIAddVersionKey "ProductName" "${APP_NAME}"
+  VIAddVersionKey "ProductVersion" "${APP_VERSION}"
+
+  VIAddVersionKey "CompanyName" "Workiva, Inc."
+  VIAddVersionKey "LegalCopyright" "Copyright © 2011-present Workiva, Inc."
   OutFile "dist\arelle-win-x64.exe"
 
   ;Default installation folder
@@ -81,18 +113,30 @@ Section "Arelle" SecArelle
   
   ;Store installation folder
   WriteRegStr HKLM "Software\Arelle" "" $INSTDIR
-  ; Write the uninstall keys for Windows
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Arelle" "DisplayName" "Arelle"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Arelle" "Publisher" "arelle.org"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Arelle" "RegOwner" "Mark V Systems Limited"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Arelle" "URLInfoAbout" "http://arelle.org"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Arelle" "DisplayIcon" '"$INSTDIR\images\arelle16x16and32x32.ico"'
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Arelle" "UninstallString" '"$INSTDIR\uninstall.exe"'
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Arelle" "NoModify" 1
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Arelle" "NoRepair" 1
-  
-  ;Create uninstaller
-  WriteUninstaller "$INSTDIR\Uninstall.exe"
+  ; Write the essential uninstall keys for Windows
+  WriteRegDWORD HKLM  "${ARELLE_UNINSTALL_KEY}" "NoModify"          1
+  WriteRegDWORD HKLM  "${ARELLE_UNINSTALL_KEY}" "NoRepair"          1
+  WriteRegStr   HKLM  "${ARELLE_UNINSTALL_KEY}" "UninstallString"   '"${UNINSTALLER}"'
+
+  ; Add the other metadata too
+  WriteRegStr   HKLM  "${ARELLE_UNINSTALL_KEY}" "DisplayIcon"       "$INSTDIR\images\arelle.ico"
+  WriteRegStr   HKLM  "${ARELLE_UNINSTALL_KEY}" "DisplayName"       "${APP_NAME}"
+  WriteRegStr   HKLM  "${ARELLE_UNINSTALL_KEY}" "DisplayVersion"    "${APP_VERSION}"
+
+  WriteRegStr   HKLM  "${ARELLE_UNINSTALL_KEY}" "HelpLink"          "https://groups.google.com/d/forum/arelle-users"
+  WriteRegStr   HKLM  "${ARELLE_UNINSTALL_KEY}" "Publisher"         "arelle.org"
+  WriteRegStr   HKLM  "${ARELLE_UNINSTALL_KEY}" "RegOwner"          "Workiva, Inc."
+  WriteRegStr   HKLM  "${ARELLE_UNINSTALL_KEY}" "URLInfoAbout"      "https://arelle.org"
+  WriteRegStr   HKLM  "${ARELLE_UNINSTALL_KEY}" "URLUpdateInfo"     "https://github.com/Arelle/Arelle/releases"
+
+
+
+
+
+
+
+  ; Create uninstaller
+  WriteUninstaller "${UNINSTALLER}"
   
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
     
@@ -104,7 +148,7 @@ Section "Arelle" SecArelle
     IfFileExists "$INSTDIR\QuickBooks.qwc" 0 +2
         CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Start Web Server.lnk" "$INSTDIR\arelleCmdLine.exe" "--webserver localhost:8080"
 
-    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
+    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" "${UNINSTALLER}"
   
   !insertmacro MUI_STARTMENU_WRITE_END
 
@@ -137,7 +181,7 @@ Section "Uninstall"
   Delete "$SMPROGRAMS\$StartMenuFolder\*.*"
   RMDir "$SMPROGRAMS\$StartMenuFolder"
 
-  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Arelle"
+  DeleteRegKey HKLM "${ARELLE_UNINSTALL_KEY}"
   DeleteRegKey /ifempty HKLM "Software\Arelle"
 
 SectionEnd
