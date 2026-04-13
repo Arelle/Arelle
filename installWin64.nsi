@@ -1,7 +1,5 @@
-;Arelle Installer User Interface
-;Adapted from Basic Example Script
-;Written by Joost Verburg
-;Tailored for Arelle 2011-04-28
+; Arelle Windows Installer Script
+; Adapted from Basic Example Script originally written by Joost Verburg
 
 ; Switch to unicode mode (must come first)
 Unicode true
@@ -24,7 +22,7 @@ Unicode true
 !endif
 
 ;--------------------------------
-;Include Modern UI
+; Include Modern UI
 
 !include "MUI2.nsh"
 !include "FileFunc.nsh"
@@ -32,14 +30,9 @@ Unicode true
 SetCompressor /SOLID lzma
 
 ;--------------------------------
-;General
+; General
 
-  ;Name and file
   Name "Arelle"
-
-
-
-
 
   ; VIProductVersion must be four dot-separated non-negative integers: major.minor.patch.build
   VIProductVersion "${INSTALLER_VERSION}"
@@ -57,31 +50,32 @@ SetCompressor /SOLID lzma
 
   !define MUI_ICON "arelle\images\arelle.ico"
   !define MUI_UNICON "arelle\images\arelle.ico"
+
   OutFile "dist\arelle-win-x64.exe"
 
   ; Admin rights are required to write to HKLM and $PROGRAMFILES64
   RequestExecutionLevel admin
 
-  ;Default installation folder
+  ; Default installation folder
   InstallDir "$PROGRAMFILES64\Arelle"
   
-  ;Get installation folder from registry if available
+  ; Get installation folder from registry if available
   InstallDirRegKey HKLM "Software\Arelle" ""
 
 ;--------------------------------
-;Variables
+; Variables
 
   Var StartMenuFolder
   Var InstallDate
   Var InstalledSizeKB
 
 ;--------------------------------
-;Interface Settings
+; Interface Settings
 
   !define MUI_ABORTWARNING
 
 ;--------------------------------
-;Pages
+; Pages
 
   !if /FileExists "LICENSE.rtf"
     !insertmacro MUI_PAGE_LICENSE "LICENSE.rtf"
@@ -104,27 +98,28 @@ SetCompressor /SOLID lzma
   !insertmacro MUI_UNPAGE_INSTFILES
   
 ;--------------------------------
-;Languages
+; Languages
  
   !insertmacro MUI_LANGUAGE "English"
 
 ;--------------------------------
-;Installer Sections
+; Installer Sections
 
 Section "Arelle" SecArelle
 
   SetOutPath "$INSTDIR"
 
-  ;CLEAN INSTALL DIRECTORY
+  ; CLEAN INSTALL DIRECTORY
   Delete "$INSTDIR\*.*"
 
   RMDir /r "$INSTDIR\*"
   
-  ;ADD YOUR OWN FILES HERE...
+  ; ADD YOUR OWN FILES HERE...
   File /r $%BUILD_PATH%\*.*
   
-  ;Store installation folder
+  ; Store installation folder
   WriteRegStr HKLM "Software\Arelle" "" $INSTDIR
+
   ; Write the essential uninstall keys for Windows
   WriteRegDWORD HKLM  "${ARELLE_UNINSTALL_KEY}" "NoModify"          1
   WriteRegDWORD HKLM  "${ARELLE_UNINSTALL_KEY}" "NoRepair"          1
@@ -140,17 +135,6 @@ Section "Arelle" SecArelle
   WriteRegStr   HKLM  "${ARELLE_UNINSTALL_KEY}" "RegOwner"          "Workiva, Inc."
   WriteRegStr   HKLM  "${ARELLE_UNINSTALL_KEY}" "URLInfoAbout"      "https://arelle.org"
   WriteRegStr   HKLM  "${ARELLE_UNINSTALL_KEY}" "URLUpdateInfo"     "https://github.com/Arelle/Arelle/releases"
-
-
-
-
-
-
-
-
-
-
-
 
   ${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
   ; $0 = total size in KB, $1 = file count (unused), $2 = subdirectory count (unused)
@@ -183,7 +167,7 @@ Section "Arelle" SecArelle
 SectionEnd
 
 ;--------------------------------
-;Descriptions
+; Descriptions
 
   ;Language strings
   LangString DESC_SecArelle ${LANG_ENGLISH} "Arelle Windows x64 installation.  Includes Python and tcl modules needed for operation."
@@ -194,7 +178,7 @@ SectionEnd
   ; !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 ;--------------------------------
-;Uninstaller Section
+; Uninstaller Section
 
 Section "Uninstall"
 
