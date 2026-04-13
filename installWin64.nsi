@@ -30,8 +30,6 @@
   ;Name and file
   Name "Arelle"
 
-  ; required in order to automatically remove short cuts
-  RequestExecutionLevel user
 
   Icon arelle\images\arelle.ico
   UninstallIcon arelle\images\arelle.ico
@@ -53,14 +51,14 @@
   VIAddVersionKey "LegalCopyright" "Copyright © 2011-present Workiva, Inc."
   OutFile "dist\arelle-win-x64.exe"
 
+  ; Admin rights are required to write to HKLM and $PROGRAMFILES64
+  RequestExecutionLevel admin
+
   ;Default installation folder
   InstallDir "$PROGRAMFILES64\Arelle"
   
   ;Get installation folder from registry if available
   InstallDirRegKey HKLM "Software\Arelle" ""
-
-  ;Request application privileges for Windows Vista
-  RequestExecutionLevel none
 
 ;--------------------------------
 ;Variables
