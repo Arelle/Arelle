@@ -31,8 +31,6 @@
   Name "Arelle"
 
 
-  Icon arelle\images\arelle.ico
-  UninstallIcon arelle\images\arelle.ico
 
 
 
@@ -49,6 +47,9 @@
 
   VIAddVersionKey "CompanyName" "Workiva, Inc."
   VIAddVersionKey "LegalCopyright" "Copyright © 2011-present Workiva, Inc."
+
+  !define MUI_ICON "arelle\images\arelle.ico"
+  !define MUI_UNICON "arelle\images\arelle.ico"
   OutFile "dist\arelle-win-x64.exe"
 
   ; Admin rights are required to write to HKLM and $PROGRAMFILES64
