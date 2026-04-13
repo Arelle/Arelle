@@ -168,11 +168,11 @@ Section "Arelle" SecArelle
   
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
     
-    ;Create shortcuts
+    ; Create shortcuts
     CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
     CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Arelle.lnk" "$INSTDIR\arelleGUI.exe"
 
-    ; check if webserver installed (known to be there if QuickBooks.qwc is in the build)
+    ; Check if webserver installed (known to be there if QuickBooks.qwc is in the build)
     IfFileExists "$INSTDIR\QuickBooks.qwc" 0 +2
         CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Start Web Server.lnk" "$INSTDIR\arelleCmdLine.exe" "--webserver localhost:8080"
 
@@ -201,7 +201,10 @@ Section "Uninstall"
   ;ADD YOUR OWN FILES HERE...
 
   RMDir /r "$INSTDIR"
-  RMDir /r "$LOCALAPPDATA\Arelle"
+  IfSilent SkipUserData
+    MessageBox MB_YESNO "Delete user data (preferences, logs, caches) in $LOCALAPPDATA\Arelle?" IDNO SkipUserData
+    RMDir /r "$LOCALAPPDATA\Arelle"
+  SkipUserData:
 
   !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder
     
