@@ -29,6 +29,7 @@ Unicode true
 !include "MUI2.nsh"
 !include "FileFunc.nsh"
 
+SetCompressor /SOLID lzma
 
 ;--------------------------------
 ;General
