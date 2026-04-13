@@ -2,6 +2,10 @@
 ;Adapted from Basic Example Script
 ;Written by Joost Verburg
 ;Tailored for Arelle 2011-04-28
+
+; Switch to unicode mode (must come first)
+Unicode true
+
 ; Preprocessor 
 
 !define APP_NAME "Arelle"
