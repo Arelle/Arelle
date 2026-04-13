@@ -38,9 +38,9 @@ jobs:
           name: arelle.whl
           path: dist/
       - name: Publish package on release
-        uses: pypa/gh-action-pypi-publish@v1.13.0
+        uses: pypa/gh-action-pypi-publish@v1.14.0
       - name: Upload release artifact
-        uses: softprops/action-gh-release@v2.6.1
+        uses: softprops/action-gh-release@v3.0.0
         with:
           fail_on_unmatched_files: true
           files: 'dist/*'
