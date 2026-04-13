@@ -22,7 +22,9 @@
 ;--------------------------------
 ;Include Modern UI
 
-  !include "MUI2.nsh"
+!include "MUI2.nsh"
+!include "FileFunc.nsh"
+
 
 ;--------------------------------
 ;General
@@ -65,6 +67,8 @@
 ;Variables
 
   Var StartMenuFolder
+  Var InstallDate
+  Var InstalledSizeKB
 
 ;--------------------------------
 ;Interface Settings
@@ -134,6 +138,22 @@ Section "Arelle" SecArelle
 
 
 
+
+
+
+
+
+  ${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
+  ; $0 = total size in KB, $1 = file count (unused), $2 = subdirectory count (unused)
+  StrCpy $InstalledSizeKB $0
+  WriteRegDWORD HKLM  "${ARELLE_UNINSTALL_KEY}" "EstimatedSize"     $InstalledSizeKB
+
+  ${GetTime} "" "L" $0 $1 $2 $3 $4 $5 $6
+  ; GetTime outputs: $0=day(DD) $1=month(MM) $2=year(YYYY)
+  ; InstallDate registry value must be YYYYMMDD format
+  StrCpy $InstallDate "$2$1$0"
+  WriteRegStr   HKLM  "${ARELLE_UNINSTALL_KEY}" "InstallDate"       "$InstallDate"
+  
   ; Create uninstaller
   WriteUninstaller "${UNINSTALLER}"
   
