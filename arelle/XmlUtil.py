@@ -750,7 +750,7 @@ def addChild(
     elif appendChild:
         parent.append(child)
     if attributes:
-        for name, value in (attributes.items() if isinstance(attributes, dict) else  # type: ignore[misc]
+        for name, value in (attributes.items() if isinstance(attributes, dict) else  # type: ignore[str-unpack]
                             attributes if len(attributes) > 0 and isinstance(attributes[0],(tuple,list)) else (attributes,)):
             if isinstance(name,QName):
                 if name.namespaceURI:
