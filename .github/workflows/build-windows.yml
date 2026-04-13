@@ -118,6 +118,10 @@ jobs:
     - name: Delete .git
       shell: cmd
       run: if exist "${{ env.BUILD_PATH }}\.git" rmdir /s /q ${{ env.BUILD_PATH }}\.git
+    - name: Convert license to RTF for installer page
+      run: |
+        choco install pandoc -y
+        pandoc LICENSE.md -o LICENSE.rtf -s --lua-filter=markdown-to-rtf.filter.lua
     - name: Make installer
       run: |
         $installer_version = ("${{ env.BUILD_VERSION }}" -replace '[^0-9.].*$', '' -replace '\.$', '') + ".${{ github.run_number }}"

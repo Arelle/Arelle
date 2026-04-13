@@ -83,7 +83,11 @@ SetCompressor /SOLID lzma
 ;--------------------------------
 ;Pages
 
-  !insertmacro MUI_PAGE_LICENSE "LICENSE.md"
+  !if /FileExists "LICENSE.rtf"
+    !insertmacro MUI_PAGE_LICENSE "LICENSE.rtf"
+  !else
+    !insertmacro MUI_PAGE_LICENSE "LICENSE.md"
+  !endif
   ; !insertmacro MUI_PAGE_COMPONENTS
   !insertmacro MUI_PAGE_DIRECTORY
   
