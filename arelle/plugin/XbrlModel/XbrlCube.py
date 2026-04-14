@@ -105,8 +105,8 @@ class XbrlDimensionPropertiesConstraint(XbrlModelObject):
     """ Dimension Properties Constraint Object
         Reference: oim-taxonomy#dimensionpropertiesconstraint-object
     """
-    allowed: OrderedSet[QName] # (optional) An ordered set of property type QNames that can be used on the dimension.
-    required: OrderedSet[QName] # (optional) An ordered set of property type QNames that must be used on the dimension.
+    allowedProperties: OrderedSet[QName] # (optional) An ordered set of property type QNames that can be used on the dimension.
+    requiredProperties: OrderedSet[QName] # (optional) An ordered set of property type QNames that must be used on the dimension.
 
 class XbrlDimensionConstraint(XbrlModelObject):
     """ Dimension Constraint Object
@@ -115,7 +115,8 @@ class XbrlDimensionConstraint(XbrlModelObject):
     dimensionName: Optional[QName] # (optional) The dimension QName that identifies the taxonomy defined dimension.
     type: Optional[str] # (optional) The dimension QName that identifies the taxonomy defined dimension.
     dataType: Optional[QName] # (optional) The dimension QName that identifies the taxonomy defined dimension.
-    required: Union[bool, DefaultFalse] # (optional) The dimension QName that identifies the taxonomy defined dimension.
+    maxDimensions: Optional[int] # (optional) An int value that indicates the maximum number of dimensions that can be included in the cube.
+    minDimensions: Optional[int] # (optional) An int value that indicates the minimum number of dimensions that can be included in the cube.
     dimensionProperties: Optional[XbrlDimensionPropertiesConstraint] # (optional) Defines constraints on dimension properties defining those properties that are allowed.
 
 class XbrlDimensionsAllowed(XbrlModelObject):

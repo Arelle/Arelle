@@ -120,7 +120,7 @@
                         {
                         "type": "typed",
                         "dataType": "xs:token",
-                        "required" : true
+                        "minDimensions" : 1
                         }
                     ],
                     "closed" : true
@@ -147,7 +147,7 @@
                         {
                         "type": "typed",
                         "dataType": "xs:token",
-                        "required" : true
+                        "minDimensions" : 1
                         }
                     ],
                     "closed" : true
@@ -173,7 +173,7 @@
                         {
                         "type": "typed",
                         "dataType": "xs:token",
-                        "required" : true
+                        "minDimensions" : 1
                         }
                     ],
                     "closed" : true
@@ -187,9 +187,9 @@
                             {
                                 "type": "typed",
                                 "dataType": "xs:dateTime",
-                                "required" : true,
+                                "minDimensions" : 1,
                                 "dimensionProperties": {
-                                    "allowed" : [
+                                    "allowedProperties" : [
                                         "xbrla:intervalOfMeasurement",
                                         "xbrla:timeSeriesType",
                                         "xbrl:aggregation",
@@ -197,7 +197,7 @@
                                         "xbrla:completeTimeSeries",
                                         "xbrla:excludedIntervals"
                                     ],
-                                    "required": [
+                                    "requiredProperties": [
                                         "xbrla:intervalOfMeasurement",
                                         "xbrla:timeSeriesType"
                                     ]
@@ -215,7 +215,7 @@
                             {
                                 "type": "typed",
                                 "dataType": "xs:token",
-                                "required" : true
+                                "minDimensions" : 1
                             }
                         ],
                         "closed": false
@@ -229,7 +229,7 @@
                         {
                             "type": "typed",
                             "dataType": "xs:token",
-                            "required" : true
+                            "minDimensions" : 1
                         }
                     ],
                     "closed" : true

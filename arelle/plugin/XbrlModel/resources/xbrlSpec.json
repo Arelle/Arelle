@@ -1564,6 +1564,11 @@
                 "allowedObjects": ["xbrl:referenceObject"]
             },
             {
+                "name": "xbrl:conformanceTestDescription",
+                "dataType": "xs:string",
+                "allowedObjects": ["xbrl:referenceObject"]
+            },
+            {
                 "name": "xbrl:specificationErrorURI",
                 "dataType": "xbrli:realURL",
                 "allowedObjects": ["xbrl:referenceObject"]
@@ -1572,11 +1577,6 @@
                 "name": "xbrl:validationLocation",
                 "dataType": "xs:string",
                 "allowedObjects": ["xbrl:memberObject"]
-            },
-            {
-                "name": "xbrl:requiresFactValue",
-                "dataType": "xs:boolean",
-                "allowedObjects": ["xbrl:factObject"]
             },
             {
                 "name": "xbrl:reportDate",
@@ -1589,14 +1589,17 @@
                 "allowedObjects": ["xbrl:xbrlModelObject"]
             },
             {
-                "name": "xbrl:dimensionMemberProperty",
-                "dataType": "xbrli:dimensionMemberMap",
-                "allowedObjects": ["xbrl:factObject"]
-            },
-            {
                 "name": "xbrl:defaultLanguage",
                 "dataType": "xbrli:languageType",
                 "allowedObjects": ["xbrl:xbrlModelObject"]
+            },
+            {
+                "name": "xbrl:factLocation",
+                "dataType": "xs:QName",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:groupObject"
+                ]
             }
         ],
         "referenceTypes": [
@@ -1662,7 +1665,8 @@
             {
                 "name":"xbrl:specStatus",
                 "allowedObjects": [
-                    "xbrl:dataTypeObject"
+                    "xbrl:dataTypeObject",
+                    "xbrl:unitObject"
                 ]
             },
             {

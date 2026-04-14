@@ -35,13 +35,18 @@ class XbrlConcept(XbrlReferencableModelObject):
         dtObj = txmyMdl.namedObjects.get(self.dataType)
         return isinstance(dtObj, XbrlDataType) and dtObj.isOimTextFactType(txmyMdl)
 
-class XbrlCollectionType(XbrlModelObject):
+class XbrlCollectionType(XbrlReferencableModelObject):
     """ Collection Type Object
         Reference: oim-taxonomy.md#collection-type-object
     """
-    dataTypesAllowed: OrderedSet[QName] # (required) Defines a set of data types that can be included in the set. The data types are defined using the QName of the dataType object.
+    module: XbrlModuleType
+    name: QNameKeyType # (required) The name is a QName that uniquely identifies the collectionType object.
+    dataType: QName # (required) Defines the data type that can be included in the collection. The data type is defined using the QName of the dataType object. Collection types may reference other collection types in dataType, enabling nested collections.
     uniqueValues: Union[bool, DefaultTrue] # (optional) Indicates if the values in the set must be unique. If true all values in the set must be unique. If false values can be duplicated. Defaults to true if not provided.
     orderedValues: Union[bool, DefaultFalse] # (optional) Indicates if the values in the set are ordered. If true the order of the values in the set is significant. If false the order of the values in the set is not significant. Defaults to false if not provided.
+    maxItems: Optional[int] # (optional) Defines an int value to indicate the maximum number of items in the collection.
+    minItems: Optional[int] # (optional) Defines an int value to indicate the minimum number of items in the collection.
+
 
 class XbrlMapType(XbrlModelObject):
     """ Map Type Object

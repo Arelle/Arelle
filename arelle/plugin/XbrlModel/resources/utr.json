@@ -273,27 +273,27 @@
                 "name": "utr:Rate"
             },
             {
-                "dataType": "xbrli:duration",
+                "dataType": "xbrli:time",
                 "name": "utr:Y"
             },
             {
-                "dataType": "xbrli:duration",
+                "dataType": "xbrli:time",
                 "name": "utr:M"
             },
             {
-                "dataType": "xbrli:duration",
+                "dataType": "xbrli:time",
                 "name": "utr:D"
             },
             {
-                "dataType": "xbrli:duration",
+                "dataType": "xbrli:time",
                 "name": "utr:H"
             },
             {
-                "dataType": "xbrli:duration",
+                "dataType": "xbrli:time",
                 "name": "utr:MM"
             },
             {
-                "dataType": "xbrli:duration",
+                "dataType": "xbrli:time",
                 "name": "utr:S"
             },
             {
@@ -321,11 +321,11 @@
                 "name": "utr:TWh"
             },
             {
-                "dataType": "xbrli:duration",
+                "dataType": "xbrli:time",
                 "name": "utr:Q"
             },
             {
-                "dataType": "xbrli:duration",
+                "dataType": "xbrli:time",
                 "name": "utr:WK"
             },
             {

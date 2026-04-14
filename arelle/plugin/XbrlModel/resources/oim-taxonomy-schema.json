@@ -61,6 +61,11 @@
                 "modelType": {
                    "$ref": "#/definitions/modelTypeQName" 
                 },
+                "duplicateFactsInModel": {
+                    "type": "string",
+                    "enum": ["no duplicates", "complete duplicates", "consistent duplicates", "inconsistent duplicates"],
+                    "description": "Sets the default duplicate facts validation policy for all cubes in the model. The value of duplicateFactsInCube on a cube takes precedence over this model-level default. If absent, defaults to 'inconsistent duplicates'."
+                },
                 "importedTaxonomies": {
                   "type": "array",
                   "items": {
@@ -84,13 +89,6 @@
                       },
                       "excludeLabels": {
                         "type": "boolean"
-                      },
-                      "prefixRemap": {
-                        "type": "object",
-                        "description": "Maps new prefix names (keys, used in the importing model) to old prefix names (values, as they appear in the imported model). Used to resolve namespace prefix collisions during compilation.",
-                        "additionalProperties": {
-                          "type": "string"
-                        }
                       }
                     },
                     "required": ["xbrlModelName"],
@@ -140,7 +138,6 @@
                       "properties": {
                         "name": { "$ref": "#/definitions/QName" },
                         "dataType": { "$ref": "#/definitions/dataTypeQName" },
-                        "enumerationDomain": { "$ref": "#/definitions/domainQName" },
                         "definitional": {
                           "type": "boolean"
                         },
@@ -151,25 +148,12 @@
                         },
                         "allowedAsLinkProperty": {
                           "type": "boolean"
-                        }
+                        },
+                        "enumerationDomain": { "$ref": "#/definitions/domainQName" }
                       },
                       "required": ["name", "dataType"],
-                      "additionalProperties": false,
-                      "allOf": [
-                        {
-                          "if": {
-                            "properties": {
-                              "enumerationDomain": { "type": "string" }
-                            },
-                            "required": ["enumerationDomain"]
-                          },
-                          "then": {
-                            "properties": {
-                              "dataType": { "const": "xs:QName" }
-                            }
-                          }
-                        }
-                      ]
+                      "additionalProperties": false
+                      
                     },
                     "uniqueItems": true
                 },
@@ -226,10 +210,10 @@
                           "type": "string",
                           "enum": ["instant", "duration", "none"]
                         },
-                        "enumerationDomain": { "$ref": "#/definitions/domainQName" },
                         "nillable": {
                           "type": "boolean"
                         },
+                        "enumerationDomain": { "$ref": "#/definitions/domainQName" },
                        "properties": {
                           "type": "array",
                             "items": { "$ref": "#/definitions/propertyObject"},
@@ -238,24 +222,7 @@
                         }
                       },
                       "required": ["name", "dataType", "periodType"],
-                      "additionalProperties": false,
-                      "allOf": [
-                        {
-                          "if": {
-                            "properties": {
-                              "enumerationDomain": { "type": "string" }
-                            },
-                            "required": ["enumerationDomain"]
-                          },
-                          "then": {
-                            "properties": {
-                              "dataType": { 
-                                    "enum": ["xs:QName", "xbrli:enumeration", "xbrli:enumerationSet"] 
-                                }
-                            }
-                          }
-                        }
-                      ]
+                      "additionalProperties": false
                     },
                     "uniqueItems": true
                 },
@@ -338,6 +305,11 @@
                         "description": "Ordered set of cube object QNames that indicate facts in the cube that are required to be present. This allows layouts using the cube to indicate cells or groups of cells that must be present in the cube.",
                         "items": { "$ref": "#/definitions/cubeQName" },
                         "uniqueItems": true
+                      },
+                      "duplicateFactsInCube": {
+                        "type": "string",
+                        "enum": ["no duplicates", "complete duplicates", "consistent duplicates", "inconsistent duplicates"],
+                        "description": "Indicates how duplicate facts are validated within the cube. Defaults to 'inconsistent duplicates' if absent."
                       },
                       "properties": {
                           "type": "array",
@@ -741,9 +713,21 @@
                       },
                       "oneOf": [
                         { "required": ["name", "referenceType"] },
-                        { "required": ["extendTargetName", "referenceType"] }
+                        {
+                          "required": ["extendTargetName"],
+                          "anyOf": [
+                            { "required": ["relatedNames"] },
+                            { "required": ["properties"] }
+                          ]
+                        }
                       ],
-                      
+                      "not": {
+                        "anyOf": [
+                          { "required": ["extendTargetName", "referenceType"] },
+                          { "required": ["extendTargetName", "language"] },
+                          { "required": ["extendTargetName", "name"] }
+                        ]
+                      },
                       "additionalProperties": false
                   },
                     "uniqueItems": true
@@ -864,6 +848,7 @@
                     "properties": {
                       "name": { "$ref": "#/definitions/QName" },
                       "factMapName": { "$ref": "#/definitions/QName" },
+                      "cubeName": { "$ref": "#/definitions/cubeQName" },
                       "namespaceMaps": {
                         "type": "array",
                         "items": {
@@ -933,7 +918,6 @@
                     "type": "object",
                     "properties": {
                       "name": { "$ref": "#/definitions/QName" },
-                      "cubeName": { "$ref": "#/definitions/cubeQName" },
                       "templateName": { "$ref": "#/definitions/QName" }
                     },
                     "required": ["name"],
@@ -1230,12 +1214,14 @@
                         "allowedProperties": {
                           "type": "array",
                           "items": { "$ref": "#/definitions/QName" },
-                          "description": "Set of property QNames that can be used with the modelType."
+                          "description": "Set of property QNames that can be used with the modelType.",
+                          "uniqueItems": true
                         },
                         "requiredProperties": {
                           "type": "array",
                           "items": { "$ref": "#/definitions/QName" },
-                          "description": "Set of property QNames that must be included within a defined model type."
+                          "description": "Set of property QNames that must be included within a defined model type.",
+                          "uniqueItems": true
                         }
                       },
                       "required": ["name"],
@@ -1276,27 +1262,17 @@
                                         "$ref": "#/definitions/dataTypeQName",
                                         "description": "Required if type is 'typed'. The data type for typed dimension members."
                                       },
-                                      "required": {
-                                        "type": "boolean",
-                                        "description": "If true, this dimension must appear in cubes of this type. Defaults to false."
+                                      "minDimensions": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "description": "Minimum number of dimensions matching this criterion that must appear in cubes of this type. Defaults to 0."
                                       },
-                                      "dimensionProperties": {
-                                        "type": "object",
-                                        "description": "Property constraints for this dimension.",
-                                        "properties": {
-                                          "allowed": {
-                                            "type": "array",
-                                            "items": { "$ref": "#/definitions/propertyTypeQName" },
-                                            "description": "Property types that may be used on members of this dimension."
-                                          },
-                                          "required": {
-                                            "type": "array",
-                                            "items": { "$ref": "#/definitions/propertyTypeQName" },
-                                            "description": "Property types that must be present on members of this dimension."
-                                          }
-                                        },
-                                        "additionalProperties": false
-                                      }
+                                      "maxDimensions": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "description": "Maximum number of dimensions matching this criterion that may appear in cubes of this type. If absent, no upper limit applies."
+                                      },
+                                      "dimensionProperties": { "$ref": "#/definitions/propertiesConstraintObject" }
                                     },
                                     "additionalProperties": false,
                                     "allOf": [
@@ -1397,23 +1373,7 @@
                           },
                           "additionalProperties": false
                         },
-                        "cubeProperties": {
-                          "type": "object",
-                          "description": "Defines constraints on properties that must or may appear on cubes of this type.",
-                          "properties": {
-                            "required": {
-                              "type": "array",
-                              "items": { "$ref": "#/definitions/propertyTypeQName" },
-                              "description": "Property types that must be present on cubes of this type."
-                            },
-                            "allowed": {
-                              "type": "array",
-                              "items": { "$ref": "#/definitions/propertyTypeQName" },
-                              "description": "Property types that may be present on cubes of this type."
-                            }
-                          },
-                          "additionalProperties": false
-                        }
+                        "cubeProperties": { "$ref": "#/definitions/propertiesConstraintObject" }
                       },
                       "required": ["name"],
                       "additionalProperties": false
@@ -1497,79 +1457,53 @@
                             "description": "Ordered set of QNames of objects that can use this datatype.",
                             "items": { "$ref": "#/definitions/QName" },
                             "uniqueItems": true
-                          },
-                          "collectionType": {
-                            "type": "object",
-                            "description": "CollectionType object defining constraints for collection-based datatypes.",
-                            "properties": {
-                              "dataTypesAllowed": {
-                                "type": "array",
-                                "description": "Array of QNames specifying the datatypes allowed as members of the collection.",
-                                "items": { "$ref": "#/definitions/dataTypeQName" },
-                                "minItems": 1
-                              },
-                              "uniqueValues": {
-                                "type": "boolean",
-                                "description": "If true, all values in the collection must be unique."
-                              },
-                              "orderedValues": {
-                                "type": "boolean",
-                                "description": "If true, the collection maintains insertion order."
-                              },
-                              "maxItems": {
-                                "type": "integer",
-                                "description": "Maximum number of items allowed in the collection."
-                              },
-                              "minItems": {
-                                "type": "integer",
-                                "description": "Minimum number of items required in the collection."
-                              }
-                            },
-                            "required": ["dataTypesAllowed"],
-                            "additionalProperties": false
-                          },
-                          "mapType": {
-                            "type": "object",
-                            "description": "MapType object defining constraints for map-based (dictionary/associative array) datatypes.",
-                            "properties": {
-                              "keyType": {
-                                "$ref": "#/definitions/dataTypeQName",
-                                "description": "QName specifying the datatype for keys in the map."
-                              },
-                              "valueType": {
-                                "$ref": "#/definitions/dataTypeQName",
-                                "description": "QName specifying the datatype for values in the map."
-                              },
-                              "requiredKeys": {
-                                "type": "array",
-                                "description": "Array of key values that MUST be present in the map.",
-                                "items": { "type": ["string", "number", "boolean"] }
-                              },
-                              "allowedKeys": {
-                                "type": "array",
-                                "description": "Array of key values that MAY be present in the map. If specified, only these keys are allowed.",
-                                "items": { "type": ["string", "number", "boolean"] }
-                              },
-                              "uniqueKeys": {
-                                "type": "boolean",
-                                "description": "If true (default), all keys in the map must be unique."
-                              },
-                              "minItems": {
-                                "type": "integer",
-                                "description": "Minimum number of key-value pairs required in the map."
-                              },
-                              "maxItems": {
-                                "type": "integer",
-                                "description": "Maximum number of key-value pairs allowed in the map."
-                              }
-                            },
-                            "required": ["keyType", "valueType"],
-                            "additionalProperties": false
                           }
                         },
                         "required": ["name", "baseType"],
                         "additionalProperties": false
                       },
+                    "uniqueItems": true
+                },
+                "collectionTypes": {
+                    "type": "array",
+                    "description": "Array of collectionType objects. Collections define ordered or unordered sets of typed values and are identified by QName.",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "$ref": "#/definitions/QName",
+                          "description": "QName that uniquely identifies the collectionType object."
+                        },
+                        "dataType": {
+                          "$ref": "#/definitions/dataTypeQName",
+                          "description": "QNamee specifying the datatype allowed as members of the collection."
+                        },
+                        "uniqueValues": {
+                          "type": "boolean",
+                          "description": "If true, all values in the collection must be unique. Defaults to true."
+                        },
+                        "orderedValues": {
+                          "type": "boolean",
+                          "description": "If true, the collection maintains insertion order. Defaults to false."
+                        },
+                        "maxItems": {
+                          "type": "integer",
+                          "description": "Maximum number of items allowed in the collection."
+                        },
+                        "minItems": {
+                          "type": "integer",
+                          "description": "Minimum number of items required in the collection."
+                        },
+                        "properties": {
+                          "type": "array",
+                          "items": { "$ref": "#/definitions/propertyObject" },
+                          "description": "Additional properties associated with the collectionType object.",
+                          "uniqueItems": true
+                        }
+                      },
+                      "required": ["name", "dataType"],
+                      "additionalProperties": false
+                    },
                     "uniqueItems": true
                 },
                 "transforms": {
@@ -2058,6 +1992,23 @@
         "required": ["gridCoordinates", "dimensions"],
         "additionalProperties": false
       },
+      "propertiesConstraintObject": {
+                          "type": "object",
+                          "description": "Defines constraints on properties that must or may appear on object types.",
+                          "properties": {
+                            "requiredProperties": {
+                              "type": "array",
+                              "items": { "$ref": "#/definitions/propertyTypeQName" },
+                              "description": "Property types that must be present on the object type."
+                            },
+                            "allowedProperties": {
+                              "type": "array",
+                              "items": { "$ref": "#/definitions/propertyTypeQName" },
+                              "description": "Property types that may be present on the object type."
+                            }
+                          },
+                          "additionalProperties": false
+                        },
       "QName": {
           "type": "string",
           "pattern": "^[A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z_][A-Za-z0-9_.-]*$",
@@ -2065,7 +2016,7 @@
       },
       "dataTypeQName": {
           "$ref": "#/definitions/QName",
-          "description": "QName that references a dataType object. Must reference either a built-in XML Schema datatype (xs:*) or a custom dataType defined in the xbrlModel."
+          "description": "QName that references a dataType object or collectionType object. Must reference either a built-in XML Schema datatype (xs:*), a custom dataType defined in the xbrlModel, or a collectionType object defined in the xbrlModel."
       },
       "conceptQName": {
           "$ref": "#/definitions/QName",

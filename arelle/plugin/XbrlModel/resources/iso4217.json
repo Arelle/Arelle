@@ -15,12 +15,6 @@
         "frameworkName": "iso4217",
         "name": "iso4217:iso4217TaxonomyModule",
         "version": "2025",
-        "importedTaxonomies": [
-            {
-                "xbrlModelName" :"utr:UnitsTaxonomyModule",
-                "importObjectTypes": ["xbrl:referenceTypeObject"]
-            }
-        ],
         "units": [
             {
                 "dataType": "xbrli:monetary",
