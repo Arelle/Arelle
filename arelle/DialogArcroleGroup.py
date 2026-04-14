@@ -1,16 +1,18 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-from tkinter import Toplevel, N, S, E, W, PhotoImage
-try:
-    from tkinter.ttk import Frame, Button
-except ImportError:
-    from ttk import Frame, Button
 import os
 import regex as re
-from arelle.UiUtil import gridHdr, gridCell, gridCombobox, label, checkbox
+
+from tkinter import Toplevel, N, S, E, W, PhotoImage
+from tkinter.ttk import Frame, Button
+
+from arelle import ViewUtil
+from arelle.typing import TypeGetText
 from arelle.CntlrWinTooltip import ToolTip
-from arelle import XbrlConst
+from arelle.UiUtil import gridHdr, gridCell, gridCombobox, label, checkbox
+
+_: TypeGetText
 
 '''
 caller checks accepted, if True, caller retrieves url
@@ -77,11 +79,10 @@ class DialogArcroleGroup(Toplevel):
         arcrolesLabel = label(frame, 1, 1, _("Arcroles:"))
         ToolTip(arcrolesLabel, text=_("Shows all the arcroles that are present in this DTS. "),
                 wraplength=240)
-        from arelle.ModelRelationshipSet import baseSetArcroles
         self.options = {}
         self.checkboxes = []
         y = 1
-        for name, arcrole in baseSetArcroles(self.modelXbrl):
+        for name, arcrole in ViewUtil.baseSetArcroles(self.modelXbrl):
             if arcrole.startswith("http://"):
                 self.options[arcrole] = arcrole in arcroleGroup
                 self.checkboxes.append(
@@ -94,8 +95,8 @@ class DialogArcroleGroup(Toplevel):
 
         mainWin.showStatus(None)
 
-        self.options[XbrlConst.arcroleGroupDetect] = XbrlConst.arcroleGroupDetect in arcroleGroup
-        self.autoOpen = checkbox(frame, 1, y, _("detect"), XbrlConst.arcroleGroupDetect)
+        self.options[ViewUtil.ARCROLE_GROUP_DETECT_STR] = ViewUtil.ARCROLE_GROUP_DETECT_STR in arcroleGroup
+        self.autoOpen = checkbox(frame, 1, y, _("detect"), ViewUtil.ARCROLE_GROUP_DETECT_STR)
         self.autoOpen.grid(sticky=W, columnspan=2)
         self.checkboxes.append(self.autoOpen)
         ToolTip(self.autoOpen, text=_("If checked, this arcrole group will be detected if any arcrole of the group is present in a DTS, for example to open a treeview pane. "),

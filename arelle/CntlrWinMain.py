@@ -1111,7 +1111,7 @@ class CntlrWinMain(Cntlr.Cntlr):
                     ViewWinFormulae.viewFormulae(modelXbrl, self.tabWinTopRt)
                     if topView is None: topView = modelXbrl.views[-1]
                 for name, arcroles in sorted(self.config.get("arcroleGroups", {}).items()):
-                    if XbrlConst.arcroleGroupDetect in arcroles:
+                    if ViewUtil.ARCROLE_GROUP_DETECT_STR in arcroles:
                         currentAction = name + " view"
                         hasView = ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, (name, arcroles), lang=self.labelLang)
                         if hasView and topView is None: topView = modelXbrl.views[-1]
@@ -1619,7 +1619,11 @@ class CntlrWinMain(Cntlr.Cntlr):
     # worker threads addToLog
     def addToLog(self, message: str, messageCode: str = "", messageArgs: dict[str, Any] | None = None, file: str = "", refs: list[dict[str, Any]] | None = None, level: int | str = logging.INFO) -> None:
         if isinstance(level, str):
-            level = logging.getLevelNamesMapping().get(level, logging.INFO)
+            levelStr = level
+            try:
+                level = logging.getLevelNamesMapping().get(levelStr, logging.INFO) # novermin
+            except AttributeError:
+                level = logging._nameToLevel.get(levelStr, logging.INFO)  # private but 3.10-safe
         if level < logging.INFO and not self.showDebugMessages.get():
             return # skip DEBUG and INFO-RESULT messages
         if messageCode and messageCode not in message: # prepend message code

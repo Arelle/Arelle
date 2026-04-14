@@ -83,15 +83,7 @@ def ineffectiveArcs(baseSetModelLinks, arcrole, arcqname=None):
             keyEquivalentRels.clear()
     return ineffectives
 
-def baseSetArcroles(modelXbrl):
-    # returns sorted list of tuples of arcrole basename and uri
-    return sorted(set((XbrlConst.baseSetArcroleLabel(b[0]),b[0]) for b in modelXbrl.baseSets.keys()))
 
-def labelroles(modelXbrl, includeConceptName=False):
-    # returns sorted list of tuples of arcrole basename and uri
-    return sorted(set((XbrlConst.labelroleLabel(r),r)
-                        for r in (modelXbrl.labelroles | ({XbrlConst.conceptNameLabelRole} if includeConceptName else set()))
-                        if r is not None))
 
 def baseSetRelationship(arcElement):
     modelXbrl = arcElement.modelXbrl
