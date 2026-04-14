@@ -121,6 +121,7 @@ class XbrlFactSource(XbrlReportObject):
     parent: Union[XbrlReportType,XbrlModuleType]  # table templates in taxonomy module are owned by the txmyMdl
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the factSource object.
     factMapName: QName # (required) The fact map name is a QName that references a factMap object defined in the taxonomy model.
+    cubeName: Optional[QName] # (optional) A QName that references a cube object defined in the taxonomy model. If provided, the fact source object only applies to the facts with this cube. If not provided, the fact source object applies to all facts in the report.
     namespaceMaps: OptionalList[XbrlNamespaceMap] # (optional) An array of namespaceMap objects that maps the namespace of the model defined in a datasource to the namespace of an updated model. This MUST only used with an XBRL data source.
     factNames: Optional[OrderedSet[QName]] # (optional) An ordered set of QNames that reference fact objects defined in the taxonomy model. If provided, the factSource object only applies to the facts with these names. If not provided, the factSource object applies to all facts in the report.
     hash: Optional[str] # (optional) A hash value that can be used to verify the integrity of the data source. The specific hashing algorithm used is not defined in the specification and may be determined by the implementation.

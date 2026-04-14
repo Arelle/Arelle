@@ -11,7 +11,7 @@ from .ModelValueMore import SQName
 from .XbrlImportTaxonomy import XbrlImportTaxonomy, XbrlFinalTaxonomy
 from .XbrlProperty import XbrlProperty
 from .XbrlAbstract import XbrlAbstract
-from .XbrlConcept import XbrlConcept, XbrlDataType, XbrlUnitType
+from .XbrlConcept import XbrlCollectionType, XbrlConcept, XbrlDataType, XbrlUnitType
 from .XbrlCube import XbrlCube, XbrlCubeType, XbrlCubeDimension, XbrlPeriodConstraint, XbrlDateResolution
 from .XbrlDimension import XbrlDimension, XbrlDomain, XbrlDomainClass, XbrlMember
 from .XbrlEntity import XbrlEntity
@@ -52,6 +52,7 @@ class XbrlModule(XbrlModelObject):
     finalTaxonomy: Optional[XbrlFinalTaxonomy] # (optional) A final taxonomy object that indicates those components of the taxonomy that are final and cannot be amended or added by an importing taxonomy.
     abstracts: OrderedSet[XbrlAbstract] # ordered set of abstract objects.
     concepts: OrderedSet[XbrlConcept] # ordered set of concept objects.
+    collectionTypes: OrderedSet[XbrlCollectionType] # ordered set of collectionType objects.
     cubes: OrderedSet[XbrlCube] # ordered set of cube objects.
     cubeTypes: OrderedSet[XbrlCubeType] # ordered set of cubeType objects.
     dataTypes: OrderedSet[XbrlDataType] # ordered set of dataType objects.
@@ -92,6 +93,7 @@ class XbrlModule(XbrlModelObject):
 referencableObjectTypes = {
         qname("{https://xbrl.org/2025}xbrl:xbrlModelObject"): XbrlModule,
         qname("{https://xbrl.org/2025}xbrl:conceptObject"): XbrlConcept,
+        qname("{https://xbrl.org/2025}xbrl:collectionTypeObject"): XbrlCollectionType,
         qname("{https://xbrl.org/2025}xbrl:abstractObject"): XbrlAbstract,
         qname("{https://xbrl.org/2025}xbrl:cubeObject"): XbrlCube,
         qname("{https://xbrl.org/2025}xbrl:dimensionObject"): XbrlDimension,

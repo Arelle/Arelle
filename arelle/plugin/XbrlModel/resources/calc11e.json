@@ -22,48 +22,93 @@
                 "name": "calc11e:CALCErrorDomain",
                 "root": "calc11e:CALCErrorClassDomain",
                 "relationships": [
-                    {"source": "calc11e:CALCErrorClassDomain", "target": "calc11e:inconsistentCalculationUsingRounding", "order": 1},
-                    {"source": "calc11e:CALCErrorClassDomain", "target": "calc11e:inconsistentCalculationUsingTruncation", "order": 2} ,
-                    {"source": "calc11e:CALCErrorClassDomain", "target": "calc11e:duplicateCalculationRelationships", "order": 3},
-                    {"source": "calc11e:CALCErrorClassDomain", "target": "calc11e:excessDigitsInCalculation", "order": 4},
-                    {"source": "calc11e:CALCErrorClassDomain", "target": "calc11e:disallowedDuplicateFactsUsingTruncation", "order": 5}
+                    {
+                        "source": "calc11e:CALCErrorClassDomain",
+                        "target": "calc11e:inconsistentCalculationUsingRounding",
+                        "order": 1
+                    },
+                    {
+                        "source": "calc11e:CALCErrorClassDomain",
+                        "target": "calc11e:inconsistentCalculationUsingTruncation",
+                        "order": 2
+                    },
+                    {
+                        "source": "calc11e:CALCErrorClassDomain",
+                        "target": "calc11e:duplicateCalculationRelationships",
+                        "order": 3
+                    },
+                    {
+                        "source": "calc11e:CALCErrorClassDomain",
+                        "target": "calc11e:excessDigitsInCalculation",
+                        "order": 4
+                    },
+                    {
+                        "source": "calc11e:CALCErrorClassDomain",
+                        "target": "calc11e:disallowedDuplicateFactsUsingTruncation",
+                        "order": 5
+                    }
                 ]
             }
         ],
         "members": [
             {
                 "name": "calc11e:inconsistentCalculationUsingRounding",
-                "domainClasses": ["calc11e:CALCErrorClassDomain"],
+                "domainClasses": [
+                    "calc11e:CALCErrorClassDomain"
+                ],
                 "properties": [
-                    {"property": "xbrl:severity", "value": "error"}
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
                 ]
             },
             {
                 "name": "calc11e:inconsistentCalculationUsingTruncation",
-                "domainClasses": ["calc11e:CALCErrorClassDomain"],
+                "domainClasses": [
+                    "calc11e:CALCErrorClassDomain"
+                ],
                 "properties": [
-                    {"property": "xbrl:severity", "value": "error"}
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
                 ]
             },
             {
                 "name": "calc11e:duplicateCalculationRelationships",
-                "domainClasses": ["calc11e:CALCErrorClassDomain"],
+                "domainClasses": [
+                    "calc11e:CALCErrorClassDomain"
+                ],
                 "properties": [
-                    {"property": "xbrl:severity", "value": "error"}
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
                 ]
             },
             {
                 "name": "calc11e:excessDigitsInCalculation",
-                "domainClasses": ["calc11e:CALCErrorClassDomain"],
+                "domainClasses": [
+                    "calc11e:CALCErrorClassDomain"
+                ],
                 "properties": [
-                    {"property": "xbrl:severity", "value": "error"}
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
                 ]
             },
             {
                 "name": "calc11e:disallowedDuplicateFactsUsingTruncation",
-                "domainClasses": ["calc11e:CALCErrorClassDomain"],
+                "domainClasses": [
+                    "calc11e:CALCErrorClassDomain"
+                ],
                 "properties": [
-                    {"property": "xbrl:severity", "value": "error"}
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
                 ]
             }
         ],
@@ -77,15 +122,34 @@
                 "name": "calc11e:ErrorsByObjectType",
                 "relationshipTypeName": "xbrl:parent-child",
                 "roots": [
-                    
                     "calc11e:CalcErrors"
                 ],
                 "relationships": [
-                    {"source": "calc11e:CalcErrors", "target": "calc11e:inconsistentCalculationUsingRounding", "order": 1},
-                    {"source": "calc11e:CalcErrors", "target": "calc11e:inconsistentCalculationUsingTruncation", "order": 2},
-                    {"source": "calc11e:CalcErrors", "target": "calc11e:duplicateCalculationRelationships", "order": 3},
-                    {"source": "calc11e:CalcErrors", "target": "calc11e:excessDigitsInCalculation", "order": 4},
-                    {"source": "calc11e:CalcErrors", "target": "calc11e:disallowedDuplicateFactsUsingTruncation", "order": 5}
+                    {
+                        "source": "calc11e:CalcErrors",
+                        "target": "calc11e:inconsistentCalculationUsingRounding",
+                        "order": 1
+                    },
+                    {
+                        "source": "calc11e:CalcErrors",
+                        "target": "calc11e:inconsistentCalculationUsingTruncation",
+                        "order": 2
+                    },
+                    {
+                        "source": "calc11e:CalcErrors",
+                        "target": "calc11e:duplicateCalculationRelationships",
+                        "order": 3
+                    },
+                    {
+                        "source": "calc11e:CalcErrors",
+                        "target": "calc11e:excessDigitsInCalculation",
+                        "order": 4
+                    },
+                    {
+                        "source": "calc11e:CalcErrors",
+                        "target": "calc11e:disallowedDuplicateFactsUsingTruncation",
+                        "order": 5
+                    }
                 ]
             }
         ],
@@ -184,7 +248,11 @@
                     },
                     {
                         "property": "xbrl:conformanceStatus",
-                        "value": "\u274c Fail"
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CALCULATION-InvalidSummationItemValue"
                     }
                 ]
             },
@@ -202,7 +270,11 @@
                     },
                     {
                         "property": "xbrl:conformanceStatus",
-                        "value": "\u274c Fail"
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CALCULATION-InvalidSummationItemWeight"
                     }
                 ]
             },
@@ -220,7 +292,11 @@
                     },
                     {
                         "property": "xbrl:conformanceStatus",
-                        "value": "\u274c Fail"
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CALCULATION-InvalidSummationMultiEntityValue"
                     }
                 ]
             },
@@ -238,7 +314,11 @@
                     },
                     {
                         "property": "xbrl:conformanceStatus",
-                        "value": "\u2705 Pass"
+                        "value": "✅ Pass"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CALCULATION-ValidSummationMultiEntityValue"
                     }
                 ]
             },
@@ -256,7 +336,11 @@
                     },
                     {
                         "property": "xbrl:conformanceStatus",
-                        "value": "\u274c Fail"
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CALCULATION-InvalidDuplicateCalculationRelationships"
                     }
                 ]
             },
@@ -274,14 +358,18 @@
                     },
                     {
                         "property": "xbrl:conformanceStatus",
-                        "value": "\u274c Fail"
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CALCULATION-InvalidDuplicateCalcDiffWeightRelationships"
                     }
                 ]
             },
             {
                 "name": "calc11e:duplicateCalculationRelationshipsReference",
                 "relatedNames": [
-                     "calc11e:duplicateCalculationRelationships"
+                    "calc11e:duplicateCalculationRelationships"
                 ],
                 "referenceType": "xbrl:specificationErrorReference",
                 "language": "en",

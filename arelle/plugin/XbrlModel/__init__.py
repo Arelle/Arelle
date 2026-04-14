@@ -433,15 +433,16 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                             sourceFileLine=href, namespace=pfx)
         # The mapping key was renamed from urlMapping to importMapping in newer schemas.
         # Accept both keys and normalize values to a tuple of URLs.
-        mapping = documentInfo.get("importMapping") or documentInfo.get("urlMapping") or EMPTY_DICT
-        if mapping:
-            for prefix, url in mapping.items():
-                if isinstance(url, str):
-                    namespaceUrls[prefix] = (url,)
-                elif isinstance(url, SEQUENCE_TYPES):
-                    namespaceUrls[prefix] = tuple(url)
+        importMapping = documentInfo.get("importMapping") or EMPTY_DICT
+        if importMapping:
+            for qn, url in importMapping.copy().items():
+                qnImpName = qname(qn, prefixNamespaces)
+                if not qnImpName:
+                    xbrlCompMdl.error("oimte:invalidJSONStructureMissingRequiredProperty",
+                                _("ImportMapping %(qname)smust have a modelQName (QName) key"),
+                                sourceFileLine=href, qname=qn)
                 else:
-                    namespaceUrls[prefix] = ()
+                    importMapping[qnImpName] = url
         xbrlModelName = qname(moduleObj.get("name"), prefixNamespaces)
         if not xbrlModelName:
             xbrlCompMdl.error("oimte:invalidJSONStructureMissingRequiredProperty",
@@ -748,10 +749,9 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
         if newModule is not None:
             for impTxObj in newModule.importedTaxonomies:
                 if impTxObj.xbrlModelName and impTxObj.xbrlModelName not in xbrlCompMdl.xbrlModels:
-                    # is it present in urlMapping?
-                    url = None
-                    foundMismatchedNameReported = False
-                    for url in namespaceUrls.get(impTxObj.xbrlModelName.prefix, ()):
+                    # is it present in importMapping?
+                    if impTxObj.xbrlModelName in importMapping:
+                        url = importMapping[impTxObj.xbrlModelName]
                         normalizedUri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(url, moduleFileName)
                         if modelXbrl.fileSource.isMappedUrl(normalizedUri):
                             mappedUrl = modelXbrl.fileSource.mappedUrl(normalizedUri)
@@ -770,7 +770,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                                                   _("Imported taxonomy for %(qname)s found at %(url)s has mismatching xbrlModelName %(name)s."),
                                                   xbrlObject=impTxObj, url=url, qname=impTxObj.xbrlModelName, name= impSchemaDoc._txmyModule.name)
                                 foundMismatchedNameReported = True
-                    if not getattr(impTxObj, "_txmyModule", None) and not foundMismatchedNameReported:
+                    if not getattr(impTxObj, "_txmyModule", None):
                         xbrlCompMdl.error("oimte:taxonomyNotFound",
                                           _("Imported taxonomy for %(qname)s not found at %(url)s because the URL mapping namespace is incorrect."),
                                           xbrlObject=impTxObj, url=url, qname=impTxObj.xbrlModelName)
