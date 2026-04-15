@@ -1,6 +1,7 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -57,10 +58,16 @@ ixSect: dict[str, dict[str, dict[str, str]]] = {
         "resources": {"constraint": "ix11.14.1.1", "validation": "ix11.14.1.2"},
         "tuple": {"constraint": "ix11.15.1.1", "validation": "ix11.15.1.2"},
         "other": {"constraint": "ix11", "validation": "ix11"}}
-    }
+}
 
 
-def ixMsgCode(codeName: str, elt: ModelObject | None = None, sect: str ="constraint", ns: str | None = None, name: str | None = None) -> str:
+def ixMsgCode(
+    codeName: str,
+    elt: ModelObject | None = None,
+    sect: str = "constraint",
+    ns: str | None = None,
+    name: str | None = None,
+) -> str:
     if elt is None:
         if ns is None:
             ns = XbrlConst.ixbrl11
@@ -84,12 +91,20 @@ def ixMsgCode(codeName: str, elt: ModelObject | None = None, sect: str ="constra
 def resolveHtmlUri(elt: ModelObject, name: str, value: str) -> str:
     if name == "archive":
         # URILIST
-        return " ".join(resolveHtmlUri(elt, "archiveListElement", v) for v in value.split(" "))
-    
-    if elt.localName == "object" and name in ("classid", "data", "archiveListElement") and (base := elt.get("codebase")) is not None:
+        return " ".join(
+            resolveHtmlUri(elt, "archiveListElement", v) for v in value.split(" ")
+        )
+
+    if (
+        elt.localName == "object"
+        and name in ("classid", "data", "archiveListElement")
+        and (base := elt.get("codebase")) is not None
+    ):
         base = base + "/"
     else:
-        base = str(getattr(elt.modelDocument, "htmlBase", "")) # None if no htmlBase, empty string if it's not set
+        base = str(
+            getattr(elt.modelDocument, "htmlBase", "")
+        )
 
     _uri = urljoin(base, value)
     return _uri
