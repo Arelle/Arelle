@@ -101,12 +101,12 @@ class XbrlCube(XbrlReferencableModelObject):
     properties: OrderedSet[XbrlProperty] # (optional) An ordered set of property objects Used to specify additional properties associated with the cube using the property object. Only immutable properties as defined in the propertyType object can be added to a cube.
     extendTargetName: Optional[QName] # (required if no name) The cubeType QName of a cube that this cube extends. This is used to indicate that this cube is an extension of another cube and inherits the properties of the base cube. The base cube must be defined in the same taxonomy module as this cube or in a directly imported module.
 
-class XbrlDimensionPropertiesConstraint(XbrlModelObject):
-    """ Dimension Properties Constraint Object
-        Reference: oim-taxonomy#dimensionpropertiesconstraint-object
+class XbrlPropertiesConstraint(XbrlModelObject):
+    """ Properties Constraint Object
+        Reference: oim-taxonomy#propertiesconstraint-object
     """
-    allowedProperties: OrderedSet[QName] # (optional) An ordered set of property type QNames that can be used on the dimension.
     requiredProperties: OrderedSet[QName] # (optional) An ordered set of property type QNames that must be used on the dimension.
+    allowedProperties: OrderedSet[QName] # (optional) An ordered set of property type QNames that can be used on the dimension.
 
 class XbrlDimensionConstraint(XbrlModelObject):
     """ Dimension Constraint Object
@@ -117,7 +117,7 @@ class XbrlDimensionConstraint(XbrlModelObject):
     dataType: Optional[QName] # (optional) The dimension QName that identifies the taxonomy defined dimension.
     maxDimensions: Optional[int] # (optional) An int value that indicates the maximum number of dimensions that can be included in the cube.
     minDimensions: Optional[int] # (optional) An int value that indicates the minimum number of dimensions that can be included in the cube.
-    dimensionProperties: Optional[XbrlDimensionPropertiesConstraint] # (optional) Defines constraints on dimension properties defining those properties that are allowed.
+    domainClassProperties: Optional[XbrlPropertiesConstraint] # (optional) Defines constraints on dimension properties defining those properties that are allowed.
 
 class XbrlDimensionsAllowed(XbrlModelObject):
     """ Dimensions Allowed Object
@@ -126,44 +126,39 @@ class XbrlDimensionsAllowed(XbrlModelObject):
     allowed: OrderedSet[XbrlDimensionConstraint] # (optional) An ordered set of dimension constraint objects. (xbrl:dimensionConstraintObject) The dimension constraint defines the constraints on dimensions that can be included in cubes of this type.
     closed: Union[bool, DefaultFalse] # (optional) If true, only dimensions listed in allowed can be used. If false, other taxonomy-defined dimensions are permitted. Defaults to false.
 
-class XbrlVertexConstraint(XbrlModelObject):
-    """ Vertex Constraint Object
-        Reference: oim-taxonomy#vertexconstraint-object
+class XbrlEndpointConstraintObject(XbrlModelObject):
+    """ Endpoint Constraint Object
+        Reference: oim-taxonomy#endpointconstraint-object
     """
-    qname: Optional[QName] # (optional) Specific source or target QName
+    qname: Optional[QName] # (optional) Specific source or target QName.
     objectType: Optional[QName] # (optional) Source or target object type QName (e.g., xbrl:conceptObject)
-    dataType: Optional[QName] # (optional) Source or target data type QName
+    dataType: Optional[QName] # (optional) Source or target data type QName.
+
+class XbrlCubeNetworkConstraint(XbrlModelObject):
+    """ Cube Network Constraint Object
+        Reference: oim-taxonomy#cubenetworkconstraint-object
+    """
+    relationshipType: QName # (required) The relationship type QName that identifies the taxonomy defined relationship type.
+    minNetworks: Optional[int] # (optional) An int value that indicates the minimum number of networks of the relationship type that must be associated with the cube.
+    maxNetworks: Optional[int] # (optional) An int value that indicates the maximum number of networks of the relationship type that can be associated with the cube.
+    closed: Union[bool, DefaultFalse] # (optional) If true, only networks of the specified relationship type can be associated with the cube. If false, other networks are permitted. Defaults to false.
+    source: Optional[XbrlEndpointConstraintObject] # (optional) Constraints on the relationship source.
+    target: Optional[XbrlEndpointConstraintObject] # (optional) Constraints on the relationship target.
 
     def __eq__(self, other):
-        if not isinstance(other, XbrlVertexConstraint):
+        if not isinstance(other, XbrlCubeNetworkConstraint):
             return NotImplemented
-        return self.qname == other.qname and self.objectType == other.objectType and self.dataType == other.dataType
+        return self.relationshipType == other.relationshipType and self.source == other.source and self.target == other.target
 
     def __hash__(self):
-        return hash( (hash(self.qname), hash(self.objectType), hash(self.dataType)) )
+        return hash( (hash(self.relationshipType), hash(self.source), hash(self.target)) )
 
-class XbrlCubeRelationshipConstraint(XbrlModelObject):
-    """ Cube Relationship Constraint Object
-        Reference: oim-taxonomy#cuberelationshipconstraint-object
+class XbrlCubeNetwork(XbrlModelObject):
+    """ Cube Network Object
+        Reference: oim-taxonomy#cubenetwork-object
     """
-    type: Optional[QName] # (optional) The relationship type QName
-    source: Optional[XbrlVertexConstraint] # (optional) Constraints on the relationship source. Use the xbrl:vertexConstraintObject to define the constraints on the source of the relationship.
-    target: Optional[XbrlVertexConstraint] # (optional) Constraints on the relationship target. Use the xbrl:vertexConstraintObject to define the constraints on the target of the relationship.
-
-    def __eq__(self, other):
-        if not isinstance(other, XbrlCubeRelationshipConstraint):
-            return NotImplemented
-        return self.type == other.type and self.source == other.source and self.target == self.target
-
-    def __hash__(self):
-        return hash( (hash(self.type), hash(self.source), hash(self.target)) )
-
-class XbrlCubeRelationshipAllowed(XbrlModelObject):
-    """ Cube Relationships Allowed Object
-        Reference: oim-taxonomy#cuberelationshipsallowed-object
-    """
-    required: OrderedSet[XbrlCubeRelationshipConstraint] # (optional)An ordered set of cube relationships constraint objects (xbrl:cubeRelationshipConstraintObject) that must be present.
-    allowed: OrderedSet[XbrlCubeRelationshipConstraint] # (optional) An ordered set of cube relationships constraint objects (xbrl:cubeRelationshipConstraintObject) that are permitted, using the same format as required.
+    cubeNetworks: OrderedSet[XbrlCubeNetworkConstraint] # (optional) An ordered set of cube relationships constraint objects (xbrl:cubeRelationshipConstraintObject) that must be present.A set of dimension constraint objects. (xbrl:cubeNetworkConstraintObject) The dimension constraint defines the constraints on dimensions that can be included in cubes of this type.
+    closed: Union[bool, DefaultFalse] # (optional) If true, only networks that satisfy the cube relationship constraints can be used. If false, any network can be associated with the cube. Defaults to false.
 
 class XbrlCubePropertiesConstraint(XbrlModelObject):
     """ Cube Properties Constraint Object
@@ -182,7 +177,7 @@ class XbrlCubeType(XbrlReferencableModelObject):
     baseCubeType: Optional[QName] # (optional) Base cube type that the cube object is based on. Uses the QName of a cubeType object. The property only allows restriction rather than expansion of the baseCubeTape.
     coreDimensions: OrderedSet[QName] # (optional) An ordered set of core dimension QNames that are permitted to be included in the cube.
     cubeDimensionConstraints: Optional[XbrlDimensionsAllowed] # (optional) An object that defines constraints on taxonomy-defined dimensions that can be included in the cube.
-    cubeRelationships: Optional[XbrlCubeRelationshipAllowed] # (optional) An object that defines constraints on relationships that can be associated with the cube.
+    cubeNetworkConstraints: Optional[XbrlCubeNetwork] # (optional) An object that allows the definition of constraints on networks that can be associated with the cube using the cubeNetworks property. If not defined then any network can be associated with the cube.
     cubeProperties: Optional[XbrlCubePropertiesConstraint] # (optional) An object that defines constraints on properties that can be associated with the cube.
 
     def effectivePropVal(self, compMdl, *propNames):

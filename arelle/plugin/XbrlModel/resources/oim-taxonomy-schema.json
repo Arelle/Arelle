@@ -1272,7 +1272,7 @@
                                         "minimum": 0,
                                         "description": "Maximum number of dimensions matching this criterion that may appear in cubes of this type. If absent, no upper limit applies."
                                       },
-                                      "dimensionProperties": { "$ref": "#/definitions/propertiesConstraintObject" }
+                                      "domainClassProperties": { "$ref": "#/definitions/propertiesConstraintObject" }
                                     },
                                     "additionalProperties": false,
                                     "allOf": [
@@ -1304,72 +1304,40 @@
                           },
                           "additionalProperties": false
                         },
-                        "cubeRelationships": {
+                        "cubeNetworkConstraints": {
                           "type": "object",
-                          "description": "Defines constraints on relationships that must or may appear in cubes of this type.",
+                          "description": "Defines constraints on networks that can be associated with cubes of this type using the 'cubeNetworks' property.",
                           "properties": {
-                            "required": {
-                              "type": "array",
-                              "description": "Relationships that must be present. Can be simple relationship type QNames or constraint objects.",
-                              "items": {
-                                    "type": "object",
-                                    "properties": {
-                                      "type": { "$ref": "#/definitions/relationshipTypeQName" },
-                                      "source": {
-                                        "type": "object",
-                                        "description": "Constraints on the source of the relationship.",
-                                        "properties": {
-                                          "qname": { "$ref": "#/definitions/QName" },
-                                          "objectType": { "$ref": "#/definitions/QName" },
-                                          "dataType": { "$ref": "#/definitions/dataTypeQName" }
-                                        },
-                                        "additionalProperties": false
-                                      },
-                                      "target": {
-                                        "type": "object",
-                                        "description": "Constraints on the target of the relationship.",
-                                        "properties": {
-                                          "qname": { "$ref": "#/definitions/QName" },
-                                          "objectType": { "$ref": "#/definitions/QName" },
-                                          "dataType": { "$ref": "#/definitions/dataTypeQName" }
-                                        },
-                                        "additionalProperties": false
-                                      }
-                                    },
-                                    "required": ["type"],
-                                    "additionalProperties": false
-                              }
+                            "closed": {
+                              "type": "boolean",
+                              "description": "If true, only networks listed in 'cubeNetworks' may be associated with cubes of this type. If false, other networks may be added. Defaults to true."
                             },
-                            "allowed": {
-                              "type": "array",
-                              "description": "Relationships that may be present. Same structure as 'required'.",
-                              "items": {
-                                    "type": "object",
-                                    "properties": {
-                                      "type": { "$ref": "#/definitions/relationshipTypeQName" },
-                                      "source": {
-                                        "type": "object",
-                                        "properties": {
-                                          "qname": { "$ref": "#/definitions/QName" },
-                                          "objectType": { "$ref": "#/definitions/QName" },
-                                          "dataType": { "$ref": "#/definitions/dataTypeQName" }
-                                        },
-                                        "additionalProperties": false
-                                      },
-                                      "target": {
-                                        "type": "object",
-                                        "properties": {
-                                          "qname": { "$ref": "#/definitions/QName" },
-                                          "objectType": { "$ref": "#/definitions/QName" },
-                                          "dataType": { "$ref": "#/definitions/dataTypeQName" }
-                                        },
-                                        "additionalProperties": false
-                                      }
-                                    },
-                                    "required": ["type"],
-                                    "additionalProperties": false
+                                "cubeNetworks": {
+                                  "type": "array",
+                                  "description": "Defines constraints on networks that must or may appear in cubes of this type.",
+                                  "items": {
+                                            "type": "object",
+                                            "properties": {
+                                              "relationshipType": { "$ref": "#/definitions/relationshipTypeQName" }, 
+                                              "source": { "$ref": "#/definitions/endpointConstraintObject" },
+                                              "target": { "$ref": "#/definitions/endpointConstraintObject" },
+                                              "minNetworks": {
+                                                "type": "integer",
+                                                "minimum": 0,
+                                                "description": "Minimum number of networks matching this criterion that must appear in cubes of this type. Defaults to 0."
+                                              },
+                                              "maxNetworks": {
+                                                "type": "integer",
+                                                "minimum": 0,
+                                                "description": "Maximum number of networks matching this criterion that may appear in cubes of this type. If absent, no upper limit applies."
+                                            },
+                                          
+                                            "additionalProperties": false
+                                  },
+                                  "required": ["relationshipType"],
+                                  "additionalProperties": false
+                                }
                               }
-                            }
                           },
                           "additionalProperties": false
                         },
@@ -1611,7 +1579,7 @@
         },
         {
           "if": {
-            "properties": { "property": { "const": "xbrl:timeSeriesType" } }
+            "properties": { "property": { "const": "xbrla:timeSeriesType" } }
           },
           "then": {
             "properties": {
@@ -2009,6 +1977,16 @@
                           },
                           "additionalProperties": false
                         },
+      "endpointConstraintObject": {
+                            "type": "object",
+                            "description": "Constraints on the source of the relationship.",
+                            "properties": {
+                              "qname": { "$ref": "#/definitions/QName" },
+                              "objectType": { "$ref": "#/definitions/QName" },
+                              "dataType": { "$ref": "#/definitions/dataTypeQName" }
+                            },
+                            "additionalProperties": false
+      },
       "QName": {
           "type": "string",
           "pattern": "^[A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z_][A-Za-z0-9_.-]*$",
