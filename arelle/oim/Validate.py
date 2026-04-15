@@ -152,7 +152,7 @@ def _docInSchemaRefedDTS(
     visited.add(thisDoc)
     nonDiscoveringXmlInstanceElements = {XbrlConst.qnLinkRoleRef, XbrlConst.qnLinkArcroleRef}
     for doc, docRef in thisDoc.referencesDocument.items():
-        if thisDoc.type != ModelDocumentType.INSTANCE or docRef.referringModelObject.qname not in nonDiscoveringXmlInstanceElements:
+        if thisDoc.type != ModelDocumentType.INSTANCE or docRef.referringModelObject.qname not in nonDiscoveringXmlInstanceElements:  # type: ignore[union-attr]
             if doc == roleTypeDoc or (doc not in visited and _docInSchemaRefedDTS(doc, roleTypeDoc, visited)):
                 return True
     visited.remove(thisDoc)

@@ -1635,7 +1635,7 @@ def doc(
         raise XPathContext.XPathException(p, "err:FODC0005", _("Function xf:doc $uri is not valid {0}").format(uri))
     normalizedUri = xc.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(
         uri,
-        xc.progHeader.element.modelDocument.baseForElement(xc.progHeader.element),  # type: ignore[no-untyped-call]
+        xc.progHeader.element.modelDocument.baseForElement(xc.progHeader.element),
     )
     if normalizedUri in xc.modelXbrl.urlDocs:
         return xc.modelXbrl.urlDocs[normalizedUri].xmlDocument

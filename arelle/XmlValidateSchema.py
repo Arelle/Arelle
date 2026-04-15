@@ -21,7 +21,7 @@ _: TypeGetText
 XMLSchemaURI = "http://www.w3.org/2001/XMLSchema.xsd"
 
 def validate(modelDocument: ModelDocument, schemaElement: ModelObject, targetNamespace: str) -> None:
-    modelXbrl = cast(ModelXbrl, modelDocument.modelXbrl)
+    modelXbrl = modelDocument.modelXbrl
     """
     if not hasattr(modelManager, "xmlSchemaSchema"):
         if getattr(modelManager, "modelXmlSchemaIsLoading", False):

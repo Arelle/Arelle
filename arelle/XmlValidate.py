@@ -730,7 +730,7 @@ def lxmlSchemaValidate(modelDocument: ModelDocument, extraSchema : str | None = 
                         _sl = (slElt.get("{http://www.w3.org/2001/XMLSchema-instance}schemaLocation") or "").split()
                         for i in range(0, len(_sl), 2):
                             if _sl[i] == ns and i+1 < len(_sl):
-                                url = cntlr.webCache.normalizeUrl(_sl[i+1], modelDocument.baseForElement(slElt))  # type: ignore[no-untyped-call]
+                                url = cntlr.webCache.normalizeUrl(_sl[i+1], modelDocument.baseForElement(slElt))
                                 break
                 if url:
                     try:

@@ -840,12 +840,12 @@ def end_equal(xc: XPathContext.XPathContext, p: OperationDef, args: XPathContext
 
 def taxonomy_refs(xc: XPathContext.XPathContext, p: OperationDef, args: XPathContext.ResultStack) -> list[Any]:
     return [
-        ref.referringModelObject.xAttributes.get("{http://www.w3.org/1999/xlink}href").xValue  # need typed value
+        ref.referringModelObject.xAttributes.get("{http://www.w3.org/1999/xlink}href").xValue  # type: ignore[union-attr] # need typed value
         for ref in sorted(
             cast(ModelDocument, xc.modelXbrl.modelDocument).referencesDocument.values(),
-            key=lambda r: r.referringModelObject.objectIndex,
+            key=lambda r: r.referringModelObject.objectIndex,  # type: ignore[union-attr]
         )
-        if ref.referringModelObject.localName == "schemaRef"
+        if ref.referringModelObject.localName == "schemaRef"  # type: ignore[union-attr]
     ]
 
 

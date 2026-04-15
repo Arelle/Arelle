@@ -742,6 +742,8 @@ def rule_gfm_1_3_2(
         for refDoc in document.referencesDocument.values():
             if 'import' not in refDoc.referenceTypes:
                 continue
+
+            assert isinstance(refDoc.referringModelObject, ModelObject)
             namespace = refDoc.referringModelObject.attrib.get('namespace')
             schemaLocation = refDoc.referringModelObject.attrib.get('schemaLocation')
             if not namespace or not schemaLocation:

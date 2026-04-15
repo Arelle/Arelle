@@ -63,7 +63,7 @@ def loadCsvTestcase(
         initialComment=f"extracted from CSV Testcase {filepath}",
         documentEncoding="utf-8",
         base=modelXbrl.entryLoadingUrl,
-        initialXml=etree.tostring(testcaseElement),
+        initialXml=etree.tostring(testcaseElement),  # type: ignore[arg-type]
     )
     testcase = document.xmlRootElement
     for index, row in enumerate(reader):
