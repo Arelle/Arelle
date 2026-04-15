@@ -9,7 +9,7 @@ See COPYRIGHT.md for copyright information.
 import regex as re
 from arelle.ModelDocument import Type
 from arelle.Version import authorLabel, copyrightLabel
-from arelle.XhtmlValidate import htmlEltUriAttrs, resolveHtmlUri
+from arelle.XhtmlInlineUtil import htmlEltUriAttrs, resolveHtmlUri
 
 def variationInstanceLoaded(testcaseInstance, variationInstance, extraErrors, inputDTSes, *args, **kwargs):
     # test case variations which have xhtml documents which are not inline blissfully load as unrecognized plain xml

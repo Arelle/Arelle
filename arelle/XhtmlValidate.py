@@ -14,6 +14,7 @@ from arelle.XhtmlInlineUtil import (
     INLINE_1_1_SCHEMA,
     htmlEltUriAttrs as htmlEltUriAttrs,
     ixMsgCode as ixMsgCode,
+    resolveHtmlUri as resolveHtmlUri,
 )
 
 
