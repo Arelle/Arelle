@@ -1,6 +1,15 @@
+'''
+See COPYRIGHT.md for copyright information.
+'''
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 from urllib.parse import urljoin
 
 from arelle import XbrlConst
+
+if TYPE_CHECKING:
+    from arelle.ModelObject import ModelObject
 
 INLINE_1_0_SCHEMA = "http://www.xbrl.org/2008/inlineXBRL/xhtml-inlinexbrl-1_0.xsd"
 INLINE_1_1_SCHEMA = "http://www.xbrl.org/2013/inlineXBRL/xhtml-inlinexbrl-1_1.xsd"
@@ -51,7 +60,7 @@ ixSect: dict[str, dict[str, dict[str, str]]] = {
     }
 
 
-def ixMsgCode(codeName, elt=None, sect="constraint", ns=None, name=None) -> str:
+def ixMsgCode(codeName: str, elt: ModelObject | None = None, sect: str ="constraint", ns: str | None = None, name: str | None = None) -> str:
     if elt is None:
         if ns is None:
             ns = XbrlConst.ixbrl11
@@ -61,7 +70,7 @@ def ixMsgCode(codeName, elt=None, sect="constraint", ns=None, name=None) -> str:
         if ns is None and elt.namespaceURI in XbrlConst.ixbrlAll:
             ns = elt.namespaceURI
         else:
-            ns = getattr(elt.modelDocument, "ixNS", XbrlConst.ixbrl11)
+            ns = str(getattr(elt.modelDocument, "ixNS", XbrlConst.ixbrl11))
         if name is None:
             name = elt.localName
             if name in ("context", "unit"):
@@ -72,12 +81,15 @@ def ixMsgCode(codeName, elt=None, sect="constraint", ns=None, name=None) -> str:
     return "{}:{}".format(ixSection, codeName)
 
 
-def resolveHtmlUri(elt, name, value):
-    if name == "archive": # URILIST
+def resolveHtmlUri(elt: ModelObject, name: str, value: str) -> str:
+    if name == "archive":
+        # URILIST
         return " ".join(resolveHtmlUri(elt, "archiveListElement", v) for v in value.split(" "))
-    if elt.localName == "object" and name in ("classid", "data", "archiveListElement") and elt.get("codebase"):
-        base = elt.get("codebase") + "/"
+    
+    if elt.localName == "object" and name in ("classid", "data", "archiveListElement") and (base := elt.get("codebase")) is not None:
+        base = base + "/"
     else:
-        base = getattr(elt.modelDocument, "htmlBase", "") # None if no htmlBase, empty string if it's not set
+        base = str(getattr(elt.modelDocument, "htmlBase", "")) # None if no htmlBase, empty string if it's not set
+
     _uri = urljoin(base, value)
     return _uri
