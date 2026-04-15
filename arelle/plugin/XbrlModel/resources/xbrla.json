@@ -125,10 +125,11 @@
                     ],
                     "closed" : true
                     },
-                    "cubeRelationships" : {
-                        "required": [
+                    "cubeNetworkConstraints": {
+                        "closed": false,
+                        "cubeNetworks": [
                              {
-                                "type": "xbrl:concept-refDimension",
+                                "relationshipType": "xbrl:concept-refDimension",
                                 "source": {
                                     "dataType": "xs:dateTime"
                                 },
@@ -152,14 +153,17 @@
                     ],
                     "closed" : true
                     },
-                    "cubeRelationships" : {
-                        "required" :[
-                        {
-                            "type": "xbrl:concept-refDimension",
-                            "source": {"dataType" : "xs:token"},
-                            "target" : {"objectType" : "xbrl:dimensionObject"}
-                        }
-                    ]}
+                    "cubeNetworkConstraints": {
+                        "closed": false,
+                        "cubeNetworks" :[
+                            {
+                                "relationshipType": "xbrl:concept-refDimension",
+                                "minNetworks": 1,
+                                "source": {"dataType" : "xs:token"},
+                                "target" : {"objectType" : "xbrl:dimensionObject"}
+                            }
+                        ]
+                    }
                 },
                 {
                     "name": "xbrla:journalCube",
@@ -188,7 +192,7 @@
                                 "type": "typed",
                                 "dataType": "xs:dateTime",
                                 "minDimensions" : 1,
-                                "dimensionProperties": {
+                                "domainClassProperties": {
                                     "allowedProperties" : [
                                         "xbrla:intervalOfMeasurement",
                                         "xbrla:timeSeriesType",

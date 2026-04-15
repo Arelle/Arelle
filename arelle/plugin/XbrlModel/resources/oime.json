@@ -569,6 +569,32 @@
                 ]
             },
             {
+                "name": "oime:disallowedDuplicateFactsInconsistentDuplicateModelReference",
+                "relatedNames": [
+                    "oime:disallowedDuplicateFacts"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CUBE-DisallowedDuplicateFacts-InconsistentDuplicate-Model.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "duplicateFactsInModel 'consistent duplicates'; two inconsistent duplicates (same dimensions, values disagree when rounded to lower precision) are prohibited."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-DisallowedDuplicateFacts-InconsistentDuplicate-Model"
+                    }
+                ]
+            },
+            {
                 "name": "oime:disallowedDuplicateFactsModelNoDuplicatesReference",
                 "relatedNames": [
                     "oime:disallowedDuplicateFacts"

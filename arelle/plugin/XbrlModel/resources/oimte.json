@@ -1626,6 +1626,18 @@
                 ]
             },
             {
+                "name": "oimte:invalidCubeCoreDimension",
+                "domainClasses": [
+                    "oimte:OIMErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
                 "name": "oimte:invalidDimensionDataTypeProperty",
                 "domainClasses": [
                     "oimte:OIMErrorClassDomain"
@@ -4815,6 +4827,24 @@
                 "labelType": "xbrl:documentation"
             },
             {
+                "relatedName": "oimte:invalidCubeCoreDimension",
+                "language": "en",
+                "value": "Invalid Cube Core Dimension",
+                "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "oimte:invalidCubeCoreDimension",
+                "language": "en",
+                "value": "The cube '{cubeName}' includes core dimension '{dimensionName}' which is not in the coreDimensions list of cubeType '{cubeTypeName}'.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "relatedName": "oimte:invalidCubeCoreDimension",
+                "language": "en",
+                "value": "This error occurs when a cube's cubeDimensions includes a standard core dimension (xbrl:concept, xbrl:period, xbrl:entity, xbrl:unit, xbrl:language) that is not listed in the coreDimensions of the cube's cubeType. Only the core dimensions defined by the cubeType are permitted.",
+                "labelType": "xbrl:documentation"
+            },
+            {
                 "relatedName": "oimte:invalidDimensionDataTypeProperty",
                 "language": "en",
                 "value": "Invalid Dimension DataType Property",
@@ -5033,19 +5063,19 @@
             {
                 "relatedName": "oimte:missingRequiredDimensionProperty",
                 "language": "en",
-                "value": "Missing Required Dimension Property",
+                "value": "Cube Missing Required Dimension Property",
                 "labelType": "xbrl:label"
             },
             {
                 "relatedName": "oimte:missingRequiredDimensionProperty",
                 "language": "en",
-                "value": "The derived cubeType '{cubeTypeName}' dimension '{dimensionName}' is missing required property '{propertyTypeName}' that is required by the base cube type '{baseCubeTypeName}'.",
+                "value": "The cube '{cubeName}' domain class '{domainClassName}' is missing the required property '{propertyTypeName}' that is required by the base cube type '{baseCubeTypeName}'.",
                 "labelType": "xbrl:errorMessage"
             },
             {
                 "relatedName": "oimte:missingRequiredDimensionProperty",
                 "language": "en",
-                "value": "This error occurs when a derived cubeType omits a property from a dimension's dimensionProperties.required array that was required in the base cube type. All dimension properties marked as required in the base type must be maintained in derived types.",
+                "value": "This error occurs when a cube uses a dimension  with a domain class that does not have the domain class properties defined in the base cube type. All domain class properties marked as required in the base type must use a domain class that has these properties defined.",
                 "labelType": "xbrl:documentation"
             },
             {
@@ -7719,6 +7749,28 @@
                 ]
             },
             {
+                "name": "oimte:duplicateItemsInSetDomainRelationshipsReference",
+                "relatedNames": [
+                    "oimte:duplicateItemsInSet"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "DOMAIN-DomainObjectWithDuplicateRelationships.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#DOMAIN-DomainObjectWithDuplicateRelationships"
+                    }
+                ]
+            },
+            {
                 "name": "oimte:DuplicatePropertyTypeReferenceNames",
                 "relatedNames": [
                     "oimte:duplicateObjects"
@@ -7963,6 +8015,28 @@
                     {
                         "property": "xbrl:specificationErrorURI",
                         "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#REFERENCE-ReferenceObjectWithInvalidDataTypeForPropertyValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:propertyValueDataTypeMismatchTimeSeriesCubeInvalidDurationPropertyReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CUBE-TimeSeriesCubeInvalidDurationProperty.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-TimeSeriesCubeInvalidDurationProperty"
                     }
                 ]
             },
@@ -11137,6 +11211,32 @@
                     {
                         "property": "xbrl:specificationErrorURI",
                         "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBETYPE-invalidCoreDimension"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:invalidCubeCoreDimensionConformanceReference",
+                "relatedNames": [
+                    "oimte:invalidCubeCoreDimension"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CUBE-TimeSeriesCubeInvalidPeriodDImension.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "Cube includes xbrl:period core dimension which is not in xbrla:timeSeriesCube coreDimensions; only xbrl:concept, xbrl:unit and xbrl:entity are allowed."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-TimeSeriesCubeInvalidPeriodDImension"
                     }
                 ]
             },
