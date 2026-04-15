@@ -276,11 +276,11 @@ def escapedNode(
     s.append(tagName)
     if start or empty:
         assert resolveHtmlUri is not None
-        if elt.localName == "object" and elt.get("codebase"): # resolve codebase before other element names
+        if elt.localName == "object" and (value := elt.get("codebase")) is not None: # resolve codebase before other element names
             # 2022-09-15: not sure about this one, but seems that
             # elt.get("codebase") should be the value arg for resolveHtmlUri
-            elt.set("codebase", resolveHtmlUri(elt, "codebase", elt.get("codebase")))
-        for n,v in sorted(elt.items(), key=lambda item: item[0]):
+            elt.set("codebase", resolveHtmlUri(elt, "codebase", value))
+        for n, v in sorted(elt.items(), key=lambda item: item[0]):
             if n in uriAttrs:
                 v = resolveHtmlUri(elt, n, v).replace(" ", "%20") # %20 replacement needed for conformance test passing
             s.append(' {0}="{1}"'.format(qname(elt, n),
@@ -747,7 +747,7 @@ def addChild(
     elif appendChild:
         parent.append(child)
     if attributes:
-        for name, value in (attributes.items() if isinstance(attributes, dict) else  # type: ignore[str-unpack]
+        for name, value in (attributes.items() if isinstance(attributes, dict) else  # type: ignore[misc]
                             attributes if len(attributes) > 0 and isinstance(attributes[0],(tuple,list)) else (attributes,)):
             if isinstance(name,QName):
                 if name.namespaceURI:
