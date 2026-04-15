@@ -1,8 +1,8 @@
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname
-from arelle.XhtmlValidate import (
+from arelle.XhtmlInlineUtil import (
     resolveHtmlUri,
 )
 
