@@ -2,6 +2,7 @@
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
+
 import datetime
 import regex as re
 from lxml import etree
@@ -9,6 +10,7 @@ from lxml import etree
 from arelle.XbrlConst import ixbrlAll, qnLinkFootnote, xhtml, xml, xsd
 from arelle.ModelValue import qname, QName, tzinfoStr
 from arelle.typing import ModelObjectBase, PrototypeElementTreeBase, PrototypeObjectBase
+from arelle.XhtmlInlineUtil import htmlEltUriAttrs, resolveHtmlUri
 from arelle.XmlValidateConst import VALID, INVALID
 from typing import Any, TextIO, TYPE_CHECKING, cast
 from collections.abc import Callable, Collection, Sequence, Generator, Mapping
@@ -21,8 +23,6 @@ if TYPE_CHECKING:
     from arelle.PrototypeDtsObject import PrototypeElementTree, PrototypeObject
 
 
-htmlEltUriAttrs: dict[str, Collection[str]] | None = None
-resolveHtmlUri: Callable[[ModelObject, str | bytes | None, str | bytes | None], str] | None = None
 datetimePattern = re.compile(r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})(\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})?\s*|"
                              r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})(Z|[+-][0-9]{2}:[0-9]{2})?\s*")
 xmlDeclarationPattern = re.compile(r"(\s+)?(<\?xml[^><\?]*\?>)", re.DOTALL)
@@ -230,9 +230,6 @@ def innerTextNodes(
     ixContinuation: bool,
     ixResolveUris: bool
 ) -> Generator[str, None, None]:
-    global htmlEltUriAttrs, resolveHtmlUri
-    if htmlEltUriAttrs is None:
-        from arelle.XhtmlValidate import htmlEltUriAttrs, resolveHtmlUri
     while element is not None:
         if element.text:
             yield escapedText(element.text) if ixEscape else element.text

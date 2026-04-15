@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname
@@ -8,14 +8,8 @@ from arelle.XmlUtil import (
     collapseWhitespace,
     replaceWhitespace,
 )
-from arelle.XhtmlValidate import (
-    htmlEltUriAttrs,
-    resolveHtmlUri,
-)
 
 
-@patch('arelle.XmlUtil.htmlEltUriAttrs', new=htmlEltUriAttrs)
-@patch('arelle.XmlUtil.resolveHtmlUri', new=resolveHtmlUri)
 def test_opaque_uris_not_path_normed():
     uri = 'data:image/png;base64,iVBORw0K//a'
     elt_attrs = {'src': uri}
