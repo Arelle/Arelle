@@ -6,8 +6,10 @@ from __future__ import annotations
 import json
 import logging
 import sys
-from typing import TYPE_CHECKING
 
+from typing import TYPE_CHECKING, Iterator, Callable, Any
+
+from arelle import PluginManager
 from arelle.logging.handlers.LogHandlerWithXml import LogHandlerWithXml
 from arelle.typing import TypeGetText
 
@@ -42,12 +44,16 @@ class LogToXmlHandler(LogHandlerWithXml):
         self.logRecordBuffer = []
         self.filemode = mode
 
+    def _hooks(self, name: str) -> Iterator[Callable[..., Any]]:
+        if self.cntlr is not None:
+            yield from self.cntlr.plugins.hooks(name)
+        else:
+            yield from PluginManager.getInstance().pluginClassMethods(name)
+
     def flush(self) -> None:
         # Note to developers: breakpoints in this method don't work, please debug with print statements
         securityIsActive = securityHasWritten = False
-        assert self.cntlr is not None, \
-            _("Controller object is required for security plugin hooks to execute.")
-        for pluginMethod in self.cntlr.plugins.hooks("Security.Crypt.IsActive"):
+        for pluginMethod in self._hooks("Security.Crypt.IsActive"):
             securityIsActive = pluginMethod(self) # must be active for the cntlr object to effect log writing
         if self.filename == "logToStdOut.xml":
             print('<?xml version="1.0" encoding="utf-8"?>')
@@ -66,7 +72,7 @@ class LogToXmlHandler(LogHandlerWithXml):
             if self.filename.endswith(".xml"):
                 # print ("filename=" + self.filename)
                 if securityIsActive:
-                    for pluginMethod in self.cntlr.plugins.hooks("Security.Crypt.Write"):
+                    for pluginMethod in self._hooks("Security.Crypt.Write"):
                         securityHasWritten = pluginMethod(self, self.filename,
                                                           '<?xml version="1.0" encoding="utf-8"?>\n<log>\n' +
                                                           ''.join(self.recordToXml(logRec) for logRec in self.logRecordBuffer) +
@@ -79,14 +85,14 @@ class LogToXmlHandler(LogHandlerWithXml):
                         fh.write('</log>\n')
             elif self.filename.endswith(".json"):
                 if securityIsActive:
-                    for pluginMethod in self.cntlr.plugins.hooks("Security.Crypt.Write"):
+                    for pluginMethod in self._hooks("Security.Crypt.Write"):
                         securityHasWritten = pluginMethod(self, self.filename, self.getJson())
                 if not securityHasWritten:
                     with open(self.filename, self.filemode, encoding='utf-8') as fh:
                         fh.write(self.getJson())
             elif self.filename.endswith(".html"):
                 if securityIsActive:
-                    for pluginMethod in self.cntlr.plugins.hooks("Security.Crypt.Write"):
+                    for pluginMethod in self._hooks("Security.Crypt.Write"):
                         securityHasWritten = pluginMethod(self, self.filename, self.getHtml())
                 if not securityHasWritten:
                     with open(self.filename, self.filemode, encoding='utf-8') as fh:
@@ -105,7 +111,7 @@ class LogToXmlHandler(LogHandlerWithXml):
                               file=_file)
             else:
                 if securityIsActive:
-                    for pluginMethod in self.cntlr.plugins.hooks("Security.Crypt.Write"):
+                    for pluginMethod in self._hooks("Security.Crypt.Write"):
                         securityHasWritten = pluginMethod(self, self.filename,
                                                           ''.join(self.format(logRec) + "\n" for logRec in self.logRecordBuffer))
                 if not securityHasWritten:
