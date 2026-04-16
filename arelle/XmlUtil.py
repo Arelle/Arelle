@@ -32,6 +32,7 @@ xmlnsStripPattern = re.compile(r'\s*xmlns(:[\w.-]+)?="[^"]*"')
 
 _consecutiveSpacePattern = re.compile(r" {2,}")
 _replaceWhitespaceTable = str.maketrans("\t\n\r", " " * 3)
+_ESCAPE_TEXT_TABLE = str.maketrans({'&': '&amp;', '<': '&lt;', '>': '&gt;'})
 
 
 class XmlDeclarationLocationException(Exception):
@@ -294,11 +295,7 @@ def escapedNode(
     return ''.join(s)
 
 def escapedText(text: str) -> str:
-    return ''.join("&amp;" if c == "&"
-                   else "&lt;" if c == "<"
-                   else "&gt;" if c == ">"
-                   else c
-                   for c in text)
+    return text.translate(_ESCAPE_TEXT_TABLE)
 
 
 def replaceWhitespace(s: str) -> str:
