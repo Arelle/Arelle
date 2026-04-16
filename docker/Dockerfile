@@ -1,5 +1,5 @@
 ## --------------------- Build Stage ---------------------
-ARG PYTHON_VERSION=""
+ARG PYTHON_VERSION="3.14.2"
 FROM python:${PYTHON_VERSION} AS builder
 
 WORKDIR /usr/src/app
