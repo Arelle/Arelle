@@ -79,21 +79,21 @@ jobs:
         id: meta
         uses: docker/metadata-action@v6.0.0
         with:
-          images: ${{ secrets.DOCKER_USERNAME }}/arelle
+          images: |
+            ${{ secrets.DOCKER_USERNAME }}/arelle
+            ghcr.io/${{ secrets.GHCR_USERNAME }}/arelle
           tags: |
             type=semver,pattern={{major}}.{{minor}}.{{patch}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
-            ghcr.io/${{ secrets.GHCR_USERNAME }}/arelle:latest
-            ghcr.io/${{ secrets.GHCR_USERNAME }}/arelle:{{major}}.{{minor}}.{{patch}}
-            ghcr.io/${{ secrets.GHCR_USERNAME }}/arelle:{{major}}.{{minor}}
-            ghcr.io/${{ secrets.GHCR_USERNAME }}/arelle:{{major}}
 
       - name: Extract metadata (tags, labels) for slim Docker
         id: meta-slim
         uses: docker/metadata-action@v6.0.0
         with:
-          images: ${{ secrets.DOCKER_USERNAME }}/arelle
+          images: |
+            ${{ secrets.DOCKER_USERNAME }}/arelle
+            ghcr.io/${{ secrets.GHCR_USERNAME }}/arelle
           flavor: |
             latest=false
           tags: |
@@ -101,10 +101,6 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}.{{patch}}-slim
             type=semver,pattern={{major}}.{{minor}}-slim
             type=semver,pattern={{major}}-slim
-            ghcr.io/${{ secrets.GHCR_USERNAME }}/arelle:slim
-            ghcr.io/${{ secrets.GHCR_USERNAME }}/arelle:{{major}}.{{minor}}.{{patch}}-slim
-            ghcr.io/${{ secrets.GHCR_USERNAME }}/arelle:{{major}}.{{minor}}-slim
-            ghcr.io/${{ secrets.GHCR_USERNAME }}/arelle:{{major}}-slim
 
       - name: Build and push slim Docker images
         id: push-slim
