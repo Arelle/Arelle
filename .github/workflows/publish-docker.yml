@@ -76,15 +76,16 @@ jobs:
         uses: docker/setup-buildx-action@v4.0.0
 
       - name: Extract repository name to ENV
+        id: repository_name
         run: |
-          echo "REPO_NAME=${GITHUB_REPOSITORY#$GITHUB_REPOSITORY_OWNER/}" >> $GITHUB_ENV
+          echo "REPO_NAME=${GITHUB_REPOSITORY#$GITHUB_REPOSITORY_OWNER/}" >> "$GITHUB_OUTPUT"
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v6.0.0
         with:
           images: |
-            ${{ secrets.DOCKER_USERNAME }}/$REPO_NAME
+            ${{ secrets.DOCKER_USERNAME }}/${{ steps.repository_name.outputs.REPO_NAME }}
             ghcr.io/${{ github.repository }}
           tags: |
             type=semver,pattern={{major}}.{{minor}}.{{patch}}
@@ -96,7 +97,7 @@ jobs:
         uses: docker/metadata-action@v6.0.0
         with:
           images: |
-            ${{ secrets.DOCKER_USERNAME }}/$REPO_NAME
+            ${{ secrets.DOCKER_USERNAME }}/${{ steps.repository_name.outputs.REPO_NAME }}
             ghcr.io/${{ github.repository }}
           flavor: |
             latest=false
@@ -137,13 +138,13 @@ jobs:
       - name: Generate artifact attestation
         uses: actions/attest@v4.1.0
         with:
-          subject-name: index.docker.io/${{ secrets.DOCKER_USERNAME }}/$REPO_NAME
+          subject-name: index.docker.io/${{ secrets.DOCKER_USERNAME }}/${{ steps.repository_name.outputs.REPO_NAME }}
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
 
       - name: Generate artifact attestation slim
         uses: actions/attest@v4.1.0
         with:
-          subject-name: index.docker.io/${{ secrets.DOCKER_USERNAME }}/$REPO_NAME
+          subject-name: index.docker.io/${{ secrets.DOCKER_USERNAME }}/${{ steps.repository_name.outputs.REPO_NAME }}
           subject-digest: ${{ steps.push-slim.outputs.digest }}
           push-to-registry: true
