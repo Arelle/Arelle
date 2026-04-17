@@ -186,11 +186,11 @@ def textNotStripped(element: ModelObject | PrototypeObject | None) -> str:
         return ""
     return element.textValue  # allows embedded comment nodes, returns '' if None
 
+_SELF_CLOSING_TAGS = frozenset({'area', 'base', 'basefont', 'br', 'col', 'frame', 'hr', 'img',
+                                'input', 'isindex', 'link', 'meta', 'param'})
+
 def selfClosable(elt: ModelObject) -> bool:
-    return elt.qname.localName in (
-        'area', 'base', 'basefont', 'br', 'col', 'frame', 'hr', 'img',
-        'input', 'isindex', 'link', 'meta', 'param'
-    )
+    return elt.qname.localName in _SELF_CLOSING_TAGS
 
 # ixEscape can be None, "html" (xhtml namespace becomes default), "xhtml", or "xml"
 def innerText(
