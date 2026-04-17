@@ -74,11 +74,6 @@
                     },
                     {
                         "source": "oimte:OIMErrorClassDomain",
-                        "target": "oimte:cubeDimensionInconsistentWithCubeType",
-                        "order": 4
-                    },
-                    {
-                        "source": "oimte:OIMErrorClassDomain",
                         "target": "oimte:duplicateDimensionsInCube",
                         "order": 4.5
                     },
@@ -86,11 +81,6 @@
                         "source": "oimte:OIMErrorClassDomain",
                         "target": "oimte:cubeMissingConceptDimension",
                         "order": 4.7
-                    },
-                    {
-                        "source": "oimte:OIMErrorClassDomain",
-                        "target": "oimte:cubeMissingDimension",
-                        "order": 5
                     },
                     {
                         "source": "oimte:OIMErrorClassDomain",
@@ -294,11 +284,6 @@
                     },
                     {
                         "source": "oimte:OIMErrorClassDomain",
-                        "target": "oimte:duplicateRelationships",
-                        "order": 33
-                    },
-                    {
-                        "source": "oimte:OIMErrorClassDomain",
                         "target": "oimte:invalidPeriodType",
                         "order": 35
                     },
@@ -356,11 +341,6 @@
                         "source": "oimte:OIMErrorClassDomain",
                         "target": "oimte:unitInNonUnitDomain",
                         "order": 45
-                    },
-                    {
-                        "source": "oimte:OIMErrorClassDomain",
-                        "target": "oimte:rootOfDomainNotADomainClassObject",
-                        "order": 48
                     },
                     {
                         "source": "oimte:OIMErrorClassDomain",
@@ -770,35 +750,7 @@
                 ]
             },
             {
-                "name": "oimte:cubeMissingDimension",
-                "domainClasses": [
-                    "oimte:OIMErrorClassDomain"
-                ],
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    },
-                    {
-                        "property": "oimte:removedError",
-                        "value": true
-                    }
-                ]
-            },
-            {
                 "name": "oimte:cubeMissingConceptDimension",
-                "domainClasses": [
-                    "oimte:OIMErrorClassDomain"
-                ],
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
-                "name": "oimte:cubeDimensionInconsistentWithCubeType",
                 "domainClasses": [
                     "oimte:OIMErrorClassDomain"
                 ],
@@ -859,18 +811,6 @@
             },
             {
                 "name": "oimte:missingDomainClassSource",
-                "domainClasses": [
-                    "oimte:OIMErrorClassDomain"
-                ],
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
-                "name": "oimte:duplicateRelationships",
                 "domainClasses": [
                     "oimte:OIMErrorClassDomain"
                 ],
@@ -966,22 +906,6 @@
                     {
                         "property": "xbrl:severity",
                         "value": "error"
-                    }
-                ]
-            },
-            {
-                "name": "oimte:rootOfDomainNotADomainClassObject",
-                "domainClasses": [
-                    "oimte:OIMErrorClassDomain"
-                ],
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    },
-                    {
-                        "property": "oimte:removedError",
-                        "value": true
                     }
                 ]
             },
@@ -1638,6 +1562,30 @@
                 ]
             },
             {
+                "name": "oimte:dimensionCubeTypeMismatch",
+                "domainClasses": [
+                    "oimte:OIMErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:invalidTaxonomyDefinedDimension",
+                "domainClasses": [
+                    "oimte:OIMErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
                 "name": "oimte:invalidDimensionDataTypeProperty",
                 "domainClasses": [
                     "oimte:OIMErrorClassDomain"
@@ -1962,18 +1910,6 @@
                 ]
             },
             {
-                "name": "oimte:invalidConceptDomain",
-                "domainClasses": [
-                    "oimte:OIMErrorClassDomain"
-                ],
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
                 "name": "oimte:completeTimeSeriesOnNonTimeSeriesDimension",
                 "domainClasses": [
                     "oimte:OIMErrorClassDomain"
@@ -2011,18 +1947,6 @@
             },
             {
                 "name": "oimte:timeSeriesTypeOnNonTimeSeriesDimension",
-                "domainClasses": [
-                    "oimte:OIMErrorClassDomain"
-                ],
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
-                "name": "oimte:invalidIntervalConvention",
                 "domainClasses": [
                     "oimte:OIMErrorClassDomain"
                 ],
@@ -2286,102 +2210,6 @@
                 ]
             },
             {
-                "name": "oimte:hashWithoutMetadata",
-                "domainClasses": [
-                    "oimte:OIMErrorClassDomain"
-                ],
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
-                "name": "oimte:metadataWithoutHash",
-                "domainClasses": [
-                    "oimte:OIMErrorClassDomain"
-                ],
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
-                "name": "oimte:emptyConceptSet",
-                "domainClasses": [
-                    "oimte:OIMErrorClassDomain"
-                ],
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
-                "name": "oimte:invalidFactCount",
-                "domainClasses": [
-                    "oimte:OIMErrorClassDomain"
-                ],
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
-                "name": "oimte:missingConceptDimension",
-                "domainClasses": [
-                    "oimte:OIMErrorClassDomain"
-                ],
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
-                "name": "oimte:invalidMemberCount",
-                "domainClasses": [
-                    "oimte:OIMErrorClassDomain"
-                ],
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
-                "name": "oimte:tooManySampleMembers",
-                "domainClasses": [
-                    "oimte:OIMErrorClassDomain"
-                ],
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
-                "name": "oimte:memberRangeOnExplicitDimension",
-                "domainClasses": [
-                    "oimte:OIMErrorClassDomain"
-                ],
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
                 "name": "oimte:unsupportedDecimalSuffixFeature",
                 "domainClasses": [
                     "oimte:OIMErrorClassDomain"
@@ -2596,16 +2424,6 @@
                     },
                     {
                         "source": "oimte:CubeErrors",
-                        "target": "oimte:cubeMissingDimension",
-                        "order": 5
-                    },
-                    {
-                        "source": "oimte:CubeErrors",
-                        "target": "oimte:cubeDimensionInconsistentWithCubeType",
-                        "order": 6
-                    },
-                    {
-                        "source": "oimte:CubeErrors",
                         "target": "oimte:duplicateDimensionsInCube",
                         "order": 7
                     },
@@ -2726,11 +2544,6 @@
                     },
                     {
                         "source": "oimte:DomainErrors",
-                        "target": "oimte:rootOfDomainNotADomainClassObject",
-                        "order": 4
-                    },
-                    {
-                        "source": "oimte:DomainErrors",
                         "target": "oimte:domainClassMismatchWithDomain",
                         "order": 5
                     },
@@ -2763,11 +2576,6 @@
                         "source": "oimte:DomainErrors",
                         "target": "oimte:cannotExtendCompleteDomain",
                         "order": 11
-                    },
-                    {
-                        "source": "oimte:NetworkErrors",
-                        "target": "oimte:duplicateRelationships",
-                        "order": 2
                     },
                     {
                         "source": "oimte:LabelErrors",
@@ -3089,16 +2897,6 @@
                     },
                     {
                         "source": "xbrl:cubeObject",
-                        "target": "oimte:cubeMissingDimension",
-                        "order": 5
-                    },
-                    {
-                        "source": "xbrl:cubeObject",
-                        "target": "oimte:cubeDimensionInconsistentWithCubeType",
-                        "order": 6
-                    },
-                    {
-                        "source": "xbrl:cubeObject",
                         "target": "oimte:duplicateDimensionsInCube",
                         "order": 7
                     },
@@ -3224,11 +3022,6 @@
                     },
                     {
                         "source": "xbrl:domainObject",
-                        "target": "oimte:rootOfDomainNotADomainClassObject",
-                        "order": 4
-                    },
-                    {
-                        "source": "xbrl:domainObject",
                         "target": "oimte:domainClassMismatchWithDomain",
                         "order": 5
                     },
@@ -3264,13 +3057,8 @@
                     },
                     {
                         "source": "xbrl:networkObject",
-                        "target": "oimte:duplicateRelationships",
-                        "order": 2
-                    },
-                    {
-                        "source": "xbrl:networkObject",
                         "target": "oimte:duplicateItemsInSet",
-                        "order": 3
+                        "order": 2
                     },
                     {
                         "source": "xbrl:labelObject",
@@ -3600,10 +3388,6 @@
                     },
                     {
                         "source": "xbrl:cubeDimensionObject",
-                        "target": "oimte:invalidConceptDomain"
-                    },
-                    {
-                        "source": "xbrl:cubeDimensionObject",
                         "target": "oimte:completeTimeSeriesOnNonTimeSeriesDimension"
                     },
                     {
@@ -3617,10 +3401,6 @@
                     {
                         "source": "xbrl:cubeDimensionObject",
                         "target": "oimte:timeSeriesTypeOnNonTimeSeriesDimension"
-                    },
-                    {
-                        "source": "xbrl:cubeDimensionObject",
-                        "target": "oimte:invalidIntervalConvention"
                     },
                     {
                         "source": "xbrl:cubeDimensionObject",
@@ -3705,38 +3485,6 @@
                     {
                         "source": "xbrl:groupTreeObject",
                         "target": "oimte:invalidGroupObject"
-                    },
-                    {
-                        "source": "xbrl:factSourceObject",
-                        "target": "oimte:hashWithoutMetadata"
-                    },
-                    {
-                        "source": "xbrl:factSourceObject",
-                        "target": "oimte:metadataWithoutHash"
-                    },
-                    {
-                        "source": "xbrl:factSourceObject",
-                        "target": "oimte:emptyConceptSet"
-                    },
-                    {
-                        "source": "xbrl:factSourceObject",
-                        "target": "oimte:invalidFactCount"
-                    },
-                    {
-                        "source": "xbrl:factSourceObject",
-                        "target": "oimte:missingConceptDimension"
-                    },
-                    {
-                        "source": "xbrl:factSourceObject",
-                        "target": "oimte:invalidMemberCount"
-                    },
-                    {
-                        "source": "xbrl:factSourceObject",
-                        "target": "oimte:tooManySampleMembers"
-                    },
-                    {
-                        "source": "xbrl:factSourceObject",
-                        "target": "oimte:memberRangeOnExplicitDimension"
                     },
                     {
                         "source": "xbrl:factSourceObject",
@@ -3993,18 +3741,6 @@
                 "labelType": "xbrl:errorMessage"
             },
             {
-                "relatedName": "oimte:cubeMissingDimension",
-                "language": "en",
-                "value": "Cube Missing Dimension",
-                "labelType": "xbrl:label"
-            },
-            {
-                "relatedName": "oimte:cubeMissingDimension",
-                "language": "en",
-                "value": "The cube '{cubeName}' is missing required dimension '{dimensionName}'.",
-                "labelType": "xbrl:errorMessage"
-            },
-            {
                 "relatedName": "oimte:cubeMissingConceptDimension",
                 "language": "en",
                 "value": "Cube Missing Concept Dimension",
@@ -4014,18 +3750,6 @@
                 "relatedName": "oimte:cubeMissingConceptDimension",
                 "language": "en",
                 "value": "The cube '{cubeName}' is missing the required concept dimension.",
-                "labelType": "xbrl:errorMessage"
-            },
-            {
-                "relatedName": "oimte:cubeDimensionInconsistentWithCubeType",
-                "language": "en",
-                "value": "Cube Dimension Not Allowed",
-                "labelType": "xbrl:label"
-            },
-            {
-                "relatedName": "oimte:cubeDimensionInconsistentWithCubeType",
-                "language": "en",
-                "value": "The dimension '{dimensionName}' is not allowed in cube '{cubeName}' of type '{cubeType}'.",
                 "labelType": "xbrl:errorMessage"
             },
             {
@@ -4077,18 +3801,6 @@
                 "labelType": "xbrl:errorMessage"
             },
             {
-                "relatedName": "oimte:duplicateRelationships",
-                "language": "en",
-                "value": "Duplicate Relationships",
-                "labelType": "xbrl:label"
-            },
-            {
-                "relatedName": "oimte:duplicateRelationships",
-                "language": "en",
-                "value": "A relationship in network '${network.name}' with source '${relationship.source}', target '${relationship.target}', and order '${relationship.order}' is a duplicate of an existing relationship in the network.",
-                "labelType": "xbrl:errorMessage"
-            },
-            {
                 "relatedName": "oimte:duplicateItemsInSet",
                 "language": "en",
                 "value": "Duplicate Items In Set",
@@ -4103,7 +3815,7 @@
             {
                 "relatedName": "oimte:duplicateItemsInSet",
                 "language": "en",
-                "value": "This error occurs when an array declared as a set or ordered set contains duplicate items. All items in a set must be unique. The constraint covers sub-arrays such as network roots, cube dimension sets, allowed objects, and similar collections.",
+                "value": "This error occurs when an array declared as a set or ordered set contains duplicate items. All items in a set must be unique. The constraint covers sub-arrays such as network relationships, network roots, cube dimension sets, allowed objects, and similar collections. Duplicates may arise directly within a single module or when an extension taxonomy uses extendTargetName to append an item that is identical to one already present in the target object.",
                 "labelType": "xbrl:documentation"
             },
             {
@@ -4230,18 +3942,6 @@
                 "relatedName": "oimte:invalidDomainTarget",
                 "language": "en",
                 "value": "The target '{targetName}' is not valid for domain '{domainName}' with root '{domainClass}'.",
-                "labelType": "xbrl:errorMessage"
-            },
-            {
-                "relatedName": "oimte:rootOfDomainNotADomainClassObject",
-                "language": "en",
-                "value": "Root of domain is not a domain class object.",
-                "labelType": "xbrl:label"
-            },
-            {
-                "relatedName": "oimte:rootOfDomainNotADomainClassObject",
-                "language": "en",
-                "value": "The domain class '{domainClass}' referenced in domain '{domainName}' is not a domainClass object.",
                 "labelType": "xbrl:errorMessage"
             },
             {
@@ -4845,6 +4545,42 @@
                 "labelType": "xbrl:documentation"
             },
             {
+                "relatedName": "oimte:dimensionCubeTypeMismatch",
+                "language": "en",
+                "value": "Dimension Cube Type Mismatch",
+                "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "oimte:dimensionCubeTypeMismatch",
+                "language": "en",
+                "value": "The dimension '{dimensionName}' is used in cube '{cubeName}' whose cubeType is '{cubeType}', but the dimension's cubeTypes constraint only permits it on cube types: {allowedCubeTypes}.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "relatedName": "oimte:dimensionCubeTypeMismatch",
+                "language": "en",
+                "value": "This error occurs when a dimension object defines a cubeTypes restriction (the set of cube types it may appear in) but is used in a cube whose cubeType is not in that set. A cube with no cubeType property defaults to xbrl:reportCube. Every dimension whose cubeTypes array is non-empty may only appear in cubes whose effective cubeType is listed in that array.",
+                "labelType": "xbrl:documentation"
+            },
+            {
+                "relatedName": "oimte:invalidTaxonomyDefinedDimension",
+                "language": "en",
+                "value": "Invalid Taxonomy Defined Dimension",
+                "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "oimte:invalidTaxonomyDefinedDimension",
+                "language": "en",
+                "value": "The cube '{cubeName}' uses cubeType '{cubeType}' but the taxonomy-defined dimension '{dimensionName}' does not satisfy the cubeDimensionConstraints of that cubeType.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "relatedName": "oimte:invalidTaxonomyDefinedDimension",
+                "language": "en",
+                "value": "This error occurs when a cube object's cubeDimensions includes a taxonomy-defined dimension that does not match any of the xbrl:dimensionConstraintObject entries in the cubeDimensionConstraints.allowed set of the cube's cubeType. When closed is true, every taxonomy-defined dimension must match at least one allowed constraint. Additionally, if a constraint specifies minDimensions greater than 0, the cube must include at least that many dimensions satisfying the constraint.",
+                "labelType": "xbrl:documentation"
+            },
+            {
                 "relatedName": "oimte:invalidDimensionDataTypeProperty",
                 "language": "en",
                 "value": "Invalid Dimension DataType Property",
@@ -5193,21 +4929,9 @@
                 "labelType": "xbrl:documentation"
             },
             {
-                "relatedName": "oimte:cubeMissingDimension",
-                "language": "en",
-                "value": "This error occurs when a cube is missing a dimension that is required. In the XBRL Model, certain cube types or configurations may require specific dimensions to be present. For example, a cube extending a base cube must include all required dimensions from the base cube.",
-                "labelType": "xbrl:documentation"
-            },
-            {
                 "relatedName": "oimte:cubeMissingConceptDimension",
                 "language": "en",
                 "value": "This error occurs when a cube is missing the concept dimension. In the XBRL model all cubes must include a concept dimension so that the concepts associated with the cube can be defined. A default cube must still define the dimension but does not need to include a domain name for the concept dimension.",
-                "labelType": "xbrl:documentation"
-            },
-            {
-                "relatedName": "oimte:cubeDimensionInconsistentWithCubeType",
-                "language": "en",
-                "value": "This error is generated when a cube includes a dimension that is not permitted for that cube's type or configuration. Different cube types may have restrictions on which dimensions can be included based on the cube's purpose and the XBRL Model's design rules.",
                 "labelType": "xbrl:documentation"
             },
             {
@@ -5232,12 +4956,6 @@
                 "relatedName": "oimte:missingDomainClassSource",
                 "language": "en",
                 "value": "This error is generated when a domain declares a root but that root object is never used as a source in any of the domain's relationships. Every domain class must appear as the source of at least one relationship, otherwise it serves no purpose in defining the domain's member hierarchy.",
-                "labelType": "xbrl:documentation"
-            },
-            {
-                "relatedName": "oimte:duplicateRelationships",
-                "language": "en",
-                "value": "This error occurs when a network contains two or more relationship objects whose `source`, `target`, `order`, and any additional properties are all identical. A duplicate can arise directly within a single network definition or when an extension taxonomy uses `extendTargetName` to append a relationship that already exists in the base network.",
                 "labelType": "xbrl:documentation"
             },
             {
@@ -5286,12 +5004,6 @@
                 "relatedName": "oimte:invalidDomainTarget",
                 "language": "en",
                 "value": "This error is generated when a relationship within a domain references a target object that does not exist or is not of an appropriate type. Domain relationship targets must be concepts, members, entities, abstracts, or units depending on the domain's configuration.",
-                "labelType": "xbrl:documentation"
-            },
-            {
-                "relatedName": "oimte:rootOfDomainNotADomainClassObject",
-                "language": "en",
-                "value": "This error occurs when a domain references a root object by QName that is not defined as a domainClassObject. The domain class attribute defined as part of the domainObject must be defined as a domainClass object in the XBRL Model or imported XBRL Models.",
                 "labelType": "xbrl:documentation"
             },
             {
@@ -5967,24 +5679,6 @@
                 "value": "Raised when a concept referenced in a period context specification (conceptName or context property) does not have a data type derived from xs:date. Period date references must use date-typed concepts."
             },
             {
-                "relatedName": "oimte:invalidConceptDomain",
-                "language": "en",
-                "labelType": "xbrl:label",
-                "value": "Invalid Concept Domain"
-            },
-            {
-                "relatedName": "oimte:invalidConceptDomain",
-                "language": "en",
-                "labelType": "xbrl:errorMessage",
-                "value": "The concept dimension in cube '{cubeName}' cannot have a domainDataType property. The concept dimension only supports a domainName."
-            },
-            {
-                "relatedName": "oimte:invalidConceptDomain",
-                "language": "en",
-                "labelType": "xbrl:documentation",
-                "value": "Raised when the concept dimension in a cube definition includes a domainDataType property, which is not permitted. The concept dimension uses domainName to reference the concept domain, not domainDataType."
-            },
-            {
                 "relatedName": "oimte:completeTimeSeriesOnNonTimeSeriesDimension",
                 "language": "en",
                 "labelType": "xbrl:label",
@@ -6055,24 +5749,6 @@
                 "language": "en",
                 "labelType": "xbrl:documentation",
                 "value": "Raised when the timeSeriesType property is applied to a dimension that is not a designated time series dimension. This property is only valid on time series dimensions."
-            },
-            {
-                "relatedName": "oimte:invalidIntervalConvention",
-                "language": "en",
-                "labelType": "xbrl:label",
-                "value": "Invalid Interval Convention"
-            },
-            {
-                "relatedName": "oimte:invalidIntervalConvention",
-                "language": "en",
-                "labelType": "xbrl:errorMessage",
-                "value": "The intervalConvention value '{value}' is not a valid interval convention for dimension '{dimensionName}'."
-            },
-            {
-                "relatedName": "oimte:invalidIntervalConvention",
-                "language": "en",
-                "labelType": "xbrl:documentation",
-                "value": "Raised when the value of the intervalConvention property is not a valid interval convention value. Valid values are defined by the xbrli:intervalConventionType enumeration."
             },
             {
                 "relatedName": "oimte:missingIntervalExcluded",
@@ -6439,150 +6115,6 @@
                 "language": "en",
                 "labelType": "xbrl:documentation",
                 "value": "Raised when a groupContent object references a group QName that does not correspond to a valid group object in the XBRL model."
-            },
-            {
-                "relatedName": "oimte:hashWithoutMetadata",
-                "language": "en",
-                "labelType": "xbrl:label",
-                "value": "Hash Without Metadata"
-            },
-            {
-                "relatedName": "oimte:hashWithoutMetadata",
-                "language": "en",
-                "labelType": "xbrl:errorMessage",
-                "value": "The factSource '{factSourceName}' has a hash property but no metadata property. The metadata property is recommended to enable interoperability."
-            },
-            {
-                "relatedName": "oimte:hashWithoutMetadata",
-                "language": "en",
-                "labelType": "xbrl:documentation",
-                "value": "Raised when a factSource object has a hash property but no metadata property. While not strictly required, the metadata property is strongly recommended when using hash-based fact storage to enable interoperability between processors."
-            },
-            {
-                "relatedName": "oimte:metadataWithoutHash",
-                "language": "en",
-                "labelType": "xbrl:label",
-                "value": "Metadata Without Hash"
-            },
-            {
-                "relatedName": "oimte:metadataWithoutHash",
-                "language": "en",
-                "labelType": "xbrl:errorMessage",
-                "value": "The factSource '{factSourceName}' has a metadata property but no hash property. The hash property is required when metadata is present."
-            },
-            {
-                "relatedName": "oimte:metadataWithoutHash",
-                "language": "en",
-                "labelType": "xbrl:documentation",
-                "value": "Raised when a factSource object has a metadata property but no hash property. The hash property is required whenever metadata is present, as metadata is only meaningful in the context of hash-based fact storage."
-            },
-            {
-                "relatedName": "oimte:emptyConceptSet",
-                "language": "en",
-                "labelType": "xbrl:label",
-                "value": "Empty Concept Set"
-            },
-            {
-                "relatedName": "oimte:emptyConceptSet",
-                "language": "en",
-                "labelType": "xbrl:errorMessage",
-                "value": "The factSource metadata for '{factSourceName}' has an empty concepts set. At least one concept must be specified."
-            },
-            {
-                "relatedName": "oimte:emptyConceptSet",
-                "language": "en",
-                "labelType": "xbrl:documentation",
-                "value": "Raised when the factSource metadata has an empty concepts set. The concepts array must contain at least one concept QName that is represented in the fact collection."
-            },
-            {
-                "relatedName": "oimte:invalidFactCount",
-                "language": "en",
-                "labelType": "xbrl:label",
-                "value": "Invalid Fact Count"
-            },
-            {
-                "relatedName": "oimte:invalidFactCount",
-                "language": "en",
-                "labelType": "xbrl:errorMessage",
-                "value": "The factSource metadata for '{factSourceName}' has an invalid factCount value. The factCount must be greater than zero."
-            },
-            {
-                "relatedName": "oimte:invalidFactCount",
-                "language": "en",
-                "labelType": "xbrl:documentation",
-                "value": "Raised when the factCount value in factSource metadata is not greater than zero. A factSource must contain at least one fact."
-            },
-            {
-                "relatedName": "oimte:missingConceptDimension",
-                "language": "en",
-                "labelType": "xbrl:label",
-                "value": "Missing Concept Dimension"
-            },
-            {
-                "relatedName": "oimte:missingConceptDimension",
-                "language": "en",
-                "labelType": "xbrl:errorMessage",
-                "value": "The factSource metadata for '{factSourceName}' does not include the required xbrl:concept dimension in the dimensions set."
-            },
-            {
-                "relatedName": "oimte:missingConceptDimension",
-                "language": "en",
-                "labelType": "xbrl:documentation",
-                "value": "Raised when the factSource metadata dimensions set does not include the required xbrl:concept dimension. Every fact collection must have facts with a concept dimension."
-            },
-            {
-                "relatedName": "oimte:invalidMemberCount",
-                "language": "en",
-                "labelType": "xbrl:label",
-                "value": "Invalid Member Count"
-            },
-            {
-                "relatedName": "oimte:invalidMemberCount",
-                "language": "en",
-                "labelType": "xbrl:errorMessage",
-                "value": "The factSource dimension summary for '{dimensionName}' in '{factSourceName}' has an invalid memberCount value. The memberCount must be greater than zero."
-            },
-            {
-                "relatedName": "oimte:invalidMemberCount",
-                "language": "en",
-                "labelType": "xbrl:documentation",
-                "value": "Raised when the memberCount value in a factSource dimension summary is not greater than zero. Each dimension summary must record at least one member."
-            },
-            {
-                "relatedName": "oimte:tooManySampleMembers",
-                "language": "en",
-                "labelType": "xbrl:label",
-                "value": "Too Many Sample Members"
-            },
-            {
-                "relatedName": "oimte:tooManySampleMembers",
-                "language": "en",
-                "labelType": "xbrl:errorMessage",
-                "value": "The factSource dimension summary for '{dimensionName}' in '{factSourceName}' has too many sampleMembers. The maximum allowed is 100."
-            },
-            {
-                "relatedName": "oimte:tooManySampleMembers",
-                "language": "en",
-                "labelType": "xbrl:documentation",
-                "value": "Raised when the sampleMembers array in a factSource dimension summary contains more than 100 items. The sample members array is limited to 100 entries to keep metadata concise."
-            },
-            {
-                "relatedName": "oimte:memberRangeOnExplicitDimension",
-                "language": "en",
-                "labelType": "xbrl:label",
-                "value": "Member Range On Explicit Dimension"
-            },
-            {
-                "relatedName": "oimte:memberRangeOnExplicitDimension",
-                "language": "en",
-                "labelType": "xbrl:errorMessage",
-                "value": "The factSource dimension summary for '{dimensionName}' in '{factSourceName}' has a memberRange property but the dimension is not a typed dimension."
-            },
-            {
-                "relatedName": "oimte:memberRangeOnExplicitDimension",
-                "language": "en",
-                "labelType": "xbrl:documentation",
-                "value": "Raised when a factSource dimension summary includes a memberRange property for a dimension that is not a typed dimension. The memberRange property is only applicable to typed dimensions with orderable values."
             },
             {
                 "relatedName": "oimte:unsupportedDecimalSuffixFeature",
@@ -7575,7 +7107,7 @@
             {
                 "name": "oimte:duplicateRelationshipsReference",
                 "relatedNames": [
-                    "oimte:duplicateRelationships"
+                    "oimte:duplicateItemsInSet"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -7589,6 +7121,10 @@
                         "value": "❌ Fail"
                     },
                     {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "A network contains two relationship objects with identical source, target, and order within the same module."
+                    },
+                    {
                         "property": "xbrl:specificationErrorURI",
                         "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#NETWORK-NetworkObjectWithDuplicateRelationships"
                     }
@@ -7597,7 +7133,7 @@
             {
                 "name": "oimte:duplicateRelationshipsExtendReference",
                 "relatedNames": [
-                    "oimte:duplicateRelationships"
+                    "oimte:duplicateItemsInSet"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -7609,6 +7145,10 @@
                     {
                         "property": "xbrl:conformanceStatus",
                         "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "An extension taxonomy uses extendTargetName to append a relationship to a base network that is identical (same source, target, and order) to a relationship already defined there."
                     },
                     {
                         "property": "xbrl:specificationErrorURI",
@@ -8350,6 +7890,84 @@
                 ]
             },
             {
+                "name": "oimte:invalidDomainTargetNonCoreReference",
+                "relatedNames": [
+                    "oimte:invalidDomainTarget"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "DOMAIN-InvalidNonCoreDomainTarget.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "Domain exp:MyModelDefinedDomain has a root (exp:TaxonomyDefinedDomain) that is not one of the core domains (xbrl:conceptDomain, xbrl:entityDomain, xbrl:unitDomain, xbrl:languageDomain). Its relationships target concept objects exp:Revenue and exp:OtherRevenue, which are not member objects."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#DOMAIN-InvalidNonCoreDomainTarget"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:invalidDomainTargetAbstractInNonCoreReference",
+                "relatedNames": [
+                    "oimte:invalidDomainTarget"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "DOMAIN-AbstractInTaxonomyDefinedDimensionDomain.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "Domain exp:DomainWithAbstract has a non-core root (exp:MyDimensionRoot) but targets abstract object exp:MyAbstract in its relationships. Targets in non-core domains must be member objects."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#DOMAIN-AbstractInTaxonomyDefinedDimensionDomain"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:invalidDomainTargetDomainClassAsTargetReference",
+                "relatedNames": [
+                    "oimte:invalidDomainTarget"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "DOMAINCLASS-DomainClassUsedAsTargetDomainRelationship.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "Domain exp:Domain1 has a non-core root (exp:Root1) and targets domainClass exp:Root1 in its relationships. Targets in non-core domains must be member objects."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#DOMAINCLASS-DomainClassUsedAsTargetDomainRelationship"
+                    }
+                ]
+            },
+            {
                 "name": "oimte:documentNamespacePrefixNotDefinedReference",
                 "relatedNames": [
                     "oimte:documentNamespacePrefixNotDefined"
@@ -8923,6 +8541,58 @@
                 ]
             },
             {
+                "name": "oimte:invalidQNameTypeCubeTypeRequiredCubeRelationshipInvalidSourceConformanceReference",
+                "relatedNames": [
+                    "oimte:invalidQNameType"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CUBETYPE-RequiredCubeRelationshipInvalidSource.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "cubeType exp:myCubeType defines a network constraint for xbrl:concept-refDimension with target objectType 'exp:MyDimension'. That QName resolves to a dimension object in the model, not an objectType QName, so the endpoint constraint is invalid."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBETYPE-RequiredCubeRelationshipInvalidSource"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:invalidJSONStructureMissingRequiredPropertyCubeTypeRequiredCubeRelationshipMissingTypeConformanceReference",
+                "relatedNames": [
+                    "oimte:invalidJSONStructureMissingRequiredProperty"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CUBETYPE-RequiredCubeRelationshipMissingType.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "cubeType exp:myCubeType defines a cubeNetworkConstraints entry with a cubeNetworks item that is missing the required 'relationshipType' property."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBETYPE-RequiredCubeRelationshipMissingType"
+                    }
+                ]
+            },
+            {
                 "name": "oimte:invalidQNameExtendTarget2Reference",
                 "relatedNames": [
                     "oimte:invalidQNameReference"
@@ -9206,6 +8876,32 @@
                     {
                         "property": "xbrl:specificationErrorURI",
                         "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#DOMAIN-StringInDateTaxonomyDefinedDimensionDomain"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:invalidDataTypeForDomainClassConceptDimensionReference",
+                "relatedNames": [
+                    "oimte:invalidDataTypeForDomainClass"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CUBE-DomainDataTypeOnConceptDimension.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "cubeDimension for xbrl:concept specifies domainDataType xs:string, but the xbrl:concept dimension uses the xbrl:conceptDomain class which does not allow a domainDataType."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-DomainDataTypeOnConceptDimension"
                     }
                 ]
             },
@@ -10401,6 +10097,32 @@
                 ]
             },
             {
+                "name": "oimte:missingDomainClassSourceDomainClassAsTargetReference",
+                "relatedNames": [
+                    "oimte:missingDomainClassSource"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "DOMAINCLASS-DomainClassUsedAsTargetDomainRelationship.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "Domain exp:Domain1 has root exp:Root1 (a domainClass), but the relationship source is exp:Domain1 rather than the domainClass root. The domainClass must be the source of the first relationship in the domain."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#DOMAINCLASS-DomainClassUsedAsTargetDomainRelationship"
+                    }
+                ]
+            },
+            {
                 "name": "oimte:multipleDomainClassesReference",
                 "relatedNames": [
                     "oimte:multipleDomainClasses"
@@ -10419,6 +10141,32 @@
                     {
                         "property": "xbrl:specificationErrorURI",
                         "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#DOMAIN-MultipleDomainClasses"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:groupTreeNotImportableReference",
+                "relatedNames": [
+                    "oimte:groupTreeNotImportable"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "IMPORTTAXONOMY-GroupTreeNotImportable.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "The importObjects list explicitly names 'exp:GroupTreeBaseModel_GroupTree', which is a groupTree object. The groupTree object MUST NOT be imported when a taxonomy is imported using an importTaxonomy object."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#IMPORTTAXONOMY-GroupTreeNotImportable"
                     }
                 ]
             },
@@ -10815,6 +10563,32 @@
                     {
                         "property": "xbrl:specificationErrorURI",
                         "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#GROUP-InvalidTaxonomyGroupTarget"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:taxonomyGroupInNetworkReference",
+                "relatedNames": [
+                    "oimte:taxonomyGroupInNetwork"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "NETWORK-TaxonomyGroupInNetwork.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "A network object uses xbrl:taxonomy-group as its relationshipTypeName. The taxonomy-group relationship type MUST only be used within the groupTree object and MUST NOT be used in network objects."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#NETWORK-TaxonomyGroupInNetwork"
                     }
                 ]
             },
@@ -11237,6 +11011,188 @@
                     {
                         "property": "xbrl:specificationErrorURI",
                         "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-TimeSeriesCubeInvalidPeriodDImension"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:dimensionCubeTypeMismatchReference",
+                "relatedNames": [
+                    "oimte:dimensionCubeTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CUBE-DimensionCubeTypeMismatch.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "Dimension exp:FaultyTimeDim restricts cubeTypes to xbrla:timeSeriesCube but is used in a cube with explicit cubeType xbrl:reportCube."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-DimensionCubeTypeMismatch"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:dimensionCubeTypeMismatchCubeOpenReference",
+                "relatedNames": [
+                    "oimte:dimensionCubeTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CUBE-DimensionCubeTypeMismatchCubeOpen.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "Dimension exp:FaultyTimeDim restricts cubeTypes to xbrla:timeSeriesCube but is used in a cube with no cubeType (defaults to xbrl:reportCube)."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-DimensionCubeTypeMismatchCubeOpen"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:dimensionCubeTypeMismatchReferenceDimensionOnReportCubeReference",
+                "relatedNames": [
+                    "oimte:dimensionCubeTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CUBE-ReferenceDimensionUsedOnReportCube.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "Dimension exp:ProductCodeDimension restricts cubeTypes to xbrla:referenceCube but is used in a cube with no cubeType (defaults to xbrl:reportCube)."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-ReferenceDimensionUsedOnReportCube"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:invalidTaxonomyDefinedDimensionConformanceReference",
+                "relatedNames": [
+                    "oimte:invalidTaxonomyDefinedDimension"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CUBE-timeSeriesCubeInvalidDImension.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "Cube exp:InvalidTimeSeriesCube uses cubeType xbrla:timeSeriesCube which requires a typed dimension with dataType xs:dateTime (minDimensions=1, closed=true), but the cube's dimension exp:TimeSeriesDimension has domainDataType xs:string."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-timeSeriesCubeInvalidDImension.json"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:invalidTaxonomyDefinedDimensionInvalidTimeSeriesTypeOnReferenceCubeConformanceReference",
+                "relatedNames": [
+                    "oimte:invalidTaxonomyDefinedDimension"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CUBE-InvalidTimeSeriesTypeOnNonTimeSeriesDimension.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "Cube exp:LocationReferenceCube uses cubeType xbrla:referenceCube which requires a typed dimension with dataType xs:token (minDimensions=1, closed=true), but dimension exp:LocationDimension has no xs:token domainDataType and carries a xbrla:timeSeriesType property that is only valid for timeSeriesCube dimensions."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-InvalidTimeSeriesTypeOnNonTimeSeriesDimension"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:invalidTaxonomyDefinedDimensionMultipleDimensionsForTimeSeriesConformanceReference",
+                "relatedNames": [
+                    "oimte:invalidTaxonomyDefinedDimension"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CUBE-MutipleTaxonomyDefinedDimensionsForTimeSeries.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "Cube exp:CubeMultipleTaxonomyDefinedDimensions uses cubeType xbrla:timeSeriesCube which permits exactly one typed dimension with dataType xs:dateTime (minDimensions=1, maxDimensions=1, closed=true), but the cube defines two matching dimensions: exp:TimeSeriesDimension1 and exp:TimeSeriesDimension2."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-MutipleTaxonomyDefinedDimensionsForTimeSeries"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:invalidTaxonomyDefinedDimensionMultipleDimensionsExtendSeriesConformanceReference",
+                "relatedNames": [
+                    "oimte:invalidTaxonomyDefinedDimension"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CUBE-MutipleTaxonomyDefinedDimensionsExtendSeries.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "Cube exp:CubeMultipleTaxonomyDefinedDimensions uses cubeType exp:TimeSeriesEnhanced which extends xbrla:timeSeriesCube and inherits its constraint of exactly one typed dimension with dataType xs:dateTime (minDimensions=1, maxDimensions=1, closed=true), but the cube defines two matching dimensions: exp:TimeSeriesDimension1 and exp:TimeSeriesDimension2."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-MutipleTaxonomyDefinedDimensionsExtendSeries"
                     }
                 ]
             },
@@ -11831,6 +11787,32 @@
                     {
                         "property": "xbrl:specificationErrorURI",
                         "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBETYPE-missingRequiredDimensionProperty"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:missingRequiredDimensionPropertyTimeSeriesConformanceReference",
+                "relatedNames": [
+                    "oimte:missingRequiredDimensionProperty"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CUBE-timeSeriesCubeMissingDImensionProperties.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "Cube exp:InvalidTimeSeriesCube has cubeType xbrla:timeSeriesCube but the domainClass exp:TimeSeriesDimensionDomainClass is missing the required xbrla:timeSeriesType property."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-timeSeriesCubeMissingDImensionProperties"
                     }
                 ]
             },
@@ -13125,6 +13107,58 @@
                 ]
             },
             {
+                "name": "oimte:missingRequiredPropertyReference",
+                "relatedNames": [
+                    "oimte:missingRequiredProperty"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "REFERENCE-MissingRequiredProperty.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "referenceType exp:LegislativeReferenceType defines exp:Publisher and exp:Section as required properties, but reference exp:myLegislativeReference only includes exp:Publisher, omitting the required exp:Section property."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#REFERENCE-MissingRequiredProperty"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:missingRequiredPropertyReferenceTypeReference",
+                "relatedNames": [
+                    "oimte:missingRequiredProperty"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "REFERENCETYPE-InvalidRequiredProperty.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "referenceType exp:MyReferenceType lists exp:ConceptProperty in its requiredProperties, but exp:ConceptProperty has allowedObjects restricted to xbrl:conceptObject and therefore cannot be used on a reference object."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#REFERENCETYPE-InvalidRequiredProperty"
+                    }
+                ]
+            },
+            {
                 "name": "oimte:invalidQNameReferenceUnitInvalidDataTypeReference",
                 "relatedNames": [
                     "oimte:invalidUnitDataType"
@@ -13165,6 +13199,32 @@
                     {
                         "property": "xbrl:specificationErrorURI",
                         "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#GROUP-InvalidGroupContent"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:invalidGroupObjectReference",
+                "relatedNames": [
+                    "oimte:invalidGroupObject"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "GROUP-InvalidGroupObject.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "The groupContent groupName 'exp:Revenue' resolves to a concept object, not a group object."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#GROUP-InvalidGroupObject"
                     }
                 ]
             },

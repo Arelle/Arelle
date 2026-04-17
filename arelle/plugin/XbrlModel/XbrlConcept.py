@@ -166,7 +166,10 @@ class XbrlDataType(XbrlReferencableModelObject):
         for facet in ("enumeration", "minInclusive", "maxInclusive", "minExclusive", "maxExclusive", "totalDigits", "fractionDigits", "length", "minLength", "maxLength", "whiteSpace", "patterns"):
             value = getattr(self, facet, None)
             if value is not None and not(isinstance(value, (set,list,OrderedSet)) and not value):
-                facets[facet] = value
+                if facet == "enumeration":
+                    facets[facet] = dict((v, None) for v in value) # convert to dict for compatibility with ModelDtsObject enumerations which is dict of value, enumObject
+                else:
+                    facets[facet] = value
         return facets
 
     def isOimTextFactType(self):

@@ -17,10 +17,7 @@
         "cubeTypes" :[
                 {
                     "name": "xbrl:reportCube",
-                    "coreDimensions": ["xbrl:concept", "xbrl:period", "xbrl:unit", "xbrl:entity","xbrl:language"],
-                    "cubeDimensionConstraints" : {
-                        "closed" : false
-                    }
+                    "coreDimensions": ["xbrl:concept", "xbrl:period", "xbrl:unit", "xbrl:entity","xbrl:language"]
                 },
                 {
                     "name": "xbrl:openCube"
@@ -1391,7 +1388,7 @@
             },
             {
                 "name": "xbrl:weight",
-                "dataType": "xs:decimal",
+                "dataType": "xs:integer",
                 "definitional": false,
                 "allowedObjects": [
                     "xbrl:relationshipObject"
@@ -1517,6 +1514,14 @@
                 "definitional": false,
                 "allowedObjects": [
                     "xbrl:groupObject"
+                ]
+            },
+            {
+                "name": "xbrl:nil",
+                "dataType": "xbrli:nilReasonType",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:factObject"
                 ]
             }
         ],

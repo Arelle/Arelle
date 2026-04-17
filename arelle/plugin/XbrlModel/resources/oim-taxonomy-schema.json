@@ -1299,10 +1299,19 @@
                             },
                             "closed": {
                               "type": "boolean",
-                              "description": "If true, only dimensions listed in 'allowed' may be used. If false, other dimensions may be added. Defaults to true."
+                              "description": "Optional when 'allowed' is absent. If true, only taxonomy-defined dimensions listed in 'allowed' can be used. If false, other taxonomy-defined dimensions are permitted. Defaults to the value of the baseCubeType if defined, otherwise false."
                             }
                           },
-                          "additionalProperties": false
+                          "additionalProperties": false,
+                          "if": {
+                            "not": { "required": ["allowed"] }
+                          },
+                          "then": {
+                            "required": ["closed"],
+                            "properties": {
+                              "closed": { "const": true }
+                            }
+                          }
                         },
                         "cubeNetworkConstraints": {
                           "type": "object",

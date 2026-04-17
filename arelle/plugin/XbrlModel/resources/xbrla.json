@@ -192,6 +192,7 @@
                                 "type": "typed",
                                 "dataType": "xs:dateTime",
                                 "minDimensions" : 1,
+                                "maxDimensions": 1,
                                 "domainClassProperties": {
                                     "allowedProperties" : [
                                         "xbrla:intervalOfMeasurement",
