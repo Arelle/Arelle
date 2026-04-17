@@ -8,7 +8,6 @@ from lxml import etree
 
 from arelle.XbrlConst import ixbrlAll, qnLinkFootnote, xhtml, xml, xsd
 from arelle.ModelValue import qname, QName, tzinfoStr
-from arelle.ModelObject import ModelObject
 from arelle.typing import ModelObjectBase, PrototypeElementTreeBase, PrototypeObjectBase
 from arelle.XmlValidateConst import VALID, INVALID
 from typing import Any, TextIO, TYPE_CHECKING, cast
@@ -18,6 +17,7 @@ if TYPE_CHECKING:
     from arelle.ModelInstanceObject import ModelContext
     from arelle.ModelInstanceObject import ModelUnit
     from arelle.ModelDocument import ModelDocument
+    from arelle.ModelObject import ModelObject
     from arelle.PrototypeDtsObject import PrototypeElementTree, PrototypeObject
 
 
@@ -772,9 +772,8 @@ def copyNodes(parent: ModelObject, elts: Sequence[ModelObject] | ModelObject) ->
     for origElt in elts if isinstance(elts, (tuple,list,set)) else (elts,):
         addQnameValue(modelDocument, origElt.elementQname)
         copyElt = modelDocument.parser.makeelement(origElt.tag)
-        assert isinstance(copyElt, ModelObject)
-        copyElt.init(modelDocument)
-        parent.append(copyElt)
+        copyElt.init(modelDocument)  # type: ignore[attr-defined]
+        parent.append(copyElt)  # type: ignore[arg-type]
         for attrTag, attrValue in origElt.items():
             qn = qname(attrTag, noPrefixIsNoNamespace=True)
             prefix = xmlnsprefix(origElt, getattr(qn, 'namespaceURI'))
@@ -797,7 +796,7 @@ def copyNodes(parent: ModelObject, elts: Sequence[ModelObject] | ModelObject) ->
         for childNode in origElt:
             if isinstance(childNode,ModelObjectBase):
                 childNode = cast('ModelObject', childNode)
-                copyNodes(copyElt,childNode)
+                copyNodes(copyElt,childNode)  # type: ignore[arg-type]
 
 def copyChildren(parent: ModelObject, elt: ModelObject) -> None:
     for childNode in elt:
