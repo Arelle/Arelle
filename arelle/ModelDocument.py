@@ -8,7 +8,9 @@ from zipfile import ZipFile
 import regex as re
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, cast, Self, TYPE_CHECKING
+from typing import Any, cast, TYPE_CHECKING
+# for python 3.10
+from typing_extensions import Self
 from lxml import etree
 from xml.sax import SAXParseException
 
@@ -751,7 +753,7 @@ class ModelDocument(ModelDocumentBase):
 
     def setTitleInBackground(self) -> None:
         try:
-            cntlr = cast(CntlrWinMain, self.modelXbrl.modelManager.cntlr)
+            cntlr = cast("CntlrWinMain", self.modelXbrl.modelManager.cntlr)
             uiThreadQueue = cntlr.uiThreadQueue
             uiThreadQueue.put((self.setTitle, [cntlr]))
         except AttributeError:
@@ -762,7 +764,7 @@ class ModelDocument(ModelDocumentBase):
         updateFileHistory = getattr(myCntlr, 'updateFileHistory', None)
         if updateFileHistory:
             try:
-                cntlr = cast(CntlrWinMain, self.modelXbrl.modelManager.cntlr)
+                cntlr = cast("CntlrWinMain", self.modelXbrl.modelManager.cntlr)
                 uiThreadQueue = cntlr.uiThreadQueue
                 uiThreadQueue.put((updateFileHistory, [self.filepath, False]))
             except AttributeError:
@@ -1763,8 +1765,8 @@ def inlineIxdsDiscover(modelXbrl: ModelXbrl, modelIxdsDocument: ModelDocument, s
                 modelXbrl.error(ixMsgCode("tupleMemberOrderMissing", modelFact, sect="validation"),
                                 _("Inline XBRL tuple member %(qname)s must have a numeric order attribute"),
                                 modelObject=modelFact, qname=modelFact.qname)
-            if modelFact.get("target") == tuple.get("target") and hasattr(modelFact, "_ixFactParent"):
-                modelFact._ixFactParent = tuple # support ModelInlineFact parentElement()
+            if modelFact.get("target") == tuple.get("target"):
+                modelFact._ixFactParent = tuple  # type: ignore[attr-defined] # support ModelInlineFact parentElement()
             else:
                 modelXbrl.error(ixMsgCode("tupleMemberDifferentTarget", modelFact, sect="validation"),
                                 _("Inline XBRL tuple member %(qname)s must have a tuple parent %(tuple)s with same target"),

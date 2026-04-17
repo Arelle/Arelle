@@ -7,7 +7,7 @@ from collections import defaultdict
 from collections.abc import Iterable
 from typing import Any
 
-from lxml.etree import Element
+from lxml.etree import Element, ElementTree
 
 from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ModelInstanceObject import ModelFact
@@ -55,7 +55,7 @@ def rule_fg_nl_03(
         if modelDocument.type == ModelDocumentType.INSTANCE:
             continue
 
-        assert isinstance(modelDocument.targetXbrlElementTree, Element)
+        assert isinstance(modelDocument.targetXbrlElementTree, ElementTree)
         for element in modelDocument.targetXbrlElementTree.iter():
             for prefix, namespace in element.nsmap.items():
                 if prefix:
@@ -66,7 +66,7 @@ def rule_fg_nl_03(
         if modelDocument.type != ModelDocumentType.INSTANCE:
             continue
 
-        assert isinstance(modelDocument.targetXbrlElementTree, Element)
+        assert isinstance(modelDocument.targetXbrlElementTree, ElementTree)
         for element in modelDocument.targetXbrlElementTree.iter():
             for prefix, namespace in element.nsmap.items():
                 if namespace not in standardNamespaceMap or not prefix:

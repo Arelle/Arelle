@@ -43,6 +43,6 @@ def getReferencedModelObjects(val: ValidateXbrl, modelDocumentType: int, referen
     for doc in val.modelXbrl.urlDocs.values():
         if doc.type == modelDocumentType:
             for docRef in doc.referencesDocument.values():
-                if docRef.referringModelObject and docRef.referringModelObject.localName == referenceType:
+                if docRef.referringModelObject is not None and docRef.referringModelObject.localName == referenceType:
                     refModelObjects.append(docRef.referringModelObject)
     return refModelObjects
