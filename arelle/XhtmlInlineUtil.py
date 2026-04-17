@@ -77,7 +77,7 @@ def ixMsgCode(
     name: str | None = None,
 ) -> str:
     if elt is not None and ns is not None:
-        raise ValueError(f"{ns=} must not be provided when {elt=}arelle is provided")
+        raise ValueError("ns must not be provided when elt is provided")
 
     if elt is not None:
         if elt.namespaceURI in XbrlConst.ixbrlAll:
