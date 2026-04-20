@@ -23,7 +23,7 @@ import time
 import traceback
 from optparse import SUPPRESS_HELP, Option, OptionGroup, OptionParser
 from pprint import pprint
-from typing import Any, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING, cast
 
 import regex as re
 from lxml import etree
@@ -1787,7 +1787,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             return True
 
         self.modelManager.customTransforms = None # clear out prior custom transforms
-        self.modelManager.loadCustomTransforms()  # type: ignore[no-untyped-call]
+        self.modelManager.loadCustomTransforms()
 
         self.username = options.username
         self.password = options.password
@@ -1936,7 +1936,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
         errorCaptureLevel = None
         if options.testcaseResultsCaptureWarnings:
             errorCaptureLevel = logging.getLevelName("WARNING")
-            self.errorManager.setErrorCaptureLevel(errorCaptureLevel)
+            self.errorManager.setErrorCaptureLevel(cast(int, errorCaptureLevel))
             fo.testcaseResultsCaptureWarnings = True
         if options.testcaseResultOptions:
             fo.testcaseResultOptions = options.testcaseResultOptions
@@ -2010,7 +2010,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         _("views loading"),
                         entrypoint=_entrypoint,
                         errorCaptureLevel=errorCaptureLevel
-                    )  # type: ignore[no-untyped-call]
+                    )
                     if filesource.isArchive:
                         # Keep archive filesource potentially used by multiple reports open.
                         modelXbrl.closeFileSource = False
@@ -2067,7 +2067,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 try:
                     diffFilesource = FileSource.FileSource(options.diffFile,self)
                     startedAt = time.time()
-                    modelXbrl2 = self.modelManager.load(diffFilesource, _("views loading"))  # type: ignore[no-untyped-call]
+                    modelXbrl2 = self.modelManager.load(diffFilesource, _("views loading"))
                     if modelXbrl2.errors:
                         if not options.keepOpen:
                             modelXbrl2.close()
@@ -2137,10 +2137,11 @@ class CntlrCmdLine(Cntlr.Cntlr):
                             try:
                                 startedAt = time.time()
                                 modelXbrl = self.modelManager.modelXbrl
+                                assert modelXbrl is not None
                                 compareInstance(
                                     modelManager=modelXbrl.modelManager,
                                     originalInstance=modelXbrl,
-                                    targetInstance=modelXbrl.formulaOutputInstance,
+                                    targetInstance=modelXbrl.formulaOutputInstance,  # type: ignore[arg-type]
                                     expectedInstanceUri=options.compareFormulaOutput,
                                     errorCaptureLevel=self.errorManager._errorCaptureLevel,
                                     matchById=False,  # formula restuls have inconsistent IDs
@@ -2159,6 +2160,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                             try:
                                 startedAt = time.time()
                                 modelXbrl = self.modelManager.modelXbrl
+                                assert modelXbrl is not None
                                 compareInstance(
                                     modelManager=modelXbrl.modelManager,
                                     originalInstance=modelXbrl,
@@ -2195,7 +2197,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                             ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.preFile, "Presentation Linkbase", XbrlConst.parentChild, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)  # type: ignore[no-untyped-call]
                         if options.tableFile:
                             ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.tableFile, "Table Linkbase", "Table-rendering", labelrole=options.labelRole, lang=options.labelLang)  # type: ignore[no-untyped-call]
-                        if options.renderedTableLinkbaseFile and modelXbrl.hasTableRendering:
+                        if options.renderedTableLinkbaseFile and modelXbrl is not None and modelXbrl.hasTableRendering:
                             ViewFileRenderedGrid.viewRenderedGrid(modelXbrl, options.renderedTableLinkbaseFile, lang=options.labelLang)  # type: ignore[no-untyped-call]
                         if options.calFile:
                             ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.calFile, "Calculation Linkbase", XbrlConst.summationItems, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)  # type: ignore[no-untyped-call]
@@ -2236,7 +2238,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                             deduplicateFactsArg = ValidateDuplicateFactsConst.DeduplicationType(options.deduplicateFacts)
                         else:
                             deduplicateFactsArg = ValidateDuplicateFactsConst.DeduplicationType.COMPLETE
-                        if modelXbrl.modelDocument.type != ModelDocument.Type.INSTANCE:
+                        if modelXbrl.modelDocument is not None and modelXbrl.modelDocument.type != ModelDocument.Type.INSTANCE:
                             self.addToLog(_("Provided file must be a traditional XBRL instance document to save a deduplicated instance."),
                                           messageCode="error", file=modelXbrl.modelDocument.uri)
                         else:

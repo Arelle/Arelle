@@ -4,16 +4,20 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import TYPE_CHECKING
-import gc, sys, traceback, logging
-from arelle import ModelXbrl, Validate, DisclosureSystem, PackageManager, ValidateXbrlCalcs, ValidateDuplicateFactsConst
+from typing import TYPE_CHECKING, Any
+import gc, traceback, logging
+from arelle import Validate, DisclosureSystem, PackageManager, ValidateXbrlCalcs, ValidateDuplicateFactsConst
+from arelle.FileSource import FileSource
+from arelle.ModelXbrl import ModelXbrl, load as ModelXbrlLoad, create as ModelXbrlCreate
 from arelle.ModelFormulaObject import FormulaOptions
 from arelle.ValidateXbrlDTS import ValidateBaseTaxonomiesMode
-from arelle.typing import LocaleDict
+from arelle.typing import LocaleDict, TypeGetText
 
 if TYPE_CHECKING:
     from arelle.Cntlr import Cntlr
     from arelle.ModelValue import QName
+
+_: TypeGetText
 
 def initialize(cntlr: Cntlr) -> ModelManager:
     modelManager = ModelManager(cntlr)
@@ -51,11 +55,12 @@ class ModelManager:
     defaultLang: str
     formulaOptions: FormulaOptions
     locale: LocaleDict
+    modelXbrl: ModelXbrl | None
 
     def __init__(self, cntlr: Cntlr):
         self.cntlr = cntlr
         self.validateDisclosureSystem = False
-        self.disclosureSystem = DisclosureSystem.DisclosureSystem(self)
+        self.disclosureSystem = DisclosureSystem.DisclosureSystem(self)  # type: ignore[no-untyped-call]
         self.validateCalcs = 0 # ValidateXbrlCalcs.ValidateCalcsMode
         self.validateInfoset = False
         self.validateUtr = False
@@ -64,7 +69,7 @@ class ModelManager:
         self.skipLoading = None
         self.abortOnMajorError = False
         self.collectProfileStats = False
-        self.loadedModelXbrls = []
+        self.loadedModelXbrls: list[ModelXbrl] = []
         self.customTransforms: dict[QName, Callable[[str], str]] | None = None
         self.isLocaleSet = False
         self.baseTaxonomyValidationMode = ValidateBaseTaxonomiesMode.DISCLOSURE_SYSTEM
@@ -73,9 +78,9 @@ class ModelManager:
         self.validateDuplicateFacts = ValidateDuplicateFactsConst.DuplicateType.NONE
         self.validateXmlOim = False
         self.setLocale()
-        ValidateXbrlCalcs.init() # required due to circular dependencies in module
+        ValidateXbrlCalcs.init()  # type: ignore[no-untyped-call] # required due to circular dependencies in module
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         self.status = "shutdown"
 
     def setLocale(self) -> str | None:
@@ -85,7 +90,7 @@ class ModelManager:
         self.isLocaleSet = True
         return localeSetupMessage
 
-    def addToLog(self, message, messageCode="", file="", refs=[], level=logging.INFO) -> None:
+    def addToLog(self, message: str, messageCode: str = "", file: str = "", refs: list[dict[str, Any]] = [], level: int | str = logging.INFO) -> None:
         """Add a simple info message to the default logger
 
         :param message: Text of message to add to log.
@@ -98,15 +103,15 @@ class ModelManager:
         """
         self.cntlr.addToLog(message, messageCode=messageCode, file=file, refs=refs, level=level)
 
-    def showStatus(self, message: str | None, clearAfter: int | None = None) -> None:
+    def showStatus(self, message: str | None = None, clearAfter: int | None = None) -> None:
         """Provide user feedback on status line of GUI or web page according to type of controller.
 
         :param message: Message to display on status widget.
         :param clearAfter: Time, in ms., after which to clear the message (e.g., 5000 for 5 sec.)
         """
-        self.cntlr.showStatus(message, clearAfter)
+        self.cntlr.showStatus(message, clearAfter)  # type: ignore[arg-type]
 
-    def viewModelObject(self, modelXbrl, objectId):
+    def viewModelObject(self, modelXbrl: ModelXbrl, objectId: str) -> None:
         """Notify any active views to show and highlight selected object.  Generally used
         to scroll list control to object and highlight it, or if tree control, to find the object
         and open tree branches as needed for visibility, scroll to and highlight the object.
@@ -127,7 +132,7 @@ class ModelManager:
         """
         self.cntlr.reloadViews(modelXbrl)
 
-    def load(self, filesource, nextaction=None, taxonomyPackages=None, **kwargs):
+    def load(self, filesource: str | FileSource, nextaction: str | None = None, taxonomyPackages: list[str] | None = None, **kwargs: Any) -> ModelXbrl:
         """Load an entry point modelDocument object(s), which in turn load documents they discover
         (for the case of instance, taxonomies, and versioning reports), but defer loading instances
         for test case and RSS feeds.
@@ -149,27 +154,26 @@ class ModelManager:
                     resetPackageMappings = True
             if resetPackageMappings:
                 PackageManager.rebuildRemappings(self.cntlr)
-        try:
-            if filesource.url.startswith("urn:uuid:"): # request for an open modelXbrl
+        modelXbrl: ModelXbrl | None = None # loaded modelXbrl
+        if isinstance(filesource, FileSource):
+            if isinstance(filesource.url, str) and filesource.url.startswith("urn:uuid:"): # request for an open modelXbrl
                 for modelXbrl in self.loadedModelXbrls:
                     if not modelXbrl.isClosed and modelXbrl.uuid == filesource.url:
                         return modelXbrl
                 raise IOError(_("Open file handle is not open: {0}").format(filesource.url))
-        except AttributeError:
-            pass # filesource may be a string, which has no url attribute
+
         self.filesource = filesource
-        modelXbrl = None # loaded modelXbrl
         for customLoader in self.cntlr.plugins.hooks("ModelManager.Load"):
             modelXbrl = customLoader(self, filesource, **kwargs)
             if modelXbrl is not None:
                 break # custom loader did the loading
         if modelXbrl is None:  # use default xbrl loader
-            modelXbrl = ModelXbrl.load(self, filesource, nextaction, **kwargs)
+            modelXbrl = ModelXbrlLoad(self, filesource, nextaction, **kwargs)
         self.modelXbrl = modelXbrl
         self.loadedModelXbrls.append(self.modelXbrl)
         return self.modelXbrl
 
-    def saveDTSpackage(self, allDTSes=False):
+    def saveDTSpackage(self, allDTSes: bool = False) -> None:
         if allDTSes:
             for modelXbrl in self.loadedModelXbrls:
                 modelXbrl.saveDTSpackage()
@@ -177,15 +181,15 @@ class ModelManager:
             self.modelXbrl.saveDTSpackage()
 
     def create(self,
-               newDocumentType=None,
-               url=None,
-               schemaRefs=None,
-               createModelDocument=True,
-               isEntry=False,
-               errorCaptureLevel=None,
-               initialXml=None,
-               base=None) -> ModelXbrl.ModelXbrl:
-        self.modelXbrl = ModelXbrl.create(self,
+               newDocumentType: int | None = None,
+               url: str | None = None,
+               schemaRefs: list[str] | None = None,
+               createModelDocument: bool = True,
+               isEntry: bool = False,
+               errorCaptureLevel: int | None = None,
+               initialXml: str | None = None,
+               base: str | None = None) -> ModelXbrl:
+        self.modelXbrl = ModelXbrlCreate(self,
                                           newDocumentType=newDocumentType,
                                           url=url,
                                           schemaRefs=schemaRefs,
@@ -197,20 +201,20 @@ class ModelManager:
         self.loadedModelXbrls.append(self.modelXbrl)
         return self.modelXbrl
 
-    def validate(self):
+    def validate(self) -> None:
         """Validates the most recently loaded modelXbrl (according to validation properties).
 
         Results of validation will be in log.
         """
         try:
             if self.modelXbrl:
-                Validate.validate(self.modelXbrl)
+                Validate.validate(self.modelXbrl)  # type: ignore[no-untyped-call]
         except Exception as err:
             self.addToLog(_("[exception] Validation exception: {0} at {1}").format(
                            err,
                            traceback.format_exc()))
 
-    def compareDTSes(self, versReportFile: str, writeReportFile: bool = True) -> ModelXbrl.ModelXbrl | None:
+    def compareDTSes(self, versReportFile: str, writeReportFile: bool = True) -> ModelXbrl | None:
         """Compare two most recently loaded DTSes, saving versioning report in to the file name provided.
 
         :param versReportFile: file name in which to save XBRL Versioning Report
@@ -227,15 +231,15 @@ class ModelManager:
             modelVersReport = self.create(newDocumentType=Type.VERSIONINGREPORT,
                                           url=versReportFile,
                                           createModelDocument=False)
-            ModelVersReport(modelVersReport).diffDTSes(versReportFile, fromDTS, toDTS)
+            ModelVersReport(modelVersReport).diffDTSes(versReportFile, fromDTS, toDTS)  # type: ignore[no-untyped-call]
             return modelVersReport
         return None
 
-    def close(self, modelXbrl: ModelXbrl.ModelXbrl = None) -> None:
+    def close(self, modelXbrl: ModelXbrl | None = None) -> None:
         """Closes the specified or most recently loaded modelXbrl
 
         :param modelXbrl: Specific ModelXbrl to be closed (defaults to last opened ModelXbrl)
-        :type modelXbrl: ModelXbrl.ModelXbrl
+        :type modelXbrl: ModelXbrl
         :return: None
         """
         if modelXbrl is None: modelXbrl = self.modelXbrl
@@ -250,7 +254,7 @@ class ModelManager:
             modelXbrl.close()
             gc.collect()
 
-    def loadCustomTransforms(self):
+    def loadCustomTransforms(self) -> None:
         if self.customTransforms is None:
             self.customTransforms = {}
             for pluginMethod in self.cntlr.plugins.hooks("ModelManager.LoadCustomTransforms"):

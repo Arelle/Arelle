@@ -14,7 +14,7 @@ import subprocess
 import sys
 import time
 import webbrowser
-from typing import Any
+from typing import Any, cast
 
 import regex as re
 
@@ -620,8 +620,8 @@ class CntlrWinMain(Cntlr.Cntlr):
         self.dirty = False
         self.filename = None
         self.data = {}
-        self.parent.title(_("arelle - Unnamed"));
-        self.modelManager.load(None);
+        self.parent.title(_("arelle - Unnamed"))
+        self.modelManager.load(None)  # type: ignore[arg-type]
 
     def getViewAndModelXbrl(self) -> tuple[Any, Any]:
         view = getattr(self, "currentView", None)
@@ -718,7 +718,7 @@ class CntlrWinMain(Cntlr.Cntlr):
             elif isinstance(view, ViewWinTests.ViewTests) and modelXbrl is not None and modelXbrl.modelDocument is not None and modelXbrl.modelDocument.type in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE):
                 filename = self.uiFileDialog("save",
                         title=_("arelle - Save Test Results"),
-                        initialdir=os.path.dirname(self.modelManager.modelXbrl.modelDocument.uri),
+                        initialdir=os.path.dirname(self.modelManager.modelXbrl.modelDocument.uri),  # type: ignore[union-attr]
                         filetypes=[(_("XLSX file"), "*.xlsx"),(_("CSV file"), "*.csv"),(_("HTML file"), "*.html"),(_("XML file"), "*.xml"),(_("JSON file"), "*.json")],
                         defaultextension=".xlsx")
                 if not filename:
@@ -734,7 +734,7 @@ class CntlrWinMain(Cntlr.Cntlr):
             elif isinstance(view, ViewWinTree.ViewTree):
                 filename = self.uiFileDialog("save",
                         title=_("arelle - Save {0}").format(view.tabTitle),
-                        initialdir=os.path.dirname(self.modelManager.modelXbrl.modelDocument.uri),
+                        initialdir=os.path.dirname(self.modelManager.modelXbrl.modelDocument.uri),  # type: ignore[union-attr]
                         filetypes=[(_("XLSX file"), "*.xlsx"),(_("CSV file"), "*.csv"),(_("HTML file"), "*.html"),(_("XML file"), "*.xml"),(_("JSON file"), "*.json")],
                         defaultextension=".xlsx")
                 if not filename:
@@ -770,10 +770,10 @@ class CntlrWinMain(Cntlr.Cntlr):
                                         parent=self.parent)
                 return True
 
-            elif isinstance(view, ViewWinXml.ViewXml) and self.modelManager.modelXbrl.formulaOutputInstance:
+            elif isinstance(view, ViewWinXml.ViewXml) and self.modelManager.modelXbrl.formulaOutputInstance:  # type: ignore[union-attr]
                 filename = self.uiFileDialog("save",
                         title=_("arelle - Save Formula Result Instance Document"),
-                        initialdir=os.path.dirname(self.modelManager.modelXbrl.modelDocument.uri),
+                        initialdir=os.path.dirname(self.modelManager.modelXbrl.modelDocument.uri),  # type: ignore[union-attr]
                         filetypes=[(_("XBRL output instance .xml"), "*.xml"), (_("XBRL output instance .xbrl"), "*.xbrl")],
                         defaultextension=".xml")
                 if not filename:
@@ -781,7 +781,7 @@ class CntlrWinMain(Cntlr.Cntlr):
                 try:
                     from arelle import XmlUtil
                     with open(filename, "w") as fh:
-                        XmlUtil.writexml(fh, self.modelManager.modelXbrl.formulaOutputInstance.modelDocument.xmlDocument, encoding="utf-8")
+                        XmlUtil.writexml(fh, self.modelManager.modelXbrl.formulaOutputInstance.modelDocument.xmlDocument, encoding="utf-8")  # type: ignore[union-attr]
                     self.addToLog(_("[info] Saved formula output instance to {0}").format(filename) )
                 except (IOError, EnvironmentError) as err:
                     tkinter.messagebox.showwarning(_("arelle - Error"),
@@ -845,7 +845,7 @@ class CntlrWinMain(Cntlr.Cntlr):
         self.fileOpenFile(filename)
 
     def importFileOpen(self, *ignore: Any) -> bool | None:
-        if not self.modelManager.modelXbrl or self.modelManager.modelXbrl.modelDocument.type not in (
+        if not self.modelManager.modelXbrl or self.modelManager.modelXbrl.modelDocument.type not in (  # type: ignore[union-attr]
              ModelDocument.Type.SCHEMA, ModelDocument.Type.LINKBASE, ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
             tkinter.messagebox.showwarning(_("arelle - Warning"),
                             _("Import requires an opened DTS"), parent=self.parent)
@@ -945,7 +945,7 @@ class CntlrWinMain(Cntlr.Cntlr):
             threading.Thread(target=self.backgroundLoadXbrl, args=(filesource,entrypointFiles,False,False), daemon=True).start()
 
     def importWebOpen(self, *ignore: Any) -> bool | None:
-        if not self.modelManager.modelXbrl or self.modelManager.modelXbrl.modelDocument.type not in (
+        if not self.modelManager.modelXbrl or self.modelManager.modelXbrl.modelDocument.type not in (  # type: ignore[union-attr]
              ModelDocument.Type.SCHEMA, ModelDocument.Type.LINKBASE, ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
             tkinter.messagebox.showwarning(_("arelle - Warning"),
                             _("Import requires an opened DTS"), parent=self.parent)
@@ -1001,12 +1001,12 @@ class CntlrWinMain(Cntlr.Cntlr):
                      traceback.format_exc())
             # not sure if message box can be shown from background thread
             # tkinter.messagebox.showwarning(_("Exception loading"),msg, parent=self.parent)
-            self.addToLog(msg);
+            self.addToLog(msg)
             self.showStatus(_("Loading terminated, unrecoverable error"), 15000)
             return
         if loadedModels and any(model.modelDocument for model in loadedModels):
             statTime = time.time() - startedAt
-            modelXbrl.profileStat(profileStat, statTime)
+            cast(ModelXbrl, modelXbrl).profileStat(profileStat, statTime)
             self.addToLog(format_string(self.modelManager.locale,
                                         _("%s in %.2f secs"),
                                         (action, statTime)))
@@ -1455,8 +1455,8 @@ class CntlrWinMain(Cntlr.Cntlr):
             return False
         rssModelXbrl = None
         for loadedModelXbrl in self.modelManager.loadedModelXbrls:
-            if (loadedModelXbrl.modelDocument.type == Type.RSSFEED and
-                loadedModelXbrl.modelDocument.uri == self.modelManager.rssWatchOptions.get("feedSourceUri")):  # type: ignore[attr-defined]
+            if (loadedModelXbrl.modelDocument.type == Type.RSSFEED and  # type: ignore[union-attr]
+                loadedModelXbrl.modelDocument.uri == self.modelManager.rssWatchOptions.get("feedSourceUri")):  # type: ignore[attr-defined,union-attr]
                 rssModelXbrl = loadedModelXbrl
                 break
         #not loaded
@@ -1466,10 +1466,10 @@ class CntlrWinMain(Cntlr.Cntlr):
                 self.showLoadedXbrl(rssModelXbrl, False)
             if not hasattr(rssModelXbrl,"watchRss"):
                 WatchRss.initializeWatcher(rssModelXbrl)
-            rssModelXbrl.watchRss.start()  # type: ignore[union-attr]
+            rssModelXbrl.watchRss.start()  # type: ignore[attr-defined]
         elif stop:
-            if rssModelXbrl and rssModelXbrl.watchRss:
-                rssModelXbrl.watchRss.stop()
+            if rssModelXbrl and rssModelXbrl.watchRss:  # type: ignore[attr-defined]
+                rssModelXbrl.watchRss.stop()  # type: ignore[attr-defined]
         return None
 
     # for ui thread option updating
