@@ -103,7 +103,7 @@ class ModelManager:
         """
         self.cntlr.addToLog(message, messageCode=messageCode, file=file, refs=refs, level=level)
 
-    def showStatus(self, message: str = None, clearAfter: int = None) -> None:
+    def showStatus(self, message: str | None = None, clearAfter: int | None = None) -> None:
         """Provide user feedback on status line of GUI or web page according to type of controller.
 
         :param message: Message to display on status widget.
@@ -132,7 +132,7 @@ class ModelManager:
         """
         self.cntlr.reloadViews(modelXbrl)
 
-    def load(self, filesource: str | FileSource, nextaction: str = None, taxonomyPackages: list[str] = None, **kwargs: Any) -> ModelXbrl:
+    def load(self, filesource: str | FileSource, nextaction: str | None = None, taxonomyPackages: list[str] | None = None, **kwargs: Any) -> ModelXbrl:
         """Load an entry point modelDocument object(s), which in turn load documents they discover
         (for the case of instance, taxonomies, and versioning reports), but defer loading instances
         for test case and RSS feeds.
@@ -181,14 +181,14 @@ class ModelManager:
             self.modelXbrl.saveDTSpackage()
 
     def create(self,
-               newDocumentType: int = None,
-               url: str = None,
-               schemaRefs: str = None,
+               newDocumentType: int | None = None,
+               url: str | None = None,
+               schemaRefs: str | None = None,
                createModelDocument: bool = True,
                isEntry: bool = False,
-               errorCaptureLevel: int = None,
-               initialXml: str = None,
-               base: str = None) -> ModelXbrl:
+               errorCaptureLevel: int | None = None,
+               initialXml: str | None = None,
+               base: str | None = None) -> ModelXbrl:
         self.modelXbrl = ModelXbrlCreate(self,
                                           newDocumentType=newDocumentType,
                                           url=url,
@@ -235,7 +235,7 @@ class ModelManager:
             return modelVersReport
         return None
 
-    def close(self, modelXbrl: ModelXbrl = None) -> None:
+    def close(self, modelXbrl: ModelXbrl | None = None) -> None:
         """Closes the specified or most recently loaded modelXbrl
 
         :param modelXbrl: Specific ModelXbrl to be closed (defaults to last opened ModelXbrl)
