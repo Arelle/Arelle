@@ -99,18 +99,18 @@ def get_test_data(
         test_cases_with_no_variations = set()
         test_cases_with_unrecognized_type = {}
         skipped_test_cases = set()
-        model_document = cntlr.modelManager.modelXbrl.modelDocument
+        model_document = cntlr.modelManager.modelXbrl.modelDocument  # type: ignore[union-attr]
         test_cases: list[ModelDocument] = []
-        if strict_testcase_index and model_document.type == ModelDocumentType.TESTCASESINDEX:
-            model_errors = sorted(cntlr.modelManager.modelXbrl.errors)
-            assert 'IOerror' not in model_errors, f'One or more testcases referenced by testcases index "{model_document.filepath}" were not found.'
+        if strict_testcase_index and model_document.type == ModelDocumentType.TESTCASESINDEX:  # type: ignore[union-attr]
+            model_errors = sorted(cntlr.modelManager.modelXbrl.errors)  # type: ignore[union-attr]
+            assert 'IOerror' not in model_errors, f'One or more testcases referenced by testcases index "{model_document.filepath}" were not found.'  # type: ignore[union-attr]
         collect_test_data(
             cntlr=cntlr,
             expected_failure_ids=expected_failure_ids,
             required_locale_by_ids=required_locale_by_ids,
             system_locale=system_locale,
             results=results,
-            model_document=model_document,
+            model_document=model_document,  # type: ignore[arg-type]
             test_cases=test_cases,
         )
         for test_case in sorted(test_cases, key=lambda doc: doc.uri):
