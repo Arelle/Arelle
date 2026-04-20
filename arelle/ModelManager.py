@@ -183,7 +183,7 @@ class ModelManager:
     def create(self,
                newDocumentType: int | None = None,
                url: str | None = None,
-               schemaRefs: str | None = None,
+               schemaRefs: list[str] | None = None,
                createModelDocument: bool = True,
                isEntry: bool = False,
                errorCaptureLevel: int | None = None,

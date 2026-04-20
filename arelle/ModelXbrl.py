@@ -108,7 +108,7 @@ def load(modelManager: ModelManager, url: str | FileSourceClass, nextaction: str
     return modelXbrl
 
 def create(
-        modelManager: ModelManager, newDocumentType: int | None = None, url: str | None = None, schemaRefs: str|None = None, createModelDocument: bool = True, isEntry: bool = False,
+        modelManager: ModelManager, newDocumentType: int | None = None, url: str | None = None, schemaRefs: list[str] | None = None, createModelDocument: bool = True, isEntry: bool = False,
         errorCaptureLevel: int | None = None, initialXml: str | None = None, initialComment: str | None = None, base: str | None = None, discover: bool = True, xbrliNamespacePrefix: str | None = None
 ) -> ModelXbrl:
     modelXbrl = ModelXbrl(modelManager, errorCaptureLevel=errorCaptureLevel)
