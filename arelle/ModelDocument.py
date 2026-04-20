@@ -965,7 +965,7 @@ class ModelDocument(ModelDocumentBase):
                             messageCodes=("EFM.6.22.02", "GFM.1.1.3", "SBR.NL.2.1.0.06", "SBR.NL.2.2.0.17"))
             self.noTargetNamespace = False
         else:
-            if isIncluded == True and namespace:
+            if isIncluded and namespace:
                 self.targetNamespace = namespace
                 self.modelXbrl.namespaceDocs[targetNamespace].append(self)  # type: ignore[index]
             self.noTargetNamespace = True
