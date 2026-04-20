@@ -832,8 +832,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                 compMdl.error("oimte:collectionTypeWithoutCollectionBaseType",
                           _("The set dataType object %(name)s MUST define a valid baseType xbrli:collection"),
                           xbrlObject=dtObj, name=dtObj.name)
-            for dtQn in dtObj.collectionType.dataTypesAllowed:
-                validateQNameReference(compMdl, dtObj, "dataTypesAllowed", XbrlDataType, qnRef=dtQn)
+            validateQNameReference(compMdl, dtObj.collectionType, "dataType", XbrlDataType, qnRef=dtQn)
 
     # Dimension Objects
     for dimObj in module.dimensions:
