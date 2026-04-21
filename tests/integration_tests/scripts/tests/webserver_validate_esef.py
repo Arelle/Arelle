@@ -58,7 +58,7 @@ log_xml_bytes = None
 with run_arelle_webserver(arelle_command, port) as proc:
     url = f"http://localhost:{port}/rest/xbrl/validation?media=xml"
     url += "&plugins=validate/ESEF"
-    url += "&disclosureSystemName=esef"
+    url += "&disclosureSystemName=esef-2024"
     url += f"&internetConnectivity={'false' if arelle_offline else 'true'}"
     url += f"&logFile={urllib.parse.quote_plus(str(arelle_log_file))}"
     url += "&packages=" + '|'.join(urllib.parse.quote_plus(str(p)) for p in package_paths)
