@@ -8,7 +8,6 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any, TypeVar, overload
 
-from arelle.oim._tc.common import TCError
 from arelle.oim._tc.const import (
     TC_COLUMN_ORDER_PROPERTY_NAME,
     TC_CONSTRAINTS_PROPERTY_NAME,
@@ -20,6 +19,7 @@ from arelle.oim._tc.const import (
     TCME_INVALID_JSON_STRUCTURE,
     TCME_INVALID_NAMESPACE_PREFIX,
 )
+from arelle.oim._tc.metadata.common import TCMetadataValidationError
 from arelle.oim._tc.metadata.model import (
     TCKeys,
     TCMetadata,
@@ -34,23 +34,9 @@ from arelle.typing import TypeGetText
 _: TypeGetText
 
 
-class TCMetadataParseError(TCError):
+class TCMetadataParseError(TCMetadataValidationError):
     def __init__(self, message: str, *path: str, code: str = TCME_INVALID_JSON_STRUCTURE) -> None:
-        self.path_segments: list[str] = list(path)
-        self._message = message
-        super().__init__(code)
-
-    def prepend_path(self, *segments: str) -> None:
-        self.path_segments = [*segments, *self.path_segments]
-
-    @property
-    def json_pointer(self) -> str:
-        return "/" + "/".join(self.path_segments)
-
-    def __str__(self) -> str:
-        if self.path_segments:
-            return f"{self.json_pointer}: {self._message}"
-        return self._message
+        super().__init__(message, *path, code=code)
 
 
 class TCMetadataParseTypeError(TCMetadataParseError):
@@ -117,7 +103,7 @@ def parse_tc_metadata(
     metadata = None if errors else TCMetadata(template_constraints=template_constraints)
 
     # Validations that should not prevent successful parsing
-    errors.extend(validate_namespace_prefixes(namespaces))
+    errors.extend(validate_namespace_prefixes(namespaces))  # type: ignore[arg-type]
 
     return TCParseResult(metadata=metadata, errors=tuple(errors))
 
@@ -613,10 +599,10 @@ def _parse_set(
 
 def validate_namespace_prefixes(
         namespaces: dict[str, str]
-) -> Iterable[TCMetadataParseError]:
+) -> Iterable[TCMetadataValidationError]:
     for prefix, uri in namespaces.items():
         if uri in TC_NAMESPACES and  prefix != TC_PREFIX:
-            yield TCMetadataParseError(
+            yield TCMetadataValidationError(
                 _(
                     "Table constraints namespace '{uri}' must be bound to "
                     "prefix '{tc_prefix}', not '{prefix}'"
