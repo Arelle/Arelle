@@ -535,10 +535,10 @@ def _validate_str_list(
         errors.append(TCMetadataParseTypeError(list, val, key))
         return False
     if non_empty and len(val) == 0:
-        errors.append(TCMetadataParseTypeError(list, val, key))
+        errors.append(TCMetadataParseError(_("'{}' must not be empty").format(key), key))
         return False
     if unique and len(val) != len(set(val)):
-        errors.append(TCMetadataParseTypeError(list, val, key))
+        errors.append(TCMetadataParseError(_("'{}' must not contain duplicate values").format(key), key))
         return False
     return True
 
