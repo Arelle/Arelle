@@ -20,6 +20,7 @@ from lxml import etree
 
 from arelle import (ModelDocument, ModelXbrl, PackageManager, UrlUtil,
                     ValidateXbrlDimensions, XbrlConst, XmlUtil, XmlValidate)
+from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ModelValue import (DATETIME, dateTime, dayTimeDuration, qname,
                                yearMonthDuration)
 from arelle.oim._tc.metadata.parser import parse_tc_metadata
@@ -1803,7 +1804,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             modelXbrl.blockDpmDBrecursion = True
             modelXbrl.modelDocument = _return = ModelDocument.create(
                   modelXbrl,
-                  ModelDocument.Type.INSTANCE,
+                  ModelDocumentType.INSTANCE,
                   instanceFileName,
                   schemaRefs=taxonomyRefs,
                   isEntry=True,
@@ -1815,7 +1816,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
         else: # API implementation
             modelXbrl = ModelXbrl.create(
                 cntlr.modelManager,
-                ModelDocument.Type.INSTANCE,
+                ModelDocumentType.INSTANCE,
                 instanceFileName,
                 schemaRefs=taxonomyRefs,
                 isEntry=True,
