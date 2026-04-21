@@ -28,3 +28,15 @@ class TestTCMetadataValidationError:
     def test_error_code(self) -> None:
         err = TCMetadataValidationError("test", "key", code=_TEST_CODE)
         assert err.code == _TEST_CODE
+
+    def test_tilde_in_segment_is_escaped(self) -> None:
+        err = TCMetadataValidationError("test", "a~b", code=_TEST_CODE)
+        assert err.json_pointer == "/a~0b"
+
+    def test_slash_in_segment_is_escaped(self) -> None:
+        err = TCMetadataValidationError("test", "a/b", code=_TEST_CODE)
+        assert err.json_pointer == "/a~1b"
+
+    def test_tilde_escaped_before_slash(self) -> None:
+        err = TCMetadataValidationError("test", "a~1b", code=_TEST_CODE)
+        assert err.json_pointer == "/a~01b"

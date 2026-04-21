@@ -18,7 +18,7 @@ class TCMetadataValidationError(TCError):
 
     @property
     def json_pointer(self) -> str:
-        return "/" + "/".join(self.path_segments)
+        return "/" + "/".join(s.replace("~", "~0").replace("/", "~1") for s in self.path_segments)
 
     def __str__(self) -> str:
         if self.path_segments:
