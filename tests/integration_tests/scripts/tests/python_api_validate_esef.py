@@ -50,7 +50,7 @@ print(f"Validating report: {target_path}")
 # include start
 options = RuntimeOptions(
     entrypointFile=str(report_zip_path),
-    disclosureSystemName='esef',
+    disclosureSystemName='esef-2024',
     internetConnectivity='offline',
     logFile=str(arelle_log_file),
     logFormat="[%(messageCode)s] %(message)s - %(file)s",
