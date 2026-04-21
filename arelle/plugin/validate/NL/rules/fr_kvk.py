@@ -125,7 +125,7 @@ def rule_fr_kvk_2_03(
             for refDoc, docRef in doc.referencesDocument.items():
                 if "href" not in docRef.referenceTypes:
                     continue
-                if docRef.referringModelObject is not None and docRef.referringModelObject.localName != "schemaRef":
+                if docRef.referringModelObject is None or docRef.referringModelObject.localName != "schemaRef":
                     continue
                 href = refDoc.uri
                 if href not in pluginData.entrypoints:
