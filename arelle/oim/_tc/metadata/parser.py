@@ -29,6 +29,7 @@ from arelle.oim._tc.metadata.model import (
 )
 from arelle.oim.const import IDENTIFIER_PATTERN, XBRLCE_INVALID_IDENTIFIER
 from arelle.typing import TypeGetText
+from arelle.XbrlConst import xsd
 
 _: TypeGetText
 
@@ -98,6 +99,9 @@ def parse_tc_metadata(
                 errors.extend(_prepend_paths(local_errors, "tableTemplates", template_id))
             if tc is not None:
                 template_constraints[template_id] = tc
+
+    if xs_prefix_error := _validate_xs_type_prefixes(template_constraints, namespaces):
+        errors.append(xs_prefix_error)
 
     metadata = None if errors else TCMetadata(template_constraints=template_constraints)
 
@@ -226,6 +230,25 @@ def _parse_template_table_constraints(
         errors.extend(_prepend_paths(local_errors, TC_TABLE_CONSTRAINTS_PROPERTY_NAME))
         return None
     return result
+
+
+def _validate_xs_type_prefixes(
+    template_constraints: dict[str, TCTemplateConstraints],
+    namespaces: dict[str, str],
+) -> TCMetadataParseError | None:
+    if namespaces.get("xs") == xsd:
+        return None
+    if any(
+        vc.type.startswith("xs:")
+        for tc in template_constraints.values()
+        for vc in (*tc.constraints.values(), *tc.parameters.values())
+    ):
+        return TCMetadataParseError(
+            _("Namespace prefix '{}' must be bound to '{}'").format("xs", xsd),
+            "documentInfo",
+            "namespaces",
+        )
+    return None
 
 
 _VALUE_CONSTRAINT_PROPERTIES = frozenset(

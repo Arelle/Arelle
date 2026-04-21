@@ -10,8 +10,9 @@ from arelle.oim._tc.const import (
 )
 from arelle.oim._tc.metadata.model import TCValueConstraint
 from arelle.oim._tc.metadata.parser import TCMetadataMissingPropertiesError, parse_tc_metadata
+from arelle.XbrlConst import xsd
 
-TC_MINIMAL_NAMESPACES = {TC_PREFIX: TC_NS_DRAFT}
+TC_MINIMAL_NAMESPACES = {TC_PREFIX: TC_NS_DRAFT, "xs": xsd}
 
 
 def _with_constraint(constraint: dict[str, Any]) -> dict[str, Any]:
@@ -1101,3 +1102,76 @@ class TestErrorCollection:
         )
         assert not result.is_valid
         assert len(result.errors) == 2
+
+
+class TestTypePrefixValidation:
+    def test_valid_xs_prefix(self) -> None:
+        result = parse_tc_metadata(
+            _with_constraint({"type": "xs:string"}),
+            {TC_PREFIX: TC_NS_DRAFT, "xs": xsd},
+        )
+        assert result.is_valid
+        assert result.metadata is not None
+
+    def test_missing_xs_namespace(self) -> None:
+        result = parse_tc_metadata(
+            _with_constraint({"type": "xs:string"}),
+            {TC_PREFIX: TC_NS_DRAFT},
+        )
+        assert not result.is_valid
+        assert result.metadata is None
+        assert result.errors[0].code == TCME_INVALID_JSON_STRUCTURE
+        assert result.errors[0].json_pointers == ["/documentInfo/namespaces"]
+
+    def test_wrong_xs_uri(self) -> None:
+        result = parse_tc_metadata(
+            _with_constraint({"type": "xs:string"}),
+            {TC_PREFIX: TC_NS_DRAFT, "xs": "http://wrong.uri"},
+        )
+        assert not result.is_valid
+        assert result.errors[0].code == TCME_INVALID_JSON_STRUCTURE
+        assert result.errors[0].json_pointers == ["/documentInfo/namespaces"]
+
+    def test_unprefixed_type_no_error(self) -> None:
+        result = parse_tc_metadata(
+            _with_constraint({"type": "period"}),
+            {TC_PREFIX: TC_NS_DRAFT},
+        )
+        assert result is not None
+        assert result.is_valid
+
+    def test_unknown_prefix_no_error(self) -> None:
+        result = parse_tc_metadata(
+            _with_constraint({"type": "foo:bar"}),
+            {TC_PREFIX: TC_NS_DRAFT},
+        )
+        assert result is not None
+        assert result.is_valid
+
+    def test_parameter_type_validated(self) -> None:
+        result = parse_tc_metadata(
+            _with_template({"tc:parameters": {"p1": {"type": "xs:string"}}}),
+            {TC_PREFIX: TC_NS_DRAFT},
+        )
+        assert not result.is_valid
+        assert result.errors[0].code == TCME_INVALID_JSON_STRUCTURE
+        assert result.errors[0].json_pointers == ["/documentInfo/namespaces"]
+
+    def test_multiple_xs_types_single_error(self) -> None:
+        result = parse_tc_metadata(
+            {
+                "tableTemplates": {
+                    "t1": {
+                        "columns": {
+                            "a": {"tc:constraints": {"type": "xs:string"}},
+                            "b": {"tc:constraints": {"type": "xs:integer"}},
+                        }
+                    }
+                }
+            },
+            {TC_PREFIX: TC_NS_DRAFT},
+        )
+        assert not result.is_valid
+        assert len(result.errors) == 1
+        assert result.errors[0].code == TCME_INVALID_JSON_STRUCTURE
+        assert result.errors[0].json_pointers == ["/documentInfo/namespaces"]
