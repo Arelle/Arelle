@@ -24,6 +24,7 @@ from arelle.ModelDocument import ModelDocument as ModelDocumentClass
 from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ModelValue import (DATETIME, dateTime, dayTimeDuration, qname,
                                yearMonthDuration)
+from arelle.oim.csv.metadata.common import CSV_DOCUMENT_TYPES
 from arelle.oim._tc.metadata.parser import parse_tc_metadata
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.PythonUtil import attrdict, isLegacyAbs, strTruncate
@@ -51,12 +52,7 @@ jsonDocumentTypes = (
         "http://www.xbrl.org/YYYY-MM-DD/xbrl-json",
         "https://xbrl.org/((~status_date_uri~))/xbrl-json" # allows loading of XII "template" test cases without CI production
     )
-csvDocumentTypes = (
-        "https://xbrl.org/2021/xbrl-csv",
-        "http://www.xbrl.org/WGWD/YYYY-MM-DD/xbrl-csv",
-        "http://xbrl.org/YYYY/xbrl-csv",
-        "https://xbrl.org/((~status_date_uri~))/xbrl-csv" # allows loading of XII "template" test cases without CI production
-    )
+csvDocumentTypes = tuple(CSV_DOCUMENT_TYPES)
 csvDocinfoObjects = {"documentType", "namespaces", "taxonomy", "extends", "final", "linkTypes", "linkGroups"}
 csvExtensibleObjects = {"namespaces", "linkTypes", "linkGroups", "features", "final", "tableTemplates", "tables", "dimensions", "parameters"}
 
