@@ -345,6 +345,10 @@
                         "value": "❌ Fail"
                     },
                     {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
                         "property": "xbrl:specificationErrorURI",
                         "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#NAMESPACE-PrefixRemapRequired-Error"
                     }
@@ -365,6 +369,10 @@
                     {
                         "property": "xbrl:conformanceStatus",
                         "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "2"
                     },
                     {
                         "property": "xbrl:specificationErrorURI",
@@ -389,6 +397,10 @@
                         "value": "❌ Fail"
                     },
                     {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
                         "property": "xbrl:specificationErrorURI",
                         "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#UNIT-InvalidUnitStringRepresentationBadChars"
                     }
@@ -409,6 +421,10 @@
                     {
                         "property": "xbrl:conformanceStatus",
                         "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "2"
                     },
                     {
                         "property": "xbrl:specificationErrorURI",
@@ -433,6 +449,10 @@
                         "value": "❌ Fail"
                     },
                     {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "2"
+                    },
+                    {
                         "property": "xbrl:specificationErrorURI",
                         "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#UNIT-UnitWithInvalidStringRepresentation"
                     }
@@ -455,6 +475,10 @@
                         "value": "❌ Fail"
                     },
                     {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "7"
+                    },
+                    {
                         "property": "xbrl:specificationErrorURI",
                         "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#NAMESPACE-RestrictedPrefix"
                     }
@@ -475,6 +499,10 @@
                     {
                         "property": "xbrl:conformanceStatus",
                         "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "3"
                     },
                     {
                         "property": "xbrl:specificationErrorURI",

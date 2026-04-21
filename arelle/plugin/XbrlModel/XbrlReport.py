@@ -2,7 +2,7 @@
 See COPYRIGHT.md for copyright information.
 """
 
-from typing import TYPE_CHECKING, Optional, Any, Union, ClassVar
+from typing import TYPE_CHECKING, Optional, Any, Union, ClassVar, Dict
 from collections import defaultdict, OrderedDict
 from decimal import Decimal
 from arelle.ModelValue import QName, AnyURI
@@ -52,12 +52,6 @@ class XbrlFactValue(XbrlObject):
     valueSources: OrderedSet[XbrlFactValueSource] # (required if value not provided) An ordered set of factValueSource objects that identify where the values are obtained from content of an embedding or accompanying document file (html, pdf or tabular).
     valueAnchors: OrderedSet[XbrlFactValueAnchor] # (optional if valueSources not provided) An ordered set of factAnchor objects that identify corresponding content of an embedding document file (html, pdf or tabular) for cases where the value is provided in the value property instead of obtained from the content of document file. For example, non-transformable values, such as a QName value, may correspond to prose text in the document file. Used by tools to highlight and detect mouse-over correspondence between fact values and document text.
 
-class XbrlFactDimensions(dict[QName, Any]):
-    """ Fact Dimensions Object
-        Reference: oim-taxonomy#factdimensions-object
-    """
-    # The factDimensions object is a dictionary with properties corresponding to the members of the {dimensions} property of the taxonomy model. Each property is a QName that identifies a dimension, and the value of each property is the dimension value for that dimension. The dimension value can be a QName for explicit dimensions or a typed value for typed dimensions. The factDimensions object must include properties for all dimensions defined in the {dimensions} property of the taxonomy model, and may include additional properties for dimensions not defined in the {dimensions} property.
-
 class XbrlFact(XbrlReportObject):
     """ Fact Object
         Reference: oim-taxonomy#fact-object
@@ -65,7 +59,7 @@ class XbrlFact(XbrlReportObject):
     parent: Union[XbrlReportType,XbrlModuleType]  # facts in taxonomy module are owned by the txmyMdl
     name: QNameKeyType # (equired if no extendTargetName) The name is a QName that uniquely identifies the factspace object.
     factValues: OrderedSet[XbrlFactValue]
-    factDimensions: XbrlFactDimensions # (required) A dimensions object with properties corresponding to the members of the {dimensions} property.
+    factDimensions: Dict[QName, Any] # (required) A dimensions object with properties corresponding to the members of the {dimensions} property.
     properties: OrderedSet[XbrlProperty] # (optional) an ordered set of property objects used to specify additional properties associated with the fact using the property object.
     extendTargetName: Optional[QName] # (required if no name property) Names the fact object that is appended to. The fact values and dimensions of the fact with this property are appended to the end of the fact object with the name property. This property cannot be used in conjunction with the name property.
     _propertyMap: ClassVar[dict[type,dict[str, str]]] = {}
