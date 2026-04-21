@@ -2,17 +2,19 @@ from __future__ import annotations
 
 from types import MappingProxyType
 
+from arelle import XbrlConst
 from arelle.oim._tc.const import (
     TC_NS_DRAFT,
     TC_PREFIX,
+    TCME_COLUMN_PARAMETER_CONFLICT,
     TCME_INVALID_NAMESPACE_PREFIX,
 )
 from arelle.oim._tc.metadata.common import TCMetadataValidationError
-from arelle.oim._tc.metadata.model import TCMetadata
+from arelle.oim._tc.metadata.model import TCMetadata, TCTemplateConstraints, TCValueConstraint
 from arelle.oim._tc.metadata.validate import TCMetadataValidator
 from arelle.oim.csv.metadata.model import XbrlCsvDocumentInfo, XbrlCsvEffectiveMetadata, XbrlCsvTableTemplate
 
-TC_NAMESPACES = {TC_PREFIX: TC_NS_DRAFT}
+_TC_NAMESPACES = {TC_PREFIX: TC_NS_DRAFT, "xs": XbrlConst.xsd}
 _EMPTY_TC_METADATA = TCMetadata(template_constraints={})
 
 
@@ -45,4 +47,125 @@ class TestNamespacePrefix:
         assert errors[0].code == TCME_INVALID_NAMESPACE_PREFIX
 
     def test_tc_prefix_no_error(self) -> None:
-        assert _validate(TC_NAMESPACES) == []
+        assert _validate(_TC_NAMESPACES) == []
+
+
+class TestColumnParameterConflict:
+    def test_conflict_detected(self) -> None:
+        tc_metadata = TCMetadata(
+            template_constraints={
+                "t1": TCTemplateConstraints(
+                    constraints={"col1": TCValueConstraint(type="xs:decimal")},
+                    parameters={"col1": TCValueConstraint(type="xs:decimal")},
+                ),
+            }
+        )
+        errors = list(TCMetadataValidator(_build_effective_metadata(_TC_NAMESPACES), tc_metadata).validate())
+        assert len(errors) == 1
+        assert errors[0].code == TCME_COLUMN_PARAMETER_CONFLICT
+        assert set(errors[0].json_pointers) == {
+            "/tableTemplates/t1/columns/col1",
+            "/tableTemplates/t1/tc:parameters/col1",
+        }
+
+    def test_no_conflict_different_names(self) -> None:
+        tc_metadata = TCMetadata(
+            template_constraints={
+                "t1": TCTemplateConstraints(
+                    constraints={"col1": TCValueConstraint(type="xs:decimal")},
+                    parameters={"param1": TCValueConstraint(type="xs:decimal")},
+                ),
+            }
+        )
+        errors = list(TCMetadataValidator(_build_effective_metadata(_TC_NAMESPACES), tc_metadata).validate())
+        assert errors == []
+
+    def test_no_conflict_only_columns(self) -> None:
+        tc_metadata = TCMetadata(
+            template_constraints={
+                "t1": TCTemplateConstraints(
+                    constraints={"col1": TCValueConstraint(type="xs:string")},
+                ),
+            }
+        )
+        errors = list(TCMetadataValidator(_build_effective_metadata(_TC_NAMESPACES), tc_metadata).validate())
+        assert errors == []
+
+    def test_no_conflict_only_parameters(self) -> None:
+        tc_metadata = TCMetadata(
+            template_constraints={
+                "t1": TCTemplateConstraints(
+                    parameters={"param1": TCValueConstraint(type="xs:string")},
+                ),
+            }
+        )
+        errors = list(TCMetadataValidator(_build_effective_metadata(_TC_NAMESPACES), tc_metadata).validate())
+        assert errors == []
+
+    def test_conflict_in_one_template_not_other(self) -> None:
+        tc_metadata = TCMetadata(
+            template_constraints={
+                "t1": TCTemplateConstraints(
+                    constraints={"shared": TCValueConstraint(type="xs:string")},
+                    parameters={"shared": TCValueConstraint(type="xs:string")},
+                ),
+                "t2": TCTemplateConstraints(
+                    constraints={"shared": TCValueConstraint(type="xs:string")},
+                    parameters={"other": TCValueConstraint(type="xs:string")},
+                ),
+            }
+        )
+        errors = list(TCMetadataValidator(_build_effective_metadata(_TC_NAMESPACES), tc_metadata).validate())
+        assert len(errors) == 1
+        assert set(errors[0].json_pointers) == {
+            "/tableTemplates/t1/columns/shared",
+            "/tableTemplates/t1/tc:parameters/shared",
+        }
+
+    def test_multiple_conflicts_in_one_template(self) -> None:
+        tc_metadata = TCMetadata(
+            template_constraints={
+                "t1": TCTemplateConstraints(
+                    constraints={
+                        "shared1": TCValueConstraint(type="xs:string"),
+                        "shared2": TCValueConstraint(type="xs:string"),
+                        "unique1": TCValueConstraint(type="xs:string"),
+                    },
+                    parameters={
+                        "shared1": TCValueConstraint(type="xs:string"),
+                        "shared2": TCValueConstraint(type="xs:string"),
+                        "unique2": TCValueConstraint(type="xs:string"),
+                    },
+                ),
+            }
+        )
+        errors = list(TCMetadataValidator(_build_effective_metadata(_TC_NAMESPACES), tc_metadata).validate())
+        assert len(errors) == 2
+        assert {p for e in errors for p in e.json_pointers} == {
+            "/tableTemplates/t1/columns/shared2",
+            "/tableTemplates/t1/columns/shared1",
+            "/tableTemplates/t1/tc:parameters/shared1",
+            "/tableTemplates/t1/tc:parameters/shared2",
+        }
+
+    def test_conflict_in_multiple_templates(self) -> None:
+        tc_metadata = TCMetadata(
+            template_constraints={
+                "t1": TCTemplateConstraints(
+                    constraints={"shared": TCValueConstraint(type="xs:string")},
+                    parameters={"shared": TCValueConstraint(type="xs:string")},
+                ),
+                "t2": TCTemplateConstraints(
+                    constraints={"shared": TCValueConstraint(type="xs:string")},
+                    parameters={"shared": TCValueConstraint(type="xs:string")},
+                ),
+            }
+        )
+        errors = list(TCMetadataValidator(_build_effective_metadata(_TC_NAMESPACES), tc_metadata).validate())
+        assert len(errors) == 2
+        assert {p for e in errors for p in e.json_pointers} == {
+            "/tableTemplates/t1/columns/shared",
+            "/tableTemplates/t2/columns/shared",
+            "/tableTemplates/t1/tc:parameters/shared",
+            "/tableTemplates/t2/tc:parameters/shared",
+        }

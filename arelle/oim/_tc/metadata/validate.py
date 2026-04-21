@@ -8,11 +8,14 @@ from collections.abc import Generator
 
 from arelle.oim._tc.const import (
     TC_NAMESPACES,
+    TC_PARAMETERS_PROPERTY_NAME,
     TC_PREFIX,
+    TCME_COLUMN_PARAMETER_CONFLICT,
     TCME_INVALID_NAMESPACE_PREFIX,
 )
 from arelle.oim._tc.metadata.common import TCMetadataValidationError
 from arelle.oim._tc.metadata.model import TCMetadata
+from arelle.oim.csv.metadata.common import COLUMNS_KEY, TABLE_TEMPLATES_KEY
 from arelle.oim.csv.metadata.model import XbrlCsvEffectiveMetadata
 from arelle.typing import TypeGetText
 
@@ -26,6 +29,7 @@ class TCMetadataValidator:
 
     def validate(self) -> Generator[TCMetadataValidationError, None, None]:
         yield from self._validate_namespace_prefixes()
+        yield from self._validate_column_parameter_conflicts()
 
     def _validate_namespace_prefixes(self) -> Generator[TCMetadataValidationError, None, None]:
         for prefix, uri in self._namespaces.items():
@@ -35,4 +39,17 @@ class TCMetadataValidator:
                         uri, TC_PREFIX, prefix
                     ),
                     code=TCME_INVALID_NAMESPACE_PREFIX,
+                )
+
+    def _validate_column_parameter_conflicts(self) -> Generator[TCMetadataValidationError, None, None]:
+        for template_id, tc in self._tc_metadata.template_constraints.items():
+            for name in tc.constraints.keys() & tc.parameters.keys():
+                yield TCMetadataValidationError(
+                    _("Constrained column '{}' conflicts with parameter of the same name").format(name),
+                    TABLE_TEMPLATES_KEY,
+                    template_id,
+                    COLUMNS_KEY,
+                    name,
+                    code=TCME_COLUMN_PARAMETER_CONFLICT,
+                    related_paths=((TABLE_TEMPLATES_KEY, template_id, TC_PARAMETERS_PROPERTY_NAME, name),),
                 )
