@@ -170,20 +170,6 @@
                     "baseCubeType": "xbrla:eventDetailsCube"
                 },
                 {
-                    "name": "xbrla:referenceCube",
-                    "coreDimensions": ["xbrl:concept"],
-                    "cubeDimensionConstraints" : {
-                     "allowed": [
-                        {
-                        "type": "typed",
-                        "dataType": "xs:token",
-                        "minDimensions" : 1
-                        }
-                    ],
-                    "closed" : true
-                    }
-                },
-                {
                     "name": "xbrla:timeSeriesCube",
                     "coreDimensions": ["xbrl:concept", "xbrl:unit", "xbrl:entity"],
                     "cubeDimensionConstraints" : {
@@ -239,7 +225,35 @@
                     ],
                     "closed" : true
                      }
-                }
+                },
+                {
+                    "name": "xbrla:referenceCube",
+                    "coreDimensions": ["xbrl:concept"],
+                    "cubeDimensionConstraints": {
+                        "allowed": [
+                            {
+                                "type": "typed",
+                                "dataType": "xs:token",
+                                "minDimensions": 1,
+                                "maxDimensions":1
+
+                            }
+                        ],
+                        "closed": true
+                    },
+                    "cubeNetworkConstraints": {
+                        "closed": false,
+                        "cubeNetworks": [
+                            {
+                                "relationshipType": "xbrl:concept-refDimension",
+                                "maxNetworks": 0,
+                                "target": {
+                                    "qname" : "xbrl:period"
+                                }
+                            }
+                        ]
+                        }
+                    }
         ],
         "labels":[
         {
@@ -343,6 +357,18 @@
                 "language": "en",
                 "relatedName": "xbrla:positionCube",
                 "value": "Cube type for position-style facts that typically include period, entity and unit core dimensions."
+            }
+        ],
+        "networks": [
+            {
+                "name": "xbrla:dependentPropertiesNetwork",
+                "relationshipTypeName": "xbrl:property-requiredProperty",
+                "relationships": [
+                    {
+                        "source": "xbrla:intervalConvention",
+                        "target": "xbrla:intervalOfMeasurement"
+                    }
+                ]
             }
         ]
     }

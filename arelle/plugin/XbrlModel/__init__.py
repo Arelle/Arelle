@@ -16,8 +16,7 @@ For XBRL 2.1 XML schema validation purposes, saves schema files in directory if
 
 """
 
-from typing import TYPE_CHECKING, cast, GenericAlias, Union, _GenericAlias, _UnionGenericAlias, get_origin, ClassVar, ForwardRef, get_args
-
+from typing import TYPE_CHECKING, cast, GenericAlias, Union, _GenericAlias, _UnionGenericAlias, get_origin, ClassVar, ForwardRef, get_args, Dict
 import os, io, json, cbor2, sys, time, traceback, inspect
 JSON_SCHEMA_VALIDATOR = "jsonschema" # select one of below JSON schema validator libraries (seriously different performance)
 #JSON_SCHEMA_VALIDATOR = "fastjsonschema"
@@ -501,15 +500,10 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                     unexpectedJsonProps.remove(jsonKey)
                     jsonValue = jsonObj[jsonKey]
                     if (isinstance(propType, GenericAlias) or
-                        (isinstance(propType, _UnionGenericAlias) and isinstance(propType.__args__[0], GenericAlias) and propType.__args__[0].__origin__ in (OrderedSet, dict)) or
-                        (isinstance(propType, _GenericAlias) and propType.__origin__ in (list, set, OrderedSet, dict)) or
-                        (isinstance(propType, type) and issubclass(propType, dict))):
+                        (isinstance(propType, _UnionGenericAlias) and isinstance(propType.__args__[0], GenericAlias) and propType.__args__[0].__origin__ in (OrderedSet, Dict)) or
+                        (isinstance(propType, _GenericAlias) and propType.__origin__ in (list, set, OrderedSet, dict, Dict))):
                         # for Optional OrderedSets where the jsonValue exists, handle as propType, _keyClass and eltClass
-                        if isinstance(propType, type) and issubclass(propType, dict): # e.g. factDimensions
-                            _keyClass, eltClass = get_args(propType.__orig_bases__[0]) # class of key such as QNameKey, class of collection elements such as XbrlConcept
-                            collectionProp = propType()
-                            setattr(newObj, propName, collectionProp) # fresh new dict or OrderedSet (even if no contents for it)
-                        elif isinstance(propType.__args__[0], GenericAlias) and len(propType.__args__[0].__args__) == 1 and propType.__args__[0].__origin__ == OrderedSet:
+                        if isinstance(propType.__args__[0], GenericAlias) and len(propType.__args__[0].__args__) == 1 and propType.__args__[0].__origin__ == OrderedSet:
                             # handle as non-optional OrderedSet
                             propClass = propType.__args__[0].__origin__ # collection type such as OrderedSet
                             collectionProp = propClass()
@@ -522,7 +516,10 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                             setattr(newObj, propName, collectionProp) # fresh new dict or OrderedSet (even if no contents for it)
                             _keyClass = None
                             eltClass = propType.__args__[0]
-                        elif len(propType.__args__) == 2: # dict
+                        elif len(propType.__args__) == 2 and propType.__origin__ in (dict, Dict): # dict
+                            propClass = propType.__origin__
+                            collectionProp = propClass()
+                            setattr(newObj, propName, collectionProp) # fresh new dict or OrderedSet (even if no contents for it)
                             _keyClass = propType.__args__[0] # class of key such as QNameKey
                             eltClass = propType.__args__[1] # class of collection elements such as XbrlConcept
                         elif len(propType.__args__) == 1: # set such as OrderedSet or list

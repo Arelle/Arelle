@@ -251,6 +251,10 @@
                         "value": "❌ Fail"
                     },
                     {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "2"
+                    },
+                    {
                         "property": "xbrl:specificationErrorURI",
                         "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CALCULATION-InvalidSummationItemValue"
                     }
@@ -271,6 +275,10 @@
                     {
                         "property": "xbrl:conformanceStatus",
                         "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
                     },
                     {
                         "property": "xbrl:specificationErrorURI",
@@ -295,6 +303,10 @@
                         "value": "❌ Fail"
                     },
                     {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "2"
+                    },
+                    {
                         "property": "xbrl:specificationErrorURI",
                         "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CALCULATION-InvalidSummationMultiEntityValue"
                     }
@@ -315,6 +327,10 @@
                     {
                         "property": "xbrl:conformanceStatus",
                         "value": "✅ Pass"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "0"
                     },
                     {
                         "property": "xbrl:specificationErrorURI",
@@ -339,6 +355,10 @@
                         "value": "❌ Fail"
                     },
                     {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
                         "property": "xbrl:specificationErrorURI",
                         "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CALCULATION-InvalidDuplicateCalculationRelationships"
                     }
@@ -359,6 +379,10 @@
                     {
                         "property": "xbrl:conformanceStatus",
                         "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
                     },
                     {
                         "property": "xbrl:specificationErrorURI",

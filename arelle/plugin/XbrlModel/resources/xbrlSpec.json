@@ -17,7 +17,9 @@
         "cubeTypes" :[
                 {
                     "name": "xbrl:reportCube",
-                    "coreDimensions": ["xbrl:concept", "xbrl:period", "xbrl:unit", "xbrl:entity","xbrl:language"]
+                    "coreDimensions": ["xbrl:concept", "xbrl:period", "xbrl:unit", "xbrl:entity","xbrl:language"],
+                    "coreDomainClasses": ["xbrl:conceptDomain"]
+
                 },
                 {
                     "name": "xbrl:openCube"
@@ -1479,6 +1481,11 @@
                 "allowedObjects": ["xbrl:referenceObject"]
             },
             {
+                "name": "xbrl:conformanceErrorsProduced",
+                "dataType": "xs:integer",
+                "allowedObjects": ["xbrl:referenceObject"]
+            },
+            {
                 "name": "xbrl:conformanceTestDescription",
                 "dataType": "xs:string",
                 "allowedObjects": ["xbrl:referenceObject"]
@@ -1770,6 +1777,12 @@
                 "cycles" : "undirected",
                 "sourceObjects" : ["xbrl:factObject"],
                 "targetObjects" : ["xbrl:factObject"]
+            },
+            {
+                "name": "xbrl:property-requiredProperty",
+                "cycles" : "none",
+                "sourceObjects": ["xbrl:propertyTypeObject"],
+                "targetObjects": ["xbrl:propertyTypeObject"]
             }
         ],
         "factMaps": [

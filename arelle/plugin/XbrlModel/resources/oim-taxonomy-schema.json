@@ -89,6 +89,10 @@
                       },
                       "excludeLabels": {
                         "type": "boolean"
+                      },
+                      "removeOrphanedReferenceQNames": {
+                        "type": "boolean",
+                        "description": "If true, any relatedNames entries in an imported reference object that refer to objects no longer present in the compiled model are silently removed from the relatedNames set. Defaults to false."
                       }
                     },
                     "required": ["xbrlModelName"],
@@ -782,6 +786,7 @@
                           "additionalProperties": false,
                           "allOf": [
                             {
+                              "required": ["name"],
                               "anyOf": [
                                 { "required": ["value"] },
                                 { "required": ["valueSources"] }
@@ -1241,6 +1246,12 @@
                           "items": { "$ref": "#/definitions/dimensionQName" },
                           "uniqueItems": true,
                           "description": "Array of core dimension QNames that are allowed in cubes of this type. Only xbrl:concept, xbrl:period, xbrl:entity, xbrl:unit, and xbrl:language are valid. Concept is always assumed."
+                        },
+                        "coreDomainClasses": {
+                          "type": "array",
+                          "items": { "$ref": "#/definitions/domainClassQName" },
+                          "uniqueItems": true,
+                          "description": "Array of QNames referencing core domain class objects that indicate whether the domainName property is required in the cubeDimension object. Valid values are xbrl:conceptDomain, xbrl:entityDomain, and xbrl:unitDomain. If specified, the domainName property in cubeDimension becomes required for the referenced domain classes."
                         },
                         "cubeDimensionConstraints": {
                           "type": "object",
@@ -2210,7 +2221,10 @@
             "sign": {
               "type": "string",
               "description": "Sign of the value when not part of the transformation."
-            }
+            },
+            "escape": {
+              "type": "boolean",
+              "description": "Whether to escape special characters in the source text."}
           },
           "additionalProperties": false,
 

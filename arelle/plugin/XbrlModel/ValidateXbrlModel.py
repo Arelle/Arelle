@@ -355,7 +355,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                       _("Concept %(name)s has invalid period type %(perType)s"),
                       xbrlObject=cncpt, name=cncpt.name, perType=perType)
         dtObj = validateQNameReference(compMdl, cncpt, "dataType", (XbrlDataType, XbrlCollectionType))
-        if dtObj and not dtObj.isAllowedFor(cncpt):
+        if isinstance(dtObj, XbrlDataType) and dtObj.allowedObjects and qnXbrlConceptObj not in dtObj.allowedObjects:
             compMdl.error("oimte:unallowedDataTypeObject",
                       _("Concept %(name)s is not allowed for dataType %(dataType)s"),
                     xbrlObject=cncpt, name=cncpt.name, dataType=dtObj.name)
@@ -384,7 +384,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                     dConstrNames[dConstr.dimensionName] = i
                 if dConstr.dataType:
                     dtObj = validateQNameReference(compMdl, dConstr, "dataType", XbrlDataType)
-                    if dtObj and not dtObj.isAllowedFor(qnXbrlDimensionObj):
+                    if dtObj and dtObj.allowedObjects and qnXbrlDimensionObj not in dtObj.allowedObjects:
                         compMdl.error("oimte:unallowedDataTypeObject",
                                   _("The cube type %(name)s, cubeDimensionConstraints/allowed[%(i)s] dataType %(dataType)s is not allowed on a dimension object."),
                                   xbrlObject=cubeType, name=name, i=i, dataType=dConstr.dataType)
@@ -827,12 +827,6 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                     compMdl.error("oimte:invalidPropertyValue",
                               _("The dataType object unitType %(name)s MUST define a valid dataType object in the taxonomy model"),
                               xbrlObject=dtObj, name=dtObj.name)
-        if isinstance(dtObj.collectionType, XbrlCollectionType):
-            if btQn != qnXbrliCollection:
-                compMdl.error("oimte:collectionTypeWithoutCollectionBaseType",
-                          _("The set dataType object %(name)s MUST define a valid baseType xbrli:collection"),
-                          xbrlObject=dtObj, name=dtObj.name)
-            validateQNameReference(compMdl, dtObj.collectionType, "dataType", XbrlDataType, qnRef=dtQn)
 
     # Dimension Objects
     for dimObj in module.dimensions:
@@ -1186,10 +1180,6 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
             compMdl.error("oimte:invalidDataTypeObject",
                       _("The labelType %(name)s dataType %(qname)s MUST be a valid dataType object in the taxonomy model"),
                       xbrlObject=lblObj, name=lblObj.name, qname=lblObj.dataType)
-        #elif not dataTypeObj.isAllowedFor(qnXbrlLabelObj):
-        #    compMdl.error("oimte:unallowedDataTypeObject",
-        #              _("The labelType %(name)s is not allowed for dataType %(qname)s"),
-        #              xbrlObject=lblObj, name=lblObj.name, qname=lblObj.dataType)
         if lblObj.allowedObjects is not None:
             if not lblObj.allowedObjects:
                 compMdl.error("oimte:invalidEmptySet",
@@ -1235,7 +1225,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                 compMdl.error("oimte:invalidDataType",
                           _("The unit %(name)s dataType %(qname)s MUST be a dataType object."),
                           xbrlObject=unitObj, name=unitObj.name, qname=dtQn)
-            elif not dtObj.isAllowedFor(unitObj):
+            elif dtObj.allowedObjects and qnXbrlUnitObj not in dtObj.allowedObjects:
                 compMdl.error("oimte:unallowedDataTypeObject",
                               _("The unit %(name)s is not allowed for dataType %(dataType)s."),
                           xbrlObject=unitObj, name=unitObj.name, dataType=dtQn)
