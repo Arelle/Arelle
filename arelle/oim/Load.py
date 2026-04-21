@@ -818,6 +818,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             _dict[DUPJSONVALUE].append((value, key, _valueKeyDict[value]))
                         else:
                             _valueKeyDict[value] = key
+            _dict.pop(DUPJSONVALUE, None)
             return _dict
 
         primaryOimFile = oimFile
