@@ -20,6 +20,7 @@ from lxml import etree
 
 from arelle import (ModelDocument, ModelXbrl, PackageManager, UrlUtil,
                     ValidateXbrlDimensions, XbrlConst, XmlUtil, XmlValidate)
+from arelle.ModelDocument import ModelDocument as ModelDocumentClass
 from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ModelValue import (DATETIME, dateTime, dayTimeDuration, qname,
                                yearMonthDuration)
@@ -2840,8 +2841,9 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     modelObject=modelXbrl, action=currentAction, error=ex,
                     traceback=traceback.format_exc())
 
-    # Reset modified status of model so user is not prompted for changes triggered by this loading operation.
-    _return.isModified = False
+    if isinstance(_return, ModelDocumentClass):
+        # Reset modified status of model so user is not prompted for changes triggered by this loading operation.
+        _return.isModified = False
     return _return
 
 def _isParamRef(value):
