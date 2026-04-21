@@ -83,7 +83,7 @@ def _prepend_paths(errors: list[TCMetadataParseError], *segments: str) -> list[T
     return errors
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class TCParseResult:
     metadata: TCMetadata | None
     errors: tuple[TCMetadataParseError, ...]
