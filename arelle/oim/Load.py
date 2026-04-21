@@ -2387,7 +2387,6 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         else:
                             startDateTime = dateTime(_start, type=DATETIME)
                             endDateTime = dateTime(_end, type=DATETIME)
-                        numFactCreationXbrlErrors -= len(modelXbrl.errors) # track any xbrl validation errors
                         prevErrLen = len(modelXbrl.errors)
                         _cntx = modelXbrl.createContext(
                                                 entityAsQn.namespaceURI,
@@ -2820,7 +2819,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
 
         currentAction = "done loading facts and footnotes"
 
-        if numFactCreationXbrlErrors:
+        if numFactCreationXbrlErrors > 0:
             error("oime:invalidXBRL",
                   _("%(count)s XBRL errors noted above."),
                   modelObject=modelXbrl, count=numFactCreationXbrlErrors)
