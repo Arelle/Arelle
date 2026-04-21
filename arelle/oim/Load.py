@@ -1868,7 +1868,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     return False
                 return True # SQName is ok
 
-            def checkDim(tblTmpl, dimName, dimValue, *pathSegs):
+            def checkDim(tblTmpl, dimName, dimValue, *pathSegs, inDimensions=True):
                 if dimValue is not None:
                     if isinstance(dimValue,str) and dimValue.startswith("#") and not SpecialValuePattern.match(dimValue):
                         error("xbrlce:unknownSpecialValue",
@@ -1982,7 +1982,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                     error("oime:unsupportedDimensionDataType",
                                           _("Taxonomy-defined typed dimension value is complex: %(memberQName)s at %(path)s"),
                                           modelObject=modelXbrl, memberQName=dimValue, path="/".join(pathSegs+(dimName,)))
-                if pathSegs[-1] in ("/dimensions", "dimensions") and dimName not in builtInDimensionKeys and not SQNamePattern.match(dimName):
+                if inDimensions and dimName not in builtInDimensionKeys and not SQNamePattern.match(dimName):
                     error("oimce:invalidSQName",
                           _("Invalid SQName: %(sqname)s"),
                           sourceFileLine=oimFile, sqname=dimName, path="/".join(pathSegs))
@@ -1992,7 +1992,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 checkIdentifier(reportParameterName, "/parameters")
             for dimName, dimValue in reportDimensions.items():
                 checkDim(None, dimName, dimValue, "/dimensions")
-            checkDim(None, "decimals", reportDecimals, "/")
+            checkDim(None, "decimals", reportDecimals, "/", inDimensions=False)
 
             # check table template statically defined dimensions, regardless of use
             for tblTmplId, tblTmpl in tableTemplates.items():
@@ -2017,16 +2017,16 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
 
                 for dimName, dimValue in tblTmpl.get("dimensions",EMPTY_DICT).items():
                     checkDim(tblTmpl, dimName, dimValue, "/tableTemplates", tblTmplId, "dimensions")
-                checkDim(tblTmpl, "decimals", tblTmpl.get("decimals",None), "/tableTemplates", tblTmplId)
+                checkDim(tblTmpl, "decimals", tblTmpl.get("decimals",None), "/tableTemplates", tblTmplId, inDimensions=False)
                 for columnId, column in columns.items():
                     for dimName, dimValue in column.get("dimensions",EMPTY_DICT).items():
                         checkDim(tblTmpl, dimName, dimValue, "/tableTemplates", tblTmplId, "columns", columnId, "dimensions")
-                    checkDim(tblTmpl, "decimals", column.get("decimals",None), "/tableTemplates", tblTmplId, "columns", columnId)
+                    checkDim(tblTmpl, "decimals", column.get("decimals",None), "/tableTemplates", tblTmplId, "columns", columnId, inDimensions=False)
                     for propGrpName, propGrp in column.get("propertyGroups",EMPTY_DICT).items():
                         checkIdentifier(propGrpName, "/tableTemplates", tblTmplId, "columns", columnId, "propertyGroups", propGrpName)
                         for dimName, dimValue in propGrp.get("dimensions",EMPTY_DICT).items():
                             checkDim(tblTmpl, dimName, dimValue, "/tableTemplates", tblTmplId, "columns", columnId, "propertyGroups", propGrpName, "dimensions")
-                        checkDim(tblTmpl, "decimals", propGrp.get("decimals",None), "/tableTemplates", tblTmplId, "columns", columnId, "propertyGroups", propGrpName)
+                        checkDim(tblTmpl, "decimals", propGrp.get("decimals",None), "/tableTemplates", tblTmplId, "columns", columnId, "propertyGroups", propGrpName, inDimensions=False)
                     decPGs = set()
                     dimPGs = defaultdict(set)
                     for propertyFrom in column.get("propertiesFrom",()):
