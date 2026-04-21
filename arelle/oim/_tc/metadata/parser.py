@@ -14,8 +14,10 @@ from arelle.oim._tc.const import (
     TC_KEYS_PROPERTY_NAME,
     TC_NAMESPACES,
     TC_PARAMETERS_PROPERTY_NAME,
+    TC_PREFIX,
     TC_TABLE_CONSTRAINTS_PROPERTY_NAME,
     TCME_INVALID_JSON_STRUCTURE,
+    TCME_MISPLACED_OR_UNKNOWN_PROPERTY,
 )
 from arelle.oim._tc.metadata.common import TCMetadataValidationError
 from arelle.oim._tc.metadata.model import (
@@ -28,10 +30,29 @@ from arelle.oim._tc.metadata.model import (
     TCValueConstraint,
 )
 from arelle.oim.const import IDENTIFIER_PATTERN, XBRLCE_INVALID_IDENTIFIER
+from arelle.oim.csv.metadata.common import COLUMNS_KEY, TABLE_TEMPLATES_KEY
 from arelle.typing import TypeGetText
 from arelle.XbrlConst import xsd
 
 _: TypeGetText
+
+
+_TC_PREFIX_COLON = f"{TC_PREFIX}:"
+
+_TEMPLATE_TC_PROPERTIES = frozenset(
+    {
+        TC_COLUMN_ORDER_PROPERTY_NAME,
+        TC_KEYS_PROPERTY_NAME,
+        TC_PARAMETERS_PROPERTY_NAME,
+        TC_TABLE_CONSTRAINTS_PROPERTY_NAME,
+    }
+)
+
+_COLUMN_TC_PROPERTIES = frozenset(
+    {
+        TC_CONSTRAINTS_PROPERTY_NAME,
+    }
+)
 
 
 class TCMetadataParseError(TCMetadataValidationError):
@@ -63,6 +84,16 @@ class TCMetadataMissingPropertiesError(TCMetadataParseError):
         super().__init__(_("Missing required properties: {}").format(names))
 
 
+class TCMetadataMisplacedTCPropertiesError(TCMetadataParseError):
+    def __init__(self, *path: str) -> None:
+        property_name = path[-1]
+        super().__init__(
+            _("Misplaced or unknown property: {}").format(property_name),
+            *path,
+            code=TCME_MISPLACED_OR_UNKNOWN_PROPERTY,
+        )
+
+
 def _prepend_paths(errors: list[TCMetadataParseError], *segments: str) -> list[TCMetadataParseError]:
     for error in errors:
         error.prepend_path(*segments)
@@ -83,10 +114,20 @@ def parse_tc_metadata(
     oim_object: dict[str, Any],
     namespaces: dict[str, str],
 ) -> TCParseResult:
+    """
+    Parse Table Constraints (TC) metadata from an OIM report.
+
+    On success or failure, returns a TCParseResult. Errors may include:
+    - `tcme:invalidJSONStructure` for type/structure violations
+    - `tcme:misplacedOrUnknownProperty` for tc: properties in wrong locations
+    - `xbrlce:invalidIdentifier` for invalid parameter or key names
+    Full semantic validation of the parsed metadata is not performed here.
+    """
     if not any(uri in TC_NAMESPACES for uri in namespaces.values()):
         return TCParseResult(metadata=None, errors=())
 
     errors: list[TCMetadataParseError] = []
+    errors.extend(_validate_misplaced_tc_properties(oim_object))
     template_constraints: dict[str, TCTemplateConstraints] = {}
     table_templates = oim_object.get("tableTemplates", {})
     if isinstance(table_templates, dict):
@@ -230,6 +271,65 @@ def _parse_template_table_constraints(
         errors.extend(_prepend_paths(local_errors, TC_TABLE_CONSTRAINTS_PROPERTY_NAME))
         return None
     return result
+
+
+def _validate_misplaced_tc_properties(oim_object: dict[str, Any]) -> list[TCMetadataParseError]:
+    errors: list[TCMetadataParseError] = []
+    for key, value in oim_object.items():
+        if key.startswith(_TC_PREFIX_COLON):
+            errors.append(TCMetadataMisplacedTCPropertiesError(key))
+        elif key == TABLE_TEMPLATES_KEY:
+            _validate_misplaced_in_table_templates(value, errors)
+        else:
+            _walk_validate_misplaced_value(value, errors, key)
+    return errors
+
+
+def _validate_misplaced_in_table_templates(
+    table_templates: Any,
+    errors: list[TCMetadataParseError],
+) -> None:
+    if not isinstance(table_templates, dict):
+        return
+    for template_id, template_obj in table_templates.items():
+        if not isinstance(template_obj, dict):
+            continue
+        for key, value in template_obj.items():
+            if key.startswith(_TC_PREFIX_COLON) and key not in _TEMPLATE_TC_PROPERTIES:
+                errors.append(TCMetadataMisplacedTCPropertiesError(TABLE_TEMPLATES_KEY, template_id, key))
+            if key == COLUMNS_KEY:
+                _validate_misplaced_in_columns(template_id, value, errors)
+            else:
+                _walk_validate_misplaced_value(value, errors, TABLE_TEMPLATES_KEY, template_id, key)
+
+
+def _validate_misplaced_in_columns(
+    template_id: str,
+    columns: Any,
+    errors: list[TCMetadataParseError],
+) -> None:
+    if not isinstance(columns, dict):
+        return
+    for col_id, col_obj in columns.items():
+        if not isinstance(col_obj, dict):
+            continue
+        for key, value in col_obj.items():
+            if key.startswith(_TC_PREFIX_COLON) and key not in _COLUMN_TC_PROPERTIES:
+                errors.append(
+                    TCMetadataMisplacedTCPropertiesError(TABLE_TEMPLATES_KEY, template_id, COLUMNS_KEY, col_id, key)
+                )
+            _walk_validate_misplaced_value(value, errors, TABLE_TEMPLATES_KEY, template_id, COLUMNS_KEY, col_id, key)
+
+
+def _walk_validate_misplaced_value(value: Any, errors: list[TCMetadataParseError], *path: str) -> None:
+    if isinstance(value, dict):
+        for key, child in value.items():
+            if key.startswith(_TC_PREFIX_COLON):
+                errors.append(TCMetadataMisplacedTCPropertiesError(*path, key))
+            _walk_validate_misplaced_value(child, errors, *path, key)
+    elif isinstance(value, list):
+        for i, item in enumerate(value):
+            _walk_validate_misplaced_value(item, errors, *path, str(i))
 
 
 def _validate_xs_type_prefixes(

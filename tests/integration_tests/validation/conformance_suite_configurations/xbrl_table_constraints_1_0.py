@@ -12,6 +12,12 @@ config = ConformanceSuiteConfig(
             entry_point=Path('table-constraints-conformance-2026-03-18/table-constraints-index.xml'),
         ),
     ],
+    expected_additional_testcase_errors={f'table-constraints-conformance-2026-03-18/{s}': val for s, val in {
+        # xBRL-CSV invalid test case, expected to be moved to xBRL-CSV conformance suite.
+        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-817c': {
+            'arelle:notLoaded': 1,
+        },
+    }.items()},
     expected_failure_ids=frozenset(f'table-constraints-conformance-2026-03-18/{s}' for s in [
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-04',
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-06',
@@ -71,18 +77,6 @@ config = ConformanceSuiteConfig(
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-809e',
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-809i',
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-809j',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-817a',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-817c',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-817d',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-817e',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-817f',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-817g',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-817h',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-817i',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-817j',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-817k',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-817l',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-817n',
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-879',
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-887',
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-m25a',

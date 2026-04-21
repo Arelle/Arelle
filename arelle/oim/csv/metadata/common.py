@@ -4,6 +4,9 @@ See COPYRIGHT.md for copyright information.
 
 from __future__ import annotations
 
+TABLE_TEMPLATES_KEY = "tableTemplates"
+COLUMNS_KEY = "columns"
+
 CSV_DOCUMENT_TYPES = frozenset(
     {
         "https://xbrl.org/2021/xbrl-csv",
