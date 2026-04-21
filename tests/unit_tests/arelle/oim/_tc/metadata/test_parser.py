@@ -372,6 +372,45 @@ class TestParameters:
         )
         assert not result.is_valid
 
+    def test_valid_parameter_name(self) -> None:
+        result = parse_tc_metadata(
+            _with_template({"tc:parameters": {"validName": {"type": "xs:string"}}}),
+            TC_MINIMAL_NAMESPACES,
+        )
+        assert result.is_valid
+
+    def test_parameter_name_with_dot_is_invalid(self) -> None:
+        result = parse_tc_metadata(
+            _with_template({"tc:parameters": {"name.dot": {"type": "xs:string"}}}),
+            TC_MINIMAL_NAMESPACES,
+        )
+        assert not result.is_valid
+        assert len(result.errors) == 1
+        assert result.errors[0].code == "xbrlce:invalidIdentifier"
+
+    def test_parameter_name_with_special_char_is_invalid(self) -> None:
+        result = parse_tc_metadata(
+            _with_template({"tc:parameters": {"name@special": {"type": "xs:string"}}}),
+            TC_MINIMAL_NAMESPACES,
+        )
+        assert not result.is_valid
+        assert len(result.errors) == 1
+        assert result.errors[0].code == "xbrlce:invalidIdentifier"
+
+    def test_parameter_name_with_underscore_is_valid(self) -> None:
+        result = parse_tc_metadata(
+            _with_template({"tc:parameters": {"name_underscore": {"type": "xs:string"}}}),
+            TC_MINIMAL_NAMESPACES,
+        )
+        assert result.is_valid
+
+    def test_parameter_name_with_hyphen_is_valid(self) -> None:
+        result = parse_tc_metadata(
+            _with_template({"tc:parameters": {"name-hyphen": {"type": "xs:string"}}}),
+            TC_MINIMAL_NAMESPACES,
+        )
+        assert result.is_valid
+
 
 class TestUniqueKeys:
     def test_parses_with_defaults(self) -> None:
@@ -496,6 +535,38 @@ class TestUniqueKeys:
         assert not result.is_valid
         assert result.errors[0].json_pointers == ["/tableTemplates/t1/tc:keys/unique/1"]
 
+    def test_name_with_dot_is_invalid(self) -> None:
+        result = parse_tc_metadata(
+            _with_template({"tc:keys": {"unique": [{"name": "name.dot", "fields": ["id"]}]}}),
+            TC_MINIMAL_NAMESPACES,
+        )
+        assert not result.is_valid
+        assert len(result.errors) == 1
+        assert result.errors[0].code == "xbrlce:invalidIdentifier"
+
+    def test_name_with_special_char_is_invalid(self) -> None:
+        result = parse_tc_metadata(
+            _with_template({"tc:keys": {"unique": [{"name": "name@special", "fields": ["id"]}]}}),
+            TC_MINIMAL_NAMESPACES,
+        )
+        assert not result.is_valid
+        assert len(result.errors) == 1
+        assert result.errors[0].code == "xbrlce:invalidIdentifier"
+
+    def test_name_with_underscore_is_valid(self) -> None:
+        result = parse_tc_metadata(
+            _with_template({"tc:keys": {"unique": [{"name": "name_underscore", "fields": ["id"]}]}}),
+            TC_MINIMAL_NAMESPACES,
+        )
+        assert result.is_valid
+
+    def test_name_with_hyphen_is_valid(self) -> None:
+        result = parse_tc_metadata(
+            _with_template({"tc:keys": {"unique": [{"name": "name-hyphen", "fields": ["id"]}]}}),
+            TC_MINIMAL_NAMESPACES,
+        )
+        assert result.is_valid
+
 
 class TestReferenceKeys:
     def test_parses_with_defaults(self) -> None:
@@ -583,6 +654,68 @@ class TestReferenceKeys:
         )
         assert not result.is_valid
         assert result.errors[0].json_pointers == ["/tableTemplates/t1/tc:keys/reference/0"]
+
+    def test_name_with_dot_is_invalid(self) -> None:
+        result = parse_tc_metadata(
+            _with_template(
+                {"tc:keys": {"reference": [{"name": "name.dot", "fields": ["col"], "referencedKeyName": "pk"}]}}
+            ),
+            TC_MINIMAL_NAMESPACES,
+        )
+        assert not result.is_valid
+        assert len(result.errors) == 1
+        assert result.errors[0].code == "xbrlce:invalidIdentifier"
+
+    def test_name_with_special_char_is_invalid(self) -> None:
+        result = parse_tc_metadata(
+            _with_template(
+                {"tc:keys": {"reference": [{"name": "name@special", "fields": ["col"], "referencedKeyName": "pk"}]}}
+            ),
+            TC_MINIMAL_NAMESPACES,
+        )
+        assert not result.is_valid
+        assert len(result.errors) == 1
+        assert result.errors[0].code == "xbrlce:invalidIdentifier"
+
+    def test_name_with_underscore_is_valid(self) -> None:
+        result = parse_tc_metadata(
+            _with_template(
+                {"tc:keys": {"reference": [{"name": "name_underscore", "fields": ["col"], "referencedKeyName": "pk"}]}}
+            ),
+            TC_MINIMAL_NAMESPACES,
+        )
+        assert result.is_valid
+
+    def test_name_with_hyphen_is_valid(self) -> None:
+        result = parse_tc_metadata(
+            _with_template(
+                {"tc:keys": {"reference": [{"name": "name-hyphen", "fields": ["col"], "referencedKeyName": "pk"}]}}
+            ),
+            TC_MINIMAL_NAMESPACES,
+        )
+        assert result.is_valid
+
+    def test_referenced_key_name_with_dot_is_invalid(self) -> None:
+        result = parse_tc_metadata(
+            _with_template(
+                {"tc:keys": {"reference": [{"name": "fk", "fields": ["col"], "referencedKeyName": "name.dot"}]}}
+            ),
+            TC_MINIMAL_NAMESPACES,
+        )
+        assert not result.is_valid
+        assert len(result.errors) == 1
+        assert result.errors[0].code == "xbrlce:invalidIdentifier"
+
+    def test_referenced_key_name_with_special_char_is_invalid(self) -> None:
+        result = parse_tc_metadata(
+            _with_template(
+                {"tc:keys": {"reference": [{"name": "fk", "fields": ["col"], "referencedKeyName": "name@special"}]}}
+            ),
+            TC_MINIMAL_NAMESPACES,
+        )
+        assert not result.is_valid
+        assert len(result.errors) == 1
+        assert result.errors[0].code == "xbrlce:invalidIdentifier"
 
 
 class TestKeys:

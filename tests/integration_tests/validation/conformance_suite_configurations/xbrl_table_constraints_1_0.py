@@ -40,8 +40,6 @@ config = ConformanceSuiteConfig(
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-25c',
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-577-referenceKeyDuplicates',
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-577-uniqueKeyDuplicates',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-731',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-731a',
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-753a',
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-778a',
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-778b',

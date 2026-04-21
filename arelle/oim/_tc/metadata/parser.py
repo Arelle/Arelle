@@ -29,6 +29,7 @@ from arelle.oim._tc.metadata.model import (
     TCUniqueKey,
     TCValueConstraint,
 )
+from arelle.oim.const import IDENTIFIER_PATTERN, XBRLCE_INVALID_IDENTIFIER
 from arelle.typing import TypeGetText
 
 _: TypeGetText
@@ -174,6 +175,16 @@ def _parse_param_constraints(
         errors.append(TCMetadataParseTypeError(dict, params_obj, TC_PARAMETERS_PROPERTY_NAME))
         return result
     for param_name, param_obj in params_obj.items():
+        if not (isinstance(param_name, str) and IDENTIFIER_PATTERN.match(param_name)):
+            errors.append(
+                TCMetadataParseError(
+                    _("TC parameter name '{}' is not a valid identifier").format(param_name),
+                    TC_PARAMETERS_PROPERTY_NAME,
+                    param_name,
+                    code=XBRLCE_INVALID_IDENTIFIER,
+                )
+            )
+            continue
         if not isinstance(param_obj, dict):
             errors.append(TCMetadataParseTypeError(dict, param_obj, TC_PARAMETERS_PROPERTY_NAME, param_name))
             continue
@@ -351,6 +362,15 @@ def _parse_unique_key(
         required_properties=_UNIQUE_KEY_REQUIRED_PROPERTIES,
     )
     name = _parse_primitive_field(obj, "name", str, local_errors)
+    if name is not None and not IDENTIFIER_PATTERN.match(name):
+        local_errors.append(
+            TCMetadataParseError(
+                _("Unique key name '{}' is not a valid identifier").format(name),
+                "name",
+                code=XBRLCE_INVALID_IDENTIFIER,
+            )
+        )
+        name = None
     fields = _parse_ordered_set(obj, "fields", local_errors, non_empty=True)
     severity = _parse_primitive_field(obj, "severity", str, local_errors, default="error")
     shared = _parse_primitive_field(obj, "shared", bool, local_errors, default=False)
@@ -402,8 +422,26 @@ def _parse_reference_key(
         required_properties=_REFERENCE_KEY_REQUIRED_PROPERTIES,
     )
     name = _parse_primitive_field(obj, "name", str, local_errors)
+    if name is not None and not IDENTIFIER_PATTERN.match(name):
+        local_errors.append(
+            TCMetadataParseError(
+                _("Reference key name '{}' is not a valid identifier").format(name),
+                "name",
+                code=XBRLCE_INVALID_IDENTIFIER,
+            )
+        )
+        name = None
     fields = _parse_ordered_set(obj, "fields", local_errors, non_empty=True)
     referenced_key_name = _parse_primitive_field(obj, "referencedKeyName", str, local_errors)
+    if referenced_key_name is not None and not IDENTIFIER_PATTERN.match(referenced_key_name):
+        local_errors.append(
+            TCMetadataParseError(
+                _("Referenced key name '{}' is not a valid identifier").format(referenced_key_name),
+                "referencedKeyName",
+                code=XBRLCE_INVALID_IDENTIFIER,
+            )
+        )
+        referenced_key_name = None
     negate = _parse_primitive_field(obj, "negate", bool, local_errors, default=False)
     severity = _parse_primitive_field(obj, "severity", str, local_errors, default="error")
     if local_errors:

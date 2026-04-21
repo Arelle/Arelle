@@ -24,6 +24,7 @@ from arelle.ModelDocument import ModelDocument as ModelDocumentClass
 from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ModelValue import (DATETIME, dateTime, dayTimeDuration, qname,
                                yearMonthDuration)
+from arelle.oim.const import IDENTIFIER_PATTERN, XBRLCE_INVALID_IDENTIFIER
 from arelle.oim.csv.metadata.common import CSV_DOCUMENT_TYPES
 from arelle.oim._tc.metadata.parser import parse_tc_metadata
 from arelle.PrototypeInstanceObject import DimValuePrototype
@@ -155,10 +156,6 @@ CanonicalXmlTypePattern = {
     "unsignedByte": CanonicalIntegerPattern,
     "positiveInteger": CanonicalIntegerPattern,
     }
-IdentifierPattern = re.compile(
-    "^[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
-     r"[_\-"
-     "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*$")
 RowIdentifierPattern = re.compile(
      r"[_\-"
      "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*$")
@@ -1008,7 +1005,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         pathParts.append(mbrNdx)
                         if mbrPath in oimMemberTypes:
                             mbrTypes = oimMemberTypes[mbrPath]
-                            if (not (mbrTypes is IdentifierType and isinstance(mbrObj, str) and isinstance(mbrObj, str) and IdentifierPattern.match(mbrObj)) and
+                            if (not (mbrTypes is IdentifierType and isinstance(mbrObj, str) and isinstance(mbrObj, str) and IDENTIFIER_PATTERN.match(mbrObj)) and
                                 not ((mbrTypes is URIType or (isinstance(mbrTypes,tuple) and URIType in mbrTypes)) and isinstance(mbrObj, str) and UrlUtil.isValidUriReference(mbrObj) and not WhitespaceUntrimmedPattern.match(mbrObj)) and
                                 not isinstance(mbrObj, mbrTypes)):
                                 invalidMemberTypes.append(showPathObj(pathParts, mbrObj))
@@ -1059,7 +1056,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                 problems.append(_("The first row must only consist of \"name\" and \"value\" but contains: {}").format(",".join(row)))
                         elif len(row) > 0 and row[0]:
                             name = row[0]
-                            if not IdentifierPattern.match(name):
+                            if not IDENTIFIER_PATTERN.match(name):
                                 badIdentifiers.append(_("Row {} column 1 is not a valid identifier: {}").format(i+1, name))
                             elif len(row) < 2 or not row[1]:
                                 problems.append(_("Row {} value column 2 missing").format(i+1))
@@ -1079,7 +1076,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         elif any(cell for cell in row):
                             problems.append(_("Row {} has no identifier, all columns must be empty").format(i+1))
                     if badIdentifiers:
-                        error("xbrlce:invalidIdentifier",
+                        error(XBRLCE_INVALID_IDENTIFIER,
                               _("Report parameter file %(file)s:\n %(issues)s"),
                               file=parameterURL, issues=", \n".join(badIdentifiers))
                     if problems:
@@ -1443,7 +1440,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                 for colIndex, colName in enumerate(header):
                                     if colName == "":
                                         emptyHeaderCols.add(colIndex)
-                                    elif not IdentifierPattern.match(colName):
+                                    elif not IDENTIFIER_PATTERN.match(colName):
                                         hasHeaderError = True
                                         error("xbrlce:invalidHeaderValue",
                                               _("Table %(table)s CSV file header column %(column)s is not a valid identifier: %(identifier)s, url: %(url)s"),
@@ -1849,8 +1846,8 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             reportParametersUsed = set()
 
             def checkIdentifier(identifier, *pathSegs):
-                if not IdentifierPattern.match(identifier):
-                    error("xbrlce:invalidIdentifier",
+                if not IDENTIFIER_PATTERN.match(identifier):
+                    error(XBRLCE_INVALID_IDENTIFIER,
                           _("Invalid identifier: %(identifier)s at %(path)s"),
                           sourceFileLine=oimFile, identifier=identifier, path="/".join(pathSegs))
                     return False
@@ -1880,7 +1877,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             error("xbrlce:invalidPeriodSpecifier",
                                   _("Parameter period-specifier invalid: %(periodSpecifier)s at %(path)s"),
                                   periodSpecifier=periodSpecifier, path="/".join(pathSegs+(dimName,)))
-                        if not IdentifierPattern.match(paramName):
+                        if not IDENTIFIER_PATTERN.match(paramName):
                             error("xbrlce:invalidReference",
                                   _("Parameter reference invalid: %(target)s at %(path)s"),
                                   target=paramName, path="/".join(pathSegs+(dimName,)))
@@ -2069,7 +2066,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                           modelObject=modelXbrl, tableTemplateId=tblTmplId, path="/tables/{}/template".format(tableId))
                 tblTmpl = tableTemplates.get(tblTmplId)
                 for tblParamName in table.get("parameters", EMPTY_DICT):
-                    if not IdentifierPattern.match(tblParamName):
+                    if not IDENTIFIER_PATTERN.match(tblParamName):
                         error("xbrlce:invalidParameterName",
                               _("Parameter name is not a valid identifier: %(tableParameterName)s at path: %(path)s"),
                               tableParameterName=tblParamName, path="/tables/{}/parameters".format(tableId))
