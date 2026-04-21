@@ -93,6 +93,19 @@ ESEF_PACKAGES: dict[int, list[ConformanceSuiteAssetConfig]] = {
         ),
         LEI_2020_07_02,
     ],
+    2025: [
+        # https://www.esma.europa.eu/document/esef-taxonomy-2025
+        ConformanceSuiteAssetConfig.public_taxonomy_package(
+            Path('esef_taxonomy-2025_12_31.zip'),
+            public_download_url='https://www.esma.europa.eu/sites/default/files/2026-04/esef_taxonomy-2025_12_31.zip',
+        ),
+        # https://www.ifrs.org/issued-standards/ifrs-taxonomy/ifrs-accounting-taxonomy-2025/
+        ConformanceSuiteAssetConfig.public_taxonomy_package(
+            Path('IFRSAT-2025.zip'),
+            public_download_url='https://www.ifrs.org/content/dam/ifrs/standards/taxonomy/ifrs-taxonomies/IFRSAT-2025.zip'
+        ),
+        LEI_2020_07_02,
+    ],
 }
 
 # IFRS 2024 is used in both 2024 and 2025, but available from different URLs, so not necessarily always identical.
