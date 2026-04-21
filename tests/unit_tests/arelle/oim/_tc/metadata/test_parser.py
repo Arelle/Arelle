@@ -48,7 +48,7 @@ class TestNamespaceDetection:
         assert not result.is_valid
         assert len(result.errors) == 1
         assert result.errors[0].code == TCME_INVALID_NAMESPACE_PREFIX
-        assert len(result.errors[0].path_segments) == 0
+        assert len(result.errors[0].json_pointers) == 0
 
 
 class TestPrimitiveStr:
@@ -468,7 +468,7 @@ class TestUniqueKeys:
         )
         assert not result.is_valid
         error = result.errors[0]
-        assert error.json_pointer == "/tableTemplates/t1/tc:keys/unique/0"
+        assert error.json_pointers == ["/tableTemplates/t1/tc:keys/unique/0"]
         assert "Expected dict" in str(error)
         assert "'not a dict'" in str(error)
 
@@ -494,7 +494,7 @@ class TestUniqueKeys:
             TC_MINIMAL_NAMESPACES,
         )
         assert not result.is_valid
-        assert "/unique/1" in result.errors[0].json_pointer
+        assert result.errors[0].json_pointers == ["/tableTemplates/t1/tc:keys/unique/1"]
 
 
 class TestReferenceKeys:
@@ -568,7 +568,7 @@ class TestReferenceKeys:
         )
         assert not result.is_valid
         error = result.errors[0]
-        assert error.json_pointer == "/tableTemplates/t1/tc:keys/reference/0"
+        assert error.json_pointers == ["/tableTemplates/t1/tc:keys/reference/0"]
         assert "Expected dict" in str(error)
         assert "'not a dict'" in str(error)
 
@@ -582,7 +582,7 @@ class TestReferenceKeys:
             TC_MINIMAL_NAMESPACES,
         )
         assert not result.is_valid
-        assert "/reference/0" in result.errors[0].json_pointer
+        assert result.errors[0].json_pointers == ["/tableTemplates/t1/tc:keys/reference/0"]
 
 
 class TestKeys:
@@ -854,7 +854,7 @@ class TestErrorPointers:
     def test_column_constraint_type_error(self) -> None:
         result = parse_tc_metadata(_with_constraint({"type": 123}), TC_MINIMAL_NAMESPACES)
         assert not result.is_valid
-        assert result.errors[0].json_pointer == "/tableTemplates/t1/columns/col/tc:constraints/type"
+        assert result.errors[0].json_pointers == ["/tableTemplates/t1/columns/col/tc:constraints/type"]
 
     def test_parameter_constraint_error(self) -> None:
         result = parse_tc_metadata(
@@ -862,7 +862,7 @@ class TestErrorPointers:
             TC_MINIMAL_NAMESPACES,
         )
         assert not result.is_valid
-        assert result.errors[0].json_pointer == "/tableTemplates/t1/tc:parameters/p1/type"
+        assert result.errors[0].json_pointers == ["/tableTemplates/t1/tc:parameters/p1/type"]
 
     def test_keys_error(self) -> None:
         result = parse_tc_metadata(
@@ -870,7 +870,7 @@ class TestErrorPointers:
             TC_MINIMAL_NAMESPACES,
         )
         assert not result.is_valid
-        assert result.errors[0].json_pointer == "/tableTemplates/t1/tc:keys/unique"
+        assert result.errors[0].json_pointers == ["/tableTemplates/t1/tc:keys/unique"]
 
     def test_column_order_error(self) -> None:
         result = parse_tc_metadata(
@@ -878,7 +878,7 @@ class TestErrorPointers:
             TC_MINIMAL_NAMESPACES,
         )
         assert not result.is_valid
-        assert result.errors[0].json_pointer == "/tableTemplates/t1/tc:columnOrder"
+        assert result.errors[0].json_pointers == ["/tableTemplates/t1/tc:columnOrder"]
 
     def test_table_constraints_error(self) -> None:
         result = parse_tc_metadata(
@@ -886,7 +886,7 @@ class TestErrorPointers:
             TC_MINIMAL_NAMESPACES,
         )
         assert not result.is_valid
-        assert result.errors[0].json_pointer == "/tableTemplates/t1/tc:tableConstraints/minTables"
+        assert result.errors[0].json_pointers == ["/tableTemplates/t1/tc:tableConstraints/minTables"]
 
 
 class TestErrorCollection:
