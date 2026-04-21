@@ -6,20 +6,24 @@ from __future__ import annotations
 
 TC_NS_DRAFT = "https://xbrl.org/WGWD/YYYY-MM-DD/tc"
 TC_NS_CR = "https://xbrl.org/CR/2025-10-07/tc"
+TC_NS_PR = "https://xbrl.org/PR/2026-03-18/tc"
 
 TC_NAMESPACES = frozenset({
     TC_NS_DRAFT,
     TC_NS_CR,
+    TC_NS_PR,
 })
 
 TC_METADATA_ERROR_NAMESPACES = frozenset({
     "https://xbrl.org/WGWD/YYYY-MM-DD/tc/metadataerror",
     "https://xbrl.org/CR/2025-10-07/tc/metadataerror",
+    "https://xbrl.org/PR/2026-03-18/tc/metadataerror",
 })
 
 TC_REPORT_ERROR_NAMESPACES = frozenset({
     "https://xbrl.org/WGWD/YYYY-MM-DD/tc/reporterror",
     "https://xbrl.org/CR/2025-10-07/tc/reporterror",
+    "https://xbrl.org/PR/2026-03-18/tc/reporterror",
 })
 
 TC_PREFIX = "tc"

@@ -8,11 +8,11 @@ from tests.integration_tests.validation.conformance_suite_config import (
 config = ConformanceSuiteConfig(
     assets=[
         ConformanceSuiteAssetConfig.conformance_suite(
-            Path('table-constraints-conformance-DRAFT-YYYY-MM-DD.zip'),
-            entry_point=Path('table-constraints-conformance-DRAFT-YYYY-MM-DD/table-constraints-index.xml'),
+            Path('table-constraints-conformance-2026-03-18.zip'),
+            entry_point=Path('table-constraints-conformance-2026-03-18/table-constraints-index.xml'),
         ),
     ],
-    expected_failure_ids=frozenset(f'table-constraints-conformance-DRAFT-YYYY-MM-DD/{s}' for s in [
+    expected_failure_ids=frozenset(f'table-constraints-conformance-2026-03-18/{s}' for s in [
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-04',
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-06',
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-07',
@@ -233,7 +233,7 @@ config = ConformanceSuiteConfig(
         '720-tc-report-processor/index-tc-report-table.xml:V-907-none',
         '720-tc-report-processor/index-tc-report-table.xml:V-907-none-empty',
     ]),
-    info_url='https://www.xbrl.org/Specification/table-constraints/CR-2025-10-07/table-constraints-CR-2025-10-07.html',
+    info_url='https://www.xbrl.org/Specification/table-constraints/PR-2026-03-18/table-constraints-PR-2026-03-18.html',
     membership_url='https://www.xbrl.org/join',
     name=PurePath(__file__).stem,
 )
