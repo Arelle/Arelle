@@ -85,7 +85,7 @@ def parse_tc_metadata(
     namespaces: dict[str, str],
 ) -> TCParseResult:
     if not any(uri in TC_NAMESPACES for uri in namespaces.values()):
-        return TCParseResult(metadata=TCMetadata(template_constraints={}), errors=())
+        return TCParseResult(metadata=None, errors=())
 
     errors: list[TCMetadataParseError] = []
     template_constraints: dict[str, TCTemplateConstraints] = {}

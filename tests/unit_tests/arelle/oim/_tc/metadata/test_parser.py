@@ -26,13 +26,11 @@ def _with_template(template: dict[str, Any]) -> dict[str, Any]:
 class TestNamespaceDetection:
     def test_returns_none_without_tc_namespace(self) -> None:
         result = parse_tc_metadata({"tableTemplates": {}}, {"xbrl": "https://xbrl.org/2021"})
-        assert result.metadata is not None
-        assert result.metadata.template_constraints == {}
+        assert result.metadata is None
 
     def test_returns_none_when_namespaces_empty(self) -> None:
         result = parse_tc_metadata({"tableTemplates": {}}, {})
-        assert result.metadata is not None
-        assert result.metadata.template_constraints == {}
+        assert result.metadata is None
 
     def test_detects_draft_namespace(self) -> None:
         result = parse_tc_metadata({"tableTemplates": {}}, {"tc": TC_NS_DRAFT})
