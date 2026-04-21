@@ -96,9 +96,9 @@ def parse_tc_metadata(
 
     errors: list[TCMetadataParseError] = []
     template_constraints: dict[str, TCTemplateConstraints] = {}
-    tableTemplates = oim_object.get("tableTemplates", {})
-    if isinstance(tableTemplates, dict):
-        for template_id, template_obj in tableTemplates.items():
+    table_templates = oim_object.get("tableTemplates", {})
+    if isinstance(table_templates, dict):
+        for template_id, template_obj in table_templates.items():
             if not isinstance(template_obj, dict):
                 continue
             local_errors: list[TCMetadataParseError] = []
