@@ -90,7 +90,7 @@ def load(modelManager: ModelManager, url: str | FileSourceClass, nextaction: str
         modelXbrl.closeFileSource= True
     modelXbrl.modelDocument = None
     if kwargs.get("isLoadable",True): # used for test cases to block taxonomy packages without discoverable contents
-        modelXbrl.modelDocument = arelle.ModelDocument.load(modelXbrl, url, base, isEntry=True, **kwargs)
+        modelXbrl.modelDocument = arelle.ModelDocument.load(modelXbrl, cast(str, url), base, isEntry=True, **kwargs)
         if supplementalUrls:
             for url in supplementalUrls:
                 arelle.ModelDocument.load(modelXbrl, url, base, isEntry=False, isDiscovered=True, **kwargs)
@@ -402,7 +402,7 @@ class ModelXbrl:
         :param reloadCache: True to force clearing and reloading of web cache, if working online.
         """
         self.init(keepViews=True)
-        self.modelDocument = arelle.ModelDocument.load(self, self.fileSource.url, isEntry=True, reloadCache=reloadCache)
+        self.modelDocument = arelle.ModelDocument.load(self, self.fileSource.url, isEntry=True, reloadCache=reloadCache)  # type: ignore[arg-type]
         self.modelManager.showStatus(_("xbrl loading finished, {0}...").format(nextaction),5000)
         self.modelManager.reloadViews(self)
 
@@ -761,7 +761,7 @@ class ModelXbrl:
             for divide in divideBy:
                 XmlUtil.addChild(denElt, XbrlConst.xbrli, "measure", text=XmlUtil.addQnameValue(xbrlElt, divide))
         XmlValidate.validate(self, newUnitElt)
-        self.modelDocument.unitDiscover(newUnitElt)
+        self.modelDocument.unitDiscover(cast("ModelUnit", newUnitElt))
         return newUnitElt
 
     @property

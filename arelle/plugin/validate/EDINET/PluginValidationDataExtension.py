@@ -464,8 +464,8 @@ class PluginValidationDataExtension(PluginData):
                             and linkKey[1] and linkKey[2] and linkKey[3]  # fully specified roles
                             and linkKey[0] != "XBRL-footnotes")
         else:
-            rootElt = doc.xmlDocument.getroot()
-            elts = rootElt.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}footnoteLink")
+            rootElt = doc.xmlDocument.getroot()  # type: ignore[union-attr]
+            elts = rootElt.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}footnoteLink")  # type: ignore[assignment]
         return [
             elt
             for elt in elts

@@ -1,5 +1,3 @@
-from typing import Optional
-
 from arelle import ModelDocument
 from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ModelObject import ModelObject
@@ -7,7 +5,7 @@ from arelle.ValidateXbrl import ValidateXbrl
 from arelle.utils.validate.Common import isExtensionUri
 
 
-def checkDocumentEncoding(val: ValidateXbrl, encodings: list[str], taxonomyUrlPrefixes: frozenset[str],  documentType: Optional[ModelDocumentType] = None,) -> list[ModelDocument.ModelDocument]:
+def checkDocumentEncoding(val: ValidateXbrl, encodings: list[str], taxonomyUrlPrefixes: frozenset[str],  documentType: int | None = None,) -> list[ModelDocument.ModelDocument]:
     """
     Checks the encoding of documents on the ModelXbrl against a list of allowed encodings.
     If documentType is not specified, all documents except INLINEXBRLDOCUMENTSET are checked.
@@ -45,6 +43,6 @@ def getReferencedModelObjects(val: ValidateXbrl, modelDocumentType: int, referen
     for doc in val.modelXbrl.urlDocs.values():
         if doc.type == modelDocumentType:
             for docRef in doc.referencesDocument.values():
-                if docRef.referringModelObject.localName == referenceType:
+                if docRef.referringModelObject is not None and docRef.referringModelObject.localName == referenceType:
                     refModelObjects.append(docRef.referringModelObject)
     return refModelObjects

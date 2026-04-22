@@ -3,28 +3,43 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 import os, io
+from zipfile import ZipFile
+
 import regex as re
 from collections import defaultdict
 from pathlib import Path
-from typing import Any
+from typing import Any, cast, TYPE_CHECKING
+# for python 3.10
+from typing_extensions import Self
 from lxml import etree
 from xml.sax import SAXParseException
-from arelle import (PackageManager, XbrlConst, XmlUtil, UrlUtil, ValidateFilingText,
-                    XhtmlValidate, XmlValidateSchema, FunctionIxt)
+
+from arelle import (
+    PackageManager, XbrlConst, XmlUtil, UrlUtil, ValidateFilingText,
+    XhtmlValidate, XmlValidateSchema, FunctionIxt,
+    )
+
+from arelle.ModelXbrl import ModelXbrl
 from arelle.conformance.CSVTestcaseLoader import CSVTestcaseException, loadCsvTestcase
 from arelle.FileSource import FileSource
 from arelle.ModelObject import ModelObject
-from arelle.ModelValue import qname
+from arelle.ModelValue import qname, QName
 from arelle.ModelDtsObject import ModelLink
-from arelle.ModelInstanceObject import ModelFact
-from arelle.ModelObjectFactory import parser
+from arelle.ModelInstanceObject import ModelFact, ModelContext, ModelUnit, ModelInlineFact
+from arelle.ModelObjectFactory import parser, KnownNamespacesModelObjectClassLookup, DiscoveringClassLookup
 from arelle.PrototypeDtsObject import LinkPrototype, LocPrototype, ArcPrototype, DocumentPrototype, PrototypeElementTree
 from arelle.PythonUtil import OrderedDefaultDict, isLegacyAbs, normalizeSpace
 from arelle.XhtmlValidate import ixMsgCode
 from arelle.XmlValidateConst import VALID
 from arelle.XmlValidate import validate as xmlValidate, lxmlSchemaValidate
 from arelle.ModelTestcaseObject import ModelTestcaseVariation
-from arelle.typing import ModelDocumentBase
+from arelle.plugin_system.plugin_provider import PluginProvider
+from arelle.typing import ModelDocumentBase, TypeGetText
+
+if TYPE_CHECKING:
+    from arelle.CntlrWinMain import CntlrWinMain
+
+_: TypeGetText
 
 # Used and exported.
 from arelle.ModelDocumentType import ModelDocumentType as _Type
@@ -32,9 +47,9 @@ Type = _Type
 
 urlMatchPattern = re.compile(r"^https?://(?:www\.)?(xbrl\.org)/(.*)$") # for checking allowable schemaLocation mismatches
 
-creationSoftwareNames = None
+creationSoftwareNames: list[tuple[str, re.Pattern[str]]] | None = None
 
-def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDiscovered=False, isIncluded=None, isSupplemental=False, namespace=None, reloadCache=False, **kwargs) -> ModelDocument | None:
+def load(modelXbrl: ModelXbrl, uri: str, base: str | None = None, referringElement: ModelObject | ModelXbrl | None = None, isEntry: bool = False, isDiscovered: bool = False, isIncluded: bool = False, isSupplemental: bool = False, namespace: str | None = None, reloadCache: bool = False, **kwargs: Any) -> ModelDocument | None:
     """Returns a new modelDocument, performing DTS discovery for instance, inline XBRL, schema,
     linkbase, and versioning report entry urls.
 
@@ -49,9 +64,8 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
     :param isIncluded: True if this document is the target of an xs:include
     :type isIncluded: bool
     :param isSupplemental: True if this is processed for link relationships even if neither isEntry or isDiscovered, such as when adding additional language or documentation linkbases
-    :type isIncluded: bool
-    :param namespace: The schema namespace of this document, if known and applicable
     :type isSupplemental: True if this document is supplemental (not discovered or in DTS but adds labels or instance facts)
+    :param namespace: The schema namespace of this document, if known and applicable
     :type namespace: str
     :param reloadCache: True if desired to reload the web cache for any web-referenced files.
     :type reloadCache: bool
@@ -63,7 +77,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
     if referringElement is None: # used for error messages
         referringElement = modelXbrl
     normalizedUri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(uri, base)
-    modelDocument = modelXbrl.urlDocs.get(normalizedUri)
+    modelDocument: ModelDocument | None = modelXbrl.urlDocs.get(normalizedUri)
     if modelDocument:
         return modelDocument
     elif modelXbrl.urlUnloadableDocs.get(normalizedUri):  # only return None if in this list and marked True (really not loadable)
@@ -104,7 +118,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
     if modelXbrl.fileSource.isMappedUrl(normalizedUri):
         mappedUri = modelXbrl.fileSource.mappedUrl(normalizedUri)
     elif PackageManager.isMappedUrl(normalizedUri):
-        mappedUri = PackageManager.mappedUrl(normalizedUri)
+        mappedUri = PackageManager.mappedUrl(normalizedUri)  # type: ignore[assignment]
     else:
         mappedUri = modelXbrl.modelManager.disclosureSystem.mappedUrl(normalizedUri)
 
@@ -116,7 +130,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
     if modelXbrl.fileSource.isInArchive(mappedUri):
         filepath = mappedUri
     else:
-        filepath = modelXbrl.modelManager.cntlr.webCache.getfilename(mappedUri, reload=reloadCache, checkModifiedTime=kwargs.get("checkModifiedTime",False))
+        filepath = modelXbrl.modelManager.cntlr.webCache.getfilename(mappedUri, reload=reloadCache, checkModifiedTime=kwargs.get("checkModifiedTime",False))  # type: ignore[assignment]
         if filepath:
             uri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(filepath)
     if filepath is None: # error such as HTTPerror is already logged
@@ -166,8 +180,8 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             except CSVTestcaseException:
                 modelDocument = None
         from arelle.oim.Load import isOimLoadable, oimLoader
-        if isOimLoadable(normalizedUri, filepath):
-            modelDocument = oimLoader(modelXbrl, normalizedUri, filepath)
+        if isOimLoadable(normalizedUri, filepath):  # type: ignore[no-untyped-call]
+            modelDocument = oimLoader(modelXbrl, normalizedUri, filepath)  # type: ignore[no-untyped-call]
             if isinstance(modelDocument, Exception):
                 return None
             if modelDocument is not None:
@@ -176,9 +190,9 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             (isEntry and modelXbrl.modelManager.disclosureSystem.validateEntryText) or
             (modelXbrl.modelManager.disclosureSystem.validateFileText and
              not normalizedUri in modelXbrl.modelManager.disclosureSystem.standardTaxonomiesDict))):
-            file, _encoding = ValidateFilingText.checkfile(modelXbrl,filepath)
+            file, _encoding = ValidateFilingText.checkfile(modelXbrl,filepath)  # type: ignore[no-untyped-call]
         else:
-            file, _encoding = modelXbrl.fileSource.file(filepath, stripDeclaration=True)
+            file, _encoding = modelXbrl.fileSource.file(filepath, stripDeclaration=True)  # type: ignore[misc]
         xmlDocument = None
         isPluginParserDocument = False
         for pluginMethod in modelXbrl.modelManager.cntlr.plugins.hooks("ModelDocument.CustomLoader"):
@@ -217,7 +231,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
         if not isIncluded and shouldLoad:
             return load(
                 modelXbrl=modelXbrl,
-                uri=canonicalUri,
+                uri=canonicalUri,  # type: ignore[arg-type]
                 base=base,
                 referringElement=referringElement,
                 isEntry=isEntry,
@@ -274,7 +288,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
     modelXbrl.modelManager.showStatus(_("loading {0}").format(uri))
     modelDocument = None
 
-    rootNode = xmlDocument.getroot()
+    rootNode = cast(ModelObject, xmlDocument.getroot())
     if rootNode is not None:
         ln = rootNode.localName
         ns = rootNode.namespaceURI
@@ -402,7 +416,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                         modelObject=rootNode, element=rootNode.localName.title(), error=type(err).__name__)
                 return None # rootNode is not processed further to find any facts because there could be many recursion errors
         elif _type == Type.VERSIONINGREPORT:
-            modelDocument.versioningReportDiscover(rootNode)
+            modelDocument.versioningReportDiscover(rootNode)  # type: ignore[attr-defined]
         elif _type == Type.TESTCASESINDEX:
             modelDocument.testcasesIndexDiscover(xmlDocument, modelXbrl.modelManager.validateTestcaseSchema)
         elif _type == Type.TESTCASE:
@@ -412,18 +426,18 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
         elif _type == Type.XPATHTESTSUITE:
             modelDocument.xPathTestSuiteDiscover(rootNode)
         elif _type == Type.VERSIONINGREPORT:
-            modelDocument.versioningReportDiscover(rootNode)
+            modelDocument.versioningReportDiscover(rootNode)  # type: ignore[attr-defined]
         elif _type == Type.RSSFEED:
-            modelDocument.rssFeedDiscover(rootNode)
+            modelDocument.rssFeedDiscover(rootNode)  # type: ignore[attr-defined]
 
         if isEntry or _type == Type.INLINEXBRL: # inline doc set members may not be entry but may have processing instructions
             for pi in modelDocument.processingInstructions:
                 if pi.target == "arelle-unit-test":
-                    modelXbrl.arelleUnitTests[pi.get("location")] = pi.get("action")
+                    modelXbrl.arelleUnitTests[pi.get("location")] = pi.get("action")  # type: ignore[index,assignment]
         if isEntry:
             while modelXbrl.schemaDocsToValidate:
                 doc = modelXbrl.schemaDocsToValidate.pop()
-                XmlValidateSchema.validate(doc, doc.xmlRootElement, doc.targetNamespace) # validate schema elements
+                XmlValidateSchema.validate(doc, doc.xmlRootElement, doc.targetNamespace)  # type: ignore[arg-type] # validate schema elements
             if hasattr(modelXbrl, "ixdsHtmlElements"):
                 inlineIxdsDiscover(modelXbrl, modelDocument) # compile cross-document IXDS references
                 for doc in modelDocument.referencesDocument.keys():
@@ -436,17 +450,16 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
 
         if isEntry or isSupplemental:
             # re-order base set keys for entry point or supplemental linkbase addition
-            modelXbrl.baseSets = OrderedDefaultDict( # order by linkRole, arcRole of key
+            modelXbrl.baseSets = OrderedDefaultDict(  # type: ignore[assignment] # order by linkRole, arcRole of key
                 modelXbrl.baseSets.default_factory,
-                sorted(modelXbrl.baseSets.items(), key=lambda i: (i[0][0] or "",i[0][1] or "")))
+                sorted(modelXbrl.baseSets.items(), key=lambda i: (i[0][0] or "",i[0][1] or ""))
+                )
 
     return modelDocument
 
-def loadSchemalocatedSchema(modelXbrl, element, relativeUrl, namespace, baseUrl):
+def loadSchemalocatedSchema(modelXbrl: ModelXbrl, element: ModelObject, relativeUrl: str, namespace: str, baseUrl: str) -> ModelDocument | None:
     if namespace == XbrlConst.xhtml: # block loading xhtml as a schema (e.g., inline which is xsd validated instead)
         return None
-    #importSchemaLocation = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(relativeUrl, baseUrl)
-    #doc = load(modelXbrl, relativeUrl, isIncluded=False, isDiscovered=False, namespace=namespace, referringElement=element, referringElementUrl=baseUrl)
     doc = load(modelXbrl, relativeUrl, isIncluded=False, isDiscovered=False, namespace=namespace, referringElement=element, base=baseUrl)
     if doc:
         if doc.targetNamespace != namespace:
@@ -458,7 +471,7 @@ def loadSchemalocatedSchema(modelXbrl, element, relativeUrl, namespace, baseUrl)
             doc.inDTS = False
     return doc
 
-def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None, initialComment=None, base=None, discover=True, documentEncoding="utf-8", xbrliNamespacePrefix=None, entrypoint=None) -> ModelDocument:
+def create(modelXbrl: ModelXbrl, type: int, uri: str, schemaRefs: list[str] | None = None, isEntry: bool = False, initialXml: str | None = None, initialComment: str | None = None, base: str | None = None, discover: bool = True, documentEncoding: str = "utf-8", xbrliNamespacePrefix: str | None = None, entrypoint: dict[str, Any] | None = None) -> ModelDocument:
     """Returns a new modelDocument, created from scratch, with any necessary header elements
 
     (such as the schema, instance, or RSS feed top level elements)
@@ -469,7 +482,7 @@ def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None
     :param isEntry is True when creating an entry (e.g., instance)
     :type isEntry: bool
     :param initialXml is initial xml content for xml documents
-    :type isEntry: str
+    :type initialXml: str
     """
     normalizedUri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(uri, base)
     if isEntry:
@@ -520,31 +533,29 @@ def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None
         xmlDocument = None
     if type == Type.RSSFEED:
         from arelle.ModelRssObject import ModelRssObject
-        modelDocument = ModelRssObject(modelXbrl, type, uri, filepath, xmlDocument)
+        modelDocument = ModelRssObject(modelXbrl, type, uri, filepath, xmlDocument)  # type: ignore[no-untyped-call]
     else:
-        modelDocument = ModelDocument(modelXbrl, type, normalizedUri, filepath, xmlDocument)
-    if Xml:
+        modelDocument = ModelDocument(modelXbrl, type, normalizedUri, filepath, xmlDocument)  # type: ignore[assignment,arg-type]
+    if Xml and xmlDocument:
         modelDocument.parser = _parser # needed for XmlUtil addChild's makeelement
         modelDocument.parserLookupName = _parserLookupName
         modelDocument.parserLookupClass = _parserLookupClass
         modelDocument.documentEncoding = documentEncoding
         rootNode = xmlDocument.getroot()
-        rootNode.init(modelDocument)
-        if xmlDocument:
-            for semanticRoot in rootNode.iterchildren():
-                if isinstance(semanticRoot, ModelObject):
-                    modelDocument.xmlRootElement = modelDocument.targetXbrlRootElement = semanticRoot
-                    break
+        rootNode.init(modelDocument)  # type: ignore[attr-defined]
+        for semanticRoot in rootNode.iterchildren():
+            if isinstance(semanticRoot, ModelObject):
+                modelDocument.xmlRootElement = modelDocument.targetXbrlRootElement = semanticRoot
+                break
+
         # init subtree
         for elt in xmlDocument.iter():
             if isinstance(elt, ModelObject):
                 elt.init(modelDocument)
-    else:
-        xmlDocument = None
     if type == Type.INSTANCE and discover:
         modelDocument.instanceDiscover(modelDocument.xmlRootElement)
     elif type == Type.RSSFEED and discover:
-        modelDocument.rssFeedDiscover(modelDocument.xmlRootElement)
+        modelDocument.rssFeedDiscover(modelDocument.xmlRootElement)  # type: ignore[no-untyped-call]
     elif type == Type.SCHEMA:
         modelDocument.targetNamespace = None
         modelDocument.isQualifiedElementFormDefault = False
@@ -650,54 +661,61 @@ class ModelDocument(ModelDocumentBase):
     entrypoint: dict[str, Any] | None
     xmlRootElement: Any
     targetXbrlRootElement: ModelObject
+    parser: etree.XMLParser[etree._Element]
+    parserLookupName: KnownNamespacesModelObjectClassLookup
+    parserLookupClass: DiscoveringClassLookup
+    securityClassification: str | None
+    fromDTS: ModelXbrl
+    toDTS: ModelXbrl
 
-    def __init__(self, modelXbrl, type, uri, filepath, xmlDocument):
-        self.entrypoint = None
-        self.modelXbrl = modelXbrl
-        self.skipDTS = modelXbrl.skipDTS
-        self.type = type
-        self.uri = uri
-        self.filepath = filepath
-        self.xmlDocument = self.targetXbrlElementTree = xmlDocument
-        self.targetNamespace = None
+    def __init__(self, modelXbrl: ModelXbrl, type: int, uri: str, filepath: str, xmlDocument: etree._ElementTree[etree._Element] | None) -> None:
+        self.entrypoint: dict[str, Any] | None = None
+        self.modelXbrl: ModelXbrl = modelXbrl
+        self.skipDTS: bool = modelXbrl.skipDTS
+        self.type: int = type
+        self.uri: str = uri
+        self.filepath: str = filepath
+        self.xmlDocument: etree._ElementTree[etree._Element] | None = xmlDocument
+        self.targetXbrlElementTree: etree._ElementTree[etree._Element] | None = xmlDocument
+        self.targetNamespace: str | None = None
         modelXbrl.urlDocs[uri] = self
-        self.objectIndex = len(modelXbrl.modelObjects)
-        modelXbrl.modelObjects.append(self)
-        self.referencesDocument = {}
-        self.idObjects = {}  # by id
-        self.hrefObjects = []
-        self.schemaLocationElements = set()
-        self.referencedNamespaces = set()
-        self.targetDocumentSchemaRefs = set()
-        self.inDTS = False
-        self.definesUTR = False
-        self.isModified = False
+        self.objectIndex: int = len(modelXbrl.modelObjects)
+        modelXbrl.modelObjects.append(self)  # type: ignore[arg-type]
+        self.referencesDocument: dict[ModelDocument, ModelDocumentReference] = {}
+        self.idObjects: dict[str, ModelObject] = {}  # by id
+        self.hrefObjects: list[tuple[ModelObject, ModelDocument | None, str | None]] = []
+        self.schemaLocationElements: set[ModelObject] = set()
+        self.referencedNamespaces: set[str] = set()
+        self.targetDocumentSchemaRefs: set[str] = set()
+        self.inDTS: bool = False
+        self.definesUTR: bool = False
+        self.isModified: bool = False
         # The "ModelDocument.CustomCloser" plugin hooked is invoked after modelXbrl is dereferenced
         # Store a reference to the plugin manager so that hook can be called, then deference it.
-        self.plugins = modelXbrl.modelManager.cntlr.plugins
+        self.plugins: PluginProvider | None = modelXbrl.modelManager.cntlr.plugins
 
 
-    def objectId(self,refId=""):
+    def objectId(self, refId: str = "") -> str:
         return "_{0}_{1}".format(refId, self.objectIndex)
 
     # qname of root element of the document so modelDocument can be treated uniformly as modelObject
     @property
-    def qname(self):
+    def qname(self) -> QName | None:
         try:
             return self._xmlRootElementQname
         except AttributeError:
-            self._xmlRootElementQname = qname(self.xmlRootElement)
+            self._xmlRootElementQname: QName | None = qname(self.xmlRootElement)
             return self._xmlRootElementQname
 
-    def relativeUri(self, uri): # return uri relative to this modelDocument uri
+    def relativeUri(self, uri: str) -> str:  # return uri relative to this modelDocument uri
         return UrlUtil.relativeUri(self.uri, uri)
 
     @property
-    def modelDocument(self):
+    def modelDocument(self) -> Self:
         return self # for compatibility with modelObject and modelXbrl
 
     @property
-    def displayUri(self):
+    def displayUri(self) -> str:
         if self.type == Type.INLINEXBRLDOCUMENTSET:
             ixdsDocBaseNames = [ixDoc.basename
                                 for ixDoc in self.referencesDocument.keys()
@@ -709,50 +727,50 @@ class ModelDocument(ModelDocumentBase):
             return self.uri
 
     @property
-    def basename(self):
+    def basename(self) -> str:
         return os.path.basename(self.filepath)
 
     @property
-    def filepathdir(self):
+    def filepathdir(self) -> str:
         return os.path.dirname(self.filepath)
 
     @property
-    def propertyView(self):
+    def propertyView(self) -> tuple[tuple[str, str], ...]:
         return (("type", self.gettype()),
                 ("uri", self.uri)) + \
                 (("fromDTS", self.fromDTS.uri),
                  ("toDTS", self.toDTS.uri)
                  ) if self.type == Type.VERSIONINGREPORT else ()
 
-    def __repr__(self):
-        return ("{0}[{1}]{2})".format(self.__class__.__name__, self.objectId(),self.propertyView))
+    def __repr__(self) -> str:
+        return "{0}[{1}]{2})".format(self.__class__.__name__, self.objectId(),self.propertyView)
 
-    def setTitle(self, cntlr):
+    def setTitle(self, cntlr: CntlrWinMain) -> None:
         try:
             cntlr.parent.wm_title(_("arelle - {0}").format(self.basename))
         except AttributeError:
             pass
 
-    def setTitleInBackground(self):
+    def setTitleInBackground(self) -> None:
         try:
-            cntlr = self.modelXbrl.modelManager.cntlr
+            cntlr = cast("CntlrWinMain", self.modelXbrl.modelManager.cntlr)
             uiThreadQueue = cntlr.uiThreadQueue
             uiThreadQueue.put((self.setTitle, [cntlr]))
         except AttributeError:
             pass
 
-    def updateFileHistoryIfNeeded(self):
+    def updateFileHistoryIfNeeded(self) -> None:
         myCntlr = self.modelXbrl.modelManager.cntlr
         updateFileHistory = getattr(myCntlr, 'updateFileHistory', None)
         if updateFileHistory:
             try:
-                cntlr = self.modelXbrl.modelManager.cntlr
+                cntlr = cast("CntlrWinMain", self.modelXbrl.modelManager.cntlr)
                 uiThreadQueue = cntlr.uiThreadQueue
                 uiThreadQueue.put((updateFileHistory, [self.filepath, False]))
             except AttributeError:
                 pass
 
-    def save(self, overrideFilepath=None, outputZip=None, outputFile=None, updateFileHistory=True, encoding="utf-8", zipDir=None, **kwargs) -> None:
+    def save(self, overrideFilepath: str | None = None, outputZip: ZipFile | None = None, outputFile: io.IOBase | None = None, updateFileHistory: bool = True, encoding: str = "utf-8", zipDir: str | None = None, **kwargs: Any) -> None:
         """Saves current document file.
 
         :param overrideFilepath: specify to override saving in instance's modelDocument.filepath
@@ -760,10 +778,10 @@ class ModelDocument(ModelDocumentBase):
         if outputFile:
             fh = outputFile
         elif outputZip:
-            fh = io.StringIO();
+            fh = io.StringIO()
         else:
             fh = open( (overrideFilepath or self.filepath), "w", encoding='utf-8')
-        XmlUtil.writexml(fh, self.xmlDocument, encoding=encoding, **kwargs)
+        XmlUtil.writexml(fh, self.xmlDocument, encoding=encoding, **kwargs)  # type: ignore[arg-type]
         if outputZip:
             fh.seek(0)
             outputZip.writestr((zipDir or "") + os.path.basename(overrideFilepath or self.filepath),fh.read())
@@ -776,10 +794,10 @@ class ModelDocument(ModelDocumentBase):
             self.updateFileHistoryIfNeeded()
         self.isModified = False
 
-    def close(self, visited=None, urlDocs=None) -> None:
+    def close(self, visited: list[ModelDocument] | None = None, urlDocs: dict[str, ModelDocument] | None = None) -> None:
         try:
             if self.modelXbrl is not None:
-                self.modelXbrl = None
+                self.modelXbrl = None  # type: ignore[assignment]
         except:
             pass
         if visited is None: visited = []
@@ -803,7 +821,7 @@ class ModelDocument(ModelDocumentBase):
                     self.fromDTS.close()
                 if self.toDTS:
                     self.toDTS.close()
-            urlDocs.pop(self.uri,None)
+            urlDocs.pop(self.uri,None)  # type: ignore[union-attr]
             xmlDocument = self.xmlDocument
             dummyRootElement = self.parser.makeelement("{http://dummy}dummy") # may fail for streaming
             for modelObject in self.xmlRootElement.iter():
@@ -817,7 +835,7 @@ class ModelDocument(ModelDocumentBase):
             self.parserLookupClass.__dict__.clear()
             self.__dict__.clear() # dereference everything before clearing xml tree
             if dummyRootElement is not None:
-                xmlDocument._setroot(dummyRootElement)
+                cast(etree._ElementTree, xmlDocument)._setroot(dummyRootElement)
             del dummyRootElement
         except AttributeError:
             pass    # maybe already cloased
@@ -826,14 +844,14 @@ class ModelDocument(ModelDocumentBase):
                 urlDocs.popitem()[1].close(visited=visited,urlDocs=urlDocs)
         visited.remove(self)
 
-    def gettype(self):
+    def gettype(self) -> str:
         try:
             return Type.typeName[self.type]
         except AttributeError:
             return "unknown"
 
     @property
-    def creationSoftwareComment(self):
+    def creationSoftwareComment(self) -> str | None:
         try:
             return self._creationSoftwareComment
         except AttributeError:
@@ -845,10 +863,10 @@ class ModelDocument(ModelDocumentBase):
                 if isinstance(node, etree._Comment):
                     initialComment = node.text + '\n' + initialComment
             if initialComment:
-                self._creationSoftwareComment = initialComment
+                self._creationSoftwareComment: str | None = initialComment
             else:
                 self._creationSoftwareComment = None
-                for i, node in enumerate(self.xmlDocument.iter()):
+                for i, node in enumerate(cast(etree._ElementTree, self.xmlDocument).iter()):
                     if isinstance(node, etree._Comment):
                         self._creationSoftwareComment = node.text
                     if i > 10:  # give up, no heading comment
@@ -883,7 +901,7 @@ class ModelDocument(ModelDocumentBase):
         :param text:
         :return: List of matched software names in order found.
         """
-        matches = []
+        matches: list[str] = []
         if text is None:
             return matches
         import regex as re
@@ -916,11 +934,11 @@ class ModelDocument(ModelDocumentBase):
         return matches
 
     @property
-    def processingInstructions(self):
+    def processingInstructions(self) -> list[etree._ProcessingInstruction]:
         try:
             return self._processingInstructions
         except AttributeError:
-            self._processingInstructions = []
+            self._processingInstructions: list[etree._ProcessingInstruction] = []
             node = self.xmlRootElement
             while node.getprevious() is not None:
                 node = node.getprevious()
@@ -928,7 +946,7 @@ class ModelDocument(ModelDocumentBase):
                     self._processingInstructions.append(node)
             return self._processingInstructions
 
-    def schemaDiscover(self, rootElement, isIncluded, isSupplemental, namespace):
+    def schemaDiscover(self, rootElement: ModelObject, isIncluded: bool | None, isSupplemental: bool, namespace: str | None) -> None:
         targetNamespace = rootElement.get("targetNamespace")
         if targetNamespace:
             self.targetNamespace = targetNamespace
@@ -940,16 +958,16 @@ class ModelDocument(ModelDocumentBase):
                     modelObject=rootElement, fileName=self.basename,
                     namespace=namespace, targetNamespace=targetNamespace)
             if (self.modelXbrl.modelManager.validateDisclosureSystem and
-                self.modelXbrl.modelManager.disclosureSystem.disallowedHrefOfNamespace(self.uri, targetNamespace)):
+                self.modelXbrl.modelManager.disclosureSystem.disallowedHrefOfNamespace(self.uri, targetNamespace)):  # type: ignore[no-untyped-call]
                     self.modelXbrl.error(("EFM.6.22.02", "GFM.1.1.3", "SBR.NL.2.1.0.06" if self.uri.startswith("http") else "SBR.NL.2.2.0.17"),
                             _("Namespace: %(namespace)s disallowed schemaLocation %(schemaLocation)s"),
                             modelObject=rootElement, namespace=targetNamespace, schemaLocation=self.uri, url=self.uri,
                             messageCodes=("EFM.6.22.02", "GFM.1.1.3", "SBR.NL.2.1.0.06", "SBR.NL.2.2.0.17"))
             self.noTargetNamespace = False
         else:
-            if isIncluded == True and namespace:
+            if isIncluded and namespace:
                 self.targetNamespace = namespace
-                self.modelXbrl.namespaceDocs[targetNamespace].append(self)
+                self.modelXbrl.namespaceDocs[targetNamespace].append(self)  # type: ignore[index]
             self.noTargetNamespace = True
         if targetNamespace == XbrlConst.xbrldt:
             # BUG: should not set this if obtained from schemaLocation instead of import (but may be later imported)
@@ -960,7 +978,7 @@ class ModelDocument(ModelDocumentBase):
         try:
             self.schemaDiscoverChildElements(rootElement, isSupplemental)
         except (ValueError, LookupError) as err:
-            self.filesource.cntlr.addToLog("error during schema discovery: %(error)s",
+            self.filesource.cntlr.addToLog("error during schema discovery: %(error)s",  # type: ignore[attr-defined]
                                            messageCode="arelle:discoveryError",
                                            messageArgs={"error":err}, file=self.basename)
         if not isIncluded:
@@ -973,9 +991,10 @@ class ModelDocument(ModelDocumentBase):
                 self.modelXbrl.schemaDocsToValidate.add(self) # validate schema elements
 
 
-    def schemaDiscoverChildElements(self, parentModelObject, isSupplemental=False):
+    def schemaDiscoverChildElements(self, parentModelObject: ModelObject, isSupplemental: bool = False) -> None:
         # find roleTypes, elements, and linkbases
         # must find import/include before processing linkbases or elements
+        assert self.xmlDocument is not None
         for modelObject in parentModelObject.iterchildren():
             if isinstance(modelObject,ModelObject):
                 ln = modelObject.localName
@@ -994,13 +1013,13 @@ class ModelDocument(ModelDocumentBase):
                             self.modelXbrl.error("xbrl.5.1.3.roleTypeLocation",
                                 _("Schema file link:roleType may only be located at path //xs:schema/xs:annotation/xs:appinfo but was found at %(elementPath)s"),
                                 modelObject=modelObject, elementPath=self.xmlDocument.getpath(parentModelObject))
-                        self.modelXbrl.roleTypes[modelObject.roleURI].append(modelObject)
+                        self.modelXbrl.roleTypes[modelObject.roleURI].append(modelObject)  # type: ignore[attr-defined,arg-type]
                     elif ln == "arcroleType":
                         if _mislocated:
                             self.modelXbrl.error("xbrl.5.1.4.arcroleTypeLocation",
                                 _("Schema file link:arcroleType may only be located at path //xs:schema/xs:annotation/xs:appinfo but was found at %(elementPath)s"),
                                 modelObject=modelObject, elementPath=self.xmlDocument.getpath(parentModelObject))
-                        self.modelXbrl.arcroleTypes[modelObject.arcroleURI].append(modelObject)
+                        self.modelXbrl.arcroleTypes[modelObject.arcroleURI].append(modelObject)  # type: ignore[attr-defined,arg-type]
                     elif ln == "linkbaseRef":
                         if _mislocated:
                             self.modelXbrl.error("xbrl.5.1.2.linkbaseRefLocation",
@@ -1017,7 +1036,7 @@ class ModelDocument(ModelDocumentBase):
                     self.schemaDiscoverChildElements(modelObject, isSupplemental)
 
 
-    def baseForElement(self, element):
+    def baseForElement(self, element: ModelObject) -> str:
         base = ""
         baseElt = element
         while baseElt is not None:
@@ -1038,7 +1057,7 @@ class ModelDocument(ModelDocumentBase):
                     base = baseAttr + base
                     if base.startswith("/"):
                         break # break because it is now absolute
-            baseElt = baseElt.getparent()
+            baseElt = baseElt.getparent()  # type: ignore[assignment]
         if base: # neither None nor ''
             if base.startswith('http://') or isLegacyAbs(base):
                 return base
@@ -1046,7 +1065,7 @@ class ModelDocument(ModelDocumentBase):
                 return os.path.dirname(self.uri) + "/" + base
         return self.uri
 
-    def importDiscover(self, element):
+    def importDiscover(self, element: ModelObject) -> None:
         schemaLocation = element.get("schemaLocation")
         if element.localName in ("include", "redefine"): # add redefine, loads but type definitons of redefine not processed yet (See below)
             importNamespace = self.targetNamespace
@@ -1059,7 +1078,7 @@ class ModelDocument(ModelDocumentBase):
             importSchemaLocation = self.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(schemaLocation, importElementBase)
             if (self.modelXbrl.modelManager.validateDisclosureSystem and
                     self.modelXbrl.modelManager.disclosureSystem.blockDisallowedReferences and
-                    self.modelXbrl.modelManager.disclosureSystem.disallowedHrefOfNamespace(importSchemaLocation, importNamespace)):
+                    self.modelXbrl.modelManager.disclosureSystem.disallowedHrefOfNamespace(importSchemaLocation, importNamespace)):  # type: ignore[no-untyped-call]
                 self.modelXbrl.error(("EFM.6.22.02", "GFM.1.1.3", "SBR.NL.2.1.0.06" if importSchemaLocation.startswith("http") else "SBR.NL.2.2.0.17"),
                         _("Namespace: %(namespace)s disallowed schemaLocation blocked %(schemaLocation)s"),
                         modelObject=element, namespace=importNamespace, schemaLocation=importSchemaLocation, url=importSchemaLocation,
@@ -1090,13 +1109,13 @@ class ModelDocument(ModelDocumentBase):
 
             # future note: for redefine, if doc was just loaded, process redefine type definitions
 
-    def schemalocateElementNamespace(self, element):
+    def schemalocateElementNamespace(self, element: ModelObject) -> None:
         if isinstance(element,ModelObject):
             eltNamespace = element.namespaceURI
-            if eltNamespace not in self.modelXbrl.namespaceDocs and eltNamespace not in self.referencedNamespaces:
+            if eltNamespace and eltNamespace not in self.modelXbrl.namespaceDocs and eltNamespace not in self.referencedNamespaces:
                 schemaLocationElement = XmlUtil.schemaLocation(element, eltNamespace, returnElement=True)
                 if schemaLocationElement is not None:
-                    self.schemaLocationElements.add(schemaLocationElement)
+                    self.schemaLocationElements.add(schemaLocationElement)  # type: ignore[arg-type]
                     self.referencedNamespaces.add(eltNamespace)
 
     def loadSchemalocatedSchemas(self) -> None:
@@ -1117,7 +1136,7 @@ class ModelDocument(ModelDocumentBase):
                             loadSchemalocatedSchema(self.modelXbrl, elt, entry, ns, self.baseForElement(elt))
                         ns = None
 
-    def schemaLinkbaseRefsDiscover(self, tree):
+    def schemaLinkbaseRefsDiscover(self, tree: ModelObject) -> None:
         for refln in ("{http://www.xbrl.org/2003/linkbase}schemaRef", "{http://www.xbrl.org/2003/linkbase}linkbaseRef"):
             for element in tree.iterdescendants(tag=refln):
                 if isinstance(element,ModelObject):
@@ -1127,15 +1146,15 @@ class ModelDocument(ModelDocumentBase):
             loadSchemalocatedSchema(self.modelXbrl, element, "http://www.xbrl.org/2006/xbrldi-2006.xsd", "http://xbrl.org/2006/xbrldi", self.baseForElement(element))
             break
 
-    def schemaLinkbaseRefDiscover(self, element):
+    def schemaLinkbaseRefDiscover(self, element: ModelObject) -> Any:
         return self.discoverHref(element, urlRewritePluginClass="ModelDocument.InstanceSchemaRefRewriter")
 
-    def linkbasesDiscover(self, tree):
+    def linkbasesDiscover(self, tree: ModelObject) -> None:
         for linkbaseElement in tree.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}linkbase"):
             if isinstance(linkbaseElement,ModelObject):
-                self.linkbaseDiscover(self, linkbaseElement)
+                self.linkbaseDiscover(self, linkbaseElement)  # type: ignore[arg-type]
 
-    def linkbaseDiscover(self, linkbaseElement, inInstance=False):
+    def linkbaseDiscover(self, linkbaseElement: ModelObject, inInstance: bool = False) -> None:
         # sequence linkbase elements for elementPointer efficiency
         lbElementSequence = 0
         for lbElement in linkbaseElement:
@@ -1164,8 +1183,8 @@ class ModelDocument(ModelDocumentBase):
                         isStandardExtLink = XbrlConst.isStandardResourceOrExtLinkElement(lbElement)
                         if inInstance:
                             #index footnote links even if no arc children
-                            baseSetKeys = (("XBRL-footnotes",None,None,None),
-                                           ("XBRL-footnotes",linkrole,None,None))
+                            baseSetKeys: list[Any] = [("XBRL-footnotes",None,None,None),
+                                           ("XBRL-footnotes",linkrole,None,None)]
                             for baseSetKey in baseSetKeys:
                                 self.modelXbrl.baseSets[baseSetKey].append(lbElement)
                         linkElementSequence = 0
@@ -1190,12 +1209,12 @@ class ModelDocument(ModelDocumentBase):
                                                     _('Locator href attribute "%(href)s" missing or malformed in non-standard extended link'),
                                                     modelObject=linkElement, href=linkElement.get("{http://www.w3.org/1999/xlink}href"))
                                     else:
-                                        linkElement.modelHref = href
+                                        linkElement.modelHref = href  # type: ignore[attr-defined]
                                         modelResource = linkElement
                                 elif xlinkType == "arc":
                                     arcQn = qname(linkElement)
                                     arcrole = linkElement.get("{http://www.w3.org/1999/xlink}arcrole")
-                                    if arcrole not in arcrolesFound:
+                                    if arcrole and arcrole not in arcrolesFound:
                                         if linkrole == "":
                                             linkrole = XbrlConst.defaultLinkRole
                                         #index by both arcrole and linkrole#arcrole and dimensionsions if applicable
@@ -1228,21 +1247,23 @@ class ModelDocument(ModelDocumentBase):
                                     for resourceElt in linkElement.iter(): # check resource element schemaLocations
                                         self.schemalocateElementNamespace(resourceElt)
                                 if modelResource is not None:
-                                    lbElement.labeledResources[linkElement.get("{http://www.w3.org/1999/xlink}label")] \
-                                        .append(modelResource)
+                                    lbElement.labeledResources[
+                                        cast(str, linkElement.get("{http://www.w3.org/1999/xlink}label"))
+                                    ].append(modelResource)
                     else:
                         self.modelXbrl.error("xbrl:schemaDefinitionMissing",
                                 _("Linkbase extended link %(element)s missing schema definition"),
                                 modelObject=lbElement, element=lbElement.prefixedName)
 
-    def discoverHref(self, element, nonDTS=False, urlRewritePluginClass=None):
+    def discoverHref(self, element: ModelObject, nonDTS: bool = False, urlRewritePluginClass: str | None = None) -> tuple[ModelObject, ModelDocument | None, str | None] | None:
         href = element.get("{http://www.w3.org/1999/xlink}href")
         if href:
             url, id = UrlUtil.splitDecodeFragment(href)
             if url == "":
-                doc = self
+                doc: Any = self
             else:
                 # href discovery only can happein within a DTS
+                _newDoc: Any
                 if self.skipDTS: # no discovery
                     _newDoc = DocumentPrototype
                 else:
@@ -1258,20 +1279,20 @@ class ModelDocument(ModelDocumentBase):
                             if doc.type == Type.SCHEMA and not self.skipDTS: # schema coming newly into DTS
                                 doc.schemaDiscoverChildElements(doc.xmlRootElement)
                     self.addDocumentReference(doc, "href", element)
-            href = (element, doc, id if len(id) > 0 else None)
+            hrefTuple = (element, doc, id if len(id) > 0 else None)
             if doc is not None:  # if none, an error would have already been reported, don't multiply report it
-                self.hrefObjects.append(href)
-            return href
+                self.hrefObjects.append(hrefTuple)
+            return hrefTuple
         return None
 
-    def instanceDiscover(self, xbrlElement):
+    def instanceDiscover(self, xbrlElement: ModelObject) -> None:
         self.schemaLinkbaseRefsDiscover(xbrlElement)
         if not self.skipDTS:
             self.linkbaseDiscover(xbrlElement,inInstance=True) # for role/arcroleRefs and footnoteLinks
         xmlValidate(self.modelXbrl, xbrlElement) # validate instance elements (xValid may be UNKNOWN if skipDTS)
         self.instanceContentsDiscover(xbrlElement)
 
-    def instanceContentsDiscover(self,xbrlElement):
+    def instanceContentsDiscover(self, xbrlElement: ModelObject) -> None:
         nextUndefinedFact = len(self.modelXbrl.undefinedFacts)
         instElementSequence = 0
         for instElement in xbrlElement.iterchildren():
@@ -1282,15 +1303,15 @@ class ModelDocument(ModelDocumentBase):
                 ns = instElement.namespaceURI
                 if ns == XbrlConst.xbrli:
                     if ln == "context":
-                        self.contextDiscover(instElement)
+                        self.contextDiscover(cast(ModelContext, instElement))
                     elif ln == "unit":
-                        self.unitDiscover(instElement)
+                        self.unitDiscover(cast(ModelUnit, instElement))
                 elif ns == XbrlConst.link:
                     pass
                 elif ns in XbrlConst.ixbrlAll and ln=="relationship":
                     pass
                 else: # concept elements
-                    self.factDiscover(instElement, self.modelXbrl.facts)
+                    self.factDiscover(instElement, self.modelXbrl.facts)  # type: ignore[arg-type]
         if len(self.modelXbrl.undefinedFacts) > nextUndefinedFact:
             undefFacts = self.modelXbrl.undefinedFacts[nextUndefinedFact:]
             self.modelXbrl.error("xbrl:schemaImportMissing",
@@ -1298,11 +1319,11 @@ class ModelDocument(ModelDocumentBase):
                     modelObject=undefFacts,
                     elements=", ".join(sorted(set(str(f.prefixedName) for f in undefFacts))))
 
-    def contextDiscover(self, modelContext, setTargetModelXbrl=False) -> None:
+    def contextDiscover(self, modelContext: ModelContext, setTargetModelXbrl: bool = False) -> None:
         if not self.skipDTS:
             xmlValidate(self.modelXbrl, modelContext, setTargetModelXbrl=setTargetModelXbrl) # validation may have not completed due to errors elsewhere
         id = modelContext.id
-        self.modelXbrl.contexts[id] = modelContext
+        self.modelXbrl.contexts[cast(str, id)] = modelContext
         for container in (("{http://www.xbrl.org/2003/instance}segment", modelContext.segDimValues, modelContext.segNonDimValues),
                           ("{http://www.xbrl.org/2003/instance}scenario", modelContext.scenDimValues, modelContext.scenNonDimValues)):
             containerName, containerDimValues, containerNonDimValues = container
@@ -1310,7 +1331,7 @@ class ModelDocument(ModelDocumentBase):
                 for sElt in containerElement.iterchildren():
                     if isinstance(sElt,ModelObject):
                         if sElt.namespaceURI == XbrlConst.xbrldi and sElt.localName in ("explicitMember","typedMember"):
-                            dimQn = sElt.dimensionQname
+                            dimQn = sElt.dimensionQname  # type: ignore[attr-defined]
                             if dimQn: # may be null if schema error omits dimension element
                                 if setTargetModelXbrl: # ixds possibly-shared context
                                     if hasattr(sElt, "_dimension") and sElt._dimension is None:
@@ -1319,7 +1340,7 @@ class ModelDocument(ModelDocumentBase):
                                         del sElt._member
                                 modelContext.qnameDims[dimQn] = sElt # both seg and scen
                                 if not self.skipDTS:
-                                    dimension = sElt.dimension
+                                    dimension = sElt.dimension  # type: ignore[attr-defined]
                                     if dimension is not None and dimension not in containerDimValues:
                                         containerDimValues[dimension] = sElt
                                     else:
@@ -1327,12 +1348,12 @@ class ModelDocument(ModelDocumentBase):
                         else:
                             containerNonDimValues.append(sElt)
 
-    def unitDiscover(self, unitElement, setTargetModelXbrl=False) -> None:
+    def unitDiscover(self, unitElement: ModelUnit, setTargetModelXbrl: bool = False) -> None:
         if not self.skipDTS:
             xmlValidate(self.modelXbrl, unitElement, setTargetModelXbrl=setTargetModelXbrl) # validation may have not completed due to errors elsewhere
-        self.modelXbrl.units[unitElement.id] = unitElement
+        self.modelXbrl.units[cast(str, unitElement.id)] = unitElement
 
-    def inlineXbrlDiscover(self, htmlElement):
+    def inlineXbrlDiscover(self, htmlElement: ModelObject) -> None:
         ixNS = None
         htmlBase = None
         conflictingNSelts = []
@@ -1383,7 +1404,7 @@ class ModelDocument(ModelDocumentBase):
         self.modelXbrl.ixdsHtmlElements.append(htmlElement)
 
 
-    def factDiscover(self, modelFact, parentModelFacts=None, parentElement=None) -> None:
+    def factDiscover(self, modelFact: ModelFact, parentModelFacts: list[ModelFact] | None = None, parentElement: ModelObject | None = None) -> None:
         if parentModelFacts is None: # may be called with parentElement instead of parentModelFacts list
             if isinstance(parentElement, ModelFact) and parentElement.isTuple:
                 parentModelFacts = parentElement.modelTupleFacts
@@ -1402,7 +1423,7 @@ class ModelDocument(ModelDocumentBase):
         else:
             self.modelXbrl.undefinedFacts.append(modelFact)
 
-    def testcasesIndexDiscover(self, rootNode, validateTestcaseSchema):
+    def testcasesIndexDiscover(self, rootNode: etree._ElementTree, validateTestcaseSchema: bool) -> None:
         if validateTestcaseSchema:
             lxmlSchemaValidate(self)
         for testcasesElement in rootNode.iter():
@@ -1417,14 +1438,14 @@ class ModelDocument(ModelDocumentBase):
                         uriAttr = testcaseElement.get("uri") or testcaseElement.get("file") or testcaseElement.get("{http://www.w3.org/1999/xlink}href")
                         if uriAttr:
                             doc = load(self.modelXbrl, uriAttr, base=base, referringElement=testcaseElement)
-                            self.addDocumentReference(doc, "testcaseIndex", testcaseElement)
+                            self.addDocumentReference(cast(ModelDocument, doc), "testcaseIndex", testcaseElement)
                     elif isinstance(testcaseElement,ModelObject) and testcaseElement.localName in ("testcases", "registries"):
                         uriAttr = testcaseElement.get("uri") or testcaseElement.get("{http://www.w3.org/1999/xlink}href")
                         if uriAttr:
                             doc = load(self.modelXbrl, uriAttr, base=base, referringElement=testcaseElement)
-                            self.addDocumentReference(doc, "testcaseIndex", testcaseElement)
+                            self.addDocumentReference(cast(ModelDocument, doc), "testcaseIndex", testcaseElement)
 
-    def testcaseDiscover(self, testcaseElement: etree._Element, validateTestcaseSchema: bool) -> None:
+    def testcaseDiscover(self, testcaseElement: ModelObject, validateTestcaseSchema: bool) -> None:
         if validateTestcaseSchema:
             lxmlSchemaValidate(self)
         isTransformTestcase = testcaseElement.namespaceURI == "http://xbrl.org/2011/conformance-rendering/transforms"
@@ -1434,26 +1455,26 @@ class ModelDocument(ModelDocumentBase):
         self.testcaseVariations: list[ModelTestcaseVariation] = []
         priorTransformName = None
         for modelVariation in XmlUtil.descendants(testcaseElement, testcaseElement.namespaceURI, ("variation", "testGroup")):
-            self.testcaseVariations.append(modelVariation)
-            if isTransformTestcase and modelVariation.getparent().get("name") is not None:
-                transformName = modelVariation.getparent().get("name")
+            self.testcaseVariations.append(modelVariation)  # type: ignore[arg-type]
+            if isTransformTestcase and modelVariation.getparent().get("name") is not None:  # type: ignore[union-attr]
+                transformName = modelVariation.getparent().get("name")  # type: ignore[union-attr]
                 if transformName != priorTransformName:
                     priorTransformName = transformName
                     variationNumber = 1
-                modelVariation._name = "{0} v-{1:02}".format(priorTransformName, variationNumber)
+                modelVariation._name = "{0} v-{1:02}".format(priorTransformName, variationNumber)  # type: ignore[union-attr]
                 variationNumber += 1
         if len(self.testcaseVariations) == 0:
             # may be a inline test case
             if XbrlConst.ixbrlAll.intersection(testcaseElement.values()):
-                self.testcaseVariations.append(testcaseElement)
+                self.testcaseVariations.append(testcaseElement)  # type: ignore[arg-type]
 
-    def registryDiscover(self, rootNode):
+    def registryDiscover(self, rootNode: ModelObject) -> None:
         lxmlSchemaValidate(self)
         base = self.filepath
         for entryElement in rootNode.iterdescendants(tag="{http://xbrl.org/2008/registry}entry"):
             if isinstance(entryElement,ModelObject):
                 uri = XmlUtil.childAttr(entryElement, XbrlConst.registry, "url", "{http://www.w3.org/1999/xlink}href")
-                functionDoc = load(self.modelXbrl, uri, base=base, referringElement=entryElement)
+                functionDoc = load(self.modelXbrl, cast(str, uri), base=base, referringElement=entryElement)
                 if functionDoc is not None:
                     testUriElt = XmlUtil.child(functionDoc.xmlRootElement, XbrlConst.function, "conformanceTest")
                     if testUriElt is not None:
@@ -1461,13 +1482,13 @@ class ModelDocument(ModelDocumentBase):
                         testbase = functionDoc.filepath
                         if testuri is not None:
                             testcaseDoc = load(self.modelXbrl, testuri, base=testbase, referringElement=testUriElt)
-                            self.addDocumentReference(testcaseDoc, "registryIndex", testUriElt)
+                            self.addDocumentReference(cast(ModelDocument, testcaseDoc), "registryIndex", testUriElt)
 
-    def xPathTestSuiteDiscover(self, rootNode):
+    def xPathTestSuiteDiscover(self, rootNode: ModelObject) -> None:
         # no child documents to reference
         pass
 
-    def addDocumentReference(self, doc, referenceType, referringModelObject=None):
+    def addDocumentReference(self, doc: ModelDocument, referenceType: str, referringModelObject: ModelObject | None = None) -> None:
         if doc is not None:
             if doc not in self.referencesDocument:
                 self.referencesDocument[doc] = ModelDocumentReference(referenceType, referringModelObject)
@@ -1481,13 +1502,13 @@ class ModelDocument(ModelDocumentBase):
 # inline document set level compilation
 # modelIxdsDocument is an inlineDocumentSet or entry inline document (if not a document set)
 #   note that multi-target and multi-instance facts may have html elements belonging to primary ixds instead of this instance ixds
-def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, **kwargs):
+def inlineIxdsDiscover(modelXbrl: ModelXbrl, modelIxdsDocument: ModelDocument, setTargetModelXbrl: bool = False, **kwargs: Any) -> None:
     for pluginMethod in modelXbrl.modelManager.cntlr.plugins.hooks("ModelDocument.SelectIxdsTarget"):
         pluginMethod(modelXbrl, modelIxdsDocument, **kwargs)
     # extract for a single target document
     ixdsTarget = getattr(modelXbrl, "ixdsTarget", None)
     # compile inline result set
-    ixdsEltById = modelXbrl.ixdsEltById = defaultdict(list)
+    ixdsEltById = modelXbrl.ixdsEltById = defaultdict(list)  # type: ignore[attr-defined]
     for htmlElement in modelXbrl.ixdsHtmlElements:
         for elt in htmlElement.iterfind(".//*[@id]"):
             if isinstance(elt,ModelObject) and elt.id:
@@ -1495,7 +1516,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
 
     # TODO: ixdsEltById duplication should be tested here and removed from ValidateXbrlDTS (about line 346 after if name == "id" and attrValue in val.elementIDs)
     footnoteRefs = defaultdict(list)
-    tupleElements = []
+    tupleElements: list[ModelInlineFact] = []
     continuationElements = {}
     continuationReferences = defaultdict(set) # set of elements that have continuedAt source value
     tuplesByTupleID = {}
@@ -1505,13 +1526,13 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
     factTargetUnitRefs = defaultdict(set) # index is target, value is set of unitRefs
     targetRoleUris = defaultdict(set) # index is target, value is set of roleUris
     targetArcroleUris = defaultdict(set) # index is target, value is set of arcroleUris
-    targetReferenceAttrElts = defaultdict(dict) # target dict by attrname of elts
-    targetReferenceAttrVals = defaultdict(dict) # target dict by attrname of attr value
-    targetReferencePrefixNs = defaultdict(dict) # target dict by prefix, namespace
-    targetReferencesIDs = {} # target dict by id of reference elts
+    targetReferenceAttrElts: defaultdict[str | None, dict[str, ModelObject]] = defaultdict(dict) # target dict by attrname of elts
+    targetReferenceAttrVals: defaultdict[str | None, dict[str, str]] = defaultdict(dict) # target dict by attrname of attr value
+    targetReferencePrefixNs: defaultdict[str | None, dict[str, tuple[str, ModelObject]]] = defaultdict(dict) # target dict by prefix, namespace
+    targetReferencesIDs: dict[str | None, ModelObject] = {} # target dict by id of reference elts
     modelInlineFootnotesById = {} # inline 1.1 ixRelationships and ixFootnotes
-    modelXbrl.targetRoleRefs = {} # roleRefs used by selected target
-    modelXbrl.targetArcroleRefs = {}  # arcroleRefs used by selected target
+    modelXbrl.targetRoleRefs = {}  # type: ignore[attr-defined] # roleRefs used by selected target
+    modelXbrl.targetArcroleRefs = {}  # type: ignore[attr-defined] # arcroleRefs used by selected target
     modelXbrl.targetRelationships = set() # relationship elements used by selected target
     hasResources = hasHeader = False
     for htmlElement in modelXbrl.ixdsHtmlElements:
@@ -1519,9 +1540,9 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
         ixNStag = mdlDoc.ixNStag
         for modelInlineTuple in htmlElement.iterdescendants(tag=ixNStag + "tuple"):
             if isinstance(modelInlineTuple,ModelObject):
-                modelInlineTuple.unorderedTupleFacts = defaultdict(list)
+                modelInlineTuple.unorderedTupleFacts = defaultdict(list)  # type: ignore[attr-defined]
                 if modelInlineTuple.qname is not None:
-                    if modelInlineTuple.tupleID:
+                    if hasattr(modelInlineTuple, "tupleID") and modelInlineTuple.tupleID:
                         if modelInlineTuple.tupleID not in tuplesByTupleID:
                             tuplesByTupleID[modelInlineTuple.tupleID] = modelInlineTuple
                         else:
@@ -1530,12 +1551,13 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
                                             modelObject=(modelInlineTuple,tuplesByTupleID[modelInlineTuple.tupleID]),
                                             tupleID=modelInlineTuple.tupleID, qname1=modelInlineTuple.qname,
                                             qname2=tuplesByTupleID[modelInlineTuple.tupleID].qname)
-                    tupleElements.append(modelInlineTuple)
-                    for r in modelInlineTuple.footnoteRefs:
+                    tupleElements.append(cast(ModelInlineFact, modelInlineTuple))
+                    for r in modelInlineTuple.footnoteRefs:  # type: ignore[attr-defined]
                         footnoteRefs[r].append(modelInlineTuple)
                     if modelInlineTuple.id:
                         factsByFactID[modelInlineTuple.id] = modelInlineTuple
                 factTargetIDs.add(modelInlineTuple.get("target"))
+        modelInlineFact: ModelInlineFact
         for modelInlineFact in htmlElement.iterdescendants(ixNStag + "nonNumeric", ixNStag + "nonFraction", ixNStag + "fraction"):
             if isinstance(modelInlineFact,ModelObject):
                 _target = modelInlineFact.get("target")
@@ -1552,7 +1574,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
                 continuationElements[elt.id] = elt
         for elt in htmlElement.iterdescendants(tag=XbrlConst.qnIXbrl11Footnote.clarkNotation):
             if isinstance(elt,ModelObject):
-                modelInlineFootnotesById[elt.footnoteID] = elt
+                modelInlineFootnotesById[elt.footnoteID] = elt  # type: ignore[attr-defined]
         for elt in htmlElement.iterdescendants(tag=ixNStag + "references"):
             if isinstance(elt,ModelObject):
                 target = elt.get("target")
@@ -1588,7 +1610,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
                                         _("Inline XBRL ix:references prefix %(prefix)s has multiple namespaces %(ns1)s and %(ns2)s in target %(target)s"),
                                         modelObject=(elt, targetReferencePrefixNsDict[_prefix][1]), prefix=_prefix, ns1=_ns, ns2=targetReferencePrefixNsDict[_prefix], target=target)
                     else:
-                        targetReferencePrefixNsDict[_prefix] = (_ns, elt)
+                        targetReferencePrefixNsDict[_prefix] = (_ns, elt)  # type: ignore[index]
 
         for hdrElt in htmlElement.iterdescendants(tag=ixNStag + "header"):
             hasHeader = True
@@ -1691,7 +1713,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
             for refElement in inlineElement.iterchildren("{http://www.xbrl.org/2003/linkbase}roleRef"):
                 r = refElement.get("roleURI")
                 if r in targetRoleUris[ixdsTarget]:
-                    modelXbrl.targetRoleRefs[r] = refElement
+                    modelXbrl.targetRoleRefs[r] = refElement  # type: ignore[attr-defined]
                     if modelIxdsDocument.discoverHref(refElement) is None: # discover role-defining schema file
                         modelXbrl.error("xmlSchema:requiredAttribute",
                                 _("Reference for roleURI href attribute missing or malformed"),
@@ -1699,7 +1721,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
             for refElement in inlineElement.iterchildren("{http://www.xbrl.org/2003/linkbase}arcroleRef"):
                 r = refElement.get("arcroleURI")
                 if r in targetArcroleUris[ixdsTarget]:
-                    modelXbrl.targetArcroleRefs[r] = refElement
+                    modelXbrl.targetArcroleRefs[r] = refElement  # type: ignore[attr-defined]
                     if modelIxdsDocument.discoverHref(refElement) is None: # discover arcrole-defining schema file
                         modelXbrl.error("xmlSchema:requiredAttribute",
                                 _("Reference for arcroleURI href attribute missing or malformed"),
@@ -1709,19 +1731,19 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
     del factTargetContextRefs, factTargetUnitRefs
 
     # root elements by target
-    modelXbrl.ixTargetRootElements = {}
+    modelXbrl.ixTargetRootElements = {}  # type: ignore[attr-defined]
     for target in targetReferenceAttrElts.keys() | {None}: # need default target in case any facts have no or invalid target
         try:
-            modelXbrl.ixTargetRootElements[target] = elt = modelIxdsDocument.parser.makeelement(
+            modelXbrl.ixTargetRootElements[target] = elt = modelIxdsDocument.parser.makeelement(  # type: ignore[attr-defined]
                 XbrlConst.qnPrototypeXbrliXbrl.clarkNotation, attrib=targetReferenceAttrVals.get(target),
                 nsmap=dict((p,n) for p,(n,e) in targetReferencePrefixNs.get(target,{}).items()))
-            elt.init(modelIxdsDocument)
+            elt.init(modelIxdsDocument)  # type: ignore[attr-defined]
         except Exception as err:
             modelXbrl.error(type(err).__name__,
                     _("Unrecoverable error creating target instance: %(error)s"),
                     modelObject=modelXbrl, error=err)
 
-    def locateFactInTuple(modelFact, tuplesByTupleID, ixNStag):
+    def locateFactInTuple(modelFact: ModelInlineFact, tuplesByTupleID: dict[str, Any], ixNStag: str) -> None:
         tupleRef = modelFact.tupleRef
         tuple = None
         if tupleRef:
@@ -1744,7 +1766,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
                                 _("Inline XBRL tuple member %(qname)s must have a numeric order attribute"),
                                 modelObject=modelFact, qname=modelFact.qname)
             if modelFact.get("target") == tuple.get("target"):
-                modelFact._ixFactParent = tuple # support ModelInlineFact parentElement()
+                modelFact._ixFactParent = tuple  # type: ignore[attr-defined] # support ModelInlineFact parentElement()
             else:
                 modelXbrl.error(ixMsgCode("tupleMemberDifferentTarget", modelFact, sect="validation"),
                                 _("Inline XBRL tuple member %(qname)s must have a tuple parent %(tuple)s with same target"),
@@ -1753,11 +1775,11 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
             if modelFact.get("target") == ixdsTarget: # only process facts with target match
                 modelXbrl.modelXbrl.facts.append(modelFact)
             try:
-                modelFact._ixFactParent = modelXbrl.ixTargetRootElements[modelFact.get("target")]
+                modelFact._ixFactParent = modelXbrl.ixTargetRootElements[modelFact.get("target")]  # type: ignore[attr-defined]
             except KeyError:
-                modelFact._ixFactParent = modelXbrl.ixTargetRootElements[None]
+                modelFact._ixFactParent = modelXbrl.ixTargetRootElements[None]  # type: ignore[attr-defined]
 
-    def locateContinuation(element):
+    def locateContinuation(element: ModelInlineFact) -> None:
         contAt = element.get("continuedAt")
         if contAt: # has continuation
             chain = [element] # implement non-recursively for very long continuaion chains
@@ -1777,16 +1799,16 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
                 else:
                     contElt = continuationElements[contAt]
                     if contElt in chain:
-                        cycle = ", ".join(e.get("continuedAt") for e in chain)
+                        cycle = ", ".join(e.get("continuedAt") for e in chain)  # type: ignore[misc]
                         chain.append(contElt) # makes the cycle clear
                         modelXbrl.error(ixMsgCode("continuationCycle", element, sect="validation"),
                                         _("Inline XBRL continuation cycle: %(continuationCycle)s"),
                                         modelObject=chain, continuationCycle=cycle)
                         break
                     else:
-                        chain.append(contElt)
-                        element._continuationElement = contElt
-                        element = contElt # loop to continuation element
+                        chain.append(contElt)  # type: ignore[arg-type]
+                        element._continuationElement = contElt  # type: ignore[attr-defined]
+                        element = contElt  # type: ignore[assignment] # loop to continuation element
                         contAt = element.get("continuedAt")
             # check if any chain element is descendant of another
             chainSet = set(chain)
@@ -1801,7 +1823,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
                                         ancestorElement=chainEltAncestor.id or chainEltAncestor.get("name",chainEltAncestor.get("continuedAt")),
                                         descendantElement=chainElt.id or chainElt.get("name",chainElt.get("continuedAt")))
 
-    def checkTupleIxDescendants(tupleFact, parentElt):
+    def checkTupleIxDescendants(tupleFact: ModelInlineFact, parentElt: ModelInlineFact) -> None:
         for childElt in parentElt.iterchildren():
             if isinstance(childElt,ModelObject) and childElt.namespaceURI in XbrlConst.ixbrlAll:
                 if childElt.localName in ("numerator", "denominator"):
@@ -1811,7 +1833,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
             else:
                 checkTupleIxDescendants(tupleFact, childElt)
 
-    def addItemFactToTarget(modelInlineFact):
+    def addItemFactToTarget(modelInlineFact: ModelInlineFact) -> None:
         if setTargetModelXbrl:
             modelInlineFact.targetModelXbrl = modelXbrl # fact's owning IXDS overrides initial loading document IXDS
         if modelInlineFact.concept is None:
@@ -1849,7 +1871,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
                 for r in modelInlineFact.footnoteRefs:
                     footnoteRefs[r].append(modelInlineFact)
                 if modelInlineFact.elementQname.localName == "fraction":
-                    childCounts = {}
+                    childCounts: dict[str, int] = {}
                     for child in modelInlineFact.iter(ixNStag + "*"):
                         childCounts[child.elementQname.localName] = childCounts.get(child.elementQname.localName, 0) + 1
                         if child.elementQname.localName == "fraction":
@@ -1888,12 +1910,12 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
                         modelXbrl.error(ixMsgCode("invalidTransformation", modelInlineFact, sect="validation"),
                             _("Fact %(fact)s has unrecognized transformation namespace %(namespace)s"),
                             modelObject=modelInlineFact, fact=modelInlineFact.qname, transform=fmt, namespace=fmt.namespaceURI)
-                        modelInlineFact.setInvalid()
+                        modelInlineFact.setInvalid()  # type: ignore[no-untyped-call]
                     elif fmt.localName not in FunctionIxt.ixtNamespaceFunctions[fmt.namespaceURI]:
                         modelXbrl.error(ixMsgCode("invalidTransformation", modelInlineFact, sect="validation"),
                             _("Fact %(fact)s has unrecognized transformation name %(name)s"),
                             modelObject=modelInlineFact, fact=modelInlineFact.qname, transform=fmt, name=fmt.localName)
-                        modelInlineFact.setInvalid()
+                        modelInlineFact.setInvalid()  # type: ignore[no-untyped-call]
             else:
                 modelXbrl.error(ixMsgCode("missingReferences", modelInlineFact, name="references", sect="validation"),
                                 _("Instance fact missing schema definition: %(qname)s of Inline Element %(localName)s"),
@@ -1902,7 +1924,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
         # order tuple facts
         for tupleFact in tupleElements:
             # check for duplicates
-            for order, facts in tupleFact.unorderedTupleFacts.items():
+            for order, facts in tupleFact.unorderedTupleFacts.items():  # type: ignore[attr-defined]
                 if len(facts) > 1:
                     if not all(normalizeSpace(facts[0].value) == normalizeSpace(f.value) and
                                all(normalizeSpace(facts[0].get(attr)) == normalizeSpace(f.get(attr))
@@ -1915,11 +1937,11 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
             # check nearest ix: descendants
             checkTupleIxDescendants(tupleFact, tupleFact)
             tupleFact.modelTupleFacts = [facts[0] # this deduplicates by order number
-                                         for order,facts in sorted(tupleFact.unorderedTupleFacts.items(), key=lambda i:i[0])
+                                         for order,facts in sorted(tupleFact.unorderedTupleFacts.items(), key=lambda i:i[0])  # type: ignore[attr-defined]
                                          if len(facts) > 0]
 
         # check for tuple cycles
-        def checkForTupleCycle(parentTuple, tupleNesting):
+        def checkForTupleCycle(parentTuple: ModelInlineFact, tupleNesting: list[ModelInlineFact]) -> None:
             for fact in parentTuple.modelTupleFacts:
                 if fact in tupleNesting:
                     tupleNesting.append(fact)
@@ -1937,7 +1959,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
 
         for modelInlineFootnote in htmlElement.iterdescendants(tag=XbrlConst.qnIXbrl11Footnote.clarkNotation):
             if isinstance(modelInlineFootnote,ModelObject):
-                locateContinuation(modelInlineFootnote)
+                locateContinuation(modelInlineFootnote)  # type: ignore[arg-type]
 
         for elt in htmlElement.iterdescendants(ixNStag + "exclude"):
             if not any(True for ancestor in elt.iterancestors(ixNStag + "continuation", ixNStag + "footnote", ixNStag + "nonNumeric")):
@@ -1955,8 +1977,8 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
                 for modelInlineFractionTerm in rootModelFact.iterchildren(tag=tag):
                     xmlValidate(modelXbrl, modelInlineFractionTerm, ixFacts=True)
                     if modelInlineFractionTerm.xValid >= VALID:
-                        numDenom[i] = modelInlineFractionTerm.xValue
-            rootModelFact._fractionValue = numDenom
+                        numDenom[i] = modelInlineFractionTerm.xValue  # type: ignore[assignment]
+            rootModelFact._fractionValue = numDenom  # type: ignore[assignment]
         xmlValidate(modelXbrl, rootModelFact, ixFacts=True)
 
     if len(targetReferenceAttrElts) == 0:
@@ -1979,12 +2001,12 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
     del targetReferenceAttrElts, targetReferencePrefixNs, targetReferenceAttrVals, factTargetIDs
 
 
-    footnoteLinkPrototypes = {}
+    footnoteLinkPrototypes: dict[str, Any] = {}
     # inline 1.1 link prototypes, one per link role (so only one extended link element is produced per link role)
-    linkPrototypes = {}
+    linkPrototypes: dict[str, Any] = {}
     # inline 1.1 ixRelationships and ixFootnotes
-    linkModelInlineFootnoteIds = defaultdict(set)
-    linkModelLocIds = defaultdict(set)
+    linkModelInlineFootnoteIds: defaultdict[str, set[str]] = defaultdict(set)
+    linkModelLocIds: defaultdict[str, set[str]] = defaultdict(set)
     for htmlElement in modelXbrl.ixdsHtmlElements:
         mdlDoc = htmlElement.modelDocument
         # inline 1.0 ixFootnotes, build resources (with ixContinuation)
@@ -1993,7 +2015,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
                 # link
                 linkrole = modelInlineFootnote.get("footnoteLinkRole", XbrlConst.defaultLinkRole)
                 arcrole = modelInlineFootnote.get("arcrole", XbrlConst.factFootnote)
-                footnoteID = modelInlineFootnote.footnoteID or ""
+                footnoteID = modelInlineFootnote.footnoteID or ""  # type: ignore[attr-defined]
                 # check if any footnoteRef fact is in this target instance
                 if not any(modelFact.get("target") == ixdsTarget for modelFact in footnoteRefs[footnoteID]):
                     continue # skip footnote, it's not in this target document
@@ -2001,7 +2023,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
                 if linkrole in footnoteLinkPrototypes:
                     linkPrototype = footnoteLinkPrototypes[linkrole]
                 else:
-                    linkPrototype = LinkPrototype(modelIxdsDocument, mdlDoc.xmlRootElement, XbrlConst.qnLinkFootnoteLink, linkrole)
+                    linkPrototype = LinkPrototype(modelIxdsDocument, mdlDoc.xmlRootElement, XbrlConst.qnLinkFootnoteLink, linkrole)  # type: ignore[no-untyped-call]
                     footnoteLinkPrototypes[linkrole] = linkPrototype
                     for baseSetKey in (("XBRL-footnotes",None,None,None),
                                        ("XBRL-footnotes",linkrole,None,None),
@@ -2011,14 +2033,14 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
                         modelXbrl.baseSets[baseSetKey].append(linkPrototype)
                 # locs
                 for modelFact in footnoteRefs[footnoteID]:
-                    locPrototype = LocPrototype(modelIxdsDocument, linkPrototype, footnoteLocLabel, modelFact)
+                    locPrototype = LocPrototype(modelIxdsDocument, linkPrototype, footnoteLocLabel, modelFact)  # type: ignore[no-untyped-call]
                     linkPrototype.childElements.append(locPrototype)
                     linkPrototype.labeledResources[footnoteLocLabel].append(locPrototype)
                 # resource
                 linkPrototype.childElements.append(modelInlineFootnote)
                 linkPrototype.labeledResources[footnoteID].append(modelInlineFootnote)
                 # arc
-                linkPrototype.childElements.append(ArcPrototype(mdlDoc, linkPrototype, XbrlConst.qnLinkFootnoteArc,
+                linkPrototype.childElements.append(ArcPrototype(mdlDoc, linkPrototype, XbrlConst.qnLinkFootnoteArc,  # type: ignore[no-untyped-call]
                                                                 footnoteLocLabel, footnoteID,
                                                                 linkrole, arcrole, sourceElement=modelInlineFootnote))
 
@@ -2026,7 +2048,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
             if isinstance(modelInlineRel,ModelObject):
                 linkrole = modelInlineRel.get("linkRole", XbrlConst.defaultLinkRole)
                 if linkrole not in linkPrototypes:
-                    linkPrototypes[linkrole] = LinkPrototype(modelIxdsDocument, mdlDoc.xmlRootElement, XbrlConst.qnLinkFootnoteLink, linkrole, sourceElement=modelInlineRel)
+                    linkPrototypes[linkrole] = LinkPrototype(modelIxdsDocument, mdlDoc.xmlRootElement, XbrlConst.qnLinkFootnoteLink, linkrole, sourceElement=modelInlineRel)  # type: ignore[no-untyped-call]
 
 
     for htmlElement in modelXbrl.ixdsHtmlElements:
@@ -2053,7 +2075,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
                 for fromId in fromLabels:
                     if fromId not in linkModelLocIds[linkrole] and relHasFromFactsInTarget and fromId in factsByFactID:
                         linkModelLocIds[linkrole].add(fromId)
-                        locPrototype = LocPrototype(factsByFactID[fromId].modelDocument, linkPrototype, fromId, fromId, sourceElement=modelInlineRel)
+                        locPrototype = LocPrototype(factsByFactID[fromId].modelDocument, linkPrototype, fromId, fromId, sourceElement=modelInlineRel)  # type: ignore[no-untyped-call]
                         linkPrototype.childElements.append(locPrototype)
                         linkPrototype.labeledResources[fromId].append(locPrototype)
                 toLabels = set()
@@ -2075,7 +2097,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
                     elif toId in factsByFactID:
                         toLabels.add(toId)
                         if toId not in linkModelLocIds[linkrole]:
-                            modelInlineFact = factsByFactID[toId]
+                            modelInlineFact = factsByFactID[toId]  # type: ignore[assignment]
                             if relHasFromFactsInTarget and modelInlineFact.get("target") != ixdsTarget:
                                 # copy fact to target when not there
                                 if ixdsTarget:
@@ -2086,8 +2108,8 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
                                 locateFactInTuple(modelInlineFact, tuplesByTupleID, modelInlineFact.modelDocument.ixNStag)
                             if modelInlineFact.get("target") == ixdsTarget:
                                 linkModelLocIds[linkrole].add(toId)
-                                locPrototype = LocPrototype(factsByFactID[toId].modelDocument, linkPrototype, toId, toId, sourceElement=modelInlineRel)
-                                toFactQnames.add(str(locPrototype.dereference().qname))
+                                locPrototype = LocPrototype(factsByFactID[toId].modelDocument, linkPrototype, toId, toId, sourceElement=modelInlineRel)  # type: ignore[no-untyped-call]
+                                toFactQnames.add(str(locPrototype.dereference().qname))  # type: ignore[no-untyped-call]
                                 linkPrototype.childElements.append(locPrototype)
                                 linkPrototype.labeledResources[toId].append(locPrototype)
                                 relHasToObjectsInTarget = True
@@ -2107,7 +2129,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
                                     modelObject=modelInlineRel, fromToMatchedIds=', '.join(sorted(fromToMatchedIds)))
                 for fromLabel in fromLabels:
                     for toLabel in toLabels: # toLabels is empty if no to fact or footnote is in target
-                        linkPrototype.childElements.append(ArcPrototype(modelIxdsDocument, linkPrototype, XbrlConst.qnLinkFootnoteArc,
+                        linkPrototype.childElements.append(ArcPrototype(modelIxdsDocument, linkPrototype, XbrlConst.qnLinkFootnoteArc,  # type: ignore[no-untyped-call]
                                                                         fromLabel, toLabel,
                                                                         linkrole, arcrole,
                                                                         modelInlineRel.get("order", "1"), sourceElement=modelInlineRel))
@@ -2134,14 +2156,14 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument, setTargetModelXbrl=False, *
             modelXbrl.error(ixMsgCode("continuationNotReferenced", ns=XbrlConst.ixbrl11, name="continuation", sect="validation"),
                             _("ix:continuation %(continuedAt)s is not referenced by a, ix:footnote, ix:nonNumeric or other ix:continuation element."),
                             modelObject=_contElt, continuedAt=_contAt)
-        if XmlUtil.ancestor(_contElt, _contElt.modelDocument.ixNS, "hidden") is not None:
+        if XmlUtil.ancestor(_contElt, cast(str, _contElt.modelDocument.ixNS), "hidden") is not None:
             modelXbrl.error(ixMsgCode("ancestorNodeDisallowed", ns=XbrlConst.ixbrl11, name="continuation", sect="constraint"),
                             _("ix:continuation %(continuedAt)s may not be nested in an ix:hidden element."),
                             modelObject=_contElt, continuedAt=_contAt)
 
-    if ixdsTarget in modelXbrl.ixTargetRootElements:
-        modelIxdsDocument.targetXbrlRootElement = modelXbrl.ixTargetRootElements[ixdsTarget]
-        modelIxdsDocument.targetXbrlElementTree = PrototypeElementTree(modelIxdsDocument.targetXbrlRootElement)
+    if ixdsTarget in modelXbrl.ixTargetRootElements:  # type: ignore[attr-defined]
+        modelIxdsDocument.targetXbrlRootElement = modelXbrl.ixTargetRootElements[ixdsTarget]  # type: ignore[attr-defined]
+        modelIxdsDocument.targetXbrlElementTree = PrototypeElementTree(modelIxdsDocument.targetXbrlRootElement)  # type: ignore[no-untyped-call,assignment]
 
     for pluginMethod in modelXbrl.modelManager.cntlr.plugins.hooks("ModelDocument.IxdsTargetDiscovered"):
         pluginMethod(modelXbrl, modelIxdsDocument)
@@ -2150,12 +2172,12 @@ class LoadingException(Exception):
     pass
 
 class ModelDocumentReference:
-    def __init__(self, referenceType, referringModelObject=None):
-        self.referenceTypes = {referenceType}
-        self.referringModelObject = referringModelObject
+    def __init__(self, referenceType: str, referringModelObject: ModelObject | None = None) -> None:
+        self.referenceTypes: set[str] = {referenceType}
+        self.referringModelObject: ModelObject | None = referringModelObject
 
     @property
-    def referringXlinkRole(self):
+    def referringXlinkRole(self) -> str | None:
         if "href" in self.referenceTypes and isinstance(self.referringModelObject, ModelObject):
             return self.referringModelObject.get("{http://www.w3.org/1999/xlink}role")
         return None

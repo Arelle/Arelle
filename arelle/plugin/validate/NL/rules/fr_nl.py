@@ -132,7 +132,7 @@ def rule_fr_nl_1_03(
     """
     for doc in val.modelXbrl.urlDocs.values():
         if doc.type == ModelDocumentType.INSTANCE:
-            if doc.xmlDocument.docinfo.doctype:
+            if doc.xmlDocument is not None and doc.xmlDocument.docinfo.doctype:
                 yield Validation.error(
                     codes='NL.FR-NL-1.03',
                     msg=_('A DOCTYPE declaration MUST NOT be used in the filing instance document'),
@@ -208,7 +208,7 @@ def rule_fr_nl_1_05(
     """
     FR-NL-1.05: The character encoding UTF-8 MUST be used in the filing instance document
     """
-    invalidEncodings = checkDocumentEncoding(val, ['utf-8'], STANDARD_TAXONOMY_URL_PREFIXES, cast(ModelDocumentType, ModelDocumentType.INSTANCE))
+    invalidEncodings = checkDocumentEncoding(val, ['utf-8'], STANDARD_TAXONOMY_URL_PREFIXES, ModelDocumentType.INSTANCE)
     for doc in invalidEncodings:
         yield Validation.error(
             codes='NL.FR-NL-1.05',

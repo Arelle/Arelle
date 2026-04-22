@@ -729,10 +729,10 @@ def addChild(
     if isinstance(childName1, QName):
         addQnameValue(modelDocument, childName1)
         if childName1.prefix:
-            child: ModelObject = modelDocument.parser.makeelement(  # type: ignore[attr-defined] # ModelDocument type hints
-                childName1.clarkNotation, nsmap={childName1.prefix:childName1.namespaceURI})
+            child: ModelObject = modelDocument.parser.makeelement(  # type: ignore[assignment]
+                childName1.clarkNotation, nsmap={childName1.prefix:childName1.namespaceURI})  # type: ignore[arg-type]
         else:
-            child = modelDocument.parser.makeelement(childName1.clarkNotation)  # type: ignore[attr-defined] # ModelDocument type hints
+            child = modelDocument.parser.makeelement(childName1.clarkNotation)  # type: ignore[assignment]
     else:   # called with namespaceURI, localName
         assert isinstance(childName2, str)
         existingPrefix = xmlnsprefix(parent, childName1)
@@ -742,7 +742,7 @@ def addChild(
                 setXmlns(modelDocument, prefix, childName1)
         else:
             localName = prefix
-        child = modelDocument.parser.makeelement("{{{0}}}{1}".format(childName1, localName))  # type: ignore[attr-defined] # ModelDocument type hints
+        child = modelDocument.parser.makeelement("{{{0}}}{1}".format(childName1, localName))  # type: ignore[assignment]
     if afterSibling is not None and afterSibling.getparent() == parent:  # sibling is a hint, parent prevails
         afterSibling.addnext(child)
     elif beforeSibling is not None and beforeSibling.getparent() == parent:  # sibling is a hint, parent prevails
@@ -771,9 +771,9 @@ def copyNodes(parent: ModelObject, elts: Sequence[ModelObject] | ModelObject) ->
     modelDocument = parent.modelDocument
     for origElt in elts if isinstance(elts, (tuple,list,set)) else (elts,):
         addQnameValue(modelDocument, origElt.elementQname)
-        copyElt = modelDocument.parser.makeelement(origElt.tag)  # type: ignore[attr-defined] # ModelDocument type hints
-        copyElt.init(modelDocument)
-        parent.append(copyElt)
+        copyElt = modelDocument.parser.makeelement(origElt.tag)
+        copyElt.init(modelDocument)  # type: ignore[attr-defined]
+        parent.append(copyElt)  # type: ignore[arg-type]
         for attrTag, attrValue in origElt.items():
             qn = qname(attrTag, noPrefixIsNoNamespace=True)
             prefix = xmlnsprefix(origElt, getattr(qn, 'namespaceURI'))
@@ -796,7 +796,7 @@ def copyNodes(parent: ModelObject, elts: Sequence[ModelObject] | ModelObject) ->
         for childNode in origElt:
             if isinstance(childNode,ModelObjectBase):
                 childNode = cast('ModelObject', childNode)
-                copyNodes(copyElt,childNode)
+                copyNodes(copyElt,childNode)  # type: ignore[arg-type]
 
 def copyChildren(parent: ModelObject, elt: ModelObject) -> None:
     for childNode in elt:
@@ -908,10 +908,10 @@ def addQnameValue(modelDocument: ModelDocument, qnameValue: QName | str) -> str:
 def setXmlns(modelDocument: etree._ElementTree | ModelDocument, prefix: str | None, namespaceURI: str) -> None:
     if isinstance(modelDocument, etree._ElementTree):
         elementTree = modelDocument
-        root = modelDocument.getroot()
     else:
-        elementTree = modelDocument.xmlDocument
-        root = elementTree.getroot()
+        elementTree = modelDocument.xmlDocument  # type: ignore[assignment]
+
+    root = elementTree.getroot()
     if prefix == "":
         prefix = None  # default xmlns prefix stores as None
     if prefix not in root.nsmap:
@@ -1086,7 +1086,7 @@ def xpointerElement(modelDocument: ModelDocument, fragmentIdentifier: str) -> et
             if scheme in modelDocument.idObjects:
                 node = modelDocument.idObjects.get(scheme)
             else:
-                node = modelDocument.xmlDocument.find(".//*[@id='{0}']".format(scheme))
+                node = modelDocument.xmlDocument.find(".//*[@id='{0}']".format(scheme))  # type: ignore[union-attr]
             if node is not None:
                 return node    # this scheme fails
         elif scheme == "element" and parenPart and path:
@@ -1096,13 +1096,13 @@ def xpointerElement(modelDocument: ModelDocument, fragmentIdentifier: str) -> et
                 if id in modelDocument.idObjects:
                     node = modelDocument.idObjects.get(id)
                 else:
-                    node = modelDocument.xmlDocument.find(".//*[@id='{0}']".format(id))
+                    node = modelDocument.xmlDocument.find(".//*[@id='{0}']".format(id))  # type: ignore[union-attr]
                 if node is None:
                     continue    # this scheme fails
                 elif len(pathParts) > 1:
                     iter = node
             else:
-                node = modelDocument.xmlDocument
+                node = modelDocument.xmlDocument  # type: ignore[assignment]
                 iter = (node.getroot(),)  # type: ignore[union-attr] # ModelDocument type hints
             i = 1
             while i < len(pathParts):

@@ -333,7 +333,7 @@ class ModelObject(etree.ElementBase, ModelObjectBase):
                 assert self.modelXbrl is not None
                 normalizedUrl = self.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(
                                    url,
-                                   self.modelDocument.baseForElement(self)) # type: ignore[no-untyped-call]
+                                   self.modelDocument.baseForElement(self))
 
                 assert dtsModelXbrl is not None
                 doc = dtsModelXbrl.urlDocs.get(normalizedUrl)
@@ -341,7 +341,7 @@ class ModelObject(etree.ElementBase, ModelObjectBase):
             if id is None:
                 return cast(ModelObject, doc)
             elif id in doc.idObjects:
-                return cast(ModelObject, doc.idObjects[id])
+                return doc.idObjects[id]
             else:
                 xpointedElement = XmlUtil.xpointerElement(doc,id)
                 # find element

@@ -38,7 +38,7 @@ def rule_th01(
     for doc in modelXbrl.urlDocs.values():
         if doc.type == ModelDocumentType.INLINEXBRL:
             for refDoc, docRef in doc.referencesDocument.items():
-                if docRef.referringModelObject.localName == "schemaRef":
+                if docRef.referringModelObject is not None and docRef.referringModelObject.localName == "schemaRef":
                     href = refDoc.uri
                     if href.startswith(pluginData.schemaRefUri):
                         continue

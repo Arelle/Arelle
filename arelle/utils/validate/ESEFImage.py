@@ -230,7 +230,7 @@ def checkSVGContent(
     val: ValidateXbrl,
 ) -> Iterable[Validation]:
     if baseURI:
-        svgDoc = cast(ModelDocument.ModelDocument, ModelDocument.load(modelXbrl, baseURI, referringElement=imgElts[0]))
+        svgDoc = cast(ModelDocument.ModelDocument, ModelDocument.load(modelXbrl, baseURI, referringElement=imgElts[0]))  # type: ignore[arg-type]
         elt = svgDoc.xmlRootElement
     else:
         _parser, _, _ = parser(modelXbrl, baseURI)

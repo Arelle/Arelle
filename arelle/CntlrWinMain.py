@@ -781,7 +781,7 @@ class CntlrWinMain(Cntlr.Cntlr):
                 try:
                     from arelle import XmlUtil
                     with open(filename, "w") as fh:
-                        XmlUtil.writexml(fh, self.modelManager.modelXbrl.formulaOutputInstance.modelDocument.xmlDocument, encoding="utf-8")  # type: ignore[union-attr]
+                        XmlUtil.writexml(fh, self.modelManager.modelXbrl.formulaOutputInstance.modelDocument.xmlDocument, encoding="utf-8")  # type: ignore[union-attr,arg-type]
                     self.addToLog(_("[info] Saved formula output instance to {0}").format(filename) )
                 except (IOError, EnvironmentError) as err:
                     tkinter.messagebox.showwarning(_("arelle - Error"),

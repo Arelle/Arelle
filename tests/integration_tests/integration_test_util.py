@@ -41,7 +41,7 @@ def get_document_id(doc: ModelDocument) -> str:
             checked_paths.add(basefile)
     # Try referenced documents
     ref_file_source = next(iter(file_source.referencedFileSources.values()), None)
-    ref_basefile: str | None = ref_file_source.basefile if ref_file_source is not None else None
+    ref_basefile: str | None = ref_file_source.basefile if ref_file_source is not None else None  # type: ignore[assignment]
     if ref_basefile is not None:
         ref_basefile = PurePath(ref_basefile).as_posix()
         if ref_basefile in parents:
@@ -54,7 +54,7 @@ def get_document_id(doc: ModelDocument) -> str:
         archive_path_part = PurePath(archive_path_parts[1]).as_posix()
         return archive_path_part
     # Use file source URL as fallback if basepath not found
-    file_source_url = PurePath(os.path.dirname(file_source.url)).as_posix()
+    file_source_url = PurePath(os.path.dirname(file_source.url)).as_posix()  # type: ignore[arg-type,type-var]
     if file_source_url in parents:
         return get_document_id_from_basepath(doc, file_source_url)
     else:
