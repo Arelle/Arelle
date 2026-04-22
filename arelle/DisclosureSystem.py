@@ -46,7 +46,7 @@ class DisclosureSystem:
         self.standardPrefixes = {}
         self.names = []
         self.name = None
-        self.validationType = None
+        self.validationType: str | None = None
         self.exclusiveTypesPattern = None # regex of type matches exclusive with validationType
         # previously built-in types (intent to replace with plugin defined types)
         self.EFM = False

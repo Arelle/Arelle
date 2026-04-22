@@ -233,7 +233,6 @@ module = [
     'arelle.ViewWinVersReport',
     'arelle.ViewWinXml',
     'arelle.WatchRss',
-    'arelle.XhtmlValidate',
     'arelle.XmlValidateParticles',
     'arelle.archive.CustomLogger',
     'arelle.archive.LoadEFMvalidate',

@@ -3,12 +3,18 @@ See COPYRIGHT.md for copyright information.
 
 (originally part of XmlValidate, moved to separate module)
 '''
+from typing import cast
+
 from arelle import XbrlConst, XmlUtil, XmlValidate, ValidateFilingText, UrlUtil
 from arelle.ModelXbrl import ModelXbrl
 from arelle.ModelObject import ModelObject
 from lxml import etree
 import os
 from urllib.parse import urljoin
+
+from arelle.typing import TypeGetText
+
+_: TypeGetText
 
 htmlEltUriAttrs = { # attributes with URI content (for relative correction and %20 canonicalization
     "a": {"href"},
@@ -59,7 +65,13 @@ INLINE_1_0_SCHEMA = "http://www.xbrl.org/2008/inlineXBRL/xhtml-inlinexbrl-1_0.xs
 INLINE_1_1_SCHEMA = "http://www.xbrl.org/2013/inlineXBRL/xhtml-inlinexbrl-1_1.xsd"
 
 
-def ixMsgCode(codeName, elt=None, sect="constraint", ns=None, name=None) -> str:
+def ixMsgCode(
+        codeName: str,
+        elt: ModelObject | None = None,
+        sect: str = "constraint",
+        ns: str | None = None,
+        name: str | None = None
+    ) -> str:
     if elt is None:
         if ns is None: ns = XbrlConst.ixbrl11
         if name is None: name = "other"
@@ -72,13 +84,13 @@ def ixMsgCode(codeName, elt=None, sect="constraint", ns=None, name=None) -> str:
             name = elt.localName
             if name in ("context", "unit"):
                 name = "resources"
-    return "{}:{}".format(ixSect[ns].get(name,"other")[sect], codeName)
+    return "{}:{}".format(ixSect[ns].get(name,"other")[sect], codeName)  # type: ignore[index]
 
 def xhtmlValidate(modelXbrl: ModelXbrl, elt: ModelObject) -> None:
     from lxml.etree import XMLSyntaxError
     validateEntryText = modelXbrl.modelManager.disclosureSystem.validateEntryText
     if validateEntryText:
-        valHtmlContentMsgPrefix = modelXbrl.modelManager.disclosureSystem.validationType + ".5.02.05."
+        valHtmlContentMsgPrefix = cast(str, modelXbrl.modelManager.disclosureSystem.validationType) + ".5.02.05."
 
     inlineSchema = INLINE_1_1_SCHEMA
     if containsNamespacedElements(elt, XbrlConst.ixbrl) and not containsNamespacedElements(elt, XbrlConst.ixbrl11):
@@ -91,24 +103,19 @@ def xhtmlValidate(modelXbrl: ModelXbrl, elt: ModelObject) -> None:
             _("Attribute class must not be empty on element ix:%(element)s"),
             modelObject=e, element=e.localName)
 
-    try:
-        if validateEntryText:
-            ValidateFilingText.validateHtmlContent(modelXbrl, elt, elt, "InlineXBRL", valHtmlContentMsgPrefix, isInline=True)
-    except XMLSyntaxError as err:
-        modelXbrl.error("html:syntaxError",
-            _("%(element)s error %(error)s"),
-            modelObject=elt, element=elt.localName.title(), error=', '.join(dtdErrs()))
+    if validateEntryText:
+        ValidateFilingText.validateHtmlContent(modelXbrl, elt, elt, "InlineXBRL", valHtmlContentMsgPrefix, isInline=True)  # type: ignore[no-untyped-call]
 
 
 def containsNamespacedElements(elt: etree.ElementBase, namespace: str) -> bool:
     return elt.getroottree().find(".//ns:*", {"ns": namespace}) is not None
 
 
-def resolveHtmlUri(elt, name, value):
+def resolveHtmlUri(elt: ModelObject, name: str, value: str) -> str:
     if name == "archive": # URILIST
         return " ".join(resolveHtmlUri(elt, "archiveListElement", v) for v in value.split(" "))
     if elt.localName == "object" and name in ("classid", "data", "archiveListElement") and elt.get("codebase"):
-        base = elt.get("codebase") + "/"
+        base = elt.get("codebase") + "/"   # type: ignore[operator]
     else:
         base = getattr(elt.modelDocument, "htmlBase", "") # None if no htmlBase, empty string if it's not set
     _uri = urljoin(base, value)
