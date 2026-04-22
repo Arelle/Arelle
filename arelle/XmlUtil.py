@@ -905,8 +905,8 @@ def addQnameValue(modelDocument: ModelDocument, qnameValue: QName | str) -> str:
     return f'{prefix}:{qnameValue.localName}' if prefix else qnameValue.localName
 
 
-def setXmlns(modelDocument: etree.ElementTree | ModelDocument, prefix: str | None, namespaceURI: str) -> None:
-    if isinstance(modelDocument, etree.ElementTree):
+def setXmlns(modelDocument: etree._ElementTree | ModelDocument, prefix: str | None, namespaceURI: str) -> None:
+    if isinstance(modelDocument, etree._ElementTree):
         elementTree = modelDocument
     else:
         elementTree = modelDocument.xmlDocument  # type: ignore[assignment]
@@ -1075,8 +1075,8 @@ def xpointerSchemes(fragmentIdentifier: str) -> list[tuple[str, str]]:
             schemes.append((scheme, path))
     return schemes
 
-def xpointerElement(modelDocument: ModelDocument, fragmentIdentifier: str) -> etree.Element | ModelObject | None:
-    node: etree.Element | ModelObject | None
+def xpointerElement(modelDocument: ModelDocument, fragmentIdentifier: str) -> etree._Element | ModelObject | None:
+    node: etree._Element | ModelObject | None
     matches = xpointerFragmentIdentifierPattern.findall(fragmentIdentifier)
     if matches is None:
         return None

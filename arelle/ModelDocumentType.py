@@ -64,7 +64,7 @@ class ModelDocumentType:
             _rootElt: bool = True
             _maybeHtml: bool = False
             for _event, elt in etree.iterparse(_file, events=("start",), recover=True, huge_tree=True):
-                assert isinstance(elt, etree.Element)
+                assert isinstance(elt, etree._Element)
                 if _rootElt:
                     _rootElt = False
                     _type = {"testcases": ModelDocumentType.TESTCASESINDEX,

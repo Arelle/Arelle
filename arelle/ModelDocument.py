@@ -661,22 +661,22 @@ class ModelDocument(ModelDocumentBase):
     entrypoint: dict[str, Any] | None
     xmlRootElement: Any
     targetXbrlRootElement: ModelObject
-    parser: etree.XMLParser[etree.Element]
+    parser: etree.XMLParser[etree._Element]
     parserLookupName: KnownNamespacesModelObjectClassLookup
     parserLookupClass: DiscoveringClassLookup
     securityClassification: str | None
     fromDTS: ModelXbrl
     toDTS: ModelXbrl
 
-    def __init__(self, modelXbrl: ModelXbrl, type: int, uri: str, filepath: str, xmlDocument: etree.ElementTree[etree.Element] | None) -> None:
+    def __init__(self, modelXbrl: ModelXbrl, type: int, uri: str, filepath: str, xmlDocument: etree._ElementTree[etree._Element] | None) -> None:
         self.entrypoint: dict[str, Any] | None = None
         self.modelXbrl: ModelXbrl = modelXbrl
         self.skipDTS: bool = modelXbrl.skipDTS
         self.type: int = type
         self.uri: str = uri
         self.filepath: str = filepath
-        self.xmlDocument: etree.ElementTree[etree.Element] | None = xmlDocument
-        self.targetXbrlElementTree: etree.ElementTree[etree.Element] | None = xmlDocument
+        self.xmlDocument: etree._ElementTree[etree._Element] | None = xmlDocument
+        self.targetXbrlElementTree: etree._ElementTree[etree._Element] | None = xmlDocument
         self.targetNamespace: str | None = None
         modelXbrl.urlDocs[uri] = self
         self.objectIndex: int = len(modelXbrl.modelObjects)
@@ -835,7 +835,7 @@ class ModelDocument(ModelDocumentBase):
             self.parserLookupClass.__dict__.clear()
             self.__dict__.clear() # dereference everything before clearing xml tree
             if dummyRootElement is not None:
-                cast(etree.ElementTree, xmlDocument)._setroot(dummyRootElement)
+                cast(etree._ElementTree, xmlDocument)._setroot(dummyRootElement)
             del dummyRootElement
         except AttributeError:
             pass    # maybe already cloased
@@ -866,7 +866,7 @@ class ModelDocument(ModelDocumentBase):
                 self._creationSoftwareComment: str | None = initialComment
             else:
                 self._creationSoftwareComment = None
-                for i, node in enumerate(cast(etree.ElementTree, self.xmlDocument).iter()):
+                for i, node in enumerate(cast(etree._ElementTree, self.xmlDocument).iter()):
                     if isinstance(node, etree._Comment):
                         self._creationSoftwareComment = node.text
                     if i > 10:  # give up, no heading comment
@@ -1423,7 +1423,7 @@ class ModelDocument(ModelDocumentBase):
         else:
             self.modelXbrl.undefinedFacts.append(modelFact)
 
-    def testcasesIndexDiscover(self, rootNode: etree.ElementTree, validateTestcaseSchema: bool) -> None:
+    def testcasesIndexDiscover(self, rootNode: etree._ElementTree, validateTestcaseSchema: bool) -> None:
         if validateTestcaseSchema:
             lxmlSchemaValidate(self)
         for testcasesElement in rootNode.iter():
