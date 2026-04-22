@@ -1112,7 +1112,7 @@ def rule_nl_kvk_prohibited_dimension_use(
         if startElement.qname in nonDimensionalLineItems:
             return
         nonDimensionalLineItems.add(startElement.qname)
-        for rel in relationshipSet.fromModelObject(startElement):
+        for rel in relationshipSet.fromModelObject(startElement):  # type: ignore[arg-type]
             collect(rel.toModelObject)
     collect(nonDimensionalLineItemsElement)
     invalidDimensionUseFacts = []

@@ -32,7 +32,7 @@ if TYPE_CHECKING:
     from arelle.CntlrWinMain import CntlrWinMain
     from arelle.FileSource import FileSource as FileSourceClass
     from arelle.ModelDocument import ModelDocument as ModelDocumentClass
-    from arelle.ModelDtsObject import ModelConcept, ModelType, ModelRoleType
+    from arelle.ModelDtsObject import ModelConcept, ModelType, ModelRoleType, ModelLink
     from arelle.ModelFormulaObject import ModelConsistencyAssertion, ModelCustomFunctionSignature, ModelVariableSet
     from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelUnit, ModelDimensionValue
     from arelle.ModelManager import ModelManager
@@ -329,7 +329,7 @@ class ModelXbrl:
         self.qnameAttributeGroups: dict[QName, Any] = {}
         self.qnameGroupDefinitions: dict[QName, Any] = {}
         self.qnameTypes: dict[QName, ModelType] = {}  # contains ModelTypes by qname key of type
-        self.baseSets: defaultdict[tuple[str, str | None, QName | None, QName | None], list[ModelObject | LinkPrototype]] = defaultdict(list)  # contains ModelLinks for keys arcrole, arcrole#linkrole
+        self.baseSets: defaultdict[tuple[str, str | None, QName | None, QName | None], list[ModelLink | LinkPrototype]] = defaultdict(list)  # contains ModelLinks for keys arcrole, arcrole#linkrole
         self.relationshipSets: dict[tuple[str] | tuple[tuple[str, ...] | str, tuple[str, ...] | str | None, QName | None, QName | None, bool], ModelRelationshipSetClass] = {}  # contains ModelRelationshipSets by bas set keys
         self.qnameDimensionDefaults: dict[QName, QName] = {}  # contains qname of dimension (index) and default member(value)
         self.facts: list[ModelFact] = []

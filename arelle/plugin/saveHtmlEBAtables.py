@@ -214,7 +214,7 @@ def generateHtmlEbaTablesetFiles(dts: ModelXbrl, indexFile: str, lang: str = "en
                 elt.set("id", tableId)
                 elt.text = modelTable.label(lang=lang, strip=True)
 
-            for rel in groupTableRels.fromModelObject(modelTable):
+            for rel in groupTableRels.fromModelObject(modelTable):  # type: ignore[arg-type]
                 viewTable(rel.toModelObject)
 
         for rootConcept in groupTableRels.rootConcepts:
@@ -225,7 +225,7 @@ def generateHtmlEbaTablesetFiles(dts: ModelXbrl, indexFile: str, lang: str = "en
             modelTables.append((rootConcept, sourceline))
 
         for modelTable, _order in sorted(modelTables, key=itemgetter(1)):
-            viewTable(modelTable)
+            viewTable(modelTable)  # type: ignore[arg-type]
 
         with open(indexBase + "FormsFrame.html", "w", encoding="utf-8") as fh:
             XmlUtil.writexml(fh, menuFrameDocument, encoding="utf-8")

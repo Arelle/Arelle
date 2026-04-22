@@ -20,7 +20,7 @@ _: TypeGetText
 
 def _factFootnotes(fact: ModelFact, footnotesRelSet: ModelRelationshipSet) -> dict[str, str]:
     footnotes = {}
-    footnoteRels = footnotesRelSet.fromModelObject(fact)
+    footnoteRels = footnotesRelSet.fromModelObject(fact)  # type: ignore[arg-type]
     if footnoteRels:
         # most process rels in same order between two instances, use labels to sort
         for i, footnoteRel in enumerate(sorted(footnoteRels,
@@ -59,8 +59,8 @@ def _compareInstance(originalInstance: ModelXbrl, expectedInstance: ModelXbrl, t
                                     modelXbrl=originalInstance, countFacts=len(targetInstance.facts),
                                     expectedFacts=len(expectedInstance.facts))
         return
-    compareFootnotesRelSet = ModelRelationshipSet(targetInstance, "XBRL-footnotes")  # type: ignore[no-untyped-call]
-    expectedFootnotesRelSet = ModelRelationshipSet(expectedInstance, "XBRL-footnotes")  # type: ignore[no-untyped-call]
+    compareFootnotesRelSet = ModelRelationshipSet(targetInstance, "XBRL-footnotes")
+    expectedFootnotesRelSet = ModelRelationshipSet(expectedInstance, "XBRL-footnotes")
     for expectedInstanceFact in expectedInstance.facts:
         unmatchedFactsStack: list[ModelFact] = []
         compareFact = targetInstance.matchFact(expectedInstanceFact, unmatchedFactsStack, deemP0inf=True, matchId=matchById, matchLang=False)

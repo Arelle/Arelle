@@ -46,7 +46,7 @@ def _validateTocItem(modelXbrl: ModelXbrl, tocItem: ManifestTocItem, instanceId:
             )
     if tocItem.end is not None:
         if tocItem.start is None or \
-                not relSet.isRelated(tocItem.start, "child", tocItem.end):
+                not relSet.isRelated(tocItem.start, "child", tocItem.end):  # type: ignore[arg-type]
             yield Validation.error(
                 codes="EDINET.EC5800E.ERROR_ENDING_ELEMENT_NOT_DEFINED_UNDER_STARTING_ELEMENT",
                 msg=_("A table of contents item specified an end element that "

@@ -2120,7 +2120,7 @@ def rule_EC8070W(
     parentMember = val.modelXbrl.qnameConcepts.get(pluginData.directorsAndOtherOfficersMemberQn)
     relationships = val.modelXbrl.relationshipSet(XbrlConst.domainMember)
     directorsAndOtherOfficersMembers = {
-        rel.toModelObject.qname for rel in relationships.fromModelObject(parentMember)
+        rel.toModelObject.qname for rel in relationships.fromModelObject(parentMember)  # type: ignore[arg-type]
         if rel.toModelObject is not None
     }
     if matchingFact(facts, pluginData.directorsAndOtherOfficersAxisQn, directorsAndOtherOfficersMembers) is None:
