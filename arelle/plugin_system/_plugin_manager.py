@@ -316,7 +316,7 @@ class PluginManager:
             # Handles cases where a plugin exists in a nested structure, such as
             # when a developer clones an entire repository into the plugin directory.
             # Example: arelle/plugin/xule/plugin/xule/__init__.py
-            for path in glob("**/" + moduleURL.replace('\\', '/'), recursive=True):
+            for path in glob(base + "**/" + moduleURL.replace('\\', '/'), recursive=True):
                 if normalizedPath := self.normalizeModuleFilename(path):
                     return normalizedPath, None
         # `moduleFilename` did not map to a local filepath or did not normalize to a script
