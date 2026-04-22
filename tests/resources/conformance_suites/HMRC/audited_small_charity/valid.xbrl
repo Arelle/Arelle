@@ -119,6 +119,8 @@
     <bus:EndDateForPeriodCoveredByReport contextRef="instant">2021-01-01</bus:EndDateForPeriodCoveredByReport>
     <bus:StartDateForPeriodCoveredByReport contextRef="instant">2020-01-01</bus:StartDateForPeriodCoveredByReport>
     <core:DateAuthorisationFinancialStatementsForIssue contextRef="instant">2021-01-01</core:DateAuthorisationFinancialStatementsForIssue>
+    <char:CharityAuditCarriedOutInAccordanceWithCharitiesAct2011Truefalse contextRef="duration">false</char:CharityAuditCarriedOutInAccordanceWithCharitiesAct2011Truefalse>
+
 
     <context id="legal-form-entity">
         <entity>

@@ -60,6 +60,7 @@ CONCEPT_ACCOUNTS_TYPE_FULL_OR_ABBREVIATED = 'AccountsTypeFullOrAbbreviated'  # D
 CONCEPT_ACCOUNTS_TYPE_DIMENSION = 'AccountsTypeDimension'
 CONCEPT_ADVERSE_OPINION = 'AdverseOpinion'
 CONCEPT_BALANCE_SHEET_DATE = 'BalanceSheetDate'
+CONCEPT_CHARITY_AUDIT_CARRIED_OUT_IN_ACCORDANCE_WITH_CHARITIES_ACT =  'CharityAuditCarriedOutInAccordanceWithCharitiesAct2011Truefalse'
 CONCEPT_CHARITY_FUNDS = 'CharityFunds'
 CONCEPT_CHARITY_REGISTRATION_NUMBER_ENGLAND_WALES = 'CharityRegistrationNumberEnglandWales'
 CONCEPT_CHARITY_REGISTRATION_NUMBER_NORTH_IRELAND = 'CharityRegistrationNumberNorthernIreland'
@@ -576,9 +577,10 @@ class ValidateUK:
 
     def _evaluateCharAuditFacts(self) -> CodeResult:
         """
-        Logs an error when a charity report does not facts tagged with the concepts of "DateAuditorsReport" or "DateCharityAuditorsReport"
+        Logs an error when a charity report does not contain facts tagged with the concepts of "DateAuditorsReport" or "DateCharityAuditorsReport"
         and "OpinionAuditorsOnEntity" or "QualifiedOpinion" or "UnqualifiedOpinion" or "AdverseOpinion" or "DisclaimerOpinion"
-        and "NameIndividualAuditor" or "NameIndividualCharityAuditor" or ("NameSeniorStatutoryAuditor" and "NameEntityAuditors") or ("NameSeniorStatutoryCharityAuditor" and "NameEntityCharityAuditors")
+        and "NameIndividualAuditor" or ("NameSeniorStatutoryAuditor" and "NameEntityAuditors") and CharityAuditCarriedOutInAccordanceWithCharitiesAct2011Truefalse = False
+        or "NameIndividualCharityAuditor" or ("NameSeniorStatutoryCharityAuditor" and "NameEntityCharityAuditors") and CharityAuditCarriedOutInAccordanceWithCharitiesAct2011Truefalse = True
         :return:
         """
         missingConcepts = []
@@ -590,15 +592,31 @@ class ValidateUK:
             missingConcepts.extend(
                 [CONCEPT_OPINION_AUDITORS_ON_ENTITY, CONCEPT_QUALIFIED_OPINION, CONCEPT_UNQUALIFIED_OPINION, CONCEPT_ADVERSE_OPINION, CONCEPT_DISCLAIMER_OPINION]
             )
-        if not self._getAndCheckValidFacts([CONCEPT_NAME_INDIVIDUAL_AUDITOR, CONCEPT_NAME_INDIVIDUAL_CHARITY_AUDITOR]):
-            if not (self._getAndCheckValidFacts([CONCEPT_NAME_SENIOR_STATUTORY_AUDITOR]) and self._getAndCheckValidFacts([CONCEPT_NAME_ENTITY_AUDITORS])):
+
+        boolFacts = self._getFacts(CONCEPT_CHARITY_AUDIT_CARRIED_OUT_IN_ACCORDANCE_WITH_CHARITIES_ACT)
+        if not boolFacts:
+            missingConcepts.append(CONCEPT_CHARITY_AUDIT_CARRIED_OUT_IN_ACCORDANCE_WITH_CHARITIES_ACT)
+            boolFactValue = False
+        else:
+            boolFactValue = all(self._checkValidFact(f) and isinstance(f.xValue, bool) and f.xValue for f in boolFacts)
+
+        if boolFactValue:
+            if not self._getAndCheckValidFacts([CONCEPT_NAME_INDIVIDUAL_CHARITY_AUDITOR]):
                 if not (self._getAndCheckValidFacts([CONCEPT_NAME_SENIOR_STATUTORY_CHARITY_AUDITOR]) and self._getAndCheckValidFacts([CONCEPT_NAME_ENTITY_CHARITY_AUDITORS])):
                     missingConcepts.extend(
                         [
-                            CONCEPT_NAME_INDIVIDUAL_AUDITOR, CONCEPT_NAME_INDIVIDUAL_CHARITY_AUDITOR, CONCEPT_NAME_SENIOR_STATUTORY_AUDITOR, CONCEPT_NAME_ENTITY_AUDITORS,
-                            CONCEPT_NAME_SENIOR_STATUTORY_CHARITY_AUDITOR, CONCEPT_NAME_ENTITY_CHARITY_AUDITORS
+                            CONCEPT_NAME_INDIVIDUAL_CHARITY_AUDITOR, CONCEPT_NAME_SENIOR_STATUTORY_CHARITY_AUDITOR, CONCEPT_NAME_ENTITY_CHARITY_AUDITORS
                         ]
                     )
+        else:
+            if not self._getAndCheckValidFacts([CONCEPT_NAME_INDIVIDUAL_AUDITOR]):
+                if not (self._getAndCheckValidFacts([CONCEPT_NAME_SENIOR_STATUTORY_AUDITOR]) and self._getAndCheckValidFacts([CONCEPT_NAME_ENTITY_AUDITORS])):
+                    missingConcepts.extend(
+                        [
+                            CONCEPT_NAME_INDIVIDUAL_AUDITOR, CONCEPT_NAME_SENIOR_STATUTORY_AUDITOR, CONCEPT_NAME_ENTITY_AUDITORS
+                        ]
+                    )
+
         if len(missingConcepts) > 0:
             return CodeResult(
                 success=False,
@@ -606,7 +624,9 @@ class ValidateUK:
                 message="Audited charities accounts submission missing required audit-related information. Audited charity accounts submissions are required to include facts for: "
                         "i) DateAuditorsReport or DateCharityAuditorsReport "
                         "ii) OpinionAuditorsOnEntity, QualifiedOpinion, UnqualifiedOpinion, AdverseOpinion, or DisclaimerOpinion "
-                        "iii) NameIndividualAuditor, NameIndividualCharityAuditor, OR either (NameSeniorStatutoryAuditor and NameEntityAuditors) or (NameSeniorStatutoryCharityAuditor and NameEntityCharityAuditors) "
+                        "and one of the following "
+                        "iiia) NameIndividualAuditor, OR either (NameSeniorStatutoryAuditor and NameEntityAuditors) and CharityAuditCarriedOutInAccordanceWithCharitiesAct2011Truefalse "
+                        "iiib) NameIndividualCharityAuditor, OR either (NameSeniorStatutoryCharityAuditor and NameEntityCharityAuditors) and CharityAuditCarriedOutInAccordanceWithCharitiesAct2011Truefalse "
                         "There are no facts tagged with the concepts: %(conceptList)s"
             )
         return CodeResult()
