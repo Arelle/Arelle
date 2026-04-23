@@ -644,6 +644,11 @@ def helpREST() -> str:
 <tr><td>/help</td><td>This web page.</td></tr>
 <tr><td>/about</td><td>About web page, copyrights, etc.</td></tr>
 
+<tr><th colspan="2">Security</th></tr>
+<tr><td colspan="2">This API has no authentication and is intended for trusted callers only.
+It can read arbitrary files from this host and load plug-ins on request.
+Do not expose it to untrusted users or networks.</td></tr>
+
 <tr><th colspan="2">Validation</th></tr>
 <tr><td>/rest/xbrl/{file}/validation/xbrl</td><td>Validate document at {file}.</td></tr>
 ''') +
@@ -717,7 +722,7 @@ formulaVarExpressionSource, formulaVarExpressionCode, formulaVarExpressionEvalua
 <tr><td style="text-indent: 1em;">abortOnMajorError</td><td>Abort process on major error, such as when load is unable to find an entry or discovered file.</td></tr>
 <tr><td style="text-indent: 1em;">saveOIMinstance</td><td>Specify output instance filename to save (name.json, name.xml), for example if loading from xBRL-JSON.one would save to .xml otherwise to .json.  Media must be zip.  Returns a zip of instance and logFile.</td></tr>
 <tr><td style="text-indent: 1em;">collectProfileStats</td><td>Collect profile statistics, such as timing of validation activities and formulae.</td></tr>
-<tr><td style="text-indent: 1em;">plugins</td><td>Activate plug-ins, specify  '|' separated .py modules (relative to plug-in directory).</td></tr>
+<tr><td style="text-indent: 1em;">plugins</td><td>Activate plug-ins, specify  '|' separated .py modules (relative to plug-in directory).  Remote URL plug-in references (http://, https://, etc.) are rejected.</td></tr>
 <tr><td style="text-indent: 1em;">packages</td><td>Activate taxonomy packages, specify  '|' separated .zip packages (absolute URLs or file paths).</td></tr>
 
 <tr><th colspan="2">Versioning Report (diff of two DTSes)</th></tr>
@@ -818,9 +823,9 @@ Enter 'show' to view current setting, 'system' to configure to use system proxy 
 </td></tr>
 <tr><td style="text-indent: 1em;">plugins</td><td>Show or modify and re-save plug-ins configuration:<br/>
 Enter 'show' to view plug-ins configuration, , or '|' separated modules:
-+url to add plug-in by its url or filename (relative to plug-in directory else absolute), ~name to reload a plug-in by its name, -name to remove a plug-in by its name,
- (e.g., '+http://arelle.org/files/hello_web.py', '+C:\Program Files\Arelle\examples\plugin\hello_dolly.py' to load,
-~Hello Dolly to reload, -Hello Dolly to remove).  (Note that plug-ins are transient on Google App Engine, specify with &amp;plugins to other rest commands.)
++filename to add a plug-in by its filename (relative to plug-in directory else absolute), ~name to reload a plug-in by its name, -name to remove a plug-in by its name,
+ (e.g., '+C:\Program Files\Arelle\examples\plugin\hello_dolly.py' to load, ~Hello Dolly to reload, -Hello Dolly to remove).  (Note that plug-ins are transient on Google App Engine, specify with &amp;plugins to other rest commands.)<br/>
+Remote URL plug-in references (http://, https://, etc.) are rejected by the webserver.
 </td></tr>
 <tr><td style="text-indent: 1em;">packages</td><td>Show or modify and re-save taxonomy packages configuration:<br/>
 Enter 'show' to view packages configuration, , or '|' separated package URLs:
