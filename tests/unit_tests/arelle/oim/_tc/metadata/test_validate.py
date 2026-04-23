@@ -7,12 +7,18 @@ from arelle.oim._tc.const import (
     TC_NS_DRAFT,
     TC_PREFIX,
     TCME_COLUMN_PARAMETER_CONFLICT,
+    TCME_INCONSISTENT_COLUMN_ORDER_DEFINITION,
     TCME_INVALID_NAMESPACE_PREFIX,
 )
 from arelle.oim._tc.metadata.common import TCMetadataValidationError
 from arelle.oim._tc.metadata.model import TCMetadata, TCTemplateConstraints, TCValueConstraint
 from arelle.oim._tc.metadata.validate import TCMetadataValidator
-from arelle.oim.csv.metadata.model import XbrlCsvDocumentInfo, XbrlCsvEffectiveMetadata, XbrlCsvTableTemplate
+from arelle.oim.csv.metadata.model import (
+    XbrlCsvColumn,
+    XbrlCsvDocumentInfo,
+    XbrlCsvEffectiveMetadata,
+    XbrlCsvTableTemplate,
+)
 
 _TC_NAMESPACES = {TC_PREFIX: TC_NS_DRAFT, "xs": XbrlConst.xsd}
 _EMPTY_TC_METADATA = TCMetadata(template_constraints={})
@@ -169,3 +175,84 @@ class TestColumnParameterConflict:
             "/tableTemplates/t1/tc:parameters/shared",
             "/tableTemplates/t2/tc:parameters/shared",
         }
+
+
+class TestColumnOrderDefinition:
+    def test_no_column_order_no_error(self) -> None:
+        tc_metadata = TCMetadata(
+            template_constraints={
+                "t1": TCTemplateConstraints(
+                    constraints={"col": TCValueConstraint(type="xs:string")},
+                )
+            }
+        )
+        errors = list(TCMetadataValidator(_build_effective_metadata(_TC_NAMESPACES), tc_metadata).validate())
+        assert errors == []
+
+    def test_all_constrained_columns_present(self) -> None:
+        tc_metadata = TCMetadata(
+            template_constraints={
+                "t1": TCTemplateConstraints(
+                    constraints={"col": TCValueConstraint(type="xs:string")},
+                    column_order=("col",),
+                )
+            }
+        )
+        csv_template = XbrlCsvTableTemplate(columns={"col": XbrlCsvColumn()})
+        meta = _build_effective_metadata(_TC_NAMESPACES, {"t1": csv_template})
+        errors = list(TCMetadataValidator(meta, tc_metadata).validate())
+        assert errors == []
+
+    def test_constrained_column_missing_from_column_order(self) -> None:
+        tc_metadata = TCMetadata(
+            template_constraints={
+                "t1": TCTemplateConstraints(
+                    constraints={
+                        "col1": TCValueConstraint(type="xs:string"),
+                        "col2": TCValueConstraint(type="xs:string"),
+                    },
+                    column_order=("col1",),
+                )
+            }
+        )
+        csv_template = XbrlCsvTableTemplate(columns={"col1": XbrlCsvColumn(), "col2": XbrlCsvColumn()})
+        meta = _build_effective_metadata(_TC_NAMESPACES, {"t1": csv_template})
+        errors = list(TCMetadataValidator(meta, tc_metadata).validate())
+        assert len(errors) == 1
+        assert errors[0].code == TCME_INCONSISTENT_COLUMN_ORDER_DEFINITION
+        assert errors[0].json_pointers == [
+            "/tableTemplates/t1/tc:columnOrder",
+            "/tableTemplates/t1/columns/col2",
+        ]
+
+    def test_unknown_column_in_column_order(self) -> None:
+        tc_metadata = TCMetadata(
+            template_constraints={
+                "t1": TCTemplateConstraints(
+                    constraints={"col1": TCValueConstraint(type="xs:string")},
+                    column_order=("col1", "unknown"),
+                )
+            }
+        )
+        csv_template = XbrlCsvTableTemplate(columns={"col1": XbrlCsvColumn()})
+        meta = _build_effective_metadata(_TC_NAMESPACES, {"t1": csv_template})
+        errors = list(TCMetadataValidator(meta, tc_metadata).validate())
+        assert len(errors) == 1
+        assert errors[0].code == TCME_INCONSISTENT_COLUMN_ORDER_DEFINITION
+        assert errors[0].json_pointers == [
+            "/tableTemplates/t1/tc:columnOrder",
+            "/tableTemplates/t1/tc:columnOrder/1",
+        ]
+
+    def test_no_csv_template_skips_unknown_check(self) -> None:
+        # If no CSV template is available for this id, only check constrained columns.
+        tc_metadata = TCMetadata(
+            template_constraints={
+                "t1": TCTemplateConstraints(
+                    constraints={"col1": TCValueConstraint(type="xs:string")},
+                    column_order=("col1", "anything"),
+                )
+            }
+        )
+        errors = list(TCMetadataValidator(_build_effective_metadata(_TC_NAMESPACES), tc_metadata).validate())
+        assert errors == []
