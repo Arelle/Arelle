@@ -4,7 +4,7 @@ See COPYRIGHT.md for copyright information.
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Set
 from dataclasses import dataclass
 from typing import Any, TypeVar, overload
 
@@ -500,8 +500,8 @@ def _parse_bounded_int(
 def _validate_expected_properties(
     obj: dict[str, Any],
     errors: list[TCMetadataParseError],
-    known_properties: frozenset[str],
-    required_properties: frozenset[str] = frozenset(),
+    known_properties: Set[str],
+    required_properties: Set[str] = frozenset(),
 ) -> None:
     if unknown_properties := sorted(prop for prop in obj if prop not in known_properties):
         errors.append(TCMetadataUnknownPropertiesError(unknown_properties))
@@ -569,9 +569,9 @@ def _parse_set(
     key: str,
     errors: list[TCMetadataParseError],
     *,
-    default: frozenset[str],
+    default: Set[str],
     non_empty: bool = ...,
-) -> frozenset[str]: ...
+) -> Set[str]: ...
 @overload
 def _parse_set(
     obj: dict[str, Any],
@@ -580,15 +580,15 @@ def _parse_set(
     *,
     default: None = ...,
     non_empty: bool = ...,
-) -> frozenset[str] | None: ...
+) -> Set[str] | None: ...
 def _parse_set(
     obj: dict[str, Any],
     key: str,
     errors: list[TCMetadataParseError],
     *,
-    default: frozenset[str] | None = None,
+    default: Set[str] | None = None,
     non_empty: bool = False,
-) -> frozenset[str] | None:
+) -> Set[str] | None:
     if key not in obj:
         return default
     val = obj[key]
