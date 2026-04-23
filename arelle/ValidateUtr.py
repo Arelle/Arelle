@@ -3,16 +3,24 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 
-from lxml import etree
-from arelle.ModelDocumentType import ModelDocumentType
 from collections import defaultdict
+from typing import TextIO, cast, Any
 
+from lxml import etree
+
+from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import ModelXbrl
 
+from arelle.ModelDtsObject import ModelType
+from arelle.ModelInstanceObject import ModelUnit
+from arelle.typing import TypeGetText
+
+_: TypeGetText
+
 DIVISOR = "*DIV*"
 
-class UtrEntry(): # use slotted class for execution efficiency
+class UtrEntry: # use slotted class for execution efficiency
     id: str | None
     unitId: str | None
     unitName: str | None
@@ -37,13 +45,13 @@ class UtrEntry(): # use slotted class for execution efficiency
         if not self.nsUnit:
             return None
         prefix = self.nsUnit.split('/')[-1]
-        return QName(prefix=prefix, namespaceURI=self.nsUnit, localName=self.unitId)
+        return QName(prefix=prefix, namespaceURI=self.nsUnit, localName=self.unitId)  # type: ignore[arg-type]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "utrEntry({})".format(', '.join("{}={}".format(n, getattr(self,n))
                                                for n in self.__slots__))
 
-def loadUtr(modelXbrl, statusFilters=None): # Build a dictionary of item types that are constrained by the UTR
+def loadUtr(modelXbrl: ModelXbrl, statusFilters: list[str] | None = None) -> None:
     """
     Parses the units from modelXbrl.modelManager.disclosureStystem.utrUrl, and sets them on
     modelXbrl.modelManager.disclosureSystem.utrItemTypeEntries
@@ -58,15 +66,16 @@ def loadUtr(modelXbrl, statusFilters=None): # Build a dictionary of item types t
             statusFilters = modelManager.disclosureSystem.utrStatusFilters.split()
         else:
             statusFilters = ['REC']
-    modelManager.disclosureSystem.utrItemTypeEntries = utrItemTypeEntries = defaultdict(dict)
+    utrItemTypeEntries: defaultdict[str | None, dict[str | None, UtrEntry]] = defaultdict(dict)
+    modelManager.disclosureSystem.utrItemTypeEntries = utrItemTypeEntries  # type: ignore[attr-defined]
     # print('UTR LOADED FROM '+utrUrl);
     # skip status message as it hides prior activity during which this might have just obtained symbols
     # modelManager.cntlr.showStatus(_("Loading Unit Type Registry"))
-    file = None
+    file: TextIO | None = None
     try:
         from arelle.FileSource import openXmlFileStream
         # normalize any relative paths to config directory
-        unitDupCheck = set()
+        unitDupCheck: set[tuple[str | None, str | None, str | None]] = set()
         for _utrUrl in modelManager.disclosureSystem.utrUrl: # list of URLs
             if file:
                 file.close()
@@ -117,35 +126,36 @@ def loadUtr(modelXbrl, statusFilters=None): # Build a dictionary of item types t
                                         modelObject=modelXbrl, id=u.id, unitId=u.unitId, nsUnit=u.nsUnit, status=u.status)
     except (EnvironmentError,
             etree.LxmlError) as err:
-        modelManager.modelXbrl.error("arelleUtrLoader:error",
+        modelManager.modelXbrl.error("arelleUtrLoader:error",  # type: ignore[union-attr]
                                      "Unit Type Registry Import error: %(error)s",
                                      modelObject=modelXbrl, error=err)
         etree.clear_error_log()
     if file:
         file.close()
 
-def validateFacts(modelXbrl) -> None:
+def validateFacts(modelXbrl: ModelXbrl) -> None:
     ValidateUtr(modelXbrl).validateFacts()
 
-def utrEntries(modelType, modelUnit):
-    return ValidateUtr(modelType.modelXbrl).utrEntries(modelType, modelUnit)
+def utrEntries(modelType: ModelType, modelUnit: ModelUnit) -> set[UtrEntry | None]:
+    return ValidateUtr(cast(ModelXbrl, modelType.modelXbrl)).utrEntries(modelType, modelUnit)
 
-def utrSymbol(modelType, unitMeasures):
-    return ValidateUtr(modelType.modelXbrl).utrSymbol(unitMeasures[0], unitMeasures[1])
+def utrSymbol(modelType: ModelType, unitMeasures: tuple[list[QName], list[QName]]) -> str:
+    return ValidateUtr(cast(ModelXbrl, modelType.modelXbrl)).utrSymbol(unitMeasures[0], unitMeasures[1])
 
 class ValidateUtr:
 
-    def __init__(self, modelXbrl: ModelXbrl, messageLevel: str="ERROR", messageCode: str="utre:error-NumericFactUtrInvalid") -> None:
+    def __init__(self, modelXbrl: ModelXbrl, messageLevel: str = "ERROR", messageCode: str = "utre:error-NumericFactUtrInvalid") -> None:
         self.modelXbrl = modelXbrl
         self.messageLevel = messageLevel
         self.messageCode = messageCode
         if getattr(modelXbrl.modelManager.disclosureSystem, "utrItemTypeEntries", None) is None:
             loadUtr(modelXbrl)
-        self.utrItemTypeEntries: dict[str, dict[str, UtrEntry]] = modelXbrl.modelManager.disclosureSystem.utrItemTypeEntries
+        self.utrItemTypeEntries: dict[str, dict[str, UtrEntry]] = modelXbrl.modelManager.disclosureSystem.utrItemTypeEntries  # type: ignore[attr-defined]
 
-    def validateFacts(self):
+    def validateFacts(self) -> None:
         modelXbrl = self.modelXbrl
-        if modelXbrl.modelDocument.type in (ModelDocumentType.INSTANCE, ModelDocumentType.INLINEXBRL, ModelDocumentType.INLINEXBRLDOCUMENTSET):
+        modelDocument = modelXbrl.modelDocument
+        if modelDocument is not None and modelDocument.type in (ModelDocumentType.INSTANCE, ModelDocumentType.INLINEXBRL, ModelDocumentType.INLINEXBRLDOCUMENTSET):
             modelXbrl.modelManager.cntlr.showStatus(_("Validating for Unit Type Registry").format())
             utrInvalidFacts = []
             for f in modelXbrl.facts:
@@ -174,7 +184,15 @@ class ValidateUtr:
                               messageCodes=("utre:error-NumericFactUtrInvalid",))
 
 
-    def measuresMatch(self, typeMatched, mulMeas, divMeas, typeName=None, typeNS=None, *divArgs):
+    def measuresMatch(
+        self,
+        typeMatched: bool,
+        mulMeas: tuple[QName, ...],
+        divMeas: tuple[QName, ...],
+        typeName: str | None = None,
+        typeNS: str | None = None,
+        *divArgs: Any,
+    ) -> tuple[bool, bool, UtrEntry | None]:
         if typeNS is DIVISOR and divArgs:
             return self.measuresMatch(typeMatched, divMeas, mulMeas, *divArgs)
         if len(mulMeas) == 0 and len(divMeas) == 0 and typeName is None:
@@ -184,7 +202,7 @@ class ValidateUtr:
                 return self.measuresMatch(typeMatched, divMeas, (), *divArgs) # mul meas not constrainted
             else:
                 return typeMatched, typeMatched, None
-        for u in self.utrItemTypeEntries[typeName].values():
+        for u in self.utrItemTypeEntries[typeName].values():  # type: ignore[index]
             if typeNS is None or u.nsItemType is None or typeNS == u.nsItemType:
                 typeMatched = True
                 if u.isSimple:
@@ -198,9 +216,8 @@ class ValidateUtr:
                         return True, True, u
         return False, typeMatched, None
 
-    def utrEntries(self, modelType, unit):
+    def utrEntries(self, modelType: ModelType, unit: ModelUnit) -> set[UtrEntry | None]:
         utrSatisfyingEntries = set()
-        modelXbrl = self.modelXbrl
         _type = modelType
         while _type is not None:
             unitMatched, typeMatched, utrEntry = self.measuresMatch(
@@ -214,7 +231,7 @@ class ValidateUtr:
                 _type = _type[0] # for now take first of union's types
         return utrSatisfyingEntries
 
-    def utrSymbol(self, multMeasures, divMeasures):
+    def utrSymbol(self, multMeasures: list[QName] | None, divMeasures: list[QName] | None) -> str:
         if not divMeasures:
             if not multMeasures:
                 return ''
@@ -228,7 +245,7 @@ class ValidateUtr:
                     return self.modelXbrl.qnameConcepts[m].label(fallbackToQname=False) or m.localName
                 return m.localName # localName is last choice to use
         # otherwise generate compound symbol
-        def symbols(measures, wrapMult=True):
+        def symbols(measures: list[QName], wrapMult: bool = True) -> str:
             measuresString = " ".join(sorted(self.utrSymbol([measure], None)
                                              for measure in measures))
             if len(measures) > 1 and wrapMult:
