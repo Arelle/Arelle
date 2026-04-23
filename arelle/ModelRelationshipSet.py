@@ -292,10 +292,10 @@ class ModelRelationshipSet:
     def fromModelObjects(self) -> dict[Any, list[ModelRelationship]]:
         return self.loadModelRelationshipsFrom()
 
-    def fromModelObject(self, modelFrom: ModelConcept) -> list[ModelRelationship]:
+    def fromModelObject(self, modelFrom: ModelObject) -> list[ModelRelationship]:
         if getattr(self.modelXbrl, "isSupplementalIxdsTarget", False) and modelFrom is not None and modelFrom.modelXbrl != self.modelXbrl:
             modelFrom = self.modelXbrl.qnameConcepts.get(modelFrom.qname, None)  # type: ignore[union-attr,assignment]
-        return self.loadModelRelationshipsFrom().get(modelFrom, [])
+        return self.loadModelRelationshipsFrom().get(modelFrom, [])  # type: ignore[no-any-return,call-overload]
 
     def toModelObjects(self) -> dict[Any, list[ModelRelationship]]:
         return self.loadModelRelationshipsTo()

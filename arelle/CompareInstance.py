@@ -20,7 +20,7 @@ _: TypeGetText
 
 def _factFootnotes(fact: ModelFact, footnotesRelSet: ModelRelationshipSet) -> dict[str, str]:
     footnotes = {}
-    footnoteRels = footnotesRelSet.fromModelObject(fact)  # type: ignore[arg-type]
+    footnoteRels = footnotesRelSet.fromModelObject(fact)
     if footnoteRels:
         # most process rels in same order between two instances, use labels to sort
         for i, footnoteRel in enumerate(sorted(footnoteRels,

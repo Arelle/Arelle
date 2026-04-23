@@ -214,7 +214,7 @@ def generateHtmlEbaTablesetFiles(dts: ModelXbrl, indexFile: str, lang: str = "en
                 elt.set("id", tableId)
                 elt.text = modelTable.label(lang=lang, strip=True)
 
-            for rel in groupTableRels.fromModelObject(modelTable):  # type: ignore[arg-type]
+            for rel in groupTableRels.fromModelObject(modelTable):
                 viewTable(rel.toModelObject)
 
         for rootConcept in groupTableRels.rootConcepts:
