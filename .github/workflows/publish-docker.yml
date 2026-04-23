@@ -40,6 +40,8 @@ on:
         required: false
         type: string
 
+permissions: {}
+
 jobs:
   push-to-registry:
     name: Push Docker images
