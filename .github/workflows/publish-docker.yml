@@ -42,7 +42,7 @@ on:
 
 jobs:
   push-to-registry:
-    name: Push Docker images to Docker Hub
+    name: Push Docker images
     runs-on: ubuntu-24.04
     environment: release
     permissions:
