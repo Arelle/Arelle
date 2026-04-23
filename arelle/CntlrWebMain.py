@@ -15,6 +15,7 @@ import zipfile
 from collections.abc import Iterable
 from copy import deepcopy
 
+import regex
 from bottle import Bottle, HTTPResponse, request, response, static_file  # type: ignore[import-untyped]
 
 from arelle import Version
@@ -65,6 +66,24 @@ def getRuntimeOptions() -> RuntimeOptions:
 def setRuntimeOptions(runtimeOptions: RuntimeOptions) -> None:
     global _RUNTIME_OPTIONS
     _RUNTIME_OPTIONS = deepcopy(runtimeOptions)
+
+_URL_SCHEME = regex.compile(r"^[a-zA-Z][a-zA-Z0-9+\-.]*://")
+_PLUGIN_PREFIX_CHARS = "+-~"
+
+def _rejectRemotePlugins(rawValue: str) -> None:
+    """Raise a 400 HTTPResponse if any pipe-separated plug-in reference is a URL.
+
+    The Arelle webserver is intended for trusted callers only and must not fetch
+    and execute arbitrary Python from attacker supplied URLs. Local plug-in
+    references are still accepted.
+    """
+    for entry in rawValue.split("|"):
+        candidate = entry.strip().lstrip(_PLUGIN_PREFIX_CHARS)
+        if _URL_SCHEME.match(candidate):
+            raise HTTPResponse(
+                body=_("Remote URL plug-in references are not permitted via the webserver: {0}").format(entry),
+                status=400,
+            )
 
 def startWebserver(cntlr: CntlrCmdLine, options: RuntimeOptions) -> Bottle | None:
     """Called once from main program in CmtlrCmdLine to initiate web server on specified local port.
@@ -329,6 +348,9 @@ def validation(file: str | None = None) -> str | bytes:
                 options.packages = packages
         elif not value: # convert plain str parameter present to True parameter
             setattr(options, key, True)
+        elif key == "plugins":
+            _rejectRemotePlugins(value)
+            options.plugins = value
         else:
             setattr(options, key, value)
     if file:
@@ -450,6 +472,7 @@ def configure() -> str:
     if request.query.proxy:
         options.proxy = request.query.proxy
     if request.query.plugins:
+        _rejectRemotePlugins(request.query.plugins)
         options.plugins = request.query.plugins
     if request.query.packages:
         options.packages = request.query.packages.split('|')
