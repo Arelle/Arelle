@@ -15,6 +15,7 @@ import zipfile
 from collections.abc import Iterable
 from copy import deepcopy
 
+import regex
 from bottle import Bottle, HTTPResponse, request, response, static_file  # type: ignore[import-untyped]
 
 from arelle import Version
@@ -66,11 +67,36 @@ def setRuntimeOptions(runtimeOptions: RuntimeOptions) -> None:
     global _RUNTIME_OPTIONS
     _RUNTIME_OPTIONS = deepcopy(runtimeOptions)
 
+_URL_SCHEME = regex.compile(r"^[a-zA-Z][a-zA-Z0-9+\-.]*://")
+_PLUGIN_PREFIX_CHARS = "+-~"
+
+def _rejectRemotePlugins(rawValue: str) -> None:
+    """Raise a 400 HTTPResponse if any pipe-separated plug-in reference is a URL.
+
+    The Arelle webserver is intended for trusted callers only and must not fetch
+    and execute arbitrary Python from attacker supplied URLs. Local plug-in
+    references are still accepted.
+    """
+    for entry in rawValue.split("|"):
+        candidate = entry.strip().lstrip(_PLUGIN_PREFIX_CHARS)
+        if _URL_SCHEME.match(candidate):
+            raise HTTPResponse(
+                body=_("Remote URL plug-in references are not permitted via the webserver: {0}").format(entry),
+                status=400,
+            )
+
 def startWebserver(cntlr: CntlrCmdLine, options: RuntimeOptions) -> Bottle | None:
     """Called once from main program in CmtlrCmdLine to initiate web server on specified local port.
     """
     setCntlr(cntlr)
     setRuntimeOptions(options)
+    print(
+        _("WARNING: Arelle's built-in webserver performs no authentication and must only be "
+          "reachable by trusted users. It can read arbitrary files from this host and load "
+          "plug-ins on request. Do not expose it to untrusted users or networks. "
+          "See docs/webserver_security.md."),
+        file=sys.stderr,
+    )
     assert options.webserver is not None
     host, sep, portServer = options.webserver.partition(":")
     port, sep, server = portServer.partition(":")
@@ -329,6 +355,9 @@ def validation(file: str | None = None) -> str | bytes:
                 options.packages = packages
         elif not value: # convert plain str parameter present to True parameter
             setattr(options, key, True)
+        elif key == "plugins":
+            _rejectRemotePlugins(value)
+            options.plugins = value
         else:
             setattr(options, key, value)
     if file:
@@ -450,6 +479,7 @@ def configure() -> str:
     if request.query.proxy:
         options.proxy = request.query.proxy
     if request.query.plugins:
+        _rejectRemotePlugins(request.query.plugins)
         options.plugins = request.query.plugins
     if request.query.packages:
         options.packages = request.query.packages.split('|')
@@ -614,6 +644,11 @@ def helpREST() -> str:
 <tr><td>/help</td><td>This web page.</td></tr>
 <tr><td>/about</td><td>About web page, copyrights, etc.</td></tr>
 
+<tr><th colspan="2">Security</th></tr>
+<tr><td colspan="2">This API has no authentication and is intended for trusted callers only.
+It can read arbitrary files from this host and load plug-ins on request.
+Do not expose it to untrusted users or networks.</td></tr>
+
 <tr><th colspan="2">Validation</th></tr>
 <tr><td>/rest/xbrl/{file}/validation/xbrl</td><td>Validate document at {file}.</td></tr>
 ''') +
@@ -687,7 +722,7 @@ formulaVarExpressionSource, formulaVarExpressionCode, formulaVarExpressionEvalua
 <tr><td style="text-indent: 1em;">abortOnMajorError</td><td>Abort process on major error, such as when load is unable to find an entry or discovered file.</td></tr>
 <tr><td style="text-indent: 1em;">saveOIMinstance</td><td>Specify output instance filename to save (name.json, name.xml), for example if loading from xBRL-JSON.one would save to .xml otherwise to .json.  Media must be zip.  Returns a zip of instance and logFile.</td></tr>
 <tr><td style="text-indent: 1em;">collectProfileStats</td><td>Collect profile statistics, such as timing of validation activities and formulae.</td></tr>
-<tr><td style="text-indent: 1em;">plugins</td><td>Activate plug-ins, specify  '|' separated .py modules (relative to plug-in directory).</td></tr>
+<tr><td style="text-indent: 1em;">plugins</td><td>Activate plug-ins, specify  '|' separated .py modules (relative to plug-in directory).  Remote URL plug-in references (http://, https://, etc.) are rejected.</td></tr>
 <tr><td style="text-indent: 1em;">packages</td><td>Activate taxonomy packages, specify  '|' separated .zip packages (absolute URLs or file paths).</td></tr>
 
 <tr><th colspan="2">Versioning Report (diff of two DTSes)</th></tr>
@@ -788,9 +823,9 @@ Enter 'show' to view current setting, 'system' to configure to use system proxy 
 </td></tr>
 <tr><td style="text-indent: 1em;">plugins</td><td>Show or modify and re-save plug-ins configuration:<br/>
 Enter 'show' to view plug-ins configuration, , or '|' separated modules:
-+url to add plug-in by its url or filename (relative to plug-in directory else absolute), ~name to reload a plug-in by its name, -name to remove a plug-in by its name,
- (e.g., '+http://arelle.org/files/hello_web.py', '+C:\Program Files\Arelle\examples\plugin\hello_dolly.py' to load,
-~Hello Dolly to reload, -Hello Dolly to remove).  (Note that plug-ins are transient on Google App Engine, specify with &amp;plugins to other rest commands.)
++filename to add a plug-in by its filename (relative to plug-in directory else absolute), ~name to reload a plug-in by its name, -name to remove a plug-in by its name,
+ (e.g., '+C:\Program Files\Arelle\examples\plugin\hello_dolly.py' to load, ~Hello Dolly to reload, -Hello Dolly to remove).  (Note that plug-ins are transient on Google App Engine, specify with &amp;plugins to other rest commands.)<br/>
+Remote URL plug-in references (http://, https://, etc.) are rejected by the webserver.
 </td></tr>
 <tr><td style="text-indent: 1em;">packages</td><td>Show or modify and re-save taxonomy packages configuration:<br/>
 Enter 'show' to view packages configuration, , or '|' separated package URLs:
