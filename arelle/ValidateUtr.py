@@ -150,7 +150,7 @@ class ValidateUtr:
         self.messageCode = messageCode
         if getattr(modelXbrl.modelManager.disclosureSystem, "utrItemTypeEntries", None) is None:
             loadUtr(modelXbrl)
-        self.utrItemTypeEntries: dict[str, dict[str, UtrEntry]] = modelXbrl.modelManager.disclosureSystem.utrItemTypeEntries  # type: ignore[attr-defined]
+        self.utrItemTypeEntries: dict[str | None, dict[str | None, UtrEntry]] = modelXbrl.modelManager.disclosureSystem.utrItemTypeEntries  # type: ignore[attr-defined]
 
     def validateFacts(self) -> None:
         modelXbrl = self.modelXbrl
@@ -202,7 +202,7 @@ class ValidateUtr:
                 return self.measuresMatch(typeMatched, divMeas, (), *divArgs) # mul meas not constrainted
             else:
                 return typeMatched, typeMatched, None
-        for u in self.utrItemTypeEntries[typeName].values():  # type: ignore[index]
+        for u in self.utrItemTypeEntries[typeName].values():
             if typeNS is None or u.nsItemType is None or typeNS == u.nsItemType:
                 typeMatched = True
                 if u.isSimple:
