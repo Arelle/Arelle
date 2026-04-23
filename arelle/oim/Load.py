@@ -25,7 +25,9 @@ from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ModelValue import (DATETIME, dateTime, dayTimeDuration, qname,
                                yearMonthDuration)
 from arelle.oim.const import IDENTIFIER_PATTERN, XBRLCE_INVALID_IDENTIFIER
+from arelle.oim.csv.context import XbrlCsvLoadingContext
 from arelle.oim.csv.metadata.common import CSV_DOCUMENT_TYPES
+from arelle.oim.csv.metadata.parser import parse_xbrl_csv_metadata
 from arelle.oim._tc.metadata.parser import parse_tc_metadata
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.PythonUtil import attrdict, isLegacyAbs, strTruncate
@@ -1219,8 +1221,8 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             documentInfoProperties.add("final")
             reportProperties = {"documentInfo", "tableTemplates", "tables", "parameters", "parameterURL", "dimensions", "decimals", "links"}
             columnProperties = {"comment", "decimals", "dimensions", "propertyGroups", "parameterURL", "propertiesFrom"}
+            csvMetadata = parse_xbrl_csv_metadata(oimObject)
             tcMetadataResult = parse_tc_metadata(oimObject, namespaces)
-            modelXbrl.tcMetadata = tcMetadataResult.metadata
             for err in tcMetadataResult.errors:
                 error(
                     err.code,
@@ -1228,6 +1230,10 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     modelObject=modelXbrl,
                     error=str(err),
                 )
+            modelXbrl.xbrlCsvLoadingContext = XbrlCsvLoadingContext(
+                metadata=csvMetadata,
+                tc_metadata=tcMetadataResult.metadata,
+            )
 
         entityNaQName = qname(re.sub("/xbrl-(json|csv)$","/entities",documentType), "NA")
         allowedDuplicatesFeature = ALL
