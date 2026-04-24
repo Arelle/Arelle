@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 
+from functools import cached_property
 import logging
 import os
 import sys
@@ -560,18 +561,38 @@ class ModelXbrl:
         assert self.modelDocument is not None
         self.modelDocument.save(**kwargs)
 
-    @property
+    @cached_property
     def prefixedNamespaces(self) -> dict[str, str]:
-        """Dict of prefixes for namespaces defined in DTS
+        """
+        Dict of prefixes for namespaces defined in DTS.
+        
+        If a namespace has a prefix on its defining schema document, that prefix
+        is used.  Otherwise, if the namespace is declared on the root element of
+        the entry point, that prefix is used.
+
+        Note that:
+        1. There may well be prefixes or namespaces used in the report or taxonomy
+        that are not included in this dict.
+        2. This dict can include namespaces which no facts or concepts use.
         """
         prefixedNamespaces = {}
+        seen_ns = set()
+        # Prefer a given namespace's self-specified prefix
         for nsDocs in self.namespaceDocs.values():
             for nsDoc in nsDocs:
-                ns = nsDoc.targetNamespace
-                if ns:
-                    prefix = XmlUtil.xmlnsprefix(nsDoc.xmlRootElement, ns)
-                    if prefix and prefix not in prefixedNamespaces:
-                        prefixedNamespaces[prefix] = ns
+                if (
+                    (ns := nsDoc.targetNamespace) and
+                    ns not in seen_ns and
+                    (prefix := XmlUtil.xmlnsprefix(nsDoc.xmlRootElement, ns))
+                ):
+                    prefixedNamespaces.setdefault(prefix, ns)
+                    seen_ns.add(ns)
+        # Add in any others on the root element of the DTS entry point.
+        if self.modelDocument and (root := self.modelDocument.xmlRootElement) is not None:
+            for k, v in root.nsmap.items():
+                if k is not None and v not in seen_ns:
+                    prefixedNamespaces.setdefault(k, v)
+                    seen_ns.add(v)
         return prefixedNamespaces
 
     def matchContext(
