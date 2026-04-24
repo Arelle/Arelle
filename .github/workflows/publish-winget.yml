@@ -9,12 +9,13 @@ on:
   #   types: [published]
   workflow_dispatch:
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   winget:
-    runs-on: windows-latest
+    permissions:
+      contents: read
+    runs-on: windows-2025
     steps:
       - uses: vedantmgoyal9/winget-releaser@v2
         with:

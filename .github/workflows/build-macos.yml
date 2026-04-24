@@ -13,8 +13,8 @@ on:
         required: false
         type: string
       macos_version:
-        default: '15'
-        description: 'MacOS version to use (15, 15-intel, 26, latest, etc.)'
+        default: '26'
+        description: 'MacOS version to use (26, 26-intel, latest, etc.)'
         required: false
         type: string
       python_version:
@@ -50,8 +50,8 @@ on:
         required: false
         type: string
       macos_version:
-        default: '15'
-        description: 'MacOS version to use (15, 15-intel, 26, latest, etc.)'
+        default: '26'
+        description: 'MacOS version to use (26, 26-intel, latest, etc.)'
         required: true
         type: string
       python_version:

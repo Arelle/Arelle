@@ -12,7 +12,7 @@ permissions: {}
 
 jobs:
   build-macos-arm64:
-    runs-on: macos-15
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v6.0.2
         with:
@@ -39,7 +39,7 @@ jobs:
           path: output/
 
   build-macos-x86_64:
-    runs-on: macos-15-intel
+    runs-on: macos-26-intel
     steps:
       - uses: actions/checkout@v6.0.2
         with:
