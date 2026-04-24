@@ -4,7 +4,6 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 import unicodedata
-from typing import cast
 from collections import defaultdict
 
 import regex as re
@@ -16,7 +15,6 @@ from arelle.ModelObject import ModelObject
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.XbrlConst import dimensionDefault, standardLabelRoles, xbrli
 from arelle.typing import TypeGetText
-from arelle.utils.validate.Common import isExtensionUri
 from ..Const import (
     DefaultDimensionLinkroles2021,
     esefDefinitionArcroles,
@@ -25,6 +23,8 @@ from ..Const import (
     linkbaseRefTypes,
     qnDomainItemTypesBefore2023,
 )
+from ..Util import isExtensionDoc, isExtensionObject, isEsefExtensionUri
+
 _: TypeGetText  # Handle gettext
 
 
@@ -39,8 +39,7 @@ def checkFilingDTS(
         if referencedDocument not in visited and referencedDocument.inDTS: # ignore non-DTS documents
             checkFilingDTS(val, referencedDocument, visited, modelDocumentReference.referringXlinkRole)
 
-    standardTaxonomyUriPrefixes = cast(frozenset[str], val.authParam["standardTaxonomyURIs"])
-    isExtensionDoc = isExtensionUri(modelDocument.uri, val.modelXbrl, standardTaxonomyUriPrefixes)
+    isExtensionDocFound = isExtensionDoc(val, modelDocument)
     filenamePattern = filenameRegex = None
     anchorAbstractExtensionElements = val.authParam["extensionElementsAnchoring"] == "include abstract"
     allowCapsInLc3Words = val.authParam["LC3AllowCapitalsInWord"]
@@ -52,7 +51,7 @@ def checkFilingDTS(
             return word[0].upper() + word[1:]
         return word
 
-    if not isExtensionDoc:
+    if not isExtensionDocFound:
         pass
 
     # the following doc type sections only pertain to extensionDocuments
@@ -186,7 +185,7 @@ def checkFilingDTS(
                                     modelObject=[modelConcept]+labels, concept=modelConcept.qname, lang=lang, labelrole=labelrole)
                     langRoleLabels.clear()
             for modelType in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/2001/XMLSchema}complexType"):
-                if (isinstance(modelType,ModelType) and isExtensionUri(modelType.modelDocument.uri, val.modelXbrl, standardTaxonomyUriPrefixes) and
+                if (isinstance(modelType,ModelType) and isExtensionObject(val, modelType) and
                     modelType.typeDerivedFrom is not None and modelType.typeDerivedFrom.qname.namespaceURI == xbrli and
                     not modelType.particlesList):
                     val.modelXbrl.error("ESEF.RTS.Annex.IV.Par.11.customDataTypeDuplicatingXbrlOrDtrEntry",
@@ -302,10 +301,10 @@ def checkFilingDTS(
                              prohibitedArcTos[arcElt.get("{http://www.w3.org/1999/xlink}to")].append(arcElt)
                     for locElt in linkElt.iterchildren("{http://www.xbrl.org/2003/linkbase}loc"):
                         prohibitingArcs = prohibitedArcTos.get(locElt.get("{http://www.w3.org/1999/xlink}label"))
-                        if prohibitingArcs and not ((href := locElt.get("{http://www.w3.org/1999/xlink}href")) and isExtensionUri(href, val.modelXbrl, standardTaxonomyUriPrefixes)):
+                        if prohibitingArcs and not ((href := locElt.get("{http://www.w3.org/1999/xlink}href")) and isEsefExtensionUri(val, href)):
                             prohibitingLbElts.extend(prohibitingArcs)
                         prohibitingArcs = prohibitedArcFroms.get(locElt.get("{http://www.w3.org/1999/xlink}label"))
-                        if prohibitingArcs and not ((href := locElt.get("{http://www.w3.org/1999/xlink}href")) and isExtensionUri(href, val.modelXbrl, standardTaxonomyUriPrefixes)):
+                        if prohibitingArcs and not ((href := locElt.get("{http://www.w3.org/1999/xlink}href")) and isEsefExtensionUri(val, href)):
                             prohibitingLbElts.extend(prohibitingArcs)
                             prohibitedBaseConcepts.append(locElt.dereference())
                     del prohibitedArcFroms, prohibitedArcTos # dereference
@@ -363,7 +362,7 @@ def checkFilingDTS(
                     _("The extension taxonomy MUST not prohibit default members assigned to dimensions by the ESEF taxonomy."),
                     modelObject=modelDocument.xmlRootElement, linkbasesFound=", ".join(sorted(linkbasesFound)))
 
-    if isExtensionDoc and filenamePattern is not None:
+    if isExtensionDocFound and filenamePattern is not None:
         m = re.compile(filenameRegex).match(modelDocument.basename)
         if not m:
             val.modelXbrl.warning("ESEF.3.1.5.extensionTaxonomyDocumentNameDoesNotFollowNamingConvention",
@@ -376,7 +375,7 @@ def checkFilingDTS(
                 _("Extension taxonomy document file name {base} component SHOULD be no longer than 20 characters, length is %(length)s:  %(documentName)s."),
                 modelObject=modelDocument.xmlRootElement, length=len(m.group(1)), documentName=modelDocument.basename)
 
-    if isExtensionDoc and val.authority and val.authority.startswith("UKFRC"):
+    if isExtensionDocFound and val.authority and val.authority.startswith("UKFRC"):
         if modelDocument.type == ModelDocumentFile.Type.INLINEXBRL:
             if modelDocument.documentEncoding.lower() != "utf-8":
                 val.modelXbrl.error("UKFRC.1.1.instanceDocumentEncoding",

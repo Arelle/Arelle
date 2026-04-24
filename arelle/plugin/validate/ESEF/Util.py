@@ -13,6 +13,7 @@ import regex as re
 from lxml.etree import _Element
 
 from arelle.FileSource import openFileStream
+from arelle.ModelDocument import ModelDocument
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelUnit
 from arelle.ModelManager import ModelManager
@@ -23,6 +24,7 @@ from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.XmlValidateConst import VALID
 from arelle.typing import TypeGetText
+from arelle.utils.validate.Common import isExtensionUri
 from .Const import esefCorNsPattern, esefNotesStatementConcepts, esefTaxonomyNamespaceURIs, svgEventAttributes
 
 _: TypeGetText
@@ -36,6 +38,33 @@ AUTHORITY_CODES: frozenset[str] = frozenset({
     "LV", "MT", "NL", "NO", "PL", "PT", "RO", "SE", "SI", "SK",
     "UKFRC", "UKFRC-2022", "UKFRC-2023",
 })
+
+ESEF_STANDARD_TAXONOMY_URI_PREFIXES_ATTR = "_esefStandardTaxonomyUriPrefixes"
+
+
+def standardTaxonomyUriPrefixes(val: ValidateXbrl) -> frozenset[str]:
+    taxonomyPrefixes: frozenset[str] | None = getattr(val, ESEF_STANDARD_TAXONOMY_URI_PREFIXES_ATTR, None)
+    if taxonomyPrefixes is None:
+        taxonomyPrefixes = frozenset(val.authParam["standardTaxonomyURIs"])
+        setattr(val, ESEF_STANDARD_TAXONOMY_URI_PREFIXES_ATTR, taxonomyPrefixes)
+    return taxonomyPrefixes
+
+
+def isEsefExtensionUri(val: ValidateXbrl, uri: str) -> bool:
+    return isExtensionUri(uri, val.modelXbrl, standardTaxonomyUriPrefixes(val))
+
+
+def isExtensionDoc(val: ValidateXbrl, modelDocument: ModelDocument) -> bool:
+    return isEsefExtensionUri(val, modelDocument.uri)
+
+
+def isExtensionObject(val: ValidateXbrl, modelObject: ModelObject | None) -> bool:
+    if modelObject is None:
+        return False
+    doc = modelObject.modelDocument
+    if doc is None:
+        return False
+    return isEsefExtensionUri(val, doc.uri)
 
 
 def getDisclosureSystemYear(modelXbrl: ModelXbrl) -> int:
