@@ -130,4 +130,3 @@ jobs:
       id-token: write
     uses: ./.github/workflows/publish-docker.yml
     secrets: inherit
-
