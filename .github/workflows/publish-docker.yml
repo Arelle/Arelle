@@ -109,8 +109,8 @@ jobs:
           annotations: ${{ steps.meta-slim.outputs.annotations }}
           provenance: true
           sbom: true
-          cache-from: type=registry,ref=${{ github.repository }}:slim
-          cache-to: type=inline
+          cache-from: type=registry,ref=${{ github.repository }}:buildcache-slim
+          cache-to: type=registry,ref=${{ github.repository }}:buildcache-slim,mode=max
 
       - name: Checkout EDGAR
         uses: actions/checkout@v6.0.2
@@ -169,8 +169,8 @@ jobs:
           annotations: ${{ steps.meta.outputs.annotations }}
           provenance: true
           sbom: true
-          cache-from: type=registry,ref=${{ github.repository }}:latest
-          cache-to: type=inline
+          cache-from: type=registry,ref=${{ github.repository }}:buildcache
+          cache-to: type=registry,ref=${{ github.repository }}:buildcache,mode=max
 
       - name: Generate artifact attestation
         uses: actions/attest@v4.1.0
