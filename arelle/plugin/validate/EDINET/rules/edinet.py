@@ -29,6 +29,7 @@ from arelle.utils.validate.Characters import findProhibitedCharacters
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Document import checkDocumentEncoding
 from arelle.utils.validate.Validation import Validation
+from arelle.utils.validate.Common import isExtensionUri
 from arelle.utils.validate.ValidationUtil import hasPresentationalConceptsWithFacts
 from ..Constants import AccountingStandard, JAPAN_LANGUAGE_CODES, REPORT_ELR_URI_PATTERN, REPORT_ELR_ID_PATTERN, STANDARD_TAXONOMY_URL_PREFIXES
 from ..ControllerPluginData import ControllerPluginData
@@ -570,7 +571,7 @@ def rule_roles(
     """
     for roleTypes in val.modelXbrl.roleTypes.values():
         for roleType in roleTypes:
-            if not pluginData.isExtensionUri(roleType.modelDocument.uri, val.modelXbrl):
+            if not isExtensionUri(roleType.modelDocument.uri, val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):
                 continue
             if not REPORT_ELR_ID_PATTERN.fullmatch(str(roleType.id)):
                 yield Validation.warning(
@@ -702,7 +703,7 @@ def rule_EC8028W(
         for rel in rels:
             if not isinstance(rel.toModelObject, ModelResource):
                 continue
-            if not pluginData.isExtensionUri(rel.modelDocument.uri, val.modelXbrl):
+            if not isExtensionUri(rel.modelDocument.uri, val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):
                 continue
             groups[(rel.toModelObject.xmlLang, rel.toModelObject.role, rel.priority)].append(rel)
         for (lang, role, priority), group in groups.items():
@@ -917,7 +918,7 @@ def rule_EC8034W(
             modelLabel = modelLabelRel.toModelObject
             if not isinstance(modelLabel, ModelResource):
                 continue
-            if not pluginData.isExtensionUri(modelLabel.modelDocument.uri, val.modelXbrl):
+            if not isExtensionUri(modelLabel.modelDocument.uri, val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):
                 continue
             if modelLabel.xmlLang != 'en':
                 continue

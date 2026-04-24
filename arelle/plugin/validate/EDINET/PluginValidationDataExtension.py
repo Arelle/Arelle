@@ -32,6 +32,7 @@ from arelle.XhtmlValidate import htmlEltUriAttrs
 from arelle.XmlValidate import VALID
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
+from arelle.utils.validate.Common import isExtensionUri
 from arelle.utils.validate.Facts import getUsedConceptsFromFacts, hasValidNonNilFactByQname, iterValidNonNilFactsByQname
 from .Constants import xhtmlDtdExtension, PROHIBITED_HTML_TAGS, PROHIBITED_HTML_ATTRIBUTES, STANDARD_TAXONOMY_URL_PREFIXES
 from .ControllerPluginData import ControllerPluginData
@@ -244,11 +245,6 @@ class PluginValidationDataExtension(PluginData):
     def isCorporateReport(self, modelXbrl: ModelXbrl) -> bool:
         return self.namespaces.jpcrp in modelXbrl.namespaceDocs
 
-    def isExtensionUri(self, uri: str, modelXbrl: ModelXbrl) -> bool:
-        if uri.startswith(modelXbrl.uriDir):
-            return True
-        return not any(uri.startswith(taxonomyUri) for taxonomyUri in STANDARD_TAXONOMY_URL_PREFIXES)
-
     @lru_cache(1)
     def isStockForm(self, modelXbrl: ModelXbrl) -> bool:
         formType = self.getFormType(modelXbrl)
@@ -370,7 +366,7 @@ class PluginValidationDataExtension(PluginData):
                 continue # Not a schema
             if modelDocument.targetNamespace is None:
                 continue # No target namespace
-            if not self.isExtensionUri(modelDocument.uri, modelXbrl):
+            if not isExtensionUri(modelDocument.uri, modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):
                 continue # Not an extension schema
             path = Path(modelDocument.uri)
             pathInfo = uploadContents.uploadPathsByFullPath.get(path)
@@ -547,7 +543,7 @@ class PluginValidationDataExtension(PluginData):
             for elt in rootElt.iterdescendants(XbrlConst.qnLinkLinkbaseRef.clarkNotation):
                 uri = elt.attrib.get(XbrlConst.qnXlinkHref.clarkNotation)
                 role = elt.attrib.get(XbrlConst.qnXlinkRole.clarkNotation)
-                if not role == linkbaseType.getRefUri() or self.isExtensionUri(uri, modelXbrl):
+                if not role == linkbaseType.getRefUri() or isExtensionUri(uri, modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):
                     continue
                 elts.append(elt)
         return elts

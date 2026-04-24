@@ -61,7 +61,7 @@ from ..Const import (
     untransformableTypes,
 )
 from ..Dimensions import checkFilingDimensions
-from ..Util import isExtension
+from ..Util import isExtensionObject, isEsefExtensionUri
 
 
 _: TypeGetText  # Handle gettext
@@ -714,9 +714,9 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     fr = rel.fromModelObject
                     to = rel.toModelObject
                     if arcrole in (parentChild, summationItem):
-                        if fr is not None and not fr.isAbstract and fr not in conceptsUsed and isExtension(val, rel):
+                        if fr is not None and not fr.isAbstract and fr not in conceptsUsed and isExtensionObject(val, rel):
                             unreportedLbElts.add(fr)
-                        if to is not None and not to.isAbstract and to not in conceptsUsed and isExtension(val, rel):
+                        if to is not None and not to.isAbstract and to not in conceptsUsed and isExtensionObject(val, rel):
                             unreportedLbElts.add(to)
                     elif arcrole in (hc_all, domainMember, dimensionDomain):
                         # all primary items
@@ -726,7 +726,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                             and not fr.isAbstract
                             and rel.isUsable
                             and fr not in conceptsUsed
-                            and isExtension(val, rel)
+                            and isExtensionObject(val, rel)
                             and not fr.type.isDomainItemType
                         ):
                             unreportedLbElts.add(fr)
@@ -736,7 +736,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                             and not to.isAbstract
                             and rel.isUsable
                             and to not in conceptsUsed
-                            and isExtension(val, rel)
+                            and isExtensionObject(val, rel)
                             and not to.type.isDomainItemType
                         ):
                             unreportedLbElts.add(to)
@@ -767,7 +767,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
 
         def checkLabels(parent: ModelConcept, relSet: ModelRelationshipSet, labelrole: str | None, visited: set[ModelConcept]) -> None:
             if not parent.label(labelrole,lang=reportXmlLang,fallbackToQname=False):
-                if (not labelrole or labelrole == standardLabel) and isExtension(val, parent):
+                if (not labelrole or labelrole == standardLabel) and isExtensionObject(val, parent):
                     missingConceptLabels[labelrole].add(parent)
             visited.add(parent)
             conceptRels = defaultdict(list) # counts for concepts without preferred label role
@@ -893,7 +893,8 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 if _i is not None:
                     for c in conceptlist:
                         if (c.qname.namespaceURI not in _ifrsNses
-                            and isExtension(val, c.qname.namespaceURI) # may be a authority-specific duplication such as UK-FRC
+                            and c.qname.namespaceURI is not None
+                            and isEsefExtensionUri(val, c.qname.namespaceURI) # may be a authority-specific duplication such as UK-FRC
                             and c.balance == _i.balance and c.periodType == _i.periodType):
                             modelXbrl.error("ESEF.RTS.Annex.IV.Par.4.1.extensionElementDuplicatesCoreElement",
                         _("Extension elements must not duplicate the existing elements from the core taxonomy and be identifiable %(qname)s."),

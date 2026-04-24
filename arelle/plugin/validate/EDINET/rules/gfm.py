@@ -25,6 +25,7 @@ from arelle.ValidateXbrlCalcs import insignificantDigits
 from arelle.XbrlConst import qnXbrlScenario, qnXbrldiExplicitMember, xhtmlBaseIdentifier, xmlBaseIdentifier
 from arelle.XmlValidate import VALID
 from arelle.typing import TypeGetText
+from arelle.utils.validate.Common import isExtensionUri
 from arelle.utils.validate.Concepts import getExtensionConcepts
 from arelle.utils.validate.ContextIssues import getContextIssues
 from arelle.utils.Contexts import getDuplicateContextGroups
@@ -138,7 +139,7 @@ def rule_gfm_1_1_6(
     if not hasattr(val, 'hasExtensionSchema'):
         val.hasExtensionSchema = False
     for modelDocument in val.modelXbrl.urlDocs.values():
-        if pluginData.isExtensionUri(modelDocument.uri, val.modelXbrl) and modelDocument.type == ModelDocumentType.SCHEMA:
+        if isExtensionUri(modelDocument.uri, val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES) and modelDocument.type == ModelDocumentType.SCHEMA:
             val.hasExtensionSchema = True
             break
     if not val.hasExtensionSchema:
@@ -737,7 +738,7 @@ def rule_gfm_1_3_2(
     to that namespace.
     """
     for document in val.modelXbrl.urlDocs.values():
-        if not pluginData.isExtensionUri(document.uri, val.modelXbrl) or not document.type == ModelDocumentType.SCHEMA:
+        if not isExtensionUri(document.uri, val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES) or not document.type == ModelDocumentType.SCHEMA:
             continue
         for refDoc in document.referencesDocument.values():
             if 'import' not in refDoc.referenceTypes:
@@ -938,7 +939,7 @@ def rule_gfm_1_3_18(
         if name is not None:
             concepts = val.modelXbrl.nameConcepts.get(name, [])
             for concept in concepts:
-                if not pluginData.isExtensionUri(concept.document.uri, val.modelXbrl):
+                if not isExtensionUri(concept.document.uri, val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):
                     yield Validation.warning(
                         codes='EDINET.EC5700W.GFM.1.3.18',
                         msg=_("Your extension taxonomy contains an element, %(concept)s, which has the same name as an element "
@@ -2154,7 +2155,7 @@ def rule_gfm_1_9_1(
             continue
         if modelConcept.qname is None or modelConcept.qname.namespaceURI is None:
             continue
-        if pluginData.isExtensionUri(modelConcept.document.uri, val.modelXbrl):
+        if isExtensionUri(modelConcept.document.uri, val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):
             yield Validation.warning(
                 codes='EDINET.EC5700W.GFM.1.9.1',
                 msg=_("References should not be defined for extension concepts: %(conceptName)s"),

@@ -24,6 +24,7 @@ from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.XmlValidateConst import VALID
 from arelle.typing import TypeGetText
+from arelle.utils.validate.Common import isExtensionUri
 from .Const import esefCorNsPattern, esefNotesStatementConcepts, esefTaxonomyNamespaceURIs, svgEventAttributes
 
 _: TypeGetText
@@ -38,6 +39,33 @@ AUTHORITY_CODES: frozenset[str] = frozenset({
     "UKFRC", "UKFRC-2022", "UKFRC-2023",
 })
 
+ESEF_STANDARD_TAXONOMY_URI_PREFIXES_ATTR = "_esefStandardTaxonomyUriPrefixes"
+
+
+def standardTaxonomyUriPrefixes(val: ValidateXbrl) -> frozenset[str]:
+    taxonomyPrefixes: frozenset[str] | None = getattr(val, ESEF_STANDARD_TAXONOMY_URI_PREFIXES_ATTR, None)
+    if taxonomyPrefixes is None:
+        taxonomyPrefixes = frozenset(val.authParam["standardTaxonomyURIs"])
+        setattr(val, ESEF_STANDARD_TAXONOMY_URI_PREFIXES_ATTR, taxonomyPrefixes)
+    return taxonomyPrefixes
+
+
+def isEsefExtensionUri(val: ValidateXbrl, uri: str) -> bool:
+    return isExtensionUri(uri, val.modelXbrl, standardTaxonomyUriPrefixes(val))
+
+
+def isExtensionDoc(val: ValidateXbrl, modelDocument: ModelDocument) -> bool:
+    return isEsefExtensionUri(val, modelDocument.uri)
+
+
+def isExtensionObject(val: ValidateXbrl, modelObject: ModelObject | None) -> bool:
+    if modelObject is None:
+        return False
+    doc = modelObject.modelDocument
+    if doc is None:
+        return False
+    return isEsefExtensionUri(val, doc.uri)
+
 
 def getDisclosureSystemYear(modelXbrl: ModelXbrl) -> int:
     for name in modelXbrl.modelManager.disclosureSystem.names:
@@ -45,19 +73,6 @@ def getDisclosureSystemYear(modelXbrl: ModelXbrl) -> int:
         if disclosureSystemYear:
             return int(disclosureSystemYear.group(YEAR_GROUP))
     raise ValueError(f"Unable to determine year of ESEF disclosure system matching pattern 'esef-20XX' from {modelXbrl.modelManager.disclosureSystem.names}")
-
-
-# check if a modelDocument URI is an extension URI (document URI)
-# also works on a uri passed in as well as modelObject
-def isExtension(val: ValidateXbrl, modelObject: ModelObject | ModelDocument | str | None) -> bool:
-    if modelObject is None:
-        return False
-    if isinstance(modelObject, str):
-        uri = modelObject
-    else:
-        uri = modelObject.modelDocument.uri
-    return (uri.startswith(val.modelXbrl.uriDir) or
-            not any(uri.startswith(standardTaxonomyURI) for standardTaxonomyURI in val.authParam["standardTaxonomyURIs"]))
 
 
 # check if in core esef taxonomy (based on namespace URI)

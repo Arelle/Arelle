@@ -69,7 +69,13 @@ from ..Const import (
     reportBasenameRegex
 )
 from ..Dimensions import checkFilingDimensions
-from ..Util import checkForMultiLangDuplicates, getEsefNotesStatementConcepts, isExtension, getDisclosureSystemYear
+from ..Util import (
+    checkForMultiLangDuplicates,
+    getDisclosureSystemYear,
+    getEsefNotesStatementConcepts,
+    isExtensionObject,
+    isEsefExtensionUri,
+)
 
 _: TypeGetText  # Handle gettext
 
@@ -865,9 +871,9 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     fr = rel.fromModelObject
                     to = rel.toModelObject
                     if arcrole in (parentChild, summationItems):
-                        if fr is not None and not fr.isAbstract and fr not in conceptsUsed and isExtension(val, rel):
+                        if fr is not None and not fr.isAbstract and fr not in conceptsUsed and isExtensionObject(val, rel):
                             unreportedLbLocs.add(rel.fromLocator)
-                        if to is not None and not to.isAbstract and to not in conceptsUsed and isExtension(val, rel):
+                        if to is not None and not to.isAbstract and to not in conceptsUsed and isExtensionObject(val, rel):
                             unreportedLbLocs.add(rel.toLocator)
                     elif arcrole in (hc_all, domainMember, dimensionDomain):
                         # all primary items
@@ -877,7 +883,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                             and not fr.isAbstract
                             and rel.isUsable
                             and fr not in conceptsUsed
-                            and isExtension(val, rel)
+                            and isExtensionObject(val, rel)
                             and not fr.type.isDomainItemType
                         ):
                             unreportedLbLocs.add(rel.fromLocator)
@@ -887,7 +893,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                             and not to.isAbstract
                             and rel.isUsable
                             and to not in conceptsUsed
-                            and isExtension(val, rel)
+                            and isExtensionObject(val, rel)
                             and not to.type.isDomainItemType
                         ):
                             unreportedLbLocs.add(rel.toLocator)
@@ -917,9 +923,9 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
             to = rel.toModelObject
 
             if fr is not None and to is not None:
-                if to.isAbstract and isExtension(val, fr):
+                if to.isAbstract and isExtensionObject(val, fr):
                     anchoringToAbstractConcept.add(fr)
-                if fr.isAbstract and isExtension(val, to):
+                if fr.isAbstract and isExtensionObject(val, to):
                     anchoringToAbstractConcept.add(to)
 
         for _elem in anchoringToAbstractConcept:
@@ -936,7 +942,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
 
         def checkLabels(parent: ModelConcept, relSet: ModelRelationshipSet, labelrole: str | None, visited: set[ModelConcept]) -> None:
             if not parent.label(labelrole,lang=reportXmlLang,fallbackToQname=False):
-                if (not labelrole or labelrole == standardLabel) and isExtension(val, parent):
+                if (not labelrole or labelrole == standardLabel) and isExtensionObject(val, parent):
                     missingConceptLabels[labelrole].add(parent)
             visited.add(parent)
             conceptRels = defaultdict(list) # counts for concepts without preferred label role
@@ -978,7 +984,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
             for labelRel in labelRels:
                 conceptlangRoleLabels[(labelRel.toModelObject.xmlLang, labelRel.toModelObject.role)].append(labelRel.toModelObject)
             for (lang, labelrole), labels in conceptlangRoleLabels.items():
-                if isExtension(val, modelConcept) and len(labels) > 1:
+                if isExtensionObject(val, modelConcept) and len(labels) > 1:
                     val.modelXbrl.error(
                         "ESEF.3.4.5.taxonomyElementDuplicateLabels",
                         _("Extension taxonomy element name SHALL not have multiple labels for lang %(lang)s and role %(labelrole)s: %(concept)s"),
@@ -987,7 +993,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     has_core_label = False
                     has_extension_label = False
                     for label in labels:
-                        if isExtension(val, label):
+                        if isExtensionObject(val, label):
                             has_extension_label = True
                         else:
                             has_core_label = True
@@ -1089,7 +1095,8 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 if _i is not None:
                     for c in conceptlist:
                         if (c.qname.namespaceURI not in _ifrsNses
-                            and isExtension(val, c.qname.namespaceURI) # may be a authority-specific duplication such as UK-FRC
+                            and c.qname.namespaceURI is not None
+                            and isEsefExtensionUri(val, c.qname.namespaceURI) # may be a authority-specific duplication such as UK-FRC
                             and c.balance == _i.balance and c.periodType == _i.periodType):
                             modelXbrl.error("ESEF.RTS.Annex.IV.Par.4.1.extensionElementDuplicatesCoreElement",
                         _("Extension elements must not duplicate the existing elements from the core taxonomy and be identifiable %(qname)s."),
