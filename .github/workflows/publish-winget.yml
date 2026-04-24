@@ -1,0 +1,23 @@
+# Required secret:
+#   WINGET_TOKEN - Classic GitHub PAT with public_repo scope (fine-grained tokens won't work)
+
+name: Publish to winget
+
+on:
+  # Manual trigger only — uncomment the release trigger below when ready:
+  # release:
+  #   types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  winget:
+    runs-on: windows-latest
+    steps:
+      - uses: vedantmgoyal9/winget-releaser@v2
+        with:
+          identifier: Arelle.Arelle
+          installers-regex: 'arelle-win-.*\.(exe|zip)$'
+          token: ${{ secrets.WINGET_TOKEN }}

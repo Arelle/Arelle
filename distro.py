@@ -141,7 +141,7 @@ elif sys.platform == WINDOWS_PLATFORM:
     guiExecutable = Executable(
         script="arelleGUI.pyw",
         base="gui",
-        icon="arelle\\images\\arelle16x16and32x32.ico",
+        icon="arelle\\images\\arelle.ico",
     )
     includeFiles.append(("arelle\\scripts-windows", "scripts"))
     if "arelle.webserver" in packages:
