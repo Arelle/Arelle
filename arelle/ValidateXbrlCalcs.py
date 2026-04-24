@@ -140,14 +140,14 @@ class ValidateXbrlCalcs:
                 e = modelXbrl.errors[i]
                 if isinstance(e, str) and e in oimXbrlxeBlockingErrorCodes:
                     del modelXbrl.errors[i] # remove the oim errors from modelXbrl.errors
-                oimErrs.add(e)
-            if any(e == "xbrlxe:unsupportedTuple" for e in oimErrs):
+                    oimErrs.add(e)
+            if "xbrlxe:unsupportedTuple" in oimErrs:
                 # ignore this error and change to warning
                 yield Validation.warning(
                     "calc11e:tuplesInReportWarning",
                     _("Validating of calculations ignores tuples."),
                 )
-            if any(e in oimXbrlxeBlockingErrorCodes for e in oimErrs if e != "xbrlxe:unsupportedTuple"):
+            if oimErrs - {"xbrlxe:unsupportedTuple"}:
                 yield Validation.warning(
                     "calc11e:oimIncompatibleReportWarning",
                     _("Validating of calculations is skipped due to OIM errors."),
