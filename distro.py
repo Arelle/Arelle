@@ -53,6 +53,8 @@ for entryPoint in entryPoints:
 includeLibs = [
     "dateutil",
     "dateutil.relativedelta",
+    "email",
+    "email.header",
     "graphviz",
     "gzip",
     "isodate",
