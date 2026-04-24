@@ -216,7 +216,7 @@ class Cntlr:
                         configHomeDir = os.path.abspath(configHomeDir)  # make into a full path if relative
                 except EnvironmentError:
                     configHomeDir = None
-        if self.hasFileSystem and configHomeDir and os.path.exists(configHomeDir):
+        if self.hasFileSystem and configHomeDir:
             # check if a cache exists in this directory (e.g. from XPE or other tool)
             impliedAppDir = os.path.join(configHomeDir, "arelle")
             if os.path.exists(impliedAppDir):
