@@ -1,5 +1,5 @@
 LINUX = 'ubuntu-24.04'
-MACOS = 'macos-15'
+MACOS = 'macos-26'
 WINDOWS = 'windows-2025'
 
 # number of cores on the runners

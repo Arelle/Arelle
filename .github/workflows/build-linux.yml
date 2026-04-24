@@ -8,12 +8,12 @@ on:
         required: false
         type: string
       openssl_version:
-        default: '3.6.0'
+        default: '3.6.2'
         description: 'OpenSSL version to use'
         required: false
         type: string
       python_version:
-        default: '3.14.2'
+        default: '3.14.4'
         description: 'Python version to use'
         required: false
         type: string
@@ -35,12 +35,12 @@ on:
         required: false
         type: string
       openssl_version:
-        default: '3.6.0'
+        default: '3.6.2'
         description: 'OpenSSL version to use'
         required: true
         type: string
       python_version:
-        default: '3.14.2'
+        default: '3.14.4'
         description: 'Python version to use'
         required: true
         type: string

@@ -16,7 +16,7 @@ MACOS_PLATFORM = "darwin"
 WINDOWS_PLATFORM = "win32"
 
 cliExecutable = Executable(script="arelleCmdLine.py")
-packages = find_packages()
+packages = find_packages(include=["arelle*"])
 includeFiles = [
     (os.path.normcase("arelle/archive"), "archive"),
     (os.path.normcase("arelle/config"), "config"),
@@ -53,6 +53,8 @@ for entryPoint in entryPoints:
 includeLibs = [
     "dateutil",
     "dateutil.relativedelta",
+    "email",
+    "email.header",
     "graphviz",
     "gzip",
     "isodate",

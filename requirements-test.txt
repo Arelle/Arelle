@@ -2,6 +2,6 @@ boto3==1.42.91
 packaging==26.1
 pytest==9.0.3
 requests==2.33.1
-tomli==2.3.0 ; python_version <= "3.10"
+tomli==2.4.1 ; python_version == "3.10"
 
 -r requirements.txt

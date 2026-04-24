@@ -32,6 +32,7 @@ autodoc2_packages = [
 autodoc2_render_plugin = "myst"
 suppress_warnings = [
     "autodoc2.dup_item", # bottle and tkinter warnings
+    "ref.python", # ambiguous `type` xref vs ModelConcept.type / ModelAttribute.type
 ]
 
 # -- Options for HTML output -------------------------------------------------
