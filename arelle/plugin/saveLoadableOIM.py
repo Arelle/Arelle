@@ -220,9 +220,15 @@ def saveLoadableOIM(
     linkTypeAliases = {}
     groupAliases = {}
 
-    def compileQname(qname: QName) -> None:
+    def compileQname(qname: QName, nsmap: dict[str | None, str] | None = None) -> None:
         if qname.namespaceURI is not None and qname.namespaceURI not in namespacePrefixes:
-            namespacePrefixes.addNamespace(qname.namespaceURI, qname.prefix or "")
+            prefix = qname.prefix
+            if not prefix and nsmap:
+                for mapPrefix, mapNamespace in nsmap.items():
+                    if qname.namespaceURI == mapNamespace:
+                        prefix = mapPrefix
+                        break
+            namespacePrefixes.addNamespace(qname.namespaceURI, prefix or "")
 
     aspectsDefined = {qnOimConceptAspect, qnOimEntityAspect, qnOimPeriodAspect}
 
@@ -304,9 +310,14 @@ def saveLoadableOIM(
                 hasNumeric = True
             if concept.baseXbrliType in ("string", "normalizedString", "token") and fact.xmlLang:
                 hasLang = True
-        compileQname(fact.qname)
-        if hasattr(fact, "xValue") and isinstance(fact.xValue, QName):
-            compileQname(fact.xValue)
+        compileQname(fact.qname, fact.nsmap)
+        xValue = getattr(fact, "xValue", None)
+        if isinstance(xValue, QName):
+            compileQname(xValue, fact.nsmap)
+        elif isinstance(xValue, list):
+            for q in xValue:
+                if isinstance(q, QName):
+                    compileQname(q, fact.nsmap)
         unit = fact.unit
         if unit is not None:
             hasUnits = True
