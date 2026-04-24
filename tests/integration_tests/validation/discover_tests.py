@@ -16,9 +16,9 @@ ALL_PYTHON_VERSIONS = (
     '3.11',
     '3.12',
     '3.13',
-    '3.14.2',
+    '3.14.4',
 )
-LATEST_PYTHON_VERSION = '3.14.2'
+LATEST_PYTHON_VERSION = '3.14.4'
 
 
 class Entry(TypedDict, total=False):
