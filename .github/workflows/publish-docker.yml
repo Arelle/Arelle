@@ -109,8 +109,8 @@ jobs:
           annotations: ${{ steps.meta-slim.outputs.annotations }}
           provenance: true
           sbom: true
-          cache-from: type=registry,ref=${{ env.DOCKERHUB_IMAGE }}:buildcache-slim
-          cache-to: type=registry,ref=${{ env.DOCKERHUB_IMAGE }}:buildcache-slim,mode=max
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Checkout EDGAR
         uses: actions/checkout@v6.0.2
@@ -169,8 +169,8 @@ jobs:
           annotations: ${{ steps.meta.outputs.annotations }}
           provenance: true
           sbom: true
-          cache-from: type=registry,ref=${{ env.DOCKERHUB_IMAGE }}:buildcache
-          cache-to: type=registry,ref=${{ env.DOCKERHUB_IMAGE }}:buildcache,mode=max
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Generate artifact attestation
         uses: actions/attest@v4.1.0
