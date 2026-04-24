@@ -20,8 +20,14 @@ from lxml import etree
 
 from arelle import (ModelDocument, ModelXbrl, PackageManager, UrlUtil,
                     ValidateXbrlDimensions, XbrlConst, XmlUtil, XmlValidate)
+from arelle.ModelDocument import ModelDocument as ModelDocumentClass
+from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ModelValue import (DATETIME, dateTime, dayTimeDuration, qname,
                                yearMonthDuration)
+from arelle.oim.const import IDENTIFIER_PATTERN, XBRLCE_INVALID_IDENTIFIER
+from arelle.oim.csv.context import XbrlCsvLoadingContext
+from arelle.oim.csv.metadata.common import CSV_DOCUMENT_TYPES
+from arelle.oim.csv.metadata.parser import parse_xbrl_csv_metadata
 from arelle.oim._tc.metadata.parser import parse_tc_metadata
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.PythonUtil import attrdict, isLegacyAbs, strTruncate
@@ -49,12 +55,7 @@ jsonDocumentTypes = (
         "http://www.xbrl.org/YYYY-MM-DD/xbrl-json",
         "https://xbrl.org/((~status_date_uri~))/xbrl-json" # allows loading of XII "template" test cases without CI production
     )
-csvDocumentTypes = (
-        "https://xbrl.org/2021/xbrl-csv",
-        "http://www.xbrl.org/WGWD/YYYY-MM-DD/xbrl-csv",
-        "http://xbrl.org/YYYY/xbrl-csv",
-        "https://xbrl.org/((~status_date_uri~))/xbrl-csv" # allows loading of XII "template" test cases without CI production
-    )
+csvDocumentTypes = tuple(CSV_DOCUMENT_TYPES)
 csvDocinfoObjects = {"documentType", "namespaces", "taxonomy", "extends", "final", "linkTypes", "linkGroups"}
 csvExtensibleObjects = {"namespaces", "linkTypes", "linkGroups", "features", "final", "tableTemplates", "tables", "dimensions", "parameters"}
 
@@ -157,10 +158,6 @@ CanonicalXmlTypePattern = {
     "unsignedByte": CanonicalIntegerPattern,
     "positiveInteger": CanonicalIntegerPattern,
     }
-IdentifierPattern = re.compile(
-    "^[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
-     r"[_\-"
-     "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*$")
 RowIdentifierPattern = re.compile(
      r"[_\-"
      "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*$")
@@ -703,20 +700,15 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                             CSV_FACTS_FILE: "xbrlce:invalidHeaderValue"}[fileType],
                                            _("CSV deliminator %(deliminator)s is not comma: file %(file)s"),
                                           file=csvFilePath, deliminator=repr(_dialect.delimiter))
-                except csv.Error as ex:
-                    # possibly can't br sniffed because there's only one column in the rows
-                    _dialect = None
+                except csv.Error:
+                    # possibly can't be sniffed because there's only one column in the row
+                    _dialect = "excel"
                     for char in chars:
-                        if char in  (",", "\n", "\r"):
-                            _dialect = "excel"
+                        if char in (",", "\n", "\r"):
                             break
                         elif char == "\t":
                             _dialect = "excel-tab"
                             break
-                    if not _dialect:
-                        raise OIMException("xbrlce:invalidCSVFileFormat",
-                                           _("CSV file %(file)s: %(error)s"),
-                                          file=csvFilePath, error=str(ex))
                 except UnicodeDecodeError as ex:
                     raise OIMException("xbrlce:invalidCSVFileFormat",
                                        _("CSV file must use utf-8 encoding %(file)s: %(error)s"),
@@ -816,6 +808,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             _dict[DUPJSONVALUE].append((value, key, _valueKeyDict[value]))
                         else:
                             _valueKeyDict[value] = key
+            _dict.pop(DUPJSONVALUE, None)
             return _dict
 
         primaryOimFile = oimFile
@@ -1014,7 +1007,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         pathParts.append(mbrNdx)
                         if mbrPath in oimMemberTypes:
                             mbrTypes = oimMemberTypes[mbrPath]
-                            if (not (mbrTypes is IdentifierType and isinstance(mbrObj, str) and isinstance(mbrObj, str) and IdentifierPattern.match(mbrObj)) and
+                            if (not (mbrTypes is IdentifierType and isinstance(mbrObj, str) and isinstance(mbrObj, str) and IDENTIFIER_PATTERN.match(mbrObj)) and
                                 not ((mbrTypes is URIType or (isinstance(mbrTypes,tuple) and URIType in mbrTypes)) and isinstance(mbrObj, str) and UrlUtil.isValidUriReference(mbrObj) and not WhitespaceUntrimmedPattern.match(mbrObj)) and
                                 not isinstance(mbrObj, mbrTypes)):
                                 invalidMemberTypes.append(showPathObj(pathParts, mbrObj))
@@ -1065,7 +1058,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                 problems.append(_("The first row must only consist of \"name\" and \"value\" but contains: {}").format(",".join(row)))
                         elif len(row) > 0 and row[0]:
                             name = row[0]
-                            if not IdentifierPattern.match(name):
+                            if not IDENTIFIER_PATTERN.match(name):
                                 badIdentifiers.append(_("Row {} column 1 is not a valid identifier: {}").format(i+1, name))
                             elif len(row) < 2 or not row[1]:
                                 problems.append(_("Row {} value column 2 missing").format(i+1))
@@ -1085,7 +1078,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         elif any(cell for cell in row):
                             problems.append(_("Row {} has no identifier, all columns must be empty").format(i+1))
                     if badIdentifiers:
-                        error("xbrlce:invalidIdentifier",
+                        error(XBRLCE_INVALID_IDENTIFIER,
                               _("Report parameter file %(file)s:\n %(issues)s"),
                               file=parameterURL, issues=", \n".join(badIdentifiers))
                     if problems:
@@ -1228,8 +1221,8 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             documentInfoProperties.add("final")
             reportProperties = {"documentInfo", "tableTemplates", "tables", "parameters", "parameterURL", "dimensions", "decimals", "links"}
             columnProperties = {"comment", "decimals", "dimensions", "propertyGroups", "parameterURL", "propertiesFrom"}
+            csvMetadata = parse_xbrl_csv_metadata(oimObject)
             tcMetadataResult = parse_tc_metadata(oimObject, namespaces)
-            modelXbrl.tcMetadata = tcMetadataResult.metadata
             for err in tcMetadataResult.errors:
                 error(
                     err.code,
@@ -1237,6 +1230,10 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     modelObject=modelXbrl,
                     error=str(err),
                 )
+            modelXbrl.xbrlCsvLoadingContext = XbrlCsvLoadingContext(
+                metadata=csvMetadata,
+                tc_metadata=tcMetadataResult.metadata,
+            )
 
         entityNaQName = qname(re.sub("/xbrl-(json|csv)$","/entities",documentType), "NA")
         allowedDuplicatesFeature = ALL
@@ -1449,7 +1446,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                 for colIndex, colName in enumerate(header):
                                     if colName == "":
                                         emptyHeaderCols.add(colIndex)
-                                    elif not IdentifierPattern.match(colName):
+                                    elif not IDENTIFIER_PATTERN.match(colName):
                                         hasHeaderError = True
                                         error("xbrlce:invalidHeaderValue",
                                               _("Table %(table)s CSV file header column %(column)s is not a valid identifier: %(identifier)s, url: %(url)s"),
@@ -1803,7 +1800,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             modelXbrl.blockDpmDBrecursion = True
             modelXbrl.modelDocument = _return = ModelDocument.create(
                   modelXbrl,
-                  ModelDocument.Type.INSTANCE,
+                  ModelDocumentType.INSTANCE,
                   instanceFileName,
                   schemaRefs=taxonomyRefs,
                   isEntry=True,
@@ -1815,7 +1812,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
         else: # API implementation
             modelXbrl = ModelXbrl.create(
                 cntlr.modelManager,
-                ModelDocument.Type.INSTANCE,
+                ModelDocumentType.INSTANCE,
                 instanceFileName,
                 schemaRefs=taxonomyRefs,
                 isEntry=True,
@@ -1855,8 +1852,8 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             reportParametersUsed = set()
 
             def checkIdentifier(identifier, *pathSegs):
-                if not IdentifierPattern.match(identifier):
-                    error("xbrlce:invalidIdentifier",
+                if not IDENTIFIER_PATTERN.match(identifier):
+                    error(XBRLCE_INVALID_IDENTIFIER,
                           _("Invalid identifier: %(identifier)s at %(path)s"),
                           sourceFileLine=oimFile, identifier=identifier, path="/".join(pathSegs))
                     return False
@@ -1870,7 +1867,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     return False
                 return True # SQName is ok
 
-            def checkDim(tblTmpl, dimName, dimValue, *pathSegs):
+            def checkDim(tblTmpl, dimName, dimValue, *pathSegs, inDimensions=True):
                 if dimValue is not None:
                     if isinstance(dimValue,str) and dimValue.startswith("#") and not SpecialValuePattern.match(dimValue):
                         error("xbrlce:unknownSpecialValue",
@@ -1886,7 +1883,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             error("xbrlce:invalidPeriodSpecifier",
                                   _("Parameter period-specifier invalid: %(periodSpecifier)s at %(path)s"),
                                   periodSpecifier=periodSpecifier, path="/".join(pathSegs+(dimName,)))
-                        if not IdentifierPattern.match(paramName):
+                        if not IDENTIFIER_PATTERN.match(paramName):
                             error("xbrlce:invalidReference",
                                   _("Parameter reference invalid: %(target)s at %(path)s"),
                                   target=paramName, path="/".join(pathSegs+(dimName,)))
@@ -1984,7 +1981,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                     error("oime:unsupportedDimensionDataType",
                                           _("Taxonomy-defined typed dimension value is complex: %(memberQName)s at %(path)s"),
                                           modelObject=modelXbrl, memberQName=dimValue, path="/".join(pathSegs+(dimName,)))
-                if pathSegs[-1] in ("/dimensions", "dimensions") and dimName not in builtInDimensionKeys and not SQNamePattern.match(dimName):
+                if inDimensions and dimName not in builtInDimensionKeys and not SQNamePattern.match(dimName):
                     error("oimce:invalidSQName",
                           _("Invalid SQName: %(sqname)s"),
                           sourceFileLine=oimFile, sqname=dimName, path="/".join(pathSegs))
@@ -1994,7 +1991,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 checkIdentifier(reportParameterName, "/parameters")
             for dimName, dimValue in reportDimensions.items():
                 checkDim(None, dimName, dimValue, "/dimensions")
-            checkDim(None, "decimals", reportDecimals, "/")
+            checkDim(None, "decimals", reportDecimals, "/", inDimensions=False)
 
             # check table template statically defined dimensions, regardless of use
             for tblTmplId, tblTmpl in tableTemplates.items():
@@ -2019,16 +2016,16 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
 
                 for dimName, dimValue in tblTmpl.get("dimensions",EMPTY_DICT).items():
                     checkDim(tblTmpl, dimName, dimValue, "/tableTemplates", tblTmplId, "dimensions")
-                checkDim(tblTmpl, "decimals", tblTmpl.get("decimals",None), "/tableTemplates", tblTmplId)
+                checkDim(tblTmpl, "decimals", tblTmpl.get("decimals",None), "/tableTemplates", tblTmplId, inDimensions=False)
                 for columnId, column in columns.items():
                     for dimName, dimValue in column.get("dimensions",EMPTY_DICT).items():
                         checkDim(tblTmpl, dimName, dimValue, "/tableTemplates", tblTmplId, "columns", columnId, "dimensions")
-                    checkDim(tblTmpl, "decimals", column.get("decimals",None), "/tableTemplates", tblTmplId, "columns", columnId)
+                    checkDim(tblTmpl, "decimals", column.get("decimals",None), "/tableTemplates", tblTmplId, "columns", columnId, inDimensions=False)
                     for propGrpName, propGrp in column.get("propertyGroups",EMPTY_DICT).items():
                         checkIdentifier(propGrpName, "/tableTemplates", tblTmplId, "columns", columnId, "propertyGroups", propGrpName)
                         for dimName, dimValue in propGrp.get("dimensions",EMPTY_DICT).items():
                             checkDim(tblTmpl, dimName, dimValue, "/tableTemplates", tblTmplId, "columns", columnId, "propertyGroups", propGrpName, "dimensions")
-                        checkDim(tblTmpl, "decimals", propGrp.get("decimals",None), "/tableTemplates", tblTmplId, "columns", columnId, "propertyGroups", propGrpName)
+                        checkDim(tblTmpl, "decimals", propGrp.get("decimals",None), "/tableTemplates", tblTmplId, "columns", columnId, "propertyGroups", propGrpName, inDimensions=False)
                     decPGs = set()
                     dimPGs = defaultdict(set)
                     for propertyFrom in column.get("propertiesFrom",()):
@@ -2075,7 +2072,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                           modelObject=modelXbrl, tableTemplateId=tblTmplId, path="/tables/{}/template".format(tableId))
                 tblTmpl = tableTemplates.get(tblTmplId)
                 for tblParamName in table.get("parameters", EMPTY_DICT):
-                    if not IdentifierPattern.match(tblParamName):
+                    if not IDENTIFIER_PATTERN.match(tblParamName):
                         error("xbrlce:invalidParameterName",
                               _("Parameter name is not a valid identifier: %(tableParameterName)s at path: %(path)s"),
                               tableParameterName=tblParamName, path="/tables/{}/parameters".format(tableId))
@@ -2385,7 +2382,6 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         else:
                             startDateTime = dateTime(_start, type=DATETIME)
                             endDateTime = dateTime(_end, type=DATETIME)
-                        numFactCreationXbrlErrors -= len(modelXbrl.errors) # track any xbrl validation errors
                         prevErrLen = len(modelXbrl.errors)
                         _cntx = modelXbrl.createContext(
                                                 entityAsQn.namespaceURI,
@@ -2818,7 +2814,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
 
         currentAction = "done loading facts and footnotes"
 
-        if numFactCreationXbrlErrors:
+        if numFactCreationXbrlErrors > 0:
             error("oime:invalidXBRL",
                   _("%(count)s XBRL errors noted above."),
                   modelObject=modelXbrl, count=numFactCreationXbrlErrors)
@@ -2839,8 +2835,9 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     modelObject=modelXbrl, action=currentAction, error=ex,
                     traceback=traceback.format_exc())
 
-    # Reset modified status of model so user is not prompted for changes triggered by this loading operation.
-    _return.isModified = False
+    if isinstance(_return, ModelDocumentClass):
+        # Reset modified status of model so user is not prompted for changes triggered by this loading operation.
+        _return.isModified = False
     return _return
 
 def _isParamRef(value):

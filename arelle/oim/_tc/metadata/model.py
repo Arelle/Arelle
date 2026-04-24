@@ -4,18 +4,20 @@ See COPYRIGHT.md for copyright information.
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Set
 from dataclasses import dataclass, field
+from types import MappingProxyType
 
 
 @dataclass(frozen=True, slots=True)
 class TCMetadata:
-    template_constraints: dict[str, TCTemplateConstraints] = field(default_factory=dict)
+    template_constraints: Mapping[str, TCTemplateConstraints] = field(default_factory=lambda: MappingProxyType({}))
 
 
 @dataclass(frozen=True, slots=True)
 class TCTemplateConstraints:
-    constraints: dict[str, TCValueConstraint] = field(default_factory=dict)
-    parameters: dict[str, TCValueConstraint] = field(default_factory=dict)
+    constraints: Mapping[str, TCValueConstraint] = field(default_factory=lambda: MappingProxyType({}))
+    parameters: Mapping[str, TCValueConstraint] = field(default_factory=lambda: MappingProxyType({}))
     keys: TCKeys | None = None
     column_order: tuple[str, ...] | None = None
     table_constraints: TCTableConstraints | None = None
@@ -26,8 +28,8 @@ class TCValueConstraint:
     type: str
     optional: bool = False
     nillable: bool = False
-    enumeration_values: frozenset[str] | None = None
-    patterns: frozenset[str] | None = None
+    enumeration_values: Set[str] | None = None
+    patterns: Set[str] | None = None
     time_zone: bool | None = None
     period_type: str | None = None
     duration_type: str | None = None

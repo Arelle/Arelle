@@ -4,10 +4,10 @@ See COPYRIGHT.md for copyright information.
 
 from __future__ import annotations
 
+from collections.abc import Set
 from dataclasses import dataclass
-from typing import Any, Literal, TypeVar, overload, Iterable
+from typing import Any, TypeVar, overload
 
-from arelle.oim._tc.common import TCError
 from arelle.oim._tc.const import (
     TC_COLUMN_ORDER_PROPERTY_NAME,
     TC_CONSTRAINTS_PROPERTY_NAME,
@@ -17,8 +17,9 @@ from arelle.oim._tc.const import (
     TC_PREFIX,
     TC_TABLE_CONSTRAINTS_PROPERTY_NAME,
     TCME_INVALID_JSON_STRUCTURE,
-    TCME_INVALID_NAMESPACE_PREFIX,
+    TCME_MISPLACED_OR_UNKNOWN_PROPERTY,
 )
+from arelle.oim._tc.metadata.common import TCMetadataValidationError
 from arelle.oim._tc.metadata.model import (
     TCKeys,
     TCMetadata,
@@ -28,28 +29,35 @@ from arelle.oim._tc.metadata.model import (
     TCUniqueKey,
     TCValueConstraint,
 )
+from arelle.oim.const import IDENTIFIER_PATTERN, XBRLCE_INVALID_IDENTIFIER
+from arelle.oim.csv.metadata.common import COLUMNS_KEY, TABLE_TEMPLATES_KEY
 from arelle.typing import TypeGetText
+from arelle.XbrlConst import xsd
 
 _: TypeGetText
 
 
-class TCMetadataParseError(TCError):
+_TC_PREFIX_COLON = f"{TC_PREFIX}:"
+
+_TEMPLATE_TC_PROPERTIES = frozenset(
+    {
+        TC_COLUMN_ORDER_PROPERTY_NAME,
+        TC_KEYS_PROPERTY_NAME,
+        TC_PARAMETERS_PROPERTY_NAME,
+        TC_TABLE_CONSTRAINTS_PROPERTY_NAME,
+    }
+)
+
+_COLUMN_TC_PROPERTIES = frozenset(
+    {
+        TC_CONSTRAINTS_PROPERTY_NAME,
+    }
+)
+
+
+class TCMetadataParseError(TCMetadataValidationError):
     def __init__(self, message: str, *path: str, code: str = TCME_INVALID_JSON_STRUCTURE) -> None:
-        self.path_segments: list[str] = list(path)
-        self._message = message
-        super().__init__(code)
-
-    def prepend_path(self, *segments: str) -> None:
-        self.path_segments = [*segments, *self.path_segments]
-
-    @property
-    def json_pointer(self) -> str:
-        return "/" + "/".join(self.path_segments)
-
-    def __str__(self) -> str:
-        if self.path_segments:
-            return f"{self.json_pointer}: {self._message}"
-        return self._message
+        super().__init__(message, *path, code=code)
 
 
 class TCMetadataParseTypeError(TCMetadataParseError):
@@ -70,13 +78,29 @@ class TCMetadataUnknownPropertiesError(TCMetadataParseError):
         super().__init__(_("Unknown properties: {names}").format(names=names))
 
 
+class TCMetadataMissingPropertiesError(TCMetadataParseError):
+    def __init__(self, property_names: list[str]) -> None:
+        names = ", ".join(repr(n) for n in sorted(property_names))
+        super().__init__(_("Missing required properties: {}").format(names))
+
+
+class TCMetadataMisplacedTCPropertiesError(TCMetadataParseError):
+    def __init__(self, *path: str) -> None:
+        property_name = path[-1]
+        super().__init__(
+            _("Misplaced or unknown property: {}").format(property_name),
+            *path,
+            code=TCME_MISPLACED_OR_UNKNOWN_PROPERTY,
+        )
+
+
 def _prepend_paths(errors: list[TCMetadataParseError], *segments: str) -> list[TCMetadataParseError]:
     for error in errors:
         error.prepend_path(*segments)
     return errors
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class TCParseResult:
     metadata: TCMetadata | None
     errors: tuple[TCMetadataParseError, ...]
@@ -90,14 +114,24 @@ def parse_tc_metadata(
     oim_object: dict[str, Any],
     namespaces: dict[str, str],
 ) -> TCParseResult:
+    """
+    Parse Table Constraints (TC) metadata from an OIM report.
+
+    On success or failure, returns a TCParseResult. Errors may include:
+    - `tcme:invalidJSONStructure` for type/structure violations
+    - `tcme:misplacedOrUnknownProperty` for tc: properties in wrong locations
+    - `xbrlce:invalidIdentifier` for invalid parameter or key names
+    Full semantic validation of the parsed metadata is not performed here.
+    """
     if not any(uri in TC_NAMESPACES for uri in namespaces.values()):
-        return TCParseResult(metadata=TCMetadata(template_constraints={}), errors=())
+        return TCParseResult(metadata=None, errors=())
 
     errors: list[TCMetadataParseError] = []
+    errors.extend(_validate_misplaced_tc_properties(oim_object))
     template_constraints: dict[str, TCTemplateConstraints] = {}
-    tableTemplates = oim_object.get("tableTemplates", {})
-    if isinstance(tableTemplates, dict):
-        for template_id, template_obj in tableTemplates.items():
+    table_templates = oim_object.get("tableTemplates", {})
+    if isinstance(table_templates, dict):
+        for template_id, template_obj in table_templates.items():
             if not isinstance(template_obj, dict):
                 continue
             local_errors: list[TCMetadataParseError] = []
@@ -107,10 +141,10 @@ def parse_tc_metadata(
             if tc is not None:
                 template_constraints[template_id] = tc
 
-    metadata = None if errors else TCMetadata(template_constraints=template_constraints)
+    if xs_prefix_error := _validate_xs_type_prefixes(template_constraints, namespaces):
+        errors.append(xs_prefix_error)
 
-    # Validations that should not prevent successful parsing
-    errors.extend(validate_namespace_prefixes(namespaces))
+    metadata = None if errors else TCMetadata(template_constraints=template_constraints)
 
     return TCParseResult(metadata=metadata, errors=tuple(errors))
 
@@ -181,6 +215,16 @@ def _parse_param_constraints(
         errors.append(TCMetadataParseTypeError(dict, params_obj, TC_PARAMETERS_PROPERTY_NAME))
         return result
     for param_name, param_obj in params_obj.items():
+        if not (isinstance(param_name, str) and IDENTIFIER_PATTERN.match(param_name)):
+            errors.append(
+                TCMetadataParseError(
+                    _("TC parameter name '{}' is not a valid identifier").format(param_name),
+                    TC_PARAMETERS_PROPERTY_NAME,
+                    param_name,
+                    code=XBRLCE_INVALID_IDENTIFIER,
+                )
+            )
+            continue
         if not isinstance(param_obj, dict):
             errors.append(TCMetadataParseTypeError(dict, param_obj, TC_PARAMETERS_PROPERTY_NAME, param_name))
             continue
@@ -229,6 +273,84 @@ def _parse_template_table_constraints(
     return result
 
 
+def _validate_misplaced_tc_properties(oim_object: dict[str, Any]) -> list[TCMetadataParseError]:
+    errors: list[TCMetadataParseError] = []
+    for key, value in oim_object.items():
+        if key.startswith(_TC_PREFIX_COLON):
+            errors.append(TCMetadataMisplacedTCPropertiesError(key))
+        elif key == TABLE_TEMPLATES_KEY:
+            _validate_misplaced_in_table_templates(value, errors)
+        else:
+            _walk_validate_misplaced_value(value, errors, key)
+    return errors
+
+
+def _validate_misplaced_in_table_templates(
+    table_templates: Any,
+    errors: list[TCMetadataParseError],
+) -> None:
+    if not isinstance(table_templates, dict):
+        return
+    for template_id, template_obj in table_templates.items():
+        if not isinstance(template_obj, dict):
+            continue
+        for key, value in template_obj.items():
+            if key.startswith(_TC_PREFIX_COLON) and key not in _TEMPLATE_TC_PROPERTIES:
+                errors.append(TCMetadataMisplacedTCPropertiesError(TABLE_TEMPLATES_KEY, template_id, key))
+            if key == COLUMNS_KEY:
+                _validate_misplaced_in_columns(template_id, value, errors)
+            else:
+                _walk_validate_misplaced_value(value, errors, TABLE_TEMPLATES_KEY, template_id, key)
+
+
+def _validate_misplaced_in_columns(
+    template_id: str,
+    columns: Any,
+    errors: list[TCMetadataParseError],
+) -> None:
+    if not isinstance(columns, dict):
+        return
+    for col_id, col_obj in columns.items():
+        if not isinstance(col_obj, dict):
+            continue
+        for key, value in col_obj.items():
+            if key.startswith(_TC_PREFIX_COLON) and key not in _COLUMN_TC_PROPERTIES:
+                errors.append(
+                    TCMetadataMisplacedTCPropertiesError(TABLE_TEMPLATES_KEY, template_id, COLUMNS_KEY, col_id, key)
+                )
+            _walk_validate_misplaced_value(value, errors, TABLE_TEMPLATES_KEY, template_id, COLUMNS_KEY, col_id, key)
+
+
+def _walk_validate_misplaced_value(value: Any, errors: list[TCMetadataParseError], *path: str) -> None:
+    if isinstance(value, dict):
+        for key, child in value.items():
+            if key.startswith(_TC_PREFIX_COLON):
+                errors.append(TCMetadataMisplacedTCPropertiesError(*path, key))
+            _walk_validate_misplaced_value(child, errors, *path, key)
+    elif isinstance(value, list):
+        for i, item in enumerate(value):
+            _walk_validate_misplaced_value(item, errors, *path, str(i))
+
+
+def _validate_xs_type_prefixes(
+    template_constraints: dict[str, TCTemplateConstraints],
+    namespaces: dict[str, str],
+) -> TCMetadataParseError | None:
+    if namespaces.get("xs") == xsd:
+        return None
+    if any(
+        vc.type.startswith("xs:")
+        for tc in template_constraints.values()
+        for vc in (*tc.constraints.values(), *tc.parameters.values())
+    ):
+        return TCMetadataParseError(
+            _("Namespace prefix '{}' must be bound to '{}'").format("xs", xsd),
+            "documentInfo",
+            "namespaces",
+        )
+    return None
+
+
 _VALUE_CONSTRAINT_PROPERTIES = frozenset(
     {
         "type",
@@ -250,6 +372,7 @@ _VALUE_CONSTRAINT_PROPERTIES = frozenset(
         "fractionDigits",
     }
 )
+_VALUE_CONSTRAINT_REQUIRED_PROPERTIES = frozenset({"type"})
 
 
 def _parse_value_constraint(
@@ -257,8 +380,13 @@ def _parse_value_constraint(
     errors: list[TCMetadataParseError],
 ) -> TCValueConstraint | None:
     local_errors: list[TCMetadataParseError] = []
-    _validate_unknown_properties(obj, _VALUE_CONSTRAINT_PROPERTIES, local_errors)
-    value_constraint_type = _parse_primitive_field(obj, "type", str, local_errors, required=True)
+    _validate_expected_properties(
+        obj,
+        local_errors,
+        known_properties=_VALUE_CONSTRAINT_PROPERTIES,
+        required_properties=_VALUE_CONSTRAINT_REQUIRED_PROPERTIES,
+    )
+    value_constraint_type = _parse_primitive_field(obj, "type", str, local_errors)
     optional = _parse_primitive_field(obj, "optional", bool, local_errors, default=False)
     nillable = _parse_primitive_field(obj, "nillable", bool, local_errors, default=False)
     enumeration_values = _parse_set(obj, "enumerationValues", local_errors, default=None, non_empty=True)
@@ -304,7 +432,7 @@ _KEYS_PROPERTIES = frozenset({"unique", "reference", "sortKey"})
 
 
 def _parse_keys(obj: dict[str, Any], errors: list[TCMetadataParseError]) -> TCKeys:
-    _validate_unknown_properties(obj, _KEYS_PROPERTIES, errors)
+    _validate_expected_properties(obj, errors, known_properties=_KEYS_PROPERTIES)
     unique = _parse_unique_keys(obj, errors)
     reference = _parse_reference_keys(obj, errors)
     sort_key = _parse_primitive_field(obj, "sortKey", str, errors, default=None)
@@ -337,6 +465,7 @@ def _parse_unique_keys(
 
 
 _UNIQUE_KEY_PROPERTIES = frozenset({"name", "fields", "severity", "shared"})
+_UNIQUE_KEY_REQUIRED_PROPERTIES = frozenset({"name", "fields"})
 
 
 def _parse_unique_key(
@@ -344,9 +473,23 @@ def _parse_unique_key(
     errors: list[TCMetadataParseError],
 ) -> TCUniqueKey | None:
     local_errors: list[TCMetadataParseError] = []
-    _validate_unknown_properties(obj, _UNIQUE_KEY_PROPERTIES, local_errors)
-    name = _parse_primitive_field(obj, "name", str, local_errors, required=True)
-    fields = _parse_ordered_set(obj, "fields", local_errors, required=True, non_empty=True)
+    _validate_expected_properties(
+        obj,
+        local_errors,
+        known_properties=_UNIQUE_KEY_PROPERTIES,
+        required_properties=_UNIQUE_KEY_REQUIRED_PROPERTIES,
+    )
+    name = _parse_primitive_field(obj, "name", str, local_errors)
+    if name is not None and not IDENTIFIER_PATTERN.match(name):
+        local_errors.append(
+            TCMetadataParseError(
+                _("Unique key name '{}' is not a valid identifier").format(name),
+                "name",
+                code=XBRLCE_INVALID_IDENTIFIER,
+            )
+        )
+        name = None
+    fields = _parse_ordered_set(obj, "fields", local_errors, non_empty=True)
     severity = _parse_primitive_field(obj, "severity", str, local_errors, default="error")
     shared = _parse_primitive_field(obj, "shared", bool, local_errors, default=False)
     if local_errors:
@@ -382,6 +525,7 @@ def _parse_reference_keys(
 
 
 _REFERENCE_KEY_PROPERTIES = frozenset({"name", "fields", "referencedKeyName", "negate", "severity"})
+_REFERENCE_KEY_REQUIRED_PROPERTIES = frozenset({"name", "fields", "referencedKeyName"})
 
 
 def _parse_reference_key(
@@ -389,10 +533,33 @@ def _parse_reference_key(
     errors: list[TCMetadataParseError],
 ) -> TCReferenceKey | None:
     local_errors: list[TCMetadataParseError] = []
-    _validate_unknown_properties(obj, _REFERENCE_KEY_PROPERTIES, local_errors)
-    name = _parse_primitive_field(obj, "name", str, local_errors, required=True)
-    fields = _parse_ordered_set(obj, "fields", local_errors, required=True, non_empty=True)
-    referenced_key_name = _parse_primitive_field(obj, "referencedKeyName", str, local_errors, required=True)
+    _validate_expected_properties(
+        obj,
+        local_errors,
+        known_properties=_REFERENCE_KEY_PROPERTIES,
+        required_properties=_REFERENCE_KEY_REQUIRED_PROPERTIES,
+    )
+    name = _parse_primitive_field(obj, "name", str, local_errors)
+    if name is not None and not IDENTIFIER_PATTERN.match(name):
+        local_errors.append(
+            TCMetadataParseError(
+                _("Reference key name '{}' is not a valid identifier").format(name),
+                "name",
+                code=XBRLCE_INVALID_IDENTIFIER,
+            )
+        )
+        name = None
+    fields = _parse_ordered_set(obj, "fields", local_errors, non_empty=True)
+    referenced_key_name = _parse_primitive_field(obj, "referencedKeyName", str, local_errors)
+    if referenced_key_name is not None and not IDENTIFIER_PATTERN.match(referenced_key_name):
+        local_errors.append(
+            TCMetadataParseError(
+                _("Referenced key name '{}' is not a valid identifier").format(referenced_key_name),
+                "referencedKeyName",
+                code=XBRLCE_INVALID_IDENTIFIER,
+            )
+        )
+        referenced_key_name = None
     negate = _parse_primitive_field(obj, "negate", bool, local_errors, default=False)
     severity = _parse_primitive_field(obj, "severity", str, local_errors, default="error")
     if local_errors:
@@ -415,7 +582,7 @@ def _parse_table_constraints(
     obj: dict[str, Any],
     errors: list[TCMetadataParseError],
 ) -> TCTableConstraints:
-    _validate_unknown_properties(obj, _TABLE_CONSTRAINTS_PROPERTIES, errors)
+    _validate_expected_properties(obj, errors, known_properties=_TABLE_CONSTRAINTS_PROPERTIES)
     min_tables = _parse_bounded_int(obj, "minTables", errors, min_value=1, default=None)
     max_tables = _parse_bounded_int(obj, "maxTables", errors, min_value=1, default=None)
     min_table_rows = _parse_bounded_int(obj, "minTableRows", errors, min_value=1, default=None)
@@ -431,15 +598,6 @@ def _parse_table_constraints(
 T = TypeVar("T", str, bool, int)
 
 
-@overload
-def _parse_primitive_field(
-    obj: dict[str, Any],
-    key: str,
-    expected_type: type[T],
-    errors: list[TCMetadataParseError],
-    *,
-    required: Literal[True],
-) -> T | None: ...
 @overload
 def _parse_primitive_field(
     obj: dict[str, Any],
@@ -465,11 +623,8 @@ def _parse_primitive_field(
     errors: list[TCMetadataParseError],
     *,
     default: T | None = None,
-    required: bool = False,
 ) -> T | None:
     if key not in obj:
-        if required:
-            errors.append(TCMetadataParseTypeError(expected_type, None, key))
         return default
     val = obj[key]
     if isinstance(val, expected_type) and not (expected_type is int and isinstance(val, bool)):
@@ -498,13 +653,16 @@ def _parse_bounded_int(
     return val
 
 
-def _validate_unknown_properties(
+def _validate_expected_properties(
     obj: dict[str, Any],
-    known_properties: frozenset[str],
     errors: list[TCMetadataParseError],
+    known_properties: Set[str],
+    required_properties: Set[str] = frozenset(),
 ) -> None:
     if unknown_properties := sorted(prop for prop in obj if prop not in known_properties):
         errors.append(TCMetadataUnknownPropertiesError(unknown_properties))
+    if missing_properties := sorted(prop for prop in required_properties if prop not in obj):
+        errors.append(TCMetadataMissingPropertiesError(missing_properties))
 
 
 def _validate_str_list(
@@ -519,23 +677,14 @@ def _validate_str_list(
         errors.append(TCMetadataParseTypeError(list, val, key))
         return False
     if non_empty and len(val) == 0:
-        errors.append(TCMetadataParseTypeError(list, val, key))
+        errors.append(TCMetadataParseError(_("'{}' must not be empty").format(key), key))
         return False
     if unique and len(val) != len(set(val)):
-        errors.append(TCMetadataParseTypeError(list, val, key))
+        errors.append(TCMetadataParseError(_("'{}' must not contain duplicate values").format(key), key))
         return False
     return True
 
 
-@overload
-def _parse_ordered_set(
-    obj: dict[str, Any],
-    key: str,
-    errors: list[TCMetadataParseError],
-    *,
-    required: Literal[True],
-    non_empty: bool = ...,
-) -> tuple[str, ...] | None: ...
 @overload
 def _parse_ordered_set(
     obj: dict[str, Any],
@@ -560,12 +709,9 @@ def _parse_ordered_set(
     errors: list[TCMetadataParseError],
     *,
     default: tuple[str, ...] | None = None,
-    required: bool = False,
     non_empty: bool = False,
 ) -> tuple[str, ...] | None:
     if key not in obj:
-        if required:
-            errors.append(TCMetadataParseTypeError(list, None, key))
         return default
     val = obj[key]
     if not _validate_str_list(key, val, errors, unique=True, non_empty=non_empty):
@@ -579,18 +725,9 @@ def _parse_set(
     key: str,
     errors: list[TCMetadataParseError],
     *,
-    required: Literal[True],
+    default: Set[str],
     non_empty: bool = ...,
-) -> frozenset[str] | None: ...
-@overload
-def _parse_set(
-    obj: dict[str, Any],
-    key: str,
-    errors: list[TCMetadataParseError],
-    *,
-    default: frozenset[str],
-    non_empty: bool = ...,
-) -> frozenset[str]: ...
+) -> Set[str]: ...
 @overload
 def _parse_set(
     obj: dict[str, Any],
@@ -599,35 +736,18 @@ def _parse_set(
     *,
     default: None = ...,
     non_empty: bool = ...,
-) -> frozenset[str] | None: ...
+) -> Set[str] | None: ...
 def _parse_set(
     obj: dict[str, Any],
     key: str,
     errors: list[TCMetadataParseError],
     *,
-    default: frozenset[str] | None = None,
-    required: bool = False,
+    default: Set[str] | None = None,
     non_empty: bool = False,
-) -> frozenset[str] | None:
+) -> Set[str] | None:
     if key not in obj:
-        if required:
-            errors.append(TCMetadataParseTypeError(list, None, key))
         return default
     val = obj[key]
     if not _validate_str_list(key, val, errors, unique=True, non_empty=non_empty):
         return default
     return frozenset(val)
-
-
-def validate_namespace_prefixes(
-        namespaces: dict[str, str]
-) -> Iterable[TCMetadataParseError]:
-    for prefix, uri in namespaces.items():
-        if uri in TC_NAMESPACES and  prefix != TC_PREFIX:
-            yield TCMetadataParseError(
-                _(
-                    "Table constraints namespace '{uri}' must be bound to "
-                    "prefix '{tc_prefix}', not '{prefix}'"
-                ).format(uri=uri, tc_prefix=TC_PREFIX, prefix=prefix),
-                code=TCME_INVALID_NAMESPACE_PREFIX,
-            )

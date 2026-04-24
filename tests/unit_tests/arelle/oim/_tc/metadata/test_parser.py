@@ -7,12 +7,14 @@ from arelle.oim._tc.const import (
     TC_NS_DRAFT,
     TC_PREFIX,
     TCME_INVALID_JSON_STRUCTURE,
-    TCME_INVALID_NAMESPACE_PREFIX,
+    TCME_MISPLACED_OR_UNKNOWN_PROPERTY,
 )
 from arelle.oim._tc.metadata.model import TCValueConstraint
-from arelle.oim._tc.metadata.parser import TCMetadataParseError, parse_tc_metadata
+from arelle.oim._tc.metadata.parser import TCMetadataMissingPropertiesError, parse_tc_metadata
+from arelle.XbrlConst import xsd
 
-TC_MINIMAL_NAMESPACES = {TC_PREFIX: TC_NS_DRAFT}
+TC_NAMESPACES = {TC_PREFIX: TC_NS_DRAFT}
+TC_MINIMAL_NAMESPACES = {TC_PREFIX: TC_NS_DRAFT, "xs": xsd}
 
 
 def _with_constraint(constraint: dict[str, Any]) -> dict[str, Any]:
@@ -23,45 +25,14 @@ def _with_template(template: dict[str, Any]) -> dict[str, Any]:
     return {"tableTemplates": {"t1": {"columns": {}, **template}}}
 
 
-class TestTCMetadataParseError:
-    def test_initial_json_pointer(self) -> None:
-        err = TCMetadataParseError("test", "key")
-        assert err.json_pointer == "/key"
-
-    def test_multi_segment_path(self) -> None:
-        err = TCMetadataParseError("test", "a", "b", "key")
-        assert err.json_pointer == "/a/b/key"
-
-    def test_prepend_path_accumulates_segments(self) -> None:
-        err = TCMetadataParseError("test", "field")
-        err.prepend_path("a", "b")
-        assert err.json_pointer == "/a/b/field"
-        err.prepend_path("root")
-        assert err.json_pointer == "/root/a/b/field"
-
-    def test_str_format(self) -> None:
-        err = TCMetadataParseError("Expected str, got int: 42", "key")
-        assert str(err) == "/key: Expected str, got int: 42"
-
-    def test_error_code(self) -> None:
-        err = TCMetadataParseError("test", "key")
-        assert err.code == TCME_INVALID_JSON_STRUCTURE
-
-    def test_custom_error_code(self) -> None:
-        err = TCMetadataParseError("test", "key", code="custom:code")
-        assert err.code == "custom:code"
-
-
 class TestNamespaceDetection:
     def test_returns_none_without_tc_namespace(self) -> None:
         result = parse_tc_metadata({"tableTemplates": {}}, {"xbrl": "https://xbrl.org/2021"})
-        assert result.metadata is not None
-        assert result.metadata.template_constraints == {}
+        assert result.metadata is None
 
     def test_returns_none_when_namespaces_empty(self) -> None:
         result = parse_tc_metadata({"tableTemplates": {}}, {})
-        assert result.metadata is not None
-        assert result.metadata.template_constraints == {}
+        assert result.metadata is None
 
     def test_detects_draft_namespace(self) -> None:
         result = parse_tc_metadata({"tableTemplates": {}}, {"tc": TC_NS_DRAFT})
@@ -74,10 +45,7 @@ class TestNamespaceDetection:
     def test_detects_non_tc_prefix(self) -> None:
         result = parse_tc_metadata({"tableTemplates": {}}, {"custom": TC_NS_DRAFT})
         assert result.metadata is not None
-        assert not result.is_valid
-        assert len(result.errors) == 1
-        assert result.errors[0].code == TCME_INVALID_NAMESPACE_PREFIX
-        assert len(result.errors[0].path_segments) == 0
+        assert result.is_valid
 
 
 class TestPrimitiveStr:
@@ -401,6 +369,45 @@ class TestParameters:
         )
         assert not result.is_valid
 
+    def test_valid_parameter_name(self) -> None:
+        result = parse_tc_metadata(
+            _with_template({"tc:parameters": {"validName": {"type": "xs:string"}}}),
+            TC_MINIMAL_NAMESPACES,
+        )
+        assert result.is_valid
+
+    def test_parameter_name_with_dot_is_invalid(self) -> None:
+        result = parse_tc_metadata(
+            _with_template({"tc:parameters": {"name.dot": {"type": "xs:string"}}}),
+            TC_MINIMAL_NAMESPACES,
+        )
+        assert not result.is_valid
+        assert len(result.errors) == 1
+        assert result.errors[0].code == "xbrlce:invalidIdentifier"
+
+    def test_parameter_name_with_special_char_is_invalid(self) -> None:
+        result = parse_tc_metadata(
+            _with_template({"tc:parameters": {"name@special": {"type": "xs:string"}}}),
+            TC_MINIMAL_NAMESPACES,
+        )
+        assert not result.is_valid
+        assert len(result.errors) == 1
+        assert result.errors[0].code == "xbrlce:invalidIdentifier"
+
+    def test_parameter_name_with_underscore_is_valid(self) -> None:
+        result = parse_tc_metadata(
+            _with_template({"tc:parameters": {"name_underscore": {"type": "xs:string"}}}),
+            TC_MINIMAL_NAMESPACES,
+        )
+        assert result.is_valid
+
+    def test_parameter_name_with_hyphen_is_valid(self) -> None:
+        result = parse_tc_metadata(
+            _with_template({"tc:parameters": {"name-hyphen": {"type": "xs:string"}}}),
+            TC_MINIMAL_NAMESPACES,
+        )
+        assert result.is_valid
+
 
 class TestUniqueKeys:
     def test_parses_with_defaults(self) -> None:
@@ -497,7 +504,7 @@ class TestUniqueKeys:
         )
         assert not result.is_valid
         error = result.errors[0]
-        assert error.json_pointer == "/tableTemplates/t1/tc:keys/unique/0"
+        assert error.json_pointers == ["/tableTemplates/t1/tc:keys/unique/0"]
         assert "Expected dict" in str(error)
         assert "'not a dict'" in str(error)
 
@@ -523,7 +530,39 @@ class TestUniqueKeys:
             TC_MINIMAL_NAMESPACES,
         )
         assert not result.is_valid
-        assert "/unique/1/" in result.errors[0].json_pointer
+        assert result.errors[0].json_pointers == ["/tableTemplates/t1/tc:keys/unique/1"]
+
+    def test_name_with_dot_is_invalid(self) -> None:
+        result = parse_tc_metadata(
+            _with_template({"tc:keys": {"unique": [{"name": "name.dot", "fields": ["id"]}]}}),
+            TC_MINIMAL_NAMESPACES,
+        )
+        assert not result.is_valid
+        assert len(result.errors) == 1
+        assert result.errors[0].code == "xbrlce:invalidIdentifier"
+
+    def test_name_with_special_char_is_invalid(self) -> None:
+        result = parse_tc_metadata(
+            _with_template({"tc:keys": {"unique": [{"name": "name@special", "fields": ["id"]}]}}),
+            TC_MINIMAL_NAMESPACES,
+        )
+        assert not result.is_valid
+        assert len(result.errors) == 1
+        assert result.errors[0].code == "xbrlce:invalidIdentifier"
+
+    def test_name_with_underscore_is_valid(self) -> None:
+        result = parse_tc_metadata(
+            _with_template({"tc:keys": {"unique": [{"name": "name_underscore", "fields": ["id"]}]}}),
+            TC_MINIMAL_NAMESPACES,
+        )
+        assert result.is_valid
+
+    def test_name_with_hyphen_is_valid(self) -> None:
+        result = parse_tc_metadata(
+            _with_template({"tc:keys": {"unique": [{"name": "name-hyphen", "fields": ["id"]}]}}),
+            TC_MINIMAL_NAMESPACES,
+        )
+        assert result.is_valid
 
 
 class TestReferenceKeys:
@@ -597,7 +636,7 @@ class TestReferenceKeys:
         )
         assert not result.is_valid
         error = result.errors[0]
-        assert error.json_pointer == "/tableTemplates/t1/tc:keys/reference/0"
+        assert error.json_pointers == ["/tableTemplates/t1/tc:keys/reference/0"]
         assert "Expected dict" in str(error)
         assert "'not a dict'" in str(error)
 
@@ -611,7 +650,69 @@ class TestReferenceKeys:
             TC_MINIMAL_NAMESPACES,
         )
         assert not result.is_valid
-        assert "/reference/0/" in result.errors[0].json_pointer
+        assert result.errors[0].json_pointers == ["/tableTemplates/t1/tc:keys/reference/0"]
+
+    def test_name_with_dot_is_invalid(self) -> None:
+        result = parse_tc_metadata(
+            _with_template(
+                {"tc:keys": {"reference": [{"name": "name.dot", "fields": ["col"], "referencedKeyName": "pk"}]}}
+            ),
+            TC_MINIMAL_NAMESPACES,
+        )
+        assert not result.is_valid
+        assert len(result.errors) == 1
+        assert result.errors[0].code == "xbrlce:invalidIdentifier"
+
+    def test_name_with_special_char_is_invalid(self) -> None:
+        result = parse_tc_metadata(
+            _with_template(
+                {"tc:keys": {"reference": [{"name": "name@special", "fields": ["col"], "referencedKeyName": "pk"}]}}
+            ),
+            TC_MINIMAL_NAMESPACES,
+        )
+        assert not result.is_valid
+        assert len(result.errors) == 1
+        assert result.errors[0].code == "xbrlce:invalidIdentifier"
+
+    def test_name_with_underscore_is_valid(self) -> None:
+        result = parse_tc_metadata(
+            _with_template(
+                {"tc:keys": {"reference": [{"name": "name_underscore", "fields": ["col"], "referencedKeyName": "pk"}]}}
+            ),
+            TC_MINIMAL_NAMESPACES,
+        )
+        assert result.is_valid
+
+    def test_name_with_hyphen_is_valid(self) -> None:
+        result = parse_tc_metadata(
+            _with_template(
+                {"tc:keys": {"reference": [{"name": "name-hyphen", "fields": ["col"], "referencedKeyName": "pk"}]}}
+            ),
+            TC_MINIMAL_NAMESPACES,
+        )
+        assert result.is_valid
+
+    def test_referenced_key_name_with_dot_is_invalid(self) -> None:
+        result = parse_tc_metadata(
+            _with_template(
+                {"tc:keys": {"reference": [{"name": "fk", "fields": ["col"], "referencedKeyName": "name.dot"}]}}
+            ),
+            TC_MINIMAL_NAMESPACES,
+        )
+        assert not result.is_valid
+        assert len(result.errors) == 1
+        assert result.errors[0].code == "xbrlce:invalidIdentifier"
+
+    def test_referenced_key_name_with_special_char_is_invalid(self) -> None:
+        result = parse_tc_metadata(
+            _with_template(
+                {"tc:keys": {"reference": [{"name": "fk", "fields": ["col"], "referencedKeyName": "name@special"}]}}
+            ),
+            TC_MINIMAL_NAMESPACES,
+        )
+        assert not result.is_valid
+        assert len(result.errors) == 1
+        assert result.errors[0].code == "xbrlce:invalidIdentifier"
 
 
 class TestKeys:
@@ -795,6 +896,38 @@ class TestUnknownProperties:
         assert result.errors[0].code == TCME_INVALID_JSON_STRUCTURE
 
 
+class TestMissingProperties:
+    def test_missing_required_value_constraint_type(self) -> None:
+        result = parse_tc_metadata(_with_constraint({}), TC_MINIMAL_NAMESPACES)
+        assert not result.is_valid
+        assert len(result.errors) == 1
+        assert isinstance(result.errors[0], TCMetadataMissingPropertiesError)
+        assert "'type'" in str(result.errors[0])
+
+    def test_missing_required_unique_key_fields_consolidated(self) -> None:
+        result = parse_tc_metadata(
+            _with_template({"tc:keys": {"unique": [{}]}}),
+            TC_MINIMAL_NAMESPACES,
+        )
+        assert not result.is_valid
+        assert len(result.errors) == 1
+        assert isinstance(result.errors[0], TCMetadataMissingPropertiesError)
+        assert "'fields'" in str(result.errors[0])
+        assert "'name'" in str(result.errors[0])
+
+    def test_missing_required_reference_key_fields_consolidated(self) -> None:
+        result = parse_tc_metadata(
+            _with_template({"tc:keys": {"reference": [{}]}}),
+            TC_MINIMAL_NAMESPACES,
+        )
+        assert not result.is_valid
+        assert len(result.errors) == 1
+        assert isinstance(result.errors[0], TCMetadataMissingPropertiesError)
+        assert "'fields'" in str(result.errors[0])
+        assert "'name'" in str(result.errors[0])
+        assert "'referencedKeyName'" in str(result.errors[0])
+
+
 class TestTemplateFiltering:
     def test_no_tc_properties_excluded(self) -> None:
         result = parse_tc_metadata(
@@ -851,7 +984,7 @@ class TestErrorPointers:
     def test_column_constraint_type_error(self) -> None:
         result = parse_tc_metadata(_with_constraint({"type": 123}), TC_MINIMAL_NAMESPACES)
         assert not result.is_valid
-        assert result.errors[0].json_pointer == "/tableTemplates/t1/columns/col/tc:constraints/type"
+        assert result.errors[0].json_pointers == ["/tableTemplates/t1/columns/col/tc:constraints/type"]
 
     def test_parameter_constraint_error(self) -> None:
         result = parse_tc_metadata(
@@ -859,7 +992,7 @@ class TestErrorPointers:
             TC_MINIMAL_NAMESPACES,
         )
         assert not result.is_valid
-        assert result.errors[0].json_pointer == "/tableTemplates/t1/tc:parameters/p1/type"
+        assert result.errors[0].json_pointers == ["/tableTemplates/t1/tc:parameters/p1/type"]
 
     def test_keys_error(self) -> None:
         result = parse_tc_metadata(
@@ -867,7 +1000,7 @@ class TestErrorPointers:
             TC_MINIMAL_NAMESPACES,
         )
         assert not result.is_valid
-        assert result.errors[0].json_pointer == "/tableTemplates/t1/tc:keys/unique"
+        assert result.errors[0].json_pointers == ["/tableTemplates/t1/tc:keys/unique"]
 
     def test_column_order_error(self) -> None:
         result = parse_tc_metadata(
@@ -875,7 +1008,7 @@ class TestErrorPointers:
             TC_MINIMAL_NAMESPACES,
         )
         assert not result.is_valid
-        assert result.errors[0].json_pointer == "/tableTemplates/t1/tc:columnOrder"
+        assert result.errors[0].json_pointers == ["/tableTemplates/t1/tc:columnOrder"]
 
     def test_table_constraints_error(self) -> None:
         result = parse_tc_metadata(
@@ -883,7 +1016,7 @@ class TestErrorPointers:
             TC_MINIMAL_NAMESPACES,
         )
         assert not result.is_valid
-        assert result.errors[0].json_pointer == "/tableTemplates/t1/tc:tableConstraints/minTables"
+        assert result.errors[0].json_pointers == ["/tableTemplates/t1/tc:tableConstraints/minTables"]
 
 
 class TestErrorCollection:
@@ -971,3 +1104,357 @@ class TestErrorCollection:
         )
         assert not result.is_valid
         assert len(result.errors) == 2
+
+
+class TestTypePrefixValidation:
+    def test_valid_xs_prefix(self) -> None:
+        result = parse_tc_metadata(
+            _with_constraint({"type": "xs:string"}),
+            {TC_PREFIX: TC_NS_DRAFT, "xs": xsd},
+        )
+        assert result.is_valid
+        assert result.metadata is not None
+
+    def test_missing_xs_namespace(self) -> None:
+        result = parse_tc_metadata(
+            _with_constraint({"type": "xs:string"}),
+            {TC_PREFIX: TC_NS_DRAFT},
+        )
+        assert not result.is_valid
+        assert result.metadata is None
+        assert result.errors[0].code == TCME_INVALID_JSON_STRUCTURE
+        assert result.errors[0].json_pointers == ["/documentInfo/namespaces"]
+
+    def test_wrong_xs_uri(self) -> None:
+        result = parse_tc_metadata(
+            _with_constraint({"type": "xs:string"}),
+            {TC_PREFIX: TC_NS_DRAFT, "xs": "http://wrong.uri"},
+        )
+        assert not result.is_valid
+        assert result.errors[0].code == TCME_INVALID_JSON_STRUCTURE
+        assert result.errors[0].json_pointers == ["/documentInfo/namespaces"]
+
+    def test_unprefixed_type_no_error(self) -> None:
+        result = parse_tc_metadata(
+            _with_constraint({"type": "period"}),
+            {TC_PREFIX: TC_NS_DRAFT},
+        )
+        assert result is not None
+        assert result.is_valid
+
+    def test_unknown_prefix_no_error(self) -> None:
+        result = parse_tc_metadata(
+            _with_constraint({"type": "foo:bar"}),
+            {TC_PREFIX: TC_NS_DRAFT},
+        )
+        assert result is not None
+        assert result.is_valid
+
+    def test_parameter_type_validated(self) -> None:
+        result = parse_tc_metadata(
+            _with_template({"tc:parameters": {"p1": {"type": "xs:string"}}}),
+            {TC_PREFIX: TC_NS_DRAFT},
+        )
+        assert not result.is_valid
+        assert result.errors[0].code == TCME_INVALID_JSON_STRUCTURE
+        assert result.errors[0].json_pointers == ["/documentInfo/namespaces"]
+
+    def test_multiple_xs_types_single_error(self) -> None:
+        result = parse_tc_metadata(
+            {
+                "tableTemplates": {
+                    "t1": {
+                        "columns": {
+                            "a": {"tc:constraints": {"type": "xs:string"}},
+                            "b": {"tc:constraints": {"type": "xs:integer"}},
+                        }
+                    }
+                }
+            },
+            {TC_PREFIX: TC_NS_DRAFT},
+        )
+        assert not result.is_valid
+        assert len(result.errors) == 1
+        assert result.errors[0].code == TCME_INVALID_JSON_STRUCTURE
+        assert result.errors[0].json_pointers == ["/documentInfo/namespaces"]
+
+
+class TestUnknownTcProperty:
+    def test_unknown_at_root(self) -> None:
+        oim: dict[str, Any] = {"tc:unknown": True}
+        result = parse_tc_metadata(oim, TC_NAMESPACES)
+        assert len(result.errors) == 1
+        assert result.errors[0].code == TCME_MISPLACED_OR_UNKNOWN_PROPERTY
+        assert result.errors[0].json_pointers == ["/tc:unknown"]
+
+    def test_unknown_in_document_info(self) -> None:
+        oim: dict[str, Any] = {"documentInfo": {"tc:unknown": True}}
+        result = parse_tc_metadata(oim, TC_NAMESPACES)
+        assert len(result.errors) == 1
+        assert result.errors[0].code == TCME_MISPLACED_OR_UNKNOWN_PROPERTY
+        assert result.errors[0].json_pointers == ["/documentInfo/tc:unknown"]
+
+    def test_unknown_in_table_template(self) -> None:
+        oim: dict[str, Any] = {"tableTemplates": {"t1": {"columns": {}, "tc:unknown": True}}}
+        result = parse_tc_metadata(oim, TC_NAMESPACES)
+        assert len(result.errors) == 1
+        assert result.errors[0].json_pointers == ["/tableTemplates/t1/tc:unknown"]
+
+    def test_unknown_in_column(self) -> None:
+        oim: dict[str, Any] = {"tableTemplates": {"t1": {"columns": {"c1": {"tc:unknown": True}}}}}
+        result = parse_tc_metadata(oim, TC_NAMESPACES)
+        assert len(result.errors) == 1
+        assert result.errors[0].json_pointers == ["/tableTemplates/t1/columns/c1/tc:unknown"]
+
+    def test_unknown_in_property_group(self) -> None:
+        oim: dict[str, Any] = {
+            "tableTemplates": {
+                "t1": {
+                    "columns": {
+                        "c1": {
+                            "propertyGroups": {
+                                "pg1": {"tc:unknown": True},
+                            },
+                        },
+                    },
+                },
+            },
+        }
+        result = parse_tc_metadata(oim, TC_NAMESPACES)
+        assert len(result.errors) == 1
+        assert result.errors[0].json_pointers == ["/tableTemplates/t1/columns/c1/propertyGroups/pg1/tc:unknown"]
+
+    def test_unknown_in_table(self) -> None:
+        oim: dict[str, Any] = {"tables": {"t1": {"url": "foo.csv", "tc:unknown": True}}}
+        result = parse_tc_metadata(oim, TC_NAMESPACES)
+        assert len(result.errors) == 1
+        assert result.errors[0].json_pointers == ["/tables/t1/tc:unknown"]
+
+    def test_unknown_in_document_info_final(self) -> None:
+        oim: dict[str, Any] = {"documentInfo": {"final": {"tc:unknown": True}}}
+        result = parse_tc_metadata(oim, TC_NAMESPACES)
+        assert len(result.errors) == 1
+        assert result.errors[0].json_pointers == ["/documentInfo/final/tc:unknown"]
+
+    def test_unknown_in_root_dimensions(self) -> None:
+        oim: dict[str, Any] = {"dimensions": {"tc:unknown": "value"}}
+        result = parse_tc_metadata(oim, TC_NAMESPACES)
+        assert len(result.errors) == 1
+        assert result.errors[0].json_pointers == ["/dimensions/tc:unknown"]
+
+    def test_unknown_in_template_dimensions(self) -> None:
+        oim: dict[str, Any] = {"tableTemplates": {"t1": {"columns": {}, "dimensions": {"tc:unknown": "value"}}}}
+        result = parse_tc_metadata(oim, TC_NAMESPACES)
+        assert len(result.errors) == 1
+        assert result.errors[0].json_pointers == ["/tableTemplates/t1/dimensions/tc:unknown"]
+
+    def test_unknown_in_column_dimensions(self) -> None:
+        oim: dict[str, Any] = {"tableTemplates": {"t1": {"columns": {"c1": {"dimensions": {"tc:unknown": "value"}}}}}}
+        result = parse_tc_metadata(oim, TC_NAMESPACES)
+        assert len(result.errors) == 1
+        assert result.errors[0].json_pointers == ["/tableTemplates/t1/columns/c1/dimensions/tc:unknown"]
+
+    def test_unknown_in_table_parameters(self) -> None:
+        oim: dict[str, Any] = {"tables": {"t1": {"url": "foo.csv", "parameters": {"tc:unknown": "value"}}}}
+        result = parse_tc_metadata(oim, TC_NAMESPACES)
+        assert len(result.errors) == 1
+        assert result.errors[0].json_pointers == ["/tables/t1/parameters/tc:unknown"]
+
+    def test_unknown_in_property_group_dimensions(self) -> None:
+        oim: dict[str, Any] = {
+            "tableTemplates": {
+                "t1": {
+                    "columns": {
+                        "c1": {
+                            "propertyGroups": {
+                                "pg1": {"dimensions": {"tc:unknown": "value"}},
+                            },
+                        },
+                    },
+                },
+            },
+        }
+        result = parse_tc_metadata(oim, TC_NAMESPACES)
+        assert len(result.errors) == 1
+        assert result.errors[0].json_pointers == [
+            "/tableTemplates/t1/columns/c1/propertyGroups/pg1/dimensions/tc:unknown"
+        ]
+
+
+class TestMisplacedTcProperty:
+    def test_table_constraints_at_root(self) -> None:
+        oim: dict[str, Any] = {"tc:tableConstraints": {}}
+        result = parse_tc_metadata(oim, TC_NAMESPACES)
+        assert len(result.errors) == 1
+        assert result.errors[0].code == TCME_MISPLACED_OR_UNKNOWN_PROPERTY
+        assert result.errors[0].json_pointers == ["/tc:tableConstraints"]
+
+    def test_table_constraints_in_document_info(self) -> None:
+        oim: dict[str, Any] = {"documentInfo": {"tc:tableConstraints": {}}}
+        result = parse_tc_metadata(oim, TC_NAMESPACES)
+        assert len(result.errors) == 1
+        assert result.errors[0].json_pointers == ["/documentInfo/tc:tableConstraints"]
+
+    def test_constraints_in_table_template(self) -> None:
+        oim: dict[str, Any] = {"tableTemplates": {"t1": {"columns": {}, "tc:constraints": {"type": "xs:string"}}}}
+        result = parse_tc_metadata(oim, TC_NAMESPACES)
+        assert len(result.errors) == 1
+        assert result.errors[0].json_pointers == ["/tableTemplates/t1/tc:constraints"]
+
+    def test_table_constraints_in_column(self) -> None:
+        oim: dict[str, Any] = {"tableTemplates": {"t1": {"columns": {"c1": {"tc:tableConstraints": {}}}}}}
+        result = parse_tc_metadata(oim, TC_NAMESPACES)
+        assert len(result.errors) == 1
+        assert result.errors[0].json_pointers == ["/tableTemplates/t1/columns/c1/tc:tableConstraints"]
+
+    def test_table_constraints_in_table(self) -> None:
+        oim: dict[str, Any] = {"tables": {"t1": {"url": "foo.csv", "tc:tableConstraints": {}}}}
+        result = parse_tc_metadata(oim, TC_NAMESPACES)
+        assert len(result.errors) == 1
+        assert result.errors[0].json_pointers == ["/tables/t1/tc:tableConstraints"]
+
+
+class TestUnknownInsideTcPropertyValue:
+    def test_unknown_inside_tc_constraints(self) -> None:
+        oim: dict[str, Any] = {
+            "tableTemplates": {"t1": {"columns": {"c1": {"tc:constraints": {"type": "xs:string", "tc:unknown": True}}}}}
+        }
+        result = parse_tc_metadata(oim, TC_NAMESPACES)
+        misplaced = [e for e in result.errors if e.code == TCME_MISPLACED_OR_UNKNOWN_PROPERTY]
+        assert len(misplaced) == 1
+        assert misplaced[0].json_pointers == ["/tableTemplates/t1/columns/c1/tc:constraints/tc:unknown"]
+
+    def test_unknown_inside_tc_parameters(self) -> None:
+        oim: dict[str, Any] = {
+            "tableTemplates": {
+                "t1": {"columns": {}, "tc:parameters": {"p1": {"type": "xs:string", "tc:unknown": True}}}
+            }
+        }
+        result = parse_tc_metadata(oim, TC_NAMESPACES)
+        misplaced = [e for e in result.errors if e.code == TCME_MISPLACED_OR_UNKNOWN_PROPERTY]
+        assert len(misplaced) == 1
+        assert misplaced[0].json_pointers == ["/tableTemplates/t1/tc:parameters/p1/tc:unknown"]
+
+    def test_unknown_inside_tc_keys(self) -> None:
+        oim: dict[str, Any] = {
+            "tableTemplates": {
+                "t1": {
+                    "columns": {},
+                    "tc:keys": {"unique": [{"name": "k", "fields": ["c"], "tc:unknown": True}]},
+                },
+            },
+        }
+        result = parse_tc_metadata(oim, TC_NAMESPACES)
+        misplaced = [e for e in result.errors if e.code == TCME_MISPLACED_OR_UNKNOWN_PROPERTY]
+        assert len(misplaced) == 1
+        assert misplaced[0].json_pointers == ["/tableTemplates/t1/tc:keys/unique/0/tc:unknown"]
+
+    def test_unknown_inside_tc_table_constraints(self) -> None:
+        oim: dict[str, Any] = {"tableTemplates": {"t1": {"columns": {}, "tc:tableConstraints": {"tc:unknown": True}}}}
+        result = parse_tc_metadata(oim, TC_NAMESPACES)
+        misplaced = [e for e in result.errors if e.code == TCME_MISPLACED_OR_UNKNOWN_PROPERTY]
+        assert len(misplaced) == 1
+        assert misplaced[0].json_pointers == ["/tableTemplates/t1/tc:tableConstraints/tc:unknown"]
+
+
+class TestValidTcProperties:
+    def test_constraints_in_column(self) -> None:
+        oim: dict[str, Any] = {"tableTemplates": {"t1": {"columns": {"c1": {"tc:constraints": {"type": "xs:string"}}}}}}
+        assert parse_tc_metadata(oim, TC_MINIMAL_NAMESPACES).is_valid
+
+    def test_all_template_properties(self) -> None:
+        oim = {
+            "documentInfo": {
+                "documentType": "https://xbrl.org/2021/xbrl-csv",
+                "namespaces": {
+                    "eg": "http://example.com/oim/tc",
+                    "lei": "http://standards.iso.org/iso/17442",
+                    "iso4217": "http://www.xbrl.org/2003/iso4217",
+                    "xs": "http://www.w3.org/2001/XMLSchema",
+                    "tc": "https://xbrl.org/PR/2026-03-18/tc",
+                },
+                "taxonomy": ["../base/sales.xsd"],
+            },
+            "dimensions": {"entity": "lei:legalEntityIdentifier"},
+            "tableTemplates": {
+                "sales": {
+                    "columns": {
+                        "product_id": {"tc:constraints": {"type": "xs:token", "nillable": False}},
+                        "sales": {
+                            "dimensions": {
+                                "concept": "eg:Sales",
+                                "period": "$calendar_month",
+                                "unit": "iso4217:EUR",
+                                "eg:ProductId": "$product_id",
+                            }
+                        },
+                    },
+                    "tc:parameters": {"calendar_month": {"type": "period", "periodType": "month", "timeZone": False}},
+                    "tc:keys": {"unique": [{"name": "sales_pk", "fields": ["calendar_month", "product_id"]}]},
+                }
+            },
+            "tables": {
+                "salesJan24": {
+                    "url": "../base/salesJan24.csv",
+                    "template": "sales",
+                    "parameters": {"calendar_month": "2024-01"},
+                },
+                "salesFeb24": {
+                    "url": "../base/salesFeb24.csv",
+                    "template": "sales",
+                    "parameters": {"calendar_month": "2024-02"},
+                },
+                "salesMar24": {
+                    "url": "../base/salesMar24.csv",
+                    "template": "sales",
+                    "parameters": {"calendar_month": "2024-03"},
+                },
+            },
+        }
+        assert parse_tc_metadata(oim, TC_MINIMAL_NAMESPACES).is_valid
+
+    def test_no_errors_inside_valid_tc_constraints(self) -> None:
+        oim: dict[str, Any] = {
+            "tableTemplates": {"t1": {"columns": {"c1": {"tc:constraints": {"type": "xs:string", "optional": True}}}}}
+        }
+        assert parse_tc_metadata(oim, TC_MINIMAL_NAMESPACES).is_valid
+
+    def test_no_errors_inside_valid_tc_keys(self) -> None:
+        oim: dict[str, Any] = {
+            "tableTemplates": {
+                "t1": {
+                    "columns": {},
+                    "tc:keys": {
+                        "unique": [{"name": "k", "fields": ["c"], "severity": "warning", "shared": False}],
+                        "reference": [{"name": "r", "fields": ["c"], "referencedKeyName": "k"}],
+                        "sortKey": "k",
+                    },
+                },
+            },
+        }
+        assert parse_tc_metadata(oim, TC_NAMESPACES).is_valid
+
+    def test_no_errors_inside_valid_tc_table_constraints(self) -> None:
+        oim: dict[str, Any] = {
+            "tableTemplates": {"t1": {"columns": {}, "tc:tableConstraints": {"minTables": 1, "maxTables": 5}}}
+        }
+        assert parse_tc_metadata(oim, TC_NAMESPACES).is_valid
+
+    def test_no_errors_inside_valid_tc_parameters(self) -> None:
+        oim: dict[str, Any] = {
+            "tableTemplates": {"t1": {"columns": {}, "tc:parameters": {"p1": {"type": "xs:string", "optional": True}}}}
+        }
+        assert parse_tc_metadata(oim, TC_MINIMAL_NAMESPACES).is_valid
+
+
+class TestMultipleErrors:
+    def test_reports_all_errors(self) -> None:
+        oim: dict[str, Any] = {
+            "tc:unknown": True,
+            "documentInfo": {"tc:tableConstraints": {}},
+            "tables": {"t1": {"url": "foo.csv", "tc:unknown": True}},
+        }
+        result = parse_tc_metadata(oim, TC_NAMESPACES)
+        assert len(result.errors) == 3
+        codes = {e.code for e in result.errors}
+        assert codes == {TCME_MISPLACED_OR_UNKNOWN_PROPERTY}
