@@ -145,6 +145,10 @@ class WebCache:
     ) -> None:
 
         self.cntlr = cntlr
+        # WebCache is constructed inside Cntlr.__init__, so cntlr is a live object but its
+        # attributes are only assigned as __init__ progresses. WebCache uses plugin hooks, so
+        # cntlr.plugins must already be assigned.
+        assert hasattr(cntlr, "plugins"), "cntlr.plugins must be assigned"
         self._timeout: float | int | None = None
 
         self._noCertificateCheck: bool = False

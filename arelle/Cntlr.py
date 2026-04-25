@@ -288,13 +288,19 @@ class Cntlr:
         self.setUiLanguage(uiLang or self.config.get("userInterfaceLangOverride",None), fallbackToDefault=True)
         Locale.setDisableRTL(self.config.get('disableRtl', False))
 
-        self.webCache = WebCache(self, ProxyTuple.coerce(self.config.get("proxySettings")))
-
-        # start plug in server (requres web cache initialized, but not logger)
+        # Order is load-bearing:
+        # PluginManager initialization can load plugins using the WebCache, but the WebCache uses plugin hooks.
+        # We first create the PluginManager and PluginProvider so that initial plugin hook lookups in the WebCache
+        # won't find anything, but also won't crash on AttributeError. We then create the WebCache before calling
+        # PluginManager.init() so that plugin paths can be loaded via the WebCache. Lastly, we call
+        # webCache.resetProxies() to pick up plugin hook defined proxy settings that weren't available when WebCache
+        # was first created.
         from arelle.PluginManager import getInstance as _getPluginManagerInstance
         self._pluginManager = _getPluginManagerInstance()
-        self._pluginManager.init(self, loadPluginConfig=hasGui)
         self.plugins = PluginProvider(self._pluginManager)
+        self.webCache = WebCache(self, ProxyTuple.coerce(self.config.get("proxySettings")))
+        self._pluginManager.init(self, loadPluginConfig=hasGui)
+        self.webCache.resetProxies(self.webCache._httpProxyTuple)
 
         # requires plug ins initialized
         self.modelManager = ModelManager.initialize(self)
