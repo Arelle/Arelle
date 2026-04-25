@@ -21,6 +21,11 @@ Unicode true
   !define APP_VERSION "0.0.0"
 !endif
 
+!ifndef APP_INSTALL_SIZE_KB
+  ; Pick a reasonable default of 500 MB 
+  !define APP_INSTALL_SIZE_KB 512000
+!endif
+
 ;--------------------------------
 ; Include Modern UI
 
@@ -67,7 +72,6 @@ SetCompressor /SOLID lzma
 
   Var StartMenuFolder
   Var InstallDate
-  Var InstalledSizeKB
 
 ;--------------------------------
 ; Interface Settings
@@ -136,10 +140,10 @@ Section "Arelle" SecArelle
   WriteRegStr   HKLM  "${ARELLE_UNINSTALL_KEY}" "URLInfoAbout"      "https://arelle.org"
   WriteRegStr   HKLM  "${ARELLE_UNINSTALL_KEY}" "URLUpdateInfo"     "https://github.com/Arelle/Arelle/releases"
 
-  ${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
-  ; $0 = total size in KB, $1 = file count (unused), $2 = subdirectory count (unused)
-  StrCpy $InstalledSizeKB $0
-  WriteRegDWORD HKLM  "${ARELLE_UNINSTALL_KEY}" "EstimatedSize"     $InstalledSizeKB
+  ; Use a pre-calculated size (in KB) rather than using ${GetSize} to calculate
+  ; a precise size at installation time. ${GetSize} is incredibly slow as it has
+  ; to stat every file.
+  WriteRegDWORD HKLM  "${ARELLE_UNINSTALL_KEY}" "EstimatedSize"     ${APP_INSTALL_SIZE_KB}
 
   ${GetTime} "" "L" $0 $1 $2 $3 $4 $5 $6
   ; GetTime outputs: $0=day(DD) $1=month(MM) $2=year(YYYY)
