@@ -74,10 +74,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Optional, cast
 
 import regex as re
-from openpyxl import Workbook
-from openpyxl.cell.cell import WriteOnlyCell
-from openpyxl.styles import Alignment, Color, PatternFill, fills
-from openpyxl.worksheet.dimensions import ColumnDimension
 
 from arelle import ValidateDuplicateFacts, XbrlConst
 from arelle.ModelDocumentType import ModelDocumentType
@@ -682,6 +678,12 @@ def saveLoadableOIM(
                 _csvInfo["file"].close()
                 _csvInfo.clear()
         elif isXL:
+            # openpyxl is an optional dependency, so import only if needed
+            from openpyxl import Workbook
+            from openpyxl.cell.cell import WriteOnlyCell
+            from openpyxl.styles import Alignment, Color, PatternFill, fills
+            from openpyxl.worksheet.dimensions import ColumnDimension
+
             headerWidths = {
                 "concept": 40,
                 "decimals": 8,
