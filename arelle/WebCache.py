@@ -108,15 +108,22 @@ def proxyDirFmt(httpProxyTuple: ProxyTuple | None) -> dict[str, str] | None:
     return {"http": proxyUrl}
 
 
-def proxyTuple(url: str) -> ProxyTuple: # system, none, or http:[user[:password]@]host[:port]
+def proxyTuple(url: str) -> ProxyTuple: # system, none, or [scheme://][user[:password]@]host[:port]
     if url == "none":
         return ProxyTuple(useOsProxy=False)
     if url == "system":
         return ProxyTuple(useOsProxy=True)
-    userpwd, sep, hostport = url.rpartition("://")[2].rpartition("@")
-    urlAddr, sep, urlPort = hostport.partition(":")
-    user, sep, password = userpwd.partition(":")
-    return ProxyTuple(False, urlAddr or None, urlPort or None, user or None, password or None)
+    # urlparse needs a scheme to recognize user:password@host:port.
+    if "://" not in url:
+        url = "http://" + url
+    parsed = urlparse(url)
+    return ProxyTuple(
+        useOsProxy=False,
+        urlAddr=parsed.hostname,
+        urlPort=str(parsed.port) if parsed.port else None,
+        user=parsed.username,
+        password=parsed.password,
+    )
 
 
 def lastModifiedTime(headers: dict[str, str]) -> float | None:
