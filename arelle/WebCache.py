@@ -105,7 +105,7 @@ def proxyDirFmt(httpProxyTuple: ProxyTuple | None) -> dict[str, str] | None:
         # block use of any proxy
         return {}
     proxyUrl = f"http://{httpProxyTuple.authority}"
-    return {"http": proxyUrl}
+    return {"http": proxyUrl, "https": proxyUrl}
 
 
 def proxyTuple(url: str) -> ProxyTuple: # system, none, or [scheme://][user[:password]@]host[:port]
