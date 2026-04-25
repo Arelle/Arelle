@@ -9,12 +9,12 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 import ctypes
-import functools
 import locale
 import sys
 import unicodedata
 from collections.abc import Callable, Generator, Mapping
 from decimal import Decimal
+from functools import cache
 from fractions import Fraction
 from typing import Any, cast
 
@@ -52,7 +52,7 @@ POSIX_LOCALE_ENCODING_SEPARATOR = '.'
 BCP47_LANGUAGE_TAG = re.compile(r"^[a-zA-Z]{2,3}(-[a-zA-Z]{2,3}(\-[a-zA-Z0-9]{1,8})*)?$")
 
 
-@functools.lru_cache(maxsize=None)
+@cache
 def _probeLocale(localeStr: str) -> LocaleDict | None:
     """
     Try to activate localeStr and return its localeconv dict.
@@ -87,7 +87,7 @@ def getUserLocale(posixLocale: str | None = None) -> tuple[LocaleDict, str | Non
 def getLanguageCode() -> str:
     if posixLocale := getLocale():
         languageTag = posixLocaleToBCP47Lang(posixLocale)
-        if re.match(BCP47_LANGUAGE_TAG, languageTag):
+        if BCP47_LANGUAGE_TAG.match(languageTag):
             return languageTag
     from arelle.XbrlConst import defaultLocale
     return defaultLocale  # XBRL international default locale
