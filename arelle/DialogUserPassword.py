@@ -247,8 +247,7 @@ class DialogUserPassword(Toplevel):
     def ok(self, event=None):
         if hasattr(self, "useOsProxyCb"):
             self.useOsProxy = self.useOsProxyCb.value
-        self.urlAddr = self.urlAddrVar.get()
-        if self.urlAddr.startswith("http://"): self.urlAddr = self.ulrAddr[7:] # take of protocol part if any
+        self.urlAddr = self.urlAddrVar.get().removeprefix("https://").removeprefix("http://")
         self.urlPort = self.urlPortVar.get()
         self.user = self.userVar.get()
         self.password = self.passwordVar.get()
