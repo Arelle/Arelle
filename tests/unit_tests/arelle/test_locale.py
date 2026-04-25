@@ -6,12 +6,31 @@ from decimal import Decimal
 from arelle.Locale import format_decimal
 from arelle.Locale import getUserLocale
 from arelle.Locale import (
+    findCompatibleLocale,
     bcp47LangToPosixLocale,
     posixLocaleToBCP47Lang,
 )
+import arelle.Locale as LocaleModule
 
 
 d = Decimal('-1234567.8901')
+
+
+@pytest.fixture()
+def reset_system_locales():
+    saved = LocaleModule._systemLocales
+    LocaleModule._systemLocales = None
+    availableLocales.cache_clear()
+    yield
+    LocaleModule._systemLocales = saved
+    availableLocales.cache_clear()
+
+
+@pytest.fixture()
+def reset_locale():
+    getLocale.cache_clear()
+    yield
+    getLocale.cache_clear()
 
 @pytest.mark.parametrize(
     'params, result',
@@ -114,4 +133,62 @@ class TestPosixLocaleToBCP47Lang:
     def test_bcp47_input_passes_through(self, bcp47: str) -> None:
         """A BCP-47 tag with no underscores should pass through unchanged."""
         assert posixLocaleToBCP47Lang(bcp47) == bcp47
+
+_FAKE_CONV = {'decimal_point': '.'}
+
+
+class TestFindCompatibleLocale:
+    def test_none_returns_none(self) -> None:
+        assert findCompatibleLocale(None) is None
+
+    def test_bcp47_converted_to_posix_before_probe(self) -> None:
+        """BCP-47 input is normalised to POSIX before being passed to _probeLocale."""
+        probed: list[str] = []
+        def mock_probe(code: str):
+            probed.append(code)
+            return _FAKE_CONV
+        with patch.object(LocaleModule, '_probeLocale', side_effect=mock_probe):
+            findCompatibleLocale('en-US')
+        assert probed[0] == 'en_US'
+
+    def test_direct_match_returns_posix_value(self) -> None:
+        """When the POSIX-converted locale probes successfully it is returned immediately."""
+        with patch.object(LocaleModule, '_probeLocale', return_value=_FAKE_CONV):
+            result = findCompatibleLocale('en-US')
+        assert result == 'en_US'
+
+    def test_posix_input_passed_through_unchanged(self) -> None:
+        """POSIX input (underscore / encoding) is left unchanged by the BCP-47 conversion."""
+        probed: list[str] = []
+        def mock_probe(code: str):
+            probed.append(code)
+            return _FAKE_CONV
+        with patch.object(LocaleModule, '_probeLocale', side_effect=mock_probe):
+            result = findCompatibleLocale('en_US.UTF-8')
+        assert probed[0] == 'en_US.UTF-8'
+        assert result == 'en_US.UTF-8'
+
+    def test_falls_back_to_first_working_candidate(self) -> None:
+        """When the direct probe fails, returns the first candidate that probes successfully."""
+        def mock_probe(code: str):
+            return _FAKE_CONV if code == 'en_GB' else None
+        with patch.object(LocaleModule, '_probeLocale', side_effect=mock_probe):
+            with patch.object(LocaleModule, '_candidateLocaleCodes', return_value=['en_AU', 'en_GB', 'en_NZ']):
+                result = findCompatibleLocale('en_US')
+        assert result == 'en_GB'
+
+    def test_no_working_locale_returns_none(self) -> None:
+        """Returns None when neither the direct probe nor any candidate succeeds."""
+        with patch.object(LocaleModule, '_probeLocale', return_value=None):
+            with patch.object(LocaleModule, '_candidateLocaleCodes', return_value=['en_GB', 'en_AU']):
+                result = findCompatibleLocale('en_US')
+        assert result is None
+
+    def test_empty_candidates_returns_none(self) -> None:
+        """Returns None when the direct probe fails and the candidate list is empty."""
+        with patch.object(LocaleModule, '_probeLocale', return_value=None):
+            with patch.object(LocaleModule, '_candidateLocaleCodes', return_value=[]):
+                result = findCompatibleLocale('xx_YY')
+        assert result is None
+
 

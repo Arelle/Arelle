@@ -118,15 +118,19 @@ def findCompatibleLocale(localeValue: str | None) -> str | None:
     """
     Attempts to find a system-compatible locale based on the provided value.
     Checks default regions and possible encodings.
+
+    :param localeValue: Locale string in BCP-47 format (e.g. ``'en-US'``) or POSIX format (e.g. ``'en_US.utf-8'``).
+    :return: A POSIX-style locale string that can be passed to ``setlocale``, or ``None`` if no compatible locale is found.
     """
     if localeValue is None:
         return None
-    if _probeLocale(localeValue) is not None:
-        return localeValue
-    formattedLocaleCode = bcp47LangToPosixLocale(localeValue)
-    if formattedLocaleCode != localeValue and _probeLocale(formattedLocaleCode) is not None:
-        return formattedLocaleCode
-    for candidate in _candidateLocaleCodes(formattedLocaleCode):
+    
+    definitelyPosix_localeValue = bcp47LangToPosixLocale(localeValue)
+
+    if _probeLocale(definitelyPosix_localeValue) is not None:
+        return definitelyPosix_localeValue
+
+    for candidate in _candidateLocaleCodes(definitelyPosix_localeValue):
         if _probeLocale(candidate) is not None:
             return candidate
     return None
