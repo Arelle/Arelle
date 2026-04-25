@@ -28,6 +28,7 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Characters import findProhibitedCharacters
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Document import checkDocumentEncoding
+from arelle.utils.validate.Facts import iterValidNonNilFactsByQname
 from arelle.utils.validate.Validation import Validation
 from arelle.utils.validate.Common import isExtensionUri
 from arelle.utils.validate.ValidationUtil import hasPresentationalConceptsWithFacts
@@ -939,6 +940,35 @@ def rule_EC8034W(
                     label=modelLabel.id,
                     modelObject=modelLabel,
                 )
+
+
+@validation(
+    hook=ValidationHook.XBRL_FINALLY,
+    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+)
+def rule_EC8036W(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8036W: The consolidated business indicators, etc. have not been detailed tagged.
+    If WhetherConsolidatedFinancialStatementsArePreparedDEI is true, there must be children of
+    the extended link role rol_BusinessResultsOfGroup.
+    """
+    deiQname = qname(pluginData.namespaces.jpdei, 'WhetherConsolidatedFinancialStatementsArePreparedDEI')
+    if not any(fact.xValue == True for fact in iterValidNonNilFactsByQname(val.modelXbrl, deiQname)):
+        return
+    if hasPresentationalConceptsWithFacts(val.modelXbrl, 'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_BusinessResultsOfGroup'):
+                return
+    yield Validation.warning(
+        codes='EDINET.EC8036W',
+        msg=_('The consolidated business indicators, etc. have not been tagged in detail. '
+              'Please provide detailed tagging of the consolidated business indicators, etc. '
+              'If you do not provide consolidated business indicators, please confirm that '
+              'the "Consolidated Financial Statements" field in the DEI information is correct.'),
+    )
 
 
 @validation(
