@@ -279,32 +279,66 @@ iso3region = {
 "US": "usa"}
 
 
-_systemLocales: list[str] | None = None
+def _enumerateWindowsLocales() -> list[str]:
+    """
+    Enumerate system locale names on Windows using EnumSystemLocalesEx.
+    Returns a list of BCP-47 locale name strings (e.g. 'en-US', 'fr-FR').
+    Returns an empty list if the call fails.
+    """
+    if sys.platform != "win32":
+        # keep the type checkers happy
+        return []
+
+    # https://learn.microsoft.com/en-us/windows/win32/api/winnls/nf-winnls-enumsystemlocalesex
+    # https://learn.microsoft.com/en-us/windows/win32/api/winnls/nc-winnls-locale_enumprocex
+    LOCALE_ALL = 0
+    _LOCALE_ENUMPROCEX = ctypes.WINFUNCTYPE(ctypes.c_int, ctypes.c_wchar_p, ctypes.c_ulong, ctypes.c_void_p)
+    locales: list[str] = []
+
+    def _callback(localeName: str | None, _flags: int, _param: int) -> int:
+        if localeName:
+            locales.append(localeName)
+        return 1 # TRUE to continue enumeration
+
+    try:
+        ctypes.windll.kernel32.EnumSystemLocalesEx(_LOCALE_ENUMPROCEX(_callback), LOCALE_ALL, 0, None)
+    except (OSError, AttributeError):
+        return []
+    return locales
+
+
+@cache
+def _getSystemLocalesAsPosix() -> frozenset[str]:
+    """
+    Returns a cached set of system locale codes in POSIX format (e.g. 'en_US.UTF-8', 'en_US').
+    On Windows, BCP-47 names are converted to POSIX (without encoding).
+    """
+    if sys.platform == "win32":
+        return frozenset(
+            bcp47LangToPosixLocale(loc)
+            for loc in _enumerateWindowsLocales()
+        )
+    elif locales := tryRunCommand("locale", "-a"):
+        return frozenset(locales.splitlines())
+    else:
+        return frozenset()
 
 
 def getLocaleList() -> list[str]:
     """
-    Attempts to a return a list of locales from `locale -a` with a fallback of an empty list.
+    Returns a sorted list of available system locale codes in POSIX format (e.g. 'en_US', 'fr_FR').
     """
-    global _systemLocales
-    if _systemLocales is not None:
-        return _systemLocales
-    if sys.platform != "win32" and (locales := tryRunCommand("locale", "-a")):
-        _systemLocales = locales.splitlines()
-    else:
-        _systemLocales = []
-    return _systemLocales
+    return sorted(_getSystemLocalesAsPosix())
 
 
-def availableLocales() -> set[str]:
+def availableLocales() -> frozenset[str]:
     """
-    Returns a set of available system languages (POSIX format without encoding).
-    On Windows system locales can't be easily determined and an empty set is returned.
+    Returns a set of available system locale codes in POSIX format (e.g. 'en_US.UTF-8', 'en_US').
     """
-    return {
+    return frozenset({
         loc.partition(POSIX_LOCALE_ENCODING_SEPARATOR)[0]
-        for loc in getLocaleList()
-    }
+        for loc in _getSystemLocalesAsPosix()
+    })
 
 
 _languageCodes: dict[str, str] | None = None

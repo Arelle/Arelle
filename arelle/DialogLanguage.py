@@ -37,7 +37,7 @@ class DialogLanguage(Toplevel):
         self.transient(self.parent)
         self.title(_("arelle - User Interface and Labels language code settings"))
         self.languageCodes = Locale.languageCodes()
-        if systemLocales := Locale.availableLocales():  # unix/Mac locale -a supported locale codes
+        if systemLocales := Locale.availableLocales():
             localeOptionTitles = [
                 title
                 for title, labelCode in self.languageCodes.items()

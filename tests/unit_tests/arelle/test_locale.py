@@ -8,10 +8,13 @@ from decimal import Decimal
 from arelle.Locale import format_decimal
 from arelle.Locale import getUserLocale
 from arelle.Locale import (
+    _enumerateWindowsLocales,
     findCompatibleLocale,
     _getNativeLocale,
+    availableLocales,
     bcp47LangToPosixLocale,
     getLocale,
+    _getSystemLocalesAsPosix,
     posixLocaleToBCP47Lang,
 )
 from arelle.XbrlConst import defaultLocale
@@ -23,12 +26,9 @@ d = Decimal('-1234567.8901')
 
 @pytest.fixture()
 def reset_system_locales():
-    saved = LocaleModule._systemLocales
-    LocaleModule._systemLocales = None
-    availableLocales.cache_clear()
+    _getSystemLocalesAsPosix.cache_clear()
     yield
-    LocaleModule._systemLocales = saved
-    availableLocales.cache_clear()
+    _getSystemLocalesAsPosix.cache_clear()
 
 
 @pytest.fixture()
@@ -99,6 +99,69 @@ def test_get_user_locale_reset(locale_code) -> None:
     getUserLocale(locale_code)
     after_locale = locale.setlocale(locale.LC_ALL)
     assert after_locale == before_locale
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="Windows-only test")
+class TestWindowsLocaleEnumeration:
+    def test_enumerate_windows_locales_returns_nonempty(self) -> None:
+        locales = _enumerateWindowsLocales()
+        assert len(locales) > 0
+
+    def test_enumerate_windows_locales_bcp47_format(self) -> None:
+        locales = _enumerateWindowsLocales()
+        # BCP-47 tags use hyphens, not underscores
+        simple_locales = [loc for loc in locales if len(loc) == 5]
+        assert len(simple_locales) > 0
+        for loc in simple_locales:
+            assert '-' in loc, f"Expected BCP-47 format with hyphen: {loc}"
+            assert '_' not in loc, f"Unexpected POSIX underscore in: {loc}"
+
+    def test_enumerate_windows_locales_contains_en_US(self) -> None:
+        locales = _enumerateWindowsLocales()
+        assert 'en-US' in locales
+    
+    def test_enumerate_windows_locales_contains_default_locale(self) -> None:
+        locales = _enumerateWindowsLocales()
+        assert defaultLocale in locales
+
+    def test_get_system_locale_list_as_posix_on_windows(self, reset_system_locales) -> None:
+        result = _getSystemLocalesAsPosix()
+        assert len(result) > 0
+        assert 'en_US' in result
+        for loc in [l for l in result if len(l) == 5]:
+            assert '_' in loc
+
+    def test_available_locales_nonempty_on_windows(self, reset_system_locales) -> None:
+        result = availableLocales()
+        assert len(result) > 0
+        assert 'en_US' in result
+
+
+class TestGetSystemLocalesAsPosix:
+    def test_posix_locales_from_locale_command(self, reset_system_locales) -> None:
+        """On non-Windows, output of locale -a is returned as-is."""
+        with patch.object(LocaleModule, 'tryRunCommand', return_value='en_US.UTF-8\nfr_FR.UTF-8\nde_DE.UTF-8'):
+            with patch('arelle.Locale.sys') as mock_sys:
+                mock_sys.platform = 'linux'
+                result = _getSystemLocalesAsPosix()
+        assert result == frozenset({'en_US.UTF-8', 'fr_FR.UTF-8', 'de_DE.UTF-8'})
+
+    def test_windows_locales_converted_from_bcp47(self, reset_system_locales) -> None:
+        """On Windows, BCP-47 names from EnumSystemLocalesEx are converted to POSIX."""
+        with patch.object(LocaleModule, '_enumerateWindowsLocales', return_value=['en-US', 'fr-FR', 'de-DE']):
+            with patch('arelle.Locale.sys') as mock_sys:
+                mock_sys.platform = 'win32'
+                result = _getSystemLocalesAsPosix()
+        assert result == frozenset({'en_US', 'fr_FR', 'de_DE'})
+
+    def test_returns_empty_when_locale_command_fails(self, reset_system_locales) -> None:
+        """Returns an empty set when locale -a produces no output."""
+        with patch.object(LocaleModule, 'tryRunCommand', return_value=None):
+            with patch('arelle.Locale.sys') as mock_sys:
+                mock_sys.platform = 'linux'
+                result = _getSystemLocalesAsPosix()
+        assert result == frozenset()
+
 
 class TestBcp47LangToPosixLocale:
     @pytest.mark.parametrize('bcp47, expected', [
