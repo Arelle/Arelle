@@ -3,18 +3,18 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 
-# initialize object from loaded linkbases
+import sys
 from collections import defaultdict
 from dataclasses import dataclass
 from itertools import chain
 from typing import Any
-from arelle import Locale, XbrlConst, ModelValue
-from arelle.ModelObject import ModelObject
+
+from arelle import Locale, ModelValue, XbrlConst
 from arelle.ModelDtsObject import ModelRelationship
+from arelle.ModelObject import ModelObject
 from arelle.PrototypeDtsObject import PrototypeObject
 from arelle.PythonUtil import OrderedSet
 from arelle.XbrlConst import consecutiveArcrole
-import sys
 
 USING_EQUIVALENCE_KEY = sys.intern(str("using_equivalence_key")) # indicates hash entry replaced with keyed entry
 NoneType = type(None)
