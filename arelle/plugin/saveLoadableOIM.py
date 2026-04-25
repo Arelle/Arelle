@@ -248,6 +248,16 @@ def saveLoadableOIM(
                         break
             namespacePrefixes.addNamespace(qname.namespaceURI, prefix)
 
+    def compileQnamesForFact(fact: ModelFact) -> None:
+        compileQname(fact.qname)
+        xValue = getattr(fact, "xValue", None)
+        if isinstance(xValue, QName):
+            compileQname(xValue, fact.nsmap)
+        elif isinstance(xValue, list):
+            for q in xValue:
+                if isinstance(q, QName):
+                    compileQname(q, fact.nsmap)
+
     aspectsDefined = {qnOimConceptAspect, qnOimEntityAspect, qnOimPeriodAspect}
 
     def oimValue(obj: Any) -> Any:
@@ -328,14 +338,9 @@ def saveLoadableOIM(
                 hasNumeric = True
             if concept.baseXbrliType in ("string", "normalizedString", "token") and fact.xmlLang:
                 hasLang = True
-        compileQname(fact.qname, fact.nsmap)
-        xValue = getattr(fact, "xValue", None)
-        if isinstance(xValue, QName):
-            compileQname(xValue, fact.nsmap)
-        elif isinstance(xValue, list):
-            for q in xValue:
-                if isinstance(q, QName):
-                    compileQname(q, fact.nsmap)
+
+        compileQnamesForFact(fact)
+
         unit = fact.unit
         if unit is not None:
             hasUnits = True
