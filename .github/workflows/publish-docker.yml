@@ -79,18 +79,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4.0.0
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v6.0.0
-        with:
-          images: |
-            ${{ env.DOCKERHUB_IMAGE }}
-            ghcr.io/${{ github.repository }}
-          tags: |
-            type=semver,pattern={{major}}.{{minor}}.{{patch}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-
       - name: Extract metadata (tags, labels) for slim Docker
         id: meta-slim
         uses: docker/metadata-action@v6.0.0
@@ -118,6 +106,49 @@ jobs:
           push: true
           tags: ${{ steps.meta-slim.outputs.tags }}
           labels: ${{ steps.meta-slim.outputs.labels }}
+          annotations: ${{ steps.meta-slim.outputs.annotations }}
+          provenance: true
+          sbom: true
+
+      - name: Checkout EDGAR
+        uses: actions/checkout@v6.0.2
+        with:
+          repository: Arelle/EDGAR
+          path: arelle/plugin/EDGAR
+          ref: ${{ inputs.edgar_ref }}
+          fetch-depth: 1
+
+      - name: Cleanup EDGAR
+        run: rm -rf arelle/plugin/EDGAR/.git
+
+      - name: Checkout XULE
+        uses: actions/checkout@v6.0.2
+        with:
+          repository: xbrlus/xule
+          path: xule
+          ref: ${{ inputs.xule_ref }}
+          fetch-depth: 1
+
+      - name: Move XULE plugins
+        run: |
+          mv xule/plugin/validate/* arelle/plugin/validate/
+          rm -rf xule/plugin/validate
+          mv xule/plugin/* arelle/plugin/
+
+      - name: Cleanup XULE
+        run: rm -rf xule
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v6.0.0
+        with:
+          images: |
+            ${{ env.DOCKERHUB_IMAGE }}
+            ghcr.io/${{ github.repository }}
+          tags: |
+            type=semver,pattern={{major}}.{{minor}}.{{patch}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
 
       - name: Build and push Docker images
         id: push
@@ -129,12 +160,13 @@ jobs:
           build-args: |
             PYTHON_VERSION=${{ inputs.python_version }}
             INCLUDE_EDGAR=true
-            EDGAR_REF=${{ inputs.edgar_ref }}
-            XULE_REF=${{ inputs.xule_ref }}
             EXTRA_PIP=-r requirements-plugins.txt
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          annotations: ${{ steps.meta.outputs.annotations }}
+          provenance: true
+          sbom: true
 
       - name: Generate artifact attestation
         uses: actions/attest@v4.1.0
