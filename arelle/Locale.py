@@ -160,6 +160,8 @@ def bcp47LangToPosixLocale(bcp47Lang: str) -> str:
     """
     Transform a BCP47 language tag (en-US) to a POSIX locale (en_US).
     """
+    if POSIX_LANGUAGE_REGION_SEPARATOR in bcp47Lang or POSIX_LOCALE_ENCODING_SEPARATOR in bcp47Lang:
+        return bcp47Lang
     lang, _, region = bcp47Lang.partition(BCP47_LANGUAGE_REGION_SEPARATOR)
     return _buildPosixLocale(lang=lang, region=region)
 
