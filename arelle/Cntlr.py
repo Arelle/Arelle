@@ -38,7 +38,7 @@ from arelle.plugin_system.plugin_provider import PluginProvider
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
 from arelle.utils.validate.Validation import Validation
-from arelle.WebCache import WebCache
+from arelle.WebCache import ProxyTuple, WebCache
 
 _: TypeGetText
 
@@ -288,7 +288,7 @@ class Cntlr:
         self.setUiLanguage(uiLang or self.config.get("userInterfaceLangOverride",None), fallbackToDefault=True)
         Locale.setDisableRTL(self.config.get('disableRtl', False))
 
-        self.webCache = WebCache(self, self.config.get("proxySettings"))
+        self.webCache = WebCache(self, ProxyTuple.coerce(self.config.get("proxySettings")))
 
         # start plug in server (requres web cache initialized, but not logger)
         from arelle.PluginManager import getInstance as _getPluginManagerInstance

@@ -68,7 +68,7 @@ from arelle.SystemInfo import PlatformOS, getSystemInfo, getSystemWordSize, hasW
 from arelle.typing import TypeGetText
 from arelle.utils.EntryPointDetection import parseEntrypointFileInput
 from arelle.ValidateXbrlDTS import ValidateBaseTaxonomiesMode
-from arelle.WebCache import proxyTuple
+from arelle.WebCache import ProxyTuple, proxyTuple
 
 if TYPE_CHECKING:
     from bottle import Bottle # type: ignore[import-untyped]
@@ -1681,7 +1681,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 self.config["proxySettings"] = proxySettings  # type: ignore[index]
                 self.saveConfig()
                 self.addToLog(_("Proxy configuration has been set."), messageCode="info")
-            useOsProxy, urlAddr, urlPort, user, password = self.config.get("proxySettings", proxyTuple("none"))  # type: ignore[union-attr]
+            useOsProxy, urlAddr, urlPort, user, password = ProxyTuple.coerce(self.config.get("proxySettings")) or proxyTuple("none")  # type: ignore[union-attr]
             if useOsProxy:
                 self.addToLog(_("Proxy configured to use {0}.").format(
                     _("Microsoft Windows Internet Settings") if sys.platform.startswith("win")
