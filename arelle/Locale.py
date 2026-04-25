@@ -48,6 +48,7 @@ defaultLocaleCodes = {
 BCP47_LANGUAGE_REGION_SEPARATOR = '-'
 POSIX_LANGUAGE_REGION_SEPARATOR = '_'
 POSIX_LOCALE_ENCODING_SEPARATOR = '.'
+POSIX_LOCALE_DEFAULT_ENCODING = 'utf-8'
 
 BCP47_LANGUAGE_TAG = re.compile(r"^[a-zA-Z]{2,3}(-[a-zA-Z]{2,3}(\-[a-zA-Z0-9]{1,8})*)?$")
 
@@ -140,24 +141,63 @@ def _candidateLocaleCodes(posixLocale: str) -> list[str]:
     """
     Returns a list of additional candidate POSIX locales including default region and utf-8 encoding variants.
     """
-    defaultEncoding = 'utf-8'
     language, region, encoding = _getPosixLocaleLangRegionAndEncoding(posixLocale)
-    candidateLocaleCodes = []
-    if encoding != defaultEncoding:
-        candidateLocaleCodes.append(_buildPosixLocale(language, region, encoding=defaultEncoding))
     defaultRegion = defaultLocaleCodes.get(language)
+    not_default_encoding = encoding is not None and encoding.lower() != POSIX_LOCALE_DEFAULT_ENCODING
+
+    candidateLocaleCodes: list[str] = []
+    if not_default_encoding:
+        candidateLocaleCodes.append(_buildPosixLocale(language, region, encoding=POSIX_LOCALE_DEFAULT_ENCODING))
+
     if region and region != defaultRegion:
         candidateLocaleCodes.append(_buildPosixLocale(language, region=defaultRegion, encoding=encoding))
-        if encoding != defaultEncoding:
-            candidateLocaleCodes.append(_buildPosixLocale(language, region=defaultRegion, encoding=defaultEncoding))
-    # Additional locale candidates on Linux and macOS.
-    compatibleSystemLocales = sorted({
-        code for code in getLocaleList()
-        if code.startswith(posixLocale)
-        and code not in candidateLocaleCodes
-    })
-    candidateLocaleCodes.extend(compatibleSystemLocales)
+        if not_default_encoding:
+            candidateLocaleCodes.append(_buildPosixLocale(language, region=defaultRegion, encoding=POSIX_LOCALE_DEFAULT_ENCODING))
+
+    candidateLocaleCodes.extend(_compatibleSystemLocales(language, region, encoding, exclude=candidateLocaleCodes))
+
     return candidateLocaleCodes
+
+
+def _compatibleSystemLocales(
+    language: str,
+    region: str | None,
+    encoding: str | None,
+    exclude: list[str],
+) -> list[str]:
+    """
+    Returns system locales matching the given language, sorted by relevance.
+    Excludes any locales already in the ``exclude`` list.
+
+    :param language: Language code (e.g. ``'en'``).
+    :param region: Region code or ``None`` (e.g. ``'US'``).
+    :param encoding: Encoding or ``None`` (e.g. ``'UTF-8'``).
+    :param exclude: Locale codes to skip (already-generated candidates).
+    :return: Sorted list of compatible POSIX locale strings.
+    """
+    lang_len = len(language)
+    lang_terminators = frozenset({POSIX_LANGUAGE_REGION_SEPARATOR, POSIX_LOCALE_ENCODING_SEPARATOR})
+    matches: set[str] = {
+        code for code in _getSystemLocalesAsPosix()
+        if code == language or (
+            code.startswith(language) and
+            code[lang_len] in lang_terminators
+        )
+    }
+    matches.difference_update(exclude)
+
+    def _sortKey(code: str) -> tuple[bool, bool, str]:
+        lang_region = _buildPosixLocale(language, region) if region else language
+        _, _, code_encoding = code.partition(POSIX_LOCALE_ENCODING_SEPARATOR)
+        encoding_match = (code_encoding is None and encoding is None) or \
+                     (code_encoding == (encoding or POSIX_LOCALE_DEFAULT_ENCODING))
+        return (
+            not code.startswith(lang_region),
+            not encoding_match,
+            code
+        )
+
+    return sorted(matches, key=_sortKey)
 
 
 def bcp47LangToPosixLocale(bcp47Lang: str) -> str:
