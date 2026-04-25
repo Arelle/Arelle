@@ -204,37 +204,41 @@ def _getPosixLocaleLangRegionAndEncoding(posixLocale: str) -> tuple[str, str | N
     return language, region or None, encoding or None
 
 
-_locale: str | None = None
-
-
-def getLocale() -> str | None:
-    global _locale
-    if _locale:
-        return _locale
-
-    # Try getting locale language code from system on macOS and Windows before resorting to the less reliable locale.getlocale.
-    systemLocale: str | None = None
+def _getNativeLocale() -> str | None:
+    """
+    Returns the user's locale from the platform-native API, or None if unavailable.
+    On Windows this is a BCP-47 tag (e.g. 'en-GB') from GetUserDefaultLocaleName.
+    On macOS this is the AppleLocale value (e.g. 'en_AU') from defaults.
+    On other platforms returns None (no native API).
+    """
     if sys.platform == "darwin":
-        systemLocale = tryRunCommand("defaults", "read", "-g", "AppleLocale")
+        return tryRunCommand("defaults", "read", "-g", "AppleLocale")
     elif sys.platform == "win32":
         # https://learn.microsoft.com/en-us/windows/win32/api/winnls/nf-winnls-getuserdefaultlocalename
         # https://learn.microsoft.com/en-us/windows/win32/intl/locale-name-constants
         LOCALE_NAME_MAX_LENGTH = 85
         buf = ctypes.create_unicode_buffer(LOCALE_NAME_MAX_LENGTH)
         if ctypes.windll.kernel32.GetUserDefaultLocaleName(buf, LOCALE_NAME_MAX_LENGTH):
-            systemLocale = buf.value
+            return buf.value
+    return None
 
-    if pythonCompatibleLocale := findCompatibleLocale(systemLocale):
-        _locale = pythonCompatibleLocale
+
+@cache
+def getLocale() -> str | None:
+    """
+    Returns the user's locale as a POSIX locale string without encoding (e.g. 'en_US', 'fr_FR').
+    The result is cached after the first call.
+    """
+    if pythonCompatibleLocale := findCompatibleLocale(_getNativeLocale()):
+        return pythonCompatibleLocale
     elif sys.version_info < (3, 12) or (3, 13, 3) <= sys.version_info[:3] <= (3, 13, 4):
         # Using locale.setlocale(...) because getlocale() in Python versions prior to 3.12 incorrectly aliased C.UTF-8 to en_US.UTF-8.
         # https://github.com/python/cpython/issues/74940
         # Similar bug was reintroduced in Python 3.13.3 and fixed in 3.13.5.
         # https://github.com/python/cpython/pull/135347
-        _locale = locale.setlocale(locale.LC_CTYPE).partition(POSIX_LOCALE_ENCODING_SEPARATOR)[0]
+        return locale.setlocale(locale.LC_CTYPE).partition(POSIX_LOCALE_ENCODING_SEPARATOR)[0]
     else:
-        _locale = locale.getlocale()[0]
-    return _locale
+        return locale.getlocale()[0]
 
 
 iso3region = {

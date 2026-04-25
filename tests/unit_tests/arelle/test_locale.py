@@ -1,15 +1,20 @@
 from __future__ import annotations
 from typing import Any
 import locale
+import sys
+from unittest.mock import patch
 import pytest
 from decimal import Decimal
 from arelle.Locale import format_decimal
 from arelle.Locale import getUserLocale
 from arelle.Locale import (
     findCompatibleLocale,
+    _getNativeLocale,
     bcp47LangToPosixLocale,
+    getLocale,
     posixLocaleToBCP47Lang,
 )
+from arelle.XbrlConst import defaultLocale
 import arelle.Locale as LocaleModule
 
 
@@ -192,3 +197,64 @@ class TestFindCompatibleLocale:
         assert result is None
 
 
+class TestGetLocale:
+    def test_returns_cached_value(self, reset_locale) -> None:
+        first = getLocale()
+        assert getLocale.cache_info().currsize == 1
+        second = getLocale()
+        assert getLocale.cache_info().hits >= 1
+        assert first == second
+
+    def test_returns_nonempty_string(self, reset_locale) -> None:
+        result = getLocale()
+        assert result is not None
+        assert len(result) >= 2
+
+    def test_result_is_cached(self, reset_locale) -> None:
+        first = getLocale()
+        second = getLocale()
+        assert first == second
+        assert getLocale.cache_info().hits >= 1
+
+    def test_result_has_no_encoding(self, reset_locale) -> None:
+        result = getLocale()
+        assert '.' not in result, f"Locale should not contain encoding separator: {result}"
+
+    def test_result_is_posix_format(self, reset_locale) -> None:
+        """getLocale always returns POSIX-style locale (underscore separator, no hyphens)."""
+        result = getLocale()
+        assert result is not None
+        if len(result) == 5:
+            assert '_' in result, f"Expected POSIX underscore separator: {result}"
+            assert '-' not in result, f"Unexpected BCP-47 hyphen in: {result}"
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="Windows-only test")
+class TestGetNativeLocaleWindows:
+    def test_returns_bcp47_from_windows_api(self) -> None:
+        """On Windows, _getNativeLocale returns BCP-47 from GetUserDefaultLocaleName."""
+        result = _getNativeLocale()
+        assert result is not None
+        assert len(result) >= 2
+        if len(result) == 5:
+            assert '-' in result, f"Expected BCP-47 hyphen separator: {result}"
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="Windows-only test")
+class TestGetLocaleWindows:
+    def test_returns_posix_locale(self, reset_locale) -> None:
+        """On Windows, getLocale normalizes BCP-47 to POSIX."""
+        result = getLocale()
+        assert result is not None
+        if len(result) == 5:
+            assert '_' in result, f"Expected POSIX underscore separator: {result}"
+            assert '-' not in result, f"Unexpected BCP-47 hyphen in: {result}"
+
+
+@pytest.mark.skipif(sys.platform != "darwin", reason="macOS-only test")
+class TestGetNativeLocaleMacOS:
+    def test_returns_locale(self) -> None:
+        """On macOS, _getNativeLocale returns from defaults read."""
+        result = _getNativeLocale()
+        assert result is not None
+        assert len(result) >= 2
