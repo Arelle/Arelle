@@ -18,13 +18,14 @@ import shutil
 import sys
 import time
 import zlib
+from collections.abc import Callable
 from email.utils import parsedate as email_parsedate
 from http.client import IncompleteRead
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any, NamedTuple
 from urllib import request as proxyhandlers
 from urllib.error import ContentTooShortError, HTTPError, URLError
-from urllib.parse import quote, unquote, urlsplit, urlunsplit
+from urllib.parse import quote, unquote, urlparse, urlsplit, urlunsplit
 
 import regex as re
 
@@ -66,39 +67,63 @@ XBRL_ORG_CACHE_REDIRECTS = {
 }
 
 
-def proxyDirFmt(httpProxyTuple: tuple[bool, str, str, str, str] | list[bool | str] | None) -> dict[str, str] | None:
-    if not isinstance(httpProxyTuple, (tuple, list)) or len(httpProxyTuple) != 5:
-        return None # use system proxy
+class ProxyTuple(NamedTuple):
+    useOsProxy: bool
+    urlAddr: str | None = None
+    urlPort: str | None = None
+    user: str | None = None
+    password: str | None = None
 
-    useOsProxy, urlAddr, urlPort, user, password = httpProxyTuple
-    if useOsProxy:
+    @classmethod
+    def coerce(cls, value: Any) -> ProxyTuple | None:
+        if value is None:
+            return None
+        if isinstance(value, cls):
+            return value
+        # Config persists proxy settings as JSON, so they come back as a 5-element list.
+        if isinstance(value, (tuple, list)) and len(value) == 5:
+            return cls(*value)
         return None
 
-    elif urlAddr:
-        if user and password:
-            userPart = "{0}:{1}@".format(user, password)
-        else:
-            userPart = ""
-        if urlPort:
-            portPart = ":{0}".format(urlPort)
-        else:
-            portPart = ""
-        return {"http": "http://{0}{1}{2}".format(userPart, urlAddr, portPart)}
-
-    return {}  # block use of any proxy
+    @property
+    def authority(self) -> str:
+        parts = ""
+        if self.user and self.password:
+            parts += f"{self.user}:{self.password}@"
+        if self.urlAddr:
+            parts += self.urlAddr
+        if self.urlPort:
+            parts += f":{self.urlPort}"
+        return parts
 
 
-def proxyTuple(url: str) -> tuple[bool, str, str, str, str]: # system, none, or http:[user[:passowrd]@]host[:port]
+def proxyDirFmt(httpProxyTuple: ProxyTuple | None) -> dict[str, str] | None:
+    if httpProxyTuple is None or httpProxyTuple.useOsProxy:
+        # let ProxyHandler fall back to OS / environment proxy
+        return None
+    if not httpProxyTuple.urlAddr:
+        # block use of any proxy
+        return {}
+    proxyUrl = f"http://{httpProxyTuple.authority}"
+    return {"http": proxyUrl, "https": proxyUrl}
+
+
+def proxyTuple(url: str) -> ProxyTuple: # system, none, or [scheme://][user[:password]@]host[:port]
     if url == "none":
-        return False, "", "", "", ""
-
-    elif url == "system":
-        return True, "", "", "", ""
-
-    userpwd, sep, hostport = url.rpartition("://")[2].rpartition("@")
-    urlAddr, sep, urlPort = hostport.partition(":")
-    user, sep, password = userpwd.partition(":")
-    return False, urlAddr, urlPort, user, password
+        return ProxyTuple(useOsProxy=False)
+    if url == "system":
+        return ProxyTuple(useOsProxy=True)
+    # urlparse needs a scheme to recognize user:password@host:port.
+    if "://" not in url:
+        url = "http://" + url
+    parsed = urlparse(url)
+    return ProxyTuple(
+        useOsProxy=False,
+        urlAddr=parsed.hostname,
+        urlPort=str(parsed.port) if parsed.port else None,
+        user=parsed.username,
+        password=parsed.password,
+    )
 
 
 def lastModifiedTime(headers: dict[str, str]) -> float | None:
@@ -116,10 +141,14 @@ class WebCache:
 
     def __init__(
         self, cntlr: Cntlr,
-        httpProxyTuple: tuple[bool, str, str, str, str] | None
+        httpProxyTuple: ProxyTuple | None
     ) -> None:
 
         self.cntlr = cntlr
+        # WebCache is constructed inside Cntlr.__init__, so cntlr is a live object but its
+        # attributes are only assigned as __init__ progresses. WebCache uses plugin hooks, so
+        # cntlr.plugins must already be assigned.
+        assert hasattr(cntlr, "plugins"), "cntlr.plugins must be assigned"
         self._timeout: float | int | None = None
 
         self._noCertificateCheck: bool = False
@@ -241,34 +270,32 @@ class WebCache:
     def redirectFallback(self, matchPattern: re.Pattern[str], replaceFormat: str) -> None:
         self._redirectFallbackMap[matchPattern] = replaceFormat
 
-    def resetProxies(self, httpProxyTuple: tuple[bool, str, str, str, str] | list[bool | str] | None) -> None:
+    def resetProxies(self, httpProxyTuple: ProxyTuple | None) -> None:
         # for ntlm user and password are required
         self.hasNTLM = False
-        self._httpProxyTuple = httpProxyTuple # save for resetting in noCertificateCheck setter
-        if isinstance(httpProxyTuple,(tuple, list)) and len(httpProxyTuple) == 5:
-            useOsProxy, _urlAddr, _urlPort, user, password = httpProxyTuple
-            _proxyDirFmt = proxyDirFmt(httpProxyTuple)
-            # only try ntlm if user and password are provided because passman is needed
-            if user and not useOsProxy:
-                for pluginXbrlMethod in self.cntlr.plugins.hooks("Proxy.HTTPAuthenticate"):
-                    pluginXbrlMethod(self.cntlr)
+        # save for resetting in noCertificateCheck setter
+        self._httpProxyTuple = httpProxyTuple
+        if httpProxyTuple is not None and httpProxyTuple.user and not httpProxyTuple.useOsProxy:
+            for pluginXbrlMethod in self.cntlr.plugins.hooks("Proxy.HTTPAuthenticate"):
+                pluginXbrlMethod(self.cntlr)
 
-                for pluginXbrlMethod in self.cntlr.plugins.hooks("Proxy.HTTPNtlmAuthHandler"):
-                    HTTPNtlmAuthHandler = pluginXbrlMethod()
-                    if HTTPNtlmAuthHandler is not None:
-                        self.hasNTLM = True
+            for pluginXbrlMethod in self.cntlr.plugins.hooks("Proxy.HTTPNtlmAuthHandler"):
+                HTTPNtlmAuthHandler = pluginXbrlMethod()
+                if HTTPNtlmAuthHandler is not None:
+                    self.hasNTLM = True
 
-                if not self.hasNTLM: # try for python site-packages ntlm
-                    try:
-                        from ntlm import HTTPNtlmAuthHandler # type: ignore[import-not-found,no-redef]
-                        self.hasNTLM = True
-                    except ImportError:
-                        pass
+            if not self.hasNTLM: # try for python site-packages ntlm
+                try:
+                    from ntlm import HTTPNtlmAuthHandler # type: ignore[import-not-found,no-redef]
+                    self.hasNTLM = True
+                except ImportError:
+                    pass
 
             if self.hasNTLM:
-                pwrdmgr = proxyhandlers.HTTPPasswordMgrWithDefaultRealm()
+                _proxyDirFmt = proxyDirFmt(httpProxyTuple)
                 assert _proxyDirFmt is not None
-                pwrdmgr.add_password(None, _proxyDirFmt["http"], str(user), str(password))
+                pwrdmgr = proxyhandlers.HTTPPasswordMgrWithDefaultRealm()
+                pwrdmgr.add_password(None, _proxyDirFmt["http"], httpProxyTuple.user or "", httpProxyTuple.password or "")
                 self.proxy_handler = proxyhandlers.ProxyHandler({})
                 self.proxy_auth_handler = proxyhandlers.ProxyBasicAuthHandler(pwrdmgr)
                 self.http_auth_handler = proxyhandlers.HTTPBasicAuthHandler(pwrdmgr)
