@@ -2,18 +2,22 @@
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
-#import xml.sax, xml.sax.handler
-from lxml.etree import XML, DTD, SubElement, _ElementTree, _Comment, _ProcessingInstruction, _Entity, XMLSyntaxError, XMLParser
+
+from lxml.etree import XML, DTD, SubElement, _ElementTree, _Comment, _ProcessingInstruction, _Entity, XMLSyntaxError, XMLParser, _Element
 from dataclasses import dataclass
 from PIL import Image as pilImage
-import os, io, base64
+import os, io, binascii
 import regex as re
 import string
 from arelle.PythonUtil import isLegacyAbs
 from arelle.XbrlConst import ixbrlAll, xhtml
-from arelle.XmlUtil import setXmlns, xmlstring, xmlDeclarationPattern, XmlDeclarationLocationException
+from arelle.XmlUtil import xmlDeclarationPattern, XmlDeclarationLocationException
 from arelle.ModelObject import ModelObject
 from arelle.UrlUtil import decodeBase64DataImage, isExternalUrl, isHttpUrl, scheme
+from arelle.typing import TypeGetText
+from arelle.ModelXbrl import ModelXbrl
+
+_: TypeGetText
 
 XMLpattern = re.compile(r".*(<|&lt;|&#x3C;|&#60;)[A-Za-z_]+[A-Za-z0-9_:]*[^>]*(/>|>|&gt;|/&gt;).*", re.DOTALL)
 CDATApattern = re.compile(r"<!\[CDATA\[(.+)\]\]")
@@ -37,8 +41,8 @@ inlineSelfClosedElementPattern = re.compile(r"<(?P<element>([\w.-]+:)?(?P<localN
 # <img src="data:image;base64,iVBOR...
 imgDataMediaBase64Pattern = re.compile(r"data:image(?:/(?P<mimeSubtype>[^,;]*))?(?P<base64>;base64)?,(?P<data>.*)$", re.S)
 
-edbodyDTD = None
-isInlineDTD = None
+edbodyDTD: DTD | None = None
+isInlineDTD: bool | None = None
 
 ''' replace with lxml DTD validation
 bodyTags = {
@@ -415,38 +419,38 @@ elementsWithNoContent = {
     }
 
 
-ModelDocumentTypeINLINEXBRL = None
-ModelDocumentTypeINLINEXBRLDOCUMENTSET = None
-def initModelDocumentTypeReferences():
+ModelDocumentTypeINLINEXBRL: int | None = None
+ModelDocumentTypeINLINEXBRLDOCUMENTSET: int | None = None
+def initModelDocumentTypeReferences() -> None:
     global ModelDocumentTypeINLINEXBRL, ModelDocumentTypeINLINEXBRLDOCUMENTSET
     if ModelDocumentTypeINLINEXBRL is None:
         from arelle.ModelDocument import Type
         ModelDocumentTypeINLINEXBRL = Type.INLINEXBRL
         ModelDocumentTypeINLINEXBRLDOCUMENTSET = Type.INLINEXBRLDOCUMENTSET
 
-def checkfile(modelXbrl, filepath):
-    result = []
+def checkfile(modelXbrl: ModelXbrl, filepath: str) -> tuple[io.StringIO, str | None]:
+    result: list[str] = []
     lineNum = 1
     foundXmlDeclaration = False
     validateEntryText = modelXbrl.modelManager.disclosureSystem.validateEntryText
-    file, encoding = modelXbrl.fileSource.file(filepath)
+    file, encoding = modelXbrl.fileSource.file(filepath)  # type: ignore[misc]
     if validateEntryText and encoding == "utf-8-sig":
         modelXbrl.error(("EFM.5.02.01.01", "FERC.5.02.01.01"),
             _("Disallowed byte-order mark in file %(file)s."),
             modelDocument=filepath, text="byte-order mark", unicodeIndex="U+FEFF", file=os.path.basename(filepath), line=1, column=1)
-    parserResults = {}
-    class checkFileType(object):
-        def start(self, tag, attr, nsmap=None): # check root XML element type
+    parserResults: dict[str, bool] = {}
+    class checkFileType:
+        def start(self, tag: str, attr: dict[str, str], nsmap: dict[str, str] | None = None) -> None:  # check root XML element type
             parserResults["rootIsTestcase"] = tag.rpartition("}")[2] in ("testcases", "documentation", "testSuite", "testcase", "testSet")
             if tag in ("{http://www.w3.org/1999/xhtml}html", "{http://www.w3.org/1999/xhtml}xhtml"):
                 if nsmap and any(ns in ixbrlAll for ns in nsmap.values()):
                     parserResults["isInline"] = True
                 else:
                     parserResults["maybeInline"] = True
-        def end(self, tag): pass
-        def data(self, data): pass
-        def close(self): pass
-    _parser = XMLParser(recover=True, huge_tree=True, target=checkFileType())
+        def end(self, tag: str) -> None: pass
+        def data(self, data: str) -> None: pass
+        def close(self) -> None: pass
+    _parser: XMLParser[_Element] | None = XMLParser(recover=True, huge_tree=True, target=checkFileType())  # type: ignore[call-overload]
     _isTestcase = False
     mayBeInline = isInline = False
 
@@ -505,21 +509,22 @@ def checkfile(modelXbrl, filepath):
                                           modelDocument=filepath, element=match.group('element'), file=os.path.basename(filepath), line=lineNum, column=match.start())
             result.append(line)
             lineNum += 1
-    result = ''.join(result)
+    resultStr = ''.join(result)
     if not foundXmlDeclaration: # may be multiline, try again
-        xmlDeclarationMatch = xmlDeclarationPattern.match(result)
+        xmlDeclarationMatch = xmlDeclarationPattern.match(resultStr)
         if xmlDeclarationMatch: # remove it for lxml
             if xmlDeclarationMatch.group(1) is not None:
                 raise XmlDeclarationLocationException
             start,end = xmlDeclarationMatch.span(2)
-            result = result[0:start] + result[end:]
+            resultStr = resultStr[0:start] + resultStr[end:]
             foundXmlDeclaration = True
 
-    return (io.StringIO(initial_value=result), encoding)
+    return io.StringIO(initial_value=resultStr), encoding
 
-def loadDTD(modelXbrl):
+def loadDTD(modelXbrl: ModelXbrl) -> None:
     global edbodyDTD, isInlineDTD
     initModelDocumentTypeReferences()
+    assert modelXbrl.modelDocument is not None
     _isInline = modelXbrl.modelDocument.type == ModelDocumentTypeINLINEXBRL
     if isInlineDTD is None or isInlineDTD != _isInline:
         isInlineDTD = _isInline
@@ -527,7 +532,7 @@ def loadDTD(modelXbrl):
                                "xhtml1-strict-ix.dtd" if _isInline else "edbody.dtd")) as fh:
             edbodyDTD = DTD(fh)
 
-def removeEntities(text):
+def removeEntities(text: str) -> str:
     ''' ARELLE-128
     entitylessText = []
     findAt = 0
@@ -543,8 +548,7 @@ def removeEntities(text):
     '''
     return namedEntityPattern.sub("", text).replace('&','&amp;')
 
-def validateTextBlockFacts(modelXbrl):
-    #handler = TextBlockHandler(modelXbrl)
+def validateTextBlockFacts(modelXbrl: ModelXbrl) -> None:
     loadDTD(modelXbrl)
     checkedGraphicsFiles = set() #  only check any graphics file reference once per fact
     allowedExternalHrefPattern = modelXbrl.modelManager.disclosureSystem.allowedExternalHrefPattern
@@ -591,7 +595,8 @@ def validateTextBlockFacts(modelXbrl):
                 xmlBodyWithoutEntities = htmlBodyTemplate.format(removeEntities(xmltext))
                 try:
                     textblockXml = XML(xmlBodyWithoutEntities)
-                    if not edbodyDTD.validate( textblockXml ):
+                    assert edbodyDTD is not None, "edbodyDTD must be set"
+                    if not edbodyDTD.validate(textblockXml):
                         errors = edbodyDTD.error_log.filter_from_errors()
                         htmlError = any(e.type_name in ("DTD_INVALID_CHILD", "DTD_UNKNOWN_ATTRIBUTE")
                                         for e in errors)
@@ -608,16 +613,16 @@ def validateTextBlockFacts(modelXbrl):
                             continue # comment or other non-parsed element
                         else:
                             eltTag = elt.tag
-                            if eltTag.startswith(_xhtmlNs):
+                            if isinstance(eltTag, str) and eltTag.startswith(_xhtmlNs):
                                 eltTag = eltTag[_xhtmlNsLen:]
-                        if isInlineDTD and eltTag in efmBlockedInlineHtmlElements:
+                        if isInlineDTD and isinstance(eltTag, str) and eltTag in efmBlockedInlineHtmlElements:
                             modelXbrl.error(("EFM.5.02.05.disallowedElement", "FERC.5.02.05.disallowedElement"),
                                 _("%(validatedObjectLabel)s has disallowed element <%(element)s>"),
                                 modelObject=elt, validatedObjectLabel=f1.qname,
                                 element=eltTag)
                         for attrTag, attrValue in elt.items():
                             if isInlineDTD:
-                                if attrTag in efmBlockedInlineHtmlElementAttributes.get(eltTag,()):
+                                if isinstance(eltTag, str) and attrTag in efmBlockedInlineHtmlElementAttributes.get(eltTag,()):
                                     modelXbrl.error(("EFM.5.02.05.disallowedAttribute", "FERC.5.02.05.disallowedAttribute"),
                                         _("%(validatedObjectLabel)s has disallowed attribute on element <%(element)s>: %(attribute)s=\"%(value)s\""),
                                         modelObject=elt, validatedObjectLabel=f1.qname,
@@ -648,7 +653,7 @@ def validateTextBlockFacts(modelXbrl):
                                                     _("Fact %(fact)s of context %(contextID)s references a graphics data URL which isn't accepted or valid '%(attribute)s' for <%(element)s>"),
                                                     modelObject=f1, fact=f1.qname, contextID=f1.contextID,
                                                     attribute=attrValue[:32], element=eltTag)
-                                        except base64.binascii.Error as err:
+                                        except binascii.Error as err:
                                             modelXbrl.error(("EFM.6.05.16.graphicDataEncodingError", "FERC.6.05.16.graphicDataEncodingError"),
                                                 _("Fact %(fact)s of context %(contextID)s Base64 encoding error %(err)s in <%(element)s>"),
                                                 modelObject=f1, fact=f1.qname, contextID=f1.contextID, err=err,
@@ -685,10 +690,8 @@ def validateTextBlockFacts(modelXbrl):
 
                 checkedGraphicsFiles.clear()
 
-            #handler.fact = None
-                #handler.modelXbrl = None
 
-def copyHtml(sourceXml, targetHtml):
+def copyHtml(sourceXml: _Element, targetHtml: _Element) -> None:
     for sourceChild in sourceXml.iterchildren():
         if isinstance(sourceChild, ModelObject):
             targetChild = SubElement(targetHtml,
@@ -697,11 +700,12 @@ def copyHtml(sourceXml, targetHtml):
                 targetChild.set("lang" if attrTag == "{http://www.w3.org/XML/1998/namespace}lang" else attrTag, attrValue)
             copyHtml(sourceChild, targetChild)
 
-def validateFootnote(modelXbrl, footnote):
+def validateFootnote(modelXbrl: ModelXbrl, footnote: ModelObject) -> None:
     #handler = TextBlockHandler(modelXbrl)
     loadDTD(modelXbrl)
     validatedObjectLabel = _("Footnote {}").format(footnote.get("{http://www.w3.org/1999/xlink}label"))
 
+    assert edbodyDTD is not None, "edbodyDTD must be set"
     try:
         footnoteHtml = XML("<body/>")
         copyHtml(footnote, footnoteHtml) # convert from xhtml to html (with no prefixes) for DTD validation
@@ -710,7 +714,7 @@ def validateFootnote(modelXbrl, footnote):
                 _("%(validatedObjectLabel)s causes the XML error %(error)s"),
                 modelObject=footnote, validatedObjectLabel=validatedObjectLabel,
                 error=', '.join(e.message for e in edbodyDTD.error_log.filter_from_errors()))
-        validateHtmlContent(modelXbrl, footnote, footnoteHtml, validatedObjectLabel, modelXbrl.modelManager.disclosureSystem.validationType + ".6.05.34.")
+        validateHtmlContent(modelXbrl, footnote, footnoteHtml, validatedObjectLabel, (modelXbrl.modelManager.disclosureSystem.validationType or "") + ".6.05.34.")
     except (XMLSyntaxError,
             UnicodeDecodeError) as err:
         #if not err.endswith("undefined entity"):
@@ -719,7 +723,7 @@ def validateFootnote(modelXbrl, footnote):
             modelObject=footnote, validatedObjectLabel=validatedObjectLabel,
             error=edbodyDTD.error_log.filter_from_errors())
 
-def validateHtmlContent(modelXbrl, referenceElt, htmlEltTree, validatedObjectLabel, messageCodePrefix, isInline=False):
+def validateHtmlContent(modelXbrl: ModelXbrl, referenceElt: ModelObject, htmlEltTree: _Element, validatedObjectLabel: str, messageCodePrefix: str, isInline: bool = False) -> None:
     checkedGraphicsFiles = set() # only check any graphics file reference once per footnote
     _xhtmlNs = "{{{}}}".format(xhtml)
     _xhtmlNsLen = len(_xhtmlNs)
@@ -729,11 +733,11 @@ def validateHtmlContent(modelXbrl, referenceElt, htmlEltTree, validatedObjectLab
     allowedImageTypes = modelXbrl.modelManager.disclosureSystem.allowedImageTypes
     for elt in htmlEltTree.iter():
         if isinstance(elt, ModelObject) and elt.namespaceURI == xhtml:
-            eltTag = elt.localName
+            eltTag: str = elt.localName
         elif isinstance(elt, (_ElementTree, _Comment, _ProcessingInstruction, _Entity)):
             continue # comment or other non-parsed element
         else:
-            eltTag = elt.tag
+            eltTag = elt.tag  # type: ignore[assignment]
             if eltTag.startswith(_xhtmlNs):
                 eltTag = eltTag[_xhtmlNsLen:]
         if isInline:
@@ -745,7 +749,7 @@ def validateHtmlContent(modelXbrl, referenceElt, htmlEltTree, validatedObjectLab
             if eltTag == "a" and "href" not in elt.keys() and any(a.tag not in _anchorAncestorTags for a in elt.iterancestors()):
                 modelXbrl.warning(("EFM.5.02.05.anchorElementPosition", "FERC.5.02.05.anchorElementPosition"),
                     _("If element <a> does not have attribute @href, it should not have any ancestors other than html, body, or div.  Disallowed ancestors: %(disallowedAncestors)s"),
-                    modelObject=elt, disallowedAncestors=", ".join(a.tag.rpartition('}')[2] for a in elt.iterancestors() if a.tag not in _anchorAncestorTags))
+                    modelObject=elt, disallowedAncestors=", ".join(str(a.tag).rpartition('}')[2] for a in elt.iterancestors() if a.tag not in _anchorAncestorTags))
         for attrTag, attrValue in elt.items():
             if isInline:
                 if attrTag in efmBlockedInlineHtmlElementAttributes.get(eltTag,()):
@@ -791,7 +795,7 @@ def validateHtmlContent(modelXbrl, referenceElt, htmlEltTree, validatedObjectLab
                                     _("%(validatedObjectLabel)s references a graphics data URL which isn't accepted '%(attribute)s' for <%(element)s>"),
                                     modelObject=elt, validatedObjectLabel=validatedObjectLabel,
                                     attribute=attrValue[:32], element=eltTag)
-                        except base64.binascii.Error as err:
+                        except binascii.Error as err:
                             modelXbrl.error(messageCodePrefix + "graphicDataEncodingError",
                                     _("%(validatedObjectLabel)s references a graphics data URL with Base64 encoding error %(err)s in <%(element)s>"),
                                     modelObject=elt, validatedObjectLabel=validatedObjectLabel,
@@ -979,8 +983,9 @@ def validateGraphicHeaderType(data: bytes) -> str:
     else:
         return "unrecognized"
 
-def validateGraphicFile(elt, graphicFile, checkIfAnimated=False):
+def validateGraphicFile(elt: ModelObject, graphicFile: str, checkIfAnimated: bool = False) -> str | None:
     base = elt.modelDocument.baseForElement(elt)
+    assert elt.modelXbrl is not None, "ModelXbrl not initialized"
     normalizedUri = elt.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(graphicFile, base)
     if not elt.modelXbrl.fileSource.isInArchive(normalizedUri):
         normalizedUri = elt.modelXbrl.modelManager.cntlr.webCache.getfilename(normalizedUri)
@@ -989,20 +994,20 @@ def validateGraphicFile(elt, graphicFile, checkIfAnimated=False):
     hdrType = None
     if normalizedUri: # may be None if file doesn't exist
         with elt.modelXbrl.fileSource.file(normalizedUri,binary=True)[0] as fh:
-            hdrType = validateGraphicHeaderType(fh.read(11))
+            hdrType = validateGraphicHeaderType(fh.read(11))  # type: ignore[arg-type]
             if checkIfAnimated and hdrType == "gif": # check if animated
                 fh.seek(0) # position at start of file
-                with pilImage.open(fh) as img:
+                with pilImage.open(fh) as img:  # type: ignore[arg-type]
                     if getattr(img, "is_animated", False):
                         hdrType = "gif-animated"
     return hdrType
 
-def referencedFiles(modelXbrl, localFilesOnly=True):
+def referencedFiles(modelXbrl: ModelXbrl, localFilesOnly: bool = True) -> set[str]:
     initModelDocumentTypeReferences()
     _parser = XMLParser(resolve_entities=False, remove_comments=True, remove_pis=True, huge_tree=True, recover=True)
-    referencedFiles = set()
+    referencedFiles: set[str] = set()
     # add referenced files that are html-referenced image and other files
-    def addReferencedFile(docElt, elt):
+    def addReferencedFile(docElt: ModelObject, elt: _Element) -> None:
         if elt.tag in ("a", "img", "{http://www.w3.org/1999/xhtml}a", "{http://www.w3.org/1999/xhtml}img"):
             for attrTag, attrValue in elt.items():
                 if (attrTag in ("href", "src") and
@@ -1011,6 +1016,7 @@ def referencedFiles(modelXbrl, localFilesOnly=True):
                         (not isHttpUrl(attrValue) and not isLegacyAbs(attrValue)))):
                     attrValue = attrValue.partition('#')[0].strip() # remove anchor
                     if attrValue not in ("", "."): # ignore anchor references to base document
+                        assert docElt.modelXbrl is not None, "ModelXbrl not initialized"
                         base = docElt.modelDocument.baseForElement(docElt)
                         normalizedUri = docElt.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(attrValue, base)
                         if not docElt.modelXbrl.fileSource.isInArchive(normalizedUri):
@@ -1028,6 +1034,7 @@ def referencedFiles(modelXbrl, localFilesOnly=True):
                 except (XMLSyntaxError, UnicodeDecodeError):
                     pass  # TODO: Why ignore UnicodeDecodeError?
     # footnote or other elements
+    assert modelXbrl.modelDocument is not None, "ModelDocument not initialized"
     if modelXbrl.modelDocument.type == ModelDocumentTypeINLINEXBRLDOCUMENTSET:
         xbrlInstRoots = modelXbrl.ixdsHtmlElements
     else:
