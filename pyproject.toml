@@ -165,7 +165,6 @@ module = [
     'arelle.DisclosureSystem',
     'arelle.HashUtil',
     'arelle.InstanceAspectsEvaluator',
-    'arelle.LocalViewer',
     'arelle.ModelDtsObject',
     'arelle.ModelFormulaObject',
     'arelle.ModelInstanceObject',
