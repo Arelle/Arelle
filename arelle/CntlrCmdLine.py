@@ -92,11 +92,21 @@ def main() -> None:
     args = shlex.split(envArgs) if envArgs else sys.argv[1:]
     setApplicationLocale()
     gettext.install("arelle")
+    webserver_warning(args)
     cntlr, options, result = _parseAndRun(args)
 
     if options.validationExitCode and not result:
         sys.exit(3)
 
+def webserver_warning(args):
+    if '--webserver' in args or '--webserver' in ','.join(args):
+        print(
+            _("WARNING: Arelle's built-in webserver performs no authentication and must only be "
+            "reachable by trusted users. It can read arbitrary files from this host and load "
+            "plug-ins on request. Do not expose it to untrusted users or networks. "
+            "See docs/webserver_security.md."),
+            file=sys.stderr,
+        )
 
 def wsgiApplication(extraArgs: list[str] | None = None) -> CntlrCmdLine:  # for example call wsgiApplication(["--plugins=EDGAR/render"])
     if extraArgs is None:
