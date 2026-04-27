@@ -179,18 +179,18 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
         def checkFootnote(elt: ModelInlineFootnote | ModelResource, text: str) -> None:
             if text: # non-empty footnote must be linked to a fact if not empty
                 if not any(isinstance(rel.fromModelObject, ModelFact)
-                           for rel in footnotesRelationshipSet.toModelObject(elt)):  # type: ignore[arg-type]
+                           for rel in footnotesRelationshipSet.toModelObject(elt)):
                     orphanedFootnotes.add(elt)
             lang = elt.xmlLang
             if not lang:
                 noLangFootnotes.add(elt)
             else:
-                for rel in footnotesRelationshipSet.toModelObject(elt):  # type: ignore[arg-type]
+                for rel in footnotesRelationshipSet.toModelObject(elt):
                     if rel.fromModelObject is not None:
                         factLangFootnotes[rel.fromModelObject].add(lang)
             if elt.role != XbrlConst.footnote or not all(
                 rel.arcrole == XbrlConst.factFootnote and rel.linkrole == XbrlConst.defaultLinkRole
-                for rel in footnotesRelationshipSet.toModelObject(elt)):  # type: ignore[arg-type]
+                for rel in footnotesRelationshipSet.toModelObject(elt)):
                 footnoteRoleErrors.add(elt)
 
         # check file name of each inline document (which might be below a top-level IXDS)

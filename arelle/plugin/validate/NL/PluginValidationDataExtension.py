@@ -262,12 +262,12 @@ class PluginValidationDataExtension(PluginData):
             for elt in ixdsHtmlRootElt.iterdescendants(ixFootnoteTag, ixFractionTag, ixTupleTag):
                 if isinstance(elt, ModelInlineFootnote):
                     if not any(isinstance(rel.fromModelObject, ModelFact)
-                                for rel in footnotesRelationshipSet.toModelObject(elt)):  # type: ignore[arg-type]
+                                for rel in footnotesRelationshipSet.toModelObject(elt)):
                         orphanedFootnotes.add(elt)
                     if elt.xmlLang not in factLangs:
                         noMatchLangFootnotes.add(elt)
                     if elt.xmlLang is not None:
-                        for rel in footnotesRelationshipSet.toModelObject(elt):  # type: ignore[arg-type]
+                        for rel in footnotesRelationshipSet.toModelObject(elt):
                             if rel.fromModelObject is not None:
                                 fromObj = cast(ModelObject, rel.fromModelObject)
                                 lang = cast(str, elt.xmlLang)

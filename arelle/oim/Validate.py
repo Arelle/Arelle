@@ -132,7 +132,7 @@ def validateOIM(modelXbrl: ModelXbrl) -> None:
         # todo: multi-document inline instances
         for elt in modelDocument.xmlRootElement.iter(XbrlConst.qnLinkFootnote.clarkNotation, XbrlConst.qnIXbrl11Footnote.clarkNotation):
             if isinstance(elt, ModelResource) and getattr(elt, "xValid", 0) >= VALID:
-                if not footnoteRels.toModelObject(elt):  # type: ignore[arg-type]
+                if not footnoteRels.toModelObject(elt):
                     errorValue = elt.xValue[:100] if isinstance(elt.xValue, str) else elt.xValue
                     modelXbrl.error("xbrlxe:unlinkedFootnoteResource",
                                     _("Unlinked footnote element %(label)s: %(value)s"),
