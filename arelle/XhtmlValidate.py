@@ -87,10 +87,11 @@ def ixMsgCode(
     return "{}:{}".format(ixSect[ns].get(name,"other")[sect], codeName)  # type: ignore[index]
 
 def xhtmlValidate(modelXbrl: ModelXbrl, elt: ModelObject) -> None:
-    from lxml.etree import XMLSyntaxError
     validateEntryText = modelXbrl.modelManager.disclosureSystem.validateEntryText
     if validateEntryText:
-        valHtmlContentMsgPrefix = cast(str, modelXbrl.modelManager.disclosureSystem.validationType) + ".5.02.05."
+        validationType = modelXbrl.modelManager.disclosureSystem.validationType
+        assert validationType is not None, "If 'validateEntryText' is set, 'validationType' must also be set"
+        valHtmlContentMsgPrefix = validationType + ".5.02.05."
 
     inlineSchema = INLINE_1_1_SCHEMA
     if containsNamespacedElements(elt, XbrlConst.ixbrl) and not containsNamespacedElements(elt, XbrlConst.ixbrl11):
