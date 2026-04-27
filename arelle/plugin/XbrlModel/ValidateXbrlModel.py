@@ -1278,7 +1278,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
         assertObjectType(compMdl, tblTmpl, XbrlTableTemplate)
 
         for dim in tblTmpl.factDimensions:
-            if dim.startswith('$'):
+            if dim.localName.startswith('$'):
                 colName = dim[1:]
                 if colName not in tblTmpl.columns:
                     compMdl.error("oimte:tableTemplateDimensionColumnReference",

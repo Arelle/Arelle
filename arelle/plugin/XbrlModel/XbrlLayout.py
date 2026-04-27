@@ -84,7 +84,7 @@ class XbrlDataTable(XbrlReferencableModelObject):
     xAxis: XbrlAxis # (required) An axis object that identifies an ordered set of axis and the behaviour of the dimension when mapped to the X axis of the table.
     yAxis: XbrlAxis # (required) An axis object that identifies an ordered set of axis and the behaviour of the dimension when mapped to the Y axis of the table.
     zAxis: Optional[XbrlAxis] # (optional) An axis object that identifies an ordered set of axis and the behaviour of the dimension when mapped to the Z axis of the table.
-    tablePoints: Optional[XbrlTablePoint] # (optional) Array of tablePoint objects that map dimension member pairs to specific grid cells.
+    tablePoints: OrderedSet[XbrlTablePoint] # (optional) Array of tablePoint objects that map dimension member pairs to specific grid cells.
 
 class XbrlLayout(XbrlModelObject):
     txmyMdl: XbrlModuleType

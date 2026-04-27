@@ -70,6 +70,7 @@ class XbrlFootnote(XbrlReportObject):
     """
     parent: Union[XbrlReportType,XbrlModuleType]  # facts in taxonomy module are owned by the txmyMdl
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the abstract object.
+    relatedNames: OrderedSet[QName] # (required) QNames of the fact objects associated with this footnote.
     content: Optional[str] # (required) The content of the footnote.
     language: Optional[str] # ((optional) The language of the footnote text, specified using the BCP 47 standard language code (e.g., "en" for English, "fr" for French).
 
@@ -139,12 +140,14 @@ class XbrlJSONTemplateMap(XbrlReportObject):
         Reference: oim-taxonomy#jsontemplatemap-object
     """
     parent: Union[XbrlReportType,XbrlModuleType]  # table templates in taxonomy module are owned by the txmyMdl
+    name: Optional[QNameKeyType] # (optional) The QName that identifies the JSON template map object.
     factDimensions: dict[QName, Any] # (required) A factDimensions object that defines map dimensions.
     valuePath: str # (required) A JSONPath expression that identifies the location of the fact values in the JSON data.
     decimals: Optional[int] # (optional) A decimals value.
 
 class XbrlXMLTemplateMap(XbrlReportObject):
     parent: Union[XbrlReportType,XbrlModuleType]  # table templates in taxonomy module are owned by the txmyMdl
+    name: QNameKeyType # (required) The QName that identifies the XML template map object.
     factDimensions: dict[QName, Any] # (required) A factDimensions object that defines map dimensions.
     valuePath: str # (required) A JSONPath expression that identifies the location of the fact values in the JSON data.
     decimals: Optional[int] # (optional) A decimals value.
@@ -153,7 +156,6 @@ class XbrlXMLTemplateMap(XbrlReportObject):
 class XbrlFactMap(XbrlReportObject):
     parent: Union[XbrlReportType,XbrlModuleType]  # table templates in taxonomy module are owned by the txmyMdl
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the fact map object.
-    cubeName: Optional[QName] # (optional) A QName that references a cube object defined in the taxonomy model. If provided, the fact map object only applies to the facts with this cube. If not provided, the fact map object applies to all facts in the report.
     templateName: Optional[QName] # (optional) A QName that references a tableTemplate, jsonTemplateMap or xmlTemplateMap object defined in the taxonomy model. If provided, the fact map object only applies to the facts with this template. If not provided, the fact map object applies to all facts in the report.
 
 class XbrlReport(XbrlReportObject):

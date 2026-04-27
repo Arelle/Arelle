@@ -120,7 +120,8 @@
                         {
                         "type": "typed",
                         "dataType": "xs:token",
-                        "minDimensions" : 1
+                        "minDimensions" : 1,
+                        "maxDimensions" : 1
                         }
                     ],
                     "closed" : true
@@ -130,6 +131,7 @@
                         "cubeNetworks": [
                              {
                                 "relationshipType": "xbrl:concept-refDimension",
+                                 "minNetworks" : 1,
                                 "source": {
                                     "dataType": "xs:dateTime"
                                 },

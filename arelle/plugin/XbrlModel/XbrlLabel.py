@@ -21,7 +21,6 @@ class XbrlLabel(XbrlTaxonomyTagObject):
     labelType: QName # (required) A QName representing the label type of the label. This can be a taxonomy defined label type or a standard XBRL label type defined in specification.
     language: str # (required) Defines the language of the label using a valid BCP 47 [BCP47] language code.
     value: str # (required) The text of the label.
-    properties: OrderedSet[XbrlProperty] # (optional) ordered set of property objects used to specify additional properties associated with the concept using the property object. Only immutable properties as defined in the propertyType object can be added to a concept.
 
     @property
     def _type(self):
