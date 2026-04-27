@@ -38,6 +38,14 @@ class XbrlModelType(XbrlReferencableModelObject):
     allowedProperties: OptionalNonemptySet[QName] # (optional) Defines a set of property QNames that can be used with the model type. If no value is provided then any property can be used with the model type.
     requiredProperties: OptionalNonemptySet[QName] # (optional) Defines a set of property QNames that must be properties of the xbrl:xbrlModelObject. The set MUST NOT be empty.
 
+class XbrlNamespacePrefix(XbrlReferencableModelObject):
+    """ Namespace Prefix Object
+        Reference: oim-taxonomy#namespaceprefix-object
+    """
+    module: XbrlModuleType
+    namespace: AnyURI # (required) The namespace URI for which preferred prefixes are being declared.
+    preferredPrefixes: OrderedSet[str] # (required) An ordered set of preferred prefix strings for the namespace. Each value MUST be a valid xs:NCName. The first item is the most preferred prefix. Values MUST be unique within the set.
+
 class XbrlModule(XbrlModelObject):
     """ XBRL Module Object
         Reference: oim-taxonomy#taxonomy-object
@@ -48,8 +56,7 @@ class XbrlModule(XbrlModelObject):
     version: Optional[str] # (optional) Used to identify the version of the taxonomy such as the year of release.
     modelForm: Optional[str] # (optional) Indicates if the model is a compiled or is modularized. If no value is provided the model defaults to module. Possible values are compiled, module
     modelType: Optional[QName]
-    importedTaxonomies: OrderedSet[XbrlImportTaxonomy] # ordered set of importTaxonomy objects that can comprise QName of the taxonomy to be imported, an object type or a taxonomy object referenced by its QName.
-    finalTaxonomy: Optional[XbrlFinalTaxonomy] # (optional) A final taxonomy object that indicates those components of the taxonomy that are final and cannot be amended or added by an importing taxonomy.
+    duplicateFactsInModel: Optional[str] # (optional) A string value that indicates if the model validates duplicate facts. It can be one of the following: no duplicates, complete duplicates,consistent duplicates, or inconsistent duplicates. If no string value is provided the default value is inconsistent duplicates. The value of duplicateFactsInModel sets the default value of duplicateFactsInCube. The value of duplicateFactsInCube has precedence over duplicateFactsInModel
     abstracts: OrderedSet[XbrlAbstract] # ordered set of abstract objects.
     concepts: OrderedSet[XbrlConcept] # ordered set of concept objects.
     collectionTypes: OrderedSet[XbrlCollectionType] # ordered set of collectionType objects.
@@ -82,8 +89,9 @@ class XbrlModule(XbrlModelObject):
     transforms: OrderedSet[XbrlTransform] # (optional) an ordered set of transform objects.
     units: OrderedSet[XbrlUnit] # ordered set of unit objects.
     xmlTemplateMaps: OrderedSet[XbrlXMLTemplateMap] # (optional) ordered set of XML template map objects that define mappings from taxonomy objects to XML templates for rendering in user interfaces or forms.
-
-    # Backward-compatibility aliases for older property casing used in early drafts.
+    importedTaxonomies: OrderedSet[XbrlImportTaxonomy] # ordered set of importTaxonomy objects that can comprise QName of the taxonomy to be imported, an object type or a taxonomy object referenced by its QName.
+    finalTaxonomy: Optional[XbrlFinalTaxonomy] # (optional) A final taxonomy object that indicates those components of the taxonomy that are final and cannot be amended or added by an importing taxonomy.
+    namespacePrefixes: OrderedSet[XbrlNamespacePrefix] # (optional) ordered set of namespace prefix objects that define preferred prefixes for namespaces used within the taxonomy.
     JSONTemplateMaps: OrderedSet[XbrlJSONTemplateMap]
     XMLTemplateMaps: OrderedSet[XbrlXMLTemplateMap]
     properties: OrderedSet[XbrlProperty] # ordered set of property objects used to specify additional properties associated with the taxonomy. Only immutable properties as defined in the propertyType object can be added to a taxonom

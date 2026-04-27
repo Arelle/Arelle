@@ -339,6 +339,84 @@
                 ]
             },
             {
+                "name": "calc11e:inconsistentCalculationUsingRoundingExternalFileReference",
+                "relatedNames": [
+                    "calc11e:inconsistentCalculationUsingRounding"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FACTSET-ValidFactMapExternalFile.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CALCULATION-InvalidSummationValue"
+                    }
+                ]
+            },
+            {
+                "name": "calc11e:inconsistentCalculationUsingRoundingWithFootnoteReference",
+                "relatedNames": [
+                    "calc11e:inconsistentCalculationUsingRounding"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FACTSET-ValidFactMapWithFootnote.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CALCULATION-InvalidSummationValue"
+                    }
+                ]
+            },
+            {
+                "name": "calc11e:inconsistentCalculationUsingRoundingWithFootnoteURLReference",
+                "relatedNames": [
+                    "calc11e:inconsistentCalculationUsingRounding"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FACTSET-ValidFactMapWithFootnoteURL.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CALCULATION-InvalidSummationValue"
+                    }
+                ]
+            },
+            {
                 "name": "calc11e:duplicateCalculationRelationships1Reference",
                 "relatedNames": [
                     "calc11e:duplicateCalculationRelationships"

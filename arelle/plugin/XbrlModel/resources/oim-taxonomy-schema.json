@@ -749,7 +749,13 @@
                           "properties": {
                             "name": { "$ref": "#/definitions/QName" },
                             "value": {
-                              "type": "string",
+                              "oneOf": [
+                                { "type": "string" },
+                                {
+                                  "type": "array",
+                                  "items": { "type": "string" }
+                                }
+                              ],
                               "description": "Literal fact value, when not derived from valueSources."
                             },
                             "decimals": {
@@ -1134,6 +1140,12 @@
                     "type": "object",
                     "properties": {
                       "name": { "$ref": "#/definitions/footnoteTypeQName" },
+                      "relatedNames": {
+                        "type": "array",
+                        "items": { "$ref": "#/definitions/QName" },
+                        "description": "QNames the footnote is associated with.",
+                        "uniqueItems": true
+                      },
                       "content": {"type": "string",
                                   "description": "The content of the footnote."},
                       "language": {
@@ -1142,7 +1154,7 @@
                         "description": "[oimte:badlanguage] Language code (BCP 47)."
                       }
                     },
-                    "required": ["name", "content", "language"],
+                    "required": ["name", "relatedNames", "content", "language"],
                     "additionalProperties": false
                   },
                     "uniqueItems": true
@@ -1476,10 +1488,12 @@
                         },
                         "maxItems": {
                           "type": "integer",
+                          "minimum": 0,
                           "description": "Maximum number of items allowed in the collection."
                         },
                         "minItems": {
                           "type": "integer",
+                          "minimum": 0,
                           "description": "Minimum number of items required in the collection."
                         },
                         "properties": {
@@ -1490,6 +1504,34 @@
                         }
                       },
                       "required": ["name", "dataType"],
+                      "additionalProperties": false
+                    },
+                    "uniqueItems": true
+                },
+                "namespacePrefixes": {
+                    "type": "array",
+                    "description": "Array of namespacePrefixObject entries declaring preferred prefixes for namespace URIs in the model.",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "namespace": {
+                          "type": "string",
+                          "format": "uri",
+                          "description": "The namespace URI for which preferred prefixes are declared."
+                        },
+                        "preferredPrefixes": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "pattern": "^[a-zA-Z_][\\w.-]*$",
+                            "description": "A valid xs:NCName prefix string."
+                          },
+                          "uniqueItems": true,
+                          "minItems": 1,
+                          "description": "Ordered set of preferred prefixes, most preferred first."
+                        }
+                      },
+                      "required": ["namespace", "preferredPrefixes"],
                       "additionalProperties": false
                     },
                     "uniqueItems": true
@@ -1585,7 +1627,7 @@
         },
         {
           "if": {
-            "properties": { "property": { "const": "xbrl:intervalOfMeasurement" } }
+            "properties": { "property": { "const": "xbrla:intervalOfMeasurement" } }
           },
           "then": {
             "properties": {
@@ -1612,7 +1654,7 @@
         },
         {
           "if": {
-            "properties": { "property": { "const": "xbrl:intervalConvention" } }
+            "properties": { "property": { "const": "xbrla:intervalConvention" } }
           },
           "then": {
             "properties": {
@@ -1625,7 +1667,7 @@
         },
         {
           "if": {
-            "properties": { "property": { "const": "xbrl:completeTimeSeries" } }
+            "properties": { "property": { "const": "xbrla:completeTimeSeries" } }
           },
           "then": {
             "properties": {
@@ -1635,7 +1677,7 @@
         },
         {
           "if": {
-            "properties": { "property": { "const": "xbrl:excludedIntervals" } }
+            "properties": { "property": { "const": "xbrla:excludedIntervals" } }
           },
           "then": {
             "properties": {

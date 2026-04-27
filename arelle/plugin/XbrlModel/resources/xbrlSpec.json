@@ -96,7 +96,7 @@
                 "domainClass": "xbrl:languageDomain"
             }
         ],
-        "domainClasses" : [
+        "domainClasses": [
             {
                 "name": "xbrl:conceptDomain",
                 "allowedDomainItems" : ["xbrl:conceptObject", "xbrl:abstractObject"]
@@ -458,7 +458,7 @@
                 "dataType": "xs:string"
             }
         ],
-        "labels" : [
+        "labels": [
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -1379,6 +1379,24 @@
                 "value": "A built-in property type that specifies the default BCP 47 language for text-valued objects (such as footnotes and text-typed facts) within the model. When a text-valued object does not declare an explicit language, processors MAY use the value of this property on the enclosing XBRL model object as the inherited language. This property may only be applied to the xbrl:xbrlModelObject."
             }
         ],
+        "namespacePrefixes": [
+            {
+                "namespace": "https://xbrl.org/2025",
+                "preferredPrefixes": ["xbrl"]
+            },
+            {
+                "namespace": "https://xbrl.org/2025/instance",
+                "preferredPrefixes": ["xbrli"]
+            },
+            {
+                "namespace": "http://www.w3.org/2001/XMLSchema",
+                "preferredPrefixes": ["xs"]
+            },
+            {
+                "namespace": "https://xbrl.org/2025/utr",
+                "preferredPrefixes": ["utr"]
+            }
+        ],
         "propertyTypes": [
             {
                 "name": "xbrl:semanticLink",
@@ -1767,6 +1785,20 @@
             {
                 "name": "xbrl:fact-footnote",
                 "uri": "http://xbrl.org/oim/fact-footnote",
+                "cycles" : "undirected",
+                "sourceObjects" : ["xbrl:factObject"],
+                "targetObjects" : ["xbrl:footnoteObject"]
+            },
+            {
+                "name": "xbrl:fact-InFact",
+                "uri": "http://xbrl.org/oim/fact-InFact",
+                "cycles" : "undirected",
+                "sourceObjects" : ["xbrl:factObject"],
+                "targetObjects" : ["xbrl:factObject"]
+            },
+            {
+                "name": "xbrl:fact-InFootnote",
+                "uri": "http://xbrl.org/oim/fact-InFootnote",
                 "cycles" : "undirected",
                 "sourceObjects" : ["xbrl:factObject"],
                 "targetObjects" : ["xbrl:footnoteObject"]
