@@ -10,14 +10,11 @@ import logging
 import threading
 import time
 import traceback
-from typing import TYPE_CHECKING
 
-from bottle import Bottle, HTTPResponse, request   # type: ignore[import-untyped]
+from bottle import Bottle, HTTPResponse, request, LocalRequest  # type: ignore[import-untyped]
 
 from arelle.typing import TypeGetText
-
-if TYPE_CHECKING:
-    from arelle.Cntlr import Cntlr
+from arelle.Cntlr import Cntlr
 
 _: TypeGetText
 
@@ -81,3 +78,6 @@ class LocalViewer:
             self.cntlr.addToLog(_("{} exception: file: {} \nException: {} \nTraceback: {}").format(
                 self.title, file, ex, traceback.format_exc()), messageCode="localViewer:exception",level=logging.DEBUG)
             return None
+
+    def getLocalFile(self, file: str | None, relpath: str | None, request: LocalRequest) -> HTTPResponse:
+        raise NotImplementedError
