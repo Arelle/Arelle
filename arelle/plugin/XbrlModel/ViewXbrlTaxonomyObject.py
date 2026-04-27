@@ -25,7 +25,7 @@ def viewXbrlTaxonomyObject(xbrlCompMdl, objClass, tabWin, header, additionalView
     :param tabWin: parent tab window for view
     :param header: header for view
     :param additionalViews: additional views to add to view menu (list of (viewName"""
-    xbrlCompMdl.modelManager.showStatus(_("viewing concepts"))
+    xbrlCompMdl.modelManager.showStatus("viewing concepts")
     view = ViewXbrlTxmyObj(xbrlCompMdl, objClass, tabWin, header)
     view.propNameTypes = []
     initialParentObjProp = True
@@ -194,7 +194,8 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
     def viewRoots(self, parentNode, nodeNum, obj):
         if not isinstance(obj, (XbrlDomain, XbrlNetwork)):
             return
-        for qn in obj.relationshipRoots:
+        relationshipsFrom = self.xbrlCompMdl.effectiveRelationshipsFrom(obj)
+        for qn in self.xbrlCompMdl.effectiveRelationshipRoots(obj):
             rootObj = self.xbrlCompMdl.namedObjects.get(qn)
             if rootObj is not None:
                 node = self.treeView.insert(parentNode, "end",
@@ -203,7 +204,7 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
                                             tags=("odd" if nodeNum & 1 else "even",))
                 self.id += 1
                 nodeNum += 1
-                for relObj in obj.relationshipsFrom.get(qn, ()):
+                for relObj in relationshipsFrom.get(qn, ()):
                     self.viewRelationships(node, nodeNum, obj, relObj, set())
 
     def viewFacts(self, parentNode, nodeNum, obj):
@@ -215,6 +216,7 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
         target = relObj.target
         qnObj = self.xbrlCompMdl.namedObjects.get(target)
         if qnObj is not None:
+            relationshipsFrom = self.xbrlCompMdl.effectiveRelationshipsFrom(obj)
             loop = target in visited
             txt = self.xbrlCompMdl.labelValue(relObj.target, self.labelrole, self.lang)
             if loop:
@@ -227,7 +229,7 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
             nodeNum += 1
             if not loop:
                 visited.add(target)
-                for relTgtObj in obj.relationshipsFrom.get(relObj.target, ()):
+                for relTgtObj in relationshipsFrom.get(relObj.target, ()):
                     self.viewRelationships(node, nodeNum, obj, relTgtObj, visited)
                 visited.remove(target)
 

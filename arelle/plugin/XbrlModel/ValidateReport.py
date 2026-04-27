@@ -17,6 +17,7 @@ from .XbrlReport import XbrlFact
 from .XbrlUnit import parseUnitString, XbrlUnit
 from .ValidateXbrlModel import validateValue
 from .ValidateCubes import validateCubes
+from .ErrorCatalog import emit_error
 
 dimPropPattern = re.compile(r"^_[A-Za-z0-9]+$")
 
@@ -154,7 +155,7 @@ def validateFactPosition(txmyMdl, fact):
         that a fact is valid for, such as the period dimension.
     """
     def error(code, msg, **kwargs):
-         txmyMdl.error(code, msg, xbrlObject=fact, name=getattr(fact,"name"), **kwargs)
+            emit_error(txmyMdl, code, msg, xbrlObject=fact, name=getattr(fact,"name"), **kwargs)
     cQn = fact.factDimensions.get(conceptCoreDim)
     cObj = txmyMdl.namedObjects.get(cQn)
     if cObj is None or not isinstance(cObj, XbrlConcept):
