@@ -83,7 +83,7 @@ class XbrlCubeDimension(XbrlModelObject):
             if isinstance(domObj, XbrlDomain):
                 if self.allowDomainFacts:
                     mem.add(domObj.root)
-                for relObj in domObj.relationships:
+                for relObj in txmyMdl.effectiveRelationships(domObj):
                     mem.add(relObj.target)
             return self._allowedMembers
 
