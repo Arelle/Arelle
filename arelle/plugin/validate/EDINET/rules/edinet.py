@@ -943,12 +943,13 @@ def rule_EC8034W(
 
 
 @validation(
-    hook=ValidationHook.XBRL_FINALLY,
+    hook=ValidationHook.COMPLETE,
     disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
 )
 def rule_EC8036W(
-        pluginData: PluginValidationDataExtension,
-        val: ValidateXbrl,
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
         *args: Any,
         **kwargs: Any,
 ) -> Iterable[Validation]:
@@ -957,18 +958,21 @@ def rule_EC8036W(
     If WhetherConsolidatedFinancialStatementsArePreparedDEI is true, there must be children of
     the extended link role rol_BusinessResultsOfGroup.
     """
-    deiQname = qname(pluginData.namespaces.jpdei, 'WhetherConsolidatedFinancialStatementsArePreparedDEI')
-    if not any(fact.xValue == True for fact in iterValidNonNilFactsByQname(val.modelXbrl, deiQname)):
+    if not pluginData.hasDocumentType({DocumentType.ANNUAL_SECURITIES_REPORT, DocumentType.SEMI_ANNUAL_REPORT}):
         return
-    if hasPresentationalConceptsWithFacts(val.modelXbrl, 'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_BusinessResultsOfGroup'):
-                return
-    yield Validation.warning(
-        codes='EDINET.EC8036W',
-        msg=_('The consolidated business indicators, etc. have not been tagged in detail. '
-              'Please provide detailed tagging of the consolidated business indicators, etc. '
-              'If you do not provide consolidated business indicators, please confirm that '
-              'the "Consolidated Financial Statements" field in the DEI information is correct.'),
-    )
+    deiQname = qname(pluginData.namespaces.jpdei, 'WhetherConsolidatedFinancialStatementsArePreparedDEI')
+    for modelXbrl in pluginData.loadedModelXbrls:
+        if not any(fact.xValue == True for fact in iterValidNonNilFactsByQname(modelXbrl, deiQname)):
+            continue
+        if hasPresentationalConceptsWithFacts(modelXbrl, 'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_BusinessResultsOfGroup'):
+            continue
+        yield Validation.warning(
+            codes='EDINET.EC8036W',
+            msg=_('The consolidated business indicators, etc. have not been tagged in detail. '
+                  'Please provide detailed tagging of the consolidated business indicators, etc. '
+                  'If you do not provide consolidated business indicators, please confirm that '
+                  'the "Consolidated Financial Statements" field in the DEI information is correct.'),
+        )
 
 
 @validation(

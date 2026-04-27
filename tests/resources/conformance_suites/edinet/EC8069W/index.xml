@@ -22,6 +22,7 @@
             <warning>EDINET.EC8015W</warning>
             <warning num="2">EDINET.EC8027W</warning>
             <warning>EDINET.EC8029W</warning>
+            <warning>EDINET.EC8036W</warning> <!-- from base sample filing -->
             <warning num="2">EDINET.EC8069W</warning>
             <warning>EDINET.EC8024E</warning>
         </result>
