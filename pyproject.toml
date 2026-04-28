@@ -188,7 +188,6 @@ module = [
     'arelle.Validate',
     'arelle.ValidateFilingText',
     'arelle.ValidateInfoset',
-    'arelle.ValidateUtr',
     'arelle.ValidateVersReport',
     'arelle.ValidateXbrlCalcs',
     'arelle.ValidateXbrlDTS',
