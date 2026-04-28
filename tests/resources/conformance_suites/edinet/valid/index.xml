@@ -32,6 +32,7 @@
         </data>
         <result>
             <warning>EDINET.EC8015W</warning>
+            <warning>EDINET.EC8036W</warning>
         </result>
     </variation>
     <variation id="valid03" name="valid03">
@@ -45,6 +46,7 @@
         </data>
         <result>
             <warning>EDINET.EC8015W</warning>
+            <warning>EDINET.EC8036W</warning>
             <warning>EDINET.EC8065W</warning>
             <warning>EDINET.EC8067W</warning>
         </result>
@@ -60,6 +62,7 @@
         </data>
         <result>
             <warning>EDINET.EC8015W</warning>
+            <warning>EDINET.EC8036W</warning>
             <warning>EDINET.EC8050W</warning>
             <warning>EDINET.EC8069W</warning>
         </result>
@@ -91,6 +94,7 @@
         </data>
         <result>
             <warning>EDINET.EC8015W</warning>
+            <warning>EDINET.EC8036W</warning>
         </result>
     </variation>
     <variation id="valid07" name="valid07">
@@ -204,6 +208,7 @@
         </data>
         <result>
             <warning>EDINET.EC8015W</warning>
+            <warning>EDINET.EC8036W</warning>
         </result>
     </variation>
     <variation id="valid21" name="valid21">

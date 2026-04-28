@@ -18,6 +18,7 @@
         </data>
         <result>
             <warning>EDINET.EC8015W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8036W</warning> <!-- from base sample filing -->
         </result>
     </variation>
     <variation id="invalid01" name="invalid01">
@@ -31,6 +32,7 @@
         <result>
             <warning>EDINET.EC5710W.FRTA.2.1.11</warning>
             <warning>EDINET.EC8015W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8036W</warning> <!-- from base sample filing -->
         </result>
     </variation>
 </testcase>

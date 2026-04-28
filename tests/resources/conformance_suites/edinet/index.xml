@@ -173,6 +173,7 @@
     <testcase uri="EC8032E/index.xml" />
     <testcase uri="EC8033W/index.xml" />
     <testcase uri="EC8034W/index.xml" />
+    <!-- <testcase uri="EC8036W/index.xml" /> Not necessary, valid testcases fire this warning. -->
     <testcase uri="EC8038W/index.xml" />
     <testcase uri="EC8039W/index.xml" />
     <testcase uri="EC8040W/index.xml" />
