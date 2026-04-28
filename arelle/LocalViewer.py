@@ -67,7 +67,7 @@ class LocalViewer:
                 ex, traceback.format_exc()), messageCode="localViewer:exception",level=logging.DEBUG)
             return None
 
-    def get(self, file: str | None = None, relpath: str | None = None) -> object:
+    def get(self, file: str | None = None, relpath: str | None = None) -> HTTPResponse | None:
         assert self.cntlr is not None, "Cntlr not initialized"
         self.cntlr.addToLog("http://localhost:{}/{}".format(self.port,file), messageCode="localViewer:get",level=logging.DEBUG)
         try:
