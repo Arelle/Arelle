@@ -150,10 +150,10 @@ class ModelManager:
         if taxonomyPackages:
             resetPackageMappings = False
             for pkgUrl in taxonomyPackages:
-                if PackageManager.addPackage(self.cntlr, pkgUrl):
+                if self.cntlr.packages.add(pkgUrl):
                     resetPackageMappings = True
             if resetPackageMappings:
-                PackageManager.rebuildRemappings(self.cntlr)
+                self.cntlr.packages.rebuild()
         modelXbrl: ModelXbrl | None = None # loaded modelXbrl
         if isinstance(filesource, FileSource):
             if isinstance(filesource.url, str) and filesource.url.startswith("urn:uuid:"): # request for an open modelXbrl

@@ -287,7 +287,7 @@ class ModelXbrl:
 
     closeFileSource: bool
     dimensionDefaultConcepts: dict[ModelConcept, ModelConcept]
-    entryLoadingUrl: str
+    entryLoadingUrl: str | None
     fileSource: FileSourceClass
     ixdsDocUrls: list[str]
     ixdsHtmlElements: list[Any]

@@ -78,7 +78,6 @@ from arelle import (
     DialogPluginManager,
     DialogURL,
     ModelDocument,
-    PackageManager,
     TableStructure,
     Updater,
     ViewFileConcepts,
@@ -594,15 +593,13 @@ class CntlrWinMain(Cntlr.Cntlr):
         self.fileMenu.add_cascade(label=_("Recent imports"), menu=self.recentAttachMenu, underline=0)
         self.packagesMenu = Menu(self.menubar, tearoff=0)
         hasPackages = False
-        for i, packageInfo in enumerate(sorted(PackageManager.packagesConfig.get("packages", []),
-                                               key=lambda packageInfo: (packageInfo.get("name",""),packageInfo.get("version",""))),
-                                        start=1):
-            name = packageInfo.get("name", "package{}".format(i))
-            version = packageInfo.get("version")
+        for i, packageMeta in enumerate(self.packages.get_packages(), start=1):
+            name = packageMeta.name if packageMeta.name is not None else "package{}".format(i)
+            version = packageMeta.version
             if version:
                 name = "{} ({})".format(name, version)
-            URL = packageInfo.get("URL")
-            if name and URL and packageInfo.get("status") == "enabled":
+            URL = packageMeta.url
+            if name and URL and packageMeta.status == "enabled":
                 self.packagesMenu.add_command(
                      label=name,
                      command=lambda url=URL: self.fileOpenFile(url))  # type: ignore[misc]
@@ -921,7 +918,7 @@ class CntlrWinMain(Cntlr.Cntlr):
             return
         url = DialogURL.askURL(self.parent, buttonSEC=True, buttonRSS=True)
         if url:
-            url = PackageManager.mappedUrl(url)
+            url = self.packages.map(url)
             self.updateFileHistory(url, False)
             for xbrlLoadedMethod in self.plugins.hooks("CntlrWinMain.Xbrl.Open"):
                 url = xbrlLoadedMethod(self, url) # runs in GUI thread, allows mapping url, mult return url
@@ -952,7 +949,7 @@ class CntlrWinMain(Cntlr.Cntlr):
             return False
         url = DialogURL.askURL(self.parent, buttonSEC=False, buttonRSS=False)
         if url:
-            url = PackageManager.mappedUrl(url)
+            url = self.packages.map(url)
             self.fileOpenFile(url, importToDTS=True)
         return None
 
@@ -969,7 +966,7 @@ class CntlrWinMain(Cntlr.Cntlr):
                 if filesource and filesource.isArchive:
                     filesource.select(entrypointFile)
                 else:
-                    entrypointFile = PackageManager.mappedUrl(entrypointFile)
+                    entrypointFile = self.packages.map(entrypointFile)
                     filesource = openFileSource(entrypointFile, self)
                 if importToDTS:
                     action = _("imported")

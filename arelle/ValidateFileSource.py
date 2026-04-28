@@ -6,7 +6,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from arelle import PackageManager
 from arelle.packages.report.ReportPackageValidator import ReportPackageValidator
 
 if TYPE_CHECKING:

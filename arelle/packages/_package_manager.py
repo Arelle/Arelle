@@ -532,12 +532,13 @@ class PackageManager:
 
     def packageInfo(
         self,
-        cntlr: Cntlr,
+        cntlr: Cntlr | None,
         URL: str,
         reload: bool = False,
         packageManifestName: str | None = None,
         errors: list[str] | None = None,
     ) -> dict[str, Any] | None:
+        cntlr = cntlr or self._getCntlr()
         if errors is None:
             errors = []
         #TODO several directories, eg User Application Data
@@ -671,7 +672,8 @@ class PackageManager:
                 filesource.close()
         return None
 
-    def rebuildRemappings(self, cntlr: Cntlr) -> None:
+    def rebuildRemappings(self, cntlr: Cntlr | None = None) -> None:
+        cntlr = cntlr or self._getCntlr()
         remappings = self._getPackagesConfig()["remappings"]
         remappings.clear()
         remapOverlapUrls: list[tuple[str, str, str]] = []  # (prefix, packageURL, rewriteString)
@@ -727,10 +729,11 @@ class PackageManager:
 
     def addPackage(
         self,
-        cntlr: Cntlr,
+        cntlr: Cntlr | None,
         url: str,
         packageManifestName: str | None = None,
     ) -> dict[str, Any] | None:
+        cntlr = cntlr or self._getCntlr()
         newPackageInfo = self.packageInfo(cntlr, url, packageManifestName=packageManifestName)
         if newPackageInfo and newPackageInfo.get("identifier"):
             identifier = newPackageInfo.get("identifier")

@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 import regex
 
-from arelle import Locale, ModelManager, PackageManager, XbrlConst
+from arelle import Locale, ModelManager, XbrlConst
 from arelle.BetaFeatures import BETA_FEATURES_AND_DESCRIPTIONS
 from arelle.ErrorManager import ErrorManager
 from arelle.FileSource import FileSource
@@ -33,6 +33,8 @@ from arelle.logging.handlers.LogToPrintHandler import LogToPrintHandler
 from arelle.logging.handlers.LogToXmlHandler import LogToXmlHandler
 from arelle.logging.handlers.StructuredMessageLogHandler import StructuredMessageLogHandler
 from arelle.SystemInfo import PlatformOS, getSystemWordSize, hasFileSystem, hasWebServer, isCGI, isGAE
+from arelle.packages._package_manager import PackageManager
+from arelle.packages.package_registry import PackageRegistry
 from arelle.plugin_system._plugin_manager import PluginManager
 from arelle.plugin_system.plugin_provider import PluginProvider
 from arelle.typing import TypeGetText
@@ -127,6 +129,7 @@ class Cntlr:
 
     """
     __version__ = "1.6.0"
+    _packageManager: PackageManager
     _pluginManager: PluginManager
     betaFeatures: dict[str, bool]
     errorManager: ErrorManager | None
@@ -135,6 +138,7 @@ class Cntlr:
     hasFileSystem: bool
     isGAE: bool
     isCGI: bool
+    packages: PackageRegistry
     systemWordSize: int
     uiLang: str
     configDir: str
@@ -306,7 +310,10 @@ class Cntlr:
         self.modelManager = ModelManager.initialize(self)
 
         # start taxonomy package server (requres web cache initialized, but not logger)
-        PackageManager.init(self, loadPackagesConfig=hasGui)
+        from arelle.PackageManager import getInstance as _getPackageManagerInstance
+        self._packageManager = _getPackageManagerInstance()
+        self._packageManager.init(self, loadPackagesConfig=hasGui)
+        self.packages = PackageRegistry(self._packageManager)
 
         self.startLogging(logFileName, logFileMode, logFileEncoding, logFormat)
         self.errorManager = ErrorManager(self.modelManager, logging._checkLevel("INCONSISTENCY")) # type: ignore[attr-defined]
@@ -529,7 +536,7 @@ class Cntlr:
         self._pluginManager.save(self)
 
         if self.hasGui:
-            PackageManager.save(self)
+            self._packageManager.save(self)
         if saveConfig:
             self.saveConfig()
         if self.logger is not None:

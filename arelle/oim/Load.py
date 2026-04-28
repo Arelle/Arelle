@@ -18,7 +18,7 @@ import isodate
 import regex as re
 from lxml import etree
 
-from arelle import (ModelDocument, ModelXbrl, PackageManager, UrlUtil,
+from arelle import (ModelDocument, ModelXbrl, UrlUtil,
                     ValidateXbrlDimensions, XbrlConst, XmlUtil, XmlValidate)
 from arelle.ModelDocument import ModelDocument as ModelDocumentClass
 from arelle.ModelDocumentType import ModelDocumentType
@@ -821,8 +821,8 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             normalizedUrl = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(oimFile, extendingFile)
             if modelXbrl.fileSource.isMappedUrl(normalizedUrl):
                 mappedUrl = modelXbrl.fileSource.mappedUrl(normalizedUrl)
-            elif PackageManager.isMappedUrl(normalizedUrl):
-                mappedUrl = PackageManager.mappedUrl(normalizedUrl)
+            elif cntlr.packages.is_mapped(normalizedUrl):
+                mappedUrl = cntlr.packages.map(normalizedUrl)
             else:
                 mappedUrl = modelXbrl.modelManager.disclosureSystem.mappedUrl(normalizedUrl)
             if modelXbrl.fileSource.isInArchive(mappedUrl):
