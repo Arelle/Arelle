@@ -105,7 +105,7 @@ def xhtmlValidate(modelXbrl: ModelXbrl, elt: ModelObject) -> None:
             modelObject=e, element=e.localName)
 
     if validateEntryText:
-        ValidateFilingText.validateHtmlContent(modelXbrl, elt, elt, "InlineXBRL", valHtmlContentMsgPrefix, isInline=True)  # type: ignore[no-untyped-call]
+        ValidateFilingText.validateHtmlContent(modelXbrl, elt, elt, "InlineXBRL", valHtmlContentMsgPrefix, isInline=True)
 
 
 def containsNamespacedElements(elt: etree.ElementBase, namespace: str) -> bool:

@@ -185,7 +185,6 @@ module = [
     'arelle.UITkTable',
     'arelle.UiUtil',
     'arelle.Validate',
-    'arelle.ValidateFilingText',
     'arelle.ValidateInfoset',
     'arelle.ValidateVersReport',
     'arelle.ValidateXbrlCalcs',

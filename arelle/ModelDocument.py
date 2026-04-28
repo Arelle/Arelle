@@ -187,25 +187,25 @@ def load(modelXbrl: ModelXbrl, uri: str, base: str | None = None, referringEleme
             (isEntry and modelXbrl.modelManager.disclosureSystem.validateEntryText) or
             (modelXbrl.modelManager.disclosureSystem.validateFileText and
              not normalizedUri in modelXbrl.modelManager.disclosureSystem.standardTaxonomiesDict))):
-            file, _encoding = ValidateFilingText.checkfile(modelXbrl,filepath)  # type: ignore[no-untyped-call]
+            file, _encoding = ValidateFilingText.checkfile(modelXbrl,filepath)
         else:
-            file, _encoding = modelXbrl.fileSource.file(filepath, stripDeclaration=True)  # type: ignore[misc]
+            file, _encoding = modelXbrl.fileSource.file(filepath, stripDeclaration=True)  # type: ignore[misc,assignment]
         xmlDocument = None
         isPluginParserDocument = False
         for pluginMethod in modelXbrl.modelManager.cntlr.plugins.hooks("ModelDocument.CustomLoader"):
             modelDocument = pluginMethod(modelXbrl, file, mappedUri, filepath)
             if modelDocument is not None:
-                file.close()
+                file.close()  # type: ignore[union-attr]
                 return modelDocument
         _parser, _parserLookupName, _parserLookupClass = parser(modelXbrl,normalizedUri)
-        xmlDocument = etree.parse(file,parser=_parser,base_url=filepath)
+        xmlDocument = etree.parse(file,parser=_parser,base_url=filepath)  # type: ignore[arg-type]
         for error in _parser.error_log:
             modelXbrl.error("xmlSchema:syntax",
                     _("%(error)s, %(fileName)s, line %(line)s, column %(column)s"),
                     modelObject=(referringElement, os.path.basename(uri)),
                     fileName=os.path.basename(uri),
                     error=error.message, line=error.line, column=error.column)
-        file.close()
+        file.close()  # type: ignore[union-attr]
     except FileNotFoundError as err:
         if file:
             file.close()
@@ -383,7 +383,7 @@ def load(modelXbrl: ModelXbrl, uri: str, base: str | None = None, referringEleme
         modelDocument.parserLookupClass = _parserLookupClass
         modelDocument.xmlRootElement = modelDocument.targetXbrlRootElement = rootNode
         modelDocument.schemaLocationElements.add(rootNode)
-        modelDocument.documentEncoding = _encoding
+        modelDocument.documentEncoding = _encoding  # type: ignore[assignment]
 
         if isEntry or isDiscovered:
             modelDocument.inDTS = True
