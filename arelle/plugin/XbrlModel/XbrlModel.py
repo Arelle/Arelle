@@ -274,6 +274,7 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
         if cacheKey in visiting:
             return {
                 "cubeNetworks": OrderedSet(getattr(cubeObj, "cubeNetworks", ()) or ()),
+                "excludeCubes": OrderedSet(getattr(cubeObj, "excludeCubes", ()) or ()),
                 "requiredCubes": OrderedSet(getattr(cubeObj, "requiredCubes", ()) or ()),
                 "properties": OrderedSet(getattr(cubeObj, "properties", ()) or ()),
             }
@@ -281,6 +282,7 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
         visiting.add(cacheKey)
         effectiveSet = {
             "cubeNetworks": OrderedSet(),
+            "excludeCubes": OrderedSet(),
             "requiredCubes": OrderedSet(),
             "properties": OrderedSet(),
         }
@@ -302,6 +304,9 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
 
     def effectiveCubeNetworks(self, cubeObj):
         return self._effectiveCubeExtensionSet(cubeObj)["cubeNetworks"]
+
+    def effectiveExcludeCubes(self, cubeObj):
+        return self._effectiveCubeExtensionSet(cubeObj)["excludeCubes"]
 
     def effectiveRequiredCubes(self, cubeObj):
         return self._effectiveCubeExtensionSet(cubeObj)["requiredCubes"]

@@ -45,7 +45,7 @@ def validateConceptFamily(compMdl, module, oimFile, *, assertObjectType, validat
             utObj = dtObj.unitType
             assertObjectType(compMdl, utObj, XbrlUnitType)
             for utProp in ("dataTypeNumerator", "dataTypeDenominator", "dataTypeMultiplier"):
-                validateQNameReference(compMdl, utObj, utProp, XbrlDataType)
+                validateQNameReference(compMdl, utObj, utProp, XbrlDataType, isOptional=True)
 
     for collObj in module.collectionTypes:
         assertObjectType(compMdl, collObj, XbrlCollectionType)

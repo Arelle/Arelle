@@ -165,8 +165,8 @@ class XbrlCubePropertiesConstraint(XbrlModelObject):
     """ Cube Properties Constraint Object
         Reference: oim-taxonomy#cubepropertiesconstraint-object
     """
-    required: OrderedSet[QName] # (optional) An ordered set of property type QNames that must be associated with cubes of this type.
-    allowed: OrderedSet[QName] # (optional) An ordered set of property type QNames that are permitted on cubes of this type. If not specified, any property type defined in the taxonomy can be used.
+    requiredProperties: OrderedSet[QName] # (optional) An ordered set of property type QNames that must be associated with cubes of this type.
+    allowedProperties: OrderedSet[QName] # (optional) An ordered set of property type QNames that are permitted on cubes of this type. If not specified, any property type defined in the taxonomy can be used.
 
 class XbrlCubeType(XbrlReferencableModelObject):
     """ Cube Type Object

@@ -4,21 +4,25 @@ See COPYRIGHT.md for copyright information.
 
 from isodate import isodatetime
 import regex as re
-from arelle.oim.Load import (PeriodPattern, UnitPrefixedQNameSubstitutionChar, UnitPattern,
+from arelle.oim.Load import (UnitPrefixedQNameSubstitutionChar, UnitPattern,
                              PrefixedQName)
 from arelle.ModelValue import QName, qname, timeInterval
 from arelle import XbrlConst
 from arelle.XmlValidateConst import VALID, INVALID
 from .XbrlConst import unsupportedTypedDimensionDataTypes
 from .XbrlConcept import XbrlConcept, XbrlDataType
-from .XbrlCube import conceptCoreDim, languageCoreDim, periodCoreDim, unitCoreDim, coreDimensions
+from .XbrlCube import XbrlCube, conceptCoreDim, languageCoreDim, periodCoreDim, unitCoreDim, coreDimensions
 from .XbrlDimension import XbrlDimension, XbrlMember
-from .XbrlReport import XbrlFact
+from .XbrlReport import XbrlFact, XbrlTableTemplate
 from .XbrlUnit import parseUnitString, XbrlUnit
 from .ValidateXbrlModel import validateValue
 from .ValidateCubes import validateCubes
 from .ErrorCatalog import emit_error
 
+periodPattern = re.compile( # regex for xs:dateTime or xs:date with optional end dateTime or date separated by "/" and optional "Z" timezone designator
+    r"^-?[0-9]{4}-[0-9]{2}-[0-9]{2}(T([01][0-9]|20|21|22|23):[0-9]{2}:[0-9]{2}(\.[0-9]([0-9]*[1-9])?)?Z?)?"
+    r"(/-?[0-9]{4}-[0-9]{2}-[0-9]{2}(T([01][0-9]|20|21|22|23):[0-9]{2}:[0-9]{2}(\.[0-9]([0-9]*[1-9])?)?Z?)?)?$"
+    )
 dimPropPattern = re.compile(r"^_[A-Za-z0-9]+$")
 
 def resolveFact(txmyMdl, txmyObj, fact):
@@ -31,6 +35,10 @@ def resolveFact(txmyMdl, txmyObj, fact):
     # resolve QNames and other container-dependent values in fact
     if not hasattr(fact, "_xValid"):
         fact._xValid = True
+
+    def error(code, msg, **kwargs):
+        emit_error(txmyMdl, code, msg, xbrlObject=fact, name=getattr(fact, "name", None), **kwargs)
+
     name = fact.name
     cQn = fact.factDimensions.get(conceptCoreDim)
     if isinstance(cQn, str) and ":" in cQn:
@@ -50,11 +58,11 @@ def resolveFact(txmyMdl, txmyObj, fact):
         _valid, _value = validateValue(txmyMdl, txmyObj, factValue, factValue.value, cDataType, f"/value", "oimte:factValueDataTypeMismatch")
         factValue._xValid = _valid
         factValue._xValue = _value
-        if factValue.language and concept.type.isOimTextFactType:
+        if factValue.language and cObj.isOimTextFactType(txmyMdl):
             if not factValue.language.islower():
                 txmyMdl.error("xbrlje:invalidLanguageCodeCase",
                               _("Language MUST be lower case: \"%(lang)s\", fact %(name)s, concept %(concept)s."),
-                              xbrlObject=fact, name=fact.name, lang=factValue.language)
+                              xbrlObject=fact, name=fact.name, lang=factValue.language, concept=cQn)
 
     if not name:
         error("oime:missingFactId", _("The name (name) MUST be present on fact."))
@@ -168,7 +176,7 @@ def validateFactPosition(txmyMdl, fact):
     if periodCoreDim in fact.factDimensions:
         per = fact.factDimensions[periodCoreDim]
         if isinstance(per, str):
-            if not PeriodPattern.match(per):
+            if not periodPattern.match(per):
                 error("oimce:invalidPeriodRepresentation",
                               _("The fact %(name)s, concept %(element)s has a lexically invalid period dateTime %(periodError)s"),
                               element=cQn, periodError=per)
@@ -178,7 +186,7 @@ def validateFactPosition(txmyMdl, fact):
                   (cObj.periodType == "instant" and _start and _start != _end)):
                 error("oime:invalidPeriodDimension",
                               _("Invalid period for %(periodType)s fact %(name)s period %(period)s."),
-                              name=name, periodType=cObj.periodType, period=per)
+                                                            periodType=cObj.periodType, period=per)
                 return # skip creating fact because context would be bad
             per = fact.factDimensions["_periodValue"] = timeInterval(per)
     elif cObj.periodType != "none":
@@ -197,7 +205,16 @@ def validateFactPosition(txmyMdl, fact):
                 cubeObj._factspaces = set()
             cubeObj._factspaces.add(fact)
 
-def validateTable(reportObj, txmyMdl, table):
+
+def validateCompleteReportCubes(txmyMdl):
+    """Validate complete cubes after facts have been matched to their effective cubes."""
+    from .ValidateCubes import validateCompleteCube
+
+    for cubeObj in txmyMdl.filterNamedObjects(XbrlCube):
+        if txmyMdl.effectiveRequiredCubes(cubeObj):
+            validateCompleteCube(txmyMdl, cubeObj)
+
+def validateTable(table, reportQn, reportObj, txmyMdl):
     """ Validate table definition.
     """
     # ensure template exists
@@ -219,9 +236,10 @@ def validateDateResolutionConceptFacts(txmyMdl):
     for qn in txmyMdl.dateResolutionConceptNames:
         f = txmyMdl.namedObjects.get(qn)
         if isinstance(f, XbrlFact):
-            validateFact(f, reportQn, reportObj, txmyMdl)
+            resolveFact(txmyMdl, getattr(f, "parent", txmyMdl), f)
+            validateFactPosition(txmyMdl, f)
 
-def validateReport(txmyMdl, reportObj):
+def validateReport(reportQn, reportObj, txmyMdl):
     """ Validate report facts and tables. """
     for table in reportObj.tables.values():
         validateTable(table, reportQn, reportObj, txmyMdl)
@@ -229,5 +247,7 @@ def validateReport(txmyMdl, reportObj):
     for qn, f in reportObj.facts.items():
         if qn not in txmyMdl.dateResolutionConceptNames:
             # check for possible cubes using vector search
-            validateFact(f, reportQn, reportObj, txmyMdl)
+            resolveFact(txmyMdl, reportObj, f)
+            validateFactPosition(txmyMdl, f)
+    validateCompleteReportCubes(txmyMdl)
 

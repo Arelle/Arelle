@@ -20,7 +20,7 @@ from .XbrlLabel import XbrlLabel, XbrlLabelType
 from .XbrlNetwork import XbrlNetwork, XbrlRelationship, XbrlRelationshipType, XbrlRelationshipConstraint
 from .XbrlProperty import XbrlProperty, XbrlPropertyType
 from .XbrlReference import XbrlReference, XbrlReferenceType
-from .XbrlReport import XbrlFact, XbrlFootnote, XbrlJSONTemplateMap, XbrlTableTemplate, XbrlFactSource, XbrlFactMap, XbrlXMLTemplateMap
+from .XbrlReport import XbrlFact, XbrlFactLocatorType, XbrlFactValueAnchor, XbrlFactValueSource, XbrlFootnote, XbrlJSONTemplateMap, XbrlTableTemplate, XbrlFactSource, XbrlFactMap, XbrlXMLTemplateMap
 from .XbrlModel import XbrlCompiledModel
 from .XbrlTransform import XbrlTransform
 from .XbrlUnit import XbrlUnit
@@ -70,6 +70,7 @@ class XbrlModule(XbrlModelObject):
     facts: OrderedSet[XbrlFact] #  (optional) ordered set of fact objects.
     factMaps: OrderedSet[XbrlFactMap] # (optional) ordered set of factMap objects.
     factSources: OrderedSet[XbrlFactSource] # (optional) ordered set of factSource objects.
+    factLocatorTypes: OrderedSet[XbrlFactLocatorType] # (optional) ordered set of factLocatorType objects.
     footnotes: OrderedSet[XbrlFootnote] #  (optional) ordered set of footnote objects.
     tableTemplates: OrderedSet[XbrlTableTemplate] # (optional) ordered set of tableTemplate objects.
     groups: OrderedSet[XbrlGroup] #  (optional) ordered set of group objects.
@@ -110,6 +111,7 @@ referencableObjectTypes = {
         qname("{https://xbrl.org/2025}xbrl:entityObject"): XbrlEntity,
         qname("{https://xbrl.org/2025}xbrl:factObject"): XbrlFact,
         qname("{https://xbrl.org/2025}xbrl:factMapObject"): XbrlFactMap,
+        qname("{https://xbrl.org/2025}xbrl:factLocatorTypeObject"): XbrlFactLocatorType,
         qname("{https://xbrl.org/2025}xbrl:factSourceObject"): XbrlFactSource,
         qname("{https://xbrl.org/2025}xbrl:finalTaxonomyObject"): XbrlFinalTaxonomy,
         qname("{https://xbrl.org/2025}xbrl:footnoteObject"): XbrlFootnote,
@@ -127,7 +129,7 @@ referencableObjectTypes = {
         qname("{https://xbrl.org/2025}xbrl:referenceTypeObject"): XbrlReferenceType,
         qname("{https://xbrl.org/2025}xbrl:cubeTypeObject"): XbrlCubeType,
         qname("{https://xbrl.org/2025}xbrl:unitTypeObject"): XbrlUnitType,
-        qname("{https://xbrl.org/2025}xbrl:taxonomyObject"): XbrlModule,
+        # qname("{https://xbrl.org/2025}xbrl:taxonomyObject"): XbrlModule,  # xbrl:taxonomyObject is xbrl:modelObject
         qname("{https://xbrl.org/2025}xbrl:modelTypeObject"): XbrlModelType,
         qname("{https://xbrl.org/2025}xbrl:layoutObject"): XbrlLayout,
         qname("{https://xbrl.org/2025}xbrl:tableTemplateObject"): XbrlTableTemplate,
@@ -137,6 +139,8 @@ referencableObjectTypes = {
 nonReferencableObjectTypes = {
         qname("{https://xbrl.org/2025}xbrl:importTaxonomyObject"): XbrlImportTaxonomy,
         qname("{https://xbrl.org/2025}xbrl:cubeDimensionObject"): XbrlCubeDimension,
+        qname("{https://xbrl.org/2025}xbrl:factValueSourceObject"): XbrlFactValueSource,
+        qname("{https://xbrl.org/2025}xbrl:factValueAnchorObject"): XbrlFactValueAnchor,
         qname("{https://xbrl.org/2025}xbrl:groupContentObject"): XbrlGroupContent,
         qname("{https://xbrl.org/2025}xbrl:periodConstraintObject"): XbrlPeriodConstraint,
         qname("{https://xbrl.org/2025}xbrl:dateResolutionObject"): XbrlDateResolution,

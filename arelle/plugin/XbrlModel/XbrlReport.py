@@ -158,6 +158,13 @@ class XbrlFactMap(XbrlReportObject):
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the fact map object.
     templateName: Optional[QName] # (optional) A QName that references a tableTemplate, jsonTemplateMap or xmlTemplateMap object defined in the taxonomy model. If provided, the fact map object only applies to the facts with this template. If not provided, the fact map object applies to all facts in the report.
 
+class XbrlFactLocatorType(XbrlReportObject):
+    parent: Union[XbrlReportType,XbrlModuleType]  # fact locator types in taxonomy module are owned by the txmyMdl
+    name: QNameKeyType # (required) The name is a QName that uniquely identifies this locator type.
+    sourceMediaType: str # (optional) Advisory MIME type or media format hint (e.g. text/html, application/pdf, text/csv). Informational only; does not restrict which source documents a locator of this type may reference.
+    requiredProperties: OrderedSet[QName] # (optional) A set of property QNames that MUST be present on any factValueSource object using this type.
+    allowedProperties: OrderedSet[QName] # (optional) A set of property QNames that MAY be present on any factValueSource object using this type. If not provided, there are no restrictions on the properties that may be used with this locator type.
+
 class XbrlReport(XbrlReportObject):
     txmyMdl: XbrlTaxonomyModelType
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the abstract object.

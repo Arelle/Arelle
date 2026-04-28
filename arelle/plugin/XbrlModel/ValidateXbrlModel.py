@@ -5,7 +5,7 @@ See COPYRIGHT.md for copyright information.
 import regex as re, dateutil
 from collections import defaultdict
 from decimal import Decimal
-from typing import GenericAlias, _UnionGenericAlias
+from typing import GenericAlias, _GenericAlias, _UnionGenericAlias
 from arelle.ModelValue import QName, timeInterval
 from arelle.XmlValidate import languagePattern, validateValue as validateXmlValue,\
     INVALID, VALID, NONE
@@ -89,7 +89,7 @@ def _expectedTypeName(objType):
 def validateQNameReference(compMdl, contextObj, propName, objType=None, msgCode=None,
                            undefinedMsgCode=None, invalidTypeMsgCode=None,
                            undefinedMessage=None, invalidTypeMessage=None,
-                           errorArgs=None, qnDefault=None, qnRef=None):
+                           errorArgs=None, qnDefault=None, qnRef=None, isOptional=False):
     """Validate a QName reference and return resolved object or raise error.
 
     Args:
@@ -109,6 +109,8 @@ def validateQNameReference(compMdl, contextObj, propName, objType=None, msgCode=
     """
     if qnRef is None:
         qnRef = getattr(contextObj, propName, None)
+        if qnRef is None and isOptional:
+            return None # absent optional property is valid
     if not qnRef and qnDefault:
         qnRef = qnDefault
     if not qnRef:
@@ -295,12 +297,21 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
         modelTpObj = validateQNameReference(compMdl, module, "modelType", XbrlModelType)
         if modelTpObj:
             if modelTpObj.allowedObjects:
-                allowedMdObjTypes = set(xbrlObjectTypes.get(qn) for qn in modelTpObj.allowedObjects if qn in xbrlObjectTypes)
-                disallowedProps = modelTpObj.allowedObjects - set(p.property for p in module.properties)
-                if disallowedProps:
-                    compMdl.error("oimte:disallowedModelProperties",
-                              _("The modelType %(moduleType)s does not allow properties %(propNames)s."),
-                              xbrlObject=module, moduleType=module.modelType, propNames=", ".join(str(p) for p in disallowedProps))
+                disallowedObjs = set(
+                    xbrlObjectQNames.get(propType.__args__[0])    
+                    for propName, propType in XbrlModule.propertyNameTypes(skipParentProperty=True)
+                    if isinstance(propType, GenericAlias) and issubclass(propType.__origin__, OrderedSet) and len(getattr(module, propName, ())) > 0
+                    ) - modelTpObj.allowedObjects - {qnXbrlPropertyObj}
+                if disallowedObjs:
+                    compMdl.error("oimte:disallowedObjectModelType",
+                              _("The modelType %(moduleType)s does not allow objects %(objNames)s."),
+                              xbrlObject=module, moduleType=module.modelType, objNames=", ".join(str(p) for p in disallowedObjs))
+            if modelTpObj.allowedProperties:
+                missingReqProps = modelTpObj.requiredProperties - set(p.property for p in module.properties)
+                if missingReqProps:
+                    compMdl.error("oimte:missingRequiredModelTypeProperty",
+                              _("The modelType %(moduleType)s requires properties %(propNames)s."),
+                              xbrlObject=module, moduleType=module.modelType, propNames=", ".join(str(p) for p in missingReqProps))
             if modelTpObj.requiredProperties:
                 missingReqProps = modelTpObj.requiredProperties - set(p.property for p in module.properties)
                 if missingReqProps:
@@ -309,18 +320,11 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                               xbrlObject=module, moduleType=module.modelType, propNames=", ".join(str(p) for p in missingReqProps))
     else:
         modelTpObj = None
-    for txMdlPropName, propType in XbrlModule.propertyNameTypes():
+    
+    for txMdlPropName, propType in XbrlModule.propertyNameTypes(skipParentProperty=True):
         if isinstance(propType, GenericAlias) and issubclass(propType.__origin__, OrderedSet):
             isFirstObj = True
             for txMdlObj in getattr(module, txMdlPropName, ()):
-                if isFirstObj:
-                    isFirstObj = False
-                    if modelTpObj and modelTpObj.allowedObjects and not isinstance(txMdlObj, tuple(allowedMdObjTypes)):
-                        compMdl.error("oimte:disallowedObjectModelType",
-                                  _("The modelType %(modelType)s does not allow objects of type %(objType)s in property %(propName)s."),
-                                xbrlObject=module, modelType=module.modelType, objType=type(txMdlObj).__name__, propName=txMdlPropName)
-                        break # forget all these object types
-                # for Optional OrderedSets where the jsonValue exists, handle as propType, _keyClass and eltClass
                 name = getattr(txMdlObj, "name", None)
                 if isinstance(name, QName):
                     ns = name.namespaceURI
@@ -428,7 +432,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                             if endPtCnstrObj.dataType:
                                 validateQNameReference(compMdl, endPtCnstrObj, "dataType", XbrlDataType)
         if cubeType.cubeProperties:
-            for ra in ("required", "allowed"):
+            for ra in ("requiredProperties", "allowedProperties"):
                 for i, propTpQn in enumerate(getattr(cubeType.cubeProperties, ra)):
                     if  not isinstance(compMdl.namedObjects.get(propTpQn), XbrlPropertyType):
                         compMdl.error(f"oimte:invalidPropertyTypeReference",
@@ -499,16 +503,16 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                               _("The cube type %(name)s, must not set cubeNetworkConstraints/cubeNetworks[%(i)s] must not be added when base does not have that network constraint"),
                                               xbrlObject=cubeType, name=name, i=i)
                     if cubeType.cubeProperties:
-                        basePropertiesAllowed = baseCubeType.effectivePropVal(compMdl, "cubeProperties", "allowed")
-                        basePropertiesRequired = baseCubeType.effectivePropVal(compMdl, "cubeProperties", "required")
+                        basePropertiesAllowed = baseCubeType.effectivePropVal(compMdl, "cubeProperties", "allowedProperties")
+                        basePropertiesRequired = baseCubeType.effectivePropVal(compMdl, "cubeProperties", "requiredProperties")
                         if basePropertiesRequired:
-                            removedPropsReqd = basePropertiesRequired - cubeType.cubeProperties.required
+                            removedPropsReqd = basePropertiesRequired - cubeType.cubeProperties.requiredProperties
                             if removedPropsReqd:
                                 compMdl.error("oimte:missingRequiredCubeProperty",
                                               _("The cube type %(name)s, must not remove property types required by the base type: %(qnames)s"),
                                               xbrlObject=cubeType, name=name, qnames=", ".join(sorted(str(qn) for qn in removedPropsReqd)))
-                        if basePropertiesAllowed and cubeType.cubeProperties.allowed:
-                            unallowedAddedProps = cubeType.cubeProperties.allowed - basePropertiesAllowed
+                        if basePropertiesAllowed and cubeType.cubeProperties.allowedProperties:
+                            unallowedAddedProps = cubeType.cubeProperties.allowedProperties - basePropertiesAllowed
                             if unallowedAddedProps:
                                 compMdl.error("oimte:invalidPropertyExpansion",
                                               _("The cube type %(name)s, must not add property types not permitted by the base type: %(qnames)s"),
@@ -523,7 +527,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
             continue # can't do further checks without cube type
         isTimeSeriesCubeType = cubeType and cubeType.name == timeSeriesCubeType
         ntwks = set()
-        for ntwrkQn in cubeObj.cubeNetworks:
+        for ntwrkQn in compMdl.effectiveCubeNetworks(cubeObj):
             ntwk = compMdl.namedObjects.get(ntwrkQn)
             if ntwk is None:
                 compMdl.error("oimte:invalidQNameReference",
@@ -631,7 +635,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                             xbrlObject=cubeObj, name=name, cubeType=cubeType.name, reqRel=reqRelStr)
 
 
-        for exclCubeQn in cubeObj.excludeCubes:
+        for exclCubeQn in compMdl.effectiveExcludeCubes(cubeObj):
             if exclCubeQn == cubeObj.name:
                 compMdl.error("oimte:excludeCubeSelfReference",
                           _("The cube %(name)s must not be defined in the excludeCubes property of itself."),
@@ -1075,9 +1079,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                 if extendTargetObj is not None:
                     extendTargetObj.relationships.add(relObj)
             validateProperties(compMdl, oimFile, module, relObj)
-            relObjPrefLbl = relObj.propertyObjectValue(preferredLabel)
-            if relObjPrefLbl:
-                validateQNameReference(compMdl, relObj, "preferredLabel", XbrlLabelType)
+            relObjPrefLbl = validateQNameReference(compMdl, relObj, "preferredLabel", XbrlLabelType, isOptional=True)
             relKey = (relObj.source, relObj.target, relObjPrefLbl, relObj.order)
             ntwkCt[relKey] = ntwkCt.get(relKey, 0) + 1
         if any(ct > 1 for relKey, ct in ntwkCt.items()):
@@ -1330,5 +1332,5 @@ def validateCompletedModel(compMdl):
 
     # check complete cubes
     for cubeObj in compMdl.filterNamedObjects(XbrlCube):
-        if cubeObj.requiredCubes:
+        if compMdl.effectiveRequiredCubes(cubeObj):
             validateCompleteCube(compMdl, cubeObj)
