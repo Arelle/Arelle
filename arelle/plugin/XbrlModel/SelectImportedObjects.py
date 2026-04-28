@@ -5,7 +5,8 @@ See COPYRIGHT.md for copyright information.
 import regex as re, inspect
 from bitarray import bitarray
 from arelle.oim.Load import EMPTY_DICT
-from .XbrlConst import qnXbrlImportTaxonomyObj, qnXbrlLabelObj
+from .XbrlConst import qnXbrlImportTaxonomyObj
+from .XbrlLabel import XbrlLabel
 from .XbrlModule import xbrlObjectTypes, xbrlObjectQNames
 from .XbrlObject import DEREFERENCE_OBJECT
 
@@ -136,7 +137,7 @@ def selectImportedObjects(txmyMdl, newTxmy, impTxObj):
         def selectReferencedObjects(obj):
             if i0 <= obj.xbrlMdlObjIndex <= iL: # applies to this taxonomy import
                 if not selObjs[obj.xbrlMdlObjIndex - i0] and (
-                            not isinstance(obj, XbrlLabelObj) or not exclLbls):
+                            not isinstance(obj, XbrlLabel) or not exclLbls):
                     selObjs[obj.xbrlMdlObjIndex - i0] = True
                     moreRefObjsToSelect[0] = True
             return None # no further action

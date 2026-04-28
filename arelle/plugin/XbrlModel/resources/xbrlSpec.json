@@ -1377,6 +1377,60 @@
                 "language": "en",
                 "relatedName": "xbrl:defaultLanguage",
                 "value": "A built-in property type that specifies the default BCP 47 language for text-valued objects (such as footnotes and text-typed facts) within the model. When a text-valued object does not declare an explicit language, processors MAY use the value of this property on the enclosing XBRL model object as the inherited language. This property may only be applied to the xbrl:xbrlModelObject."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:htmlElementId",
+                "value": "The HTML id attribute value of the element whose inner text content contributes to the fact value."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:htmlEscape",
+                "value": "If true, the value is the escaped markup representation; otherwise the concatenated descendant text content is used. Defaults to false."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:htmlDataAttribute",
+                "value": "The name of a data-* HTML attribute on an element whose value contributes to the fact value (e.g. data-xbrl-ref)."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:pdfFormField",
+                "value": "The field name of a PDF form field whose content contributes to the fact value."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:pdfPage",
+                "value": "The 1-based page number within the PDF document."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:pdfMcid",
+                "value": "The Marked Content Identifier (MCID) of a PDF content item."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:pdfElementId",
+                "value": "The structure element identifier within the PDF document's logical structure tree."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:pdfEscape",
+                "value": "If true, the value is the escaped representation of PDF content. Defaults to false."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:tabularPath",
+                "value": "A tabularPath expression identifying a row, column, or cell in a tabular data source (CSV, spreadsheet). See the tabular path grammar appendix."
             }
         ],
         "namespacePrefixes": [
@@ -1547,6 +1601,134 @@
                 "definitional": false,
                 "allowedObjects": [
                     "xbrl:factObject"
+                ]
+            },
+            {
+                "name": "xbrl:htmlElementId",
+                "dataType": "xs:string",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:factValueSourceObject"
+                ]
+            },
+            {
+                "name": "xbrl:htmlEscape",
+                "dataType": "xs:boolean",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:factValueSourceObject"
+                ]
+            },
+            {
+                "name": "xbrl:htmlDataAttribute",
+                "dataType": "xs:string",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:factValueSourceObject"
+                ]
+            },
+            {
+                "name": "xbrl:pdfFormField",
+                "dataType": "xs:string",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:factValueSourceObject"
+                ]
+            },
+            {
+                "name": "xbrl:pdfPage",
+                "dataType": "xs:integer",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:factValueSourceObject"
+                ]
+            },
+            {
+                "name": "xbrl:pdfMcid",
+                "dataType": "xs:string",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:factValueSourceObject"
+                ]
+            },
+            {
+                "name": "xbrl:pdfElementId",
+                "dataType": "xs:string",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:factValueSourceObject"
+                ]
+            },
+            {
+                "name": "xbrl:pdfEscape",
+                "dataType": "xs:boolean",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:factValueSourceObject"
+                ]
+            },
+            {
+                "name": "xbrl:tabularPath",
+                "dataType": "xs:string",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:factValueSourceObject"
+                ]
+            }
+        ],
+        "factLocatorTypes": [
+            {
+                "name": "xbrl:htmlElementLocatorType",
+                "sourceMediaType": "text/html",
+                "requiredProperties": [
+                    "xbrl:htmlElementId"
+                ],
+                "allowedProperties": [
+                    "xbrl:htmlElementId",
+                    "xbrl:htmlEscape"
+                ]
+            },
+            {
+                "name": "xbrl:htmlDataAttributeLocatorType",
+                "sourceMediaType": "text/html",
+                "requiredProperties": [
+                    "xbrl:htmlDataAttribute"
+                ],
+                "allowedProperties": [
+                    "xbrl:htmlDataAttribute"
+                ]
+            },
+            {
+                "name": "xbrl:pdfFormFieldLocatorType",
+                "sourceMediaType": "application/pdf",
+                "requiredProperties": [
+                    "xbrl:pdfFormField"
+                ],
+                "allowedProperties": [
+                    "xbrl:pdfFormField"
+                ]
+            },
+            {
+                "name": "xbrl:pdfContentLocatorType",
+                "sourceMediaType": "application/pdf",
+                "requiredProperties": [
+                    "xbrl:pdfPage"
+                ],
+                "allowedProperties": [
+                    "xbrl:pdfPage",
+                    "xbrl:pdfMcid",
+                    "xbrl:pdfElementId",
+                    "xbrl:pdfEscape"
+                ]
+            },
+            {
+                "name": "xbrl:tabularLocatorType",
+                "sourceMediaType": "text/csv",
+                "requiredProperties": [
+                    "xbrl:tabularPath"
+                ],
+                "allowedProperties": [
+                    "xbrl:tabularPath"
                 ]
             }
         ],
@@ -1783,22 +1965,15 @@
                 "targetObjects" : ["xbrl:groupObject"]
             },
             {
-                "name": "xbrl:fact-footnote",
-                "uri": "http://xbrl.org/oim/fact-footnote",
-                "cycles" : "undirected",
-                "sourceObjects" : ["xbrl:factObject"],
-                "targetObjects" : ["xbrl:footnoteObject"]
-            },
-            {
-                "name": "xbrl:fact-InFact",
-                "uri": "http://xbrl.org/oim/fact-InFact",
+                "name": "xbrl:fact-inFact",
+                "uri": "http://xbrl.org/oim/fact-inFact",
                 "cycles" : "undirected",
                 "sourceObjects" : ["xbrl:factObject"],
                 "targetObjects" : ["xbrl:factObject"]
             },
             {
-                "name": "xbrl:fact-InFootnote",
-                "uri": "http://xbrl.org/oim/fact-InFootnote",
+                "name": "xbrl:fact-inFootnote",
+                "uri": "http://xbrl.org/oim/fact-inFootnote",
                 "cycles" : "undirected",
                 "sourceObjects" : ["xbrl:factObject"],
                 "targetObjects" : ["xbrl:footnoteObject"]
@@ -1827,8 +2002,16 @@
         ],
         "networks": [
             {
-                "name": "xbrl:fact-footnote-network",
-                "relationshipTypeName": "xbrl:fact-footnote"
+                "name": "xbrl:fact-inFootnote-network",
+                "relationshipTypeName": "xbrl:fact-inFootnote"
+            },
+            {
+                "name": "xbrl:fact-inFact-network",
+                "relationshipTypeName": "xbrl:fact-inFact"
+            },
+            {
+                "name": "xbrl:fact-explanatoryFact-network",
+                "relationshipTypeName": "xbrl:fact-explanatoryFact"
             }
         ]
         

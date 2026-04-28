@@ -774,6 +774,31 @@
                               "pattern": "^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$",
                               "description": "Language of the fact value (BCP 47)."
                             },
+                            "locatorType": {
+                              "$ref": "#/definitions/QName",
+                              "description": "QName of the factLocatorType that defines the addressing strategy for all valueSources entries on this factValue. Inherited from sourceMapping.factInterfaceName when omitted."
+                            },
+                            "source": {
+                              "$ref": "#/definitions/QName",
+                              "description": "QName identifying the source document via the sourceMapping of the documentInfo object. Applied to all valueSources entries on this factValue when present."
+                            },
+                            "transformation": {
+                              "$ref": "#/definitions/QName",
+                              "description": "QName of a transformation to apply to extracted source text (e.g. locale date conversion). Applied to all valueSources entries unless overridden."
+                            },
+                            "scale": {
+                              "type": "integer",
+                              "description": "Power of 10 to multiply the extracted numeric value (e.g. 6 for millions). Applied to all valueSources entries."
+                            },
+                            "sign": {
+                              "type": "string",
+                              "enum": ["-"],
+                              "description": "Set to '-' if the extracted source value must be negated to produce the canonical fact value."
+                            },
+                            "escape": {
+                              "type": "boolean",
+                              "description": "If true, the value is the escaped representation for media with markup (html, xml); otherwise the concatenated descendant text content is used. Defaults to false."
+                            },
                             "valueSources": {
                               "type": "array",
                               "description": "Ordered set of factValueSource objects identifying where the values are obtained from content of an embedding or accompanying document file.",
@@ -1215,6 +1240,12 @@
                       "additionalProperties": false
                   },
                     "uniqueItems": true
+                },
+                "factLocatorTypes": {
+                  "type": "array",
+                  "description": "Set of factLocatorType objects defining named strategies for locating content within source documents.",
+                  "items": { "$ref": "#/definitions/factLocatorTypeObject" },
+                  "uniqueItems": true
                 },
                 "modelTypes": {
                   "type": "array",
@@ -2217,215 +2248,55 @@
         },
         "factValueSourceObject": {
           "type": "object",
-          "description": "Represents the source(s) of a fact value from a document file's content.",
+          "description": "Identifies a single contiguous fragment of a source document that contributes (by concatenation) to a fact value. When the parent factValue carries a locatorType and source, each entry need only supply the fragment-specific addressing properties. The legacy flat approach (medium, id, page, etc.) is also accepted for backward compatibility.",
           "properties": {
-            "source": {
-              "ref": "#/definitions/QName",
-              "description": "Optional source hint (e.g. 'document', 'note1'); may also be specified at the model level."
-            },
-            "medium": {
-              "type": "string",
-              "description": "Optional medium hint (e.g. html, pdf, tabular); may also be specified at the model level."
-            },
-            "id": {
-              "type": "string",
-              "description": "For HTML: element containing the mapped inner text content (e.g. '#elt1')."
-            },
-            "formField": {
-              "type": "string",
-              "description": "For PDF: the field name of a PDF form field whose content contributes to the value."
-            },
-            "page": {
-              "type": "integer",
-              "minimum": 1,
-              "description": "For PDF non-form text: the page number."
-            },
-            "mcid": {
-              "type": "string",
-              "description": "For PDF non-form structure text identified by MCID."
-            },
-            "elementId": {
-              "type": "string",
-              "description": "For PDF non-form text identified by structure element Id."
-            },
-            "tabularPath": {
-              "type": "string",
-              "description": "For tabular/workbook sources: a TabularPath expression."
-            },
-            "transformation": {
-              "$ref": "#/definitions/QName",
-              "description": "QName of a transformation applied to the source text."
-            },
-            "scale": {
-              "type": "integer",
-              "description": "Power of 10 to multiply the source numeric text (e.g. 3 for billions)."
-            },
-            "sign": {
-              "type": "string",
-              "description": "Sign of the value when not part of the transformation."
-            },
-            "escape": {
-              "type": "boolean",
-              "description": "Whether to escape special characters in the source text."}
-          },
-          "additionalProperties": false,
-
-          "allOf": [
-            {
-              "oneOf": [
-                {
-                  "required": ["id"],
-                  "not": {
-                    "anyOf": [
-                      { "required": ["formField"] },
-                      { "required": ["page"] },
-                      { "required": ["mcid"] },
-                      { "required": ["elementId"] },
-                      { "required": ["tabularPath"] }
-                    ]
-                  }
-                },
-                {
-                  "required": ["formField"],
-                  "not": {
-                    "anyOf": [
-                      { "required": ["id"] },
-                      { "required": ["page"] },
-                      { "required": ["mcid"] },
-                      { "required": ["elementId"] },
-                      { "required": ["tabularPath"] }
-                    ]
-                  }
-                },
-                {
-                  "required": ["page"],
-                  "anyOf": [
-                    { "required": ["mcid"] },
-                    { "required": ["elementId"] }
-                  ],
-                  "not": {
-                    "anyOf": [
-                      { "required": ["id"] },
-                      { "required": ["formField"] },
-                      { "required": ["tabularPath"] }
-                    ]
-                  }
-                },
-                {
-                  "required": ["tabularPath"],
-                  "not": {
-                    "anyOf": [
-                      { "required": ["id"] },
-                      { "required": ["formField"] },
-                      { "required": ["page"] },
-                      { "required": ["mcid"] },
-                      { "required": ["elementId"] }
-                    ]
-                  }
-                }
-              ]
+            "properties": {
+              "type": "array",
+              "description": "Fragment-specific addressing properties validated against the requiredProperties and allowedProperties of the locatorType declared on the parent factValue.",
+              "items": { "$ref": "#/definitions/propertyObject" },
+              "uniqueItems": true
             }
-          ]
+          },
+          "additionalProperties": false
         },
 
         "factValueAnchorObject": {
           "type": "object",
-          "description": "Specifies the source(s) of a fact value from a document file's content for tool visual actions (highlighting, mouse-over).",
+          "description": "Identifies a region of a source document that visually corresponds to a fact value, for tool highlighting and mouse-over. Carries no extraction semantics. When the parent factValue carries a locatorType and source, each entry need only supply the fragment-specific addressing properties.",
           "properties": {
-             "source": {
-              "ref": "#/definitions/QName",
-              "description": "Optional source hint (e.g. 'document', 'note1'); may also be specified at the model level."
-            },
-            "medium": {
-              "type": "string",
-              "description": "Optional medium hint (e.g. html, pdf, workbook); may also be specified at the model level."
-            },
-            "id": {
-              "type": "string",
-              "description": "For HTML: element containing the mapped inner text content (e.g. '#elt1')."
-            },
-            "formField": {
-              "type": "string",
-              "description": "For PDF: the field name of a PDF form field that contributes to the value."
-            },
-            "page": {
-              "type": "integer",
-              "minimum": 1,
-              "description": "For PDF non-form text: the page number."
-            },
-            "mcid": {
-              "type": "string",
-              "description": "For PDF non-form structure text identified by MCID."
-            },
-            "elementId": {
-              "type": "string",
-              "description": "For PDF non-form text identified by structure element Id."
-            },
-
-            "tabularPath": {
-              "type": "string",
-              "description": "For workbook/tabular sources: a TabularPath expression."
+            "properties": {
+              "type": "array",
+              "description": "Fragment-specific addressing properties validated against the allowedProperties of the locatorType declared on the parent factValue.",
+              "items": { "$ref": "#/definitions/propertyObject" },
+              "uniqueItems": true
             }
           },
-          "additionalProperties": false,
-
-          "allOf": [
-            {
-              "oneOf": [
-                {
-
-                  "required": ["id"],
-                  "not": {
-                    "anyOf": [
-                      { "required": ["formField"] },
-                      { "required": ["page"] },
-                      { "required": ["mcid"] },
-                      { "required": ["elementId"] },
-                      { "required": ["tabularPath"] }
-                    ]
-                  }
-                },
-                {
-                  "required": ["formField"],
-                  "not": {
-                    "anyOf": [
-                      { "required": ["id"] },
-                      { "required": ["page"] },
-                      { "required": ["mcid"] },
-                      { "required": ["elementId"] },
-                      { "required": ["tabularPath"] }
-                    ]
-                  }
-                },
-                {
-                  "required": ["page"],
-                  "anyOf": [
-                    { "required": ["mcid"] },
-                    { "required": ["elementId"] }
-                  ],
-                  "not": {
-                    "anyOf": [
-                      { "required": ["id"] },
-                      { "required": ["formField"] },
-                      { "required": ["tabularPath"] }
-                    ]
-                  }
-                },
-                {
-                  "required": ["tabularPath"],
-                  "not": {
-                    "anyOf": [
-                      { "required": ["id"] },
-                      { "required": ["formField"] },
-                      { "required": ["page"] },
-                      { "required": ["mcid"] },
-                      { "required": ["elementId"] }
-                    ]
-                  }
-                }
-              ]
+          "additionalProperties": false
+        },
+        "factLocatorTypeObject": {
+          "type": "object",
+          "description": "Defines a named strategy (interface) for locating content within a source document. Specifies the required and allowed properties for any fact location of this type.",
+          "properties": {
+            "name": { "$ref": "#/definitions/QName", "description": "Unique QName identifying this locator type." },
+            "sourceMediaType": {
+              "type": "string",
+              "description": "Advisory MIME type hint for the target document medium (e.g. text/html, application/pdf, text/csv)."
+            },
+            "requiredProperties": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/QName" },
+              "uniqueItems": true,
+              "description": "Set of property QNames that MUST appear on every fact Locator of this type."
+            },
+            "allowedProperties": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/QName" },
+              "uniqueItems": true,
+              "description": "Set of property QNames that MAY appear on a fact locator of this type. Properties outside this set are not permitted."
             }
-          ]
+          },
+          "required": ["name"],
+          "additionalProperties": false
         }
       },
       "required" : ["documentInfo"],
