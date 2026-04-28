@@ -90,13 +90,6 @@ def startWebserver(cntlr: CntlrCmdLine, options: RuntimeOptions) -> Bottle | Non
     """
     setCntlr(cntlr)
     setRuntimeOptions(options)
-    print(
-        _("WARNING: Arelle's built-in webserver performs no authentication and must only be "
-          "reachable by trusted users. It can read arbitrary files from this host and load "
-          "plug-ins on request. Do not expose it to untrusted users or networks. "
-          "See docs/webserver_security.md."),
-        file=sys.stderr,
-    )
     assert options.webserver is not None
     host, sep, portServer = options.webserver.partition(":")
     port, sep, server = portServer.partition(":")
