@@ -290,8 +290,7 @@ def validateUtilityRun(cntlr, options, *args, **kwargs):
 def setupPackageEntrypoints(cntlr, options, filesource, entrypointFiles, *args, **kwargs):
     # check package entries formula code
     if getattr(options, "checkPackageEntries", False) and not entrypointFiles:
-        for packageMeta in sorted(cntlr.packages.get_packages(),
-                                  key=lambda packageMeta: (packageMeta.name ,packageMeta.version)):
+        for packageMeta in cntlr.packages.get_packages():
             cntlr.addToLog(_("Package %(package)s Version %(version)s"),
                            messageArgs={"package": packageMeta.name, "version": packageMeta.version},
                            messageCode="info",

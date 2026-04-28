@@ -593,9 +593,7 @@ class CntlrWinMain(Cntlr.Cntlr):
         self.fileMenu.add_cascade(label=_("Recent imports"), menu=self.recentAttachMenu, underline=0)
         self.packagesMenu = Menu(self.menubar, tearoff=0)
         hasPackages = False
-        for i, packageMeta in enumerate(sorted(self.packages.get_packages(),
-                                               key=lambda packageMeta: (packageMeta.name,packageMeta.version)),
-                                        start=1):
+        for i, packageMeta in enumerate(self.packages.get_packages(), start=1):
             name = packageMeta.name if packageMeta.name is not None else "package{}".format(i)
             version = packageMeta.version
             if version:
