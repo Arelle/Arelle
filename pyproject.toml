@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=82,<83", "wheel>=0.46,<0.47", "setuptools_scm>=10.0,<11.0"]
+requires = ["setuptools>=82,<83", "wheel>=0.46,<0.48", "setuptools_scm>=10.0,<11.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -188,7 +188,6 @@ module = [
     'arelle.Validate',
     'arelle.ValidateFilingText',
     'arelle.ValidateInfoset',
-    'arelle.ValidateUtr',
     'arelle.ValidateVersReport',
     'arelle.ValidateXbrlCalcs',
     'arelle.ValidateXbrlDTS',
@@ -231,7 +230,6 @@ module = [
     'arelle.ViewWinVersReport',
     'arelle.ViewWinXml',
     'arelle.WatchRss',
-    'arelle.XhtmlValidate',
     'arelle.XmlValidateParticles',
     'arelle.archive.CustomLogger',
     'arelle.archive.LoadEFMvalidate',

@@ -55,6 +55,10 @@ class PluginManager:
         return self._isInitialized
 
     def init(self, cntlr: Cntlr, loadPluginConfig: bool = True) -> None:
+        # PluginManager.init is called inside Cntlr.__init__, so cntlr is a live object but its
+        # attributes are only assigned as __init__ progresses. Plugin loading uses the
+        # WebCache, so cntlr.webCache must already be assigned.
+        assert hasattr(cntlr, "webCache"), "cntlr.webCache must be assigned"
         self._isInitialized = True
         self.pluginJsonFile: str | None = None
         self._cntlr: Cntlr = cntlr

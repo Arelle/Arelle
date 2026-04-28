@@ -3,21 +3,42 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 
-# initialize object from loaded linkbases
+import sys
+import warnings
 from collections import defaultdict
+from collections.abc import Mapping
 from dataclasses import dataclass
 from itertools import chain
+from types import MappingProxyType
 from typing import Any
-from arelle import Locale, XbrlConst, ModelValue
-from arelle.ModelObject import ModelObject
+
+from arelle import Locale, ModelValue, XbrlConst
 from arelle.ModelDtsObject import ModelRelationship
+from arelle.ModelObject import ModelObject
 from arelle.PrototypeDtsObject import PrototypeObject
 from arelle.PythonUtil import OrderedSet
 from arelle.XbrlConst import consecutiveArcrole
-import sys
 
 USING_EQUIVALENCE_KEY = sys.intern(str("using_equivalence_key")) # indicates hash entry replaced with keyed entry
 NoneType = type(None)
+
+_DEPRECATED: Mapping[str, str] = MappingProxyType({
+    "baseSetArcroles":
+        "ModelRelationshipSet.baseSetArcroles is deprecated; non-GUI callers should "
+        "iterate modelXbrl.baseSets.keys() directly.",
+    "labelroles":
+        "ModelRelationshipSet.labelroles is deprecated; non-GUI callers should use "
+        "modelXbrl.labelroles directly, unioning with {XbrlConst.conceptNameLabelRole} "
+        "when the concept-name pseudo role is needed.",
+})
+
+
+def __getattr__(name: str) -> object:
+    if deprecated_name := _DEPRECATED.get(name):
+        warnings.warn(deprecated_name, DeprecationWarning, stacklevel=2)
+        from arelle import ViewUtil
+        return getattr(ViewUtil, name)
+    raise AttributeError(name)
 
 def create(modelXbrl, arcrole, linkrole=None, linkqname=None, arcqname=None, includeProhibits=False) -> ModelRelationshipSet:
     return ModelRelationshipSet(modelXbrl, arcrole, linkrole, linkqname, arcqname, includeProhibits)
