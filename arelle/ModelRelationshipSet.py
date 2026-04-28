@@ -9,15 +9,23 @@ from collections import defaultdict
 from collections.abc import Mapping
 from dataclasses import dataclass
 from itertools import chain
+from typing import Any, TYPE_CHECKING
+from arelle.ModelValue import QName
 from types import MappingProxyType
-from typing import Any
 
 from arelle import Locale, ModelValue, XbrlConst
-from arelle.ModelDtsObject import ModelRelationship
+from arelle.ModelDtsObject import ModelRelationship, ModelLink, ModelConcept
 from arelle.ModelObject import ModelObject
-from arelle.PrototypeDtsObject import PrototypeObject
+from arelle.PrototypeDtsObject import PrototypeObject, LinkPrototype
 from arelle.PythonUtil import OrderedSet
 from arelle.XbrlConst import consecutiveArcrole
+
+from arelle.typing import TypeGetText
+
+if TYPE_CHECKING:
+    from arelle.ModelXbrl import ModelXbrl
+
+_: TypeGetText
 
 USING_EQUIVALENCE_KEY = sys.intern(str("using_equivalence_key")) # indicates hash entry replaced with keyed entry
 NoneType = type(None)
@@ -40,26 +48,39 @@ def __getattr__(name: str) -> object:
         return getattr(ViewUtil, name)
     raise AttributeError(name)
 
-def create(modelXbrl, arcrole, linkrole=None, linkqname=None, arcqname=None, includeProhibits=False) -> ModelRelationshipSet:
+def create(
+        modelXbrl: ModelXbrl,
+        arcrole: tuple[str, ...] | str,
+        linkrole: tuple[str, ...] | str | None = None,
+        linkqname: QName | None = None,
+        arcqname: QName | None = None,
+        includeProhibits: bool = False
+    ) -> ModelRelationshipSet:
     return ModelRelationshipSet(modelXbrl, arcrole, linkrole, linkqname, arcqname, includeProhibits)
 
-def ineffectiveArcs(baseSetModelLinks, arcrole, arcqname=None):
+def ineffectiveArcs(
+        baseSetModelLinks: list[ModelLink | LinkPrototype],
+        arcrole: tuple[str, ...] | str,
+        arcqname: QName | None = None
+    ) -> list[ModelRelationship]:
     hashEquivalentRels = defaultdict(list)
     for modelLink in baseSetModelLinks:
         modelLinkrole = modelLink.role
         for linkChild in modelLink:
-            if (isinstance(linkChild,(ModelObject,PrototypeObject)) and
-                linkChild.get("{http://www.w3.org/1999/xlink}type") == "arc" and
-                arcrole == linkChild.get("{http://www.w3.org/1999/xlink}arcrole") and
-                (arcqname is None or arcqname == linkChild)):
+            if (
+                    isinstance(linkChild, (ModelObject, PrototypeObject))
+                    and linkChild.get("{http://www.w3.org/1999/xlink}type") == "arc"
+                    and arcrole == linkChild.get("{http://www.w3.org/1999/xlink}arcrole")
+                    and (arcqname is None or arcqname == linkChild)
+            ):
                 fromLabel = linkChild.get("{http://www.w3.org/1999/xlink}from")
                 toLabel = linkChild.get("{http://www.w3.org/1999/xlink}to")
-                for fromResource in modelLink.labeledResources[fromLabel]:
-                    for toResource in modelLink.labeledResources[toLabel]:
-                        modelRel = ModelRelationship(modelLink.modelDocument, linkChild, fromResource.dereference(), toResource.dereference(), linkrole=modelLinkrole)
+                for fromResource in modelLink.labeledResources[fromLabel]:  # type: ignore[index]
+                    for toResource in modelLink.labeledResources[toLabel]:  # type: ignore[index]
+                        modelRel = ModelRelationship(modelLink.modelDocument, linkChild, fromResource.dereference(), toResource.dereference(), linkrole=modelLinkrole)  # type: ignore[no-untyped-call,union-attr]
                         hashEquivalentRels[modelRel.equivalenceHash].append(modelRel)
     # determine ineffective relationships
-    ineffectives = []
+    ineffectives: list[ModelRelationship] = []
     keyEquivalentRels = defaultdict(list)
     for hashEquivRelList in hashEquivalentRels.values():
         # separate into relationships that are key-equivalent
@@ -106,11 +127,11 @@ def ineffectiveArcs(baseSetModelLinks, arcrole, arcqname=None):
 
 
 
-def baseSetRelationship(arcElement):
+def baseSetRelationship(arcElement: ModelObject) -> ModelRelationship | None:
     modelXbrl = arcElement.modelXbrl
     arcrole = arcElement.get("{http://www.w3.org/1999/xlink}arcrole")
-    ELR = arcElement.getparent().get("{http://www.w3.org/1999/xlink}role")
-    for rel in modelXbrl.relationshipSet(arcrole, ELR).modelRelationships:
+    ELR = arcElement.getparent().get("{http://www.w3.org/1999/xlink}role")  # type: ignore[union-attr]
+    for rel in modelXbrl.relationshipSet(arcrole, ELR).modelRelationships:  # type: ignore[union-attr,arg-type]
         if rel.arcElement == arcElement:
             return rel
     return None
@@ -130,9 +151,17 @@ class ModelRelationshipSet:
     modelRelationshipsTo: dict[Any, list[ModelRelationship]] | None
 
     # arcrole can either be a single string or a tuple or frozenset of strings
-    def __init__(self, modelXbrl, arcrole, linkrole=None, linkqname=None, arcqname=None, includeProhibits=False):
+    def __init__(
+            self,
+            modelXbrl: ModelXbrl,
+            arcrole: tuple[str, ...] | str,
+            linkrole: tuple[str, ...] | str | None = None,
+            linkqname: QName | None = None,
+            arcqname: QName | None = None,
+            includeProhibits: bool = False
+        ) -> None:
         self.isChanged = False
-        self.modelXbrl = modelXbrl
+        self.modelXbrl: ModelXbrl | None = modelXbrl
         self.arcrole = arcrole # may be str, None, tuple or frozenset
         self.linkrole = linkrole # may be str, None, tuple or frozenset
         self.linkqname = linkqname
@@ -150,7 +179,8 @@ class ModelRelationshipSet:
                     modelLinks.extend(self.modelXbrl.baseSets.get((ar, lr, linkqname, arcqname), []))
 
         # gather arcs
-        relationships = {}
+        relationships: dict[Any, ModelRelationship | str] = {}
+        modelRel: ModelRelationship | str
         isDimensionRel =  self.arcrole == "XBRL-dimensions" # all dimensional relationship arcroles
         isFormulaRel =  self.arcrole == "XBRL-formulae" # all formula relationship arcroles
         isTableRenderingRel = self.arcrole == "Table-rendering"
@@ -188,24 +218,25 @@ class ModelRelationshipSet:
                     if otherRel is not USING_EQUIVALENCE_KEY: # move equivalentRel to use key instead of hasn
                         if modelRel.isIdenticalTo(otherRel):
                             continue # skip identical arc
-                        relationships[otherRel.equivalenceKey] = otherRel
+                        relationships[otherRel.equivalenceKey] = otherRel  # type: ignore[union-attr]
                         relationships[modelRelEquivalenceHash] = USING_EQUIVALENCE_KEY
                     modelRelEquivalenceKey = modelRel.equivalenceKey    # this is a complex tuple to compute, get once for below
                     if modelRelEquivalenceKey not in relationships or \
-                        modelRel.priorityOver(relationships[modelRelEquivalenceKey]):
+                        modelRel.priorityOver(relationships[modelRelEquivalenceKey]):  # type: ignore[no-untyped-call]
                         relationships[modelRelEquivalenceKey] = modelRel
 
         #reduce effective arcs and order relationships...
         self.modelRelationshipsFrom = None
         self.modelRelationshipsTo = None
-        self.modelConceptRoots = None
+        self.modelConceptRoots: list[ModelConcept] | None = None
         self.modellinkRoleUris = None
-        orderRels = defaultdict(list)
+        orderRels: dict[float, list[ModelRelationship]] = defaultdict(list)
         for modelRel in relationships.values():
             if (modelRel is not USING_EQUIVALENCE_KEY and
-                (includeProhibits or not modelRel.isProhibited)):
+                (includeProhibits or (isinstance(modelRel, ModelRelationship) and not modelRel.isProhibited))):
+                assert isinstance(modelRel, ModelRelationship)
                 orderRels[modelRel.order].append(modelRel)
-        self.modelRelationships = [modelRel
+        self.modelRelationships: list[ModelRelationship] = [modelRel
                                    for order in sorted(orderRels.keys())
                                    for modelRel in orderRels[order]]
         modelXbrl.relationshipSets[relationshipSetKey] = self
@@ -222,21 +253,21 @@ class ModelRelationshipSet:
             del self.modelConceptRoots[:]
         self.linkqname = self.arcqname = None
 
-    def __bool__(self):  # some modelRelationships exist
+    def __bool__(self) -> bool:  # some modelRelationships exist
         return len(self.modelRelationships) > 0
 
-    def contains(self, modelObject: ModelObject) -> bool:
+    def contains(self, modelObject: ModelConcept) -> bool:
         return bool(self.fromModelObject(modelObject) or self.toModelObject(modelObject))
 
     @property
-    def linkRoleUris(self):
+    def linkRoleUris(self) -> OrderedSet[str]:
         # order by document appearance of linkrole, required for Table Linkbase testcase 3220 v03
         if self.modellinkRoleUris is None:
             linkroleObjSeqs = set((modelRel.linkrole, getattr(modelRel.arcElement.getparent(), "objectIndex", sys.maxsize)) for modelRel in self.modelRelationships)
-            self.modellinkRoleUris = OrderedSet([lr[0] for lr in sorted(linkroleObjSeqs, key=lambda l: l[1])])
-        return self.modellinkRoleUris
+            self.modellinkRoleUris = OrderedSet([lr[0] for lr in sorted(linkroleObjSeqs, key=lambda l: l[1])])  # type: ignore[assignment]
+        return self.modellinkRoleUris  # type: ignore[return-value]
 
-    def loadModelRelationshipsFrom(self) -> dict[Any, list[ModelRelationship]]:
+    def loadModelRelationshipsFrom(self) -> dict[ModelConcept, list[ModelRelationship]]:
         modelRelationshipsFrom = self.modelRelationshipsFrom
         if modelRelationshipsFrom is None:
             modelRelationshipsFrom = defaultdict(list)
@@ -247,7 +278,7 @@ class ModelRelationshipSet:
             self.modelRelationshipsFrom = modelRelationshipsFrom
         return modelRelationshipsFrom
 
-    def loadModelRelationshipsTo(self) -> dict[Any, list[ModelRelationship]]:
+    def loadModelRelationshipsTo(self) -> dict[ModelConcept, list[ModelRelationship]]:
         modelRelationshipsTo = self.modelRelationshipsTo
         if modelRelationshipsTo is None:
             modelRelationshipsTo = defaultdict(list)
@@ -261,27 +292,27 @@ class ModelRelationshipSet:
     def fromModelObjects(self) -> dict[Any, list[ModelRelationship]]:
         return self.loadModelRelationshipsFrom()
 
-    def fromModelObject(self, modelFrom) -> list[ModelRelationship]:
+    def fromModelObject(self, modelFrom: ModelObject) -> list[ModelRelationship]:
         if getattr(self.modelXbrl, "isSupplementalIxdsTarget", False) and modelFrom is not None and modelFrom.modelXbrl != self.modelXbrl:
-            modelFrom = self.modelXbrl.qnameConcepts.get(modelFrom.qname, None)
-        return self.loadModelRelationshipsFrom().get(modelFrom, [])
+            modelFrom = self.modelXbrl.qnameConcepts.get(modelFrom.qname, None)  # type: ignore[union-attr,assignment]
+        return self.loadModelRelationshipsFrom().get(modelFrom, [])  # type: ignore[no-any-return,call-overload]
 
     def toModelObjects(self) -> dict[Any, list[ModelRelationship]]:
         return self.loadModelRelationshipsTo()
 
-    def toModelObject(self, modelTo) -> list[ModelRelationship]:
+    def toModelObject(self, modelTo: ModelObject) -> list[ModelRelationship]:
         if getattr(self.modelXbrl, "isSupplementalIxdsTarget", False) and modelTo is not None and modelTo.modelXbrl != self.modelXbrl:
-            modelTo = self.modelXbrl.qnameConcepts.get(modelTo.qname, None)
-        return self.loadModelRelationshipsTo().get(modelTo, [])
+            modelTo = self.modelXbrl.qnameConcepts.get(modelTo.qname, None)  # type: ignore[union-attr,assignment]
+        return self.loadModelRelationshipsTo().get(modelTo, [])  # type: ignore[no-any-return,call-overload]
 
-    def fromToModelObjects(self, modelFrom, modelTo, checkBothDirections=False) -> list[ModelRelationship]:
+    def fromToModelObjects(self, modelFrom: ModelConcept, modelTo: ModelConcept, checkBothDirections: bool = False) -> list[ModelRelationship]:
         rels = [rel for rel in self.fromModelObject(modelFrom) if rel.toModelObject is modelTo]
         if checkBothDirections:
             rels += [rel for rel in self.fromModelObject(modelTo) if rel.toModelObject is modelFrom]
         return rels
 
     @property
-    def rootConcepts(self):
+    def rootConcepts(self) -> list[ModelConcept]:
         if self.modelConceptRoots is None:
             modelRelationshipsFrom = self.loadModelRelationshipsFrom()
             modelRelationshipsTo = self.loadModelRelationshipsTo()
@@ -295,7 +326,15 @@ class ModelRelationshipSet:
 
     # if modelFrom and modelTo are provided determine that they have specified relationship
     # if only modelFrom, determine that there are relationships present of specified axis
-    def isRelated(self, modelFrom, axis, modelTo=None, visited=None, isDRS=False, consecutiveLinkrole=False) -> bool: # either model concept or qname
+    def isRelated(
+            self,
+            modelFrom: ModelConcept,
+            axis: str,
+            modelTo: ModelConcept | None = None,
+            visited: set[ModelConcept] | None = None,
+            isDRS: bool = False,
+            consecutiveLinkrole: bool = False
+        ) -> bool: # either model concept or qname
         assert self.modelXbrl is not None
         if getattr(self.modelXbrl, "isSupplementalIxdsTarget", False):
             if modelFrom is not None and modelFrom.modelXbrl != self.modelXbrl:
@@ -363,14 +402,22 @@ class ModelRelationshipSet:
                     visited.discard(toConcept)
         return False
 
-    def label(self, modelFrom, role, lang, returnMultiple=False, returnText=True, linkroleHint=None) -> str | ModelObject | list[str] | list[ModelObject] | None:
+    def label(
+            self,
+            modelFrom: ModelConcept,
+            role: str,
+            lang: str,
+            returnMultiple: bool = False,
+            returnText: bool = True,
+            linkroleHint: str | None = None
+            ) -> str | ModelObject | list[str] | list[ModelObject] | None:
         _lang = lang.lower() if lang else lang # lang processing is case insensitive
-        langLabels = []
+        langLabels: list[str] | list[ModelObject] = []
         wildRole = role == '*'
         labels = self.fromModelObject(modelFrom)
         if linkroleHint:  # order of preference of linkroles to find label
             try:
-                testHintedLinkrole = self._testHintedLabelLinkrole
+                testHintedLinkrole = self._testHintedLabelLinkrole  # type: ignore[has-type]
             except AttributeError:
                 self._testHintedLabelLinkrole = testHintedLinkrole = (len(self.linkRoleUris) > 1)
             if testHintedLinkrole:

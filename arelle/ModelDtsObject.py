@@ -1739,6 +1739,7 @@ class ModelRelationship(ModelObject):
         Value of xlink:role attribute of parent extended link element
     """
     _equivalenceHash: int | None
+    ineffectivity: str
 
     def __init__(self, modelDocument, arcElement, fromModelObject, toModelObject, linkrole=None):
         # copy model object properties from arcElement

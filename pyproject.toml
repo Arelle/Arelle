@@ -169,7 +169,6 @@ module = [
     'arelle.ModelDtsObject',
     'arelle.ModelFormulaObject',
     'arelle.ModelInstanceObject',
-    'arelle.ModelRelationshipSet',
     'arelle.ModelRenderingObject',
     'arelle.ModelRssItem',
     'arelle.ModelRssObject',

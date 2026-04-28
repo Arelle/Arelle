@@ -59,8 +59,8 @@ def _compareInstance(originalInstance: ModelXbrl, expectedInstance: ModelXbrl, t
                                     modelXbrl=originalInstance, countFacts=len(targetInstance.facts),
                                     expectedFacts=len(expectedInstance.facts))
         return
-    compareFootnotesRelSet = ModelRelationshipSet(targetInstance, "XBRL-footnotes")  # type: ignore[no-untyped-call]
-    expectedFootnotesRelSet = ModelRelationshipSet(expectedInstance, "XBRL-footnotes")  # type: ignore[no-untyped-call]
+    compareFootnotesRelSet = ModelRelationshipSet(targetInstance, "XBRL-footnotes")
+    expectedFootnotesRelSet = ModelRelationshipSet(expectedInstance, "XBRL-footnotes")
     for expectedInstanceFact in expectedInstance.facts:
         unmatchedFactsStack: list[ModelFact] = []
         compareFact = targetInstance.matchFact(expectedInstanceFact, unmatchedFactsStack, deemP0inf=True, matchId=matchById, matchLang=False)

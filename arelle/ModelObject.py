@@ -366,7 +366,7 @@ class ModelObject(etree.ElementBase, ModelObjectBase):
         assert self.modelXbrl is not None
         labelsRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.elementLabel,linkrole)
         if labelsRelationshipSet:
-            label = labelsRelationshipSet.label(self, role, lang)
+            label = labelsRelationshipSet.label(self, role, lang)  # type: ignore[arg-type]
             if label is not None:
                 label = cast(str, label)
                 if strip: return label.strip()

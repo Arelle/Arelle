@@ -1569,7 +1569,7 @@ def fact_footnotes(xc: XPathContext.XPathContext, p: OperationDef, args: XPathCo
     assert inst is not None
     relationshipSet = inst.relationshipSet(arcroleURI, linkroleURI)
     if relationshipSet:  # must return empty sequence, not None if no footnotes match filters
-        return relationshipSet.label(itemObj, footnoteroleURI, lang, returnMultiple=True) or ()
+        return relationshipSet.label(itemObj, footnoteroleURI, lang, returnMultiple=True) or ()  # type: ignore[arg-type]
     return ()
 
 
@@ -1676,11 +1676,11 @@ def concept_relationships(
             if generations > 1:
                 generations -= 1
         elif axis == "descendant":
-            rels = relationshipSet.fromModelObject(srcConcept)
+            rels = relationshipSet.fromModelObject(srcConcept)  # type: ignore[arg-type]
         elif axis == "ancestor":  # includes first pass on parents of object to get sibling
-            rels = relationshipSet.toModelObject(srcConcept)
+            rels = relationshipSet.toModelObject(srcConcept)  # type: ignore[arg-type]
         elif axis in ("sibling", "sibling-or-descendant", "sibling-or-self", "sibling-or-descendant-or-self"):
-            rels = relationshipSet.toModelObject(srcConcept)
+            rels = relationshipSet.toModelObject(srcConcept)  # type: ignore[arg-type]
             if rels:
                 relToSelf = rels[0]
                 rels = relationshipSet.fromModelObject(relToSelf.fromModelObject)
@@ -1720,7 +1720,7 @@ def concept_relationships(
                         return rootQNs
                     if axis == "sibling":
                         return [c for c in rootQNs if c != qnSource]
-                    rels = relationshipSet.fromModelObject(srcConcept)
+                    rels = relationshipSet.fromModelObject(srcConcept)  # type: ignore[arg-type]
                     # get descendants
                     if generations == 0:
                         g = 0
