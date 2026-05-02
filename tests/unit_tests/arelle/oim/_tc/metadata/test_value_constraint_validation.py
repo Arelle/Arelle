@@ -168,3 +168,33 @@ class TestValidateValueConstraint:
 
     def test_patterns_escaped_paren_with_quantifier_no_error(self) -> None:
         assert _errors(TCValueConstraint(type="xs:string", patterns=frozenset({r"\(?"}))) == []
+
+    def test_length_with_min_length_error(self) -> None:
+        errors = _errors(TCValueConstraint(type="xs:string", length=5, min_length=5))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_ILLEGAL_CONSTRAINT
+        assert errors[0].json_pointers == ["/length", "/minLength"]
+
+    def test_length_with_max_length_error(self) -> None:
+        errors = _errors(TCValueConstraint(type="xs:string", length=5, max_length=5))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_ILLEGAL_CONSTRAINT
+        assert errors[0].json_pointers == ["/length", "/maxLength"]
+
+    def test_length_with_both_min_and_max_length_error(self) -> None:
+        errors = _errors(TCValueConstraint(type="xs:string", length=5, min_length=3, max_length=10))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_ILLEGAL_CONSTRAINT
+        assert errors[0].json_pointers == ["/length", "/minLength", "/maxLength"]
+
+    def test_min_length_greater_than_max_length_error(self) -> None:
+        errors = _errors(TCValueConstraint(type="xs:string", min_length=10, max_length=5))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_ILLEGAL_CONSTRAINT
+        assert errors[0].json_pointers == ["/minLength", "/maxLength"]
+
+    def test_min_and_max_length_no_error(self) -> None:
+        assert _errors(TCValueConstraint(type="xs:string", min_length=2, max_length=10)) == []
+
+    def test_min_length_equal_max_length_no_error(self) -> None:
+        assert _errors(TCValueConstraint(type="xs:string", min_length=5, max_length=5)) == []

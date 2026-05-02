@@ -79,6 +79,7 @@ def validate_value_constraint(
     yield from _validate_patterns_restriction(constraint)
     yield from _validate_period_type_restriction(constraint)
     yield from _validate_duration_type_restriction(constraint)
+    yield from _validate_length_restrictions(constraint)
 
 
 def _validate_permitted_restrictions(
@@ -133,4 +134,28 @@ def _validate_duration_type_restriction(
             _("Unknown duration type: '{}'").format(constraint.duration_type),
             TCRestriction.DURATION_TYPE,
             code=TCME_UNKNOWN_DURATION_TYPE,
+        )
+
+
+def _validate_length_restrictions(constraint: TCValueConstraint) -> Generator[TCMetadataValidationError, None, None]:
+    if constraint.length is not None:
+        conflicting_properties = []
+        if constraint.min_length is not None:
+            conflicting_properties.append(TCRestriction.MIN_LENGTH)
+        if constraint.max_length is not None:
+            conflicting_properties.append(TCRestriction.MAX_LENGTH)
+        if conflicting_properties:
+            yield TCMetadataIllegalConstraintError(
+                _("length must not be specified together with {}").format(" or ".join(conflicting_properties)),
+                TCRestriction.LENGTH,
+                *conflicting_properties,
+            )
+
+    min_length = constraint.min_length
+    max_length = constraint.max_length
+    if min_length is not None and max_length is not None and min_length > max_length:
+        yield TCMetadataIllegalConstraintError(
+            _("minLength ({}) must be less than or equal to maxLength ({})").format(min_length, max_length),
+            TCRestriction.MIN_LENGTH,
+            TCRestriction.MAX_LENGTH,
         )
