@@ -1768,11 +1768,11 @@ class CntlrCmdLine(Cntlr.Cntlr):
 
             if showPluginModules:
                 self.addToLog(_("Plug-in modules:"), messageCode="info")
-                for name, plugin_handle in sorted(self.plugins.get_plugin_handles().items()):
+                for name, plugin in sorted(self.plugins.get_plugins().items()):
                     self.addToLog(_("Plug-in: {0}; author: {1}; version: {2}; status: {3}; date: {4}; description: {5}; license {6}.").format(
-                        name, plugin_handle.author, plugin_handle.version, plugin_handle.status,
-                        plugin_handle.file_date, plugin_handle.description, plugin_handle.license),
-                        messageCode="info", file=plugin_handle.module_url)
+                        name, plugin.author, plugin.version, plugin.status,
+                        plugin.file_date, plugin.description, plugin.license),
+                        messageCode="info", file=plugin.module_url)
 
         if options.packages:
             self.loadPackages(options.packages, options.packageManifestName or "")
