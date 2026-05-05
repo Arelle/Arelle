@@ -4,7 +4,6 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 import sys
-import warnings
 from collections import defaultdict
 from collections.abc import Mapping
 from dataclasses import dataclass
@@ -18,6 +17,7 @@ from arelle.ModelDtsObject import ModelRelationship, ModelLink
 from arelle.ModelObject import ModelObject
 from arelle.PrototypeDtsObject import PrototypeObject, LinkPrototype
 from arelle.PythonUtil import OrderedSet
+from arelle.utils.deprecation import ModuleDeprecations
 from arelle.XbrlConst import consecutiveArcrole
 
 from arelle.typing import TypeGetText
@@ -30,23 +30,6 @@ _: TypeGetText
 USING_EQUIVALENCE_KEY = sys.intern(str("using_equivalence_key")) # indicates hash entry replaced with keyed entry
 NoneType = type(None)
 
-_DEPRECATED: Mapping[str, str] = MappingProxyType({
-    "baseSetArcroles":
-        "ModelRelationshipSet.baseSetArcroles is deprecated; non-GUI callers should "
-        "iterate modelXbrl.baseSets.keys() directly.",
-    "labelroles":
-        "ModelRelationshipSet.labelroles is deprecated; non-GUI callers should use "
-        "modelXbrl.labelroles directly, unioning with {XbrlConst.conceptNameLabelRole} "
-        "when the concept-name pseudo role is needed.",
-})
-
-
-def __getattr__(name: str) -> object:
-    if deprecated_name := _DEPRECATED.get(name):
-        warnings.warn(deprecated_name, DeprecationWarning, stacklevel=2)
-        from arelle import ViewUtil
-        return getattr(ViewUtil, name)
-    raise AttributeError(name)
 
 def create(
         modelXbrl: ModelXbrl,
@@ -481,3 +464,28 @@ class ModelRelationshipSet:
             if returnMultiple: return regionalVariant.labels
             else: return regionalVariant.labels[0]
         return None
+
+
+def _view_util_attr(name: str) -> Any:
+    # lazy import to avoid circular dependency
+    from arelle import ViewUtil
+
+    return getattr(ViewUtil, name)
+
+
+_DEPRECATIONS = ModuleDeprecations(__name__)
+_DEPRECATIONS.add_lazy(
+    "baseSetArcroles",
+    lambda: _view_util_attr("baseSetArcroles"),
+    "non-GUI callers should iterate modelXbrl.baseSets.keys() directly",
+)
+_DEPRECATIONS.add_lazy(
+    "labelroles",
+    lambda: _view_util_attr("labelroles"),
+    "non-GUI callers should use modelXbrl.labelroles directly, "
+    "unioning with {XbrlConst.conceptNameLabelRole} when the concept-name pseudo role is needed",
+)
+
+
+def __getattr__(name: str) -> Any:
+    return _DEPRECATIONS.resolve(name)
