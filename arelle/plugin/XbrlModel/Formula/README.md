@@ -5,9 +5,9 @@ An Arelle plugin that evaluates rules and queries written in the
 loaded through the [XbrlModel](../) plugin.
 
 The language is specified in
-[`oim/specifications/oim-taxonomy/Formula/formula.md`](../../../../../../../../../XBRL.org/oim/specifications/oim-taxonomy/Formula/formula.md)
+[`oim/specifications/oim-taxonomy/Formula/formula.md`](https://gitlab.xbrl.org/oim/oim/-/blob/spec-dev-1/specifications/oim-taxonomy/Formula/formula.md)
 and is a successor to XBRL Formula 1.0 with broader querying capabilities
-targeting the OIM data model rather than XBRL 2.1 XML.
+targeting the Xbrl Model 1.0 data model rather than XBRL 2.1 XML.
 
 ---
 
@@ -53,7 +53,7 @@ python arelleCmdLine.py \
 
 1. Open **Tools → Manage Plug-ins** and enable **XbrlModel/Formula**.
 2. Open an OIM filing (JSON, CSV, or XML via XbrlModel).
-3. Provide the ruleset path through the Arelle options dialog or
+3. Provide the ruleset path through the Arelle formula options dialog or
    the `--formula-ruleset` command-line switch.
 
 ### Python API
