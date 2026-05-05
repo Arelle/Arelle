@@ -45,6 +45,8 @@ import re
 from decimal import Decimal, InvalidOperation
 from typing import Any, Dict, Iterator, List, Optional, Tuple, TYPE_CHECKING
 
+from pyparsing import ParseResults
+
 from arelle.ModelValue import QName
 
 from .FormulaValue import (
@@ -316,6 +318,29 @@ def evaluateExpr(node: Any, ctx: FormulaRuleContext) -> FormulaValue:
     # ---- Python scalar literals (produced directly by pyparsing) ----
     if isinstance(node, bool):
         return TRUE_VALUE if node else FALSE_VALUE
+    if isinstance(node, ParseResults):
+        if "base" in node or "props" in node:
+            baseNode = node.get("base")
+            if isinstance(baseNode, ParseResults) and len(baseNode) == 1:
+                baseNode = baseNode[0]
+            if isinstance(baseNode, ParseResults) and "value" in baseNode and len(baseNode) == 1:
+                token = str(baseNode.get("value", "")).lower()
+                if token == "none":
+                    baseNode = {"none": {"value": "none"}}
+                elif token == "skip":
+                    baseNode = {"skip": {"value": "skip"}}
+                elif token in ("true", "false"):
+                    baseNode = {"boolean": {"value": token}}
+            elif isinstance(baseNode, list) and len(baseNode) == 1:
+                baseNode = baseNode[0]
+            return _evalAtomWithProps({"base": baseNode, "props": list(node.get("props", []))}, ctx)
+
+        if len(node) == 1:
+            return evaluateExpr(node[0], ctx)
+
+        if len(node) == 2 and not node.keys():
+            return evaluateExpr(node[0], ctx)
+
     if isinstance(node, int):
         return FormulaValue(FormulaValueType.INTEGER, node)
     if isinstance(node, float):
@@ -458,6 +483,8 @@ def _formatValue(val: FormulaValue) -> str:
         return ""
     if val.type == FormulaValueType.NONE:
         return ""
+    if val.type == FormulaValueType.BOOLEAN:
+        return "true" if bool(val.value) else "false"
     return str(val.value)
 
 
@@ -642,15 +669,17 @@ def _evalBinary(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
     except FormulaAlignmentError:
         raise FormulaIterationStop()
 
+    # ---- Strict/lax arithmetic variants used by Xule ----
+    if op in ("+>", "->"):
+        return _strictBinary(left, "+" if op == "+>" else "-", right, merged)
+    if op in ("<+", "<-"):
+        return _laxBinary(left, "+" if op == "<+" else "-", right, merged)
+    if op in ("<+>", "<->"):
+        return _strictSkipBinary(left, "+" if op == "<+>" else "-", right, merged)
+
     # ---- Arithmetic ----
     if op in ("+", "-", "*", "/"):
         return _arith(left, op, right, merged)
-
-    # ---- Set arithmetic: <+> union, <-> difference, +> superset+, -> subset-
-    if op in ("<+>", "+>"):
-        return _setOp(left, "union", right, merged)
-    if op in ("<->", "->"):
-        return _setOp(left, "difference", right, merged)
 
     # ---- Comparison ----
     if op in ("==", "!=", "<", "<=", ">", ">="):
@@ -690,6 +719,8 @@ def _evalUnary(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
     expr = evaluateExpr(node.get("expr"), ctx)
 
     if op == "-":
+        if expr.type in (FormulaValueType.NONE, FormulaValueType.SKIP):
+            return expr
         if expr.isNumeric:
             return FormulaValue(expr.type, -expr.numericValue(), alignment=expr.alignment)
         raise FormulaRuntimeError(f"Unary minus requires numeric value, got {expr.type.name}")
@@ -706,6 +737,29 @@ def _evalUnary(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
 
 def _arith(left: FormulaValue, op: str, right: FormulaValue,
            merged) -> FormulaValue:
+    if op == "+" and (left.type == FormulaValueType.STRING or right.type == FormulaValueType.STRING):
+        leftText = "" if left.type in (FormulaValueType.NONE, FormulaValueType.SKIP) else _formatValue(left)
+        rightText = "" if right.type in (FormulaValueType.NONE, FormulaValueType.SKIP) else _formatValue(right)
+        return FormulaValue(FormulaValueType.STRING, leftText + rightText, alignment=merged)
+
+    if op == "+":
+        if left.type in (FormulaValueType.NONE, FormulaValueType.SKIP) and right.type in (FormulaValueType.NONE, FormulaValueType.SKIP):
+            return SKIP_VALUE
+        if left.type in (FormulaValueType.NONE, FormulaValueType.SKIP):
+            return FormulaValue(right.type, right.value, alignment=merged)
+        if right.type in (FormulaValueType.NONE, FormulaValueType.SKIP):
+            return FormulaValue(left.type, left.value, alignment=merged)
+
+    if op == "-":
+        if left.type in (FormulaValueType.NONE, FormulaValueType.SKIP) and right.type in (FormulaValueType.NONE, FormulaValueType.SKIP):
+            return SKIP_VALUE
+        if right.type in (FormulaValueType.NONE, FormulaValueType.SKIP):
+            return FormulaValue(left.type, left.value, alignment=merged)
+        if left.type in (FormulaValueType.NONE, FormulaValueType.SKIP):
+            if right.isNumeric:
+                return FormulaValue(FormulaValueType.DECIMAL, -right.numericValue(), alignment=merged)
+            raise FormulaRuntimeError(f"Arithmetic error: Cannot negate non-numeric {right.type.name}")
+
     try:
         l = left.numericValue()
         r = right.numericValue()
@@ -723,6 +777,24 @@ def _arith(left: FormulaValue, op: str, right: FormulaValue,
         raise FormulaRuntimeError(f"Unknown arithmetic operator {op!r}")
 
     return FormulaValue(FormulaValueType.DECIMAL, result, alignment=merged)
+
+
+def _strictBinary(left: FormulaValue, op: str, right: FormulaValue, merged) -> FormulaValue:
+    if right.type in (FormulaValueType.NONE, FormulaValueType.SKIP):
+        return SKIP_VALUE
+    return _arith(left, op, right, merged)
+
+
+def _laxBinary(left: FormulaValue, op: str, right: FormulaValue, merged) -> FormulaValue:
+    if right.type in (FormulaValueType.NONE, FormulaValueType.SKIP):
+        return FormulaValue(left.type, left.value, alignment=merged)
+    return _arith(left, op, right, merged)
+
+
+def _strictSkipBinary(left: FormulaValue, op: str, right: FormulaValue, merged) -> FormulaValue:
+    if right.type in (FormulaValueType.NONE, FormulaValueType.SKIP):
+        raise FormulaSkip()
+    return _arith(left, op, right, merged)
 
 
 # ---------------------------------------------------------------------------

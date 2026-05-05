@@ -28,6 +28,7 @@ from __future__ import annotations
 import os
 from typing import Any, List, Optional
 
+parameterNames = ("formulaRulesets", "formulaAlignThreshold", "formulaEmbedDim", "formulaOutputFile")
 
 # ---------------------------------------------------------------------------
 # Arelle plugin hook: command-line options
@@ -82,10 +83,14 @@ def validateFinished(val, *args, **kwargs):
     present on the model, then runs all formula rules.
     """
     modelXbrl = val.modelXbrl
-    options   = getattr(val, "options", None)
+    options   = {}
     cntlr     = getattr(val, "cntlr", None) or getattr(modelXbrl, "modelManager", None)
 
-    rulesetPaths: List[str] = getattr(options, "formulaRulesets", [])
+    if val.parameters:
+        for paramQName, p in val.parameters.items():
+            if paramQName.localName in parameterNames and p and len(p) == 2 and p[1] not in ("null", "None", None):
+                options[paramQName.localName] = p[1]
+    rulesetPaths: List[str] = options.get("formulaRulesets", "").split("|")
     if not rulesetPaths:
         return   # nothing to do
 
@@ -124,8 +129,8 @@ def validateFinished(val, *args, **kwargs):
         _log(cntlr, "ERROR", "formula:eval", f"Formula evaluation failed: {exc}")
         return
 
-    # Optional: write results to a JSON file
-    outputFile = getattr(options, "formulaOutputFile", None)
+    # Optional: write results to a JSON file    
+    outputFile = options.get("formulaOutputFile", None)
     if outputFile and globalCtx.results:
         _writeResults(globalCtx.results, outputFile, cntlr)
 
@@ -154,7 +159,11 @@ def _ensureVectorSearch(txmyMdl, options, cntlr) -> None:
 
     try:
         from arelle.plugin.XbrlModel.VectorSearch import buildXbrlVectors
-        embedDim = getattr(options, "formulaEmbedDim", 64) or 64
+        embedDim = options.get("formulaEmbedDim", 64) or 64
+        if isinstance(embedDim, str):
+            embedDim = int(embedDim)
+        if embedDim <= 0:   
+            raise ValueError(f"Invalid embedding dimension: {embedDim!r}")
         embedder, _vocab, _ivocab, store = buildXbrlVectors(txmyMdl, embedDim=embedDim)
         txmyMdl._xbrlEmbedder = embedder
         txmyMdl._xbrlVectorStore = store

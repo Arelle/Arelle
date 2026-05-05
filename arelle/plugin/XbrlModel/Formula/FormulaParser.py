@@ -281,7 +281,7 @@ def _buildGrammar():
         [
             (one_of("+ -"),          1, OpAssoc.RIGHT, _mkUnary),
             (Literal("*") | Literal("/"), 2, OpAssoc.LEFT, _mkBinary),
-            (one_of("+ - <+> <-> +> ->"), 2, OpAssoc.LEFT, _mkBinary),
+            (one_of("+ - <+ <+> +> <- <-> ->"), 2, OpAssoc.LEFT, _mkBinary),
             (Literal("^"),           2, OpAssoc.LEFT, _mkBinary),   # symmetric difference
             (Literal("&") | CaselessKeyword("intersect"), 2, OpAssoc.LEFT, _mkBinary),
             (one_of("== != <= < >= >") | inKw | (notKw + inKw), 2, OpAssoc.LEFT, _mkBinary),
@@ -322,7 +322,7 @@ def _buildGrammar():
         + Opt(whereClause)
         + Opt(messageClause)
         + Opt(severityClause)
-    ).setResultsName("outputRule")
+    ).setResultsName("outputRule").addParseAction(_tagStatement("outputRule"))
 
     # ---- Assert rule ----
     assertRule = Group(
@@ -332,7 +332,7 @@ def _buildGrammar():
         + Opt(whereClause)
         + Opt(messageClause)
         + Opt(severityClause)
-    ).setResultsName("assertRule")
+    ).setResultsName("assertRule").addParseAction(_tagStatement("assertRule"))
 
     # ---- Constant declaration ----
     constantDecl = Group(
@@ -341,7 +341,7 @@ def _buildGrammar():
         + simpleName.setResultsName("name")
         + Suppress(Literal("="))
         + blockExpr.setResultsName("expr")
-    ).setResultsName("constantDecl")
+    ).setResultsName("constantDecl").addParseAction(_tagStatement("constantDecl"))
 
     # ---- Namespace declaration ----
     uriLiteral = (
@@ -353,13 +353,13 @@ def _buildGrammar():
         Suppress(namespaceKw)
         + ncName.setResultsName("prefix")
         + uriLiteral.setResultsName("uri")
-    ).setResultsName("namespaceDecl")
+    ).setResultsName("namespaceDecl").addParseAction(_tagStatement("namespaceDecl"))
 
     # ---- Version declaration ----
     versionDecl = Group(
         Suppress(versionKw)
         + stringLiteral.setResultsName("version")
-    ).setResultsName("versionDecl")
+    ).setResultsName("versionDecl").addParseAction(_tagStatement("versionDecl"))
 
     # ---- Function declaration (user-defined) ----
     funcParam = Group(
@@ -372,7 +372,7 @@ def _buildGrammar():
         + Opt(Group(delimited_list(funcParam)).setResultsName("params"))
         + Suppress(Literal(")"))
         + blockExpr.setResultsName("body")
-    ).setResultsName("funcDecl")
+    ).setResultsName("funcDecl").addParseAction(_tagStatement("funcDecl"))
 
     # ---- Top-level program ----
     statement = (
@@ -409,6 +409,15 @@ def _mkBinary(tokens):
         result = {"exprName": "binaryExpr", "leftExpr": result, "op": toks[i], "rightExpr": toks[i+1]}
         i += 2
     return result
+
+
+def _tagStatement(kind):
+    def _parseAction(tokens):
+        data = tokens[0].as_dict()
+        data["_kind"] = kind
+        return data
+
+    return _parseAction
 
 
 # ---------------------------------------------------------------------------
@@ -465,18 +474,22 @@ def _buildRuleSet(parseRes: dict, filePath: str) -> FormulaRuleSet:
     for item in parseRes.get("program", []):
         if not isinstance(item, dict):
             continue
-        key = next(iter(item), None)
+        key = item.get("_kind")
+        node = item
+
+        if key is None:
+            wrappedKey = next(iter(item), None)
+            if wrappedKey in {"namespaceDecl", "constantDecl", "outputRule", "assertRule", "funcDecl", "versionDecl"}:
+                key = wrappedKey
+                node = item[wrappedKey]
 
         if key == "namespaceDecl":
-            node = item[key]
             ruleSet.namespaces[node["prefix"]] = node["uri"]
 
         elif key == "constantDecl":
-            node = item[key]
             ruleSet.constants.append(ConstantDecl(name=node["name"], expr=node["expr"]))
 
         elif key == "outputRule":
-            node = item[key]
             rule = OutputRule(
                 name=node["name"],
                 expr=node["expr"],
@@ -486,7 +499,6 @@ def _buildRuleSet(parseRes: dict, filePath: str) -> FormulaRuleSet:
             ruleSet.outputRules[rule.name] = rule
 
         elif key == "assertRule":
-            node = item[key]
             rule = AssertRule(
                 name=node["name"],
                 expr=node["expr"],
@@ -498,7 +510,6 @@ def _buildRuleSet(parseRes: dict, filePath: str) -> FormulaRuleSet:
         elif key == "funcDecl":
             # User-defined functions are stored as constant expressions that
             # evaluate to a callable lambda-like object at runtime.
-            node = item[key]
             ruleSet.constants.append(ConstantDecl(
                 name=node["name"],
                 expr={"exprName": "funcDecl", **node}

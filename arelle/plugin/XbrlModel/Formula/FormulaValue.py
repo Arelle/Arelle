@@ -101,6 +101,21 @@ def _makeHashable(value: Any) -> Any:
     return value
 
 
+def _hashableFormulaValueData(value: Any) -> Any:
+    """Normalise nested FormulaValue payloads into hashable tuples."""
+    if isinstance(value, FormulaValue):
+        return (value.type.name, _hashableFormulaValueData(value.value))
+    if isinstance(value, dict):
+        return tuple(sorted((k, _hashableFormulaValueData(v)) for k, v in value.items()))
+    if isinstance(value, (list, tuple)):
+        return tuple(_hashableFormulaValueData(v) for v in value)
+    if isinstance(value, set):
+        return frozenset(_hashableFormulaValueData(v) for v in value)
+    if isinstance(value, frozenset):
+        return frozenset(_hashableFormulaValueData(v) for v in value)
+    return _makeHashable(value)
+
+
 # ---------------------------------------------------------------------------
 # FormulaValue
 # ---------------------------------------------------------------------------
@@ -237,6 +252,14 @@ class FormulaValue:
         if self.type == FormulaValueType.FACT:
             return f"FormulaValue(FACT, {self.value.name!r})"
         return f"FormulaValue({self.type.name}, {self.value!r})"
+
+    def __hash__(self) -> int:
+        if self.type == FormulaValueType.FACT:
+            objIndex = getattr(self.value, "xbrlMdlObjIndex", None)
+            if objIndex is not None:
+                return hash((self.type, objIndex))
+            return hash((self.type, id(self.value)))
+        return hash((self.type, _hashableFormulaValueData(self.value)))
 
 
 # ---------------------------------------------------------------------------
