@@ -596,3 +596,150 @@ def searchXbrlBatchTopk(
 
     return torch.cat(allTopIdx, dim=0), torch.cat(allTopScores, dim=0)
 
+
+# --------------------------------------------------------------------
+# Alignment vector index  (used by Formula/FormulaAlignment.py)
+# --------------------------------------------------------------------
+
+CONCEPT_DIM_NS = "https://xbrl.org/2021"
+CONCEPT_DIM_LN = "concept"
+
+
+def buildAlignmentVectors(
+    txmyMdl: XbrlCompiledModel,
+    facts: List,
+    embedDim: int = 64,
+) -> Tuple["torch.Tensor", List]:
+    """
+    Build a matrix of *alignment* vectors for a list of XbrlFact objects.
+
+    Alignment vectors encode every dimension of a fact *except* xbrl:concept,
+    so that two facts with the same entity, period, and explicit dimension
+    context (but different concepts) receive the same (or very similar) vector.
+
+    This is the key primitive used by the formula interpreter to align fact
+    groups from multiple @Concept queries using GPU-accelerated cosine
+    similarity instead of O(N×M) Python loops.
+
+    Parameters
+    ----------
+    txmyMdl:
+        The compiled OIM taxonomy + report model.  If it already has a
+        ``_xbrlEmbedder`` attribute the same embedding space is reused,
+        guaranteeing consistent token IDs across all calls in a session.
+    facts:
+        The XbrlFact objects to encode.  Only valid facts (``_xValid >= VALID``)
+        are included; invalid facts are silently skipped.
+    embedDim:
+        Embedding dimension.  Must match the value used when building the
+        model's main vector store (``buildXbrlVectors``).  Ignored when an
+        embedder already exists on the model.
+
+    Returns
+    -------
+    factMat : torch.Tensor, shape (N, embedDim), L2-normalised, on device
+        One row per fact in ``validFacts``.
+    validFacts : list[XbrlFact]
+        The subset of ``facts`` that were successfully encoded, in the same
+        order as the rows of ``factMat``.
+
+    GPU hot path
+    ------------
+    All embedding lookups and the final L2 normalisation run on
+    CUDA / MPS / CPU (whichever was chosen by ``bestDevice()``).  The caller
+    can then compute pairwise cosine similarities with a single batched
+    matrix multiply::
+
+        S = factMatA  @  factMatB.T      # (N_A, N_B) on device
+        aligned = (S >= threshold).nonzero()
+
+    which is O(N_A × N_B × D) but runs entirely as a device kernel.
+    """
+    from arelle.ModelValue import qname as mkQn
+
+    # Reuse or create the model's shared embedder / store
+    if not hasattr(txmyMdl, "_xbrlEmbedder") or txmyMdl._xbrlEmbedder is None:
+        _embedder, _vocab, _ivocab, _store = buildXbrlVectors(txmyMdl, embedDim=embedDim)
+        # buildXbrlVectors caches embedder + store on txmyMdl
+    embedder: XBRLEmbedder = txmyMdl._xbrlEmbedder
+    store: XBRLVectorStore = txmyMdl._xbrlVectorStore
+    device = store.device
+
+    conceptQn = mkQn(CONCEPT_DIM_NS, CONCEPT_DIM_LN)
+
+    rows: List[torch.Tensor] = []
+    validFacts: List = []
+
+    for fact in facts:
+        if getattr(fact, "_xValid", VALID) < VALID:
+            continue
+
+        tokenIds: List[int] = []
+        for dimQn, value in fact.factDimensions.items():
+            if dimQn == conceptQn:
+                continue  # exclude concept — alignment should be concept-agnostic
+
+            dimObj = txmyMdl.namedObjects.get(dimQn)
+            if dimObj is None:
+                continue
+
+            d = dimObj.xbrlMdlObjIndex
+            # Dimension presence token
+            tokenIds.append(d)
+
+            # Dimension value token
+            if isinstance(value, QName) and value in txmyMdl.namedObjects:
+                m = txmyMdl.namedObjects[value].xbrlMdlObjIndex
+            else:
+                # Typed dimension value — use hash bucketed into token space
+                m = hash(value) % store.valueTokensOffset
+
+            v = (d, m)
+            if v in store.valueTokens:
+                t = store.valueTokens.index(v) + store.valueTokensOffset
+                tokenIds.append(t)
+
+        if tokenIds:
+            vec = embedder.combine(tokenIds).to(device)
+        else:
+            # Fact has no relevant alignment dimensions → zero vector
+            vec = torch.zeros(store.embedDim, device=device)
+
+        rows.append(vec)
+        validFacts.append(fact)
+
+    if not rows:
+        return torch.zeros((0, store.embedDim), device=device), []
+
+    factMat = torch.stack(rows, dim=0)   # (N, D) on device
+    factMat = l2NormalizeRows(factMat)   # in-place normalise for cosine similarity
+
+    return factMat, validFacts
+
+
+def pairwiseAlignmentScores(
+    matA: "torch.Tensor",
+    matB: "torch.Tensor",
+) -> "torch.Tensor":
+    """
+    Compute the full N_A × N_B cosine similarity matrix between two sets of
+    L2-normalised alignment vectors.
+
+    Both matrices must be on the same device (ensured by
+    ``buildAlignmentVectors``).
+
+    Parameters
+    ----------
+    matA : (N_A, D) L2-normalised tensor
+    matB : (N_B, D) L2-normalised tensor
+
+    Returns
+    -------
+    S : (N_A, N_B) cosine similarity tensor on the same device.
+        ``S[i, j] ≈ 1.0`` means fact A[i] and fact B[j] are aligned.
+
+    GPU hot path
+    ------------
+    A single high-throughput device matmul on CUDA / MPS / CPU.
+    """
+    return matA @ matB.to(matA.device).T   # (N_A, N_B)

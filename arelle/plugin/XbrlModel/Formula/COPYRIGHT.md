@@ -1,6 +1,6 @@
 # Copyright
 
-(c) Copyright 2025-present Exbee Ltd
+(c) Copyright 2026-present Exbee Ltd
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
