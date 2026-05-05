@@ -22,6 +22,9 @@ runs:
         REPO: ${{ inputs.repository_full_name }}
         SHA: ${{ inputs.commit_sha }}
       run: |
+        # Background GC occassionally causes shallow file conflicts during fetch, so we disable it.
+        git config gc.auto 0
+
         git config user.name "github-actions"
         git config user.email "github-actions@github.com"
         
