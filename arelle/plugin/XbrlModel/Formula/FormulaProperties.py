@@ -19,6 +19,19 @@ from arelle.ModelValue import QName
 from .FormulaValue import (
     FormulaValue, FormulaValueType, FormulaRuntimeError, NONE_VALUE
 )
+from .DateTimeSupport import (
+    InstantValue,
+    DateRangeValue,
+    TimeSpanValue,
+    parse_date_string,
+    parse_time_span_string,
+)
+
+try:
+    from ordered_set import OrderedSet
+except ImportError:
+    OrderedSet = frozenset
+
 
 if TYPE_CHECKING:
     from .FormulaContext import FormulaRuleContext
@@ -37,7 +50,7 @@ def _wrap(value: Any, vtype: FormulaValueType = None) -> FormulaValue:
 
 
 def _wrapSet(items) -> FormulaValue:
-    return FormulaValue(FormulaValueType.SET, frozenset(
+    return FormulaValue(FormulaValueType.SET, OrderedSet(
         FormulaValue.fromScalar(i) for i in items
     ))
 
@@ -188,7 +201,7 @@ def _taxonomyProp(txmy, propName: str, args, ctx) -> FormulaValue:
 
     if propName == "concepts":
         objs = list(txmy.filterNamedObjects(XbrlConcept))
-        return FormulaValue(FormulaValueType.SET, frozenset(
+        return FormulaValue(FormulaValueType.SET, OrderedSet(
             FormulaValue(FormulaValueType.CONCEPT, c) for c in objs
         ))
     if propName == "concept-names":
@@ -196,17 +209,17 @@ def _taxonomyProp(txmy, propName: str, args, ctx) -> FormulaValue:
         return _wrapSet(c.name for c in objs if hasattr(c, "name"))
     if propName == "cubes":
         objs = list(txmy.filterNamedObjects(XbrlCube))
-        return FormulaValue(FormulaValueType.SET, frozenset(
+        return FormulaValue(FormulaValueType.SET, OrderedSet(
             FormulaValue(FormulaValueType.CUBE, c) for c in objs
         ))
     if propName == "dimensions":
         objs = list(txmy.filterNamedObjects(XbrlDimension))
-        return FormulaValue(FormulaValueType.SET, frozenset(
+        return FormulaValue(FormulaValueType.SET, OrderedSet(
             FormulaValue.fromScalar(d.name) for d in objs if hasattr(d, "name")
         ))
     if propName == "networks":
         objs = list(txmy.filterNamedObjects(XbrlNetwork))
-        return FormulaValue(FormulaValueType.SET, frozenset(
+        return FormulaValue(FormulaValueType.SET, OrderedSet(
             FormulaValue(FormulaValueType.NETWORK, n) for n in objs
         ))
     if propName == "namespaces":
@@ -266,7 +279,7 @@ def _cubeProp(cube, propName: str, args, ctx) -> FormulaValue:
             f for f in ctx.txmyMdl.filterNamedObjects(XbrlFact)
             if f.factDimensions.get(cubeDimQn) == cubeQn
         ]
-        return FormulaValue(FormulaValueType.SET, frozenset(
+        return FormulaValue(FormulaValueType.SET, OrderedSet(
             FormulaValue(FormulaValueType.FACT, f) for f in facts
         ))
     raise FormulaRuntimeError(f"Unknown cube property {propName!r}")
@@ -313,6 +326,14 @@ def getProperty(
             return FormulaValue(FormulaValueType.STRING, s.lower())
         if propName == "trim":
             return FormulaValue(FormulaValueType.STRING, s.strip())
+        if propName == "date":
+            from .FormulaFunctions import callFunction
+            return callFunction("date", [obj], ctx)
+        if propName == "time-span":
+            from .FormulaFunctions import callFunction
+            return callFunction("time-span", [obj], ctx)
+        if propName in ("day", "month", "year", "days", "start", "end"):
+            raise FormulaRuntimeError(f"Property '{propName}' is not a property of a 'string'.")
         raise FormulaRuntimeError(f"Unknown string property {propName!r}")
 
     # QName properties
@@ -322,20 +343,106 @@ def getProperty(
             return FormulaValue(FormulaValueType.STRING, qn.localName if hasattr(qn, "localName") else str(qn))
         if propName == "namespace-uri":
             return FormulaValue(FormulaValueType.STRING, qn.namespaceURI if hasattr(qn, "namespaceURI") else "")
+        if propName in ("day", "month", "year", "days", "start", "end", "date"):
+            raise FormulaRuntimeError(f"Property '{propName}' is not a property of a 'QName'.")
         raise FormulaRuntimeError(f"Unknown QName property {propName!r}")
+
+    if obj.type == FormulaValueType.NONE:
+        if propName in ("keys", "values", "length", "date"):
+            return NONE_VALUE
+        raise FormulaRuntimeError(f"Cannot access property {propName!r} on NONE value")
+
+    if obj.type == FormulaValueType.DATE:
+        inst = obj.value
+        if propName == "day":
+            return FormulaValue(FormulaValueType.INTEGER, inst.dt.day)
+        if propName == "month":
+            return FormulaValue(FormulaValueType.INTEGER, inst.dt.month)
+        if propName == "year":
+            return FormulaValue(FormulaValueType.INTEGER, inst.dt.year)
+        if propName in ("start", "date"):
+            return obj
+        if propName == "days":
+            return FormulaValue(FormulaValueType.INTEGER, 0)
+        if propName == "end":
+            return obj
+        raise FormulaRuntimeError(f"Unknown date property {propName!r}")
+
+    if obj.type == FormulaValueType.DURATION:
+        value = obj.value
+        if propName == "contains":
+            raise FormulaRuntimeError("Property 'contains' is not a property of a 'duration'.")
+        if propName in ("day", "month", "year"):
+            raise FormulaRuntimeError(f"Property '{propName}' is not a property of a 'duration'.")
+        if isinstance(value, DateRangeValue):
+            if propName == "start":
+                return FormulaValue(FormulaValueType.DATE, InstantValue(value.start))
+            if propName == "end":
+                return FormulaValue(FormulaValueType.DATE, InstantValue(value.end))
+            if propName == "days":
+                return FormulaValue(FormulaValueType.INTEGER, (value.end - value.start).days)
+            if propName == "time-span":
+                return FormulaValue(FormulaValueType.DURATION, TimeSpanValue(value.end - value.start))
+            if propName == "date":
+                return FormulaValue(FormulaValueType.DATE, InstantValue(value.start))
+        if isinstance(value, TimeSpanValue):
+            if propName == "days":
+                return FormulaValue(FormulaValueType.FLOAT, value.delta.total_seconds() / 86400.0)
+            if propName == "_type":
+                return FormulaValue(FormulaValueType.STRING, "time-period")
+        raise FormulaRuntimeError(f"Unknown duration property {propName!r}")
 
     # Set/list properties
     if obj.type in (FormulaValueType.SET, FormulaValueType.LIST):
         coll = obj.value
         if propName == "count":
             return FormulaValue(FormulaValueType.INTEGER, len(coll))
+        if propName == "length":
+            return FormulaValue(FormulaValueType.INTEGER, len(coll))
+        if propName == "string":
+            from .FormulaFunctions import callFunction
+            return FormulaValue(
+                FormulaValueType.LIST,
+                [callFunction("string", [item], ctx) for item in list(coll)],
+            )
+        if propName == "is-numeric":
+            return FormulaValue(
+                FormulaValueType.LIST,
+                [FormulaValue(FormulaValueType.BOOLEAN, item.isNumeric) for item in list(coll)],
+            )
+        if propName in ("day", "month", "year", "start", "end", "days", "date"):
+            projected = [getProperty(item, propName, args, ctx) for item in list(coll)]
+            if obj.type == FormulaValueType.SET:
+                return FormulaValue(FormulaValueType.SET, OrderedSet(projected))
+            return FormulaValue(FormulaValueType.LIST, projected)
         if propName == "first":
             items = list(coll)
             return items[0] if items else NONE_VALUE
         if propName == "last":
             items = list(coll)
             return items[-1] if items else NONE_VALUE
+        if propName == "to-set":
+            # Convert list to set (already a set if type is SET)
+            if obj.type == FormulaValueType.SET:
+                return obj
+            return FormulaValue(FormulaValueType.SET, OrderedSet(coll))
+        if propName in (
+            "to-list", "to-dict", "to-json", "to-csv", "to-spreadsheet", "agg-to-dict",
+            "sort", "sum", "max", "min", "prod", "stdev", "join",
+            "all", "any", "contains", "intersect", "union", "difference",
+            "values", "keys",
+        ):
+            from .FormulaFunctions import callFunction
+            return callFunction(propName, [obj] + list(args), ctx)
         raise FormulaRuntimeError(f"Unknown collection property {propName!r}")
+
+    if obj.type == FormulaValueType.DICT:
+        if propName in ("keys", "values", "has-key", "to-set", "to-json", "to-csv", "to-spreadsheet", "join"):
+            from .FormulaFunctions import callFunction
+            return callFunction(propName, [obj] + list(args), ctx)
+        if propName in ("count", "length"):
+            return FormulaValue(FormulaValueType.INTEGER, len(obj.value))
+        raise FormulaRuntimeError(f"Unknown dictionary property {propName!r}")
 
     raise FormulaRuntimeError(
         f"Cannot access property {propName!r} on {obj.type.name} value"

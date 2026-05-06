@@ -125,7 +125,12 @@ def _buildGrammar():
 
     # ---- Literals ----
     intLiteral    = pyparsing_common.signed_integer()
-    floatLiteral  = pyparsing_common.number()
+    # Do not accept trailing-dot forms like "1." because expressions like
+    # "1.all" should parse as integer 1 with property "all", not float 1.0
+    # followed by stray identifier "all".
+    floatLiteral  = Regex(
+        r"[+-]?(?:(?:\d+\.\d+|\.\d+)(?:[eE][+-]?\d+)?|\d+[eE][+-]?\d+)"
+    ).addParseAction(lambda t: float(t[0]))
 
     # String literals with embedded {expr} interpolations
     _strEscape = Suppress(Literal("\\")) + Regex(".")
@@ -189,7 +194,9 @@ def _buildGrammar():
     coveredFlag = Group(coveredKw | uncoveredKw).setResultsName("coveredFlag")
 
     factQuery = Group(
-        Suppress(Literal("@@") | Literal("@"))
+        Opt(nilsFlag)
+        + Opt(coveredFlag)
+        + Suppress(Literal("@@") | Literal("@"))
         + qnameExpr.setResultsName("concept")
         + Opt(factFilters)
         + Opt(tagOp + tagName.setResultsName("tag"))
@@ -199,7 +206,7 @@ def _buildGrammar():
 
     # ---- Function call ----
     funcCall = Group(
-        ncName.setResultsName("funcName")
+        simpleName.setResultsName("funcName")
         + Suppress(Literal("("))
         + Opt(Group(delimited_list(blockExpr)).setResultsName("args"))
         + Suppress(Literal(")"))
@@ -208,13 +215,19 @@ def _buildGrammar():
     # ---- Property access  (expr.propName  or  expr.propName(args)) ----
     propAccess = Group(
         Suppress(Literal("."))
-        + ncName.setResultsName("propName")
+        + simpleName.setResultsName("propName")
         + Opt(
             Suppress(Literal("("))
             + Opt(Group(delimited_list(blockExpr)).setResultsName("propArgs"))
             + Suppress(Literal(")"))
         )
     ).setResultsName("propAccess")
+
+    indexAccess = Group(
+        Suppress(Literal("["))
+        + blockExpr.setResultsName("indexExpr")
+        + Suppress(Literal("]"))
+    ).setResultsName("indexAccess")
 
     # ---- Collections ----
     setLiteral  = Group(
@@ -239,11 +252,20 @@ def _buildGrammar():
     ).setResultsName("ifExpr")
 
     # ---- For loop ----
-    forExpr = Group(
-        Suppress(forKw)
+    _forHeader = (
+        Suppress(Literal("("))
         + Suppress(Literal("$")) + simpleName.setResultsName("varName")
         + Suppress(inKw)
-        + blockExpr.setResultsName("collection")
+        + expr.setResultsName("collection")
+        + Suppress(Literal(")"))
+    ) | (
+        Suppress(Literal("$")) + simpleName.setResultsName("varName")
+        + Suppress(inKw)
+        + expr.setResultsName("collection")
+    )
+    forExpr = Group(
+        Suppress(forKw)
+        + _forHeader
         + blockExpr.setResultsName("body")
     ).setResultsName("forExpr")
 
@@ -266,13 +288,14 @@ def _buildGrammar():
         | stringLiteral
         | floatLiteral
         | intLiteral
+        | qnameExpr
         | parenExpr
     )
 
     # ---- Property chain on any atom ----
     atomWithProps = Group(
         atom.setResultsName("base")
-        + Group(ZeroOrMore(propAccess)).setResultsName("props")
+        + Group(ZeroOrMore(propAccess | indexAccess)).setResultsName("props")
     ).setResultsName("atomWithProps")
 
     # ---- Infix expression grammar (precedence via infix_notation) ----
@@ -284,7 +307,7 @@ def _buildGrammar():
             (one_of("+ - <+ <+> +> <- <-> ->"), 2, OpAssoc.LEFT, _mkBinary),
             (Literal("^"),           2, OpAssoc.LEFT, _mkBinary),   # symmetric difference
             (Literal("&") | CaselessKeyword("intersect"), 2, OpAssoc.LEFT, _mkBinary),
-            (one_of("== != <= < >= >") | inKw | (notKw + inKw), 2, OpAssoc.LEFT, _mkBinary),
+            (one_of("== = != <= < >= >") | inKw | (notKw + inKw), 2, OpAssoc.LEFT, _mkBinary),
             (notKw,                  1, OpAssoc.RIGHT, _mkUnary),
             (andKw,                  2, OpAssoc.LEFT, _mkBinary),
             (orKw,                   2, OpAssoc.LEFT, _mkBinary),
@@ -301,7 +324,7 @@ def _buildGrammar():
         + expr.setResultsName("valueExpr")
     ).addParseAction(_mkAssign)
 
-    blockStmt = assignExpr | expr
+    blockStmt = (~declKeywords + (assignExpr | expr))
     blockExpr <<= Group(
         Group(
             OneOrMore(blockStmt + Opt(Suppress(Literal(";"))))

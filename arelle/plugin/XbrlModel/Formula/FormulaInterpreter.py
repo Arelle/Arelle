@@ -57,6 +57,19 @@ from .FormulaValue import (
 from .FormulaContext import FormulaGlobalContext, FormulaRuleContext
 from .FormulaFunctions import callFunction, BUILTIN_FUNCTIONS
 from .FormulaProperties import getProperty
+from .DateTimeSupport import (
+    InstantValue,
+    DateRangeValue,
+    TimeSpanValue,
+    format_excel_serial,
+    format_instant,
+    format_range,
+)
+try:
+    from ordered_set import OrderedSet
+except ImportError:
+    OrderedSet = frozenset
+
 
 if TYPE_CHECKING:
     from .FormulaRuleSet import FormulaRuleSet, OutputRule, AssertRule, ConstantDecl
@@ -344,7 +357,14 @@ def evaluateExpr(node: Any, ctx: FormulaRuleContext) -> FormulaValue:
                     baseNode = {"boolean": {"value": token}}
             elif isinstance(baseNode, list) and len(baseNode) == 1:
                 baseNode = baseNode[0]
-            return _evalAtomWithProps({"base": baseNode, "props": list(node.get("props", []))}, ctx)
+            rawProps = node.get("props", [])
+            if isinstance(rawProps, ParseResults):
+                propsList = list(rawProps)
+            elif isinstance(rawProps, dict):
+                propsList = [rawProps]
+            else:
+                propsList = list(rawProps) if rawProps else []
+            return _evalAtomWithProps({"base": baseNode, "props": propsList}, ctx)
 
         if len(node) == 1:
             return evaluateExpr(node[0], ctx)
@@ -516,6 +536,14 @@ def _unescape(ch: str) -> str:
     return escapes.get(ch, ch)
 
 
+def _formatCollectionItem(val: FormulaValue) -> str:
+    if val.type == FormulaValueType.DATE and isinstance(val.value, InstantValue):
+        return format_instant(val.value)
+    if val.type == FormulaValueType.DURATION and isinstance(val.value, DateRangeValue):
+        return format_range(val.value)
+    return _formatValue(val)
+
+
 def _formatValue(val: FormulaValue) -> str:
     if val.type == FormulaValueType.FACT:
         if val.value.factValues:
@@ -526,6 +554,19 @@ def _formatValue(val: FormulaValue) -> str:
         return ""
     if val.type == FormulaValueType.BOOLEAN:
         return "true" if bool(val.value) else "false"
+    if val.type == FormulaValueType.LIST:
+        items = [_formatCollectionItem(v if isinstance(v, FormulaValue) else FormulaValue(FormulaValueType.STRING, v)) for v in val.value]
+        return f"list({', '.join(items)})"
+    if val.type == FormulaValueType.SET:
+        items = [_formatCollectionItem(v if isinstance(v, FormulaValue) else FormulaValue(FormulaValueType.STRING, v)) for v in val.value]
+        return f"set({', '.join(items)})"
+    if val.type == FormulaValueType.DATE and isinstance(val.value, InstantValue):
+        return format_instant(val.value)
+    if val.type == FormulaValueType.DURATION:
+        if isinstance(val.value, DateRangeValue):
+            return format_range(val.value)
+        if isinstance(val.value, TimeSpanValue):
+            return str(val.value.delta)
     return str(val.value)
 
 
@@ -536,6 +577,8 @@ def _formatValue(val: FormulaValue) -> str:
 def _evalQName(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
     prefix    = node.get("prefix", "*")
     localName = node.get("localName", "")
+    if localName == "forever":
+        return callFunction("forever", [], ctx)
     try:
         qn = ctx.globalCtx.resolveQName(prefix, localName)
         return FormulaValue(FormulaValueType.QNAME, qn)
@@ -671,12 +714,61 @@ def _compareValues(actual: Any, op: str, expected: Any) -> bool:
 # ---------------------------------------------------------------------------
 
 def _evalAtomWithProps(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
-    base = evaluateExpr(node.get("base"), ctx)
+    baseExpr = node.get("base")
     props = node.get("props", [])
+
+    # pyparsing can collapse repeated named accessors to the last named value,
+    # while still preserving the full accessor sequence in positional tokens.
+    if isinstance(node, ParseResults):
+        if baseExpr is None and len(node) >= 1:
+            baseExpr = node[0]
+        if len(node) >= 2 and isinstance(node[1], ParseResults):
+            props = node[1]
+
+    base = evaluateExpr(baseExpr, ctx)
+
+    if isinstance(props, ParseResults):
+        props = list(props)
+    elif isinstance(props, dict):
+        props = [props]
+
     for propNode in props:
-        if not isinstance(propNode, dict):
+        if isinstance(propNode, ParseResults):
+            if "indexAccess" in propNode:
+                inner = propNode.get("indexAccess", propNode)
+                indexVal = evaluateExpr(inner.get("indexExpr"), ctx)
+                if base.type == FormulaValueType.LIST:
+                    try:
+                        idx = int(indexVal.numericValue()) - 1
+                    except Exception as exc:
+                        raise FormulaRuntimeError(f"List index must be numeric, got {indexVal.type.name.lower()}") from exc
+                    items = list(base.value)
+                    base = items[idx] if 0 <= idx < len(items) else NONE_VALUE
+                    continue
+                if base.type == FormulaValueType.DICT:
+                    base = base.value.get(indexVal, NONE_VALUE)
+                    continue
+                raise FormulaRuntimeError(f"Cannot index into {base.type.name.lower()} value")
+            inner = propNode.get("propAccess", propNode)
+        elif isinstance(propNode, dict):
+            if "indexAccess" in propNode:
+                inner = propNode.get("indexAccess", propNode)
+                indexVal = evaluateExpr(inner.get("indexExpr"), ctx)
+                if base.type == FormulaValueType.LIST:
+                    try:
+                        idx = int(indexVal.numericValue()) - 1
+                    except Exception as exc:
+                        raise FormulaRuntimeError(f"List index must be numeric, got {indexVal.type.name.lower()}") from exc
+                    items = list(base.value)
+                    base = items[idx] if 0 <= idx < len(items) else NONE_VALUE
+                    continue
+                if base.type == FormulaValueType.DICT:
+                    base = base.value.get(indexVal, NONE_VALUE)
+                    continue
+                raise FormulaRuntimeError(f"Cannot index into {base.type.name.lower()} value")
+            inner = propNode.get("propAccess", propNode)
+        else:
             continue
-        inner = propNode.get("propAccess", propNode)
         propName = inner.get("propName", "")
         rawArgs  = inner.get("propArgs", [])
         args = [evaluateExpr(a, ctx) for a in rawArgs] if rawArgs else []
@@ -723,11 +815,15 @@ def _evalBinary(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
         return _arith(left, op, right, merged)
 
     # ---- Comparison ----
-    if op in ("==", "!=", "<", "<=", ">", ">="):
+    if op in ("==", "=", "!=", "<", "<=", ">", ">="):
         return _compare(left, op, right, merged)
 
     # ---- In / not in ----
     if op == "in":
+        if right.type == FormulaValueType.DURATION:
+            raise FormulaRuntimeError(
+                f"Property 'contains' or 'in' expression cannot operate on a '{right.type.name.lower()}' and '{left.type.name.lower()}'"
+            )
         items = _unwrapColl(right)
         result = left in items
         return FormulaValue(FormulaValueType.BOOLEAN, result, alignment=merged)
@@ -738,14 +834,40 @@ def _evalBinary(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
 
     # ---- Boolean ----
     if op.lower() == "and":
+        # Three-valued behavior used by conformance tests:
+        # false dominates, none/skip propagates to skip when result is unknown.
+        if (left.type == FormulaValueType.BOOLEAN and not bool(left.value)) or \
+           (right.type == FormulaValueType.BOOLEAN and not bool(right.value)):
+            return FALSE_VALUE
+        if left.type in (FormulaValueType.NONE, FormulaValueType.SKIP) or \
+           right.type in (FormulaValueType.NONE, FormulaValueType.SKIP):
+            return SKIP_VALUE
         return FormulaValue(FormulaValueType.BOOLEAN,
                             _isTruthy(left) and _isTruthy(right), alignment=merged)
     if op.lower() == "or":
+        # Three-valued behavior used by conformance tests:
+        # true dominates, none/skip propagates to skip when result is unknown.
+        if (left.type == FormulaValueType.BOOLEAN and bool(left.value)) or \
+           (right.type == FormulaValueType.BOOLEAN and bool(right.value)):
+            return TRUE_VALUE
+        if left.type in (FormulaValueType.NONE, FormulaValueType.SKIP) or \
+           right.type in (FormulaValueType.NONE, FormulaValueType.SKIP):
+            return SKIP_VALUE
         return FormulaValue(FormulaValueType.BOOLEAN,
                             _isTruthy(left) or _isTruthy(right), alignment=merged)
 
     # ---- Set intersection ----
-    if op.lower() in ("&", "intersect"):
+    if op.lower() == "intersect":
+        if left.type != FormulaValueType.SET:
+            raise FormulaRuntimeError(
+                f"Intersection can only operatate on sets. The left side is a '{left.type.name.lower()}'."
+            )
+        if right.type != FormulaValueType.SET:
+            raise FormulaRuntimeError(
+                f"Intersection can only operatate on sets. The right side is a '{right.type.name.lower()}'."
+            )
+        return _setOp(left, "intersect", right, merged)
+    if op == "&":
         return _setOp(left, "intersect", right, merged)
 
     # ---- Symmetric difference ----
@@ -778,6 +900,16 @@ def _evalUnary(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
 
 def _arith(left: FormulaValue, op: str, right: FormulaValue,
            merged) -> FormulaValue:
+    if op == "+":
+        if left.type == FormulaValueType.BOOLEAN:
+            raise FormulaRuntimeError("Left side of a + operation cannot be bool.")
+        if right.type == FormulaValueType.BOOLEAN:
+            raise FormulaRuntimeError("Right side of a + operation cannot be bool.")
+        if left.type == FormulaValueType.DATE and right.type == FormulaValueType.DURATION and isinstance(right.value, TimeSpanValue):
+            return FormulaValue(FormulaValueType.DATE, InstantValue(left.value.dt + right.value.delta), alignment=merged)
+        if left.type == FormulaValueType.DURATION and right.type == FormulaValueType.DURATION and isinstance(left.value, TimeSpanValue) and isinstance(right.value, TimeSpanValue):
+            return FormulaValue(FormulaValueType.DURATION, TimeSpanValue(left.value.delta + right.value.delta), alignment=merged)
+
     if op == "+" and (left.type == FormulaValueType.STRING or right.type == FormulaValueType.STRING):
         leftText = "" if left.type in (FormulaValueType.NONE, FormulaValueType.SKIP) else _formatValue(left)
         rightText = "" if right.type in (FormulaValueType.NONE, FormulaValueType.SKIP) else _formatValue(right)
@@ -854,13 +986,20 @@ def _compare(left: FormulaValue, op: str, right: FormulaValue,
                 if fv.value.factValues:
                     return next(iter(fv.value.factValues)).value
                 return None
+        if fv.type == FormulaValueType.DATE and isinstance(fv.value, InstantValue):
+            return fv.value.dt
+        if fv.type == FormulaValueType.DURATION:
+            if isinstance(fv.value, DateRangeValue):
+                return (fv.value.start, fv.value.end)
+            if isinstance(fv.value, TimeSpanValue):
+                return fv.value.delta.total_seconds()
         return fv.value
 
     lv = _asComparable(left)
     rv = _asComparable(right)
 
     try:
-        if op == "==":  res = lv == rv
+        if op in ("==", "="):  res = lv == rv
         elif op == "!=": res = lv != rv
         elif op == "<":  res = lv < rv   # type: ignore
         elif op == "<=": res = lv <= rv  # type: ignore
@@ -886,8 +1025,8 @@ def _unwrapColl(fv: FormulaValue) -> List[FormulaValue]:
 
 
 def _setOp(left: FormulaValue, op: str, right: FormulaValue, merged) -> FormulaValue:
-    ls = set(_unwrapColl(left))
-    rs = set(_unwrapColl(right))
+    ls = OrderedSet(_unwrapColl(left))
+    rs = OrderedSet(_unwrapColl(right))
     if op == "union":
         result = ls | rs
     elif op == "intersect":
@@ -898,7 +1037,7 @@ def _setOp(left: FormulaValue, op: str, right: FormulaValue, merged) -> FormulaV
         result = ls ^ rs
     else:
         raise FormulaRuntimeError(f"Unknown set operation {op!r}")
-    return FormulaValue(FormulaValueType.SET, frozenset(result), alignment=merged)
+    return FormulaValue(FormulaValueType.SET, result, alignment=merged)
 
 
 # ---------------------------------------------------------------------------
@@ -920,6 +1059,10 @@ def _evalFor(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
     varName    = node.get("varName", "")
     collection = evaluateExpr(node.get("collection"), ctx)
     body       = node.get("body")
+    if collection.type not in (FormulaValueType.SET, FormulaValueType.LIST):
+        raise FormulaRuntimeError(
+            f"For loop requires a set or list, found '{collection.type.name.lower()}'."
+        )
     items      = _unwrapColl(collection)
     results: List[FormulaValue] = []
     for item in items:
@@ -928,7 +1071,11 @@ def _evalFor(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
         val = evaluateExpr(body, childCtx)
         if not val.isSkip:
             results.append(val)
-    return FormulaValue(FormulaValueType.LIST, results)
+    if len(results) == 1:
+        return results[0]
+    resultVal = FormulaValue(FormulaValueType.LIST, results)
+    setattr(resultVal, "_forResult", True)
+    return resultVal
 
 
 def _evalAssign(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
@@ -957,7 +1104,7 @@ def _evalBlockExpr(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
 
 def _evalSetLiteral(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
     raw = node.get("items", [])
-    items = frozenset(evaluateExpr(i, ctx) for i in raw)
+    items = OrderedSet(evaluateExpr(i, ctx) for i in raw)
     return FormulaValue(FormulaValueType.SET, items)
 
 

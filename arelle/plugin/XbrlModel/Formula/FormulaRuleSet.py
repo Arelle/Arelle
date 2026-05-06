@@ -13,6 +13,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -121,7 +122,7 @@ def loadRuleSet(paths: List[str], cntlr=None) -> "FormulaRuleSet":
         List of file or directory paths.  Directories are searched recursively
         for `*.xule` files.
     cntlr:
-        Optional Arelle controller, used for logging parse warnings.
+        Optional Arelle controller, used for logging parse warnings and progress.
 
     Returns
     -------
@@ -147,10 +148,21 @@ def loadRuleSet(paths: List[str], cntlr=None) -> "FormulaRuleSet":
         return _ruleSetCache[cacheKey]
 
     merged = FormulaRuleSet(sourceFiles=list(xuleFiles))
-    for xuleFile in xuleFiles:
+    totalStartTime = time.perf_counter()
+
+    for i, xuleFile in enumerate(xuleFiles, 1):
         try:
+            startTime = time.perf_counter()
             ruleSet = parseFormulaFile(xuleFile)
+            elapsedSecs = time.perf_counter() - startTime
+            mergeTime = time.perf_counter()
             merged.mergeFrom(ruleSet)
+            mergeSecs = time.perf_counter() - mergeTime
+            msg = f"Formula parse {i}/{len(xuleFiles)}: {os.path.basename(xuleFile)} loaded {len(ruleSet.outputRules)} outputs in {elapsedSecs:.2f}s (merge {mergeSecs:.3f}s)"
+            if cntlr:
+                cntlr.addToLog(msg, messageCode="formula:parseProgress", level="DEBUG")
+            else:
+                print(f"[INFO] {msg}")
         except Exception as exc:
             msg = f"FormulaRuleSet: failed to parse {xuleFile!r}: {exc}"
             if cntlr:
@@ -158,7 +170,13 @@ def loadRuleSet(paths: List[str], cntlr=None) -> "FormulaRuleSet":
             else:
                 print(msg)
 
+    totalSecs = time.perf_counter() - totalStartTime
     _ruleSetCache[cacheKey] = merged
+    msg = f"Formula rule set loaded: {len(merged.outputRules)} outputs, {len(merged.assertRules)} asserts from {len(xuleFiles)} files in {totalSecs:.2f}s"
+    if cntlr:
+        cntlr.addToLog(msg, messageCode="formula:parseComplete", level="DEBUG")
+    else:
+        print(f"[INFO] {msg}")
     return merged
 
 
