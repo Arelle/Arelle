@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import datetime
-from _decimal import Decimal
+from _decimal import Decimal, InvalidOperation
 from fractions import Fraction
 from math import inf, nan, isnan
 from typing import Any
@@ -11,7 +11,7 @@ import regex
 from unittest.mock import Mock
 
 from arelle.ModelValue import QName, DateTime, Time, isoDuration, gDay, gMonth, gMonthDay, gYear, gYearMonth
-from arelle.XmlValidate import validateValue, VALID, UNKNOWN, INVALID, VALID_ID, NMTOKENPattern, namePattern, NCNamePattern, VALID_NO_CONTENT, XsdPattern
+from arelle.XmlValidate import validateValue, validateValueString, VALID, UNKNOWN, INVALID, VALID_ID, NMTOKENPattern, namePattern, NCNamePattern, VALID_NO_CONTENT, XsdPattern
 
 FLOAT_CASES = [
     {"value": "-1", "expected": (-1, -1, VALID)},
@@ -679,3 +679,61 @@ def test_validateValue_facets_whitespace(whitespace: str, value: str, expected: 
     }
     validateValue(modelXbrl=Mock(), elt=elt, attrTag=None, baseXsdType="string", value=value, facets=facets)
     _assertExpected(value, attrTag=None, elt=elt, expected=expected)
+
+
+NSMAP = {"prefix": "namespaceURI"}
+_SKIP_TYPES_FOR_VALUE_STRING = {None, "fraction"}
+
+
+def _generate_value_string_test_cases():
+    test_cases = []
+    for isNillable in [False, True]:
+        for isNil in [False, True]:
+            for baseXsdType, cases in BASE_XSD_TYPES.items():
+                if baseXsdType in _SKIP_TYPES_FOR_VALUE_STRING:
+                    continue
+                for case in cases:
+                    test_cases.append(
+                        (
+                            baseXsdType,
+                            case.get("value"),
+                            isNillable,
+                            isNil,
+                            case.get("facets"),
+                            case.get("expected"),
+                        )
+                    )
+    return test_cases
+
+
+@pytest.mark.parametrize(
+    "baseXsdType,value,isNillable,isNil,facets,expected",
+    [pytest.param(*testcase) for testcase in _generate_value_string_test_cases()],
+)
+def test_validateValueString(
+    baseXsdType: str, value: str, isNillable: bool, isNil: bool, facets: dict, expected: tuple
+):
+    expectedXValid = expected[2]
+    try:
+        result = validateValueString(
+            baseXsdType=baseXsdType,
+            value=value,
+            isNillable=isNillable,
+            isNil=isNil,
+            facets=facets,
+            nsmap=NSMAP,
+        )
+    except (ValueError, InvalidOperation):
+        assert expectedXValid == INVALID
+        return
+    expectedSValue = value if expected[0] == "=" else expected[0]
+    expectedXValue = value if expected[1] == "=" else expected[1]
+    if not value and isNil and isNillable:
+        expectedSValue = None
+        expectedXValue = None
+    if expectedSValue == nan:
+        assert isnan(result.sValue)
+    else:
+        _assertValidateValue(result.sValue, expectedSValue)
+    _assertValidateValue(result.xValue, expectedXValue)
+    assert result.xValid == expectedXValid

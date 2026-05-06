@@ -60,6 +60,13 @@ class XsdPattern:
         return self.xsdPattern
 
 
+@dataclass(frozen=True, slots=True)
+class XmlValidationResult:
+    sValue: TypeSValue
+    xValue: TypeXValue
+    xValid: int
+
+
 # support legacy direct imports from this module
 UNVALIDATED      = XmlValidateConst.UNVALIDATED
 UNKNOWN          = XmlValidateConst.UNKNOWN
@@ -386,7 +393,7 @@ def validate(
                 validate(modelXbrl, child, recurse, attrQname, ixFacts, setTargetModelXbrl)
 
 
-def fractionValidateValue(value: str, fractionValue: tuple[str, str]) -> tuple[TypeSValue, TypeXValue, int]:
+def fractionValidateValue(value: str, fractionValue: tuple[str, str]) -> XmlValidationResult:
     sValue: TypeSValue
     xValue: TypeXValue
     numeratorStr, denominatorStr = fractionValue
@@ -402,17 +409,17 @@ def fractionValidateValue(value: str, fractionValue: tuple[str, str]) -> tuple[T
             xValue = Fraction(int(numeratorNum), int(denominatorNum))
         else:
             xValue = Fraction(numeratorNum / denominatorNum)
-    return (sValue, xValue, xValid)
+    return XmlValidationResult(sValue=sValue, xValue=xValue, xValid=xValid)
 
 
-def _validateValue(
+def validateValueString(
     baseXsdType: str,
     value: str,
     isNillable: bool = False,
     isNil: bool = False,
     facets: dict[str, Any] | None = None,
     nsmap: dict[str | None, str] | None = None,
-) -> tuple[TypeSValue, TypeXValue, int]:
+) -> XmlValidationResult:
     if nsmap is None:
         nsmap = {}
     sValue: TypeSValue
@@ -607,7 +614,7 @@ def _validateValue(
             else: # no lexical pattern, forget compiling value
                 xValue = value
             sValue = value
-    return sValue, xValue, xValid
+    return XmlValidationResult(sValue=sValue, xValue=xValue, xValid=xValid)
 
 
 def validateValue(
@@ -627,9 +634,10 @@ def validateValue(
             isNilValue = not value and isNil and isNillable
             if baseXsdType == "fraction" and not isNilValue:
                 # Fraction reads numerator/denominator from child elements, not from the value string
-                sValue, xValue, xValid = fractionValidateValue(value, elt.fractionValue)  # type: ignore[attr-defined]
+                result = fractionValidateValue(value, elt.fractionValue)  # type: ignore[attr-defined]
             else:
-                sValue, xValue, xValid = _validateValue(baseXsdType, value, isNillable, isNil, facets, elt.nsmap)
+                result = validateValueString(baseXsdType, value, isNillable, isNil, facets, elt.nsmap)
+            sValue, xValue, xValid = result.sValue, result.xValue, result.xValid
         except (ValueError, InvalidOperation) as err:
             elt.xValueError = err
             errElt: str | QName
