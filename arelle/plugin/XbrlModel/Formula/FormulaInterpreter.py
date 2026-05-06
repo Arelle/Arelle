@@ -320,7 +320,18 @@ def evaluateExpr(node: Any, ctx: FormulaRuleContext) -> FormulaValue:
         return TRUE_VALUE if node else FALSE_VALUE
     if isinstance(node, ParseResults):
         if "base" in node or "props" in node:
-            baseNode = node.get("base")
+            baseNode = None
+            for namedKey in (
+                "funcCall", "varRef", "factQuery", "ifExpr", "forExpr",
+                "setLiteral", "listLiteral", "boolean", "none", "skip",
+                "severity", "string", "qname",
+            ):
+                if namedKey in node:
+                    baseNode = {namedKey: node.get(namedKey)}
+                    break
+
+            if baseNode is None:
+                baseNode = node.get("base")
             if isinstance(baseNode, ParseResults) and len(baseNode) == 1:
                 baseNode = baseNode[0]
             if isinstance(baseNode, ParseResults) and "value" in baseNode and len(baseNode) == 1:
@@ -422,6 +433,12 @@ def evaluateExpr(node: Any, ctx: FormulaRuleContext) -> FormulaValue:
     if exprName == "forExpr" or "forExpr" in node:
         return _evalFor(node.get("forExpr", node), ctx)
 
+    # ---- Assignment / block expression ----
+    if exprName == "assignExpr" or "assignExpr" in node:
+        return _evalAssign(node.get("assignExpr", node), ctx)
+    if exprName == "blockExpr" or "blockExpr" in node:
+        return _evalBlockExpr(node.get("blockExpr", node), ctx)
+
     # ---- Set / list literals ----
     if exprName == "setLiteral" or "setLiteral" in node:
         return _evalSetLiteral(node.get("setLiteral", node), ctx)
@@ -453,21 +470,45 @@ def _evalString(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
     segments: List[str] = []
     for part in parts_node:
         if not isinstance(part, dict):
-            segments.append(str(part))
+            segments.append(_stringText(part))
             continue
         ptype = next(iter(part), None)
         inner = part.get(ptype, part)
         if ptype == "text":
-            segments.append(inner.get("value", str(inner)) if isinstance(inner, dict) else str(inner))
+            segments.append(_stringText(inner))
         elif ptype == "escape":
-            ch = inner.get("value", "") if isinstance(inner, dict) else str(inner)
+            ch = _stringText(inner)
             segments.append(_unescape(ch))
         elif ptype == "interp":
             val = evaluateExpr(inner, ctx)
             segments.append(_formatValue(val))
         else:
-            segments.append(str(inner))
+            segments.append(_stringText(inner))
     return FormulaValue(FormulaValueType.STRING, "".join(segments))
+
+
+def _stringText(value: Any) -> str:
+    """Convert parser-produced string fragments into plain text."""
+    if isinstance(value, ParseResults):
+        if "value" in value:
+            return _stringText(value.get("value"))
+        if "text" in value:
+            return _stringText(value.get("text"))
+        value = value.as_list()
+
+    if isinstance(value, dict):
+        if "value" in value:
+            return _stringText(value["value"])
+        if "text" in value:
+            return _stringText(value["text"])
+        return "".join(_stringText(v) for v in value.values())
+
+    if isinstance(value, (list, tuple)):
+        if len(value) == 1:
+            return _stringText(value[0])
+        return "".join(_stringText(v) for v in value)
+
+    return "" if value is None else str(value)
 
 
 def _unescape(ch: str) -> str:
@@ -888,6 +929,26 @@ def _evalFor(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
         if not val.isSkip:
             results.append(val)
     return FormulaValue(FormulaValueType.LIST, results)
+
+
+def _evalAssign(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
+    varName = node.get("varName", "")
+    valueExpr = node.get("valueExpr")
+    val = evaluateExpr(valueExpr, ctx)
+    if varName:
+        ctx.bindVariable(varName, val)
+    return val
+
+
+def _evalBlockExpr(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
+    steps = node.get("steps", [])
+    if not isinstance(steps, list):
+        steps = [steps]
+
+    result = NONE_VALUE
+    for step in steps:
+        result = evaluateExpr(step, ctx)
+    return result
 
 
 # ---------------------------------------------------------------------------

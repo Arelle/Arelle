@@ -54,7 +54,17 @@ def _fn_sum(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue
     """sum(collection) → Decimal sum of all numeric items."""
     if len(args) != 1:
         raise FormulaRuntimeError("sum() requires exactly one argument")
-    items = _unwrapCollection(args[0])
+
+    def _flatten(items: List[FormulaValue]) -> List[FormulaValue]:
+        flat: List[FormulaValue] = []
+        for item in items:
+            if item.type in (FormulaValueType.SET, FormulaValueType.LIST):
+                flat.extend(_flatten(list(item.value)))
+            else:
+                flat.append(item)
+        return flat
+
+    items = _flatten(_unwrapCollection(args[0]))
     total = Decimal(0)
     for item in items:
         try:

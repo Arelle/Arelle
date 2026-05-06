@@ -291,7 +291,22 @@ def _buildGrammar():
         ],
     )
 
-    blockExpr <<= expr
+    # ---- Block expression and assignment ----
+    #   $x = 3; $x + 1
+    #   abs($y = (3 + 4) * -1; $y)
+    assignExpr = Group(
+        Suppress(Literal("$"))
+        + simpleName.setResultsName("varName")
+        + Suppress(Literal("="))
+        + expr.setResultsName("valueExpr")
+    ).addParseAction(_mkAssign)
+
+    blockStmt = assignExpr | expr
+    blockExpr <<= Group(
+        Group(
+            OneOrMore(blockStmt + Opt(Suppress(Literal(";"))))
+        ).setResultsName("steps")
+    ).addParseAction(_mkBlockExpr)
 
     # ---- Message clause ----
     messageClause = Group(
@@ -411,6 +426,26 @@ def _mkBinary(tokens):
     return result
 
 
+def _mkAssign(tokens):
+    toks = tokens[0]
+    return {
+        "exprName": "assignExpr",
+        "varName": toks.get("varName", ""),
+        "valueExpr": toks.get("valueExpr"),
+    }
+
+
+def _mkBlockExpr(tokens):
+    toks = tokens[0]
+    steps = list(toks.get("steps", toks))
+    if len(steps) == 1 and isinstance(steps[0], dict) and "exprName" in steps[0]:
+        return steps[0]
+    return {
+        "exprName": "blockExpr",
+        "steps": steps,
+    }
+
+
 def _tagStatement(kind):
     def _parseAction(tokens):
         data = tokens[0].as_dict()
@@ -469,6 +504,18 @@ def parseFormulaString(source: str, fileName: str = "<string>") -> FormulaRuleSe
 # ---------------------------------------------------------------------------
 
 def _buildRuleSet(parseRes: dict, filePath: str) -> FormulaRuleSet:
+    def _normalizeNode(node):
+        # pyparsing + as_dict can leave one-element list wrappers around
+        # parse-action dict nodes (notably blockExpr). Strip those wrappers
+        # so the interpreter sees stable dict AST nodes.
+        if isinstance(node, list):
+            if len(node) == 1:
+                return _normalizeNode(node[0])
+            return [_normalizeNode(n) for n in node]
+        if isinstance(node, dict):
+            return {k: _normalizeNode(v) for k, v in node.items()}
+        return node
+
     ruleSet = FormulaRuleSet(sourceFiles=[filePath])
 
     for item in parseRes.get("program", []):
@@ -487,13 +534,13 @@ def _buildRuleSet(parseRes: dict, filePath: str) -> FormulaRuleSet:
             ruleSet.namespaces[node["prefix"]] = node["uri"]
 
         elif key == "constantDecl":
-            ruleSet.constants.append(ConstantDecl(name=node["name"], expr=node["expr"]))
+            ruleSet.constants.append(ConstantDecl(name=node["name"], expr=_normalizeNode(node["expr"])))
 
         elif key == "outputRule":
             rule = OutputRule(
                 name=node["name"],
-                expr=node["expr"],
-                messageExpr=node.get("message", {}).get("msgExpr"),
+                expr=_normalizeNode(node["expr"]),
+                messageExpr=_normalizeNode(node.get("message", {}).get("msgExpr")),
                 severity=node.get("severity", {}).get("severity", {}).get("value", "info"),
             )
             ruleSet.outputRules[rule.name] = rule
@@ -501,8 +548,8 @@ def _buildRuleSet(parseRes: dict, filePath: str) -> FormulaRuleSet:
         elif key == "assertRule":
             rule = AssertRule(
                 name=node["name"],
-                expr=node["expr"],
-                messageExpr=node.get("message", {}).get("msgExpr"),
+                expr=_normalizeNode(node["expr"]),
+                messageExpr=_normalizeNode(node.get("message", {}).get("msgExpr")),
                 severity=node.get("severity", {}).get("severity", {}).get("value", "error"),
             )
             ruleSet.assertRules[rule.name] = rule
@@ -512,7 +559,7 @@ def _buildRuleSet(parseRes: dict, filePath: str) -> FormulaRuleSet:
             # evaluate to a callable lambda-like object at runtime.
             ruleSet.constants.append(ConstantDecl(
                 name=node["name"],
-                expr={"exprName": "funcDecl", **node}
+                expr=_normalizeNode({"exprName": "funcDecl", **node})
             ))
 
     return ruleSet
