@@ -11,7 +11,7 @@ from regex import Match, Pattern, compile as re_compile
 from decimal import Decimal, InvalidOperation
 from fractions import Fraction
 from arelle import UrlUtil, XbrlConst, XmlUtil, XmlValidateConst
-from arelle.ModelValue import (qname, qnameEltPfxName, qnameClarkName, qnameHref,
+from arelle.ModelValue import (qname, qnameFromNsmap, qnameClarkName, qnameHref,
                                dateTime, DATE, DATETIME, DATEUNION, time,
                                anyURI, INVALIDixVALUE, gYearMonth, gMonthDay, gYear, gMonth, gDay, isoDuration)
 from arelle.ModelObject import ModelObject, ModelAttribute
@@ -412,7 +412,10 @@ def _validateValue(
     isNillable: bool = False,
     isNil: bool = False,
     facets: dict[str, Any] | None = None,
+    nsmap: dict[str | None, str] | None = None,
 ) -> tuple[TypeSValue, TypeXValue, int]:
+    if nsmap is None:
+        nsmap = {}
     sValue: TypeSValue
     xValue: TypeXValue
     xValid = VALID
@@ -535,7 +538,7 @@ def _validateValue(
                 xValue = sValue = False
             else: raise ValueError
         elif baseXsdType == "QName":
-            xValue = qnameEltPfxName(elt, value, prefixException=ValueError)
+            xValue = qnameFromNsmap(nsmap, value, prefixException=ValueError)
             #xValue = qname(elt, value, castException=ValueError, prefixException=ValueError)
             sValue = value
             ''' not sure here, how are explicitDimensions validated, but bad units not?
@@ -550,7 +553,7 @@ def _validateValue(
             xValue = [qnameHref(href) for href in value.split()]
             sValue = value
         elif baseXsdType == "enumerationQNames":
-            xValue = [qnameEltPfxName(elt, qn, prefixException=ValueError) for qn in value.split()]
+            xValue = [qnameFromNsmap(nsmap, qn, prefixException=ValueError) for qn in value.split()]
             sValue = value
         elif baseXsdType in ("XBRLI_DECIMALSUNION", "XBRLI_PRECISIONUNION"):
             xValue = sValue = value if value == "INF" else int(value)
@@ -627,7 +630,7 @@ def validateValue(
                 # Fraction reads numerator/denominator from child elements, not from the value string
                 sValue, xValue, xValid = fractionValidateValue(value, elt.fractionValue)  # type: ignore[attr-defined]
             else:
-                sValue, xValue, xValid = _validateValue(elt, baseXsdType, value, isNillable, isNil, facets)
+                sValue, xValue, xValid = _validateValue(elt, baseXsdType, value, isNillable, isNil, facets, elt.nsmap)
         except (ValueError, InvalidOperation) as err:
             elt.xValueError = err
             errElt: str | QName
