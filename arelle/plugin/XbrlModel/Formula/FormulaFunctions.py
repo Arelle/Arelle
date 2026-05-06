@@ -76,7 +76,9 @@ def _fn_sum(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue
         if v.type == FormulaValueType.LIST:
             return list(v.value)
         if v.type == FormulaValueType.SET:
-            return set(v.value)
+            return OrderedSet(v.value)
+        if v.type == FormulaValueType.DICT:
+            return dict(v.value)
         if v.type in (FormulaValueType.INTEGER, FormulaValueType.FLOAT, FormulaValueType.DECIMAL, FormulaValueType.STRING):
             return v.value
         return v.value
@@ -84,6 +86,8 @@ def _fn_sum(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue
     def _fromPython(v) -> FormulaValue:
         if v is None:
             return NONE_VALUE
+        if isinstance(v, dict):
+            return FormulaValue(FormulaValueType.DICT, v)
         if isinstance(v, list):
             return FormulaValue(FormulaValueType.LIST, v)
         if isinstance(v, (set, OrderedSet)):
@@ -105,8 +109,11 @@ def _fn_sum(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue
     acc = _toPython(items[0])
     for item in items[1:]:
         nxt = _toPython(item)
-        if isinstance(acc, set) and isinstance(nxt, set):
-            acc = acc | nxt
+        if isinstance(acc, OrderedSet) and isinstance(nxt, OrderedSet):
+            acc = OrderedSet(list(acc) + [v for v in nxt if v not in acc])
+            continue
+        if isinstance(acc, dict) and isinstance(nxt, dict):
+            acc = {**acc, **nxt}
             continue
         try:
             acc = acc + nxt
@@ -223,6 +230,8 @@ def _fn_isBoolean(args: List[FormulaValue], ctx: "FormulaRuleContext") -> Formul
 def _fn_list(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
     items: List[FormulaValue] = []
     for arg in args:
+        if arg.type == FormulaValueType.NONE and getattr(arg, "_coveredMissing", False):
+            continue
         if arg.type == FormulaValueType.LIST and getattr(arg, "_forResult", False):
             items.extend(list(arg.value))
         else:
@@ -231,7 +240,8 @@ def _fn_list(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValu
 
 
 def _fn_set(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
-    return FormulaValue(FormulaValueType.SET, OrderedSet(args))
+    filtered = [a for a in args if a.type != FormulaValueType.SKIP and not (a.type == FormulaValueType.NONE and getattr(a, "_coveredMissing", False))]
+    return FormulaValue(FormulaValueType.SET, OrderedSet(filtered))
 
 
 def _fn_toSet(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:

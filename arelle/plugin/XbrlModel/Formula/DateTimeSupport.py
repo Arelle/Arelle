@@ -90,6 +90,19 @@ def parse_time_span_string(value: str) -> TimeSpanValue:
         days = int(m.group(1)) * 365 + int(m.group(2)) * 30 + int(m.group(3))
         return TimeSpanValue(timedelta(days=days))
 
+    m = re.fullmatch(r"P(\d+)Y", value)
+    if m:
+        return TimeSpanValue(timedelta(days=int(m.group(1)) * 365))
+
+    m = re.fullmatch(r"P(\d+)M", value)
+    if m:
+        return TimeSpanValue(timedelta(days=int(m.group(1)) * 30))
+
+    m = re.fullmatch(r"P(\d+)Y(\d+)M", value)
+    if m:
+        days = int(m.group(1)) * 365 + int(m.group(2)) * 30
+        return TimeSpanValue(timedelta(days=days))
+
     m = re.fullmatch(r"PT(\d+)H", value)
     if m:
         return TimeSpanValue(timedelta(hours=int(m.group(1))))

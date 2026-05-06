@@ -537,6 +537,8 @@ def _unescape(ch: str) -> str:
 
 
 def _formatCollectionItem(val: FormulaValue) -> str:
+    if val.type == FormulaValueType.NONE:
+        return "None"
     if val.type == FormulaValueType.DATE and isinstance(val.value, InstantValue):
         return format_instant(val.value)
     if val.type == FormulaValueType.DURATION and isinstance(val.value, DateRangeValue):
@@ -551,7 +553,7 @@ def _formatValue(val: FormulaValue) -> str:
             return str(fv.value) if fv.value is not None else ""
         return ""
     if val.type == FormulaValueType.NONE:
-        return ""
+        return "none"
     if val.type == FormulaValueType.BOOLEAN:
         return "true" if bool(val.value) else "false"
     if val.type == FormulaValueType.LIST:
@@ -560,6 +562,13 @@ def _formatValue(val: FormulaValue) -> str:
     if val.type == FormulaValueType.SET:
         items = [_formatCollectionItem(v if isinstance(v, FormulaValue) else FormulaValue(FormulaValueType.STRING, v)) for v in val.value]
         return f"set({', '.join(items)})"
+    if val.type == FormulaValueType.DICT:
+        parts = []
+        for k, v in val.value.items():
+            keyText = _formatCollectionItem(k if isinstance(k, FormulaValue) else FormulaValue.fromScalar(k))
+            valText = _formatCollectionItem(v if isinstance(v, FormulaValue) else FormulaValue.fromScalar(v))
+            parts.append(f"{keyText}={valText}")
+        return f"dictionary({','.join(parts)})"
     if val.type == FormulaValueType.DATE and isinstance(val.value, InstantValue):
         return format_instant(val.value)
     if val.type == FormulaValueType.DURATION:
@@ -579,6 +588,11 @@ def _evalQName(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
     localName = node.get("localName", "")
     if localName == "forever":
         return callFunction("forever", [], ctx)
+    if localName.startswith("forever."):
+        value = callFunction("forever", [], ctx)
+        for propName in localName.split(".")[1:]:
+            value = getProperty(value, propName, [], ctx)
+        return value
     try:
         qn = ctx.globalCtx.resolveQName(prefix, localName)
         return FormulaValue(FormulaValueType.QNAME, qn)
@@ -634,6 +648,12 @@ def _evalFactQuery(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
             facts = [f for f in facts if _isNil(f)]
 
     if not facts:
+        coveredFlag = node.get("coveredFlag")
+        coveredValue = coveredFlag.get("value", "") if isinstance(coveredFlag, dict) else coveredFlag
+        if str(coveredValue).lower() == "covered":
+            coveredNone = FormulaValue(FormulaValueType.NONE, None)
+            setattr(coveredNone, "_coveredMissing", True)
+            return coveredNone
         raise FormulaIterationStop()
 
     # In a non-iteration context return all matching facts as a set
@@ -905,8 +925,16 @@ def _arith(left: FormulaValue, op: str, right: FormulaValue,
             raise FormulaRuntimeError("Left side of a + operation cannot be bool.")
         if right.type == FormulaValueType.BOOLEAN:
             raise FormulaRuntimeError("Right side of a + operation cannot be bool.")
+        if left.type == FormulaValueType.DURATION and isinstance(left.value, DateRangeValue):
+            raise FormulaRuntimeError("Left side of a + operation cannot be duration.")
+        if left.type == FormulaValueType.DICT and right.type == FormulaValueType.DICT:
+            resultDict = dict(left.value)
+            resultDict.update(right.value)
+            return FormulaValue(FormulaValueType.DICT, resultDict, alignment=merged)
         if left.type == FormulaValueType.DATE and right.type == FormulaValueType.DURATION and isinstance(right.value, TimeSpanValue):
             return FormulaValue(FormulaValueType.DATE, InstantValue(left.value.dt + right.value.delta), alignment=merged)
+        if left.type == FormulaValueType.DURATION and isinstance(left.value, TimeSpanValue) and right.type == FormulaValueType.DATE:
+            raise FormulaRuntimeError("Incompatabile operands time-period + instant.")
         if left.type == FormulaValueType.DURATION and right.type == FormulaValueType.DURATION and isinstance(left.value, TimeSpanValue) and isinstance(right.value, TimeSpanValue):
             return FormulaValue(FormulaValueType.DURATION, TimeSpanValue(left.value.delta + right.value.delta), alignment=merged)
 
@@ -924,6 +952,23 @@ def _arith(left: FormulaValue, op: str, right: FormulaValue,
             return FormulaValue(left.type, left.value, alignment=merged)
 
     if op == "-":
+        if left.type == FormulaValueType.DURATION and isinstance(left.value, DateRangeValue):
+            raise FormulaRuntimeError("Left side of a - operation cannot be duration.")
+        if left.type == FormulaValueType.DICT and right.type == FormulaValueType.DICT:
+            resultDict = {k: v for k, v in left.value.items() if k not in right.value}
+            return FormulaValue(FormulaValueType.DICT, resultDict, alignment=merged)
+        if left.type == FormulaValueType.DICT and right.type in (FormulaValueType.LIST, FormulaValueType.SET):
+            removeKeys = set(_unwrapColl(right))
+            resultDict = {k: v for k, v in left.value.items() if k not in removeKeys}
+            return FormulaValue(FormulaValueType.DICT, resultDict, alignment=merged)
+        if left.type == FormulaValueType.DATE and right.type == FormulaValueType.DURATION and isinstance(right.value, TimeSpanValue):
+            return FormulaValue(FormulaValueType.DATE, InstantValue(left.value.dt - right.value.delta), alignment=merged)
+        if left.type == FormulaValueType.DATE and right.type == FormulaValueType.DATE:
+            return FormulaValue(FormulaValueType.DURATION, TimeSpanValue(left.value.dt - right.value.dt), alignment=merged)
+        if left.type == FormulaValueType.DURATION and right.type == FormulaValueType.DURATION and isinstance(left.value, TimeSpanValue) and isinstance(right.value, TimeSpanValue):
+            return FormulaValue(FormulaValueType.DURATION, TimeSpanValue(left.value.delta - right.value.delta), alignment=merged)
+        if left.type == FormulaValueType.DURATION and isinstance(left.value, TimeSpanValue) and right.type == FormulaValueType.DATE:
+            raise FormulaRuntimeError("Incompatabile operands time-period - instant.")
         if left.type in (FormulaValueType.NONE, FormulaValueType.SKIP) and right.type in (FormulaValueType.NONE, FormulaValueType.SKIP):
             return SKIP_VALUE
         if right.type in (FormulaValueType.NONE, FormulaValueType.SKIP):
@@ -977,6 +1022,10 @@ def _strictSkipBinary(left: FormulaValue, op: str, right: FormulaValue, merged) 
 def _compare(left: FormulaValue, op: str, right: FormulaValue,
              merged) -> FormulaValue:
     def _asComparable(fv: FormulaValue):
+        if fv.type == FormulaValueType.SET:
+            return frozenset(_asComparable(item) for item in fv.value)
+        if fv.type == FormulaValueType.LIST:
+            return tuple(_asComparable(item) for item in fv.value)
         if fv.isNumeric:
             return fv.numericValue()
         if fv.type == FormulaValueType.FACT:
@@ -1094,8 +1143,34 @@ def _evalBlockExpr(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
 
     result = NONE_VALUE
     for step in steps:
-        result = evaluateExpr(step, ctx)
+        try:
+            result = evaluateExpr(step, ctx)
+        except FormulaIterationStop:
+            if _nodeHasCoveredFlag(step):
+                coveredNone = FormulaValue(FormulaValueType.NONE, None)
+                setattr(coveredNone, "_coveredMissing", True)
+                result = coveredNone
+                continue
+            raise
     return result
+
+
+def _nodeHasCoveredFlag(node: Any) -> bool:
+    if isinstance(node, dict):
+        cf = node.get("coveredFlag")
+        if cf is not None:
+            val = cf.get("value", "") if isinstance(cf, dict) else cf
+            if str(val).lower() == "covered" or str(val).lower() == "['covered']":
+                return True
+        return any(_nodeHasCoveredFlag(v) for v in node.values())
+    if isinstance(node, ParseResults):
+        cf = node.get("coveredFlag") if "coveredFlag" in node else None
+        if cf is not None and str(cf).lower().find("covered") >= 0:
+            return True
+        return any(_nodeHasCoveredFlag(v) for v in list(node))
+    if isinstance(node, list):
+        return any(_nodeHasCoveredFlag(v) for v in node)
+    return False
 
 
 # ---------------------------------------------------------------------------
