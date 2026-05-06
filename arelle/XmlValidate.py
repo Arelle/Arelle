@@ -406,7 +406,6 @@ def fractionValidateValue(value: str, fractionValue: tuple[str, str]) -> tuple[T
 
 
 def _validateValue(
-    elt: ModelObject,
     baseXsdType: str,
     value: str,
     isNillable: bool = False,
@@ -630,7 +629,7 @@ def validateValue(
                 # Fraction reads numerator/denominator from child elements, not from the value string
                 sValue, xValue, xValid = fractionValidateValue(value, elt.fractionValue)  # type: ignore[attr-defined]
             else:
-                sValue, xValue, xValid = _validateValue(elt, baseXsdType, value, isNillable, isNil, facets, elt.nsmap)
+                sValue, xValue, xValid = _validateValue(baseXsdType, value, isNillable, isNil, facets, elt.nsmap)
         except (ValueError, InvalidOperation) as err:
             elt.xValueError = err
             errElt: str | QName
