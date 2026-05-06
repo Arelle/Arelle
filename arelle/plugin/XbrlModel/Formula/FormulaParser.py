@@ -205,8 +205,17 @@ def _buildGrammar():
     ).setResultsName("factQuery")
 
     # ---- Function call ----
+    # funcName must not be a reserved keyword (e.g. true, false, none, if, else …)
+    _allKw = (
+        ifKw | thenKw | elseKw | forKw | inKw | andKw | orKw | notKw
+        | trueKw | falseKw | noneKw | skipKw
+        | nilsKw | nonilsKw | coveredKw | uncoveredKw
+        | errorKw | warningKw | okKw | passKw
+        | whereKw | returnKw
+        | declKeywords
+    )
     funcCall = Group(
-        simpleName.setResultsName("funcName")
+        ~_allKw + simpleName.setResultsName("funcName")
         + Suppress(Literal("("))
         + Opt(Group(delimited_list(blockExpr)).setResultsName("args"))
         + Suppress(Literal(")"))
@@ -243,10 +252,13 @@ def _buildGrammar():
     ).setResultsName("listLiteral")
 
     # ---- If-then-else ----
+    # Syntax: if <condition_expr> [then] <then_expr> [else <else_expr>]
+    # 'then' keyword is optional; condition uses expr (not blockExpr) to stop
+    # at the boundary before the then-expression.
     ifExpr = Group(
         Suppress(ifKw)
-        + blockExpr.setResultsName("condition")
-        + Suppress(thenKw)
+        + expr.setResultsName("condition")
+        + Opt(Suppress(thenKw))
         + blockExpr.setResultsName("thenExpr")
         + Opt(Suppress(elseKw) + blockExpr.setResultsName("elseExpr"))
     ).setResultsName("ifExpr")
@@ -324,7 +336,7 @@ def _buildGrammar():
         + expr.setResultsName("valueExpr")
     ).addParseAction(_mkAssign)
 
-    blockStmt = (~declKeywords + (assignExpr | expr))
+    blockStmt = (~(declKeywords | elseKw) + (assignExpr | expr))
     blockExpr <<= Group(
         Group(
             OneOrMore(blockStmt + Opt(Suppress(Literal(";"))))

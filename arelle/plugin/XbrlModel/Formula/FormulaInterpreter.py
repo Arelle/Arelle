@@ -1094,8 +1094,20 @@ def _setOp(left: FormulaValue, op: str, right: FormulaValue, merged) -> FormulaV
 # ---------------------------------------------------------------------------
 
 def _evalIf(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
-    cond = evaluateExpr(node.get("condition"), ctx)
-    if _isTruthy(cond):
+    try:
+        cond = evaluateExpr(node.get("condition"), ctx)
+    except FormulaIterationStop:
+        # A missing (uncovered) fact in the condition → skip
+        return SKIP_VALUE
+    # none/skip condition propagates as skip
+    if cond.type in (FormulaValueType.NONE, FormulaValueType.SKIP):
+        return SKIP_VALUE
+    # non-boolean condition is an evaluation error
+    if cond.type != FormulaValueType.BOOLEAN:
+        raise FormulaRuntimeError(
+            f"If condition is not a boolean, found '{cond.type.name.lower()}'"
+        )
+    if cond.value:
         return evaluateExpr(node.get("thenExpr"), ctx)
     else:
         elseNode = node.get("elseExpr")

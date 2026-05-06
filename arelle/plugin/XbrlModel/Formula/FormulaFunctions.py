@@ -172,10 +172,13 @@ def _fn_avg(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue
 def _fn_exists(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
     if len(args) != 1:
         raise FormulaRuntimeError("exists() requires exactly one argument")
-    # Conformance tests treat none, set(none), and list(none) as existing.
-    # "missing" is the explicit function for absent values.
     arg = args[0]
-    return FALSE_VALUE if arg.type == FormulaValueType.SKIP else TRUE_VALUE
+    # NONE / SKIP / empty collection → does not exist
+    if arg.type in (FormulaValueType.NONE, FormulaValueType.SKIP):
+        return FALSE_VALUE
+    if arg.type in (FormulaValueType.LIST, FormulaValueType.SET):
+        return TRUE_VALUE if arg.value else FALSE_VALUE
+    return TRUE_VALUE
 
 
 def _fn_notExists(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
