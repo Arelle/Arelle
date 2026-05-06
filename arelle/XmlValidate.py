@@ -526,8 +526,8 @@ def validateValueString(
             if facets:
                 if "totalDigits" in facets and len(value.replace(".","")) > facets["totalDigits"]:
                     raise ValueError("totalDigits facet {0}".format(facets["totalDigits"]))
-                if "fractionDigits" in facets and ( '.' in value and
-                    len(value[value.index('.') + 1:]) > facets["fractionDigits"]):
+                if "fractionDigits" in facets and ("." in value and
+                    len(value[value.index(".") + 1:]) > facets["fractionDigits"]):
                     raise ValueError("fraction digits facet {0}".format(facets["fractionDigits"]))
                 if "maxInclusive" in facets and xValue > facets["maxInclusive"]:
                     raise ValueError(" > maxInclusive {0}".format(facets["maxInclusive"]))
