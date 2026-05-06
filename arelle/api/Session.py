@@ -129,7 +129,7 @@ class Session:
         with _session_lock:
             self._check_thread()
             PackageManager.getInstance().close()
-            PluginManager.getInstance().reset()
+            PluginManager.getInstance().close()
             if self._cntlr is None:
                 # Certain options must be passed into the controller constructor to have the intended effect
                 self._cntlr = createCntlrAndPreloadPlugins(
