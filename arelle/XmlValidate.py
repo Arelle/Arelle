@@ -442,7 +442,7 @@ def validateValueString(
             pattern = facets["pattern"]
             # note multiple patterns are or'ed togetner, which isn't yet implemented!
         if "whiteSpace" in facets:
-            whitespaceReplace, whitespaceCollapse = {"preserve":(False,False), "replace":(True,False), "collapse":(False,True)}[facets["whiteSpace"]]
+            whitespaceReplace, whitespaceCollapse = {"preserve": (False, False), "replace": (True, False), "collapse": (False, True)}[facets["whiteSpace"]]
     if whitespaceReplace:
         value = XmlUtil.replaceWhitespace(value)
     elif whitespaceCollapse:
