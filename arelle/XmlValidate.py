@@ -507,11 +507,11 @@ def validateValueString(
                 if "minExclusive" in facets and xValue <= facets["minExclusive"]:
                     raise ValueError(" <= minExclusive {0}".format(facets["minExclusive"]))
         elif baseXsdType in {"integer",
-                             "nonPositiveInteger","negativeInteger","nonNegativeInteger","positiveInteger",
-                             "long","unsignedLong",
-                             "int","unsignedInt",
-                             "short","unsignedShort",
-                             "byte","unsignedByte"}:
+                             "nonPositiveInteger", "negativeInteger", "nonNegativeInteger", "positiveInteger",
+                             "long", "unsignedLong",
+                             "int", "unsignedInt",
+                             "short", "unsignedShort",
+                             "byte", "unsignedByte"}:
             xValue = sValue = int(value)
             if ((baseXsdType in {"nonNegativeInteger","unsignedLong","unsignedInt"}
                  and xValue < 0) or
