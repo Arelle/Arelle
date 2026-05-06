@@ -469,7 +469,7 @@ def validateValueString(
                 raise ValueError("length {0}, minLength {1}".format(len(value), facets["minLength"]))
             if "maxLength" in facets and len(value) > facets["maxLength"]:
                 raise ValueError("length {0}, maxLength {1}".format(len(value), facets["maxLength"]))
-        if baseXsdType in {"string", "normalizedString", "language", "languageOrEmpty", "token", "NMTOKEN","Name","NCName","IDREF","ENTITY"}:
+        if baseXsdType in {"string", "normalizedString", "language", "languageOrEmpty", "token", "NMTOKEN", "Name", "NCName", "IDREF", "ENTITY"}:
             xValue = sValue = value
         elif baseXsdType == "ID":
             xValue = sValue = value
