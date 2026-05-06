@@ -385,6 +385,26 @@ def validate(
             if isinstance(child, ModelObject):
                 validate(modelXbrl, child, recurse, attrQname, ixFacts, setTargetModelXbrl)
 
+
+def fractionValidateValue(value: str, fractionValue: tuple[str, str]) -> tuple[TypeSValue, TypeXValue, int]:
+    sValue: TypeSValue
+    xValue: TypeXValue
+    numeratorStr, denominatorStr = fractionValue
+    if numeratorStr == INVALIDixVALUE or denominatorStr == INVALIDixVALUE:
+        sValue = xValue = INVALIDixVALUE
+        xValid = INVALID
+    else:
+        sValue = value
+        xValid = VALID
+        numeratorNum = float(numeratorStr)
+        denominatorNum = float(denominatorStr)
+        if numeratorNum.is_integer() and denominatorNum.is_integer():
+            xValue = Fraction(int(numeratorNum), int(denominatorNum))
+        else:
+            xValue = Fraction(numeratorNum / denominatorNum)
+    return (sValue, xValue, xValid)
+
+
 def _validateValue(
     elt: ModelObject,
     baseXsdType: str,
@@ -544,19 +564,6 @@ def _validateValue(
                     xValue = XsdPattern.compile(value)
             except Exception as err:
                 raise ValueError(err)
-        elif baseXsdType == "fraction":
-            numeratorStr, denominatorStr = elt.fractionValue  # type: ignore[attr-defined]
-            if numeratorStr == INVALIDixVALUE or denominatorStr == INVALIDixVALUE:
-                sValue = xValue = INVALIDixVALUE
-                xValid = INVALID
-            else:
-                sValue = value
-                numeratorNum = float(numeratorStr)
-                denominatorNum = float(denominatorStr)
-                if numeratorNum.is_integer() and denominatorNum.is_integer():
-                    xValue = Fraction(int(numeratorNum), int(denominatorNum))
-                else:
-                    xValue = Fraction(numeratorNum / denominatorNum)
         else:
             if baseXsdType in lexicalPatterns:
                 match = lexicalPatterns[baseXsdType].match(value)
@@ -615,7 +622,12 @@ def validateValue(
     xValue: TypeXValue
     if baseXsdType:
         try:
-            sValue, xValue, xValid = _validateValue(elt, baseXsdType, value, isNillable, isNil, facets)
+            isNilValue = not value and isNil and isNillable
+            if baseXsdType == "fraction" and not isNilValue:
+                # Fraction reads numerator/denominator from child elements, not from the value string
+                sValue, xValue, xValid = fractionValidateValue(value, elt.fractionValue)  # type: ignore[attr-defined]
+            else:
+                sValue, xValue, xValid = _validateValue(elt, baseXsdType, value, isNillable, isNil, facets)
         except (ValueError, InvalidOperation) as err:
             elt.xValueError = err
             errElt: str | QName
