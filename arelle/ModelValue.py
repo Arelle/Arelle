@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 import datetime, isodate
+from collections.abc import Mapping
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, cast, overload, Optional, Union
 from fractions import Fraction
@@ -151,6 +152,14 @@ def qnameEltPfxName(
     prefixedName: str,
     prefixException: Exception | type[Exception] | None = None,
 ) -> QName | None:
+    return qnameFromNsmap(element.nsmap, prefixedName, prefixException)
+
+
+def qnameFromNsmap(
+    nsmap: Mapping[str | None, str],
+    prefixedName: str,
+    prefixException: Exception | type[Exception] | None = None,
+) -> QName | None:
     prefix: str | None
     namespaceURI: str | None
 
@@ -163,7 +172,7 @@ def qnameEltPfxName(
     prefix,_sep,localName = prefixedName.rpartition(':')
     if not prefix:
         prefix = None # don't want '' but instead None if no prefix
-    namespaceURI = element.nsmap.get(prefix)
+    namespaceURI = nsmap.get(prefix)
     if not namespaceURI:
         if prefix:
             if prefix == 'xml':

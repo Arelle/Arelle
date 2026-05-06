@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import datetime
-from _decimal import Decimal
+from _decimal import Decimal, InvalidOperation
 from fractions import Fraction
 from math import inf, nan, isnan
 from typing import Any
@@ -11,7 +11,7 @@ import regex
 from unittest.mock import Mock
 
 from arelle.ModelValue import QName, DateTime, Time, isoDuration, gDay, gMonth, gMonthDay, gYear, gYearMonth
-from arelle.XmlValidate import validateValue, VALID, UNKNOWN, INVALID, VALID_ID, NMTOKENPattern, namePattern, NCNamePattern, VALID_NO_CONTENT, XsdPattern
+from arelle.XmlValidate import validateValue, validateValueString, validateFacetValueString, VALID, UNKNOWN, INVALID, VALID_ID, NMTOKENPattern, namePattern, NCNamePattern, VALID_NO_CONTENT, XsdPattern
 
 FLOAT_CASES = [
     {"value": "-1", "expected": (-1, -1, VALID)},
@@ -679,3 +679,140 @@ def test_validateValue_facets_whitespace(whitespace: str, value: str, expected: 
     }
     validateValue(modelXbrl=Mock(), elt=elt, attrTag=None, baseXsdType="string", value=value, facets=facets)
     _assertExpected(value, attrTag=None, elt=elt, expected=expected)
+
+
+NSMAP = {"prefix": "namespaceURI"}
+_SKIP_TYPES_FOR_VALUE_STRING = {None, "fraction"}
+
+
+def _generate_value_string_test_cases():
+    test_cases = []
+    for isNillable in [False, True]:
+        for isNil in [False, True]:
+            for baseXsdType, cases in BASE_XSD_TYPES.items():
+                if baseXsdType in _SKIP_TYPES_FOR_VALUE_STRING:
+                    continue
+                for case in cases:
+                    test_cases.append(
+                        (
+                            baseXsdType,
+                            case.get("value"),
+                            isNillable,
+                            isNil,
+                            case.get("facets"),
+                            case.get("expected"),
+                        )
+                    )
+    return test_cases
+
+
+@pytest.mark.parametrize(
+    "baseXsdType,value,isNillable,isNil,facets,expected",
+    [pytest.param(*testcase) for testcase in _generate_value_string_test_cases()],
+)
+def test_validateValueString(
+    baseXsdType: str, value: str, isNillable: bool, isNil: bool, facets: dict, expected: tuple
+):
+    expectedXValid = expected[2]
+    try:
+        result = validateValueString(
+            baseXsdType=baseXsdType,
+            value=value,
+            isNillable=isNillable,
+            isNil=isNil,
+            facets=facets,
+            nsmap=NSMAP,
+        )
+    except (ValueError, InvalidOperation):
+        assert expectedXValid == INVALID
+        return
+    expectedSValue = value if expected[0] == "=" else expected[0]
+    expectedXValue = value if expected[1] == "=" else expected[1]
+    if not value and isNil and isNillable:
+        expectedSValue = None
+        expectedXValue = None
+    if expectedSValue == nan:
+        assert isnan(result.sValue)
+    else:
+        _assertValidateValue(result.sValue, expectedSValue)
+    _assertValidateValue(result.xValue, expectedXValue)
+    assert result.xValid == expectedXValid
+
+
+class TestValidateFacetValueString:
+    def test_length(self):
+        assert validateFacetValueString("length", "3", "string").xValue == 3
+
+    def test_length_invalid(self):
+        with pytest.raises(ValueError):
+            validateFacetValueString("length", "abc", "string")
+
+    def test_minLength(self):
+        assert validateFacetValueString("minLength", "1", "string").xValue == 1
+
+    def test_minLength_invalid(self):
+        with pytest.raises(ValueError):
+            validateFacetValueString("minLength", "abc", "string")
+
+    def test_maxLength(self):
+        assert validateFacetValueString("maxLength", "10", "string").xValue == 10
+
+    def test_maxLength_invalid(self):
+        with pytest.raises(ValueError):
+            validateFacetValueString("maxLength", "abc", "string")
+
+    def test_totalDigits(self):
+        assert validateFacetValueString("totalDigits", "5", "decimal").xValue == 5
+
+    def test_totalDigits_invalid(self):
+        with pytest.raises(ValueError):
+            validateFacetValueString("totalDigits", "abc", "decimal")
+
+    def test_fractionDigits(self):
+        assert validateFacetValueString("fractionDigits", "2", "decimal").xValue == 2
+
+    def test_fractionDigits_invalid(self):
+        with pytest.raises(ValueError):
+            validateFacetValueString("fractionDigits", "abc", "decimal")
+
+    def test_minInclusive(self):
+        assert validateFacetValueString("minInclusive", "0", "integer").xValue == 0
+
+    def test_minInclusive_invalid(self):
+        with pytest.raises(ValueError):
+            validateFacetValueString("minInclusive", "abc", "integer")
+
+    def test_maxInclusive(self):
+        assert validateFacetValueString("maxInclusive", "100", "integer").xValue == 100
+
+    def test_maxInclusive_invalid(self):
+        with pytest.raises(ValueError):
+            validateFacetValueString("maxInclusive", "abc", "integer")
+
+    def test_minExclusive(self):
+        assert validateFacetValueString("minExclusive", "-1", "integer").xValue == -1
+
+    def test_minExclusive_invalid(self):
+        with pytest.raises(ValueError):
+            validateFacetValueString("minExclusive", "abc", "integer")
+
+    def test_maxExclusive(self):
+        assert validateFacetValueString("maxExclusive", "50", "integer").xValue == 50
+
+    def test_maxExclusive_invalid(self):
+        with pytest.raises(ValueError):
+            validateFacetValueString("maxExclusive", "abc", "integer")
+
+    def test_whiteSpace(self):
+        assert validateFacetValueString("whiteSpace", "collapse", "string").xValue == "collapse"
+
+    def test_pattern(self):
+        result = validateFacetValueString("pattern", "[A-Z]+", "string")
+        assert isinstance(result.xValue, XsdPattern)
+
+    def test_pattern_invalid(self):
+        with pytest.raises(ValueError):
+            validateFacetValueString("pattern", "invalid(", "string")
+
+    def test_unknown_facet(self):
+        assert validateFacetValueString("unknownFacet", "value", "string").xValue == "value"
