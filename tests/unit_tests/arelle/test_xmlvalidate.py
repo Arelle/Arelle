@@ -11,7 +11,7 @@ import regex
 from unittest.mock import Mock
 
 from arelle.ModelValue import QName, DateTime, Time, isoDuration, gDay, gMonth, gMonthDay, gYear, gYearMonth
-from arelle.XmlValidate import validateValue, validateValueString, VALID, UNKNOWN, INVALID, VALID_ID, NMTOKENPattern, namePattern, NCNamePattern, VALID_NO_CONTENT, XsdPattern
+from arelle.XmlValidate import validateValue, validateValueString, validateFacetValueString, VALID, UNKNOWN, INVALID, VALID_ID, NMTOKENPattern, namePattern, NCNamePattern, VALID_NO_CONTENT, XsdPattern
 
 FLOAT_CASES = [
     {"value": "-1", "expected": (-1, -1, VALID)},
@@ -737,3 +737,82 @@ def test_validateValueString(
         _assertValidateValue(result.sValue, expectedSValue)
     _assertValidateValue(result.xValue, expectedXValue)
     assert result.xValid == expectedXValid
+
+
+class TestValidateFacetValueString:
+    def test_length(self):
+        assert validateFacetValueString("length", "3", "string").xValue == 3
+
+    def test_length_invalid(self):
+        with pytest.raises(ValueError):
+            validateFacetValueString("length", "abc", "string")
+
+    def test_minLength(self):
+        assert validateFacetValueString("minLength", "1", "string").xValue == 1
+
+    def test_minLength_invalid(self):
+        with pytest.raises(ValueError):
+            validateFacetValueString("minLength", "abc", "string")
+
+    def test_maxLength(self):
+        assert validateFacetValueString("maxLength", "10", "string").xValue == 10
+
+    def test_maxLength_invalid(self):
+        with pytest.raises(ValueError):
+            validateFacetValueString("maxLength", "abc", "string")
+
+    def test_totalDigits(self):
+        assert validateFacetValueString("totalDigits", "5", "decimal").xValue == 5
+
+    def test_totalDigits_invalid(self):
+        with pytest.raises(ValueError):
+            validateFacetValueString("totalDigits", "abc", "decimal")
+
+    def test_fractionDigits(self):
+        assert validateFacetValueString("fractionDigits", "2", "decimal").xValue == 2
+
+    def test_fractionDigits_invalid(self):
+        with pytest.raises(ValueError):
+            validateFacetValueString("fractionDigits", "abc", "decimal")
+
+    def test_minInclusive(self):
+        assert validateFacetValueString("minInclusive", "0", "integer").xValue == 0
+
+    def test_minInclusive_invalid(self):
+        with pytest.raises(ValueError):
+            validateFacetValueString("minInclusive", "abc", "integer")
+
+    def test_maxInclusive(self):
+        assert validateFacetValueString("maxInclusive", "100", "integer").xValue == 100
+
+    def test_maxInclusive_invalid(self):
+        with pytest.raises(ValueError):
+            validateFacetValueString("maxInclusive", "abc", "integer")
+
+    def test_minExclusive(self):
+        assert validateFacetValueString("minExclusive", "-1", "integer").xValue == -1
+
+    def test_minExclusive_invalid(self):
+        with pytest.raises(ValueError):
+            validateFacetValueString("minExclusive", "abc", "integer")
+
+    def test_maxExclusive(self):
+        assert validateFacetValueString("maxExclusive", "50", "integer").xValue == 50
+
+    def test_maxExclusive_invalid(self):
+        with pytest.raises(ValueError):
+            validateFacetValueString("maxExclusive", "abc", "integer")
+
+    def test_whiteSpace(self):
+        assert validateFacetValueString("whiteSpace", "collapse", "string").xValue == "collapse"
+
+    def test_pattern(self):
+        result = validateFacetValueString("pattern", "[A-Z]+", "string")
+        assert isinstance(result.xValue, XsdPattern)
+
+    def test_pattern_invalid(self):
+        with pytest.raises(ValueError):
+            validateFacetValueString("pattern", "invalid(", "string")
+
+    def test_unknown_facet(self):
+        assert validateFacetValueString("unknownFacet", "value", "string").xValue == "value"

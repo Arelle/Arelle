@@ -4,7 +4,7 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 from dataclasses import dataclass
 import logging, os
-from collections.abc import Callable
+from collections.abc import Callable, Set
 from typing import TYPE_CHECKING, Any, cast
 from lxml import etree
 from regex import Match, Pattern, compile as re_compile
@@ -680,29 +680,40 @@ def validateValue(
         elt.xValue = xValue
         elt.sValue = sValue
 
-def validateFacet(typeElt: ModelType, facetElt: ModelObject) -> TypeXValue | None:
-    facetName = facetElt.localName
-    value = facetElt.get("value")
+
+def _facetTypeAndFacets(facetName: str, baseXsdType: str) -> tuple[str, dict[str, set[str]] | None]:
     if facetName in ("length", "minLength", "maxLength", "totalDigits", "fractionDigits"):
         baseXsdType = "integer"
         facets = None
     elif facetName in ("minInclusive", "maxInclusive", "minExclusive", "maxExclusive"):
-        baseXsdType = typeElt.baseXsdType
+        baseXsdType = baseXsdType
         facets = None
     elif facetName == "whiteSpace":
         baseXsdType = "string"
-        facets = {"enumeration": {"replace","preserve","collapse"}}
+        facets = {"enumeration": {"replace", "preserve", "collapse"}}
     elif facetName == "pattern":
         baseXsdType = "xsd-pattern"
         facets = None
     else:
         baseXsdType = "string"
         facets = None
+    return baseXsdType, facets
+
+def validateFacet(typeElt: ModelType, facetElt: ModelObject) -> TypeXValue | None:
+    facetName = facetElt.localName
+    value = facetElt.get("value")
+    facetType, facets = _facetTypeAndFacets(facetName, typeElt.baseXsdType)
     assert value is not None
-    validateValue(typeElt.modelXbrl, facetElt, None, baseXsdType, value, facets=facets)
+    validateValue(typeElt.modelXbrl, facetElt, None, facetType, value, facets=facets)
     if facetElt.xValid == VALID:
         return facetElt.xValue
     return None
+
+
+def validateFacetValueString(facetName: str, facetValue: str, baseXsdType: str) -> XmlValidationResult:
+    facetType, facets = _facetTypeAndFacets(facetName, baseXsdType)
+    return validateValueString(facetType, facetValue, facets=facets)
+
 
 def validateAnyWildcard(qnElt: QName, qnAttr: QName, attributeWildcards: list[ModelAny]) -> bool:
     # note wildcard is a set of possibly multiple values from inherited attribute groups
