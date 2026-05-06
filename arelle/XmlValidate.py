@@ -385,6 +385,222 @@ def validate(
             if isinstance(child, ModelObject):
                 validate(modelXbrl, child, recurse, attrQname, ixFacts, setTargetModelXbrl)
 
+def _validateValue(
+    elt: ModelObject,
+    baseXsdType: str,
+    value: str,
+    isNillable: bool = False,
+    isNil: bool = False,
+    facets: dict[str, Any] | None = None,
+) -> tuple[TypeSValue, TypeXValue, int]:
+    sValue: TypeSValue
+    xValue: TypeXValue
+    xValid = VALID
+    whitespaceReplace = (baseXsdType == "normalizedString")
+    whitespaceCollapse = (not whitespaceReplace and baseXsdType != "string")
+    isList = baseXsdType in {"IDREFS", "ENTITIES", "NMTOKENS"}
+    if isList:
+        baseXsdType = baseXsdType[:-1] # remove plural
+        if facets:
+            if "minLength" not in facets:
+                facets = facets.copy()
+                facets["minLength"] = 1
+        else:
+            facets = {"minLength": 1}
+    pattern = baseXsdTypePatterns.get(baseXsdType)
+    if facets:
+        if "pattern" in facets:
+            pattern = facets["pattern"]
+            # note multiple patterns are or'ed togetner, which isn't yet implemented!
+        if "whiteSpace" in facets:
+            whitespaceReplace, whitespaceCollapse = {"preserve":(False,False), "replace":(True,False), "collapse":(False,True)}[facets["whiteSpace"]]
+    if whitespaceReplace:
+        value = XmlUtil.replaceWhitespace(value)
+    elif whitespaceCollapse:
+        value = XmlUtil.collapseWhitespace(value)
+    if baseXsdType == "noContent":
+        if len(value) > 0 and not entirelyWhitespacePattern.match(value): # only xml schema pattern whitespaces removed
+            raise ValueError("value content not permitted")
+        # note that sValue and xValue are not innerText but only text elements on specific element (or attribute)
+        xValue = sValue = None
+        xValid = VALID_NO_CONTENT # notify others that element may contain subelements (for stringValue needs)
+    elif not value and isNil and isNillable: # rest of types get None if nil/empty value
+        xValue = sValue = None
+    else:
+        if pattern is not None:
+            if ((isList and any(pattern.match(v) is None for v in value.split())) or
+                (not isList and pattern.match(value) is None)):
+                raise ValueError("pattern facet " + facets["pattern"].pattern if facets and "pattern" in facets else "pattern mismatch")
+        if facets:
+            if "enumeration" in facets and value not in facets["enumeration"]:
+                raise ValueError("{0} is not in {1}".format(value, facets["enumeration"].keys()))
+            if "length" in facets and len(value) != facets["length"]:
+                raise ValueError("length {0}, expected {1}".format(len(value), facets["length"]))
+            if "minLength" in facets and len(value) < facets["minLength"]:
+                raise ValueError("length {0}, minLength {1}".format(len(value), facets["minLength"]))
+            if "maxLength" in facets and len(value) > facets["maxLength"]:
+                raise ValueError("length {0}, maxLength {1}".format(len(value), facets["maxLength"]))
+        if baseXsdType in {"string", "normalizedString", "language", "languageOrEmpty", "token", "NMTOKEN","Name","NCName","IDREF","ENTITY"}:
+            xValue = sValue = value
+        elif baseXsdType == "ID":
+            xValue = sValue = value
+            xValid = VALID_ID
+        elif baseXsdType == "anyURI":
+            if not UrlUtil.isValidUriReference(value):
+                raise ValueError("IETF RFC 2396 4.3 syntax")
+            # encode PSVI xValue similarly to Xerces and other implementations
+            xValue = anyURI(UrlUtil.anyUriQuoteForPSVI(value))
+            sValue = value
+        elif baseXsdType in ("decimal", "float", "double", "XBRLI_NONZERODECIMAL"):
+            if baseXsdType in ("decimal", "XBRLI_NONZERODECIMAL"):
+                if decimalPattern.match(value) is None:
+                    raise ValueError("lexical pattern mismatch")
+                xValue = Decimal(value)
+                sValue = float(value) # s-value uses Number (float) representation
+                if sValue == 0 and baseXsdType == "XBRLI_NONZERODECIMAL":
+                    raise ValueError("zero is not allowed")
+            else:
+                if floatPattern.match(value) is None:
+                    raise ValueError("lexical pattern mismatch")
+                xValue = sValue = float(value)
+            if facets:
+                if "totalDigits" in facets and len(value.replace(".","")) > facets["totalDigits"]:
+                    raise ValueError("totalDigits facet {0}".format(facets["totalDigits"]))
+                if "fractionDigits" in facets and ( '.' in value and
+                    len(value[value.index('.') + 1:]) > facets["fractionDigits"]):
+                    raise ValueError("fraction digits facet {0}".format(facets["fractionDigits"]))
+                if "maxInclusive" in facets and xValue > facets["maxInclusive"]:
+                    raise ValueError(" > maxInclusive {0}".format(facets["maxInclusive"]))
+                if "maxExclusive" in facets and xValue >= facets["maxExclusive"]:
+                    raise ValueError(" >= maxInclusive {0}".format(facets["maxExclusive"]))
+                if "minInclusive" in facets and xValue < facets["minInclusive"]:
+                    raise ValueError(" < minInclusive {0}".format(facets["minInclusive"]))
+                if "minExclusive" in facets and xValue <= facets["minExclusive"]:
+                    raise ValueError(" <= minExclusive {0}".format(facets["minExclusive"]))
+        elif baseXsdType in {"integer",
+                             "nonPositiveInteger","negativeInteger","nonNegativeInteger","positiveInteger",
+                             "long","unsignedLong",
+                             "int","unsignedInt",
+                             "short","unsignedShort",
+                             "byte","unsignedByte"}:
+            xValue = sValue = int(value)
+            if ((baseXsdType in {"nonNegativeInteger","unsignedLong","unsignedInt"}
+                 and xValue < 0) or
+                (baseXsdType == "nonPositiveInteger" and xValue > 0) or
+                (baseXsdType == "positiveInteger" and xValue <= 0) or
+                (baseXsdType == "byte" and not -128 <= xValue <= 127) or
+                (baseXsdType == "unsignedByte" and not 0 <= xValue <= 255) or
+                (baseXsdType == "short" and not -32768 <= xValue <= 32767) or
+                (baseXsdType == "unsignedShort" and not 0 <= xValue <= 65535) or
+                (baseXsdType == "positiveInteger" and xValue <= 0)):
+                raise ValueError("{0} is not {1}".format(value, baseXsdType))
+            if facets:
+                if "totalDigits" in facets and len(value.replace(".","")) > facets["totalDigits"]:
+                    raise ValueError("totalDigits facet {0}".format(facets["totalDigits"]))
+                if "fractionDigits" in facets and ( '.' in value and
+                    len(value[value.index('.') + 1:]) > facets["fractionDigits"]):
+                    raise ValueError("fraction digits facet {0}".format(facets["fractionDigits"]))
+                if "maxInclusive" in facets and xValue > facets["maxInclusive"]:
+                    raise ValueError(" > maxInclusive {0}".format(facets["maxInclusive"]))
+                if "maxExclusive" in facets and xValue >= facets["maxExclusive"]:
+                    raise ValueError(" >= maxInclusive {0}".format(facets["maxExclusive"]))
+                if "minInclusive" in facets and xValue < facets["minInclusive"]:
+                    raise ValueError(" < minInclusive {0}".format(facets["minInclusive"]))
+                if "minExclusive" in facets and xValue <= facets["minExclusive"]:
+                    raise ValueError(" <= minExclusive {0}".format(facets["minExclusive"]))
+        elif baseXsdType == "boolean":
+            if value in ("true", "1"):
+                xValue = sValue = True
+            elif value in ("false", "0"):
+                xValue = sValue = False
+            else: raise ValueError
+        elif baseXsdType == "QName":
+            xValue = qnameEltPfxName(elt, value, prefixException=ValueError)
+            #xValue = qname(elt, value, castException=ValueError, prefixException=ValueError)
+            sValue = value
+            ''' not sure here, how are explicitDimensions validated, but bad units not?
+            if xValue.namespaceURI in modelXbrl.namespaceDocs:
+                if (xValue not in modelXbrl.qnameConcepts and
+                    xValue not in modelXbrl.qnameTypes and
+                    xValue not in modelXbrl.qnameAttributes and
+                    xValue not in modelXbrl.qnameAttributeGroups):
+                    raise ValueError("qname not defined " + str(xValue))
+            '''
+        elif baseXsdType == "enumerationHrefs":
+            xValue = [qnameHref(href) for href in value.split()]
+            sValue = value
+        elif baseXsdType == "enumerationQNames":
+            xValue = [qnameEltPfxName(elt, qn, prefixException=ValueError) for qn in value.split()]
+            sValue = value
+        elif baseXsdType in ("XBRLI_DECIMALSUNION", "XBRLI_PRECISIONUNION"):
+            xValue = sValue = value if value == "INF" else int(value)
+        elif baseXsdType == "xsd-pattern":
+            # for facet compiling
+            try:
+                sValue = value
+                if value in xmlSchemaPatterns:
+                    xValue = xmlSchemaPatterns[value]
+                else:
+                    xValue = XsdPattern.compile(value)
+            except Exception as err:
+                raise ValueError(err)
+        elif baseXsdType == "fraction":
+            numeratorStr, denominatorStr = elt.fractionValue  # type: ignore[attr-defined]
+            if numeratorStr == INVALIDixVALUE or denominatorStr == INVALIDixVALUE:
+                sValue = xValue = INVALIDixVALUE
+                xValid = INVALID
+            else:
+                sValue = value
+                numeratorNum = float(numeratorStr)
+                denominatorNum = float(denominatorStr)
+                if numeratorNum.is_integer() and denominatorNum.is_integer():
+                    xValue = Fraction(int(numeratorNum), int(denominatorNum))
+                else:
+                    xValue = Fraction(numeratorNum / denominatorNum)
+        else:
+            if baseXsdType in lexicalPatterns:
+                match = lexicalPatterns[baseXsdType].match(value)
+                if match is None:
+                    raise ValueError("lexical pattern mismatch")
+                if baseXsdType == "XBRLI_DATEUNION":
+                    xValue = dateTime(value, type=DATEUNION, castException=ValueError)
+                    sValue = value
+                elif baseXsdType == "dateTime":
+                    xValue = dateTime(value, type=DATETIME, castException=ValueError)
+                    sValue = value
+                elif baseXsdType == "date":
+                    xValue = dateTime(value, type=DATE, castException=ValueError)
+                    sValue = value
+                elif baseXsdType == "time":
+                    xValue = time(value, castException=ValueError)
+                    sValue = value
+                elif baseXsdType == "gMonthDay":
+                    month, day, zSign, zHrMin, zHr, zMin = match.groups()
+                    if int(day) > {2:29, 4:30, 6:30, 9:30, 11:30, 1:31, 3:31, 5:31, 7:31, 8:31, 10:31, 12:31}[int(month)]:
+                        raise ValueError("invalid day {0} for month {1}".format(day, month))
+                    xValue = gMonthDay(month, day)
+                elif baseXsdType == "gYearMonth":
+                    year, month, zSign, zHrMin, zHr, zMin = match.groups()
+                    xValue = gYearMonth(year, month)
+                elif baseXsdType == "gYear":
+                    year, zSign, zHrMin, zHr, zMin = match.groups()
+                    xValue = gYear(year)
+                elif baseXsdType == "gMonth":
+                    month, zSign, zHrMin, zHr, zMin = match.groups()
+                    xValue = gMonth(month)
+                elif baseXsdType == "gDay":
+                    day, zSign, zHrMin, zHr, zMin = match.groups()
+                    xValue = gDay(day)
+                elif baseXsdType == "duration":
+                    xValue = isoDuration(value)
+                else:
+                    xValue = value
+            else: # no lexical pattern, forget compiling value
+                xValue = value
+            sValue = value
+    return sValue, xValue, xValid
+
+
 def validateValue(
     modelXbrl: ModelXbrl | None,
     elt: ModelObject,
@@ -397,217 +613,9 @@ def validateValue(
 ) -> None:
     sValue: TypeSValue
     xValue: TypeXValue
-
     if baseXsdType:
         try:
-            '''
-            if (len(value) == 0 and attrTag is None and not isNillable and
-                baseXsdType not in ("anyType", "string", "normalizedString", "token", "NMTOKEN", "anyURI", "noContent")):
-                raise ValueError("missing value for not nillable element")
-            '''
-            xValid = VALID
-            whitespaceReplace = (baseXsdType == "normalizedString")
-            whitespaceCollapse = (not whitespaceReplace and baseXsdType != "string")
-            isList = baseXsdType in {"IDREFS", "ENTITIES", "NMTOKENS"}
-            if isList:
-                baseXsdType = baseXsdType[:-1] # remove plural
-                if facets:
-                    if "minLength" not in facets:
-                        facets = facets.copy()
-                        facets["minLength"] = 1
-                else:
-                    facets = {"minLength": 1}
-            pattern = baseXsdTypePatterns.get(baseXsdType)
-            if facets:
-                if "pattern" in facets:
-                    pattern = facets["pattern"]
-                    # note multiple patterns are or'ed togetner, which isn't yet implemented!
-                if "whiteSpace" in facets:
-                    whitespaceReplace, whitespaceCollapse = {"preserve":(False,False), "replace":(True,False), "collapse":(False,True)}[facets["whiteSpace"]]
-            if whitespaceReplace:
-                value = XmlUtil.replaceWhitespace(value)
-            elif whitespaceCollapse:
-                value = XmlUtil.collapseWhitespace(value)
-            if baseXsdType == "noContent":
-                if len(value) > 0 and not entirelyWhitespacePattern.match(value): # only xml schema pattern whitespaces removed
-                    raise ValueError("value content not permitted")
-                # note that sValue and xValue are not innerText but only text elements on specific element (or attribute)
-                xValue = sValue = None
-                xValid = VALID_NO_CONTENT # notify others that element may contain subelements (for stringValue needs)
-            elif not value and isNil and isNillable: # rest of types get None if nil/empty value
-                xValue = sValue = None
-            else:
-                if pattern is not None:
-                    if ((isList and any(pattern.match(v) is None for v in value.split())) or
-                        (not isList and pattern.match(value) is None)):
-                        raise ValueError("pattern facet " + facets["pattern"].pattern if facets and "pattern" in facets else "pattern mismatch")
-                if facets:
-                    if "enumeration" in facets and value not in facets["enumeration"]:
-                        raise ValueError("{0} is not in {1}".format(value, facets["enumeration"].keys()))
-                    if "length" in facets and len(value) != facets["length"]:
-                        raise ValueError("length {0}, expected {1}".format(len(value), facets["length"]))
-                    if "minLength" in facets and len(value) < facets["minLength"]:
-                        raise ValueError("length {0}, minLength {1}".format(len(value), facets["minLength"]))
-                    if "maxLength" in facets and len(value) > facets["maxLength"]:
-                        raise ValueError("length {0}, maxLength {1}".format(len(value), facets["maxLength"]))
-                if baseXsdType in {"string", "normalizedString", "language", "languageOrEmpty", "token", "NMTOKEN","Name","NCName","IDREF","ENTITY"}:
-                    xValue = sValue = value
-                elif baseXsdType == "ID":
-                    xValue = sValue = value
-                    xValid = VALID_ID
-                elif baseXsdType == "anyURI":
-                    if not UrlUtil.isValidUriReference(value):
-                        raise ValueError("IETF RFC 2396 4.3 syntax")
-                    # encode PSVI xValue similarly to Xerces and other implementations
-                    xValue = anyURI(UrlUtil.anyUriQuoteForPSVI(value))
-                    sValue = value
-                elif baseXsdType in ("decimal", "float", "double", "XBRLI_NONZERODECIMAL"):
-                    if baseXsdType in ("decimal", "XBRLI_NONZERODECIMAL"):
-                        if decimalPattern.match(value) is None:
-                            raise ValueError("lexical pattern mismatch")
-                        xValue = Decimal(value)
-                        sValue = float(value) # s-value uses Number (float) representation
-                        if sValue == 0 and baseXsdType == "XBRLI_NONZERODECIMAL":
-                            raise ValueError("zero is not allowed")
-                    else:
-                        if floatPattern.match(value) is None:
-                            raise ValueError("lexical pattern mismatch")
-                        xValue = sValue = float(value)
-                    if facets:
-                        if "totalDigits" in facets and len(value.replace(".","")) > facets["totalDigits"]:
-                            raise ValueError("totalDigits facet {0}".format(facets["totalDigits"]))
-                        if "fractionDigits" in facets and ( '.' in value and
-                            len(value[value.index('.') + 1:]) > facets["fractionDigits"]):
-                            raise ValueError("fraction digits facet {0}".format(facets["fractionDigits"]))
-                        if "maxInclusive" in facets and xValue > facets["maxInclusive"]:
-                            raise ValueError(" > maxInclusive {0}".format(facets["maxInclusive"]))
-                        if "maxExclusive" in facets and xValue >= facets["maxExclusive"]:
-                            raise ValueError(" >= maxInclusive {0}".format(facets["maxExclusive"]))
-                        if "minInclusive" in facets and xValue < facets["minInclusive"]:
-                            raise ValueError(" < minInclusive {0}".format(facets["minInclusive"]))
-                        if "minExclusive" in facets and xValue <= facets["minExclusive"]:
-                            raise ValueError(" <= minExclusive {0}".format(facets["minExclusive"]))
-                elif baseXsdType in {"integer",
-                                     "nonPositiveInteger","negativeInteger","nonNegativeInteger","positiveInteger",
-                                     "long","unsignedLong",
-                                     "int","unsignedInt",
-                                     "short","unsignedShort",
-                                     "byte","unsignedByte"}:
-                    xValue = sValue = int(value)
-                    if ((baseXsdType in {"nonNegativeInteger","unsignedLong","unsignedInt"}
-                         and xValue < 0) or
-                        (baseXsdType == "nonPositiveInteger" and xValue > 0) or
-                        (baseXsdType == "positiveInteger" and xValue <= 0) or
-                        (baseXsdType == "byte" and not -128 <= xValue <= 127) or
-                        (baseXsdType == "unsignedByte" and not 0 <= xValue <= 255) or
-                        (baseXsdType == "short" and not -32768 <= xValue <= 32767) or
-                        (baseXsdType == "unsignedShort" and not 0 <= xValue <= 65535) or
-                        (baseXsdType == "positiveInteger" and xValue <= 0)):
-                        raise ValueError("{0} is not {1}".format(value, baseXsdType))
-                    if facets:
-                        if "totalDigits" in facets and len(value.replace(".","")) > facets["totalDigits"]:
-                            raise ValueError("totalDigits facet {0}".format(facets["totalDigits"]))
-                        if "fractionDigits" in facets and ( '.' in value and
-                            len(value[value.index('.') + 1:]) > facets["fractionDigits"]):
-                            raise ValueError("fraction digits facet {0}".format(facets["fractionDigits"]))
-                        if "maxInclusive" in facets and xValue > facets["maxInclusive"]:
-                            raise ValueError(" > maxInclusive {0}".format(facets["maxInclusive"]))
-                        if "maxExclusive" in facets and xValue >= facets["maxExclusive"]:
-                            raise ValueError(" >= maxInclusive {0}".format(facets["maxExclusive"]))
-                        if "minInclusive" in facets and xValue < facets["minInclusive"]:
-                            raise ValueError(" < minInclusive {0}".format(facets["minInclusive"]))
-                        if "minExclusive" in facets and xValue <= facets["minExclusive"]:
-                            raise ValueError(" <= minExclusive {0}".format(facets["minExclusive"]))
-                elif baseXsdType == "boolean":
-                    if value in ("true", "1"):
-                        xValue = sValue = True
-                    elif value in ("false", "0"):
-                        xValue = sValue = False
-                    else: raise ValueError
-                elif baseXsdType == "QName":
-                    xValue = qnameEltPfxName(elt, value, prefixException=ValueError)
-                    #xValue = qname(elt, value, castException=ValueError, prefixException=ValueError)
-                    sValue = value
-                    ''' not sure here, how are explicitDimensions validated, but bad units not?
-                    if xValue.namespaceURI in modelXbrl.namespaceDocs:
-                        if (xValue not in modelXbrl.qnameConcepts and
-                            xValue not in modelXbrl.qnameTypes and
-                            xValue not in modelXbrl.qnameAttributes and
-                            xValue not in modelXbrl.qnameAttributeGroups):
-                            raise ValueError("qname not defined " + str(xValue))
-                    '''
-                elif baseXsdType == "enumerationHrefs":
-                    xValue = [qnameHref(href) for href in value.split()]
-                    sValue = value
-                elif baseXsdType == "enumerationQNames":
-                    xValue = [qnameEltPfxName(elt, qn, prefixException=ValueError) for qn in value.split()]
-                    sValue = value
-                elif baseXsdType in ("XBRLI_DECIMALSUNION", "XBRLI_PRECISIONUNION"):
-                    xValue = sValue = value if value == "INF" else int(value)
-                elif baseXsdType == "xsd-pattern":
-                    # for facet compiling
-                    try:
-                        sValue = value
-                        if value in xmlSchemaPatterns:
-                            xValue = xmlSchemaPatterns[value]
-                        else:
-                            xValue = XsdPattern.compile(value)
-                    except Exception as err:
-                        raise ValueError(err)
-                elif baseXsdType == "fraction":
-                    numeratorStr, denominatorStr = elt.fractionValue  # type: ignore[attr-defined]
-                    if numeratorStr == INVALIDixVALUE or denominatorStr == INVALIDixVALUE:
-                        sValue = xValue = INVALIDixVALUE
-                        xValid = INVALID
-                    else:
-                        sValue = value
-                        numeratorNum = float(numeratorStr)
-                        denominatorNum = float(denominatorStr)
-                        if numeratorNum.is_integer() and denominatorNum.is_integer():
-                            xValue = Fraction(int(numeratorNum), int(denominatorNum))
-                        else:
-                            xValue = Fraction(numeratorNum / denominatorNum)
-                else:
-                    if baseXsdType in lexicalPatterns:
-                        match = lexicalPatterns[baseXsdType].match(value)
-                        if match is None:
-                            raise ValueError("lexical pattern mismatch")
-                        if baseXsdType == "XBRLI_DATEUNION":
-                            xValue = dateTime(value, type=DATEUNION, castException=ValueError)
-                            sValue = value
-                        elif baseXsdType == "dateTime":
-                            xValue = dateTime(value, type=DATETIME, castException=ValueError)
-                            sValue = value
-                        elif baseXsdType == "date":
-                            xValue = dateTime(value, type=DATE, castException=ValueError)
-                            sValue = value
-                        elif baseXsdType == "time":
-                            xValue = time(value, castException=ValueError)
-                            sValue = value
-                        elif baseXsdType == "gMonthDay":
-                            month, day, zSign, zHrMin, zHr, zMin = match.groups()
-                            if int(day) > {2:29, 4:30, 6:30, 9:30, 11:30, 1:31, 3:31, 5:31, 7:31, 8:31, 10:31, 12:31}[int(month)]:
-                                raise ValueError("invalid day {0} for month {1}".format(day, month))
-                            xValue = gMonthDay(month, day)
-                        elif baseXsdType == "gYearMonth":
-                            year, month, zSign, zHrMin, zHr, zMin = match.groups()
-                            xValue = gYearMonth(year, month)
-                        elif baseXsdType == "gYear":
-                            year, zSign, zHrMin, zHr, zMin = match.groups()
-                            xValue = gYear(year)
-                        elif baseXsdType == "gMonth":
-                            month, zSign, zHrMin, zHr, zMin = match.groups()
-                            xValue = gMonth(month)
-                        elif baseXsdType == "gDay":
-                            day, zSign, zHrMin, zHr, zMin = match.groups()
-                            xValue = gDay(day)
-                        elif baseXsdType == "duration":
-                            xValue = isoDuration(value)
-                        else:
-                            xValue = value
-                    else: # no lexical pattern, forget compiling value
-                        xValue = value
-                    sValue = value
+            sValue, xValue, xValid = _validateValue(elt, baseXsdType, value, isNillable, isNil, facets)
         except (ValueError, InvalidOperation) as err:
             elt.xValueError = err
             errElt: str | QName
