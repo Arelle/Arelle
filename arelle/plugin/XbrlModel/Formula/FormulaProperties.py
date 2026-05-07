@@ -315,6 +315,13 @@ def getProperty(
     if obj.type == FormulaValueType.CUBE:
         return _cubeProp(obj.value, propName, args, ctx)
 
+    # none → none, skip → skip: any property access propagates the value
+    if obj.type == FormulaValueType.NONE:
+        return NONE_VALUE
+    if obj.type == FormulaValueType.SKIP:
+        from .FormulaValue import SKIP_VALUE
+        return SKIP_VALUE
+
     # String properties
     if obj.type == FormulaValueType.STRING:
         s = obj.value
@@ -395,6 +402,27 @@ def getProperty(
     # Set/list properties
     if obj.type in (FormulaValueType.SET, FormulaValueType.LIST):
         coll = obj.value
+        if propName == "index":
+            if len(args) != 1:
+                raise FormulaRuntimeError(f"Property 'index' must have 1 arguments. Found {len(args)}.")
+            if obj.type != FormulaValueType.LIST:
+                raise FormulaRuntimeError(
+                    "The 'index' property or index expression '[]' can only operate on a list or dictionary, "
+                    f"found '{obj.type.name.lower()}'"
+                )
+            indexVal = args[0]
+            if not indexVal.isNumeric:
+                raise FormulaRuntimeError(f"Index of a list must be a number, found {indexVal.type.name.lower()}")
+            try:
+                oneBasedIdx = int(indexVal.numericValue())
+            except Exception as exc:
+                raise FormulaRuntimeError(f"Index of a list must be a number, found {indexVal.type.name.lower()}") from exc
+            items = list(coll)
+            if oneBasedIdx < 1 or oneBasedIdx > len(items):
+                raise FormulaRuntimeError(
+                    f"Index value of {oneBasedIdx} is out of range for the list with length of {len(items)}"
+                )
+            return items[oneBasedIdx - 1]
         if propName == "count":
             return FormulaValue(FormulaValueType.INTEGER, len(coll))
         if propName == "length":
@@ -437,6 +465,10 @@ def getProperty(
         raise FormulaRuntimeError(f"Unknown collection property {propName!r}")
 
     if obj.type == FormulaValueType.DICT:
+        if propName == "index":
+            if len(args) != 1:
+                raise FormulaRuntimeError(f"Property 'index' must have 1 arguments. Found {len(args)}.")
+            return obj.value.get(args[0], NONE_VALUE)
         if propName in ("keys", "values", "has-key", "to-set", "to-json", "to-csv", "to-spreadsheet", "join"):
             from .FormulaFunctions import callFunction
             return callFunction(propName, [obj] + list(args), ctx)
