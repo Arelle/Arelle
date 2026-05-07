@@ -145,10 +145,7 @@ class PluginManager:
     def close(self) -> None:  # close all loaded methods
         if self.pluginConfig is not None:
             self.pluginConfig.clear()
-        if self.modulePluginInfos is not None:
-            self.modulePluginInfos.clear()
-        if self.pluginMethodsForClasses is not None:
-            self.pluginMethodsForClasses.clear()
+        self.reset()
 
     ''' pluginInfo structure:
 

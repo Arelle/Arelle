@@ -445,8 +445,7 @@ class PackageManager:
             self.packagesConfigChanged = False
 
     def close(self) -> None:
-        self._getPackagesConfig().clear()
-        self.packagesMappings.clear()
+        self.reset()
 
     ''' packagesConfig structure
     {
