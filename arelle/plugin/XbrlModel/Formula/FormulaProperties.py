@@ -320,6 +320,9 @@ def getProperty(
 
     # none → none, skip → skip: any property access propagates the value
     if obj.type == FormulaValueType.NONE:
+        if propName == "inline-transform":
+            from .FormulaFunctions import callFunction
+            return callFunction("inline-transform", [obj] + list(args), ctx)
         return NONE_VALUE
     if obj.type == FormulaValueType.SKIP:
         from .FormulaValue import SKIP_VALUE
@@ -328,6 +331,16 @@ def getProperty(
     # Numeric scalar properties
     if obj.type in (FormulaValueType.INTEGER, FormulaValueType.FLOAT, FormulaValueType.DECIMAL, FormulaValueType.FACT):
         from .FormulaFunctions import callFunction
+        if propName in ("string", "plain-string", "number"):
+            if args:
+                raise FormulaRuntimeError(f"Property '{propName}' must have 0 arguments. Found {len(args)}.")
+            return callFunction(propName, [obj], ctx)
+        if propName == "repeat":
+            if obj.type == FormulaValueType.INTEGER:
+                raise FormulaRuntimeError("'int' object has no attribute 'replace'")
+            raise FormulaRuntimeError(f"Property 'repeat' is not a property of a '{obj.type.name.lower()}'.")
+        if propName == "split":
+            raise FormulaRuntimeError("'int' object has no attribute 'split'")
         if propName in ("abs", "log10", "decimal", "int", "signum"):
             if args:
                 raise FormulaRuntimeError(f"Property '{propName}' must have 0 arguments. Found {len(args)}.")
@@ -344,19 +357,31 @@ def getProperty(
     # String properties
     if obj.type == FormulaValueType.STRING:
         s = obj.value
-        if propName == "length":
-            return FormulaValue(FormulaValueType.INTEGER, len(s))
-        if propName == "upper-case":
-            return FormulaValue(FormulaValueType.STRING, s.upper())
-        if propName == "lower-case":
-            return FormulaValue(FormulaValueType.STRING, s.lower())
-        if propName == "trim":
-            return FormulaValue(FormulaValueType.STRING, s.strip())
+        from .FormulaFunctions import callFunction
+        if propName in ("first", "last"):
+            raise FormulaRuntimeError(f"Property '{propName}' is not a property of a 'string'.")
+        if propName == "index":
+            raise FormulaRuntimeError("The 'index' property or index expression '[]' cannot be used on a string")
+        if propName in (
+            "length", "upper-case", "lower-case", "trim", "contains", "index-of", "last-index-of",
+            "number", "split", "string", "plain-string", "repeat", "substring", "to-qname",
+            "regex-match", "regex-match-all", "regex-match-string", "regex-match-string-all",
+            "inline-transform",
+        ):
+            if propName in ("length", "upper-case", "lower-case", "string", "plain-string") and len(args) != 0:
+                raise FormulaRuntimeError(f"Property '{propName}' must have 0 arguments. Found {len(args)}.")
+            if propName in ("contains", "index-of", "last-index-of", "split", "repeat", "substring") and len(args) == 0:
+                raise FormulaRuntimeError(f"Property '{propName}' must have 1 arguments. Found 0.")
+            if propName in ("contains", "index-of", "last-index-of", "split", "repeat") and len(args) != 1:
+                raise FormulaRuntimeError(f"Property '{propName}' must have 1 arguments. Found {len(args)}.")
+            if propName == "substring" and len(args) not in (1, 2):
+                raise FormulaRuntimeError(f"Property '{propName}' must have 1 or 2 arguments. Found {len(args)}.")
+            if propName == "inline-transform" and len(args) not in (1, 2):
+                raise FormulaRuntimeError(f"Property '{propName}' must have 1 or 2 arguments. Found {len(args)}.")
+            return callFunction(propName, [obj] + list(args), ctx)
         if propName == "date":
-            from .FormulaFunctions import callFunction
             return callFunction("date", [obj], ctx)
         if propName == "time-span":
-            from .FormulaFunctions import callFunction
             return callFunction("time-span", [obj], ctx)
         if propName in ("day", "month", "year", "days", "start", "end"):
             raise FormulaRuntimeError(f"Property '{propName}' is not a property of a 'string'.")
@@ -365,10 +390,19 @@ def getProperty(
     # QName properties
     if obj.type == FormulaValueType.QNAME:
         qn = obj.value
+        from .FormulaFunctions import callFunction
         if propName == "local-name":
             return FormulaValue(FormulaValueType.STRING, qn.localName if hasattr(qn, "localName") else str(qn))
         if propName == "namespace-uri":
             return FormulaValue(FormulaValueType.STRING, qn.namespaceURI if hasattr(qn, "namespaceURI") else "")
+        if propName in ("string", "number", "to-qname"):
+            if args:
+                raise FormulaRuntimeError(f"Property '{propName}' must have 0 arguments. Found {len(args)}.")
+            return callFunction(propName, [obj], ctx)
+        if propName == "split":
+            raise FormulaRuntimeError("Property 'split' is not a property of a 'qname'.")
+        if propName in ("trim", "repeat", "contains", "index-of", "last-index-of", "substring"):
+            return callFunction(propName, [obj] + list(args), ctx)
         if propName in ("day", "month", "year", "days", "start", "end", "date"):
             raise FormulaRuntimeError(f"Property '{propName}' is not a property of a 'QName'.")
         raise FormulaRuntimeError(f"Unknown QName property {propName!r}")
@@ -380,6 +414,9 @@ def getProperty(
 
     if obj.type == FormulaValueType.DATE:
         inst = obj.value
+        if propName in ("string", "plain-string"):
+            from .FormulaFunctions import callFunction
+            return callFunction(propName, [obj], ctx)
         if propName == "day":
             return FormulaValue(FormulaValueType.INTEGER, inst.dt.day)
         if propName == "month":
@@ -396,6 +433,9 @@ def getProperty(
 
     if obj.type == FormulaValueType.DURATION:
         value = obj.value
+        if propName in ("string", "plain-string"):
+            from .FormulaFunctions import callFunction
+            return callFunction(propName, [obj], ctx)
         if propName == "contains":
             raise FormulaRuntimeError("Property 'contains' is not a property of a 'duration'.")
         if propName in ("day", "month", "year"):
@@ -462,6 +502,16 @@ def getProperty(
             if obj.type == FormulaValueType.SET:
                 return FormulaValue(FormulaValueType.SET, OrderedSet(projected))
             return FormulaValue(FormulaValueType.LIST, projected)
+        if propName in (
+            "lower-case", "upper-case", "trim", "split", "number", "plain-string", "repeat",
+            "substring", "contains", "index-of", "last-index-of", "regex-match", "regex-match-all",
+            "regex-match-string", "regex-match-string-all", "to-qname", "inline-transform",
+        ):
+            from .FormulaFunctions import callFunction
+            projected = [callFunction(propName, [item] + list(args), ctx) for item in list(coll)]
+            if obj.type == FormulaValueType.SET:
+                return FormulaValue(FormulaValueType.SET, OrderedSet(projected))
+            return FormulaValue(FormulaValueType.LIST, projected)
         if propName == "first":
             items = list(coll)
             return items[0] if items else NONE_VALUE
@@ -489,6 +539,7 @@ def getProperty(
             "to-list", "to-dict", "to-json", "to-csv", "to-spreadsheet", "agg-to-dict",
             "sort", "sum", "max", "min", "prod", "stdev", "join",
             "all", "any", "contains", "intersect", "union", "difference",
+            "symmetric-difference", "is-subset", "is-superset",
             "values", "keys",
             "abs", "avg",
         ):

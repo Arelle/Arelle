@@ -89,6 +89,7 @@ def _buildGrammar():
     returnKw        = CaselessKeyword("returns")
     forKw           = CaselessKeyword("for")
     inKw            = CaselessKeyword("in")
+    notInKw         = (CaselessKeyword("not") + CaselessKeyword("in")).copy().setParseAction(lambda: "not in")
     ifKw            = CaselessKeyword("if")
     thenKw          = CaselessKeyword("then")
     elseKw          = CaselessKeyword("else")
@@ -135,7 +136,7 @@ def _buildGrammar():
     # String literals with embedded {expr} interpolations
     _strEscape = Suppress(Literal("\\")) + Regex(".")
     _strInterp = Suppress(Literal("{")) + blockExpr + Suppress(Literal("}"))
-    _strPart   = Regex(r"[^\\'{}\n]+")
+    _strPart   = Regex(r"[^\\'{}\n]+").leaveWhitespace()
     _sqString  = (
         Suppress(Literal("'"))
         + Group(ZeroOrMore(
@@ -150,7 +151,7 @@ def _buildGrammar():
         + Group(ZeroOrMore(
             Group(_strEscape.setResultsName("escape"))
             | Group(_strInterp.setResultsName("interp"))
-            | Group(Regex(r'[^\\"{}]+').setResultsName("text"))
+            | Group(Regex(r'[^\\"{}]+').leaveWhitespace().setResultsName("text"))
         )).setResultsName("parts")
         + Suppress(Literal('"'))
     )
@@ -317,9 +318,9 @@ def _buildGrammar():
             (one_of("+ -"),          1, OpAssoc.RIGHT, _mkUnary),
             (Literal("*") | Literal("/"), 2, OpAssoc.LEFT, _mkBinary),
             (one_of("+ - <+ <+> +> <- <-> ->"), 2, OpAssoc.LEFT, _mkBinary),
-            (Literal("^"),           2, OpAssoc.LEFT, _mkBinary),   # symmetric difference
-            (Literal("&") | CaselessKeyword("intersect"), 2, OpAssoc.LEFT, _mkBinary),
-            (one_of("== = != <= < >= >") | inKw | (notKw + inKw), 2, OpAssoc.LEFT, _mkBinary),
+            (Literal("&") | CaselessKeyword("intersect"), 2, OpAssoc.LEFT, _mkBinary),  # intersection (higher precedence)
+            (Literal("^"),           2, OpAssoc.LEFT, _mkBinary),   # symmetric difference (lower precedence)
+            (one_of("== = != <= < >= >") | inKw | notInKw, 2, OpAssoc.LEFT, _mkBinary),
             (notKw,                  1, OpAssoc.RIGHT, _mkUnary),
             (andKw,                  2, OpAssoc.LEFT, _mkBinary),
             (orKw,                   2, OpAssoc.LEFT, _mkBinary),
