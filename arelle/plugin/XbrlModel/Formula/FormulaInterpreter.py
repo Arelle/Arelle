@@ -745,7 +745,7 @@ def _evalAtomWithProps(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
         if len(node) >= 2 and isinstance(node[1], ParseResults):
             props = node[1]
 
-    base = evaluateExpr(baseExpr, ctx)
+    base = baseExpr if isinstance(baseExpr, FormulaValue) else evaluateExpr(baseExpr, ctx)
 
     if isinstance(props, ParseResults):
         props = list(props)
@@ -754,38 +754,18 @@ def _evalAtomWithProps(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
 
     for propNode in props:
         if isinstance(propNode, ParseResults):
-            if "indexAccess" in propNode:
+            if "indexAccess" in propNode or "indexExpr" in propNode:
                 inner = propNode.get("indexAccess", propNode)
                 indexVal = evaluateExpr(inner.get("indexExpr"), ctx)
-                if base.type == FormulaValueType.LIST:
-                    try:
-                        idx = int(indexVal.numericValue()) - 1
-                    except Exception as exc:
-                        raise FormulaRuntimeError(f"List index must be numeric, got {indexVal.type.name.lower()}") from exc
-                    items = list(base.value)
-                    base = items[idx] if 0 <= idx < len(items) else NONE_VALUE
-                    continue
-                if base.type == FormulaValueType.DICT:
-                    base = base.value.get(indexVal, NONE_VALUE)
-                    continue
-                raise FormulaRuntimeError(f"Cannot index into {base.type.name.lower()} value")
+                base = getProperty(base, "index", [indexVal], ctx)
+                continue
             inner = propNode.get("propAccess", propNode)
         elif isinstance(propNode, dict):
-            if "indexAccess" in propNode:
+            if "indexAccess" in propNode or "indexExpr" in propNode:
                 inner = propNode.get("indexAccess", propNode)
                 indexVal = evaluateExpr(inner.get("indexExpr"), ctx)
-                if base.type == FormulaValueType.LIST:
-                    try:
-                        idx = int(indexVal.numericValue()) - 1
-                    except Exception as exc:
-                        raise FormulaRuntimeError(f"List index must be numeric, got {indexVal.type.name.lower()}") from exc
-                    items = list(base.value)
-                    base = items[idx] if 0 <= idx < len(items) else NONE_VALUE
-                    continue
-                if base.type == FormulaValueType.DICT:
-                    base = base.value.get(indexVal, NONE_VALUE)
-                    continue
-                raise FormulaRuntimeError(f"Cannot index into {base.type.name.lower()} value")
+                base = getProperty(base, "index", [indexVal], ctx)
+                continue
             inner = propNode.get("propAccess", propNode)
         else:
             continue
@@ -836,11 +816,22 @@ def _evalBinary(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
 
     # ---- Comparison ----
     if op in ("==", "=", "!=", "<", "<=", ">", ">="):
+        # Ordering comparisons involving none:
+        # strict (<, >) always return none; non-strict (<=, >=) return true when both are none
+        if op in ("<", ">"):
+            if left.type == FormulaValueType.NONE or right.type == FormulaValueType.NONE:
+                return NONE_VALUE
+        elif op in (">=", "<="):
+            if left.type == FormulaValueType.NONE or right.type == FormulaValueType.NONE:
+                if left.type == FormulaValueType.NONE and right.type == FormulaValueType.NONE:
+                    return TRUE_VALUE  # none <= none and none >= none are true via equality
+                return NONE_VALUE
         return _compare(left, op, right, merged)
 
     # ---- In / not in ----
     if op == "in":
-        if right.type == FormulaValueType.DURATION:
+        if right.type in (FormulaValueType.DURATION, FormulaValueType.NONE, FormulaValueType.SKIP) or \
+                left.type in (FormulaValueType.DURATION,):
             raise FormulaRuntimeError(
                 f"Property 'contains' or 'in' expression cannot operate on a '{right.type.name.lower()}' and '{left.type.name.lower()}'"
             )
@@ -888,10 +879,20 @@ def _evalBinary(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
             )
         return _setOp(left, "intersect", right, merged)
     if op == "&":
+        if left.type != FormulaValueType.SET:
+            typeName = 'unbound' if left.type == FormulaValueType.NONE else left.type.name.lower()
+            raise FormulaRuntimeError(
+                f"Intersection can only operatate on sets. The left side is a '{typeName}'."
+            )
         return _setOp(left, "intersect", right, merged)
 
     # ---- Symmetric difference ----
     if op == "^":
+        if left.type != FormulaValueType.SET:
+            typeName = 'unbound' if left.type == FormulaValueType.NONE else left.type.name.lower()
+            raise FormulaRuntimeError(
+                f"Symetric difference can only operatate on sets. The left side is a '{typeName}'."
+            )
         return _setOp(left, "symDiff", right, merged)
 
     raise FormulaRuntimeError(f"Unknown operator {op!r}")
@@ -974,9 +975,16 @@ def _arith(left: FormulaValue, op: str, right: FormulaValue,
         if right.type in (FormulaValueType.NONE, FormulaValueType.SKIP):
             return FormulaValue(left.type, left.value, alignment=merged)
         if left.type in (FormulaValueType.NONE, FormulaValueType.SKIP):
+            # none - numeric  → negate (0 - n);  none - non-numeric  → identity
             if right.isNumeric:
                 return FormulaValue(FormulaValueType.DECIMAL, -right.numericValue(), alignment=merged)
-            raise FormulaRuntimeError(f"Arithmetic error: Cannot negate non-numeric {right.type.name}")
+            return FormulaValue(right.type, right.value, alignment=merged)
+
+    # none or skip with * or / → skip
+    if op in ("*", "/"):
+        if left.type in (FormulaValueType.NONE, FormulaValueType.SKIP) or \
+                right.type in (FormulaValueType.NONE, FormulaValueType.SKIP):
+            return SKIP_VALUE
 
     try:
         l = left.numericValue()
@@ -1155,6 +1163,14 @@ def _evalBlockExpr(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
 
     result = NONE_VALUE
     for step in steps:
+        # Parser may flatten accessors like [idx] or .prop(...) into a following
+        # standalone step. Apply those accessors to the current result value.
+        if isinstance(step, (ParseResults, dict)) and (
+            (isinstance(step, ParseResults) and ("indexAccess" in step or "propAccess" in step))
+            or (isinstance(step, dict) and ("indexAccess" in step or "propAccess" in step))
+        ):
+            result = _evalAtomWithProps({"base": result, "props": [step]}, ctx)
+            continue
         try:
             result = evaluateExpr(step, ctx)
         except FormulaIterationStop:

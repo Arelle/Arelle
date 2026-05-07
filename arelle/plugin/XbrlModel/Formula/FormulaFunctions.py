@@ -166,6 +166,22 @@ def _fn_avg(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue
 
 
 # ---------------------------------------------------------------------------
+# first-value: return first non-skip/non-none/non-empty argument, else skip
+# ---------------------------------------------------------------------------
+
+def _fn_firstValue(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
+    for arg in args:
+        if arg.type == FormulaValueType.SKIP:
+            continue
+        if arg.type == FormulaValueType.NONE:
+            continue
+        if arg.type in (FormulaValueType.SET, FormulaValueType.LIST) and len(arg.value) == 0:
+            continue
+        return arg
+    return SKIP_VALUE
+
+
+# ---------------------------------------------------------------------------
 # Existence / nil functions
 # ---------------------------------------------------------------------------
 
@@ -965,6 +981,8 @@ BUILTIN_FUNCTIONS: Dict[str, Callable] = {
     "day":              _fn_day,
     "month":            _fn_month,
     "year":             _fn_year,
+    # Misc
+    "first-value":      _fn_firstValue,
 }
 
 
