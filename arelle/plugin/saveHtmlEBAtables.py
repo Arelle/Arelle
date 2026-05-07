@@ -215,12 +215,12 @@ def generateHtmlEbaTablesetFiles(dts: ModelXbrl, indexFile: str, lang: str = "en
                 elt.text = modelTable.label(lang=lang, strip=True)
 
             for rel in groupTableRels.fromModelObject(modelTable):
-                viewTable(rel.toModelObject)
+                viewTable(rel.toModelObject)  # type: ignore[arg-type]
 
         for rootConcept in groupTableRels.rootConcepts:
             sourceline = 0
             for rel in dts.modelXbrl.relationshipSet(XbrlConst.euGroupTable).fromModelObject(rootConcept):
-                sourceline = rel.sourceline
+                sourceline = rel.sourceline  # type: ignore[assignment]
                 break
             modelTables.append((rootConcept, sourceline))
 

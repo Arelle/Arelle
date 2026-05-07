@@ -185,7 +185,7 @@ def isChildOfNotes(
     for rel in relations_to:
         parent = rel.fromModelObject
         if parent is not None and parent not in _visited:
-            if isChildOfNotes(parent, relSet, esefNotesConcepts, _visited):
+            if isChildOfNotes(parent, relSet, esefNotesConcepts, _visited):  # type: ignore[arg-type]
                 return True
     _visited.remove(child)
     return False

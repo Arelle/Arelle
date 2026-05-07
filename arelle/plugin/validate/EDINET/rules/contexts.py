@@ -127,7 +127,7 @@ def rule_EC8013W(
     for roleUri, roleTypes in val.modelXbrl.roleTypes.items():
         for roleType in roleTypes:
             definition = roleType.definition
-            roleTypeCode = roleType.definition.split(' ')[0] if definition else None
+            roleTypeCode = definition.split(' ')[0] if definition else None
             if roleTypeCode is None:
                 continue
             if any(roleTypeCode.startswith(prefix) for prefix in FINANCIAL_STATEMENT_ELR_PREFIXES):
@@ -136,7 +136,7 @@ def rule_EC8013W(
     financialStatementConcepts: set[ModelConcept] = set()
     labelsRelationshipSet = val.modelXbrl.relationshipSet(
         XbrlConst.parentChild,
-        tuple(roleType.roleURI for roleType in financialStatementRoleTypes)
+        tuple(roleType.roleURI for roleType in financialStatementRoleTypes)  # type: ignore[misc]
     )
     financialStatementConcepts.update(labelsRelationshipSet.fromModelObjects().keys())
     financialStatementConcepts.update(labelsRelationshipSet.toModelObjects().keys())

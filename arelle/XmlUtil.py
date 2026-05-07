@@ -649,7 +649,7 @@ def schemaBaseTypeDerivedFrom(
 
 def schemaFacets(
     element: etree._Element,
-    facetTags: list[str],
+    facetTags: list[str] | tuple[str, ...],
     facets: list[etree._Element | None] | None = None
 ) -> list[etree._Element | None]:
     if facets is None: facets = []

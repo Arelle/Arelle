@@ -966,6 +966,7 @@ def rule_gfm_1_3_19(
     """
     improperlyFormattedIds = set()
     for concept in getExtensionConcepts(val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):
+        assert concept.qname is not None, "concept.qname is None"
         prefix = concept.qname.prefix or ""
         name = concept.qname.localName
         requiredId = f"{prefix}_{name}"
@@ -1104,6 +1105,7 @@ def rule_gfm_1_3_25(
     and only if the name attribute ends with "Axis".
     """
     for concept in getExtensionConcepts(val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):
+        assert concept.qname is not None, "concept.qname is None"
         if concept.qname.localName.endswith("Axis") != (concept.substitutionGroupQname == XbrlConst.qnXbrldtDimensionItem):
             yield Validation.warning(
                 codes='EDINET.EC5700W.GFM.1.3.25',
@@ -1131,6 +1133,7 @@ def rule_gfm_1_3_26(
     substitutionGroup attribute equals "xbrldt:hypercubeItem".
     """
     for concept in getExtensionConcepts(val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):
+        assert concept.qname is not None, "concept.qname is None"
         if concept.qname.localName.endswith("Table") != (concept.substitutionGroupQname == XbrlConst.qnXbrldtHypercubeItem):
             yield Validation.warning(
                 codes='EDINET.EC5700W.GFM.1.3.26',
@@ -1156,6 +1159,7 @@ def rule_gfm_1_3_28(
     set the abstract attribute to "true".
     """
     for concept in getExtensionConcepts(val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):
+        assert concept.qname is not None, "concept.qname is None"
         if concept.qname.localName.endswith("LineItems") and not concept.isAbstract:
             yield Validation.warning(
                 codes='EDINET.EC5700W.GFM.1.3.28',
@@ -1184,6 +1188,7 @@ def rule_gfm_1_3_29(
     if the type attribute equals "nonnum:domainItemType".
     """
     for concept in getExtensionConcepts(val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):
+        assert concept.qname is not None, "concept.qname is None"
         isConceptDomain = concept.type.isDomainItemType if concept.type is not None else False
         if ((concept.qname.localName.endswith("Domain") or concept.qname.localName.endswith("Member")) != isConceptDomain):
             yield Validation.warning(
@@ -1379,6 +1384,7 @@ def rule_gfm_1_5_1(
                 labelExists = True
                 break
         if not labelExists:
+            assert concept.qname is not None, "concept.qname is None"
             yield Validation.warning(
                 codes='EDINET.EC5700W.GFM.1.5.1',
                 msg=_("The used concept of '%(concept)s' is missing a standard label in Japanese"),
@@ -1419,6 +1425,7 @@ def rule_gfm_1_5_2(
             if len(labels) > 1:
                 warningLabels.append(key)
         if len(warningLabels) > 0:
+            assert concept.qname is not None, "concept.qname is None"
             yield Validation.warning(
                 codes='EDINET.EC5700W.GFM.1.5.2',
                 msg=_("The used concept of '%(concept)s' has more than one label for the given role/lang pairs: %(pairs)s."),
@@ -1461,6 +1468,7 @@ def rule_gfm_1_5_3(
             if len([label for label in labels if label.xmlLang in JAPAN_LANGUAGE_CODES]) == 0:
                 warningRoles.append(role)
         if len(warningRoles) > 0:
+            assert concept.qname is not None, "concept.qname is None"
             yield Validation.warning(
                 codes='EDINET.EC5700W.GFM.1.5.3',
                 msg=_("The used concept of '%(concept)s' is missing a label in Japanese in the following roles: %(roles)s."),
@@ -1496,6 +1504,7 @@ def rule_gfm_1_5_5(
             if (label is not None and
                     not pluginData.isStandardTaxonomyUrl(label.modelDocument.uri, val.modelXbrl) and
                     label.role == XbrlConst.documentationLabel):
+                assert concept.qname is not None, "concept.qname is None"
                 yield Validation.warning(
                     codes='EDINET.EC5700W.GFM.1.5.5',
                     msg=_("The standard concept of '%(concept)s' must not have a documentation label defined."),
@@ -2026,8 +2035,10 @@ def rule_gfm_1_8_9(
                     dimTargetRequired = (dimELR is not None)
                     if not dimELR:
                         dimELR = elr
-                    hypercubeDimRels = val.modelXbrl.relationshipSet(XbrlConst.hypercubeDimension, dimELR).fromModelObject(toConcept)
+                    hypercubeDimRels = val.modelXbrl.relationshipSet(XbrlConst.hypercubeDimension, dimELR).fromModelObject(toConcept)  # type: ignore[arg-type]
                     if dimTargetRequired and len(hypercubeDimRels) == 0:
+                        assert fromConcept is not None, "fromConcept is None"
+                        assert toConcept is not None, "toConcept is None"
                         yield Validation.warning(
                             codes='EDINET.EC5700W.GFM.1.8.9',
                             msg=_("Add the arc related to the xbrldt:targetRole attribute or remove the attribute. "
@@ -2047,6 +2058,7 @@ def rule_gfm_1_8_9(
                             domELR = dimELR
                         dimDomRels = val.modelXbrl.relationshipSet(XbrlConst.dimensionDomain, domELR).fromModelObject(dim)
                         if domTargetRequired and len(dimDomRels) == 0:
+                            assert hypercube is not None, "hypercube is None"
                             yield Validation.warning(
                                 codes='EDINET.EC5700W.GFM.1.8.9',
                                 msg=_("Add the arc related to the xbrldt:targetRole attribute or remove the attribute. "
@@ -2064,6 +2076,8 @@ def rule_gfm_1_8_9(
                             toELR = rel.targetRole
                             if isinstance(toMbr, ModelConcept) and toELR and len(
                                     val.modelXbrl.relationshipSet(XbrlConst.domainMember, toELR).fromModelObject(toMbr)) == 0:
+                                        assert fromMbr is not None, "fromMbr is None"
+                                        assert toMbr is not None, "toMbr is None"
                                         yield Validation.warning(
                                             codes='EDINET.EC5700W.GFM.1.8.9',
                                             msg=_("Add the arc related to the xbrldt:targetRole attribute or remove the attribute. "

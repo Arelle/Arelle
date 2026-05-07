@@ -2,6 +2,8 @@
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
+
+import sys
 from dataclasses import dataclass
 import logging, os
 from collections.abc import Callable, Set
@@ -172,7 +174,7 @@ def validate(
         isAbstract = False
         if modelConcept is not None:
             isNillable = modelConcept.isNillable
-            type = modelConcept.type
+            modelType = modelConcept.type
             if modelConcept.isAbstract:
                 baseXsdType = "noContent"
                 isAbstract = True
@@ -181,8 +183,8 @@ def validate(
             elif (
                 elementDeclarationType is None
                 or elementDeclarationType.qname == XbrlConst.qnXsdDefaultType
-                or modelConcept.type.qname == elementDeclarationType.qname
-                or modelConcept.type.isDerivedFrom(elementDeclarationType.qname)
+                or modelType.qname == elementDeclarationType.qname  # type: ignore[union-attr]
+                or modelType.isDerivedFrom(elementDeclarationType.qname)  # type: ignore[arg-type,union-attr]
             ):
                 baseXsdType = modelConcept.baseXsdType
                 facets = modelConcept.facets
@@ -191,15 +193,15 @@ def validate(
                 facets = elementDeclarationType.facets
         elif qnElt == XbrlConst.qnXbrldiExplicitMember: # not in DTS
             baseXsdType = "QName"
-            type = None
+            modelType = None
             isNillable = False
         elif qnElt == XbrlConst.qnXbrldiTypedMember: # not in DTS
             baseXsdType = "noContent"
-            type = None
+            modelType = None
             isNillable = False
         else:
             baseXsdType = None
-            type = None
+            modelType = None
             isNillable = True # allow nil if no schema definition
         isNil = elt.get("{http://www.w3.org/2001/XMLSchema-instance}nil") in ("true", "1")
         if attrQname is None:
@@ -268,8 +270,8 @@ def validate(
             if text is not INVALIDixVALUE:
                 validateValue(modelXbrl, elt, None, baseXsdType, text, isNillable, isNil, facets)
                 # note that elt.sValue and elt.xValue are not innerText but only text elements on specific element (or attribute)
-            if type is not None:
-                definedAttributes = type.attributes
+            if modelType is not None:
+                definedAttributes = modelType.attributes
             else:
                 definedAttributes = {}
             presentAttributes = set()
@@ -283,12 +285,12 @@ def validate(
             if attrQname is not None: # validate all attributes and element
                 if attrQname != qn:
                     continue
-            elif type is not None:
+            elif modelType is not None:
                 presentAttributes.add(qn)
                 if qn in definedAttributes: # look for concept-type-specific attribute definition
                     modelAttr = definedAttributes[qn]
                 elif qn.namespaceURI:   # may be a globally defined attribute
-                    modelAttr = modelXbrl.qnameAttributes.get(qn)
+                    modelAttr = modelXbrl.qnameAttributes.get(qn)  # type: ignore[assignment]
                 else:
                     modelAttr = None
                 if modelAttr is not None:
@@ -322,9 +324,9 @@ def validate(
         except AttributeError:
             elt.xAttributes = xAttributesSharedEmptyDict
 
-        if type is not None:
+        if modelType is not None:
             if attrQname is None:
-                missingAttributes = type.requiredAttributeQnames - presentAttributes - elt.slottedAttributesNames
+                missingAttributes = modelType.requiredAttributeQnames - presentAttributes - elt.slottedAttributesNames
                 if missingAttributes:
                     modelXbrl.error("xmlSchema:attributesRequired",
                         _("Element %(element)s type %(typeName)s missing required attributes: %(attributes)s"),
@@ -334,7 +336,7 @@ def validate(
                         attributes=','.join(str(a) for a in missingAttributes))
                 extraAttributes = presentAttributes - definedAttributes.keys() - XbrlConst.builtinAttributes
                 if extraAttributes:
-                    attributeWildcards = type.attributeWildcards
+                    attributeWildcards = modelType.attributeWildcards
                     extraAttributes -= set(a
                                            for a in extraAttributes
                                            if validateAnyWildcard(qnElt, a, attributeWildcards))
@@ -348,9 +350,9 @@ def validate(
                             typeName=baseXsdType,
                             attributes=','.join(str(a) for a in extraAttributes))
                 # add default attribute values
-                for attrQname in (type.defaultAttributeQnames - presentAttributes):
-                    modelAttr = type.attributes[attrQname]
-                    validateValue(modelXbrl, elt, attrQname.clarkNotation, modelAttr.baseXsdType, modelAttr.default, facets=modelAttr.facets)
+                for attrQname in (modelType.defaultAttributeQnames - presentAttributes):
+                    modelAttr = modelType.attributes[attrQname]
+                    validateValue(modelXbrl, elt, attrQname.clarkNotation, modelAttr.baseXsdType, modelAttr.default, facets=modelAttr.facets)  # type: ignore[arg-type]
             if recurse:
                 global validateElementSequence, modelGroupCompositorTitle
                 if validateElementSequence is None:
@@ -367,7 +369,7 @@ def validate(
                                 modelObject=elt,
                                 element=qnElt)
                     else:
-                        errResult = validateElementSequence(modelXbrl, type, childElts, ixFacts, setTargetModelXbrl)
+                        errResult = validateElementSequence(modelXbrl, modelType, childElts, ixFacts, setTargetModelXbrl)
                         if errResult is not None and errResult[2]:
                             iElt, occured, errDesc, errArgs = errResult
                             errElt1 = childElts[iElt] if iElt < len(childElts) else elt
@@ -718,7 +720,7 @@ def validateFacetValueString(facetName: str, facetValue: str, baseXsdType: str) 
 def validateAnyWildcard(qnElt: QName, qnAttr: QName, attributeWildcards: list[ModelAny]) -> bool:
     # note wildcard is a set of possibly multiple values from inherited attribute groups
     for attributeWildcard in attributeWildcards:
-        if attributeWildcard.allowsNamespace(qnAttr.namespaceURI):  # type: ignore[no-untyped-call]
+        if attributeWildcard.allowsNamespace(qnAttr.namespaceURI):
             return True
     return False
 

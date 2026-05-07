@@ -226,7 +226,7 @@ class ValidateUtr:
                 if unitMatched:
                     utrSatisfyingEntries.add(utrEntry)
                 break
-            _type = _type.typeDerivedFrom
+            _type = _type.typeDerivedFrom  # type: ignore[assignment]
             if isinstance(_type,list): # union type
                 _type = _type[0] # for now take first of union's types
         return utrSatisfyingEntries
