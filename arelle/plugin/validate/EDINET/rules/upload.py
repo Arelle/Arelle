@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
+import os
 from collections import defaultdict
 from collections.abc import Iterable
 from pathlib import Path
@@ -800,7 +801,7 @@ def rule_uri_references(
 
         uriPath = Path(uriReference.attributeValue)
         documentFullPath = Path(uriReference.document.uri)
-        referenceFullPath = (documentFullPath.parent / uriPath).resolve()
+        referenceFullPath = Path(os.path.normpath(documentFullPath.parent / uriPath))
         documentPathInfo = uploadContents.uploadPathsByFullPath.get(documentFullPath)
         assert documentPathInfo is not None # Should always be present, as it must exist to have a uriReference discovered.
         reportFullPath = Path(str(val.modelXbrl.fileSource.baseurl)) / (documentPathInfo.reportPath or "")
